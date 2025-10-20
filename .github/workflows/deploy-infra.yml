@@ -1,4 +1,4 @@
-name: Deploy Infra (Terraform, OIDC, Workspaces)
+name: Deploy Infra (Terraform Workspaces)
 
 on:
   push:
@@ -38,9 +38,6 @@ jobs:
         with:
           terraform_version: 1.9.5
 
-      # Configure AWS credentials using access keys per company policy
-      # Note: Requires AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY repository secrets
-      # Security: Ensure access keys follow principle of least privilege and key rotation policies
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -66,8 +63,6 @@ jobs:
 
           WS="${{ matrix.env }}"
           echo "Ensuring Terraform workspace '${WS}' exists..."
-
-          # Normalize workspace names from 'terraform workspace list'
           if terraform workspace list | sed 's/^[* ]*//' | grep -Fxq "$WS"; then
             echo "Selecting existing workspace: $WS"
             terraform workspace select "$WS"
@@ -75,70 +70,39 @@ jobs:
             echo "Creating new workspace: $WS"
             terraform workspace new "$WS"
           fi
-
           echo "Current workspace: $(terraform workspace show)"
 
-          # Verify backend is initialized (in case this step runs before init in your workflow)
-          if [ ! -d .terraform ]; then
-            echo "Terraform not initialized yet; running 'terraform init'..."
-            terraform init -input=false
-          fi
+          # Ensure backend directory exists if re-run
+            if [ ! -d .terraform ]; then
+              echo "Terraform not initialized yet; running 'terraform init'..."
+              terraform init -input=false
+            fi
 
-          # Check if remote state object exists for this workspace
-          # Key pattern: env:/$WORKSPACE/aimodelshare/infra/terraform.tfstate
           STATE_KEY="env:/${WS}/aimodelshare/infra/terraform.tfstate"
           echo "Checking if remote state object exists: ${STATE_KEY}"
-          
           if aws s3api head-object --bucket "aimodelshare-tfstate-prod-copilot-2024" --key "${STATE_KEY}" >/dev/null 2>&1; then
             echo "Remote state object exists for workspace '${WS}'"
           else
             echo "Remote state object missing for workspace '${WS}' - creating initial state"
-            echo "Running targeted apply to seed remote state..."
             terraform apply -auto-approve -target=null_resource.state_seed
-            echo "Initial state object created successfully"
           fi
 
-          # Import shared DynamoDB table if it exists in AWS and not already in state
-          # This prevents 'ResourceInUseException' on apply for the shared table
-          echo "Checking DynamoDB table import status..."
-          
-          # Get the table name from Terraform variables
-          echo "Retrieving table name from Terraform configuration..."
-          if ! TABLE_NAME=$(terraform console <<< 'var.table_name' 2>&1); then
-            echo "Error: Failed to retrieve table name from Terraform variables"
-            echo "Terraform console output: $TABLE_NAME"
-            exit 1
-          fi
-          TABLE_NAME=$(echo "$TABLE_NAME" | tr -d '"')
-          if [ -z "$TABLE_NAME" ]; then
-            echo "Error: Retrieved empty table name from Terraform variables"
-            exit 1
-          fi
-          echo "DynamoDB table name: ${TABLE_NAME}"
-          
+          # Retrieve table name WITHOUT terraform console (avoid interactive hang)
+          TABLE_NAME="PlaygroundScores"
+          echo "Using table name: ${TABLE_NAME}"
+
+          # Attempt import only if not already tracked
           if terraform state show aws_dynamodb_table.playground >/dev/null 2>&1; then
-            echo "Shared DynamoDB table '${TABLE_NAME}' already tracked in state for workspace '$WS'."
+            echo "DynamoDB table already in state."
           else
             echo "Checking if DynamoDB table '${TABLE_NAME}' exists in AWS..."
-            # Temporarily disable exit on error for import operations
             set +e
-            
-            # Check if table exists in AWS first
             if aws dynamodb describe-table --table-name "${TABLE_NAME}" >/dev/null 2>&1; then
-              echo "DynamoDB table '${TABLE_NAME}' exists in AWS - attempting import..."
-              terraform import aws_dynamodb_table.playground "${TABLE_NAME}"
-              IMPORT_RESULT=$?
-              
-              if [ $IMPORT_RESULT -eq 0 ]; then
-                echo "Successfully imported DynamoDB table '${TABLE_NAME}' into state"
-              else
-                echo "Import failed but continuing - subsequent apply will reconcile differences"
-              fi
+              echo "Table exists - attempting Terraform import..."
+              terraform import aws_dynamodb_table.playground "${TABLE_NAME}" || echo "Import failed; will reconcile on apply."
             else
-              echo "DynamoDB table '${TABLE_NAME}' does not exist in AWS - will be created on apply"
+              echo "Table does not exist; will be created on apply."
             fi
-            
-            # Re-enable exit on error
             set -e
           fi
 
