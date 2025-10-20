@@ -125,3 +125,29 @@ jobs:
       - name: Show Outputs
         working-directory: infra
         run: terraform output -json
+
+      - name: Run API Integration Tests
+        if: github.ref == 'refs/heads/master'
+        working-directory: .
+        run: |
+          # Extract API base URL from Terraform outputs
+          API_BASE_URL=$(cd infra && terraform output -raw api_base_url)
+          echo "API Base URL: $API_BASE_URL"
+          
+          # Validate that we got a proper URL
+          if [[ -z "$API_BASE_URL" || "$API_BASE_URL" == "null" ]]; then
+            echo "❌ Failed to get API base URL from Terraform outputs"
+            exit 1
+          fi
+          
+          # Install requests library for API testing
+          python -m pip install --upgrade pip
+          python -m pip install requests
+          
+          # Wait a moment for API to be fully available
+          echo "⏳ Waiting for API to be fully available..."
+          sleep 15
+          
+          # Run API integration tests
+          echo "🚀 Starting API Integration Tests..."
+          python tests/test_api_integration.py "$API_BASE_URL"
