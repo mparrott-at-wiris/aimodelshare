@@ -72,6 +72,8 @@ class APIIntegrationTests:
             raise Exception(f"Request timed out after 30 seconds")
         except requests.exceptions.ConnectionError:
             raise Exception(f"Failed to connect to {url}")
+        except requests.exceptions.HTTPError as e:
+            raise Exception(f"HTTP error occurred: {str(e)}")
         except requests.exceptions.RequestException as e:
             raise Exception(f"Request failed: {str(e)}")
             
