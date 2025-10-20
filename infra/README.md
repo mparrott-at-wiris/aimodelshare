@@ -44,6 +44,8 @@ The S3 bucket and DynamoDB table for Terraform state management are now automati
 1. **Bootstrap Workflow**: The `bootstrap-terraform.yml` workflow creates the required AWS resources:
    - S3 bucket: `aimodelshare-tfstate-prod-copilot-2024` (with hardcoded suffix)
    - DynamoDB table: `aimodelshare-tf-locks`
+   - OIDC identity provider: `token.actions.githubusercontent.com`
+   - IAM role: `aimodelshare-github-oidc-deployer` (with comprehensive deployment permissions)
 
 2. **Integrated Deployment**: The `deploy-infra.yml` workflow automatically runs bootstrap before deploying infrastructure
 
@@ -79,45 +81,26 @@ gh workflow run bootstrap-terraform.yml
 # The table name is: aimodelshare-tf-locks
 ```
 
-### 3. Create OIDC IAM Role
+### ~~3. Create OIDC IAM Role~~ (No longer needed)
 
-Create trust policy file `gh-oidc-trust.json`:
+~~Create trust policy file `gh-oidc-trust.json`:~~
 
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "GitHubOIDCTrust",
-      "Effect": "Allow",
-      "Principal": {
-        "Federated": "arn:aws:iam::YOUR_AWS_ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com"
-      },
-      "Action": "sts:AssumeRoleWithWebIdentity",
-      "Condition": {
-        "StringLike": {
-          "token.actions.githubusercontent.com:sub": [
-            "repo:mparrott-at-wiris/aimodelshare:*"
-          ]
-        },
-        "StringEquals": {
-          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
-        }
-      }
-    }
-  ]
-}
-```
-
-Create the role:
+~~The following manual setup is no longer required as it's now automated:~~
 
 ```bash
-aws iam create-role \
-  --role-name aimodelshare-github-oidc-deployer \
-  --assume-role-policy-document file://gh-oidc-trust.json
+# This is now automated - no manual action needed!
+# The OIDC provider and IAM role are created automatically during bootstrap
+# Role name: aimodelshare-github-oidc-deployer
 ```
 
-Create and attach deployment policy (see `deploy-policy.json` in problem statement).
+~~Create the role:~~
+
+```bash
+# This is now automated - no manual action needed!
+# aws iam create-role --role-name aimodelshare-github-oidc-deployer
+```
+
+~~Create and attach deployment policy (see `deploy-policy.json` in problem statement).~~
 
 ### 4. ~~Update Terraform Backend Configuration~~ (Now Automated)
 
@@ -139,7 +122,16 @@ backend "s3" {
 
 ### Required Repository Secrets
 
-- `AWS_ROLE_TO_ASSUME`: IAM role ARN for OIDC deployment
+- `AWS_ROLE_TO_ASSUME`: IAM role ARN for OIDC deployment (automatically created during bootstrap as `arn:aws:iam::YOUR_ACCOUNT:role/aimodelshare-github-oidc-deployer`)
+
+**Setting up the role ARN after bootstrap:**
+
+```bash
+# After running bootstrap, get the role ARN and set it as a repository secret
+cd infra/bootstrap
+ROLE_ARN=$(terraform output -raw github_actions_role_arn)
+gh secret set AWS_ROLE_TO_ASSUME --body "$ROLE_ARN"
+```
 
 ### Required Repository Variables
 

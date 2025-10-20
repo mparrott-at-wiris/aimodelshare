@@ -1,9 +1,11 @@
 # Terraform Bootstrap
 
-This directory contains the bootstrap Terraform configuration that creates the required AWS resources for storing Terraform state:
+This directory contains the bootstrap Terraform configuration that creates the required AWS resources for storing Terraform state and GitHub Actions OIDC authentication:
 
 - **S3 Bucket**: `aimodelshare-tfstate-prod-copilot-2024` - Stores Terraform state files
 - **DynamoDB Table**: `aimodelshare-tf-locks` - Provides state locking to prevent concurrent modifications
+- **OIDC Identity Provider**: `token.actions.githubusercontent.com` - Enables GitHub Actions OIDC authentication
+- **IAM Role**: `aimodelshare-github-oidc-deployer` - Role for GitHub Actions to deploy infrastructure with comprehensive permissions
 
 ## Hardcoded Configuration
 
@@ -45,6 +47,28 @@ terraform apply
 - The S3 bucket will be emptied before destruction to avoid conflicts
 - Always backup important state files before destroying bootstrap resources
 
+## Automatic GitHub Actions Configuration
+
+After running the bootstrap, the GitHub Actions role ARN will be available in the Terraform outputs. You can set the `AWS_ROLE_TO_ASSUME` repository secret using:
+
+```bash
+# Get the role ARN from bootstrap outputs
+cd infra/bootstrap
+ROLE_ARN=$(terraform output -raw github_actions_role_arn)
+echo "Set AWS_ROLE_TO_ASSUME secret to: $ROLE_ARN"
+
+# Or use GitHub CLI to set it directly:
+gh secret set AWS_ROLE_TO_ASSUME --body "$ROLE_ARN"
+```
+
+The role includes all necessary permissions for deploying the aimodelshare infrastructure, including:
+- S3 access for Terraform state
+- DynamoDB access for state locking and application tables
+- Lambda function management
+- IAM role and policy management (scoped to aimodelshare resources)
+- API Gateway management
+- CloudWatch Logs access
+
 ## Outputs
 
 The bootstrap configuration provides the following outputs:
@@ -54,5 +78,7 @@ The bootstrap configuration provides the following outputs:
 - `dynamodb_table_name`: Name of the lock table
 - `dynamodb_table_arn`: ARN of the lock table
 - `terraform_backend_config`: Complete backend configuration object
+- `github_actions_role_arn`: ARN of the GitHub Actions IAM role for OIDC authentication
+- `github_oidc_provider_arn`: ARN of the GitHub OIDC identity provider
 
 These outputs can be used by other Terraform configurations or workflows.
