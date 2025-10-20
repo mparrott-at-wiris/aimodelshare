@@ -8,40 +8,37 @@ import boto3
 from decimal import Decimal
 from datetime import datetime
 import re
-from boto3.dynamodb.conditions import Key  # Added for proper query expressions
+import time
+import random
+from boto3.dynamodb.conditions import Key
+from botocore.exceptions import ClientError
 
 # DynamoDB setup
 TABLE_NAME = os.environ.get('TABLE_NAME', 'PlaygroundScores')
 SAFE_CONCURRENCY = os.environ.get('SAFE_CONCURRENCY', 'false').lower() == 'true'
-
-# Boot log for observability - shows which table is being used
-print(f"[BOOT] Using DynamoDB table: {TABLE_NAME}")
+READ_CONSISTENT = os.environ.get('READ_CONSISTENT', 'true').lower() == 'true'
 
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table(TABLE_NAME)
 
+print(f"[BOOT] Using DynamoDB table: {TABLE_NAME} | SAFE_CONCURRENCY={SAFE_CONCURRENCY} | READ_CONSISTENT={READ_CONSISTENT}")
+
 def decimal_default(obj):
-    """JSON serializer for Decimal objects"""
     if isinstance(obj, Decimal):
-        return float(obj)
+        # Ensure whole numbers stay ints for nicer JSON (if desired)
+        f = float(obj)
+        if f.is_integer():
+            return int(f)
+        return f
     raise TypeError
 
 def validate_table_id(table_id):
-    """Validate table ID format"""
-    if not table_id or not isinstance(table_id, str):
-        return False
-    # Allow alphanumeric, underscores, hyphens, up to 64 chars
-    return bool(re.match(r'^[a-zA-Z0-9_-]{1,64}$', table_id))
+    return bool(table_id and isinstance(table_id, str) and re.match(r'^[a-zA-Z0-9_-]{1,64}$', table_id))
 
 def validate_username(username):
-    """Validate username format"""
-    if not username or not isinstance(username, str):
-        return False
-    # Allow alphanumeric, underscores, hyphens, up to 64 chars
-    return bool(re.match(r'^[a-zA-Z0-9_-]{1,64}$', username))
+    return bool(username and isinstance(username, str) and re.match(r'^[a-zA-Z0-9_-]{1,64}$', username))
 
 def create_response(status_code, body, headers=None):
-    """Create standardized API response"""
     default_headers = {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
@@ -50,37 +47,67 @@ def create_response(status_code, body, headers=None):
     }
     if headers:
         default_headers.update(headers)
-    
     return {
         'statusCode': status_code,
         'headers': default_headers,
         'body': json.dumps(body, default=decimal_default)
     }
 
+# -----------------------------
+# Retry Helpers
+# -----------------------------
+RETRYABLE_ERRORS = {
+    'ProvisionedThroughputExceededException',
+    'ThrottlingException',
+    'InternalServerError',
+    'TransactionCanceledException'
+}
+
+def retry_dynamo(op_fn, max_attempts=5, base_delay=0.05):
+    """
+    Generic retry wrapper for DynamoDB operations prone to transient throttling.
+    Jitter: random 0-50% added to exponential backoff.
+    """
+    attempt = 0
+    while True:
+        try:
+            return op_fn()
+        except ClientError as e:
+            code = e.response.get('Error', {}).get('Code')
+            if code in RETRYABLE_ERRORS and attempt < max_attempts - 1:
+                sleep_time = (base_delay * (2 ** attempt)) * (1 + random.random() * 0.5)
+                print(f"[RETRY] DynamoDB error {code}, attempt {attempt+1}/{max_attempts}, sleeping {sleep_time:.3f}s")
+                time.sleep(sleep_time)
+                attempt += 1
+                continue
+            raise
+        except Exception as e:
+            # Non-ClientError or unknown; do not retry unless you want broader coverage
+            raise
+
+# -----------------------------
+# Core Handlers
+# -----------------------------
 def create_table(event):
-    """Create a new logical table entry"""
     try:
         body = json.loads(event.get('body', '{}'))
         table_id = body.get('tableId')
         display_name = body.get('displayName', table_id)
-        
+
         if not validate_table_id(table_id):
-            return create_response(400, {
-                'error': 'Invalid tableId. Must be alphanumeric with underscores/hyphens, max 64 chars'
-            })
-        
-        # Check if table already exists
+            return create_response(400, {'error': 'Invalid tableId. Must be alphanumeric with underscores/hyphens, max 64 chars'})
+
+        # Check existence (metadata item)
         try:
-            response = table.get_item(
-                Key={'tableId': table_id, 'username': '_metadata'}
-            )
-            if 'Item' in response:
-                return create_response(409, {
-                    'error': f'Table {table_id} already exists'
-                })
-        except Exception:
-            pass
-        
+            resp = retry_dynamo(lambda: table.get_item(
+                Key={'tableId': table_id, 'username': '_metadata'},
+                ConsistentRead=READ_CONSISTENT
+            ))
+            if 'Item' in resp:
+                return create_response(409, {'error': f'Table {table_id} already exists'})
+        except ClientError as e:
+            print(f"[WARN] get_item metadata error during create_table: {e}")
+
         metadata = {
             'tableId': table_id,
             'username': '_metadata',
@@ -89,64 +116,52 @@ def create_table(event):
             'isArchived': False,
             'userCount': 0
         }
-        
-        table.put_item(Item=metadata)
-        
+
+        retry_dynamo(lambda: table.put_item(Item=metadata))
+
         return create_response(201, {
             'tableId': table_id,
             'displayName': display_name,
             'message': 'Table created successfully'
         })
-        
     except json.JSONDecodeError:
         return create_response(400, {'error': 'Invalid JSON in request body'})
     except Exception as e:
+        print(f"[ERROR] create_table exception: {e}")
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
 def list_tables(event):
-    """List all logical tables"""
     try:
-        # Query for all metadata entries using GSI by user
-        response = table.query(
+        resp = retry_dynamo(lambda: table.query(
             IndexName='byUser',
             KeyConditionExpression=Key('username').eq('_metadata')
-        )
-        
-        tables = []
-        for item in response.get('Items', []):
-            tables.append({
-                'tableId': item['tableId'],
-                'displayName': item.get('displayName', item['tableId']),
-                'createdAt': item.get('createdAt'),
-                'isArchived': item.get('isArchived', False),
-                'userCount': item.get('userCount', 0)
-            })
-        
-        # Sort by creation date, newest first
+        ))
+        tables = [{
+            'tableId': item['tableId'],
+            'displayName': item.get('displayName', item['tableId']),
+            'createdAt': item.get('createdAt'),
+            'isArchived': item.get('isArchived', False),
+            'userCount': item.get('userCount', 0)
+        } for item in resp.get('Items', [])]
         tables.sort(key=lambda x: x.get('createdAt', ''), reverse=True)
-        
         return create_response(200, {'tables': tables})
-        
     except Exception as e:
+        print(f"[ERROR] list_tables exception: {e}")
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
 def get_table(event):
-    """Get specific table metadata"""
     try:
         params = event.get('pathParameters') or {}
         table_id = params.get('tableId')
-        
         if not validate_table_id(table_id):
             return create_response(400, {'error': 'Invalid tableId format'})
-        
-        response = table.get_item(
-            Key={'tableId': table_id, 'username': '_metadata'}
-        )
-        
-        if 'Item' not in response:
+        resp = retry_dynamo(lambda: table.get_item(
+            Key={'tableId': table_id, 'username': '_metadata'},
+            ConsistentRead=READ_CONSISTENT
+        ))
+        if 'Item' not in resp:
             return create_response(404, {'error': 'Table not found'})
-        
-        item = response['Item']
+        item = resp['Item']
         return create_response(200, {
             'tableId': item['tableId'],
             'displayName': item.get('displayName', item['tableId']),
@@ -154,174 +169,153 @@ def get_table(event):
             'isArchived': item.get('isArchived', False),
             'userCount': item.get('userCount', 0)
         })
-        
     except Exception as e:
+        print(f"[ERROR] get_table exception: {e}")
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
 def patch_table(event):
-    """Update table metadata (e.g., archive/unarchive)"""
     try:
         params = event.get('pathParameters') or {}
         table_id = params.get('tableId')
         body = json.loads(event.get('body', '{}'))
-        
+
         if not validate_table_id(table_id):
             return create_response(400, {'error': 'Invalid tableId format'})
-        
-        response = table.get_item(
-            Key={'tableId': table_id, 'username': '_metadata'}
-        )
-        
-        if 'Item' not in response:
+
+        resp = retry_dynamo(lambda: table.get_item(
+            Key={'tableId': table_id, 'username': '_metadata'},
+            ConsistentRead=READ_CONSISTENT
+        ))
+        if 'Item' not in resp:
             return create_response(404, {'error': 'Table not found'})
-        
+
         update_expression = []
         expression_values = {}
-        
         if 'displayName' in body:
             update_expression.append('displayName = :display_name')
             expression_values[':display_name'] = body['displayName']
-        
         if 'isArchived' in body:
             update_expression.append('isArchived = :is_archived')
             expression_values[':is_archived'] = bool(body['isArchived'])
-        
         if not update_expression:
             return create_response(400, {'error': 'No valid fields to update'})
-        
         update_expression.append('updatedAt = :updated_at')
         expression_values[':updated_at'] = datetime.utcnow().isoformat()
-        
-        table.update_item(
+
+        retry_dynamo(lambda: table.update_item(
             Key={'tableId': table_id, 'username': '_metadata'},
             UpdateExpression='SET ' + ', '.join(update_expression),
             ExpressionAttributeValues=expression_values
-        )
-        
+        ))
         return create_response(200, {'message': 'Table updated successfully'})
-        
     except json.JSONDecodeError:
         return create_response(400, {'error': 'Invalid JSON in request body'})
     except Exception as e:
+        print(f"[ERROR] patch_table exception: {e}")
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
 def list_users(event):
-    """List all users for a specific table"""
     try:
         params = event.get('pathParameters') or {}
         table_id = params.get('tableId')
-        
         if not validate_table_id(table_id):
             return create_response(400, {'error': 'Invalid tableId format'})
-        
-        # Ensure table exists
-        metadata_response = table.get_item(
-            Key={'tableId': table_id, 'username': '_metadata'}
-        )
-        if 'Item' not in metadata_response:
+
+        # Verify table exists
+        meta = retry_dynamo(lambda: table.get_item(
+            Key={'tableId': table_id, 'username': '_metadata'},
+            ConsistentRead=READ_CONSISTENT
+        ))
+        if 'Item' not in meta:
             return create_response(404, {'error': 'Table not found'})
-        
-        # Query all items for this tableId (metadata + users)
-        response = table.query(
+
+        resp = retry_dynamo(lambda: table.query(
             KeyConditionExpression=Key('tableId').eq(table_id)
-        )
-        
-        users = []
-        for item in response.get('Items', []):
-            if item.get('username') == '_metadata':
-                continue  # Skip metadata record
-            users.append({
-                'username': item['username'],
-                'submissionCount': item.get('submissionCount', 0),
-                'totalCount': item.get('totalCount', 0),
-                'lastUpdated': item.get('lastUpdated')
-            })
-        
+        ))
+        users = [{
+            'username': item['username'],
+            'submissionCount': item.get('submissionCount', 0),
+            'totalCount': item.get('totalCount', 0),
+            'lastUpdated': item.get('lastUpdated')
+        } for item in resp.get('Items', []) if item.get('username') != '_metadata']
         users.sort(key=lambda x: x.get('submissionCount', 0), reverse=True)
-        
         return create_response(200, {'users': users})
-        
     except Exception as e:
+        print(f"[ERROR] list_users exception: {e}")
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
 def get_user(event):
-    """Get specific user data for a table"""
     try:
         params = event.get('pathParameters') or {}
         table_id = params.get('tableId')
         username = params.get('username')
-        
         if not validate_table_id(table_id):
             return create_response(400, {'error': 'Invalid tableId format'})
         if not validate_username(username):
             return create_response(400, {'error': 'Invalid username format'})
-        
-        metadata_response = table.get_item(
-            Key={'tableId': table_id, 'username': '_metadata'}
-        )
-        if 'Item' not in metadata_response:
+
+        meta = retry_dynamo(lambda: table.get_item(
+            Key={'tableId': table_id, 'username': '_metadata'},
+            ConsistentRead=READ_CONSISTENT
+        ))
+        if 'Item' not in meta:
             return create_response(404, {'error': 'Table not found'})
-        
-        response = table.get_item(
-            Key={'tableId': table_id, 'username': username}
-        )
-        if 'Item' not in response:
+
+        resp = retry_dynamo(lambda: table.get_item(
+            Key={'tableId': table_id, 'username': username},
+            ConsistentRead=READ_CONSISTENT
+        ))
+        if 'Item' not in resp:
             return create_response(404, {'error': 'User not found in table'})
-        
-        item = response['Item']
+        item = resp['Item']
         return create_response(200, {
             'username': item['username'],
             'submissionCount': item.get('submissionCount', 0),
             'totalCount': item.get('totalCount', 0),
             'lastUpdated': item.get('lastUpdated')
         })
-        
     except Exception as e:
+        print(f"[ERROR] get_user exception: {e}")
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
 def put_user(event):
-    """Update or create user data for a table"""
+    """
+    Concurrency-optimized user creation/update:
+    - Conditional PutItem to detect new user without initial GetItem.
+    - Retry transient throttling.
+    - Increment userCount only on successful new creation.
+    """
     try:
         params = event.get('pathParameters') or {}
         table_id = params.get('tableId')
         username = params.get('username')
         body = json.loads(event.get('body', '{}'))
-        
+
         if not validate_table_id(table_id):
             return create_response(400, {'error': 'Invalid tableId format'})
         if not validate_username(username):
             return create_response(400, {'error': 'Invalid username format'})
-        
-        metadata_response = table.get_item(
-            Key={'tableId': table_id, 'username': '_metadata'}
-        )
-        if 'Item' not in metadata_response:
+
+        # Ensure table exists (consistent read)
+        meta = retry_dynamo(lambda: table.get_item(
+            Key={'tableId': table_id, 'username': '_metadata'},
+            ConsistentRead=READ_CONSISTENT
+        ))
+        if 'Item' not in meta:
             return create_response(404, {'error': 'Table not found'})
-        
+
         submission_count = body.get('submissionCount')
         total_count = body.get('totalCount')
-        
         if submission_count is None or total_count is None:
-            return create_response(400, {
-                'error': 'submissionCount and totalCount are required'
-            })
+            return create_response(400, {'error': 'submissionCount and totalCount are required'})
         try:
             submission_count = int(submission_count)
             total_count = int(total_count)
         except (ValueError, TypeError):
-            return create_response(400, {
-                'error': 'submissionCount and totalCount must be integers'
-            })
+            return create_response(400, {'error': 'submissionCount and totalCount must be integers'})
         if submission_count < 0 or total_count < 0:
-            return create_response(400, {
-                'error': 'submissionCount and totalCount must be non-negative'
-            })
-        
-        existing_response = table.get_item(
-            Key={'tableId': table_id, 'username': username}
-        )
-        user_exists = 'Item' in existing_response
-        
+            return create_response(400, {'error': 'submissionCount and totalCount must be non-negative'})
+
         user_data = {
             'tableId': table_id,
             'username': username,
@@ -329,36 +323,58 @@ def put_user(event):
             'totalCount': total_count,
             'lastUpdated': datetime.utcnow().isoformat()
         }
-        table.put_item(Item=user_data)
-        
-        if not user_exists:
-            table.update_item(
-                Key={'tableId': table_id, 'username': '_metadata'},
-                UpdateExpression='ADD userCount :inc',
-                ExpressionAttributeValues={':inc': 1}
-            )
-        
+
+        created_new = False
+        try:
+            # Attempt conditional create (fails if user exists)
+            retry_dynamo(lambda: table.put_item(
+                Item=user_data,
+                ConditionExpression="attribute_not_exists(username)"
+            ))
+            created_new = True
+        except ClientError as e:
+            code = e.response.get('Error', {}).get('Code')
+            if code == 'ConditionalCheckFailedException':
+                # Existing user: just overwrite (idempotent update)
+                retry_dynamo(lambda: table.put_item(Item=user_data))
+            else:
+                print(f"[ERROR] put_user unexpected ClientError {code}: {e}")
+                return create_response(500, {'error': f'Internal server error: {code}'})
+        except Exception as e:
+            print(f"[ERROR] put_user unexpected exception: {e}")
+            return create_response(500, {'error': f'Internal server error: {str(e)}'})
+
+        if created_new:
+            try:
+                retry_dynamo(lambda: table.update_item(
+                    Key={'tableId': table_id, 'username': '_metadata'},
+                    UpdateExpression='ADD userCount :inc',
+                    ExpressionAttributeValues={':inc': 1}
+                ))
+            except Exception as e:
+                # Log but do not fail the entire user creation; user record exists
+                print(f"[WARN] Failed to increment userCount for new user {username}: {e}")
+
         return create_response(200, {
             'username': username,
             'submissionCount': submission_count,
             'totalCount': total_count,
-            'message': 'User data updated successfully'
+            'message': 'User data updated successfully',
+            'createdNew': created_new
         })
-        
+
     except json.JSONDecodeError:
         return create_response(400, {'error': 'Invalid JSON in request body'})
     except Exception as e:
+        print(f"[ERROR] put_user outer exception: {e}")
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
 def handler(event, context):
-    """Main Lambda handler with robust HTTP API v2 routing."""
     try:
         method = event.get('httpMethod') or event.get('requestContext', {}).get('http', {}).get('method')
         if method == 'OPTIONS':
             return create_response(200, {})
-        
         route_key = event.get('routeKey')
-        
         if route_key == 'POST /tables':
             return create_table(event)
         elif route_key == 'GET /tables':
@@ -373,29 +389,26 @@ def handler(event, context):
             return get_user(event)
         elif route_key == 'PUT /tables/{tableId}/users/{username}':
             return put_user(event)
-        else:
-            # Fallback legacy path parsing (unlikely needed now)
-            path = event.get('rawPath') or event.get('path') or ''
-            stage = event.get('requestContext', {}).get('stage')
-            if stage and path.startswith(f'/{stage}/'):
-                path = path[len(stage) + 1:]
-            
-            if method == 'POST' and path == '/tables':
-                return create_table(event)
-            elif method == 'GET' and path == '/tables':
-                return list_tables(event)
-            elif method == 'GET' and path.startswith('/tables/') and path.count('/') == 2:
-                return get_table(event)
-            elif method == 'PATCH' and path.startswith('/tables/') and path.count('/') == 2:
-                return patch_table(event)
-            elif method == 'GET' and path.endswith('/users') and path.count('/') == 3:
-                return list_users(event)
-            elif method == 'GET' and '/users/' in path and path.count('/') == 4:
-                return get_user(event)
-            elif method == 'PUT' and '/users/' in path and path.count('/') == 4:
-                return put_user(event)
-            else:
-                return create_response(404, {'error': 'Route not found'})
-            
+        # Legacy fallback (kept for safety)
+        path = event.get('rawPath') or event.get('path') or ''
+        stage = event.get('requestContext', {}).get('stage')
+        if stage and path.startswith(f'/{stage}/'):
+            path = path[len(stage) + 1:]
+        if method == 'POST' and path == '/tables':
+            return create_table(event)
+        elif method == 'GET' and path == '/tables':
+            return list_tables(event)
+        elif method == 'GET' and path.startswith('/tables/') and path.count('/') == 2:
+            return get_table(event)
+        elif method == 'PATCH' and path.startswith('/tables/') and path.count('/') == 2:
+            return patch_table(event)
+        elif method == 'GET' and path.endswith('/users') and path.count('/') == 3:
+            return list_users(event)
+        elif method == 'GET' and '/users/' in path and path.count('/') == 4:
+            return get_user(event)
+        elif method == 'PUT' and '/users/' in path and path.count('/') == 4:
+            return put_user(event)
+        return create_response(404, {'error': 'Route not found'})
     except Exception as e:
+        print(f"[ERROR] handler unexpected exception: {e}")
         return create_response(500, {'error': f'Unexpected error: {str(e)}'})
