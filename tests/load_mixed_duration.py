@@ -230,8 +230,8 @@ class MixedDurationLoadTest:
         table.add_row("Max", f"{max(latencies):.1f}")
         table.add_row("Mean", f"{sum(latencies) / count:.1f}")
         table.add_row("Median", f"{latencies[count // 2]:.1f}")
-        table.add_row("P95", f"{latencies[int(count * 0.95)]:.1f}")
-        table.add_row("P99", f"{latencies[int(count * 0.99)]:.1f}")
+        table.add_row("P95", f"{latencies[max(0, min(count-1, int(count * 0.95)))]:.1f}")
+        table.add_row("P99", f"{latencies[max(0, min(count-1, int(count * 0.99)))]:.1f}")
         
         self.console.print(table)
         
