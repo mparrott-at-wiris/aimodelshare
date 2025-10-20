@@ -103,7 +103,17 @@ jobs:
           echo "Checking DynamoDB table import status..."
           
           # Get the table name from Terraform variables
-          TABLE_NAME=$(terraform console <<< 'var.table_name' 2>/dev/null | tr -d '"' || echo "PlaygroundScores")
+          echo "Retrieving table name from Terraform configuration..."
+          if ! TABLE_NAME=$(terraform console <<< 'var.table_name' 2>&1); then
+            echo "Error: Failed to retrieve table name from Terraform variables"
+            echo "Terraform console output: $TABLE_NAME"
+            exit 1
+          fi
+          TABLE_NAME=$(echo "$TABLE_NAME" | tr -d '"')
+          if [ -z "$TABLE_NAME" ]; then
+            echo "Error: Retrieved empty table name from Terraform variables"
+            exit 1
+          fi
           echo "DynamoDB table name: ${TABLE_NAME}"
           
           if terraform state show aws_dynamodb_table.playground >/dev/null 2>&1; then
