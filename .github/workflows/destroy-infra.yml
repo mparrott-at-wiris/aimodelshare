@@ -34,6 +34,9 @@ jobs:
           terraform_version: 1.9.5
           terraform_wrapper: false
 
+      # Configure AWS credentials using access keys per company policy
+      # Note: Requires AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY repository secrets
+      # Security: Ensure access keys follow principle of least privilege and key rotation policies
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
