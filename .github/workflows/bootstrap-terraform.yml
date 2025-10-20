@@ -24,7 +24,6 @@ jobs:
       github_actions_role_arn: ${{ steps.terraform_output.outputs.github_actions_role_arn }}
     
     permissions:
-      id-token: write
       contents: read
 
     env:
@@ -41,12 +40,12 @@ jobs:
           terraform_version: 1.9.5
           terraform_wrapper: false
 
-      - name: Configure AWS credentials (OIDC)
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-          role-session-name: aimodelshare-bootstrap
 
       - name: Check if resources already exist
         id: check_resources
