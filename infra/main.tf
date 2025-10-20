@@ -9,6 +9,10 @@ terraform {
       source  = "hashicorp/archive"
       version = "~> 2.5"
     }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.2"
+    }
   }
 
   # Remote state backend (created by bootstrap)
@@ -36,6 +40,22 @@ locals {
   tags = merge(var.tags, {
     workspace = local.workspace
   })
+}
+
+# -----------------------------
+# State Seed Resource
+# -----------------------------
+# This null_resource can be targeted to create an initial remote state object
+# when starting from a completely empty backend. This avoids errors where
+# Terraform expects a pre-existing state object for workspace operations.
+resource "null_resource" "state_seed" {
+  triggers = {
+    workspace = local.workspace
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # -----------------------------
