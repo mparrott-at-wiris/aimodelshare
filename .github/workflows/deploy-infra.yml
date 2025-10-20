@@ -151,3 +151,45 @@ jobs:
           # Run API integration tests
           echo "🚀 Starting API Integration Tests..."
           python tests/test_api_integration.py "$API_BASE_URL"
+
+      - name: Install Load Test Dependencies
+        if: github.ref == 'refs/heads/master' && (vars.RUN_LOAD_TESTS != 'false')
+        working-directory: .
+        run: |
+          # Install additional dependencies for load tests
+          python -m pip install aiohttp rich
+
+      - name: Run Load Tests - Single Table
+        if: github.ref == 'refs/heads/master' && (vars.RUN_LOAD_TESTS != 'false')
+        working-directory: .
+        run: |
+          # Extract API base URL from Terraform outputs (reuse from integration tests)
+          API_BASE_URL=$(cd infra && terraform output -raw api_base_url)
+          export API_BASE_URL
+          
+          echo "🚀 Running Single Table Load Test..."
+          python tests/load_single_table.py
+
+      - name: Run Load Tests - Multi Table
+        if: github.ref == 'refs/heads/master' && (vars.RUN_LOAD_TESTS != 'false')
+        working-directory: .
+        run: |
+          # Extract API base URL from Terraform outputs (reuse from integration tests)
+          API_BASE_URL=$(cd infra && terraform output -raw api_base_url)
+          export API_BASE_URL
+          
+          echo "🚀 Running Multi Table Load Test..."
+          python tests/load_multi_table.py
+
+      - name: Run Load Tests - Mixed Duration
+        if: github.ref == 'refs/heads/master' && (vars.RUN_LOAD_TESTS != 'false')
+        working-directory: .
+        env:
+          LOAD_DURATION_SECONDS: 20
+        run: |
+          # Extract API base URL from Terraform outputs (reuse from integration tests)
+          API_BASE_URL=$(cd infra && terraform output -raw api_base_url)
+          export API_BASE_URL
+          
+          echo "🚀 Running Mixed Duration Load Test (20s for CI)..."
+          python tests/load_mixed_duration.py
