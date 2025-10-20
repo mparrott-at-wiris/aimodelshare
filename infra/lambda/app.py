@@ -75,11 +75,9 @@ def create_table(event):
                 return create_response(409, {
                     'error': f'Table {table_id} already exists'
                 })
-        except Exception as e:
-            # If table doesn't exist, that's what we want
+        except Exception:
             pass
         
-        # Create table metadata entry
         metadata = {
             'tableId': table_id,
             'username': '_metadata',
@@ -105,7 +103,6 @@ def create_table(event):
 def list_tables(event):
     """List all logical tables"""
     try:
-        # Query for all metadata entries
         response = table.query(
             IndexName='byUser',
             KeyConditionExpression='username = :username',
@@ -113,7 +110,7 @@ def list_tables(event):
         )
         
         tables = []
-        for item in response['Items']:
+        for item in response.get('Items', []):
             tables.append({
                 'tableId': item['tableId'],
                 'displayName': item.get('displayName', item['tableId']),
@@ -122,7 +119,6 @@ def list_tables(event):
                 'userCount': item.get('userCount', 0)
             })
         
-        # Sort by creation date, newest first
         tables.sort(key=lambda x: x.get('createdAt', ''), reverse=True)
         
         return create_response(200, {'tables': tables})
@@ -133,7 +129,8 @@ def list_tables(event):
 def get_table(event):
     """Get specific table metadata"""
     try:
-        table_id = event['pathParameters']['tableId']
+        params = event.get('pathParameters') or {}
+        table_id = params.get('tableId')
         
         if not validate_table_id(table_id):
             return create_response(400, {'error': 'Invalid tableId format'})
@@ -160,13 +157,13 @@ def get_table(event):
 def patch_table(event):
     """Update table metadata (e.g., archive/unarchive)"""
     try:
-        table_id = event['pathParameters']['tableId']
+        params = event.get('pathParameters') or {}
+        table_id = params.get('tableId')
         body = json.loads(event.get('body', '{}'))
         
         if not validate_table_id(table_id):
             return create_response(400, {'error': 'Invalid tableId format'})
         
-        # Check if table exists
         response = table.get_item(
             Key={'tableId': table_id, 'username': '_metadata'}
         )
@@ -174,7 +171,6 @@ def patch_table(event):
         if 'Item' not in response:
             return create_response(404, {'error': 'Table not found'})
         
-        # Prepare update expression
         update_expression = []
         expression_values = {}
         
@@ -189,7 +185,6 @@ def patch_table(event):
         if not update_expression:
             return create_response(400, {'error': 'No valid fields to update'})
         
-        # Add updated timestamp
         update_expression.append('updatedAt = :updated_at')
         expression_values[':updated_at'] = datetime.utcnow().isoformat()
         
@@ -209,12 +204,12 @@ def patch_table(event):
 def list_users(event):
     """List all users for a specific table"""
     try:
-        table_id = event['pathParameters']['tableId']
+        params = event.get('pathParameters') or {}
+        table_id = params.get('tableId')
         
         if not validate_table_id(table_id):
             return create_response(400, {'error': 'Invalid tableId format'})
         
-        # Check if table exists
         metadata_response = table.get_item(
             Key={'tableId': table_id, 'username': '_metadata'}
         )
@@ -222,7 +217,6 @@ def list_users(event):
         if 'Item' not in metadata_response:
             return create_response(404, {'error': 'Table not found'})
         
-        # Query all users for this table
         response = table.query(
             KeyConditionExpression='tableId = :table_id',
             FilterExpression='username <> :metadata',
@@ -230,7 +224,7 @@ def list_users(event):
         )
         
         users = []
-        for item in response['Items']:
+        for item in response.get('Items', []):
             users.append({
                 'username': item['username'],
                 'submissionCount': item.get('submissionCount', 0),
@@ -238,7 +232,6 @@ def list_users(event):
                 'lastUpdated': item.get('lastUpdated')
             })
         
-        # Sort by submission count, highest first
         users.sort(key=lambda x: x.get('submissionCount', 0), reverse=True)
         
         return create_response(200, {'users': users})
@@ -249,27 +242,24 @@ def list_users(event):
 def get_user(event):
     """Get specific user data for a table"""
     try:
-        table_id = event['pathParameters']['tableId']
-        username = event['pathParameters']['username']
+        params = event.get('pathParameters') or {}
+        table_id = params.get('tableId')
+        username = params.get('username')
         
         if not validate_table_id(table_id):
             return create_response(400, {'error': 'Invalid tableId format'})
-        
         if not validate_username(username):
             return create_response(400, {'error': 'Invalid username format'})
         
-        # Check if table exists
         metadata_response = table.get_item(
             Key={'tableId': table_id, 'username': '_metadata'}
         )
-        
         if 'Item' not in metadata_response:
             return create_response(404, {'error': 'Table not found'})
         
         response = table.get_item(
             Key={'tableId': table_id, 'username': username}
         )
-        
         if 'Item' not in response:
             return create_response(404, {'error': 'User not found in table'})
         
@@ -287,25 +277,22 @@ def get_user(event):
 def put_user(event):
     """Update or create user data for a table"""
     try:
-        table_id = event['pathParameters']['tableId']
-        username = event['pathParameters']['username']
+        params = event.get('pathParameters') or {}
+        table_id = params.get('tableId')
+        username = params.get('username')
         body = json.loads(event.get('body', '{}'))
         
         if not validate_table_id(table_id):
             return create_response(400, {'error': 'Invalid tableId format'})
-        
         if not validate_username(username):
             return create_response(400, {'error': 'Invalid username format'})
         
-        # Check if table exists
         metadata_response = table.get_item(
             Key={'tableId': table_id, 'username': '_metadata'}
         )
-        
         if 'Item' not in metadata_response:
             return create_response(404, {'error': 'Table not found'})
         
-        # Validate input data
         submission_count = body.get('submissionCount')
         total_count = body.get('totalCount')
         
@@ -313,7 +300,6 @@ def put_user(event):
             return create_response(400, {
                 'error': 'submissionCount and totalCount are required'
             })
-        
         try:
             submission_count = int(submission_count)
             total_count = int(total_count)
@@ -321,19 +307,16 @@ def put_user(event):
             return create_response(400, {
                 'error': 'submissionCount and totalCount must be integers'
             })
-        
         if submission_count < 0 or total_count < 0:
             return create_response(400, {
                 'error': 'submissionCount and totalCount must be non-negative'
             })
         
-        # Check if user already exists to determine if we need to update user count
         existing_response = table.get_item(
             Key={'tableId': table_id, 'username': username}
         )
         user_exists = 'Item' in existing_response
         
-        # Update user data
         user_data = {
             'tableId': table_id,
             'username': username,
@@ -341,10 +324,8 @@ def put_user(event):
             'totalCount': total_count,
             'lastUpdated': datetime.utcnow().isoformat()
         }
-        
         table.put_item(Item=user_data)
         
-        # If this is a new user, increment the user count in metadata
         if not user_exists:
             table.update_item(
                 Key={'tableId': table_id, 'username': '_metadata'},
@@ -365,32 +346,56 @@ def put_user(event):
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
 def handler(event, context):
-    """Main Lambda handler"""
+    """Main Lambda handler with robust HTTP API v2 routing."""
     try:
+        # Fast-path for CORS preflight
         method = event.get('httpMethod') or event.get('requestContext', {}).get('http', {}).get('method')
-        path = event.get('path') or event.get('rawPath', '')
-        
-        # Handle CORS preflight requests
         if method == 'OPTIONS':
             return create_response(200, {})
         
-        # Route requests
-        if method == 'POST' and path == '/tables':
+        route_key = event.get('routeKey')  # e.g. "GET /tables"
+        
+        # Dispatch based on routeKey (preferred for HTTP API v2)
+        if route_key == 'POST /tables':
             return create_table(event)
-        elif method == 'GET' and path == '/tables':
+        elif route_key == 'GET /tables':
             return list_tables(event)
-        elif method == 'GET' and path.startswith('/tables/') and path.count('/') == 2:
+        elif route_key == 'GET /tables/{tableId}':
             return get_table(event)
-        elif method == 'PATCH' and path.startswith('/tables/') and path.count('/') == 2:
+        elif route_key == 'PATCH /tables/{tableId}':
             return patch_table(event)
-        elif method == 'GET' and path.endswith('/users') and path.count('/') == 3:
+        elif route_key == 'GET /tables/{tableId}/users':
             return list_users(event)
-        elif method == 'GET' and path.count('/') == 4 and '/users/' in path:
+        elif route_key == 'GET /tables/{tableId}/users/{username}':
             return get_user(event)
-        elif method == 'PUT' and path.count('/') == 4 and '/users/' in path:
+        elif route_key == 'PUT /tables/{tableId}/users/{username}':
             return put_user(event)
         else:
-            return create_response(404, {'error': 'Route not found'})
+            # Fallback: previous path-based routing (only if routeKey missing)
+            path = event.get('rawPath') or event.get('path') or ''
+            stage = event.get('requestContext', {}).get('stage')
+            if stage and path.startswith(f'/{stage}/'):
+                path = path[len(stage) + 1:]  # strip /{stage}
+            
+            if method == 'POST' and path == '/tables':
+                return create_table(event)
+            elif method == 'GET' and path == '/tables':
+                return list_tables(event)
+            elif method == 'GET' and path.startswith('/tables/') and path.count('/') == 2:
+                return get_table(event)
+            elif method == 'PATCH' and path.startswith('/tables/') and path.count('/') == 2:
+                return patch_table(event)
+            elif method == 'GET' and path.endswith('/users') and path.count('/') == 3:
+                return list_users(event)
+            elif method == 'GET' and '/users/' in path and path.count('/') == 4:
+                return get_user(event)
+            elif method == 'PUT' and '/users/' in path and path.count('/') == 4:
+                return put_user(event)
+            else:
+                return create_response(404, {'error': 'Route not found'})
+            
+    except Exception as e:
+        return create_response(500, {'error': f'Unexpected error: {str(e)}'})
             
     except Exception as e:
         return create_response(500, {'error': f'Unexpected error: {str(e)}'})
