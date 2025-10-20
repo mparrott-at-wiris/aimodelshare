@@ -31,12 +31,16 @@ provider "aws" {
 
 # -----------------------------
 # Workspaces pattern: per env overrides
+# Per-Environment Resource Isolation: Each workspace gets its own DynamoDB table
+# This ensures complete resource isolation between dev, stage, and prod environments
 # -----------------------------
 locals {
   workspace   = terraform.workspace
   name_prefix = "${var.name_prefix}-${local.workspace}"
   stage_name  = local.workspace == "default" ? var.stage_name : local.workspace
-  table_name  = var.table_name
+  # Per-environment table naming for complete resource isolation
+  # Examples: PlaygroundScores-dev, PlaygroundScores-stage, PlaygroundScores-prod
+  table_name = "${var.table_name}-${local.workspace}"
   tags = merge(var.tags, {
     workspace = local.workspace
   })

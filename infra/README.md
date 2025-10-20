@@ -186,6 +186,49 @@ Each environment gets:
 - Isolated API endpoints
 - Environment-specific tags
 
+## Per-Environment DynamoDB Tables
+
+**🚨 BREAKING CHANGE:** Starting with Work Package 1, each environment now gets its own isolated DynamoDB table instead of sharing a single table across all environments.
+
+### New Table Naming Pattern
+
+- **Development**: `PlaygroundScores-dev`
+- **Staging**: `PlaygroundScores-stage` 
+- **Production**: `PlaygroundScores-prod`
+- **Default workspace**: `PlaygroundScores-default` (if used)
+
+### Benefits
+
+- **Complete Resource Isolation**: No cross-environment data contamination
+- **Independent Scaling**: Each environment can scale independently
+- **Safer Testing**: Development and staging activities won't affect production data
+- **Simplified CI/CD**: No complex shared resource import logic needed
+
+### Migration Notes
+
+⚠️ **Important for Existing Deployments:**
+
+If you have existing environments that were previously using the shared `PlaygroundScores` table:
+
+1. **New deployments** will automatically create environment-specific tables
+2. **Existing data** in the shared table will remain untouched but won't be accessible to new deployments
+3. **Data migration** (if needed) must be handled manually:
+   ```bash
+   # Example: Export data from shared table
+   aws dynamodb scan --table-name PlaygroundScores --output json > backup.json
+   
+   # Import to environment-specific table (after deployment)
+   aws dynamodb batch-write-item --request-items file://import.json
+   ```
+4. **Legacy shared table** can be removed manually after confirming all environments are migrated
+
+### Observability
+
+The Lambda function now logs the table name being used on cold starts for better observability:
+```
+[BOOT] Using DynamoDB table: PlaygroundScores-dev
+```
+
 ## Deployment
 
 ### Automatic (GitHub Actions)

@@ -48,46 +48,43 @@ jobs:
         working-directory: infra
         run: terraform init -input=false
 
-      - name: Select/Create Workspace and Import Shared DynamoDB Table
+      - name: Select Workspace and Validate
         working-directory: infra
         run: |
           set -euo pipefail
 
           WS="${{ github.event.inputs.environment }}"
-          echo "Ensuring Terraform workspace '${WS}' exists..."
+          echo "Checking for existing Terraform workspace '${WS}'..."
 
-          # Normalize workspace names from 'terraform workspace list'
-          if terraform workspace list | sed 's/^[* ]*//' | grep -Fxq "$WS"; then
-            echo "Selecting existing workspace: $WS"
-            terraform workspace select "$WS"
-          else
-            echo "Creating new workspace: $WS"
-            terraform workspace new "$WS"
-          fi
-
-          echo "Current workspace: $(terraform workspace show)"
-
-          # Verify backend is initialized (in case this step runs before init in your workflow)
+          # Verify backend is initialized
           if [ ! -d .terraform ]; then
             echo "Terraform not initialized yet; running 'terraform init'..."
             terraform init -input=false
           fi
 
-          # Import shared DynamoDB table if not already in state.
-          # This prevents 'ResourceInUseException' on apply for the shared table.
-          if terraform state show aws_dynamodb_table.playground >/dev/null 2>&1; then
-            echo "Shared DynamoDB table 'PlaygroundScores' already tracked in state for workspace '$WS'."
+          # Check if workspace exists - abort if not (don't create for destroy)
+          if terraform workspace list | sed 's/^[* ]*//' | grep -Fxq "$WS"; then
+            echo "Selecting existing workspace: $WS"
+            terraform workspace select "$WS"
           else
-            echo "Importing shared DynamoDB table 'PlaygroundScores' into state for workspace '$WS'..."
-            terraform import aws_dynamodb_table.playground PlaygroundScores
+            echo "❌ ERROR: Workspace '$WS' does not exist. Cannot destroy non-existent workspace."
+            echo "Available workspaces:"
+            terraform workspace list
+            exit 1
           fi
 
-          echo "Workspace '$WS' ready; proceeding to plan/apply steps."
+          echo "✅ Workspace '$WS' validated and selected."
 
+      - name: Terraform Destroy Plan
+        working-directory: infra
+        run: |
+          echo "🔍 Generating destroy plan for audit..."
+          terraform plan -destroy -input=false -out=destroy.tfplan
+          echo "✅ Destroy plan generated. Proceeding with destroy..."
 
       - name: Terraform Destroy (Main Infrastructure)
         working-directory: infra
-        run: terraform destroy -input=false -auto-approve
+        run: terraform apply -input=false -auto-approve destroy.tfplan
 
       - name: Destroy Bootstrap Resources
         if: github.event.inputs.destroy_bootstrap == 'true'
