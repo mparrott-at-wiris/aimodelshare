@@ -158,3 +158,15 @@ terraform*.log
 *.backup
 terraform.rc
 .terraformrc
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform_*.zip
+
+# Lambda build artifacts
+*.zip
+python/
+__pycache__/

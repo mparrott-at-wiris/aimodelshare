@@ -1,0 +1,49 @@
+name: Destroy Infra (Terraform, OIDC, Workspaces)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Workspace to destroy (dev|stage|prod)'
+        required: true
+        default: 'dev'
+
+jobs:
+  destroy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+      TF_IN_AUTOMATION: "true"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.5
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-session-name: aimodelshare-gha-destroy
+
+      - name: Terraform Init
+        working-directory: infra
+        run: terraform init -input=false
+
+      - name: Select Workspace
+        working-directory: infra
+        run: terraform workspace select "${{ github.event.inputs.environment }}"
+
+      - name: Terraform Destroy
+        working-directory: infra
+        run: terraform destroy -input=false -auto-approve
