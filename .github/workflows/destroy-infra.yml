@@ -84,7 +84,7 @@ jobs:
 
       - name: Terraform Destroy (Main Infrastructure)
         working-directory: infra
-        run: terraform apply -input=false -auto-approve destroy.tfplan
+        run: terraform destroy -input=false -auto-approve
 
       - name: Destroy Bootstrap Resources
         if: github.event.inputs.destroy_bootstrap == 'true'

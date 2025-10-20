@@ -193,7 +193,7 @@ Each environment gets:
 ### New Table Naming Pattern
 
 - **Development**: `PlaygroundScores-dev`
-- **Staging**: `PlaygroundScores-stage` 
+- **Staging**: `PlaygroundScores-stage`
 - **Production**: `PlaygroundScores-prod`
 - **Default workspace**: `PlaygroundScores-default` (if used)
 
