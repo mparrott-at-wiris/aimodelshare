@@ -22,7 +22,7 @@ jobs:
       s3_bucket_name: ${{ steps.terraform_output.outputs.s3_bucket_name }}
       dynamodb_table_name: ${{ steps.terraform_output.outputs.dynamodb_table_name }}
       github_actions_role_arn: ${{ steps.terraform_output.outputs.github_actions_role_arn }}
-
+    
     permissions:
       id-token: write
       contents: read
