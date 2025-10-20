@@ -2,7 +2,7 @@ name: Deploy Infra (Terraform, OIDC, Workspaces)
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
     paths:
       - 'infra/**'
       - '.github/workflows/deploy-infra.yml'
@@ -76,7 +76,7 @@ jobs:
         run: terraform plan -input=false -out=tfplan
 
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/master'
         working-directory: infra
         run: terraform apply -input=false -auto-approve tfplan
 
