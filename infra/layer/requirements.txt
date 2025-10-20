@@ -1,3 +1,0 @@
-# Add whatever you need in the Lambda runtime
-# Example:
-aimodelshare
