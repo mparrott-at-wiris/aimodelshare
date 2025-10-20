@@ -35,35 +35,48 @@ This directory contains Terraform infrastructure for the AI Model Share playgrou
 - `GET /tables/{tableId}/users/{username}` - Get user data
 - `PUT /tables/{tableId}/users/{username}` - Update user scores
 
-## One-Time AWS Setup
+## Automated Bootstrap Setup
 
-### 1. Create S3 Bucket for Terraform State
+The S3 bucket and DynamoDB table for Terraform state management are now automatically created via GitHub Actions. No manual setup is required!
 
-Replace `<YOUR-SUFFIX>` with a unique identifier:
+### How It Works
+
+1. **Bootstrap Workflow**: The `bootstrap-terraform.yml` workflow creates the required AWS resources:
+   - S3 bucket: `aimodelshare-tfstate-prod-copilot-2024` (with hardcoded suffix)
+   - DynamoDB table: `aimodelshare-tf-locks`
+
+2. **Integrated Deployment**: The `deploy-infra.yml` workflow automatically runs bootstrap before deploying infrastructure
+
+3. **Smart Import**: If resources already exist, they are automatically imported into Terraform state
+
+### Manual Bootstrap (if needed)
+
+You can manually trigger the bootstrap workflow:
 
 ```bash
-# For us-east-1 (omit LocationConstraint)
-aws s3api create-bucket \
-  --bucket aimodelshare-tfstate-prod-<YOUR-SUFFIX>
-
-# For other regions, use:
-# aws s3api create-bucket \
-#   --bucket aimodelshare-tfstate-prod-<YOUR-SUFFIX> \
-#   --create-bucket-configuration LocationConstraint=<YOUR-REGION>
-
-aws s3api put-bucket-versioning \
-  --bucket aimodelshare-tfstate-prod-<YOUR-SUFFIX> \
-  --versioning-configuration Status=Enabled
+# Via GitHub Actions UI - use "Bootstrap Terraform State Resources" workflow
+# Or via CLI:
+gh workflow run bootstrap-terraform.yml
 ```
 
-### 2. Create DynamoDB Table for State Locking
+## ~~One-Time AWS Setup~~ (No longer needed)
+
+~~The following manual setup is no longer required as it's now automated:~~
+
+~~### 1. Create S3 Bucket for Terraform State~~
+
+~~Replace `<YOUR-SUFFIX>` with a unique identifier:~~
 
 ```bash
-aws dynamodb create-table \
-  --table-name aimodelshare-tf-locks \
-  --attribute-definitions AttributeName=LockID,AttributeType=S \
-  --key-schema AttributeName=LockID,KeyType=HASH \
-  --billing-mode PAY_PER_REQUEST
+# This is now automated - no manual action needed!
+# The bucket name is: aimodelshare-tfstate-prod-copilot-2024
+```
+
+~~### 2. Create DynamoDB Table for State Locking~~
+
+```bash
+# This is now automated - no manual action needed!
+# The table name is: aimodelshare-tf-locks
 ```
 
 ### 3. Create OIDC IAM Role
@@ -106,13 +119,15 @@ aws iam create-role \
 
 Create and attach deployment policy (see `deploy-policy.json` in problem statement).
 
-### 4. Update Terraform Backend Configuration
+### 4. ~~Update Terraform Backend Configuration~~ (Now Automated)
 
-Edit the backend block in `main.tf` to use your bucket name:
+~~Edit the backend block in `main.tf` to use your bucket name:~~
+
+The backend configuration is now automatically set to use the hardcoded bucket name:
 
 ```hcl
 backend "s3" {
-  bucket         = "aimodelshare-tfstate-prod-<YOUR-SUFFIX>"
+  bucket         = "aimodelshare-tfstate-prod-copilot-2024"
   key            = "aimodelshare/infra/terraform.tfstate"
   region         = "us-east-1"
   dynamodb_table = "aimodelshare-tf-locks"

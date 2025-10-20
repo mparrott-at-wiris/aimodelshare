@@ -7,6 +7,11 @@ on:
         description: 'Workspace to destroy (dev|stage|prod)'
         required: true
         default: 'dev'
+      destroy_bootstrap:
+        description: 'Also destroy bootstrap resources (S3 bucket and DynamoDB table) - USE WITH EXTREME CAUTION'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   destroy:
@@ -28,6 +33,7 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.9.5
+          terraform_wrapper: false
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
@@ -36,7 +42,7 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           role-session-name: aimodelshare-gha-destroy
 
-      - name: Terraform Init
+      - name: Terraform Init (Main Infrastructure)
         working-directory: infra
         run: terraform init -input=false
 
@@ -44,6 +50,33 @@ jobs:
         working-directory: infra
         run: terraform workspace select "${{ github.event.inputs.environment }}"
 
-      - name: Terraform Destroy
+      - name: Terraform Destroy (Main Infrastructure)
         working-directory: infra
         run: terraform destroy -input=false -auto-approve
+
+      - name: Destroy Bootstrap Resources
+        if: github.event.inputs.destroy_bootstrap == 'true'
+        working-directory: infra/bootstrap
+        run: |
+          echo "⚠️  WARNING: Destroying bootstrap resources (S3 bucket and DynamoDB table)"
+          echo "This will remove the Terraform state storage and could cause data loss!"
+          
+          # Initialize bootstrap Terraform
+          terraform init -input=false
+          
+          # Check if state bucket is empty (except for our state files)
+          BUCKET_NAME="aimodelshare-tfstate-prod-copilot-2024"
+          OBJECT_COUNT=$(aws s3api list-objects-v2 --bucket "$BUCKET_NAME" --query 'Contents | length(@)' --output text 2>/dev/null || echo "0")
+          
+          # AWS CLI returns 'None' for empty buckets, 'null' if bucket doesn't exist, or a number for non-empty buckets
+          if [[ "$OBJECT_COUNT" =~ ^[0-9]+$ ]] && [ "$OBJECT_COUNT" -gt 0 ]; then
+            echo "⚠️  S3 bucket contains $OBJECT_COUNT objects. Emptying bucket first..."
+            aws s3 rm s3://$BUCKET_NAME --recursive
+          else
+            echo "✅ S3 bucket is empty or doesn't exist (count: $OBJECT_COUNT), proceeding with destroy..."
+          fi
+          
+          # Destroy bootstrap resources
+          terraform destroy -input=false -auto-approve
+          
+          echo "✅ Bootstrap resources destroyed"

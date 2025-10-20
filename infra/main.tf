@@ -11,9 +11,9 @@ terraform {
     }
   }
 
-  # Remote state backend (replace bucket & table names)
+  # Remote state backend (created by bootstrap)
   backend "s3" {
-    bucket         = "aimodelshare-tfstate-prod-<YOUR-SUFFIX>"
+    bucket         = "aimodelshare-tfstate-prod-copilot-2024"
     key            = "aimodelshare/infra/terraform.tfstate"
     region         = "us-east-1"
     dynamodb_table = "aimodelshare-tf-locks"

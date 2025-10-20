@@ -6,10 +6,16 @@ on:
     paths:
       - 'infra/**'
       - '.github/workflows/deploy-infra.yml'
+      - '.github/workflows/bootstrap-terraform.yml'
   workflow_dispatch:
 
 jobs:
+  bootstrap:
+    uses: ./.github/workflows/bootstrap-terraform.yml
+    secrets: inherit
+
   deploy:
+    needs: bootstrap
     runs-on: ubuntu-latest
 
     strategy:
