@@ -48,9 +48,42 @@ jobs:
         working-directory: infra
         run: terraform init -input=false
 
-      - name: Select Workspace
+      - name: Select/Create Workspace and Import Shared DynamoDB Table
         working-directory: infra
-        run: terraform workspace select "${{ github.event.inputs.environment }}"
+        run: |
+          set -euo pipefail
+
+          WS="${{ matrix.env }}"
+          echo "Ensuring Terraform workspace '${WS}' exists..."
+
+          # Normalize workspace names from 'terraform workspace list'
+          if terraform workspace list | sed 's/^[* ]*//' | grep -Fxq "$WS"; then
+            echo "Selecting existing workspace: $WS"
+            terraform workspace select "$WS"
+          else
+            echo "Creating new workspace: $WS"
+            terraform workspace new "$WS"
+          fi
+
+          echo "Current workspace: $(terraform workspace show)"
+
+          # Verify backend is initialized (in case this step runs before init in your workflow)
+          if [ ! -d .terraform ]; then
+            echo "Terraform not initialized yet; running 'terraform init'..."
+            terraform init -input=false
+          fi
+
+          # Import shared DynamoDB table if not already in state.
+          # This prevents 'ResourceInUseException' on apply for the shared table.
+          if terraform state show aws_dynamodb_table.playground >/dev/null 2>&1; then
+            echo "Shared DynamoDB table 'PlaygroundScores' already tracked in state for workspace '$WS'."
+          else
+            echo "Importing shared DynamoDB table 'PlaygroundScores' into state for workspace '$WS'..."
+            terraform import aws_dynamodb_table.playground PlaygroundScores
+          fi
+
+          echo "Workspace '$WS' ready; proceeding to plan/apply steps."
+
 
       - name: Terraform Destroy (Main Infrastructure)
         working-directory: infra
