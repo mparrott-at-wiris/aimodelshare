@@ -1,0 +1,77 @@
+name: Deploy Infra (Terraform, OIDC, Workspaces)
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'infra/**'
+      - '.github/workflows/deploy-infra.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        env: [dev, stage, prod]
+
+    permissions:
+      id-token: write
+      contents: read
+
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+      TF_IN_AUTOMATION: "true"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.5
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-session-name: aimodelshare-gha
+
+      - name: (Optional) Build Lambda Layer
+        working-directory: infra/layer
+        run: |
+          if [ -f requirements.txt ]; then
+            bash build_layer.sh || true
+          fi
+
+      - name: Terraform Init
+        working-directory: infra
+        run: terraform init -input=false
+
+      - name: Select/Create Workspace
+        working-directory: infra
+        run: |
+          terraform workspace list | grep -q "${{ matrix.env }}" \
+          && terraform workspace select "${{ matrix.env }}" \
+          || terraform workspace new "${{ matrix.env }}"
+
+      - name: Terraform Validate
+        working-directory: infra
+        run: terraform validate
+
+      - name: Terraform Plan
+        id: plan
+        working-directory: infra
+        run: terraform plan -input=false -out=tfplan
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
+        working-directory: infra
+        run: terraform apply -input=false -auto-approve tfplan
+
+      - name: Show Outputs
+        working-directory: infra
+        run: terraform output -json
