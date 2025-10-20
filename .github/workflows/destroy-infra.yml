@@ -53,7 +53,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          WS="${{ matrix.env }}"
+          WS="${{ github.event.inputs.environment }}"
           echo "Ensuring Terraform workspace '${WS}' exists..."
 
           # Normalize workspace names from 'terraform workspace list'
