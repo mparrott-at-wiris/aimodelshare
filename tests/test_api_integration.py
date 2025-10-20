@@ -68,6 +68,10 @@ class APIIntegrationTests:
                 return requests.patch(url, headers=self.headers, json=data, timeout=30)
             else:
                 raise ValueError(f"Unsupported method: {method}")
+        except requests.exceptions.Timeout:
+            raise Exception(f"Request timed out after 30 seconds")
+        except requests.exceptions.ConnectionError:
+            raise Exception(f"Failed to connect to {url}")
         except requests.exceptions.RequestException as e:
             raise Exception(f"Request failed: {str(e)}")
             
