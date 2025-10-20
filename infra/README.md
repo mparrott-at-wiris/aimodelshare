@@ -257,6 +257,59 @@ Adjust Lambda settings in `main.tf`:
 - Timeout duration
 - Environment variables
 
+## Load Tests
+
+The repository includes automated load testing scripts that validate API performance and concurrency handling. These tests run automatically in the deployment workflow after integration tests.
+
+### Available Load Tests
+
+1. **Single Table Test** (`tests/load_single_table.py`)
+   - Creates one table with 100 concurrent users
+   - Tests concurrent user creation and reading
+   - Validates user count accuracy
+   - Reports latency statistics
+
+2. **Multi Table Test** (`tests/load_multi_table.py`)
+   - Creates 5 tables with 20 users each
+   - Runs mixed read/update workload across tables
+   - Tests cross-table operation performance
+
+3. **Mixed Duration Test** (`tests/load_mixed_duration.py`)
+   - Creates one table with 100 users
+   - Runs continuous mixed workload for configurable duration
+   - Default 20 seconds for CI, configurable via `LOAD_DURATION_SECONDS`
+   - Uses 30 concurrent workers for stability
+
+### Running Load Tests Locally
+
+```bash
+# Set required environment variable
+export API_BASE_URL=https://your-api-gateway-url.execute-api.us-east-1.amazonaws.com/dev
+
+# Run individual tests
+python tests/load_single_table.py
+python tests/load_multi_table.py
+
+# Run duration test with custom duration
+export LOAD_DURATION_SECONDS=60
+python tests/load_mixed_duration.py
+```
+
+### Load Test Configuration
+
+- **CI Environment**: Tests are optimized for GitHub Actions with shorter durations and reduced concurrency
+- **Skip Load Tests**: Set repository variable `RUN_LOAD_TESTS=false` to skip load tests in workflow
+- **Duration Override**: Use `LOAD_DURATION_SECONDS` environment variable for custom test duration
+
+### Dependencies
+
+Load tests require additional Python packages:
+```bash
+pip install aiohttp rich
+```
+
+These are automatically installed in the CI workflow.
+
 ## Troubleshooting
 
 ### Common Issues
@@ -265,6 +318,7 @@ Adjust Lambda settings in `main.tf`:
 2. **OIDC role assumption failures**: Verify role trust policy and repository configuration
 3. **Lambda deployment failures**: Check ZIP file size and dependencies
 4. **API Gateway 502 errors**: Check Lambda function logs for errors
+5. **Load test failures**: Check API rate limits and Lambda concurrency settings
 
 ### Getting Help
 
