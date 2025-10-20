@@ -146,3 +146,15 @@ settings.json
 .vs/ 
 aimodelshare/.idea/
 .idea/
+
+# Terraform
+# Ignore Terraform local files and providers
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+terraform-crash.log
+terraform*.log
+*.backup
+terraform.rc
+.terraformrc
