@@ -39,6 +39,22 @@ locals {
 }
 
 # -----------------------------
+# State Seed Resource
+# -----------------------------
+# This null_resource can be targeted to create an initial remote state object
+# when starting from a completely empty backend. This avoids errors where
+# Terraform expects a pre-existing state object for workspace operations.
+resource "null_resource" "state_seed" {
+  triggers = {
+    workspace = local.workspace
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+# -----------------------------
 # DynamoDB Table
 # -----------------------------
 resource "aws_dynamodb_table" "playground" {

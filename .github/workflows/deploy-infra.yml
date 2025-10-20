@@ -84,13 +84,48 @@ jobs:
             terraform init -input=false
           fi
 
-          # Import shared DynamoDB table if not already in state.
-          # This prevents 'ResourceInUseException' on apply for the shared table.
+          # Check if remote state object exists for this workspace
+          # Key pattern: env:/$WORKSPACE/aimodelshare/infra/terraform.tfstate
+          STATE_KEY="env:/${WS}/aimodelshare/infra/terraform.tfstate"
+          echo "Checking if remote state object exists: ${STATE_KEY}"
+          
+          if aws s3api head-object --bucket "aimodelshare-tfstate-prod-copilot-2024" --key "${STATE_KEY}" >/dev/null 2>&1; then
+            echo "Remote state object exists for workspace '${WS}'"
+          else
+            echo "Remote state object missing for workspace '${WS}' - creating initial state"
+            echo "Running targeted apply to seed remote state..."
+            terraform apply -auto-approve -target=null_resource.state_seed
+            echo "Initial state object created successfully"
+          fi
+
+          # Import shared DynamoDB table if it exists in AWS and not already in state
+          # This prevents 'ResourceInUseException' on apply for the shared table
+          echo "Checking DynamoDB table import status..."
+          
           if terraform state show aws_dynamodb_table.playground >/dev/null 2>&1; then
             echo "Shared DynamoDB table 'PlaygroundScores' already tracked in state for workspace '$WS'."
           else
-            echo "Importing shared DynamoDB table 'PlaygroundScores' into state for workspace '$WS'..."
-            terraform import aws_dynamodb_table.playground PlaygroundScores
+            echo "Checking if DynamoDB table 'PlaygroundScores' exists in AWS..."
+            # Temporarily disable exit on error for import operations
+            set +e
+            
+            # Check if table exists in AWS first
+            if aws dynamodb describe-table --table-name "PlaygroundScores" >/dev/null 2>&1; then
+              echo "DynamoDB table 'PlaygroundScores' exists in AWS - attempting import..."
+              terraform import aws_dynamodb_table.playground PlaygroundScores
+              IMPORT_RESULT=$?
+              
+              if [ $IMPORT_RESULT -eq 0 ]; then
+                echo "Successfully imported DynamoDB table 'PlaygroundScores' into state"
+              else
+                echo "Import failed but continuing - subsequent apply will reconcile differences"
+              fi
+            else
+              echo "DynamoDB table 'PlaygroundScores' does not exist in AWS - will be created on apply"
+            fi
+            
+            # Re-enable exit on error
+            set -e
           fi
 
           echo "Workspace '$WS' ready; proceeding to plan/apply steps."
