@@ -56,7 +56,7 @@ jobs:
         working-directory: infra
         run: terraform init -input=false
 
-      - name: Select/Create Workspace and Import Shared DynamoDB Table
+      - name: Select/Create Workspace
         working-directory: infra
         run: |
           set -euo pipefail
@@ -73,10 +73,10 @@ jobs:
           echo "Current workspace: $(terraform workspace show)"
 
           # Ensure backend directory exists if re-run
-            if [ ! -d .terraform ]; then
-              echo "Terraform not initialized yet; running 'terraform init'..."
-              terraform init -input=false
-            fi
+          if [ ! -d .terraform ]; then
+            echo "Terraform not initialized yet; running 'terraform init'..."
+            terraform init -input=false
+          fi
 
           STATE_KEY="env:/${WS}/aimodelshare/infra/terraform.tfstate"
           echo "Checking if remote state object exists: ${STATE_KEY}"
@@ -85,25 +85,6 @@ jobs:
           else
             echo "Remote state object missing for workspace '${WS}' - creating initial state"
             terraform apply -auto-approve -target=null_resource.state_seed
-          fi
-
-          # Retrieve table name WITHOUT terraform console (avoid interactive hang)
-          TABLE_NAME="PlaygroundScores"
-          echo "Using table name: ${TABLE_NAME}"
-
-          # Attempt import only if not already tracked
-          if terraform state show aws_dynamodb_table.playground >/dev/null 2>&1; then
-            echo "DynamoDB table already in state."
-          else
-            echo "Checking if DynamoDB table '${TABLE_NAME}' exists in AWS..."
-            set +e
-            if aws dynamodb describe-table --table-name "${TABLE_NAME}" >/dev/null 2>&1; then
-              echo "Table exists - attempting Terraform import..."
-              terraform import aws_dynamodb_table.playground "${TABLE_NAME}" || echo "Import failed; will reconcile on apply."
-            else
-              echo "Table does not exist; will be created on apply."
-            fi
-            set -e
           fi
 
           echo "Workspace '$WS' ready; proceeding to plan/apply steps."

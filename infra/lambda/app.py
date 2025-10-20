@@ -14,6 +14,9 @@ from boto3.dynamodb.conditions import Key  # Added for proper query expressions
 TABLE_NAME = os.environ.get('TABLE_NAME', 'PlaygroundScores')
 SAFE_CONCURRENCY = os.environ.get('SAFE_CONCURRENCY', 'false').lower() == 'true'
 
+# Boot log for observability - shows which table is being used
+print(f"[BOOT] Using DynamoDB table: {TABLE_NAME}")
+
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table(TABLE_NAME)
 
