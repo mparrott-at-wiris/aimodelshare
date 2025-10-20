@@ -7,8 +7,8 @@ import os
 import boto3
 from decimal import Decimal
 from datetime import datetime
-import uuid
 import re
+from boto3.dynamodb.conditions import Key  # Added for proper query expressions
 
 # DynamoDB setup
 TABLE_NAME = os.environ.get('TABLE_NAME', 'PlaygroundScores')
@@ -103,10 +103,10 @@ def create_table(event):
 def list_tables(event):
     """List all logical tables"""
     try:
+        # Query for all metadata entries using GSI by user
         response = table.query(
             IndexName='byUser',
-            KeyConditionExpression='username = :username',
-            ExpressionAttributeValues={':username': '_metadata'}
+            KeyConditionExpression=Key('username').eq('_metadata')
         )
         
         tables = []
@@ -119,6 +119,7 @@ def list_tables(event):
                 'userCount': item.get('userCount', 0)
             })
         
+        # Sort by creation date, newest first
         tables.sort(key=lambda x: x.get('createdAt', ''), reverse=True)
         
         return create_response(200, {'tables': tables})
@@ -210,21 +211,22 @@ def list_users(event):
         if not validate_table_id(table_id):
             return create_response(400, {'error': 'Invalid tableId format'})
         
+        # Ensure table exists
         metadata_response = table.get_item(
             Key={'tableId': table_id, 'username': '_metadata'}
         )
-        
         if 'Item' not in metadata_response:
             return create_response(404, {'error': 'Table not found'})
         
+        # Query all items for this tableId (metadata + users)
         response = table.query(
-            KeyConditionExpression='tableId = :table_id',
-            FilterExpression='username <> :metadata',
-            ExpressionAttributeValues={':table_id': table_id, ':metadata': '_metadata'}
+            KeyConditionExpression=Key('tableId').eq(table_id)
         )
         
         users = []
         for item in response.get('Items', []):
+            if item.get('username') == '_metadata':
+                continue  # Skip metadata record
             users.append({
                 'username': item['username'],
                 'submissionCount': item.get('submissionCount', 0),
@@ -348,14 +350,12 @@ def put_user(event):
 def handler(event, context):
     """Main Lambda handler with robust HTTP API v2 routing."""
     try:
-        # Fast-path for CORS preflight
         method = event.get('httpMethod') or event.get('requestContext', {}).get('http', {}).get('method')
         if method == 'OPTIONS':
             return create_response(200, {})
         
-        route_key = event.get('routeKey')  # e.g. "GET /tables"
+        route_key = event.get('routeKey')
         
-        # Dispatch based on routeKey (preferred for HTTP API v2)
         if route_key == 'POST /tables':
             return create_table(event)
         elif route_key == 'GET /tables':
@@ -371,11 +371,11 @@ def handler(event, context):
         elif route_key == 'PUT /tables/{tableId}/users/{username}':
             return put_user(event)
         else:
-            # Fallback: previous path-based routing (only if routeKey missing)
+            # Fallback legacy path parsing (unlikely needed now)
             path = event.get('rawPath') or event.get('path') or ''
             stage = event.get('requestContext', {}).get('stage')
             if stage and path.startswith(f'/{stage}/'):
-                path = path[len(stage) + 1:]  # strip /{stage}
+                path = path[len(stage) + 1:]
             
             if method == 'POST' and path == '/tables':
                 return create_table(event)
@@ -393,9 +393,6 @@ def handler(event, context):
                 return put_user(event)
             else:
                 return create_response(404, {'error': 'Route not found'})
-            
-    except Exception as e:
-        return create_response(500, {'error': f'Unexpected error: {str(e)}'})
             
     except Exception as e:
         return create_response(500, {'error': f'Unexpected error: {str(e)}'})
