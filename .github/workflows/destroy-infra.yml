@@ -68,9 +68,12 @@ jobs:
           BUCKET_NAME="aimodelshare-tfstate-prod-copilot-2024"
           OBJECT_COUNT=$(aws s3api list-objects-v2 --bucket "$BUCKET_NAME" --query 'Contents | length(@)' --output text 2>/dev/null || echo "0")
           
-          if [ "$OBJECT_COUNT" != "0" ] && [ "$OBJECT_COUNT" != "null" ]; then
+          # AWS CLI returns 'None' for empty buckets, 'null' if bucket doesn't exist, or a number for non-empty buckets
+          if [ "$OBJECT_COUNT" != "0" ] && [ "$OBJECT_COUNT" != "None" ] && [ "$OBJECT_COUNT" != "null" ]; then
             echo "⚠️  S3 bucket contains $OBJECT_COUNT objects. Emptying bucket first..."
             aws s3 rm s3://$BUCKET_NAME --recursive
+          else
+            echo "✅ S3 bucket is empty or doesn't exist, proceeding with destroy..."
           fi
           
           # Destroy bootstrap resources

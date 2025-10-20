@@ -2,12 +2,6 @@ name: Bootstrap Terraform State Resources
 
 on:
   workflow_dispatch:
-    inputs:
-      force_recreate:
-        description: 'Force recreate resources (use with caution)'
-        required: false
-        default: false
-        type: boolean
   workflow_call:
     outputs:
       s3_bucket_name:
