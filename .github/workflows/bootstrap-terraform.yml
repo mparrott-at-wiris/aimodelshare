@@ -10,6 +10,9 @@ on:
       dynamodb_table_name:
         description: "Name of the created DynamoDB table"
         value: ${{ jobs.bootstrap.outputs.dynamodb_table_name }}
+      github_actions_role_arn:
+        description: "ARN of the created GitHub Actions IAM role"
+        value: ${{ jobs.bootstrap.outputs.github_actions_role_arn }}
 
 jobs:
   bootstrap:
@@ -18,6 +21,7 @@ jobs:
     outputs:
       s3_bucket_name: ${{ steps.terraform_output.outputs.s3_bucket_name }}
       dynamodb_table_name: ${{ steps.terraform_output.outputs.dynamodb_table_name }}
+      github_actions_role_arn: ${{ steps.terraform_output.outputs.github_actions_role_arn }}
 
     permissions:
       id-token: write
@@ -62,6 +66,21 @@ jobs:
             echo "dynamodb_exists=false" >> $GITHUB_OUTPUT
           fi
 
+          # Check if GitHub OIDC provider exists
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          if aws iam get-open-id-connect-provider --open-id-connect-provider-arn "arn:aws:iam::${ACCOUNT_ID}:oidc-provider/token.actions.githubusercontent.com" 2>/dev/null; then
+            echo "oidc_provider_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "oidc_provider_exists=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Check if GitHub Actions IAM role exists
+          if aws iam get-role --role-name "aimodelshare-github-oidc-deployer" 2>/dev/null; then
+            echo "github_role_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "github_role_exists=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Terraform Init
         working-directory: infra/bootstrap
         run: terraform init -input=false
@@ -72,8 +91,10 @@ jobs:
 
       - name: Import existing resources (if they exist)
         working-directory: infra/bootstrap
-        if: steps.check_resources.outputs.s3_exists == 'true' || steps.check_resources.outputs.dynamodb_exists == 'true'
+        if: steps.check_resources.outputs.s3_exists == 'true' || steps.check_resources.outputs.dynamodb_exists == 'true' || steps.check_resources.outputs.oidc_provider_exists == 'true' || steps.check_resources.outputs.github_role_exists == 'true'
         run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          
           if [ "${{ steps.check_resources.outputs.s3_exists }}" = "true" ]; then
             echo "Importing existing S3 bucket..."
             terraform import aws_s3_bucket.terraform_state aimodelshare-tfstate-prod-copilot-2024 || true
@@ -85,6 +106,19 @@ jobs:
           if [ "${{ steps.check_resources.outputs.dynamodb_exists }}" = "true" ]; then
             echo "Importing existing DynamoDB table..."
             terraform import aws_dynamodb_table.terraform_locks aimodelshare-tf-locks || true
+          fi
+
+          if [ "${{ steps.check_resources.outputs.oidc_provider_exists }}" = "true" ]; then
+            echo "Importing existing GitHub OIDC provider..."
+            terraform import aws_iam_openid_connect_provider.github "arn:aws:iam::${ACCOUNT_ID}:oidc-provider/token.actions.githubusercontent.com" || true
+          fi
+
+          if [ "${{ steps.check_resources.outputs.github_role_exists }}" = "true" ]; then
+            echo "Importing existing GitHub Actions IAM role..."
+            terraform import aws_iam_role.github_actions aimodelshare-github-oidc-deployer || true
+            # Also try to import the policy and attachment if they exist
+            terraform import aws_iam_policy.github_actions_deployment "arn:aws:iam::${ACCOUNT_ID}:policy/aimodelshare-github-actions-deployment" || true
+            terraform import aws_iam_role_policy_attachment.github_actions_deployment aimodelshare-github-oidc-deployer/arn:aws:iam::${ACCOUNT_ID}:policy/aimodelshare-github-actions-deployment || true
           fi
 
       - name: Terraform Plan
@@ -103,8 +137,11 @@ jobs:
         run: |
           S3_BUCKET=$(terraform output -raw s3_bucket_name)
           DYNAMODB_TABLE=$(terraform output -raw dynamodb_table_name)
+          GITHUB_ROLE_ARN=$(terraform output -raw github_actions_role_arn)
           echo "s3_bucket_name=$S3_BUCKET" >> $GITHUB_OUTPUT
           echo "dynamodb_table_name=$DYNAMODB_TABLE" >> $GITHUB_OUTPUT
+          echo "github_actions_role_arn=$GITHUB_ROLE_ARN" >> $GITHUB_OUTPUT
           echo "✅ Bootstrap completed successfully!"
           echo "  S3 Bucket: $S3_BUCKET"
           echo "  DynamoDB Table: $DYNAMODB_TABLE"
+          echo "  GitHub Actions Role ARN: $GITHUB_ROLE_ARN"
