@@ -153,7 +153,8 @@ aimodelshare/.idea/
 *.tfstate
 *.tfstate.*
 .terraform.lock.hcl
-crash.log
+terraform-crash.log
+terraform*.log
 *.backup
 terraform.rc
 .terraformrc
