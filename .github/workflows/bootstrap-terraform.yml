@@ -1,0 +1,116 @@
+name: Bootstrap Terraform State Resources
+
+on:
+  workflow_dispatch:
+    inputs:
+      force_recreate:
+        description: 'Force recreate resources (use with caution)'
+        required: false
+        default: false
+        type: boolean
+  workflow_call:
+    outputs:
+      s3_bucket_name:
+        description: "Name of the created S3 bucket"
+        value: ${{ jobs.bootstrap.outputs.s3_bucket_name }}
+      dynamodb_table_name:
+        description: "Name of the created DynamoDB table"
+        value: ${{ jobs.bootstrap.outputs.dynamodb_table_name }}
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    
+    outputs:
+      s3_bucket_name: ${{ steps.terraform_output.outputs.s3_bucket_name }}
+      dynamodb_table_name: ${{ steps.terraform_output.outputs.dynamodb_table_name }}
+
+    permissions:
+      id-token: write
+      contents: read
+
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+      TF_IN_AUTOMATION: "true"
+      
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.5
+          terraform_wrapper: false
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-session-name: aimodelshare-bootstrap
+
+      - name: Check if resources already exist
+        id: check_resources
+        working-directory: infra/bootstrap
+        run: |
+          # Check if S3 bucket exists
+          if aws s3api head-bucket --bucket "aimodelshare-tfstate-prod-copilot-2024" 2>/dev/null; then
+            echo "s3_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "s3_exists=false" >> $GITHUB_OUTPUT
+          fi
+          
+          # Check if DynamoDB table exists
+          if aws dynamodb describe-table --table-name "aimodelshare-tf-locks" 2>/dev/null; then
+            echo "dynamodb_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "dynamodb_exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Terraform Init
+        working-directory: infra/bootstrap
+        run: terraform init -input=false
+
+      - name: Terraform Validate
+        working-directory: infra/bootstrap
+        run: terraform validate
+
+      - name: Import existing resources (if they exist)
+        working-directory: infra/bootstrap
+        if: steps.check_resources.outputs.s3_exists == 'true' || steps.check_resources.outputs.dynamodb_exists == 'true'
+        run: |
+          if [ "${{ steps.check_resources.outputs.s3_exists }}" = "true" ]; then
+            echo "Importing existing S3 bucket..."
+            terraform import aws_s3_bucket.terraform_state aimodelshare-tfstate-prod-copilot-2024 || true
+            terraform import aws_s3_bucket_versioning.terraform_state aimodelshare-tfstate-prod-copilot-2024 || true
+            terraform import aws_s3_bucket_server_side_encryption_configuration.terraform_state aimodelshare-tfstate-prod-copilot-2024 || true
+            terraform import aws_s3_bucket_public_access_block.terraform_state aimodelshare-tfstate-prod-copilot-2024 || true
+          fi
+          
+          if [ "${{ steps.check_resources.outputs.dynamodb_exists }}" = "true" ]; then
+            echo "Importing existing DynamoDB table..."
+            terraform import aws_dynamodb_table.terraform_locks aimodelshare-tf-locks || true
+          fi
+
+      - name: Terraform Plan
+        id: plan
+        working-directory: infra/bootstrap
+        run: |
+          terraform plan -input=false -out=tfplan
+          
+      - name: Terraform Apply
+        working-directory: infra/bootstrap
+        run: terraform apply -input=false -auto-approve tfplan
+
+      - name: Get Terraform Outputs
+        id: terraform_output
+        working-directory: infra/bootstrap
+        run: |
+          S3_BUCKET=$(terraform output -raw s3_bucket_name)
+          DYNAMODB_TABLE=$(terraform output -raw dynamodb_table_name)
+          echo "s3_bucket_name=$S3_BUCKET" >> $GITHUB_OUTPUT
+          echo "dynamodb_table_name=$DYNAMODB_TABLE" >> $GITHUB_OUTPUT
+          echo "✅ Bootstrap completed successfully!"
+          echo "  S3 Bucket: $S3_BUCKET"
+          echo "  DynamoDB Table: $DYNAMODB_TABLE"
