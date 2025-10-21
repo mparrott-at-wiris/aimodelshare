@@ -1,6 +1,6 @@
 """
 Lambda handler for aimodelshare playground API.
-(Final Fix: Corrected pagination logic for both list_users and list_tables)
+(Final Fix: Corrected pagination logic for list_tables to handle filtered scans properly)
 """
 import json
 import os
@@ -142,34 +142,50 @@ def create_table(event):
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
 def list_tables(event):
-    """Paginated list of tables using a strongly consistent Scan."""
+    """
+    Paginated list of tables using a STRONGLY CONSISTENT Scan to ensure new tables appear immediately.
+    This implementation correctly handles pagination for a filtered scan.
+    """
     try:
         limit, exclusive_start_key = parse_pagination_params(event)
         
         scan_kwargs = {
             'FilterExpression': Attr('username').eq('_metadata'),
-            'ConsistentRead': True,
-            'Limit': limit + 1 # Fetch one extra to check for next page
+            'ConsistentRead': True
         }
-        if exclusive_start_key:
-            scan_kwargs['ExclusiveStartKey'] = exclusive_start_key
+        
+        collected = []
+        last_key_from_ddb = exclusive_start_key
 
-        resp = retry_dynamo(lambda: table.scan(**scan_kwargs))
-        
-        all_items = resp.get('Items', [])
-        
-        has_next_page = len(all_items) > limit
-        page_items = all_items[:limit]
+        while len(collected) < limit:
+            if last_key_from_ddb:
+                 scan_kwargs['ExclusiveStartKey'] = last_key_from_ddb
+            
+            resp = retry_dynamo(lambda: table.scan(**scan_kwargs))
+            
+            items = resp.get('Items', [])
+            collected.extend(items)
+            
+            last_key_from_ddb = resp.get('LastEvaluatedKey')
+            if not last_key_from_ddb:
+                break # No more items in the entire table
+
+        page_items = collected[:limit]
         
         response_last_key = None
-        if has_next_page:
+        if len(collected) > limit:
+            # If we collected more items than the page limit, the key for the next page
+            # is the primary key of the last item on the *current* page.
             last_item_on_page = page_items[-1]
-            # For a scan, the next key is the full primary key of the last item.
             response_last_key = {
                 'tableId': last_item_on_page['tableId'],
                 'username': last_item_on_page['username']
             }
-        
+        elif last_key_from_ddb:
+             # This case handles when the last DDB page is read, and the remaining items
+             # are not enough to fill the page, but DDB still gives a key.
+             response_last_key = last_key_from_ddb
+
         tables = [{
             'tableId': item['tableId'],
             'displayName': item.get('displayName', item['tableId']),
@@ -262,9 +278,11 @@ def list_users(event):
 
         limit, exclusive_start_key = parse_pagination_params(event)
         
+        # Fetch one more item than the limit to see if there's a next page.
+        # Also fetch one for the metadata item that we will filter out.
         query_kwargs = {
             'KeyConditionExpression': Key('tableId').eq(table_id),
-            'Limit': limit + 2, # Fetch limit + metadata + one extra for next page check
+            'Limit': limit + 2, 
             'ConsistentRead': READ_CONSISTENT
         }
         if exclusive_start_key:
