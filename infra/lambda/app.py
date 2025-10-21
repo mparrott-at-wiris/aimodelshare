@@ -2,6 +2,7 @@
 Lambda handler for aimodelshare playground API.
 Supports logical tables with archive, validation, and user endpoints.
 (Updated: added pagination for list_tables & list_users)
+(Enhanced: graceful GSI not-ready handling + /health endpoint)
 """
 import json
 import os
@@ -24,6 +25,7 @@ DEFAULT_PAGE_LIMIT = int(os.environ.get('DEFAULT_PAGE_LIMIT', '50'))
 MAX_PAGE_LIMIT = int(os.environ.get('MAX_PAGE_LIMIT', '500'))
 
 dynamodb = boto3.resource('dynamodb')
+dynamodb_client = boto3.client('dynamodb')  # For describe_table / health checks
 table = dynamodb.Table(TABLE_NAME)
 
 print(f"[BOOT] Using DynamoDB table: {TABLE_NAME} | SAFE_CONCURRENCY={SAFE_CONCURRENCY} | READ_CONSISTENT={READ_CONSISTENT}")
@@ -163,15 +165,27 @@ def create_table(event):
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
 def list_tables(event):
-    """Paginated list of tables. In-page sort by createdAt desc (NOT globally ordered)."""
+    """
+    Paginated list of tables. In-page sort by createdAt desc (NOT globally ordered).
+    Gracefully handles GSI 'byUser' not ready by returning empty list.
+    """
     try:
         limit, exclusive_start_key = parse_pagination_params(event)
-        resp = retry_dynamo(lambda: table.query(
-            IndexName='byUser',
-            KeyConditionExpression=Key('username').eq('_metadata'),
-            ExclusiveStartKey=exclusive_start_key,
-            Limit=limit
-        ))
+        try:
+            resp = retry_dynamo(lambda: table.query(
+                IndexName='byUser',
+                KeyConditionExpression=Key('username').eq('_metadata'),
+                ExclusiveStartKey=exclusive_start_key,
+                Limit=limit
+            ))
+        except ClientError as ce:
+            code = ce.response.get('Error', {}).get('Code')
+            msg = ce.response.get('Error', {}).get('Message', '')
+            if code in ('ValidationException', 'ResourceNotFoundException') and 'byUser' in msg:
+                print(f"[INFO] GSI 'byUser' not ready (code={code}). Returning empty tables list.")
+                return create_response(200, build_paged_body('tables', [], None))
+            raise
+
         raw_items = resp.get('Items', [])
         tables = [{
             'tableId': item['tableId'],
@@ -385,6 +399,26 @@ def put_user(event):
         print(f"[ERROR] put_user outer exception: {e}")
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
+# -----------------------------
+# Health Endpoint
+# -----------------------------
+def health(event):
+    status = {
+        'tableName': TABLE_NAME,
+        'gsiByUserActive': False,
+        'timestamp': datetime.utcnow().isoformat()
+    }
+    try:
+        desc = dynamodb_client.describe_table(TableName=TABLE_NAME)
+        gsis = desc.get('Table', {}).get('GlobalSecondaryIndexes', []) or []
+        for g in gsis:
+            if g.get('IndexName') == 'byUser' and g.get('IndexStatus') == 'ACTIVE':
+                status['gsiByUserActive'] = True
+                break
+    except Exception as e:
+        status['error'] = str(e)
+    return create_response(200, status)
+
 def handler(event, context):
     try:
         method = event.get('httpMethod') or event.get('requestContext', {}).get('http', {}).get('method')
@@ -405,6 +439,8 @@ def handler(event, context):
             return get_user(event)
         elif route_key == 'PUT /tables/{tableId}/users/{username}':
             return put_user(event)
+        elif route_key == 'GET /health':
+            return health(event)
 
         # Legacy fallback path parsing
         path = event.get('rawPath') or event.get('path') or ''
@@ -426,6 +462,8 @@ def handler(event, context):
             return get_user(event)
         elif method == 'PUT' and '/users/' in path and path.count('/') == 4:
             return put_user(event)
+        elif method == 'GET' and path == '/health':
+            return health(event)
 
         return create_response(404, {'error': 'Route not found'})
     except Exception as e:
