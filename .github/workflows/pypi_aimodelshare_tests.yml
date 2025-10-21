@@ -1,4 +1,4 @@
-name: Test latest PyPI aimodelshare
+name: Test latest master branch aimodelshare
 
 on:
   workflow_dispatch:  # Manual trigger only
@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: pypi-aimodelshare-tests
+  group: master-aimodelshare-tests
   cancel-in-progress: true
 
 jobs:
@@ -21,11 +21,21 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.DATA_AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.DATA_AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: us-east-1
-      # AWS_TOKEN: ${{ secrets.AWS_TOKEN }}
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repository (master)
         uses: actions/checkout@v4
+        with:
+          # Uncomment the next line if you want to ALWAYS test master even when dispatching from another ref
+          # ref: master
+          fetch-depth: 0
+
+      - name: Show commit being tested
+        run: |
+          echo "Testing commit:"
+          git --no-pager log -1 --oneline
+          echo "Current branch (if detached this may be a commit SHA):"
+          git branch --show-current || true
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -37,25 +47,26 @@ jobs:
         run: |
           python -m pip install --upgrade pip
 
-      - name: Install dependencies (latest PyPI aimodelshare + test libs)
+      - name: Install local aimodelshare (editable) + test dependencies
         run: |
-          pip install --upgrade aimodelshare
-          pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython jwt
+          pip install -e .
+          pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython jwt matplotlib
           pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
-          python -c "import aimodelshare; print('aimodelshare imported from:', aimodelshare.__file__)"
+          python -c "import aimodelshare, os; print('aimodelshare imported from:', aimodelshare.__file__)"
 
-      - name: Remove local source to ensure PyPI package is tested
+      - name: Verify import now points to repository source (not PyPI)
         run: |
-          if [ -d "aimodelshare" ]; then
-            echo "Removing local aimodelshare source directory so tests use PyPI distribution."
-            rm -rf aimodelshare
-          fi
+          python - <<'PYCODE'
+import aimodelshare, os
+path = aimodelshare.__file__
+print("Resolved aimodelshare.__file__:", path)
+repo_root = os.getcwd()
+assert repo_root in os.path.abspath(path), f"aimodelshare does not appear to come from the checked-out repository root: {repo_root}"
+assert "site-packages" not in path, "aimodelshare should NOT be the PyPI site-packages build."
+print("Verification passed: using local master branch source.")
+PYCODE
 
-      - name: Verify import now points to site-packages
-        run: |
-          python -c "import aimodelshare; print('Final path:', aimodelshare.__file__); assert 'site-packages' in aimodelshare.__file__, 'aimodelshare is not from site-packages (PyPI)';"
-
-      - name: Run targeted tests against PyPI distribution
+      - name: Run targeted tests against local master branch
         run: |
           echo "Starting pytest for tests/test_playground.py"
           pytest -vv tests/test_playground.py
@@ -64,4 +75,8 @@ jobs:
         if: always()
         run: |
           echo "Job conclusion: ${{ job.status }}"
-          python -c "import aimodelshare; print('aimodelshare version tested:', getattr(aimodelshare, '__version__', 'unknown'))"
+          python - <<'PYCODE'
+import aimodelshare
+print("aimodelshare version attribute (may reflect local dev state):", getattr(aimodelshare, "__version__", "unknown"))
+print("Module file path:", aimodelshare.__file__)
+PYCODE
