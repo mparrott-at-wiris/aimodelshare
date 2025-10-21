@@ -4,7 +4,12 @@ def _custom_s3_policy(bucketname):
           "Statement": [
             {
               "Effect": "Allow",
-              "Action": "s3:*",
+              "Action": [
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:DeleteObject",
+                "s3:ListBucket"
+              ],
               "Resource": [
                 "arn:aws:s3:::"+bucketname,
                 "arn:aws:s3:::"+bucketname+"/*"
@@ -90,7 +95,9 @@ def _custom_upload_policy(bucket_name, unique_model_id):
             "Sid": "AllowAllS3ActionsInUserFolder"+str(unique_model_id),
             "Effect": "Allow",
             "Action": [
-                "s3:*"
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:DeleteObject"
             ],
             "Resource": [
                 "arn:aws:s3:::"+bucket_name+"/"+unique_model_id+"/*"

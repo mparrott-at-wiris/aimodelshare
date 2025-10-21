@@ -21,6 +21,7 @@ except ImportError:
     import importlib_resources as pkg_resources
 
 from . import main  # relative-import the *package* containing the templates
+from . import iam_utils
 
 from .utils import *
 
@@ -237,8 +238,9 @@ class create_prediction_api_class():
 
         short_uuid = str(shortuuid.uuid())
 
-        lambdarolename = 'myService-dev-us-' + self.region + '-lambdaRole'+short_uuid
-        lambdapolicyname = 'myService-dev-' + self.region + '-lambdaPolicy'+short_uuid
+        # Use reusable Lambda execution role instead of per-API unique roles
+        lambdarolename = 'aimodelshare-api-lambda-role'
+        lambdapolicyname = 'aimodelshare-api-lambda-policy'
         lambdafxnname = 'modfunction'+short_uuid
         lambdaauthfxnname = 'redisAccess'+short_uuid
         lambdaevalfxnname = 'evalfunction'+short_uuid
@@ -248,11 +250,17 @@ class create_prediction_api_class():
         lambdarole1 = json.loads(pkg_resources.read_text(json_templates, 'lambda_role_1.txt'))
         lambdapolicy1 = json.loads(pkg_resources.read_text(json_templates, 'lambda_policy_1.txt'))
 
-        self.aws_client.delete_iam_role(lambdarolename) # delete role for CodeBuild if role with same name exists
-        self.aws_client.create_iam_role(lambdarolename, lambdarole1) # creating role for CodeBuild
-        self.aws_client.delete_iam_policy(lambdapolicyname) # delete policy for CodeBuild if policy with same name exists
-        self.aws_client.create_iam_policy(lambdapolicyname, lambdapolicy1) # creating policy for CodeBuild
-        self.aws_client.attach_policy_to_role(lambdarolename, lambdapolicyname)
+        # Ensure role exists with correct trust relationship (idempotent)
+        iam_client = self.user_session.client("iam")
+        iam_utils.ensure_role(iam_client, lambdarolename, lambdarole1,
+                             description="Reusable execution role for AIModelShare API Lambda functions")
+        
+        # Ensure managed policy exists with correct permissions (idempotent)
+        policy_arn, _, _ = iam_utils.ensure_managed_policy(iam_client, lambdapolicyname, lambdapolicy1,
+                                                           description="Reusable execution policy for AIModelShare API Lambda functions")
+        
+        # Attach policy to role if not already attached
+        iam_utils.attach_managed_policy_to_role(iam_client, lambdarolename, policy_arn)
 
         sys.stdout.write('\r')
         sys.stdout.write("[============                         ] Progress: 40% - Creating custom containers...                        ")
@@ -330,16 +338,22 @@ class create_prediction_api_class():
 
         integration_response = json.loads(pkg_resources.read_text(json_templates, 'integration_response.txt'))
 
+        # Use reusable API Gateway invocation role instead of creating new ones
         lambdarole2 = json.loads(pkg_resources.read_text(json_templates, 'lambda_role_2.txt'))
-        lambdarolename2 = 'lambda_invoke_function_assume_apigw_role_2'
+        lambdarolename2 = 'aimodelshare-apigw-invoke-role'
         lambdapolicy2 = json.loads(pkg_resources.read_text(json_templates, 'lambda_policy_2.txt'))
-        lambdapolicyname2 = 'invokelambda'
+        lambdapolicyname2 = 'aimodelshare-apigw-invoke-policy'
 
-        self.aws_client.delete_iam_role(lambdarolename2) # delete role for CodeBuild if role with same name exists
-        self.aws_client.create_iam_role(lambdarolename2, lambdarole2) # creating role for CodeBuild
-        self.aws_client.delete_iam_policy(lambdapolicyname2) # delete policy for CodeBuild if policy with same name exists
-        self.aws_client.create_iam_policy(lambdapolicyname2, lambdapolicy2) # creating policy for CodeBuild
-        self.aws_client.attach_policy_to_role(lambdarolename2, lambdapolicyname2)
+        # Ensure API Gateway invocation role exists (idempotent)
+        iam_utils.ensure_role(iam_client, lambdarolename2, lambdarole2,
+                             description="Reusable role for API Gateway to invoke Lambda functions")
+        
+        # Ensure managed policy exists (idempotent)
+        policy_arn2, _, _ = iam_utils.ensure_managed_policy(iam_client, lambdapolicyname2, lambdapolicy2,
+                                                            description="Reusable policy for API Gateway Lambda invocation")
+        
+        # Attach policy to role if not already attached
+        iam_utils.attach_managed_policy_to_role(iam_client, lambdarolename2, policy_arn2)
 
         uri_str = "arn:aws:apigateway:" + self.region + ":lambda:path/2015-03-31/functions/arn:aws:lambda:" + self.region + ":" + self.account_id + ':function:' + lambdafxnname + '/invocations'
         credentials = 'arn:aws:iam::'+self.account_id+':role/' + lambdarolename2
