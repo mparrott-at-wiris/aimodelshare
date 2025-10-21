@@ -247,6 +247,153 @@ For manual deployments, use the workflow dispatch feature in GitHub Actions or r
 
 Use the "Destroy Infra" workflow in GitHub Actions to tear down an environment. This is a manual workflow that requires specifying the environment to destroy.
 
+## Performance Metrics and Observability
+
+### Structured Metrics Logging
+
+The Lambda function now logs structured JSON metrics for list operations to CloudWatch. These metrics help track performance improvements and identify bottlenecks.
+
+#### list_tables Metrics
+
+Each `list_tables` request logs a JSON line like:
+```json
+{
+  "metric": "list_tables",
+  "strategy": "gsi_query",
+  "consistentRead": false,
+  "countFetched": 55,
+  "countReturned": 50,
+  "limit": 50,
+  "durationMs": 72
+}
+```
+
+Fields:
+- `strategy`: `"scan"` (full table scan) or `"gsi_query"` (GSI-based query)
+- `consistentRead`: Whether strongly consistent reads were used
+- `countFetched`: Total metadata items retrieved from DynamoDB
+- `countReturned`: Items returned to client (after pagination)
+- `limit`: Requested page limit
+- `durationMs`: Total request duration in milliseconds
+
+#### list_users Metrics
+
+Each `list_users` request logs a JSON line like:
+```json
+{
+  "metric": "list_users",
+  "strategy": "partition_query",
+  "consistentRead": false,
+  "countFetched": 105,
+  "countReturned": 50,
+  "limit": 50,
+  "durationMs": 45,
+  "tableId": "my-table"
+}
+```
+
+Fields:
+- `strategy`: `"partition_query"` (standard) or `"leaderboard_gsi"` (GSI-based, future)
+- Other fields same as list_tables
+
+### Monitoring Recommendations
+
+Use CloudWatch Insights to analyze these metrics:
+
+```
+# Average duration by strategy for list_tables
+fields @timestamp, metric, strategy, durationMs
+| filter metric = "list_tables"
+| stats avg(durationMs) as avgDuration by strategy
+
+# P95 latency for list operations
+fields @timestamp, metric, durationMs
+| filter metric in ["list_tables", "list_users"]
+| stats pct(durationMs, 95) as p95 by metric
+
+# Cost efficiency: items fetched vs returned
+fields @timestamp, metric, countFetched, countReturned
+| filter metric = "list_tables"
+| stats avg(countFetched) as avgFetched, avg(countReturned) as avgReturned
+```
+
+## Rollout Plan for Performance Optimizations
+
+Follow these steps to safely enable performance optimizations:
+
+### Phase 1: Deploy with Conservative Defaults (Recommended First)
+
+1. **Merge PR with default settings**: All optimization flags default to `false` or conservative values
+   ```hcl
+   use_metadata_gsi = false      # Uses table scan (current behavior)
+   read_consistent = true         # Uses strongly consistent reads (current behavior)
+   ```
+
+2. **Deploy to dev workspace**:
+   ```bash
+   cd infra
+   terraform workspace select dev
+   terraform apply
+   ```
+
+3. **Run integration tests** to ensure backward compatibility:
+   ```bash
+   API_BASE_URL=$(terraform output -raw api_base_url)
+   python ../tests/test_api_integration.py "$API_BASE_URL"
+   python ../tests/test_api_pagination.py "$API_BASE_URL"
+   ```
+
+### Phase 2: Enable GSI Query (Recommended)
+
+1. **Enable metadata GSI query in dev**:
+   ```hcl
+   # infra/terraform.tfvars or via -var
+   use_metadata_gsi = true
+   ```
+
+2. **Deploy and validate**:
+   ```bash
+   terraform apply
+   # Wait for deployment
+   python ../tests/test_api_integration.py "$API_BASE_URL"
+   ```
+
+3. **Compare metrics** in CloudWatch Logs:
+   - Check `strategy` field changes from `"scan"` to `"gsi_query"`
+   - Compare `durationMs` values before/after
+   - Verify `countFetched` is more efficient (only metadata items, not all items)
+
+4. **Promote to staging and production** if metrics show improvement
+
+### Phase 3: Reduce Read Consistency Cost (Optional)
+
+1. **Disable strongly consistent reads in dev**:
+   ```hcl
+   read_consistent = false
+   ```
+
+2. **Validate no UI/UX issues**:
+   - Verify newly created tables/users appear in list within acceptable time (usually milliseconds)
+   - Check for any user complaints about data visibility
+   - Monitor error rates
+
+3. **Promote to staging and production** after validation period (e.g., 1 week in dev)
+
+### Phase 4: Future Enhancements (Not Yet Recommended)
+
+- **Leaderboard GSI**: Requires additional design work for descending order workaround
+- **Native DynamoDB pagination**: Requires key schema redesign for optimal O(limit) pagination
+
+### Rollback Plan
+
+If issues arise, revert settings in Terraform:
+```hcl
+use_metadata_gsi = false
+read_consistent = true
+```
+
+Then apply changes. The system will immediately fall back to the original behavior.
+
 ## Monitoring and Troubleshooting
 
 ### CloudWatch Logs
@@ -291,6 +438,33 @@ Modify variables in `variables.tf`:
 - `cors_allow_origins`: Allowed CORS origins
 - `enable_pitr`: DynamoDB point-in-time recovery
 - `safe_concurrency`: Enable safer DynamoDB operations
+
+#### Performance Optimization Variables (New)
+
+The following variables control performance optimizations for listing operations:
+
+- **`use_metadata_gsi`** (bool, default: `false`): Enable GSI-based query for `list_tables` endpoint
+  - When `true`, uses the `byUser` GSI to query metadata items instead of full table scan
+  - Significantly reduces latency and cost when table count is large
+  - Requires `enable_gsi_by_user=true` to create the GSI
+
+- **`read_consistent`** (bool, default: `true`): Enable strongly consistent reads for list endpoints
+  - When `false`, list operations use eventually consistent reads (half the cost)
+  - Trade-off: Very recent writes may not immediately appear in list results
+  - Safe to set to `false` for most use cases where immediate read-after-write is not critical
+
+- **`default_table_page_limit`** (number, default: `50`): Default page size for list_tables endpoint
+  - Controls how many tables are returned per page by default
+  - Users can override via `limit` query parameter (max 500)
+
+- **`enable_gsi_leaderboard`** (bool, default: `false`): Enable leaderboard GSI for native user ordering
+  - **Not yet recommended**: DynamoDB GSI range keys only support ascending order
+  - Current in-memory sorting by `submissionCount` is the recommended approach
+  - Reserved for future enhancement with workarounds (e.g., negative values)
+
+- **`use_leaderboard_gsi`** (bool, default: `false`): Enable leaderboard GSI query path in list_users
+  - Scaffolded for future use, currently falls back to standard query
+  - Requires `enable_gsi_leaderboard=true` and GSI deployment
 
 ### Lambda Configuration
 
