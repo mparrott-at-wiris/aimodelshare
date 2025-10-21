@@ -70,6 +70,7 @@ jobs:
       - name: Run targeted tests against local master branch
         run: |
           echo "Starting pytest for tests/test_playgrounds_nodataimport.py"
+          pytest -vv tests/test_aimsonnx.py
           pytest -vv tests/test_playgrounds_nodataimport.py
 
       - name: Post-run diagnostics (always runs)
