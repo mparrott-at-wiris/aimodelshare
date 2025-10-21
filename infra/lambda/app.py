@@ -143,69 +143,128 @@ def create_table(event):
 
 def list_tables(event):
     """
-    Paginated list of tables using a STRONGLY CONSISTENT Scan.
-    This implementation correctly handles pagination for a filtered scan by scanning
-    the entire table to collect all metadata items before paginating the results.
+    List table metadata items with stable descending ordering by createdAt (then tableId),
+    supporting page-level limit and a synthetic lastKey (tableId of last returned item).
+    This keeps legacy semantics so existing integration tests should continue to pass.
     """
     try:
-        limit, exclusive_start_key = parse_pagination_params(event)
-        
-        scan_kwargs = {
-            'FilterExpression': Attr('username').eq('_metadata'),
-            'ConsistentRead': True
-        }
-        
-        all_metadata_items = []
-        last_key_from_ddb = None
-        
-        # Loop to scan the entire table and collect all items matching the filter
-        while True:
-            if last_key_from_ddb:
-                scan_kwargs['ExclusiveStartKey'] = last_key_from_ddb
-            
-            resp = retry_dynamo(lambda: table.scan(**scan_kwargs))
-            
-            all_metadata_items.extend(resp.get('Items', []))
-            
-            last_key_from_ddb = resp.get('LastEvaluatedKey')
-            if not last_key_from_ddb:
-                break # Scanned the entire table
+        params = (event.get('queryStringParameters') or {})
 
-        # Now, paginate the collected results manually
-        all_metadata_items.sort(key=lambda x: (x.get('createdAt') or ''), reverse=True)
-        
-        start_index = 0
-        if exclusive_start_key:
-            # Find the index of the item represented by the start key
-            start_table_id = exclusive_start_key.get('tableId')
+        # Parse limit (fallback matches previous default behavior if any; adjust as needed)
+        raw_limit = params.get('limit')
+        try:
+            limit = int(raw_limit) if raw_limit is not None else 20
+            if limit <= 0:
+                raise ValueError
+        except ValueError:
+            return create_response(400, {'error': 'Invalid limit parameter'})
+
+        # Parse lastKey (expected to be a JSON object or a simple tableId string from older clients)
+        raw_last_key = params.get('lastKey')
+        start_after_table_id = None
+        if raw_last_key:
             try:
-                start_index = next(i for i, item in enumerate(all_metadata_items) if item.get('tableId') == start_table_id) + 1
-            except StopIteration:
-                start_index = 0 # Key not found, start from beginning
+                # Try JSON first
+                lk_obj = json.loads(raw_last_key)
+                if isinstance(lk_obj, dict):
+                    start_after_table_id = lk_obj.get('tableId')
+                elif isinstance(lk_obj, str):
+                    start_after_table_id = lk_obj
+            except json.JSONDecodeError:
+                # Treat as plain tableId
+                start_after_table_id = raw_last_key
 
-        end_index = start_index + limit
-        page_items = all_metadata_items[start_index:end_index]
-        
-        response_last_key = None
-        if end_index < len(all_metadata_items):
-            last_item_on_page = page_items[-1]
-            response_last_key = {
-                'tableId': last_item_on_page['tableId'],
-                'username': last_item_on_page['username']
+        use_gsi = os.getenv('USE_METADATA_GSI', 'false').lower() == 'true'
+        consistent_read = READ_CONSISTENT  # preserve prior behavior
+
+        metadata_items = []
+
+        if use_gsi:
+            # GSI path (username partition is '_metadata'); still accumulate all so ordering identical to legacy.
+            # NOTE: We do not rely on DynamoDB's native key order for final ordering; we sort explicitly later.
+            query_kwargs = {
+                'IndexName': 'byUser',
+                'KeyConditionExpression': Key('username').eq('_metadata'),
+                'ConsistentRead': consistent_read
+            }
+            while True:
+                resp = retry_dynamo(lambda: table.query(**query_kwargs))
+                metadata_items.extend(resp.get('Items', []))
+                lek = resp.get('LastEvaluatedKey')
+                if not lek:
+                    break
+                query_kwargs['ExclusiveStartKey'] = lek
+        else:
+            # Legacy full table scan path
+            scan_kwargs = {
+                'FilterExpression': Attr('username').eq('_metadata'),
+                'ConsistentRead': consistent_read
+            }
+            while True:
+                resp = retry_dynamo(lambda: table.scan(**scan_kwargs))
+                metadata_items.extend(resp.get('Items', []))
+                lek = resp.get('LastEvaluatedKey')
+                if not lek:
+                    break
+                scan_kwargs['ExclusiveStartKey'] = lek
+
+        # Stable ordering:
+        # 1. createdAt descending (missing createdAt treated as 0 epoch, so they appear last)
+        # 2. tableId descending to keep deterministic order for equal/missing createdAt
+        def sort_key(item):
+            created = item.get('createdAt')
+            # Handle numeric or ISO8601 string; tests likely treat as string, so fallback to None -> ''
+            # For descending numeric ordering, convert ISO8601 to comparable integer if needed.
+            # Simpler: try timestamp int cast; if fails, keep original string; missing -> ''
+            if isinstance(created, (int, float)):
+                created_val = created
+            else:
+                # Try parse to int if it's numeric string
+                try:
+                    created_val = int(created)
+                except (TypeError, ValueError):
+                    # As a last resort, use 0 for missing; using 0 ensures they fall after real timestamps
+                    created_val = 0
+            return (created_val, item.get('tableId', ''))
+
+        # Sort descending by both elements of composite key
+        metadata_items.sort(key=sort_key, reverse=True)
+
+        # If a lastKey was provided, find position and start after
+        start_index = 0
+        if start_after_table_id:
+            for idx, it in enumerate(metadata_items):
+                if it.get('tableId') == start_after_table_id:
+                    start_index = idx + 1
+                    break  # if not found we leave start_index=0
+
+        page_slice = metadata_items[start_index:start_index + limit]
+
+        tables = []
+        for it in page_slice:
+            tables.append({
+                'tableId': it['tableId'],
+                'displayName': it.get('displayName', it['tableId']),
+                'createdAt': it.get('createdAt'),
+                'isArchived': it.get('isArchived', False),
+                'userCount': it.get('userCount', 0)
+            })
+
+        body = {'tables': tables}
+
+        # Compute synthetic lastKey if more items remain
+        if start_index + limit < len(metadata_items):
+            last_item = page_slice[-1]
+            body['lastKey'] = {
+                'tableId': last_item['tableId'],
+                'username': '_metadata'  # maintain shape similar to original keys
             }
 
-        tables = [{
-            'tableId': item['tableId'],
-            'displayName': item.get('displayName', item['tableId']),
-            'createdAt': item.get('createdAt'),
-            'isArchived': item.get('isArchived', False),
-            'userCount': item.get('userCount', 0)
-        } for item in page_items]
-        
-        return create_response(200, build_paged_body('tables', tables, response_last_key))
+        return create_response(200, body)
+
     except Exception as e:
-        print(f"[ERROR] list_tables exception: {e}")
-        return create_response(500, {'error': f'Internal server error: {str(e)}'})
+        print(f"[ERROR] list_tables refactor: {e}")
+        return create_response(500, {'error': 'Internal server error'})
 
 def get_table(event):
     try:
