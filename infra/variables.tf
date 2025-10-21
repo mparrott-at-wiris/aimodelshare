@@ -44,3 +44,33 @@ variable "tags" {
     project = "aimodelshare"
   }
 }
+
+variable "use_metadata_gsi" {
+  type        = bool
+  default     = false
+  description = "Enable GSI-based query for list_tables (USE_METADATA_GSI)"
+}
+
+variable "read_consistent" {
+  type        = bool
+  default     = true
+  description = "Enable strongly consistent reads for list endpoints (READ_CONSISTENT)"
+}
+
+variable "default_table_page_limit" {
+  type        = number
+  default     = 50
+  description = "Default page limit for list_tables endpoint"
+}
+
+variable "enable_gsi_leaderboard" {
+  type        = bool
+  default     = false
+  description = "Enable leaderboard GSI (byTableSubmission) for list_users ordering"
+}
+
+variable "use_leaderboard_gsi" {
+  type        = bool
+  default     = false
+  description = "Enable leaderboard GSI query path in list_users (USE_LEADERBOARD_GSI)"
+}

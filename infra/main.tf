@@ -79,6 +79,26 @@ resource "aws_dynamodb_table" "playground" {
     }
   }
 
+  # Optional leaderboard GSI for list_users descending submissionCount ordering
+  # Note: DynamoDB does not support descending sort order natively on range keys
+  # This GSI would require application-level workarounds (e.g., storing negative values)
+  # For now, keeping in-memory sorting as the recommended approach
+  # dynamic "global_secondary_index" {
+  #   for_each = var.enable_gsi_leaderboard ? [1] : []
+  #   content {
+  #     name            = "byTableSubmission"
+  #     hash_key        = "tableId"
+  #     range_key       = "submissionCount"
+  #     projection_type = "ALL"
+  #   }
+  # }
+
+  # Uncomment if enabling leaderboard GSI:
+  # attribute {
+  #   name = "submissionCount"
+  #   type = "N"
+  # }
+
   tags = local.tags
 }
 
@@ -170,10 +190,14 @@ resource "aws_lambda_function" "api" {
 
   environment {
     variables = {
-      TABLE_NAME         = aws_dynamodb_table.playground.name
-      SAFE_CONCURRENCY   = var.safe_concurrency ? "true" : "false"
-      DEFAULT_PAGE_LIMIT = "50"
-      MAX_PAGE_LIMIT     = "500"
+      TABLE_NAME                = aws_dynamodb_table.playground.name
+      SAFE_CONCURRENCY          = var.safe_concurrency ? "true" : "false"
+      DEFAULT_PAGE_LIMIT        = "50"
+      MAX_PAGE_LIMIT            = "500"
+      USE_METADATA_GSI          = var.use_metadata_gsi ? "true" : "false"
+      READ_CONSISTENT           = var.read_consistent ? "true" : "false"
+      DEFAULT_TABLE_PAGE_LIMIT  = tostring(var.default_table_page_limit)
+      USE_LEADERBOARD_GSI       = var.use_leaderboard_gsi ? "true" : "false"
     }
   }
 

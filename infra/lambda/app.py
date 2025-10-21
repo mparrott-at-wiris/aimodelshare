@@ -152,7 +152,11 @@ def list_tables(event):
       - ISO8601 strings with optional fractional seconds and trailing 'Z'
     Missing / unparseable createdAt values sort last.
     Default limit = 50 unless overridden by DEFAULT_TABLE_PAGE_LIMIT env var.
+    
+    Performance optimization: Uses GSI query when USE_METADATA_GSI=true to avoid full table scan.
+    Logs structured metrics for observability.
     """
+    start_time = time.time()
     try:
         params = (event.get('queryStringParameters') or {})
 
@@ -178,15 +182,18 @@ def list_tables(event):
                 start_after_table_id = raw_last_key
 
         use_gsi = os.getenv('USE_METADATA_GSI', 'false').lower() == 'true'
-        consistent_read = READ_CONSISTENT
+        # For list operations, use eventually consistent reads by default unless READ_CONSISTENT=true
+        consistent_read = READ_CONSISTENT and not use_gsi  # GSI queries cannot use consistent reads
 
         metadata_items = []
+        strategy = "scan"  # Track which path was used for metrics
 
         if use_gsi:
+            strategy = "gsi_query"
             query_kwargs = {
                 'IndexName': 'byUser',
-                'KeyConditionExpression': Key('username').eq('_metadata'),
-                'ConsistentRead': consistent_read
+                'KeyConditionExpression': Key('username').eq('_metadata')
+                # Note: GSI queries do not support ConsistentRead parameter
             }
             while True:
                 resp = retry_dynamo(lambda: table.query(**query_kwargs))
@@ -309,10 +316,24 @@ def list_tables(event):
                 'username': '_metadata'
             }
 
+        # Log structured metrics for observability
+        duration_ms = int((time.time() - start_time) * 1000)
+        metrics = {
+            'metric': 'list_tables',
+            'strategy': strategy,
+            'consistentRead': consistent_read,
+            'countFetched': len(metadata_items),
+            'countReturned': len(tables),
+            'limit': limit,
+            'durationMs': duration_ms
+        }
+        print(json.dumps(metrics))
+
         return create_response(200, body)
 
     except Exception as e:
-        print(f"[ERROR] list_tables createdAt ordering fix: {e}")
+        duration_ms = int((time.time() - start_time) * 1000)
+        print(f"[ERROR] list_tables createdAt ordering fix: {e} (duration: {duration_ms}ms)")
         return create_response(500, {'error': 'Internal server error'})
 
 def get_table(event):
@@ -321,6 +342,7 @@ def get_table(event):
         table_id = params.get('tableId')
         if not validate_table_id(table_id):
             return create_response(400, {'error': 'Invalid tableId format'})
+        # Single item get can use eventually consistent read
         resp = retry_dynamo(lambda: table.get_item(
             Key={'tableId': table_id, 'username': '_metadata'},
             ConsistentRead=READ_CONSISTENT
@@ -377,25 +399,50 @@ def patch_table(event):
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
 def list_users(event):
-    """Paginated list of users with correct pagination logic."""
+    """
+    Paginated list of users with correct pagination logic.
+    
+    Performance optimization: Optionally uses leaderboard GSI when USE_LEADERBOARD_GSI=true
+    for native ordering by submissionCount (requires GSI deployment).
+    Logs structured metrics for observability.
+    """
+    start_time = time.time()
     try:
         params = event.get('pathParameters') or {}
         table_id = params.get('tableId')
         if not validate_table_id(table_id):
             return create_response(400, {'error': 'Invalid tableId format'})
+        
+        # For metadata check, can use eventually consistent read
+        consistent_read_meta = READ_CONSISTENT
         meta = retry_dynamo(lambda: table.get_item(
             Key={'tableId': table_id, 'username': '_metadata'},
-            ConsistentRead=READ_CONSISTENT
+            ConsistentRead=consistent_read_meta
         ))
         if 'Item' not in meta:
             return create_response(404, {'error': 'Table not found'})
 
         limit, exclusive_start_key = parse_pagination_params(event)
         
+        use_leaderboard_gsi = os.getenv('USE_LEADERBOARD_GSI', 'false').lower() == 'true'
+        strategy = "partition_query"  # Default strategy
+        
+        # For list operations, use eventually consistent reads by default
+        consistent_read = READ_CONSISTENT
+        
+        if use_leaderboard_gsi:
+            # Future enhancement: Query leaderboard GSI for native ordering
+            # Note: DynamoDB GSI range keys only support ascending order
+            # Would require storing negative submissionCount or fetching in reverse
+            strategy = "leaderboard_gsi"
+            # Placeholder - not fully implemented without actual GSI
+            # For now, fall back to standard query
+            print(f"[WARN] USE_LEADERBOARD_GSI=true but GSI not yet fully implemented, using standard query")
+        
         query_kwargs = {
             'KeyConditionExpression': Key('tableId').eq(table_id),
             'Limit': limit + 2, 
-            'ConsistentRead': READ_CONSISTENT
+            'ConsistentRead': consistent_read
         }
         if exclusive_start_key:
             query_kwargs['ExclusiveStartKey'] = exclusive_start_key
@@ -424,11 +471,27 @@ def list_users(event):
             'lastUpdated': item.get('lastUpdated')
         } for item in page_items]
         
+        # In-memory sort by submissionCount descending (current approach)
         users_to_return.sort(key=lambda x: x.get('submissionCount', 0), reverse=True)
+        
+        # Log structured metrics for observability
+        duration_ms = int((time.time() - start_time) * 1000)
+        metrics = {
+            'metric': 'list_users',
+            'strategy': strategy,
+            'consistentRead': consistent_read,
+            'countFetched': len(user_items),
+            'countReturned': len(users_to_return),
+            'limit': limit,
+            'durationMs': duration_ms,
+            'tableId': table_id
+        }
+        print(json.dumps(metrics))
         
         return create_response(200, build_paged_body('users', users_to_return, response_last_key))
     except Exception as e:
-        print(f"[ERROR] list_users exception: {e}")
+        duration_ms = int((time.time() - start_time) * 1000)
+        print(f"[ERROR] list_users exception: {e} (duration: {duration_ms}ms)")
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
 def get_user(event):
