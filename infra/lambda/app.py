@@ -3,6 +3,7 @@ Lambda handler for aimodelshare playground API.
 Supports logical tables with archive, validation, and user endpoints.
 (Updated: pagination; Enhanced: GSI graceful fallback + /health endpoint + scan fallback)
 (Fix: Conditional ExclusiveStartKey usage to avoid None parameter validation errors)
+(Fix: User pagination now excludes metadata without shrinking page size)
 """
 import json
 import os
@@ -253,33 +254,68 @@ def patch_table(event):
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
 def list_users(event):
+    """Paginated list of users ensuring page size excludes metadata row without shrinking count."""
     try:
         params = event.get('pathParameters') or {}
         table_id = params.get('tableId')
         if not validate_table_id(table_id):
             return create_response(400, {'error': 'Invalid tableId format'})
+        # Ensure table exists
         meta = retry_dynamo(lambda: table.get_item(
             Key={'tableId': table_id, 'username': '_metadata'},
             ConsistentRead=READ_CONSISTENT
         ))
         if 'Item' not in meta:
             return create_response(404, {'error': 'Table not found'})
+
         limit, exclusive_start_key = parse_pagination_params(event)
-        query_kwargs = {
-            'KeyConditionExpression': Key('tableId').eq(table_id),
-            'Limit': limit
-        }
-        if exclusive_start_key:
-            query_kwargs['ExclusiveStartKey'] = exclusive_start_key
-        resp = retry_dynamo(lambda: table.query(**query_kwargs))
-        users = [{
-            'username': item['username'],
-            'submissionCount': item.get('submissionCount', 0),
-            'totalCount': item.get('totalCount', 0),
-            'lastUpdated': item.get('lastUpdated')
-        } for item in resp.get('Items', []) if item.get('username') != '_metadata']
-        users.sort(key=lambda x: x.get('submissionCount', 0), reverse=True)
-        return create_response(200, build_paged_body('users', users, resp.get('LastEvaluatedKey')))
+        users_collected = []
+        last_evaluated_key = exclusive_start_key
+        first_iteration = True
+
+        while len(users_collected) < limit:
+            # Over-fetch by 1 only on first iteration to account for metadata row
+            request_limit = (limit - len(users_collected)) + (1 if first_iteration else 0)
+            query_kwargs = {
+                'KeyConditionExpression': Key('tableId').eq(table_id),
+                'Limit': request_limit
+            }
+            if last_evaluated_key:
+                query_kwargs['ExclusiveStartKey'] = last_evaluated_key
+
+            resp = retry_dynamo(lambda: table.query(**query_kwargs))
+            items = resp.get('Items', [])
+            raw_last_key = resp.get('LastEvaluatedKey')
+
+            # Filter out metadata & append
+            for it in items:
+                if it.get('username') == '_metadata':
+                    continue
+                users_collected.append({
+                    'username': it['username'],
+                    'submissionCount': it.get('submissionCount', 0),
+                    'totalCount': it.get('totalCount', 0),
+                    'lastUpdated': it.get('lastUpdated')
+                })
+                if len(users_collected) >= limit:
+                    break
+
+            first_iteration = False
+            # If we reached limit, decide whether to keep last key
+            if len(users_collected) >= limit:
+                # If raw_last_key exists we still have more data; propagate it
+                last_evaluated_key = raw_last_key if raw_last_key else None
+                break
+            # Not enough yet; if no more data, end
+            if not raw_last_key:
+                last_evaluated_key = None
+                break
+            last_evaluated_key = raw_last_key
+
+        # In-page sort by submissionCount desc
+        users_collected.sort(key=lambda x: x.get('submissionCount', 0), reverse=True)
+        body = build_paged_body('users', users_collected, last_evaluated_key)
+        return create_response(200, body)
     except Exception as e:
         print(f"[ERROR] list_users exception: {e}")
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
