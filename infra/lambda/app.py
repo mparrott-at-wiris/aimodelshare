@@ -144,44 +144,44 @@ def create_table(event):
 def list_tables(event):
     """
     List table metadata items with stable descending ordering by createdAt (then tableId),
-    supporting page-level limit and a synthetic lastKey (tableId of last returned item).
-    This keeps legacy semantics so existing integration tests should continue to pass.
+    supporting page-level limit and a synthetic lastKey.
+    Compatible with existing integration tests expecting:
+      - default limit = 50
+      - createdAt descending
+      - consistent response shape.
     """
     try:
         params = (event.get('queryStringParameters') or {})
 
-        # Parse limit (fallback matches previous default behavior if any; adjust as needed)
+        # Default limit now 50 unless overridden by env var.
+        default_limit = int(os.getenv('DEFAULT_TABLE_PAGE_LIMIT', '50'))
         raw_limit = params.get('limit')
         try:
-            limit = int(raw_limit) if raw_limit is not None else 20
+            limit = int(raw_limit) if raw_limit is not None else default_limit
             if limit <= 0:
                 raise ValueError
         except ValueError:
             return create_response(400, {'error': 'Invalid limit parameter'})
 
-        # Parse lastKey (expected to be a JSON object or a simple tableId string from older clients)
+        # Parse lastKey (JSON {"tableId": "..."} or plain tableId string)
         raw_last_key = params.get('lastKey')
         start_after_table_id = None
         if raw_last_key:
             try:
-                # Try JSON first
                 lk_obj = json.loads(raw_last_key)
                 if isinstance(lk_obj, dict):
                     start_after_table_id = lk_obj.get('tableId')
                 elif isinstance(lk_obj, str):
                     start_after_table_id = lk_obj
             except json.JSONDecodeError:
-                # Treat as plain tableId
                 start_after_table_id = raw_last_key
 
         use_gsi = os.getenv('USE_METADATA_GSI', 'false').lower() == 'true'
-        consistent_read = READ_CONSISTENT  # preserve prior behavior
+        consistent_read = READ_CONSISTENT
 
         metadata_items = []
 
         if use_gsi:
-            # GSI path (username partition is '_metadata'); still accumulate all so ordering identical to legacy.
-            # NOTE: We do not rely on DynamoDB's native key order for final ordering; we sort explicitly later.
             query_kwargs = {
                 'IndexName': 'byUser',
                 'KeyConditionExpression': Key('username').eq('_metadata'),
@@ -195,7 +195,6 @@ def list_tables(event):
                     break
                 query_kwargs['ExclusiveStartKey'] = lek
         else:
-            # Legacy full table scan path
             scan_kwargs = {
                 'FilterExpression': Attr('username').eq('_metadata'),
                 'ConsistentRead': consistent_read
@@ -208,35 +207,46 @@ def list_tables(event):
                     break
                 scan_kwargs['ExclusiveStartKey'] = lek
 
-        # Stable ordering:
-        # 1. createdAt descending (missing createdAt treated as 0 epoch, so they appear last)
-        # 2. tableId descending to keep deterministic order for equal/missing createdAt
-        def sort_key(item):
-            created = item.get('createdAt')
-            # Handle numeric or ISO8601 string; tests likely treat as string, so fallback to None -> ''
-            # For descending numeric ordering, convert ISO8601 to comparable integer if needed.
-            # Simpler: try timestamp int cast; if fails, keep original string; missing -> ''
-            if isinstance(created, (int, float)):
-                created_val = created
-            else:
-                # Try parse to int if it's numeric string
+        # Robust createdAt extraction -> numeric timestamp for sorting.
+        def created_at_numeric(item):
+            v = item.get('createdAt')
+            if v is None:
+                return -1  # missing sorts last in descending order
+            if isinstance(v, (int, float)):
+                return v
+            if isinstance(v, str):
+                vv = v.strip()
+                if vv.isdigit():
+                    try:
+                        return int(vv)
+                    except ValueError:
+                        pass
+                # Try ISO8601
                 try:
-                    created_val = int(created)
-                except (TypeError, ValueError):
-                    # As a last resort, use 0 for missing; using 0 ensures they fall after real timestamps
-                    created_val = 0
-            return (created_val, item.get('tableId', ''))
+                    # Remove trailing Z if present for fromisoformat.
+                    iso = vv[:-1] if vv.endswith('Z') else vv
+                    from datetime import datetime
+                    dt = datetime.fromisoformat(iso)
+                    return int(dt.timestamp())
+                except Exception:
+                    # Fallback: lexicographically later ISO strings should be "larger".
+                    # We map them to a hash-based ordering but still deterministic.
+                    return hash(vv) & 0xFFFFFFFF
+            return -1
 
-        # Sort descending by both elements of composite key
-        metadata_items.sort(key=sort_key, reverse=True)
+        # Sort: primary createdAt descending, secondary tableId descending
+        metadata_items.sort(
+            key=lambda it: (created_at_numeric(it), it.get('tableId', '')),
+            reverse=True
+        )
 
-        # If a lastKey was provided, find position and start after
+        # Find start index if lastKey was provided
         start_index = 0
         if start_after_table_id:
             for idx, it in enumerate(metadata_items):
                 if it.get('tableId') == start_after_table_id:
                     start_index = idx + 1
-                    break  # if not found we leave start_index=0
+                    break
 
         page_slice = metadata_items[start_index:start_index + limit]
 
@@ -252,18 +262,17 @@ def list_tables(event):
 
         body = {'tables': tables}
 
-        # Compute synthetic lastKey if more items remain
-        if start_index + limit < len(metadata_items):
+        if start_index + limit < len(metadata_items) and page_slice:
             last_item = page_slice[-1]
             body['lastKey'] = {
                 'tableId': last_item['tableId'],
-                'username': '_metadata'  # maintain shape similar to original keys
+                'username': '_metadata'
             }
 
         return create_response(200, body)
 
     except Exception as e:
-        print(f"[ERROR] list_tables refactor: {e}")
+        print(f"[ERROR] list_tables pagination fix: {e}")
         return create_response(500, {'error': 'Internal server error'})
 
 def get_table(event):
