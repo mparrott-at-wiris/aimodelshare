@@ -1,7 +1,7 @@
 name: Test latest master branch aimodelshare
 
 on:
-  workflow_dispatch:  # Manual trigger only
+  workflow_dispatch: # Manual trigger only
 
 permissions:
   contents: read
@@ -57,14 +57,14 @@ jobs:
       - name: Verify import now points to repository source (not PyPI)
         run: |
           python - <<'PYCODE'
-import aimodelshare, os
-path = aimodelshare.__file__
-print("Resolved aimodelshare.__file__:", path)
-repo_root = os.getcwd()
-assert repo_root in os.path.abspath(path), f"aimodelshare does not appear to come from the checked-out repository root: {repo_root}"
-assert "site-packages" not in path, "aimodelshare should NOT be the PyPI site-packages build."
-print("Verification passed: using local master branch source.")
-PYCODE
+          import aimodelshare, os
+          path = aimodelshare.__file__
+          print("Resolved aimodelshare.__file__:", path)
+          repo_root = os.getcwd()
+          assert repo_root in os.path.abspath(path), f"aimodelshare does not appear to come from the checked-out repository root: {repo_root}"
+          assert "site-packages" not in path, "aimodelshare should NOT be the PyPI site-packages build."
+          print("Verification passed: using local master branch source.")
+          PYCODE
 
       - name: Run targeted tests against local master branch
         run: |
@@ -76,7 +76,7 @@ PYCODE
         run: |
           echo "Job conclusion: ${{ job.status }}"
           python - <<'PYCODE'
-import aimodelshare
-print("aimodelshare version attribute (may reflect local dev state):", getattr(aimodelshare, "__version__", "unknown"))
-print("Module file path:", aimodelshare.__file__)
-PYCODE
+          import aimodelshare
+          print("aimodelshare version attribute (may reflect local dev state):", getattr(aimodelshare, "__version__", "unknown"))
+          print("Module file path:", aimodelshare.__file__)
+          PYCODE
