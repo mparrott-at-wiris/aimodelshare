@@ -1,0 +1,7 @@
+boto3
+pandas
+numpy>=1.22.0  # Explicitly added for Python 3.10 compatibility
+six
+onnx
+requests
+PyJWT<2.0      # Pinned to avoid 'jwt.decode' error
