@@ -40,7 +40,7 @@ jobs:
       - name: Install dependencies (latest PyPI aimodelshare + test libs)
         run: |
           pip install --upgrade aimodelshare
-          pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot
+          pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex
           pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
           python -c "import aimodelshare; print('aimodelshare imported from:', aimodelshare.__file__)"
 
