@@ -1,0 +1,67 @@
+name: Test latest PyPI aimodelshare
+
+on:
+  workflow_dispatch:  # Manual trigger only
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pypi-aimodelshare-tests
+  cancel-in-progress: true
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    env:
+      USERNAME: ${{ secrets.AIMODELSHARE_USERNAME }}
+      PASSWORD: ${{ secrets.AIMODELSHARE_PASSWORD }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      # AWS_TOKEN: ${{ secrets.AWS_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: "pip"
+
+      - name: Upgrade pip
+        run: |
+          python -m pip install --upgrade pip
+
+      - name: Install dependencies (latest PyPI aimodelshare + test libs)
+        run: |
+          pip install --upgrade aimodelshare
+          pip install pytest scikit-learn pandas numpy opencv-python-headless
+          pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
+          python -c "import aimodelshare; print('aimodelshare imported from:', aimodelshare.__file__)"
+
+      - name: Remove local source to ensure PyPI package is tested
+        run: |
+          if [ -d "aimodelshare" ]; then
+            echo "Removing local aimodelshare source directory so tests use PyPI distribution."
+            rm -rf aimodelshare
+          fi
+
+      - name: Verify import now points to site-packages
+        run: |
+          python -c "import aimodelshare; print('Final path:', aimodelshare.__file__); assert 'site-packages' in aimodelshare.__file__, 'aimodelshare is not from site-packages (PyPI)';"
+
+      - name: Run targeted tests against PyPI distribution
+        run: |
+          echo "Starting pytest for tests/test_playground.py"
+          pytest -vv tests/test_playground.py
+
+      - name: Post-run diagnostics (always runs)
+        if: always()
+        run: |
+          echo "Job conclusion: ${{ job.status }}"
+          python -c "import aimodelshare; print('aimodelshare version tested:', getattr(aimodelshare, '__version__', 'unknown'))"
