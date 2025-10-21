@@ -1,6 +1,6 @@
 """
 Lambda handler for aimodelshare playground API.
-(Final Fix: Use a strongly consistent Scan in list_tables to eliminate eventual consistency issues)
+(Final Fix: Corrected pagination logic for both list_users and list_tables)
 """
 import json
 import os
@@ -134,9 +134,6 @@ def create_table(event):
             'userCount': 0
         }
         retry_dynamo(lambda: table.put_item(Item=metadata))
-        
-        # No sleep is needed because list_tables will use a strongly consistent scan.
-        
         return create_response(201, {'tableId': table_id, 'displayName': display_name, 'message': 'Table created successfully'})
     except json.JSONDecodeError:
         return create_response(400, {'error': 'Invalid JSON in request body'})
@@ -145,55 +142,34 @@ def create_table(event):
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
 def list_tables(event):
-    """
-    Paginated list of tables using a STRONGLY CONSISTENT Scan to ensure new tables appear immediately.
-    """
+    """Paginated list of tables using a strongly consistent Scan."""
     try:
         limit, exclusive_start_key = parse_pagination_params(event)
         
         scan_kwargs = {
             'FilterExpression': Attr('username').eq('_metadata'),
-            'ConsistentRead': True  # Use a strongly consistent read
+            'ConsistentRead': True,
+            'Limit': limit + 1 # Fetch one extra to check for next page
         }
         if exclusive_start_key:
             scan_kwargs['ExclusiveStartKey'] = exclusive_start_key
 
-        # Since FilterExpression is applied after the scan, we can't use Limit in the scan itself
-        # to guarantee `limit` items. We must paginate manually.
-        collected = []
-        last_key_from_ddb = exclusive_start_key
-
-        while len(collected) < limit:
-            if last_key_from_ddb:
-                 scan_kwargs['ExclusiveStartKey'] = last_key_from_ddb
-            else: # On the first iteration, remove the key if it was None
-                scan_kwargs.pop('ExclusiveStartKey', None)
-
-            resp = retry_dynamo(lambda: table.scan(**scan_kwargs))
-            
-            items = resp.get('Items', [])
-            collected.extend(items)
-            
-            last_key_from_ddb = resp.get('LastEvaluatedKey')
-            if not last_key_from_ddb:
-                break # No more items in the entire table
-
-        page_items = collected[:limit]
+        resp = retry_dynamo(lambda: table.scan(**scan_kwargs))
+        
+        all_items = resp.get('Items', [])
+        
+        has_next_page = len(all_items) > limit
+        page_items = all_items[:limit]
         
         response_last_key = None
-        if len(collected) > limit:
-            # If we collected more items than the page limit, the *actual* next key is the key
-            # of the last item on the current page.
+        if has_next_page:
             last_item_on_page = page_items[-1]
+            # For a scan, the next key is the full primary key of the last item.
             response_last_key = {
                 'tableId': last_item_on_page['tableId'],
                 'username': last_item_on_page['username']
             }
-        elif last_key_from_ddb:
-             # If we exhausted the items but DDB told us there was a key, pass it along.
-             # This can happen if the remaining items were filtered out.
-             response_last_key = last_key_from_ddb
-
+        
         tables = [{
             'tableId': item['tableId'],
             'displayName': item.get('displayName', item['tableId']),
@@ -286,10 +262,10 @@ def list_users(event):
 
         limit, exclusive_start_key = parse_pagination_params(event)
         
-        # We fetch one more item than the limit to see if there's a next page.
         query_kwargs = {
             'KeyConditionExpression': Key('tableId').eq(table_id),
-            'Limit': limit + 1 
+            'Limit': limit + 2, # Fetch limit + metadata + one extra for next page check
+            'ConsistentRead': READ_CONSISTENT
         }
         if exclusive_start_key:
             query_kwargs['ExclusiveStartKey'] = exclusive_start_key
@@ -301,7 +277,6 @@ def list_users(event):
         user_items = [item for item in all_items if item.get('username') != '_metadata']
         
         has_next_page = len(user_items) > limit
-        
         page_items = user_items[:limit]
         
         response_last_key = None
