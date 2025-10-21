@@ -133,6 +133,16 @@ jobs:
           echo "🚀 Starting API Integration Tests..."
           python tests/test_api_integration.py "$API_BASE_URL"
 
+      - name: Run Pagination Tests
+        if: github.ref == 'refs/heads/master'
+        working-directory: .
+        run: |
+          API_BASE_URL=$(cd infra && terraform output -raw api_base_url)
+          echo "API Base URL: $API_BASE_URL"
+          # requests likely installed already, ensure silently
+          python -m pip install requests
+          python tests/test_api_pagination.py "$API_BASE_URL"
+
       - name: Install Load Test Dependencies
         if: github.ref == 'refs/heads/master' && (vars.RUN_LOAD_TESTS != 'false')
         working-directory: .
