@@ -595,7 +595,8 @@ def create_competition(apiurl, data_directory, y_test, eval_metric_filepath=None
         if any([len(email_list)>0, public=="True",public=="TRUE",public==True]):
               import jwt
               idtoken=get_aws_token()
-              decoded = jwt.decode(idtoken, options={"verify_signature": False})  # works in PyJWT < v2.0
+              decoded = jwt.decode(idtoken,options={"verify_signature": False,"verify_aud": False})
+
               email=decoded['email']
               email_list.append(email)
     else:
@@ -760,7 +761,8 @@ def create_experiment(apiurl, data_directory, y_test, eval_metric_filepath=None,
         if any([len(email_list)>0, public=="True",public=="TRUE",public==True]):
               import jwt
               idtoken=get_aws_token()
-              decoded = jwt.decode(idtoken, options={"verify_signature": False})  # works in PyJWT < v2.0
+              decoded = jwt.decode(idtoken,options={"verify_signature": False,"verify_aud": False})
+
               email=decoded['email']
               email_list.append(email)
     else:
