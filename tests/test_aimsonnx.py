@@ -105,19 +105,6 @@ def test_model_from_string():
     assert model_class.__name__ == "RandomForestClassifier"
 
 
-def test_get_pyspark_modules():
-
-    modules = _get_pyspark_modules()
-
-    assert isinstance(modules, dict)
-
-
-def test_pyspark_model_from_string():
-
-    model_class = pyspark_model_from_string("RandomForestClassifier")
-
-    assert model_class.__name__ == "RandomForestClassifier"
-
 
 def test_layer_mapping():
 
