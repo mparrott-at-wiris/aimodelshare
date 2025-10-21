@@ -181,7 +181,8 @@ def list_tables(event):
         except ClientError as ce:
             code = ce.response.get('Error', {}).get('Code')
             msg = ce.response.get('Error', {}).get('Message', '')
-            if code in ('ValidationException', 'ResourceNotFoundException') and 'byUser' in msg:
+            # More robust check for GSI 'byUser' not ready
+            if code in ('ValidationException', 'ResourceNotFoundException') and re.search(r"The table does not have the specified index: byUser", msg):
                 print(f"[INFO] GSI 'byUser' not ready (code={code}). Returning empty tables list.")
                 return create_response(200, build_paged_body('tables', [], None))
             raise
