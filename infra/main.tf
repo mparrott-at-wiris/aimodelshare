@@ -135,7 +135,8 @@ data "aws_iam_policy_document" "ddb_rw" {
       "dynamodb:PutItem",
       "dynamodb:UpdateItem",
       "dynamodb:Query",
-      "dynamodb:DescribeTable"
+      "dynamodb:DescribeTable",
+      "dynamodb:Scan"
     ]
     resources = [
       aws_dynamodb_table.playground.arn,
@@ -154,6 +155,7 @@ resource "aws_iam_role_policy_attachment" "attach_ddb_rw" {
   role       = aws_iam_role.lambda_exec_role.name
   policy_arn = aws_iam_policy.ddb_rw.arn
 }
+
 
 resource "aws_lambda_function" "api" {
   function_name    = "${local.name_prefix}-api"

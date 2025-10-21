@@ -1,10 +1,6 @@
 """
 Lambda handler for aimodelshare playground API.
-Supports logical tables with archive, validation, and user endpoints.
-(Updated: pagination; Enhanced: GSI graceful fallback + /health endpoint + scan fallback)
-(Fix: Conditional ExclusiveStartKey usage to avoid None parameter validation errors)
-(Fix: User pagination now excludes metadata without shrinking page size)
-(Rewrite: list_tables now uses strongly consistent Scan to eliminate GSI propagation flakiness)
+(Fix: Corrected list_tables to use Scan without invalid ConsistentRead parameter)
 """
 import json
 import os
@@ -138,7 +134,10 @@ def create_table(event):
             'userCount': 0
         }
         retry_dynamo(lambda: table.put_item(Item=metadata))
-        # No need to wait for GSI anymore since we list via Scan.
+        
+        # Add a small delay to allow for eventual consistency of the Scan in list_tables
+        time.sleep(1) 
+        
         return create_response(201, {'tableId': table_id, 'displayName': display_name, 'message': 'Table created successfully'})
     except json.JSONDecodeError:
         return create_response(400, {'error': 'Invalid JSON in request body'})
@@ -148,21 +147,24 @@ def create_table(event):
 
 def list_tables(event):
     """
-    Paginated list of tables using a strongly consistent Scan filtered to metadata rows.
-    This avoids GSI propagation delays so newly created tables appear immediately.
+    Paginated list of tables using a Scan filtered to metadata rows.
+    Scan is eventually consistent.
     """
     try:
         limit, exclusive_start_key = parse_pagination_params(event)
         collected = []
         last_key = exclusive_start_key
+        
+        # NOTE: ConsistentRead is NOT a valid parameter for Scan and has been removed.
         scan_kwargs = {
             'FilterExpression': Attr('username').eq('_metadata'),
-            'ConsistentRead': READ_CONSISTENT
         }
         if last_key:
             scan_kwargs['ExclusiveStartKey'] = last_key
 
         while len(collected) < limit:
+            # We don't set a Limit on the scan itself because FilterExpression is applied *after* the scan.
+            # This loop fetches 1MB chunks until we have enough items.
             resp = retry_dynamo(lambda: table.scan(**scan_kwargs))
             items = resp.get('Items', [])
             collected.extend(items)
@@ -171,8 +173,21 @@ def list_tables(event):
                 break
             scan_kwargs['ExclusiveStartKey'] = last_key
 
-        # Slice to requested limit
+        # Slice to the requested limit *after* collecting enough items
         page_items = collected[:limit]
+        
+        # Determine the key for the *next* page
+        response_last_key = None
+        if len(collected) > limit:
+            # If we collected more than one page's worth, the lastKey for the next page
+            # is the key of the first item on the next page.
+            response_last_key = {
+                'tableId': collected[limit]['tableId'],
+                'username': collected[limit]['username']
+            }
+        elif last_key:
+             # If we are at the end of the collected items but DDB said there was more
+             response_last_key = last_key
 
         tables = [{
             'tableId': item['tableId'],
@@ -183,10 +198,7 @@ def list_tables(event):
         } for item in page_items]
 
         tables.sort(key=lambda x: (x.get('createdAt') or ''), reverse=True)
-
-        # If we have more data beyond this page, keep last_key; else None
-        has_more = (len(collected) > limit) or last_key
-        response_last_key = last_key if has_more else None
+        
         return create_response(200, build_paged_body('tables', tables, response_last_key))
     except Exception as e:
         print(f"[ERROR] list_tables exception: {e}")
