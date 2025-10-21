@@ -4,6 +4,7 @@ Supports logical tables with archive, validation, and user endpoints.
 (Updated: pagination; Enhanced: GSI graceful fallback + /health endpoint + scan fallback)
 (Fix: Conditional ExclusiveStartKey usage to avoid None parameter validation errors)
 (Fix: User pagination now excludes metadata without shrinking page size)
+(Fix: Table listing flakiness – GSI propagation wait + empty-result scan fallback)
 """
 import json
 import os
@@ -137,6 +138,21 @@ def create_table(event):
             'userCount': 0
         }
         retry_dynamo(lambda: table.put_item(Item=metadata))
+
+        # GSI propagation wait (short, best-effort)
+        for attempt in range(4):
+            try:
+                q = table.query(
+                    IndexName='byUser',
+                    KeyConditionExpression=Key('username').eq('_metadata'),
+                    Limit=5
+                )
+                if any(it.get('tableId') == table_id for it in q.get('Items', [])):
+                    break
+            except ClientError:
+                pass
+            time.sleep(0.25 * (attempt + 1))
+
         return create_response(201, {'tableId': table_id, 'displayName': display_name, 'message': 'Table created successfully'})
     except json.JSONDecodeError:
         return create_response(400, {'error': 'Invalid JSON in request body'})
@@ -145,12 +161,13 @@ def create_table(event):
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
 def list_tables(event):
-    """Paginated list of tables with graceful GSI fallback. Avoid passing None ExclusiveStartKey."""
+    """Paginated list of tables with graceful GSI fallback & empty-result scan fallback."""
     try:
         limit, exclusive_start_key = parse_pagination_params(event)
         gsi_errors_grace = {'ValidationException', 'ResourceNotFoundException', 'AccessDeniedException'}
         raw_items = []
         last_key = None
+        performed_query = False
         try:
             query_kwargs = {
                 'IndexName': 'byUser',
@@ -160,6 +177,7 @@ def list_tables(event):
             if exclusive_start_key:
                 query_kwargs['ExclusiveStartKey'] = exclusive_start_key
             resp = retry_dynamo(lambda: table.query(**query_kwargs))
+            performed_query = True
             raw_items = resp.get('Items', [])
             last_key = resp.get('LastEvaluatedKey')
         except ClientError as ce:
@@ -168,17 +186,20 @@ def list_tables(event):
             print(f"[INFO] Query on GSI failed code={code} msg={msg}")
             if code in gsi_errors_grace:
                 print("[INFO] Falling back to Scan for metadata items (GSI not ready).")
-                scan_kwargs = {
-                    'FilterExpression': Attr('username').eq('_metadata'),
-                    'Limit': limit
-                }
-                if exclusive_start_key:
-                    scan_kwargs['ExclusiveStartKey'] = exclusive_start_key
-                scan_resp = retry_dynamo(lambda: table.scan(**scan_kwargs))
-                raw_items = scan_resp.get('Items', [])
-                last_key = scan_resp.get('LastEvaluatedKey')
             else:
                 raise
+
+        # Empty-result fallback: if first page query returned no items (due to propagation), scan base table.
+        if performed_query and not raw_items and not exclusive_start_key:
+            print("[INFO] Empty GSI first page; performing scan fallback for metadata items.")
+            scan_kwargs = {
+                'FilterExpression': Attr('username').eq('_metadata'),
+                'Limit': limit
+            }
+            scan_resp = retry_dynamo(lambda: table.scan(**scan_kwargs))
+            raw_items = scan_resp.get('Items', [])
+            last_key = scan_resp.get('LastEvaluatedKey')
+
         tables = [{
             'tableId': item['tableId'],
             'displayName': item.get('displayName', item['tableId']),
@@ -260,7 +281,6 @@ def list_users(event):
         table_id = params.get('tableId')
         if not validate_table_id(table_id):
             return create_response(400, {'error': 'Invalid tableId format'})
-        # Ensure table exists
         meta = retry_dynamo(lambda: table.get_item(
             Key={'tableId': table_id, 'username': '_metadata'},
             ConsistentRead=READ_CONSISTENT
@@ -274,7 +294,6 @@ def list_users(event):
         first_iteration = True
 
         while len(users_collected) < limit:
-            # Over-fetch by 1 only on first iteration to account for metadata row
             request_limit = (limit - len(users_collected)) + (1 if first_iteration else 0)
             query_kwargs = {
                 'KeyConditionExpression': Key('tableId').eq(table_id),
@@ -287,7 +306,6 @@ def list_users(event):
             items = resp.get('Items', [])
             raw_last_key = resp.get('LastEvaluatedKey')
 
-            # Filter out metadata & append
             for it in items:
                 if it.get('username') == '_metadata':
                     continue
@@ -301,18 +319,15 @@ def list_users(event):
                     break
 
             first_iteration = False
-            # If we reached limit, decide whether to keep last key
+
             if len(users_collected) >= limit:
-                # If raw_last_key exists we still have more data; propagate it
                 last_evaluated_key = raw_last_key if raw_last_key else None
                 break
-            # Not enough yet; if no more data, end
             if not raw_last_key:
                 last_evaluated_key = None
                 break
             last_evaluated_key = raw_last_key
 
-        # In-page sort by submissionCount desc
         users_collected.sort(key=lambda x: x.get('submissionCount', 0), reverse=True)
         body = build_paged_body('users', users_collected, last_evaluated_key)
         return create_response(200, body)
