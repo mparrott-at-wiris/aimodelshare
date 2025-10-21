@@ -10,30 +10,7 @@ import datetime
 import warnings
 import regex as re
 from aimodelshare.exceptions import AuthorizationError, AWSAccessError, AWSUploadError
-
-def get_jwt_token(username, password):
-
-    config = botocore.config.Config(signature_version=botocore.UNSIGNED)
-
-    provider_client = boto3.client(
-      "cognito-idp", region_name="us-east-2", config=config
-    )
-
-    try:
-      # Get JWT token for the user
-      response = provider_client.initiate_auth(
-        ClientId='25vssbned2bbaoi1q7rs4i914u',
-        AuthFlow='USER_PASSWORD_AUTH',
-        AuthParameters={'USERNAME': username,'PASSWORD': password})
-
-      os.environ["JWT_AUTHORIZATION_TOKEN"] = response["AuthenticationResult"]["IdToken"]
-
-    except :
-      err = "Username or password does not exist.  Please enter new username or password."+"\n"
-      err += "Sign up at AImodelshare.com/register."
-      raise AuthorizationError(err)
-
-    return 
+from aimodelshare import iam_utils
 
 def get_jwt_token(username, password):
 
@@ -184,21 +161,8 @@ def _create_user_getkeyandpassword_legacy():
     s3_client = s3['client']
 
     s3_client, bucket_name, region = s3['client'], bucket_name, region
-    try:
-        response=s3_client.head_bucket(Bucket=bucket_name)
-    except:
-        if(region=="us-east-1"):
-            response = s3_client.create_bucket(
-                ACL="private",
-                Bucket=bucket_name
-            )
-        else:
-            location={'LocationConstraint': region}
-            response=s3_client.create_bucket(
-                ACL="private",
-                Bucket=bucket_name,
-                CreateBucketConfiguration=location
-            )
+    # Use iam_utils.ensure_bucket for consistency
+    iam_utils.ensure_bucket(s3_client, bucket_name, region)
 
     my_policy = _custom_s3_policy(bucket_name)
     #sub_bucket = 'aimodelshare' + username.lower() + ts.replace("_","")
