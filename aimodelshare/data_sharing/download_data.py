@@ -34,8 +34,30 @@ def progress_bar(layer_label, nb_traits):
 def get_auth_url(registry): # to do with auth
 	return 'https://' + registry + '/token/' # no aws auth
 
-def get_auth_head(auth_url, registry, repository): # to do with auth
-	return get_auth_head_no_aws_auth(auth_url, registry, repository, 'application/vnd.docker.distribution.manifest.v2+json') # no aws auth
+def get_auth_head(auth_url, registry, repository):
+    # Broaden Accept header to allow manifest list / OCI fallbacks
+    return get_auth_head_no_aws_auth(
+        auth_url,
+        registry,
+        repository,
+        ('application/vnd.docker.distribution.manifest.v2+json,'
+         'application/vnd.docker.distribution.manifest.list.v2+json,'
+         'application/vnd.oci.image.manifest.v1+json')
+    )
+
+def _fetch_concrete_manifest(registry, repository, tag_or_digest, auth_head):
+    """Fetch a concrete image manifest (not a list)."""
+    resp = requests.get(
+        f'https://{registry}/v2/{repository}/manifests/{tag_or_digest}',
+        headers=auth_head,
+        verify=False
+    )
+    if not resp.ok:
+        raise RuntimeError(
+            f"Failed to fetch manifest {tag_or_digest} (status {resp.status_code}): {resp.text[:300]}"
+        )
+    return resp
+
 
 def download_layer(layer, layer_count, tmp_img_dir, blobs_resp):
 
@@ -76,87 +98,115 @@ def download_layer(layer, layer_count, tmp_img_dir, blobs_resp):
 	return layer_id, layer_dir
 
 def pull_image(image_uri):
+    image_uri_parts = image_uri.split('/')
+    registry = image_uri_parts[0]
+    image, tag = image_uri_parts[2].split(':')
+    repository = '/'.join([image_uri_parts[1], image])
 
-	image_uri_parts = image_uri.split('/')
+    auth_url = get_auth_url(registry)
+    auth_head = get_auth_head(auth_url, registry, repository)
 
-	registry = image_uri_parts[0]	
-	image, tag = image_uri_parts[2].split(':')
-	repository = '/'.join([image_uri_parts[1], image])
+    # 1. Fetch initial manifest (may be list or concrete)
+    resp = _fetch_concrete_manifest(registry, repository, tag, auth_head)
+    manifest_json = resp.json()
 
-	auth_url = get_auth_url(registry)
+    # 2. Handle manifest list fallback
+    if 'config' not in manifest_json:
+        if 'manifests' in manifest_json:
+            # Choose amd64 if available, else first
+            chosen = None
+            for m in manifest_json['manifests']:
+                arch = (m.get('platform') or {}).get('architecture')
+                if arch in ('amd64', 'x86_64'):
+                    chosen = m
+                    break
+            if chosen is None:
+                chosen = manifest_json['manifests'][0]
+            digest = chosen['digest']
+            # Re-auth to avoid token expiry
+            auth_head = get_auth_head(auth_url, registry, repository)
+            resp = _fetch_concrete_manifest(registry, repository, digest, auth_head)
+            manifest_json = resp.json()
+        else:
+            raise KeyError(
+                f"Manifest does not contain 'config' or 'manifests'. Keys: {list(manifest_json.keys())}"
+            )
 
-	auth_head = get_auth_head(auth_url, registry, repository)
+    if 'config' not in manifest_json or 'layers' not in manifest_json:
+        raise KeyError(
+            f"Unexpected manifest shape. Keys: {list(manifest_json.keys())}"
+        )
 
-	resp = requests.get('https://{}/v2/{}/manifests/{}'.format(registry, repository, tag), headers=auth_head, verify=False)
-	
-	config = resp.json()['config']['digest']
-	config_resp = requests.get('https://{}/v2/{}/blobs/{}'.format(registry, repository, config), headers=auth_head, verify=False)
+    config = manifest_json['config']['digest']
+    config_resp = requests.get(
+        f'https://{registry}/v2/{repository}/blobs/{config}',
+        headers=auth_head,
+        verify=False
+    )
+    if not config_resp.ok:
+        raise RuntimeError(
+            f"Failed to fetch config blob {config} (status {config_resp.status_code}): {config_resp.text[:300]}"
+        )
 
-	tmp_img_dir = tempfile.gettempdir() + '/' + 'tmp_{}_{}'.format(image, tag)
-	os.mkdir(tmp_img_dir)
+    tmp_img_dir = tempfile.gettempdir() + '/' + f'tmp_{image}_{tag}'
+    os.mkdir(tmp_img_dir)
 
-	file = open('{}/{}.json'.format(tmp_img_dir, config[7:]), 'wb')
-	file.write(config_resp.content)
-	file.close()
+    with open(f'{tmp_img_dir}/{config[7:]}.json', 'wb') as f:
+        f.write(config_resp.content)
 
-	content = [{
-		'Config': config[7:] + '.json',
-		'RepoTags': [],
-		'Layers': []
-	}]
-	content[0]['RepoTags'].append(image_uri)
+    content = [{
+        'Config': config[7:] + '.json',
+        'RepoTags': [image_uri],
+        'Layers': []
+    }]
 
-	layer_count=0
-	layers = resp.json()['layers'][6:]
+    layer_count = 0
+    layers = manifest_json['layers']  # removed [6:] slicing
 
-	for layer in layers:
+    for layer in layers:
+        layer_count += 1
+        # Refresh auth (avoid expiry)
+        auth_head = get_auth_head(auth_url, registry, repository)
+        blobs_resp = requests.get(
+            f'https://{registry}/v2/{repository}/blobs/{layer["digest"]}',
+            headers=auth_head,
+            stream=True,
+            verify=False
+        )
+        if not blobs_resp.ok:
+            raise RuntimeError(
+                f"Failed to stream layer {layer['digest']} status {blobs_resp.status_code}: {blobs_resp.text[:200]}"
+            )
+        layer_id, layer_dir = download_layer(layer, layer_count, tmp_img_dir, blobs_resp)
+        content[0]['Layers'].append(layer_id + '/layer.tar')
 
-		layer_count += 1
+        # Create layer json
+        with open(layer_dir + '/json', 'w') as fjson:
+            if layers[-1]['digest'] == layer['digest']:
+                json_obj = json.loads(config_resp.content)
+                json_obj.pop('history', None)
+                json_obj.pop('rootfs', None)
+            else:
+                json_obj = {}
+            json_obj['id'] = layer_id
+            fjson.write(json.dumps(json_obj))
 
-		auth_head = get_auth_head(auth_url, registry, repository) # done to keep from expiring
-		blobs_resp = requests.get('https://{}/v2/{}/blobs/{}'.format(registry, repository, layer['digest']), headers=auth_head, stream=True, verify=False)
+    with open(tmp_img_dir + '/manifest.json', 'w') as mf:
+        mf.write(json.dumps(content))
 
-		layer_id, layer_dir = download_layer(layer, layer_count, tmp_img_dir, blobs_resp)
-		content[0]['Layers'].append(layer_id + '/layer.tar')
+    # repositories file
+    repositories_json = {
+        '/'.join(image_uri_parts[:-1]) + '/' + image: {tag: layer_id}
+    }
+    with open(tmp_img_dir + '/repositories', 'w') as rf:
+        rf.write(json.dumps(repositories_json))
 
-		# Creating json file
-		file = open(layer_dir + '/json', 'w')
-
-		# last layer = config manifest - history - rootfs
-		if layers[-1]['digest'] == layer['digest']:
-			json_obj = json.loads(config_resp.content)
-			del json_obj['history']
-			del json_obj['rootfs']
-		else: # other layers json are empty
-			json_obj = json.loads('{}')
-		
-		json_obj['id'] = layer_id
-		file.write(json.dumps(json_obj))
-		file.close()
-
-	file = open(tmp_img_dir + '/manifest.json', 'w')
-	file.write(json.dumps(content))
-	file.close()
-
-	content = {
-		'/'.join(image_uri_parts[:-1]) + '/' + image : { tag : layer_id }
-	}
-
-	file = open(tmp_img_dir + '/repositories', 'w')
-	file.write(json.dumps(content))
-	file.close()
-
-	# Create image tar and clean tmp folder
-	docker_tar = tempfile.gettempdir() + '/' + '_'.join([repository.replace('/', '_'), tag]) + '.tar'
-	sys.stdout.flush()
-
-	tar = tarfile.open(docker_tar, "w")
-	tar.add(tmp_img_dir, arcname=os.path.sep)
-	tar.close()
-
-	shutil.rmtree(tmp_img_dir, onerror=redo_with_write)
-
-	return docker_tar
+    docker_tar = tempfile.gettempdir() + '/' + '_'.join([repository.replace('/', '_'), tag]) + '.tar'
+    tar = tarfile.open(docker_tar, "w")
+    tar.add(tmp_img_dir, arcname=os.path.sep)
+    tar.close()
+    shutil.rmtree(tmp_img_dir, onerror=redo_with_write)
+    return docker_tar
 
 
 def extract_data_from_image(image_name, file_name, location):
