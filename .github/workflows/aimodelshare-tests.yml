@@ -49,6 +49,7 @@ jobs:
 
       - name: Install local aimodelshare (editable) + test dependencies
         run: |
+          pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
           pip install -e .
           pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython jwt matplotlib
           pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
