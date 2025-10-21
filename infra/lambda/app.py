@@ -1,6 +1,7 @@
 """
 Lambda handler for aimodelshare playground API.
 Supports logical tables with archive, validation, and user endpoints.
+(Updated: added pagination for list_tables & list_users)
 """
 import json
 import os
@@ -18,14 +19,21 @@ TABLE_NAME = os.environ.get('TABLE_NAME', 'PlaygroundScores')
 SAFE_CONCURRENCY = os.environ.get('SAFE_CONCURRENCY', 'false').lower() == 'true'
 READ_CONSISTENT = os.environ.get('READ_CONSISTENT', 'true').lower() == 'true'
 
+# Pagination defaults (can be tuned via env)
+DEFAULT_PAGE_LIMIT = int(os.environ.get('DEFAULT_PAGE_LIMIT', '50'))
+MAX_PAGE_LIMIT = int(os.environ.get('MAX_PAGE_LIMIT', '500'))
+
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table(TABLE_NAME)
 
 print(f"[BOOT] Using DynamoDB table: {TABLE_NAME} | SAFE_CONCURRENCY={SAFE_CONCURRENCY} | READ_CONSISTENT={READ_CONSISTENT}")
 
+# Precompiled regex
+_TABLE_ID_RE = re.compile(r'^[a-zA-Z0-9_-]{1,64}$')
+_USERNAME_RE = re.compile(r'^[a-zA-Z0-9_-]{1,64}$')
+
 def decimal_default(obj):
     if isinstance(obj, Decimal):
-        # Ensure whole numbers stay ints for nicer JSON (if desired)
         f = float(obj)
         if f.is_integer():
             return int(f)
@@ -33,10 +41,10 @@ def decimal_default(obj):
     raise TypeError
 
 def validate_table_id(table_id):
-    return bool(table_id and isinstance(table_id, str) and re.match(r'^[a-zA-Z0-9_-]{1,64}$', table_id))
+    return bool(table_id and isinstance(table_id, str) and _TABLE_ID_RE.match(table_id))
 
 def validate_username(username):
-    return bool(username and isinstance(username, str) and re.match(r'^[a-zA-Z0-9_-]{1,64}$', username))
+    return bool(username and isinstance(username, str) and _USERNAME_RE.match(username))
 
 def create_response(status_code, body, headers=None):
     default_headers = {
@@ -63,10 +71,11 @@ RETRYABLE_ERRORS = {
     'TransactionCanceledException'
 }
 
-def retry_dynamo(op_fn, max_attempts=5, base_delay=0.05):
+def retry_dynamo(op_fn, max_attempts=5, base_delay=0.05, context=None):
     """
     Generic retry wrapper for DynamoDB operations prone to transient throttling.
     Jitter: random 0-50% added to exponential backoff.
+    Caps individual sleep to 0.8s; respects remaining time if context provided.
     """
     attempt = 0
     while True:
@@ -75,15 +84,45 @@ def retry_dynamo(op_fn, max_attempts=5, base_delay=0.05):
         except ClientError as e:
             code = e.response.get('Error', {}).get('Code')
             if code in RETRYABLE_ERRORS and attempt < max_attempts - 1:
+                remaining_ms = context.get_remaining_time_in_millis() if context else 10_000
+                if remaining_ms < 500:
+                    raise
                 sleep_time = (base_delay * (2 ** attempt)) * (1 + random.random() * 0.5)
+                sleep_time = min(sleep_time, 0.8)
                 print(f"[RETRY] DynamoDB error {code}, attempt {attempt+1}/{max_attempts}, sleeping {sleep_time:.3f}s")
                 time.sleep(sleep_time)
                 attempt += 1
                 continue
             raise
-        except Exception as e:
-            # Non-ClientError or unknown; do not retry unless you want broader coverage
+        except Exception:
             raise
+
+# -----------------------------
+# Pagination Helpers
+# -----------------------------
+def parse_pagination_params(event):
+    """Extract limit and lastKey from query string. lastKey passed as JSON string."""
+    qs = event.get('queryStringParameters') or {}
+    try:
+        limit = int(qs.get('limit', DEFAULT_PAGE_LIMIT))
+    except ValueError:
+        limit = DEFAULT_PAGE_LIMIT
+    limit = max(1, min(limit, MAX_PAGE_LIMIT))
+
+    last_key_raw = qs.get('lastKey')
+    exclusive_start_key = None
+    if last_key_raw:
+        try:
+            exclusive_start_key = json.loads(last_key_raw)
+        except Exception:
+            print('[WARN] Malformed lastKey ignored.')
+    return limit, exclusive_start_key
+
+def build_paged_body(items_key, items, last_evaluated_key):
+    body = {items_key: items}
+    if last_evaluated_key:
+        body['lastKey'] = last_evaluated_key
+    return body
 
 # -----------------------------
 # Core Handlers
@@ -97,7 +136,6 @@ def create_table(event):
         if not validate_table_id(table_id):
             return create_response(400, {'error': 'Invalid tableId. Must be alphanumeric with underscores/hyphens, max 64 chars'})
 
-        # Check existence (metadata item)
         try:
             resp = retry_dynamo(lambda: table.get_item(
                 Key={'tableId': table_id, 'username': '_metadata'},
@@ -116,14 +154,8 @@ def create_table(event):
             'isArchived': False,
             'userCount': 0
         }
-
         retry_dynamo(lambda: table.put_item(Item=metadata))
-
-        return create_response(201, {
-            'tableId': table_id,
-            'displayName': display_name,
-            'message': 'Table created successfully'
-        })
+        return create_response(201, {'tableId': table_id, 'displayName': display_name, 'message': 'Table created successfully'})
     except json.JSONDecodeError:
         return create_response(400, {'error': 'Invalid JSON in request body'})
     except Exception as e:
@@ -131,20 +163,26 @@ def create_table(event):
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
 def list_tables(event):
+    """Paginated list of tables. In-page sort by createdAt desc (NOT globally ordered)."""
     try:
+        limit, exclusive_start_key = parse_pagination_params(event)
         resp = retry_dynamo(lambda: table.query(
             IndexName='byUser',
-            KeyConditionExpression=Key('username').eq('_metadata')
+            KeyConditionExpression=Key('username').eq('_metadata'),
+            ExclusiveStartKey=exclusive_start_key,
+            Limit=limit
         ))
+        raw_items = resp.get('Items', [])
         tables = [{
             'tableId': item['tableId'],
             'displayName': item.get('displayName', item['tableId']),
             'createdAt': item.get('createdAt'),
             'isArchived': item.get('isArchived', False),
             'userCount': item.get('userCount', 0)
-        } for item in resp.get('Items', [])]
-        tables.sort(key=lambda x: x.get('createdAt', ''), reverse=True)
-        return create_response(200, {'tables': tables})
+        } for item in raw_items]
+        tables.sort(key=lambda x: (x.get('createdAt') or ''), reverse=True)
+        body = build_paged_body('tables', tables, resp.get('LastEvaluatedKey'))
+        return create_response(200, body)
     except Exception as e:
         print(f"[ERROR] list_tables exception: {e}")
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
@@ -178,17 +216,14 @@ def patch_table(event):
         params = event.get('pathParameters') or {}
         table_id = params.get('tableId')
         body = json.loads(event.get('body', '{}'))
-
         if not validate_table_id(table_id):
             return create_response(400, {'error': 'Invalid tableId format'})
-
         resp = retry_dynamo(lambda: table.get_item(
             Key={'tableId': table_id, 'username': '_metadata'},
             ConsistentRead=READ_CONSISTENT
         ))
         if 'Item' not in resp:
             return create_response(404, {'error': 'Table not found'})
-
         update_expression = []
         expression_values = {}
         if 'displayName' in body:
@@ -201,7 +236,6 @@ def patch_table(event):
             return create_response(400, {'error': 'No valid fields to update'})
         update_expression.append('updatedAt = :updated_at')
         expression_values[':updated_at'] = datetime.utcnow().isoformat()
-
         retry_dynamo(lambda: table.update_item(
             Key={'tableId': table_id, 'username': '_metadata'},
             UpdateExpression='SET ' + ', '.join(update_expression),
@@ -215,22 +249,23 @@ def patch_table(event):
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
 def list_users(event):
+    """Paginated list of users for a table. In-page sort by submissionCount desc (NOT globally ordered)."""
     try:
         params = event.get('pathParameters') or {}
         table_id = params.get('tableId')
         if not validate_table_id(table_id):
             return create_response(400, {'error': 'Invalid tableId format'})
-
-        # Verify table exists
         meta = retry_dynamo(lambda: table.get_item(
             Key={'tableId': table_id, 'username': '_metadata'},
             ConsistentRead=READ_CONSISTENT
         ))
         if 'Item' not in meta:
             return create_response(404, {'error': 'Table not found'})
-
+        limit, exclusive_start_key = parse_pagination_params(event)
         resp = retry_dynamo(lambda: table.query(
-            KeyConditionExpression=Key('tableId').eq(table_id)
+            KeyConditionExpression=Key('tableId').eq(table_id),
+            ExclusiveStartKey=exclusive_start_key,
+            Limit=limit
         ))
         users = [{
             'username': item['username'],
@@ -239,7 +274,8 @@ def list_users(event):
             'lastUpdated': item.get('lastUpdated')
         } for item in resp.get('Items', []) if item.get('username') != '_metadata']
         users.sort(key=lambda x: x.get('submissionCount', 0), reverse=True)
-        return create_response(200, {'users': users})
+        body = build_paged_body('users', users, resp.get('LastEvaluatedKey'))
+        return create_response(200, body)
     except Exception as e:
         print(f"[ERROR] list_users exception: {e}")
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
@@ -253,14 +289,12 @@ def get_user(event):
             return create_response(400, {'error': 'Invalid tableId format'})
         if not validate_username(username):
             return create_response(400, {'error': 'Invalid username format'})
-
         meta = retry_dynamo(lambda: table.get_item(
             Key={'tableId': table_id, 'username': '_metadata'},
             ConsistentRead=READ_CONSISTENT
         ))
         if 'Item' not in meta:
             return create_response(404, {'error': 'Table not found'})
-
         resp = retry_dynamo(lambda: table.get_item(
             Key={'tableId': table_id, 'username': username},
             ConsistentRead=READ_CONSISTENT
@@ -279,31 +313,21 @@ def get_user(event):
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
 def put_user(event):
-    """
-    Concurrency-optimized user creation/update:
-    - Conditional PutItem to detect new user without initial GetItem.
-    - Retry transient throttling.
-    - Increment userCount only on successful new creation.
-    """
     try:
         params = event.get('pathParameters') or {}
         table_id = params.get('tableId')
         username = params.get('username')
         body = json.loads(event.get('body', '{}'))
-
         if not validate_table_id(table_id):
             return create_response(400, {'error': 'Invalid tableId format'})
         if not validate_username(username):
             return create_response(400, {'error': 'Invalid username format'})
-
-        # Ensure table exists (consistent read)
         meta = retry_dynamo(lambda: table.get_item(
             Key={'tableId': table_id, 'username': '_metadata'},
             ConsistentRead=READ_CONSISTENT
         ))
         if 'Item' not in meta:
             return create_response(404, {'error': 'Table not found'})
-
         submission_count = body.get('submissionCount')
         total_count = body.get('totalCount')
         if submission_count is None or total_count is None:
@@ -315,7 +339,6 @@ def put_user(event):
             return create_response(400, {'error': 'submissionCount and totalCount must be integers'})
         if submission_count < 0 or total_count < 0:
             return create_response(400, {'error': 'submissionCount and totalCount must be non-negative'})
-
         user_data = {
             'tableId': table_id,
             'username': username,
@@ -323,10 +346,8 @@ def put_user(event):
             'totalCount': total_count,
             'lastUpdated': datetime.utcnow().isoformat()
         }
-
         created_new = False
         try:
-            # Attempt conditional create (fails if user exists)
             retry_dynamo(lambda: table.put_item(
                 Item=user_data,
                 ConditionExpression="attribute_not_exists(username)"
@@ -335,7 +356,6 @@ def put_user(event):
         except ClientError as e:
             code = e.response.get('Error', {}).get('Code')
             if code == 'ConditionalCheckFailedException':
-                # Existing user: just overwrite (idempotent update)
                 retry_dynamo(lambda: table.put_item(Item=user_data))
             else:
                 print(f"[ERROR] put_user unexpected ClientError {code}: {e}")
@@ -343,7 +363,6 @@ def put_user(event):
         except Exception as e:
             print(f"[ERROR] put_user unexpected exception: {e}")
             return create_response(500, {'error': f'Internal server error: {str(e)}'})
-
         if created_new:
             try:
                 retry_dynamo(lambda: table.update_item(
@@ -352,9 +371,7 @@ def put_user(event):
                     ExpressionAttributeValues={':inc': 1}
                 ))
             except Exception as e:
-                # Log but do not fail the entire user creation; user record exists
                 print(f"[WARN] Failed to increment userCount for new user {username}: {e}")
-
         return create_response(200, {
             'username': username,
             'submissionCount': submission_count,
@@ -362,7 +379,6 @@ def put_user(event):
             'message': 'User data updated successfully',
             'createdNew': created_new
         })
-
     except json.JSONDecodeError:
         return create_response(400, {'error': 'Invalid JSON in request body'})
     except Exception as e:
@@ -389,11 +405,13 @@ def handler(event, context):
             return get_user(event)
         elif route_key == 'PUT /tables/{tableId}/users/{username}':
             return put_user(event)
-        # Legacy fallback (kept for safety)
+
+        # Legacy fallback path parsing
         path = event.get('rawPath') or event.get('path') or ''
         stage = event.get('requestContext', {}).get('stage')
         if stage and path.startswith(f'/{stage}/'):
             path = path[len(stage) + 1:]
+
         if method == 'POST' and path == '/tables':
             return create_table(event)
         elif method == 'GET' and path == '/tables':
@@ -408,6 +426,7 @@ def handler(event, context):
             return get_user(event)
         elif method == 'PUT' and '/users/' in path and path.count('/') == 4:
             return put_user(event)
+
         return create_response(404, {'error': 'Route not found'})
     except Exception as e:
         print(f"[ERROR] handler unexpected exception: {e}")
