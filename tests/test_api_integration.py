@@ -4,6 +4,7 @@ API Integration Tests for aimodelshare REST API
 
 This script tests all the main API endpoints defined in the Lambda function
 to ensure the deployed API is working correctly.
+(Updated: test_list_tables_with_data now polls to handle eventual consistency)
 """
 
 import requests
@@ -167,25 +168,37 @@ class APIIntegrationTests:
             self.log_error(test_name, str(e))
             
     def test_list_tables_with_data(self):
-        """Test GET /tables after creating a table"""
+        """Test GET /tables after creating a table, with polling for eventual consistency."""
         test_name = "test_list_tables_with_data"
-        try:
-            response = self.make_request('GET', '/tables')
-            if response.status_code == 200:
-                data = response.json()
-                if 'tables' in data and isinstance(data['tables'], list) and len(data['tables']) > 0:
-                    # Check if our test table is in the list
-                    table_found = any(table['tableId'] == self.test_table_id for table in data['tables'])
-                    if table_found:
-                        self.log_success(test_name)
+        max_attempts = 5
+        delay = 2  # seconds
+        for attempt in range(max_attempts):
+            try:
+                response = self.make_request('GET', '/tables')
+                if response.status_code == 200:
+                    data = response.json()
+                    if 'tables' in data and isinstance(data['tables'], list):
+                        table_found = any(table.get('tableId') == self.test_table_id for table in data['tables'])
+                        if table_found:
+                            self.log_success(test_name)
+                            return  # Test passed, exit the function
+                        else:
+                            print(f"  [Attempt {attempt + 1}/{max_attempts}] Test table not yet found, retrying in {delay}s...")
                     else:
-                        self.log_error(test_name, f"Test table {self.test_table_id} not found in tables list")
+                        # Log error but continue to retry
+                        print(f"  [Attempt {attempt + 1}/{max_attempts}] Invalid response format, retrying...")
                 else:
-                    self.log_error(test_name, f"Invalid tables response: {data}")
-            else:
-                self.log_error(test_name, f"Expected 200, got {response.status_code}: {response.text}")
-        except Exception as e:
-            self.log_error(test_name, str(e))
+                    print(f"  [Attempt {attempt + 1}/{max_attempts}] Received status {response.status_code}, retrying...")
+
+            except Exception as e:
+                print(f"  [Attempt {attempt + 1}/{max_attempts}] Request failed with error: {e}, retrying...")
+
+            if attempt < max_attempts - 1:
+                time.sleep(delay)
+
+        # If the loop finishes without returning, the test has failed
+        self.log_error(test_name, f"Test table {self.test_table_id} not found in tables list after {max_attempts} attempts.")
+
             
     def test_list_users_empty(self):
         """Test GET /tables/{tableId}/users when no users exist"""
