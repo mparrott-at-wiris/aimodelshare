@@ -7,8 +7,15 @@
             "Effect": "Allow"
         },
         {
-            "Action": "s3:*",
-            "Resource": "*",
+            "Action": [
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:ListBucket"
+            ],
+            "Resource": [
+                "arn:aws:s3:::aimodelshare*",
+                "arn:aws:s3:::aimodelshare*/*"
+            ],
             "Effect": "Allow"
         }
     ]

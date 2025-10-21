@@ -12,7 +12,10 @@
         },
         {
             "Effect": "Allow",
-            "Resource": "*",
+            "Resource": [
+                "arn:aws:s3:::aimodelshare*",
+                "arn:aws:s3:::aimodelshare*/*"
+            ],
             "Action": [
                 "s3:PutObject",
                 "s3:GetObject",

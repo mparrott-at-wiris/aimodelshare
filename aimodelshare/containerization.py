@@ -12,6 +12,8 @@ import importlib_resources as pkg_resources
 import uuid
 import requests
 
+from . import iam_utils
+
 time_delay=2
 
 # abstraction to return list of strings of paths of all files present in a given directory
@@ -179,28 +181,27 @@ def build_image(user_session, bucket_name, zip_file, image_name, image):
     # upload zip file to S3 bucket
     upload_file_to_s3(user_session, zip_file, bucket_name, image_name+'.zip')
 
+    # Use reusable CodeBuild role and policy instead of creating new ones each time
+    role_name = "aimodelshare-codebuild-role"
+    policy_name = "aimodelshare-codebuild-policy"
+    
     # reading JSON of the trust relationship required to create role and authorize it to use CodeBuild to build Docker image
-    role_name = "codebuild_role"
     trust_relationship = json.loads(pkg_resources.read_text(iam, "codebuild_trust_relationship.txt"))
     
-    # delete role for CodeBuild if role with same name exists
-    delete_iam_role(user_session, role_name)
-
-    # creating role for CodeBuild
-    create_iam_role(user_session, role_name, trust_relationship)
-
     # reading JSON of all the policies that CodeBuild requires for accessing AWS services 
-    policy_name = "codebuild_policy"
     policy = json.loads(pkg_resources.read_text(iam, "codebuild_policy.txt"))
 
-    # delete policy for CodeBuild if policy with same name exists
-    delete_iam_policy(user_session, policy_name)
+    # Ensure role exists with correct trust relationship
+    iam_client = user_session.client("iam")
+    iam_utils.ensure_role(iam_client, role_name, trust_relationship, 
+                         description="Reusable role for AIModelShare CodeBuild projects")
 
-    # creating policy for CodeBuild
-    create_iam_policy(user_session, policy_name, policy)
+    # Ensure managed policy exists with correct permissions
+    policy_arn, _, _ = iam_utils.ensure_managed_policy(iam_client, policy_name, policy,
+                                                       description="Reusable policy for AIModelShare CodeBuild projects")
 
-    # attaching policies to role to execute CodeBuild to build Docker image
-    attach_policy_to_role(user_session, role_name, policy_name)
+    # Attach policy to role if not already attached
+    iam_utils.attach_managed_policy_to_role(iam_client, role_name, policy_arn)
 
     time.sleep(5)
 
@@ -406,22 +407,27 @@ def create_lambda_using_base_image(user_session, bucket_name, directory, lambda_
 
     upload_file_to_s3(user_session, temp_dir + ".zip", bucket_name, api_id + "/" + lambda_name + ".zip")        # upload zip file to S3 bucket
 
-    # reading JSON of the trust relationship required to create role and authorize it to use CodeBuild to build Docker image
-    role_name = "lambda_role_" + api_id
+    # Use reusable Lambda execution role instead of per-API role
+    role_name = "aimodelshare-lambda-exec"
+    policy_name = "aimodelshare-lambda-exec-policy"
+    
+    # reading JSON of the trust relationship required to create role and authorize Lambda to assume it
     trust_relationship = json.loads(pkg_resources.read_text(iam, "lambda_trust_relationship.txt"))
     
-    # creating role for CodeBuild
-    create_iam_role(user_session, role_name, trust_relationship)
-
-    # reading JSON of all the policies that CodeBuild requires for accessing AWS services 
-    policy_name = "lambda_policy_" + api_id
+    # reading JSON of all the policies that Lambda requires for accessing AWS services 
     policy = json.loads(pkg_resources.read_text(iam, "lambda_policy.txt"))
 
-    # creating policy for CodeBuild    
-    create_iam_policy(user_session, policy_name, policy)
+    # Ensure role exists with correct trust relationship
+    iam_client = user_session.client("iam")
+    iam_utils.ensure_role(iam_client, role_name, trust_relationship,
+                         description="Reusable execution role for AIModelShare Lambda functions")
 
-    # attaching policies to role to execute CodeBuild to build Docker image
-    attach_policy_to_role(user_session, role_name, policy_name)
+    # Ensure managed policy exists with correct permissions
+    policy_arn, _, _ = iam_utils.ensure_managed_policy(iam_client, policy_name, policy,
+                                                       description="Reusable execution policy for AIModelShare Lambda functions")
+
+    # Attach policy to role if not already attached
+    iam_utils.attach_managed_policy_to_role(iam_client, role_name, policy_arn)
 
     #print("Creating Lambda function \"" + lambda_name + "\".")
 
