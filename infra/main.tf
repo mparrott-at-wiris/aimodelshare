@@ -184,6 +184,7 @@ resource "aws_iam_role_policy_attachment" "attach_ddb_rw" {
 # -----------------------------
 # Lambda Function
 # -----------------------------
+
 resource "aws_lambda_function" "api" {
   function_name    = "${local.name_prefix}-api"
   role             = aws_iam_role.lambda_exec_role.arn
@@ -197,14 +198,16 @@ resource "aws_lambda_function" "api" {
 
   environment {
     variables = {
-      TABLE_NAME       = aws_dynamodb_table.playground.name
-      SAFE_CONCURRENCY = var.safe_concurrency ? "true" : "false"
+      TABLE_NAME         = aws_dynamodb_table.playground.name
+      SAFE_CONCURRENCY   = var.safe_concurrency ? "true" : "false"
+      # Pagination configuration (overridable via Terraform if desired)
+      DEFAULT_PAGE_LIMIT = "50"
+      MAX_PAGE_LIMIT     = "500"
     }
   }
 
   layers = var.use_layer ? [aws_lambda_layer_version.extra[0].arn] : []
-
-  tags = local.tags
+  tags   = local.tags
 }
 
 # -----------------------------
