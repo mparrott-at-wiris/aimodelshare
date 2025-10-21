@@ -1,8 +1,8 @@
 """
 Lambda handler for aimodelshare playground API.
 Supports logical tables with archive, validation, and user endpoints.
-(Updated: added pagination for list_tables & list_users)
-(Enhanced: graceful GSI not-ready handling + /health endpoint)
+(Updated: pagination; Enhanced: GSI graceful fallback + /health endpoint + scan fallback)
+(Fix: Conditional ExclusiveStartKey usage to avoid None parameter validation errors)
 """
 import json
 import os
@@ -12,7 +12,7 @@ from datetime import datetime
 import re
 import time
 import random
-from boto3.dynamodb.conditions import Key
+from boto3.dynamodb.conditions import Key, Attr
 from botocore.exceptions import ClientError
 
 # DynamoDB setup
@@ -20,17 +20,15 @@ TABLE_NAME = os.environ.get('TABLE_NAME', 'PlaygroundScores')
 SAFE_CONCURRENCY = os.environ.get('SAFE_CONCURRENCY', 'false').lower() == 'true'
 READ_CONSISTENT = os.environ.get('READ_CONSISTENT', 'true').lower() == 'true'
 
-# Pagination defaults (can be tuned via env)
 DEFAULT_PAGE_LIMIT = int(os.environ.get('DEFAULT_PAGE_LIMIT', '50'))
 MAX_PAGE_LIMIT = int(os.environ.get('MAX_PAGE_LIMIT', '500'))
 
 dynamodb = boto3.resource('dynamodb')
-dynamodb_client = boto3.client('dynamodb')  # For describe_table / health checks
+dynamodb_client = boto3.client('dynamodb')
 table = dynamodb.Table(TABLE_NAME)
 
 print(f"[BOOT] Using DynamoDB table: {TABLE_NAME} | SAFE_CONCURRENCY={SAFE_CONCURRENCY} | READ_CONSISTENT={READ_CONSISTENT}")
 
-# Precompiled regex
 _TABLE_ID_RE = re.compile(r'^[a-zA-Z0-9_-]{1,64}$')
 _USERNAME_RE = re.compile(r'^[a-zA-Z0-9_-]{1,64}$')
 
@@ -63,9 +61,6 @@ def create_response(status_code, body, headers=None):
         'body': json.dumps(body, default=decimal_default)
     }
 
-# -----------------------------
-# Retry Helpers
-# -----------------------------
 RETRYABLE_ERRORS = {
     'ProvisionedThroughputExceededException',
     'ThrottlingException',
@@ -74,11 +69,6 @@ RETRYABLE_ERRORS = {
 }
 
 def retry_dynamo(op_fn, max_attempts=5, base_delay=0.05, context=None):
-    """
-    Generic retry wrapper for DynamoDB operations prone to transient throttling.
-    Jitter: random 0-50% added to exponential backoff.
-    Caps individual sleep to 0.8s; respects remaining time if context provided.
-    """
     attempt = 0
     while True:
         try:
@@ -99,18 +89,13 @@ def retry_dynamo(op_fn, max_attempts=5, base_delay=0.05, context=None):
         except Exception:
             raise
 
-# -----------------------------
-# Pagination Helpers
-# -----------------------------
 def parse_pagination_params(event):
-    """Extract limit and lastKey from query string. lastKey passed as JSON string."""
     qs = event.get('queryStringParameters') or {}
     try:
         limit = int(qs.get('limit', DEFAULT_PAGE_LIMIT))
     except ValueError:
         limit = DEFAULT_PAGE_LIMIT
     limit = max(1, min(limit, MAX_PAGE_LIMIT))
-
     last_key_raw = qs.get('lastKey')
     exclusive_start_key = None
     if last_key_raw:
@@ -126,18 +111,13 @@ def build_paged_body(items_key, items, last_evaluated_key):
         body['lastKey'] = last_evaluated_key
     return body
 
-# -----------------------------
-# Core Handlers
-# -----------------------------
 def create_table(event):
     try:
         body = json.loads(event.get('body', '{}'))
         table_id = body.get('tableId')
         display_name = body.get('displayName', table_id)
-
         if not validate_table_id(table_id):
             return create_response(400, {'error': 'Invalid tableId. Must be alphanumeric with underscores/hyphens, max 64 chars'})
-
         try:
             resp = retry_dynamo(lambda: table.get_item(
                 Key={'tableId': table_id, 'username': '_metadata'},
@@ -147,7 +127,6 @@ def create_table(event):
                 return create_response(409, {'error': f'Table {table_id} already exists'})
         except ClientError as e:
             print(f"[WARN] get_item metadata error during create_table: {e}")
-
         metadata = {
             'tableId': table_id,
             'username': '_metadata',
@@ -165,29 +144,40 @@ def create_table(event):
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
 def list_tables(event):
-    """
-    Paginated list of tables. In-page sort by createdAt desc (NOT globally ordered).
-    Gracefully handles GSI 'byUser' not ready by returning empty list.
-    """
+    """Paginated list of tables with graceful GSI fallback. Avoid passing None ExclusiveStartKey."""
     try:
         limit, exclusive_start_key = parse_pagination_params(event)
+        gsi_errors_grace = {'ValidationException', 'ResourceNotFoundException', 'AccessDeniedException'}
+        raw_items = []
+        last_key = None
         try:
-            resp = retry_dynamo(lambda: table.query(
-                IndexName='byUser',
-                KeyConditionExpression=Key('username').eq('_metadata'),
-                ExclusiveStartKey=exclusive_start_key,
-                Limit=limit
-            ))
+            query_kwargs = {
+                'IndexName': 'byUser',
+                'KeyConditionExpression': Key('username').eq('_metadata'),
+                'Limit': limit
+            }
+            if exclusive_start_key:
+                query_kwargs['ExclusiveStartKey'] = exclusive_start_key
+            resp = retry_dynamo(lambda: table.query(**query_kwargs))
+            raw_items = resp.get('Items', [])
+            last_key = resp.get('LastEvaluatedKey')
         except ClientError as ce:
             code = ce.response.get('Error', {}).get('Code')
             msg = ce.response.get('Error', {}).get('Message', '')
-            # More robust check for GSI 'byUser' not ready
-            if code in ('ValidationException', 'ResourceNotFoundException') and re.search(r"The table does not have the specified index: byUser", msg):
-                print(f"[INFO] GSI 'byUser' not ready (code={code}). Returning empty tables list.")
-                return create_response(200, build_paged_body('tables', [], None))
-            raise
-
-        raw_items = resp.get('Items', [])
+            print(f"[INFO] Query on GSI failed code={code} msg={msg}")
+            if code in gsi_errors_grace:
+                print("[INFO] Falling back to Scan for metadata items (GSI not ready).")
+                scan_kwargs = {
+                    'FilterExpression': Attr('username').eq('_metadata'),
+                    'Limit': limit
+                }
+                if exclusive_start_key:
+                    scan_kwargs['ExclusiveStartKey'] = exclusive_start_key
+                scan_resp = retry_dynamo(lambda: table.scan(**scan_kwargs))
+                raw_items = scan_resp.get('Items', [])
+                last_key = scan_resp.get('LastEvaluatedKey')
+            else:
+                raise
         tables = [{
             'tableId': item['tableId'],
             'displayName': item.get('displayName', item['tableId']),
@@ -196,8 +186,7 @@ def list_tables(event):
             'userCount': item.get('userCount', 0)
         } for item in raw_items]
         tables.sort(key=lambda x: (x.get('createdAt') or ''), reverse=True)
-        body = build_paged_body('tables', tables, resp.get('LastEvaluatedKey'))
-        return create_response(200, body)
+        return create_response(200, build_paged_body('tables', tables, last_key))
     except Exception as e:
         print(f"[ERROR] list_tables exception: {e}")
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
@@ -264,7 +253,6 @@ def patch_table(event):
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
 def list_users(event):
-    """Paginated list of users for a table. In-page sort by submissionCount desc (NOT globally ordered)."""
     try:
         params = event.get('pathParameters') or {}
         table_id = params.get('tableId')
@@ -277,11 +265,13 @@ def list_users(event):
         if 'Item' not in meta:
             return create_response(404, {'error': 'Table not found'})
         limit, exclusive_start_key = parse_pagination_params(event)
-        resp = retry_dynamo(lambda: table.query(
-            KeyConditionExpression=Key('tableId').eq(table_id),
-            ExclusiveStartKey=exclusive_start_key,
-            Limit=limit
-        ))
+        query_kwargs = {
+            'KeyConditionExpression': Key('tableId').eq(table_id),
+            'Limit': limit
+        }
+        if exclusive_start_key:
+            query_kwargs['ExclusiveStartKey'] = exclusive_start_key
+        resp = retry_dynamo(lambda: table.query(**query_kwargs))
         users = [{
             'username': item['username'],
             'submissionCount': item.get('submissionCount', 0),
@@ -289,8 +279,7 @@ def list_users(event):
             'lastUpdated': item.get('lastUpdated')
         } for item in resp.get('Items', []) if item.get('username') != '_metadata']
         users.sort(key=lambda x: x.get('submissionCount', 0), reverse=True)
-        body = build_paged_body('users', users, resp.get('LastEvaluatedKey'))
-        return create_response(200, body)
+        return create_response(200, build_paged_body('users', users, resp.get('LastEvaluatedKey')))
     except Exception as e:
         print(f"[ERROR] list_users exception: {e}")
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
@@ -400,9 +389,6 @@ def put_user(event):
         print(f"[ERROR] put_user outer exception: {e}")
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
-# -----------------------------
-# Health Endpoint
-# -----------------------------
 def health(event):
     status = {
         'tableName': TABLE_NAME,
@@ -411,7 +397,7 @@ def health(event):
     }
     try:
         desc = dynamodb_client.describe_table(TableName=TABLE_NAME)
-        gsis = desc.get('Table', {}).get('GlobalSecondaryIndexes', [])
+        gsis = desc.get('Table', {}).get('GlobalSecondaryIndexes', []) or []
         for g in gsis:
             if g.get('IndexName') == 'byUser' and g.get('IndexStatus') == 'ACTIVE':
                 status['gsiByUserActive'] = True
@@ -443,7 +429,6 @@ def handler(event, context):
         elif route_key == 'GET /health':
             return health(event)
 
-        # Legacy fallback path parsing
         path = event.get('rawPath') or event.get('path') or ''
         stage = event.get('requestContext', {}).get('stage')
         if stage and path.startswith(f'/{stage}/'):
