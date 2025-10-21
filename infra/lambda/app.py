@@ -1,6 +1,6 @@
 """
 Lambda handler for aimodelshare playground API.
-(Fix: Corrected list_users pagination logic for accurate page counts)
+(Final Fix: Use a strongly consistent Scan in list_tables to eliminate eventual consistency issues)
 """
 import json
 import os
@@ -135,7 +135,7 @@ def create_table(event):
         }
         retry_dynamo(lambda: table.put_item(Item=metadata))
         
-        time.sleep(1.5) 
+        # No sleep is needed because list_tables will use a strongly consistent scan.
         
         return create_response(201, {'tableId': table_id, 'displayName': display_name, 'message': 'Table created successfully'})
     except json.JSONDecodeError:
@@ -145,19 +145,30 @@ def create_table(event):
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
 def list_tables(event):
+    """
+    Paginated list of tables using a STRONGLY CONSISTENT Scan to ensure new tables appear immediately.
+    """
     try:
         limit, exclusive_start_key = parse_pagination_params(event)
-        collected = []
-        last_key_from_ddb = exclusive_start_key
         
         scan_kwargs = {
             'FilterExpression': Attr('username').eq('_metadata'),
+            'ConsistentRead': True  # Use a strongly consistent read
         }
+        if exclusive_start_key:
+            scan_kwargs['ExclusiveStartKey'] = exclusive_start_key
 
-        while len(collected) < limit + 1: # Fetch one extra to determine if there's a next page
+        # Since FilterExpression is applied after the scan, we can't use Limit in the scan itself
+        # to guarantee `limit` items. We must paginate manually.
+        collected = []
+        last_key_from_ddb = exclusive_start_key
+
+        while len(collected) < limit:
             if last_key_from_ddb:
-                scan_kwargs['ExclusiveStartKey'] = last_key_from_ddb
-            
+                 scan_kwargs['ExclusiveStartKey'] = last_key_from_ddb
+            else: # On the first iteration, remove the key if it was None
+                scan_kwargs.pop('ExclusiveStartKey', None)
+
             resp = retry_dynamo(lambda: table.scan(**scan_kwargs))
             
             items = resp.get('Items', [])
@@ -165,17 +176,23 @@ def list_tables(event):
             
             last_key_from_ddb = resp.get('LastEvaluatedKey')
             if not last_key_from_ddb:
-                break
+                break # No more items in the entire table
 
         page_items = collected[:limit]
         
         response_last_key = None
         if len(collected) > limit:
+            # If we collected more items than the page limit, the *actual* next key is the key
+            # of the last item on the current page.
             last_item_on_page = page_items[-1]
             response_last_key = {
                 'tableId': last_item_on_page['tableId'],
                 'username': last_item_on_page['username']
             }
+        elif last_key_from_ddb:
+             # If we exhausted the items but DDB told us there was a key, pass it along.
+             # This can happen if the remaining items were filtered out.
+             response_last_key = last_key_from_ddb
 
         tables = [{
             'tableId': item['tableId'],
@@ -281,17 +298,12 @@ def list_users(event):
         
         all_items = resp.get('Items', [])
         
-        # Filter out the metadata item
         user_items = [item for item in all_items if item.get('username') != '_metadata']
         
-        # Determine if there is a next page
         has_next_page = len(user_items) > limit
         
-        # The items for the current page are the first `limit` items
         page_items = user_items[:limit]
         
-        # The key for the next page is the key of the last item on *this* page,
-        # but only if we know there's a next page.
         response_last_key = None
         if has_next_page:
             last_item_on_page = page_items[-1]
