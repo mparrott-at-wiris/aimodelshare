@@ -411,7 +411,7 @@ def health(event):
     }
     try:
         desc = dynamodb_client.describe_table(TableName=TABLE_NAME)
-        gsis = desc.get('Table', {}).get('GlobalSecondaryIndexes', []) or []
+        gsis = desc.get('Table', {}).get('GlobalSecondaryIndexes', [])
         for g in gsis:
             if g.get('IndexName') == 'byUser' and g.get('IndexStatus') == 'ACTIVE':
                 status['gsiByUserActive'] = True
