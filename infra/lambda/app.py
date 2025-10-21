@@ -1,6 +1,6 @@
 """
 Lambda handler for aimodelshare playground API.
-(Final Fix: Corrected pagination logic for list_tables to handle filtered scans properly)
+(Definitive Fix: Corrected list_tables to scan the entire table if needed, ensuring filtered items are always found.)
 """
 import json
 import os
@@ -143,8 +143,9 @@ def create_table(event):
 
 def list_tables(event):
     """
-    Paginated list of tables using a STRONGLY CONSISTENT Scan to ensure new tables appear immediately.
-    This implementation correctly handles pagination for a filtered scan.
+    Paginated list of tables using a STRONGLY CONSISTENT Scan.
+    This implementation correctly handles pagination for a filtered scan by scanning
+    the entire table to collect all metadata items before paginating the results.
     """
     try:
         limit, exclusive_start_key = parse_pagination_params(event)
@@ -154,37 +155,44 @@ def list_tables(event):
             'ConsistentRead': True
         }
         
-        collected = []
-        last_key_from_ddb = exclusive_start_key
-
-        while len(collected) < limit:
+        all_metadata_items = []
+        last_key_from_ddb = None
+        
+        # Loop to scan the entire table and collect all items matching the filter
+        while True:
             if last_key_from_ddb:
-                 scan_kwargs['ExclusiveStartKey'] = last_key_from_ddb
+                scan_kwargs['ExclusiveStartKey'] = last_key_from_ddb
             
             resp = retry_dynamo(lambda: table.scan(**scan_kwargs))
             
-            items = resp.get('Items', [])
-            collected.extend(items)
+            all_metadata_items.extend(resp.get('Items', []))
             
             last_key_from_ddb = resp.get('LastEvaluatedKey')
             if not last_key_from_ddb:
-                break # No more items in the entire table
+                break # Scanned the entire table
 
-        page_items = collected[:limit]
+        # Now, paginate the collected results manually
+        all_metadata_items.sort(key=lambda x: (x.get('createdAt') or ''), reverse=True)
+        
+        start_index = 0
+        if exclusive_start_key:
+            # Find the index of the item represented by the start key
+            start_table_id = exclusive_start_key.get('tableId')
+            try:
+                start_index = next(i for i, item in enumerate(all_metadata_items) if item.get('tableId') == start_table_id) + 1
+            except StopIteration:
+                start_index = 0 # Key not found, start from beginning
+
+        end_index = start_index + limit
+        page_items = all_metadata_items[start_index:end_index]
         
         response_last_key = None
-        if len(collected) > limit:
-            # If we collected more items than the page limit, the key for the next page
-            # is the primary key of the last item on the *current* page.
+        if end_index < len(all_metadata_items):
             last_item_on_page = page_items[-1]
             response_last_key = {
                 'tableId': last_item_on_page['tableId'],
                 'username': last_item_on_page['username']
             }
-        elif last_key_from_ddb:
-             # This case handles when the last DDB page is read, and the remaining items
-             # are not enough to fill the page, but DDB still gives a key.
-             response_last_key = last_key_from_ddb
 
         tables = [{
             'tableId': item['tableId'],
@@ -193,8 +201,6 @@ def list_tables(event):
             'isArchived': item.get('isArchived', False),
             'userCount': item.get('userCount', 0)
         } for item in page_items]
-
-        tables.sort(key=lambda x: (x.get('createdAt') or ''), reverse=True)
         
         return create_response(200, build_paged_body('tables', tables, response_last_key))
     except Exception as e:
@@ -278,8 +284,6 @@ def list_users(event):
 
         limit, exclusive_start_key = parse_pagination_params(event)
         
-        # Fetch one more item than the limit to see if there's a next page.
-        # Also fetch one for the metadata item that we will filter out.
         query_kwargs = {
             'KeyConditionExpression': Key('tableId').eq(table_id),
             'Limit': limit + 2, 
