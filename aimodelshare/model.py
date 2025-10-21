@@ -720,10 +720,25 @@ def submit_model(
         prediction = requests.post(apiurl_eval,headers=headers,data=json.dumps(post_dict)) 
 
     eval_metrics=json.loads(prediction.text)
+        
+    # --- START FIX ---
+    try:
+        eval_metrics_private = {"eval": eval_metrics['eval'][1]}
+    except KeyError:
+        print("---------------------------------------------------------------")
+        print("--- UNEXPECTED API RESPONSE (KeyError) ---")
+        print(f"Failed to find 'eval' key in API response: {eval_metrics}")
+        print("This may be an API error message. Defaulting eval_metrics to empty.")
+        print("---------------------------------------------------------------")
+        eval_metrics_private = {"eval": {}} # Set a default empty dict to avoid crashing
+    except Exception as e:
+        print("---------------------------------------------------------------")
+        print(f"--- UNEXPECTED ERROR PROCESSING METRICS: {e} ---")
+        print(f"API response text was: {prediction.text}")
+        print("Defaulting eval_metrics to empty.")
+        print("---------------------------------------------------------------")
+        eval_metrics_private = {"eval": {}} # Set a default empty dict
 
-
-    eval_metrics_private = {"eval": eval_metrics['eval'][1]}
-    eval_metrics["eval"] = eval_metrics['eval'][0] 
 
     if all([isinstance(eval_metrics, dict),"message" not in eval_metrics]):
         pass        
