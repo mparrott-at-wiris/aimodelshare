@@ -723,21 +723,33 @@ def submit_model(
         
     # --- START FIX ---
     try:
+        # This was the original line that failed
         eval_metrics_private = {"eval": eval_metrics['eval'][1]}
-    except KeyError:
+        
+        # This is the original return statement (or similar) from the function
+        # We must ensure it's INSIDE the try block
+        return eval_metrics, eval_metrics_private
+
+    except (KeyError, TypeError):
         print("---------------------------------------------------------------")
-        print("--- UNEXPECTED API RESPONSE (KeyError) ---")
-        print(f"Failed to find 'eval' key in API response: {eval_metrics}")
-        print("This may be an API error message. Defaulting eval_metrics to empty.")
+        print(f"--- UNEXPECTED API RESPONSE (KeyError/TypeError) ---")
+        print(f"Failed to parse 'eval' key in API response: {eval_metrics}")
+        print("This is likely an API error. Defaulting all eval_metrics to empty.")
         print("---------------------------------------------------------------")
-        eval_metrics_private = {"eval": {}} # Set a default empty dict to avoid crashing
+        
+        # This is the new fix:
+        # Return a tuple of two empty dicts to prevent the unpack TypeError
+        return {}, {} 
+
     except Exception as e:
         print("---------------------------------------------------------------")
         print(f"--- UNEXPECTED ERROR PROCESSING METRICS: {e} ---")
         print(f"API response text was: {prediction.text}")
-        print("Defaulting eval_metrics to empty.")
+        print("Defaulting all eval_metrics to empty.")
         print("---------------------------------------------------------------")
-        eval_metrics_private = {"eval": {}} # Set a default empty dict
+        
+        # Also return the default tuple here
+        return {}, {}
 
 
     if all([isinstance(eval_metrics, dict),"message" not in eval_metrics]):
