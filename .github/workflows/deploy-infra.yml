@@ -62,7 +62,7 @@ jobs:
           set -euo pipefail
 
           WS="${{ matrix.env }}"
-          echo "Ensuring Terraform workspace '${WS}' exists..."
+            echo "Ensuring Terraform workspace '${WS}' exists..."
           if terraform workspace list | sed 's/^[* ]*//' | grep -Fxq "$WS"; then
             echo "Selecting existing workspace: $WS"
             terraform workspace select "$WS"
@@ -72,7 +72,6 @@ jobs:
           fi
           echo "Current workspace: $(terraform workspace show)"
 
-          # Ensure backend directory exists if re-run
           if [ ! -d .terraform ]; then
             echo "Terraform not initialized yet; running 'terraform init'..."
             terraform init -input=false
@@ -107,29 +106,49 @@ jobs:
         working-directory: infra
         run: terraform output -json
 
+      - name: Wait for DynamoDB GSI readiness
+        if: github.ref == 'refs/heads/master'
+        working-directory: infra
+        run: |
+          TABLE_NAME=$(terraform output -raw dynamodb_table_name)
+          echo "Waiting for GSI 'byUser' on table $TABLE_NAME to become ACTIVE..."
+          ATTEMPTS=0
+          MAX_ATTEMPTS=30
+          SLEEP_SECONDS=5
+          while true; do
+            STATUS=$(aws dynamodb describe-table --table-name "$TABLE_NAME" \
+              --query "Table.GlobalSecondaryIndexes[?IndexName=='byUser'].IndexStatus" --output text 2>/dev/null || echo "UNKNOWN")
+            if [ "$STATUS" = "ACTIVE" ]; then
+              echo "GSI 'byUser' is ACTIVE."
+              break
+            fi
+            ATTEMPTS=$((ATTEMPTS+1))
+            if [ $ATTEMPTS -ge $MAX_ATTEMPTS ]; then
+              echo "Timeout waiting for GSI 'byUser' to become ACTIVE (last status: $STATUS)"
+              exit 1
+            fi
+            echo "Attempt $ATTEMPTS/$MAX_ATTEMPTS: status=$STATUS; sleeping $SLEEP_SECONDS s..."
+            sleep $SLEEP_SECONDS
+          done
+
       - name: Run API Integration Tests
         if: github.ref == 'refs/heads/master'
         working-directory: .
         run: |
-          # Extract API base URL from Terraform outputs
           API_BASE_URL=$(cd infra && terraform output -raw api_base_url)
           echo "API Base URL: $API_BASE_URL"
-          
-          # Validate that we got a proper URL
+
           if [[ -z "$API_BASE_URL" || "$API_BASE_URL" == "null" ]]; then
             echo "❌ Failed to get API base URL from Terraform outputs"
             exit 1
           fi
-          
-          # Install requests library for API testing
+
           python -m pip install --upgrade pip
           python -m pip install requests
-          
-          # Wait a moment for API to be fully available
-          echo "⏳ Waiting for API to be fully available..."
-          sleep 15
-          
-          # Run API integration tests
+
+          echo "⏳ Extra stabilization wait (30s) after GSI readiness..."
+          sleep 30
+
           echo "🚀 Starting API Integration Tests..."
           python tests/test_api_integration.py "$API_BASE_URL"
 
@@ -139,7 +158,6 @@ jobs:
         run: |
           API_BASE_URL=$(cd infra && terraform output -raw api_base_url)
           echo "API Base URL: $API_BASE_URL"
-          # requests likely installed already, ensure silently
           python -m pip install requests
           python tests/test_api_pagination.py "$API_BASE_URL"
 
@@ -147,17 +165,14 @@ jobs:
         if: github.ref == 'refs/heads/master' && (vars.RUN_LOAD_TESTS != 'false')
         working-directory: .
         run: |
-          # Install additional dependencies for load tests
           python -m pip install aiohttp rich
 
       - name: Run Load Tests - Single Table
         if: github.ref == 'refs/heads/master' && (vars.RUN_LOAD_TESTS != 'false')
         working-directory: .
         run: |
-          # Extract API base URL from Terraform outputs (reuse from integration tests)
           API_BASE_URL=$(cd infra && terraform output -raw api_base_url)
           export API_BASE_URL
-          
           echo "🚀 Running Single Table Load Test..."
           python tests/load_single_table.py
 
@@ -165,10 +180,8 @@ jobs:
         if: github.ref == 'refs/heads/master' && (vars.RUN_LOAD_TESTS != 'false')
         working-directory: .
         run: |
-          # Extract API base URL from Terraform outputs (reuse from integration tests)
           API_BASE_URL=$(cd infra && terraform output -raw api_base_url)
           export API_BASE_URL
-          
           echo "🚀 Running Multi Table Load Test..."
           python tests/load_multi_table.py
 
@@ -178,9 +191,7 @@ jobs:
         env:
           LOAD_DURATION_SECONDS: 20
         run: |
-          # Extract API base URL from Terraform outputs (reuse from integration tests)
           API_BASE_URL=$(cd infra && terraform output -raw api_base_url)
           export API_BASE_URL
-          
           echo "🚀 Running Mixed Duration Load Test (20s for CI)..."
           python tests/load_mixed_duration.py

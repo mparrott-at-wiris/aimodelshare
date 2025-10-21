@@ -29,29 +29,16 @@ provider "aws" {
   region = var.region
 }
 
-# -----------------------------
-# Workspaces pattern: per env overrides
-# Per-Environment Resource Isolation: Each workspace gets its own DynamoDB table
-# This ensures complete resource isolation between dev, stage, and prod environments
-# -----------------------------
 locals {
   workspace   = terraform.workspace
   name_prefix = "${var.name_prefix}-${local.workspace}"
   stage_name  = local.workspace == "default" ? var.stage_name : local.workspace
-  # Per-environment table naming for complete resource isolation
-  # Examples: PlaygroundScores-dev, PlaygroundScores-stage, PlaygroundScores-prod
-  table_name = "${var.table_name}-${local.workspace}"
+  table_name  = "${var.table_name}-${local.workspace}"
   tags = merge(var.tags, {
     workspace = local.workspace
   })
 }
 
-# -----------------------------
-# State Seed Resource
-# -----------------------------
-# This null_resource can be targeted to create an initial remote state object
-# when starting from a completely empty backend. This avoids errors where
-# Terraform expects a pre-existing state object for workspace operations.
 resource "null_resource" "state_seed" {
   triggers = {
     workspace = local.workspace
@@ -62,9 +49,6 @@ resource "null_resource" "state_seed" {
   }
 }
 
-# -----------------------------
-# DynamoDB Table
-# -----------------------------
 resource "aws_dynamodb_table" "playground" {
   name         = local.table_name
   billing_mode = "PAY_PER_REQUEST"
@@ -98,19 +82,12 @@ resource "aws_dynamodb_table" "playground" {
   tags = local.tags
 }
 
-# -----------------------------
-# Package Lambda from ./infra/lambda
-# -----------------------------
 data "archive_file" "lambda_zip" {
   type        = "zip"
   source_dir  = "${path.module}/lambda"
   output_path = "${path.module}/lambda.zip"
 }
 
-# -----------------------------
-# Optional: Lambda Layer for extra deps (e.g., aimodelshare)
-# Build the zip via ./layer/build_layer.sh and reference it here.
-# -----------------------------
 variable "use_layer" {
   type    = bool
   default = false
@@ -129,9 +106,6 @@ resource "aws_lambda_layer_version" "extra" {
   description         = "Extra Python deps (e.g., aimodelshare)"
 }
 
-# -----------------------------
-# IAM for Lambda
-# -----------------------------
 data "aws_iam_policy_document" "assume_lambda" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -181,10 +155,6 @@ resource "aws_iam_role_policy_attachment" "attach_ddb_rw" {
   policy_arn = aws_iam_policy.ddb_rw.arn
 }
 
-# -----------------------------
-# Lambda Function
-# -----------------------------
-
 resource "aws_lambda_function" "api" {
   function_name    = "${local.name_prefix}-api"
   role             = aws_iam_role.lambda_exec_role.arn
@@ -200,7 +170,6 @@ resource "aws_lambda_function" "api" {
     variables = {
       TABLE_NAME         = aws_dynamodb_table.playground.name
       SAFE_CONCURRENCY   = var.safe_concurrency ? "true" : "false"
-      # Pagination configuration (overridable via Terraform if desired)
       DEFAULT_PAGE_LIMIT = "50"
       MAX_PAGE_LIMIT     = "500"
     }
@@ -210,9 +179,6 @@ resource "aws_lambda_function" "api" {
   tags   = local.tags
 }
 
-# -----------------------------
-# API Gateway HTTP API (v2)
-# -----------------------------
 resource "aws_apigatewayv2_api" "http_api" {
   name          = "${local.name_prefix}-http-api"
   protocol_type = "HTTP"
@@ -268,6 +234,13 @@ resource "aws_apigatewayv2_route" "route_get_user" {
 resource "aws_apigatewayv2_route" "route_put_user" {
   api_id    = aws_apigatewayv2_api.http_api.id
   route_key = "PUT /tables/{tableId}/users/{username}"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda_proxy.id}"
+}
+
+# New health route
+resource "aws_apigatewayv2_route" "route_health" {
+  api_id    = aws_apigatewayv2_api.http_api.id
+  route_key = "GET /health"
   target    = "integrations/${aws_apigatewayv2_integration.lambda_proxy.id}"
 }
 
