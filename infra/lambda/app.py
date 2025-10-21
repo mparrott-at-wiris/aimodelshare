@@ -1,6 +1,6 @@
 """
 Lambda handler for aimodelshare playground API.
-(Fix: Corrected list_tables pagination logic and increased create_table delay for consistency)
+(Fix: Corrected list_users pagination logic for accurate page counts)
 """
 import json
 import os
@@ -135,8 +135,6 @@ def create_table(event):
         }
         retry_dynamo(lambda: table.put_item(Item=metadata))
         
-        # Add a delay to allow for eventual consistency of the Scan in list_tables to catch up.
-        # This is a pragmatic fix for the integration test.
         time.sleep(1.5) 
         
         return create_response(201, {'tableId': table_id, 'displayName': display_name, 'message': 'Table created successfully'})
@@ -147,10 +145,6 @@ def create_table(event):
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
 def list_tables(event):
-    """
-    Paginated list of tables using a Scan filtered to metadata rows.
-    Scan is eventually consistent. This implementation correctly handles pagination.
-    """
     try:
         limit, exclusive_start_key = parse_pagination_params(event)
         collected = []
@@ -160,7 +154,7 @@ def list_tables(event):
             'FilterExpression': Attr('username').eq('_metadata'),
         }
 
-        while len(collected) < limit:
+        while len(collected) < limit + 1: # Fetch one extra to determine if there's a next page
             if last_key_from_ddb:
                 scan_kwargs['ExclusiveStartKey'] = last_key_from_ddb
             
@@ -171,20 +165,12 @@ def list_tables(event):
             
             last_key_from_ddb = resp.get('LastEvaluatedKey')
             if not last_key_from_ddb:
-                break # No more items in the entire table
+                break
 
-        # We may have collected more items than the limit, so we slice.
         page_items = collected[:limit]
         
-        # The key for the *next* page is determined if we collected more than the limit
         response_last_key = None
         if len(collected) > limit:
-            # The start key for the next page is the key of the *last item* on the current page.
-            # This is how you manually create a key if you have to, but it's better to use DDB's.
-            # A better way is to just use the last_key_from_ddb if it exists *after* filling the page.
-            # Let's use a simpler, more robust method: if we fetched more than `limit`,
-            # we know there's a next page. We need the key of the last item on *this* page
-            # to start the *next* one.
             last_item_on_page = page_items[-1]
             response_last_key = {
                 'tableId': last_item_on_page['tableId'],
@@ -268,7 +254,7 @@ def patch_table(event):
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
 def list_users(event):
-    """Paginated list of users ensuring page size excludes metadata row without shrinking count."""
+    """Paginated list of users with correct pagination logic."""
     try:
         params = event.get('pathParameters') or {}
         table_id = params.get('tableId')
@@ -282,48 +268,48 @@ def list_users(event):
             return create_response(404, {'error': 'Table not found'})
 
         limit, exclusive_start_key = parse_pagination_params(event)
-        users_collected = []
-        last_evaluated_key = exclusive_start_key
-        first_iteration = True
+        
+        # We fetch one more item than the limit to see if there's a next page.
+        query_kwargs = {
+            'KeyConditionExpression': Key('tableId').eq(table_id),
+            'Limit': limit + 1 
+        }
+        if exclusive_start_key:
+            query_kwargs['ExclusiveStartKey'] = exclusive_start_key
 
-        while len(users_collected) < limit:
-            request_limit = (limit - len(users_collected)) + (1 if first_iteration else 0)
-            query_kwargs = {
-                'KeyConditionExpression': Key('tableId').eq(table_id),
-                'Limit': request_limit
+        resp = retry_dynamo(lambda: table.query(**query_kwargs))
+        
+        all_items = resp.get('Items', [])
+        
+        # Filter out the metadata item
+        user_items = [item for item in all_items if item.get('username') != '_metadata']
+        
+        # Determine if there is a next page
+        has_next_page = len(user_items) > limit
+        
+        # The items for the current page are the first `limit` items
+        page_items = user_items[:limit]
+        
+        # The key for the next page is the key of the last item on *this* page,
+        # but only if we know there's a next page.
+        response_last_key = None
+        if has_next_page:
+            last_item_on_page = page_items[-1]
+            response_last_key = {
+                'tableId': last_item_on_page['tableId'],
+                'username': last_item_on_page['username']
             }
-            if last_evaluated_key:
-                query_kwargs['ExclusiveStartKey'] = last_evaluated_key
 
-            resp = retry_dynamo(lambda: table.query(**query_kwargs))
-            items = resp.get('Items', [])
-            raw_last_key = resp.get('LastEvaluatedKey')
-
-            for it in items:
-                if it.get('username') == '_metadata':
-                    continue
-                users_collected.append({
-                    'username': it['username'],
-                    'submissionCount': it.get('submissionCount', 0),
-                    'totalCount': it.get('totalCount', 0),
-                    'lastUpdated': it.get('lastUpdated')
-                })
-                if len(users_collected) >= limit:
-                    break
-
-            first_iteration = False
-
-            if len(users_collected) >= limit:
-                last_evaluated_key = raw_last_key if raw_last_key else None
-                break
-            if not raw_last_key:
-                last_evaluated_key = None
-                break
-            last_evaluated_key = raw_last_key
-
-        users_collected.sort(key=lambda x: x.get('submissionCount', 0), reverse=True)
-        body = build_paged_body('users', users_collected, last_evaluated_key)
-        return create_response(200, body)
+        users_to_return = [{
+            'username': item['username'],
+            'submissionCount': item.get('submissionCount', 0),
+            'totalCount': item.get('totalCount', 0),
+            'lastUpdated': item.get('lastUpdated')
+        } for item in page_items]
+        
+        users_to_return.sort(key=lambda x: x.get('submissionCount', 0), reverse=True)
+        
+        return create_response(200, build_paged_body('users', users_to_return, response_last_key))
     except Exception as e:
         print(f"[ERROR] list_users exception: {e}")
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
