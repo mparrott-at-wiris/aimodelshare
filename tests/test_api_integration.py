@@ -25,7 +25,7 @@ class APIIntegrationTests:
         }
         self.errors = []
         
-    def wait_for_api_ready(self, max_attempts: int = 5, delay: int = 2):
+    def wait_for_api_ready(self, max_attempts: int = 10, delay: int = 2):
         """Wait for API to be ready by making health check requests"""
         print(f"🔍 Checking API availability...")
         for attempt in range(max_attempts):
