@@ -145,15 +145,17 @@ def list_tables(event):
     """
     List table metadata items with stable descending ordering by createdAt (then tableId),
     supporting page-level limit and a synthetic lastKey.
-    Compatible with existing integration tests expecting:
-      - default limit = 50
-      - createdAt descending
-      - consistent response shape.
+    Ensures createdAt ordering is genuinely chronological (descending) across mixed formats:
+      - epoch seconds (int)
+      - epoch milliseconds (int)
+      - epoch seconds with fractional part (float string)
+      - ISO8601 strings with optional fractional seconds and trailing 'Z'
+    Missing / unparseable createdAt values sort last.
+    Default limit = 50 unless overridden by DEFAULT_TABLE_PAGE_LIMIT env var.
     """
     try:
         params = (event.get('queryStringParameters') or {})
 
-        # Default limit now 50 unless overridden by env var.
         default_limit = int(os.getenv('DEFAULT_TABLE_PAGE_LIMIT', '50'))
         raw_limit = params.get('limit')
         try:
@@ -163,7 +165,6 @@ def list_tables(event):
         except ValueError:
             return create_response(400, {'error': 'Invalid limit parameter'})
 
-        # Parse lastKey (JSON {"tableId": "..."} or plain tableId string)
         raw_last_key = params.get('lastKey')
         start_after_table_id = None
         if raw_last_key:
@@ -207,40 +208,79 @@ def list_tables(event):
                     break
                 scan_kwargs['ExclusiveStartKey'] = lek
 
-        # Robust createdAt extraction -> numeric timestamp for sorting.
-        def created_at_numeric(item):
-            v = item.get('createdAt')
-            if v is None:
-                return -1  # missing sorts last in descending order
-            if isinstance(v, (int, float)):
-                return v
-            if isinstance(v, str):
-                vv = v.strip()
-                if vv.isdigit():
-                    try:
-                        return int(vv)
-                    except ValueError:
-                        pass
-                # Try ISO8601
+        from datetime import datetime, timezone
+
+        def normalize_created_at(value):
+            """
+            Return milliseconds since epoch (int) for sortable comparison.
+            Unparseable or missing -> -1.
+            """
+            if value is None:
+                return -1
+
+            # Already numeric
+            if isinstance(value, (int, float)):
+                # Heuristic: treat >10^12 as ms, else seconds.
+                if isinstance(value, int):
+                    if value >= 10**12:  # ms range
+                        return value
+                    elif value >= 10**9:  # seconds (approx current epoch seconds)
+                        return value * 1000
+                    else:
+                        # Very small number, treat as seconds
+                        return int(value * 1000)
+                else:  # float
+                    # float likely seconds with fractional
+                    return int(round(value * 1000))
+
+            if isinstance(value, str):
+                s = value.strip()
+                if not s:
+                    return -1
+
+                # Detect pure integer
+                if s.isdigit():
+                    iv = int(s)
+                    if iv >= 10**12:      # milliseconds
+                        return iv
+                    elif iv >= 10**9:      # seconds
+                        return iv * 1000
+                    else:
+                        return iv * 1000  # treat as seconds
+                # Detect float numeric (seconds with fractional)
                 try:
-                    # Remove trailing Z if present for fromisoformat.
-                    iso = vv[:-1] if vv.endswith('Z') else vv
-                    from datetime import datetime
-                    dt = datetime.fromisoformat(iso)
-                    return int(dt.timestamp())
+                    if all(c in "0123456789.+-" for c in s) and any(c == '.' for c in s):
+                        fv = float(s)
+                        return int(round(fv * 1000))
                 except Exception:
-                    # Fallback: lexicographically later ISO strings should be "larger".
-                    # We map them to a hash-based ordering but still deterministic.
-                    return hash(vv) & 0xFFFFFFFF
+                    pass
+
+                # Attempt ISO8601
+                try:
+                    iso = s
+                    # Common trailing Z for UTC
+                    if iso.endswith('Z'):
+                        iso = iso[:-1]  # strip Z; we'll attach UTC
+                        dt = datetime.fromisoformat(iso)
+                        dt = dt.replace(tzinfo=timezone.utc)
+                    else:
+                        dt = datetime.fromisoformat(iso)
+                        # If naive, assume UTC
+                        if dt.tzinfo is None:
+                            dt = dt.replace(tzinfo=timezone.utc)
+                    return int(round(dt.timestamp() * 1000))
+                except Exception:
+                    # Could extend with additional parsing (e.g., dateutil) if needed.
+                    return -1
+
             return -1
 
-        # Sort: primary createdAt descending, secondary tableId descending
+        # Sort descending by normalized createdAt then tableId
         metadata_items.sort(
-            key=lambda it: (created_at_numeric(it), it.get('tableId', '')),
+            key=lambda it: (normalize_created_at(it.get('createdAt')), it.get('tableId', '')),
             reverse=True
         )
 
-        # Find start index if lastKey was provided
         start_index = 0
         if start_after_table_id:
             for idx, it in enumerate(metadata_items):
@@ -272,7 +312,7 @@ def list_tables(event):
         return create_response(200, body)
 
     except Exception as e:
-        print(f"[ERROR] list_tables pagination fix: {e}")
+        print(f"[ERROR] list_tables createdAt ordering fix: {e}")
         return create_response(500, {'error': 'Internal server error'})
 
 def get_table(event):
