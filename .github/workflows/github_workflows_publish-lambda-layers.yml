@@ -1,0 +1,267 @@
+name: Publish AWS Lambda Layers
+
+on:
+  workflow_dispatch:
+    inputs:
+      python_runtime:
+        description: "Target Python runtime for layer compatibility"
+        required: true
+        default: "python3.12"
+      make_public:
+        description: "Grant public GetLayerVersion permission (true/false)"
+        required: true
+        default: "true"
+      eval_requirements_file:
+        description: "Path to eval layer requirements file"
+        required: true
+        default: "requirements-eval.txt"
+      auth_requirements_file:
+        description: "Path to auth layer requirements file"
+        required: true
+        default: "requirements-auth.txt"
+      eval_layer_name:
+        description: "Eval layer base name"
+        required: true
+        default: "eval-layer"
+      auth_layer_name:
+        description: "Auth layer base name"
+        required: true
+        default: "aimsauth-layer"
+  push:
+    paths:
+      - "requirements-eval.txt"
+      - "requirements-auth.txt"
+      - "layer-src/**"
+      - ".github/workflows/publish-lambda-layers.yml"
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  REGIONS: "us-east-1 us-east-2 us-west-1 us-west-2 eu-west-1 eu-west-2 eu-west-3"
+  # Directory(s) containing any custom python source you wish to bundle into the layers
+  EVAL_SRC_DIR: "layer-src/eval"
+  AUTH_SRC_DIR: "layer-src/auth"
+
+jobs:
+  publish-layers:
+    name: Build & Publish Layers
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        layer:
+          - id: eval
+            layer_name_input: eval_layer_name
+            requirements_input: eval_requirements_file
+            src_dir_env: EVAL_SRC_DIR
+          - id: auth
+            layer_name_input: auth_layer_name
+            requirements_input: auth_requirements_file
+            src_dir_env: AUTH_SRC_DIR
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve inputs for this layer
+        id: inputs
+        run: |
+          # Map dynamic inputs for the matrix entry
+          eval_layer_name="${{ github.event.inputs.eval_layer_name || 'eval-layer' }}"
+          auth_layer_name="${{ github.event.inputs.auth_layer_name || 'aimsauth-layer' }}"
+          eval_requirements_file="${{ github.event.inputs.eval_requirements_file || 'requirements-eval.txt' }}"
+          auth_requirements_file="${{ github.event.inputs.auth_requirements_file || 'requirements-auth.txt' }}"
+          python_runtime="${{ github.event.inputs.python_runtime || 'python3.12' }}"
+          make_public="${{ github.event.inputs.make_public || 'true' }}"
+
+          if [ "${{ matrix.layer.id }}" = "eval" ]; then
+            layer_name="$eval_layer_name"
+            req_file="$eval_requirements_file"
+            src_dir="${EVAL_SRC_DIR}"
+          else
+            layer_name="$auth_layer_name"
+            req_file="$auth_requirements_file"
+            src_dir="${AUTH_SRC_DIR}"
+          fi
+
+          echo "layer_name=$layer_name" >> $GITHUB_OUTPUT
+          echo "req_file=$req_file" >> $GITHUB_OUTPUT
+          echo "python_runtime=$python_runtime" >> $GITHUB_OUTPUT
+          echo "make_public=$make_public" >> $GITHUB_OUTPUT
+          echo "src_dir=$src_dir" >> $GITHUB_OUTPUT
+
+      - name: Validate requirements file
+        run: |
+          if [ ! -f "${{ steps.inputs.outputs.req_file }}" ]; then
+            echo "Requirements file '${{ steps.inputs.outputs.req_file }}' not found."
+            exit 1
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "${{ steps.inputs.outputs.python_runtime##python }}"
+
+      - name: Prepare layer build folder
+        id: prep
+        run: |
+          build_dir="layer_build_${{ matrix.layer.id }}"
+          rm -rf "$build_dir"
+          mkdir -p "$build_dir/python"
+          echo "build_dir=$build_dir" >> $GITHUB_OUTPUT
+
+          # Copy custom source if present
+          if [ -d "${{ steps.inputs.outputs.src_dir }}" ]; then
+            echo "Including source from ${{ steps.inputs.outputs.src_dir }}"
+            rsync -av --exclude='__pycache__' "${{ steps.inputs.outputs.src_dir }}/" "$build_dir/python/"
+          else
+            echo "No custom source directory found at ${{ steps.inputs.outputs.src_dir }} (optional)."
+          fi
+
+      - name: Install dependencies into layer
+        run: |
+          pip install --upgrade pip
+          pip install -r "${{ steps.inputs.outputs.req_file }}" -t "${{ steps.prep.outputs.build_dir }}/python"
+          # Remove tests & dist-info metadata heavy files optionally
+          find "${{ steps.prep.outputs.build_dir }}/python" -type d -name "tests" -prune -exec rm -rf {} +
+          # Strip .pyc
+          find "${{ steps.prep.outputs.build_dir }}/python" -name "*.pyc" -delete
+          # (Optional) Remove __pycache__
+          find "${{ steps.prep.outputs.build_dir }}/python" -type d -name "__pycache__" -exec rm -rf {} +
+
+      - name: Create zip artifact
+        id: zip
+        run: |
+          cd "${{ steps.prep.outputs.build_dir }}"
+          zip -r9 "../${{ matrix.layer.id }}-layer.zip" python
+          echo "zip_path=${{ github.workspace }}/${{ matrix.layer.id }}-layer.zip" >> $GITHUB_OUTPUT
+
+      - name: Upload build artifact (debug)
+        uses: actions/upload-artifact@v4
+        with:
+          name: "${{ matrix.layer.id }}-layer-zip"
+          path: "${{ steps.zip.outputs.zip_path }}"
+          retention-days: 5
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-east-1
+          role-to-assume: ${{ secrets.AWS_LAMBDA_LAYER_PUBLISH_ROLE_ARN }}
+          role-session-name: layer-publish-session
+
+      - name: Publish layer to all regions
+        id: publish
+        run: |
+          set -euo pipefail
+
+          zip_path="${{ steps.zip.outputs.zip_path }}"
+          layer_name="${{ steps.inputs.outputs.layer_name }}"
+          python_runtime="${{ steps.inputs.outputs.python_runtime }}"
+          make_public="${{ steps.inputs.outputs.make_public }}"
+          commit_sha="${GITHUB_SHA}"
+          description="${layer_name} for aimodelshare build ${commit_sha:0:7} (runtime ${python_runtime})"
+
+          echo "Publishing layer '$layer_name' to regions: $REGIONS"
+          publish_log="publish_results_${layer_name}.txt"
+          rm -f "$publish_log"
+
+          for region in $REGIONS; do
+            echo "Region: $region"
+            aws lambda publish-layer-version \
+              --region "$region" \
+              --layer-name "$layer_name" \
+              --description "$description" \
+              --zip-file "fileb://$zip_path" \
+              --compatible-runtimes "$python_runtime" \
+              --license-info "MIT" > resp.json
+
+            arn=$(jq -r '.LayerVersionArn' resp.json)
+            version=$(jq -r '.Version' resp.json)
+
+            echo "Published version $version ARN: $arn"
+            echo "$region $version $arn" >> "$publish_log"
+
+            if [ "$make_public" = "true" ]; then
+              aws lambda add-layer-version-permission \
+                --region "$region" \
+                --layer-name "$layer_name" \
+                --version-number "$version" \
+                --statement-id "public-access-${version}" \
+                --action lambda:GetLayerVersion \
+                --principal "*" || {
+                  echo "Warning: public permission may already exist."
+                }
+              echo "Made public in $region"
+            fi
+            rm -f resp.json
+          done
+
+          echo "==== Summary ($layer_name) ===="
+          cat "$publish_log"
+
+      - name: Verify latest layer versions & compatibility
+        run: |
+          python_runtime="${{ steps.inputs.outputs.python_runtime }}"
+          layer_name="${{ steps.inputs.outputs.layer_name }}"
+          echo "Verifying compatibility for $layer_name ($python_runtime)"
+          for region in $REGIONS; do
+            info=$(aws lambda list-layer-versions --region "$region" --layer-name "$layer_name")
+            latest=$(echo "$info" | jq -r '.LayerVersions[0]')
+            if [ "$latest" = "null" ]; then
+              echo "::error::No versions found for $layer_name in $region"
+              continue
+            fi
+            runtimes=$(echo "$info" | jq -r '.LayerVersions[0].CompatibleRuntimes[]?')
+            echo "[$region] Latest runtimes: $runtimes"
+            echo "$runtimes" | grep -q "$python_runtime" || echo "::warning::Runtime $python_runtime not declared compatible in $region for $layer_name latest version."
+          done
+
+      - name: Post summary markdown
+        if: always()
+        run: |
+          layer_name="${{ steps.inputs.outputs.layer_name }}"
+          echo "### Layer publish summary: $layer_name" >> summary.md
+          echo "" >> summary.md
+          echo "| Region | Version | ARN |" >> summary.md
+          echo "|--------|---------|-----|" >> summary.md
+          while read line; do
+            region=$(echo "$line" | awk '{print $1}')
+            version=$(echo "$line" | awk '{print $2}')
+            arn=$(echo "$line" | awk '{print $3}')
+            echo "| $region | $version | $arn |" >> summary.md
+          done < "publish_results_${layer_name}.txt"
+          cat summary.md
+
+      - name: Upload summary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: "publish-summary-${{ matrix.layer.id }}"
+          path: "summary.md"
+
+  aggregate-report:
+    name: Aggregate Report
+    needs: publish-layers
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all summaries
+        uses: actions/download-artifact@v4
+        with:
+          path: summaries
+      - name: Combine summaries
+        run: |
+          echo "# Lambda Layer Publish Report" > REPORT.md
+          echo "" >> REPORT.md
+          for f in summaries/**/summary.md; do
+            cat "$f" >> REPORT.md
+            echo "" >> REPORT.md
+          done
+          cat REPORT.md
+      - name: Upload final report
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-layer-publish-report
+          path: REPORT.md
