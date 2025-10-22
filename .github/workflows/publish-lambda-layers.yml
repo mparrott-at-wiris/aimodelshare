@@ -78,8 +78,7 @@ jobs:
         region: ${{ fromJson(needs.matrix-setup.outputs.regions) }}
 
     env:
-      PYTHON_RUNTIME: ${{ github.event.inputs.python_runtime }}        # e.g. python3.12 (for --compatible-runtimes)
-      SANITIZED_RUNTIME: ${{ needs.matrix-setup.outputs.sanitized_runtime }}
+      PYTHON_RUNTIME: ${{ github.event.inputs.python_runtime }}           # e.g. python3.12 (keep dot for compatible runtimes)
       REQUIREMENTS_FILE: ${{ matrix.layer.requirements }}
       LAYER_SRC_DIR: ${{ matrix.layer.src_dir }}
       BUILD_DIR: layer_build
@@ -88,7 +87,7 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.DATA_AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.DATA_AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ matrix.region }}
-      LAYER_NAME: ${{ matrix.layer.name }}-${{ env.SANITIZED_RUNTIME }}
+      LAYER_NAME: ${{ matrix.layer.name }}-${{ needs.matrix-setup.outputs.sanitized_runtime }}
 
     steps:
       - name: Checkout
@@ -171,7 +170,7 @@ jobs:
             echo "${{ env.AWS_REGION }} FAILED -" >> results/publish_results_${{ matrix.layer.id }}.txt
             exit 1
           fi
-            echo "${{ env.AWS_REGION }} ${layer_version} ${layer_version_arn}" >> results/publish_results_${{ matrix.layer.id }}.txt
+          echo "${{ env.AWS_REGION }} ${layer_version} ${layer_version_arn}" >> results/publish_results_${{ matrix.layer.id }}.txt
           if [[ "${{ env.MAKE_PUBLIC }}" == "true" ]]; then
             aws lambda add-layer-version-permission \
               --layer-name "${{ env.LAYER_NAME }}" \
