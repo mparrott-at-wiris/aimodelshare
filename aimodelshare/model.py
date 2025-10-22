@@ -143,7 +143,7 @@ def _update_leaderboard(
     modelpath, eval_metrics, client, bucket, model_id, model_version, onnx_model=None
 ):
     # Loading the model and its metadata {{{
-    if onnx_model==None:
+    if onnx_model is not None:
         metadata = _get_leaderboard_data(onnx_model, eval_metrics)
 
     elif modelpath is not None:
@@ -245,7 +245,7 @@ def _update_leaderboard_public(
     model_version=model_versions[0]
     
 
-    if modelpath == None and onnx_model:
+    if onnx_model is not None:
         metadata = _get_leaderboard_data(onnx_model, eval_metrics)
 
     elif modelpath is not None:
