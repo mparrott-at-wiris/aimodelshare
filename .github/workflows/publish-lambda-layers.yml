@@ -41,6 +41,9 @@ jobs:
       layers: ${{ steps.set-matrix.outputs.layers }}
       regions: ${{ steps.set-regions.outputs.regions_json }}
     steps:
+      - name: Install jq (required for matrix construction)
+        run: sudo apt-get update && sudo apt-get install -y jq
+
       - id: set-matrix
         run: |
           layers_json=$(jq -n -c \
@@ -136,7 +139,6 @@ jobs:
           find . -type d -name "tests" -exec rm -rf {} +
           find . -type d -name "__pycache__" -exec rm -rf {} +
           find . -name "*.pyc" -delete
-          # Add any other specific pruning rules here
           echo "Pruning complete."
 
       - name: Create layer zip file
@@ -145,9 +147,6 @@ jobs:
           echo "Creating zip file: ../${{ env.ZIP_FILE_NAME }}"
           zip -r9 ../${{ env.ZIP_FILE_NAME }} python
           echo "Zip file created."
-
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
 
       - name: Configure AWS Credentials for CLI
         uses: aws-actions/configure-aws-credentials@v4
@@ -174,19 +173,18 @@ jobs:
           layer_version_arn=$(echo "$publish_output" | jq -r '.LayerVersionArn')
           layer_version=$(echo "$publish_output" | jq -r '.Version')
 
+          mkdir -p results
+
           if [ -z "$layer_version_arn" ] || [ "$layer_version_arn" == "null" ]; then
             echo "::error::Failed to publish layer or parse ARN from output: $publish_output"
-            # Create the results directory and file even on failure for reporting
-            mkdir -p ../results
-            echo "${{ env.AWS_REGION }} FAILED -" >> ../results/publish_results_${{ matrix.layer.id }}.txt
+            echo "${{ env.AWS_REGION }} FAILED -" >> results/publish_results_${{ matrix.layer.id }}.txt
             exit 1
           fi
 
           echo "Published ARN: $layer_version_arn"
           echo "Version: $layer_version"
 
-          mkdir -p ../results
-          echo "${{ env.AWS_REGION }} ${layer_version} ${layer_version_arn}" >> ../results/publish_results_${{ matrix.layer.id }}.txt
+          echo "${{ env.AWS_REGION }} ${layer_version} ${layer_version_arn}" >> results/publish_results_${{ matrix.layer.id }}.txt
 
           if [[ "${{ env.MAKE_PUBLIC }}" == "true" ]]; then
             echo "Making layer version public..."
@@ -204,14 +202,13 @@ jobs:
           fi
 
       - name: Upload publish result for aggregation
-        if: always() # Upload results even if publish failed
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: "publish-results-${{ matrix.layer.id }}-${{ matrix.region }}" # Include region for unique artifact name
-          path: ../results/publish_results_${{ matrix.layer.id }}.txt
+          name: "publish-results-${{ matrix.layer.id }}-${{ matrix.region }}"
+          path: results/publish_results_${{ matrix.layer.id }}.txt
           retention-days: 1
 
-# --- Job to aggregate reports ---
   aggregate-report:
     name: Aggregate Layer Publish Report
     if: always()
@@ -221,11 +218,8 @@ jobs:
       - name: Download all result artifacts
         uses: actions/download-artifact@v4
         with:
-          # Download all artifacts matching the pattern into the 'results' directory
           pattern: publish-results-*
           path: results
-          # Optional: Merge artifacts if using newer download-artifact versions
-          # merge-multiple: true
 
       - name: Combine results into a report
         id: report
@@ -237,44 +231,44 @@ jobs:
           echo "**Made Public:** ${{ github.event.inputs.make_public }}" >> REPORT.md
           echo "" >> REPORT.md
 
-          # Process each layer type based on expected artifact names
           for layer_id in eval auth; do
-              # Reconstruct expected layer name
-              if [[ "$layer_id" == "eval" ]]; then layer_name="${{ github.event.inputs.eval_layer_name }}"; fi
-              if [[ "$layer_id" == "auth" ]]; then layer_name="${{ github.event.inputs.auth_layer_name }}"; fi
-              echo "## Layer: ${layer_name}-${{ github.event.inputs.python_runtime }} ($layer_id)" >> REPORT.md
-              echo "" >> REPORT.md
-              echo "| Region | Status/Version | ARN |" >> REPORT.md
-              echo "|--------|----------------|-----|" >> REPORT.md
+            if [[ "$layer_id" == "eval" ]]; then layer_name="${{ github.event.inputs.eval_layer_name }}"; fi
+            if [[ "$layer_id" == "auth" ]]; then layer_name="${{ github.event.inputs.auth_layer_name }}"; fi
+            echo "## Layer: ${layer_name}-${{ github.event.inputs.python_runtime }} ($layer_id)" >> REPORT.md
+            echo "" >> REPORT.md
+            echo "| Region | Status/Version | ARN |" >> REPORT.md
+            echo "|--------|----------------|-----|" >> REPORT.md
 
-              found_layer_results=false
-              # Loop through all downloaded files (artifacts might contain multiple files if not merged)
-              find results -name "publish_results_${layer_id}.txt" -print0 | while IFS= read -r -d $'\0' file; do
-                if [[ -f "$file" && -s "$file" ]]; then
-                    found_layer_results=true
-                    # Read each line which represents one region's result
-                    while IFS= read -r line; do
-                        region=$(echo "$line" | awk '{print $1}')
-                        version=$(echo "$line" | awk '{print $2}')
-                        arn=$(echo "$line" | awk '{print $3}')
-                        echo "| $region | $version | \`$arn\` |" >> REPORT.md # Use backticks for ARN
-                    done < "$file"
-                fi
-              done
+            found_layer_results=false
 
-              if [[ "$found_layer_results" == "false" ]]; then
-                  echo "| *All Regions* | *No results found* | - |" >> REPORT.md
+            # Preserve scope using process substitution (no subshell for while)
+            while IFS= read -r -d $'\0' file; do
+              if [[ -f "$file" && -s "$file" ]]; then
+                found_layer_results=true
+                while IFS= read -r line; do
+                  region=$(echo "$line" | awk '{print $1}')
+                  version=$(echo "$line" | awk '{print $2}')
+                  arn=$(echo "$line" | awk '{print $3}')
+                  if [[ "$version" == "FAILED" ]]; then
+                    echo "| $region | FAILED | - |" >> REPORT.md
+                  else
+                    echo "| $region | $version | \`$arn\` |" >> REPORT.md
+                  fi
+                done < "$file"
               fi
-              echo "" >> REPORT.md
-          done
+            done < <(find results -name "publish_results_${layer_id}.txt" -print0)
 
+            if [[ "$found_layer_results" == "false" ]]; then
+              echo "| *All Regions* | *No results found* | - |" >> REPORT.md
+            fi
+            echo "" >> REPORT.md
+          done
 
           echo "---" >> REPORT.md
           echo "*Report generated at $(date -u)*" >> REPORT.md
           echo "--- REPORT START ---"
           cat REPORT.md
           echo "--- REPORT END ---"
-
 
       - name: Upload final report artifact
         uses: actions/upload-artifact@v4
