@@ -218,161 +218,154 @@ jobs:
       - name: Aggressively prune layer files
         run: |
           echo "Starting aggressive pruning..."
-                
-                # This runs the Python interpreter and feeds the script
-                # below into it. The 'END_OF_SCRIPT' block is a "here-document".
-                # The directory path is passed as a command-line argument (sys.argv[1])
-                python - "${{ env.BUILD_DIR }}/python" <<'END_OF_SCRIPT'
-                
-                import os
-                import shutil
-                import subprocess
-                import sys
-                
-                def run_aggressive_pruning(root_dir):
-                    """
-                    Walks through a directory and aggressively removes files and directories
-                    not needed for a Python Lambda runtime.
-                    """
-                    
-                    if not os.path.isdir(root_dir):
-                        print(f"Error: Directory not found: {root_dir}", file=sys.stderr)
-                        sys.exit(1) # Exit with error if path is bad
-                
-                    print(f"--- Starting aggressive pruning on: {root_dir} ---")
-                    
-                    # Calculate size before, skipping symlinks
-                    total_size_before = 0
-                    for dirpath, _, filenames in os.walk(root_dir, followlinks=False):
-                        for f in filenames:
-                            full_path = os.path.join(dirpath, f)
-                            if not os.path.islink(full_path):
-                                try:
-                                    total_size_before += os.path.getsize(full_path)
-                                except OSError:
-                                    pass # Ignore broken links/permission errors
-                    
-                    # Define files/dirs to remove completely
-                    dirs_to_remove = {
-                        '__pycache__',
-                        'docs',
-                        'examples',
-                        'benchmarks',
-                    }
-                    
-                    # File extensions to remove
-                    exts_to_remove = {
-                        '.pyc',   # Python compiled files
-                        '.pyo',   # Python optimized files
-                        '.pyi',   # Python type hints
-                        '.o',     # Compiled object files
-                        '.a',     # Static libraries
-                        '.md',    # Markdown files
-                        '.txt',   # Text files (like LICENSE, README)
-                        '.rst',   # reStructuredText files
-                    }
-                    
-                    # File name prefixes to remove (case-insensitive)
-                    files_to_remove_prefix = {
-                        'readme',
-                        'license',
-                        'copying',
-                        'notice',
-                        'changelog',
-                        'contributing',
-                    }
-                
-                    # Walk the directory tree from the top down
-                    for dirpath, dirnames, filenames in os.walk(root_dir, topdown=True, followlinks=False):
-                        
-                        # --- 1. Prune Directories ---
-                        # We modify `dirnames` in-place (by iterating over a copy)
-                        # to prevent os.walk from recursing into them.
-                        for d in dirnames[:]: 
-                            full_path = os.path.join(dirpath, d)
-                            d_lower = d.lower()
-                            
-                            # --- Your Logic: Delete 'test' but keep 'testing' ---
-                            if 'test' in d_lower and 'testing' not in d_lower:
-                                print(f"[Prune Dir] Removing (user logic): {full_path}")
-                                shutil.rmtree(full_path, ignore_errors=True)
-                                dirnames.remove(d)
-                                continue
-                                
-                            # --- Aggressive Logic: Prune common bloat ---
-                            if d_lower in dirs_to_remove or d_lower.endswith(('.dist-info', '.egg-info')):
-                                print(f"[Prune Dir] Removing (bloat):      {full_path}")
-                                shutil.rmtree(full_path, ignore_errors=True)
-                                dirnames.remove(d)
-                                continue
-                
-                        # --- 2. Prune and Strip Files ---
-                        for f in filenames:
-                            full_path = os.path.join(dirpath, f)
-                            
-                            # Don't process symlinks
-                            if os.path.islink(full_path):
-                                continue
-                            
-                            file_ext = os.path.splitext(f)[1].lower()
-                            file_name_lower = f.lower()
-                            
-                            # --- Aggressive Logic: Prune by extension or prefix ---
-                            is_prefixed = any(file_name_lower.startswith(p) for p in files_to_remove_prefix)
-                            if file_ext in exts_to_remove or is_prefixed:
-                                print(f"  [Prune File] Removing: {full_path}")
-                                try:
-                                    os.remove(full_path)
-                                except OSError as e:
-                                    print(f"    Error removing {full_path}: {e}")
-                                continue
-                                
-                            # --- Aggressive Logic: Strip Binaries ---
-                            if file_ext == '.so':
-                                print(f"  [Strip File] Stripping: {full_path}")
-                                try:
-                                    # Use '--strip-debug' to be safe but effective
-                                    subprocess.run(
-                                        ['strip', '--strip-debug', full_path],
-                                        check=True,
-                                        capture_output=True,
-                                        stderr=subprocess.PIPE
-                                    )
-                                except Exception as e:
-                                    # Print stderr if strip fails
-                                    error_msg = e.stderr.decode() if hasattr(e, 'stderr') else str(e)
-                                    print(f"    Warning: Failed to strip {full_path}: {error_msg}")
-                
-                    # Calculate size after
-                    total_size_after = 0
-                    for dirpath, _, filenames in os.walk(root_dir, followlinks=False):
-                        for f in filenames:
-                            full_path = os.path.join(dirpath, f)
-                            if not os.path.islink(full_path):
-                                try:
-                                    total_size_after += os.path.getsize(full_path)
-                                except OSError:
-                                    pass
-                    
-                    print("--- Pruning complete ---")
-                    print(f"Size Before: {total_size_before / (1024*1024):.2f} MB")
-                    print(f"Size After:  {total_size_after / (1024*1024):.2f} MB")
-                    print(f"Total Saved: {(total_size_before - total_size_after) / (1024*1024):.2f} MB")
-                
-                # --- Main execution ---
-                if __name__ == "__main__":
-                    if len(sys.argv) > 1:
-                        layer_root = sys.argv[1]
-                        run_aggressive_pruning(layer_root)
-                    else:
-                        print("Error: No directory path provided to pruning script.", file=sys.stderr)
-                        sys.exit(1)
-                
-                END_OF_SCRIPT
-                
-                # Add back the final size check from the original YAML
-                echo "Pruning complete. Final directory size:"
-                du -sh "${{ env.BUILD_DIR }}/python"
+          python - "${{ env.BUILD_DIR }}/python" <<'END_OF_SCRIPT'
+import os
+import shutil
+import subprocess
+import sys
+
+def run_aggressive_pruning(root_dir):
+    """
+    Walks through a directory and aggressively removes files and directories
+    not needed for a Python Lambda runtime.
+    """
+
+    if not os.path.isdir(root_dir):
+        print(f"Error: Directory not found: {root_dir}", file=sys.stderr)
+        sys.exit(1) # Exit with error if path is bad
+
+    print(f"--- Starting aggressive pruning on: {root_dir} ---")
+
+    # Calculate size before, skipping symlinks
+    total_size_before = 0
+    for dirpath, _, filenames in os.walk(root_dir, followlinks=False):
+        for f in filenames:
+            full_path = os.path.join(dirpath, f)
+            if not os.path.islink(full_path):
+                try:
+                    total_size_before += os.path.getsize(full_path)
+                except OSError:
+                    pass # Ignore broken links/permission errors
+
+    # Define files/dirs to remove completely
+    dirs_to_remove = {
+        '__pycache__',
+        'docs',
+        'examples',
+        'benchmarks',
+    }
+
+    # File extensions to remove
+    exts_to_remove = {
+        '.pyc',   # Python compiled files
+        '.pyo',   # Python optimized files
+        '.pyi',   # Python type hints
+        '.o',     # Compiled object files
+        '.a',     # Static libraries
+        '.md',    # Markdown files
+        '.txt',   # Text files (like LICENSE, README)
+        '.rst',   # reStructuredText files
+    }
+
+    # File name prefixes to remove (case-insensitive)
+    files_to_remove_prefix = {
+        'readme',
+        'license',
+        'copying',
+        'notice',
+        'changelog',
+        'contributing',
+    }
+
+    # Walk the directory tree from the top down
+    for dirpath, dirnames, filenames in os.walk(root_dir, topdown=True, followlinks=False):
+
+        # --- 1. Prune Directories ---
+        # We modify `dirnames` in-place (by iterating over a copy)
+        # to prevent os.walk from recursing into them.
+        for d in dirnames[:]:
+            full_path = os.path.join(dirpath, d)
+            d_lower = d.lower()
+
+            # --- Your Logic: Delete 'test' but keep 'testing' ---
+            if 'test' in d_lower and 'testing' not in d_lower:
+                print(f"[Prune Dir] Removing (user logic): {full_path}")
+                shutil.rmtree(full_path, ignore_errors=True)
+                dirnames.remove(d)
+                continue
+
+            # --- Aggressive Logic: Prune common bloat ---
+            if d_lower in dirs_to_remove or d_lower.endswith(('.dist-info', '.egg-info')):
+                print(f"[Prune Dir] Removing (bloat):      {full_path}")
+                shutil.rmtree(full_path, ignore_errors=True)
+                dirnames.remove(d)
+                continue
+
+        # --- 2. Prune and Strip Files ---
+        for f in filenames:
+            full_path = os.path.join(dirpath, f)
+
+            # Don't process symlinks
+            if os.path.islink(full_path):
+                continue
+
+            file_ext = os.path.splitext(f)[1].lower()
+            file_name_lower = f.lower()
+
+            # --- Aggressive Logic: Prune by extension or prefix ---
+            is_prefixed = any(file_name_lower.startswith(p) for p in files_to_remove_prefix)
+            if file_ext in exts_to_remove or is_prefixed:
+                print(f"  [Prune File] Removing: {full_path}")
+                try:
+                    os.remove(full_path)
+                except OSError as e:
+                    print(f"    Error removing {full_path}: {e}")
+                continue
+
+            # --- Aggressive Logic: Strip Binaries ---
+            if file_ext == '.so':
+                print(f"  [Strip File] Stripping: {full_path}")
+                try:
+                    # Use '--strip-debug' to be safe but effective
+                    subprocess.run(
+                        ['strip', '--strip-debug', full_path],
+                        check=True,
+                        capture_output=True,
+                        stderr=subprocess.PIPE
+                    )
+                except Exception as e:
+                    # Print stderr if strip fails
+                    error_msg = e.stderr.decode() if hasattr(e, 'stderr') else str(e)
+                    print(f"    Warning: Failed to strip {full_path}: {error_msg}")
+
+    # Calculate size after
+    total_size_after = 0
+    for dirpath, _, filenames in os.walk(root_dir, followlinks=False):
+        for f in filenames:
+            full_path = os.path.join(dirpath, f)
+            if not os.path.islink(full_path):
+                try:
+                    total_size_after += os.path.getsize(full_path)
+                except OSError:
+                    pass
+
+    print("--- Pruning complete ---")
+    print(f"Size Before: {total_size_before / (1024*1024):.2f} MB")
+    print(f"Size After:  {total_size_after / (1024*1024):.2f} MB")
+    print(f"Total Saved: {(total_size_before - total_size_after) / (1024*1024):.2f} MB")
+
+# --- Main execution ---
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        layer_root = sys.argv[1]
+        run_aggressive_pruning(layer_root)
+    else:
+        print("Error: No directory path provided to pruning script.", file=sys.stderr)
+        sys.exit(1)
+
+END_OF_SCRIPT
+          echo "Pruning complete. Final directory size:"
+          du -sh "${{ env.BUILD_DIR }}/python"
 
       - name: Zip layer
         working-directory: ${{ env.BUILD_DIR }}
