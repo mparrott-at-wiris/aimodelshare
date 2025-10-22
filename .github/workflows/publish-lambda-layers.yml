@@ -56,11 +56,10 @@ jobs:
               {"id": "auth", "name": $auth_name, "requirements": $auth_req, "src_dir": "layer-src/auth"}
             ]')
           echo "layers=${layers_json}" >> "$GITHUB_OUTPUT"
-
       - id: set-regions
         run: |
           regions_json=$(echo "${{ env.REGIONS }}" | jq -R 'split(" ") | map(select(length > 0))' | jq -c .)
-          echo "regions_json=${regions_json}" >> "$GITHUB_OUTPUT"
+            echo "regions_json=${regions_json}" >> "$GITHUB_OUTPUT"
 
   publish-layers:
     needs: matrix-setup
@@ -72,7 +71,7 @@ jobs:
         region: ${{ fromJson(needs.matrix-setup.outputs.regions) }}
 
     env:
-      PYTHON_RUNTIME: ${{ github.event.inputs.python_runtime }}   # e.g. python3.12 (for Lambda)
+      PYTHON_RUNTIME: ${{ github.event.inputs.python_runtime }}   # e.g. python3.12 (used for --compatible-runtimes)
       REQUIREMENTS_FILE: ${{ matrix.layer.requirements }}
       LAYER_SRC_DIR: ${{ matrix.layer.src_dir }}
       BUILD_DIR: layer_build
@@ -81,7 +80,8 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.DATA_AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.DATA_AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ matrix.region }}
-      LAYER_NAME: ${{ matrix.layer.name }}-${{ github.event.inputs.python_runtime }}
+      # Sanitize runtime (replace '.' with '-') to satisfy layer name regex
+      LAYER_NAME: ${{ matrix.layer.name }}-${{ replace(github.event.inputs.python_runtime, '.', '-') }}
 
     steps:
       - name: Checkout
@@ -107,12 +107,12 @@ jobs:
 
       - name: Prepare build dir
         run: |
-            rm -rf "${{ env.BUILD_DIR }}" && mkdir -p "${{ env.BUILD_DIR }}/python"
-            if [[ ! -f "${{ env.REQUIREMENTS_FILE }}" ]]; then
-              echo "::error::Requirements file '${{ env.REQUIREMENTS_FILE }}' not found"
-              exit 1
-            fi
-            echo "Using requirements: ${{ env.REQUIREMENTS_FILE }}"
+          rm -rf "${{ env.BUILD_DIR }}" && mkdir -p "${{ env.BUILD_DIR }}/python"
+          if [[ ! -f "${{ env.REQUIREMENTS_FILE }}" ]]; then
+            echo "::error::Requirements file '${{ env.REQUIREMENTS_FILE }}' not found"
+            exit 1
+          fi
+          echo "Using requirements: ${{ env.REQUIREMENTS_FILE }}"
 
       - name: (Optional) Copy custom source
         run: |
@@ -122,7 +122,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # Simple install (let pip build if needed). If you need only wheels, add --only-binary=:all:
           pip install -r "${{ env.REQUIREMENTS_FILE }}" -t "${{ env.BUILD_DIR }}/python"
 
       - name: Prune files
@@ -156,14 +155,13 @@ jobs:
             --license-info "MIT" \
             --output json)
           layer_version_arn=$(echo "$publish_output" | jq -r '.LayerVersionArn')
-          layer_version=$(echo "$publish_output" | jq -r '.Version')
+            layer_version=$(echo "$publish_output" | jq -r '.Version')
           mkdir -p results
           if [ -z "$layer_version_arn" ] || [ "$layer_version_arn" = "null" ]; then
             echo "${{ env.AWS_REGION }} FAILED -" >> results/publish_results_${{ matrix.layer.id }}.txt
             exit 1
           fi
           echo "${{ env.AWS_REGION }} ${layer_version} ${layer_version_arn}" >> results/publish_results_${{ matrix.layer.id }}.txt
-
           if [[ "${{ env.MAKE_PUBLIC }}" == "true" ]]; then
             aws lambda add-layer-version-permission \
               --layer-name "${{ env.LAYER_NAME }}" \
@@ -231,7 +229,6 @@ jobs:
           echo "---" >> REPORT.md
           echo "*Report generated at $(date -u)*" >> REPORT.md
           cat REPORT.md
-        shell: bash
 
       - uses: actions/upload-artifact@v4
         with:
