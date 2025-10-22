@@ -216,8 +216,8 @@ jobs:
           pip install --no-cache-dir -r "${{ env.REQUIREMENTS_FILE }}" -t "${{ env.BUILD_DIR }}/python"
 
       - name: Aggressively prune layer files
-              run: |
-                echo "Starting aggressive pruning..."
+        run: |
+          echo "Starting aggressive pruning..."
                 
                 # This runs the Python interpreter and feeds the script
                 # below into it. The 'END_OF_SCRIPT' block is a "here-document".
