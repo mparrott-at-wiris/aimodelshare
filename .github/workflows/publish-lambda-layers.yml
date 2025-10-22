@@ -14,11 +14,11 @@ on:
       eval_requirements_file:
         description: "Path to eval layer requirements file"
         required: true
-        default: "requirements-eval.txt" # Expect this at repo root
+        default: "requirements-eval.txt"
       auth_requirements_file:
         description: "Path to auth layer requirements file"
         required: true
-        default: "requirements-auth.txt" # Expect this at repo root
+        default: "requirements-auth.txt"
       eval_layer_name:
         description: "Eval layer base name"
         required: true
@@ -27,14 +27,9 @@ on:
         description: "Auth layer base name"
         required: true
         default: "aimsauth-layer"
-  # Optional: Trigger on push
-  # push:
-  #   paths:
-  #     - "requirements-*.txt"
-  #     - ".github/workflows/publish-lambda-layers.yml"
 
 permissions:
-  contents: read # Read repo contents
+  contents: read
 
 env:
   REGIONS: "us-east-1 eu-west-1"
@@ -44,23 +39,24 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       layers: ${{ steps.set-matrix.outputs.layers }}
-      regions: ${{ steps.set-regions.outputs.regions_json }} # Output regions as JSON
+      regions: ${{ steps.set-regions.outputs.regions_json }}
     steps:
       - id: set-matrix
         run: |
-          layers_json=$(jq -n --arg eval_req "${{ github.event.inputs.eval_requirements_file }}" \
-                               --arg auth_req "${{ github.event.inputs.auth_requirements_file }}" \
-                               --arg eval_name "${{ github.event.inputs.eval_layer_name }}" \
-                               --arg auth_name "${{ github.event.inputs.auth_layer_name }}" \
-                               '[
-                                  {"id": "eval", "name": $eval_name, "requirements": $eval_req, "src_dir": "layer-src/eval"},
-                                  {"id": "auth", "name": $auth_name, "requirements": $auth_req, "src_dir": "layer-src/auth"}
-                                ]')
-          echo "layers=${layers_json}" >> $GITHUB_OUTPUT
+          layers_json=$(jq -n -c \
+            --arg eval_req "${{ github.event.inputs.eval_requirements_file }}" \
+            --arg auth_req "${{ github.event.inputs.auth_requirements_file }}" \
+            --arg eval_name "${{ github.event.inputs.eval_layer_name }}" \
+            --arg auth_name "${{ github.event.inputs.auth_layer_name }}" \
+            '[
+              {"id": "eval", "name": $eval_name, "requirements": $eval_req, "src_dir": "layer-src/eval"},
+              {"id": "auth", "name": $auth_name, "requirements": $auth_req, "src_dir": "layer-src/auth"}
+            ]')
+          echo "layers=${layers_json}" >> "$GITHUB_OUTPUT"
       - id: set-regions
         run: |
           regions_json=$(echo "${{ env.REGIONS }}" | jq -R 'split(" ") | map(select(length > 0))' | jq -c .)
-          echo "regions_json=${regions_json}" >> $GITHUB_OUTPUT
+          echo "regions_json=${regions_json}" >> "$GITHUB_OUTPUT"
 
   publish-layers:
     needs: matrix-setup
