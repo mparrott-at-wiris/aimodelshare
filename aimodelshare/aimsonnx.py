@@ -1004,6 +1004,10 @@ def _get_metadata(onnx_model):
     #assert(isinstance(onnx_model, onnx.onnx_ml_pb2.ModelProto)), \
      #"Please pass a onnx model object."
     
+    # Handle None input gracefully
+    if onnx_model is None:
+        return {}
+    
     try: 
         onnx_meta = onnx_model.metadata_props
 
@@ -1093,6 +1097,10 @@ def _get_leaderboard_data(onnx_model, eval_metrics=None):
         else:
             metadata_raw = {}
     
+    # Ensure metadata_raw is a dict (handles None case from _get_metadata)
+    if not isinstance(metadata_raw, dict):
+        metadata_raw = {}
+    
     # Ensure all expected keys exist with defaults
     expected_keys = {
         'ml_framework': None,
@@ -1116,46 +1124,55 @@ def _get_leaderboard_data(onnx_model, eval_metrics=None):
     layer_list = list(set(layer_list_keras + layer_list_pytorch))
     activation_list =  list(set(activation_list_keras + activation_list_pytorch))
 
-    # get general model info
-    metadata['ml_framework'] = metadata_raw['ml_framework']
-    metadata['transfer_learning'] = metadata_raw['transfer_learning']
-    metadata['deep_learning'] = metadata_raw['deep_learning']
-    metadata['model_type'] = metadata_raw['model_type']
+    # get general model info - use .get() for safety
+    metadata['ml_framework'] = metadata_raw.get('ml_framework')
+    metadata['transfer_learning'] = metadata_raw.get('transfer_learning')
+    metadata['deep_learning'] = metadata_raw.get('deep_learning')
+    metadata['model_type'] = metadata_raw.get('model_type')
 
 
     # get neural network metrics
-    if metadata_raw['ml_framework'] in ['keras', 'pytorch'] or metadata_raw['model_type'] in ['MLPClassifier', 'MLPRegressor']:
-        metadata['depth'] = metadata_raw['model_architecture']['layers_number']
-        metadata['num_params'] = sum(metadata_raw['model_architecture']['layers_n_params'])
+    # Add isinstance check for model_architecture to prevent TypeError
+    if (metadata_raw.get('ml_framework') in ['keras', 'pytorch'] or 
+        metadata_raw.get('model_type') in ['MLPClassifier', 'MLPRegressor']) and \
+        isinstance(metadata_raw.get('model_architecture'), dict):
+        
+        metadata['depth'] = metadata_raw['model_architecture'].get('layers_number', 0)
+        metadata['num_params'] = sum(metadata_raw['model_architecture'].get('layers_n_params', []))
 
         for i in layer_list:
-            if i in metadata_raw['model_architecture']['layers_summary']:
-                metadata[i.lower()+'_layers'] = metadata_raw['model_architecture']['layers_summary'][i]
+            layers_summary = metadata_raw['model_architecture'].get('layers_summary', {})
+            if i in layers_summary:
+                metadata[i.lower()+'_layers'] = layers_summary[i]
             elif i.lower()+'_layers' not in metadata.keys():
                 metadata[i.lower()+'_layers'] = 0
 
         for i in activation_list:
-            if i in metadata_raw['model_architecture']['activations_summary']:
+            activations_summary = metadata_raw['model_architecture'].get('activations_summary', {})
+            if i in activations_summary:
                 if i.lower()+'_act' in metadata:
-                    metadata[i.lower()+'_act'] += metadata_raw['model_architecture']['activations_summary'][i]
+                    metadata[i.lower()+'_act'] += activations_summary[i]
                 else:    
-                    metadata[i.lower()+'_act'] = metadata_raw['model_architecture']['activations_summary'][i]
+                    metadata[i.lower()+'_act'] = activations_summary[i]
             else:
                 if i.lower()+'_act' not in metadata:
                     metadata[i.lower()+'_act'] = 0
                 
-        metadata['loss'] = metadata_raw['model_architecture']['loss']
-        metadata['optimizer'] = metadata_raw['model_architecture']["optimizer"]
-        metadata['model_config'] = metadata_raw['model_config']
-        metadata['epochs'] = metadata_raw['epochs']
-        metadata['memory_size'] = metadata_raw['memory_size']
+        metadata['loss'] = metadata_raw['model_architecture'].get('loss')
+        metadata['optimizer'] = metadata_raw['model_architecture'].get('optimizer')
+        metadata['model_config'] = metadata_raw.get('model_config')
+        metadata['epochs'] = metadata_raw.get('epochs')
+        metadata['memory_size'] = metadata_raw.get('memory_size')
 
     # get sklearn & pyspark model metrics
-    elif metadata_raw['ml_framework'] in ['sklearn', 'xgboost', 'pyspark']:
+    elif metadata_raw.get('ml_framework') in ['sklearn', 'xgboost', 'pyspark']:
         metadata['depth'] = 0
 
         try:
-            metadata['num_params'] = sum(metadata_raw['model_architecture']['layers_n_params'])
+            if isinstance(metadata_raw.get('model_architecture'), dict):
+                metadata['num_params'] = sum(metadata_raw['model_architecture'].get('layers_n_params', []))
+            else:
+                metadata['num_params'] = 0
         except:
             metadata['num_params'] = 0
 
@@ -1168,12 +1185,15 @@ def _get_leaderboard_data(onnx_model, eval_metrics=None):
         metadata['loss'] = None
 
         try:
-            metadata['optimizer'] = metadata_raw['model_architecture']['optimizer']
+            if isinstance(metadata_raw.get('model_architecture'), dict):
+                metadata['optimizer'] = metadata_raw['model_architecture'].get('optimizer')
+            else:
+                metadata['optimizer'] = None
         except:
             metadata['optimizer'] = None
 
         try:
-            metadata['model_config'] = metadata_raw['model_config']
+            metadata['model_config'] = metadata_raw.get('model_config')
         except:
             metadata['model_config'] = None
     
