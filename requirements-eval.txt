@@ -3,3 +3,4 @@ numpy>=1.22.0  # Explicitly added for Python 3.10 compatibility
 onnx
 requests
 PyJWT<2.0      # Pinned to avoid 'jwt.decode' error
+scikit-learn
