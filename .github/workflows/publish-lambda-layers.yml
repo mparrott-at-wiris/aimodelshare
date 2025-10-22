@@ -40,6 +40,7 @@ jobs:
     outputs:
       layers: ${{ steps.set-matrix.outputs.layers }}
       regions: ${{ steps.set-regions.outputs.regions_json }}
+      sanitized_runtime: ${{ steps.sanitize-runtime.outputs.sanitized_runtime }}
     steps:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
@@ -56,10 +57,16 @@ jobs:
               {"id": "auth", "name": $auth_name, "requirements": $auth_req, "src_dir": "layer-src/auth"}
             ]')
           echo "layers=${layers_json}" >> "$GITHUB_OUTPUT"
+
       - id: set-regions
         run: |
           regions_json=$(echo "${{ env.REGIONS }}" | jq -R 'split(" ") | map(select(length > 0))' | jq -c .)
           echo "regions_json=${regions_json}" >> "$GITHUB_OUTPUT"
+
+      - id: sanitize-runtime
+        run: |
+          sanitized=$(echo "${{ github.event.inputs.python_runtime }}" | tr '.' '-')
+          echo "sanitized_runtime=$sanitized" >> "$GITHUB_OUTPUT"
 
   publish-layers:
     needs: matrix-setup
@@ -71,7 +78,8 @@ jobs:
         region: ${{ fromJson(needs.matrix-setup.outputs.regions) }}
 
     env:
-      PYTHON_RUNTIME: ${{ github.event.inputs.python_runtime }}
+      PYTHON_RUNTIME: ${{ github.event.inputs.python_runtime }}        # e.g. python3.12 (for --compatible-runtimes)
+      SANITIZED_RUNTIME: ${{ needs.matrix-setup.outputs.sanitized_runtime }}
       REQUIREMENTS_FILE: ${{ matrix.layer.requirements }}
       LAYER_SRC_DIR: ${{ matrix.layer.src_dir }}
       BUILD_DIR: layer_build
@@ -80,7 +88,7 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.DATA_AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.DATA_AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ matrix.region }}
-      LAYER_NAME: ${{ matrix.layer.name }}-${{ replace(github.event.inputs.python_runtime, '.', '-') }}
+      LAYER_NAME: ${{ matrix.layer.name }}-${{ env.SANITIZED_RUNTIME }}
 
     steps:
       - name: Checkout
@@ -163,7 +171,7 @@ jobs:
             echo "${{ env.AWS_REGION }} FAILED -" >> results/publish_results_${{ matrix.layer.id }}.txt
             exit 1
           fi
-          echo "${{ env.AWS_REGION }} ${layer_version} ${layer_version_arn}" >> results/publish_results_${{ matrix.layer.id }}.txt
+            echo "${{ env.AWS_REGION }} ${layer_version} ${layer_version_arn}" >> results/publish_results_${{ matrix.layer.id }}.txt
           if [[ "${{ env.MAKE_PUBLIC }}" == "true" ]]; then
             aws lambda add-layer-version-permission \
               --layer-name "${{ env.LAYER_NAME }}" \
@@ -236,5 +244,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: layer-publish-report-${{ github.run_id }}
-          path: REPORT.md
           path: REPORT.md
