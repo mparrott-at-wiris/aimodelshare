@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       python_runtime:
-        description: "Target Python runtime for layer compatibility (e.g., python3.11 - needs earlier ubuntu, python3.12)"
+        description: "Target Python runtime for layer compatibility (e.g., python3.11 or python3.12)"
         required: true
         default: "python3.12"
       make_public:
@@ -41,7 +41,7 @@ jobs:
       layers: ${{ steps.set-matrix.outputs.layers }}
       regions: ${{ steps.set-regions.outputs.regions_json }}
     steps:
-      - name: Install jq (required for matrix construction)
+      - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
       - id: set-matrix
@@ -56,6 +56,7 @@ jobs:
               {"id": "auth", "name": $auth_name, "requirements": $auth_req, "src_dir": "layer-src/auth"}
             ]')
           echo "layers=${layers_json}" >> "$GITHUB_OUTPUT"
+
       - id: set-regions
         run: |
           regions_json=$(echo "${{ env.REGIONS }}" | jq -R 'split(" ") | map(select(length > 0))' | jq -c .)
@@ -71,96 +72,81 @@ jobs:
         region: ${{ fromJson(needs.matrix-setup.outputs.regions) }}
 
     env:
-      LAYER_NAME: ${{ matrix.layer.name }}-${{ github.event.inputs.python_runtime }}
+      PYTHON_RUNTIME: ${{ github.event.inputs.python_runtime }}   # e.g. python3.12 (for Lambda)
       REQUIREMENTS_FILE: ${{ matrix.layer.requirements }}
       LAYER_SRC_DIR: ${{ matrix.layer.src_dir }}
-      BUILD_DIR: "layer_build"
-      ZIP_FILE_NAME: "${{ matrix.layer.id }}_layer.zip"
-      PYTHON_RUNTIME: ${{ github.event.inputs.python_runtime }}
+      BUILD_DIR: layer_build
+      ZIP_FILE_NAME: ${{ matrix.layer.id }}_layer.zip
       MAKE_PUBLIC: ${{ github.event.inputs.make_public }}
       AWS_ACCESS_KEY_ID: ${{ secrets.DATA_AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.DATA_AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ matrix.region }}
+      LAYER_NAME: ${{ matrix.layer.name }}-${{ github.event.inputs.python_runtime }}
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python for build
+      - name: Derive numeric Python version
+        id: derive
+        run: |
+          version=$(echo "${{ env.PYTHON_RUNTIME }}" | sed -n 's/^python\([0-9]\+\.[0-9]\+\).*$/\1/p')
+          if [ -z "$version" ]; then
+            echo "::error::Failed to derive Python version from ${{ env.PYTHON_RUNTIME }}"
+            exit 1
+          fi
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ env.PYTHON_RUNTIME }}
+          python-version: ${{ steps.derive.outputs.version }}
 
-      - name: Install build tools
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Prepare build dir
         run: |
-          python -m pip install --upgrade pip
-          pip install wheel
+            rm -rf "${{ env.BUILD_DIR }}" && mkdir -p "${{ env.BUILD_DIR }}/python"
+            if [[ ! -f "${{ env.REQUIREMENTS_FILE }}" ]]; then
+              echo "::error::Requirements file '${{ env.REQUIREMENTS_FILE }}' not found"
+              exit 1
+            fi
+            echo "Using requirements: ${{ env.REQUIREMENTS_FILE }}"
 
-      - name: Prepare build directory
-        run: |
-          rm -rf ${{ env.BUILD_DIR }} && mkdir -p ${{ env.BUILD_DIR }}/python
-          echo "Using requirements file: ${{ env.REQUIREMENTS_FILE }}"
-          if [[ ! -f "${{ env.REQUIREMENTS_FILE }}" ]]; then
-            echo "::error::Requirements file '${{ env.REQUIREMENTS_FILE }}' not found!"
-            exit 1
-          fi
-
-      - name: (Optional) Copy custom source code
+      - name: (Optional) Copy custom source
         run: |
           if [ -d "${{ env.LAYER_SRC_DIR }}" ]; then
-            echo "Copying source from ${{ env.LAYER_SRC_DIR }}"
             cp -R "${{ env.LAYER_SRC_DIR }}/." "${{ env.BUILD_DIR }}/python/"
-          else
-            echo "No source directory found at ${{ env.LAYER_SRC_DIR }}, skipping copy."
           fi
 
-      - name: Install dependencies into build directory
+      - name: Install dependencies
         run: |
-          # Extract major.minor version (e.g., 3.10) from python_runtime (e.g., python3.10)
-          PYTHON_VERSION=$(echo "${{ env.PYTHON_RUNTIME }}" | sed -n 's/^python\([0-9]\+\.[0-9]\+\).*$/\1/p')
-          if [ -z "$PYTHON_VERSION" ]; then
-            echo "::error::Could not extract version from PYTHON_RUNTIME: ${{ env.PYTHON_RUNTIME }}"
-            exit 1
-          fi
-          echo "Using extracted Python version: $PYTHON_VERSION for pip install"
+          # Simple install (let pip build if needed). If you need only wheels, add --only-binary=:all:
+          pip install -r "${{ env.REQUIREMENTS_FILE }}" -t "${{ env.BUILD_DIR }}/python"
 
-          # Using manylinux2014 for broader compatibility on x86_64 Lambda
-          python -m pip install \
-            --platform manylinux2014_x86_64 \
-            --python-version "$PYTHON_VERSION" \
-            --only-binary=:all: \
-            -r "${{ env.REQUIREMENTS_FILE }}" \
-            -t "${{ env.BUILD_DIR }}/python/"
-
-      - name: Prune unnecessary files
+      - name: Prune files
         working-directory: ${{ env.BUILD_DIR }}/python
         run: |
-          echo "Pruning files..."
-          find . -type d -name "tests" -exec rm -rf {} +
-          find . -type d -name "__pycache__" -exec rm -rf {} +
+          find . -type d -name tests -exec rm -rf {} +
+          find . -type d -name __pycache__ -exec rm -rf {} +
           find . -name "*.pyc" -delete
-          echo "Pruning complete."
 
-      - name: Create layer zip file
+      - name: Zip layer
         working-directory: ${{ env.BUILD_DIR }}
-        run: |
-          echo "Creating zip file: ../${{ env.ZIP_FILE_NAME }}"
-          zip -r9 ../${{ env.ZIP_FILE_NAME }} python
-          echo "Zip file created."
+        run: zip -r9 "../${{ env.ZIP_FILE_NAME }}" python
 
-      - name: Configure AWS Credentials for CLI
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Publish Lambda Layer to ${{ matrix.region }}
+      - name: Publish layer
         id: publish
         run: |
-          echo "Publishing layer: ${{ env.LAYER_NAME }} from zip: ${{ env.ZIP_FILE_NAME }} to region: ${{ env.AWS_REGION }}"
           DESC="${{ env.LAYER_NAME }} build $(date +%Y%m%d-%H%M%S) (${{ env.PYTHON_RUNTIME }})"
-
           publish_output=$(aws lambda publish-layer-version \
             --layer-name "${{ env.LAYER_NAME }}" \
             --description "$DESC" \
@@ -169,60 +155,44 @@ jobs:
             --region "${{ env.AWS_REGION }}" \
             --license-info "MIT" \
             --output json)
-
           layer_version_arn=$(echo "$publish_output" | jq -r '.LayerVersionArn')
           layer_version=$(echo "$publish_output" | jq -r '.Version')
-
           mkdir -p results
-
-          if [ -z "$layer_version_arn" ] || [ "$layer_version_arn" == "null" ]; then
-            echo "::error::Failed to publish layer or parse ARN from output: $publish_output"
+          if [ -z "$layer_version_arn" ] || [ "$layer_version_arn" = "null" ]; then
             echo "${{ env.AWS_REGION }} FAILED -" >> results/publish_results_${{ matrix.layer.id }}.txt
             exit 1
           fi
-
-          echo "Published ARN: $layer_version_arn"
-          echo "Version: $layer_version"
-
           echo "${{ env.AWS_REGION }} ${layer_version} ${layer_version_arn}" >> results/publish_results_${{ matrix.layer.id }}.txt
 
           if [[ "${{ env.MAKE_PUBLIC }}" == "true" ]]; then
-            echo "Making layer version public..."
-            statement_id="public-access-${layer_version}-${{ env.AWS_REGION }}"
             aws lambda add-layer-version-permission \
               --layer-name "${{ env.LAYER_NAME }}" \
               --version-number "${layer_version}" \
-              --statement-id "$statement_id" \
+              --statement-id "public-access-${layer_version}-${{ env.AWS_REGION }}" \
               --action lambda:GetLayerVersion \
               --principal '*' \
-              --region "${{ env.AWS_REGION }}" \
-              && echo "Permission added." || echo "::warning::Failed to add public permission (may already exist or insufficient IAM permissions)."
-          else
-            echo "Layer version will remain private."
+              --region "${{ env.AWS_REGION }}" || echo "::warning::Failed to add public permission."
           fi
 
-      - name: Upload publish result for aggregation
+      - name: Upload publish result
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: "publish-results-${{ matrix.layer.id }}-${{ matrix.region }}"
+          name: publish-results-${{ matrix.layer.id }}-${{ matrix.region }}
           path: results/publish_results_${{ matrix.layer.id }}.txt
           retention-days: 1
 
   aggregate-report:
-    name: Aggregate Layer Publish Report
     if: always()
     needs: publish-layers
     runs-on: ubuntu-latest
     steps:
-      - name: Download all result artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           pattern: publish-results-*
           path: results
 
-      - name: Combine results into a report
-        id: report
+      - id: report
         run: |
           echo "# Lambda Layer Publish Report" > REPORT.md
           echo "" >> REPORT.md
@@ -230,7 +200,6 @@ jobs:
           echo "**Python Runtime:** ${{ github.event.inputs.python_runtime }}" >> REPORT.md
           echo "**Made Public:** ${{ github.event.inputs.make_public }}" >> REPORT.md
           echo "" >> REPORT.md
-
           for layer_id in eval auth; do
             if [[ "$layer_id" == "eval" ]]; then layer_name="${{ github.event.inputs.eval_layer_name }}"; fi
             if [[ "$layer_id" == "auth" ]]; then layer_name="${{ github.event.inputs.auth_layer_name }}"; fi
@@ -238,10 +207,7 @@ jobs:
             echo "" >> REPORT.md
             echo "| Region | Status/Version | ARN |" >> REPORT.md
             echo "|--------|----------------|-----|" >> REPORT.md
-
             found_layer_results=false
-
-            # Preserve scope using process substitution (no subshell for while)
             while IFS= read -r -d $'\0' file; do
               if [[ -f "$file" && -s "$file" ]]; then
                 found_layer_results=true
@@ -257,21 +223,17 @@ jobs:
                 done < "$file"
               fi
             done < <(find results -name "publish_results_${layer_id}.txt" -print0)
-
             if [[ "$found_layer_results" == "false" ]]; then
               echo "| *All Regions* | *No results found* | - |" >> REPORT.md
             fi
             echo "" >> REPORT.md
           done
-
           echo "---" >> REPORT.md
           echo "*Report generated at $(date -u)*" >> REPORT.md
-          echo "--- REPORT START ---"
           cat REPORT.md
-          echo "--- REPORT END ---"
+        shell: bash
 
-      - name: Upload final report artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: layer-publish-report-${{ github.run_id }}
           path: REPORT.md
