@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       python_runtime:
-        description: "Target Python runtime for layer compatibility (e.g., python3.10, python3.12)"
+        description: "Target Python runtime for layer compatibility (e.g., python3.11, python3.12)"
         required: true
-        default: "python3.10"
+        default: "python3.11"
       make_public:
         description: "Grant public GetLayerVersion permission (true/false)"
         required: true
@@ -79,8 +79,8 @@ jobs:
       ZIP_FILE_NAME: "${{ matrix.layer.id }}_layer.zip"
       PYTHON_RUNTIME: ${{ github.event.inputs.python_runtime }}
       MAKE_PUBLIC: ${{ github.event.inputs.make_public }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.DATA_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.DATA_AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ matrix.region }}
 
     steps:
