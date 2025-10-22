@@ -140,7 +140,7 @@ def _upload_preprocessor(preprocessor, client, bucket, model_id, model_version):
 
 
 def _update_leaderboard(
-    modelpath, eval_metrics, client, bucket, model_id, model_version, onnx_model=None
+    modelpath, eval_metrics, client, bucket, model_id, model_version, onnx_model=None, custom_metadata=None
 ):
     # Loading the model and its metadata {{{
     if onnx_model is not None:
@@ -154,13 +154,9 @@ def _update_leaderboard(
         metadata = _get_leaderboard_data(model, eval_metrics)
 
     else: 
-        metadata = eval_metrics
-        # get general model info
-        metadata['ml_framework'] = 'unknown'
-        metadata['transfer_learning'] = None
-        metadata['deep_learning'] = None
-        metadata['model_type'] = 'unknown'
-        metadata['model_config'] = None
+        # No ONNX model available - use _get_leaderboard_data with None
+        # This will safely inject defaults
+        metadata = _get_leaderboard_data(None, eval_metrics)
 
     if custom_metadata is not None: 
 
@@ -253,15 +249,9 @@ def _update_leaderboard_public(
         metadata = _get_leaderboard_data(onnx_model, eval_metrics)
 
     else: 
-
-        metadata = eval_metrics
-
-        # get general model info
-        metadata['ml_framework'] = 'unknown'
-        metadata['transfer_learning'] = None
-        metadata['deep_learning'] = None
-        metadata['model_type'] = 'unknown'
-        metadata['model_config'] = None
+        # No ONNX model available - use _get_leaderboard_data with None
+        # This will safely inject defaults
+        metadata = _get_leaderboard_data(None, eval_metrics)
 
 
     if custom_metadata is not None: 

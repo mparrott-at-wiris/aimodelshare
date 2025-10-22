@@ -1004,8 +1004,10 @@ def _get_metadata(onnx_model):
     #assert(isinstance(onnx_model, onnx.onnx_ml_pb2.ModelProto)), \
      #"Please pass a onnx model object."
     
-    # Handle None input gracefully
+    # Handle None input gracefully - always return a dict
     if onnx_model is None:
+        if os.environ.get("AIMODELSHARE_DEBUG_METADATA"):
+            print("[DEBUG] _get_metadata: onnx_model is None, returning empty dict")
         return {}
     
     try: 
@@ -1020,16 +1022,22 @@ def _get_metadata(onnx_model):
         
         # Handle case where metadata is stored as a list instead of dict
         if isinstance(onnx_meta_dict, list):
-            print("Warning: ONNX metadata 'model_metadata' is a list. Extracting first element as dict.")
+            if os.environ.get("AIMODELSHARE_DEBUG_METADATA"):
+                print(f"[DEBUG] _get_metadata: metadata is a list of length {len(onnx_meta_dict)}")
             if len(onnx_meta_dict) > 0 and isinstance(onnx_meta_dict[0], dict):
                 onnx_meta_dict = onnx_meta_dict[0]
+                if os.environ.get("AIMODELSHARE_DEBUG_METADATA"):
+                    print("[DEBUG] _get_metadata: Extracted first dict from list")
             else:
-                # Convert list to dict with enumerated keys as fallback
-                onnx_meta_dict = {str(i): v for i, v in enumerate(onnx_meta_dict)}
+                # Return empty dict if list doesn't contain valid dicts
+                if os.environ.get("AIMODELSHARE_DEBUG_METADATA"):
+                    print("[DEBUG] _get_metadata: List does not contain valid dicts, returning empty dict")
+                return {}
         
         # Ensure we have a dict at this point
         if not isinstance(onnx_meta_dict, dict):
-            print(f"Warning: Unexpected metadata type {type(onnx_meta_dict)}. Returning empty dict.")
+            if os.environ.get("AIMODELSHARE_DEBUG_METADATA"):
+                print(f"[DEBUG] _get_metadata: Unexpected metadata type {type(onnx_meta_dict)}, returning empty dict")
             return {}
         
         #if onnx_meta_dict['model_config'] != None and \
@@ -1065,7 +1073,8 @@ def _get_metadata(onnx_model):
 
     except Exception as e:
     
-        print(e)
+        if os.environ.get("AIMODELSHARE_DEBUG_METADATA"):
+            print(f"[DEBUG] _get_metadata: Exception during metadata extraction: {e}")
         
         try:
             onnx_meta_dict = ast.literal_eval(onnx_meta_dict)
@@ -1076,46 +1085,56 @@ def _get_metadata(onnx_model):
                 onnx_meta_dict = {}
         except:
             onnx_meta_dict = {}
+    
+    # Final safety check: ensure we always return a dict
+    if not isinstance(onnx_meta_dict, dict):
+        if os.environ.get("AIMODELSHARE_DEBUG_METADATA"):
+            print(f"[DEBUG] _get_metadata: Final check failed, returning empty dict instead of {type(onnx_meta_dict)}")
+        return {}
         
     return onnx_meta_dict
 
 
 
 def _get_leaderboard_data(onnx_model, eval_metrics=None):
+    '''Extract leaderboard data from ONNX model or return defaults.
     
+    This function performs single-pass normalization and safely handles:
+    - None onnx_model (returns defaults)
+    - Invalid metadata structures
+    - Missing keys in metadata
+    '''
+    
+    # Start with eval_metrics if provided, otherwise empty dict
     if eval_metrics is not None:
-        metadata = eval_metrics
+        metadata = dict(eval_metrics) if isinstance(eval_metrics, dict) else {}
     else:
-        metadata = dict()
+        metadata = {}
+    
+    # Handle None onnx_model gracefully
+    if onnx_model is None:
+        if os.environ.get("AIMODELSHARE_DEBUG_METADATA"):
+            print("[DEBUG] _get_leaderboard_data: onnx_model is None, using default metadata")
+        # Return metadata with safe defaults injected
+        metadata['ml_framework'] = metadata.get('ml_framework', None)
+        metadata['transfer_learning'] = metadata.get('transfer_learning', None)
+        metadata['deep_learning'] = metadata.get('deep_learning', None)
+        metadata['model_type'] = metadata.get('model_type', None)
+        metadata['depth'] = metadata.get('depth', 0)
+        metadata['num_params'] = metadata.get('num_params', 0)
+        return metadata
         
+    # Get metadata from ONNX - _get_metadata now always returns a dict
     metadata_raw = _get_metadata(onnx_model)
     
-    # Defensive normalization: ensure metadata_raw is a dict
-    if isinstance(metadata_raw, list):
-        if len(metadata_raw) > 0 and isinstance(metadata_raw[0], dict):
-            metadata_raw = metadata_raw[0]
-        else:
-            metadata_raw = {}
+    if os.environ.get("AIMODELSHARE_DEBUG_METADATA"):
+        print(f"[DEBUG] _get_leaderboard_data: metadata_raw type={type(metadata_raw)}, keys={list(metadata_raw.keys()) if isinstance(metadata_raw, dict) else 'N/A'}")
     
-    # Ensure metadata_raw is a dict (handles None case from _get_metadata)
+    # Single-pass normalization: ensure metadata_raw is a dict
     if not isinstance(metadata_raw, dict):
+        if os.environ.get("AIMODELSHARE_DEBUG_METADATA"):
+            print(f"[DEBUG] _get_leaderboard_data: metadata_raw is not a dict (type={type(metadata_raw)}), using empty dict")
         metadata_raw = {}
-    
-    # Ensure all expected keys exist with defaults
-    expected_keys = {
-        'ml_framework': None,
-        'transfer_learning': None,
-        'deep_learning': None,
-        'model_type': None,
-        'model_architecture': None,
-        'model_config': None,
-        'epochs': None,
-        'memory_size': None
-    }
-    
-    for key, default_value in expected_keys.items():
-        if key not in metadata_raw:
-            metadata_raw[key] = default_value
 
     # get list of current layer types 
     layer_list_keras, activation_list_keras = _get_layer_names()
@@ -1196,6 +1215,17 @@ def _get_leaderboard_data(onnx_model, eval_metrics=None):
             metadata['model_config'] = metadata_raw.get('model_config')
         except:
             metadata['model_config'] = None
+    
+    # Default handling for unknown frameworks
+    else:
+        if os.environ.get("AIMODELSHARE_DEBUG_METADATA"):
+            print(f"[DEBUG] _get_leaderboard_data: Unknown framework '{metadata_raw.get('ml_framework')}', using defaults")
+        metadata.setdefault('depth', 0)
+        metadata.setdefault('num_params', 0)
+        for i in layer_list:
+            metadata.setdefault(i.lower()+'_layers', 0)
+        for i in activation_list:
+            metadata.setdefault(i.lower()+'_act', 0)
     
     return metadata
     
