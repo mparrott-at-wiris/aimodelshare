@@ -30,7 +30,7 @@ on:
       s3_bucket:
         description: "S3 bucket name for layer storage (leave empty to disable S3 upload)"
         required: false
-        default: ""
+        default: "aims-lambda-layers-eval-auth"
       s3_prefix:
         description: "S3 key prefix for layer objects (optional)"
         required: false
@@ -38,11 +38,11 @@ on:
       auto_create_bucket:
         description: "Automatically create/import S3 bucket via Terraform (true/false)"
         required: false
-        default: "false"
+        default: "true"
       size_reduction_level:
         description: "Size reduction level: 'basic' (default), 'aggressive' (prune metadata, strip binaries, remove type hints)"
         required: false
-        default: "basic"
+        default: "aggressive"
 
 permissions:
   contents: read
