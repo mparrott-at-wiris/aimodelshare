@@ -1014,15 +1014,48 @@ def _get_metadata(onnx_model):
 
         onnx_meta_dict = ast.literal_eval(onnx_meta_dict['model_metadata'])
         
+        # Handle case where metadata is stored as a list instead of dict
+        if isinstance(onnx_meta_dict, list):
+            print("Warning: ONNX metadata 'model_metadata' is a list. Extracting first element as dict.")
+            if len(onnx_meta_dict) > 0 and isinstance(onnx_meta_dict[0], dict):
+                onnx_meta_dict = onnx_meta_dict[0]
+            else:
+                # Convert list to dict with enumerated keys as fallback
+                onnx_meta_dict = {str(i): v for i, v in enumerate(onnx_meta_dict)}
+        
+        # Ensure we have a dict at this point
+        if not isinstance(onnx_meta_dict, dict):
+            print(f"Warning: Unexpected metadata type {type(onnx_meta_dict)}. Returning empty dict.")
+            return {}
+        
         #if onnx_meta_dict['model_config'] != None and \
         #onnx_meta_dict['ml_framework'] != 'pytorch':
         #    onnx_meta_dict['model_config'] = ast.literal_eval(onnx_meta_dict['model_config'])
         
-        if onnx_meta_dict['model_architecture'] != None:
-            onnx_meta_dict['model_architecture'] = ast.literal_eval(onnx_meta_dict['model_architecture'])
+        # Attempt to parse nested fields only if they are string representations of dicts
+        if 'model_architecture' in onnx_meta_dict and onnx_meta_dict['model_architecture'] != None:
+            try:
+                if isinstance(onnx_meta_dict['model_architecture'], str):
+                    onnx_meta_dict['model_architecture'] = ast.literal_eval(onnx_meta_dict['model_architecture'])
+            except (ValueError, SyntaxError):
+                # Keep as-is if parsing fails
+                pass
             
-        if onnx_meta_dict['metadata_onnx'] != None:
-            onnx_meta_dict['metadata_onnx'] = ast.literal_eval(onnx_meta_dict['metadata_onnx'])
+        if 'model_config' in onnx_meta_dict and onnx_meta_dict['model_config'] != None:
+            try:
+                if isinstance(onnx_meta_dict['model_config'], str):
+                    onnx_meta_dict['model_config'] = ast.literal_eval(onnx_meta_dict['model_config'])
+            except (ValueError, SyntaxError):
+                # Keep as-is if parsing fails
+                pass
+            
+        if 'metadata_onnx' in onnx_meta_dict and onnx_meta_dict['metadata_onnx'] != None:
+            try:
+                if isinstance(onnx_meta_dict['metadata_onnx'], str):
+                    onnx_meta_dict['metadata_onnx'] = ast.literal_eval(onnx_meta_dict['metadata_onnx'])
+            except (ValueError, SyntaxError):
+                # Keep as-is if parsing fails
+                pass
         
         # onnx_meta_dict['model_image'] = onnx_to_image(onnx_model)
 
@@ -1030,7 +1063,15 @@ def _get_metadata(onnx_model):
     
         print(e)
         
-        onnx_meta_dict = ast.literal_eval(onnx_meta_dict)
+        try:
+            onnx_meta_dict = ast.literal_eval(onnx_meta_dict)
+            # Handle list case in exception path as well
+            if isinstance(onnx_meta_dict, list) and len(onnx_meta_dict) > 0 and isinstance(onnx_meta_dict[0], dict):
+                onnx_meta_dict = onnx_meta_dict[0]
+            elif not isinstance(onnx_meta_dict, dict):
+                onnx_meta_dict = {}
+        except:
+            onnx_meta_dict = {}
         
     return onnx_meta_dict
 
@@ -1044,6 +1085,29 @@ def _get_leaderboard_data(onnx_model, eval_metrics=None):
         metadata = dict()
         
     metadata_raw = _get_metadata(onnx_model)
+    
+    # Defensive normalization: ensure metadata_raw is a dict
+    if isinstance(metadata_raw, list):
+        if len(metadata_raw) > 0 and isinstance(metadata_raw[0], dict):
+            metadata_raw = metadata_raw[0]
+        else:
+            metadata_raw = {}
+    
+    # Ensure all expected keys exist with defaults
+    expected_keys = {
+        'ml_framework': None,
+        'transfer_learning': None,
+        'deep_learning': None,
+        'model_type': None,
+        'model_architecture': None,
+        'model_config': None,
+        'epochs': None,
+        'memory_size': None
+    }
+    
+    for key, default_value in expected_keys.items():
+        if key not in metadata_raw:
+            metadata_raw[key] = default_value
 
     # get list of current layer types 
     layer_list_keras, activation_list_keras = _get_layer_names()
