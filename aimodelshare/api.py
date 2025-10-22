@@ -57,7 +57,7 @@ class create_prediction_api_class():
         self.pyspark_support = pyspark_support
         self.region = os.environ.get("AWS_REGION")
         self.bucket_name = os.environ.get("BUCKET_NAME")
-        self.python_runtime = 'python3.10'
+        self.python_runtime = os.environ.get("PYTHON_RUNTIME", "python3.12")
         #####
 
         self.model_type = self.model_type.lower()
@@ -87,23 +87,24 @@ class create_prediction_api_class():
             "video": 90,
             "custom": 90
         }
-
+        # UPDATED: New eval layer ARNs (python3.12)
         self.eval_layer_map = {
-            "us-east-1": "arn:aws:lambda:us-east-1:517169013426:layer:eval_layer_test:6",
+            "us-east-1": "arn:aws:lambda:us-east-1:585666012274:layer:eval-layer-python3-12:1",
             "us-east-2": "arn:aws:lambda:us-east-2:517169013426:layer:eval_layer_test:5",
             "us-west-1": "arn:aws:lambda:us-west-1:517169013426:layer:eval_layer_test:1",
             "us-west-2": "arn:aws:lambda:us-west-2:517169013426:layer:eval_layer_test:1",
-            "eu-west-1": "arn:aws:lambda:eu-west-1:517169013426:layer:eval_layer_test:1",
+            "eu-west-1": "arn:aws:lambda:eu-west-1:585666012274:layer:eval-layer-python3-12:1",
             "eu-west-2": "arn:aws:lambda:eu-west-2:517169013426:layer:eval_layer_test:1",
             "eu-west-3": "arn:aws:lambda:eu-west-3:517169013426:layer:eval_layer_test:1"
         }
 
+        # UPDATED: New auth layer ARNs (python3.12)
         self.auth_layer_map = {
-            "us-east-1": "arn:aws:lambda:us-east-1:517169013426:layer:aimsauth_layer:2",
+            "us-east-1": "arn:aws:lambda:us-east-1:585666012274:layer:aimsauth-layer-python3-12:2",
             "us-east-2": "arn:aws:lambda:us-east-2:517169013426:layer:aimsauth_layer:9",
             "us-west-1": "arn:aws:lambda:us-west-1:517169013426:layer:aimsauth_layer:1",
             "us-west-2": "arn:aws:lambda:us-west-2:517169013426:layer:aimsauth_layer:1",
-            "eu-west-1": "arn:aws:lambda:eu-west-1:517169013426:layer:aimsauth_layer:1",
+            "eu-west-1": "arn:aws:lambda:eu-west-1:585666012274:layer:aimsauth-layer-python3-12:2",
             "eu-west-2": "arn:aws:lambda:eu-west-2:517169013426:layer:aimsauth_layer:1",
             "eu-west-3": "arn:aws:lambda:eu-west-3:517169013426:layer:aimsauth_layer:1"
         }
