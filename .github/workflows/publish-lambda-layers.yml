@@ -59,7 +59,7 @@ jobs:
       - id: set-regions
         run: |
           regions_json=$(echo "${{ env.REGIONS }}" | jq -R 'split(" ") | map(select(length > 0))' | jq -c .)
-            echo "regions_json=${regions_json}" >> "$GITHUB_OUTPUT"
+          echo "regions_json=${regions_json}" >> "$GITHUB_OUTPUT"
 
   publish-layers:
     needs: matrix-setup
@@ -71,7 +71,7 @@ jobs:
         region: ${{ fromJson(needs.matrix-setup.outputs.regions) }}
 
     env:
-      PYTHON_RUNTIME: ${{ github.event.inputs.python_runtime }}   # e.g. python3.12 (used for --compatible-runtimes)
+      PYTHON_RUNTIME: ${{ github.event.inputs.python_runtime }}
       REQUIREMENTS_FILE: ${{ matrix.layer.requirements }}
       LAYER_SRC_DIR: ${{ matrix.layer.src_dir }}
       BUILD_DIR: layer_build
@@ -80,12 +80,14 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.DATA_AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.DATA_AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ matrix.region }}
-      # Sanitize runtime (replace '.' with '-') to satisfy layer name regex
       LAYER_NAME: ${{ matrix.layer.name }}-${{ replace(github.event.inputs.python_runtime, '.', '-') }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install jq (needed for parsing aws output)
+        run: sudo apt-get update && sudo apt-get install -y jq
 
       - name: Derive numeric Python version
         id: derive
@@ -155,7 +157,7 @@ jobs:
             --license-info "MIT" \
             --output json)
           layer_version_arn=$(echo "$publish_output" | jq -r '.LayerVersionArn')
-            layer_version=$(echo "$publish_output" | jq -r '.Version')
+          layer_version=$(echo "$publish_output" | jq -r '.Version')
           mkdir -p results
           if [ -z "$layer_version_arn" ] || [ "$layer_version_arn" = "null" ]; then
             echo "${{ env.AWS_REGION }} FAILED -" >> results/publish_results_${{ matrix.layer.id }}.txt
@@ -199,9 +201,10 @@ jobs:
           echo "**Made Public:** ${{ github.event.inputs.make_public }}" >> REPORT.md
           echo "" >> REPORT.md
           for layer_id in eval auth; do
-            if [[ "$layer_id" == "eval" ]]; then layer_name="${{ github.event.inputs.eval_layer_name }}"; fi
-            if [[ "$layer_id" == "auth" ]]; then layer_name="${{ github.event.inputs.auth_layer_name }}"; fi
-            echo "## Layer: ${layer_name}-${{ github.event.inputs.python_runtime }} ($layer_id)" >> REPORT.md
+            if [[ "$layer_id" == "eval" ]]; then layer_base="${{ github.event.inputs.eval_layer_name }}"; fi
+            if [[ "$layer_id" == "auth" ]]; then layer_base="${{ github.event.inputs.auth_layer_name }}"; fi
+            sanitized_runtime=$(echo "${{ github.event.inputs.python_runtime }}" | tr '.' '-')
+            echo "## Layer: ${layer_base}-${sanitized_runtime} (${layer_id})" >> REPORT.md
             echo "" >> REPORT.md
             echo "| Region | Status/Version | ARN |" >> REPORT.md
             echo "|--------|----------------|-----|" >> REPORT.md
@@ -233,4 +236,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: layer-publish-report-${{ github.run_id }}
+          path: REPORT.md
           path: REPORT.md
