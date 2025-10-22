@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       python_runtime:
-        description: "Target Python runtime for layer compatibility (e.g., python3.11, python3.12)"
+        description: "Target Python runtime for layer compatibility (e.g., python3.11 - needs earlier ubuntu, python3.12)"
         required: true
-        default: "python3.11"
+        default: "python3.12"
       make_public:
         description: "Grant public GetLayerVersion permission (true/false)"
         required: true
