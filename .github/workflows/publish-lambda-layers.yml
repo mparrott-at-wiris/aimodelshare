@@ -27,12 +27,8 @@ on:
         description: "Auth layer base name"
         required: true
         default: "aimsauth-layer"
-      use_s3_upload:
-        description: "Enable S3 upload for large layer ZIPs (true/false)"
-        required: false
-        default: "false"
       s3_bucket:
-        description: "S3 bucket name for layer storage (required if use_s3_upload=true)"
+        description: "S3 bucket name for layer storage (leave empty to disable S3 upload)"
         required: false
         default: ""
       s3_prefix:
@@ -43,18 +39,10 @@ on:
         description: "Automatically create/import S3 bucket via Terraform (true/false)"
         required: false
         default: "false"
-      aggressive_prune:
-        description: "Aggressively prune .dist-info, .egg-info, LICENSE duplicates (true/false)"
+      size_reduction_level:
+        description: "Size reduction level: 'basic' (default), 'aggressive' (prune metadata, strip binaries, remove type hints)"
         required: false
-        default: "false"
-      strip_shared_objects:
-        description: "Strip debug symbols from .so files (true/false)"
-        required: false
-        default: "false"
-      remove_type_hints:
-        description: "Remove .pyi type stub files (true/false)"
-        required: false
-        default: "false"
+        default: "basic"
 
 permissions:
   contents: read
@@ -97,7 +85,7 @@ jobs:
           echo "sanitized_runtime=$sanitized" >> "$GITHUB_OUTPUT"
 
   ensure-bucket:
-    if: github.event.inputs.use_s3_upload == 'true' && github.event.inputs.auto_create_bucket == 'true'
+    if: github.event.inputs.s3_bucket != '' && github.event.inputs.auto_create_bucket == 'true'
     runs-on: ubuntu-latest
     outputs:
       bucket_name: ${{ steps.get-bucket.outputs.bucket_name }}
@@ -179,12 +167,9 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.DATA_AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ matrix.region }}
       LAYER_NAME: ${{ matrix.layer.name }}-${{ needs.matrix-setup.outputs.sanitized_runtime }}
-      USE_S3_UPLOAD: ${{ github.event.inputs.use_s3_upload }}
       S3_BUCKET: ${{ github.event.inputs.s3_bucket }}
       S3_PREFIX: ${{ github.event.inputs.s3_prefix }}
-      AGGRESSIVE_PRUNE: ${{ github.event.inputs.aggressive_prune }}
-      STRIP_SHARED_OBJECTS: ${{ github.event.inputs.strip_shared_objects }}
-      REMOVE_TYPE_HINTS: ${{ github.event.inputs.remove_type_hints }}
+      SIZE_REDUCTION_LEVEL: ${{ github.event.inputs.size_reduction_level }}
 
     steps:
       - name: Checkout
@@ -201,7 +186,7 @@ jobs:
             echo "::error::Failed to derive Python version from ${{ env.PYTHON_RUNTIME }}"
             exit 1
           fi
-          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -248,23 +233,18 @@ jobs:
           find . -name "CHANGELOG*" -type f -delete 2>/dev/null || true
           find . -name "*.md" -path "*/test*" -delete 2>/dev/null || true
 
-          # Aggressive pruning (optional)
-          if [[ "${{ env.AGGRESSIVE_PRUNE }}" == "true" ]]; then
-            echo "Applying aggressive pruning..."
+          # Aggressive pruning (when size_reduction_level=aggressive)
+          if [[ "${{ env.SIZE_REDUCTION_LEVEL }}" == "aggressive" ]]; then
+            echo "Applying aggressive size reduction..."
+            # Prune metadata directories
             find . -type d -name "*.dist-info" -exec rm -rf {} + 2>/dev/null || true
             find . -name "LICENSE*" -type f ! -path "./LICENSE*" -delete 2>/dev/null || true
             find . -name "NOTICE*" -type f -delete 2>/dev/null || true
             find . -name "COPYING*" -type f -delete 2>/dev/null || true
-          fi
-
-          # Remove type hints (optional)
-          if [[ "${{ env.REMOVE_TYPE_HINTS }}" == "true" ]]; then
+            # Remove type hints
             echo "Removing .pyi type stub files..."
             find . -name "*.pyi" -delete
-          fi
-
-          # Strip shared objects (optional)
-          if [[ "${{ env.STRIP_SHARED_OBJECTS }}" == "true" ]]; then
+            # Strip shared objects
             echo "Stripping debug symbols from .so files..."
             find . -name "*.so" -type f -exec strip --strip-debug {} + 2>/dev/null || true
           fi
@@ -302,13 +282,9 @@ jobs:
           size_threshold_mb=50
           if (( $(echo "$zip_size_mb >= $size_threshold_mb" | bc -l) )); then
             echo "ZIP size ($zip_size_mb MB) exceeds threshold ($size_threshold_mb MB)"
-            if [[ "${{ env.USE_S3_UPLOAD }}" == "true" ]]; then
+            if [ -n "${{ env.S3_BUCKET }}" ]; then
               # Use S3 upload
               publish_method="s3"
-              if [ -z "${{ env.S3_BUCKET }}" ]; then
-                echo "::error::ZIP exceeds size threshold but s3_bucket is not configured"
-                exit 1
-              fi
 
               # Upload to S3 with structured key
               timestamp=$(date +%Y%m%d-%H%M%S)
@@ -329,7 +305,7 @@ jobs:
                 --license-info "MIT" \
                 --output json)
             else
-              echo "::error::ZIP exceeds size threshold but use_s3_upload is not enabled"
+              echo "::error::ZIP exceeds size threshold but s3_bucket is not configured"
               exit 1
             fi
           else
@@ -414,14 +390,11 @@ jobs:
           echo "**Workflow Run:** [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> REPORT.md
           echo "**Python Runtime:** ${{ github.event.inputs.python_runtime }}" >> REPORT.md
           echo "**Made Public:** ${{ github.event.inputs.make_public }}" >> REPORT.md
-          echo "**Use S3 Upload:** ${{ github.event.inputs.use_s3_upload }}" >> REPORT.md
-          if [[ "${{ github.event.inputs.use_s3_upload }}" == "true" ]]; then
+          if [[ -n "${{ github.event.inputs.s3_bucket }}" ]]; then
             echo "**S3 Bucket:** ${{ github.event.inputs.s3_bucket }}" >> REPORT.md
             echo "**S3 Prefix:** ${{ github.event.inputs.s3_prefix }}" >> REPORT.md
           fi
-          echo "**Aggressive Prune:** ${{ github.event.inputs.aggressive_prune }}" >> REPORT.md
-          echo "**Strip Shared Objects:** ${{ github.event.inputs.strip_shared_objects }}" >> REPORT.md
-          echo "**Remove Type Hints:** ${{ github.event.inputs.remove_type_hints }}" >> REPORT.md
+          echo "**Size Reduction Level:** ${{ github.event.inputs.size_reduction_level }}" >> REPORT.md
           echo "" >> REPORT.md
           for layer_id in eval auth; do
             if [[ "$layer_id" == "eval" ]]; then layer_base="${{ github.event.inputs.eval_layer_name }}"; fi
