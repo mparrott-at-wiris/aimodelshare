@@ -2,15 +2,6 @@ name: Unit Tests for Playground Components
 
 on:
   workflow_dispatch: # Manual trigger
-  pull_request:
-    paths:
-      - 'aimodelshare/**'
-      - 'tests/**'
-      - '.github/workflows/unit-tests.yml'
-  push:
-    branches:
-      - master
-      - main
 
 permissions:
   contents: read
