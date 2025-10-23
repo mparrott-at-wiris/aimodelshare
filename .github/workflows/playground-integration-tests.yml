@@ -181,6 +181,7 @@ jobs:
       - name: Test model submission + leaderboard retrieval
         run: |
           python -c "
+          import os
           import seaborn as sns, pandas as pd
           from sklearn.compose import ColumnTransformer
           from sklearn.pipeline import Pipeline
