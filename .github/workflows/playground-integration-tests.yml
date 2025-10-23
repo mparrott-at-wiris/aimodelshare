@@ -47,10 +47,12 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install dependencies
+      - name: Install local aimodelshare (editable) + test dependencies
         run: |
+          pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
           pip install -e .
-          pip install pytest pandas numpy scikit-learn seaborn
+          pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript
+          pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
 
       - name: Test credential configuration only
         run: |
@@ -112,9 +114,12 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install dependencies
+      - name: Install local aimodelshare (editable) + test dependencies
         run: |
-          pip install pytest pandas seaborn scikit-learn numpy
+          pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
+          pip install -e .
+          pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript
+          pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
 
       - name: Test data preprocessing
         run: |
@@ -164,9 +169,12 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install dependencies
+      - name: Install local aimodelshare (editable) + test dependencies
         run: |
-          pip install pytest pandas seaborn scikit-learn numpy
+          pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
+          pip install -e .
+          pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript
+          pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
 
       - name: Test model training
         run: |
@@ -218,10 +226,12 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install dependencies
+      - name: Install local aimodelshare (editable) + test dependencies
         run: |
+          pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
           pip install -e .
-          pip install pytest pandas
+          pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript
+          pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
 
       - name: Test ModelPlayground initialization
         run: |
