@@ -1,0 +1,256 @@
+name: Playground Integration Tests (Isolated Steps)
+
+on:
+  workflow_dispatch: # Manual trigger only
+    inputs:
+      test_step:
+        description: 'Which step to test'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - credentials
+          - data_loading
+          - preprocessing
+          - model_training
+          - playground_create
+          - model_submission
+          - deployment
+
+permissions:
+  contents: read
+
+concurrency:
+  group: playground-integration-tests
+  cancel-in-progress: true
+
+jobs:
+  test-credentials:
+    if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'credentials' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      USERNAME: ${{ secrets.AIMODELSHARE_USERNAME }}
+      PASSWORD: ${{ secrets.AIMODELSHARE_PASSWORD }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.DATA_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.DATA_AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: us-east-1
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install -e .
+          pip install pytest pandas numpy scikit-learn seaborn
+
+      - name: Test credential configuration only
+        run: |
+          pytest -vv tests/test_playgrounds_nodataimport.py::test_configure_credentials --tb=long
+
+  test-data-loading:
+    if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'data_loading' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install pytest pandas seaborn scikit-learn
+
+      - name: Test data loading from seaborn
+        run: |
+          python -c "
+          import seaborn as sns
+          import pandas as pd
+          
+          print('Loading penguins dataset...')
+          penguins = sns.load_dataset('penguins')
+          print(f'Dataset loaded: {len(penguins)} rows')
+          
+          print('Dropping NA values...')
+          penguins_clean = penguins.dropna()
+          print(f'Clean dataset: {len(penguins_clean)} rows')
+          
+          print('Checking columns...')
+          assert 'sex' in penguins_clean.columns
+          assert 'bill_length_mm' in penguins_clean.columns
+          
+          print('✓ Data loading test passed')
+          "
+
+  test-preprocessing:
+    if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'preprocessing' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install pytest pandas seaborn scikit-learn numpy
+
+      - name: Test data preprocessing
+        run: |
+          python -c "
+          import seaborn as sns
+          import pandas as pd
+          from sklearn.compose import ColumnTransformer
+          from sklearn.pipeline import Pipeline
+          from sklearn.preprocessing import StandardScaler
+          from sklearn.model_selection import train_test_split
+          
+          print('Loading and preparing data...')
+          penguins = sns.load_dataset('penguins').dropna()
+          X = penguins[['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g']]
+          y = penguins['sex']
+          
+          print('Splitting data...')
+          X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+          
+          print('Creating preprocessor...')
+          numeric_features = ['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g']
+          numeric_transformer = Pipeline(steps=[('scaler', StandardScaler())])
+          preprocess = ColumnTransformer(transformers=[('num', numeric_transformer, numeric_features)])
+          preprocess.fit(X_train)
+          
+          print('Testing preprocessor function...')
+          def preprocessor(data):
+              return preprocess.transform(data)
+          
+          X_train_processed = preprocessor(X_train)
+          print(f'Preprocessed shape: {X_train_processed.shape}')
+          
+          print('✓ Preprocessing test passed')
+          "
+
+  test-model-training:
+    if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'model_training' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install pytest pandas seaborn scikit-learn numpy
+
+      - name: Test model training
+        run: |
+          python -c "
+          import seaborn as sns
+          from sklearn.compose import ColumnTransformer
+          from sklearn.pipeline import Pipeline
+          from sklearn.preprocessing import StandardScaler
+          from sklearn.linear_model import LogisticRegression
+          from sklearn.model_selection import train_test_split
+          
+          print('Preparing data...')
+          penguins = sns.load_dataset('penguins').dropna()
+          X = penguins[['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g']]
+          y = penguins['sex']
+          X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+          
+          print('Creating preprocessor...')
+          numeric_features = ['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g']
+          numeric_transformer = Pipeline(steps=[('scaler', StandardScaler())])
+          preprocess = ColumnTransformer(transformers=[('num', numeric_transformer, numeric_features)])
+          preprocess.fit(X_train)
+          
+          def preprocessor(data):
+              return preprocess.transform(data)
+          
+          print('Training model...')
+          model = LogisticRegression()
+          model.fit(preprocessor(X_train), y_train)
+          
+          print('Generating predictions...')
+          predictions = model.predict(preprocessor(X_test))
+          print(f'Generated {len(predictions)} predictions')
+          
+          print('✓ Model training test passed')
+          "
+
+  test-playground-init:
+    if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'playground_create' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install -e .
+          pip install pytest pandas
+
+      - name: Test ModelPlayground initialization
+        run: |
+          python -c "
+          from aimodelshare.playground import ModelPlayground
+          
+          print('Creating ModelPlayground instance...')
+          playground = ModelPlayground(
+              input_type='tabular',
+              task_type='classification',
+              private=True
+          )
+          
+          print(f'Playground created: {playground}')
+          print(f'Model type: {playground.model_type}')
+          print(f'Categorical: {playground.categorical}')
+          print(f'Private: {playground.private}')
+          
+          print('✓ ModelPlayground initialization test passed')
+          "
+
+  integration-summary:
+    needs: [test-credentials, test-data-loading, test-preprocessing, test-model-training, test-playground-init]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Summary
+        run: |
+          echo "=== Integration Test Summary ==="
+          echo "Credentials: ${{ needs.test-credentials.result }}"
+          echo "Data Loading: ${{ needs.test-data-loading.result }}"
+          echo "Preprocessing: ${{ needs.test-preprocessing.result }}"
+          echo "Model Training: ${{ needs.test-model-training.result }}"
+          echo "Playground Init: ${{ needs.test-playground-init.result }}"
