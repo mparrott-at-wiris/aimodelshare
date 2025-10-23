@@ -14,9 +14,7 @@ on:
           - data_loading
           - preprocessing
           - model_training
-          - playground_create
-          - model_submission
-          - deployment
+          - create_submit_getleaderboard
 
 permissions:
   contents: read
@@ -158,7 +156,7 @@ jobs:
           "
 
   test-playground-create-submit-deploy-leaderboard:
-    if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'model_submission' }}
+    if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'create_submit_getleaderboard' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
