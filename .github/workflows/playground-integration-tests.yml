@@ -207,9 +207,8 @@ jobs:
           with patch("getpass.getpass", side_effect=inputs):
                     from aimodelshare.aws import configure_credentials
                     configure_credentials()
-
-	          # clean up credentials file
-	          os.remove("credentials.txt")
+          # clean up credentials file
+          os.remove("credentials.txt")
             
           # set credentials
           set_credentials(credential_file="credentials.txt", type="deploy_model")
