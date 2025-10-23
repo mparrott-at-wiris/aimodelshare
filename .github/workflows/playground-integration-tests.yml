@@ -196,13 +196,13 @@ jobs:
           import aimodelshare as ai
           from aimodelshare.data_sharing.utils import redo_with_write
           
-          	# mock user input
+          # mock user input
           inputs = [os.environ.get('USERNAME'),
                 os.environ.get('PASSWORD'),
                 os.environ.get('AWS_ACCESS_KEY_ID'),
                 os.environ.get('AWS_SECRET_ACCESS_KEY'),
                 os.environ.get('AWS_REGION')]
-        
+          
           with patch("getpass.getpass", side_effect=inputs):
             from aimodelshare.aws import configure_credentials
             configure_credentials()
