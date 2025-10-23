@@ -141,6 +141,8 @@ jobs:
           from sklearn.preprocessing import StandardScaler
           from sklearn.linear_model import LogisticRegression
           from sklearn.model_selection import train_test_split
+          from unittest.mock import patch
+
           penguins = sns.load_dataset('penguins').dropna()
           X = penguins[['bill_length_mm','bill_depth_mm','flipper_length_mm','body_mass_g']]
           y = penguins['sex']
