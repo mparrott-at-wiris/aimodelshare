@@ -157,42 +157,7 @@ jobs:
           print('✓ Model training test passed')
           "
 
-  test-playground-create:
-    if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'playground_create' }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 12
-    env:
-      USERNAME: ${{ secrets.USERNAME }}
-      PASSWORD: ${{ secrets.PASSWORD }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.DATA_AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.DATA_AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: us-east-1
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-      - name: Install local aimodelshare (editable) + test dependencies
-        run: |
-          pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
-          pip install -e .
-          pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript
-          pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
-      - name: Test ModelPlayground create()
-        run: |
-          python -c "
-          import seaborn as sns
-          from aimodelshare.playground import ModelPlayground
-          penguins = sns.load_dataset('penguins').dropna()
-          eval_labels = list(penguins['sex'][:25])
-          playground = ModelPlayground(input_type='tabular', task_type='classification', private=True)
-          playground.create(eval_data=eval_labels, public=True)
-          print('✓ Playground create test passed')
-          "
-
-  test-model-submission:
+  test-playground-create-submit-deploy-leaderboard:
     if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'model_submission' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -258,78 +223,6 @@ jobs:
           print('✓ Leaderboard retrieval test passed')
           "
 
-  test-deployment:
-    if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'deployment' }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 18
-    env:
-      USERNAME: ${{ secrets.USERNAME }}
-      PASSWORD: ${{ secrets.PASSWORD }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.DATA_AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.DATA_AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: us-east-1
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-      - name: Install local aimodelshare (editable) + test dependencies
-        run: |
-          pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
-          pip install -e .
-          pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript
-          pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
-      - name: Test deployment workflow
-        run: |
-          python -c "
-          import seaborn as sns, pandas as pd
-          from sklearn.compose import ColumnTransformer
-          from sklearn.pipeline import Pipeline
-          from sklearn.preprocessing import StandardScaler
-          from sklearn.linear_model import LogisticRegression
-          from sklearn.model_selection import train_test_split
-          from aimodelshare.playground import ModelPlayground
-          penguins = sns.load_dataset('penguins').dropna()
-          X = penguins[['bill_length_mm','bill_depth_mm','flipper_length_mm','body_mass_g']]
-          y = penguins['sex']
-          X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2,random_state=42)
-          y_train_df = pd.get_dummies(y_train)
-          eval_labels = list(y_test)
-          example_data = X_test.head(5)
-          preprocess = ColumnTransformer([('num', Pipeline([('scaler', StandardScaler())]), X.columns.tolist())])
-          preprocess.fit(X_train)
-          def preprocessor(d): return preprocess.transform(d)
-          model = LogisticRegression()
-          model.fit(preprocessor(X_train), y_train)
-          preds = model.predict(preprocessor(X_test))
-        	inputs = [os.environ.get('USERNAME'),
-        			  os.environ.get('PASSWORD'),
-        			  os.environ.get('AWS_ACCESS_KEY_ID'),
-        			  os.environ.get('AWS_SECRET_ACCESS_KEY'),
-        			  os.environ.get('AWS_REGION')]
-        
-        	with patch("getpass.getpass", side_effect=inputs):
-        		from aimodelshare.aws import configure_credentials
-        		configure_credentials()
-        
-        	# set credentials
-        	set_credentials(credential_file="credentials.txt", type="deploy_model")
-        
-        	# clean up credentials file
-        	os.remove("credentials.txt")
-
-          playground = ModelPlayground(input_type='tabular', task_type='classification', private=True)
-          playground.create(eval_data=eval_labels, public=True)
-          playground.submit_model(model=model,
-                                  preprocessor=preprocessor,
-                                  prediction_submission=preds,
-                                  input_dict={'description':'deploy test','tags':'deploy'},
-                                  submission_type='experiment')
-          playground.deploy_model(model_version=1, example_data=example_data, y_train=y_train_df)
-          print('✓ Deployment test passed')
-          "
 
   integration-summary:
     needs:
@@ -337,9 +230,8 @@ jobs:
       - test-data-loading
       - test-preprocessing
       - test-model-training
-      - test-playground-create
-      - test-model-submission
-      - test-deployment
+      - test-playground-create-submit-deploy-leaderboard
+      
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -350,6 +242,5 @@ jobs:
           echo "Data Loading: ${{ needs.test-data-loading.result }}"
           echo "Preprocessing: ${{ needs.test-preprocessing.result }}"
           echo "Model Training: ${{ needs.test-model-training.result }}"
-          echo "Playground Create: ${{ needs.test-playground-create.result }}"
-          echo "Model Submission: ${{ needs.test-model-submission.result }}"
-          echo "Deployment: ${{ needs.test-deployment.result }}"
+          echo "Playground Create: ${{ test-playground-create-submit-deploy-leaderboard.result }}"
+
