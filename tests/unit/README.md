@@ -83,22 +83,38 @@ Tests ModelPlayground API operations (mocked):
 
 ## Running the Tests
 
-### Run all unit tests:
+### Using the test runner script (recommended):
+```bash
+# Run all tests
+./tests/unit/run_tests.sh
+
+# Run specific test group
+./tests/unit/run_tests.sh credentials
+./tests/unit/run_tests.sh playground_init
+./tests/unit/run_tests.sh data_preprocessing
+./tests/unit/run_tests.sh model_training
+./tests/unit/run_tests.sh playground_operations
+./tests/unit/run_tests.sh sanity
+```
+
+### Using pytest directly:
+
+#### Run all unit tests:
 ```bash
 pytest tests/unit/ -v
 ```
 
-### Run a specific test file:
+#### Run a specific test file:
 ```bash
 pytest tests/unit/test_credentials.py -v
 ```
 
-### Run a specific test:
+#### Run a specific test:
 ```bash
 pytest tests/unit/test_credentials.py::TestCredentialConfiguration::test_manual_credential_input -v
 ```
 
-### Run with coverage:
+#### Run with coverage:
 ```bash
 pytest tests/unit/ --cov=aimodelshare --cov-report=html
 ```

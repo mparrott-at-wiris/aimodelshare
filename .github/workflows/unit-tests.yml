@@ -27,6 +27,7 @@ jobs:
     strategy:
       matrix:
         test-group:
+          - setup_sanity
           - credentials
           - playground_init
           - data_preprocessing
