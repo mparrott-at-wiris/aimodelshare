@@ -71,7 +71,7 @@ import wget
 from copy import copy
 import psutil
 from pympler import asizeof
-from IPython.core.display import display, HTML, SVG
+from IPython.display import display, HTML, SVG
 import absl.logging
 import networkx as nx
 import warnings
