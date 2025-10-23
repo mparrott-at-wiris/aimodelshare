@@ -242,5 +242,4 @@ jobs:
           echo "Data Loading: ${{ needs.test-data-loading.result }}"
           echo "Preprocessing: ${{ needs.test-preprocessing.result }}"
           echo "Model Training: ${{ needs.test-model-training.result }}"
-          echo "Playground Create: ${{ test-playground-create-submit-deploy-leaderboard.result }}"
-
+          echo "Model Submission / Leaderboard: ${{ needs.test-playground-create-submit-deploy-leaderboard.result }}"
