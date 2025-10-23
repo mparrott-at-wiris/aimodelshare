@@ -1,7 +1,7 @@
 name: Playground Integration Tests (Isolated Steps)
 
 on:
-  workflow_dispatch: # Manual trigger only
+  workflow_dispatch:
     inputs:
       test_step:
         description: 'Which step to test'
@@ -30,30 +30,25 @@ jobs:
     if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'credentials' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
     env:
       USERNAME: ${{ secrets.AIMODELSHARE_USERNAME }}
       PASSWORD: ${{ secrets.AIMODELSHARE_PASSWORD }}
       AWS_ACCESS_KEY_ID: ${{ secrets.DATA_AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.DATA_AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: us-east-1
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-
       - name: Install local aimodelshare (editable) + test dependencies
         run: |
           pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
           pip install -e .
           pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript
           pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
-
       - name: Test credential configuration only
         run: |
           pytest -vv tests/test_playgrounds_nodataimport.py::test_configure_credentials --tb=long
@@ -62,41 +57,27 @@ jobs:
     if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'data_loading' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-
       - name: Install local aimodelshare (editable) + test dependencies
         run: |
           pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
           pip install -e .
           pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript
           pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
-
       - name: Test data loading from seaborn
         run: |
           python -c "
           import seaborn as sns
-          import pandas as pd
-          
-          print('Loading penguins dataset...')
           penguins = sns.load_dataset('penguins')
-          print(f'Dataset loaded: {len(penguins)} rows')
-          
-          print('Dropping NA values...')
           penguins_clean = penguins.dropna()
-          print(f'Clean dataset: {len(penguins_clean)} rows')
-          
-          print('Checking columns...')
           assert 'sex' in penguins_clean.columns
           assert 'bill_length_mm' in penguins_clean.columns
-          
           print('✓ Data loading test passed')
           "
 
@@ -104,54 +85,35 @@ jobs:
     if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'preprocessing' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-
       - name: Install local aimodelshare (editable) + test dependencies
         run: |
           pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
           pip install -e .
           pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript
           pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
-
       - name: Test data preprocessing
         run: |
           python -c "
           import seaborn as sns
-          import pandas as pd
           from sklearn.compose import ColumnTransformer
           from sklearn.pipeline import Pipeline
           from sklearn.preprocessing import StandardScaler
           from sklearn.model_selection import train_test_split
-          
-          print('Loading and preparing data...')
           penguins = sns.load_dataset('penguins').dropna()
-          X = penguins[['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g']]
+          X = penguins[['bill_length_mm','bill_depth_mm','flipper_length_mm','body_mass_g']]
           y = penguins['sex']
-          
-          print('Splitting data...')
-          X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-          
-          print('Creating preprocessor...')
-          numeric_features = ['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g']
-          numeric_transformer = Pipeline(steps=[('scaler', StandardScaler())])
-          preprocess = ColumnTransformer(transformers=[('num', numeric_transformer, numeric_features)])
+          X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2,random_state=42)
+          preprocess = ColumnTransformer([('num', Pipeline([('scaler', StandardScaler())]), X.columns.tolist())])
           preprocess.fit(X_train)
-          
-          print('Testing preprocessor function...')
-          def preprocessor(data):
-              return preprocess.transform(data)
-          
-          X_train_processed = preprocessor(X_train)
-          print(f'Preprocessed shape: {X_train_processed.shape}')
-          
+          def preprocessor(d): return preprocess.transform(d)
+          assert preprocessor(X_train).shape[0] == X_train.shape[0]
           print('✓ Preprocessing test passed')
           "
 
@@ -159,23 +121,19 @@ jobs:
     if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'model_training' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-
       - name: Install local aimodelshare (editable) + test dependencies
         run: |
           pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
           pip install -e .
           pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript
           pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
-
       - name: Test model training
         run: |
           python -c "
@@ -185,79 +143,189 @@ jobs:
           from sklearn.preprocessing import StandardScaler
           from sklearn.linear_model import LogisticRegression
           from sklearn.model_selection import train_test_split
-          
-          print('Preparing data...')
           penguins = sns.load_dataset('penguins').dropna()
-          X = penguins[['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g']]
+          X = penguins[['bill_length_mm','bill_depth_mm','flipper_length_mm','body_mass_g']]
           y = penguins['sex']
-          X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-          
-          print('Creating preprocessor...')
-          numeric_features = ['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g']
-          numeric_transformer = Pipeline(steps=[('scaler', StandardScaler())])
-          preprocess = ColumnTransformer(transformers=[('num', numeric_transformer, numeric_features)])
+          X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2,random_state=42)
+          preprocess = ColumnTransformer([('num', Pipeline([('scaler', StandardScaler())]), X.columns.tolist())])
           preprocess.fit(X_train)
-          
-          def preprocessor(data):
-              return preprocess.transform(data)
-          
-          print('Training model...')
+          def preprocessor(d): return preprocess.transform(d)
           model = LogisticRegression()
           model.fit(preprocessor(X_train), y_train)
-          
-          print('Generating predictions...')
-          predictions = model.predict(preprocessor(X_test))
-          print(f'Generated {len(predictions)} predictions')
-          
+          preds = model.predict(preprocessor(X_test))
+          print(f'Generated {len(preds)} predictions')
           print('✓ Model training test passed')
           "
 
-  test-playground-init:
+  test-playground-create:
     if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'playground_create' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-
+    timeout-minutes: 12
+    env:
+      USERNAME: ${{ secrets.AIMODELSHARE_USERNAME }}
+      PASSWORD: ${{ secrets.AIMODELSHARE_PASSWORD }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.DATA_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.DATA_AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: us-east-1
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-
       - name: Install local aimodelshare (editable) + test dependencies
         run: |
           pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
           pip install -e .
           pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript
           pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
-
-      - name: Test ModelPlayground initialization
+      - name: Test ModelPlayground create()
         run: |
           python -c "
+          import seaborn as sns
           from aimodelshare.playground import ModelPlayground
-          
-          print('Creating ModelPlayground instance...')
-          playground = ModelPlayground(
-              input_type='tabular',
-              task_type='classification',
-              private=True
-          )
-          
-          print(f'Playground created: {playground}')
-          print(f'Model type: {playground.model_type}')
-          print(f'Categorical: {playground.categorical}')
-          print(f'Private: {playground.private}')
-          
-          print('✓ ModelPlayground initialization test passed')
+          penguins = sns.load_dataset('penguins').dropna()
+          eval_labels = list(penguins['sex'][:25])
+          playground = ModelPlayground(input_type='tabular', task_type='classification', private=True)
+          playground.create(eval_data=eval_labels, public=True)
+          print('✓ Playground create test passed')
+          "
+
+  test-model-submission:
+    if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'model_submission' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      USERNAME: ${{ secrets.AIMODELSHARE_USERNAME }}
+      PASSWORD: ${{ secrets.AIMODELSHARE_PASSWORD }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.DATA_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.DATA_AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: us-east-1
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install local aimodelshare (editable) + test dependencies
+        run: |
+          pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
+          pip install -e .
+          pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript
+          pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
+      - name: Test model submission + leaderboard retrieval
+        run: |
+          python -c "
+          import seaborn as sns, pandas as pd
+          from sklearn.compose import ColumnTransformer
+          from sklearn.pipeline import Pipeline
+          from sklearn.preprocessing import StandardScaler
+          from sklearn.linear_model import LogisticRegression
+          from sklearn.model_selection import train_test_split
+          from aimodelshare.playground import ModelPlayground
+          penguins = sns.load_dataset('penguins').dropna()
+          X = penguins[['bill_length_mm','bill_depth_mm','flipper_length_mm','body_mass_g']]
+          y = penguins['sex']
+          X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2,random_state=42)
+          eval_labels = list(y_test)
+          preprocess = ColumnTransformer([('num', Pipeline([('scaler', StandardScaler())]), X.columns.tolist())])
+          preprocess.fit(X_train)
+          def preprocessor(d): return preprocess.transform(d)
+          model = LogisticRegression()
+          model.fit(preprocessor(X_train), y_train)
+          preds = model.predict(preprocessor(X_test))
+          playground = ModelPlayground(input_type='tabular', task_type='classification', private=True)
+          playground.create(eval_data=eval_labels, public=True)
+          playground.submit_model(model=model,
+                                  preprocessor=preprocessor,
+                                  prediction_submission=preds,
+                                  input_dict={'description':'CI test','tags':'integration'},
+                                  submission_type='experiment')
+          data = playground.get_leaderboard()
+          # Depending on library version, this may be a dict or DataFrame; adapt assertion
+          if isinstance(data, dict):
+              import pandas as pd
+              df = pd.DataFrame(data)
+              assert not df.empty, 'Leaderboard dict converted to empty DataFrame'
+              print(df.head())
+          else:
+              import pandas as pd
+              assert isinstance(data, pd.DataFrame), 'Leaderboard did not return a DataFrame'
+              assert not data.empty, 'Leaderboard DataFrame is empty'
+              print(data.head())
+          print('✓ Leaderboard retrieval test passed')
+          "
+
+  test-deployment:
+    if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'deployment' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      USERNAME: ${{ secrets.AIMODELSHARE_USERNAME }}
+      PASSWORD: ${{ secrets.AIMODELSHARE_PASSWORD }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.DATA_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.DATA_AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: us-east-1
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install local aimodelshare (editable) + test dependencies
+        run: |
+          pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
+          pip install -e .
+          pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript
+          pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
+      - name: Test deployment workflow
+        run: |
+          python -c "
+          import seaborn as sns, pandas as pd
+          from sklearn.compose import ColumnTransformer
+          from sklearn.pipeline import Pipeline
+          from sklearn.preprocessing import StandardScaler
+          from sklearn.linear_model import LogisticRegression
+          from sklearn.model_selection import train_test_split
+          from aimodelshare.playground import ModelPlayground
+          penguins = sns.load_dataset('penguins').dropna()
+          X = penguins[['bill_length_mm','bill_depth_mm','flipper_length_mm','body_mass_g']]
+          y = penguins['sex']
+          X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2,random_state=42)
+          y_train_df = pd.get_dummies(y_train)
+          eval_labels = list(y_test)
+          example_data = X_test.head(5)
+          preprocess = ColumnTransformer([('num', Pipeline([('scaler', StandardScaler())]), X.columns.tolist())])
+          preprocess.fit(X_train)
+          def preprocessor(d): return preprocess.transform(d)
+          model = LogisticRegression()
+          model.fit(preprocessor(X_train), y_train)
+          preds = model.predict(preprocessor(X_test))
+          playground = ModelPlayground(input_type='tabular', task_type='classification', private=True)
+          playground.create(eval_data=eval_labels, public=True)
+          playground.submit_model(model=model,
+                                  preprocessor=preprocessor,
+                                  prediction_submission=preds,
+                                  input_dict={'description':'deploy test','tags':'deploy'},
+                                  submission_type='experiment')
+          playground.deploy_model(model_version=1, example_data=example_data, y_train=y_train_df)
+          print('✓ Deployment test passed')
           "
 
   integration-summary:
-    needs: [test-credentials, test-data-loading, test-preprocessing, test-model-training, test-playground-init]
+    needs:
+      - test-credentials
+      - test-data-loading
+      - test-preprocessing
+      - test-model-training
+      - test-playground-create
+      - test-model-submission
+      - test-deployment
     runs-on: ubuntu-latest
     if: always()
-    
     steps:
       - name: Summary
         run: |
@@ -266,4 +334,6 @@ jobs:
           echo "Data Loading: ${{ needs.test-data-loading.result }}"
           echo "Preprocessing: ${{ needs.test-preprocessing.result }}"
           echo "Model Training: ${{ needs.test-model-training.result }}"
-          echo "Playground Init: ${{ needs.test-playground-init.result }}"
+          echo "Playground Create: ${{ needs.test-playground-create.result }}"
+          echo "Model Submission: ${{ needs.test-model-submission.result }}"
+          echo "Deployment: ${{ needs.test-deployment.result }}"
