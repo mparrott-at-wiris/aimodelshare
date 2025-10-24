@@ -207,7 +207,9 @@ jobs:
             os.environ['AWS_SECRET_ACCESS_KEY_AIMS']=os.environ.get("AWS_SECRET_ACCESS_KEY")
             os.environ['AWS_REGION_AIMS']=os.environ.get("AWS_REGION")
           except:
-            print("error setting AIMs env vars")
+            print('error setting AIMs env vars')
+            pass
+            
           # Validate AWS Creds 
           import boto3
           try: 
