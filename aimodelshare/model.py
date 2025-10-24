@@ -104,6 +104,61 @@ def _subset_numeric(metrics_dict, keys_to_extract):
     return subset
 
 
+def _prepare_preprocessor_if_function(preprocessor):
+    """
+    Convert function-based preprocessor to validated zip file.
+    
+    Args:
+        preprocessor: Preprocessor function or file path
+        
+    Returns:
+        str: Path to validated preprocessor zip file
+        
+    Raises:
+        RuntimeError: If export fails, zip is empty, or missing required files
+    """
+    import types
+    from zipfile import ZipFile
+    
+    # If not a function, return as-is
+    if not isinstance(preprocessor, types.FunctionType):
+        return preprocessor
+    
+    # Export function to temporary directory
+    from aimodelshare.preprocessormodules import export_preprocessor
+    temp_prep = tmp.mkdtemp()
+    export_preprocessor(preprocessor, temp_prep)
+    preprocessor_path = temp_prep + "/preprocessor.zip"
+    
+    # Validate exported zip file exists
+    if not os.path.exists(preprocessor_path):
+        raise RuntimeError(
+            f"Preprocessor export failed: zip file not found at {preprocessor_path}"
+        )
+    
+    # Validate zip file has non-zero size
+    file_size = os.path.getsize(preprocessor_path)
+    if file_size == 0:
+        raise RuntimeError(
+            f"Preprocessor export failed: zip file is empty (0 bytes)"
+        )
+    
+    # Validate zip contains preprocessor.py
+    try:
+        with ZipFile(preprocessor_path, 'r') as zip_file:
+            zip_contents = zip_file.namelist()
+            if 'preprocessor.py' not in zip_contents:
+                raise RuntimeError(
+                    f"Preprocessor export failed: 'preprocessor.py' not found in zip. Contents: {zip_contents}"
+                )
+    except Exception as e:
+        if isinstance(e, RuntimeError):
+            raise
+        raise RuntimeError(f"Preprocessor zip validation failed: {e}")
+    
+    return preprocessor_path
+
+
 def _get_file_list(client, bucket,keysubfolderid):
     #  Reading file list {{{
     try:
@@ -711,13 +766,8 @@ def submit_model(
         pass
 
 
-    # check whether preprocessor is function
-    import types
-    if isinstance(preprocessor, types.FunctionType): 
-        from aimodelshare.preprocessormodules import export_preprocessor
-        temp_prep=tmp.mkdtemp()
-        export_preprocessor(preprocessor,temp_prep)
-        preprocessor = temp_prep+"/preprocessor.zip"
+    # check whether preprocessor is function and validate export
+    preprocessor = _prepare_preprocessor_if_function(preprocessor)
 
 
 
@@ -865,17 +915,38 @@ def submit_model(
 
     #upload preprocessor (1s for small upload vs 21 for 306 mbs)
     putfilekeys=list(s3_presigned_dict['put'].keys())
-    modelputfiles = [s for s in putfilekeys if str("zip") in s]
-
-    fileputlistofdicts=[]
-    for i in modelputfiles:
-      filedownload_dict=ast.literal_eval(s3_presigned_dict ['put'][i])
-      fileputlistofdicts.append(filedownload_dict)
-    import requests
-    if preprocessor is not None: 
+    
+    # Find preprocessor upload key using explicit pattern matching
+    # Prefer keys containing 'preprocessor_v' or 'preprocessor' ending in '.zip'
+    preprocessor_key = None
+    for key in putfilekeys:
+        if 'preprocessor_v' in key and key.endswith('.zip'):
+            preprocessor_key = key
+            break
+        elif 'preprocessor' in key and key.endswith('.zip'):
+            preprocessor_key = key
+    
+    if preprocessor_key is None and preprocessor is not None:
+        # Fallback to original logic if no explicit match
+        modelputfiles = [s for s in putfilekeys if str("zip") in s]
+        if modelputfiles:
+            preprocessor_key = modelputfiles[0]
+    
+    if preprocessor is not None:
+        if preprocessor_key is None:
+            raise RuntimeError("Failed to find preprocessor upload URL in presigned URLs")
+        
+        filedownload_dict = ast.literal_eval(s3_presigned_dict['put'][preprocessor_key])
+        
         with open(preprocessor, 'rb') as f:
-          files = {'file': (preprocessor, f)}
-          http_response = requests.post(fileputlistofdicts[0]['url'], data=fileputlistofdicts[0]['fields'], files=files)
+            files = {'file': (preprocessor, f)}
+            http_response = requests.post(filedownload_dict['url'], data=filedownload_dict['fields'], files=files)
+            
+            # Validate upload response status
+            if http_response.status_code not in [200, 204]:
+                raise RuntimeError(
+                    f"Preprocessor upload failed with status {http_response.status_code}: {http_response.text}"
+                )
 
     putfilekeys=list(s3_presigned_dict['put'].keys())
     modelputfiles = [s for s in putfilekeys if str("onnx") in s]
