@@ -197,28 +197,28 @@ jobs:
           from aimodelshare.data_sharing.utils import redo_with_write
           
           # mock user input
-          os.environ["username"] = os.environ.get("USERNAME")
-          os.environ["password"] = os.environ.get("PASSWORD")
+          os.environ['username'] = os.environ.get('USERNAME')
+          os.environ['password'] = os.environ.get('PASSWORD')
           
           #Validate Username & Password
           try: 
-            os.environ["AWS_TOKEN"]=get_aws_token()
-            os.environ['AWS_ACCESS_KEY_ID_AIMS']=os.environ.get("AWS_ACCESS_KEY_ID")
-            os.environ['AWS_SECRET_ACCESS_KEY_AIMS']=os.environ.get("AWS_SECRET_ACCESS_KEY")
-            os.environ['AWS_REGION_AIMS']=os.environ.get("AWS_REGION")
+            os.environ['AWS_TOKEN']=get_aws_token()
+            os.environ['AWS_ACCESS_KEY_ID_AIMS']=os.environ.get('AWS_ACCESS_KEY_ID')
+            os.environ['AWS_SECRET_ACCESS_KEY_AIMS']=os.environ.get('AWS_SECRET_ACCESS_KEY')
+            os.environ['AWS_REGION_AIMS']=os.environ.get('AWS_REGION')
           except:
             print('error setting AIMs env vars')
             pass
             
           # Validate AWS Creds 
           import boto3
-          client = boto3.client('sts', aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"), aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY_AIMS"))
+          client = boto3.client('sts', aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'), aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY_AIMS'))
           details = client.get_caller_identity()
 
           
           # Set Environment Variables for deploy models
-          get_jwt_token(os.environ.get("username"), os.environ.get("password")) # check two different cognito functions here
-          os.environ["AWS_TOKEN"]=get_aws_token()
+          get_jwt_token(os.environ.get('username'), os.environ.get('password')) # check two different cognito functions here
+          os.environ['AWS_TOKEN']=get_aws_token()
           #create_user_getkeyandpassword() 
           penguins = sns.load_dataset('penguins').dropna()
           X = penguins[['bill_length_mm','bill_depth_mm','flipper_length_mm','body_mass_g']]
