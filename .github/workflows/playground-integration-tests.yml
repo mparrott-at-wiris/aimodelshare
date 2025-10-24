@@ -197,9 +197,8 @@ jobs:
           from aimodelshare.data_sharing.utils import redo_with_write
           
           # mock user input
-          os.environ["USERNAME"] = user
-          pw = getpass.getpass(prompt="Modelshare.ai Password:")
-          os.environ["PASSWORD"] = pw
+          os.environ["username"] = os.environ["USERNAME"] 
+          os.environ["password"] = os.environ["PASSWORD"] 
           
           #Validate Username & Password
           try: 
