@@ -1246,13 +1246,19 @@ class ModelPlayground:
             with HiddenPrints():
                 competition = Competition(self.playground_url)
 
-                version_comp, model_page = competition.submit_model(model=model,
-                                                                    prediction_submission=prediction_submission,
-                                                                    preprocessor=preprocessor,
-                                                                    reproducibility_env_filepath=reproducibility_env_filepath,
-                                                                    custom_metadata=custom_metadata,
-                                                                    input_dict=input_dict,
-                                                                    print_output=False)
+                comp_result = competition.submit_model(model=model,
+                                                       prediction_submission=prediction_submission,
+                                                       preprocessor=preprocessor,
+                                                       reproducibility_env_filepath=reproducibility_env_filepath,
+                                                       custom_metadata=custom_metadata,
+                                                       input_dict=input_dict,
+                                                       print_output=False)
+                
+                # Validate return structure before unpacking
+                if not isinstance(comp_result, tuple) or len(comp_result) != 2:
+                    raise RuntimeError(f"Invalid return from competition.submit_model: expected (version, url) tuple, got {type(comp_result)}")
+                
+                version_comp, model_page = comp_result
 
             print(f"Your model has been submitted to competition as model version {version_comp}.")
 
@@ -1260,13 +1266,19 @@ class ModelPlayground:
             with HiddenPrints():
                 experiment = Experiment(self.playground_url)
 
-                version_exp, model_page = experiment.submit_model(model=model,
-                                                                  prediction_submission=prediction_submission,
-                                                                  preprocessor=preprocessor,
-                                                                  reproducibility_env_filepath=reproducibility_env_filepath,
-                                                                  custom_metadata=custom_metadata,
-                                                                  input_dict=input_dict,
-                                                                  print_output=False)
+                exp_result = experiment.submit_model(model=model,
+                                                     prediction_submission=prediction_submission,
+                                                     preprocessor=preprocessor,
+                                                     reproducibility_env_filepath=reproducibility_env_filepath,
+                                                     custom_metadata=custom_metadata,
+                                                     input_dict=input_dict,
+                                                     print_output=False)
+                
+                # Validate return structure before unpacking
+                if not isinstance(exp_result, tuple) or len(exp_result) != 2:
+                    raise RuntimeError(f"Invalid return from experiment.submit_model: expected (version, url) tuple, got {type(exp_result)}")
+                
+                version_exp, model_page = exp_result
 
             print(f"Your model has been submitted to experiment as model version {version_exp}.")
 

@@ -726,12 +726,11 @@ def submit_model(
     from aimodelshare.modeluser import get_jwt_token, create_user_getkeyandpassword
     import ast
 
-    # Confirm that creds are loaded, print warning if not
-    if all(["username" in os.environ, 
-            "password" in os.environ]):
-        pass
-    else:
-        return print("'Submit Model' unsuccessful. Please provide username and password using set_credentials() function.")
+    # Confirm that creds are loaded, raise error if not
+    # NOTE: Replaced 'return print(...)' with raise to prevent silent None propagation
+    if not all(["username" in os.environ, 
+                "password" in os.environ]):
+        raise RuntimeError("'Submit Model' unsuccessful. Please provide username and password using set_credentials() function.")
 
 
     ##---Step 2: Get bucket and model_id for playground and check prediction submission structure
@@ -832,20 +831,22 @@ def submit_model(
     eval_metrics_raw = json.loads(prediction.text)
     
     # Validate API response structure
+    # NOTE: Replaced 'return print(...)' with raise to prevent silent None propagation
     if not isinstance(eval_metrics_raw, dict):
         if isinstance(eval_metrics_raw, list):
-            print(eval_metrics_raw[0])
+            error_msg = str(eval_metrics_raw[0]) if eval_metrics_raw else "Empty list response"
+            raise RuntimeError(f'Unauthorized user: {error_msg}')
         else:
-            return print('Unauthorized user: You do not have access to submit models to, or request data from, this competition.')
+            raise RuntimeError('Unauthorized user: You do not have access to submit models to, or request data from, this competition.')
     
     if "message" in eval_metrics_raw:
-        return print('Unauthorized user: You do not have access to submit models to, or request data from, this competition.')
+        raise RuntimeError(f'Unauthorized user: {eval_metrics_raw.get("message", "You do not have access to submit models to, or request data from, this competition.")}')
     
     # Extract S3 presigned URL structure separately (before normalizing eval metrics)
     s3_presigned_dict = {key: val for key, val in eval_metrics_raw.items() if key != 'eval'}
     
     if 'idempotentmodel_version' not in s3_presigned_dict:
-        return print("Failed to get model version from API. Please check the API response.")
+        raise RuntimeError("Failed to get model version from API. Please check the API response.")
     
     idempotentmodel_version = s3_presigned_dict['idempotentmodel_version']
     s3_presigned_dict.pop('idempotentmodel_version')
@@ -1218,10 +1219,14 @@ def submit_model(
     else:
         code_comp_result="" #TODO: reponse 403 indicates that user needs to reset credentials.  Need to add a creds check to top of function.
 
+    # NOTE: Always return tuple (version, url) to prevent None propagation
+    # Print output is handled separately to maintain backward compatibility
+    model_page_url = "https://www.modelshare.ai/detail/model:"+response.text.split(":")[1]
+    
     if print_output:
-        return print("\nYour model has been submitted as model version "+str(model_version)+ "\n\n"+code_comp_result)
-    else:
-        return str(model_version), "https://www.modelshare.ai/detail/model:"+response.text.split(":")[1]
+        print("\nYour model has been submitted as model version "+str(model_version)+ "\n\n"+code_comp_result)
+    
+    return str(model_version), model_page_url
 
 def update_runtime_model(apiurl, model_version=None, submission_type="competition"):
     """
