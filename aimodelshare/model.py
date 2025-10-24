@@ -335,6 +335,55 @@ def _update_leaderboard_public(
 
  
 
+def _normalize_model_config(model_config, model_type=None):
+    """
+    Normalize model_config to a dict, handling various input types.
+    
+    Args:
+        model_config: Can be None, dict, or string representation of dict
+        model_type: Optional model type for context in warnings
+        
+    Returns:
+        dict: Normalized model config, or empty dict if normalization fails
+    """
+    import ast
+    
+    # If already a dict, return as-is
+    if isinstance(model_config, dict):
+        return model_config
+    
+    # If None or other non-string type, return empty dict
+    if not isinstance(model_config, str):
+        if model_config is not None:
+            print(f"Warning: model_config is {type(model_config).__name__}, expected str or dict. Using empty config.")
+        return {}
+    
+    # Try to parse string to dict
+    try:
+        import astunparse
+        
+        tree = ast.parse(model_config)
+        stringconfig = model_config
+        
+        # Find and quote callable nodes
+        problemnodes = []
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call):
+                problemnodes.append(astunparse.unparse(node).replace("\n", ""))
+        
+        problemnodesunique = set(problemnodes)
+        for i in problemnodesunique:
+            stringconfig = stringconfig.replace(i, "'" + i + "'")
+        
+        # Parse the modified string
+        model_config_dict = ast.literal_eval(stringconfig)
+        return model_config_dict if isinstance(model_config_dict, dict) else {}
+        
+    except Exception as e:
+        print(f"Warning: Failed to parse model_config string: {e}. Using empty config.")
+        return {}
+
+
 def upload_model_dict(modelpath, s3_presigned_dict, bucket, model_id, model_version, placeholder=False, onnx_model=None):
     import wget
     import json
@@ -355,59 +404,43 @@ def upload_model_dict(modelpath, s3_presigned_dict, bucket, model_id, model_vers
             
         elif meta_dict['ml_framework'] in ['sklearn', 'xgboost']:
 
-            model_config = meta_dict["model_config"]
-            tree = ast.parse(model_config)
-
-            stringconfig=model_config
-
-            problemnodes=[]
-            for node in ast.walk(tree):
-                if isinstance(node, ast.Call):
-                    problemnodes.append(astunparse.unparse(node).replace("\n",""))
-
-            problemnodesunique=set(problemnodes)
-            for i in problemnodesunique:
-                stringconfig=stringconfig.replace(i,"'"+i+"'")
+            # Normalize model_config to dict (handles None, dict, or string)
+            model_config = _normalize_model_config(
+                meta_dict.get("model_config"), 
+                meta_dict.get('model_type')
+            )
 
             try:
-                model_config=ast.literal_eval(stringconfig)
                 model_class = model_from_string(meta_dict['model_type'])
                 default = model_class()
                 default_config = default.get_params().values()
-                model_configkeys=model_config.keys()
-                model_configvalues=model_config.values()
+                model_configkeys = model_config.keys()
+                model_configvalues = model_config.values()
             except:
                 model_class = str(model_from_string(meta_dict['model_type']))
-                if model_class.find("Voting")>0:
-                      default_config = ["No data available"]
-                      model_configkeys=["No data available"]
-                      model_configvalues=["No data available"]
-
+                if model_class.find("Voting") > 0:
+                    default_config = ["No data available"]
+                    model_configkeys = ["No data available"]
+                    model_configvalues = ["No data available"]
+                else:
+                    # Fallback for other exceptions
+                    default_config = []
+                    model_configkeys = []
+                    model_configvalues = []
 
             inspect_pd = pd.DataFrame({'param_name': model_configkeys,
                                         'default_value': default_config,
                                         'param_value': model_configvalues})
 
         elif meta_dict['ml_framework'] in ['pyspark']:
-            import ast
-            import astunparse
-
-            model_config = meta_dict["model_config"]
-            tree = ast.parse(model_config)
-
-            stringconfig=model_config
-
-            problemnodes=[]
-            for node in ast.walk(tree):
-                if isinstance(node, ast.Call):
-                    problemnodes.append(astunparse.unparse(node).replace("\n",""))
-
-            problemnodesunique=set(problemnodes)
-            for i in problemnodesunique:
-                stringconfig=stringconfig.replace(i,"'"+i+"'")
+            
+            # Normalize model_config to dict (handles None, dict, or string)
+            model_config_temp = _normalize_model_config(
+                meta_dict.get("model_config"), 
+                meta_dict.get('model_type')
+            )
 
             try:
-                model_config_temp = ast.literal_eval(stringconfig)
                 model_class = pyspark_model_from_string(meta_dict['model_type'])
                 default = model_class()
 
@@ -425,10 +458,15 @@ def upload_model_dict(modelpath, s3_presigned_dict, bucket, model_id, model_vers
                 default_config = default_config.values()
             except:
                 model_class = str(pyspark_model_from_string(meta_dict['model_type']))
-                if model_class.find("Voting")>0:
-                      default_config = ["No data available"]
-                      model_configkeys=["No data available"]
-                      model_configvalues=["No data available"]
+                if model_class.find("Voting") > 0:
+                    default_config = ["No data available"]
+                    model_configkeys = ["No data available"]
+                    model_configvalues = ["No data available"]
+                else:
+                    # Fallback for other exceptions
+                    default_config = []
+                    model_configkeys = []
+                    model_configvalues = []
 
             inspect_pd = pd.DataFrame({'param_name': model_configkeys,
                                         'default_value': default_config,
@@ -996,36 +1034,30 @@ def submit_model(
             model_graph = ""
             
         elif meta_dict['ml_framework'] in ['sklearn', 'xgboost']:
-            import ast
-            import astunparse
-            model_config = meta_dict["model_config"]
-            tree = ast.parse(model_config)
-
-            stringconfig=model_config
-
-            problemnodes=[]
-            for node in ast.walk(tree):
-                if isinstance(node, ast.Call):
-                    problemnodes.append(astunparse.unparse(node).replace("\n",""))
-
-            problemnodesunique=set(problemnodes)
-            for i in problemnodesunique:
-                stringconfig=stringconfig.replace(i,"'"+i+"'")
+            
+            # Normalize model_config to dict (handles None, dict, or string)
+            model_config = _normalize_model_config(
+                meta_dict.get("model_config"), 
+                meta_dict.get('model_type')
+            )
 
             try:
-                model_config=ast.literal_eval(stringconfig)
                 model_class = model_from_string(meta_dict['model_type'])
                 default = model_class()
                 default_config = default.get_params().values()
-                model_configkeys=model_config.keys()
-                model_configvalues=model_config.values()
+                model_configkeys = model_config.keys()
+                model_configvalues = model_config.values()
             except:
                 model_class = str(model_from_string(meta_dict['model_type']))
-                if model_class.find("Voting")>0:
-                      default_config = ["No data available"]
-                      model_configkeys=["No data available"]
-                      model_configvalues=["No data available"]
-
+                if model_class.find("Voting") > 0:
+                    default_config = ["No data available"]
+                    model_configkeys = ["No data available"]
+                    model_configvalues = ["No data available"]
+                else:
+                    # Fallback for other exceptions
+                    default_config = []
+                    model_configkeys = []
+                    model_configvalues = []
 
             inspect_pd = pd.DataFrame({'param_name': model_configkeys,
                                         'default_value': default_config,
@@ -1034,25 +1066,14 @@ def submit_model(
             model_graph = ''
 
         elif meta_dict['ml_framework'] in ['pyspark']:
-            import ast
-            import astunparse
-
-            model_config = meta_dict["model_config"]
-            tree = ast.parse(model_config)
-
-            stringconfig=model_config
-
-            problemnodes=[]
-            for node in ast.walk(tree):
-                if isinstance(node, ast.Call):
-                    problemnodes.append(astunparse.unparse(node).replace("\n",""))
-
-            problemnodesunique=set(problemnodes)
-            for i in problemnodesunique:
-                stringconfig=stringconfig.replace(i,"'"+i+"'")
+            
+            # Normalize model_config to dict (handles None, dict, or string)
+            model_config_temp = _normalize_model_config(
+                meta_dict.get("model_config"), 
+                meta_dict.get('model_type')
+            )
 
             try:
-                model_config_temp = ast.literal_eval(stringconfig)
                 model_class = pyspark_model_from_string(meta_dict['model_type'])
                 default = model_class()
 
@@ -1070,10 +1091,15 @@ def submit_model(
                 default_config = default_config.values()
             except:
                 model_class = str(pyspark_model_from_string(meta_dict['model_type']))
-                if model_class.find("Voting")>0:
-                      default_config = ["No data available"]
-                      model_configkeys=["No data available"]
-                      model_configvalues=["No data available"]
+                if model_class.find("Voting") > 0:
+                    default_config = ["No data available"]
+                    model_configkeys = ["No data available"]
+                    model_configvalues = ["No data available"]
+                else:
+                    # Fallback for other exceptions
+                    default_config = []
+                    model_configkeys = []
+                    model_configvalues = []
 
             inspect_pd = pd.DataFrame({'param_name': model_configkeys,
                                     'default_value': default_config,
