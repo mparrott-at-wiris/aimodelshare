@@ -23,6 +23,87 @@ from aimodelshare.utils import ignore_warning
 import warnings
 
 
+def _normalize_eval_payload(raw_eval):
+    """
+    Normalize the API response eval payload to (public_eval_dict, private_eval_dict).
+    
+    Handles multiple response formats:
+    - {"eval": [public_dict, private_dict]}  -> extract both dicts
+    - {"eval": public_dict}                   -> public_dict, {}
+    - {"eval": None} or missing              -> {}, {}
+    - Malformed responses                     -> {}, {} with warning
+    
+    Args:
+        raw_eval: The raw API response (expected to be dict with 'eval' key)
+        
+    Returns:
+        tuple: (public_eval_dict, private_eval_dict) - both guaranteed to be dicts
+    """
+    public_eval = {}
+    private_eval = {}
+    
+    if not isinstance(raw_eval, dict):
+        print("---------------------------------------------------------------")
+        print(f"--- WARNING: API response is not a dict (type={type(raw_eval)}) ---")
+        print("Defaulting to empty eval metrics.")
+        print("---------------------------------------------------------------")
+        return public_eval, private_eval
+    
+    eval_field = raw_eval.get('eval')
+    
+    if eval_field is None:
+        # No eval field present
+        return public_eval, private_eval
+    
+    if isinstance(eval_field, list):
+        # Expected format: [public_dict, private_dict, ...]
+        if len(eval_field) >= 1 and isinstance(eval_field[0], dict):
+            public_eval = eval_field[0]
+        if len(eval_field) >= 2 and isinstance(eval_field[1], dict):
+            private_eval = eval_field[1]
+        elif len(eval_field) >= 1:
+            # Only one dict in list, treat as public
+            if not public_eval:
+                public_eval = {}
+    elif isinstance(eval_field, dict):
+        # Single dict, treat as public eval
+        public_eval = eval_field
+    else:
+        print("---------------------------------------------------------------")
+        print(f"--- WARNING: 'eval' field has unexpected type: {type(eval_field)} ---")
+        print("Defaulting to empty eval metrics.")
+        print("---------------------------------------------------------------")
+    
+    return public_eval, private_eval
+
+
+def _subset_numeric(metrics_dict, keys_to_extract):
+    """
+    Safely extract a subset of numeric metrics from a metrics dictionary.
+    
+    Args:
+        metrics_dict: Dictionary containing metric key-value pairs
+        keys_to_extract: List of keys to extract from the dictionary
+        
+    Returns:
+        dict: Subset of metrics that exist and have numeric (float/int) values
+    """
+    if not isinstance(metrics_dict, dict):
+        print("---------------------------------------------------------------")
+        print(f"--- WARNING: metrics_dict is not a dict (type={type(metrics_dict)}) ---")
+        print("Returning empty metrics subset.")
+        print("---------------------------------------------------------------")
+        return {}
+    
+    subset = {}
+    for key in keys_to_extract:
+        value = metrics_dict.get(key)
+        if value is not None and isinstance(value, (int, float)):
+            subset[key] = value
+    
+    return subset
+
+
 def _get_file_list(client, bucket,keysubfolderid):
     #  Reading file list {{{
     try:
@@ -747,61 +828,38 @@ def submit_model(
         import requests
         prediction = requests.post(apiurl_eval,headers=headers,data=json.dumps(post_dict)) 
 
-    eval_metrics=json.loads(prediction.text)
-        
-    # Extract private eval metrics, with error handling
-    try:
-        eval_metrics_private = {"eval": eval_metrics['eval'][1]}
-    except (KeyError, TypeError):
-        print("---------------------------------------------------------------")
-        print(f"--- UNEXPECTED API RESPONSE (KeyError/TypeError) ---")
-        print(f"Failed to parse 'eval' key in API response: {eval_metrics}")
-        print("This is likely an API error. Defaulting private eval_metrics to empty.")
-        print("---------------------------------------------------------------")
-        eval_metrics_private = {"eval": {}}
-    except Exception as e:
-        print("---------------------------------------------------------------")
-        print(f"--- UNEXPECTED ERROR PROCESSING METRICS: {e} ---")
-        print(f"API response text was: {prediction.text}")
-        print("Defaulting private eval_metrics to empty.")
-        print("---------------------------------------------------------------")
-        eval_metrics_private = {"eval": {}}
-
-
-    if all([isinstance(eval_metrics, dict),"message" not in eval_metrics]):
-        pass        
-    else:
-        if all([isinstance(eval_metrics, list)]):
-            print(eval_metrics[0])
+    # Parse the raw API response
+    eval_metrics_raw = json.loads(prediction.text)
+    
+    # Validate API response structure
+    if not isinstance(eval_metrics_raw, dict):
+        if isinstance(eval_metrics_raw, list):
+            print(eval_metrics_raw[0])
         else:
             return print('Unauthorized user: You do not have access to submit models to, or request data from, this competition.')
-
-
-    if all(value == None for value in eval_metrics.values()):
-        return print("Failed to calculate evaluation metrics. Please check the format of the submitted predictions.")
-
-    s3_presigned_dict = {key:val for key, val in eval_metrics.items() if key != 'eval'}
-
-    idempotentmodel_version=s3_presigned_dict['idempotentmodel_version']
+    
+    if "message" in eval_metrics_raw:
+        return print('Unauthorized user: You do not have access to submit models to, or request data from, this competition.')
+    
+    # Extract S3 presigned URL structure separately (before normalizing eval metrics)
+    s3_presigned_dict = {key: val for key, val in eval_metrics_raw.items() if key != 'eval'}
+    
+    if 'idempotentmodel_version' not in s3_presigned_dict:
+        return print("Failed to get model version from API. Please check the API response.")
+    
+    idempotentmodel_version = s3_presigned_dict['idempotentmodel_version']
     s3_presigned_dict.pop('idempotentmodel_version')
-
-    eval_metrics = {key:val for key, val in eval_metrics.items() if key != 'get'}
-    eval_metrics = {key:val for key, val in eval_metrics.items() if key != 'put'}
-
-    eval_metrics_private = {key:val for key, val in eval_metrics_private.items() if key != 'get'}
-    eval_metrics_private = {key:val for key, val in eval_metrics_private.items() if key != 'put'}
-
-
-    if eval_metrics.get("eval","empty")=="empty":
-      pass
-    else:
-      eval_metrics=eval_metrics['eval']
-
-
-    if eval_metrics_private.get("eval","empty")=="empty":
-      pass
-    else:
-      eval_metrics_private=eval_metrics_private['eval']
+    
+    # Normalize eval metrics using helper function
+    # This returns (public_eval_dict, private_eval_dict) regardless of API response shape
+    eval_metrics, eval_metrics_private = _normalize_eval_payload(eval_metrics_raw)
+    
+    # Check if we got any valid metrics
+    if not eval_metrics and not eval_metrics_private:
+        print("---------------------------------------------------------------")
+        print("--- WARNING: No evaluation metrics returned from API ---")
+        print("Proceeding with empty metrics. Model will be submitted without eval data.")
+        print("---------------------------------------------------------------")
 
 
     #upload preprocessor (1s for small upload vs 21 for 306 mbs)
@@ -1113,11 +1171,13 @@ def submit_model(
         
     keys_to_extract = [ "accuracy", "f1_score", "precision", "recall", "mse", "rmse", "mae", "r2"]
 
-    eval_metrics_subset = {key: eval_metrics[key] for key in keys_to_extract}
-    eval_metrics_private_subset = {key: eval_metrics_private[key] for key in keys_to_extract}
+    # Safely extract metric subsets using helper function
+    eval_metrics_subset = _subset_numeric(eval_metrics, keys_to_extract)
+    eval_metrics_private_subset = _subset_numeric(eval_metrics_private, keys_to_extract)
 
-    eval_metrics_subset_nonulls = {key: value for key, value in eval_metrics_subset.items() if isinstance(value, float)}
-    eval_metrics_private_subset_nonulls = {key: value for key, value in eval_metrics_private_subset.items() if isinstance(value, float)}
+    # Keep only numeric values (already done by _subset_numeric, but kept for backward compatibility)
+    eval_metrics_subset_nonulls = {key: value for key, value in eval_metrics_subset.items() if isinstance(value, (int, float))}
+    eval_metrics_private_subset_nonulls = {key: value for key, value in eval_metrics_private_subset.items() if isinstance(value, (int, float))}
 
                               
     #Update model architecture data
