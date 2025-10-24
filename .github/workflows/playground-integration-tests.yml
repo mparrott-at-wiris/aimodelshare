@@ -193,7 +193,7 @@ jobs:
           from aimodelshare.playground import ModelPlayground
           from aimodelshare.playground import ModelPlayground, Experiment, Competition
           from aimodelshare.aws import set_credentials, get_aws_token
-          from aimodelshare.modeluser import get_jwt_token
+          from aimodelshare.modeluser import get_jwt_token, create_user_getkeyandpassword
           import aimodelshare as ai
           from aimodelshare.data_sharing.utils import redo_with_write
           import traceback
