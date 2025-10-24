@@ -212,19 +212,14 @@ jobs:
             
           # Validate AWS Creds 
           import boto3
-          try: 
-            client = boto3.client('sts', aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"), aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY_AIMS"))
-            details = client.get_caller_identity()
-            print("AWS credentials set successfully.")
-          except: 
-            print("AWS credential confirmation unsuccessful. Check AWS_ACCESS_KEY_ID & AWS_SECRET_ACCESS_KEY and try again.")
-            return
+          client = boto3.client('sts', aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"), aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY_AIMS"))
+          details = client.get_caller_identity()
+
           
           # Set Environment Variables for deploy models
-          if type == "deploy_model":
-            get_jwt_token(os.environ.get("username"), os.environ.get("password")) # check two different cognito functions here
-            os.environ["AWS_TOKEN"]=get_aws_token()
-            #create_user_getkeyandpassword() 
+          get_jwt_token(os.environ.get("username"), os.environ.get("password")) # check two different cognito functions here
+          os.environ["AWS_TOKEN"]=get_aws_token()
+          #create_user_getkeyandpassword() 
           penguins = sns.load_dataset('penguins').dropna()
           X = penguins[['bill_length_mm','bill_depth_mm','flipper_length_mm','body_mass_g']]
           y = penguins['sex']
