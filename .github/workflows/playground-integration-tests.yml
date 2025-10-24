@@ -29,10 +29,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      USERNAME: ${{ secrets.USERNAME }}
-      PASSWORD: ${{ secrets.PASSWORD }}
-      username: ${{ secrets.USERNAME }}
-      password: ${{ secrets.PASSWORD }}
+      USERNAME: ${{ secrets.AIMODELSHARE_USERNAME }}
+      PASSWORD: ${{ secrets.AIMODELSHARE_PASSWORD }}
       AWS_ACCESS_KEY_ID: ${{ secrets.DATA_AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.DATA_AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: us-east-1
@@ -164,10 +162,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      USERNAME: ${{ secrets.USERNAME }}
-      PASSWORD: ${{ secrets.PASSWORD }}
-      username: ${{ secrets.USERNAME }}
-      password: ${{ secrets.PASSWORD }}
+      username: ${{ secrets.AIMODELSHARE_USERNAME }}
+      password: ${{ secrets.AIMODELSHARE_PASSWORD }}
       AWS_ACCESS_KEY_ID: ${{ secrets.DATA_AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.DATA_AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: us-east-1
@@ -226,7 +222,7 @@ jobs:
             # Set Environment Variables for deploy models
             os.environ['AWS_TOKEN']=get_aws_token()
           
-            get_jwt_token(os.environ.get('USERNAME'), os.environ.get('PASSWORD')) # check two different cognito functions here
+            get_jwt_token(os.environ.get('username'), os.environ.get('password')) # check two different cognito functions here
             #create_user_getkeyandpassword()
           except Exception as e:
             logging.error(traceback.format_exc())
