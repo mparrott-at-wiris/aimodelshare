@@ -196,6 +196,8 @@ jobs:
           from aimodelshare.modeluser import get_jwt_token
           import aimodelshare as ai
           from aimodelshare.data_sharing.utils import redo_with_write
+          import traceback
+          import logging
           
           # mock user input
           os.environ['username'] = os.environ.get('USERNAME')
@@ -207,20 +209,27 @@ jobs:
             os.environ['AWS_ACCESS_KEY_ID_AIMS']=os.environ.get('AWS_ACCESS_KEY_ID')
             os.environ['AWS_SECRET_ACCESS_KEY_AIMS']=os.environ.get('AWS_SECRET_ACCESS_KEY')
             os.environ['AWS_REGION_AIMS']=os.environ.get('AWS_REGION')
-          except:
-            print('error setting AIMs env vars')
-            pass
+          except Exception as e:
+            logging.error(traceback.format_exc())
             
           # Validate AWS Creds 
-          import boto3
-          client = boto3.client('sts', aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'), aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'))
-          details = client.get_caller_identity()
 
+          try: 
+            import boto3
+            client = boto3.client('sts', aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'), aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'))
+            details = client.get_caller_identity()
+          except Exception as e:
+            logging.error(traceback.format_exc())
+
+          try: 
+            # Set Environment Variables for deploy models
+            os.environ['AWS_TOKEN']=get_aws_token()
           
-          # Set Environment Variables for deploy models
-          os.environ['AWS_TOKEN']=get_aws_token()
-          get_jwt_token(os.environ.get('USERNAME'), os.environ.get('PASSWORD')) # check two different cognito functions here
-          #create_user_getkeyandpassword() 
+            get_jwt_token(os.environ.get('USERNAME'), os.environ.get('PASSWORD')) # check two different cognito functions here
+            #create_user_getkeyandpassword()
+          except Exception as e:
+            logging.error(traceback.format_exc())
+            
           penguins = sns.load_dataset('penguins').dropna()
           X = penguins[['bill_length_mm','bill_depth_mm','flipper_length_mm','body_mass_g']]
           y = penguins['sex']
