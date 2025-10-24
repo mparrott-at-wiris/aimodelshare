@@ -218,7 +218,7 @@ jobs:
 
           
           # Set Environment Variables for deploy models
-          get_jwt_token(os.environ.get('username'), os.environ.get('password')) # check two different cognito functions here
+          get_jwt_token(os.environ.get('USERNAME'), os.environ.get('PASSWORD')) # check two different cognito functions here
           os.environ['AWS_TOKEN']=get_aws_token()
           #create_user_getkeyandpassword() 
           penguins = sns.load_dataset('penguins').dropna()
