@@ -15,6 +15,7 @@ on:
           - preprocessing
           - model_training
           - create_submit_getleaderboard
+          - submit_model_penguins
 
 permissions:
   contents: read
@@ -266,6 +267,38 @@ jobs:
           "
 
 
+  test-submit-model-penguins:
+    if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'submit_model_penguins' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      USERNAME: ${{ secrets.AIMODELSHARE_USERNAME }}
+      PASSWORD: ${{ secrets.AIMODELSHARE_PASSWORD }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.DATA_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.DATA_AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: us-east-1
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
+          pip install -e .
+          pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript
+          pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
+      - name: Run penguin submit_model integration test
+        run: |
+          pytest -vv tests/integration/test_penguin_playground_submit_model.py::test_penguin_playground_submit_model_all --maxfail=1
+      - name: Post-run summary
+        if: always()
+        run: |
+          echo "submit_model_penguins job finished with status: ${{ job.status }}"
+
   integration-summary:
     needs:
       - test-credentials
@@ -273,6 +306,7 @@ jobs:
       - test-preprocessing
       - test-model-training
       - test-playground-create-submit-deploy-leaderboard
+      - test-submit-model-penguins
       
     runs-on: ubuntu-latest
     if: always()
@@ -285,3 +319,4 @@ jobs:
           echo "Preprocessing: ${{ needs.test-preprocessing.result }}"
           echo "Model Training: ${{ needs.test-model-training.result }}"
           echo "Model Submission / Leaderboard: ${{ needs.test-playground-create-submit-deploy-leaderboard.result }}"
+          echo "Submit Model Penguins: ${{ needs.test-submit-model-penguins.result }}"
