@@ -31,6 +31,8 @@ jobs:
     env:
       USERNAME: ${{ secrets.USERNAME }}
       PASSWORD: ${{ secrets.PASSWORD }}
+      username: ${{ secrets.USERNAME }}
+      password: ${{ secrets.PASSWORD }}
       AWS_ACCESS_KEY_ID: ${{ secrets.DATA_AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.DATA_AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: us-east-1
@@ -164,6 +166,8 @@ jobs:
     env:
       USERNAME: ${{ secrets.USERNAME }}
       PASSWORD: ${{ secrets.PASSWORD }}
+      username: ${{ secrets.USERNAME }}
+      password: ${{ secrets.PASSWORD }}
       AWS_ACCESS_KEY_ID: ${{ secrets.DATA_AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.DATA_AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: us-east-1
@@ -199,9 +203,6 @@ jobs:
           import traceback
           import logging
           
-          # mock user input
-          os.environ['username'] = os.environ.get('USERNAME')
-          os.environ['password'] = os.environ.get('PASSWORD')
           
           #Validate Username & Password
           try: 
