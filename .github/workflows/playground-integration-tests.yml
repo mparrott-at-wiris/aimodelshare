@@ -203,20 +203,11 @@ jobs:
           #Validate Username & Password
           try: 
             os.environ["AWS_TOKEN"]=get_aws_token()
-            
-          if "AWS_ACCESS_KEY_ID_AIMS" in os.environ:
-            pass
-          elif "AWS_ACCESS_KEY_ID" in os.environ:
-              os.environ['AWS_ACCESS_KEY_ID_AIMS']=os.environ.get("AWS_ACCESS_KEY_ID")
-          if "AWS_SECRET_ACCESS_KEY_AIMS" in os.environ:
-            pass
-          elif "AWS_SECRET_ACCESS_KEY" in os.environ:
-              os.environ['AWS_SECRET_ACCESS_KEY_AIMS']=os.environ.get("AWS_SECRET_ACCESS_KEY")
-
-          if 'AWS_REGION_AIMS' in os.environ:
-            pass
-          elif "AWS_REGION" in os.environ:
-              os.environ['AWS_REGION_AIMS']=os.environ.get("AWS_REGION")
+            os.environ['AWS_ACCESS_KEY_ID_AIMS']=os.environ.get("AWS_ACCESS_KEY_ID")
+            os.environ['AWS_SECRET_ACCESS_KEY_AIMS']=os.environ.get("AWS_SECRET_ACCESS_KEY")
+            os.environ['AWS_REGION_AIMS']=os.environ.get("AWS_REGION")
+          except:
+            print("error setting AIMs env vars")
           # Validate AWS Creds 
           import boto3
           try: 
