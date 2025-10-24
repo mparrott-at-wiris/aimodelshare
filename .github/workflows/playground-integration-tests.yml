@@ -223,7 +223,7 @@ jobs:
             os.environ['AWS_TOKEN']=get_aws_token()
           
             get_jwt_token(os.environ.get('username'), os.environ.get('password')) # check two different cognito functions here
-            #create_user_getkeyandpassword()
+            create_user_getkeyandpassword()
           except Exception as e:
             logging.error(traceback.format_exc())
             
