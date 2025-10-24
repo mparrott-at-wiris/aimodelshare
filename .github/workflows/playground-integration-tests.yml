@@ -241,7 +241,7 @@ jobs:
           playground = ModelPlayground(input_type='tabular', task_type='classification', private=True)
           playground.create(eval_data=eval_labels, public=True)
           playground.submit_model(model=model,
-                                  preprocessor=preprocessor,
+                                  preprocessor=None,
                                   prediction_submission=preds,
                                   input_dict={'description':'CI test','tags':'integration'},
                                   submission_type='experiment')
