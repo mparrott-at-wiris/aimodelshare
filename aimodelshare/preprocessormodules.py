@@ -116,6 +116,26 @@ def import_preprocessor(filepath):
 
     return preprocessor
 
+def _test_object_serialization(obj, obj_name):
+    """
+    Test if an object can be serialized with pickle.
+    
+    Args:
+        obj: Object to test
+        obj_name: Name of the object for error reporting
+        
+    Returns:
+        tuple: (success: bool, error_msg: str or None)
+    """
+    import pickle
+    
+    try:
+        pickle.dumps(obj)
+        return True, None
+    except Exception as e:
+        return False, f"{type(e).__name__}: {str(e)}"
+
+
 def export_preprocessor(preprocessor_fxn,directory, globs=globals()):
     """
     Exports preprocessor and related objects into zip file for model deployment
@@ -167,7 +187,7 @@ def export_preprocessor(preprocessor_fxn,directory, globs=globals()):
         function_objects=list(inspect.getclosurevars(preprocessor_fxn).globals.keys())
         
         import sys
-        import imp
+        import importlib.util
         modulenames = ["sklearn","keras","tensorflow","cv2","resize","pytorch","librosa","pyspark"]
 
         # List all standard libraries not covered by sys.builtin_module_names
@@ -185,9 +205,12 @@ def export_preprocessor(preprocessor_fxn,directory, globs=globals()):
                     modulenames.append(module_name)
                     continue
 
-                module_path = imp.find_module(module_name)[1]
-                if os.path.dirname(module_path) in stdlib:
-                    modulenames.append(module_name)
+                # Use importlib.util instead of deprecated imp
+                spec = importlib.util.find_spec(module_name)
+                if spec and spec.origin:
+                    module_path = spec.origin
+                    if os.path.dirname(module_path) in stdlib:
+                        modulenames.append(module_name)
             except Exception as e:
                 # print(e)
                 continue
@@ -232,12 +255,19 @@ def export_preprocessor(preprocessor_fxn,directory, globs=globals()):
 
         export_methods = []
         savedpreprocessorobjectslist = []
+        failed_objects = []  # Track failed serializations for better diagnostics
+        
         for function_objects_nomodule in function_objects_nomodules:
             try:
                 savedpreprocessorobjectslist.append(savetopickle(function_objects_nomodule))
                 export_methods.append("pickle")
             except Exception as e:
-                # print(e)
+                # Track this failure for diagnostics
+                can_serialize, error_msg = _test_object_serialization(
+                    globals().get(function_objects_nomodule), 
+                    function_objects_nomodule
+                )
+                
                 try:
                     os.remove(os.path.join(temp_dir, function_objects_nomodule+".pkl"))
                 except:
@@ -246,7 +276,14 @@ def export_preprocessor(preprocessor_fxn,directory, globs=globals()):
                 try:
                     savedpreprocessorobjectslist.append(save_to_zip(function_objects_nomodule))
                     export_methods.append("zip")
-                except Exception as e:
+                except Exception as zip_e:
+                    # Both pickle and zip failed - record this
+                    failed_objects.append({
+                        'name': function_objects_nomodule,
+                        'type': type(globals().get(function_objects_nomodule, None)).__name__,
+                        'pickle_error': str(e),
+                        'zip_error': str(zip_e)
+                    })
                     # print(e)
                     pass
         
@@ -265,6 +302,20 @@ def export_preprocessor(preprocessor_fxn,directory, globs=globals()):
         # close the Zip File
         zipObj.close()
 
+        # If any critical objects failed to serialize, raise an error with details
+        if failed_objects:
+            failed_names = [obj['name'] for obj in failed_objects]
+            error_details = "\n".join([
+                f"  - {obj['name']} (type: {obj['type']}): {obj['pickle_error'][:100]}"
+                for obj in failed_objects
+            ])
+            raise RuntimeError(
+                f"Preprocessor export encountered serialization failures for {len(failed_objects)} closure variable(s): "
+                f"{', '.join(failed_names)}.\n\nDetails:\n{error_details}\n\n"
+                f"These objects are referenced by your preprocessor function but cannot be serialized. "
+                f"Common causes include open file handles, database connections, or thread locks."
+            )
+
         try:
             # clean up temp directory files for future runs
             os.remove(os.path.join(temp_dir,"preprocessor.py"))
@@ -279,6 +330,9 @@ def export_preprocessor(preprocessor_fxn,directory, globs=globals()):
             pass
 
     except Exception as e:
+        # Re-raise RuntimeError with preserved message
+        if isinstance(e, RuntimeError):
+            raise
         print(e)
 
     return print("Your preprocessor is now saved to 'preprocessor.zip'")
