@@ -245,6 +245,11 @@ jobs:
                                   prediction_submission=preds,
                                   input_dict={'description':'CI test','tags':'integration'},
                                   submission_type='experiment')
+          playground.submit_model(model=model,
+                                  preprocessor=preprocessor,
+                                  prediction_submission=preds,
+                                  input_dict={'description':'CI test','tags':'integration'},
+                                  submission_type='experiment')
           data = playground.get_leaderboard()
           # Depending on library version, this may be a dict or DataFrame; adapt assertion
           if isinstance(data, dict):
