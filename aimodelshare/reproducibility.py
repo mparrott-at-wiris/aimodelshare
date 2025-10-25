@@ -3,11 +3,15 @@ import sys
 import json
 import random
 import tempfile
-import pkg_resources
 import requests
 
 import numpy as np
 import tensorflow as tf
+
+try:
+    import importlib.metadata as md
+except ImportError:  # pragma: no cover
+    import importlib_metadata as md
 
 from aimodelshare.aws import get_s3_iam_client, run_function_on_lambda, get_aws_client
 
@@ -44,9 +48,13 @@ def export_reproducibility_env(seed, directory, mode="gpu"):
   else:
     raise Exception("Error: unknown 'mode' value, expected 'gpu' or 'cpu'")
 
-  installed_packages = pkg_resources.working_set
-  installed_packages_list = sorted(["%s==%s" % (i.key, i.version)
-    for i in installed_packages])
+  # Get installed packages using importlib.metadata
+  installed_packages_list = []
+  for dist in md.distributions():
+    name = dist.metadata.get("Name") or "unknown"
+    version = dist.version
+    installed_packages_list.append(f"{name}=={version}")
+  installed_packages_list = sorted(installed_packages_list)
 
   data["session_runtime_info"] = {
     "installed_packages": installed_packages_list,

@@ -23,7 +23,7 @@ from aimodelshare.aws import get_s3_iam_client, run_function_on_lambda, get_toke
 from aimodelshare.bucketpolicy import _custom_upload_policy
 from aimodelshare.exceptions import AuthorizationError, AWSAccessError, AWSUploadError
 from aimodelshare.api import get_api_json
-from aimodelshare.modeluser import create_user_getkeyandpassword
+from aimodelshare.modeluser import create_user_getkeyandpassword, decode_token_unverified
 from aimodelshare.preprocessormodules import upload_preprocessor
 from aimodelshare.model import _get_predictionmodel_key, _extract_model_metadata
 from aimodelshare.data_sharing.share_data import share_data_codebuild
@@ -447,7 +447,7 @@ def model_to_api(model_filepath, model_type, private, categorical, y_train, prep
 
     if all([isinstance(email_list, list)]):
         idtoken = get_aws_token()
-        decoded = jwt.decode(idtoken,options={"verify_signature": False,"verify_aud": False})
+        decoded = decode_token_unverified(idtoken)
 
         email=None
         email = decoded['email']
@@ -593,9 +593,8 @@ def create_competition(apiurl, data_directory, y_test, eval_metric_filepath=None
     """
     if all([isinstance(email_list, list)]):
         if any([len(email_list)>0, public=="True",public=="TRUE",public==True]):
-              import jwt
               idtoken=get_aws_token()
-              decoded = jwt.decode(idtoken,options={"verify_signature": False,"verify_aud": False})
+              decoded = decode_token_unverified(idtoken)
 
               email=decoded['email']
               email_list.append(email)
@@ -759,9 +758,8 @@ def create_experiment(apiurl, data_directory, y_test, eval_metric_filepath=None,
     """
     if all([isinstance(email_list, list)]):
         if any([len(email_list)>0, public=="True",public=="TRUE",public==True]):
-              import jwt
               idtoken=get_aws_token()
-              decoded = jwt.decode(idtoken,options={"verify_signature": False,"verify_aud": False})
+              decoded = decode_token_unverified(idtoken)
 
               email=decoded['email']
               email_list.append(email)
