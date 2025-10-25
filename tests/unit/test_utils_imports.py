@@ -2,25 +2,28 @@
 import sys
 import os
 import tempfile
+import pytest
 
 
-def test_hiddenprints_import():
+@pytest.fixture(scope="module")
+def utils_module():
+    """Fixture to import the utils module directly."""
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../aimodelshare'))
+    import utils as utils_mod
+    return utils_mod
+
+
+def test_hiddenprints_import(utils_module):
     """Test that HiddenPrints can be imported from aimodelshare.utils."""
-    # Import directly from utils to avoid heavy dependencies
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../aimodelshare'))
-    import utils
-    
-    assert hasattr(utils, 'HiddenPrints'), "HiddenPrints not found in utils"
-    assert 'HiddenPrints' in utils.__all__, "HiddenPrints not in __all__"
+    assert hasattr(utils_module, 'HiddenPrints'), "HiddenPrints not found in utils"
+    assert 'HiddenPrints' in utils_module.__all__, "HiddenPrints not in __all__"
 
 
-def test_hiddenprints_functionality():
+def test_hiddenprints_functionality(utils_module):
     """Test that HiddenPrints suppresses both stdout and stderr."""
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../aimodelshare'))
-    import utils
     from io import StringIO
     
-    HiddenPrints = utils.HiddenPrints
+    HiddenPrints = utils_module.HiddenPrints
     
     # Capture what would normally be printed
     old_stdout = sys.stdout
@@ -37,33 +40,25 @@ def test_hiddenprints_functionality():
     assert sys.stderr == old_stderr, "stderr not properly restored"
 
 
-def test_ignore_warning_import():
+def test_ignore_warning_import(utils_module):
     """Test that ignore_warning can be imported from aimodelshare.utils."""
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../aimodelshare'))
-    import utils
-    
-    assert hasattr(utils, 'ignore_warning'), "ignore_warning not found in utils"
-    assert 'ignore_warning' in utils.__all__, "ignore_warning not in __all__"
+    assert hasattr(utils_module, 'ignore_warning'), "ignore_warning not found in utils"
+    assert 'ignore_warning' in utils_module.__all__, "ignore_warning not in __all__"
 
 
-def test_utility_functions_import():
+def test_utility_functions_import(utils_module):
     """Test that utility functions can be imported from aimodelshare.utils."""
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../aimodelshare'))
-    import utils
+    assert hasattr(utils_module, 'delete_files_from_temp_dir'), "delete_files_from_temp_dir not found"
+    assert hasattr(utils_module, 'delete_folder'), "delete_folder not found"
+    assert hasattr(utils_module, 'make_folder'), "make_folder not found"
     
-    assert hasattr(utils, 'delete_files_from_temp_dir'), "delete_files_from_temp_dir not found"
-    assert hasattr(utils, 'delete_folder'), "delete_folder not found"
-    assert hasattr(utils, 'make_folder'), "make_folder not found"
-    
-    assert 'delete_files_from_temp_dir' in utils.__all__, "delete_files_from_temp_dir not in __all__"
-    assert 'delete_folder' in utils.__all__, "delete_folder not in __all__"
-    assert 'make_folder' in utils.__all__, "make_folder not in __all__"
+    assert 'delete_files_from_temp_dir' in utils_module.__all__, "delete_files_from_temp_dir not in __all__"
+    assert 'delete_folder' in utils_module.__all__, "delete_folder not in __all__"
+    assert 'make_folder' in utils_module.__all__, "make_folder not in __all__"
 
 
-def test_utility_functions_work():
+def test_utility_functions_work(utils_module):
     """Test that utility functions work correctly."""
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../aimodelshare'))
-    import utils
     import shutil
     
     # Test make_folder
@@ -71,11 +66,11 @@ def test_utility_functions_work():
     if os.path.exists(test_dir):
         shutil.rmtree(test_dir)
     
-    utils.make_folder(test_dir)
+    utils_module.make_folder(test_dir)
     assert os.path.exists(test_dir), "make_folder did not create directory"
     
     # Test delete_folder
-    utils.delete_folder(test_dir)
+    utils_module.delete_folder(test_dir)
     assert not os.path.exists(test_dir), "delete_folder did not remove directory"
     
     # Test delete_files_from_temp_dir
@@ -84,36 +79,37 @@ def test_utility_functions_work():
     with open(test_path, 'w') as f:
         f.write('test')
     
-    utils.delete_files_from_temp_dir([test_file])
+    utils_module.delete_files_from_temp_dir([test_file])
     assert not os.path.exists(test_path), "delete_files_from_temp_dir did not remove file"
 
 
-def test_check_optional_import():
+def test_check_optional_import(utils_module):
     """Test that check_optional can be imported from aimodelshare.utils."""
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../aimodelshare'))
-    import utils
-    
-    assert hasattr(utils, 'check_optional'), "check_optional not found in utils"
-    assert 'check_optional' in utils.__all__, "check_optional not in __all__"
+    assert hasattr(utils_module, 'check_optional'), "check_optional not found in utils"
+    assert 'check_optional' in utils_module.__all__, "check_optional not in __all__"
 
 
 if __name__ == '__main__':
-    test_hiddenprints_import()
+    # For standalone execution
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../aimodelshare'))
+    import utils
+    
+    test_hiddenprints_import(utils)
     print('✓ test_hiddenprints_import passed')
     
-    test_hiddenprints_functionality()
+    test_hiddenprints_functionality(utils)
     print('✓ test_hiddenprints_functionality passed')
     
-    test_ignore_warning_import()
+    test_ignore_warning_import(utils)
     print('✓ test_ignore_warning_import passed')
     
-    test_utility_functions_import()
+    test_utility_functions_import(utils)
     print('✓ test_utility_functions_import passed')
     
-    test_utility_functions_work()
+    test_utility_functions_work(utils)
     print('✓ test_utility_functions_work passed')
     
-    test_check_optional_import()
+    test_check_optional_import(utils)
     print('✓ test_check_optional_import passed')
     
     print('\n✅ ALL TESTS PASSED')
