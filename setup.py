@@ -32,6 +32,8 @@ setuptools.setup(
         'wget',            # File download utility
         'PyJWT<2.0',       # JSON Web Token library (version constraint for compatibility)
         'pydot',           # ONNX graph visualization support (required by onnx.tools.net_drawer)
+        'regex',   
+
     ],
     extras_require={
         'visual': ['pydot', 'graphviz'],  # Optional dependencies for full ONNX graph rendering
