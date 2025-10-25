@@ -34,6 +34,7 @@ setuptools.setup(
         'pydot',           # ONNX graph visualization support (required by onnx.tools.net_drawer)
         'regex',  
         'psutil',  
+        'IPython',  
 
     ],
     extras_require={
