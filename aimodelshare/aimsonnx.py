@@ -2,28 +2,31 @@
 import pandas as pd
 import numpy as np 
 
+# Import optional dependency checker
+from aimodelshare.utils.optional_deps import check_optional
+
 # ml frameworks
 try:
     import sklearn
     from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 except:
-    print("Warning: Please install sklearn to enable sklearn features")
+    check_optional("sklearn", "Scikit-learn")
 
 try:
     import torch
 except:
-    print("Warning: Please install pytorch to enable pytorch features")
+    check_optional("torch", "PyTorch")
 
 try:
     import xgboost
 except:
-    print("Warning: Please install xgboost to enable xgboost features")
+    check_optional("xgboost", "XGBoost")
 
 try:
     import tensorflow as tf
     import keras
 except:
-    print("Warning: Please install tensorflow/keras to enable tensorflow/keras features")
+    check_optional("tensorflow", "TensorFlow/Keras")
 
 try:
     import pyspark
@@ -32,7 +35,7 @@ try:
     from pyspark.ml.tuning import CrossValidatorModel, TrainValidationSplitModel
     from onnxmltools import convert_sparkml
 except:
-    print("Warning: Please install pyspark to enable pyspark features")
+    check_optional("pyspark", "PySpark")
 
 
 # onnx modules
@@ -914,7 +917,7 @@ def model_to_onnx(model, framework=None, model_input=None, initial_types=None,
             from pyspark.ml.tuning import CrossValidatorModel, TrainValidationSplitModel
             from onnxmltools import convert_sparkml
         except:
-            print("Warning: Please install pyspark to enable pyspark features")
+            check_optional("pyspark", "PySpark")
         onnx = _pyspark_to_onnx(model, initial_types=initial_types, 
                                 transfer_learning=transfer_learning, 
                                 deep_learning=deep_learning, 

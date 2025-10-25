@@ -10,6 +10,27 @@ import datetime
 import regex as re
 from aimodelshare.exceptions import AuthorizationError, AWSAccessError, AWSUploadError
 
+def decode_token_unverified(token: str):
+    """Decode a JWT without verifying signature or audience, compatible with PyJWT<2 and >=2 versions.
+    
+    Parameters
+    ----------
+    token : str
+        The JWT token to decode
+    
+    Returns
+    -------
+    dict
+        The decoded token payload
+    """
+    import jwt
+    try:
+        return jwt.decode(token, options={"verify_signature": False, "verify_aud": False})
+    except TypeError:
+        # PyJWT >=2 may require specifying algorithms if verification is enabled; here we keep it disabled
+        return jwt.decode(token, options={"verify_signature": False, "verify_aud": False}, algorithms=["HS256"])
+
+
 def get_jwt_token(username, password):
 
     config = botocore.config.Config(signature_version=botocore.UNSIGNED)
@@ -124,4 +145,5 @@ def create_user_getkeyandpassword():
 __all__ = [
     get_jwt_token,
     create_user_getkeyandpassword,
+    decode_token_unverified,
 ]
