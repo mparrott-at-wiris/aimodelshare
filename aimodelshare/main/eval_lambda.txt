@@ -28,6 +28,9 @@ def _ensure_df(obj):
     Safely convert various input types to pandas DataFrame.
     Handles dict, list, and DataFrame inputs with robust error handling.
     
+    For dict inputs, always treats them as a single row to maintain consistent
+    behavior and avoid unexpected flattening of nested structures.
+    
     Args:
         obj: Input object (DataFrame, dict, list, or other)
     
@@ -40,16 +43,8 @@ def _ensure_df(obj):
         return obj
     
     if isinstance(obj, dict):
-        # Check if all values are scalar (not list, tuple, or dict)
-        if all(not isinstance(v, (list, tuple, dict)) for v in obj.values()):
-            # Scalar dict -> single row DataFrame
-            return pd.DataFrame([obj])
-        # Complex dict -> try to normalize
-        try:
-            return pd.json_normalize(obj)
-        except Exception:
-            # Fallback: treat as single row
-            return pd.DataFrame([obj])
+        # Always treat dict as single row to maintain consistent structure
+        return pd.DataFrame([obj])
     
     if isinstance(obj, list):
         if len(obj) == 0:
@@ -1067,18 +1062,17 @@ def get_leaderboard(task_type="classification", verbose=3, columns=None, private
                 print(f"Warning: Could not read leaderboard for version {i}: {e}")
                 continue
             
-            # Ensure both are DataFrames before concat
-            leaderboard = _ensure_df(leaderboard)
+            # Ensure newleaderboard is a DataFrame before concat
             newleaderboard = _ensure_df(newleaderboard)
             
             # Use pd.concat instead of deprecated append
             leaderboard = pd.concat([leaderboard, newleaderboard], ignore_index=True)
             
-            # Deduplicate based on version column if present
+            # Deduplicate based on version column if present, keeping last occurrence
             if 'version' in leaderboard.columns:
-                leaderboard = leaderboard.drop_duplicates(subset=['version'])
+                leaderboard = leaderboard.drop_duplicates(subset=['version'], keep='last')
             else:
-                leaderboard = leaderboard.drop_duplicates()
+                leaderboard = leaderboard.drop_duplicates(keep='last')
             
         leaderboard.drop(leaderboard.filter(regex="Unname"),axis=1, inplace=True)
     #save new leaderboard here
