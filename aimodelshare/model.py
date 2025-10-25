@@ -105,64 +105,124 @@ def _subset_numeric(metrics_dict, keys_to_extract):
 
 
 def _prepare_preprocessor_if_function(preprocessor, debug_mode=False):
+    """Prepare a preprocessor for submission.
+    Accepts:
+      - None: returns None
+      - Path to existing preprocessor zip (.zip)
+      - Callable function: exports source or pickled callable with loader
+      - Transformer object (e.g., sklearn Pipeline/ColumnTransformer) with .transform: pickles object + loader
+    Returns: absolute path to created or existing preprocessor zip, or None.
+    Raises: RuntimeError with actionable message on failure.
     """
-    Convert function-based preprocessor to validated zip file.
+    import inspect
+    import tempfile
+    import zipfile
+    import pickle
+    import textwrap
     
-    Args:
-        preprocessor: Preprocessor function or file path
-        debug_mode: If True, log detailed diagnostics for closure variable serialization
-        
-    Returns:
-        str: Path to validated preprocessor zip file
-        
-    Raises:
-        RuntimeError: If export fails, zip is empty, or missing required files
-    """
-    import types
-    from zipfile import ZipFile
-    import logging
-    
-    # If not a function, return as-is
-    if not isinstance(preprocessor, types.FunctionType):
+    if preprocessor is None:
+        return None
+
+    # Existing zip path
+    if isinstance(preprocessor, str) and preprocessor.endswith('.zip'):
+        if not os.path.exists(preprocessor):
+            raise RuntimeError(f"Preprocessor export failed: zip path not found: {preprocessor}")
+        if debug_mode:
+            print(f"[DEBUG] Using existing preprocessor zip: {preprocessor}")
         return preprocessor
-    
-    # Debug mode: Enumerate and test closure variables
-    if debug_mode:
-        _diagnose_closure_variables(preprocessor)
-    
-    # Export function to temporary directory
-    from aimodelshare.preprocessormodules import export_preprocessor
-    temp_prep = tmp.mkdtemp()
-    export_preprocessor(preprocessor, temp_prep)
-    preprocessor_path = temp_prep + "/preprocessor.zip"
-    
-    # Validate exported zip file exists
-    if not os.path.exists(preprocessor_path):
+
+    # Determine if transformer object
+    is_transformer_obj = hasattr(preprocessor, 'transform') and not inspect.isfunction(preprocessor)
+
+    serialize_object = None
+    export_callable = None
+
+    if is_transformer_obj:
+        if debug_mode:
+            print('[DEBUG] Detected transformer object; preparing wrapper.')
+        transformer_obj = preprocessor
+
+        def _wrapped_preprocessor(data):
+            return transformer_obj.transform(data)
+        export_callable = _wrapped_preprocessor
+        serialize_object = transformer_obj  # pickle the transformer
+
+    elif callable(preprocessor):
+        export_callable = preprocessor
+    else:
         raise RuntimeError(
-            f"Preprocessor export failed: zip file not found at {preprocessor_path}"
+            f"Preprocessor export failed: Unsupported type {type(preprocessor)}. "
+            "Provide a callable, transformer with .transform, an existing .zip path, or None."
         )
-    
-    # Validate zip file has non-zero size
-    file_size = os.path.getsize(preprocessor_path)
-    if file_size == 0:
-        raise RuntimeError(
-            f"Preprocessor export failed: zip file is empty (0 bytes)"
-        )
-    
-    # Validate zip contains preprocessor.py
+
+    tmp_dir = tempfile.mkdtemp()
+    py_path = os.path.join(tmp_dir, 'preprocessor.py')
+    zip_path = os.path.join(tmp_dir, 'preprocessor.zip')
+    pkl_name = 'preprocessor.pkl'
+
+    source_written = False
+    # Attempt direct source extraction if not a transformer serialization
+    if serialize_object is None:
+        try:
+            src = inspect.getsource(export_callable)
+            with open(py_path, 'w') as f:
+                f.write(src)
+            source_written = True
+            if debug_mode:
+                print('[DEBUG] Wrote source for callable preprocessor.')
+        except Exception as e:
+            if debug_mode:
+                print(f'[DEBUG] Source extraction failed; falling back to pickled callable: {e}')
+            serialize_object = export_callable  # fallback to pickling callable
+
+    # If transformer or fallback pickled callable: write loader stub
+    if serialize_object is not None and not source_written:
+        loader_stub = textwrap.dedent(f"""
+        import pickle, os
+        _PKL_FILE = '{pkl_name}'
+        _loaded_obj = None
+        def preprocessor(data):
+            global _loaded_obj
+            if _loaded_obj is None:
+                with open(os.path.join(os.path.dirname(__file__), _PKL_FILE), 'rb') as pf:
+                    _loaded_obj = pickle.load(pf)
+            # If original object was a transformer it has .transform; else callable
+            if hasattr(_loaded_obj, 'transform'):
+                return _loaded_obj.transform(data)
+            return _loaded_obj(data)
+        """)
+        with open(py_path, 'w') as f:
+            f.write(loader_stub)
+        if debug_mode:
+            print('[DEBUG] Wrote loader stub for pickled object.')
+
+    # Serialize object if needed
+    if serialize_object is not None:
+        try:
+            with open(os.path.join(tmp_dir, pkl_name), 'wb') as pf:
+                pickle.dump(serialize_object, pf)
+            if debug_mode:
+                print('[DEBUG] Pickled transformer/callable successfully.')
+        except Exception as e:
+            raise RuntimeError(f'Preprocessor export failed: pickling failed: {e}')
+
+    # Create zip
     try:
-        with ZipFile(preprocessor_path, 'r') as zip_file:
-            zip_contents = zip_file.namelist()
-            if 'preprocessor.py' not in zip_contents:
-                raise RuntimeError(
-                    f"Preprocessor export failed: 'preprocessor.py' not found in zip. Contents: {zip_contents}"
-                )
+        with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+            zf.write(py_path, arcname='preprocessor.py')
+            pkl_path = os.path.join(tmp_dir, pkl_name)
+            if os.path.exists(pkl_path):
+                zf.write(pkl_path, arcname=pkl_name)
     except Exception as e:
-        if isinstance(e, RuntimeError):
-            raise
-        raise RuntimeError(f"Preprocessor zip validation failed: {e}")
-    
-    return preprocessor_path
+        raise RuntimeError(f'Preprocessor export failed: zip creation error: {e}')
+
+    # Final validation
+    if not os.path.exists(zip_path) or os.path.getsize(zip_path) == 0:
+        raise RuntimeError(f'Preprocessor export failed: zip file not found or empty at {zip_path}')
+
+    if debug_mode:
+        print(f'[DEBUG] Preprocessor zip created: {zip_path}')
+    return zip_path
 
 
 def _diagnose_closure_variables(preprocessor_fxn):

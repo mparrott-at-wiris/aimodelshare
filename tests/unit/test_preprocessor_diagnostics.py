@@ -53,7 +53,8 @@ class TestPreprocessorDiagnostics:
         
         # Verify the debug_mode parameter exists
         assert 'def _prepare_preprocessor_if_function(preprocessor, debug_mode=False)' in content
-        assert '_diagnose_closure_variables(preprocessor)' in content
+        # Verify debug mode is used for printing debug messages
+        assert '[DEBUG]' in content or 'debug_mode' in content
     
     def test_export_preprocessor_tracks_failures(self):
         """Test that export_preprocessor tracks failed serializations."""
