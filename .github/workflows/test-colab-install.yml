@@ -5,16 +5,6 @@ name: Test Colab Install
 
 on:
   workflow_dispatch: # Manual trigger
-  push:
-    branches:
-      - master
-    paths:
-      - 'setup.py'
-      - 'aimodelshare/**'
-  pull_request:
-    paths:
-      - 'setup.py'
-      - 'aimodelshare/**'
 
 permissions:
   contents: read
@@ -30,7 +20,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10"]
+        python-version: ["3.12", "3.11", "3.10"]
 
     steps:
       - name: Checkout repository
