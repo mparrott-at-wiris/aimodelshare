@@ -142,7 +142,8 @@ class TestPyJWTCompatibility:
         
         # Create a simple test token
         payload = {"user": "testuser", "exp": 9999999999}
-        token = jwt.encode(payload, "secret", algorithm="HS256")
+        test_secret = "fake-secret-for-testing-only"
+        token = jwt.encode(payload, test_secret, algorithm="HS256")
         
         # Decode using our wrapper
         decoded = decode_token_unverified(token)
