@@ -1,0 +1,82 @@
+name: Test Colab Simulated Environment
+
+# This workflow simulates a Google Colab environment (Python 3.12.12) 
+# to validate aimodelshare PyPI installation with exact Colab-like package versions
+
+"on":
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch: # Manual trigger
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-colab-simulated-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-colab-simulated:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Upgrade pip
+        run: |
+          python -m pip install --upgrade pip
+
+      - name: Install Colab-like core package versions
+        run: |
+          pip install numpy==1.26.4
+          pip install pandas==2.2.2
+          pip install scikit-learn==1.5.0
+          pip install onnx==1.16.0
+          pip install onnxruntime==1.18.0
+          pip install tensorflow==2.19.0
+          pip install torch==2.8.0
+          pip install seaborn==0.13.2
+          pip install matplotlib==3.9.0
+          pip install requests==2.32.4
+
+      - name: Print all versions to confirm environment
+        run: |
+          echo "=== Python Version ==="
+          python --version
+          echo ""
+          echo "=== Package Versions ==="
+          python -c "import numpy; print('numpy:', numpy.__version__)"
+          python -c "import pandas; print('pandas:', pandas.__version__)"
+          python -c "import sklearn; print('scikit-learn:', sklearn.__version__)"
+          python -c "import onnx; print('onnx:', onnx.__version__)"
+          python -c "import onnxruntime; print('onnxruntime:', onnxruntime.__version__)"
+          python -c "import tensorflow; print('tensorflow:', tensorflow.__version__)"
+          python -c "import torch; print('torch:', torch.__version__)"
+          python -c "import seaborn; print('seaborn:', seaborn.__version__)"
+          python -c "import matplotlib; print('matplotlib:', matplotlib.__version__)"
+          python -c "import requests; print('requests:', requests.__version__)"
+          echo ""
+
+      - name: Install aimodelshare from PyPI
+        run: |
+          pip install aimodelshare
+
+      - name: Test aimodelshare import
+        run: |
+          python -c "import aimodelshare; print('aimodelshare imported successfully')"
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "=== Test Summary ==="
+          echo "Python version: 3.12"
+          echo "Test completed with status: ${{ job.status }}"
