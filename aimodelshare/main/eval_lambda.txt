@@ -1068,11 +1068,11 @@ def get_leaderboard(task_type="classification", verbose=3, columns=None, private
             # Use pd.concat instead of deprecated append
             leaderboard = pd.concat([leaderboard, newleaderboard], ignore_index=True)
             
-            # Deduplicate based on version column if present, keeping last occurrence
-            if 'version' in leaderboard.columns:
-                leaderboard = leaderboard.drop_duplicates(subset=['version'], keep='last')
-            else:
-                leaderboard = leaderboard.drop_duplicates(keep='last')
+        # Deduplicate once after all concatenations, keeping last occurrence
+        if 'version' in leaderboard.columns:
+            leaderboard = leaderboard.drop_duplicates(subset=['version'], keep='last')
+        else:
+            leaderboard = leaderboard.drop_duplicates(keep='last')
             
         leaderboard.drop(leaderboard.filter(regex="Unname"),axis=1, inplace=True)
     #save new leaderboard here
