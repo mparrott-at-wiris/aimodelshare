@@ -8,11 +8,11 @@ setuptools.setup(
     name='aimodelshare',
     version='0.1.58',  # Updated version for pydot dependency and ONNX graph rendering support
     author="Michael Parrott",
-    author_email="mikedparrott@modelshare.org",
+    author_email="mikedparrott@modelshare.ai",
     description="Deploy locally saved machine learning models to a live rest API and web-dashboard.  Share it with the world via modelshare.org",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://www.modelshare.org",
+    url="https://www.modelshare.ai",
     packages=setuptools.find_packages(),
     # Core dependencies required for aimodelshare functionality
     install_requires=[
@@ -32,7 +32,8 @@ setuptools.setup(
         'wget',            # File download utility
         'PyJWT<2.0',       # JSON Web Token library (version constraint for compatibility)
         'pydot',           # ONNX graph visualization support (required by onnx.tools.net_drawer)
-        'regex',   
+        'regex',  
+        'psutil',  
 
     ],
     extras_require={
