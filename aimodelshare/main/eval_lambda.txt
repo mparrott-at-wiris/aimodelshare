@@ -21,6 +21,50 @@ logger = logging.getLogger(__name__)
 
 
 ####################################################################
+##################### Helper Functions #############################
+
+def _ensure_df(obj):
+    """
+    Safely convert various input types to pandas DataFrame.
+    Handles dict, list, and DataFrame inputs with robust error handling.
+    
+    Args:
+        obj: Input object (DataFrame, dict, list, or other)
+    
+    Returns:
+        pandas.DataFrame
+    """
+    import pandas as pd
+    
+    if isinstance(obj, pd.DataFrame):
+        return obj
+    
+    if isinstance(obj, dict):
+        # Check if all values are scalar (not list, tuple, or dict)
+        if all(not isinstance(v, (list, tuple, dict)) for v in obj.values()):
+            # Scalar dict -> single row DataFrame
+            return pd.DataFrame([obj])
+        # Complex dict -> try to normalize
+        try:
+            return pd.json_normalize(obj)
+        except Exception:
+            # Fallback: treat as single row
+            return pd.DataFrame([obj])
+    
+    if isinstance(obj, list):
+        if len(obj) == 0:
+            return pd.DataFrame()
+        # If all elements are dicts, create DataFrame from list of dicts
+        if all(isinstance(x, dict) for x in obj):
+            return pd.DataFrame(obj)
+        # Otherwise, create single-column DataFrame
+        return pd.DataFrame({'value': obj})
+    
+    # For any other type, return empty DataFrame
+    return pd.DataFrame()
+
+
+####################################################################
 ########################### main handler ###########################
 
 def handler(event, context):
@@ -984,13 +1028,25 @@ def get_leaderboard(task_type="classification", verbose=3, columns=None, private
 
     s3 = boto3.resource("s3")
     bucketres = s3.Bucket("$bucket_name")
-    with open("/tmp/"+mastertable_path.split("/")[-1]+".csv", "wb") as lbfo:
-      bucketres.download_fileobj("$unique_model_id/"+mastertable_path+".csv", lbfo)              
-      
-      
-      
-    leaderboard = pd.read_csv("/tmp/"+mastertable_path.split("/")[-1]+".csv", sep="\t")
-    currentversions=leaderboard['version']
+    
+    # Defensive read of master leaderboard file
+    try:
+        with open("/tmp/"+mastertable_path.split("/")[-1]+".csv", "wb") as lbfo:
+            bucketres.download_fileobj("$unique_model_id/"+mastertable_path+".csv", lbfo)
+        leaderboard = pd.read_csv("/tmp/"+mastertable_path.split("/")[-1]+".csv", sep="\t")
+    except Exception as e:
+        print(f"Warning: Could not read master leaderboard file: {e}")
+        leaderboard = pd.DataFrame()
+    
+    # Ensure leaderboard is a DataFrame
+    leaderboard = _ensure_df(leaderboard)
+    
+    # Get current versions if available
+    try:
+        currentversions=leaderboard['version']
+    except KeyError:
+        currentversions=[]
+    
     print("current versions:")
     print(list(currentversions))
     allversions = [sub.split('_v')[1].split('.')[0] for sub in newleaderboarddata]
@@ -1002,12 +1058,27 @@ def get_leaderboard(task_type="classification", verbose=3, columns=None, private
     #TODO: check if items in leaderboard, if so, then do following
     if len(missingincurrent_leaderboard)>0:
         for i in missingincurrent_leaderboard:
-            with open("/tmp/"+mastertable_path.split("/")[-1]+"_v"+str(i)+".csv", "wb") as lbfo:
-              bucketres.download_fileobj("$unique_model_id/"+mastertable_path+"_v"+str(i)+".csv", lbfo)
-            newleaderboard = pd.read_csv("/tmp/"+mastertable_path.split("/")[-1]+"_v"+str(i)+".csv", sep="\t")
-            newleaderboard.drop(newleaderboard.filter(regex="Unname"),axis=1, inplace=True)
+            try:
+                with open("/tmp/"+mastertable_path.split("/")[-1]+"_v"+str(i)+".csv", "wb") as lbfo:
+                    bucketres.download_fileobj("$unique_model_id/"+mastertable_path+"_v"+str(i)+".csv", lbfo)
+                newleaderboard = pd.read_csv("/tmp/"+mastertable_path.split("/")[-1]+"_v"+str(i)+".csv", sep="\t")
+                newleaderboard.drop(newleaderboard.filter(regex="Unname"),axis=1, inplace=True)
+            except Exception as e:
+                print(f"Warning: Could not read leaderboard for version {i}: {e}")
+                continue
             
-            leaderboard=leaderboard.append(newleaderboard).drop_duplicates()
+            # Ensure both are DataFrames before concat
+            leaderboard = _ensure_df(leaderboard)
+            newleaderboard = _ensure_df(newleaderboard)
+            
+            # Use pd.concat instead of deprecated append
+            leaderboard = pd.concat([leaderboard, newleaderboard], ignore_index=True)
+            
+            # Deduplicate based on version column if present
+            if 'version' in leaderboard.columns:
+                leaderboard = leaderboard.drop_duplicates(subset=['version'])
+            else:
+                leaderboard = leaderboard.drop_duplicates()
             
         leaderboard.drop(leaderboard.filter(regex="Unname"),axis=1, inplace=True)
     #save new leaderboard here
