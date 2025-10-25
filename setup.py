@@ -37,7 +37,7 @@ setuptools.setup(
         "License :: Other/Proprietary License",  # Proprietary license (not OSI approved)
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.7',
+    python_requires='>=3.10',
     include_package_data=True,
     #package_data={'': ['placeholders/model.onnx', 'placeholders/preprocessor.zip']},
     )     
