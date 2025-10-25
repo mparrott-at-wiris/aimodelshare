@@ -1,0 +1,132 @@
+name: Test Colab Install
+
+# This workflow tests the PyPI installation of aimodelshare in a Colab-like environment
+# to ensure fast installation and basic functionality work correctly.
+
+on:
+  workflow_dispatch: # Manual trigger
+  push:
+    branches:
+      - master
+    paths:
+      - 'setup.py'
+      - 'aimodelshare/**'
+  pull_request:
+    paths:
+      - 'setup.py'
+      - 'aimodelshare/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-colab-install-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-pypi-install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Upgrade pip
+        run: |
+          python -m pip install --upgrade pip
+
+      - name: Install aimodelshare from local setup.py (simulating PyPI install)
+        run: |
+          # Install aimodelshare with all dependencies as specified in setup.py
+          pip install .
+          
+      - name: Verify installation and list installed packages
+        run: |
+          pip list | grep -E "(aimodelshare|numpy|pandas|requests|boto3|onnx|scikit-learn|PyJWT)"
+          
+      - name: Test basic import and functionality
+        run: |
+          python -c "import aimodelshare; print('aimodelshare imported successfully')"
+          python -c "import numpy; print('numpy version:', numpy.__version__)"
+          python -c "import pandas; print('pandas version:', pandas.__version__)"
+          python -c "import sklearn; print('scikit-learn version:', sklearn.__version__)"
+          python -c "import onnx; print('onnx version:', onnx.__version__)"
+          python -c "import onnxruntime; print('onnxruntime version:', onnxruntime.__version__)"
+          
+      - name: Verify all required dependencies are installed
+        run: |
+          python - <<'PYCODE'
+          import sys
+          
+          # List of required packages from setup.py
+          required_packages = [
+              'numpy',
+              'pandas', 
+              'requests',
+              'boto3',
+              'onnx',
+              'onnxmltools',
+              'onnxruntime',
+              'skl2onnx',
+              'tf2onnx',
+              'sklearn',  # scikit-learn imports as sklearn
+              'scikeras',
+              'shortuuid',
+              'Pympler',
+              'wget',
+              'jwt',  # PyJWT imports as jwt
+          ]
+          
+          missing = []
+          for package in required_packages:
+              try:
+                  __import__(package)
+                  print(f"✓ {package} imported successfully")
+              except ImportError as e:
+                  print(f"✗ {package} import failed: {e}")
+                  missing.append(package)
+          
+          if missing:
+              print(f"\nMissing packages: {missing}")
+              sys.exit(1)
+          else:
+              print("\n✓ All required dependencies verified successfully")
+          PYCODE
+
+      - name: Test basic aimodelshare functionality
+        run: |
+          python - <<'PYCODE'
+          # Test basic imports from aimodelshare package
+          try:
+              import aimodelshare
+              print("✓ aimodelshare module loaded")
+              
+              # Check if main functionality is accessible
+              # (without requiring credentials or API access)
+              if hasattr(aimodelshare, '__version__'):
+                  print(f"✓ aimodelshare version: {aimodelshare.__version__}")
+              
+              print("✓ Basic functionality test passed")
+          except Exception as e:
+              print(f"✗ Functionality test failed: {e}")
+              import sys
+              sys.exit(1)
+          PYCODE
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "=== Test Summary ==="
+          echo "Python version: ${{ matrix.python-version }}"
+          echo "Test completed with status: ${{ job.status }}"

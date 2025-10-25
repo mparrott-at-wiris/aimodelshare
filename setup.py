@@ -5,8 +5,8 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name='aimodelshare', #TODO:update
-    version='0.1.56',        #TODO:update
+    name='aimodelshare',
+    version='0.1.57',  # Updated version for proprietary license and dependency improvements
     author="Michael Parrott",
     author_email="mikedparrott@modelshare.org",
     description="Deploy locally saved machine learning models to a live rest API and web-dashboard.  Share it with the world via modelshare.org",
@@ -14,21 +14,27 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://www.modelshare.org",
     packages=setuptools.find_packages(),
+    # Core dependencies required for aimodelshare functionality
     install_requires=[
-        'boto3',
-        'onnx',
-        'scikeras',
-        'shortuuid',
-        'tf2onnx',
-        'skl2onnx',
-        'onnxruntime',
-        'Pympler',
-        'wget',
-        'onnxmltools'
+        'numpy',           # Array and numerical computing
+        'pandas',          # Data manipulation and analysis
+        'requests',        # HTTP library for API calls
+        'boto3',           # AWS SDK for cloud storage
+        'onnx',            # ONNX model format support
+        'onnxmltools',     # ONNX conversion tools
+        'onnxruntime',     # ONNX runtime for model inference
+        'skl2onnx',        # Scikit-learn to ONNX conversion
+        'tf2onnx',         # TensorFlow to ONNX conversion
+        'scikit-learn',    # Machine learning library
+        'scikeras',        # Keras wrapper for scikit-learn
+        'shortuuid',       # Short UUID generation
+        'Pympler',         # Memory profiling
+        'wget',            # File download utility
+        'PyJWT<2.0',       # JSON Web Token library (version constraint for compatibility)
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: Proprietary",
+        "License :: Other/Proprietary License",  # Proprietary license (not OSI approved)
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.7',
