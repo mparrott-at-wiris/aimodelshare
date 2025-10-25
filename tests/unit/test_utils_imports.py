@@ -21,8 +21,6 @@ def test_hiddenprints_import(utils_module):
 
 def test_hiddenprints_functionality(utils_module):
     """Test that HiddenPrints suppresses both stdout and stderr."""
-    from io import StringIO
-    
     HiddenPrints = utils_module.HiddenPrints
     
     # Capture what would normally be printed
