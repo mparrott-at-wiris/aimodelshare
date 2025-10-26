@@ -1017,23 +1017,39 @@ def model_to_onnx_timed(model_filepath, force_onnx=False, timeout=60, model_inpu
 
             except:
                 print("Timeout: Model to ONNX conversion is taking longer than expected. This can be the case for big models.")
-                response = ''
-                while response not in {"1", "2"}:
-                    response = input("Do you want to keep trying (1) or submit predictions only (2)? ")
-
-                if response == "1":
-                    try:
-                        import torch
-                        if isinstance(model_filepath, torch.nn.Module):
-                            onnx_model = model_to_onnx(model_filepath, model_input=model_input)
-                        else:
-                            onnx_model = model_to_onnx(model_filepath)
-                    except:
-                        onnx_model = model_to_onnx(model_filepath)
-                    model_filepath = onnx_model
-
-                elif response == "2":
+                
+                # Detect CI/testing environment for non-interactive fallback
+                is_non_interactive = (
+                    os.environ.get("PYTEST_CURRENT_TEST") is not None or
+                    os.environ.get("AIMS_NON_INTERACTIVE") == "1"
+                )
+                
+                if is_non_interactive:
+                    # Auto-fallback to predictions-only in CI/testing environment
+                    print("Non-interactive environment detected. Falling back to predictions-only submission.")
                     model_filepath = None
+                else:
+                    # Interactive prompt for manual runs
+                    response = ''
+                    while response not in {"1", "2"}:
+                        response = input("Do you want to keep trying (1) or submit predictions only (2)? ")
+
+                    if response == "1":
+                        try:
+                            import torch
+                            if isinstance(model_filepath, torch.nn.Module):
+                                onnx_model = model_to_onnx(model_filepath, model_input=model_input)
+                            else:
+                                onnx_model = model_to_onnx(model_filepath)
+                        except Exception as e:
+                            # Final fallback - if torch-specific handling failed, try generic conversion
+                            # This handles cases where torch module detection fails but conversion might still work
+                            warnings.warn(f"PyTorch-specific ONNX conversion failed ({e}), attempting generic conversion")
+                            onnx_model = model_to_onnx(model_filepath, model_input=model_input)
+                        model_filepath = onnx_model
+
+                    elif response == "2":
+                        model_filepath = None
 
             finally:
                 print()

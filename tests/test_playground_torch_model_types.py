@@ -287,6 +287,19 @@ def test_torch_model_submission(model_name, model_class, shared_playground, iris
         model = model_class()
         model = train_torch_model(model, X_train_scaled, y_train)
         
+        # Create dummy input for ONNX conversion (1 sample with input_dim features)
+        # Using randn (random normal) instead of zeros for better model testing:
+        # - Batch normalization layers may not initialize running stats properly with all-zero inputs
+        # - Random inputs better exercise activation functions and dropout layers
+        # - Provides more realistic test of model behavior during ONNX conversion
+        input_dim = X_train_scaled.shape[1]
+        dummy_input = torch.randn((1, input_dim), dtype=torch.float32)
+        
+        # Perform a lightweight forward pass to ensure module parameters are initialized
+        model.eval()
+        with torch.no_grad():
+            _ = model(dummy_input)
+        
         # Generate predictions
         preds = predict_torch_model(model, X_test_scaled)
         
@@ -305,14 +318,11 @@ def test_torch_model_submission(model_name, model_class, shared_playground, iris
                 'description': f'CI test {model_name} no preprocessor',
                 'tags': f'integration,{model_name},no_preprocessor'
             },
-            submission_type='experiment'
+            submission_type='experiment',
+            model_input=dummy_input
         )
         print(f"✓ Submission A (predictions only) succeeded")
     except Exception as e:
-        error_str = str(e).lower()
-        # Skip if error is due to ONNX conversion issue
-        if 'onnx' in error_str or 'conversion' in error_str or 'export' in error_str:
-            pytest.skip(f"Skipping {model_name} submission A due to ONNX export limitation: {e}")
         error_msg = f"Submission A failed for {model_name}: {e}"
         print(f"✗ {error_msg}")
         submission_errors.append(error_msg)
@@ -327,19 +337,16 @@ def test_torch_model_submission(model_name, model_class, shared_playground, iris
                 'description': f'CI test {model_name} with preprocessor',
                 'tags': f'integration,{model_name},with_preprocessor'
             },
-            submission_type='experiment'
+            submission_type='experiment',
+            model_input=dummy_input
         )
         print(f"✓ Submission B (with preprocessor) succeeded")
     except Exception as e:
-        error_str = str(e).lower()
-        # Skip if error is due to ONNX conversion issue
-        if 'onnx' in error_str or 'conversion' in error_str or 'export' in error_str:
-            pytest.skip(f"Skipping {model_name} submission B due to ONNX export limitation: {e}")
         error_msg = f"Submission B failed for {model_name}: {e}"
         print(f"✗ {error_msg}")
         submission_errors.append(error_msg)
     
-    # Fail the test if any submission errors occurred (that weren't ONNX-related)
+    # Fail the test if any submission errors occurred
     if submission_errors:
         pytest.fail(
             f"Submission errors for {model_name}:\n" + 
