@@ -288,8 +288,9 @@ def test_torch_model_submission(model_name, model_class, shared_playground, iris
         model = train_torch_model(model, X_train_scaled, y_train)
         
         # Create dummy input for ONNX conversion (1 sample with input_dim features)
+        # Using randn instead of zeros to better exercise model paths (e.g., batch norm)
         input_dim = X_train_scaled.shape[1]
-        dummy_input = torch.zeros((1, input_dim), dtype=torch.float32)
+        dummy_input = torch.randn((1, input_dim), dtype=torch.float32)
         
         # Perform a lightweight forward pass to ensure module parameters are initialized
         model.eval()

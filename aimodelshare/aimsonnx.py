@@ -1042,7 +1042,12 @@ def model_to_onnx_timed(model_filepath, force_onnx=False, timeout=60, model_inpu
                             else:
                                 onnx_model = model_to_onnx(model_filepath)
                         except:
-                            onnx_model = model_to_onnx(model_filepath)
+                            # Final fallback - try without torch-specific handling
+                            # but still pass model_input in case it helps
+                            try:
+                                onnx_model = model_to_onnx(model_filepath, model_input=model_input)
+                            except:
+                                onnx_model = model_to_onnx(model_filepath)
                         model_filepath = onnx_model
 
                     elif response == "2":
