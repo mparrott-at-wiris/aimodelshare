@@ -15,6 +15,7 @@ on:
           - preprocessing
           - model_training
           - create_submit_getleaderboard
+          - model_types
 
 permissions:
   contents: read
@@ -268,6 +269,36 @@ jobs:
           "
 
 
+  test-playground-sklearn-model-types:
+    if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'model_types' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      username: ${{ secrets.AIMODELSHARE_USERNAME }}
+      password: ${{ secrets.AIMODELSHARE_PASSWORD }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.DATA_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.DATA_AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: us-east-1
+      TF_CPP_MIN_LOG_LEVEL: "2"
+      AIMODELSHARE_SUPPRESS_OPTIONAL_WARNINGS: "1"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install local aimodelshare (editable) + test dependencies
+        run: |
+          pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
+          pip install -e .
+          pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript
+          pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
+      - name: Test sklearn model types submission
+        run: |
+          pytest -vv tests/test_playground_model_types.py
+
+
   integration-summary:
     needs:
       - test-credentials
@@ -275,6 +306,7 @@ jobs:
       - test-preprocessing
       - test-model-training
       - test-playground-create-submit-deploy-leaderboard
+      - test-playground-sklearn-model-types
       
     runs-on: ubuntu-latest
     if: always()
@@ -287,3 +319,4 @@ jobs:
           echo "Preprocessing: ${{ needs.test-preprocessing.result }}"
           echo "Model Training: ${{ needs.test-model-training.result }}"
           echo "Model Submission / Leaderboard: ${{ needs.test-playground-create-submit-deploy-leaderboard.result }}"
+          echo "Sklearn Model Types: ${{ needs.test-playground-sklearn-model-types.result }}"
