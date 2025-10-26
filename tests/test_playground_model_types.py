@@ -3,6 +3,8 @@ Comprehensive sklearn model submission test for ModelPlayground.
 
 Tests 18 different sklearn classifier types with and without preprocessors
 using the iris dataset to validate submit_model functionality.
+
+Uses session-scoped fixtures for playground and preprocessing to reduce overhead.
 """
 
 import os
@@ -42,29 +44,30 @@ from aimodelshare.modeluser import get_jwt_token, create_user_getkeyandpassword
 
 # Define the 18 classifier variants to test
 CLASSIFIERS = [
-    ("LogisticRegression", LogisticRegression(max_iter=1000, random_state=42)),
+    ("LogisticRegression", LogisticRegression(max_iter=500, random_state=42)),
     ("RidgeClassifier", RidgeClassifier(random_state=42)),
-    ("SGDClassifier", SGDClassifier(max_iter=1000, random_state=42, tol=1e-3)),
+    ("SGDClassifier", SGDClassifier(max_iter=500, random_state=42, tol=1e-3)),
     ("SVC", SVC(probability=True, random_state=42)),
-    ("CalibratedClassifierCV_LinearSVC", CalibratedClassifierCV(LinearSVC(random_state=42, max_iter=1000))),
+    ("CalibratedClassifierCV_LinearSVC", CalibratedClassifierCV(LinearSVC(random_state=42, max_iter=500), cv=2)),
     ("KNeighborsClassifier", KNeighborsClassifier()),
     ("GaussianNB", GaussianNB()),
     ("MultinomialNB", MultinomialNB()),  # Requires non-negative features
     ("DecisionTreeClassifier", DecisionTreeClassifier(random_state=42)),
-    ("RandomForestClassifier", RandomForestClassifier(n_estimators=10, random_state=42)),
-    ("ExtraTreesClassifier", ExtraTreesClassifier(n_estimators=10, random_state=42)),
-    ("GradientBoostingClassifier", GradientBoostingClassifier(n_estimators=10, random_state=42)),
-    ("HistGradientBoostingClassifier", HistGradientBoostingClassifier(max_iter=10, random_state=42)),
-    ("AdaBoostClassifier", AdaBoostClassifier(n_estimators=10, random_state=42)),
-    ("BaggingClassifier", BaggingClassifier(n_estimators=10, random_state=42)),
+    ("RandomForestClassifier", RandomForestClassifier(n_estimators=5, random_state=42)),
+    ("ExtraTreesClassifier", ExtraTreesClassifier(n_estimators=5, random_state=42)),
+    ("GradientBoostingClassifier", GradientBoostingClassifier(n_estimators=5, random_state=42)),
+    ("HistGradientBoostingClassifier", HistGradientBoostingClassifier(max_iter=5, random_state=42)),
+    ("AdaBoostClassifier", AdaBoostClassifier(n_estimators=5, random_state=42)),
+    ("BaggingClassifier", BaggingClassifier(n_estimators=5, random_state=42)),
     ("LinearDiscriminantAnalysis", LinearDiscriminantAnalysis()),
     ("QuadraticDiscriminantAnalysis", QuadraticDiscriminantAnalysis()),
-    ("MLPClassifier", MLPClassifier(max_iter=1000, random_state=42, hidden_layer_sizes=(10,))),
+    ("MLPClassifier", MLPClassifier(max_iter=200, random_state=42, hidden_layer_sizes=(10,))),
 ]
 
 
-def setup_credentials():
-    """Setup credentials for playground tests."""
+@pytest.fixture(scope="session")
+def credentials():
+    """Setup credentials for playground tests (session-scoped)."""
     # Try to load from file first (for local testing)
     try:
         set_credentials(credential_file="../../../credentials.txt", type="deploy_model")
@@ -99,8 +102,9 @@ def setup_credentials():
         os.remove("credentials.txt")
 
 
-def setup_aws_environment():
-    """Setup AWS environment variables."""
+@pytest.fixture(scope="session")
+def aws_environment(credentials):
+    """Setup AWS environment variables (session-scoped)."""
     try:
         os.environ['AWS_TOKEN'] = get_aws_token()
         os.environ['AWS_ACCESS_KEY_ID_AIMS'] = os.environ.get('AWS_ACCESS_KEY_ID')
@@ -117,8 +121,9 @@ def setup_aws_environment():
         print(f"Warning: Could not validate JWT tokens: {e}")
 
 
-def load_and_prepare_iris_data():
-    """Load iris dataset and prepare train/test splits."""
+@pytest.fixture(scope="session")
+def iris_data():
+    """Load and prepare iris dataset (session-scoped)."""
     # Load iris dataset
     iris = load_iris()
     X = iris.data
@@ -132,8 +137,14 @@ def load_and_prepare_iris_data():
     return X_train, X_test, y_train, y_test
 
 
-def create_preprocessors(X_train):
-    """Create preprocessing pipelines."""
+@pytest.fixture(scope="session")
+def preprocessors(iris_data):
+    """Create preprocessing pipelines (session-scoped).
+    
+    Returns both preprocessor objects and callable functions.
+    """
+    X_train, X_test, y_train, y_test = iris_data
+    
     # StandardScaler preprocessor
     scaler_standard = StandardScaler()
     scaler_standard.fit(X_train)
@@ -148,11 +159,34 @@ def create_preprocessors(X_train):
     def preprocessor_minmax(data):
         return scaler_minmax.transform(data)
     
-    return preprocessor_standard, preprocessor_minmax
+    return {
+        'standard': preprocessor_standard,
+        'standard_obj': scaler_standard,
+        'minmax': preprocessor_minmax,
+        'minmax_obj': scaler_minmax
+    }
+
+
+@pytest.fixture(scope="session")
+def shared_playground(credentials, aws_environment, iris_data):
+    """Create a shared ModelPlayground instance for all tests (session-scoped)."""
+    X_train, X_test, y_train, y_test = iris_data
+    eval_labels = list(y_test)
+    
+    # Create playground
+    playground = ModelPlayground(
+        input_type='tabular',
+        task_type='classification',
+        private=True
+    )
+    playground.create(eval_data=eval_labels, public=True)
+    print(f"✓ Shared playground created successfully")
+    
+    return playground
 
 
 @pytest.mark.parametrize("model_name,model", CLASSIFIERS)
-def test_sklearn_classifier_submission(model_name, model):
+def test_sklearn_classifier_submission(model_name, model, shared_playground, iris_data, preprocessors):
     """
     Test submission of sklearn classifier to ModelPlayground.
     
@@ -164,24 +198,16 @@ def test_sklearn_classifier_submission(model_name, model):
     print(f"Testing: {model_name}")
     print(f"{'='*60}")
     
-    # Setup credentials and environment
-    setup_credentials()
-    setup_aws_environment()
-    
-    # Load and prepare data
-    X_train, X_test, y_train, y_test = load_and_prepare_iris_data()
-    eval_labels = list(y_test)
-    
-    # Create preprocessors
-    preprocessor_standard, preprocessor_minmax = create_preprocessors(X_train)
+    # Load data
+    X_train, X_test, y_train, y_test = iris_data
     
     # For MultinomialNB, we need non-negative features, so use MinMaxScaler
     if model_name == "MultinomialNB":
-        preprocessor = preprocessor_minmax
+        preprocessor = preprocessors['minmax']
         X_train_processed = preprocessor(X_train)
         X_test_processed = preprocessor(X_test)
     else:
-        preprocessor = preprocessor_standard
+        preprocessor = preprocessors['standard']
         X_train_processed = preprocessor(X_train)
         X_test_processed = preprocessor(X_test)
     
@@ -193,22 +219,10 @@ def test_sklearn_classifier_submission(model_name, model):
     except Exception as e:
         pytest.fail(f"Failed to train {model_name}: {e}")
     
-    # Create playground
-    try:
-        playground = ModelPlayground(
-            input_type='tabular',
-            task_type='classification',
-            private=True
-        )
-        playground.create(eval_data=eval_labels, public=True)
-        print(f"✓ Playground created successfully")
-    except Exception as e:
-        pytest.fail(f"Failed to create playground for {model_name}: {e}")
-    
     # Test A: Submit with predictions only (no preprocessor)
     submission_errors = []
     try:
-        playground.submit_model(
+        shared_playground.submit_model(
             model=model,
             preprocessor=None,
             prediction_submission=preds,
@@ -226,7 +240,7 @@ def test_sklearn_classifier_submission(model_name, model):
     
     # Test B: Submit with preprocessor object
     try:
-        playground.submit_model(
+        shared_playground.submit_model(
             model=model,
             preprocessor=preprocessor,
             prediction_submission=preds,
@@ -249,7 +263,7 @@ def test_sklearn_classifier_submission(model_name, model):
     print(f"✓ All tests passed for {model_name}")
 
 
-def test_leaderboard_retrieval():
+def test_leaderboard_retrieval(shared_playground):
     """
     Validate that leaderboard retrieval is non-empty after submissions.
     This test runs after all parameterized tests.
@@ -258,46 +272,9 @@ def test_leaderboard_retrieval():
     print(f"Testing: Leaderboard Retrieval")
     print(f"{'='*60}")
     
-    # Setup credentials and environment
-    setup_credentials()
-    setup_aws_environment()
-    
-    # Load and prepare data
-    X_train, X_test, y_train, y_test = load_and_prepare_iris_data()
-    eval_labels = list(y_test)
-    
-    # Create preprocessor
-    preprocessor_standard, _ = create_preprocessors(X_train)
-    
-    # Train a simple model
-    model = LogisticRegression(max_iter=1000, random_state=42)
-    X_train_processed = preprocessor_standard(X_train)
-    X_test_processed = preprocessor_standard(X_test)
-    model.fit(X_train_processed, y_train)
-    preds = model.predict(X_test_processed)
-    
-    # Create playground and submit
-    playground = ModelPlayground(
-        input_type='tabular',
-        task_type='classification',
-        private=True
-    )
-    playground.create(eval_data=eval_labels, public=True)
-    
-    playground.submit_model(
-        model=model,
-        preprocessor=preprocessor_standard,
-        prediction_submission=preds,
-        input_dict={
-            'description': 'Leaderboard test model',
-            'tags': 'leaderboard_test'
-        },
-        submission_type='experiment'
-    )
-    
     # Get leaderboard
     try:
-        data = playground.get_leaderboard()
+        data = shared_playground.get_leaderboard()
         
         # Handle both dict and DataFrame responses
         if isinstance(data, dict):
