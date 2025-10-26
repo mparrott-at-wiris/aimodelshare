@@ -88,8 +88,8 @@ class MLPWithBatchNorm(nn.Module):
 class CustomSubclassModel(nn.Module):
     """Custom PyTorch model demonstrating subclass pattern.
     
-    This model uses a more complex architecture with skip connections
-    to demonstrate handling of custom model architectures.
+    This model uses a simple multi-layer architecture to demonstrate
+    handling of custom model architectures.
     """
     
     def __init__(self, input_size=4, hidden_size=32, num_classes=3):
@@ -99,10 +99,8 @@ class CustomSubclassModel(nn.Module):
         self.fc3 = nn.Linear(hidden_size, num_classes)
     
     def forward(self, x):
-        identity = x
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
-        # Simple residual-like connection (reshape identity to match)
         x = self.fc3(x)
         return x
 
