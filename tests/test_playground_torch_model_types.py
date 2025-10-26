@@ -1,7 +1,7 @@
 """
-Comprehensive TensorFlow Keras model submission test for ModelPlayground.
+Comprehensive PyTorch model submission test for ModelPlayground.
 
-Tests 5 different Keras model types with and without preprocessors
+Tests 4 different PyTorch model types with and without preprocessors
 using the iris dataset to validate submit_model functionality.
 
 Uses session-scoped fixtures for playground and preprocessing to reduce overhead.
@@ -17,10 +17,9 @@ from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers, Model
-from tensorflow.keras.models import Sequential
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
 from aimodelshare.playground import ModelPlayground
 from aimodelshare.aws import set_credentials, get_aws_token
@@ -29,93 +28,146 @@ from aimodelshare.modeluser import get_jwt_token, create_user_getkeyandpassword
 
 # Set seeds for reproducibility
 np.random.seed(42)
-tf.random.set_seed(42)
+torch.manual_seed(42)
 
 # Training constants for consistency across all models
-TRAINING_EPOCHS = 12
+TRAINING_EPOCHS = 10
 TRAINING_BATCH_SIZE = 16
+LEARNING_RATE = 0.01
 
 
-def create_sequential_dense_model():
-    """Sequential model with Dense layers."""
-    model = Sequential([
-        layers.Dense(32, activation='relu', input_shape=(4,)),
-        layers.Dense(16, activation='relu'),
-        layers.Dense(3, activation='softmax')
-    ])
-    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-    return model
-
-
-def create_functional_api_model():
-    """Functional API model with two hidden relu layers."""
-    inputs = keras.Input(shape=(4,))
-    x = layers.Dense(32, activation='relu')(inputs)
-    x = layers.Dense(16, activation='relu')(x)
-    outputs = layers.Dense(3, activation='softmax')(x)
-    model = Model(inputs=inputs, outputs=outputs)
-    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-    return model
-
-
-def create_sequential_dropout_model():
-    """Sequential model with Dropout."""
-    model = Sequential([
-        layers.Dense(64, activation='relu', input_shape=(4,)),
-        layers.Dropout(0.3),
-        layers.Dense(3, activation='softmax')
-    ])
-    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-    return model
-
-
-def create_batchnorm_model():
-    """Model with BatchNormalization."""
-    model = Sequential([
-        layers.Dense(64, activation='relu', input_shape=(4,)),
-        layers.BatchNormalization(),
-        layers.Dense(3, activation='softmax')
-    ])
-    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-    return model
-
-
-class SubclassModel(tf.keras.Model):
-    """Custom tf.keras.Model subclass with two Dense layers.
+class BasicMLP(nn.Module):
+    """Basic Multi-Layer Perceptron with two hidden layers."""
     
-    This model demonstrates testing Keras model subclassing, which requires
-    the model to be built by calling it once before training. Architecture:
-    - Dense layer with 32 units and relu activation
-    - Dense output layer with 3 units and softmax activation
+    def __init__(self, input_size=4, hidden_size=32, num_classes=3):
+        super(BasicMLP, self).__init__()
+        self.fc1 = nn.Linear(input_size, hidden_size)
+        self.fc2 = nn.Linear(hidden_size, 16)
+        self.fc3 = nn.Linear(16, num_classes)
+    
+    def forward(self, x):
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+        return x
+
+
+class MLPWithDropout(nn.Module):
+    """MLP with Dropout layers for regularization."""
+    
+    def __init__(self, input_size=4, hidden_size=64, num_classes=3, dropout_rate=0.3):
+        super(MLPWithDropout, self).__init__()
+        self.fc1 = nn.Linear(input_size, hidden_size)
+        self.dropout1 = nn.Dropout(dropout_rate)
+        self.fc2 = nn.Linear(hidden_size, num_classes)
+    
+    def forward(self, x):
+        x = F.relu(self.fc1(x))
+        x = self.dropout1(x)
+        x = self.fc2(x)
+        return x
+
+
+class MLPWithBatchNorm(nn.Module):
+    """MLP with Batch Normalization layers."""
+    
+    def __init__(self, input_size=4, hidden_size=64, num_classes=3):
+        super(MLPWithBatchNorm, self).__init__()
+        self.fc1 = nn.Linear(input_size, hidden_size)
+        self.bn1 = nn.BatchNorm1d(hidden_size)
+        self.fc2 = nn.Linear(hidden_size, num_classes)
+    
+    def forward(self, x):
+        x = self.fc1(x)
+        x = self.bn1(x)
+        x = F.relu(x)
+        x = self.fc2(x)
+        return x
+
+
+class CustomSubclassModel(nn.Module):
+    """Custom PyTorch model demonstrating subclass pattern.
+    
+    This model uses a simple multi-layer architecture to demonstrate
+    handling of custom model architectures.
     """
     
-    def __init__(self):
-        super(SubclassModel, self).__init__()
-        self.dense1 = layers.Dense(32, activation='relu')
-        self.dense2 = layers.Dense(3, activation='softmax')
+    def __init__(self, input_size=4, hidden_size=32, num_classes=3):
+        super(CustomSubclassModel, self).__init__()
+        self.fc1 = nn.Linear(input_size, hidden_size)
+        self.fc2 = nn.Linear(hidden_size, hidden_size)
+        self.fc3 = nn.Linear(hidden_size, num_classes)
     
-    def call(self, inputs):
-        x = self.dense1(inputs)
-        return self.dense2(x)
+    def forward(self, x):
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+        return x
 
 
-def create_subclass_model():
-    """Create and compile a subclass model.
+def train_torch_model(model, X_train, y_train, epochs=TRAINING_EPOCHS, batch_size=TRAINING_BATCH_SIZE, lr=LEARNING_RATE):
+    """Train a PyTorch model on the given data.
     
-    Note: Subclass models need to be built before training by calling them once.
+    Args:
+        model: PyTorch model to train
+        X_train: Training features (numpy array)
+        y_train: Training labels (numpy array)
+        epochs: Number of training epochs
+        batch_size: Batch size for training
+        lr: Learning rate
+    
+    Returns:
+        Trained model
     """
-    model = SubclassModel()
-    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    # Convert to tensors
+    X_tensor = torch.FloatTensor(X_train)
+    y_tensor = torch.LongTensor(y_train)
+    
+    # Create dataset and dataloader
+    dataset = torch.utils.data.TensorDataset(X_tensor, y_tensor)
+    dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    
+    # Setup optimizer and loss
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    criterion = nn.CrossEntropyLoss()
+    
+    # Training loop
+    model.train()
+    for epoch in range(epochs):
+        for batch_X, batch_y in dataloader:
+            optimizer.zero_grad()
+            outputs = model(batch_X)
+            loss = criterion(outputs, batch_y)
+            loss.backward()
+            optimizer.step()
+    
     return model
 
 
-# Define the 5 Keras model variants to test
-KERAS_MODELS = [
-    ("sequential_dense", create_sequential_dense_model),
-    ("functional_api", create_functional_api_model),
-    ("sequential_dropout", create_sequential_dropout_model),
-    ("batchnorm_model", create_batchnorm_model),
-    ("subclass_model", create_subclass_model),
+def predict_torch_model(model, X_test):
+    """Generate predictions from a PyTorch model.
+    
+    Args:
+        model: Trained PyTorch model
+        X_test: Test features (numpy array)
+    
+    Returns:
+        Predictions as numpy array
+    """
+    model.eval()
+    with torch.no_grad():
+        X_tensor = torch.FloatTensor(X_test)
+        outputs = model(X_tensor)
+        _, predictions = torch.max(outputs, 1)
+    return predictions.numpy()
+
+
+# Define the 4 PyTorch model variants to test
+TORCH_MODELS = [
+    ("basic_mlp", BasicMLP),
+    ("mlp_dropout", MLPWithDropout),
+    ("mlp_batchnorm", MLPWithBatchNorm),
+    ("custom_subclass", CustomSubclassModel),
 ]
 
 
@@ -214,10 +266,10 @@ def shared_playground(credentials, aws_environment, iris_data):
     return playground
 
 
-@pytest.mark.parametrize("model_name,model_factory", KERAS_MODELS)
-def test_keras_model_submission(model_name, model_factory, shared_playground, iris_data):
+@pytest.mark.parametrize("model_name,model_class", TORCH_MODELS)
+def test_torch_model_submission(model_name, model_class, shared_playground, iris_data):
     """
-    Test submission of Keras models to ModelPlayground.
+    Test submission of PyTorch models to ModelPlayground.
     
     Each model is tested twice:
     A) predictions only (no preprocessor)
@@ -232,18 +284,11 @@ def test_keras_model_submission(model_name, model_factory, shared_playground, ir
     
     # Create and train model
     try:
-        model = model_factory()
-        
-        # For subclass models, build the model by calling it once with sample data
-        if model_name == "subclass_model":
-            _ = model(X_train_scaled[:1])
-        
-        # Train model with constants defined at module level
-        model.fit(X_train_scaled, y_train, epochs=TRAINING_EPOCHS, batch_size=TRAINING_BATCH_SIZE, verbose=0)
+        model = model_class()
+        model = train_torch_model(model, X_train_scaled, y_train)
         
         # Generate predictions
-        predictions_proba = model.predict(X_test_scaled, verbose=0)
-        preds = np.argmax(predictions_proba, axis=1)
+        preds = predict_torch_model(model, X_test_scaled)
         
         print(f"✓ Model trained successfully, generated {len(preds)} predictions")
     except Exception as e:
@@ -265,9 +310,9 @@ def test_keras_model_submission(model_name, model_factory, shared_playground, ir
         print(f"✓ Submission A (predictions only) succeeded")
     except Exception as e:
         error_str = str(e).lower()
-        # Skip if error is due to ONNX conversion issue or stdin capture
-        if 'onnx' in error_str or 'conversion' in error_str or 'stdin' in error_str:
-            pytest.skip(f"Skipping {model_name} submission A due to ONNX or stdin issue: {e}")
+        # Skip if error is due to ONNX conversion issue
+        if 'onnx' in error_str or 'conversion' in error_str or 'export' in error_str:
+            pytest.skip(f"Skipping {model_name} submission A due to ONNX export limitation: {e}")
         error_msg = f"Submission A failed for {model_name}: {e}"
         print(f"✗ {error_msg}")
         submission_errors.append(error_msg)
@@ -287,9 +332,9 @@ def test_keras_model_submission(model_name, model_factory, shared_playground, ir
         print(f"✓ Submission B (with preprocessor) succeeded")
     except Exception as e:
         error_str = str(e).lower()
-        # Skip if error is due to ONNX conversion issue or stdin capture
-        if 'onnx' in error_str or 'conversion' in error_str or 'stdin' in error_str:
-            pytest.skip(f"Skipping {model_name} submission B due to ONNX or stdin issue: {e}")
+        # Skip if error is due to ONNX conversion issue
+        if 'onnx' in error_str or 'conversion' in error_str or 'export' in error_str:
+            pytest.skip(f"Skipping {model_name} submission B due to ONNX export limitation: {e}")
         error_msg = f"Submission B failed for {model_name}: {e}"
         print(f"✗ {error_msg}")
         submission_errors.append(error_msg)
