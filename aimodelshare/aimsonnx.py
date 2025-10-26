@@ -42,7 +42,9 @@ except:
 import onnx
 import skl2onnx
 from skl2onnx import convert_sklearn
-import tf2onnx
+# tf2onnx import is lazy-loaded to avoid requiring TensorFlow for non-TF workflows
+_TF2ONNX_AVAILABLE = None
+_tf2onnx_module = None
 try:
     from torch.onnx import export
 except:
@@ -81,10 +83,48 @@ import warnings
 from pathlib import Path
 import time
 import signal
-from scikeras.wrappers import KerasClassifier, KerasRegressor
+
+# scikeras imports keras which requires TensorFlow - lazy load it
+try:
+    from scikeras.wrappers import KerasClassifier, KerasRegressor
+    _SCIKERAS_AVAILABLE = True
+except ImportError:
+    _SCIKERAS_AVAILABLE = False
+    KerasClassifier = None
+    KerasRegressor = None
 
 
 absl.logging.set_verbosity(absl.logging.ERROR)
+
+def _check_tf2onnx_available():
+    """Check if tf2onnx and TensorFlow are available, and load them if needed.
+    
+    Returns:
+        tuple: (tf2onnx_module, tensorflow_module) if available, raises RuntimeError otherwise
+    """
+    global _TF2ONNX_AVAILABLE, _tf2onnx_module
+    
+    if _TF2ONNX_AVAILABLE is None:
+        try:
+            import tf2onnx as tf2onnx_temp
+            import tensorflow as tf_temp
+            _tf2onnx_module = tf2onnx_temp
+            _TF2ONNX_AVAILABLE = True
+        except ImportError as e:
+            _TF2ONNX_AVAILABLE = False
+            raise RuntimeError(
+                "TensorFlow and tf2onnx are required for Keras model conversion to ONNX. "
+                "Please install them with: pip install tensorflow tf2onnx"
+            ) from e
+    
+    if not _TF2ONNX_AVAILABLE:
+        raise RuntimeError(
+            "TensorFlow and tf2onnx are required for Keras model conversion to ONNX. "
+            "Please install them with: pip install tensorflow tf2onnx"
+        )
+    
+    import tensorflow as tf
+    return _tf2onnx_module, tf
 
 def _extract_onnx_metadata(onnx_model, framework):
     '''Extracts model metadata from ONNX file.'''
@@ -538,8 +578,9 @@ def _keras_to_onnx(model, transfer_learning=None,
                    deep_learning=None, task_type=None, epochs=None):
     '''Converts a Keras model to ONNX and extracts metadata.'''
 
-    import tf2onnx
-    import tensorflow as tf
+    # Check and load tf2onnx and TensorFlow lazily (only when needed)
+    tf2onnx, tf = _check_tf2onnx_available()
+    
     import numpy as np
     import onnx
     import pickle
