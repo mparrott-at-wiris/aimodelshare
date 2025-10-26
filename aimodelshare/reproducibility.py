@@ -6,7 +6,14 @@ import tempfile
 import requests
 
 import numpy as np
-import tensorflow as tf
+
+# TensorFlow is optional - only needed for reproducibility setup with TF models
+try:
+    import tensorflow as tf
+    _TF_AVAILABLE = True
+except ImportError:
+    _TF_AVAILABLE = False
+    tf = None
 
 try:
     import importlib.metadata as md
