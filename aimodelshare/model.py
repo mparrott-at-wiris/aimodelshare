@@ -666,17 +666,22 @@ def upload_model_dict(modelpath, s3_presigned_dict, bucket, model_id, model_vers
                 default_config = default.get_params().values()
                 model_configkeys = model_config.keys()
                 model_configvalues = model_config.values()
-            except:
-                model_class = str(model_from_string(meta_dict['model_type']))
-                if model_class.find("Voting") > 0:
+            except Exception as e:
+                # Log warning instead of silent fail
+                import warnings
+                warnings.warn(f"Failed to instantiate model class for {meta_dict.get('model_type')}: {e}")
+                
+                # Set empty defaults safely without re-calling model_from_string
+                model_type_str = str(meta_dict.get('model_type', 'Unknown'))
+                if "Voting" in model_type_str:
                     default_config = ["No data available"]
                     model_configkeys = ["No data available"]
                     model_configvalues = ["No data available"]
                 else:
-                    # Fallback for other exceptions
+                    # Fallback for other exceptions - use model_config if available
                     default_config = []
-                    model_configkeys = []
-                    model_configvalues = []
+                    model_configkeys = list(model_config.keys()) if model_config else []
+                    model_configvalues = list(model_config.values()) if model_config else []
 
             inspect_pd = pd.DataFrame({'param_name': model_configkeys,
                                         'default_value': default_config,
@@ -1296,17 +1301,22 @@ def submit_model(
                 default_config = default.get_params().values()
                 model_configkeys = model_config.keys()
                 model_configvalues = model_config.values()
-            except:
-                model_class = str(model_from_string(meta_dict['model_type']))
-                if model_class.find("Voting") > 0:
+            except Exception as e:
+                # Log warning instead of silent fail
+                import warnings
+                warnings.warn(f"Failed to instantiate model class for {meta_dict.get('model_type')}: {e}")
+                
+                # Set empty defaults safely without re-calling model_from_string
+                model_type_str = str(meta_dict.get('model_type', 'Unknown'))
+                if "Voting" in model_type_str:
                     default_config = ["No data available"]
                     model_configkeys = ["No data available"]
                     model_configvalues = ["No data available"]
                 else:
-                    # Fallback for other exceptions
+                    # Fallback for other exceptions - use model_config if available
                     default_config = []
-                    model_configkeys = []
-                    model_configvalues = []
+                    model_configkeys = list(model_config.keys()) if model_config else []
+                    model_configvalues = list(model_config.values()) if model_config else []
 
             inspect_pd = pd.DataFrame({'param_name': model_configkeys,
                                         'default_value': default_config,
