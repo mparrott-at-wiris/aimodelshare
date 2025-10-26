@@ -45,6 +45,7 @@ from skl2onnx import convert_sklearn
 # tf2onnx import is lazy-loaded to avoid requiring TensorFlow for non-TF workflows
 _TF2ONNX_AVAILABLE = None
 _tf2onnx_module = None
+_tensorflow_module = None
 try:
     from torch.onnx import export
 except:
@@ -100,15 +101,19 @@ def _check_tf2onnx_available():
     """Check if tf2onnx and TensorFlow are available, and load them if needed.
     
     Returns:
-        tuple: (tf2onnx_module, tensorflow_module) if available, raises RuntimeError otherwise
+        tuple: (tf2onnx_module, tensorflow_module) on success
+        
+    Raises:
+        RuntimeError: If TensorFlow or tf2onnx are not installed
     """
-    global _TF2ONNX_AVAILABLE, _tf2onnx_module
+    global _TF2ONNX_AVAILABLE, _tf2onnx_module, _tensorflow_module
     
     if _TF2ONNX_AVAILABLE is None:
         try:
             import tf2onnx as tf2onnx_temp
             import tensorflow as tf_temp
             _tf2onnx_module = tf2onnx_temp
+            _tensorflow_module = tf_temp
             _TF2ONNX_AVAILABLE = True
         except ImportError as e:
             _TF2ONNX_AVAILABLE = False
@@ -123,8 +128,7 @@ def _check_tf2onnx_available():
             "Please install them with: pip install tensorflow tf2onnx"
         )
     
-    import tensorflow as tf
-    return _tf2onnx_module, tf
+    return _tf2onnx_module, _tensorflow_module
 
 def _extract_onnx_metadata(onnx_model, framework):
     '''Extracts model metadata from ONNX file.'''
