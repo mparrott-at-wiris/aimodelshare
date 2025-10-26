@@ -1041,13 +1041,12 @@ def model_to_onnx_timed(model_filepath, force_onnx=False, timeout=60, model_inpu
                                 onnx_model = model_to_onnx(model_filepath, model_input=model_input)
                             else:
                                 onnx_model = model_to_onnx(model_filepath)
-                        except:
-                            # Final fallback - try without torch-specific handling
-                            # but still pass model_input in case it helps
-                            try:
-                                onnx_model = model_to_onnx(model_filepath, model_input=model_input)
-                            except:
-                                onnx_model = model_to_onnx(model_filepath)
+                        except Exception as e:
+                            # Final fallback - if torch-specific handling failed, try generic conversion
+                            # This handles cases where torch module detection fails but conversion might still work
+                            import warnings
+                            warnings.warn(f"PyTorch-specific ONNX conversion failed ({e}), attempting generic conversion")
+                            onnx_model = model_to_onnx(model_filepath, model_input=model_input)
                         model_filepath = onnx_model
 
                     elif response == "2":

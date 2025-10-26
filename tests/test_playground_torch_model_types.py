@@ -288,7 +288,10 @@ def test_torch_model_submission(model_name, model_class, shared_playground, iris
         model = train_torch_model(model, X_train_scaled, y_train)
         
         # Create dummy input for ONNX conversion (1 sample with input_dim features)
-        # Using randn instead of zeros to better exercise model paths (e.g., batch norm)
+        # Using randn (random normal) instead of zeros for better model testing:
+        # - Batch normalization layers may not initialize running stats properly with all-zero inputs
+        # - Random inputs better exercise activation functions and dropout layers
+        # - Provides more realistic test of model behavior during ONNX conversion
         input_dim = X_train_scaled.shape[1]
         dummy_input = torch.randn((1, input_dim), dtype=torch.float32)
         
