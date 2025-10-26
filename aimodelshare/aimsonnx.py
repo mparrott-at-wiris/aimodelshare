@@ -1650,7 +1650,8 @@ def _get_sklearn_modules():
 
     sklearn_modules = ['ensemble', 'gaussian_process', 'isotonic',
                        'linear_model', 'mixture', 'multiclass', 'naive_bayes',
-                       'neighbors', 'neural_network', 'svm', 'tree']
+                       'neighbors', 'neural_network', 'svm', 'tree',
+                       'discriminant_analysis', 'calibration']
 
     models_modules_dict = {}
 
@@ -1666,9 +1667,31 @@ def _get_sklearn_modules():
 
 def model_from_string(model_type):
     models_modules_dict = _get_sklearn_modules()
-    module = models_modules_dict[model_type]
-    model_class = getattr(importlib.import_module(module), model_type)
-    return model_class
+    try:
+        module = models_modules_dict[model_type]
+        model_class = getattr(importlib.import_module(module), model_type)
+        return model_class
+    except KeyError:
+        # Return a placeholder class if estimator not found
+        import warnings
+        warnings.warn(f"Model type '{model_type}' not found in sklearn modules. Returning placeholder class.")
+        
+        # Create a minimal placeholder class that can be instantiated
+        class PlaceholderModel:
+            def __init__(self, **kwargs):
+                self._model_type = model_type
+                self._params = kwargs
+            
+            def get_params(self, deep=True):
+                return self._params
+            
+            def __str__(self):
+                return f"PlaceholderModel({self._model_type})"
+            
+            def __repr__(self):
+                return f"PlaceholderModel({self._model_type})"
+        
+        return PlaceholderModel
 
 def _get_pyspark_modules():
     try:
