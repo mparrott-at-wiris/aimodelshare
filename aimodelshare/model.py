@@ -634,6 +634,48 @@ def _normalize_model_config(model_config, model_type=None):
         return {}
 
 
+def _build_sklearn_param_dataframe(model_type, model_config):
+    """
+    Build parameter inspection DataFrame for sklearn/xgboost models.
+    
+    Creates a DataFrame with aligned columns by taking the union of default
+    parameters and model_config parameters. This ensures equal-length arrays
+    even when model_config contains extra parameters or is missing defaults.
+    
+    Args:
+        model_type: String name of the sklearn model class
+        model_config: Dict of model configuration parameters
+        
+    Returns:
+        pd.DataFrame: DataFrame with param_name, default_value, param_value columns,
+                     or empty DataFrame on error
+    """
+    import pandas as pd
+    import warnings
+    
+    try:
+        model_class = model_from_string(model_type)
+        default_instance = model_class()
+        defaults_dict = default_instance.get_params()
+        
+        # Take union of keys from both sources to ensure all parameters are included
+        # This prevents ValueError: "All arrays must be of the same length"
+        # when model_config has different keys than defaults
+        param_names = sorted(set(defaults_dict.keys()) | set(model_config.keys()))
+        default_values = [defaults_dict.get(k, None) for k in param_names]
+        param_values = [model_config.get(k, None) for k in param_names]
+        
+        return pd.DataFrame({
+            'param_name': param_names,
+            'default_value': default_values,
+            'param_value': param_values
+        })
+    except Exception as e:
+        # Log warning and fallback to empty DataFrame
+        warnings.warn(f"Failed to instantiate model class for {model_type}: {e}")
+        return pd.DataFrame()
+
+
 def upload_model_dict(modelpath, s3_presigned_dict, bucket, model_id, model_version, placeholder=False, onnx_model=None):
     import wget
     import json
@@ -659,33 +701,12 @@ def upload_model_dict(modelpath, s3_presigned_dict, bucket, model_id, model_vers
                 meta_dict.get("model_config"), 
                 meta_dict.get('model_type')
             )
-
-            try:
-                model_class = model_from_string(meta_dict['model_type'])
-                default = model_class()
-                default_config = default.get_params().values()
-                model_configkeys = model_config.keys()
-                model_configvalues = model_config.values()
-            except Exception as e:
-                # Log warning instead of silent fail
-                import warnings
-                warnings.warn(f"Failed to instantiate model class for {meta_dict.get('model_type')}: {e}")
-                
-                # Set empty defaults safely without re-calling model_from_string
-                model_type_str = str(meta_dict.get('model_type', 'Unknown'))
-                if "Voting" in model_type_str:
-                    default_config = ["No data available"]
-                    model_configkeys = ["No data available"]
-                    model_configvalues = ["No data available"]
-                else:
-                    # Fallback for other exceptions - use model_config if available
-                    default_config = []
-                    model_configkeys = list(model_config.keys()) if model_config else []
-                    model_configvalues = list(model_config.values()) if model_config else []
-
-            inspect_pd = pd.DataFrame({'param_name': model_configkeys,
-                                        'default_value': default_config,
-                                        'param_value': model_configvalues})
+            
+            # Build parameter inspection DataFrame
+            inspect_pd = _build_sklearn_param_dataframe(
+                meta_dict['model_type'], 
+                model_config
+            )
 
         elif meta_dict['ml_framework'] in ['pyspark']:
             
@@ -1294,33 +1315,12 @@ def submit_model(
                 meta_dict.get("model_config"), 
                 meta_dict.get('model_type')
             )
-
-            try:
-                model_class = model_from_string(meta_dict['model_type'])
-                default = model_class()
-                default_config = default.get_params().values()
-                model_configkeys = model_config.keys()
-                model_configvalues = model_config.values()
-            except Exception as e:
-                # Log warning instead of silent fail
-                import warnings
-                warnings.warn(f"Failed to instantiate model class for {meta_dict.get('model_type')}: {e}")
-                
-                # Set empty defaults safely without re-calling model_from_string
-                model_type_str = str(meta_dict.get('model_type', 'Unknown'))
-                if "Voting" in model_type_str:
-                    default_config = ["No data available"]
-                    model_configkeys = ["No data available"]
-                    model_configvalues = ["No data available"]
-                else:
-                    # Fallback for other exceptions - use model_config if available
-                    default_config = []
-                    model_configkeys = list(model_config.keys()) if model_config else []
-                    model_configvalues = list(model_config.values()) if model_config else []
-
-            inspect_pd = pd.DataFrame({'param_name': model_configkeys,
-                                        'default_value': default_config,
-                                        'param_value': model_configvalues})
+            
+            # Build parameter inspection DataFrame
+            inspect_pd = _build_sklearn_param_dataframe(
+                meta_dict['model_type'], 
+                model_config
+            )
 
             model_graph = ''
 

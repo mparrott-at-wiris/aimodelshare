@@ -61,7 +61,7 @@ CLASSIFIERS = [
     ("BaggingClassifier", BaggingClassifier(n_estimators=5, random_state=42)),
     ("LinearDiscriminantAnalysis", LinearDiscriminantAnalysis()),
     ("QuadraticDiscriminantAnalysis", QuadraticDiscriminantAnalysis()),
-    ("MLPClassifier", MLPClassifier(solver='lbfgs', max_iter=150, random_state=42, hidden_layer_sizes=(10,))),
+    ("MLPClassifier", MLPClassifier(solver='lbfgs', max_iter=150, random_state=42, hidden_layer_sizes=(20,))),
 ]
 
 
