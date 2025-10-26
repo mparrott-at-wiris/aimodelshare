@@ -31,6 +31,10 @@ from aimodelshare.modeluser import get_jwt_token, create_user_getkeyandpassword
 np.random.seed(42)
 tf.random.set_seed(42)
 
+# Training constants for consistency across all models
+TRAINING_EPOCHS = 12
+TRAINING_BATCH_SIZE = 16
+
 
 def create_sequential_dense_model():
     """Sequential model with Dense layers."""
@@ -77,7 +81,13 @@ def create_batchnorm_model():
 
 
 class SubclassModel(tf.keras.Model):
-    """Custom tf.keras.Model with two Dense layers."""
+    """Custom tf.keras.Model subclass with two Dense layers.
+    
+    This model demonstrates testing Keras model subclassing, which requires
+    the model to be built by calling it once before training. Architecture:
+    - Dense layer with 32 units and relu activation
+    - Dense output layer with 3 units and softmax activation
+    """
     
     def __init__(self):
         super(SubclassModel, self).__init__()
@@ -90,7 +100,10 @@ class SubclassModel(tf.keras.Model):
 
 
 def create_subclass_model():
-    """Create and compile a subclass model."""
+    """Create and compile a subclass model.
+    
+    Note: Subclass models need to be built before training by calling them once.
+    """
     model = SubclassModel()
     model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
     return model
@@ -221,13 +234,12 @@ def test_keras_model_submission(model_name, model_factory, shared_playground, ir
     try:
         model = model_factory()
         
-        # For subclass models, we need to build the model first
+        # For subclass models, build the model by calling it once with sample data
         if model_name == "subclass_model":
-            # Build model by calling it once
             _ = model(X_train_scaled[:1])
         
-        # Train model with small epochs to keep CI fast
-        model.fit(X_train_scaled, y_train, epochs=12, batch_size=16, verbose=0)
+        # Train model with constants defined at module level
+        model.fit(X_train_scaled, y_train, epochs=TRAINING_EPOCHS, batch_size=TRAINING_BATCH_SIZE, verbose=0)
         
         # Generate predictions
         predictions_proba = model.predict(X_test_scaled, verbose=0)
