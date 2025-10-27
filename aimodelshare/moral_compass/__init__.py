@@ -5,7 +5,7 @@ This submodule provides a client for interacting with the moral_compass API
 with support for pagination, retries, and structured exceptions.
 
 Example usage:
-    from aimodelshare.moral_compass import MoralcompassApiClient
+    from aimodelshare.moral_compass import MoralcompassApiClient, ChallengeManager
     
     client = MoralcompassApiClient()
     
@@ -22,6 +22,13 @@ Example usage:
     # Manage users
     client.put_user("my-table", "user1", submission_count=10, total_count=100)
     user = client.get_user("my-table", "user1")
+    
+    # Use ChallengeManager for multi-metric tracking
+    manager = ChallengeManager("my-table", "user1")
+    manager.set_metric("accuracy", 0.85, primary=True)
+    manager.set_metric("fairness", 0.92)
+    manager.set_progress(tasks_completed=5, total_tasks=10)
+    manager.sync()
 """
 
 from ._version import __version__
@@ -34,6 +41,7 @@ from .api_client import (
     ServerError,
 )
 from .config import get_api_base_url
+from .challenge import ChallengeManager
 
 __all__ = [
     "__version__",
@@ -44,4 +52,5 @@ __all__ = [
     "NotFoundError",
     "ServerError",
     "get_api_base_url",
+    "ChallengeManager",
 ]

@@ -63,3 +63,105 @@ or with `mamba`:
 ```
 mamba install aimodelshare
 ```
+
+# Moral Compass: Dynamic Metric Support for AI Ethics Challenges
+
+The Moral Compass system now supports tracking multiple performance metrics for fairness-focused AI challenges. Track accuracy, demographic parity, equal opportunity, and other fairness metrics simultaneously.
+
+## Quick Start with Multi-Metric Tracking
+
+```python
+from aimodelshare.moral_compass import ChallengeManager
+
+# Create a challenge manager
+manager = ChallengeManager(
+    table_id="fairness-challenge-2024",
+    username="your_username"
+)
+
+# Track multiple metrics
+manager.set_metric("accuracy", 0.85, primary=True)
+manager.set_metric("demographic_parity", 0.92)
+manager.set_metric("equal_opportunity", 0.88)
+
+# Track progress
+manager.set_progress(tasks_completed=3, total_tasks=5)
+
+# Sync to leaderboard
+result = manager.sync()
+print(f"Moral compass score: {result['moralCompassScore']:.4f}")
+```
+
+## Moral Compass Score Formula
+
+```
+moralCompassScore = primaryMetricValue × ((tasksCompleted + questionsCorrect) / (totalTasks + totalQuestions))
+```
+
+This combines:
+- **Performance**: Your primary metric value (e.g., fairness score)
+- **Progress**: Your completion rate across tasks and questions
+
+## Features
+
+- **Multiple Metrics**: Track accuracy, fairness, robustness, and custom metrics
+- **Primary Metric Selection**: Choose which metric drives leaderboard ranking
+- **Progress Tracking**: Monitor task and question completion
+- **Automatic Scoring**: Server-side computation of moral compass scores
+- **Leaderboard Sorting**: Automatic ranking by moral compass score
+- **Backward Compatible**: Existing users without metrics continue to work
+
+## Example: Justice & Equity Challenge
+
+See [Justice & Equity Challenge Example](docs/justice_equity_challenge_example.md) for detailed examples including:
+- Multi-metric fairness tracking
+- Progressive challenge completion
+- Leaderboard queries
+- Custom fairness criteria
+
+## API Methods
+
+### ChallengeManager
+
+```python
+from aimodelshare.moral_compass import ChallengeManager
+
+manager = ChallengeManager(table_id="my-table", username="user1")
+
+# Set metrics
+manager.set_metric("accuracy", 0.90, primary=True)
+manager.set_metric("fairness", 0.95)
+
+# Set progress
+manager.set_progress(tasks_completed=4, total_tasks=5)
+
+# Preview score locally
+score = manager.get_local_score()
+
+# Sync to server
+result = manager.sync()
+```
+
+### API Client
+
+```python
+from aimodelshare.moral_compass import MoralcompassApiClient
+
+client = MoralcompassApiClient()
+
+# Update moral compass with metrics
+result = client.update_moral_compass(
+    table_id="my-table",
+    username="user1",
+    metrics={"accuracy": 0.90, "fairness": 0.95},
+    primary_metric="fairness",
+    tasks_completed=4,
+    total_tasks=5
+)
+```
+
+## Documentation
+
+- [Full API Documentation](aimodelshare/moral_compass/README.md)
+- [Justice & Equity Challenge Examples](docs/justice_equity_challenge_example.md)
+- [Integration Tests](tests/test_moral_compass_client_minimal.py)
