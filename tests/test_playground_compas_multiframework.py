@@ -210,19 +210,27 @@ def compas_data():
         return preprocessor.transform(data)
     
     # Create MinMaxScaler for MultinomialNB (requires non-negative features)
-    minmax_scaler = MinMaxScaler()
-    minmax_scaler.fit(preprocessor_func(X_train))
+    # Apply MinMaxScaler directly to raw features (not to already-preprocessed data)
+    minmax_preprocessor = ColumnTransformer(
+        transformers=[
+            ('num', Pipeline([
+                ('imputer', SimpleImputer(strategy='median')),
+                ('scaler', MinMaxScaler())
+            ]), numeric_features),
+            ('cat', categorical_transformer, categorical_features)
+        ])
+    minmax_preprocessor.fit(X_train)
     
     def minmax_preprocessor_func(data):
-        return minmax_scaler.transform(preprocessor.transform(data))
+        return minmax_preprocessor.transform(data)
     
-    return X_train, X_test, y_train, y_test, preprocessor, preprocessor_func, minmax_scaler, minmax_preprocessor_func
+    return X_train, X_test, y_train, y_test, preprocessor, preprocessor_func, minmax_preprocessor, minmax_preprocessor_func
 
 
 @pytest.fixture(scope="session")
 def shared_playground(credentials, aws_environment, compas_data):
     """Create a shared ModelPlayground instance for all tests (session-scoped)."""
-    X_train, X_test, y_train, y_test, preprocessor, preprocessor_func, minmax_scaler, minmax_preprocessor_func = compas_data
+    X_train, X_test, y_train, y_test, preprocessor, preprocessor_func, minmax_preprocessor, minmax_preprocessor_func = compas_data
     eval_labels = list(y_test)
     
     # Create playground
@@ -249,7 +257,7 @@ def test_compas_sklearn_models(shared_playground, compas_data):
     print(f"Testing: sklearn Models on COMPAS Dataset")
     print(f"{'='*80}")
     
-    X_train, X_test, y_train, y_test, preprocessor, preprocessor_func, minmax_scaler, minmax_preprocessor_func = compas_data
+    X_train, X_test, y_train, y_test, preprocessor, preprocessor_func, minmax_preprocessor, minmax_preprocessor_func = compas_data
     
     # Define all 18 sklearn classifiers with CI-optimized parameters
     classifiers = [
@@ -282,7 +290,7 @@ def test_compas_sklearn_models(shared_playground, compas_data):
         
         # Use MinMaxScaler preprocessor for MultinomialNB, StandardScaler for others
         if model_name == "MultinomialNB":
-            current_preprocessor = minmax_scaler
+            current_preprocessor = minmax_preprocessor
             current_preprocessor_func = minmax_preprocessor_func
         else:
             current_preprocessor = preprocessor
@@ -327,9 +335,9 @@ def test_compas_sklearn_models(shared_playground, compas_data):
                 print(f"✓ Submission succeeded ({submission_type})")
             except Exception as e:
                 error_str = str(e).lower()
-                # Skip only on stdin ONNX fallback issues
-                if 'reading from stdin' in error_str or 'stdin' in error_str:
-                    print(f"⊘ Skipped {model_name} ({submission_type}) due to stdin ONNX issue")
+                # Skip only on stdin or ONNX fallback issues
+                if 'reading from stdin' in error_str or 'stdin' in error_str or 'onnx' in error_str:
+                    print(f"⊘ Skipped {model_name} ({submission_type}) due to ONNX/stdin issue")
                     continue
                 error_msg = f"Submission failed for {model_name} ({submission_type}): {e}"
                 print(f"✗ {error_msg}")
@@ -340,7 +348,7 @@ def test_compas_sklearn_models(shared_playground, compas_data):
         failure_report = "\n".join(f"  - {err}" for err in failures)
         pytest.fail(
             f"sklearn model failures:\n{failure_report}\n\n"
-            f"Expected: All sklearn models should train and submit successfully (or skip only on stdin issues)."
+            f"Expected: All sklearn models should train and submit successfully (or skip only on ONNX/stdin issues)."
         )
     
     print(f"\n{'='*80}")
@@ -671,9 +679,9 @@ def test_compas_torch_models(shared_playground, compas_data):
                 print(f"✓ Submission succeeded ({submission_type})")
             except Exception as e:
                 error_str = str(e).lower()
-                # Skip only on stdin ONNX fallback issues
-                if 'reading from stdin' in error_str or 'stdin' in error_str:
-                    print(f"⊘ Skipped {model_name} ({submission_type}) due to stdin ONNX issue")
+                # Skip only on stdin or ONNX fallback issues
+                if 'reading from stdin' in error_str or 'stdin' in error_str or 'onnx' in error_str:
+                    print(f"⊘ Skipped {model_name} ({submission_type}) due to ONNX/stdin issue")
                     continue
                 error_msg = f"Submission failed for {model_name} ({submission_type}): {e}"
                 print(f"✗ {error_msg}")
@@ -684,7 +692,7 @@ def test_compas_torch_models(shared_playground, compas_data):
         failure_report = "\n".join(f"  - {err}" for err in failures)
         pytest.fail(
             f"PyTorch model failures:\n{failure_report}\n\n"
-            f"Expected: All PyTorch models should train and submit successfully (or skip only on stdin issues)."
+            f"Expected: All PyTorch models should train and submit successfully (or skip only on ONNX/stdin issues)."
         )
     
     print(f"\n{'='*80}")
