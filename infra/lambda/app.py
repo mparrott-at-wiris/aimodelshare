@@ -464,15 +464,39 @@ def list_users(event):
                 'username': last_item_on_page['username']
             }
 
-        users_to_return = [{
-            'username': item['username'],
-            'submissionCount': item.get('submissionCount', 0),
-            'totalCount': item.get('totalCount', 0),
-            'lastUpdated': item.get('lastUpdated')
-        } for item in page_items]
+        users_to_return = []
+        for item in page_items:
+            user_dict = {
+                'username': item['username'],
+                'submissionCount': item.get('submissionCount', 0),
+                'totalCount': item.get('totalCount', 0),
+                'lastUpdated': item.get('lastUpdated')
+            }
+            # Include moral compass fields if present
+            if 'moralCompassScore' in item:
+                user_dict['moralCompassScore'] = item['moralCompassScore']
+            if 'metrics' in item:
+                user_dict['metrics'] = item['metrics']
+            if 'primaryMetric' in item:
+                user_dict['primaryMetric'] = item['primaryMetric']
+            if 'tasksCompleted' in item:
+                user_dict['tasksCompleted'] = item['tasksCompleted']
+            if 'totalTasks' in item:
+                user_dict['totalTasks'] = item['totalTasks']
+            if 'questionsCorrect' in item:
+                user_dict['questionsCorrect'] = item['questionsCorrect']
+            if 'totalQuestions' in item:
+                user_dict['totalQuestions'] = item['totalQuestions']
+            users_to_return.append(user_dict)
         
-        # In-memory sort by submissionCount descending (current approach)
-        users_to_return.sort(key=lambda x: x.get('submissionCount', 0), reverse=True)
+        # Sort by moralCompassScore if present, otherwise by submissionCount
+        def sort_key(x):
+            # Primary: moralCompassScore (descending), fallback: submissionCount (descending)
+            moral_score = float(x.get('moralCompassScore', 0))
+            submission_count = x.get('submissionCount', 0)
+            return (moral_score, submission_count)
+        
+        users_to_return.sort(key=sort_key, reverse=True)
         
         # Log structured metrics for observability
         duration_ms = int((time.time() - start_time) * 1000)
@@ -599,6 +623,152 @@ def put_user(event):
         print(f"[ERROR] put_user outer exception: {e}")
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
+def put_user_moral_compass(event):
+    """
+    Update user's moral compass score with dynamic metrics.
+    
+    Payload fields:
+    - metrics: dict of metric_name -> numeric_value
+    - primaryMetric: optional string indicating which metric is primary (defaults to 'accuracy' or first sorted key)
+    - tasksCompleted: int
+    - totalTasks: int
+    - questionsCorrect: int
+    - totalQuestions: int
+    
+    Computes: moralCompassScore = primaryMetricValue * ((tasksCompleted + questionsCorrect) / (totalTasks + totalQuestions))
+    """
+    try:
+        params = event.get('pathParameters') or {}
+        table_id = params.get('tableId')
+        username = params.get('username')
+        body = json.loads(event.get('body', '{}'))
+        
+        if not validate_table_id(table_id):
+            return create_response(400, {'error': 'Invalid tableId format'})
+        if not validate_username(username):
+            return create_response(400, {'error': 'Invalid username format'})
+        
+        # Verify table exists
+        meta = retry_dynamo(lambda: table.get_item(
+            Key={'tableId': table_id, 'username': '_metadata'},
+            ConsistentRead=READ_CONSISTENT
+        ))
+        if 'Item' not in meta:
+            return create_response(404, {'error': 'Table not found'})
+        
+        # Extract and validate payload
+        metrics = body.get('metrics')
+        primary_metric = body.get('primaryMetric')
+        tasks_completed = body.get('tasksCompleted')
+        total_tasks = body.get('totalTasks')
+        questions_correct = body.get('questionsCorrect')
+        total_questions = body.get('totalQuestions')
+        
+        # Validate metrics
+        if not metrics or not isinstance(metrics, dict):
+            return create_response(400, {'error': 'metrics must be a non-empty dict'})
+        
+        # Validate all metric values are numeric and convert to Decimal
+        metrics_decimal = {}
+        try:
+            for key, value in metrics.items():
+                if not isinstance(value, (int, float, Decimal)):
+                    return create_response(400, {'error': f'Metric {key} must be numeric'})
+                metrics_decimal[key] = Decimal(str(value))
+        except Exception as e:
+            return create_response(400, {'error': f'Invalid metric values: {str(e)}'})
+        
+        # Determine primary metric
+        if primary_metric:
+            if primary_metric not in metrics_decimal:
+                return create_response(400, {'error': f'primaryMetric "{primary_metric}" not found in metrics'})
+        else:
+            # Default: 'accuracy' if present, else first sorted key
+            if 'accuracy' in metrics_decimal:
+                primary_metric = 'accuracy'
+            else:
+                primary_metric = sorted(metrics_decimal.keys())[0]
+        
+        primary_metric_value = metrics_decimal[primary_metric]
+        
+        # Validate progress fields
+        try:
+            tasks_completed = int(tasks_completed) if tasks_completed is not None else 0
+            total_tasks = int(total_tasks) if total_tasks is not None else 0
+            questions_correct = int(questions_correct) if questions_correct is not None else 0
+            total_questions = int(total_questions) if total_questions is not None else 0
+        except (ValueError, TypeError):
+            return create_response(400, {'error': 'Progress fields must be integers'})
+        
+        if any(x < 0 for x in [tasks_completed, total_tasks, questions_correct, total_questions]):
+            return create_response(400, {'error': 'Progress fields must be non-negative'})
+        
+        # Compute moral compass score
+        progress_denominator = total_tasks + total_questions
+        if progress_denominator == 0:
+            moral_compass_score = Decimal('0.0')
+        else:
+            progress_ratio = Decimal(tasks_completed + questions_correct) / Decimal(progress_denominator)
+            moral_compass_score = primary_metric_value * progress_ratio
+        
+        # Get existing user data to preserve submissionCount/totalCount if present
+        existing_resp = retry_dynamo(lambda: table.get_item(
+            Key={'tableId': table_id, 'username': username},
+            ConsistentRead=READ_CONSISTENT
+        ))
+        existing_item = existing_resp.get('Item', {})
+        
+        # Build user data
+        user_data = {
+            'tableId': table_id,
+            'username': username,
+            'metrics': metrics_decimal,
+            'primaryMetric': primary_metric,
+            'tasksCompleted': tasks_completed,
+            'totalTasks': total_tasks,
+            'questionsCorrect': questions_correct,
+            'totalQuestions': total_questions,
+            'moralCompassScore': moral_compass_score,
+            'lastUpdated': datetime.utcnow().isoformat(),
+            # Preserve existing submission counts if present
+            'submissionCount': existing_item.get('submissionCount', 0),
+            'totalCount': existing_item.get('totalCount', 0)
+        }
+        
+        created_new = 'username' not in existing_item
+        
+        # Store to DynamoDB
+        retry_dynamo(lambda: table.put_item(Item=user_data))
+        
+        # Increment user count if new user
+        if created_new:
+            try:
+                retry_dynamo(lambda: table.update_item(
+                    Key={'tableId': table_id, 'username': '_metadata'},
+                    UpdateExpression='ADD userCount :inc',
+                    ExpressionAttributeValues={':inc': 1}
+                ))
+            except Exception as e:
+                print(f"[WARN] Failed to increment userCount for new user {username}: {e}")
+        
+        return create_response(200, {
+            'username': username,
+            'metrics': metrics,
+            'primaryMetric': primary_metric,
+            'moralCompassScore': float(moral_compass_score),
+            'tasksCompleted': tasks_completed,
+            'totalTasks': total_tasks,
+            'questionsCorrect': questions_correct,
+            'totalQuestions': total_questions,
+            'message': 'Moral compass data updated successfully',
+            'createdNew': created_new
+        })
+    except json.JSONDecodeError:
+        return create_response(400, {'error': 'Invalid JSON in request body'})
+    except Exception as e:
+        print(f"[ERROR] put_user_moral_compass exception: {e}")
+        return create_response(500, {'error': f'Internal server error: {str(e)}'})
+
 def health(event):
     status = {
         'tableName': TABLE_NAME,
@@ -636,6 +806,8 @@ def handler(event, context):
             return get_user(event)
         elif route_key == 'PUT /tables/{tableId}/users/{username}':
             return put_user(event)
+        elif route_key == 'PUT /tables/{tableId}/users/{username}/moral-compass':
+            return put_user_moral_compass(event)
         elif route_key == 'GET /health':
             return health(event)
 
@@ -656,6 +828,8 @@ def handler(event, context):
             return list_users(event)
         elif method == 'GET' and '/users/' in path and path.count('/') == 4:
             return get_user(event)
+        elif method == 'PUT' and '/users/' in path and '/moral-compass' in path and path.count('/') == 5:
+            return put_user_moral_compass(event)
         elif method == 'PUT' and '/users/' in path and path.count('/') == 4:
             return put_user(event)
         elif method == 'GET' and path == '/health':

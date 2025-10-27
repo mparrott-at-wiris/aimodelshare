@@ -389,3 +389,40 @@ class MoralcompassApiClient:
         
         response = self._request("PUT", f"/tables/{table_id}/users/{username}", json=payload)
         return response.json()
+    
+    def update_moral_compass(self, table_id: str, username: str,
+                           metrics: Dict[str, float], 
+                           tasks_completed: int = 0,
+                           total_tasks: int = 0,
+                           questions_correct: int = 0,
+                           total_questions: int = 0,
+                           primary_metric: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Update a user's moral compass score with dynamic metrics.
+        
+        Args:
+            table_id: The table identifier
+            username: The username
+            metrics: Dictionary of metric_name -> numeric_value
+            tasks_completed: Number of tasks completed (default: 0)
+            total_tasks: Total number of tasks (default: 0)
+            questions_correct: Number of questions answered correctly (default: 0)
+            total_questions: Total number of questions (default: 0)
+            primary_metric: Optional primary metric name (defaults to 'accuracy' or first sorted key)
+            
+        Returns:
+            Dict containing moralCompassScore and other fields
+        """
+        payload = {
+            "metrics": metrics,
+            "tasksCompleted": tasks_completed,
+            "totalTasks": total_tasks,
+            "questionsCorrect": questions_correct,
+            "totalQuestions": total_questions
+        }
+        
+        if primary_metric is not None:
+            payload["primaryMetric"] = primary_metric
+        
+        response = self._request("PUT", f"/tables/{table_id}/users/{username}/moral-compass", json=payload)
+        return response.json()
