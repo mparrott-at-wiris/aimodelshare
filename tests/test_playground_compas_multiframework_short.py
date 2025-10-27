@@ -221,12 +221,17 @@ def submit_model_helper(playground, model, preprocessor, preds, framework, model
         # For PyTorch models, we need to provide model_input
         extra_kwargs = {}
         if framework == 'pytorch':
-            # Get input dimension from preprocessor
-            X_dummy = pd.DataFrame([[0]*6 + ['A']*5], columns=[
-                'age', 'priors_count', 'juv_fel_count', 'juv_misd_count', 
-                'juv_other_count', 'days_b_screening_arrest',
-                'race', 'sex', 'age_cat', 'c_charge_degree', 'c_charge_desc'
-            ])
+            # Create dummy input using feature structure from preprocessor
+            # Get one sample from the original data and transform it to get correct dimensions
+            numeric_features = ['age', 'priors_count', 'juv_fel_count', 'juv_misd_count', 
+                               'juv_other_count', 'days_b_screening_arrest']
+            categorical_features = ['race', 'sex', 'age_cat', 'c_charge_degree', 'c_charge_desc']
+            
+            # Create a dummy sample with default values
+            dummy_data = {feat: [0] for feat in numeric_features}
+            dummy_data.update({feat: ['A'] for feat in categorical_features})
+            X_dummy = pd.DataFrame(dummy_data)
+            
             X_processed = preprocessor.transform(X_dummy)
             input_dim = X_processed.shape[1]
             dummy_input = torch.zeros((1, input_dim), dtype=torch.float32)
