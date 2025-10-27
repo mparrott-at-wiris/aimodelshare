@@ -63,3 +63,124 @@ or with `mamba`:
 ```
 mamba install aimodelshare
 ```
+
+# moral_compass Client Library
+
+The `moral_compass` package provides a production-ready Python client for interacting with the aimodelshare REST API. It includes auto-discovery of the API base URL, HTTP retries, typed dataclasses, and pagination helpers.
+
+## Features
+
+- **Auto-discovery**: Automatically finds API base URL from environment variables, cached Terraform outputs, or direct Terraform commands
+- **Retries**: Built-in retry logic for transient failures (500, 502, 503, 504 errors)
+- **Type Safety**: Typed dataclasses for API responses (`MoralcompassTableMeta`, `MoralcompassUserStats`)
+- **Pagination**: Helper methods to iterate over all tables and users
+- **Error Handling**: Structured exceptions (`NotFoundError`, `ServerError`, `ApiClientError`)
+
+## Installation
+
+The `moral_compass` client is included in this repository. Install in editable mode for development:
+
+```bash
+pip install -e .
+```
+
+Or install specific dependencies:
+
+```bash
+pip install requests urllib3
+```
+
+## Usage
+
+### Basic Example
+
+```python
+from moral_compass import MoralcompassApiClient
+
+# Create client with auto-discovery of API URL
+client = MoralcompassApiClient()
+
+# Check API health
+health = client.health()
+print(health)
+
+# Create a table
+response = client.create_table("my-table", "My Table")
+
+# Get table metadata
+table = client.get_table("my-table")
+print(f"Table: {table.table_id}, Users: {table.user_count}")
+
+# Create/update a user
+client.put_user("my-table", "john", submission_count=5, total_count=10)
+
+# Get user stats
+user = client.get_user("my-table", "john")
+print(f"User: {user.username}, Submissions: {user.submission_count}")
+```
+
+### Pagination
+
+```python
+# Iterate over all tables
+for table in client.iter_tables():
+    print(f"Table: {table.table_id}")
+
+# Iterate over all users in a table
+for user in client.iter_users("my-table"):
+    print(f"User: {user.username}, Count: {user.submission_count}")
+```
+
+### Error Handling
+
+```python
+from moral_compass import NotFoundError
+
+try:
+    table = client.get_table("nonexistent")
+except NotFoundError:
+    print("Table not found")
+```
+
+## Configuration
+
+The client auto-discovers the API base URL from these sources (in order):
+
+1. **Environment variable** `MORAL_COMPASS_API_BASE_URL`
+2. **Environment variable** `AIMODELSHARE_API_BASE_URL` (backward compatibility)
+3. **Cached file** `infra/terraform_outputs.json` (written by CI/CD)
+4. **Terraform command** `terraform output -raw api_base_url` (if Terraform state is accessible)
+
+### Setting the API URL Manually
+
+```bash
+export MORAL_COMPASS_API_BASE_URL="https://your-api.execute-api.us-east-1.amazonaws.com/dev"
+```
+
+Or pass it directly when creating the client:
+
+```python
+client = MoralcompassApiClient(base_url="https://your-api.example.com")
+```
+
+## Running Integration Tests
+
+Integration tests are marked with `@pytest.mark.integration` and require a live API:
+
+```bash
+# Run integration tests
+pytest -m integration tests/test_moral_compass_client_minimal.py
+
+# Skip integration tests
+pytest -m "not integration"
+```
+
+## CI/CD Integration
+
+The GitHub Actions workflow automatically:
+1. Caches Terraform outputs to `infra/terraform_outputs.json`
+2. Exports `MORAL_COMPASS_API_BASE_URL` to the environment
+3. Installs the client in editable mode
+4. Runs integration tests against the deployed API
+
+See `.github/workflows/deploy-infra.yml` for details.

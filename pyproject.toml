@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "moral-compass"
+version = "0.1.0"
+description = "Production-ready Python client for aimodelshare REST API"
+readme = "README.md"
+authors = [
+    {name = "Michael Parrott", email = "mikedparrott@modelshare.ai"}
+]
+license = {text = "Proprietary"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "requests>=2.25.0",
+    "urllib3>=1.26.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "pytest-cov>=2.10",
+]
+
+[project.urls]
+Homepage = "https://www.modelshare.ai"
+Repository = "https://github.com/mparrott-at-wiris/aimodelshare"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["moral_compass*"]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: integration tests that require live API (deselect with '-m \"not integration\"')",
+]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
