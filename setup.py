@@ -19,6 +19,7 @@ setuptools.setup(
         'numpy>=1.22.0',   # Array and numerical computing
         'pandas',          # Data manipulation and analysis
         'requests',        # HTTP library for API calls
+        'urllib3',         # HTTP client with retry support (used by moral_compass)
         'boto3',           # AWS SDK for cloud storage
         'onnx',            # ONNX model format support
         'onnxmltools',     # ONNX conversion tools
