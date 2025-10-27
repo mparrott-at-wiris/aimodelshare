@@ -133,6 +133,9 @@ def compas_data():
         print(f"Sampled to {MAX_ROWS} rows for CI performance")
     
     # Select features (excluding decile_score and is_recid to avoid leakage)
+    # NOTE: Intentionally including protected/sensitive attributes (race, sex, age_cat)
+    # for bias evaluation purposes. This test validates the model submission pipeline's
+    # ability to handle datasets with fairness-related features.
     feature_columns = [
         'race', 'sex', 'age', 'age_cat', 
         'c_charge_degree', 'c_charge_desc',
@@ -367,7 +370,7 @@ class PyTorchMLP(nn.Module):
     """PyTorch MLP for binary classification (64->32->1)."""
     
     def __init__(self, input_dim):
-        super(PyTorchMLP, self).__init__()
+        super().__init__()
         self.fc1 = nn.Linear(input_dim, 64)
         self.fc2 = nn.Linear(64, 32)
         self.fc3 = nn.Linear(32, 1)
@@ -430,8 +433,8 @@ def test_pytorch_mlp(shared_playground, compas_data):
         print(f"✓ Model trained successfully, generated {len(preds)} predictions")
         print(f"  Prediction distribution: {pd.Series(preds).value_counts().to_dict()}")
         
-        # Create dummy input for ONNX tracing
-        dummy_input = torch.randn((1, input_dim), dtype=torch.float32)
+        # Create dummy input for ONNX tracing (using zeros for reproducibility)
+        dummy_input = torch.zeros((1, input_dim), dtype=torch.float32)
         
         # Perform a lightweight forward pass to ensure module parameters are initialized
         model.eval()
