@@ -20,6 +20,7 @@ on:
           - torch_model_types
           - compas_multiframework
           - compas_short
+          - justice_equity_challenge
 
 permissions:
   contents: read
@@ -425,6 +426,33 @@ jobs:
           pytest -vv tests/test_playground_compas_multiframework_short.py
 
 
+  test-playground-justice-equity-challenge:
+    if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'justice_equity_challenge' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      username: ${{ secrets.AIMODELSHARE_USERNAME }}
+      password: ${{ secrets.AIMODELSHARE_PASSWORD }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.DATA_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.DATA_AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: us-east-1
+      AIMODELSHARE_SUPPRESS_OPTIONAL_WARNINGS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
+          pip install -e .
+          pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython 'PyJWT<2.0' matplotlib seaborn importlib_resources onnxscript requests
+          pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
+      - name: Run Justice & Equity moral compass challenge integration test
+        run: |
+          pytest -vv tests/test_playground_moral_compass_challenge.py
+
+
   integration-summary:
     needs:
       - test-credentials
@@ -437,6 +465,7 @@ jobs:
       - test-playground-torch-model-types
       - test-playground-compas-multiframework
       - test-playground-compas-short
+      - test-playground-justice-equity-challenge
       
     runs-on: ubuntu-latest
     if: always()
@@ -454,3 +483,4 @@ jobs:
           echo "Torch Model Types: ${{ needs.test-playground-torch-model-types.result }}"
           echo "COMPAS Multi-Framework: ${{ needs.test-playground-compas-multiframework.result }}"
           echo "COMPAS Short: ${{ needs.test-playground-compas-short.result }}"
+          echo "Justice & Equity Challenge: ${{ needs.test-playground-justice-equity-challenge.result }}"

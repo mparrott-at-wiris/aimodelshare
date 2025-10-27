@@ -41,7 +41,7 @@ from .api_client import (
     ServerError,
 )
 from .config import get_api_base_url
-from .challenge import ChallengeManager
+from .challenge import ChallengeManager, JusticeAndEquityChallenge
 
 __all__ = [
     "__version__",
@@ -53,4 +53,5 @@ __all__ = [
     "ServerError",
     "get_api_base_url",
     "ChallengeManager",
+    "JusticeAndEquityChallenge",
 ]

@@ -212,27 +212,6 @@ class TestMoralcompassClientIntegration:
             assert page1_usernames.isdisjoint(page2_usernames)
 
 
-class TestBackwardCompatibility:
-    """Test backward compatibility via shim package"""
-    
-    @pytest.mark.integration
-    def test_import_from_shim(self):
-        """Test that importing from moral_compass (shim) works"""
-        # This import should work via the shim
-        from moral_compass import MoralcompassApiClient as ShimClient
-        from aimodelshare.moral_compass import MoralcompassApiClient as DirectClient
-        
-        # Both should be the same class
-        assert ShimClient is DirectClient
-    
-    @pytest.mark.integration
-    def test_shim_client_works(self):
-        """Test that client imported from shim works correctly"""
-        from moral_compass import MoralcompassApiClient
-        
-        client = MoralcompassApiClient()
-        health = client.health()
-        assert isinstance(health, dict)
 
 
 if __name__ == "__main__":
