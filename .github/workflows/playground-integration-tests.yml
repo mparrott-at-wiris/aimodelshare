@@ -453,12 +453,16 @@ jobs:
           # Select or create dev workspace
           terraform workspace select dev || terraform workspace new dev
           # Get API base URL from terraform outputs
-          API_URL=$(terraform output -raw api_base_url 2>/dev/null || echo "")
-          if [ -n "$API_URL" ] && [ "$API_URL" != "null" ]; then
+          set +e  # Don't exit on error
+          API_URL=$(terraform output -raw api_base_url 2>&1)
+          TF_EXIT_CODE=$?
+          set -e  # Re-enable exit on error
+          
+          if [ $TF_EXIT_CODE -eq 0 ] && [ -n "$API_URL" ] && [ "$API_URL" != "null" ]; then
             echo "MORAL_COMPASS_API_BASE_URL=$API_URL" >> $GITHUB_ENV
             echo "✓ API base URL set: $API_URL"
           else
-            echo "⚠ Could not retrieve API base URL from terraform outputs"
+            echo "⚠ Could not retrieve API base URL from terraform outputs (exit code: $TF_EXIT_CODE)"
             echo "Test will be skipped if URL cannot be resolved"
           fi
       - name: Install dependencies
