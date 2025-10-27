@@ -5,6 +5,7 @@ on:
     branches: [ master ]
     paths:
       - 'infra/**'
+      - 'aimodelshare/moral_compass/**'
       - '.github/workflows/deploy-infra.yml'
       - '.github/workflows/bootstrap-terraform.yml'
   workflow_dispatch:
@@ -130,6 +131,32 @@ jobs:
             echo "Attempt $ATTEMPTS/$MAX_ATTEMPTS: status=$STATUS; sleeping $SLEEP_SECONDS s..."
             sleep $SLEEP_SECONDS
           done
+
+      - name: Cache Terraform Outputs
+        if: github.ref == 'refs/heads/master'
+        working-directory: .
+        run: |
+          bash scripts/cache_terraform_outputs.sh
+
+      - name: Verify API Health Endpoint
+        if: github.ref == 'refs/heads/master'
+        working-directory: .
+        run: |
+          bash scripts/verify_api_reachable.sh
+
+      - name: Install Package in Editable Mode
+        if: github.ref == 'refs/heads/master'
+        working-directory: .
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      - name: Run moral_compass Integration Tests
+        if: github.ref == 'refs/heads/master'
+        working-directory: .
+        run: |
+          python -m pip install pytest
+          pytest -m integration tests/test_moral_compass_client_minimal.py -v
 
       - name: Run API Integration Tests
         if: github.ref == 'refs/heads/master'
