@@ -54,6 +54,11 @@ torch.manual_seed(42)
 MAX_ROWS = 2500  # Reduced for faster CI runtime
 TOP_N_CHARGE_CATEGORIES = 50
 
+# Feature definitions (used in preprocessing and dummy input creation)
+NUMERIC_FEATURES = ['age', 'priors_count', 'juv_fel_count', 'juv_misd_count', 
+                    'juv_other_count', 'days_b_screening_arrest']
+CATEGORICAL_FEATURES = ['race', 'sex', 'age_cat', 'c_charge_degree', 'c_charge_desc']
+
 
 @pytest.fixture(scope="session")
 def credentials():
@@ -160,12 +165,7 @@ def compas_data():
         X, y, test_size=0.25, random_state=42, stratify=y
     )
     
-    # Define numeric and categorical columns
-    numeric_features = ['age', 'priors_count', 'juv_fel_count', 'juv_misd_count', 
-                       'juv_other_count', 'days_b_screening_arrest']
-    categorical_features = ['race', 'sex', 'age_cat', 'c_charge_degree', 'c_charge_desc']
-    
-    # Build preprocessing pipeline
+    # Build preprocessing pipeline using module-level feature constants
     numeric_transformer = Pipeline(steps=[
         ('imputer', SimpleImputer(strategy='median')),
         ('scaler', StandardScaler())
@@ -178,8 +178,8 @@ def compas_data():
     
     preprocessor = ColumnTransformer(
         transformers=[
-            ('num', numeric_transformer, numeric_features),
-            ('cat', categorical_transformer, categorical_features)
+            ('num', numeric_transformer, NUMERIC_FEATURES),
+            ('cat', categorical_transformer, CATEGORICAL_FEATURES)
         ])
     
     # Fit preprocessor on training data
@@ -221,15 +221,10 @@ def submit_model_helper(playground, model, preprocessor, preds, framework, model
         # For PyTorch models, we need to provide model_input
         extra_kwargs = {}
         if framework == 'pytorch':
-            # Create dummy input using feature structure from preprocessor
-            # Get one sample from the original data and transform it to get correct dimensions
-            numeric_features = ['age', 'priors_count', 'juv_fel_count', 'juv_misd_count', 
-                               'juv_other_count', 'days_b_screening_arrest']
-            categorical_features = ['race', 'sex', 'age_cat', 'c_charge_degree', 'c_charge_desc']
-            
-            # Create a dummy sample with default values
-            dummy_data = {feat: [0] for feat in numeric_features}
-            dummy_data.update({feat: ['A'] for feat in categorical_features})
+            # Create dummy input using module-level feature constants
+            # This ensures consistency with the preprocessor configuration
+            dummy_data = {feat: [0] for feat in NUMERIC_FEATURES}
+            dummy_data.update({feat: ['A'] for feat in CATEGORICAL_FEATURES})
             X_dummy = pd.DataFrame(dummy_data)
             
             X_processed = preprocessor.transform(X_dummy)
