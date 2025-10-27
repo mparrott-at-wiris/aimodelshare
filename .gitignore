@@ -158,6 +158,8 @@ terraform*.log
 *.backup
 terraform.rc
 .terraformrc
+infra/terraform_outputs.json
+infra/.env_api
 
 # Terraform
 *.tfstate
