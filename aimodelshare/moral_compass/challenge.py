@@ -57,9 +57,6 @@ class ChallengeManager:
         
         if primary:
             self.primary_metric = name
-        elif self.primary_metric is None and len(self.metrics) == 1:
-            # Auto-set first metric as primary if none set
-            self.primary_metric = name
     
     def set_progress(self, tasks_completed: int = 0, total_tasks: int = 0,
                     questions_correct: int = 0, total_questions: int = 0) -> None:
