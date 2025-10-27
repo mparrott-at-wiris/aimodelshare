@@ -169,7 +169,8 @@ class TestChallengeManagerUnit:
         result = manager.sync()
         
         assert result['username'] == 'test-user'
-        assert result['moralCompassScore'] == 0.425
+        expected_score = 0.85 * (5/10)
+        assert result['moralCompassScore'] == expected_score
         assert result['primaryMetric'] == 'accuracy'
         
         # Verify the client was called with correct params
@@ -218,7 +219,7 @@ class TestScoreCalculation:
         else:
             score = primary_value * ((tasks_completed + questions_correct) / denom)
         
-        expected = 0.425
+        expected = 0.85 * (5/10)
         assert abs(score - expected) < 0.0001
     
     def test_score_formula_with_questions(self):
@@ -231,7 +232,7 @@ class TestScoreCalculation:
         
         score = primary_value * ((tasks_completed + questions_correct) / (total_tasks + total_questions))
         
-        expected = 0.6747
+        expected = 0.92 * (11/15)
         assert abs(score - expected) < 0.0001
     
     def test_decimal_precision(self):
