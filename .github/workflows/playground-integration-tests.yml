@@ -442,6 +442,25 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+      - name: Initialize Terraform and get API URL
+        working-directory: infra
+        run: |
+          terraform init
+          # Select or create dev workspace
+          terraform workspace select dev || terraform workspace new dev
+          # Get API base URL from terraform outputs
+          API_URL=$(terraform output -raw api_base_url 2>/dev/null || echo "")
+          if [ -n "$API_URL" ] && [ "$API_URL" != "null" ]; then
+            echo "MORAL_COMPASS_API_BASE_URL=$API_URL" >> $GITHUB_ENV
+            echo "✓ API base URL set: $API_URL"
+          else
+            echo "⚠ Could not retrieve API base URL from terraform outputs"
+            echo "Test will be skipped if URL cannot be resolved"
+          fi
       - name: Install dependencies
         run: |
           pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget

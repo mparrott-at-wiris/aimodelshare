@@ -165,3 +165,38 @@ result = client.update_moral_compass(
 - [Full API Documentation](aimodelshare/moral_compass/README.md)
 - [Justice & Equity Challenge Examples](docs/justice_equity_challenge_example.md)
 - [Integration Tests](tests/test_moral_compass_client_minimal.py)
+
+## Moral Compass API URL Configuration
+
+The Moral Compass API client requires a base URL to connect to the REST API. The URL is resolved in the following order:
+
+### For CI/CD Environments
+
+In GitHub Actions workflows, the `MORAL_COMPASS_API_BASE_URL` environment variable is automatically exported from Terraform outputs:
+
+```yaml
+- name: Initialize Terraform and get API URL
+  working-directory: infra
+  run: |
+    terraform init
+    terraform workspace select dev || terraform workspace new dev
+    API_URL=$(terraform output -raw api_base_url)
+    echo "MORAL_COMPASS_API_BASE_URL=$API_URL" >> $GITHUB_ENV
+```
+
+### For Local Development
+
+When developing locally, the API client attempts to resolve the URL in this order:
+
+1. **Environment variable** - Set `MORAL_COMPASS_API_BASE_URL` or `AIMODELSHARE_API_BASE_URL`:
+   ```bash
+   export MORAL_COMPASS_API_BASE_URL="https://api.example.com/v1"
+   ```
+
+2. **Cached Terraform outputs** - The client looks for `infra/terraform_outputs.json`
+
+3. **Terraform command** - As a fallback, executes `terraform output -raw api_base_url` in the `infra/` directory
+
+### Graceful Test Skipping
+
+Integration tests that require the Moral Compass API will skip gracefully if the URL cannot be resolved, rather than failing. This allows the test suite to run in environments where the infrastructure is not available (e.g., forks without access to AWS resources).

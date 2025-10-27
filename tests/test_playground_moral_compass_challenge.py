@@ -2,6 +2,7 @@
 import os
 import time
 import math
+import pytest
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
@@ -9,9 +10,39 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from aimodelshare.moral_compass import MoralcompassApiClient
 from aimodelshare.moral_compass.challenge import ChallengeManager, JusticeAndEquityChallenge
+from aimodelshare.moral_compass.config import get_api_base_url
 
 USERNAME = os.getenv('username') or 'testuser_mc'
 TABLE_ID = 'justice_equity_playground_integration'
+
+def resolve_api_base_url():
+    """
+    Resolve the Moral Compass API base URL.
+    
+    Resolution order:
+    1. MORAL_COMPASS_API_BASE_URL environment variable (set in CI)
+    2. get_api_base_url() fallback for local developer environments
+    
+    Returns:
+        str: The API base URL
+        
+    Raises:
+        RuntimeError: If API base URL cannot be determined
+    """
+    # Try environment variable first (CI sets this)
+    env_url = os.getenv('MORAL_COMPASS_API_BASE_URL')
+    if env_url:
+        return env_url.rstrip('/')
+    
+    # Fall back to get_api_base_url() for local development
+    try:
+        return get_api_base_url()
+    except RuntimeError as e:
+        raise RuntimeError(
+            "Could not resolve API base URL. In CI, ensure MORAL_COMPASS_API_BASE_URL "
+            "is exported from terraform outputs. For local development, set the environment "
+            "variable or ensure terraform outputs are accessible."
+        ) from e
 
 def build_dataset():
     # Synthetic mini COMPAS-like data (balanced + slight bias potential)
@@ -48,7 +79,15 @@ def train_model(X, y, C):
     return pipe, acc
 
 def test_moral_compass_challenge_flow():
-    api = MoralcompassApiClient()
+    # Try to resolve API base URL, skip test if unavailable
+    try:
+        api_base_url = resolve_api_base_url()
+    except RuntimeError as e:
+        pytest.skip(f"API base URL not available: {e}")
+    
+    # Explicitly pass api_base_url to bypass auto-discovery in CI
+    api = MoralcompassApiClient(api_base_url=api_base_url)
+    
     # Ensure table exists (idempotent create)
     try:
         api.create_table(TABLE_ID, display_name='Justice & Equity Challenge Integration')
