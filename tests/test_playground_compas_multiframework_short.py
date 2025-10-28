@@ -54,6 +54,15 @@ torch.manual_seed(42)
 MAX_ROWS = 2500  # Reduced for faster CI runtime
 TOP_N_CHARGE_CATEGORIES = 50
 
+# Fairness value generator - cycles through 0.25, 0.50, 0.75
+def fairness_value_generator():
+    """Generator that cycles through fairness values: 0.25, 0.50, 0.75"""
+    values = [0.25, 0.50, 0.75]
+    index = 0
+    while True:
+        yield values[index]
+        index = (index + 1) % len(values)
+
 # Feature definitions (used in preprocessing and dummy input creation)
 NUMERIC_FEATURES = ['age', 'priors_count', 'juv_fel_count', 'juv_misd_count', 
                     'juv_other_count', 'days_b_screening_arrest']
@@ -210,7 +219,7 @@ def shared_playground(credentials, aws_environment, compas_data):
     return playground
 
 
-def submit_model_helper(playground, model, preprocessor, preds, framework, model_name, submission_type):
+def submit_model_helper(playground, model, preprocessor, preds, framework, model_name, submission_type, fairness_value):
     """
     Helper function to submit a model with consistent error handling.
     
@@ -241,9 +250,10 @@ def submit_model_helper(playground, model, preprocessor, preds, framework, model
                 'tags': f'compas_short,{framework},{submission_type}'
             },
             submission_type=submission_type,
+            custom_metadata={'Moral_Compass_Fairness': fairness_value},
             **extra_kwargs
         )
-        print(f"✓ Submission succeeded ({submission_type})")
+        print(f"✓ Submission succeeded ({submission_type}) with fairness={fairness_value}")
         return True
     except Exception as e:
         error_str = str(e).lower()
@@ -267,6 +277,9 @@ def test_compas_short_sklearn_models(shared_playground, compas_data):
     print(f"{'='*80}")
     
     X_train, X_test, y_train, y_test, preprocessor, preprocessor_func = compas_data
+    
+    # Initialize fairness value generator
+    fairness_gen = fairness_value_generator()
     
     # Define minimal sklearn classifiers with CI-optimized parameters
     classifiers = [
@@ -307,9 +320,12 @@ def test_compas_short_sklearn_models(shared_playground, compas_data):
         # Submit twice: once as competition, once as experiment
         for submission_type in ['competition', 'experiment']:
             try:
+                # Get next fairness value
+                fairness_value = next(fairness_gen)
+                
                 submit_model_helper(
                     shared_playground, model, preprocessor, preds, 
-                    'sklearn', model_name, submission_type
+                    'sklearn', model_name, submission_type, fairness_value
                 )
             except Exception as e:
                 error_msg = f"Submission failed for {model_name} ({submission_type}): {e}"
@@ -341,6 +357,9 @@ def test_compas_short_keras_models(shared_playground, compas_data):
     print(f"{'='*80}")
     
     X_train, X_test, y_train, y_test, preprocessor, preprocessor_func = compas_data
+    
+    # Initialize fairness value generator
+    fairness_gen = fairness_value_generator()
     
     # Preprocess data
     X_train_processed = preprocessor_func(X_train)
@@ -387,9 +406,12 @@ def test_compas_short_keras_models(shared_playground, compas_data):
         # Submit twice: once as competition, once as experiment
         for submission_type in ['competition', 'experiment']:
             try:
+                # Get next fairness value
+                fairness_value = next(fairness_gen)
+                
                 submit_model_helper(
                     shared_playground, model, preprocessor, preds,
-                    'keras', 'sequential_dense', submission_type
+                    'keras', 'sequential_dense', submission_type, fairness_value
                 )
             except Exception as e:
                 error_msg = f"Submission failed for Keras model ({submission_type}): {e}"
@@ -421,6 +443,9 @@ def test_compas_short_pytorch_models(shared_playground, compas_data):
     print(f"{'='*80}")
     
     X_train, X_test, y_train, y_test, preprocessor, preprocessor_func = compas_data
+    
+    # Initialize fairness value generator
+    fairness_gen = fairness_value_generator()
     
     # Preprocess data
     X_train_processed = preprocessor_func(X_train)
@@ -492,9 +517,12 @@ def test_compas_short_pytorch_models(shared_playground, compas_data):
         # Submit twice: once as competition, once as experiment
         for submission_type in ['competition', 'experiment']:
             try:
+                # Get next fairness value
+                fairness_value = next(fairness_gen)
+                
                 submit_model_helper(
                     shared_playground, model, preprocessor, preds,
-                    'pytorch', 'mlp_basic', submission_type
+                    'pytorch', 'mlp_basic', submission_type, fairness_value
                 )
             except Exception as e:
                 error_msg = f"Submission failed for PyTorch model ({submission_type}): {e}"
