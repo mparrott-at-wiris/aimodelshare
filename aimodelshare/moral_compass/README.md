@@ -62,6 +62,11 @@ for user in client.iter_users("my-table"):
 
 The moral compass API supports authentication and authorization controls when `AUTH_ENABLED=true` on the server.
 
+> **⚠️ SECURITY WARNING**  
+> JWT signature verification is currently a **stub implementation** that performs unverified token decoding.  
+> **DO NOT use in production** for security-critical operations without implementing JWKS-based signature verification.  
+> This is suitable for development and testing only.
+
 ### Authentication Token
 
 The client automatically attaches JWT authentication tokens from environment variables:
@@ -97,6 +102,14 @@ response = client.create_table(
     display_name="My Moral Compass Table",
     playground_url="https://example.com/playground/my-playground"
 )
+# Response is a dict with structure:
+# {
+#     'tableId': 'my-playground-mc',
+#     'displayName': 'My Moral Compass Table',
+#     'ownerPrincipal': 'user@example.com',  # Owner's identity
+#     'playgroundId': 'my-playground',
+#     'message': 'Table created successfully'
+# }
 print(response['ownerPrincipal'])  # Shows who created the table
 
 # Convenience method to create with naming convention
@@ -157,15 +170,15 @@ from aimodelshare.auth import get_primary_token, get_identity_claims
 # Get token from environment
 token = get_primary_token()
 
-# Extract identity claims
+# Extract identity claims (DEVELOPMENT ONLY - signature not verified)
 if token:
+    # Currently verify=False (stub implementation)
+    # TODO: Use verify=True after implementing JWKS verification for production
     claims = get_identity_claims(token, verify=False)
     print(f"User: {claims['principal']}")
     print(f"Email: {claims.get('email')}")
     print(f"Subject: {claims['sub']}")
 ```
-
-**Note**: JWT signature verification is currently a stub implementation. JWKS-based signature verification is planned for future work and should be implemented before production deployment in security-critical contexts.
 
 ## API Base URL Configuration
 
