@@ -12,6 +12,7 @@ Sampling cap (MAX_ROWS=4000) for manageable CI runtime.
 """
 
 import os
+import itertools
 import pytest
 from unittest.mock import patch
 import pandas as pd
@@ -68,6 +69,11 @@ torch.manual_seed(42)
 # Dataset configuration
 MAX_ROWS = 4000  # Sampling cap for CI performance
 TOP_N_CHARGE_CATEGORIES = 50  # Top N frequent c_charge_desc categories to keep
+
+# Fairness value generator - cycles through 0.25, 0.50, 0.75
+def fairness_value_generator():
+    """Generator that cycles through fairness values: 0.25, 0.50, 0.75"""
+    return itertools.cycle([0.25, 0.50, 0.75])
 
 
 @pytest.fixture(scope="session")
@@ -259,6 +265,9 @@ def test_compas_sklearn_models(shared_playground, compas_data):
     
     X_train, X_test, y_train, y_test, preprocessor, preprocessor_func, minmax_preprocessor, minmax_preprocessor_func = compas_data
     
+    # Initialize fairness value generator
+    fairness_gen = fairness_value_generator()
+    
     # Define all 18 sklearn classifiers with CI-optimized parameters
     classifiers = [
         ("LogisticRegression", LogisticRegression(max_iter=500, random_state=42, class_weight='balanced')),
@@ -322,6 +331,9 @@ def test_compas_sklearn_models(shared_playground, compas_data):
         # Submit twice: once as competition, once as experiment
         for submission_type in ['competition', 'experiment']:
             try:
+                # Get next fairness value
+                fairness_value = next(fairness_gen)
+                
                 shared_playground.submit_model(
                     model=model,
                     preprocessor=current_preprocessor,
@@ -330,9 +342,10 @@ def test_compas_sklearn_models(shared_playground, compas_data):
                         'description': f'CI test sklearn {model_name} COMPAS {submission_type}',
                         'tags': f'compas,bias,sklearn,{model_name},{submission_type}'
                     },
-                    submission_type=submission_type
+                    submission_type=submission_type,
+                    custom_metadata={'Moral_Compass_Fairness': fairness_value}
                 )
-                print(f"✓ Submission succeeded ({submission_type})")
+                print(f"✓ Submission succeeded ({submission_type}) with fairness={fairness_value}")
             except Exception as e:
                 error_str = str(e).lower()
                 # Skip only on stdin or ONNX fallback issues
@@ -368,6 +381,9 @@ def test_compas_keras_models(shared_playground, compas_data):
     print(f"{'='*80}")
     
     X_train, X_test, y_train, y_test, preprocessor, preprocessor_func, minmax_scaler, minmax_preprocessor_func = compas_data
+    
+    # Initialize fairness value generator
+    fairness_gen = fairness_value_generator()
     
     # Preprocess data
     X_train_processed = preprocessor_func(X_train)
@@ -483,6 +499,9 @@ def test_compas_keras_models(shared_playground, compas_data):
         # Submit twice: once as competition, once as experiment
         for submission_type in ['competition', 'experiment']:
             try:
+                # Get next fairness value
+                fairness_value = next(fairness_gen)
+                
                 shared_playground.submit_model(
                     model=model,
                     preprocessor=preprocessor,
@@ -491,9 +510,10 @@ def test_compas_keras_models(shared_playground, compas_data):
                         'description': f'CI test Keras {model_name} COMPAS {submission_type}',
                         'tags': f'compas,bias,keras,{model_name},{submission_type}'
                     },
-                    submission_type=submission_type
+                    submission_type=submission_type,
+                    custom_metadata={'Moral_Compass_Fairness': fairness_value}
                 )
-                print(f"✓ Submission succeeded ({submission_type})")
+                print(f"✓ Submission succeeded ({submission_type}) with fairness={fairness_value}")
             except Exception as e:
                 error_str = str(e).lower()
                 # Skip only on stdin ONNX fallback issues
@@ -529,6 +549,9 @@ def test_compas_torch_models(shared_playground, compas_data):
     print(f"{'='*80}")
     
     X_train, X_test, y_train, y_test, preprocessor, preprocessor_func, minmax_scaler, minmax_preprocessor_func = compas_data
+    
+    # Initialize fairness value generator
+    fairness_gen = fairness_value_generator()
     
     # Preprocess data
     X_train_processed = preprocessor_func(X_train)
@@ -665,6 +688,9 @@ def test_compas_torch_models(shared_playground, compas_data):
         # Submit twice: once as competition, once as experiment
         for submission_type in ['competition', 'experiment']:
             try:
+                # Get next fairness value
+                fairness_value = next(fairness_gen)
+                
                 shared_playground.submit_model(
                     model=model,
                     preprocessor=preprocessor,
@@ -674,9 +700,10 @@ def test_compas_torch_models(shared_playground, compas_data):
                         'tags': f'compas,bias,pytorch,{model_name},{submission_type}'
                     },
                     submission_type=submission_type,
-                    model_input=dummy_input
+                    model_input=dummy_input,
+                    custom_metadata={'Moral_Compass_Fairness': fairness_value}
                 )
-                print(f"✓ Submission succeeded ({submission_type})")
+                print(f"✓ Submission succeeded ({submission_type}) with fairness={fairness_value}")
             except Exception as e:
                 error_str = str(e).lower()
                 # Skip only on stdin or ONNX fallback issues
