@@ -38,11 +38,13 @@ onnx = ["onnx", "onnxmltools", "onnxruntime", "skl2onnx", "tf2onnx"]
 tensorflow = ["tensorflow==2.18.0", "tf2onnx", "keras2onnx"]
 pytorch = ["torch"]
 visual = ["pydot", "graphviz"]
+sklearn = ["scikit-learn", "scikeras", "wget"]
 full = [
   "onnx", "onnxmltools", "onnxruntime", "skl2onnx", "tf2onnx",
   "tensorflow==2.18.0", "keras2onnx",
   "torch",
-  "pydot", "graphviz"
+  "pydot", "graphviz",
+  "scikit-learn", "scikeras", "wget"
 ]
 test = ["pytest", "pytest-cov"]
 

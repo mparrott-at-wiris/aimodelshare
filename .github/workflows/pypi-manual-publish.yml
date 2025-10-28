@@ -132,7 +132,7 @@ jobs:
         if: inputs.dry_run != 'true'
         run: |
           pip install --upgrade aimodelshare
-          python -c "import aimodelshare; print('Installed:', getattr(aimodelshare, '__version__', 'unknown'))"
+          python -c "from importlib.metadata import version; print('Installed version:', version('aimodelshare'))"
 
       - name: Summary
         run: |
