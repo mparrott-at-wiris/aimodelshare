@@ -444,7 +444,7 @@ jobs:
           pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
       - name: Test COMPAS multi-framework submission
         run: |
-          pytest -vv tests/test_playground_compas_multiframework.py
+          pytest -vv -s tests/test_playground_compas_multiframework.py
 
   test-playground-compas-short:
     if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'compas_short' }}
@@ -480,7 +480,7 @@ jobs:
           pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
       - name: Test COMPAS short multi-framework submission
         run: |
-          pytest -vv tests/test_playground_compas_multiframework_short.py
+          pytest -vv -s tests/test_playground_compas_multiframework_short.py
 
   test-playground-justice-equity-challenge:
     if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'justice_equity_challenge' }}
@@ -534,7 +534,7 @@ jobs:
           pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
       - name: Run Justice & Equity moral compass challenge integration test
         run: |
-          pytest -vv tests/test_playground_moral_compass_challenge.py
+          pytest -vv -s tests/test_playground_moral_compass_challenge.py
 
   test-region-aware-naming:
     if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'region_aware_naming' }}
@@ -563,7 +563,7 @@ jobs:
           pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
       - name: Run region-aware naming tests
         run: |
-          pytest -vv tests/test_region_aware_naming.py
+          pytest -vv -s tests/test_region_aware_naming.py
 
   integration-summary:
     needs:
