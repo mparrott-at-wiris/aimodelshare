@@ -502,6 +502,7 @@ def test_compas_short_pytorch_models(shared_playground, compas_data):
 def test_compas_short_leaderboards(shared_playground):
     """
     Validate leaderboard contains submissions from all frameworks with both submission types.
+    Also prints the FULL leaderboard for GitHub Action log visibility.
     """
     print(f"\n{'='*80}")
     print(f"Testing: Leaderboard Validation for All Frameworks and Submission Types")
@@ -550,8 +551,16 @@ def test_compas_short_leaderboards(shared_playground):
             assert pytorch_tagged.any(), "Expected at least one PyTorch submission"
             assert competition_tagged.any() or experiment_tagged.any(), "Expected submissions with 'competition' or 'experiment' tags"
 
-        print(f"\nLeaderboard sample:")
-        print(df.head(10))
+        print("\nFull leaderboard (all rows & columns):")
+        try:
+            with pd.option_context('display.max_rows', None,
+                                   'display.max_columns', None,
+                                   'display.width', 1000):
+                print(df.to_string(index=False))
+        except Exception as e:
+            print(f"  Fallback leaderboard print due to error: {e}")
+            print(df)
+
         print(f"\n✓ Leaderboard validation test passed")
 
     except Exception as e:
