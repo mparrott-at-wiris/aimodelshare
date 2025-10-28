@@ -21,6 +21,7 @@ on:
           - compas_multiframework
           - compas_short
           - justice_equity_challenge
+          - region_aware_naming
 
 permissions:
   contents: read
@@ -476,6 +477,30 @@ jobs:
           pytest -vv tests/test_playground_moral_compass_challenge.py
 
 
+  test-region-aware-naming:
+    if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'region_aware_naming' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      AWS_REGION: us-east-1
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install local aimodelshare (editable) + test dependencies
+        run: |
+          pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
+          pip install -e .
+          pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript
+          pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
+      - name: Run region-aware naming tests
+        run: |
+          pytest -vv tests/test_region_aware_naming.py
+
+
   integration-summary:
     needs:
       - test-credentials
@@ -489,6 +514,7 @@ jobs:
       - test-playground-compas-multiframework
       - test-playground-compas-short
       - test-playground-justice-equity-challenge
+      - test-region-aware-naming
       
     runs-on: ubuntu-latest
     if: always()
@@ -507,3 +533,4 @@ jobs:
           echo "COMPAS Multi-Framework: ${{ needs.test-playground-compas-multiframework.result }}"
           echo "COMPAS Short: ${{ needs.test-playground-compas-short.result }}"
           echo "Justice & Equity Challenge: ${{ needs.test-playground-justice-equity-challenge.result }}"
+          echo "Region-Aware Naming: ${{ needs.test-region-aware-naming.result }}"
