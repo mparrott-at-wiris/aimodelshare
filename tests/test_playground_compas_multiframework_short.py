@@ -12,6 +12,7 @@ Key differences from full test:
 """
 
 import os
+import itertools
 import pytest
 from unittest.mock import patch
 import pandas as pd
@@ -57,7 +58,6 @@ TOP_N_CHARGE_CATEGORIES = 50
 # Fairness value generator - cycles through 0.25, 0.50, 0.75
 def fairness_value_generator():
     """Generator that cycles through fairness values: 0.25, 0.50, 0.75"""
-    import itertools
     return itertools.cycle([0.25, 0.50, 0.75])
 
 # Feature definitions (used in preprocessing and dummy input creation)

@@ -12,6 +12,7 @@ Sampling cap (MAX_ROWS=4000) for manageable CI runtime.
 """
 
 import os
+import itertools
 import pytest
 from unittest.mock import patch
 import pandas as pd
@@ -72,7 +73,6 @@ TOP_N_CHARGE_CATEGORIES = 50  # Top N frequent c_charge_desc categories to keep
 # Fairness value generator - cycles through 0.25, 0.50, 0.75
 def fairness_value_generator():
     """Generator that cycles through fairness values: 0.25, 0.50, 0.75"""
-    import itertools
     return itertools.cycle([0.25, 0.50, 0.75])
 
 
