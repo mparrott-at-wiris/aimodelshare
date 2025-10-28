@@ -808,6 +808,8 @@ def handler(event, context):
             return put_user(event)
         elif route_key == 'PUT /tables/{tableId}/users/{username}/moral-compass':
             return put_user_moral_compass(event)
+        elif route_key == 'PUT /tables/{tableId}/users/{username}/moralcompass':
+            return put_user_moral_compass(event)
         elif route_key == 'GET /health':
             return health(event)
 
@@ -829,6 +831,8 @@ def handler(event, context):
         elif method == 'GET' and '/users/' in path and path.count('/') == 4:
             return get_user(event)
         elif method == 'PUT' and '/users/' in path and '/moral-compass' in path and path.count('/') == 5:
+            return put_user_moral_compass(event)
+        elif method == 'PUT' and '/users/' in path and '/moralcompass' in path and path.count('/') == 5:
             return put_user_moral_compass(event)
         elif method == 'PUT' and '/users/' in path and path.count('/') == 4:
             return put_user(event)

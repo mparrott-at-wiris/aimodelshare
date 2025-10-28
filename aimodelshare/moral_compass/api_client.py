@@ -146,7 +146,7 @@ class MoralcompassApiClient:
             
             # Handle specific error codes
             if response.status_code == 404:
-                raise NotFoundError(f"Resource not found: {path}")
+                raise NotFoundError(f"Resource not found: {path} | body={response.text}")
             elif 500 <= response.status_code < 600:
                 raise ServerError(f"Server error {response.status_code}: {response.text}")
             
@@ -424,5 +424,16 @@ class MoralcompassApiClient:
         if primary_metric is not None:
             payload["primaryMetric"] = primary_metric
         
-        response = self._request("PUT", f"/tables/{table_id}/users/{username}/moral-compass", json=payload)
-        return response.json()
+        # Try hyphenated path first
+        try:
+            response = self._request("PUT", f"/tables/{table_id}/users/{username}/moral-compass", json=payload)
+            return response.json()
+        except NotFoundError as e:
+            # If route not found, retry with legacy path (no hyphen)
+            if "Route not found" in str(e) or "not found" in str(e).lower():
+                logger.warning(f"Hyphenated path failed with 404, retrying with legacy path: {e}")
+                response = self._request("PUT", f"/tables/{table_id}/users/{username}/moralcompass", json=payload)
+                return response.json()
+            else:
+                # Resource-level 404 (e.g., table or user not found), don't retry
+                raise

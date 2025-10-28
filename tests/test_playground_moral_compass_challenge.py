@@ -95,6 +95,39 @@ def test_moral_compass_challenge_flow():
     except Exception:
         # Table may already exist from prior runs
         pass
+    
+    # Retry get_table to ensure metadata is available (avoid race condition)
+    max_retries = 10
+    retry_delay = 0.5
+    table_available = False
+    for attempt in range(max_retries):
+        try:
+            api.get_table(TABLE_ID)
+            table_available = True
+            break
+        except Exception as e:
+            if attempt < max_retries - 1:
+                time.sleep(retry_delay)
+            else:
+                pytest.fail(f"Table metadata not available after {max_retries} retries: {e}")
+    
+    assert table_available, "Table should be available before proceeding"
+    
+    # Pre-sync smoke test: validate endpoint with minimal metrics
+    try:
+        smoke_response = api.update_moral_compass(
+            table_id=TABLE_ID,
+            username=USERNAME,
+            metrics={"accuracy": 0.5},
+            tasks_completed=0,
+            total_tasks=6,
+            questions_correct=0,
+            total_questions=14
+        )
+        assert 'moralCompassScore' in smoke_response, 'Smoke test response should include moralCompassScore'
+        print(f"✓ Pre-sync smoke test passed: {smoke_response}")
+    except Exception as e:
+        pytest.fail(f"Pre-sync smoke test failed: {e}")
 
     # Build dataset & submit models (simulate user model improvement phase)
     df = build_dataset()

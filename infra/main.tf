@@ -263,6 +263,20 @@ resource "aws_apigatewayv2_route" "route_put_user" {
   target    = "integrations/${aws_apigatewayv2_integration.lambda_proxy.id}"
 }
 
+# Moral compass routes
+resource "aws_apigatewayv2_route" "route_put_moral_compass" {
+  api_id    = aws_apigatewayv2_api.http_api.id
+  route_key = "PUT /tables/{tableId}/users/{username}/moral-compass"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda_proxy.id}"
+}
+
+# Legacy moral compass route (backward compatibility)
+resource "aws_apigatewayv2_route" "route_put_moral_compass_legacy" {
+  api_id    = aws_apigatewayv2_api.http_api.id
+  route_key = "PUT /tables/{tableId}/users/{username}/moralcompass"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda_proxy.id}"
+}
+
 # New health route
 resource "aws_apigatewayv2_route" "route_health" {
   api_id    = aws_apigatewayv2_api.http_api.id
