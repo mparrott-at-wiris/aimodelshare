@@ -230,22 +230,34 @@ class MoralcompassApiClient:
         return response.json()
     
     def create_table_for_playground(self, playground_url: str, suffix: str = '-mc', 
-                                     display_name: Optional[str] = None) -> Dict[str, Any]:
+                                     display_name: Optional[str] = None, region: Optional[str] = None) -> Dict[str, Any]:
         """
         Convenience method to create a moral compass table for a playground.
         
         Automatically derives the table ID from the playground URL and suffix.
+        Supports region-aware table naming.
         
         Args:
             playground_url: URL of the playground
             suffix: Suffix for the table ID (default: '-mc')
             display_name: Optional display name
+            region: Optional AWS region for region-aware naming (e.g., 'us-east-1').
+                   If provided, table ID will be <playgroundId>-<region><suffix>
             
         Returns:
             Dict containing creation response
             
         Raises:
             ValueError: If playground ID cannot be extracted from URL
+        
+        Examples:
+            # Non-region-aware
+            create_table_for_playground('https://example.com/playground/my-pg')
+            # Creates table: my-pg-mc
+            
+            # Region-aware
+            create_table_for_playground('https://example.com/playground/my-pg', region='us-east-1')
+            # Creates table: my-pg-us-east-1-mc
         """
         from urllib.parse import urlparse
         
@@ -267,10 +279,15 @@ class MoralcompassApiClient:
         if not playground_id:
             raise ValueError(f"Could not extract playground ID from URL: {playground_url}")
         
-        table_id = f"{playground_id}{suffix}"
+        # Build table ID with optional region
+        if region:
+            table_id = f"{playground_id}-{region}{suffix}"
+        else:
+            table_id = f"{playground_id}{suffix}"
         
         if not display_name:
-            display_name = f"Moral Compass - {playground_id}"
+            region_suffix = f" ({region})" if region else ""
+            display_name = f"Moral Compass - {playground_id}{region_suffix}"
         
         return self.create_table(table_id=table_id, display_name=display_name, 
                                 playground_url=playground_url)

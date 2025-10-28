@@ -40,7 +40,7 @@ from .api_client import (
     NotFoundError,
     ServerError,
 )
-from .config import get_api_base_url
+from .config import get_api_base_url, get_aws_region
 from .challenge import ChallengeManager, JusticeAndEquityChallenge
 
 __all__ = [
@@ -52,6 +52,7 @@ __all__ = [
     "NotFoundError",
     "ServerError",
     "get_api_base_url",
+    "get_aws_region",
     "ChallengeManager",
     "JusticeAndEquityChallenge",
 ]

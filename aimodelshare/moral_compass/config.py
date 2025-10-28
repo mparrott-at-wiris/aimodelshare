@@ -5,6 +5,8 @@ Provides API base URL discovery via:
 1. Environment variable MORAL_COMPASS_API_BASE_URL or AIMODELSHARE_API_BASE_URL
 2. Cached terraform outputs file (infra/terraform_outputs.json)
 3. Terraform command execution (fallback)
+
+Also provides AWS region discovery for region-aware table naming.
 """
 
 import os
@@ -15,6 +17,36 @@ from pathlib import Path
 from typing import Optional
 
 logger = logging.getLogger("aimodelshare.moral_compass")
+
+
+def get_aws_region() -> Optional[str]:
+    """
+    Discover AWS region from multiple sources.
+    
+    Resolution order:
+    1. AWS_REGION environment variable
+    2. AWS_DEFAULT_REGION environment variable
+    3. Cached terraform outputs file
+    4. None (caller should handle default)
+    
+    Returns:
+        Optional[str]: AWS region name or None
+    """
+    # Strategy 1: Check environment variables
+    region = os.getenv("AWS_REGION") or os.getenv("AWS_DEFAULT_REGION")
+    if region:
+        logger.debug(f"Using AWS region from environment: {region}")
+        return region
+    
+    # Strategy 2: Try cached terraform outputs
+    cached_region = _get_region_from_cached_outputs()
+    if cached_region:
+        logger.debug(f"Using AWS region from cached terraform outputs: {cached_region}")
+        return cached_region
+    
+    # No region found - return None and let caller decide default
+    logger.debug("AWS region not found, caller should use default")
+    return None
 
 
 def get_api_base_url() -> str:
@@ -82,6 +114,40 @@ def _get_url_from_cached_outputs() -> Optional[str]:
         
         if url and url != "null":
             return url.rstrip("/")
+    except (json.JSONDecodeError, IOError) as e:
+        logger.warning(f"Error reading cached terraform outputs: {e}")
+    
+    return None
+
+
+def _get_region_from_cached_outputs() -> Optional[str]:
+    """
+    Read AWS region from cached terraform outputs file.
+    
+    Returns:
+        Optional[str]: AWS region if found in cache, None otherwise
+    """
+    # Look for terraform_outputs.json in infra directory
+    repo_root = Path(__file__).parent.parent.parent.parent
+    outputs_file = repo_root / "infra" / "terraform_outputs.json"
+    
+    if not outputs_file.exists():
+        logger.debug(f"Cached terraform outputs not found at {outputs_file}")
+        return None
+    
+    try:
+        with open(outputs_file, "r") as f:
+            outputs = json.load(f)
+        
+        # Handle both formats: {"region": {"value": "..."}} or {"region": "..."}
+        region = outputs.get("region") or outputs.get("aws_region")
+        if isinstance(region, dict):
+            region_value = region.get("value")
+        else:
+            region_value = region
+        
+        if region_value and region_value != "null":
+            return region_value
     except (json.JSONDecodeError, IOError) as e:
         logger.warning(f"Error reading cached terraform outputs: {e}")
     
