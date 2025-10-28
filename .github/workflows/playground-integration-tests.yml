@@ -22,6 +22,18 @@ on:
           - compas_short
           - justice_equity_challenge
           - region_aware_naming
+      install_source:
+        description: 'Install aimodelshare from repo (editable) or PyPI'
+        required: false
+        default: 'repo'
+        type: choice
+        options:
+          - repo
+          - pypi
+      pypi_version:
+        description: 'Optional: specify a PyPI version (e.g. 0.6.3). Leave blank for latest.'
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -48,10 +60,18 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-      - name: Install local aimodelshare (editable) + test dependencies
+      - name: Install dependencies + aimodelshare
         run: |
           pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
-          pip install -e .
+          if [ "${{ github.event.inputs.install_source }}" = "pypi" ]; then
+            if [ -n "${{ github.event.inputs.pypi_version }}" ]; then
+              pip install "aimodelshare==${{ github.event.inputs.pypi_version }}"
+            else
+              pip install aimodelshare
+            fi
+          else
+            pip install -e .
+          fi
           pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript
           pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
       - name: Test credential configuration only
@@ -63,16 +83,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-      - name: Install local aimodelshare (editable) + test dependencies
+      - name: Install dependencies + aimodelshare
         run: |
           pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
-          pip install -e .
+          if [ "${{ github.event.inputs.install_source }}" = "pypi" ]; then
+            if [ -n "${{ github.event.inputs.pypi_version }}" ]; then
+              pip install "aimodelshare==${{ github.event.inputs.pypi_version }}"
+            else
+              pip install aimodelshare
+            fi
+          else
+            pip install -e .
+          fi
           pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript
           pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
       - name: Test data loading from seaborn
@@ -91,16 +117,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-      - name: Install local aimodelshare (editable) + test dependencies
+      - name: Install dependencies + aimodelshare
         run: |
           pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
-          pip install -e .
+          if [ "${{ github.event.inputs.install_source }}" = "pypi" ]; then
+            if [ -n "${{ github.event.inputs.pypi_version }}" ]; then
+              pip install "aimodelshare==${{ github.event.inputs.pypi_version }}"
+            else
+              pip install aimodelshare
+            fi
+          else
+            pip install -e .
+          fi
           pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript
           pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
       - name: Test data preprocessing
@@ -127,16 +159,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-      - name: Install local aimodelshare (editable) + test dependencies
+      - name: Install dependencies + aimodelshare
         run: |
           pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
-          pip install -e .
+          if [ "${{ github.event.inputs.install_source }}" = "pypi" ]; then
+            if [ -n "${{ github.event.inputs.pypi_version }}" ]; then
+              pip install "aimodelshare==${{ github.event.inputs.pypi_version }}"
+            else
+              pip install aimodelshare
+            fi
+          else
+            pip install -e .
+          fi
           pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript
           pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
       - name: Test model training
@@ -148,8 +186,6 @@ jobs:
           from sklearn.preprocessing import StandardScaler
           from sklearn.linear_model import LogisticRegression
           from sklearn.model_selection import train_test_split
-          from unittest.mock import patch
-
           penguins = sns.load_dataset('penguins').dropna()
           X = penguins[['bill_length_mm','bill_depth_mm','flipper_length_mm','body_mass_g']]
           y = penguins['sex']
@@ -177,16 +213,22 @@ jobs:
       TF_CPP_MIN_LOG_LEVEL: "2"
       AIMODELSHARE_SUPPRESS_OPTIONAL_WARNINGS: "1"
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install local aimodelshare (editable) + test dependencies
+      - name: Install dependencies + aimodelshare
         run: |
           pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
-          pip install -e .
+          if [ "${{ github.event.inputs.install_source }}" = "pypi" ]; then
+            if [ -n "${{ github.event.inputs.pypi_version }}" ]; then
+              pip install "aimodelshare==${{ github.event.inputs.pypi_version }}"
+            else
+              pip install aimodelshare
+            fi
+          else
+            pip install -e .
+          fi
           pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript
           pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
       - name: Test model submission + leaderboard retrieval
@@ -199,51 +241,41 @@ jobs:
           from sklearn.preprocessing import StandardScaler
           from sklearn.linear_model import LogisticRegression
           from sklearn.model_selection import train_test_split
-          from aimodelshare.playground import ModelPlayground
           from aimodelshare.playground import ModelPlayground, Experiment, Competition
-          from aimodelshare.aws import set_credentials, get_aws_token
+          from aimodelshare.aws import get_aws_token
           from aimodelshare.modeluser import get_jwt_token, create_user_getkeyandpassword
-          import aimodelshare as ai
-          from aimodelshare.data_sharing.utils import redo_with_write
-          import traceback
-          import logging
-          
-          
-          #Validate Username & Password
-          try: 
+          import traceback, logging
+          try:
             os.environ['AWS_TOKEN']=get_aws_token()
             os.environ['AWS_ACCESS_KEY_ID_AIMS']=os.environ.get('AWS_ACCESS_KEY_ID')
             os.environ['AWS_SECRET_ACCESS_KEY_AIMS']=os.environ.get('AWS_SECRET_ACCESS_KEY')
             os.environ['AWS_REGION_AIMS']=os.environ.get('AWS_REGION')
-          except Exception as e:
+          except Exception:
             logging.error(traceback.format_exc())
-            
-          # Validate AWS Creds 
-
-          try: 
+          try:
             import boto3
-            client = boto3.client('sts', aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'), aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'))
-            details = client.get_caller_identity()
-          except Exception as e:
+            client = boto3.client('sts',
+              aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+              aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'))
+            client.get_caller_identity()
+          except Exception:
             logging.error(traceback.format_exc())
-
-          try: 
-            # Set Environment Variables for deploy models
+          try:
             os.environ['AWS_TOKEN']=get_aws_token()
-          
-            get_jwt_token(os.environ.get('username'), os.environ.get('password')) # check two different cognito functions here
+            get_jwt_token(os.environ.get('username'), os.environ.get('password'))
             create_user_getkeyandpassword()
-          except Exception as e:
+          except Exception:
             logging.error(traceback.format_exc())
-            
           penguins = sns.load_dataset('penguins').dropna()
           X = penguins[['bill_length_mm','bill_depth_mm','flipper_length_mm','body_mass_g']]
-          y = penguins['sex']
+            y = penguins['sex']
+          from sklearn.model_selection import train_test_split
           X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2,random_state=42)
           eval_labels = list(y_test)
           preprocess = ColumnTransformer([('num', Pipeline([('scaler', StandardScaler())]), X.columns.tolist())])
           preprocess.fit(X_train)
           def preprocessor(d): return preprocess.transform(d)
+          from sklearn.linear_model import LogisticRegression
           model = LogisticRegression()
           model.fit(preprocessor(X_train), y_train)
           preds = model.predict(preprocessor(X_test))
@@ -260,20 +292,18 @@ jobs:
                                   input_dict={'description':'CI test','tags':'integration'},
                                   submission_type='experiment')
           data = playground.get_leaderboard()
-          # Depending on library version, this may be a dict or DataFrame; adapt assertion
           if isinstance(data, dict):
-              import pandas as pd
-              df = pd.DataFrame(data)
-              assert not df.empty, 'Leaderboard dict converted to empty DataFrame'
-              print(df.head())
+            import pandas as pd
+            df = pd.DataFrame(data)
+            assert not df.empty, 'Leaderboard dict converted to empty DataFrame'
+            print(df.head())
           else:
-              import pandas as pd
-              assert isinstance(data, pd.DataFrame), 'Leaderboard did not return a DataFrame'
-              assert not data.empty, 'Leaderboard DataFrame is empty'
-              print(data.head())
+            import pandas as pd
+            assert isinstance(data, pd.DataFrame), 'Leaderboard did not return a DataFrame'
+            assert not data.empty, 'Leaderboard DataFrame is empty'
+            print(data.head())
           print('✓ Leaderboard retrieval test passed')
           "
-
 
   test-playground-sklearn-model-types:
     if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'model_types' }}
@@ -288,22 +318,27 @@ jobs:
       TF_CPP_MIN_LOG_LEVEL: "2"
       AIMODELSHARE_SUPPRESS_OPTIONAL_WARNINGS: "1"
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install local aimodelshare (editable) + test dependencies
+      - name: Install dependencies + aimodelshare
         run: |
           pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
-          pip install -e .
+          if [ "${{ github.event.inputs.install_source }}" = "pypi" ]; then
+            if [ -n "${{ github.event.inputs.pypi_version }}" ]; then
+              pip install "aimodelshare==${{ github.event.inputs.pypi_version }}"
+            else
+              pip install aimodelshare
+            fi
+          else
+            pip install -e .
+          fi
           pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript
           pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
       - name: Test sklearn model types submission
         run: |
           pytest -vv tests/test_playground_model_types.py
-
 
   test-playground-keras-model-types:
     if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'keras_model_types' }}
@@ -318,22 +353,27 @@ jobs:
       TF_CPP_MIN_LOG_LEVEL: "2"
       AIMODELSHARE_SUPPRESS_OPTIONAL_WARNINGS: "1"
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install local aimodelshare (editable) + test dependencies
+      - name: Install dependencies + aimodelshare
         run: |
           pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
-          pip install -e .
+          if [ "${{ github.event.inputs.install_source }}" = "pypi" ]; then
+            if [ -n "${{ github.event.inputs.pypi_version }}" ]; then
+              pip install "aimodelshare==${{ github.event.inputs.pypi_version }}"
+            else
+              pip install aimodelshare
+            fi
+          else
+            pip install -e .
+          fi
           pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript
           pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
       - name: Test keras model types submission
         run: |
           pytest -vv tests/test_playground_keras_model_types.py
-
 
   test-playground-torch-model-types:
     if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'torch_model_types' }}
@@ -348,22 +388,27 @@ jobs:
       AIMODELSHARE_SUPPRESS_OPTIONAL_WARNINGS: "1"
       AIMS_NON_INTERACTIVE: "1"
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install local aimodelshare (editable) + test dependencies
+      - name: Install dependencies + aimodelshare
         run: |
           pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
-          pip install -e .
+          if [ "${{ github.event.inputs.install_source }}" = "pypi" ]; then
+            if [ -n "${{ github.event.inputs.pypi_version }}" ]; then
+              pip install "aimodelshare==${{ github.event.inputs.pypi_version }}"
+            else
+              pip install aimodelshare
+            fi
+          else
+            pip install -e .
+          fi
           pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript
           pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
       - name: Test torch model types submission
         run: |
           pytest -vv tests/test_playground_torch_model_types.py
-
 
   test-playground-compas-multiframework:
     if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'compas_multiframework' }}
@@ -379,22 +424,27 @@ jobs:
       AIMODELSHARE_SUPPRESS_OPTIONAL_WARNINGS: "1"
       AIMS_NON_INTERACTIVE: "1"
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install local aimodelshare (editable) + test dependencies
+      - name: Install dependencies + aimodelshare
         run: |
           pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
-          pip install -e .
+          if [ "${{ github.event.inputs.install_source }}" = "pypi" ]; then
+            if [ -n "${{ github.event.inputs.pypi_version }}" ]; then
+              pip install "aimodelshare==${{ github.event.inputs.pypi_version }}"
+            else
+              pip install aimodelshare
+            fi
+          else
+            pip install -e .
+          fi
           pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript requests
           pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
       - name: Test COMPAS multi-framework submission
         run: |
           pytest -vv tests/test_playground_compas_multiframework.py
-
 
   test-playground-compas-short:
     if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'compas_short' }}
@@ -410,22 +460,27 @@ jobs:
       AIMODELSHARE_SUPPRESS_OPTIONAL_WARNINGS: "1"
       AIMS_NON_INTERACTIVE: "1"
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install local aimodelshare (editable) + test dependencies
+      - name: Install dependencies + aimodelshare
         run: |
           pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
-          pip install -e .
+          if [ "${{ github.event.inputs.install_source }}" = "pypi" ]; then
+            if [ -n "${{ github.event.inputs.pypi_version }}" ]; then
+              pip install "aimodelshare==${{ github.event.inputs.pypi_version }}"
+            else
+              pip install aimodelshare
+            fi
+          else
+            pip install -e .
+          fi
           pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript requests
           pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
       - name: Test COMPAS short multi-framework submission
         run: |
           pytest -vv tests/test_playground_compas_multiframework_short.py
-
 
   test-playground-justice-equity-challenge:
     if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'justice_equity_challenge' }}
@@ -451,14 +506,11 @@ jobs:
         working-directory: infra
         run: |
           terraform init
-          # Select or create dev workspace
           terraform workspace select dev || terraform workspace new dev
-          # Get API base URL from terraform outputs
-          set +e  # Don't exit on error
+          set +e
           API_URL=$(terraform output -raw api_base_url 2>&1)
           TF_EXIT_CODE=$?
-          set -e  # Re-enable exit on error
-          
+          set -e
           if [ $TF_EXIT_CODE -eq 0 ] && [ -n "$API_URL" ] && [ "$API_URL" != "null" ]; then
             echo "MORAL_COMPASS_API_BASE_URL=$API_URL" >> $GITHUB_ENV
             echo "✓ API base URL set: $API_URL"
@@ -466,16 +518,23 @@ jobs:
             echo "⚠ Could not retrieve API base URL from terraform outputs (exit code: $TF_EXIT_CODE)"
             echo "Test will be skipped if URL cannot be resolved"
           fi
-      - name: Install dependencies
+      - name: Install dependencies + aimodelshare
         run: |
           pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
-          pip install -e .
+          if [ "${{ github.event.inputs.install_source }}" = "pypi" ]; then
+            if [ -n "${{ github.event.inputs.pypi_version }}" ]; then
+              pip install "aimodelshare==${{ github.event.inputs.pypi_version }}"
+            else
+              pip install aimodelshare
+            fi
+          else
+            pip install -e .
+          fi
           pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython 'PyJWT<2.0' matplotlib seaborn importlib_resources onnxscript requests
           pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
       - name: Run Justice & Equity moral compass challenge integration test
         run: |
           pytest -vv tests/test_playground_moral_compass_challenge.py
-
 
   test-region-aware-naming:
     if: ${{ github.event.inputs.test_step == 'all' || github.event.inputs.test_step == 'region_aware_naming' }}
@@ -484,22 +543,27 @@ jobs:
     env:
       AWS_REGION: us-east-1
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install local aimodelshare (editable) + test dependencies
+      - name: Install dependencies + aimodelshare
         run: |
           pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
-          pip install -e .
+          if [ "${{ github.event.inputs.install_source }}" = "pypi" ]; then
+            if [ -n "${{ github.event.inputs.pypi_version }}" ]; then
+              pip install "aimodelshare==${{ github.event.inputs.pypi_version }}"
+            else
+              pip install aimodelshare
+            fi
+          else
+            pip install -e .
+          fi
           pip install pytest scikit-learn pandas numpy opencv-python-headless tensorflow pydot regex psutil IPython "PyJWT<2.0" matplotlib seaborn importlib_resources onnxscript
           pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
       - name: Run region-aware naming tests
         run: |
           pytest -vv tests/test_region_aware_naming.py
-
 
   integration-summary:
     needs:
@@ -515,13 +579,16 @@ jobs:
       - test-playground-compas-short
       - test-playground-justice-equity-challenge
       - test-region-aware-naming
-      
     runs-on: ubuntu-latest
     if: always()
     steps:
       - name: Summary
         run: |
           echo "=== Integration Test Summary ==="
+          echo "Install Source: ${{ github.event.inputs.install_source }}"
+          if [ -n "${{ github.event.inputs.pypi_version }}" ]; then
+            echo "PyPI Version: ${{ github.event.inputs.pypi_version }}"
+          fi
           echo "Credentials: ${{ needs.test-credentials.result }}"
           echo "Data Loading: ${{ needs.test-data-loading.result }}"
           echo "Preprocessing: ${{ needs.test-preprocessing.result }}"
