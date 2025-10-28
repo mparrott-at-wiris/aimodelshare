@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from aimodelshare.moral_compass import MoralcompassApiClient
+from aimodelshare.moral_compass.api_client import NotFoundError, ApiClientError
 from aimodelshare.moral_compass.challenge import ChallengeManager, JusticeAndEquityChallenge
 from aimodelshare.moral_compass.config import get_api_base_url
 
@@ -105,7 +106,7 @@ def test_moral_compass_challenge_flow():
             api.get_table(TABLE_ID)
             table_available = True
             break
-        except Exception as e:
+        except (NotFoundError, ApiClientError) as e:
             if attempt < max_retries - 1:
                 time.sleep(retry_delay)
             else:
@@ -126,7 +127,7 @@ def test_moral_compass_challenge_flow():
         )
         assert 'moralCompassScore' in smoke_response, 'Smoke test response should include moralCompassScore'
         print(f"✓ Pre-sync smoke test passed: {smoke_response}")
-    except Exception as e:
+    except (NotFoundError, ApiClientError) as e:
         pytest.fail(f"Pre-sync smoke test failed: {e}")
 
     # Build dataset & submit models (simulate user model improvement phase)

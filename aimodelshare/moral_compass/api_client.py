@@ -430,7 +430,7 @@ class MoralcompassApiClient:
             return response.json()
         except NotFoundError as e:
             # If route not found, retry with legacy path (no hyphen)
-            if "Route not found" in str(e) or "not found" in str(e).lower():
+            if "route not found" in str(e).lower():
                 logger.warning(f"Hyphenated path failed with 404, retrying with legacy path: {e}")
                 response = self._request("PUT", f"/tables/{table_id}/users/{username}/moralcompass", json=payload)
                 return response.json()
