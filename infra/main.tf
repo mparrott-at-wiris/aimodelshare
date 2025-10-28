@@ -190,14 +190,19 @@ resource "aws_lambda_function" "api" {
 
   environment {
     variables = {
-      TABLE_NAME                = aws_dynamodb_table.playground.name
-      SAFE_CONCURRENCY          = var.safe_concurrency ? "true" : "false"
-      DEFAULT_PAGE_LIMIT        = "50"
-      MAX_PAGE_LIMIT            = "500"
-      USE_METADATA_GSI          = var.use_metadata_gsi ? "true" : "false"
-      READ_CONSISTENT           = var.read_consistent ? "true" : "false"
-      DEFAULT_TABLE_PAGE_LIMIT  = tostring(var.default_table_page_limit)
-      USE_LEADERBOARD_GSI       = var.use_leaderboard_gsi ? "true" : "false"
+      TABLE_NAME                        = aws_dynamodb_table.playground.name
+      SAFE_CONCURRENCY                  = var.safe_concurrency ? "true" : "false"
+      DEFAULT_PAGE_LIMIT                = "50"
+      MAX_PAGE_LIMIT                    = "500"
+      USE_METADATA_GSI                  = var.use_metadata_gsi ? "true" : "false"
+      READ_CONSISTENT                   = var.read_consistent ? "true" : "false"
+      DEFAULT_TABLE_PAGE_LIMIT          = tostring(var.default_table_page_limit)
+      USE_LEADERBOARD_GSI               = var.use_leaderboard_gsi ? "true" : "false"
+      AUTH_ENABLED                      = var.auth_enabled ? "true" : "false"
+      MC_ENFORCE_NAMING                 = var.mc_enforce_naming ? "true" : "false"
+      MORAL_COMPASS_ALLOWED_SUFFIXES    = var.moral_compass_allowed_suffixes
+      ALLOW_TABLE_DELETE                = var.allow_table_delete ? "true" : "false"
+      ALLOW_PUBLIC_READ                 = var.allow_public_read ? "true" : "false"
     }
   }
 
@@ -211,7 +216,7 @@ resource "aws_apigatewayv2_api" "http_api" {
 
   cors_configuration {
     allow_origins = var.cors_allow_origins
-    allow_methods = ["GET", "PUT", "PATCH", "POST", "OPTIONS"]
+    allow_methods = ["GET", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"]
     allow_headers = ["Content-Type", "Authorization"]
   }
 
@@ -245,6 +250,11 @@ resource "aws_apigatewayv2_route" "route_get_table" {
 resource "aws_apigatewayv2_route" "route_patch_table" {
   api_id    = aws_apigatewayv2_api.http_api.id
   route_key = "PATCH /tables/{tableId}"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda_proxy.id}"
+}
+resource "aws_apigatewayv2_route" "route_delete_table" {
+  api_id    = aws_apigatewayv2_api.http_api.id
+  route_key = "DELETE /tables/{tableId}"
   target    = "integrations/${aws_apigatewayv2_integration.lambda_proxy.id}"
 }
 resource "aws_apigatewayv2_route" "route_list_users" {

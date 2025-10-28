@@ -14,7 +14,9 @@ from aimodelshare.moral_compass.challenge import ChallengeManager, JusticeAndEqu
 from aimodelshare.moral_compass.config import get_api_base_url
 
 USERNAME = os.getenv('username') or 'testuser_mc'
-TABLE_ID = 'justice_equity_playground_integration'
+PLAYGROUND_ID = 'justice_equity_playground_integration'
+TABLE_ID = f'{PLAYGROUND_ID}-mc'  # Follow naming convention
+PLAYGROUND_URL = f'https://example.com/playground/{PLAYGROUND_ID}'
 
 def resolve_api_base_url():
     """
@@ -89,9 +91,10 @@ def test_moral_compass_challenge_flow():
     # Explicitly pass api_base_url to bypass auto-discovery in CI
     api = MoralcompassApiClient(api_base_url=api_base_url)
     
-    # Ensure table exists (idempotent create)
+    # Ensure table exists (idempotent create) with playgroundUrl
     try:
-        api.create_table(TABLE_ID, display_name='Justice & Equity Challenge Integration')
+        api.create_table(TABLE_ID, display_name='Justice & Equity Challenge Integration', 
+                        playground_url=PLAYGROUND_URL)
         time.sleep(1)
     except Exception:
         # Table may already exist from prior runs

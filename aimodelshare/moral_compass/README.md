@@ -10,6 +10,9 @@ Production-ready Python client for the moral_compass REST API.
 - **Type Safety**: Dataclasses for all API responses
 - **Structured Exceptions**: Specific exceptions for different error types (NotFoundError, ServerError)
 - **Backward Compatibility**: Available via both `aimodelshare.moral_compass` and `moral_compass` import paths
+- **Authentication**: Automatic JWT token attachment from environment variables
+- **Ownership Enforcement**: Table-level ownership and authorization controls
+- **Naming Conventions**: Enforced naming patterns for moral compass tables
 
 ## Installation
 
@@ -53,6 +56,128 @@ print(f"User {user.username}: {user.submission_count} submissions")
 # List all users in a table
 for user in client.iter_users("my-table"):
     print(f"- {user.username}: {user.submission_count} submissions")
+```
+
+## Authentication & Authorization
+
+The moral compass API supports authentication and authorization controls when `AUTH_ENABLED=true` on the server.
+
+> **⚠️ SECURITY WARNING**  
+> JWT signature verification is currently a **stub implementation** that performs unverified token decoding.  
+> **DO NOT use in production** for security-critical operations without implementing JWKS-based signature verification.  
+> This is suitable for development and testing only.
+
+### Authentication Token
+
+The client automatically attaches JWT authentication tokens from environment variables:
+
+```bash
+# Preferred: Use JWT_AUTHORIZATION_TOKEN
+export JWT_AUTHORIZATION_TOKEN="your.jwt.token"
+
+# Legacy: AWS_TOKEN (deprecated, triggers warning)
+export AWS_TOKEN="your.aws.token"
+```
+
+You can also provide the token explicitly:
+
+```python
+from aimodelshare.moral_compass import MoralcompassApiClient
+
+# Explicit token
+client = MoralcompassApiClient(auth_token="your.jwt.token")
+
+# Auto-discover from environment
+client = MoralcompassApiClient()  # Uses JWT_AUTHORIZATION_TOKEN or AWS_TOKEN
+```
+
+### Table Ownership
+
+When authentication is enabled, tables have ownership metadata:
+
+```python
+# Create a table for a playground (stores owner identity)
+response = client.create_table(
+    table_id="my-playground-mc",
+    display_name="My Moral Compass Table",
+    playground_url="https://example.com/playground/my-playground"
+)
+# Response is a dict with structure:
+# {
+#     'tableId': 'my-playground-mc',
+#     'displayName': 'My Moral Compass Table',
+#     'ownerPrincipal': 'user@example.com',  # Owner's identity
+#     'playgroundId': 'my-playground',
+#     'message': 'Table created successfully'
+# }
+print(response['ownerPrincipal'])  # Shows who created the table
+
+# Convenience method to create with naming convention
+response = client.create_table_for_playground(
+    playground_url="https://example.com/playground/my-playground",
+    suffix="-mc"  # Creates table: my-playground-mc
+)
+```
+
+### Naming Convention
+
+When `MC_ENFORCE_NAMING=true` on the server, moral compass tables must follow the pattern: `<playgroundId>-mc`
+
+```python
+# Valid: Follows naming convention
+client.create_table(
+    table_id="my-playground-mc",
+    playground_url="https://example.com/playground/my-playground"
+)
+
+# Invalid: Will return 400 error if MC_ENFORCE_NAMING=true
+client.create_table(
+    table_id="random-name",
+    playground_url="https://example.com/playground/my-playground"
+)
+```
+
+### Authorization Rules
+
+When `AUTH_ENABLED=true`:
+
+- **Table Creation**: Only authenticated users can create tables
+- **Table Deletion**: Only the owner or admin can delete tables (requires `ALLOW_TABLE_DELETE=true`)
+- **User Updates**: Only the user themselves or admin can update their progress
+- **Read Operations**: Public by default when `ALLOW_PUBLIC_READ=true`
+
+```python
+# Delete a table (owner or admin only)
+client.delete_table("my-playground-mc")
+
+# Update own progress
+client.update_moral_compass(
+    table_id="my-playground-mc",
+    username="my-username",
+    metrics={"accuracy": 0.85},
+    tasks_completed=3,
+    total_tasks=6
+)
+```
+
+### Helper Functions
+
+Use the `aimodelshare.auth` module for identity management:
+
+```python
+from aimodelshare.auth import get_primary_token, get_identity_claims
+
+# Get token from environment
+token = get_primary_token()
+
+# Extract identity claims (DEVELOPMENT ONLY - signature not verified)
+if token:
+    # Currently verify=False (stub implementation)
+    # TODO: Use verify=True after implementing JWKS verification for production
+    claims = get_identity_claims(token, verify=False)
+    print(f"User: {claims['principal']}")
+    print(f"Email: {claims.get('email')}")
+    print(f"Subject: {claims['sub']}")
 ```
 
 ## API Base URL Configuration
@@ -163,11 +288,13 @@ from moral_compass import MoralcompassApiClient
 
 ### Tables
 
-- `create_table(table_id, display_name=None)` - Create a new table
+- `create_table(table_id, display_name=None, playground_url=None)` - Create a new table
+- `create_table_for_playground(playground_url, suffix='-mc', display_name=None)` - Create table with naming convention
 - `list_tables(limit=50, last_key=None)` - List tables with pagination
 - `iter_tables(limit=50)` - Iterate all tables with automatic pagination
 - `get_table(table_id)` - Get specific table metadata
 - `patch_table(table_id, display_name=None, is_archived=None)` - Update table metadata
+- `delete_table(table_id)` - Delete a table (requires owner/admin auth)
 
 ### Users
 
@@ -175,6 +302,7 @@ from moral_compass import MoralcompassApiClient
 - `get_user(table_id, username)` - Get user stats
 - `list_users(table_id, limit=50, last_key=None)` - List users with pagination
 - `iter_users(table_id, limit=50)` - Iterate all users with automatic pagination
+- `update_moral_compass(table_id, username, metrics, tasks_completed=0, total_tasks=0, questions_correct=0, total_questions=0, primary_metric=None)` - Update user's moral compass score
 
 ### Health
 
