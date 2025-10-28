@@ -6,11 +6,13 @@ Provides a production-ready client with:
 - Automatic retries for network and 5xx errors
 - Pagination helpers
 - Structured exceptions
+- Authentication support via JWT tokens
 """
 
 import json
 import logging
 import time
+import os
 from dataclasses import dataclass
 from typing import Optional, Dict, Any, Iterator, List
 from urllib.parse import urlencode
@@ -79,20 +81,39 @@ class MoralcompassApiClient:
     - Network retries with exponential backoff
     - Pagination helpers
     - Structured exceptions
+    - Automatic authentication token attachment
     """
     
-    def __init__(self, api_base_url: Optional[str] = None, timeout: int = 30):
+    def __init__(self, api_base_url: Optional[str] = None, timeout: int = 30, auth_token: Optional[str] = None):
         """
         Initialize the API client.
         
         Args:
             api_base_url: Optional explicit API base URL. If None, will auto-discover.
             timeout: Request timeout in seconds (default: 30)
+            auth_token: Optional JWT authentication token. If None, will try to get from environment.
         """
         self.api_base_url = (api_base_url or get_api_base_url()).rstrip("/")
         self.timeout = timeout
+        self.auth_token = auth_token or self._get_auth_token_from_env()
         self.session = self._create_session()
         logger.info(f"MoralcompassApiClient initialized with base URL: {self.api_base_url}")
+    
+    def _get_auth_token_from_env(self) -> Optional[str]:
+        """
+        Get authentication token from environment variables.
+        
+        Tries JWT_AUTHORIZATION_TOKEN first, then falls back to AWS_TOKEN.
+        
+        Returns:
+            Optional[str]: Token or None if not found
+        """
+        try:
+            from ..auth import get_primary_token
+            return get_primary_token()
+        except ImportError:
+            # Fallback to direct environment variable access if auth module not available
+            return os.getenv('JWT_AUTHORIZATION_TOKEN') or os.getenv('AWS_TOKEN')
     
     def _create_session(self) -> requests.Session:
         """
@@ -108,7 +129,7 @@ class MoralcompassApiClient:
             total=3,
             backoff_factor=1,  # 1s, 2s, 4s
             status_forcelist=[500, 502, 503, 504],
-            allowed_methods=["HEAD", "GET", "PUT", "PATCH", "POST", "OPTIONS"]
+            allowed_methods=["HEAD", "GET", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"]
         )
         
         adapter = HTTPAdapter(max_retries=retry_strategy)
@@ -119,7 +140,7 @@ class MoralcompassApiClient:
     
     def _request(self, method: str, path: str, **kwargs) -> requests.Response:
         """
-        Make an HTTP request with error handling.
+        Make an HTTP request with error handling and automatic auth header attachment.
         
         Args:
             method: HTTP method
@@ -135,6 +156,12 @@ class MoralcompassApiClient:
             ApiClientError: For other errors
         """
         url = f"{self.api_base_url}/{path.lstrip('/')}"
+        
+        # Add Authorization header if token is available
+        if self.auth_token:
+            headers = kwargs.get('headers', {})
+            headers['Authorization'] = f'Bearer {self.auth_token}'
+            kwargs['headers'] = headers
         
         try:
             response = self.session.request(
@@ -180,13 +207,15 @@ class MoralcompassApiClient:
     # Table endpoints
     # ========================================================================
     
-    def create_table(self, table_id: str, display_name: Optional[str] = None) -> Dict[str, Any]:
+    def create_table(self, table_id: str, display_name: Optional[str] = None, 
+                     playground_url: Optional[str] = None) -> Dict[str, Any]:
         """
         Create a new table.
         
         Args:
             table_id: Unique identifier for the table
             display_name: Optional display name (defaults to table_id)
+            playground_url: Optional playground URL for ownership and naming validation
             
         Returns:
             Dict containing creation response
@@ -194,9 +223,57 @@ class MoralcompassApiClient:
         payload = {"tableId": table_id}
         if display_name:
             payload["displayName"] = display_name
+        if playground_url:
+            payload["playgroundUrl"] = playground_url
         
         response = self._request("POST", "/tables", json=payload)
         return response.json()
+    
+    def create_table_for_playground(self, playground_url: str, suffix: str = '-mc', 
+                                     display_name: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Convenience method to create a moral compass table for a playground.
+        
+        Automatically derives the table ID from the playground URL and suffix.
+        
+        Args:
+            playground_url: URL of the playground
+            suffix: Suffix for the table ID (default: '-mc')
+            display_name: Optional display name
+            
+        Returns:
+            Dict containing creation response
+            
+        Raises:
+            ValueError: If playground ID cannot be extracted from URL
+        """
+        from urllib.parse import urlparse
+        
+        # Extract playground ID from URL
+        parsed = urlparse(playground_url)
+        path_parts = [p for p in parsed.path.split('/') if p]
+        
+        playground_id = None
+        for i, part in enumerate(path_parts):
+            if part.lower() in ['playground', 'playgrounds']:
+                if i + 1 < len(path_parts):
+                    playground_id = path_parts[i + 1]
+                    break
+        
+        if not playground_id and path_parts:
+            # Fallback: use last path component
+            playground_id = path_parts[-1]
+        
+        if not playground_id:
+            raise ValueError(f"Could not extract playground ID from URL: {playground_url}")
+        
+        table_id = f"{playground_id}{suffix}"
+        
+        if not display_name:
+            display_name = f"Moral Compass - {playground_id}"
+        
+        return self.create_table(table_id=table_id, display_name=display_name, 
+                                playground_url=playground_url)
     
     def list_tables(self, limit: int = 50, last_key: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
         """
@@ -289,6 +366,26 @@ class MoralcompassApiClient:
             payload["isArchived"] = is_archived
         
         response = self._request("PATCH", f"/tables/{table_id}", json=payload)
+        return response.json()
+    
+    def delete_table(self, table_id: str) -> Dict[str, Any]:
+        """
+        Delete a table and all associated data.
+        
+        Requires owner or admin authorization when AUTH_ENABLED=true.
+        Only works when ALLOW_TABLE_DELETE=true on server.
+        
+        Args:
+            table_id: The table identifier
+            
+        Returns:
+            Dict containing deletion confirmation
+            
+        Raises:
+            NotFoundError: If table not found
+            ApiClientError: If deletion not allowed or authorization fails
+        """
+        response = self._request("DELETE", f"/tables/{table_id}")
         return response.json()
     
     # ========================================================================

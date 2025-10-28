@@ -12,6 +12,7 @@ import time
 import random
 from boto3.dynamodb.conditions import Key, Attr
 from botocore.exceptions import ClientError
+from urllib.parse import urlparse
 
 # DynamoDB setup
 TABLE_NAME = os.environ.get('TABLE_NAME', 'PlaygroundScores')
@@ -21,14 +22,300 @@ READ_CONSISTENT = os.environ.get('READ_CONSISTENT', 'true').lower() == 'true'
 DEFAULT_PAGE_LIMIT = int(os.environ.get('DEFAULT_PAGE_LIMIT', '50'))
 MAX_PAGE_LIMIT = int(os.environ.get('MAX_PAGE_LIMIT', '500'))
 
+# Auth configuration
+AUTH_ENABLED = os.environ.get('AUTH_ENABLED', 'false').lower() == 'true'
+MC_ENFORCE_NAMING = os.environ.get('MC_ENFORCE_NAMING', 'false').lower() == 'true'
+MORAL_COMPASS_ALLOWED_SUFFIXES = os.environ.get('MORAL_COMPASS_ALLOWED_SUFFIXES', '-mc').split(',')
+ALLOW_TABLE_DELETE = os.environ.get('ALLOW_TABLE_DELETE', 'false').lower() == 'true'
+ALLOW_PUBLIC_READ = os.environ.get('ALLOW_PUBLIC_READ', 'true').lower() == 'true'
+
 dynamodb = boto3.resource('dynamodb')
 dynamodb_client = boto3.client('dynamodb')
 table = dynamodb.Table(TABLE_NAME)
 
 print(f"[BOOT] Using DynamoDB table: {TABLE_NAME} | SAFE_CONCURRENCY={SAFE_CONCURRENCY} | READ_CONSISTENT={READ_CONSISTENT}")
+print(f"[BOOT] Auth config: AUTH_ENABLED={AUTH_ENABLED} | MC_ENFORCE_NAMING={MC_ENFORCE_NAMING} | ALLOW_TABLE_DELETE={ALLOW_TABLE_DELETE}")
 
 _TABLE_ID_RE = re.compile(r'^[a-zA-Z0-9_-]{1,64}$')
 _USERNAME_RE = re.compile(r'^[a-zA-Z0-9_-]{1,64}$')
+
+# ============================================================================
+# Authentication & Authorization Helpers
+# ============================================================================
+
+try:
+    import jwt
+    JWT_AVAILABLE = True
+except ImportError:
+    JWT_AVAILABLE = False
+    print("[WARN] PyJWT not installed. JWT authentication will be disabled.")
+
+
+def extract_token_from_event(event):
+    """
+    Extract JWT token from event headers.
+    
+    Checks Authorization header in order:
+    1. headers.Authorization
+    2. headers.authorization
+    
+    Returns:
+        Optional[str]: Token string (without 'Bearer ' prefix) or None
+    """
+    headers = event.get('headers') or {}
+    auth_header = headers.get('Authorization') or headers.get('authorization')
+    
+    if not auth_header:
+        return None
+    
+    # Remove 'Bearer ' prefix if present
+    if auth_header.startswith('Bearer '):
+        return auth_header[7:]
+    
+    return auth_header
+
+
+def decode_jwt_unverified(token):
+    """
+    Decode JWT token without signature verification.
+    
+    Note: This is a stub implementation. JWKS signature verification
+    is planned for future work and should be implemented before
+    production deployment in security-critical contexts.
+    
+    Args:
+        token: JWT token string
+    
+    Returns:
+        dict: Decoded claims or None if decode fails
+    """
+    if not JWT_AVAILABLE or not token:
+        return None
+    
+    try:
+        claims = jwt.decode(token, options={"verify_signature": False})
+        return claims
+    except Exception as e:
+        print(f"[WARN] JWT decode failed: {e}")
+        return None
+
+
+def get_principal_from_claims(claims):
+    """
+    Derive principal identifier from JWT claims.
+    
+    Priority: cognito:username > email > sub
+    
+    Args:
+        claims: Decoded JWT claims dict
+    
+    Returns:
+        Optional[str]: Principal identifier or None
+    """
+    if not claims:
+        return None
+    
+    return (
+        claims.get('cognito:username') or
+        claims.get('email') or
+        claims.get('sub')
+    )
+
+
+def get_identity_from_event(event):
+    """
+    Extract identity information from event.
+    
+    Returns:
+        dict: Identity info with keys: token, claims, principal, sub, email, issuer
+              Returns empty dict if no valid identity found
+    """
+    identity = {}
+    
+    token = extract_token_from_event(event)
+    if token:
+        identity['token'] = token
+        claims = decode_jwt_unverified(token)
+        if claims:
+            identity['claims'] = claims
+            identity['principal'] = get_principal_from_claims(claims)
+            identity['sub'] = claims.get('sub')
+            identity['email'] = claims.get('email')
+            identity['issuer'] = claims.get('iss')
+    
+    return identity
+
+
+def is_owner(identity, owner_metadata):
+    """
+    Check if identity is the owner of a resource.
+    
+    Args:
+        identity: Identity dict from get_identity_from_event
+        owner_metadata: Dict containing ownerSub, ownerPrincipal, ownerEmail
+    
+    Returns:
+        bool: True if identity matches owner
+    """
+    if not identity or not owner_metadata:
+        return False
+    
+    # Match on sub, principal, or email
+    identity_sub = identity.get('sub')
+    identity_principal = identity.get('principal')
+    identity_email = identity.get('email')
+    
+    owner_sub = owner_metadata.get('ownerSub')
+    owner_principal = owner_metadata.get('ownerPrincipal')
+    owner_email = owner_metadata.get('ownerEmail')
+    
+    # Check for matches
+    if identity_sub and owner_sub and identity_sub == owner_sub:
+        return True
+    if identity_principal and owner_principal and identity_principal == owner_principal:
+        return True
+    if identity_email and owner_email and identity_email == owner_email:
+        return True
+    
+    return False
+
+
+def is_admin(identity):
+    """
+    Check if identity has admin privileges.
+    
+    Args:
+        identity: Identity dict from get_identity_from_event
+    
+    Returns:
+        bool: True if identity has admin role
+    """
+    if not identity or 'claims' not in identity:
+        return False
+    
+    claims = identity['claims']
+    groups = claims.get('cognito:groups', [])
+    
+    if isinstance(groups, list):
+        return 'admin' in groups
+    
+    return False
+
+
+def is_self(identity, username):
+    """
+    Check if identity matches the username.
+    
+    Args:
+        identity: Identity dict from get_identity_from_event
+        username: Username to check against
+    
+    Returns:
+        bool: True if identity principal matches username
+    """
+    if not identity or not username:
+        return False
+    
+    principal = identity.get('principal')
+    return principal == username
+
+
+def check_authorization(identity, owner_metadata=None, username=None, require_owner=False, require_self=False):
+    """
+    Check authorization for an operation.
+    
+    Args:
+        identity: Identity dict from get_identity_from_event
+        owner_metadata: Optional owner metadata for ownership checks
+        username: Optional username for self checks
+        require_owner: If True, requires owner or admin
+        require_self: If True, requires self or admin
+    
+    Returns:
+        bool: True if authorized
+    """
+    # Admin always authorized
+    if is_admin(identity):
+        return True
+    
+    # Check owner requirement
+    if require_owner and owner_metadata:
+        if is_owner(identity, owner_metadata):
+            return True
+        return False
+    
+    # Check self requirement
+    if require_self and username:
+        if is_self(identity, username):
+            return True
+        return False
+    
+    # If no specific requirement, deny if auth is enabled
+    return not (require_owner or require_self)
+
+
+def extract_playground_id(playground_url):
+    """
+    Extract playground ID from playground URL.
+    
+    Args:
+        playground_url: URL of the playground
+    
+    Returns:
+        Optional[str]: Playground ID or None if extraction fails
+    
+    Examples:
+        https://example.com/playground/abc123 -> abc123
+        https://example.com/playgrounds/abc123/edit -> abc123
+    """
+    if not playground_url:
+        return None
+    
+    try:
+        parsed = urlparse(playground_url)
+        path_parts = [p for p in parsed.path.split('/') if p]
+        
+        # Look for playground ID after 'playground' or 'playgrounds'
+        for i, part in enumerate(path_parts):
+            if part.lower() in ['playground', 'playgrounds']:
+                if i + 1 < len(path_parts):
+                    return path_parts[i + 1]
+        
+        # Fallback: use last path component if it looks like an ID
+        if path_parts:
+            last_part = path_parts[-1]
+            if _TABLE_ID_RE.match(last_part):
+                return last_part
+        
+        return None
+    except Exception as e:
+        print(f"[WARN] Failed to extract playground ID from URL {playground_url}: {e}")
+        return None
+
+
+def validate_moral_compass_table_name(table_id, playground_id):
+    """
+    Validate moral compass table naming convention.
+    
+    Args:
+        table_id: The requested table ID
+        playground_id: The playground ID
+    
+    Returns:
+        tuple: (is_valid: bool, error_message: Optional[str])
+    """
+    if not MC_ENFORCE_NAMING:
+        return True, None
+    
+    # Check if table_id matches pattern: <playgroundId><suffix>
+    for suffix in MORAL_COMPASS_ALLOWED_SUFFIXES:
+        expected = f"{playground_id}{suffix}"
+        if table_id == expected:
+            return True, None
+    
+    allowed_patterns = [f"{playground_id}{s}" for s in MORAL_COMPASS_ALLOWED_SUFFIXES]
+    error = f"Invalid table name. Expected one of: {', '.join(allowed_patterns)}"
+    return False, error
 
 def decimal_default(obj):
     if isinstance(obj, Decimal):
@@ -48,7 +335,7 @@ def create_response(status_code, body, headers=None):
     default_headers = {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET,PUT,PATCH,POST,OPTIONS',
+        'Access-Control-Allow-Methods': 'GET,PUT,PATCH,POST,DELETE,OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type,Authorization'
     }
     if headers:
@@ -114,8 +401,39 @@ def create_table(event):
         body = json.loads(event.get('body', '{}'))
         table_id = body.get('tableId')
         display_name = body.get('displayName', table_id)
+        playground_url = body.get('playgroundUrl')
+        
         if not validate_table_id(table_id):
             return create_response(400, {'error': 'Invalid tableId. Must be alphanumeric with underscores/hyphens, max 64 chars'})
+        
+        # Extract identity if auth is enabled
+        identity = {}
+        if AUTH_ENABLED:
+            identity = get_identity_from_event(event)
+            if not identity.get('principal'):
+                return create_response(401, {'error': 'Authentication required'})
+        
+        # Extract playground ID from URL if provided
+        playground_id = None
+        if playground_url:
+            playground_id = extract_playground_id(playground_url)
+            if not playground_id:
+                return create_response(400, {'error': 'Invalid playgroundUrl. Could not extract playground ID'})
+        
+        # Validate naming convention for moral compass tables
+        if MC_ENFORCE_NAMING and playground_id:
+            is_valid, error_msg = validate_moral_compass_table_name(table_id, playground_id)
+            if not is_valid:
+                return create_response(400, {'error': error_msg})
+        elif MC_ENFORCE_NAMING and not playground_id:
+            # If naming enforcement is on but no playground URL provided, check if table follows pattern
+            # This allows backward compatibility but warns
+            has_mc_suffix = any(table_id.endswith(suffix) for suffix in MORAL_COMPASS_ALLOWED_SUFFIXES)
+            if has_mc_suffix:
+                return create_response(400, {
+                    'error': 'playgroundUrl is required for moral compass tables when MC_ENFORCE_NAMING is enabled'
+                })
+        
         try:
             resp = retry_dynamo(lambda: table.get_item(
                 Key={'tableId': table_id, 'username': '_metadata'},
@@ -125,6 +443,7 @@ def create_table(event):
                 return create_response(409, {'error': f'Table {table_id} already exists'})
         except ClientError as e:
             print(f"[WARN] get_item metadata error during create_table: {e}")
+        
         metadata = {
             'tableId': table_id,
             'username': '_metadata',
@@ -133,8 +452,35 @@ def create_table(event):
             'isArchived': False,
             'userCount': 0
         }
+        
+        # Add ownership metadata if auth is enabled
+        if AUTH_ENABLED and identity.get('principal'):
+            metadata['ownerSub'] = identity.get('sub', '')
+            metadata['ownerPrincipal'] = identity.get('principal', '')
+            metadata['ownerEmail'] = identity.get('email', '')
+            metadata['ownerIssuer'] = identity.get('issuer', '')
+        
+        # Add playground metadata if provided
+        if playground_url:
+            metadata['playgroundUrl'] = playground_url
+        if playground_id:
+            metadata['playgroundId'] = playground_id
+        
         retry_dynamo(lambda: table.put_item(Item=metadata))
-        return create_response(201, {'tableId': table_id, 'displayName': display_name, 'message': 'Table created successfully'})
+        
+        response_body = {
+            'tableId': table_id,
+            'displayName': display_name,
+            'message': 'Table created successfully'
+        }
+        
+        # Include ownership info in response if set
+        if 'ownerPrincipal' in metadata:
+            response_body['ownerPrincipal'] = metadata['ownerPrincipal']
+        if 'playgroundId' in metadata:
+            response_body['playgroundId'] = metadata['playgroundId']
+        
+        return create_response(201, response_body)
     except json.JSONDecodeError:
         return create_response(400, {'error': 'Invalid JSON in request body'})
     except Exception as e:
@@ -398,6 +744,82 @@ def patch_table(event):
         print(f"[ERROR] patch_table exception: {e}")
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
+def delete_table(event):
+    """
+    Delete a table and all associated user data.
+    
+    Authorization: Requires owner or admin when AUTH_ENABLED=true
+    Feature flag: Only works when ALLOW_TABLE_DELETE=true
+    """
+    try:
+        if not ALLOW_TABLE_DELETE:
+            return create_response(403, {'error': 'Table deletion is disabled'})
+        
+        params = event.get('pathParameters') or {}
+        table_id = params.get('tableId')
+        
+        if not validate_table_id(table_id):
+            return create_response(400, {'error': 'Invalid tableId format'})
+        
+        # Get table metadata
+        resp = retry_dynamo(lambda: table.get_item(
+            Key={'tableId': table_id, 'username': '_metadata'},
+            ConsistentRead=READ_CONSISTENT
+        ))
+        
+        if 'Item' not in resp:
+            return create_response(404, {'error': 'Table not found'})
+        
+        metadata = resp['Item']
+        
+        # Check authorization if auth is enabled
+        if AUTH_ENABLED:
+            identity = get_identity_from_event(event)
+            if not identity.get('principal'):
+                return create_response(401, {'error': 'Authentication required'})
+            
+            # Check if user is owner or admin
+            if not check_authorization(identity, owner_metadata=metadata, require_owner=True):
+                return create_response(403, {'error': 'Only the table owner or admin can delete this table'})
+        
+        # Delete all items in the table (metadata + all users)
+        # Query all items with this tableId
+        deleted_count = 0
+        query_kwargs = {
+            'KeyConditionExpression': Key('tableId').eq(table_id)
+        }
+        
+        while True:
+            query_resp = retry_dynamo(lambda: table.query(**query_kwargs))
+            items = query_resp.get('Items', [])
+            
+            # Delete items in batches
+            for item in items:
+                retry_dynamo(lambda i=item: table.delete_item(
+                    Key={
+                        'tableId': i['tableId'],
+                        'username': i['username']
+                    }
+                ))
+                deleted_count += 1
+            
+            # Check for more items
+            last_key = query_resp.get('LastEvaluatedKey')
+            if not last_key:
+                break
+            query_kwargs['ExclusiveStartKey'] = last_key
+        
+        print(f"[INFO] Deleted table {table_id} with {deleted_count} items")
+        
+        return create_response(200, {
+            'message': f'Table {table_id} deleted successfully',
+            'deletedItems': deleted_count
+        })
+    
+    except Exception as e:
+        print(f"[ERROR] delete_table exception: {e}")
+        return create_response(500, {'error': f'Internal server error: {str(e)}'})
+
 def list_users(event):
     """
     Paginated list of users with correct pagination logic.
@@ -560,12 +982,25 @@ def put_user(event):
             return create_response(400, {'error': 'Invalid tableId format'})
         if not validate_username(username):
             return create_response(400, {'error': 'Invalid username format'})
+        
+        # Get table metadata
         meta = retry_dynamo(lambda: table.get_item(
             Key={'tableId': table_id, 'username': '_metadata'},
             ConsistentRead=READ_CONSISTENT
         ))
         if 'Item' not in meta:
             return create_response(404, {'error': 'Table not found'})
+        
+        # Check authorization if auth is enabled
+        if AUTH_ENABLED:
+            identity = get_identity_from_event(event)
+            if not identity.get('principal'):
+                return create_response(401, {'error': 'Authentication required'})
+            
+            # Allow self or admin to update user data
+            if not check_authorization(identity, username=username, require_self=True):
+                return create_response(403, {'error': 'Only the user or admin can update this data'})
+        
         submission_count = body.get('submissionCount')
         total_count = body.get('totalCount')
         if submission_count is None or total_count is None:
@@ -584,6 +1019,22 @@ def put_user(event):
             'totalCount': total_count,
             'lastUpdated': datetime.utcnow().isoformat()
         }
+        
+        # Add submitter metadata on first write if auth is enabled
+        if AUTH_ENABLED and identity.get('principal'):
+            # Get existing user data
+            existing_resp = retry_dynamo(lambda: table.get_item(
+                Key={'tableId': table_id, 'username': username},
+                ConsistentRead=READ_CONSISTENT
+            ))
+            existing_item = existing_resp.get('Item', {})
+            
+            # Set submitter metadata if not already present (backward compatibility)
+            if not existing_item.get('submitterSub'):
+                user_data['submitterSub'] = identity.get('sub', '')
+                user_data['submitterPrincipal'] = identity.get('principal', '')
+                user_data['submitterEmail'] = identity.get('email', '')
+        
         created_new = False
         try:
             retry_dynamo(lambda: table.put_item(
@@ -655,6 +1106,18 @@ def put_user_moral_compass(event):
         ))
         if 'Item' not in meta:
             return create_response(404, {'error': 'Table not found'})
+        
+        # Check authorization if auth is enabled
+        if AUTH_ENABLED:
+            identity = get_identity_from_event(event)
+            if not identity.get('principal'):
+                return create_response(401, {'error': 'Authentication required'})
+            
+            # Allow self or admin to update moral compass data
+            if not check_authorization(identity, username=username, require_self=True):
+                return create_response(403, {'error': 'Only the user or admin can update this data'})
+        else:
+            identity = {}
         
         # Extract and validate payload
         metrics = body.get('metrics')
@@ -735,6 +1198,12 @@ def put_user_moral_compass(event):
             'totalCount': existing_item.get('totalCount', 0)
         }
         
+        # Add submitter metadata on first write if auth is enabled and not already present
+        if AUTH_ENABLED and identity.get('principal') and not existing_item.get('submitterSub'):
+            user_data['submitterSub'] = identity.get('sub', '')
+            user_data['submitterPrincipal'] = identity.get('principal', '')
+            user_data['submitterEmail'] = identity.get('email', '')
+        
         created_new = 'username' not in existing_item
         
         # Store to DynamoDB
@@ -800,6 +1269,8 @@ def handler(event, context):
             return get_table(event)
         elif route_key == 'PATCH /tables/{tableId}':
             return patch_table(event)
+        elif route_key == 'DELETE /tables/{tableId}':
+            return delete_table(event)
         elif route_key == 'GET /tables/{tableId}/users':
             return list_users(event)
         elif route_key == 'GET /tables/{tableId}/users/{username}':
@@ -826,6 +1297,8 @@ def handler(event, context):
             return get_table(event)
         elif method == 'PATCH' and path.startswith('/tables/') and path.count('/') == 2:
             return patch_table(event)
+        elif method == 'DELETE' and path.startswith('/tables/') and path.count('/') == 2:
+            return delete_table(event)
         elif method == 'GET' and path.endswith('/users') and path.count('/') == 3:
             return list_users(event)
         elif method == 'GET' and '/users/' in path and path.count('/') == 4:
