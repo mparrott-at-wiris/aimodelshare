@@ -121,7 +121,7 @@ jobs:
           # Install the built wheel locally to catch missing package_data
           WHEEL_FILE=$(ls dist/*.whl | head -n 1)
           pip install "$WHEEL_FILE"
-          python -c "import aimodelshare; print('Smoke test passed. Version:', aimodelshare.__version__)"
+          python -c "from importlib.metadata import version; print('Smoke test passed. Version:', version('aimodelshare'))"
 
       - name: Dry run (skip upload)
         if: inputs.dry_run == 'true'
