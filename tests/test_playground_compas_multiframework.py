@@ -801,3 +801,4 @@ def test_compas_leaderboards(shared_playground):
         
     except Exception as e:
         pytest.fail(f"Leaderboard validation failed: {e}")
+
