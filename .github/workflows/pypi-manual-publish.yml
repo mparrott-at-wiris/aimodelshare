@@ -115,6 +115,14 @@ jobs:
       - name: Validate distributions
         run: twine check dist/*
 
+      - name: Pre-upload smoke test (install from local wheel)
+        if: inputs.dry_run != 'true'
+        run: |
+          # Install the built wheel locally to catch missing package_data
+          WHEEL_FILE=$(ls dist/*.whl | head -n 1)
+          pip install "$WHEEL_FILE"
+          python -c "import aimodelshare; print('Smoke test passed. Version:', aimodelshare.__version__)"
+
       - name: Dry run (skip upload)
         if: inputs.dry_run == 'true'
         run: |
