@@ -29,12 +29,16 @@ MORAL_COMPASS_ALLOWED_SUFFIXES = os.environ.get('MORAL_COMPASS_ALLOWED_SUFFIXES'
 ALLOW_TABLE_DELETE = os.environ.get('ALLOW_TABLE_DELETE', 'false').lower() == 'true'
 ALLOW_PUBLIC_READ = os.environ.get('ALLOW_PUBLIC_READ', 'true').lower() == 'true'
 
+# Region configuration (using AWS_REGION_NAME to avoid conflict with AWS_REGION)
+AWS_REGION_NAME = os.environ.get('AWS_REGION_NAME', os.environ.get('AWS_REGION', 'us-east-1'))
+
 dynamodb = boto3.resource('dynamodb')
 dynamodb_client = boto3.client('dynamodb')
 table = dynamodb.Table(TABLE_NAME)
 
 print(f"[BOOT] Using DynamoDB table: {TABLE_NAME} | SAFE_CONCURRENCY={SAFE_CONCURRENCY} | READ_CONSISTENT={READ_CONSISTENT}")
 print(f"[BOOT] Auth config: AUTH_ENABLED={AUTH_ENABLED} | MC_ENFORCE_NAMING={MC_ENFORCE_NAMING} | ALLOW_TABLE_DELETE={ALLOW_TABLE_DELETE}")
+print(f"[BOOT] Region: {AWS_REGION_NAME}")
 
 _TABLE_ID_RE = re.compile(r'^[a-zA-Z0-9_-]{1,64}$')
 _USERNAME_RE = re.compile(r'^[a-zA-Z0-9_-]{1,64}$')
@@ -293,9 +297,47 @@ def extract_playground_id(playground_url):
         return None
 
 
+def extract_region_from_table_id(table_id, playground_id):
+    """
+    Extract AWS region from a region-aware table ID.
+    
+    Args:
+        table_id: The table ID (e.g., my-playground-us-east-1-mc)
+        playground_id: The playground ID (e.g., my-playground)
+    
+    Returns:
+        Optional[str]: Region name (e.g., us-east-1) or None if not region-aware
+    
+    Examples:
+        extract_region_from_table_id('my-pg-us-east-1-mc', 'my-pg') -> 'us-east-1'
+        extract_region_from_table_id('my-pg-mc', 'my-pg') -> None
+    """
+    if not table_id or not playground_id:
+        return None
+    
+    # Check if table_id starts with playground_id
+    if not table_id.startswith(playground_id):
+        return None
+    
+    # Check for region-aware pattern: <playgroundId>-<region><suffix>
+    for suffix in MORAL_COMPASS_ALLOWED_SUFFIXES:
+        if table_id.startswith(playground_id + "-") and table_id.endswith(suffix):
+            # Remove playground_id prefix and suffix
+            middle = table_id[len(playground_id) + 1:-len(suffix)]
+            # Validate region format
+            if middle and re.match(r'^[a-z]{2}-[a-z]+-\d+$', middle):
+                return middle
+    
+    return None
+
+
 def validate_moral_compass_table_name(table_id, playground_id):
     """
     Validate moral compass table naming convention.
+    
+    Supports both region-aware and non-region-aware naming:
+    - <playgroundId><suffix> (e.g., my-playground-mc)
+    - <playgroundId>-<region><suffix> (e.g., my-playground-us-east-1-mc)
     
     Args:
         table_id: The requested table ID
@@ -312,9 +354,23 @@ def validate_moral_compass_table_name(table_id, playground_id):
         expected = f"{playground_id}{suffix}"
         if table_id == expected:
             return True, None
+        
+        # Check region-aware pattern: <playgroundId>-<region><suffix>
+        # Extract potential region from table_id
+        if table_id.startswith(playground_id + "-"):
+            # Remove playground_id prefix
+            remainder = table_id[len(playground_id) + 1:]
+            # Check if remainder ends with the suffix
+            if remainder.endswith(suffix):
+                # Extract potential region (everything before the suffix)
+                potential_region = remainder[:-len(suffix)]
+                # Validate region format (alphanumeric with hyphens, e.g., us-east-1, eu-west-2)
+                if potential_region and re.match(r'^[a-z]{2}-[a-z]+-\d+$', potential_region):
+                    return True, None
     
     allowed_patterns = [f"{playground_id}{s}" for s in MORAL_COMPASS_ALLOWED_SUFFIXES]
-    error = f"Invalid table name. Expected one of: {', '.join(allowed_patterns)}"
+    allowed_patterns_region = [f"{playground_id}-<region>{s}" for s in MORAL_COMPASS_ALLOWED_SUFFIXES]
+    error = f"Invalid table name. Expected one of: {', '.join(allowed_patterns)} or {', '.join(allowed_patterns_region)}"
     return False, error
 
 def decimal_default(obj):
@@ -465,6 +521,13 @@ def create_table(event):
             metadata['playgroundUrl'] = playground_url
         if playground_id:
             metadata['playgroundId'] = playground_id
+            # Extract and store region if table uses region-aware naming
+            region = extract_region_from_table_id(table_id, playground_id)
+            if region:
+                metadata['region'] = region
+            else:
+                # Store deployment region as default
+                metadata['region'] = AWS_REGION_NAME
         
         retry_dynamo(lambda: table.put_item(Item=metadata))
         

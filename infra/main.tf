@@ -203,6 +203,7 @@ resource "aws_lambda_function" "api" {
       MORAL_COMPASS_ALLOWED_SUFFIXES    = var.moral_compass_allowed_suffixes
       ALLOW_TABLE_DELETE                = var.allow_table_delete ? "true" : "false"
       ALLOW_PUBLIC_READ                 = var.allow_public_read ? "true" : "false"
+      AWS_REGION_NAME                   = var.region
     }
   }
 
