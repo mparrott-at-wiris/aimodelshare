@@ -57,11 +57,8 @@ TOP_N_CHARGE_CATEGORIES = 50
 # Fairness value generator - cycles through 0.25, 0.50, 0.75
 def fairness_value_generator():
     """Generator that cycles through fairness values: 0.25, 0.50, 0.75"""
-    values = [0.25, 0.50, 0.75]
-    index = 0
-    while True:
-        yield values[index]
-        index = (index + 1) % len(values)
+    import itertools
+    return itertools.cycle([0.25, 0.50, 0.75])
 
 # Feature definitions (used in preprocessing and dummy input creation)
 NUMERIC_FEATURES = ['age', 'priors_count', 'juv_fel_count', 'juv_misd_count', 

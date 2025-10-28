@@ -72,11 +72,8 @@ TOP_N_CHARGE_CATEGORIES = 50  # Top N frequent c_charge_desc categories to keep
 # Fairness value generator - cycles through 0.25, 0.50, 0.75
 def fairness_value_generator():
     """Generator that cycles through fairness values: 0.25, 0.50, 0.75"""
-    values = [0.25, 0.50, 0.75]
-    index = 0
-    while True:
-        yield values[index]
-        index = (index + 1) % len(values)
+    import itertools
+    return itertools.cycle([0.25, 0.50, 0.75])
 
 
 @pytest.fixture(scope="session")
