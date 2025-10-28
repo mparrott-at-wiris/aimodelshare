@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=68", "wheel", "setuptools_scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aimodelshare"
+dynamic = ["version"]
+description = "Deploy locally saved machine learning models to a live REST API and integrated dashboard."
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Michael Parrott", email = "mikedparrott@modelshare.ai" }]
+keywords = ["machine-learning", "deployment", "api", "onnx", "tensorflow", "pytorch"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: Other/Proprietary License",
+  "Operating System :: OS Independent"
+]
+requires-python = ">=3.10"
+# Core dependencies (optimized: heavy ML moved to extras)
+dependencies = [
+  "numpy>=1.22.0",
+  "pandas",
+  "requests",
+  "urllib3",
+  "boto3",
+  "shortuuid",
+  "psutil",
+  "protobuf>=3.20,<5",
+  "dill",
+  "regex",
+  "Pympler",
+  "PyJWT<2.0",
+  "IPython"
+]
+
+[project.optional-dependencies]
+onnx = ["onnx", "onnxmltools", "onnxruntime", "skl2onnx", "tf2onnx"]
+tensorflow = ["tensorflow==2.18.0", "tf2onnx", "keras2onnx"]
+pytorch = ["torch"]
+visual = ["pydot", "graphviz"]
+sklearn = ["scikit-learn", "scikeras", "wget"]
+full = [
+  "onnx", "onnxmltools", "onnxruntime", "skl2onnx", "tf2onnx",
+  "tensorflow==2.18.0", "keras2onnx",
+  "torch",
+  "pydot", "graphviz",
+  "scikit-learn", "scikeras", "wget"
+]
+test = ["pytest", "pytest-cov"]
+
+[tool.setuptools.packages.find]
+include = ["aimodelshare*"]
+
+[tool.setuptools_scm]
+version_scheme = "guess-next-dev"
+local_scheme = "node-and-date"
+fallback_version = "0.0.0"
