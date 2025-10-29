@@ -71,7 +71,7 @@ def build_custom_metadata(fairness_value: float) -> dict:
     Coerce fairness value to a string to ensure it appears properly on downstream leaderboard
     systems that may treat all metadata values as text.
     """
-    return {"Moral_Compass_Fairness": f"{fairness_value:.2f}"}
+    return {"moral_compass_fairness": f"{fairness_value:.2f}"}
 
 
 @pytest.fixture(scope="session")
