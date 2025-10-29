@@ -24,7 +24,7 @@ from tensorflow.keras.models import Sequential
 
 from aimodelshare.playground import ModelPlayground
 from aimodelshare.aws import set_credentials, get_aws_token
-from aimodelshare.modeluser import get_jwt_token, create_user_getkeyandpassword
+from aimodelshare.modeluser import get_jwt_token, setup_bucket_only
 
 
 # Set seeds for reproducibility
@@ -170,7 +170,7 @@ def aws_environment(credentials):
     # Validate JWT tokens
     try:
         get_jwt_token(os.environ.get('username'), os.environ.get('password'))
-        create_user_getkeyandpassword()
+        setup_bucket_only()
     except Exception as e:
         print(f"Warning: Could not validate JWT tokens: {e}")
 

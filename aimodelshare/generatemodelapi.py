@@ -23,7 +23,7 @@ from aimodelshare.aws import get_s3_iam_client, run_function_on_lambda, get_toke
 from aimodelshare.bucketpolicy import _custom_upload_policy
 from aimodelshare.exceptions import AuthorizationError, AWSAccessError, AWSUploadError
 from aimodelshare.api import get_api_json
-from aimodelshare.modeluser import create_user_getkeyandpassword, decode_token_unverified
+from aimodelshare.modeluser import decode_token_unverified
 from aimodelshare.preprocessormodules import upload_preprocessor
 from aimodelshare.model import _get_predictionmodel_key, _extract_model_metadata
 from aimodelshare.data_sharing.share_data import share_data_codebuild

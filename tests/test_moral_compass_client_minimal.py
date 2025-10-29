@@ -25,7 +25,7 @@ from aimodelshare.moral_compass import (
     ApiClientError,
 )
 from aimodelshare.aws import set_credentials, get_aws_token
-from aimodelshare.modeluser import get_jwt_token, create_user_getkeyandpassword
+from aimodelshare.modeluser import get_jwt_token, setup_bucket_only
 
 @pytest.fixture(scope="session", autouse=True)
 def ensure_jwt_token():

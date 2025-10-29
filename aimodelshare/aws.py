@@ -10,7 +10,7 @@ def set_credentials(credential_file=None, type="submit_model", apiurl="apiurl", 
   import os
   import getpass
   from aimodelshare.aws import get_aws_token
-  from aimodelshare.modeluser import get_jwt_token, create_user_getkeyandpassword
+  from aimodelshare.modeluser import get_jwt_token, setup_bucket_only
   if all([credential_file==None, type=="submit_model"]):
     set_credentials_public(type="submit_model", apiurl=apiurl)
     os.environ["AWS_TOKEN"]=get_aws_token()
@@ -131,7 +131,7 @@ def set_credentials(credential_file=None, type="submit_model", apiurl="apiurl", 
       # Set Environment Variables for deploy models
       if type == "deploy_model":
         get_jwt_token(os.environ.get("username"), os.environ.get("password"))
-        create_user_getkeyandpassword()  
+        setup_bucket_only()  # Use new function that doesn't create IAM users  
         
       if not flag: 
         print("Error: apiurl or type not found in"+str(credential_file)+". Please correct entries and resubmit.")
@@ -147,7 +147,7 @@ def set_credentials_public(credential_file=None, type="submit_model", apiurl="ap
   import os
   import getpass
   from aimodelshare.aws import get_aws_token
-  from aimodelshare.modeluser import get_jwt_token, create_user_getkeyandpassword
+  from aimodelshare.modeluser import get_jwt_token, setup_bucket_only
 
   ##TODO: Require that "type" is provided, to ensure correct env vars get loaded
   flag = False
@@ -211,7 +211,7 @@ def set_credentials_public_aimscloud(credential_file=None, type="deploy_model", 
   import os
   import getpass
   from aimodelshare.aws import get_aws_token
-  from aimodelshare.modeluser import get_jwt_token, create_user_getkeyandpassword
+  from aimodelshare.modeluser import get_jwt_token, setup_bucket_only
 
   ##TODO: Require that "type" is provided, to ensure correct env vars get loaded
   flag = False

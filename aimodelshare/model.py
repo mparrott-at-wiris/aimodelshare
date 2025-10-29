@@ -918,7 +918,7 @@ def submit_model(
 
     import os
     from aimodelshare.aws import get_aws_token
-    from aimodelshare.modeluser import get_jwt_token, create_user_getkeyandpassword
+    from aimodelshare.modeluser import get_jwt_token
     import ast
 
     # Confirm that creds are loaded, raise error if not
