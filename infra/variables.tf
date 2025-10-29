@@ -77,7 +77,7 @@ variable "use_leaderboard_gsi" {
 
 variable "auth_enabled" {
   type        = bool
-  default     = false
+  default     = true
   description = "Enable authentication and authorization checks"
 }
 
