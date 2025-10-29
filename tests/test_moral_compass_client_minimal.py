@@ -14,6 +14,8 @@ import os
 import uuid
 from typing import Generator
 
+from unittest.mock import patch
+
 # Import from the new submodule
 from aimodelshare.moral_compass import (
     MoralcompassApiClient,
@@ -25,41 +27,21 @@ from aimodelshare.moral_compass import (
 from aimodelshare.aws import set_credentials, get_aws_token
 from aimodelshare.modeluser import get_jwt_token, create_user_getkeyandpassword
 
-@pytest.fixture(scope="session")
-def credentials():
-    """Setup credentials for playground tests (session-scoped)."""
-    # Try to load from file first (for local testing)
-    try:
-        set_credentials(credential_file="../../../credentials.txt", type="deploy_model")
-        return
-    except Exception:
-        pass
+@pytest.fixture(scope="session", autouse=True)
+def ensure_jwt_token():
+    """
+    Ensure JWT_AUTHORIZATION_TOKEN is set before tests run.
+    """
+    username = os.environ.get('username')
+    password = os.environ.get('password')
+    if username and password:
+        token = get_jwt_token(username, password)
+        # get_jwt_token already sets the JWT_AUTHORIZATION_TOKEN env var.
+    else:
+        raise RuntimeError(
+            "You must set 'username' and 'password' environment variables for JWT authentication."
+        )
 
-    try:
-        set_credentials(credential_file="../../credentials.txt", type="deploy_model")
-        return
-    except Exception:
-        pass
-
-    # Mock user input from environment variables
-    inputs = [
-        os.environ.get('username'),
-        os.environ.get('password'),
-        os.environ.get('AWS_ACCESS_KEY_ID'),
-        os.environ.get('AWS_SECRET_ACCESS_KEY'),
-        os.environ.get('AWS_REGION')
-    ]
-
-    with patch("getpass.getpass", side_effect=inputs):
-        from aimodelshare.aws import configure_credentials
-        configure_credentials()
-
-    # Set credentials
-    set_credentials(credential_file="credentials.txt", type="deploy_model")
-
-    # Clean up credentials file
-    if os.path.exists("credentials.txt"):
-        os.remove("credentials.txt")
 
 @pytest.fixture(scope="module")
 def client() -> MoralcompassApiClient:
