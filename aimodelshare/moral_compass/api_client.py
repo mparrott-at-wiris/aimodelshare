@@ -172,7 +172,14 @@ class MoralcompassApiClient:
             )
             
             # Handle specific error codes
-            if response.status_code == 404:
+            if response.status_code == 401:
+                auth_msg = "Authentication failed (401 Unauthorized)"
+                if not self.auth_token:
+                    auth_msg += ". No authentication token provided. Set JWT_AUTHORIZATION_TOKEN environment variable or provide username/password for JWT generation."
+                else:
+                    auth_msg += f". Token present but invalid or expired. Token: {self.auth_token[:10]}..."
+                raise ApiClientError(f"{auth_msg} | URL: {response.url} | Response: {response.text}")
+            elif response.status_code == 404:
                 raise NotFoundError(f"Resource not found: {path} | body={response.text}")
             elif 500 <= response.status_code < 600:
                 raise ServerError(f"Server error {response.status_code}: {response.text}")
