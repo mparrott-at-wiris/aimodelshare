@@ -55,8 +55,73 @@ def get_jwt_token(username, password):
 
     return 
 
-def create_user_getkeyandpassword():
+def setup_bucket_only():
+    """
+    Set up the S3 bucket for aimodelshare without creating new IAM users.
+    
+    Uses the provided AWS credentials to create or access the bucket.
+    This avoids creating a new IAM user every time credentials are set.
+    """
+    from aimodelshare.aws import get_s3_iam_client
 
+    s3, iam, region = get_s3_iam_client(os.environ.get("AWS_ACCESS_KEY_ID_AIMS"), 
+                                        os.environ.get("AWS_SECRET_ACCESS_KEY_AIMS"), 
+                                        os.environ.get("AWS_REGION_AIMS"))
+    
+    user_session = boto3.session.Session(aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID_AIMS"),
+                                         aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY_AIMS"), 
+                                         region_name= os.environ.get("AWS_REGION_AIMS"))    
+    
+    account_number = user_session.client(
+        'sts').get_caller_identity().get('Account')
+
+    # Remove special characters from username
+    username_clean = re.sub('[^A-Za-z0-9-]+', '', os.environ.get("username"))
+    bucket_name = 'aimodelshare' + username_clean.lower() + str(account_number) + region.replace('-', '')
+    
+    region = os.environ.get("AWS_REGION_AIMS")
+    s3_client = s3['client']
+
+    # Create bucket if it doesn't exist
+    try:
+        response = s3_client.head_bucket(Bucket=bucket_name)
+    except:
+        if region == "us-east-1":
+            response = s3_client.create_bucket(
+                ACL="private",
+                Bucket=bucket_name
+            )
+        else:
+            location = {'LocationConstraint': region}
+            response = s3_client.create_bucket(
+                ACL="private",
+                Bucket=bucket_name,
+                CreateBucketConfiguration=location
+            )
+
+    # Set the bucket name in environment for use by other functions
+    os.environ["BUCKET_NAME"] = bucket_name
+    
+    return
+
+
+def create_user_getkeyandpassword():
+    """
+    DEPRECATED: This function creates a new IAM user every time it's called.
+    
+    Use setup_bucket_only() instead, which uses the provided AWS credentials
+    without creating new IAM users and policies.
+    
+    This function is kept for backward compatibility but should not be used.
+    """
+    import warnings
+    warnings.warn(
+        "create_user_getkeyandpassword() is deprecated and creates unnecessary IAM users. "
+        "Use setup_bucket_only() instead.",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    
     from aimodelshare.bucketpolicy import _custom_s3_policy
     from aimodelshare.tools import form_timestamp
     from aimodelshare.aws import get_s3_iam_client
@@ -145,5 +210,6 @@ def create_user_getkeyandpassword():
 __all__ = [
     get_jwt_token,
     create_user_getkeyandpassword,
+    setup_bucket_only,
     decode_token_unverified,
 ]
