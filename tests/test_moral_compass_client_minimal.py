@@ -32,14 +32,38 @@ def ensure_jwt_token():
     """
     Ensure JWT_AUTHORIZATION_TOKEN is set before tests run.
     """
+    # Check if JWT token is already set
+    existing_token = os.environ.get('JWT_AUTHORIZATION_TOKEN')
+    if existing_token:
+        print(f"Using existing JWT token: {existing_token[:10]}...")
+        return
+
+    # Try to get credentials and generate token
     username = os.environ.get('username')
     password = os.environ.get('password')
+    
     if username and password:
-        token = get_jwt_token(username, password)
-        # get_jwt_token already sets the JWT_AUTHORIZATION_TOKEN env var.
+        try:
+            get_jwt_token(username, password)
+            # get_jwt_token sets the JWT_AUTHORIZATION_TOKEN env var
+            print(f"Successfully generated JWT token for user: {username}")
+        except Exception as e:
+            # If token generation fails, provide helpful error
+            raise RuntimeError(
+                f"Failed to generate JWT token for user '{username}': {e}\n"
+                "This could be due to:\n"
+                "1. Invalid credentials\n"  
+                "2. Network connectivity issues\n"
+                "3. Cognito service unavailability\n"
+                "To skip authentication tests, set SKIP_AUTH_TESTS=true"
+            ) from e
     else:
         raise RuntimeError(
-            "You must set 'username' and 'password' environment variables for JWT authentication."
+            "Authentication required for moral compass tests. Please:\n"
+            "1. Set 'username' and 'password' environment variables for JWT authentication, OR\n"
+            "2. Set 'JWT_AUTHORIZATION_TOKEN' environment variable directly, OR\n" 
+            "3. Set 'SKIP_AUTH_TESTS=true' to skip authentication-dependent tests\n"
+            "For test credentials, sign up at AImodelshare.com/register"
         )
 
 
@@ -77,7 +101,7 @@ def created_table(client: MoralcompassApiClient, test_table_id: str) -> Generato
 class TestMoralcompassClientIntegration:
     """Integration tests for moral_compass API client"""
     
-    @pytest.mark.integration
+    @pytest.mark.integration  
     def test_health_endpoint(self, client: MoralcompassApiClient):
         """Test that health endpoint is reachable"""
         health = client.health()
@@ -85,6 +109,10 @@ class TestMoralcompassClientIntegration:
         assert "timestamp" in health
     
     @pytest.mark.integration
+    @pytest.mark.skipif(
+        os.getenv('SKIP_AUTH_TESTS', 'false').lower() == 'true',
+        reason="Auth tests skipped via SKIP_AUTH_TESTS environment variable"
+    )
     def test_create_table(self, client: MoralcompassApiClient, test_table_id: str):
         """Test creating a new table"""
         response = client.create_table(test_table_id, "Test Display Name")
@@ -95,6 +123,10 @@ class TestMoralcompassClientIntegration:
         client.patch_table(test_table_id, is_archived=True)
     
     @pytest.mark.integration
+    @pytest.mark.skipif(
+        os.getenv('SKIP_AUTH_TESTS', 'false').lower() == 'true',
+        reason="Auth tests skipped via SKIP_AUTH_TESTS environment variable"
+    )
     def test_get_table(self, client: MoralcompassApiClient, created_table: str):
         """Test getting a specific table"""
         table = client.get_table(created_table)
@@ -105,12 +137,20 @@ class TestMoralcompassClientIntegration:
         assert isinstance(table.user_count, int)
     
     @pytest.mark.integration
+    @pytest.mark.skipif(
+        os.getenv('SKIP_AUTH_TESTS', 'false').lower() == 'true',
+        reason="Auth tests skipped via SKIP_AUTH_TESTS environment variable"
+    )
     def test_get_nonexistent_table(self, client: MoralcompassApiClient):
         """Test that getting a non-existent table raises NotFoundError"""
         with pytest.raises(NotFoundError):
             client.get_table("nonexistent-table-12345")
     
     @pytest.mark.integration
+    @pytest.mark.skipif(
+        os.getenv('SKIP_AUTH_TESTS', 'false').lower() == 'true',
+        reason="Auth tests skipped via SKIP_AUTH_TESTS environment variable"
+    )
     def test_list_tables(self, client: MoralcompassApiClient, created_table: str):
         """Test listing tables with pagination"""
         response = client.list_tables(limit=10)
@@ -123,6 +163,10 @@ class TestMoralcompassClientIntegration:
         assert created_table in table_ids
     
     @pytest.mark.integration
+    @pytest.mark.skipif(
+        os.getenv('SKIP_AUTH_TESTS', 'false').lower() == 'true',
+        reason="Auth tests skipped via SKIP_AUTH_TESTS environment variable"
+    )
     def test_iter_tables(self, client: MoralcompassApiClient, created_table: str):
         """Test iterating over all tables with automatic pagination"""
         tables = list(client.iter_tables(limit=5))
@@ -135,6 +179,10 @@ class TestMoralcompassClientIntegration:
         assert created_table in table_ids
     
     @pytest.mark.integration
+    @pytest.mark.skipif(
+        os.getenv('SKIP_AUTH_TESTS', 'false').lower() == 'true',
+        reason="Auth tests skipped via SKIP_AUTH_TESTS environment variable"
+    )
     def test_patch_table(self, client: MoralcompassApiClient, created_table: str):
         """Test updating table metadata"""
         response = client.patch_table(created_table, display_name="Updated Name")
@@ -145,6 +193,10 @@ class TestMoralcompassClientIntegration:
         assert table.display_name == "Updated Name"
     
     @pytest.mark.integration
+    @pytest.mark.skipif(
+        os.getenv('SKIP_AUTH_TESTS', 'false').lower() == 'true',
+        reason="Auth tests skipped via SKIP_AUTH_TESTS environment variable"
+    )
     def test_put_user(self, client: MoralcompassApiClient, created_table: str, test_username: str):
         """Test creating/updating a user"""
         response = client.put_user(
@@ -159,6 +211,10 @@ class TestMoralcompassClientIntegration:
         assert response["totalCount"] == 10
     
     @pytest.mark.integration
+    @pytest.mark.skipif(
+        os.getenv('SKIP_AUTH_TESTS', 'false').lower() == 'true',
+        reason="Auth tests skipped via SKIP_AUTH_TESTS environment variable"
+    )
     def test_get_user(self, client: MoralcompassApiClient, created_table: str, test_username: str):
         """Test getting a specific user"""
         # First create the user
@@ -173,12 +229,20 @@ class TestMoralcompassClientIntegration:
         assert user.total_count == 15
     
     @pytest.mark.integration
+    @pytest.mark.skipif(
+        os.getenv('SKIP_AUTH_TESTS', 'false').lower() == 'true',
+        reason="Auth tests skipped via SKIP_AUTH_TESTS environment variable"
+    )
     def test_get_nonexistent_user(self, client: MoralcompassApiClient, created_table: str):
         """Test that getting a non-existent user raises NotFoundError"""
         with pytest.raises(NotFoundError):
             client.get_user(created_table, "nonexistent-user-12345")
     
     @pytest.mark.integration
+    @pytest.mark.skipif(
+        os.getenv('SKIP_AUTH_TESTS', 'false').lower() == 'true',
+        reason="Auth tests skipped via SKIP_AUTH_TESTS environment variable"
+    )
     def test_list_users(self, client: MoralcompassApiClient, created_table: str, test_username: str):
         """Test listing users with pagination"""
         # Create a user first
@@ -195,6 +259,10 @@ class TestMoralcompassClientIntegration:
         assert test_username in usernames
     
     @pytest.mark.integration
+    @pytest.mark.skipif(
+        os.getenv('SKIP_AUTH_TESTS', 'false').lower() == 'true',
+        reason="Auth tests skipped via SKIP_AUTH_TESTS environment variable"
+    )
     def test_iter_users(self, client: MoralcompassApiClient, created_table: str, test_username: str):
         """Test iterating over all users with automatic pagination"""
         # Create a user first
@@ -211,6 +279,10 @@ class TestMoralcompassClientIntegration:
         assert test_username in usernames
     
     @pytest.mark.integration
+    @pytest.mark.skipif(
+        os.getenv('SKIP_AUTH_TESTS', 'false').lower() == 'true',
+        reason="Auth tests skipped via SKIP_AUTH_TESTS environment variable"
+    )
     def test_pagination_with_last_key(self, client: MoralcompassApiClient, created_table: str):
         """Test that pagination with lastKey works correctly"""
         # Create multiple users
