@@ -49,8 +49,8 @@ jobs:
       
       - name: Set up test environment
         env:
-          MC_USERNAME: ${{ secrets.MC_USERNAME }}
-          MC_PASSWORD: ${{ secrets.MC_PASSWORD }}
+          MC_USERNAME: ${{ secrets.AIMODELSHARE_USERNAME }}
+          MC_PASSWORD: ${{ secrets.AIMODELSHARE_PASSWORD }}
           MORAL_COMPASS_API_BASE_URL: ${{ secrets.MORAL_COMPASS_API_BASE_URL }}
         run: |
           # Export credentials for auto JWT generation
