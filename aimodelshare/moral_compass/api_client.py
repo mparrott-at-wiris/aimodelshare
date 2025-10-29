@@ -96,6 +96,11 @@ class MoralcompassApiClient:
         self.api_base_url = (api_base_url or get_api_base_url()).rstrip("/")
         self.timeout = timeout
         self.auth_token = auth_token or self._get_auth_token_from_env()
+        
+        # Auto-generate JWT if no token found but credentials available
+        if not self.auth_token:
+            self._auto_generate_jwt_if_possible()
+        
         self.session = self._create_session()
         logger.info(f"MoralcompassApiClient initialized with base URL: {self.api_base_url}")
     
@@ -114,6 +119,42 @@ class MoralcompassApiClient:
         except ImportError:
             # Fallback to direct environment variable access if auth module not available
             return os.getenv('JWT_AUTHORIZATION_TOKEN') or os.getenv('AWS_TOKEN')
+    
+    def _auto_generate_jwt_if_possible(self) -> None:
+        """
+        Attempt to auto-generate a JWT token if credentials are available.
+        
+        Checks for username/password environment variables and uses them to generate
+        a JWT token via aimodelshare.modeluser.get_jwt_token if possible.
+        
+        Sets self.auth_token and exports JWT_AUTHORIZATION_TOKEN if successful.
+        """
+        # Check for username/password environment variables
+        username = os.getenv('AIMODELSHARE_USERNAME') or os.getenv('username')
+        password = os.getenv('AIMODELSHARE_PASSWORD') or os.getenv('password')
+        
+        if not (username and password):
+            logger.debug("Auto JWT generation skipped: No username/password credentials found in environment")
+            return
+        
+        try:
+            from aimodelshare.modeluser import get_jwt_token
+            
+            # Generate JWT token
+            logger.debug(f"Attempting to auto-generate JWT token for user: {username[:3]}***")
+            get_jwt_token(username, password)
+            
+            # get_jwt_token sets JWT_AUTHORIZATION_TOKEN in environment, retrieve it
+            token = os.getenv('JWT_AUTHORIZATION_TOKEN')
+            if token:
+                self.auth_token = token
+                logger.info(f"Auto-generated JWT token for moral_compass client. Token: {token[:10]}...")
+            else:
+                logger.debug("JWT token generation completed but JWT_AUTHORIZATION_TOKEN not found in environment")
+                
+        except Exception as e:
+            logger.debug(f"Auto JWT generation failed: {e}")
+            # Continue without token - let the actual API calls handle authorization errors
     
     def _create_session(self) -> requests.Session:
         """
@@ -175,7 +216,7 @@ class MoralcompassApiClient:
             if response.status_code == 401:
                 auth_msg = "Authentication failed (401 Unauthorized)"
                 if not self.auth_token:
-                    auth_msg += ". No authentication token provided. Set JWT_AUTHORIZATION_TOKEN environment variable or provide username/password for JWT generation."
+                    auth_msg += ". No authentication token provided. Set JWT_AUTHORIZATION_TOKEN environment variable or set AIMODELSHARE_USERNAME/AIMODELSHARE_PASSWORD for automatic JWT generation."
                 else:
                     auth_msg += f". Token present but invalid or expired. Token: {self.auth_token[:10]}..."
                 raise ApiClientError(f"{auth_msg} | URL: {response.url} | Response: {response.text}")
