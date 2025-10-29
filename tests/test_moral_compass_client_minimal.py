@@ -22,7 +22,44 @@ from aimodelshare.moral_compass import (
     NotFoundError,
     ApiClientError,
 )
+from aimodelshare.aws import set_credentials, get_aws_token
+from aimodelshare.modeluser import get_jwt_token, create_user_getkeyandpassword
 
+@pytest.fixture(scope="session")
+def credentials():
+    """Setup credentials for playground tests (session-scoped)."""
+    # Try to load from file first (for local testing)
+    try:
+        set_credentials(credential_file="../../../credentials.txt", type="deploy_model")
+        return
+    except Exception:
+        pass
+
+    try:
+        set_credentials(credential_file="../../credentials.txt", type="deploy_model")
+        return
+    except Exception:
+        pass
+
+    # Mock user input from environment variables
+    inputs = [
+        os.environ.get('username'),
+        os.environ.get('password'),
+        os.environ.get('AWS_ACCESS_KEY_ID'),
+        os.environ.get('AWS_SECRET_ACCESS_KEY'),
+        os.environ.get('AWS_REGION')
+    ]
+
+    with patch("getpass.getpass", side_effect=inputs):
+        from aimodelshare.aws import configure_credentials
+        configure_credentials()
+
+    # Set credentials
+    set_credentials(credential_file="credentials.txt", type="deploy_model")
+
+    # Clean up credentials file
+    if os.path.exists("credentials.txt"):
+        os.remove("credentials.txt")
 
 @pytest.fixture(scope="module")
 def client() -> MoralcompassApiClient:
