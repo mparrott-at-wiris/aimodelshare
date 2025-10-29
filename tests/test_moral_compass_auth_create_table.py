@@ -8,7 +8,7 @@ credentials are provided in environment variables.
 import os
 import uuid
 import pytest
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 from aimodelshare.moral_compass import MoralcompassApiClient
 from aimodelshare.moral_compass.api_client import NotFoundError, ApiClientError
 
