@@ -91,6 +91,47 @@ client = MoralcompassApiClient(auth_token="your.jwt.token")
 client = MoralcompassApiClient()  # Uses JWT_AUTHORIZATION_TOKEN or AWS_TOKEN
 ```
 
+### Automatic Token Acquisition
+
+If no JWT token is found in environment variables, the client will attempt to auto-generate one using username and password credentials. This provides seamless integration when users have already configured credentials via `configure_credentials()`:
+
+```bash
+# Set credentials for automatic JWT generation
+export AIMODELSHARE_USERNAME="your-username"
+export AIMODELSHARE_PASSWORD="your-password"
+
+# Alternative variable names also supported
+export username="your-username"
+export password="your-password"
+```
+
+```python
+from aimodelshare.moral_compass import MoralcompassApiClient
+from aimodelshare.modeluser import get_jwt_token
+import os
+
+# Method 1: Let the client auto-generate (recommended)
+# Client will automatically use AIMODELSHARE_USERNAME/AIMODELSHARE_PASSWORD
+client = MoralcompassApiClient()
+
+# Method 2: Explicitly generate and set JWT token
+if not os.getenv('JWT_AUTHORIZATION_TOKEN'):
+    username = os.getenv('AIMODELSHARE_USERNAME')
+    password = os.getenv('AIMODELSHARE_PASSWORD')
+    if username and password:
+        get_jwt_token(username, password)  # Sets JWT_AUTHORIZATION_TOKEN
+        # Now JWT_AUTHORIZATION_TOKEN is available for subsequent API calls
+
+client = MoralcompassApiClient()
+```
+
+The auto-generation process:
+1. Checks for existing JWT_AUTHORIZATION_TOKEN (skips if found)
+2. Looks for AIMODELSHARE_USERNAME/AIMODELSHARE_PASSWORD or username/password
+3. Calls `get_jwt_token()` to generate and set JWT_AUTHORIZATION_TOKEN
+4. Uses the generated token for API authentication
+5. Logs success/failure for debugging
+
 ### Table Ownership
 
 When authentication is enabled, tables have ownership metadata:

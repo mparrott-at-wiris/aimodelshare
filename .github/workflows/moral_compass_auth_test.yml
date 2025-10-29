@@ -1,0 +1,78 @@
+name: Moral Compass Authentication Test
+
+on:
+  push:
+    paths:
+      - 'aimodelshare/moral_compass/**'
+      - 'tests/test_moral_compass_auth_create_table.py'
+      - '.github/workflows/moral_compass_auth_test.yml'
+  pull_request:
+    paths:
+      - 'aimodelshare/moral_compass/**'
+      - 'tests/test_moral_compass_auth_create_table.py'
+      - '.github/workflows/moral_compass_auth_test.yml'
+  workflow_dispatch: # Manual trigger
+
+permissions:
+  contents: read
+
+concurrency:
+  group: moral-compass-auth-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  auth-integration-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      TF_CPP_MIN_LOG_LEVEL: "2"
+      AIMODELSHARE_SUPPRESS_OPTIONAL_WARNINGS: "1"
+    
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest pytest-cov
+      
+      - name: Set up test environment
+        env:
+          MC_USERNAME: ${{ secrets.MC_USERNAME }}
+          MC_PASSWORD: ${{ secrets.MC_PASSWORD }}
+          MORAL_COMPASS_API_BASE_URL: ${{ secrets.MORAL_COMPASS_API_BASE_URL }}
+        run: |
+          # Export credentials for auto JWT generation
+          echo "AIMODELSHARE_USERNAME=$MC_USERNAME" >> $GITHUB_ENV
+          echo "AIMODELSHARE_PASSWORD=$MC_PASSWORD" >> $GITHUB_ENV
+          echo "MORAL_COMPASS_API_BASE_URL=$MORAL_COMPASS_API_BASE_URL" >> $GITHUB_ENV
+      
+      - name: Run auto JWT integration test
+        run: |
+          # Run only the integration test for auto JWT generation
+          pytest tests/test_moral_compass_auth_create_table.py::test_auto_jwt_and_table_create -v -s
+      
+      - name: Run unit tests for JWT generation
+        run: |
+          # Run unit/mock tests that don't require live API
+          pytest tests/test_moral_compass_auth_create_table.py::test_auto_jwt_generation_mock -v
+          pytest tests/test_moral_compass_auth_create_table.py::test_auto_jwt_no_credentials -v
+      
+      - name: Test import and basic functionality
+        run: |
+          python -c "
+          from aimodelshare.moral_compass import MoralcompassApiClient
+          client = MoralcompassApiClient(api_base_url='https://example.com')
+          print('✓ Basic import and initialization successful')
+          "
