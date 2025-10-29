@@ -138,7 +138,7 @@ class MoralcompassApiClient:
             return
         
         try:
-            from ..modeluser import get_jwt_token
+            from aimodelshare.modeluser import get_jwt_token
             
             # Generate JWT token
             logger.debug(f"Attempting to auto-generate JWT token for user: {username[:3]}***")
