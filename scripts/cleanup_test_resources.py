@@ -1,12 +1,21 @@
 #!/usr/bin/env python3
 """
-Cleanup script for identifying and deleting test playgrounds and IAM resources.
+Cleanup script for identifying and deleting test playgrounds (API Gateway REST APIs) and IAM resources.
 
-This script helps manage AWS resources created during testing by:
-1. Listing API Gateway REST APIs (playgrounds)
-2. Listing IAM users created during set_credentials process
-3. Providing interactive selection for deletion
-4. Safely deleting selected resources
+Features:
+1. List API Gateway REST APIs (playgrounds)
+2. List IAM users (with optional substring filter)
+3. Interactive selection (legacy mode) OR non-interactive deletion via comma-separated lists
+4. Dry-run support
+5. Emits copyable comma-separated resource lists for use in GitHub Actions or manual approval workflows
+
+New arguments:
+  --playgrounds          Comma-separated list of API Gateway REST API IDs to delete (non-interactive)
+  --users                Comma-separated list of IAM usernames to delete (non-interactive)
+  --user-filter          Substring to filter IAM usernames when listing (case-insensitive)
+  --list-only            List resources and exit (always non-destructive)
+  --non-interactive      Force non-interactive mode (no prompts)
+  --confirm-delete       Must be exactly 'DELETE' for destructive operations (safety guard)
 """
 
 import os
@@ -14,7 +23,7 @@ import sys
 import argparse
 import boto3
 from datetime import datetime
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 
 
 class ResourceCleanup:
@@ -56,15 +65,15 @@ class ResourceCleanup:
             
         return playgrounds
     
-    def list_iam_users(self, prefix: str = 'temporaryaccessAImodelshare') -> List[Dict]:
+    def list_iam_users(self, substring: Optional[str] = None) -> List[Dict]:
         """
-        List IAM users, optionally filtered by prefix.
+        List IAM users, optionally filtered by substring.
         
         Args:
-            prefix: Filter users by name prefix (default: temp users created by set_credentials)
+            substring: Case-insensitive substring to match anywhere in username.
             
         Returns:
-            List of IAM user dictionaries
+            List of IAM user dictionaries.
         """
         users = []
         try:
@@ -72,14 +81,15 @@ class ResourceCleanup:
             for page in paginator.paginate():
                 for user in page.get('Users', []):
                     username = user.get('UserName')
-                    # Filter by prefix if provided
-                    if not prefix or username.startswith(prefix):
-                        users.append({
-                            'username': username,
-                            'created': user.get('CreateDate'),
-                            'user_id': user.get('UserId'),
-                            'arn': user.get('Arn')
-                        })
+                    if substring:
+                        if substring.lower() not in username.lower():
+                            continue
+                    users.append({
+                        'username': username,
+                        'created': user.get('CreateDate'),
+                        'user_id': user.get('UserId'),
+                        'arn': user.get('Arn')
+                    })
         except Exception as e:
             print(f"Error listing IAM users: {e}")
             
@@ -171,8 +181,8 @@ class ResourceCleanup:
                 self.iam.detach_user_policy(UserName=username, PolicyArn=policy_arn)
                 print(f"  ✓ Detached policy: {policy['PolicyName']}")
                 
-                # Delete the policy if it's a custom policy (contains 'temporaryaccess')
-                if 'temporaryaccess' in policy_arn.lower():
+                # Optional: Delete custom policy if pattern indicates temporary/test
+                if any(token in policy_arn.lower() for token in ['temporaryaccess', 'test', 'playground']):
                     try:
                         self.iam.delete_policy(PolicyArn=policy_arn)
                         print(f"  ✓ Deleted custom policy: {policy['PolicyName']}")
@@ -194,61 +204,24 @@ class ResourceCleanup:
             print(f"✗ Error deleting IAM user {username}: {e}")
             return False
     
-    def interactive_cleanup(self):
-        """Run interactive cleanup process."""
+    def interactive_cleanup(self, user_filter: Optional[str] = None):
+        """Legacy interactive cleanup process (kept for local use)."""
         print("=" * 60)
-        print("AWS Resource Cleanup - Test Playgrounds & IAM Users")
+        print("AWS Resource Cleanup - Test Playgrounds & IAM Users (Interactive)")
         print("=" * 60)
         print()
         
-        # List playgrounds
-        print("Fetching playgrounds...")
         playgrounds = self.list_playgrounds()
+        iam_users = self.list_iam_users(substring=user_filter)
         
-        if playgrounds:
-            print(f"\nFound {len(playgrounds)} playground(s):")
-            print()
-            for i, pg in enumerate(playgrounds, 1):
-                created = pg['created'].strftime('%Y-%m-%d %H:%M:%S') if pg['created'] else 'Unknown'
-                print(f"{i}. ID: {pg['id']}")
-                print(f"   Name: {pg['name']}")
-                print(f"   Created: {created}")
-                print(f"   Description: {pg['description']}")
-                print()
-        else:
-            print("\nNo playgrounds found.")
-            print()
+        # Display lists
+        self._display_playgrounds(playgrounds)
+        self._display_users(iam_users)
         
-        # List IAM users
-        print("Fetching IAM users (filtered by 'temporaryaccessAImodelshare' prefix)...")
-        iam_users = self.list_iam_users()
-        
-        if iam_users:
-            print(f"\nFound {len(iam_users)} IAM user(s):")
-            print()
-            for i, user in enumerate(iam_users, 1):
-                created = user['created'].strftime('%Y-%m-%d %H:%M:%S') if user['created'] else 'Unknown'
-                print(f"{i}. Username: {user['username']}")
-                print(f"   Created: {created}")
-                print(f"   User ID: {user['user_id']}")
-                
-                # Show attached resources
-                resources = self.get_iam_user_resources(user['username'])
-                if resources['policies']:
-                    print(f"   Policies: {len(resources['policies'])}")
-                if resources['access_keys']:
-                    print(f"   Access Keys: {len(resources['access_keys'])}")
-                print()
-        else:
-            print("\nNo IAM users found with the specified prefix.")
-            print()
-        
-        # If nothing found, exit
         if not playgrounds and not iam_users:
             print("No resources to clean up. Exiting.")
             return
         
-        # Get user confirmation
         print("=" * 60)
         print("Select resources to delete:")
         print()
@@ -267,7 +240,120 @@ class ResourceCleanup:
         else:
             selected_users = []
         
-        # Show summary and confirm
+        # Summary
+        self._summary_and_delete(playgrounds, iam_users, selected_playgrounds, selected_users)
+    
+    def non_interactive_cleanup(
+        self,
+        playground_ids: List[str],
+        iam_usernames: List[str],
+        confirm_delete: Optional[str]
+    ):
+        """
+        Non-interactive deletion path using explicit lists.
+        
+        Args:
+            playground_ids: List of API Gateway IDs to delete.
+            iam_usernames: List of IAM usernames to delete.
+            confirm_delete: Must be 'DELETE' if not dry-run to proceed.
+        """
+        if not playground_ids and not iam_usernames:
+            print("No resources provided for deletion. Nothing to do.")
+            return
+        
+        if self.dry_run:
+            print("DRY RUN MODE - Will only report actions.")
+        else:
+            if confirm_delete != 'DELETE':
+                print("Missing or incorrect --confirm-delete value. Use --confirm-delete DELETE to proceed.")
+                return
+        
+        success = 0
+        failure = 0
+        
+        print("=" * 60)
+        print("Starting non-interactive deletion")
+        print(f"Playgrounds: {playground_ids if playground_ids else '[]'}")
+        print(f"IAM Users: {iam_usernames if iam_usernames else '[]'}")
+        print("=" * 60)
+        
+        for pid in playground_ids:
+            if self.delete_playground(pid):
+                success += 1
+            else:
+                failure += 1
+        
+        for uname in iam_usernames:
+            if self.delete_iam_user(uname):
+                success += 1
+            else:
+                failure += 1
+        
+        print("\n" + "=" * 60)
+        print(f"Deletion complete: {success} successful, {failure} failed")
+        print("=" * 60)
+    
+    def list_and_emit_copyable(self, user_filter: Optional[str] = None):
+        """
+        List resources and emit copyable comma-separated lists.
+        
+        Args:
+            user_filter: Substring filter for IAM users.
+        """
+        print("=" * 60)
+        print("Listing AWS Test Resources")
+        print("=" * 60)
+        
+        playgrounds = self.list_playgrounds()
+        iam_users = self.list_iam_users(substring=user_filter)
+        
+        self._display_playgrounds(playgrounds)
+        self._display_users(iam_users)
+        
+        pg_ids = ",".join([p['id'] for p in playgrounds])
+        user_names = ",".join([u['username'] for u in iam_users])
+        
+        print("=" * 60)
+        print("COPYABLE RESOURCE LISTS")
+        print("Paste these (edit as needed) into a delete run:")
+        print(f"PLAYGROUND_IDS={pg_ids}")
+        print(f"IAM_USERNAMES={user_names}")
+        print()
+        print("Example delete invocation:")
+        print("  python cleanup_test_resources.py --playgrounds PLAYGROUND_IDS --users IAM_USERNAMES --confirm-delete DELETE")
+        print("=" * 60)
+    
+    def _display_playgrounds(self, playgrounds: List[Dict]):
+        if playgrounds:
+            print(f"\nFound {len(playgrounds)} playground(s):\n")
+            for i, pg in enumerate(playgrounds, 1):
+                created = pg['created'].strftime('%Y-%m-%d %H:%M:%S') if pg['created'] else 'Unknown'
+                print(f"{i}. ID: {pg['id']}")
+                print(f"   Name: {pg['name']}")
+                print(f"   Created: {created}")
+                print(f"   Description: {pg['description']}")
+                print()
+        else:
+            print("\nNo playgrounds found.\n")
+    
+    def _display_users(self, iam_users: List[Dict]):
+        if iam_users:
+            print(f"Found {len(iam_users)} IAM user(s):\n")
+            for i, user in enumerate(iam_users, 1):
+                created = user['created'].strftime('%Y-%m-%d %H:%M:%S') if user['created'] else 'Unknown'
+                print(f"{i}. Username: {user['username']}")
+                print(f"   Created: {created}")
+                print(f"   User ID: {user['user_id']}")
+                resources = self.get_iam_user_resources(user['username'])
+                if resources['policies']:
+                    print(f"   Policies: {len(resources['policies'])}")
+                if resources['access_keys']:
+                    print(f"   Access Keys: {len(resources['access_keys'])}")
+                print()
+        else:
+            print("No IAM users found with the specified filter.\n")
+    
+    def _summary_and_delete(self, playgrounds, iam_users, selected_playgrounds, selected_users):
         print("\n" + "=" * 60)
         print("SUMMARY:")
         if selected_playgrounds:
@@ -275,13 +361,11 @@ class ResourceCleanup:
             for idx in selected_playgrounds:
                 pg = playgrounds[idx]
                 print(f"  - {pg['name']} ({pg['id']})")
-        
         if selected_users:
             print(f"\nIAM users to delete: {len(selected_users)}")
             for idx in selected_users:
                 user = iam_users[idx]
                 print(f"  - {user['username']}")
-        
         if not selected_playgrounds and not selected_users:
             print("\nNo resources selected for deletion.")
             return
@@ -290,21 +374,17 @@ class ResourceCleanup:
         if self.dry_run:
             print("DRY RUN MODE - No resources will actually be deleted")
         else:
-            print("WARNING: This action cannot be undone!")
             confirmation = input("\nType 'DELETE' to confirm: ").strip()
             if confirmation != 'DELETE':
                 print("Deletion cancelled.")
                 return
         
-        # Perform deletions
         print("\n" + "=" * 60)
-        print("Deleting resources...")
-        print()
+        print("Deleting resources...\n")
         
         success_count = 0
         failure_count = 0
         
-        # Delete playgrounds
         for idx in selected_playgrounds:
             pg = playgrounds[idx]
             if self.delete_playground(pg['id']):
@@ -312,7 +392,6 @@ class ResourceCleanup:
             else:
                 failure_count += 1
         
-        # Delete IAM users
         for idx in selected_users:
             user = iam_users[idx]
             if self.delete_iam_user(user['username']):
@@ -320,7 +399,6 @@ class ResourceCleanup:
             else:
                 failure_count += 1
         
-        # Print summary
         print("\n" + "=" * 60)
         print(f"Cleanup complete: {success_count} successful, {failure_count} failed")
         print("=" * 60)
@@ -348,25 +426,35 @@ class ResourceCleanup:
             for part in parts:
                 part = part.strip()
                 if '-' in part:
-                    # Range like "1-5"
                     start, end = part.split('-')
                     start_idx = int(start.strip()) - 1
                     end_idx = int(end.strip()) - 1
                     indices.extend(range(start_idx, end_idx + 1))
                 else:
-                    # Single number
                     idx = int(part) - 1
                     indices.append(idx)
-            
-            # Filter valid indices
             indices = [i for i in indices if 0 <= i < max_count]
-            # Remove duplicates and sort
             indices = sorted(list(set(indices)))
         except ValueError:
             print(f"Invalid selection: {selection}")
             return []
         
         return indices
+
+
+def parse_comma_list(value: Optional[str]) -> List[str]:
+    """
+    Parse a comma-separated string into a list of trimmed non-empty values.
+    
+    Args:
+        value: Comma-separated string or None.
+    
+    Returns:
+        List of strings.
+    """
+    if not value:
+        return []
+    return [v.strip() for v in value.split(',') if v.strip()]
 
 
 def main():
@@ -376,28 +464,31 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Interactive cleanup with dry-run
-  python cleanup_test_resources.py --dry-run
+  # List resources (dry-run listing equivalent)
+  python cleanup_test_resources.py --list-only
   
-  # Interactive cleanup in us-east-1
-  python cleanup_test_resources.py --region us-east-1
+  # List with IAM user filter
+  python cleanup_test_resources.py --list-only --user-filter tempaccess
   
-  # Interactive cleanup in production mode
+  # Non-interactive dry-run deletion preview
+  python cleanup_test_resources.py --playgrounds abc123,def456 --users user1,user2 --dry-run
+  
+  # Perform deletion (requires confirm)
+  python cleanup_test_resources.py --playgrounds abc123 --users user1 --confirm-delete DELETE
+  
+  # Interactive (legacy)
   python cleanup_test_resources.py
         """
     )
     
-    parser.add_argument(
-        '--region',
-        default='us-east-1',
-        help='AWS region (default: us-east-1)'
-    )
-    
-    parser.add_argument(
-        '--dry-run',
-        action='store_true',
-        help='List resources without deleting them'
-    )
+    parser.add_argument('--region', default='us-east-1', help='AWS region (default: us-east-1)')
+    parser.add_argument('--dry-run', action='store_true', help='List or simulate deletion without making changes')
+    parser.add_argument('--list-only', action='store_true', help='Only list resources and emit copyable lists, then exit')
+    parser.add_argument('--playgrounds', help='Comma-separated API Gateway REST API IDs to delete (non-interactive)')
+    parser.add_argument('--users', help='Comma-separated IAM usernames to delete (non-interactive)')
+    parser.add_argument('--user-filter', help='Substring filter for IAM usernames (case-insensitive)')
+    parser.add_argument('--non-interactive', action='store_true', help='Force non-interactive mode even without explicit lists')
+    parser.add_argument('--confirm-delete', help="Must be 'DELETE' to allow actual deletions when not in dry-run")
     
     args = parser.parse_args()
     
@@ -413,9 +504,28 @@ Examples:
         print("  3. Use IAM role (if running on EC2 or in GitHub Actions)")
         sys.exit(1)
     
-    # Run cleanup
     cleanup = ResourceCleanup(region=args.region, dry_run=args.dry_run)
-    cleanup.interactive_cleanup()
+    
+    playground_list = parse_comma_list(args.playgrounds)
+    user_list = parse_comma_list(args.users)
+    
+    # Decide execution mode
+    if args.list_only:
+        cleanup.list_and_emit_copyable(user_filter=args.user_filter)
+        return
+    
+    if playground_list or user_list:
+        # Non-interactive explicit deletion list
+        cleanup.non_interactive_cleanup(playground_list, user_list, args.confirm_delete)
+        return
+    
+    if args.non_interactive:
+        # Non-interactive but no IDs supplied: just list and emit copyable lists
+        cleanup.list_and_emit_copyable(user_filter=args.user_filter)
+        return
+    
+    # Fallback to interactive mode
+    cleanup.interactive_cleanup(user_filter=args.user_filter)
 
 
 if __name__ == '__main__':
