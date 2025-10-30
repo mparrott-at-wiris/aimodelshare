@@ -200,3 +200,40 @@ When developing locally, the API client attempts to resolve the URL in this orde
 ### Graceful Test Skipping
 
 Integration tests that require the Moral Compass API will skip gracefully if the URL cannot be resolved, rather than failing. This allows the test suite to run in environments where the infrastructure is not available (e.g., forks without access to AWS resources).
+
+# Resource Cleanup
+
+During testing, aimodelshare creates AWS resources including API Gateway REST APIs (playgrounds) and IAM users. To manage and clean up these resources:
+
+## Cleanup Script
+
+Use the interactive cleanup script to identify and delete test resources:
+
+```bash
+# Preview resources without deleting (safe)
+python scripts/cleanup_test_resources.py --dry-run
+
+# Interactive cleanup
+python scripts/cleanup_test_resources.py
+
+# Cleanup in a specific region
+python scripts/cleanup_test_resources.py --region us-west-2
+```
+
+The script will:
+- List all API Gateway REST APIs (playgrounds) in the region
+- List IAM users created by the test framework (prefix: `temporaryaccessAImodelshare`)
+- Show associated resources (policies, access keys)
+- Allow you to select which resources to delete
+- Safely delete selected resources with proper cleanup order
+
+## GitHub Action
+
+You can also trigger the cleanup workflow from the GitHub Actions tab:
+
+1. Go to **Actions** → **Cleanup Test Resources**
+2. Click **Run workflow**
+3. Select **dry-run** mode to preview resources
+4. Review the output and run locally to delete resources
+
+For complete documentation, see [CLEANUP_RESOURCES.md](CLEANUP_RESOURCES.md).
