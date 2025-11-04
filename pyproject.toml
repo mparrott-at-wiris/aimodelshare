@@ -18,8 +18,8 @@ classifiers = [
 requires-python = ">=3.10"
 # Core dependencies (expanded to include ONNX and sklearn-related packages)
 dependencies = [
-  "numpy>=1.22.0",
-  "pandas",
+  "numpy>=1.23.0",
+  "pandas>=1.5.0",
   "requests",
   "urllib3",
   "boto3",
@@ -28,12 +28,13 @@ dependencies = [
   "onnxruntime",
   "skl2onnx",
   "tf2onnx",
-  "scikit-learn",
+  "scikit-learn>=1.2.0",
   "scikeras",
   "shortuuid",
   "Pympler",
   "wget",
-  "PyJWT<2.0",
+  # Old: "PyJWT<2.0",
+  "PyJWT[crypto]>=2.8,<3",
   "pydot",
   "regex",
   "psutil",
@@ -43,12 +44,14 @@ dependencies = [
 
 [project.optional-dependencies]
 visual = ["graphviz"]
-tensorflow = ["tensorflow==2.18.0", "keras2onnx"]
+tensorflow = ["tensorflow==2.19.0", "keras2onnx"]  # Update to match Colab version
 pytorch = ["torch"]
+ui = ["gradio>=4.0.0"]
 full = [
-  "tensorflow==2.18.0", "keras2onnx",
+  "tensorflow==2.19.0", "keras2onnx",
   "torch",
-  "graphviz"
+  "graphviz",
+  "gradio>=4.0.0"
 ]
 test = ["pytest", "pytest-cov"]
 
