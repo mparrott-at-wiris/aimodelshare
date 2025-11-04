@@ -23,34 +23,33 @@ dependencies = [
   "requests",
   "urllib3",
   "boto3",
-  "onnx",
-  "onnxmltools",
-  "onnxruntime",
-  "skl2onnx",
-  "tf2onnx",
+  "onnx>=1.19.1",
+  "onnxmltools>=1.14.0",
+  "onnxruntime>=1.23.0",
+  "skl2onnx>=1.19.0",
+  "tf2onnx>=1.16.1",
   "scikit-learn>=1.2.0",
-  "scikeras",
+  "scikeras>=0.13.0",
   "shortuuid",
   "Pympler",
   "wget",
-  # Old: "PyJWT<2.0",
   "PyJWT[crypto]>=2.8,<3",
   "pydot",
   "regex",
   "psutil",
   "dill",
-  "IPython"
+  "IPython>=8.18",
+  "flatbuffers>=24.3.25"
 ]
 
 [project.optional-dependencies]
-visual = ["graphviz"]
-tensorflow = ["tensorflow==2.19.0", "keras2onnx"]  # Update to match Colab version
+tensorflow = ["tensorflow==2.19.0", "keras2onnx"]
 pytorch = ["torch"]
 ui = ["gradio>=4.0.0"]
 full = [
-  "tensorflow==2.19.0", "keras2onnx",
+  "tensorflow==2.19.0",
+  "keras2onnx",
   "torch",
-  "graphviz",
   "gradio>=4.0.0"
 ]
 test = ["pytest", "pytest-cov"]
