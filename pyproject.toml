@@ -27,7 +27,7 @@ dependencies = [
   "onnxmltools>=1.14.0",
   "onnxruntime>=1.23.0",
   "skl2onnx>=1.19.0",
-  "tf2onnx>=1.16.1",
+  "tf2onnx>=1.17.1",          # Updated to allow protobuf 4.x
   "scikit-learn>=1.2.0",
   "scikeras>=0.13.0",
   "shortuuid",
@@ -39,7 +39,8 @@ dependencies = [
   "psutil",
   "dill",
   "IPython>=8.18",
-  "flatbuffers>=24.3.25"
+  "flatbuffers>=24.3.25",
+  "protobuf>=4.25.1,<5"        # Explicit to satisfy onnx + ensure Py3.12 wheels
 ]
 
 [project.optional-dependencies]
