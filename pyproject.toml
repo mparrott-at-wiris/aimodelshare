@@ -23,34 +23,34 @@ dependencies = [
   "requests",
   "urllib3",
   "boto3",
-  "onnx>=1.19.1",
-  "onnxmltools>=1.14.0",
-  "onnxruntime>=1.23.0",
-  "skl2onnx>=1.19.0",
-  "tf2onnx>=1.17.1",          # Updated to allow protobuf 4.x
+  "onnx",
+  "onnxmltools",
+  "onnxruntime",
+  "skl2onnx",
+  "tf2onnx",
   "scikit-learn>=1.2.0",
-  "scikeras>=0.13.0",
+  "scikeras",
   "shortuuid",
   "Pympler",
   "wget",
+  # Old: "PyJWT<2.0",
   "PyJWT[crypto]>=2.8,<3",
   "pydot",
   "regex",
   "psutil",
   "dill",
-  "IPython>=8.18",
-  "flatbuffers>=24.3.25",
-  "protobuf>=4.25.1,<5"        # Explicit to satisfy onnx + ensure Py3.12 wheels
+  "IPython"
 ]
 
 [project.optional-dependencies]
-tensorflow = ["tensorflow==2.19.0", "keras2onnx"]
+visual = ["graphviz"]
+tensorflow = ["tensorflow==2.19.0", "keras2onnx"]  # Update to match Colab version
 pytorch = ["torch"]
 ui = ["gradio>=4.0.0"]
 full = [
-  "tensorflow==2.19.0",
-  "keras2onnx",
+  "tensorflow==2.19.0", "keras2onnx",
   "torch",
+  "graphviz",
   "gradio>=4.0.0"
 ]
 test = ["pytest", "pytest-cov"]
