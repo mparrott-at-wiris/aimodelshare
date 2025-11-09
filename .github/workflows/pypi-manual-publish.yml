@@ -24,10 +24,13 @@ concurrency:
 
 permissions:
   contents: read
+  id-token: write   # Needed for PyPI Trusted Publishing (OIDC)
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # Optional: uncomment if you want an environment gate
+    # environment: pypi
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -47,7 +50,7 @@ jobs:
             echo "Tag format invalid: $TAG" >&2
             exit 1
           fi
-          TAG_COMMIT="$(git rev-list -n 1 "$TAG")"
+            TAG_COMMIT="$(git rev-list -n 1 "$TAG")"
           HEAD_COMMIT="$(git rev-parse HEAD)"
           if [ "$TAG_COMMIT" != "$HEAD_COMMIT" ]; then
             git checkout "$TAG"
@@ -118,7 +121,6 @@ jobs:
       - name: Pre-upload smoke test (install from local wheel)
         if: inputs.dry_run != 'true'
         run: |
-          # Install the built wheel locally to catch missing package_data
           WHEEL_FILE=$(ls dist/*.whl | head -n 1)
           pip install "$WHEEL_FILE"
           python -c "from importlib.metadata import version; print('Smoke test passed. Version:', version('aimodelshare'))"
@@ -129,12 +131,12 @@ jobs:
           echo "Dry run enabled; skipping upload."
           ls -l dist
 
-      - name: Publish to PyPI
+      - name: Publish to PyPI (Trusted Publisher)
         if: inputs.dry_run != 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
           skip-existing: false
+          # No password: uses OIDC trusted publishing
 
       - name: Post-publish check
         if: inputs.dry_run != 'true'
