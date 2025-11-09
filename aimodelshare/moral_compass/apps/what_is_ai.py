@@ -327,7 +327,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         
         # Step 5: Completion
         with gr.Column(visible=False) as step_5:
-            gr.Markdown(
+            gr.HTML(
                 """
                 <div style='text-align:center;'>
                     <h2 style='font-size: 2.5rem;'>🎓 You Now Understand AI!</h2>
