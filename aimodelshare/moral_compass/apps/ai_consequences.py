@@ -155,7 +155,6 @@ def create_ai_consequences_app(theme_primary_hue: str = "indigo") -> "gr.Blocks"
             import textwrap
             
             gr.Markdown(textwrap.dedent("""
-                """
                 <div style='font-size: 20px; background:#faf5ff; padding:28px; border-radius:16px; border: 3px solid #9333ea;'>
                 <h3 style='color:#7e22ce; margin-top:0;'>Every AI System Makes Trade-offs</h3>
                 
