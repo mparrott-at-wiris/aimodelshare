@@ -10,8 +10,7 @@ Structure:
 - Factory function `create_what_is_ai_app()` returns a Gradio Blocks object
 - Convenience wrapper `launch_what_is_ai_app()` launches it inline (for notebooks)
 """
-import contextlib
-import os
+from ._launch_core import apply_queue, launch_blocks, get_theme
 
 
 def _create_simple_predictor():
@@ -82,7 +81,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     }
     """
     
-    with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
+    with gr.Blocks(theme=get_theme(theme_primary_hue), css=css) as demo:
         gr.Markdown("<h1 style='text-align:center;'>🤖 What is AI, Anyway?</h1>")
         gr.Markdown(
             """
@@ -418,9 +417,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
 def launch_what_is_ai_app(height: int = 1100, share: bool = False, debug: bool = False) -> None:
     """Convenience wrapper to create and launch the what is AI app inline."""
     demo = create_what_is_ai_app()
-    try:
-        import gradio as gr  # noqa: F401
-    except ImportError as e:
-        raise ImportError("Gradio must be installed to launch the what is AI app.") from e
-    with contextlib.redirect_stdout(open(os.devnull, 'w')), contextlib.redirect_stderr(open(os.devnull, 'w')):
-        demo.launch(share=share, inline=True, debug=debug, height=height)
+    # Attach queue for concurrency safety
+    apply_queue(demo, default_concurrency_limit=2, max_size=32, status_update_rate=1.0)
+    # Launch with centralized settings
+    launch_blocks(demo, height=height, share=share, debug=debug)
