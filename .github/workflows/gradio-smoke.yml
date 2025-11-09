@@ -1,0 +1,55 @@
+name: Gradio v5.49.1 Smoke Test
+
+on:
+  workflow-dispatch
+
+jobs:
+  gradio-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+            python-version: ${{ matrix.python-version }}
+            cache: pip
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install dependencies
+        run: |
+          # Install exact Gradio version required
+            pip install "gradio==5.49.1"
+          # Install test dependencies if you have a extras spec; otherwise list explicitly
+            pip install pytest pytest-timeout
+          # Install project in editable mode
+            pip install -e .
+
+      - name: Environment info
+        run: |
+          python -c "import gradio, sys; print('Gradio:', gradio.__version__); print(sys.version)"
+          python -c "import aimodelshare; print('aimodelshare imported from:', aimodelshare.__file__)"
+
+      - name: Run smoke tests
+        env:
+          # Disable any external analytics / sharing just in case
+          GRADIO_ANALYTICS_ENABLED: "false"
+          GRADIO_DEBUG: "false"
+          DEBUG: "false"
+        run: |
+          pytest -q --maxfail=1 --timeout=120 -k gradio_smoke
+
+      - name: Show logs on failure
+        if: failure()
+        run: |
+          echo "Listing workspace for debugging:"
+          ls -R .
