@@ -10,7 +10,8 @@ Structure:
 - Factory function `create_tutorial_app()` returns a Gradio Blocks object
 - Convenience wrapper `launch_tutorial_app()` launches it inline (for notebooks)
 """
-from ._launch_core import apply_queue, launch_blocks, get_theme
+import contextlib
+import os
 
 
 def _build_synthetic_model():
@@ -58,12 +59,7 @@ def create_tutorial_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     }
     """
 
-    # Helper for visibility updates
-    def _hide_all_show(show_index):
-        """Helper to hide all containers and show only one."""
-        return [gr.update(visible=(i == show_index)) for i in range(3)]
-    
-    with gr.Blocks(theme=get_theme(theme_primary_hue), css=css) as demo:
+    with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
         gr.Markdown("<h1 style='text-align:center;'>👋 How to Use an App (A Quick Tutorial)</h1>")
         gr.Markdown(
             """
@@ -166,24 +162,24 @@ def create_tutorial_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             with gr.Row():
                 step_3_back = gr.Button("◀️ Back")
 
-        # Visibility logic using helper function
+        # Visibility logic (correct ordering & syntax)
         step_1_next.click(
-            lambda: _hide_all_show(1),
+            lambda: (gr.update(visible=False), gr.update(visible=True), gr.update(visible=False)),
             inputs=None,
             outputs=[step_1_container, step_2_container, step_3_container],
         )
         step_2_back.click(
-            lambda: _hide_all_show(0),
+            lambda: (gr.update(visible=True), gr.update(visible=False), gr.update(visible=False)),
             inputs=None,
             outputs=[step_1_container, step_2_container, step_3_container],
         )
         step_2_next.click(
-            lambda: _hide_all_show(2),
+            lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=True)),
             inputs=None,
             outputs=[step_1_container, step_2_container, step_3_container],
         )
         step_3_back.click(
-            lambda: _hide_all_show(1),
+            lambda: (gr.update(visible=False), gr.update(visible=True), gr.update(visible=False)),
             inputs=None,
             outputs=[step_1_container, step_2_container, step_3_container],
         )
@@ -194,7 +190,9 @@ def create_tutorial_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
 def launch_tutorial_app(height: int = 950, share: bool = False, debug: bool = False) -> None:
     """Convenience wrapper to create and launch the tutorial app inline."""
     demo = create_tutorial_app()
-    # Attach queue for concurrency safety
-    apply_queue(demo, default_concurrency_limit=2, max_size=32, status_update_rate=1.0)
-    # Launch with centralized settings
-    launch_blocks(demo, height=height, share=share, debug=debug)
+    try:
+        import gradio as gr  # noqa: F401
+    except ImportError as e:
+        raise ImportError("Gradio must be installed to launch the tutorial app.") from e
+    with contextlib.redirect_stdout(open(os.devnull, 'w')), contextlib.redirect_stderr(open(os.devnull, 'w')):
+        demo.launch(share=share, inline=True, debug=debug, height=height)
