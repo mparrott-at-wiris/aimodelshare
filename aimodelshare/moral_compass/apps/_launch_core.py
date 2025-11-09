@@ -3,18 +3,19 @@ Centralized launch utilities and configuration for Moral Compass Gradio apps.
 
 This module provides:
 - Queue configuration and attachment
-- Unified launch function with proper settings for Colab
+- Unified launch function with proper settings for notebook environments
 - Theme singleton for consistent styling
 - Demo registration and cleanup
 """
 import contextlib
+import inspect
 import os
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
 try:
     import gradio as gr
 except ImportError:
-    gr = None
+    gr = None  # Deferred error until functions actually need Gradio
 
 
 # Global registry of active demos for cleanup
@@ -27,16 +28,9 @@ _theme_singleton: Optional["gr.Theme"] = None
 def get_theme(primary_hue: str = "indigo") -> "gr.Theme":
     """
     Get or create a shared theme instance.
-    
-    Args:
-        primary_hue: Primary color hue for the theme.
-    
-    Returns:
-        gr.Theme: A Gradio theme instance.
     """
     if gr is None:
         raise ImportError("Gradio is required. Install with `pip install gradio`.")
-    
     global _theme_singleton
     if _theme_singleton is None:
         _theme_singleton = gr.themes.Soft(primary_hue=primary_hue)
@@ -50,34 +44,34 @@ def apply_queue(
     status_update_rate: float = 1.0
 ) -> "gr.Blocks":
     """
-    Attach queue to a Gradio Blocks instance with optimal settings.
-    
-    Args:
-        demo: Gradio Blocks instance to configure.
-        default_concurrency_limit: Maximum number of concurrent requests.
-        max_size: Maximum queue size.
-        status_update_rate: How often to update queue status (seconds).
-    
-    Returns:
-        gr.Blocks: The demo with queue configured.
+    Attach a queue to the Gradio Blocks instance.
+
+    Gradio 5.x still supports queue(), but parameter names may evolve.
+    We attempt a best-effort call; if signature changes, we fail gracefully.
     """
     if gr is None:
         raise ImportError("Gradio is required. Install with `pip install gradio`.")
-    
-    demo.queue(
-        default_concurrency_limit=default_concurrency_limit,
-        max_size=max_size,
-        status_update_rate=status_update_rate
-    )
+
+    try:
+        # Try the common v4/v5 parameter names.
+        demo.queue(
+            default_concurrency_limit=default_concurrency_limit,
+            max_size=max_size,
+            status_update_rate=status_update_rate
+        )
+    except TypeError:
+        # Fallback: call with no kwargs (let Gradio use defaults)
+        try:
+            demo.queue()
+        except Exception:
+            # If queue is entirely unsupported or changed drastically, ignore.
+            pass
     return demo
 
 
 def register(demo: "gr.Blocks") -> None:
     """
-    Register a demo for cleanup tracking.
-    
-    Args:
-        demo: Gradio Blocks instance to register.
+    Register a demo for later cleanup.
     """
     global _active_demos
     if demo not in _active_demos:
@@ -86,75 +80,92 @@ def register(demo: "gr.Blocks") -> None:
 
 def close_all_apps() -> None:
     """
-    Close all registered Gradio demos.
-    
-    This is useful for cleanup in notebook environments where multiple
-    demos might be launched in sequence.
+    Close all registered Gradio demos (useful for notebook restarts).
     """
     global _active_demos
     for demo in _active_demos:
         try:
             demo.close()
         except Exception:
-            pass  # Ignore errors during cleanup
+            pass
     _active_demos.clear()
+
+
+def _filter_launch_kwargs(demo: "gr.Blocks", launch_kwargs: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Filter kwargs to only those supported by the current Gradio version.
+
+    This avoids TypeError when Gradio removes or renames parameters.
+    """
+    try:
+        sig = inspect.signature(demo.launch)
+        allowed = set(sig.parameters.keys())
+        return {k: v for k, v in launch_kwargs.items() if k in allowed}
+    except Exception:
+        # Fallback to a conservative subset
+        minimal = {"share", "inline", "debug", "height", "width"}
+        return {k: v for k, v in launch_kwargs.items() if k in minimal}
 
 
 def launch_blocks(
     demo: "gr.Blocks",
     height: int = 800,
+    width: int | None = None,
     share: bool = False,
     debug: bool = False,
     inline: bool = True,
     prevent_thread_lock: bool = True,
-    show_api: bool = False,
-    quiet: bool = True
+    quiet: bool = True,
+    inbrowser: bool | None = None,
+    server_port: int | None = None,
+    server_name: str | None = None
 ) -> None:
     """
-    Launch a Gradio Blocks instance with optimal settings for Colab.
-    
-    This function centralizes the launch logic to ensure consistent behavior
-    across all Moral Compass apps. It:
-    - Suppresses output if quiet=True
-    - Uses inline mode by default (for notebooks)
-    - Disables API endpoints
-    - Disables analytics
-    - Prevents thread locks (allows multiple launches)
-    
+    Launch a Gradio Blocks instance with notebook-friendly defaults.
+
+    Removed deprecated/unsupported parameters (analytics_enabled, api_open, show_api)
+    for Gradio 5.49.1.
+
     Args:
-        demo: Gradio Blocks instance to launch.
-        height: Height of the iframe in pixels (for inline mode).
-        share: Whether to create a public share link.
-        debug: Whether to enable debug mode.
-        inline: Whether to display inline in notebooks.
-        prevent_thread_lock: Whether to prevent thread locking.
-        show_api: Whether to show API documentation.
-        quiet: Whether to suppress stdout/stderr during launch.
+        demo: The Gradio Blocks instance.
+        height: Iframe height (for inline mode in notebooks).
+        width: Optional iframe width.
+        share: Whether to request a public share link (may be limited in some v5 builds).
+        debug: Enable debug logging.
+        inline: Render inline in Jupyter/Colab if supported.
+        prevent_thread_lock: Allow cell execution to continue after launch.
+        quiet: Suppress stdout/stderr during launch if True.
+        inbrowser: Open in a browser tab automatically (optional).
+        server_port: Specify a port (optional).
+        server_name: Specify host name (optional).
     """
     if gr is None:
         raise ImportError("Gradio is required. Install with `pip install gradio`.")
-    
-    # Register the demo for cleanup
+
     register(demo)
-    
-    # Prepare launch kwargs
-    launch_kwargs = {
+
+    # Candidate kwargs (prune dynamically)
+    launch_kwargs: Dict[str, Any] = {
         "share": share,
         "inline": inline,
         "debug": debug,
         "height": height,
+        "width": width,
         "prevent_thread_lock": prevent_thread_lock,
-        "show_api": show_api,
-        # Disable analytics for privacy
-        "analytics_enabled": False,
-        # Disable API endpoints
-        "api_open": False,
+        "inbrowser": inbrowser,
+        "server_port": server_port,
+        "server_name": server_name,
+        # Do NOT include removed kwargs: analytics_enabled, api_open, show_api
     }
-    
-    # Launch with optional output suppression
+
+    # Remove None values to avoid passing them explicitly
+    launch_kwargs = {k: v for k, v in launch_kwargs.items() if v is not None}
+
+    filtered = _filter_launch_kwargs(demo, launch_kwargs)
+
     if quiet:
-        with contextlib.redirect_stdout(open(os.devnull, 'w')), \
-             contextlib.redirect_stderr(open(os.devnull, 'w')):
-            demo.launch(**launch_kwargs)
+        with contextlib.redirect_stdout(open(os.devnull, "w")), \
+             contextlib.redirect_stderr(open(os.devnull, "w")):
+            demo.launch(**filtered)
     else:
-        demo.launch(**launch_kwargs)
+        demo.launch(**filtered)
