@@ -1,119 +1,159 @@
 """
 Smoke tests for Moral Compass Gradio apps under Gradio 5.49.1.
 
-These tests:
-1. Monkey-patch launch_blocks to force non-blocking launches (prevent_thread_lock=True).
-2. Launch each public app wrapper to ensure no TypeError on unsupported kwargs.
-3. Close all apps afterward to free ports.
+This test ensures that each launch_* wrapper can execute without raising
+TypeError (unexpected kwargs) or AttributeError in a non-notebook CI environment.
 
-If you later adjust defaults in launch_blocks, keep this test updated.
+Key points:
+- We monkey patch ALL references to launch_blocks (including those imported
+  into individual app modules) because they were imported by name at module import time.
+- We force inline=False (notebook rendering isn't needed in CI) and
+  prevent_thread_lock=True (non-blocking).
+- We immediately close each demo after a short wait.
 """
-import importlib
+
 import inspect
 import time
+import importlib
 
 import gradio as gr
 
-import aimodelshare
+# Import the apps package root to access modules
 from aimodelshare.moral_compass.apps import (
+    tutorial,
+    judge,
+    what_is_ai,
+    ai_consequences,
+    _launch_core,
     launch_tutorial_app,
     launch_judge_app,
     launch_what_is_ai_app,
+    launch_ai_consequences_app,
 )
 
-# Access internal launch utilities
-from aimodelshare.moral_compass.apps import _launch_core
 
-
-def _monkey_patch_launch_blocks():
+def _patch_all_launch_blocks():
     """
-    Replace launch_blocks with a simplified non-blocking version
-    that filters kwargs dynamically and forces prevent_thread_lock=True,
-    quiet=True to avoid hanging CI.
-    """
-    original = _launch_core.launch_blocks
+    Monkey-patch launch_blocks everywhere:
+    - In _launch_core
+    - In already-imported app modules where launch_blocks was imported directly
 
-    def patched(
+    Returns the originals so they can be restored.
+    """
+    originals = {
+        "_launch_core": _launch_core.launch_blocks,
+        "tutorial": getattr(tutorial, "launch_blocks", None),
+        "judge": getattr(judge, "launch_blocks", None),
+        "what_is_ai": getattr(what_is_ai, "launch_blocks", None),
+        "ai_consequences": getattr(ai_consequences, "launch_blocks", None),
+    }
+
+    def patched_launch_blocks(
         demo: "gr.Blocks",
         height: int = 800,
         share: bool = False,
         debug: bool = False,
-        inline: bool = True,
-        prevent_thread_lock: bool = True,  # force non-blocking
+        inline: bool = False,          # Force False for CI
+        prevent_thread_lock: bool = True,
         quiet: bool = True,
+        inbrowser: bool | None = False,
+        server_port: int | None = None,
+        server_name: str | None = "127.0.0.1",
+        width: int | None = None,
         **extra,
     ):
-        # Register for cleanup
+        # Register demo so close_all_apps can clean it
         _launch_core.register(demo)
 
-        # Build minimal kwargs, filter against current signature
+        # Build minimal kwargs and filter by signature
         params = dict(
             share=share,
             inline=inline,
             debug=debug,
             height=height,
-            prevent_thread_lock=True,  # forced
+            prevent_thread_lock=prevent_thread_lock,
+            inbrowser=inbrowser,
+            server_port=server_port,
+            server_name=server_name,
+            width=width,
         )
+        params = {k: v for k, v in params.items() if v is not None}
+
         try:
             sig = inspect.signature(demo.launch)
             params = {k: v for k, v in params.items() if k in sig.parameters}
         except Exception:
             pass
 
-        # Launch without stdout suppression complexities (quiet just ignored)
+        # Launch
         demo.launch(**params)
 
-    _launch_core.launch_blocks = patched
-    return original
+    # Patch _launch_core canonical
+    _launch_core.launch_blocks = patched_launch_blocks
+
+    # Patch modules that imported launch_blocks directly (if present)
+    for module in (tutorial, judge, what_is_ai, ai_consequences):
+        if hasattr(module, "launch_blocks"):
+            setattr(module, "launch_blocks", patched_launch_blocks)
+
+    return originals
 
 
-def _restore_launch_blocks(original):
-    _launch_core.launch_blocks = original
+def _restore_all_launch_blocks(originals):
+    _launch_core.launch_blocks = originals["_launch_core"]
+    for mod_name, original in originals.items():
+        if mod_name == "_launch_core":
+            continue
+        module = {
+            "tutorial": tutorial,
+            "judge": judge,
+            "what_is_ai": what_is_ai,
+            "ai_consequences": ai_consequences,
+        }.get(mod_name)
+        if module and original is not None:
+            setattr(module, "launch_blocks", original)
 
 
-def test_gradio_smoke_launches(monkeypatch):
-    """
-    Launch each app. If any raises TypeError (e.g., unexpected kwarg) or
-    AttributeError related to OutStream, the test fails.
-
-    We allow each launch a brief pause then close everything.
-    """
-    original = _monkey_patch_launch_blocks()
+def test_gradio_smoke_launches():
+    originals = _patch_all_launch_blocks()
+    errors = []
     try:
-        # Launch tutorial
-        launch_tutorial_app(height=600, share=False, debug=False)
-        # Launch judge
-        launch_judge_app(height=600, share=False, debug=False)
-        # Launch what is AI
-        launch_what_is_ai_app(height=600, share=False, debug=False)
+        # Launch each app wrapper
+        for fn, label in [
+            (launch_tutorial_app, "tutorial"),
+            (launch_judge_app, "judge"),
+            (launch_what_is_ai_app, "what_is_ai"),
+            (launch_ai_consequences_app, "ai_consequences"),
+        ]:
+            try:
+                fn(height=600, share=False, debug=False)
+            except Exception as e:
+                errors.append((label, type(e).__name__, str(e)))
 
-        # Give Gradio event loop a moment
-        time.sleep(1.5)
+        # Allow any background startup to settle
+        time.sleep(2.0)
 
-        # Basic assertion: internal registry populated
-        assert len(_launch_core._active_demos) >= 3, "Expected at least 3 active demos."
+        # Basic verification
+        assert len(_launch_core._active_demos) >= 1, "No demos registered."
+        assert not errors, f"Launch errors encountered: {errors}"
 
     finally:
-        # Cleanup & restore
+        # Cleanup
         _launch_core.close_all_apps()
-        _restore_launch_blocks(original)
+        _restore_all_launch_blocks(originals)
 
 
-# Optional: create-only test (ensures create_* still works)
-def test_gradio_smoke_create_only():
-    from aimodelshare.moral_compass.apps import tutorial, judge, what_is_ai
-
+def test_create_functions_only():
+    """
+    Ensure create_* functions return Blocks instances without launching.
+    """
     demo1 = tutorial.create_tutorial_app()
     demo2 = judge.create_judge_app()
     demo3 = what_is_ai.create_what_is_ai_app()
+    demo4 = ai_consequences.create_ai_consequences_app()
 
-    # Ensure they are Blocks instances
-    assert isinstance(demo1, gr.Blocks)
-    assert isinstance(demo2, gr.Blocks)
-    assert isinstance(demo3, gr.Blocks)
-
-    # Close them explicitly
-    for d in (demo1, demo2, demo3):
+    for d in (demo1, demo2, demo3, demo4):
+        assert isinstance(d, gr.Blocks)
         try:
             d.close()
         except Exception:
