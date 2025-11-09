@@ -238,37 +238,37 @@ def create_ai_consequences_app(theme_primary_hue: str = "indigo") -> "gr.Blocks"
         )
         step_2_next.click(
             lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=True),
-                     gr.update(visible=False), gr.update(visible(False))),
+                     gr.update(visible=False), gr.update(visible=False)),
             inputs=None,
             outputs=[step_1, step_2, step_3, step_4, step_5]
         )
         step_3_back.click(
-            lambda: (gr.update(visible=False), gr.update(visible(True)), gr.update(visible(False)),
-                     gr.update(visible(False)), gr.update(visible(False))),
+            lambda: (gr.update(visible=False), gr.update(visible=True), gr.update(visible=False),
+                     gr.update(visible=False), gr.update(visible=False)),
             inputs=None,
             outputs=[step_1, step_2, step_3, step_4, step_5]
         )
         step_3_next.click(
-            lambda: (gr.update(visible(False)), gr.update(visible(False)), gr.update(visible(False)),
-                     gr.update(visible(True)), gr.update(visible(False))),
+            lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=False),
+                     gr.update(visible=True), gr.update(visible=False)),
             inputs=None,
             outputs=[step_1, step_2, step_3, step_4, step_5]
         )
         step_4_back.click(
-            lambda: (gr.update(visible(False)), gr.update(visible(False)), gr.update(visible(True)),
-                     gr.update(visible(False)), gr.update(visible(False))),
+            lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=True),
+                     gr.update(visible=False), gr.update(visible=False)),
             inputs=None,
             outputs=[step_1, step_2, step_3, step_4, step_5]
         )
         step_4_next.click(
-            lambda: (gr.update(visible(False)), gr.update(visible(False)), gr.update(visible(False)),
-                     gr.update(visible(False)), gr.update(visible(True))),
+            lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=False),
+                     gr.update(visible=False), gr.update(visible=True)),
             inputs=None,
             outputs=[step_1, step_2, step_3, step_4, step_5]
         )
         back_to_dilemma_btn.click(
-            lambda: (gr.update(visible(False)), gr.update(visible(False)), gr.update(visible(False)),
-                     gr.update(visible(True)), gr.update(visible(False))),
+            lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=False),
+                     gr.update(visible=True), gr.update(visible=False)),
             inputs=None,
             outputs=[step_1, step_2, step_3, step_4, step_5]
         )

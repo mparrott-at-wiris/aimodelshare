@@ -318,26 +318,26 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         step_1_next.click(lambda: (gr.update(visible=False), gr.update(visible=True), gr.update(visible=False),
                                    gr.update(visible=False), gr.update(visible=False)),
                           inputs=None, outputs=[step_1, step_2, step_3, step_4, step_5])
-        step_2_back.click(lambda: (gr.update(visible=True), gr.update(visible(False)), gr.update(visible(False)),
-                                   gr.update(visible(False)), gr.update(visible(False))),
+        step_2_back.click(lambda: (gr.update(visible=True), gr.update(visible=False), gr.update(visible=False),
+                                   gr.update(visible=False), gr.update(visible=False)),
                           inputs=None, outputs=[step_1, step_2, step_3, step_4, step_5])
-        step_2_next.click(lambda: (gr.update(visible(False)), gr.update(visible(False)), gr.update(visible(True)),
-                                   gr.update(visible(False)), gr.update(visible(False))),
+        step_2_next.click(lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=True),
+                                   gr.update(visible=False), gr.update(visible=False)),
                           inputs=None, outputs=[step_1, step_2, step_3, step_4, step_5])
-        step_3_back.click(lambda: (gr.update(visible(False)), gr.update(visible(True)), gr.update(visible(False)),
-                                   gr.update(visible(False)), gr.update(visible(False))),
+        step_3_back.click(lambda: (gr.update(visible=False), gr.update(visible=True), gr.update(visible=False),
+                                   gr.update(visible=False), gr.update(visible=False)),
                           inputs=None, outputs=[step_1, step_2, step_3, step_4, step_5])
-        step_3_next.click(lambda: (gr.update(visible(False)), gr.update(visible(False)), gr.update(visible(False)),
-                                   gr.update(visible(True)), gr.update(visible(False))),
+        step_3_next.click(lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=False),
+                                   gr.update(visible=True), gr.update(visible=False)),
                           inputs=None, outputs=[step_1, step_2, step_3, step_4, step_5])
-        step_4_back.click(lambda: (gr.update(visible(False)), gr.update(visible(False)), gr.update(visible(True)),
-                                   gr.update(visible(False)), gr.update(visible(False))),
+        step_4_back.click(lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=True),
+                                   gr.update(visible=False), gr.update(visible=False)),
                           inputs=None, outputs=[step_1, step_2, step_3, step_4, step_5])
-        step_4_next.click(lambda: (gr.update(visible(False)), gr.update(visible(False)), gr.update(visible(False)),
-                                   gr.update(visible(False)), gr.update(visible(True))),
+        step_4_next.click(lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=False),
+                                   gr.update(visible=False), gr.update(visible=True)),
                           inputs=None, outputs=[step_1, step_2, step_3, step_4, step_5])
-        back_to_connection_btn.click(lambda: (gr.update(visible(False)), gr.update(visible(False)), gr.update(visible(False)),
-                                          gr.update(visible(True)), gr.update(visible(False))),
+        back_to_connection_btn.click(lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=False),
+                                          gr.update(visible=True), gr.update(visible=False)),
                                      inputs=None, outputs=[step_1, step_2, step_3, step_4, step_5])
     
     return demo
