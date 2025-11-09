@@ -84,7 +84,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     
     with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
         gr.Markdown("<h1 style='text-align:center;'>🤖 What is AI, Anyway?</h1>")
-        gr.Markdown(
+        gr.HTML(
             """
             <div style='text-align:center; font-size:18px; max-width: 900px; margin: auto;
                         padding: 20px; background-color: #e0e7ff; border-radius: 12px; border: 2px solid #6366f1;'>
@@ -98,7 +98,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         # Step 1: Introduction
         with gr.Column(visible=True) as step_1:
             gr.Markdown("<h2 style='text-align:center;'>🎯 A Simple Definition</h2>")
-            gr.Markdown(
+            gr.HTML(
                 """
                 <div style='font-size: 20px; background:#dbeafe; padding:28px; border-radius:16px;'>
                 <p><b style='font-size:24px;'>Artificial Intelligence (AI) is just a fancy name for:</b></p>
@@ -131,7 +131,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         # Step 2: The Three-Part Formula
         with gr.Column(visible=False) as step_2:
             gr.Markdown("<h2 style='text-align:center;'>📐 The Three-Part Formula</h2>")
-            gr.Markdown(
+            gr.HTML(
                 """
                 <div style='font-size: 20px; background:#f0fdf4; padding:28px; border-radius:16px;'>
                 <p>Every AI system works the same way, following this simple formula:</p>
@@ -277,7 +277,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         # Step 4: Connection to the Challenge
         with gr.Column(visible=False) as step_4:
             gr.Markdown("<h2 style='text-align:center;'>🔗 Connecting to Criminal Justice</h2>")
-            gr.Markdown(
+            gr.HTML(
                 """
                 <div style='font-size: 20px; background:#faf5ff; padding:28px; border-radius:16px;'>
                 <p><b>Remember the risk prediction you used earlier as a judge?</b></p>
@@ -328,9 +328,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         
         # Step 5: Completion
         with gr.Column(visible=False) as step_5:
-            # --- CHANGE THIS ---
-            gr.HTML(  # Use gr.HTML instead of gr.Markdown
-            # --- TO THIS ---
+            gr.HTML(
                 """
                 <div style='text-align:center;'>
                     <h2 style='font-size: 2.5rem;'>🎓 You Now Understand AI!</h2>
