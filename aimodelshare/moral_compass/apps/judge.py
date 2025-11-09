@@ -10,8 +10,7 @@ Structure:
 - Factory function `create_judge_app()` returns a Gradio Blocks object
 - Convenience wrapper `launch_judge_app()` launches it inline (for notebooks)
 """
-import contextlib
-import os
+from ._launch_core import apply_queue, launch_blocks, get_theme
 
 
 def _generate_defendant_profiles():
@@ -91,9 +90,6 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     
     profiles = _generate_defendant_profiles()
     
-    # State to track decisions
-    decisions = {}
-    
     def format_profile(profile):
         """Format a defendant profile for display."""
         risk_color = {
@@ -122,25 +118,25 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         </div>
         """
     
-    def make_decision(defendant_id, decision):
-        """Record a decision for a defendant."""
-        decisions[defendant_id] = decision
-        return f"✓ Decision recorded: {decision}"
+    def make_decision(decisions_state, defendant_id, decision):
+        """Record a decision for a defendant. Uses gr.State for per-session storage."""
+        decisions_state[defendant_id] = decision
+        return decisions_state, f"✓ Decision recorded: {decision}"
     
-    def get_summary():
+    def get_summary(decisions_state):
         """Get summary of all decisions made."""
-        if not decisions:
+        if not decisions_state:
             return "No decisions made yet."
         
-        released = sum(1 for d in decisions.values() if d == "Release")
-        kept = sum(1 for d in decisions.values() if d == "Keep in Prison")
+        released = sum(1 for d in decisions_state.values() if d == "Release")
+        kept = sum(1 for d in decisions_state.values() if d == "Keep in Prison")
         
         summary = f"""
         <div style='background:#dbeafe; padding:20px; border-radius:12px;'>
             <h3 style='margin-top:0;'>📊 Your Decisions Summary</h3>
             <div style='font-size:18px;'>
-                <p><b>Prisoners Released:</b> {released} of {len(decisions)}</p>
-                <p><b>Prisoners Kept in Prison:</b> {kept} of {len(decisions)}</p>
+                <p><b>Prisoners Released:</b> {released} of {len(decisions_state)}</p>
+                <p><b>Prisoners Kept in Prison:</b> {kept} of {len(decisions_state)}</p>
             </div>
         </div>
         """
@@ -153,7 +149,16 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     }
     """
     
-    with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
+    # Helper for visibility updates
+    def _set_section_visibility(intro_vis, profiles_vis, complete_vis):
+        """Helper to set visibility of all sections."""
+        return (gr.update(visible=intro_vis), 
+                gr.update(visible=profiles_vis), 
+                gr.update(visible=complete_vis))
+    
+    with gr.Blocks(theme=get_theme(theme_primary_hue), css=css) as demo:
+        # Per-session state for decisions (prevents sharing across concurrent requests)
+        decisions_state = gr.State(value={})
         gr.Markdown("<h1 style='text-align:center;'>⚖️ You Be the Judge</h1>")
         gr.Markdown(
             """
@@ -222,16 +227,16 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                     
                     decision_status = gr.Markdown("")
                     
-                    # Wire up buttons
+                    # Wire up buttons with state
                     release_btn.click(
-                        lambda p_id=profile["id"]: make_decision(p_id, "Release"),
-                        inputs=None,
-                        outputs=decision_status
+                        lambda s, p_id=profile["id"]: make_decision(s, p_id, "Release"),
+                        inputs=[decisions_state],
+                        outputs=[decisions_state, decision_status]
                     )
                     keep_btn.click(
-                        lambda p_id=profile["id"]: make_decision(p_id, "Keep in Prison"),
-                        inputs=None,
-                        outputs=decision_status
+                        lambda s, p_id=profile["id"]: make_decision(s, p_id, "Keep in Prison"),
+                        inputs=[decisions_state],
+                        outputs=[decisions_state, decision_status]
                     )
                     
                     gr.HTML("<hr style='margin:24px 0;'>")
@@ -239,7 +244,7 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             # Summary section
             summary_display = gr.HTML("")
             show_summary_btn = gr.Button("📊 Show My Decisions Summary", variant="primary", size="lg")
-            show_summary_btn.click(get_summary, inputs=None, outputs=summary_display)
+            show_summary_btn.click(get_summary, inputs=[decisions_state], outputs=summary_display)
             
             gr.HTML("<br>")
             complete_btn = gr.Button("Complete This Section ▶️", variant="primary", size="lg")
@@ -266,21 +271,21 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             )
             back_to_profiles_btn = gr.Button("◀️ Back to Review Decisions")
         
-        # Navigation logic
+        # Navigation logic using helper
         start_btn.click(
-            lambda: (gr.update(visible=False), gr.update(visible=True), gr.update(visible=False)),
+            lambda: _set_section_visibility(False, True, False),
             inputs=None,
             outputs=[intro_section, profiles_section, complete_section]
         )
         
         complete_btn.click(
-            lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=True)),
+            lambda: _set_section_visibility(False, False, True),
             inputs=None,
             outputs=[intro_section, profiles_section, complete_section]
         )
         
         back_to_profiles_btn.click(
-            lambda: (gr.update(visible=False), gr.update(visible=True), gr.update(visible=False)),
+            lambda: _set_section_visibility(False, True, False),
             inputs=None,
             outputs=[intro_section, profiles_section, complete_section]
         )
@@ -291,9 +296,7 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
 def launch_judge_app(height: int = 1200, share: bool = False, debug: bool = False) -> None:
     """Convenience wrapper to create and launch the judge app inline."""
     demo = create_judge_app()
-    try:
-        import gradio as gr  # noqa: F401
-    except ImportError as e:
-        raise ImportError("Gradio must be installed to launch the judge app.") from e
-    with contextlib.redirect_stdout(open(os.devnull, 'w')), contextlib.redirect_stderr(open(os.devnull, 'w')):
-        demo.launch(share=share, inline=True, debug=debug, height=height)
+    # Attach queue for concurrency safety
+    apply_queue(demo, default_concurrency_limit=2, max_size=32, status_update_rate=1.0)
+    # Launch with centralized settings
+    launch_blocks(demo, height=height, share=share, debug=debug)
