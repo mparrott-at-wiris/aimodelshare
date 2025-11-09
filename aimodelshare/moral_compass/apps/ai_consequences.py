@@ -152,7 +152,7 @@ def create_ai_consequences_app(theme_primary_hue: str = "indigo") -> "gr.Blocks"
         # Step 4: The Dilemma
         with gr.Column(visible=False) as step_4:
             gr.Markdown("<h2 style='text-align:center;'>⚖️ The Impossible Balance</h2>")
-            gr.Markdown(
+            gr.HTML(
                 """
                 <div style='font-size: 20px; background:#faf5ff; padding:28px; border-radius:16px; border: 3px solid #9333ea;'>
                 <h3 style='color:#7e22ce; margin-top:0;'>Every AI System Makes Trade-offs</h3>
