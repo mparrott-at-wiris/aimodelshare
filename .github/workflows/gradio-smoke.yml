@@ -64,7 +64,7 @@ jobs:
           GRADIO_DEBUG: "false"
           DEBUG: "false"
         run: |
-          pytest -q --maxfail=1 -k gradio_smoke
+          pytest -vv -q --maxfail=1 -k gradio_smoke
 
       - name: Show logs on failure
         if: failure()
