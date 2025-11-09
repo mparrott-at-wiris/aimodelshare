@@ -128,61 +128,35 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             )
             step_1_next = gr.Button("Next: The AI Formula ▶️", variant="primary", size="lg")
         
-        # Step 2: The Three-Part Formula
+        # Step 2: The Three-Part Formula (REFActored to Markdown only)
         with gr.Column(visible=False) as step_2:
-            gr.Markdown("<h2 style='text-align:center;'>📐 The Three-Part Formula</h2>")
+            gr.Markdown("## 📐 The Three-Part Formula")
             gr.Markdown(
                 """
-                <div style='font-size: 20px; background:#f0fdf4; padding:28px; border-radius:16px;'>
-                <p>Every AI system works the same way, following this simple formula:</p>
-                
-                <div style='background:white; padding:32px; border-radius:12px; margin:24px 0; text-align:center;'>
-                    <div style='display:inline-block; background:#dbeafe; padding:16px 24px; border-radius:8px; margin:8px;'>
-                        <h3 style='margin:0; color:#0369a1;'>1️⃣ INPUT</h3>
-                        <p style='margin:8px 0 0 0; font-size:16px;'>Data goes in</p>
-                    </div>
-                    
-                    <div style='display:inline-block; font-size:2rem; margin:0 16px; color:#6b7280;'>→</div>
-                    
-                    <div style='display:inline-block; background:#fef3c7; padding:16px 24px; border-radius:8px; margin:8px;'>
-                        <h3 style='margin:0; color:#92400e;'>2️⃣ MODEL</h3>
-                        <p style='margin:8px 0 0 0; font-size:16px;'>AI processes it</p>
-                    </div>
-                    
-                    <div style='display:inline-block; font-size:2rem; margin:0 16px; color:#6b7280;'>→</div>
-                    
-                    <div style='display:inline-block; background:#f0fdf4; padding:16px 24px; border-radius:8px; margin:8px;'>
-                        <h3 style='margin:0; color:#15803d;'>3️⃣ OUTPUT</h3>
-                        <p style='margin:8px 0 0 0; font-size:16px;'>Prediction comes out</p>
-                    </div>
-                </div>
-                
-                <h3 style='color:#15803d; margin-top:32px;'>Real-World Examples:</h3>
-                
-                <div style='background:white; padding:20px; border-radius:8px; margin:16px 0;'>
-                    <p style='margin:0; font-size:18px;'>
-                    <b style='color:#0369a1;'>Input:</b> Photo of a dog<br>
-                    <b style='color:#92400e;'>Model:</b> Image recognition AI<br>
-                    <b style='color:#15803d;'>Output:</b> "This is a Golden Retriever"
-                    </p>
-                </div>
-                
-                <div style='background:white; padding:20px; border-radius:8px; margin:16px 0;'>
-                    <p style='margin:0; font-size:18px;'>
-                    <b style='color:#0369a1;'>Input:</b> "How's the weather?"<br>
-                    <b style='color:#92400e;'>Model:</b> Language AI (like ChatGPT)<br>
-                    <b style='color:#15803d;'>Output:</b> A helpful response
-                    </p>
-                </div>
-                
-                <div style='background:white; padding:20px; border-radius:8px; margin:16px 0;'>
-                    <p style='margin:0; font-size:18px;'>
-                    <b style='color:#0369a1;'>Input:</b> Person's criminal history<br>
-                    <b style='color:#92400e;'>Model:</b> Risk assessment AI<br>
-                    <b style='color:#15803d;'>Output:</b> "High Risk" or "Low Risk"
-                    </p>
-                </div>
-                </div>
+                Every AI system follows a simple pattern:
+
+                1. INPUT – Data goes in  
+                2. MODEL – The AI processes the data  
+                3. OUTPUT – A prediction comes out  
+
+                ### Real-World Examples
+
+                - Dog photo  
+                  - Input: Photo of a dog  
+                  - Model: Image recognition AI  
+                  - Output: “This is a Golden Retriever”  
+
+                - Weather question  
+                  - Input: “How's the weather?”  
+                  - Model: Language AI (like ChatGPT)  
+                  - Output: A helpful response  
+
+                - Criminal risk assessment  
+                  - Input: Person's criminal history  
+                  - Model: Risk assessment AI  
+                  - Output: “High Risk” or “Low Risk”
+
+                These all use the same formula: data → patterns → prediction.
                 """
             )
             with gr.Row():
@@ -274,7 +248,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 step_3_back = gr.Button("◀️ Back", size="lg")
                 step_3_next = gr.Button("Next: Connection to Justice ▶️", variant="primary", size="lg")
         
-        # Step 4: Connection to the Challenge
+        # Step 4: Connection to the Challenge (unchanged)
         with gr.Column(visible=False) as step_4:
             gr.Markdown("<h2 style='text-align:center;'>🔗 Connecting to Criminal Justice</h2>")
             gr.Markdown(
@@ -326,31 +300,23 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 step_4_back = gr.Button("◀️ Back", size="lg")
                 step_4_next = gr.Button("Complete This Section ▶️", variant="primary", size="lg")
         
-        # Step 5: Completion
+        # Step 5: Completion (REFActored to Markdown only)
         with gr.Column(visible=False) as step_5:
             gr.Markdown(
                 """
-                <div style='text-align:center;'>
-                    <h2 style='font-size: 2.5rem;'>🎓 You Now Understand AI!</h2>
-                    <div style='font-size: 1.3rem; background:#e0f2fe; padding:28px; border-radius:16px;
-                                border: 2px solid #0284c7;'>
-                        <p><b>Congratulations!</b> You now know:</p>
-                        
-                        <ul style='font-size:1.1rem; text-align:left; max-width:600px; margin:20px auto;'>
-                            <li>What AI is (a prediction system)</li>
-                            <li>How it works (Input → Model → Output)</li>
-                            <li>Why it matters for criminal justice</li>
-                            <li>The ethical implications of AI decisions</li>
-                        </ul>
-                        
-                        <p style='margin-top:32px;'><b>Next Steps:</b></p>
-                        <p>In the following sections, you'll learn how to build and improve AI models 
-                        to make them more fair and ethical.</p>
-                        
-                        <h1 style='margin:20px 0; font-size: 3rem;'>👇 SCROLL DOWN 👇</h1>
-                        <p style='font-size:1.1rem;'>Continue to the next section below.</p>
-                    </div>
-                </div>
+                ## 🎓 You Now Understand AI!
+
+                **Congratulations! You now know:**
+                - What AI is (a prediction system)
+                - How it works (Input → Model → Output)
+                - Why it matters for criminal justice
+                - The ethical implications of AI decisions
+
+                ### Next Steps
+                In the following sections, you'll learn how to build and improve AI models to make them more fair and ethical.
+
+                ### 👇 Scroll Down
+                Continue to the next section below.
                 """
             )
             back_to_connection_btn = gr.Button("◀️ Back to Review")
