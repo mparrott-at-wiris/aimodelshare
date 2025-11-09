@@ -50,7 +50,8 @@ def find_free_port(start_port: int = 7860, max_attempts: int = 100) -> int:
     for port in range(start_port, start_port + max_attempts):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             try:
-                sock.bind(("", port))
+                # Bind to localhost only for security
+                sock.bind(("127.0.0.1", port))
                 return port
             except OSError:
                 continue
