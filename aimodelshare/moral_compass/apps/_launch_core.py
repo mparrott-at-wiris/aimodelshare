@@ -155,7 +155,6 @@ def launch_blocks(
         "inbrowser": inbrowser,
         "server_port": server_port,
         "server_name": server_name,
-        # Do NOT include removed kwargs: analytics_enabled, api_open, show_api
     }
 
     # Remove None values to avoid passing them explicitly
