@@ -151,8 +151,8 @@ def create_ai_consequences_app(theme_primary_hue: str = "indigo") -> "gr.Blocks"
         
         # Step 4: The Dilemma
         with gr.Column(visible=False) as step_4:
-            gr.Markdown("<h2 style='text-align:center;'>⚖️ The Impossible Balance</h2>")
             import textwrap
+            gr.Markdown("<h2 style='text-align:center;'>⚖️ The Impossible Balance</h2>")
             gr.Markdown(textwrap.dedent("""
                 <div style='font-size: 20px; background:#faf5ff; padding:28px; border-radius:16px; border: 3px solid #9333ea;'>
                 <h3 style='color:#7e22ce; margin-top:0;'>Every AI System Makes Trade-offs</h3>
@@ -223,59 +223,52 @@ def create_ai_consequences_app(theme_primary_hue: str = "indigo") -> "gr.Blocks"
             """))
             back_to_dilemma_btn = gr.Button("◀️ Back to Review")
         
-        # Navigation logic
+        # Navigation logic (all visible= arguments fixed)
         step_1_next.click(
-            lambda: (gr.update(visible=False), gr.update(visible=True), gr.update(visible=False), 
-                    gr.update(visible=False), gr.update(visible(False))),
+            lambda: (gr.update(visible=False), gr.update(visible=True), gr.update(visible=False),
+                     gr.update(visible=False), gr.update(visible=False)),
             inputs=None,
             outputs=[step_1, step_2, step_3, step_4, step_5]
         )
-        
         step_2_back.click(
-            lambda: (gr.update(visible(True)), gr.update(visible(False)), gr.update(visible(False)), 
-                    gr.update(visible(False)), gr.update(visible(False))),
+            lambda: (gr.update(visible=True), gr.update(visible=False), gr.update(visible=False),
+                     gr.update(visible=False), gr.update(visible=False)),
             inputs=None,
             outputs=[step_1, step_2, step_3, step_4, step_5]
         )
-        
         step_2_next.click(
-            lambda: (gr.update(visible(False)), gr.update(visible(False)), gr.update(visible(True)), 
-                    gr.update(visible(False)), gr.update(visible(False))),
+            lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=True),
+                     gr.update(visible=False), gr.update(visible(False))),
             inputs=None,
             outputs=[step_1, step_2, step_3, step_4, step_5]
         )
-        
         step_3_back.click(
-            lambda: (gr.update(visible(False)), gr.update(visible(True)), gr.update(visible(False)), 
-                    gr.update(visible(False)), gr.update(visible(False))),
+            lambda: (gr.update(visible=False), gr.update(visible(True)), gr.update(visible(False)),
+                     gr.update(visible(False)), gr.update(visible(False))),
             inputs=None,
             outputs=[step_1, step_2, step_3, step_4, step_5]
         )
-        
         step_3_next.click(
-            lambda: (gr.update(visible(False)), gr.update(visible(False)), gr.update(visible(False)), 
-                    gr.update(visible(True)), gr.update(visible(False))),
+            lambda: (gr.update(visible(False)), gr.update(visible(False)), gr.update(visible(False)),
+                     gr.update(visible(True)), gr.update(visible(False))),
             inputs=None,
             outputs=[step_1, step_2, step_3, step_4, step_5]
         )
-        
         step_4_back.click(
-            lambda: (gr.update(visible(False)), gr.update(visible(False)), gr.update(visible(True)), 
-                    gr.update(visible(False)), gr.update(visible(False))),
+            lambda: (gr.update(visible(False)), gr.update(visible(False)), gr.update(visible(True)),
+                     gr.update(visible(False)), gr.update(visible(False))),
             inputs=None,
             outputs=[step_1, step_2, step_3, step_4, step_5]
         )
-        
         step_4_next.click(
-            lambda: (gr.update(visible(False)), gr.update(visible(False)), gr.update(visible(False)), 
-                    gr.update(visible(False)), gr.update(visible(True))),
+            lambda: (gr.update(visible(False)), gr.update(visible(False)), gr.update(visible(False)),
+                     gr.update(visible(False)), gr.update(visible(True))),
             inputs=None,
             outputs=[step_1, step_2, step_3, step_4, step_5]
         )
-        
         back_to_dilemma_btn.click(
-            lambda: (gr.update(visible(False)), gr.update(visible(False)), gr.update(visible(False)), 
-                    gr.update(visible(True)), gr.update(visible(False))),
+            lambda: (gr.update(visible(False)), gr.update(visible(False)), gr.update(visible(False)),
+                     gr.update(visible(True)), gr.update(visible(False))),
             inputs=None,
             outputs=[step_1, step_2, step_3, step_4, step_5]
         )
@@ -286,7 +279,5 @@ def create_ai_consequences_app(theme_primary_hue: str = "indigo") -> "gr.Blocks"
 def launch_ai_consequences_app(height: int = 1000, share: bool = False, debug: bool = False) -> None:
     """Convenience wrapper to create and launch the AI consequences app inline."""
     demo = create_ai_consequences_app()
-    # Attach queue for concurrency safety
     apply_queue(demo, default_concurrency_limit=2, max_size=32, status_update_rate=1.0)
-    # Launch with centralized settings
     launch_blocks(demo, height=height, share=share, debug=debug)
