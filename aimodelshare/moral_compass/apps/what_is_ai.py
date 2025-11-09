@@ -130,7 +130,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         # Step 2: The Three-Part Formula
         with gr.Column(visible=False) as step_2:
             gr.Markdown("<h2 style='text-align:center;'>📐 The Three-Part Formula</h2>")
-            gr.Markdown(
+            gr.HTML(
                 """
                 <div style='font-size: 20px; background:#f0fdf4; padding:28px; border-radius:16px;'>
                 <p>Every AI system works the same way, following this simple formula:</p>
