@@ -17,10 +17,8 @@ def _create_simple_predictor():
     """Create a simple demonstration predictor for teaching purposes."""
     def predict_outcome(age, priors, severity):
         """Simple rule-based predictor for demonstration."""
-        # Simple scoring logic for demonstration
         score = 0
         
-        # Age factor (younger = higher risk in this simple model)
         if age < 25:
             score += 3
         elif age < 35:
@@ -28,31 +26,20 @@ def _create_simple_predictor():
         else:
             score += 1
         
-        # Prior offenses factor
         if priors >= 3:
             score += 3
         elif priors >= 1:
             score += 2
-        else:
-            score += 0
         
-        # Severity factor
         severity_map = {"Minor": 1, "Moderate": 2, "Serious": 3}
         score += severity_map.get(severity, 2)
         
-        # Determine risk level
         if score >= 7:
-            risk = "High Risk"
-            color = "#dc2626"
-            emoji = "🔴"
+            risk = "High Risk"; color = "#dc2626"; emoji = "🔴"
         elif score >= 4:
-            risk = "Medium Risk"
-            color = "#f59e0b"
-            emoji = "🟡"
+            risk = "Medium Risk"; color = "#f59e0b"; emoji = "🟡"
         else:
-            risk = "Low Risk"
-            color = "#16a34a"
-            emoji = "🟢"
+            risk = "Low Risk"; color = "#16a34a"; emoji = "🟢"
         
         return f"""
         <div style='background:white; padding:24px; border-radius:12px; border:3px solid {color}; text-align:center;'>
@@ -94,7 +81,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         )
         gr.HTML("<hr style='margin:24px 0;'>")
         
-        # Step 1: Introduction
+        # Step 1
         with gr.Column(visible=True) as step_1:
             gr.Markdown("<h2 style='text-align:center;'>🎯 A Simple Definition</h2>")
             gr.Markdown(
@@ -127,11 +114,10 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             )
             step_1_next = gr.Button("Next: The AI Formula ▶️", variant="primary", size="lg")
         
-        # Step 2: The Three-Part Formula
+        # Step 2
         with gr.Column(visible=False) as step_2:
             gr.Markdown("<h2 style='text-align:center;'>📐 The Three-Part Formula</h2>")
             import textwrap
-            
             gr.Markdown(textwrap.dedent("""
                 <div style='font-size: 20px; background:#f0fdf4; padding:28px; border-radius:16px;'>
                 <p>Every AI system works the same way, following this simple formula:</p>
@@ -183,13 +169,12 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                     </p>
                 </div>
                 </div>
-                """
-            )
+            """))
             with gr.Row():
                 step_2_back = gr.Button("◀️ Back", size="lg")
                 step_2_next = gr.Button("Next: Try It Yourself ▶️", variant="primary", size="lg")
         
-        # Step 3: Interactive Demo
+        # Step 3
         with gr.Column(visible=False) as step_3:
             gr.Markdown("<h2 style='text-align:center;'>🎮 Try It Yourself!</h2>")
             gr.Markdown(
@@ -205,38 +190,16 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             gr.Markdown("<h3 style='text-align:center; color:#0369a1;'>1️⃣ INPUT: Adjust the Data</h3>")
             
             with gr.Row():
-                age_slider = gr.Slider(
-                    minimum=18, 
-                    maximum=65, 
-                    value=25, 
-                    step=1, 
-                    label="Age",
-                    info="Defendant's age"
-                )
-                priors_slider = gr.Slider(
-                    minimum=0, 
-                    maximum=10, 
-                    value=2, 
-                    step=1, 
-                    label="Prior Offenses",
-                    info="Number of previous crimes"
-                )
+                age_slider = gr.Slider(18, 65, value=25, step=1, label="Age", info="Defendant's age")
+                priors_slider = gr.Slider(0, 10, value=2, step=1, label="Prior Offenses", info="Number of previous crimes")
             
-            severity_dropdown = gr.Dropdown(
-                choices=["Minor", "Moderate", "Serious"],
-                value="Moderate",
-                label="Current Charge Severity",
-                info="How serious is the current charge?"
-            )
+            severity_dropdown = gr.Dropdown(choices=["Minor", "Moderate", "Serious"], value="Moderate",
+                                            label="Current Charge Severity", info="How serious is the current charge?")
             
             gr.HTML("<hr style='margin:24px 0;'>")
-            
             gr.Markdown("<h3 style='text-align:center; color:#92400e;'>2️⃣ MODEL: Process the Data</h3>")
-            
             predict_btn = gr.Button("🔮 Run AI Prediction", variant="primary", size="lg")
-            
             gr.HTML("<hr style='margin:24px 0;'>")
-            
             gr.Markdown("<h3 style='text-align:center; color:#15803d;'>3️⃣ OUTPUT: See the Prediction</h3>")
             
             prediction_output = gr.HTML(
@@ -249,7 +212,6 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 """
             )
             
-            # Wire up the prediction
             predict_btn.click(
                 predict_outcome,
                 inputs=[age_slider, priors_slider, severity_dropdown],
@@ -257,7 +219,6 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             )
             
             gr.HTML("<hr style='margin:24px 0;'>")
-            
             gr.Markdown(
                 """
                 <div style='background:#e0f2fe; padding:20px; border-radius:12px; font-size:18px;'>
@@ -269,12 +230,11 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 </div>
                 """
             )
-            
             with gr.Row():
                 step_3_back = gr.Button("◀️ Back", size="lg")
                 step_3_next = gr.Button("Next: Connection to Justice ▶️", variant="primary", size="lg")
         
-        # Step 4: Connection to the Challenge
+        # Step 4
         with gr.Column(visible=False) as step_4:
             gr.Markdown("<h2 style='text-align:center;'>🔗 Connecting to Criminal Justice</h2>")
             gr.Markdown(
@@ -326,10 +286,9 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 step_4_back = gr.Button("◀️ Back", size="lg")
                 step_4_next = gr.Button("Complete This Section ▶️", variant="primary", size="lg")
         
-        # Step 5: Completion
+        # Step 5
         with gr.Column(visible=False) as step_5:
             import textwrap
-            
             gr.Markdown(textwrap.dedent("""
                 <div style='text-align:center;'>
                     <h2 style='font-size: 2.5rem;'>🎓 You Now Understand AI!</h2>
@@ -352,66 +311,34 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                         <p style='font-size:1.1rem;'>Continue to the next section below.</p>
                     </div>
                 </div>
-                """
-            )
+            """))
             back_to_connection_btn = gr.Button("◀️ Back to Review")
         
-        # Navigation logic
-        step_1_next.click(
-            lambda: (gr.update(visible=False), gr.update(visible=True), gr.update(visible=False), 
-                    gr.update(visible=False), gr.update(visible=False)),
-            inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5]
-        )
-        
-        step_2_back.click(
-            lambda: (gr.update(visible=True), gr.update(visible=False), gr.update(visible=False), 
-                    gr.update(visible=False), gr.update(visible=False)),
-            inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5]
-        )
-        
-        step_2_next.click(
-            lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=True), 
-                    gr.update(visible=False), gr.update(visible=False)),
-            inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5]
-        )
-        
-        step_3_back.click(
-            lambda: (gr.update(visible=False), gr.update(visible=True), gr.update(visible=False), 
-                    gr.update(visible=False), gr.update(visible=False)),
-            inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5]
-        )
-        
-        step_3_next.click(
-            lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), 
-                    gr.update(visible=True), gr.update(visible=False)),
-            inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5]
-        )
-        
-        step_4_back.click(
-            lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=True), 
-                    gr.update(visible=False), gr.update(visible=False)),
-            inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5]
-        )
-        
-        step_4_next.click(
-            lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), 
-                    gr.update(visible=False), gr.update(visible=True)),
-            inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5]
-        )
-        
-        back_to_connection_btn.click(
-            lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), 
-                    gr.update(visible=True), gr.update(visible=False)),
-            inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5]
-        )
+        # Navigation logic (unchanged logic, formatting simplified)
+        step_1_next.click(lambda: (gr.update(visible=False), gr.update(visible=True), gr.update(visible=False),
+                                   gr.update(visible=False), gr.update(visible=False)),
+                          inputs=None, outputs=[step_1, step_2, step_3, step_4, step_5])
+        step_2_back.click(lambda: (gr.update(visible=True), gr.update(visible(False)), gr.update(visible(False)),
+                                   gr.update(visible(False)), gr.update(visible(False))),
+                          inputs=None, outputs=[step_1, step_2, step_3, step_4, step_5])
+        step_2_next.click(lambda: (gr.update(visible(False)), gr.update(visible(False)), gr.update(visible(True)),
+                                   gr.update(visible(False)), gr.update(visible(False))),
+                          inputs=None, outputs=[step_1, step_2, step_3, step_4, step_5])
+        step_3_back.click(lambda: (gr.update(visible(False)), gr.update(visible(True)), gr.update(visible(False)),
+                                   gr.update(visible(False)), gr.update(visible(False))),
+                          inputs=None, outputs=[step_1, step_2, step_3, step_4, step_5])
+        step_3_next.click(lambda: (gr.update(visible(False)), gr.update(visible(False)), gr.update(visible(False)),
+                                   gr.update(visible(True)), gr.update(visible(False))),
+                          inputs=None, outputs=[step_1, step_2, step_3, step_4, step_5])
+        step_4_back.click(lambda: (gr.update(visible(False)), gr.update(visible(False)), gr.update(visible(True)),
+                                   gr.update(visible(False)), gr.update(visible(False))),
+                          inputs=None, outputs=[step_1, step_2, step_3, step_4, step_5])
+        step_4_next.click(lambda: (gr.update(visible(False)), gr.update(visible(False)), gr.update(visible(False)),
+                                   gr.update(visible(False)), gr.update(visible(True))),
+                          inputs=None, outputs=[step_1, step_2, step_3, step_4, step_5])
+        back_to_connection_btn.click(lambda: (gr.update(visible(False)), gr.update(visible(False)), gr.update(visible(False)),
+                                          gr.update(visible(True)), gr.update(visible(False))),
+                                     inputs=None, outputs=[step_1, step_2, step_3, step_4, step_5])
     
     return demo
 
@@ -419,7 +346,5 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
 def launch_what_is_ai_app(height: int = 1100, share: bool = False, debug: bool = False) -> None:
     """Convenience wrapper to create and launch the what is AI app inline."""
     demo = create_what_is_ai_app()
-    # Attach queue for concurrency safety
     apply_queue(demo, default_concurrency_limit=2, max_size=32, status_update_rate=1.0)
-    # Launch with centralized settings
     launch_blocks(demo, height=height, share=share, debug=debug)
