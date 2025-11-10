@@ -43,6 +43,8 @@ def create_tutorial_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """Create the tutorial Gradio Blocks app (not launched yet)."""
     try:
         import gradio as gr
+        gr.close_all(verbose=False)
+
     except ImportError as e:
         raise ImportError(
             "Gradio is required for the tutorial app. Install with `pip install gradio`."
