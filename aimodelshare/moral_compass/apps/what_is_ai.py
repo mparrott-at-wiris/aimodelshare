@@ -12,7 +12,6 @@ Structure:
 """
 import contextlib
 import os
-import time
 
 def _create_simple_predictor():
     """Create a simple demonstration predictor for teaching purposes."""
@@ -436,7 +435,6 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                         updates[step] = gr.update(visible=False)
                 yield updates
                 
-                time.sleep(0.1) # Give browser a moment to render loading screen
                 
                 # Yield 2: Show new step, hide all
                 updates = {next_step: gr.update(visible=True)}
