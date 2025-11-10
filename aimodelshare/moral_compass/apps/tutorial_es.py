@@ -84,14 +84,14 @@ def create_tutorial_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 """
             )
 
-        # Pas 1
+        # Paso 1
         with gr.Column(visible=True) as step_1_container:
-            gr.Markdown("<h2 style='text-align:center;'>Paso 1: Cómo utilizar "Presentaciones de diapositivas"</h2>")
+            gr.Markdown("<h2 style='text-align:center;'>Paso 1: Cómo utilizar \"Presentaciones de diapositivas\"</h2>")
             gr.Markdown(
                 """
                 <div style='font-size: 28px; text-align: center; background:#E3F2FD;
                              padding:28px; border-radius:16px; min-height: 150px;'>
-                  <b>Este es un paso de "Presentación de diapositivas".</b><br><br>
+                  <b>Este es un paso de \"Presentación de diapositivas\".</b><br><br>
                   Algunas aplicaciones son solo para leer. Tu única tarea es hacer clic en el botón "Siguiente pas" para pasar al paso siguiente.
                 </div>
                 """
@@ -100,12 +100,12 @@ def create_tutorial_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
 
         # Pas 2
         with gr.Column(visible=False) as step_2_container:
-            gr.Markdown("<h2 style='text-align:center;'>Paso 2: Cómo utilizar "Demos interactivas"</h2>")
+            gr.Markdown("<h2 style='text-align:center;'>Paso 2: Cómo utilizar \"Demos interactivas\"</h2>")
             gr.Markdown(
                 """
                 <div style='font-size: 20px; text-align: left; background:#FFF3E0;
                             padding:20px; border-radius:16px;'>
-                  <b>Esta es una "Demo interactiva".</b><br><br>
+                  <b>Esta es una \"Demo interactiva\".</b><br><br>
                   Solo sigue los pasos numerados a continuación (de arriba a abajo) para ver cómo funciona!
                 </div>
                 """
