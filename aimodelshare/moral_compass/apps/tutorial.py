@@ -12,6 +12,7 @@ Structure:
 """
 import contextlib
 import os
+import time
 
 
 def _build_synthetic_model():
@@ -71,6 +72,16 @@ def create_tutorial_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             """
         )
         gr.HTML("<hr style='margin:24px 0;'>")
+
+        # --- Loading screen ---
+        with gr.Column(visible=False) as loading_screen:
+            gr.Markdown(
+                """
+                <div style='text-align:center; padding: 100px 0;'>
+                    <h2 style='font-size: 2rem; color: #6b7280;'>⏳ Loading...</h2>
+                </div>
+                """
+            )
 
         # Step 1
         with gr.Column(visible=True) as step_1_container:
@@ -162,26 +173,47 @@ def create_tutorial_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             with gr.Row():
                 step_3_back = gr.Button("◀️ Back")
 
-        # Visibility logic (correct ordering & syntax)
+        # --- NAVIGATION LOGIC (GENERATOR-BASED) ---
+        
+        # This list must be defined *after* all the components
+        all_steps = [step_1_container, step_2_container, step_3_container, loading_screen]
+
+        def create_nav_generator(current_step, next_step):
+            """A helper to create the generator functions to avoid repetitive code."""
+            def navigate():
+                # Yield 1: Show loading, hide all
+                updates = {loading_screen: gr.update(visible=True)}
+                for step in all_steps:
+                    if step != loading_screen:
+                        updates[step] = gr.update(visible=False)
+                yield updates
+                
+                time.sleep(0.1) # Give browser a moment to render loading screen
+                
+                # Yield 2: Show new step, hide all
+                updates = {next_step: gr.update(visible=True)}
+                for step in all_steps:
+                    if step != next_step:
+                        updates[step] = gr.update(visible=False)
+                yield updates
+            return navigate
+
+        # --- Wire up each button to its own unique generator ---
         step_1_next.click(
-            lambda: (gr.update(visible=False), gr.update(visible=True), gr.update(visible=False)),
-            inputs=None,
-            outputs=[step_1_container, step_2_container, step_3_container],
+            fn=create_nav_generator(step_1_container, step_2_container), 
+            inputs=None, outputs=all_steps, show_progress="full"
         )
         step_2_back.click(
-            lambda: (gr.update(visible=True), gr.update(visible=False), gr.update(visible=False)),
-            inputs=None,
-            outputs=[step_1_container, step_2_container, step_3_container],
+            fn=create_nav_generator(step_2_container, step_1_container), 
+            inputs=None, outputs=all_steps, show_progress="full"
         )
         step_2_next.click(
-            lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=True)),
-            inputs=None,
-            outputs=[step_1_container, step_2_container, step_3_container],
+            fn=create_nav_generator(step_2_container, step_3_container), 
+            inputs=None, outputs=all_steps, show_progress="full"
         )
         step_3_back.click(
-            lambda: (gr.update(visible=False), gr.update(visible=True), gr.update(visible=False)),
-            inputs=None,
-            outputs=[step_1_container, step_2_container, step_3_container],
+            fn=create_nav_generator(step_3_container, step_2_container), 
+            inputs=None, outputs=all_steps, show_progress="full"
         )
 
     return demo
