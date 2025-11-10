@@ -201,19 +201,23 @@ def create_tutorial_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         # --- Wire up each button to its own unique generator ---
         step_1_next.click(
             fn=create_nav_generator(step_1_container, step_2_container), 
-            inputs=None, outputs=all_steps, show_progress="full"
+            inputs=None, outputs=all_steps, show_progress="full",
+            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
         )
         step_2_back.click(
             fn=create_nav_generator(step_2_container, step_1_container), 
-            inputs=None, outputs=all_steps, show_progress="full"
+            inputs=None, outputs=all_steps, show_progress="full",
+            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
         )
         step_2_next.click(
             fn=create_nav_generator(step_2_container, step_3_container), 
-            inputs=None, outputs=all_steps, show_progress="full"
+            inputs=None, outputs=all_steps, show_progress="full",
+            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
         )
         step_3_back.click(
             fn=create_nav_generator(step_3_container, step_2_container), 
-            inputs=None, outputs=all_steps, show_progress="full"
+            inputs=None, outputs=all_steps, show_progress="full",
+            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
         )
 
     return demo
