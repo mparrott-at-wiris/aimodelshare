@@ -1,0 +1,115 @@
+name: AI Lead Engineer App Test
+
+on:
+  push:
+    paths:
+      - 'aimodelshare/moral_compass/apps/ai_lead_engineer.py'
+      - 'tests/test_playground_ai_lead_engineer_app.py'
+      - '.github/workflows/ai_lead_engineer_app_test.yml'
+  pull_request:
+    paths:
+      - 'aimodelshare/moral_compass/apps/ai_lead_engineer.py'
+      - 'tests/test_playground_ai_lead_engineer_app.py'
+      - '.github/workflows/ai_lead_engineer_app_test.yml'
+  workflow_dispatch: # Manual trigger
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ai-lead-engineer-app-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ai-lead-engineer-app-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      TF_CPP_MIN_LOG_LEVEL: "2"
+      AIMODELSHARE_SUPPRESS_OPTIONAL_WARNINGS: "1"
+      CUDA_VISIBLE_DEVICES: "-1"  # Force CPU-only for TensorFlow
+    
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+      
+      - name: Upgrade pip
+        run: |
+          python -m pip install --upgrade pip
+      
+      - name: Install dependencies
+        run: |
+          # Install core dependencies
+          pip install boto3 onnx onnxmltools onnxruntime Pympler scikeras shortuuid skl2onnx tf2onnx wget
+          
+          # Install package in editable mode
+          pip install -e .
+          
+          # Install test and ML dependencies
+          pip install pytest scikit-learn pandas numpy opencv-python-headless pydot regex psutil IPython matplotlib seaborn importlib_resources onnxscript
+          
+          # Install TensorFlow (CPU-only)
+          pip install tensorflow-cpu
+          
+          # Install PyTorch (CPU-only)
+          pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
+          
+          # Install Gradio for UI
+          pip install gradio
+      
+      - name: Verify CPU-only TensorFlow
+        run: |
+          python -c "import tensorflow as tf; import os; os.environ['CUDA_VISIBLE_DEVICES']='-1'; print(f'TensorFlow GPUs: {len(tf.config.list_physical_devices(\"GPU\"))}'); print('CPU-only mode verified' if len(tf.config.list_physical_devices('GPU')) == 0 else 'WARNING: GPUs detected')"
+      
+      - name: Set up test environment (if credentials available)
+        if: ${{ secrets.AIMODELSHARE_USERNAME != '' && secrets.AIMODELSHARE_PASSWORD != '' }}
+        env:
+          username: ${{ secrets.AIMODELSHARE_USERNAME }}
+          password: ${{ secrets.AIMODELSHARE_PASSWORD }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          # Export credentials for tests
+          echo "username=$username" >> $GITHUB_ENV
+          echo "password=$password" >> $GITHUB_ENV
+          echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> $GITHUB_ENV
+          echo "AWS_REGION=$AWS_REGION" >> $GITHUB_ENV
+      
+      - name: Run AI Lead Engineer app tests
+        run: |
+          pytest tests/test_playground_ai_lead_engineer_app.py -v -s --tb=short
+      
+      - name: Test app import from moral_compass module
+        run: |
+          python -c "
+          from aimodelshare.moral_compass import create_ai_lead_engineer_app, launch_ai_lead_engineer_app
+          print('✓ Import from moral_compass module successful')
+          
+          from aimodelshare.moral_compass.apps import create_ai_lead_engineer_app, launch_ai_lead_engineer_app
+          print('✓ Import from apps module successful')
+          
+          # Verify app can be created
+          app = create_ai_lead_engineer_app()
+          assert app is not None
+          print('✓ App instantiation successful')
+          "
+      
+      - name: Summary
+        if: always()
+        run: |
+          echo "AI Lead Engineer App Test Summary"
+          echo "=================================="
+          echo "Python version: ${{ matrix.python-version }}"
+          echo "Status: Test completed"

@@ -61,6 +61,8 @@ def test_all_apps_exported_from_init():
     assert hasattr(apps, 'launch_ai_consequences_app')
     assert hasattr(apps, 'create_what_is_ai_app')
     assert hasattr(apps, 'launch_what_is_ai_app')
+    assert hasattr(apps, 'create_ai_lead_engineer_app')
+    assert hasattr(apps, 'launch_ai_lead_engineer_app')
 
 
 def test_judge_app_defendant_profiles():
@@ -112,7 +114,8 @@ def test_apps_with_custom_theme():
         create_tutorial_app, 
         create_judge_app,
         create_ai_consequences_app,
-        create_what_is_ai_app
+        create_what_is_ai_app,
+        create_ai_lead_engineer_app
     )
     
     # Should not raise any errors
@@ -127,6 +130,9 @@ def test_apps_with_custom_theme():
     
     ai = create_what_is_ai_app(theme_primary_hue="purple")
     assert ai is not None
+    
+    lead_engineer = create_ai_lead_engineer_app(theme_primary_hue="orange")
+    assert lead_engineer is not None
 
 
 if __name__ == '__main__':
