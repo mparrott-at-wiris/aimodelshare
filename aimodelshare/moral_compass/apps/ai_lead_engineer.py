@@ -533,7 +533,7 @@ def create_ai_lead_engineer_app(
                             dummy_input = torch.zeros((1, input_dim), dtype=torch.float32)
                             playground.submit_model(
                                 model=model,
-                                preprocessor=prep,
+                                preprocessor=prep_func,
                                 prediction_submission=preds,
                                 input_dict=input_dict,
                                 submission_type='competition',
@@ -543,7 +543,7 @@ def create_ai_lead_engineer_app(
                         else:
                             playground.submit_model(
                                 model=model,
-                                preprocessor=prep,
+                                preprocessor=prep_func,
                                 prediction_submission=preds,
                                 input_dict=input_dict,
                                 submission_type='competition',
