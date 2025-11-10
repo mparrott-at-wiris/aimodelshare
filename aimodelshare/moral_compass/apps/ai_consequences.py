@@ -18,6 +18,7 @@ def create_ai_consequences_app(theme_primary_hue: str = "indigo") -> "gr.Blocks"
     """Create the AI Consequences Gradio Blocks app (not launched yet)."""
     try:
         import gradio as gr
+        gr.close_all(verbose=False)
     except ImportError as e:
         raise ImportError(
             "Gradio is required for the AI consequences app. Install with `pip install gradio`."
