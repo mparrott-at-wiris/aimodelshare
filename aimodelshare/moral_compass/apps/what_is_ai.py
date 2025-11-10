@@ -486,6 +486,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                         <ul style='font-size:1.1rem; text-align:left; max-width:600px; margin:20px auto;'>
                             <li>What AI is (a prediction system)</li>
                             <li>How it works (Input → Model → Output)</li>
+                            <li>How AI models learn from data</li>
                             <li>Why it matters for criminal justice</li>
                             <li>The ethical implications of AI decisions</li>
                         </ul>
