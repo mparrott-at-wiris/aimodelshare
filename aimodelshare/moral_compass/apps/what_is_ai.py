@@ -4,7 +4,8 @@ What is AI - Gradio application for the Justice & Equity Challenge.
 This app teaches:
 1. A simple, non-technical explanation of what AI is
 2. How predictive models work (Input → Model → Output)
-3. Real-world examples and connections to the justice challenge
+3. How AI models learn from data (training process and ethical implications)
+4. Real-world examples and connections to the justice challenge
 
 Structure:
 - Factory function `create_what_is_ai_app()` returns a Gradio Blocks object
