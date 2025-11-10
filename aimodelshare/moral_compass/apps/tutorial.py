@@ -148,7 +148,16 @@ def create_tutorial_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             out = gr.Textbox(
                 label="🔮 Predicted Exam Score", elem_id="prediction_output_textbox", interactive=False
             )
-            go.click(predict_exam, [s_hours, s_sleep, s_att], out)
+
+            # Added scroll_to_output so the page scrolls to the prediction result automatically.
+            # (Optional) If you prefer a smoother centered scroll, uncomment js=... line below instead or in addition.
+            go.click(
+                predict_exam,
+                [s_hours, s_sleep, s_att],
+                out,
+                scroll_to_output=True,
+                # js="()=>{document.getElementById('prediction_output_textbox').scrollIntoView({behavior:'smooth', block:'center'});}"
+            )
 
             gr.HTML("<hr style='margin: 15px 0;'>")
             with gr.Row():
@@ -175,22 +184,17 @@ def create_tutorial_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 step_3_back = gr.Button("◀️ Back")
 
         # --- NAVIGATION LOGIC (GENERATOR-BASED) ---
-        
-        # This list must be defined *after* all the components
         all_steps = [step_1_container, step_2_container, step_3_container, loading_screen]
 
         def create_nav_generator(current_step, next_step):
             """A helper to create the generator functions to avoid repetitive code."""
             def navigate():
-                # Yield 1: Show loading, hide all
                 updates = {loading_screen: gr.update(visible=True)}
                 for step in all_steps:
                     if step != loading_screen:
                         updates[step] = gr.update(visible=False)
                 yield updates
-                
-                
-                # Yield 2: Show new step, hide all
+
                 updates = {next_step: gr.update(visible=True)}
                 for step in all_steps:
                     if step != next_step:
@@ -198,25 +202,32 @@ def create_tutorial_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 yield updates
             return navigate
 
-        # --- Wire up each button to its own unique generator ---
         step_1_next.click(
-            fn=create_nav_generator(step_1_container, step_2_container), 
-            inputs=None, outputs=all_steps, show_progress="full",
+            fn=create_nav_generator(step_1_container, step_2_container),
+            inputs=None,
+            outputs=all_steps,
+            show_progress="full",
             js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
         )
         step_2_back.click(
-            fn=create_nav_generator(step_2_container, step_1_container), 
-            inputs=None, outputs=all_steps, show_progress="full",
+            fn=create_nav_generator(step_2_container, step_1_container),
+            inputs=None,
+            outputs=all_steps,
+            show_progress="full",
             js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
         )
         step_2_next.click(
-            fn=create_nav_generator(step_2_container, step_3_container), 
-            inputs=None, outputs=all_steps, show_progress="full",
+            fn=create_nav_generator(step_2_container, step_3_container),
+            inputs=None,
+            outputs=all_steps,
+            show_progress="full",
             js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
         )
         step_3_back.click(
-            fn=create_nav_generator(step_3_container, step_2_container), 
-            inputs=None, outputs=all_steps, show_progress="full",
+            fn=create_nav_generator(step_3_container, step_2_container),
+            inputs=None,
+            outputs=all_steps,
+            show_progress="full",
             js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
         )
 
