@@ -259,7 +259,7 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                         Continue to the next section below to explore the consequences of 
                         trusting AI predictions in high-stakes situations.
                         </p>
-                        <h1 style='margin:20px 0; font-size: 3rem;'>👇 SCROLL DOWN 👇</h1>
+                        <h1 style='margin:20px 0; font-size: 3rem;'>👇 SCROLL DOWN TO THE NEXT SECTION 👇</h1>
                     </div>
                 </div>
                 """
