@@ -187,10 +187,157 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             )
             with gr.Row():
                 step_2_back = gr.Button("◀️ Back", size="lg")
-                step_2_next = gr.Button("Next: Try It Yourself ▶️", variant="primary", size="lg")
+                step_2_next = gr.Button("Next: How Models Learn ▶️", variant="primary", size="lg")
         
-        # Step 3: Interactive Demo
+        # Step 3: How Models Learn
         with gr.Column(visible=False) as step_3:
+            gr.Markdown("<h2 style='text-align:center;'>🧠 How Does an AI Model Learn?</h2>")
+            gr.HTML(
+                """
+                <div style='font-size: 20px; background:#fef3c7; padding:28px; border-radius:16px;'>
+                <p><b>Before an AI model can make predictions, it needs to learn from examples.</b></p>
+                
+                <p style='margin-top:20px;'>Think of it like learning to recognize spam emails:</p>
+                
+                <ul style='font-size:19px; margin-top:12px;'>
+                    <li>You see thousands of emails labeled "spam" or "not spam"</li>
+                    <li>You notice patterns: spam often has certain words, sender types, or formatting</li>
+                    <li>Over time, you get better at recognizing spam without even thinking about it</li>
+                </ul>
+                
+                <div style='background:#dbeafe; padding:20px; border-radius:8px; margin-top:24px; border-left:6px solid #0284c7;'>
+                    <p style='font-size:18px; margin:0;'><b>AI models learn the same way—but using data and math 
+                    instead of human intuition.</b></p>
+                </div>
+                </div>
+                """
+            )
+            
+            gr.HTML("<hr style='margin:24px 0;'>")
+            
+            gr.Markdown("<h3 style='color:#92400e;'>📚 The Training Process</h3>")
+            gr.HTML(
+                """
+                <div style='font-size: 18px; background:white; padding:24px; border-radius:12px; border:2px solid #e5e7eb;'>
+                <p><b>Here's how a model learns:</b></p>
+                
+                <div style='margin:24px 0; padding:20px; background:#f9fafb; border-radius:8px;'>
+                    <div style='display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap;'>
+                        <div style='background:#dbeafe; padding:12px 16px; border-radius:8px; margin:8px; flex:1; min-width:140px; text-align:center;'>
+                            <b style='color:#0369a1;'>1. INPUT<br>EXAMPLES</b>
+                        </div>
+                        <div style='font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
+                        <div style='background:#fef3c7; padding:12px 16px; border-radius:8px; margin:8px; flex:1; min-width:140px; text-align:center;'>
+                            <b style='color:#92400e;'>2. GUESS<br>PATTERN</b>
+                        </div>
+                        <div style='font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
+                        <div style='background:#fef3c7; padding:12px 16px; border-radius:8px; margin:8px; flex:1; min-width:140px; text-align:center;'>
+                            <b style='color:#92400e;'>3. CHECK<br>ANSWER</b>
+                        </div>
+                        <div style='font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
+                        <div style='background:#fef3c7; padding:12px 16px; border-radius:8px; margin:8px; flex:1; min-width:140px; text-align:center;'>
+                            <b style='color:#92400e;'>4. ADJUST</b>
+                        </div>
+                        <div style='font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
+                        <div style='background:#fef3c7; padding:12px 16px; border-radius:8px; margin:8px; flex:1; min-width:140px; text-align:center;'>
+                            <b style='color:#92400e;'>5. REPEAT</b>
+                        </div>
+                        <div style='font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
+                        <div style='background:#f0fdf4; padding:12px 16px; border-radius:8px; margin:8px; flex:1; min-width:140px; text-align:center;'>
+                            <b style='color:#15803d;'>LEARNED<br>MODEL</b>
+                        </div>
+                    </div>
+                </div>
+                
+                <p style='margin-top:20px;'><b>Step-by-step breakdown:</b></p>
+                <ul style='margin-top:12px;'>
+                    <li><b>Examples:</b> The model receives input data (like age, prior offenses) paired with known outcomes (like "did re-offend" or "did not re-offend")</li>
+                    <li><b>Guess:</b> The model makes initial predictions based on random or simple patterns</li>
+                    <li><b>Check:</b> Compare the model's guesses to the actual correct answers</li>
+                    <li><b>Adjust:</b> Change the model's internal rules (called "weights") to make better predictions next time</li>
+                    <li><b>Repeat:</b> Do this thousands or millions of times until predictions are accurate</li>
+                </ul>
+                </div>
+                """
+            )
+            
+            gr.HTML("<hr style='margin:24px 0;'>")
+            
+            gr.Markdown("<h3 style='color:#7e22ce;'>⚖️ Example: Learning Risk Patterns</h3>")
+            gr.HTML(
+                """
+                <div style='font-size: 18px; background:#faf5ff; padding:24px; border-radius:12px;'>
+                <p><b>Imagine training a model to predict re-offense risk:</b></p>
+                
+                <div style='background:white; padding:20px; border-radius:8px; margin:20px 0; border:2px solid #e5e7eb;'>
+                    <p style='font-size:17px;'><b>Initial State (Untrained):</b></p>
+                    <ul style='margin:8px 0; font-size:16px;'>
+                        <li>Age importance: <span style='color:#6b7280;'>0.5</span> (random)</li>
+                        <li>Prior offenses importance: <span style='color:#6b7280;'>0.5</span> (random)</li>
+                        <li>Charge severity importance: <span style='color:#6b7280;'>0.5</span> (random)</li>
+                    </ul>
+                    <p style='margin-top:12px; color:#6b7280; font-size:16px;'>Predictions are basically random guesses!</p>
+                </div>
+                
+                <div style='background:white; padding:20px; border-radius:8px; margin:20px 0; border:2px solid #9333ea;'>
+                    <p style='font-size:17px;'><b>After Training (Learned):</b></p>
+                    <ul style='margin:8px 0; font-size:16px;'>
+                        <li>Age importance: <span style='color:#15803d; font-weight:bold;'>0.3</span> (moderate impact)</li>
+                        <li>Prior offenses importance: <span style='color:#dc2626; font-weight:bold;'>0.8</span> (high impact!)</li>
+                        <li>Charge severity importance: <span style='color:#15803d; font-weight:bold;'>0.4</span> (moderate impact)</li>
+                    </ul>
+                    <p style='margin-top:12px; color:#7e22ce; font-size:16px;'>The model learned that prior offenses are the strongest predictor in the historical data.</p>
+                </div>
+                
+                <div style='background:#dbeafe; padding:16px; border-radius:8px; margin-top:20px;'>
+                    <p style='font-size:17px; margin:0;'><b>Important:</b> These "importance scores" (weights) come entirely from patterns in the training data. The model doesn't understand what they mean—it just finds mathematical patterns.</p>
+                </div>
+                </div>
+                """
+            )
+            
+            gr.HTML("<hr style='margin:24px 0;'>")
+            
+            gr.Markdown("<h3 style='color:#dc2626;'>⚠️ The Ethical Challenge</h3>")
+            gr.HTML(
+                """
+                <div style='font-size: 18px; background:#fef2f2; padding:24px; border-radius:12px; border-left:6px solid #dc2626;'>
+                <p><b>Here's the critical problem:</b></p>
+                
+                <ul style='margin:16px 0;'>
+                    <li><b>If the historical data contains bias</b> (e.g., certain groups were arrested or convicted more often due to discrimination)...</li>
+                    <li><b>The model will learn those biased patterns</b> and reproduce them in its predictions.</li>
+                </ul>
+                
+                <div style='background:white; padding:20px; border-radius:8px; margin-top:20px;'>
+                    <p style='margin:0;'><b>Example:</b> If Black defendants were historically given harsher treatment, 
+                    the model might learn to associate race with higher risk—not because it's true, but because 
+                    that's what the biased historical data shows.</p>
+                </div>
+                </div>
+                """
+            )
+            
+            gr.HTML("<hr style='margin:24px 0;'>")
+            
+            gr.HTML(
+                """
+                <div style='background:#fef3c7; padding:24px; border-radius:12px; border:3px solid #f59e0b; text-align:center;'>
+                    <h3 style='color:#92400e; margin:0; font-size:1.5rem;'>🎯 Key Takeaway</h3>
+                    <p style='font-size:19px; margin-top:16px; margin-bottom:0;'>
+                    <b>The model doesn't "know" truth or justice.</b><br>
+                    It only finds patterns in past data—which may or may not be fair.
+                    </p>
+                </div>
+                """
+            )
+            
+            with gr.Row():
+                step_3_back = gr.Button("◀️ Back", size="lg")
+                step_3_next = gr.Button("Next: Try It Yourself ▶️", variant="primary", size="lg")
+        
+        # Step 4: Interactive Demo
+        with gr.Column(visible=False) as step_4:
             gr.Markdown("<h2 style='text-align:center;'>🎮 Try It Yourself!</h2>")
             gr.Markdown(
                 """
@@ -271,11 +418,11 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             )
             
             with gr.Row():
-                step_3_back = gr.Button("◀️ Back", size="lg")
-                step_3_next = gr.Button("Next: Connection to Justice ▶️", variant="primary", size="lg")
+                step_4_back = gr.Button("◀️ Back", size="lg")
+                step_4_next = gr.Button("Next: Connection to Justice ▶️", variant="primary", size="lg")
         
-        # Step 4: Connection to the Challenge
-        with gr.Column(visible=False) as step_4:
+        # Step 5: Connection to the Challenge
+        with gr.Column(visible=False) as step_5:
             gr.Markdown("<h2 style='text-align:center;'>🔗 Connecting to Criminal Justice</h2>")
             gr.HTML(
                 """
@@ -323,11 +470,11 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 """
             )
             with gr.Row():
-                step_4_back = gr.Button("◀️ Back", size="lg")
-                step_4_next = gr.Button("Complete This Section ▶️", variant="primary", size="lg")
+                step_5_back = gr.Button("◀️ Back", size="lg")
+                step_5_next = gr.Button("Complete This Section ▶️", variant="primary", size="lg")
         
-        # Step 5: Completion
-        with gr.Column(visible=False) as step_5:
+        # Step 6: Completion
+        with gr.Column(visible=False) as step_6:
             gr.HTML(
                 """
                 <div style='text-align:center;'>
@@ -358,58 +505,72 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         # Navigation logic
         step_1_next.click(
             lambda: (gr.update(visible=False), gr.update(visible=True), gr.update(visible=False), 
-                    gr.update(visible=False), gr.update(visible=False)),
+                    gr.update(visible=False), gr.update(visible=False), gr.update(visible=False)),
             inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5]
+            outputs=[step_1, step_2, step_3, step_4, step_5, step_6]
         )
         
         step_2_back.click(
             lambda: (gr.update(visible=True), gr.update(visible=False), gr.update(visible=False), 
-                    gr.update(visible=False), gr.update(visible=False)),
+                    gr.update(visible=False), gr.update(visible=False), gr.update(visible=False)),
             inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5]
+            outputs=[step_1, step_2, step_3, step_4, step_5, step_6]
         )
         
         step_2_next.click(
             lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=True), 
-                    gr.update(visible=False), gr.update(visible=False)),
+                    gr.update(visible=False), gr.update(visible=False), gr.update(visible=False)),
             inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5]
+            outputs=[step_1, step_2, step_3, step_4, step_5, step_6]
         )
         
         step_3_back.click(
             lambda: (gr.update(visible=False), gr.update(visible=True), gr.update(visible=False), 
-                    gr.update(visible=False), gr.update(visible=False)),
+                    gr.update(visible=False), gr.update(visible=False), gr.update(visible=False)),
             inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5]
+            outputs=[step_1, step_2, step_3, step_4, step_5, step_6]
         )
         
         step_3_next.click(
             lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), 
-                    gr.update(visible=True), gr.update(visible=False)),
+                    gr.update(visible=True), gr.update(visible=False), gr.update(visible=False)),
             inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5]
+            outputs=[step_1, step_2, step_3, step_4, step_5, step_6]
         )
         
         step_4_back.click(
             lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=True), 
-                    gr.update(visible=False), gr.update(visible=False)),
+                    gr.update(visible=False), gr.update(visible=False), gr.update(visible=False)),
             inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5]
+            outputs=[step_1, step_2, step_3, step_4, step_5, step_6]
         )
         
         step_4_next.click(
             lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), 
-                    gr.update(visible=False), gr.update(visible=True)),
+                    gr.update(visible=False), gr.update(visible=True), gr.update(visible=False)),
             inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5]
+            outputs=[step_1, step_2, step_3, step_4, step_5, step_6]
+        )
+        
+        step_5_back.click(
+            lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), 
+                    gr.update(visible=True), gr.update(visible=False), gr.update(visible=False)),
+            inputs=None,
+            outputs=[step_1, step_2, step_3, step_4, step_5, step_6]
+        )
+        
+        step_5_next.click(
+            lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), 
+                    gr.update(visible=False), gr.update(visible=False), gr.update(visible=True)),
+            inputs=None,
+            outputs=[step_1, step_2, step_3, step_4, step_5, step_6]
         )
         
         back_to_connection_btn.click(
             lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), 
-                    gr.update(visible=True), gr.update(visible=False)),
+                    gr.update(visible=False), gr.update(visible=True), gr.update(visible=False)),
             inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5]
+            outputs=[step_1, step_2, step_3, step_4, step_5, step_6]
         )
     
     return demo
