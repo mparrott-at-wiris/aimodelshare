@@ -199,7 +199,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 <h3 style='color:#92400e; margin-top:0;'>1. It Learns from Examples</h3>
                 
                 <p>An AI model isn't programmed with answers. Instead, it's trained on a huge number of examples, and it learns how to find the answers on its own.</p>
-                <p>In our justice scenario, this means feeding the model thousands of past cases (<b>examples</b>) to teach it how to find the <b>patterns</b> that connect a person's details to their real-world outcome.</p>
+                <p>In our justice scenario, this means feeding the model thousands of past cases (<b>examples</b>) to teach it how to find the <b>patterns</b> that connect a person's details to their [...]
                 
                 <hr style='margin:24px 0;'>
                 
@@ -419,7 +419,9 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             predict_outcome,
             inputs=[age_slider, priors_slider, severity_dropdown],
             outputs=prediction_output,
-            show_progress="full" # Show toast for slow model
+            show_progress="full",
+            scroll_to_output=True,
+            # js="()=>{document.querySelector('[data-testid=\"component-html\"]').scrollIntoView({behavior:'smooth', block:'center'});}"
         )
         
         # --- CORRECTED NAVIGATION LOGIC (GENERATOR-BASED) ---
@@ -442,7 +444,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 updates = {next_step: gr.update(visible=True)}
                 for step in all_steps:
                     if step != next_step:
-                        updates[step] = gr.update(visible=False)
+                        updates[step] = gr.update(visible(False))
                 yield updates
             return navigate
 
