@@ -12,15 +12,12 @@ Structure:
 """
 import contextlib
 import os
-import time  # Added for the slow-load simulation
 
 def _create_simple_predictor():
     """Create a simple demonstration predictor for teaching purposes."""
     def predict_outcome(age, priors, severity):
         """Simple rule-based predictor for demonstration."""
         
-        # --- ADDED: A 1.5-second delay to simulate a slow model ---
-        time.sleep(1.5)
         
         # Simple scoring logic for demonstration
         score = 0
@@ -98,6 +95,16 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             """
         )
         gr.HTML("<hr style='margin:24px 0;'>")
+        
+        # --- This is the new loading screen ---
+        with gr.Column(visible=False) as loading_screen:
+            gr.Markdown(
+                """
+                <div style='text-align:center; padding: 100px 0;'>
+                    <h2 style='font-size: 2rem; color: #6b7280;'>⏳ Loading...</h2>
+                </div>
+                """
+            )
         
         # Step 1: Introduction
         with gr.Column(visible=True) as step_1:
@@ -304,14 +311,6 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 """
             )
             
-            # --- ADDED: show_progress="full" to the slow button ---
-            predict_btn.click(
-                predict_outcome,
-                inputs=[age_slider, priors_slider, severity_dropdown],
-                outputs=prediction_output,
-                show_progress="full"
-            )
-            
             gr.HTML("<hr style='margin:24px 0;'>")
             
             gr.Markdown(
@@ -412,88 +411,82 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             )
             back_to_connection_btn = gr.Button("◀️ Back to Review")
         
-        # --- Navigation logic ---
-        # --- ADDED: show_progress="full" to all navigation clicks ---
         
+        # --- PREDICTION BUTTON LOGIC ---
+        predict_btn.click(
+            predict_outcome,
+            inputs=[age_slider, priors_slider, severity_dropdown],
+            outputs=prediction_output,
+            show_progress="full" # Show toast for slow model
+        )
+        
+        # --- CORRECTED NAVIGATION LOGIC (GENERATOR-BASED) ---
+        
+        # This list must be defined *after* all the components
+        all_steps = [step_1, step_2, step_3, step_4, step_5, step_6, loading_screen]
+
+        def create_nav_generator(current_step, next_step):
+            """A helper to create the generator functions to avoid repetitive code."""
+            def navigate():
+                # Yield 1: Show loading, hide all
+                updates = {loading_screen: gr.update(visible=True)}
+                for step in all_steps:
+                    if step != loading_screen:
+                        updates[step] = gr.update(visible=False)
+                yield updates
+                
+                time.sleep(0.1) # Give browser a moment to render loading screen
+                
+                # Yield 2: Show new step, hide all
+                updates = {next_step: gr.update(visible=True)}
+                for step in all_steps:
+                    if step != next_step:
+                        updates[step] = gr.update(visible=False)
+                yield updates
+            return navigate
+
+        # --- Wire up each button to its own unique generator ---
         step_1_next.click(
-            lambda: (gr.update(visible=False), gr.update(visible=True), gr.update(visible=False), 
-                     gr.update(visible=False), gr.update(visible=False), gr.update(visible=False)),
-            inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5, step_6],
-            show_progress="full"
+            fn=create_nav_generator(step_1, step_2), 
+            inputs=None, outputs=all_steps, show_progress="full"
         )
-        
         step_2_back.click(
-            lambda: (gr.update(visible=True), gr.update(visible=False), gr.update(visible=False), 
-                     gr.update(visible=False), gr.update(visible=False), gr.update(visible=False)),
-            inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5, step_6],
-            show_progress="full"
+            fn=create_nav_generator(step_2, step_1), 
+            inputs=None, outputs=all_steps, show_progress="full"
         )
-        
         step_2_next.click(
-            lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=True), 
-                     gr.update(visible=False), gr.update(visible=False), gr.update(visible=False)),
-            inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5, step_6],
-            show_progress="full"
+            fn=create_nav_generator(step_2, step_3), 
+            inputs=None, outputs=all_steps, show_progress="full"
         )
-        
         step_3_back.click(
-            lambda: (gr.update(visible=False), gr.update(visible=True), gr.update(visible=False), 
-                     gr.update(visible=False), gr.update(visible=False), gr.update(visible=False)),
-            inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5, step_6],
-            show_progress="full"
+            fn=create_nav_generator(step_3, step_2), 
+            inputs=None, outputs=all_steps, show_progress="full"
         )
-        
         step_3_next.click(
-            lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), 
-                     gr.update(visible=True), gr.update(visible=False), gr.update(visible=False)),
-            inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5, step_6],
-            show_progress="full"
+            fn=create_nav_generator(step_3, step_4), 
+            inputs=None, outputs=all_steps, show_progress="full"
         )
-        
         step_4_back.click(
-            lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=True), 
-                     gr.update(visible=False), gr.update(visible=False), gr.update(visible=False)),
-            inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5, step_6],
-            show_progress="full"
+            fn=create_nav_generator(step_4, step_3), 
+            inputs=None, outputs=all_steps, show_progress="full"
         )
-        
         step_4_next.click(
-            lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), 
-                     gr.update(visible=False), gr.update(visible=True), gr.update(visible=False)),
-            inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5, step_6],
-            show_progress="full"
+            fn=create_nav_generator(step_4, step_5), 
+            inputs=None, outputs=all_steps, show_progress="full"
         )
-        
         step_5_back.click(
-            lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), 
-                     gr.update(visible=True), gr.update(visible=False), gr.update(visible=False)),
-            inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5, step_6],
-            show_progress="full"
+            fn=create_nav_generator(step_5, step_4), 
+            inputs=None, outputs=all_steps, show_progress="full"
         )
-        
         step_5_next.click(
-            lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), 
-                     gr.update(visible=False), gr.update(visible=False), gr.update(visible=True)),
-            inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5, step_6],
-            show_progress="full"
+            fn=create_nav_generator(step_5, step_6), 
+            inputs=None, outputs=all_steps, show_progress="full"
         )
-        
         back_to_connection_btn.click(
-            lambda: (gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), 
-                     gr.update(visible=False), gr.update(visible=True), gr.update(visible=False)),
-            inputs=None,
-            outputs=[step_1, step_2, step_3, step_4, step_5, step_6],
-            show_progress="full"
+            fn=create_nav_generator(step_6, step_5), 
+            inputs=None, outputs=all_steps, show_progress="full"
         )
+        # --- END NAVIGATION LOGIC ---
     
     return demo
 
@@ -505,5 +498,7 @@ def launch_what_is_ai_app(height: int = 1100, share: bool = False, debug: bool =
         import gradio as gr  # noqa: F401
     except ImportError as e:
         raise ImportError("Gradio must be installed to launch the what is AI app.") from e
+    
+    # This is the original wrapper, designed for use in a notebook (like Colab)
     with contextlib.redirect_stdout(open(os.devnull, 'w')), contextlib.redirect_stderr(open(os.devnull, 'w')):
         demo.launch(share=share, inline=True, debug=debug, height=height)
