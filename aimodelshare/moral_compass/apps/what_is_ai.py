@@ -70,6 +70,8 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """Create the What is AI Gradio Blocks app (not launched yet)."""
     try:
         import gradio as gr
+        gr.close_all(verbose=False)
+
     except ImportError as e:
         raise ImportError(
             "Gradio is required for the what is AI app. Install with `pip install gradio`."
