@@ -306,15 +306,18 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         # --- Wire up each button to its own unique generator ---
         start_btn.click(
             fn=create_nav_generator(intro_section, profiles_section), 
-            inputs=None, outputs=all_steps, show_progress="full"
+            inputs=None, outputs=all_steps, show_progress="full",
+            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
         )
         complete_btn.click(
             fn=create_nav_generator(profiles_section, complete_section), 
-            inputs=None, outputs=all_steps, show_progress="full"
+            inputs=None, outputs=all_steps, show_progress="full",
+            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
         )
         back_to_profiles_btn.click(
             fn=create_nav_generator(complete_section, profiles_section), 
-            inputs=None, outputs=all_steps, show_progress="full"
+            inputs=None, outputs=all_steps, show_progress="full",
+            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
         )
     
     return demo

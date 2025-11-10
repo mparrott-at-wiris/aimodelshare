@@ -264,35 +264,43 @@ def create_ai_consequences_app(theme_primary_hue: str = "indigo") -> "gr.Blocks"
         # --- Wire up each button to its own unique generator ---
         step_1_next.click(
             fn=create_nav_generator(step_1, step_2), 
-            inputs=None, outputs=all_steps, show_progress="full"
+            inputs=None, outputs=all_steps, show_progress="full",
+            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
         )
         step_2_back.click(
             fn=create_nav_generator(step_2, step_1), 
-            inputs=None, outputs=all_steps, show_progress="full"
+            inputs=None, outputs=all_steps, show_progress="full",
+            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
         )
         step_2_next.click(
             fn=create_nav_generator(step_2, step_3), 
-            inputs=None, outputs=all_steps, show_progress="full"
+            inputs=None, outputs=all_steps, show_progress="full",
+            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
         )
         step_3_back.click(
             fn=create_nav_generator(step_3, step_2), 
-            inputs=None, outputs=all_steps, show_progress="full"
+            inputs=None, outputs=all_steps, show_progress="full",
+            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
         )
         step_3_next.click(
             fn=create_nav_generator(step_3, step_4), 
-            inputs=None, outputs=all_steps, show_progress="full"
+            inputs=None, outputs=all_steps, show_progress="full",
+            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
         )
         step_4_back.click(
             fn=create_nav_generator(step_4, step_3), 
-            inputs=None, outputs=all_steps, show_progress="full"
+            inputs=None, outputs=all_steps, show_progress="full",
+            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
         )
         step_4_next.click(
             fn=create_nav_generator(step_4, step_5), 
-            inputs=None, outputs=all_steps, show_progress="full"
+            inputs=None, outputs=all_steps, show_progress="full",
+            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
         )
         back_to_dilemma_btn.click(
             fn=create_nav_generator(step_5, step_4), 
-            inputs=None, outputs=all_steps, show_progress="full"
+            inputs=None, outputs=all_steps, show_progress="full",
+            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
         )
     
     return demo
