@@ -12,6 +12,7 @@ Structure:
 """
 import contextlib
 import os
+import time
 
 def _create_simple_predictor():
     """Create a simple demonstration predictor for teaching purposes."""
