@@ -444,7 +444,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 updates = {next_step: gr.update(visible=True)}
                 for step in all_steps:
                     if step != next_step:
-                        updates[step] = gr.update(visible(False))
+                        updates[step] = gr.update(visible=False))
                 yield updates
             return navigate
 
