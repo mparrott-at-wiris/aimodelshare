@@ -1,16 +1,6 @@
 name: AI Lead Engineer App Test
 
 on:
-  push:
-    paths:
-      - 'aimodelshare/moral_compass/apps/ai_lead_engineer.py'
-      - 'tests/test_playground_ai_lead_engineer_app.py'
-      - '.github/workflows/ai_lead_engineer_app_test.yml'
-  pull_request:
-    paths:
-      - 'aimodelshare/moral_compass/apps/ai_lead_engineer.py'
-      - 'tests/test_playground_ai_lead_engineer_app.py'
-      - '.github/workflows/ai_lead_engineer_app_test.yml'
   workflow_dispatch:
 
 permissions:
