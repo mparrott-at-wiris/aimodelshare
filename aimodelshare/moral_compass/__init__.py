@@ -16,14 +16,11 @@ from .challenge import ChallengeManager, JusticeAndEquityChallenge
 # Optional UI helpers (Gradio may be an optional dependency)
 try:
     from .apps import (
-        create_tutorial_app, launch_tutorial_app,
-        create_ai_lead_engineer_app, launch_ai_lead_engineer_app
+        create_tutorial_app, launch_tutorial_app
     )
 except Exception:  # noqa: BLE001
     create_tutorial_app = None
     launch_tutorial_app = None
-    create_ai_lead_engineer_app = None
-    launch_ai_lead_engineer_app = None
 
 __all__ = [
     "__version__",
@@ -38,7 +35,5 @@ __all__ = [
     "ChallengeManager",
     "JusticeAndEquityChallenge",
     "create_tutorial_app",
-    "launch_tutorial_app",
-    "create_ai_lead_engineer_app",
-    "launch_ai_lead_engineer_app",
+    "launch_tutorial_app"
 ]
