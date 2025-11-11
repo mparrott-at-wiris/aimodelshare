@@ -455,12 +455,12 @@ def create_model_building_game_beginner_app(theme_primary_hue: str = "indigo") -
 
             with gr.Row():
                 with gr.Column(scale=1):
-                    with gr.Box():
+                    with gr.Group():
                         gr.Markdown("### 1️⃣ Choose Model")
                         model_radio = gr.Radio(label="Model", choices=[], interactive=False)
                         model_card = gr.Markdown(get_model_card(DEFAULT_MODEL))
 
-                    with gr.Box():
+                    with gr.Group():
                         gr.Markdown("### 2️⃣ Set Complexity")
                         complexity_slider = gr.Slider(
                             minimum=1, maximum=2, step=1, value=2,
@@ -468,7 +468,7 @@ def create_model_building_game_beginner_app(theme_primary_hue: str = "indigo") -
                             info="Higher = deeper patterns, but risk of overfitting."
                         )
 
-                    with gr.Box():
+                    with gr.Group():
                         gr.Markdown("### 3️⃣ Data Size")
                         size_radio = gr.Radio(
                             choices=["Small (40%)", "Full (100%)"],
@@ -476,14 +476,14 @@ def create_model_building_game_beginner_app(theme_primary_hue: str = "indigo") -
                             label="Training Data Amount"
                         )
 
-                    with gr.Box():
+                    with gr.Group():
                         gr.Markdown("### 4️⃣ Optional Feature (Ethics)")
                         age_checkbox = gr.Checkbox(label="Include Age Feature", value=False, interactive=False)
                         gr.Markdown(
                             "> Age can improve accuracy but raises fairness concerns. Use thoughtfully."
                         )
 
-                    with gr.Box():
+                    with gr.Group():
                         gr.Markdown("### 5️⃣ Submit")
                         submit_btn = gr.Button("🔬 Train & Submit", variant="primary")
                         experiment_log = gr.Textbox(

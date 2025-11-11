@@ -13,6 +13,8 @@ from .tutorial import create_tutorial_app, launch_tutorial_app
 from .judge import create_judge_app, launch_judge_app
 from .ai_consequences import create_ai_consequences_app, launch_ai_consequences_app
 from .what_is_ai import create_what_is_ai_app, launch_what_is_ai_app
+from .model_building_game import create_model_building_game_app, launch_model_building_game_app
+from .model_building_game_beginner import create_model_building_game_beginner_app, launch_model_building_game_beginner_app
 
 __all__ = [
     "create_tutorial_app",
@@ -22,5 +24,9 @@ __all__ = [
     "create_ai_consequences_app",
     "launch_ai_consequences_app",
     "create_what_is_ai_app",
-    "launch_what_is_ai_app"
+    "launch_what_is_ai_app",
+    "create_model_building_game_app",
+    "launch_model_building_game_app",
+    "create_model_building_game_beginner_app",
+    "launch_model_building_game_beginner_app"
 ]

@@ -669,7 +669,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                     )
                     submission_feedback_display = gr.Markdown("Submit a model to see feedback.")
 
-                    with gr.TabbedInterface(["Team Standings", "Individual Standings"], elem_id="lb-tabs") as lb_tabs:
+                    with gr.Tabs():
                         with gr.TabItem("Team Standings"):
                             team_leaderboard_display = gr.DataFrame(
                                 value=pd.DataFrame(),
