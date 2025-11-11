@@ -389,200 +389,178 @@ def _upload_preprocessor(preprocessor, client, bucket, model_id, model_version):
     print(e)
 
 
-def _update_leaderboard(
-    modelpath, eval_metrics, client, bucket, model_id, model_version, onnx_model=None, custom_metadata=None
+def _update_leaderboard_public(
+    modelpath,
+    eval_metrics,
+    s3_presigned_dict,
+    custom_metadata=None,
+    private=False,
+    leaderboard_type="competition",
+    onnx_model=None,
 ):
-    # Loading the model and its metadata {{{
+    """
+    Update the public (or private) leaderboard file via presigned URLs.
+    Adds new columns if custom_metadata introduces new keys.
+    """
+    mastertable_path = (
+        "model_eval_data_mastertable_private.csv"
+        if private
+        else "model_eval_data_mastertable.csv"
+    )
+
+    # Load or derive metadata
+    if modelpath is not None and not os.path.exists(modelpath):
+        raise FileNotFoundError(f"The model file at {modelpath} does not exist")
+
+    model_versions = [
+        os.path.splitext(f)[0].split("_")[-1][1:]
+        for f in s3_presigned_dict["put"].keys()
+    ]
+    model_versions = list(map(int, filter(lambda v: v.isnumeric(), model_versions)))
+    model_version = model_versions[0]
+
     if onnx_model is not None:
         metadata = _get_leaderboard_data(onnx_model, eval_metrics)
-
     elif modelpath is not None:
-        if not os.path.exists(modelpath):
-            raise FileNotFoundError(f"The model file at {modelpath} does not exist")
-
-        model = onnx.load(modelpath)
-        metadata = _get_leaderboard_data(model, eval_metrics)
-
-    else: 
-        # No ONNX model available - use _get_leaderboard_data with None
-        # This will safely inject defaults
+        onnx_model = onnx.load(modelpath)
+        metadata = _get_leaderboard_data(onnx_model, eval_metrics)
+    else:
         metadata = _get_leaderboard_data(None, eval_metrics)
 
-    if custom_metadata is not None: 
+    if custom_metadata:
+        metadata = {**metadata, **custom_metadata}
 
-        metadata = dict(metadata, **custom_metadata)
-
-
-    # }}}
-
-    # Adding extra details to metadata {{{
     metadata["username"] = os.environ.get("username")
     metadata["timestamp"] = str(datetime.now())
     metadata["version"] = model_version
-    # }}}
-    
-    #TODO: send above data in post call to /eval and update master table on back end rather than downloading locally.
-    #Either way something is breaking and the s3 version should still work right??
-    # Read existing table {{{
+
+    temp_dir = tmp.mkdtemp()
+
+    # Read existing leaderboard (if any)
     try:
-        leaderboard = client["client"].get_object(
-            Bucket=bucket, Key=model_id + "/model_eval_data_mastertable.csv"
+        import wget
 
-
-
+        wget.download(
+            s3_presigned_dict["get"][mastertable_path],
+            out=os.path.join(temp_dir, mastertable_path),
         )
-        leaderboard = pd.read_csv(leaderboard["Body"], sep="\t")
-        columns = leaderboard.columns
+        leaderboard = pd.read_csv(
+            os.path.join(temp_dir, mastertable_path), sep="\t"
+        )
+    except Exception:
+        leaderboard = pd.DataFrame(columns=list(metadata.keys()))
 
+    # Expand columns for any new metadata keys
+    existing_cols = set(leaderboard.columns.tolist())
+    new_cols = [c for c in metadata.keys() if c not in existing_cols]
+    for c in new_cols:
+        leaderboard[c] = None
+
+    # Append row
+    row_dict = {col: metadata.get(col, None) for col in leaderboard.columns}
+    leaderboard.loc[len(leaderboard)] = row_dict
+
+    # Legacy behavior: remove model_config from metadata dict before returning
+    metadata.pop("model_config", None)
+
+    # Write updated leaderboard to temp
+    leaderboard.to_csv(
+        os.path.join(temp_dir, mastertable_path), index=False, sep="\t"
+    )
+
+    # Upload via appropriate presigned POST
+    try:
+        put_keys = list(s3_presigned_dict["put"].keys())
+        csv_put_entries = [k for k in put_keys if "csv" in k]
+
+        file_put_dicts = [
+            ast.literal_eval(s3_presigned_dict["put"][k]) for k in csv_put_entries
+        ]
+        # public uses first, private uses second
+        target_index = 1 if private else 0
+        upload_spec = file_put_dicts[target_index]
+
+        with open(os.path.join(temp_dir, mastertable_path), "rb") as f:
+            files = {"file": (mastertable_path, f)}
+            http_response = requests.post(
+                upload_spec["url"], data=upload_spec["fields"], files=files
+            )
+            if http_response.status_code not in (200, 204):
+                raise RuntimeError(
+                    f"Leaderboard upload failed with status {http_response.status_code}: {http_response.text}"
+                )
+
+        return metadata
+    except Exception as err:
+        return err
+
+
+def _update_leaderboard(
+    modelpath,
+    eval_metrics,
+    client,
+    bucket,
+    model_id,
+    model_version,
+    onnx_model=None,
+    custom_metadata=None,
+):
+    """
+    Update the leaderboard directly in S3 using boto3 client/resource (non-presigned path).
+    Adds new columns if custom_metadata introduces new keys.
+    """
+    # Build metadata
+    if onnx_model is not None:
+        metadata = _get_leaderboard_data(onnx_model, eval_metrics)
+    elif modelpath is not None:
+        if not os.path.exists(modelpath):
+            raise FileNotFoundError(f"The model file at {modelpath} does not exist")
+        loaded = onnx.load(modelpath)
+        metadata = _get_leaderboard_data(loaded, eval_metrics)
+    else:
+        metadata = _get_leaderboard_data(None, eval_metrics)
+
+    if custom_metadata:
+        metadata = {**metadata, **custom_metadata}
+
+    metadata["username"] = os.environ.get("username")
+    metadata["timestamp"] = str(datetime.now())
+    metadata["version"] = model_version
+
+    # Fetch existing leaderboard (if any)
+    try:
+        obj = client["client"].get_object(
+            Bucket=bucket, Key=model_id + "/model_eval_data_mastertable.csv"
+        )
+        leaderboard = pd.read_csv(obj["Body"], sep="\t")
     except client["client"].exceptions.NoSuchKey:
-        # Create leaderboard if not exists
-        # FIXME: Find a better way to get columns
-        columns = list(metadata.keys())
-        leaderboard = pd.DataFrame(columns=columns)
-
+        leaderboard = pd.DataFrame(columns=list(metadata.keys()))
     except Exception as err:
         raise err
-    # }}}
 
-    # Update the leaderboard {{{
-    metadata_temp = {col: metadata.get(col, None) for col in columns}
-    metadata = dict(metadata, **metadata_temp)
-    leaderboard.loc[len(leaderboard)] = metadata
+    # Expand columns as needed
+    existing_cols = set(leaderboard.columns.tolist())
+    new_cols = [c for c in metadata.keys() if c not in existing_cols]
+    for c in new_cols:
+        leaderboard[c] = None
 
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        leaderboard['username']=leaderboard.pop("username")
-        leaderboard['timestamp'] = leaderboard.pop("timestamp")
-        leaderboard['version'] = leaderboard.pop("version")
+    # Append row
+    row_dict = {col: metadata.get(col, None) for col in leaderboard.columns}
+    leaderboard.loc[len(leaderboard)] = row_dict
 
-    leaderboard_csv = leaderboard.to_csv(index=False, sep="\t")
-    metadata.pop("model_config", "pop worked")
+    # Legacy removal
+    metadata.pop("model_config", None)
 
+    # Write and upload
+    csv_payload = leaderboard.to_csv(index=False, sep="\t")
     try:
         s3_object = client["resource"].Object(
             bucket, model_id + "/model_eval_data_mastertable.csv"
         )
-        s3_object.put(Body=leaderboard_csv)
+        s3_object.put(Body=csv_payload)
         return metadata
     except Exception as err:
         return err
-    # }}}
-
-def _update_leaderboard_public(
-    modelpath, eval_metrics, s3_presigned_dict, custom_metadata=None, 
-    private=False, leaderboard_type = "competition", onnx_model=None):
-
-    if private==True:
-        mastertable_path = 'model_eval_data_mastertable_private.csv'
-    else: 
-        mastertable_path = 'model_eval_data_mastertable.csv'
-
-
-    # Loading the model and its metadata {{{
-
-    if modelpath is not None:
-        if not os.path.exists(modelpath):
-            raise FileNotFoundError(f"The model file at {modelpath} does not exist")
-
-    model_versions = [os.path.splitext(f)[0].split("_")[-1][1:] for f in s3_presigned_dict['put'].keys()]
-    
-    model_versions = filter(lambda v: v.isnumeric(), model_versions)
-    model_versions = list(map(int, model_versions))
-    model_version=model_versions[0]
-    
-
-    if onnx_model is not None:
-        metadata = _get_leaderboard_data(onnx_model, eval_metrics)
-
-    elif modelpath is not None:
-        onnx_model = onnx.load(modelpath)
-        metadata = _get_leaderboard_data(onnx_model, eval_metrics)
-
-    else: 
-        # No ONNX model available - use _get_leaderboard_data with None
-        # This will safely inject defaults
-        metadata = _get_leaderboard_data(None, eval_metrics)
-
-
-    if custom_metadata is not None: 
-
-        metadata = dict(metadata, **custom_metadata)
-
-    # }}}
-
-    # Adding extra details to metadata {{{
-    metadata["username"] = os.environ.get("username")
-    metadata["timestamp"] = str(datetime.now())
-    metadata["version"] = model_version
-
-    # }}}
-    temp=tmp.mkdtemp()
-    #TODO: send above data in post call to /eval and update master table on back end rather than downloading locally.
-    #Either way something is breaking and the s3 version should still work right??
-    # Read existing table {{{
-    try:
-        import wget
-
-        #Get leaderboard
-        leaderboardfilename = wget.download(s3_presigned_dict['get'][mastertable_path], out=temp+"/"+mastertable_path)
-        import pandas as pd
-        leaderboard=pd.read_csv(temp+"/"+mastertable_path, sep="\t")
-
-        columns = leaderboard.columns
-        
-    except:
-        # Create leaderboard if not exists
-        # FIXME: Find a better way to get columns
-        import pandas as pd
-        columns = list(metadata.keys())
-        leaderboard = pd.DataFrame(columns=columns)
-
-    # }}}
-
-    # Update the leaderboard {{{
-
-    metadata_temp = {col: metadata.get(col, None) for col in columns}
-    metadata = dict(metadata, **metadata_temp)
-    leaderboard.loc[len(leaderboard)] = metadata
-
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        leaderboard['username']=leaderboard.pop("username")
-        leaderboard['timestamp'] = leaderboard.pop("timestamp")
-        leaderboard['version'] = leaderboard.pop("version")
-        
-    leaderboard_csv = leaderboard.to_csv(temp+"/"+mastertable_path,index=False, sep="\t")
-    metadata.pop("model_config", "pop worked")
-
-
-    try:
-
-      putfilekeys=list(s3_presigned_dict['put'].keys())
-      modelputfiles = [s for s in putfilekeys if str("csv") in s]
-
-      fileputlistofdicts=[]
-      for i in modelputfiles:
-        filedownload_dict=ast.literal_eval(s3_presigned_dict['put'][i])
-        fileputlistofdicts.append(filedownload_dict)
-
-
-      with open(temp+"/"+mastertable_path, 'rb') as f:
-        files = {'file': (temp+"/"+mastertable_path, f)}
-
-        if private:
-
-            http_response = requests.post(fileputlistofdicts[1]['url'], data=fileputlistofdicts[1]['fields'], files=files)
-
-        else:
-
-            http_response = requests.post(fileputlistofdicts[0]['url'], data=fileputlistofdicts[0]['fields'], files=files)
-
-        return metadata
-
-    except Exception as err:
-
-        return err
-
  
 
 def _normalize_model_config(model_config, model_type=None):
