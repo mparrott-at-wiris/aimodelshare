@@ -73,7 +73,7 @@ BASIC_NUMERIC = [
 BASIC_CATEGORICAL = ["c_charge_desc"]
 OPTIONAL_FEATURE = "age"  # Only unlock at final rank (Explorer)
 
-MAX_ROWS = 3000
+MAX_ROWS = 4000
 TOP_N_CHARGES = 40
 np.random.seed(42)
 
@@ -411,8 +411,7 @@ def create_model_building_game_beginner_app(theme_primary_hue: str = "indigo") -
     """
 
     with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
-        username = os.environ.get("username") or "New_User"
-
+        username = os.environ.get("username")
         # Loading screen
         with gr.Column(visible=False) as loading_screen:
             gr.Markdown(
@@ -684,4 +683,4 @@ if __name__ == "__main__":
 
     X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data()
     print("Launching Beginner Mode App...")
-    create_model_building_game_beginner_app().launch(debug=False)
+    create_model_building_game_beginner_app().launch(share=False,debug=True)
