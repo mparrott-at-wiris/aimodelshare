@@ -114,6 +114,19 @@ Y_TEST = None
 # 2. Data & Backend Utilities
 # -------------------------------------------------------------------------
 
+def safe_int(value, default=1):
+    """
+    Safely coerce a value to int, returning default if value is None or invalid.
+    Protects against TypeError when Gradio sliders receive None.
+    """
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return default
+
+
 def load_and_prep_data():
     """Load, sample, and prepare raw COMPAS dataset."""
     url = "https://raw.githubusercontent.com/propublica/compas-analysis/master/compas-scores-two-years.csv"
@@ -348,6 +361,10 @@ def run_experiment(
     Core experiment: build, train, submit, refresh leaderboard, rank updates.
     Returns the 11 values expected by the UI.
     """
+    # Coerce slider values to safe integers to prevent TypeError
+    complexity_level = safe_int(complexity_level, 2)
+    data_size_level = safe_int(data_size_level, 1)
+    
     log_output = f"▶ New Experiment\nModel: {model_name_key}\nComplexity: {complexity_level}\nData Size Level: {data_size_level}\nExtra Data: {', '.join(data_to_include) if data_to_include else 'None'}\n"
 
     if playground is None:
@@ -362,8 +379,8 @@ def run_experiment(
             submission_count,
             settings["rank_message"],
             gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
-            gr.update(maximum=settings["complexity_max"], value=settings["complexity_value"]),
-            gr.update(maximum=settings["size_max"], value=settings["size_value"]),
+            gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
+            gr.update(minimum=1, maximum=settings["size_max"], value=settings["size_value"]),
             gr.update(interactive=settings["features_interactive"], value=settings["features_value"])
         )
 
@@ -459,8 +476,8 @@ def run_experiment(
             new_submission_count,
             settings["rank_message"],
             gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
-            gr.update(maximum=settings["complexity_max"], value=settings["complexity_value"]),
-            gr.update(maximum=settings["size_max"], value=settings["size_value"]),
+            gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
+            gr.update(minimum=1, maximum=settings["size_max"], value=settings["size_value"]),
             gr.update(interactive=settings["features_interactive"], value=settings["features_value"])
         )
 
@@ -482,13 +499,13 @@ def run_experiment(
             submission_count,
             settings["rank_message"],
             gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
-            gr.update(maximum=settings["complexity_max"], value=settings["complexity_value"]),
-            gr.update(maximum=settings["size_max"], value=settings["size_value"]),
+            gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
+            gr.update(minimum=1, maximum=settings["size_max"], value=settings["size_value"]),
             gr.update(interactive=settings["features_interactive"], value=settings["features_value"])
         )
 
 
-def refresh_leaderboard():
+def refresh_leaderboard_simple():
     """ 
     Called by 'Refresh' button.
     Returns BOTH summary DataFrames.
@@ -515,7 +532,7 @@ def on_initial_load(username):
     """
     Called by demo.load() to populate the app on startup.
     """
-    team_summary_df, individual_summary_df = refresh_leaderboard() 
+    team_summary_df, individual_summary_df = refresh_leaderboard_simple() 
     initial_ui = compute_rank_settings(0, DEFAULT_MODEL, 2, 1, [])
     return (
         get_model_card(DEFAULT_MODEL), 
@@ -523,8 +540,8 @@ def on_initial_load(username):
         individual_summary_df,
         initial_ui["rank_message"],
         gr.update(choices=initial_ui["model_choices"], value=initial_ui["model_value"], interactive=initial_ui["model_interactive"]),
-        gr.update(maximum=initial_ui["complexity_max"], value=initial_ui["complexity_value"]),
-        gr.update(maximum=initial_ui["size_max"], value=initial_ui["size_value"]),
+        gr.update(minimum=1, maximum=initial_ui["complexity_max"], value=initial_ui["complexity_value"]),
+        gr.update(minimum=1, maximum=initial_ui["size_max"], value=initial_ui["size_value"]),
         gr.update(interactive=initial_ui["features_interactive"], value=initial_ui["features_value"])
     )
 
