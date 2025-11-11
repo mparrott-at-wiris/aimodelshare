@@ -133,6 +133,19 @@ def load_and_prep_data():
 # ---------------------------------------------------------------------
 # Helper Functions
 # ---------------------------------------------------------------------
+def safe_int(value, default=1):
+    """
+    Safely coerce a value to int, returning default if value is None or invalid.
+    Protects against TypeError when Gradio sliders receive None.
+    """
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return default
+
+
 def get_model_card(name):
     return MODEL_TYPES.get(name, {}).get("card", "No description available.")
 
@@ -253,6 +266,9 @@ def run_beginner_experiment(
     submissions,
     username
 ):
+    # Coerce slider value to safe integer to prevent TypeError
+    complexity_level = safe_int(complexity_level, 2)
+    
     log = f"▶ Experiment\nModel: {model_name}\nComplexity: {complexity_level}\nData Size: {size_choice}\nInclude Age: {'Yes' if include_age else 'No'}\n"
 
     if playground is None:
@@ -266,7 +282,7 @@ def run_beginner_experiment(
             submissions,
             state["rank_msg"],
             gr.update(choices=state["models"], value=state["model_value"], interactive=state["model_interactive"]),
-            gr.update(maximum=state["complexity_max"], value=state["complexity_value"]),
+            gr.update(minimum=1, maximum=state["complexity_max"], value=state["complexity_value"]),
             gr.update(choices=state["size_choices"], value=state["size_value"]),
             gr.update(interactive=state["age_enabled"], value=state["age_checked"])
         )
@@ -348,7 +364,7 @@ def run_beginner_experiment(
             new_submissions,
             state["rank_msg"],
             gr.update(choices=state["models"], value=state["model_value"], interactive=state["model_interactive"]),
-            gr.update(maximum=state["complexity_max"], value=state["complexity_value"]),
+            gr.update(minimum=1, maximum=state["complexity_max"], value=state["complexity_value"]),
             gr.update(choices=state["size_choices"], value=state["size_value"]),
             gr.update(interactive=state["age_enabled"], value=state["age_checked"])
         )
@@ -365,7 +381,7 @@ def run_beginner_experiment(
             submissions,
             state["rank_msg"],
             gr.update(choices=state["models"], value=state["model_value"], interactive=state["model_interactive"]),
-            gr.update(maximum=state["complexity_max"], value=state["complexity_value"]),
+            gr.update(minimum=1, maximum=state["complexity_max"], value=state["complexity_value"]),
             gr.update(choices=state["size_choices"], value=state["size_value"]),
             gr.update(interactive=state["age_enabled"], value=state["age_checked"])
         )
@@ -380,7 +396,7 @@ def initial_load(username):
         indiv_df,
         state["rank_msg"],
         gr.update(choices=state["models"], value=state["model_value"], interactive=state["model_interactive"]),
-        gr.update(maximum=state["complexity_max"], value=state["complexity_value"]),
+        gr.update(minimum=1, maximum=state["complexity_max"], value=state["complexity_value"]),
         gr.update(choices=state["size_choices"], value=state["size_value"]),
         gr.update(interactive=state["age_enabled"], value=state["age_checked"])
     )
