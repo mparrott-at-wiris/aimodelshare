@@ -4,24 +4,9 @@ Beginner Mode: Model Building Game (Ètica en Joc) - Justice & Equity Challenge
 Purpose:
 A simplified, scaffolded version of the full model building app for first-time or low-tech learners.
 
-Differences from the advanced version:
-- Fewer initial model choices (Balanced Generalist only → unlock Rule-Maker → unlock all).
-- Complexity slider limited to 1–3.
-- Training data size simplified to Small (40%) vs Full (100%).
-- Sensitive features hidden (only optional 'age' unlock at final rank for discussion).
-- Simplified experiment log & reflective summary.
-- Guided numbered panels explain each action.
-- Reduced cognitive overhead while preserving authentic ML loop.
-
-Ranks:
-0: Trainee (Model: Balanced Generalist, Complexity ≤ 2, Size options limited)
-1: Junior (Adds Rule-Maker, Complexity ≤ 3, Size Full usable)
-2+: Explorer (Unlocks all 4 models + optional Age feature toggle)
-
 Structure:
-- Factory function: create_model_building_game_beginner_app()
+- Factory: create_model_building_game_beginner_app()
 - Launcher: launch_model_building_game_beginner_app()
-
 """
 
 import os
@@ -99,7 +84,6 @@ X_TEST_RAW = None
 Y_TRAIN = None
 Y_TEST = None
 
-
 # ---------------------------------------------------------------------
 # Data Loading
 # ---------------------------------------------------------------------
@@ -113,7 +97,7 @@ def load_and_prep_data():
     if "c_charge_desc" in df.columns:
         top_vals = df["c_charge_desc"].value_counts().head(TOP_N_CHARGES).index
         df["c_charge_desc"] = df["c_charge_desc"].apply(
-            lambda v: v if (isinstance(v, str) and v in top_vals) else "OTHER"
+            lambda v: v if (pd.notna(v) and v in top_vals) else "OTHER"
         )
 
     needed = BASIC_NUMERIC + BASIC_CATEGORICAL + [OPTIONAL_FEATURE]
@@ -129,15 +113,10 @@ def load_and_prep_data():
     )
     return X_train, X_test, y_train, y_test
 
-
 # ---------------------------------------------------------------------
 # Helper Functions
 # ---------------------------------------------------------------------
 def safe_int(value, default=1):
-    """
-    Safely coerce a value to int, returning default if value is None or invalid.
-    Protects against TypeError when Gradio sliders receive None.
-    """
     if value is None:
         return default
     try:
@@ -145,10 +124,8 @@ def safe_int(value, default=1):
     except (ValueError, TypeError):
         return default
 
-
 def get_model_card(name):
     return MODEL_TYPES.get(name, {}).get("card", "No description available.")
-
 
 def tune_model(model, complexity_level):
     lvl = int(complexity_level)
@@ -162,7 +139,6 @@ def tune_model(model, complexity_level):
     elif isinstance(model, KNeighborsClassifier):
         model.n_neighbors = {1: 25, 2: 10, 3: 5}.get(lvl, 10)
     return model
-
 
 def compute_rank_state(submissions, current_model, current_complexity, current_size, include_age):
     """
@@ -207,7 +183,6 @@ def compute_rank_state(submissions, current_model, current_complexity, current_s
             "age_enabled": True,
             "age_checked": include_age
         }
-
 
 def summarize_leaderboard(team_name, username):
     if playground is None:
@@ -255,7 +230,6 @@ def summarize_leaderboard(team_name, username):
     except Exception as e:
         return pd.DataFrame(), pd.DataFrame(), f"Error loading leaderboard: {e}", 0.0
 
-
 def run_beginner_experiment(
     model_name,
     complexity_level,
@@ -266,10 +240,22 @@ def run_beginner_experiment(
     submissions,
     username
 ):
-    # Coerce slider value to safe integer to prevent TypeError
+    # ---- Normalize transient/invalid inputs (Gradio 5.x safety) ----
+    if not model_name or model_name not in MODEL_TYPES:
+        model_name = DEFAULT_MODEL
+    size_choice = size_choice if size_choice in ["Small (40%)", "Full (100%)"] else "Small (40%)"
+    include_age = bool(include_age)
+
+    # Coerce slider value to safe integer
     complexity_level = safe_int(complexity_level, 2)
-    
-    log = f"▶ Experiment\nModel: {model_name}\nComplexity: {complexity_level}\nData Size: {size_choice}\nInclude Age: {'Yes' if include_age else 'No'}\n"
+
+    log = (
+        f"▶ Experiment\n"
+        f"Model: {model_name}\n"
+        f"Complexity: {complexity_level}\n"
+        f"Data Size: {size_choice}\n"
+        f"Include Age: {'Yes' if include_age else 'No'}\n"
+    )
 
     if playground is None:
         state = compute_rank_state(submissions, model_name, complexity_level, size_choice, include_age)
@@ -386,7 +372,6 @@ def run_beginner_experiment(
             gr.update(interactive=state["age_enabled"], value=state["age_checked"])
         )
 
-
 def initial_load(username):
     team_df, indiv_df, feedback, _ = summarize_leaderboard(CURRENT_TEAM_NAME, username)
     state = compute_rank_state(0, DEFAULT_MODEL, 2, "Small (40%)", False)
@@ -400,7 +385,6 @@ def initial_load(username):
         gr.update(choices=state["size_choices"], value=state["size_value"]),
         gr.update(interactive=state["age_enabled"], value=state["age_checked"])
     )
-
 
 # ---------------------------------------------------------------------
 # Gradio App Factory
@@ -464,16 +448,21 @@ def create_model_building_game_beginner_app(theme_primary_hue: str = "indigo") -
             gr.Markdown("<h1 style='text-align:center;'>🛠️ Build a Model</h1>")
             rank_message_display = gr.Markdown("Rank loading...")
 
-            # Hidden states
+            # Hidden states (buffer all dynamic inputs)
             team_state = gr.State(CURRENT_TEAM_NAME)
             last_acc_state = gr.State(0.0)
             submissions_state = gr.State(0)
+
+            model_state = gr.State(DEFAULT_MODEL)
+            complexity_state = gr.State(2)
+            size_state = gr.State("Small (40%)")
+            age_state = gr.State(False)
 
             with gr.Row():
                 with gr.Column(scale=1):
                     with gr.Group():
                         gr.Markdown("### 1️⃣ Choose Model")
-                        model_radio = gr.Radio(label="Model", choices=[], interactive=False)
+                        model_radio = gr.Radio(label="Model", choices=[], interactive=False, value=None)
                         model_card = gr.Markdown(get_model_card(DEFAULT_MODEL))
 
                     with gr.Group():
@@ -582,7 +571,18 @@ def create_model_building_game_beginner_app(theme_primary_hue: str = "indigo") -
         )
 
         # Interactions
-        model_radio.change(get_model_card, model_radio, model_card)
+
+        # Keep the model card in sync
+        model_radio.change(fn=get_model_card, inputs=model_radio, outputs=model_card)
+        # Mirror Radio into state (coerce None -> DEFAULT_MODEL)
+        model_radio.change(fn=lambda v: v or DEFAULT_MODEL, inputs=model_radio, outputs=model_state)
+
+        # Mirror Slider into state
+        complexity_slider.change(fn=lambda v: v, inputs=complexity_slider, outputs=complexity_state)
+        # Mirror size Radio into state (coerce None -> default)
+        size_radio.change(fn=lambda v: v or "Small (40%)", inputs=size_radio, outputs=size_state)
+        # Mirror Checkbox into state (coerce None -> False)
+        age_checkbox.change(fn=lambda v: bool(v), inputs=age_checkbox, outputs=age_state)
 
         def toggle_details(show):
             if not show:
@@ -597,13 +597,14 @@ def create_model_building_game_beginner_app(theme_primary_hue: str = "indigo") -
 
         show_details.change(toggle_details, show_details, details_box)
 
+        # Use **states** as inputs for submit
         submit_btn.click(
             fn=run_beginner_experiment,
             inputs=[
-                model_radio,
-                complexity_slider,
-                size_radio,
-                age_checkbox,
+                model_state,        # buffered radio
+                complexity_state,   # buffered slider
+                size_state,         # buffered radio
+                age_state,          # buffered checkbox
                 team_state,
                 last_acc_state,
                 submissions_state,
@@ -650,7 +651,6 @@ def create_model_building_game_beginner_app(theme_primary_hue: str = "indigo") -
 
     return demo
 
-
 # ---------------------------------------------------------------------
 # Launcher
 # ---------------------------------------------------------------------
@@ -670,7 +670,6 @@ def launch_model_building_game_beginner_app(height: int = 1100, share: bool = Fa
     with contextlib.redirect_stdout(open(os.devnull, "w")), contextlib.redirect_stderr(open(os.devnull, "w")):
         app.launch(share=share, inline=True, debug=debug, height=height)
 
-
 # ---------------------------------------------------------------------
 # Entrypoint
 # ---------------------------------------------------------------------
@@ -685,4 +684,4 @@ if __name__ == "__main__":
 
     X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data()
     print("Launching Beginner Mode App...")
-    create_model_building_game_beginner_app().launch(debug=True)
+    create_model_building_game_beginner_app().launch(debug=False)
