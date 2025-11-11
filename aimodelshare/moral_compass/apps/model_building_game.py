@@ -109,7 +109,6 @@ X_TEST_RAW = None
 Y_TRAIN = None
 Y_TEST = None
 
-
 # -------------------------------------------------------------------------
 # 2. Data & Backend Utilities
 # -------------------------------------------------------------------------
@@ -125,7 +124,6 @@ def safe_int(value, default=1):
         return int(value)
     except (ValueError, TypeError):
         return default
-
 
 def load_and_prep_data():
     """Load, sample, and prepare raw COMPAS dataset."""
@@ -163,7 +161,6 @@ def load_and_prep_data():
     )
     return X_train_raw, X_test_raw, y_train, y_test
 
-
 def tune_model_complexity(model, level):
     """Map a simple 1–5 slider value to model hyperparameters."""
     level = int(level)
@@ -186,7 +183,6 @@ def tune_model_complexity(model, level):
         model.n_neighbors = k_map.get(level, 10)
 
     return model
-
 
 def generate_competitive_summary(leaderboard_df, team_name, username):
     """
@@ -272,7 +268,6 @@ def generate_competitive_summary(leaderboard_df, team_name, username):
     )
     return team_summary, individual_summary, feedback_text, latest_accuracy
 
-
 def refresh_leaderboard(team_name, username):
     """Get latest leaderboard summaries."""
     if playground is None:
@@ -284,10 +279,8 @@ def refresh_leaderboard(team_name, username):
     except Exception:
         return pd.DataFrame(), pd.DataFrame()
 
-
 def get_model_card(model_name):
     return MODEL_TYPES.get(model_name, {}).get("card", "No description available.")
-
 
 def compute_rank_settings(submission_count, current_model, current_complexity, current_size, current_features):
     """
@@ -346,7 +339,6 @@ def compute_rank_settings(submission_count, current_model, current_complexity, c
             "features_value": current_features
         }
 
-
 def run_experiment(
     model_name_key,
     complexity_level,
@@ -361,6 +353,11 @@ def run_experiment(
     Core experiment: build, train, submit, refresh leaderboard, rank updates.
     Returns the 11 values expected by the UI.
     """
+    # Normalize transient None from UI components
+    if not model_name_key or model_name_key not in MODEL_TYPES:
+        model_name_key = DEFAULT_MODEL
+    data_to_include = data_to_include or []
+
     # Coerce slider values to safe integers to prevent TypeError
     complexity_level = safe_int(complexity_level, 2)
     data_size_level = safe_int(data_size_level, 1)
@@ -504,7 +501,6 @@ def run_experiment(
             gr.update(interactive=settings["features_interactive"], value=settings["features_value"])
         )
 
-
 def refresh_leaderboard_simple():
     """ 
     Called by 'Refresh' button.
@@ -524,10 +520,6 @@ def refresh_leaderboard_simple():
     except Exception:
         return pd.DataFrame(), pd.DataFrame()
 
-def get_model_card(model_name_key):
-    """ Returns the description card for the selected model. """
-    return MODEL_TYPES.get(model_name_key, {}).get("card", "No description found.")
-
 def on_initial_load(username):
     """
     Called by demo.load() to populate the app on startup.
@@ -544,7 +536,6 @@ def on_initial_load(username):
         gr.update(minimum=1, maximum=initial_ui["size_max"], value=initial_ui["size_value"]),
         gr.update(interactive=initial_ui["features_interactive"], value=initial_ui["features_value"])
     )
-
 
 # -------------------------------------------------------------------------
 # 3. Factory Function: Build Gradio App
@@ -633,6 +624,12 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             team_name_state = gr.State(CURRENT_TEAM_NAME)
             last_accuracy_state = gr.State(0.0)
             submission_count_state = gr.State(0)
+
+            # Buffered states for all dynamic inputs
+            model_type_state = gr.State(DEFAULT_MODEL)
+            complexity_state = gr.State(2)
+            data_size_state = gr.State(1)
+            data_include_state = gr.State([])
 
             rank_message_display = gr.Markdown("### Rank loading...")
             with gr.Row():
@@ -778,19 +775,39 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         )
 
         # Events
+
+        # Keep model card updated
         model_type_radio.change(
             fn=get_model_card,
             inputs=model_type_radio,
             outputs=model_card_display
         )
+        # Mirror radio into state; coerce None -> DEFAULT_MODEL
+        model_type_radio.change(
+            fn=lambda v: v or DEFAULT_MODEL,
+            inputs=model_type_radio,
+            outputs=model_type_state
+        )
 
+        # Mirror sliders into states to avoid None during preprocess
+        complexity_slider.change(fn=lambda v: v, inputs=complexity_slider, outputs=complexity_state)
+        data_size_slider.change(fn=lambda v: v, inputs=data_size_slider, outputs=data_size_state)
+
+        # Mirror checkbox into state; coerce None -> []
+        data_include_checkbox.change(
+            fn=lambda v: v or [],
+            inputs=data_include_checkbox,
+            outputs=data_include_state
+        )
+
+        # Use STATE values (not raw components) as inputs for the click event
         submit_button.click(
             fn=run_experiment,
             inputs=[
-                model_type_radio,
-                complexity_slider,
-                data_size_slider,
-                data_include_checkbox,
+                model_type_state,     # buffered radio
+                complexity_state,     # buffered slider
+                data_size_state,      # buffered slider
+                data_include_state,   # buffered checkbox
                 team_name_state,
                 last_accuracy_state,
                 submission_count_state,
@@ -836,7 +853,6 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
 
     return demo
 
-
 # -------------------------------------------------------------------------
 # 4. Convenience Launcher
 # -------------------------------------------------------------------------
@@ -860,7 +876,6 @@ def launch_model_building_game_app(height: int = 1200, share: bool = False, debu
     with contextlib.redirect_stdout(open(os.devnull, "w")), contextlib.redirect_stderr(open(os.devnull, "w")):
         demo.launch(share=share, inline=True, debug=debug, height=height)
 
-
 # -------------------------------------------------------------------------
 # 5. Script Entrypoint
 # -------------------------------------------------------------------------
@@ -877,4 +892,4 @@ if __name__ == "__main__":
     X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data()
     print("--- Launching App ---")
     app = create_model_building_game_app()
-    app.launch(debug=True)
+    app.launch(debug=False)
