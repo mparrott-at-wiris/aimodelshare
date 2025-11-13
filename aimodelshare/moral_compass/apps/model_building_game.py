@@ -892,6 +892,8 @@ model_type_radio = None
 complexity_slider = None
 feature_set_checkbox = None
 data_size_radio = None
+# This one will be assigned globally but is also defined in the function
+# first_submission_score_state = None 
 
 def run_experiment(
     model_name_key,
@@ -1433,7 +1435,9 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
 
     # Define globals for yield
     global submit_button, submission_feedback_display, team_leaderboard_display
-    global individual_leaderboard_display, last_submission_score_state, last_rank_state, submission_count_state
+    # --- THIS IS THE FIXED LINE ---
+    global individual_leaderboard_display, last_submission_score_state, last_rank_state, submission_count_state, first_submission_score_state
+    # --- END OF FIX ---
     global rank_message_display, model_type_radio, complexity_slider
     global feature_set_checkbox, data_size_radio
 
@@ -1541,16 +1545,16 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 """
                 ### The Data Challenge
                 To compete, you have access to thousands of old case files. You have two distinct types of information:
-                 
+                
                 1. **Defendant Profiles:** This is like what the judge saw at the time of arrest.
                    * *Age, Number of Prior Offenses, Type of Charge.*
-                 
+                
                 2. **Historical Outcomes:** This is what actually happened to those people later.
                    * *Did they re-offend within 2 years? (Yes/No)*
-                 
+                
                 ### The Core Task
                 You need to teach your AI to look at the "Profiles" and accurately predict the "Outcome."
-                 
+                
                 **Ready to build something that could change how justice works?**
                 """
             )
@@ -1569,7 +1573,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             gr.Markdown(
                 """
                 Before we start competing, let's break down exactly what you are building.
-                 
+                
                 ### Think of a Model as a "Prediction Machine."
                 You already know the flow:
                 """
@@ -1594,7 +1598,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             gr.Markdown(
                 """
                 ### The 3 Components:
-                 
+                
                 **1. The Inputs (Data)**
                 The information you feed the machine.
                 * *Examples: Age, Prior Crimes, Charge Details.*
@@ -1608,7 +1612,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 * *Example: Risk Level: High or Low.*
 
                 ---
-                 
+                
                 **How it learns:** You show the model thousands of old cases (Inputs) + what actually happened (Outcomes). It studies them to find the rules, so it can make predictions on new cases it hasn't seen before.
                 """
             )
@@ -1626,10 +1630,10 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             gr.Markdown(
                 """
                 Now that you know the components of a model, how do you build a better one?
-                 
+                
                 ### Here is the secret:
                 Real AI teams almost never get it right on the first try. Instead, they follow a continuous loop of experimentation: **Try, Test, Learn, Repeat.**
-                 
+                
                 ### The Experiment Loop:
                 1. **Build a Model:** Assemble your components and get a starting prediction accuracy score.
                 2. **Ask a Question:** (e.g., "What happens if I change the 'Brain' type?")
@@ -1792,7 +1796,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 ### How You Improve: The Game
                 * **Compete to Improve:** Refine your model to beat your personal best score.
                 * **Get Promoted as an Engineer & Unlock Tools:** As you submit more models, you rise in rank and unlock better analysis tools:
-                 
+                
                 <div style='text-align:center; font-weight:bold; font-size:1.2rem; color:#4f46e5; margin:16px 0;'>
                 Trainee → Junior → Senior → Lead Engineer
                 </div>
