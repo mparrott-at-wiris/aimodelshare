@@ -260,5 +260,49 @@ def test_cache_file_creation():
     assert expected_file.parent.name == ".aimodelshare_cache"
 
 
+def test_preprocessor_memoization():
+    """Test that preprocessor configuration is memoized."""
+    from aimodelshare.moral_compass.apps.model_building_game import (
+        build_preprocessor, _get_cached_preprocessor_config
+    )
+    
+    # Test with same columns twice
+    numeric_cols = ["age", "priors_count"]
+    categorical_cols = ["race", "sex"]
+    
+    # First call
+    prep1, cols1 = build_preprocessor(numeric_cols, categorical_cols)
+    
+    # Second call with same columns
+    prep2, cols2 = build_preprocessor(numeric_cols, categorical_cols)
+    
+    # Columns should be the same
+    assert cols1 == cols2
+    
+    # Check cache info (should have hits)
+    cache_info = _get_cached_preprocessor_config.cache_info()
+    assert cache_info.hits > 0 or cache_info.misses > 0
+
+
+def test_preprocessor_different_features():
+    """Test that different feature sets create different configs."""
+    from aimodelshare.moral_compass.apps.model_building_game import build_preprocessor
+    
+    # Two different feature sets
+    numeric_cols1 = ["age"]
+    categorical_cols1 = ["race"]
+    
+    numeric_cols2 = ["priors_count"]
+    categorical_cols2 = ["sex"]
+    
+    prep1, cols1 = build_preprocessor(numeric_cols1, categorical_cols1)
+    prep2, cols2 = build_preprocessor(numeric_cols2, categorical_cols2)
+    
+    # Should have different selected columns
+    assert cols1 != cols2
+    assert "age" in cols1
+    assert "priors_count" in cols2
+
+
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])

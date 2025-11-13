@@ -12,6 +12,20 @@ Structure:
 - Convenience wrapper `launch_model_building_game_app()` launches it inline (for notebooks)
 
 ---
+V26 Updates - Early Experience Performance & UX Enhancements:
+- Asynchronous background initialization (dataset, competition, leaderboard)
+- Cached dataset downloads (~/.aimodelshare_cache, 24h validity)
+- Progressive data sampling (small → medium → large → full)
+- Warm mini dataset (300 rows) for instant preview when data not ready
+- Status polling panel with ✅/⏳ icons and error display
+- Skeleton placeholders for leaderboards during loading (shimmer animation)
+- Simplified navigation (removed artificial two-step loading screens)
+- Dynamic UI state management (banners, disabled controls until ready)
+- Preview mode: runs on warm subset, shows orange card, doesn't submit
+- Preprocessor memoization with @lru_cache for efficiency
+- Layout stability: min-heights prevent shifts during loading
+- Accessibility: reduced-motion fallback for animations
+
 V25 Updates:
 - Styled Slide 1 to match the standard 'panel-box' theme.
 - Removed pink ethical reminder below the game interface.
@@ -433,7 +447,7 @@ def _background_initializer():
 def _fit_default_preprocessor():
     """
     Pre-fit a default preprocessor on the small sample with default features.
-    This is cached for potential future use.
+    Uses memoized preprocessor builder for efficiency.
     """
     if "Small (20%)" not in X_TRAIN_SAMPLES_MAP:
         return
@@ -447,23 +461,9 @@ def _fit_default_preprocessor():
     if not numeric_cols and not categorical_cols:
         return
     
-    num_tf = Pipeline(steps=[
-        ("imputer", SimpleImputer(strategy="median")),
-        ("scaler", StandardScaler())
-    ])
-    cat_tf = Pipeline(steps=[
-        ("imputer", SimpleImputer(strategy="constant", fill_value="missing")),
-        ("onehot", OneHotEncoder(handle_unknown="ignore", sparse_output=False))
-    ])
-    
-    transformers = []
-    if numeric_cols:
-        transformers.append(("num", num_tf, numeric_cols))
-    if categorical_cols:
-        transformers.append(("cat", cat_tf, categorical_cols))
-    
-    preprocessor = ColumnTransformer(transformers=transformers, remainder="drop")
-    preprocessor.fit(X_sample[numeric_cols + categorical_cols])
+    # Use memoized builder
+    preprocessor, selected_cols = build_preprocessor(numeric_cols, categorical_cols)
+    preprocessor.fit(X_sample[selected_cols])
 
 def start_background_init():
     """
@@ -539,6 +539,54 @@ def get_available_data_sizes():
         available.append("Full (100%)")
     
     return available if available else ["Small (20%)"]  # Fallback
+
+@functools.lru_cache(maxsize=32)
+def _get_cached_preprocessor_config(numeric_cols_tuple, categorical_cols_tuple):
+    """
+    Create and return preprocessor configuration (memoized).
+    Uses tuples for hashability in lru_cache.
+    
+    Returns tuple of (transformers_list, selected_columns) ready for ColumnTransformer.
+    """
+    numeric_cols = list(numeric_cols_tuple)
+    categorical_cols = list(categorical_cols_tuple)
+    
+    transformers = []
+    selected_cols = []
+    
+    if numeric_cols:
+        num_tf = Pipeline(steps=[
+            ("imputer", SimpleImputer(strategy="median")),
+            ("scaler", StandardScaler())
+        ])
+        transformers.append(("num", num_tf, numeric_cols))
+        selected_cols.extend(numeric_cols)
+    
+    if categorical_cols:
+        cat_tf = Pipeline(steps=[
+            ("imputer", SimpleImputer(strategy="constant", fill_value="missing")),
+            ("onehot", OneHotEncoder(handle_unknown="ignore", sparse_output=False))
+        ])
+        transformers.append(("cat", cat_tf, categorical_cols))
+        selected_cols.extend(categorical_cols)
+    
+    return transformers, selected_cols
+
+def build_preprocessor(numeric_cols, categorical_cols):
+    """
+    Build a preprocessor using cached configuration.
+    The configuration (pipeline structure) is memoized; the actual fit is not.
+    """
+    # Convert to tuples for caching
+    numeric_tuple = tuple(sorted(numeric_cols))
+    categorical_tuple = tuple(sorted(categorical_cols))
+    
+    transformers, selected_cols = _get_cached_preprocessor_config(numeric_tuple, categorical_tuple)
+    
+    # Create new ColumnTransformer with cached config
+    preprocessor = ColumnTransformer(transformers=transformers, remainder="drop")
+    
+    return preprocessor, selected_cols
 
 def tune_model_complexity(model, level):
     """Map a simple 1–5 slider value to model hyperparameters."""
@@ -958,17 +1006,11 @@ def run_experiment(
             if not numeric_cols and not categorical_cols:
                 raise ValueError("No features selected for modeling.")
             
-            # Quick preprocessing and training on warm mini
-            num_tf = Pipeline(steps=[("imputer", SimpleImputer(strategy="median")), ("scaler", StandardScaler())])
-            cat_tf = Pipeline(steps=[("imputer", SimpleImputer(strategy="constant", fill_value="missing")),
-                                     ("onehot", OneHotEncoder(handle_unknown="ignore", sparse_output=False))])
-            transformers = []
-            if numeric_cols: transformers.append(("num", num_tf, numeric_cols))
-            if categorical_cols: transformers.append(("cat", cat_tf, categorical_cols))
-            preprocessor = ColumnTransformer(transformers=transformers, remainder="drop")
+            # Quick preprocessing and training on warm mini (uses memoized preprocessor)
+            preprocessor, selected_cols = build_preprocessor(numeric_cols, categorical_cols)
             
-            X_warm_processed = preprocessor.fit_transform(X_TRAIN_WARM[numeric_cols + categorical_cols])
-            X_test_processed = preprocessor.transform(X_TEST_RAW[numeric_cols + categorical_cols])
+            X_warm_processed = preprocessor.fit_transform(X_TRAIN_WARM[selected_cols])
+            X_test_processed = preprocessor.transform(X_TEST_RAW[selected_cols])
             
             base_model = MODEL_TYPES[model_name_key]["model_builder"]()
             tuned_model = tune_model_complexity(base_model, complexity_level)
@@ -1056,17 +1098,11 @@ def run_experiment(
         if not numeric_cols and not categorical_cols:
             raise ValueError("No features selected for modeling.")
 
-        # C. Preprocessing
-        num_tf = Pipeline(steps=[("imputer", SimpleImputer(strategy="median")), ("scaler", StandardScaler())])
-        cat_tf = Pipeline(steps=[("imputer", SimpleImputer(strategy="constant", fill_value="missing")),
-                                 ("onehot", OneHotEncoder(handle_unknown="ignore", sparse_output=False))])
-        transformers = []
-        if numeric_cols: transformers.append(("num", num_tf, numeric_cols))
-        if categorical_cols: transformers.append(("cat", cat_tf, categorical_cols))
-        preprocessor = ColumnTransformer(transformers=transformers, remainder="drop")
+        # C. Preprocessing (uses memoized preprocessor builder)
+        preprocessor, selected_cols = build_preprocessor(numeric_cols, categorical_cols)
 
-        X_train_processed = preprocessor.fit_transform(X_train_sampled[numeric_cols + categorical_cols])
-        X_test_processed = preprocessor.transform(X_TEST_RAW[numeric_cols + categorical_cols])
+        X_train_processed = preprocessor.fit_transform(X_train_sampled[selected_cols])
+        X_test_processed = preprocessor.transform(X_TEST_RAW[selected_cols])
 
         # D. Model build & tune
         base_model = MODEL_TYPES[model_name_key]["model_builder"]()
