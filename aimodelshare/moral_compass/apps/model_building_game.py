@@ -902,6 +902,7 @@ def run_experiment(
     last_submission_score, 
     last_rank, 
     submission_count,
+    first_submission_score,
     username,
     progress=gr.Progress()
 ):
@@ -1101,6 +1102,12 @@ def run_experiment(
         # No need for Step 5 HTML update, jumping to results
 
         new_submission_count = submission_count + 1
+        
+        # Track first submission score
+        new_first_submission_score = first_submission_score
+        if submission_count == 0 and first_submission_score is None:
+            new_first_submission_score = this_submission_score
+        
         settings = compute_rank_settings(
             new_submission_count, model_name_key, complexity_level, feature_set, data_size_str
         )
@@ -1112,6 +1119,7 @@ def run_experiment(
             last_submission_score_state: this_submission_score, 
             last_rank_state: new_rank, 
             submission_count_state: new_submission_count,
+            first_submission_score_state: new_first_submission_score,
             rank_message_display: settings["rank_message"],
             model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
             complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
@@ -1133,6 +1141,7 @@ def run_experiment(
             last_submission_score_state: last_submission_score,
             last_rank_state: last_rank,
             submission_count_state: submission_count,
+            first_submission_score_state: first_submission_score,
             rank_message_display: settings["rank_message"],
             model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
             complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
@@ -1189,6 +1198,66 @@ def on_initial_load(username):
         gr.update(choices=initial_ui["feature_set_choices"], value=initial_ui["feature_set_value"], interactive=initial_ui["feature_set_interactive"]),
         gr.update(choices=initial_ui["data_size_choices"], value=initial_ui["data_size_value"], interactive=initial_ui["data_size_interactive"]),
     )
+
+# -------------------------------------------------------------------------
+# Conclusion helpers
+# -------------------------------------------------------------------------
+
+def build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set):
+    unlocked_tiers = min(3, max(0, submissions - 1))  # 0..3
+    tier_names = ["Trainee", "Junior", "Senior", "Lead"]
+    reached = tier_names[:unlocked_tiers+1]
+    tier_line = " → ".join([f"{t}{' ✅' if t in reached else ''}" for t in tier_names])
+    improvement = (best_score - first_score) if (first_score is not None and submissions > 1) else 0.0
+    strong_predictors = {"age", "length_of_stay", "priors_count", "age_cat"}
+    strong_used = [f for f in feature_set if f in strong_predictors]
+
+    ethical_note = (
+        "You unlocked powerful predictors. Consider: Would removing demographic fields change fairness? "
+        "Real engineering balances accuracy with equity."
+    )
+
+    # Tailor message for very few submissions
+    if submissions < 2:
+        starter_msg = (
+            "<div style='background:#fef9c3; padding:16px; border-radius:12px; border-left:6px solid #f59e0b; text-align:left;'>"
+            "<b>Tip:</b> Try at least 2–3 submissions changing ONE setting at a time to see clear cause/effect."
+            "</div>"
+        )
+    else:
+        starter_msg = ""
+
+    return f"""
+    <div style='text-align:center;'>
+      <h1 style='font-size:2.4rem; margin:0;'>🎉 Engineering Phase Complete</h1>
+      <div style='background:#e0f2fe; padding:28px; border-radius:18px; border:3px solid #0369a1; margin-top:24px; max-width:950px; margin-left:auto; margin-right:auto;'>
+        <h2 style='margin-top:0;'>Your Performance Snapshot</h2>
+        <ul style='list-style:none; padding:0; font-size:1.05rem; text-align:left; max-width:640px; margin:20px auto;'>
+          <li>🏁 <b>Best Accuracy:</b> {best_score:.4f}</li>
+          <li>📊 <b>Rank Achieved:</b> {('#'+str(rank)) if rank > 0 else '—'}</li>
+          <li>🔁 <b>Submissions:</b> {submissions}</li>
+          <li>🧗 <b>Improvement Over First Score:</b> {improvement:+.4f}</li>
+          <li>🎖️ <b>Tier Progress:</b> {tier_line}</li>
+          <li>🧪 <b>Strong Predictors Used:</b> {len(strong_used)} ({', '.join(strong_used) if strong_used else 'None yet'})</li>
+        </ul>
+        {starter_msg}
+        <div style='background:#fef9c3; padding:18px; border-radius:12px; border-left:6px solid #f59e0b; text-align:left; font-size:0.98rem; line-height:1.4;'>
+          <p style='margin:0;'><b>Ethical Reflection:</b> {ethical_note}</p>
+        </div>
+        <hr style='margin:28px 0; border-top:2px solid #94a3b8;'>
+        <h2 style='margin:0;'>➡️ Next: Real-World Consequences</h2>
+        <p style='font-size:1.0rem;'>Scroll below this app to continue. You'll examine how models like yours shape judicial outcomes.</p>
+        <h1 style='margin:12px 0; font-size:3rem; animation:pulseArrow 2.5s infinite;'>👇 SCROLL DOWN 👇</h1>
+        <div style='margin-top:24px; display:flex; flex-wrap:wrap; justify-content:center; gap:12px;'>
+          <button onclick='window.scrollTo({{top:0,behavior:"smooth"}});' style='padding:14px 22px; font-size:0.95rem; background:#4f46e5; color:#fff; border:none; border-radius:8px; cursor:pointer;'>🔁 Refine Again</button>
+          <button style='padding:14px 22px; font-size:0.95rem; background:#16a34a; color:#fff; border:none; border-radius:8px; cursor:pointer;' onclick='navigator.clipboard.writeText("Model Arena Complete | Best Accuracy {best_score:.4f} | Rank {rank if rank>0 else '-'} | Submissions {submissions}")'>📋 Copy Summary</button>
+        </div>
+      </div>
+    </div>
+    """
+
+def build_conclusion_from_state(best_score, submissions, rank, first_score, feature_set):
+    return build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set)
 
 # -------------------------------------------------------------------------
 # 3. Factory Function: Build Gradio App
@@ -1348,6 +1417,17 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         font-size: 1.1rem;
         color: #6b7280;
         margin-top: 8px;
+    }
+    
+    /* Pulse arrow animation for conclusion */
+    @keyframes pulseArrow {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.08); opacity: 0.85; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    
+    @media (prefers-reduced-motion: reduce) {
+        [style*='pulseArrow'] { animation: none !important; }
     }
     """
 
@@ -1751,6 +1831,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             last_submission_score_state = gr.State(0.0)
             last_rank_state = gr.State(0)
             submission_count_state = gr.State(0)
+            first_submission_score_state = gr.State(None)
 
             # Buffered states for all dynamic inputs
             model_type_state = gr.State(DEFAULT_MODEL)
@@ -1836,29 +1917,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         # Conclusion Step
         with gr.Column(visible=False) as conclusion_step:
             gr.Markdown("<h1 style='text-align:center;'>✅ Section Complete</h1>")
-
-            final_score_display = gr.Markdown("### Your Final Results:")
-
-            gr.HTML("<div class='leaderboard-box'>")
-            gr.Markdown(
-                """
-                ### ✅ Section Complete
-
-                **💡 What you learned by doing:**
-                * Choice of Model Strategy gives different starting scores
-                * More complex ≠ always better
-                * More data generally helps model performance
-                * Data inputs like previous criminal activity can help the model learn.
-
-                Now you have built model optimized to predict criminal risk on a specific dataset. Next let's explore how it affects the real world.
-
-                ---
-                <h2 style='text-align:center; margin-top:16px;'>👇 SCROLL DOWN 👇</h2>
-                <p style='text-align:center;'>Scroll down in the notebook to continue to the next learning section.</p>
-                """
-            )
-            gr.HTML("</div>")
-
+            final_score_display = gr.HTML(value="<p>Preparing final summary...</p>")
             step_3_back = gr.Button("◀️ Back to Experiment")
 
         # --- Navigation Logic ---
@@ -1882,16 +1941,17 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 return updates
             return _nav
 
-        def navigate_to_step_3(feedback_text):
-            """Direct navigation to conclusion without loading screen."""
+        def finalize_and_show_conclusion(best_score, submissions, rank, first_score, feature_set):
+            """Build dynamic conclusion HTML and navigate to conclusion step."""
+            html = build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set)
             updates = {
                 conclusion_step: gr.update(visible=True),
-                final_score_display: gr.HTML(feedback_text) 
+                final_score_display: gr.update(value=html)
             }
             for s in all_steps_nav:
                 if s != conclusion_step:
                     updates[s] = gr.update(visible=False)
-            return updates
+            return [updates[s] if s in updates else gr.update() for s in all_steps_nav] + [html]
 
         # Wire up slide buttons
         briefing_1_next.click(
@@ -1963,8 +2023,14 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
 
         # App -> Conclusion
         step_2_next.click(
-            fn=navigate_to_step_3,
-            inputs=[submission_feedback_display],
+            fn=finalize_and_show_conclusion,
+            inputs=[
+                last_submission_score_state,
+                submission_count_state,
+                last_rank_state,
+                first_submission_score_state,
+                feature_set_state
+            ],
             outputs=all_steps_nav + [final_score_display],
             js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
         )
@@ -2007,6 +2073,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             last_submission_score_state,
             last_rank_state,
             submission_count_state,
+            first_submission_score_state,
             rank_message_display,
             model_type_radio,
             complexity_slider,
@@ -2026,6 +2093,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 last_submission_score_state,
                 last_rank_state,
                 submission_count_state,
+                first_submission_score_state,
                 gr.State(username)
             ],
             outputs=all_outputs,
