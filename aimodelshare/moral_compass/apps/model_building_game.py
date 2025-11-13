@@ -12,16 +12,13 @@ Structure:
 - Convenience wrapper `launch_model_building_game_app()` launches it inline (for notebooks)
 
 ---
-V17 Updates:
-- (V17) Replaced plain text submission feedback with a visual "KPI Card" (HTML/CSS)
-        that shows score/rank changes with color and icons.
-- (V17) Replaced 'gr.DataFrame' leaderboards with 'gr.HTML' components to
-        allow for custom styling.
-- (V17) The user's row on the individual leaderboard (and their team's row)
-        is now highlighted with a blue background and bold text.
-- (V17) Added 'last_rank_state' to track rank changes for the KPI card.
-- (V17) Renamed 'last_accuracy_state' to 'last_submission_score_state' for clarity.
-- (V16) Kept all V16 7-slide introductory flow.
+V23 Updates:
+- (V23) **BUG FIX:** Removed the 'theme_mode="light"' argument from
+        gr.Blocks() constructor, which was causing a TypeError in
+        Gradio v5.49.1.
+- (V22) Kept the explicit 'color' CSS properties from V22, which correctly
+        fixes the dark mode readability issue.
+- (V21-V9) Kept all V21-V9 optimizations and UI logic.
 ---
 """
 
@@ -174,24 +171,24 @@ def load_and_prep_data():
     NOW PRE-SAMPLES ALL DATA SIZES.
     """
     url = "https://raw.githubusercontent.com/propublica/compas-analysis/master/compas-scores-two-years.csv"
-
+    
     response = requests.get(url)
     df = pd.read_csv(StringIO(response.text))
-
+    
     # Calculate length_of_stay
     try:
         df['c_jail_in'] = pd.to_datetime(df['c_jail_in'])
         df['c_jail_out'] = pd.to_datetime(df['c_jail_out'])
         df['length_of_stay'] = (df['c_jail_out'] - df['c_jail_in']).dt.total_seconds() / (24 * 60 * 60) # in days
     except Exception:
-        df['length_of_stay'] = np.nan
+        df['length_of_stay'] = np.nan 
 
     if df.shape[0] > MAX_ROWS:
         df = df.sample(n=MAX_ROWS, random_state=42)
 
     feature_columns = ALL_NUMERIC_COLS + ALL_CATEGORICAL_COLS
     feature_columns = sorted(list(set(feature_columns)))
-
+    
     target_column = "two_year_recid"
 
     if "c_charge_desc" in df.columns:
@@ -212,22 +209,22 @@ def load_and_prep_data():
     X_train_raw, X_test_raw, y_train, y_test = train_test_split(
         X, y, test_size=0.25, random_state=42, stratify=y
     )
-
+    
     # (V10) Pre-sample all data sizes
     global X_TRAIN_SAMPLES_MAP, Y_TRAIN_SAMPLES_MAP
-
+    
     X_TRAIN_SAMPLES_MAP["Full (100%)"] = X_train_raw
     Y_TRAIN_SAMPLES_MAP["Full (100%)"] = y_train
-
+    
     for label, frac in DATA_SIZE_MAP.items():
         if frac < 1.0:
             X_train_sampled = X_train_raw.sample(frac=frac, random_state=42)
             y_train_sampled = y_train.loc[X_train_sampled.index]
             X_TRAIN_SAMPLES_MAP[label] = X_train_sampled
             Y_TRAIN_SAMPLES_MAP[label] = y_train_sampled
-
+            
     print(f"Pre-sampling complete. {len(X_TRAIN_SAMPLES_MAP)} data sizes cached.")
-
+    
     return X_train_raw, X_test_raw, y_train, y_test
 
 def tune_model_complexity(model, level):
@@ -253,19 +250,19 @@ def tune_model_complexity(model, level):
 
 def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_count):
     """Generates the HTML for the KPI feedback card."""
-
+    
     # 1. Handle First Submission
     if submission_count == 0:
         title = "🎉 First Model Submitted!"
         acc_color = "#16a34a" # green
         acc_text = f"{new_score:.4f}"
         acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>(Your first score!)</p>"
-
+        
         rank_color = "#3b82f6" # blue
         rank_text = f"#{new_rank}"
         rank_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #3b82f6; margin:0;'>You're on the board!</p>"
         border_color = acc_color
-
+    
     else:
         # 2. Handle Score Changes
         score_diff = new_score - last_score
@@ -339,7 +336,7 @@ def _build_team_html(team_summary_df, team_name):
         </thead>
         <tbody>
     """
-
+    
     body = ""
     for index, row in team_summary_df.iterrows():
         is_user_team = row["Team"] == team_name
@@ -353,7 +350,7 @@ def _build_team_html(team_summary_df, team_name):
             <td>{row['Submissions']}</td>
         </tr>
         """
-
+        
     footer = "</tbody></table>"
     return header + body + footer
 
@@ -374,7 +371,7 @@ def _build_individual_html(individual_summary_df, username):
         </thead>
         <tbody>
     """
-
+    
     body = ""
     for index, row in individual_summary_df.iterrows():
         is_user = row["Engineer"] == username
@@ -387,7 +384,7 @@ def _build_individual_html(individual_summary_df, username):
             <td>{row['Submissions']}</td>
         </tr>
         """
-
+        
     footer = "</tbody></table>"
     return header + body + footer
 
@@ -432,14 +429,14 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
     new_rank = 0
     new_best_accuracy = 0.0
     this_submission_score = 0.0
-
+    
     try:
         my_submissions = leaderboard_df[leaderboard_df["username"] == username].sort_values(
             by="timestamp", ascending=False
         )
         if not my_submissions.empty:
             this_submission_score = my_submissions.iloc[0]["accuracy"]
-
+        
         my_rank_row = individual_summary_df[individual_summary_df["Engineer"] == username]
         if not my_rank_row.empty:
             new_rank = my_rank_row.index[0]
@@ -462,21 +459,21 @@ def get_model_card(model_name):
     return MODEL_TYPES.get(model_name, {}).get("card", "No description available.")
 
 def compute_rank_settings(
-    submission_count,
-    current_model,
-    current_complexity,
-    current_feature_set,
+    submission_count, 
+    current_model, 
+    current_complexity, 
+    current_feature_set, 
     current_data_size
 ):
     """(V9) Returns rank gating settings."""
-
+    
     def get_choices_for_rank(rank):
         if rank == 0: # Trainee
             return [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in FEATURE_SET_GROUP_1_VALS]
         if rank == 1: # Junior
             return [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in (FEATURE_SET_GROUP_1_VALS + FEATURE_SET_GROUP_2_VALS)]
         return FEATURE_SET_ALL_OPTIONS # Senior+
-
+    
     if submission_count == 0:
         return {
             "rank_message": "### 🧑‍🎓 Rank: Trainee Engineer\n<p style='font-size:16px; line-height:1.4;'>Your controls are limited. For your first submission, just use the defaults and click the big '🔬 Build & Submit Model' button below!</p>",
@@ -566,19 +563,19 @@ def run_experiment(
     """
     (V17) Core experiment: Now uses 'yield' and HTML helpers.
     """
-
+    
     # --- Stage 1: Lock UI and give initial feedback ---
     initial_updates = {
         submit_button: gr.update(value="🔬 (1/5) Starting Experiment...", interactive=False),
-        submission_feedback_display: gr.update(value="Starting experiment..."),
+        submission_feedback_display: gr.update(value="<p style='text-align:center; padding: 20px 0;'>Starting experiment...</p>"),
     }
     yield initial_updates
-
+    
     if not model_name_key or model_name_key not in MODEL_TYPES:
         model_name_key = DEFAULT_MODEL
     feature_set = feature_set or []
     complexity_level = safe_int(complexity_level, 2)
-
+    
     log_output = f"▶ New Experiment\nModel: {model_name_key}\n..."
 
     if playground is None:
@@ -586,10 +583,10 @@ def run_experiment(
              submission_count, model_name_key, complexity_level, feature_set, data_size_str
         )
         error_updates = {
-            submission_feedback_display: "<p>Playground not connected.</p>",
+            submission_feedback_display: "<p style='text-align:center; color:red; padding:20px 0;'>Playground not connected.</p>",
             submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
-            team_leaderboard_display: "<p>Playground not connected.</p>",
-            individual_leaderboard_display: "<p>Playground not connected.</p>",
+            team_leaderboard_display: "<p style='text-align:center; color:red; padding-top:20px;'>Playground not connected.</p>",
+            individual_leaderboard_display: "<p style='text-align:center; color:red; padding-top:20px;'>Playground not connected.</p>",
             last_submission_score_state: last_submission_score,
             last_rank_state: last_rank,
             submission_count_state: submission_count,
@@ -604,7 +601,7 @@ def run_experiment(
 
     try:
         # --- Stage 2: Train Model (Local) ---
-        yield { submission_feedback_display: gr.update(value="🔬 (2/5) Training model locally...") }
+        yield { submission_feedback_display: gr.update(value="<p style='text-align:center; padding: 20px 0;'>🔬 (2/5) Training model locally...</p>") }
 
         # A. (V10) Get pre-sampled data
         sample_frac = DATA_SIZE_MAP.get(data_size_str, 0.2)
@@ -618,7 +615,7 @@ def run_experiment(
         for feat in feature_set:
             if feat in ALL_NUMERIC_COLS: numeric_cols.append(feat)
             elif feat in ALL_CATEGORICAL_COLS: categorical_cols.append(feat)
-
+        
         if not numeric_cols and not categorical_cols:
             raise ValueError("No features selected for modeling.")
 
@@ -643,28 +640,28 @@ def run_experiment(
         log_output += "Training done.\n"
 
         # --- Stage 3: Submit (API Call 1) ---
-        yield { submission_feedback_display: gr.update(value="📡 (3/5) Submitting model to leaderboard...") }
+        yield { submission_feedback_display: gr.update(value="<p style='text-align:center; padding: 20px 0;'>📡 (3/5) Submitting model to leaderboard...</p>") }
 
         predictions = tuned_model.predict(X_test_processed)
         description = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
         tags = f"team:{team_name},model:{model_name_key}"
-
+        
         playground.submit_model(
             model=tuned_model, preprocessor=preprocessor, prediction_submission=predictions,
             input_dict={'description': description, 'tags': tags},
-            custom_metadata={'Team': team_name, 'Moral_Compass': 0}
+            custom_metadata={'Team': team_name, 'Moral_Compass': 0} 
         )
         log_output += "\nSUCCESS! Model submitted.\n"
 
         # --- Stage 4: Refresh Leaderboard (API Call 2) ---
-        yield { submission_feedback_display: gr.update(value="🏆 (4/5) Fetching new leaderboard rankings...") }
-
+        yield { submission_feedback_display: gr.update(value="<p style='text-align:center; padding: 20px 0;'>🏆 (4/5) Fetching new leaderboard rankings...</p>") }
+        
         full_leaderboard_df = playground.get_leaderboard()
 
         # (V17) Call new summary function
         team_html, individual_html, kpi_card_html, new_best_accuracy, new_rank, this_submission_score = generate_competitive_summary(
-            full_leaderboard_df,
-            team_name,
+            full_leaderboard_df, 
+            team_name, 
             username,
             last_submission_score,
             last_rank,
@@ -672,8 +669,8 @@ def run_experiment(
         )
 
         # --- Stage 5: Final UI Update ---
-        yield { submission_feedback_display: gr.update(value="✅ (5/5) All done! Updating results.") }
-
+        yield { submission_feedback_display: gr.update(value="<p style='text-align:center; padding: 20px 0;'>✅ (5/5) All done! Updating results.</p>") }
+        
         new_submission_count = submission_count + 1
         settings = compute_rank_settings(
             new_submission_count, model_name_key, complexity_level, feature_set, data_size_str
@@ -701,9 +698,9 @@ def run_experiment(
              submission_count, model_name_key, complexity_level, feature_set, data_size_str
         )
         error_updates = {
-            submission_feedback_display: f"<p>An error occurred: {error_msg}</p>",
-            team_leaderboard_display: "<p>Error loading data.</p>",
-            individual_leaderboard_display: "<p>Error loading data.</p>",
+            submission_feedback_display: f"<p style='text-align:center; color:red; padding:20px 0;'>An error occurred: {error_msg}</p>",
+            team_leaderboard_display: "<p style='text-align:center; color:red; padding-top:20px;'>Error loading data.</p>",
+            individual_leaderboard_display: "<p style='text-align:center; color:red; padding-top:20px;'>Error loading data.</p>",
             last_submission_score_state: last_submission_score,
             last_rank_state: last_rank,
             submission_count_state: submission_count,
@@ -719,32 +716,30 @@ def run_experiment(
 
 def on_initial_load(username):
     """(V17) Updated to load HTML leaderboards."""
-
-    # Get initial settings
+    
     initial_ui = compute_rank_settings(
         0, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE
     )
-
-    # Get initial leaderboard state
+    
     team_html = "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Submit a model to see team rankings.</p>"
     individual_html = "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Submit a model to see individual rankings.</p>"
     try:
         if playground:
             full_leaderboard_df = playground.get_leaderboard()
             team_html, individual_html, _, _, _, _ = generate_competitive_summary(
-                full_leaderboard_df,
-                CURRENT_TEAM_NAME,
+                full_leaderboard_df, 
+                CURRENT_TEAM_NAME, 
                 username,
-                0, 0, -1 # Use -1 to signal "initial load"
+                0, 0, -1
             )
     except Exception as e:
         print(f"Error on initial load: {e}")
-        team_html = "<p>Could not load leaderboard.</p>"
-        individual_html = "<p>Could not load leaderboard.</p>"
+        team_html = "<p style='text-align:center; color:red; padding-top:20px;'>Could not load leaderboard.</p>"
+        individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>Could not load leaderboard.</p>"
 
     return (
-        get_model_card(DEFAULT_MODEL),
-        team_html,
+        get_model_card(DEFAULT_MODEL), 
+        team_html, 
         individual_html,
         initial_ui["rank_message"],
         gr.update(choices=initial_ui["model_choices"], value=initial_ui["model_value"], interactive=initial_ui["model_interactive"]),
@@ -764,22 +759,22 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
     css = """
     .panel-box {
         background:#fef3c7; padding:20px; border-radius:16px;
-        border:2px solid #f59e0b; margin-bottom:18px;
+        border:2px solid #f59e0b; margin-bottom:18px; color: #92400e;
     }
     .leaderboard-box {
         background:#dbeafe; padding:20px; border-radius:16px;
-        border:2px solid #3b82f6; margin-top:12px;
+        border:2px solid #3b82f6; margin-top:12px; color: #1e3a8a;
     }
     .slide-content {
         max-width: 900px; margin-left: auto; margin-right: auto;
     }
     .step-visual {
-        display:flex; flex-wrap: wrap; justify-content:space-around;
+        display:flex; flex-wrap: wrap; justify-content:space-around; 
         align-items:center; margin: 24px 0; text-align:center; font-size: 1rem;
     }
     .step-visual-box {
-        padding:16px; background:white; border-radius:8px;
-        border:2px solid #6366f1; margin: 5px;
+        padding:16px; background:white; border-radius:8px; 
+        border:2px solid #6366f1; margin: 5px; color: #1f2937;
     }
     .step-visual-arrow { font-size: 2rem; color: #6b7280; margin: 5px; }
     .mock-button {
@@ -789,6 +784,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
     }
     .mock-ui-box {
         background: #f9fafb; border: 2px solid #e5e7eb; padding: 24px; border-radius: 16px;
+        color: #1f2937;
     }
     .mock-ui-inner {
         background: #ffffff; border: 1px solid #e5e7eb; padding: 24px; border-radius: 12px;
@@ -800,11 +796,12 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
     .mock-ui-radio-off { font-size: 1.5rem; vertical-align: middle; color: #d1d5db; }
     .mock-ui-slider-text { font-size: 1.5rem; margin:0; color: #4f46e5; letter-spacing: 4px; }
     .mock-ui-slider-bar { color: #d1d5db; }
-
+    
     /* (V17) New KPI Card Styles */
     .kpi-card {
         background: #f9fafb; border: 2px solid #16a34a; padding: 24px;
         border-radius: 16px; text-align: center; max-width: 600px; margin: auto;
+        color: #111827;
     }
     .kpi-card-body {
         display: flex; flex-wrap: wrap; justify-content: space-around;
@@ -813,11 +810,11 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
     .kpi-metric-box { min-width: 150px; margin: 10px; }
     .kpi-label { font-size: 1rem; color: #6b7280; margin:0; }
     .kpi-score { font-size: 3rem; font-weight: 700; margin:0; line-height: 1.1; }
-
+    
     /* (V17) New Leaderboard Table Styles */
     .leaderboard-html-table {
         width: 100%; border-collapse: collapse; text-align: left;
-        font-size: 1rem;
+        font-size: 1rem; color: #1f2937;
     }
     .leaderboard-html-table thead { background: #f3f4f6; }
     .leaderboard-html-table th {
@@ -832,13 +829,14 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         color: #1e3a8a; /* dark blue */
     }
     """
-
+    
     # (V10) Define globals for yield
     global submit_button, submission_feedback_display, team_leaderboard_display
     global individual_leaderboard_display, last_submission_score_state, last_rank_state, submission_count_state
     global rank_message_display, model_type_radio, complexity_slider
     global feature_set_checkbox, data_size_radio
 
+    # (V22) Removed 'theme_mode="light"' to fix crash in Gradio v5.49.1
     with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css) as demo:
         username = os.environ.get("username") or "Unknown_User"
 
@@ -851,32 +849,101 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 </div>
                 """
             )
-
-        # --- (V16) New 7-Slide Briefing Slideshow ---
-
-        # (V16) Slide 1: Your Mission
+            
+        # --- (V21) New 7-Slide Briefing Slideshow ---
+            
+        # (V19) Slide 1: From Understanding to Building
         with gr.Column(visible=True) as briefing_slide_1:
-            gr.Markdown("<h1 style='text-align:center;'>🚀 Your Mission</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🔄 From Understanding to Building</h1>")
+            gr.HTML(
+                """
+                <div class='slide-content'>
+                <div class='leaderboard-box' style='border-color: #16a34a;'>
+                <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>Great progress! You've now:</h3>
+                
+                <ul style='list-style: none; padding-left: 0; margin-top: 24px; margin-bottom: 24px;'>
+                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
+                        <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
+                        Made tough decisions as a judge using AI predictions
+                    </li>
+                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
+                        <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
+                        Learned about false positives and false negatives
+                    </li>
+                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
+                        <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
+                        Understood how AI works:
+                    </li>
+                </ul>
+                
+                <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
+                    <div style='display:inline-block; background:#dbeafe; padding:12px 16px; border-radius:8px; margin:4px;'>
+                        <h3 style='margin:0; color:#0369a1;'>INPUT</h3>
+                    </div>
+                    <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
+                    <div style='display:inline-block; background:#fef3c7; padding:12px 16px; border-radius:8px; margin:4px;'>
+                        <h3 style='margin:0; color:#92400e;'>MODEL</h3>
+                    </div>
+                    <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
+                    <div style='display:inline-block; background:#f0fdf4; padding:12px 16px; border-radius:8px; margin:4px;'>
+                        <h3 style='margin:0; color:#15803d;'>OUTPUT</h3>
+                    </div>
+                </div>
+                
+                <hr style='margin: 24px 0; border-top: 2px solid #c7d2fe;'>
+                
+                <h3 style='font-size: 1.5rem; text-align:center;'>Now it's time to step into the shoes of an AI Engineer.</h3>
+                <p style='font-size: 1.1rem; text-align:center; margin-top: 12px;'>
+                    <strong>Your New Challenge:</strong> Build AI models that are more accurate than the one you used as a judge.
+                </p>
+                <p style='font-size: 1.1rem; text-align:center; margin-top: 12px;'>
+                    Remember: You experienced firsthand how AI predictions affect real people's lives. Use that knowledge to build something better.
+                </p>
+                </div>
+                </div>
+                """
+            )
+            briefing_1_next = gr.Button("Next ▶️", variant="primary", size="lg")
+        
+        # (V19) Slide 2: Your Engineering Mission
+        with gr.Column(visible=False) as briefing_slide_2:
+            gr.Markdown("<h1 style='text-align:center;'>⚗️ Your Engineering Mission</h1>")
             gr.HTML("<div class='slide-content'>")
-            gr.HTML("<div class='leaderboard-box'>")
+            gr.HTML("<div class='panel-box'>")
             gr.Markdown(
                 f"""
-                ### 🚀 Welcome, Engineer!
-                You have joined **Team: {CURRENT_TEAM_NAME}**.
+                ### You're about to compete with other engineers... and as a team!
+                To help you in your mission, you've been assigned to an engineering team. Your results will be tracked both individually and as a group on the Live Standings.
+                """
+            )
+            gr.HTML(
+                f"""
+                <div class='leaderboard-box' style='max-width: 600px; margin: 16px auto; text-align: center; padding: 16px;'>
+                    <p style='font-size: 1.1rem; margin:0;'>Your team is:</p>
+                    <h3 style='font-size: 1.75rem; color: #4338ca; margin: 8px 0;'>
+                        {CURRENT_TEAM_NAME}
+                    </h3>
+                </div>
+                """
+            )
+            gr.Markdown(
+                """
+                **The Data Challenge:**
+                * **Defendant profiles:** Age, prior offenses, charge details
+                * **Historical outcomes:** Who *actually* re-offended
+                * **Your goal:** Predict future risk more accurately
 
-                Your goal is to build the best prediction models possible.
-
-                **Why?** To help judges get the best, most accurate information, so they can make better decisions and help real people.
-
-                This app requires **no technical experience**. You are about to see how easy it is.
+                Ready to build something that could change how justice works?
                 """
             )
             gr.HTML("</div>")
             gr.HTML("</div>")
-            briefing_1_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
-        # (V16) Slide 2: How to Play
-        with gr.Column(visible=False) as briefing_slide_2:
+            with gr.Row():
+                briefing_2_back = gr.Button("◀️ Back", size="lg")
+                briefing_2_next = gr.Button("Next ▶️", variant="primary", size="lg")
+                
+        # (V18) Slide 3: How to Play
+        with gr.Column(visible=False) as briefing_slide_3:
             gr.Markdown("<h1 style='text-align:center;'>🕹️ How to Play</h1>")
             gr.HTML("<div class='slide-content'>")
             gr.HTML("<div class='panel-box'>")
@@ -908,11 +975,11 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             gr.HTML("</div>")
             gr.HTML("</div>")
             with gr.Row():
-                briefing_2_back = gr.Button("◀️ Back", size="lg")
-                briefing_2_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
-        # (V16) Slide 3: The Experiment Loop
-        with gr.Column(visible=False) as briefing_slide_3:
+                briefing_3_back = gr.Button("◀️ Back", size="lg")
+                briefing_3_next = gr.Button("Next ▶️", variant="primary", size="lg")
+                
+        # (V18) Slide 4: The Experiment Loop
+        with gr.Column(visible=False) as briefing_slide_4:
             gr.Markdown("<h1 style='text-align:center;'>🔁 The Experiment Loop</h1>")
             gr.HTML("<div class='slide-content'>")
             gr.HTML("<div class='panel-box'>")
@@ -951,76 +1018,20 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             gr.HTML("</div>")
             gr.HTML("</div>")
             with gr.Row():
-                briefing_3_back = gr.Button("◀️ Back", size="lg")
-                briefing_3_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
-        # (V16) Slide 4: Control Knobs (Part 1)
-        with gr.Column(visible=False) as briefing_slide_4:
-            gr.Markdown("<h1 style='text-align:center;'>🎛️ Your Control Knobs (Part 1)</h1>")
-            gr.HTML("<div class='slide-content'>")
-            gr.HTML("<div class='panel-box'>")
-            gr.Markdown(
-                """
-                ### 1. Model Strategy
-                * **What it is:** Your starting plan, or *how* the model learns. Different "strategies" are just different types of models that learn in different ways.
-                * **Why it matters:** Some are simple and fast, others are powerful and complex. Choosing the right one is your first big decision.
-                * **Examples in your app:**
-                    * **The Balanced Generalist:** A reliable, all-purpose model. It's fast and gives good, stable results.
-                    * **The Rule-Maker:** This model learns simple "if... then..." rules from the data (e.g., "IF priors_count > 3, THEN risk is high").
-                    * **The Deep Pattern-Finder:** A very powerful model that can find hidden, complex connections. It's slower, but can be very accurate.
-
-                ### 2. Model Complexity
-                * **What it is:** This tunes *how much detail* your chosen model should learn.
-                * **Why it matters:**
-                    * **Low Complexity (Level 1):** Tells the model to "learn only the most basic, obvious rules." It's fast, but might miss important details.
-                    * **High Complexity (Level 5):** Tells the model to "learn every tiny, specific detail." This can be very powerful, but also risks "memorizing" the practice data instead of learning the real pattern.
-                """
-            )
-            gr.HTML("</div>")
-            gr.HTML("</div>")
-            with gr.Row():
                 briefing_4_back = gr.Button("◀️ Back", size="lg")
                 briefing_4_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
-        # (V16) Slide 5: Control Knobs (Part 2)
+        # (V21) Slide 5: Control Knobs (Part 1)
         with gr.Column(visible=False) as briefing_slide_5:
-            gr.Markdown("<h1 style='text-align:center;'>🎛️ Your Control Knobs (Part 2)</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🎛️ Your Control Knobs (Part 1)</h1>")
             gr.HTML("<div class='slide-content'>")
-            gr.HTML("<div class='panel-box'>")
-            gr.Markdown(
-                """
-                ### 3. Data Ingredients
-                * **What it is:** The *information* you feed the model to help it learn. The model can *only* learn from the data you give it.
-                * **Why it matters:** If you give it good information, it can make good predictions. If you give it biased or unfair information (like `Race`), it will learn to make biased and unfair predictions.
-                * **Examples in your app:** You can choose to include `Age`, `Prior Crimes Count`, `Race`, and `Charge Severity`.
-
-                ### 4. Data Size
-                * **What it is:** How much "practice" data you give the model to learn from.
-                * **Why it matters:**
-                    * **Small (20%):** This is very fast! It's great for a quick first test, but the model won't have much data to learn from, so its score might be unstable.
-                    * **Full (100%):** This gives the model the most "practice" possible. It will take a little longer, but it gives the model the best chance to learn the real, underlying patterns.
-                """
-            )
-            gr.HTML("</div>")
-            gr.HTML("</div>")
-            with gr.Row():
-                briefing_5_back = gr.Button("◀️ Back", size="lg")
-                briefing_5_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
-        # (V16) Slide 6: How to Make Selections
-        with gr.Column(visible=False) as briefing_slide_6:
-            gr.Markdown("<h1 style='text-align:center;'>✅ How to Make Selections</h1>")
-            gr.HTML("<div class='slide-content'>")
+            gr.HTML("<div class='mock-ui-box' style='border-color: #f59e0b;'>") # Panel box border
             gr.HTML(
                 """
-                <div class='mock-ui-box'>
-
-                <p style='font-size: 1.25rem; text-align: center; margin-bottom: 24px;'>Now that you know *what* the controls are, here's *how* you'll use them.</p>
-
                 <div class='mock-ui-inner'>
 
+                    <!-- Visually Mocked-up Control 1 -->
                     <h3 style='margin-top:0;'>1. Model Strategy</h3>
-                    <p style='font-size: 16px; margin-bottom: 12px;'><b>How to use:</b> Just click to select one option.</p>
                     <div class='mock-ui-control-box'>
                         <p style='font-size: 1.1rem; margin: 8px 0;'>
                             <span class='mock-ui-radio-on'>◉</span>
@@ -1031,22 +1042,62 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                             ( ) The Rule-Maker
                         </p>
                     </div>
-
+                    
+                    <!-- Explanation 1 -->
+                    <div style='margin-top: 16px; font-size: 1rem;'>
+                        <ul style='list-style-position: inside;'>
+                            <li><b>What it is:</b> Your starting plan, or <i>how</i> the model learns. Different "strategies" are just different types of models that learn in different ways.</li>
+                            <li><b>Why it matters:</b> Some are simple and fast, others are powerful and complex. Choosing the right one is your first big decision.</li>
+                            <li><b>Examples in your app:</b>
+                                <ul style='list-style-position: inside; margin-left: 20px;'>
+                                <li><b>The Balanced Generalist:</b> A reliable, all-purpose model. It's fast and gives good, stable results.</li>
+                                <li><b>The Rule-Maker:</b> This model learns simple "if... then..." rules from the data.</li>
+                                <li><b>The Deep Pattern-Finder:</b> A very powerful model that can find hidden, complex connections.</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    
                     <hr style='margin: 24px 0;'>
 
+                    <!-- Visually Mocked-up Control 2 -->
                     <h3>2. Model Complexity</h3>
-                    <p style='font-size: 16px; margin-bottom: 16px;'><b>How to use:</b> Drag the slider to pick a level from 1 to 5.</p>
                     <div class='mock-ui-control-box' style='text-align: center;'>
                         <p style='font-size: 1.1rem; margin:0;'>Level: 3</p>
                         <p class='mock-ui-slider-text'>
                             <span class='mock-ui-slider-bar'>1 ── 2 ──</span> ● <span class='mock-ui-slider-bar'>── 4 ── 5</span>
                         </p>
                     </div>
+                    
+                    <!-- Explanation 2 -->
+                    <div style='margin-top: 16px; font-size: 1rem;'>
+                        <ul style='list-style-position: inside;'>
+                            <li><b>What it is:</b> This tunes <i>how much detail</i> your chosen model should learn.</li>
+                            <li><b>Why it matters:</b>
+                                <br/>→ <b>Low Complexity (Level 1):</b> Tells the model to "learn only the most basic, obvious rules."
+                                <br/>→ <b>High Complexity (Level 5):</b> Tells the model to "learn every tiny, specific detail." This is powerful, but risks "memorizing" the practice data.</li>
+                        </ul>
+                    </div>
 
-                    <hr style='margin: 24px 0;'>
+                </div>
+                """
+            )
+            gr.HTML("</div></div>")
+            with gr.Row():
+                briefing_5_back = gr.Button("◀️ Back", size="lg")
+                briefing_5_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
-                    <h3>3. Select Data Ingredients</h3>
-                    <p style='font-size: 16px; margin-bottom: 12px;'><b>How to use:</b> Check the boxes for all the data you want to include.</p>
+        # (V21) Slide 6: Control Knobs (Part 2)
+        with gr.Column(visible=False) as briefing_slide_6:
+            gr.Markdown("<h1 style='text-align:center;'>🎛️ Your Control Knobs (Part 2)</h1>")
+            gr.HTML("<div class='slide-content'>")
+            gr.HTML("<div class='mock-ui-box' style='border-color: #f59e0b;'>") # Panel box border
+            gr.HTML(
+                """
+                <div class='mock-ui-inner'>
+
+                    <!-- Visually Mocked-up Control 3 -->
+                    <h3 style='margin-top:0;'>3. Data Ingredients</h3>
                     <div class='mock-ui-control-box'>
                         <p style='font-size: 1.1rem; margin: 8px 0;'>
                             <span class='mock-ui-radio-on'>☑</span>
@@ -1061,11 +1112,19 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                             [ ] Charge Description
                         </p>
                     </div>
-
+                    
+                    <!-- Explanation 3 -->
+                    <div style='margin-top: 16px; font-size: 1rem;'>
+                        <ul style='list-style-position: inside;'>
+                            <li><b>What it is:</b> The <i>information</i> you feed the model to help it learn. The model can <i>only</i> learn from the data you give it.</li>
+                            <li><b>Why it matters:</b> If you give it good information (like `Prior Crimes Count`), it can make good predictions. If you give it biased information (like `Race`), it will learn to make biased predictions.</li>
+                        </ul>
+                    </div>
+                    
                     <hr style='margin: 24px 0;'>
 
+                    <!-- Visually Mocked-up Control 4 -->
                     <h3>4. Data Size</h3>
-                    <p style='font-size: 16px; margin-bottom: 12px;'><b>How to use:</b> Just click to select one option.</p>
                     <div class='mock-ui-control-box'>
                         <p style='font-size: 1.1rem; margin: 8px 0;'>
                             <span class='mock-ui-radio-on'>◉</span>
@@ -1076,17 +1135,26 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                             ( ) Medium (60%)
                         </p>
                     </div>
+                    
+                    <!-- Explanation 4 -->
+                    <div style='margin-top: 16px; font-size: 1rem;'>
+                        <ul style='list-style-position: inside;'>
+                            <li><b>What it is:</b> How much "practice" data you give the model to learn from.</li>
+                            <li><b>Why it matters:</b>
+                                <br/>→ <b>Small (20%):</b> Very fast! Great for a quick first test, but the model won't learn much.
+                                <br/>→ <b>Full (100%):</b> Gives the model the most "practice" possible. It's slower, but gives the model the best chance to learn.</li>
+                        </ul>
+                    </div>
 
-                </div>
                 </div>
                 """
             )
-            gr.HTML("</div>")
+            gr.HTML("</div></div>")
             with gr.Row():
                 briefing_6_back = gr.Button("◀️ Back", size="lg")
                 briefing_6_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
-        # (V16) Slide 7: Your Career as an Engineer
+        # (V21) Slide 7: Your Career as an Engineer
         with gr.Column(visible=False) as briefing_slide_7:
             gr.Markdown("<h1 style='text-align:center;'>🏆 Your Career as an Engineer</h1>")
             gr.HTML("<div class='slide-content'>")
@@ -1094,18 +1162,18 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             gr.Markdown(
                 """
                 ### How You're Scored: The "Final Test"
-                * **How it works:** When you click "Build & Submit Model," your new model is tested on a *hidden* set of data to get its official **Accuracy** score. This is the "final test."
-                * **The Leaderboard:** The **Live Standings** are your gamified leaderboard. This is where your model's Accuracy score is posted for you to track.
-
+                * **How it works:** Your model is tested on hidden data for official Accuracy score
+                * **The Leaderboard:** Live Standings leaderboard tracks your progress
+                
                 ### How You Improve: The Game
-                This is where the game begins!
-                * **Compete to Improve:** The leaderboard tracks your **personal best score** and compares it to other engineers. Your goal is to use the **Experiment Loop** (Try, Test, Learn, Repeat) to beat your own score and climb to the top!
-                * **Get Promoted & Unlock Tools:** This is the best part. As you submit more models and improve your ranking, you will be **promoted** to a new engineering title. With each promotion (like from "Trainee" to "Junior Engineer"), you will be rewarded with **new, more powerful options** (like new model types and more data) to experiment with!
+                * **Compete to Improve:** Compete to improve your personal best score
+                * **Get Promoted & Unlock Tools:** Get promoted & unlock tools as you submit more models
+                * **Trainee → Junior → Senior → Lead Engineer**
 
-                ### Your Mission
-                You are now ready. Use the experiment loop, get promoted, unlock all the tools, and find the best combination to get the highest *and most responsible* score.
-
-                **Good luck, Engineer!**
+                ### Begin Your Mission
+                You are now ready. Use the experiment loop, get promoted, unlock all the tools, and find the best combination to get the highest score.
+                
+                Remember: You've seen how these predictions affect real people. Build accordingly.
                 """
             )
             gr.HTML("</div>")
@@ -1113,8 +1181,8 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             with gr.Row():
                 briefing_7_back = gr.Button("◀️ Back", size="lg")
                 briefing_7_next = gr.Button("Begin Model Building ▶️", variant="primary", size="lg")
-
-        # --- End V16 Slideshow ---
+                
+        # --- End V21 Slideshow ---
 
 
         # (V13) Renamed to 'model_building_step'
@@ -1137,11 +1205,11 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             rank_message_display = gr.Markdown("### Rank loading...")
             with gr.Row():
                 with gr.Column(scale=1):
-
+                    
                     model_type_radio = gr.Radio(
-                        label="1. Model Strategy",
-                        choices=[],
-                        value=None,
+                        label="1. Model Strategy", 
+                        choices=[], 
+                        value=None, 
                         interactive=False
                     )
                     model_card_display = gr.Markdown(get_model_card(DEFAULT_MODEL))
@@ -1155,7 +1223,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                     )
 
                     gr.Markdown("---") # Separator
-
+                    
                     feature_set_checkbox = gr.CheckboxGroup(
                         label="3. Select Data Ingredients",
                         choices=FEATURE_SET_ALL_OPTIONS,
@@ -1165,19 +1233,20 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                     )
 
                     gr.Markdown("---") # Separator
-
+                    
+                    # (V16) Renamed label to "Data Size"
                     data_size_radio = gr.Radio(
-                        label="4. Data Size", # (V16) Renamed
+                        label="4. Data Size",
                         choices=[DEFAULT_DATA_SIZE],
                         value=DEFAULT_DATA_SIZE,
                         interactive=False
                     )
 
                     gr.Markdown("---") # Separator
-
+                    
                     submit_button = gr.Button(
                         value="5. 🔬 Build & Submit Model",
-                        variant="primary",
+                        variant="primary", 
                         size="lg"
                     )
 
@@ -1190,7 +1259,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                         </div>
                         """
                     )
-
+                    
                     # (V17) This is now the KPI Card
                     submission_feedback_display = gr.HTML(
                         "<p style='text-align:center; color:#6b7280; padding:20px 0;'>Submit your first model to get feedback!</p>"
@@ -1220,32 +1289,35 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         # (V13) Renamed to 'conclusion_step'
         with gr.Column(visible=False) as conclusion_step:
             gr.Markdown("<h1 style='text-align:center;'>✅ Section Complete</h1>")
-
+            
             final_score_display = gr.Markdown("### Your Final Results:")
-
+            
             gr.HTML("<div class='leaderboard-box'>")
+            # (V20) Updated conclusion text
             gr.Markdown(
                 """
-                ### 💡 Great work!
-                You've experienced how AI teams experiment. Here's what you learned by doing:
+                ### ✅ Section Complete
 
-                * You learned that your choice of **'Model Strategy'** gives you a different starting score.
-                * You saw that a 'deeper' or **'more complex'** model isn't always better.
-                * You learned how using **more data** (a higher 'Data Size') can help the model.
-                * (V9) You saw how **'Data Ingredients'** are unlocked by predictive power, starting with weak data and ending with the strongest (but most biased) data.
+                **💡 What you learned by doing:**
+                * Choice of Model Strategy gives different starting scores
+                * More complex ≠ always better
+                * More data generally helps model performance
+                * Data inputs like previous criminal activity can help the model learn.
+
+                Now you have built model optimized to predict criminal risk on a specific dataset. Next let's explore how it affects the real world.
 
                 ---
                 <h2 style='text-align:center; margin-top:16px;'>👇 SCROLL DOWN 👇</h2>
                 <p style='text-align:center;'>Scroll down in the notebook to continue to the next learning section.</p>
                 """
             )
-            gr.HTML("</div>")
-
+            gr.HTML("</div>") 
+            
             step_3_back = gr.Button("◀️ Back to Experiment")
 
-        # --- (V16) Updated Navigation logic for 7 slides ---
+        # --- (V21) Updated Navigation logic for 7 slides ---
         all_steps_nav = [
-            briefing_slide_1, briefing_slide_2, briefing_slide_3,
+            briefing_slide_1, briefing_slide_2, briefing_slide_3, 
             briefing_slide_4, briefing_slide_5, briefing_slide_6, briefing_slide_7,
             model_building_step, conclusion_step, loading_screen
         ]
@@ -1257,7 +1329,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                     if s != loading_screen:
                         updates[s] = gr.update(visible=False)
                 yield updates
-
+                
                 updates = {next_step: gr.update(visible=True)}
                 for s in all_steps_nav:
                     if s != next_step:
@@ -1271,7 +1343,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 if s != loading_screen:
                     updates[s] = gr.update(visible=False)
             yield updates
-
+            
             updates = {
                 conclusion_step: gr.update(visible=True),
                 final_score_display: gr.HTML(feedback_text) # (V17) Use HTML
@@ -1280,9 +1352,9 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 if s != conclusion_step:
                     updates[s] = gr.update(visible=False)
             yield updates
-
-        # --- (V16) Wire up all 7 briefing slide buttons ---
-
+        
+        # --- (V21) Wire up all 7 briefing slide buttons ---
+        
         briefing_1_next.click(
             fn=create_nav(briefing_slide_1, briefing_slide_2),
             inputs=None, outputs=all_steps_nav,
@@ -1343,7 +1415,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             inputs=None, outputs=all_steps_nav,
             js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
         )
-
+        
         # Slide 7 -> Model Building App
         briefing_7_next.click(
             fn=create_nav(briefing_slide_7, model_building_step),
@@ -1351,15 +1423,15 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             outputs=all_steps_nav,
             js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
         )
-
+        
         # Model Building App -> Conclusion
         step_2_next.click(
             fn=navigate_to_step_3,
-            inputs=[submission_feedback_display],
-            outputs=all_steps_nav + [final_score_display],
+            inputs=[submission_feedback_display], 
+            outputs=all_steps_nav + [final_score_display], 
             js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
         )
-
+        
         # Conclusion -> Model Building App
         step_3_back.click(
             fn=create_nav(conclusion_step, model_building_step),
@@ -1382,7 +1454,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             outputs=model_type_state
         )
         complexity_slider.change(fn=lambda v: v, inputs=complexity_slider, outputs=complexity_state)
-
+        
         feature_set_checkbox.change(
             fn=lambda v: v or [],
             inputs=feature_set_checkbox,
@@ -1405,11 +1477,11 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             rank_message_display,
             model_type_radio,
             complexity_slider,
-            feature_set_checkbox,
+            feature_set_checkbox, 
             data_size_radio,
             submit_button
         ]
-
+        
         submit_button.click(
             fn=run_experiment,
             inputs=[
