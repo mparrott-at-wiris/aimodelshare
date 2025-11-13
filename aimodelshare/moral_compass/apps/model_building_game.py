@@ -24,6 +24,10 @@ import random
 import requests
 import contextlib
 from io import StringIO
+import threading
+import functools
+from pathlib import Path
+from datetime import datetime, timedelta
 
 import numpy as np
 import pandas as pd
@@ -132,6 +136,8 @@ DEFAULT_DATA_SIZE = "Small (20%)"
 
 MAX_ROWS = 4000
 TOP_N_CHARGE_CATEGORICAL = 50
+WARM_MINI_ROWS = 300  # Small warm dataset for instant preview
+CACHE_MAX_AGE_HOURS = 24  # Cache validity duration
 np.random.seed(42)
 
 # Global state containers (populated during initialization)
@@ -144,9 +150,66 @@ Y_TEST = None
 X_TRAIN_SAMPLES_MAP = {}
 Y_TRAIN_SAMPLES_MAP = {}
 
+# Warm mini dataset for instant preview
+X_TRAIN_WARM = None
+Y_TRAIN_WARM = None
+
+# Cache for transformed test sets (for future performance improvements)
+TEST_CACHE = {}
+
+# Initialization flags to track readiness state
+INIT_FLAGS = {
+    "competition": False,
+    "dataset_core": False,
+    "pre_samples_small": False,
+    "pre_samples_medium": False,
+    "pre_samples_large": False,
+    "pre_samples_full": False,
+    "leaderboard": False,
+    "default_preprocessor": False,
+    "warm_mini": False,
+    "errors": []
+}
+
+# Lock for thread-safe flag updates
+INIT_LOCK = threading.Lock()
+
 # -------------------------------------------------------------------------
 # 2. Data & Backend Utilities
 # -------------------------------------------------------------------------
+
+def _get_cache_dir():
+    """Get or create the cache directory for datasets."""
+    cache_dir = Path.home() / ".aimodelshare_cache"
+    cache_dir.mkdir(exist_ok=True)
+    return cache_dir
+
+def _safe_request_csv(url, cache_filename="compas.csv"):
+    """
+    Request CSV from URL with local caching.
+    Reuses cached file if it exists and is less than CACHE_MAX_AGE_HOURS old.
+    """
+    cache_dir = _get_cache_dir()
+    cache_path = cache_dir / cache_filename
+    
+    # Check if cache exists and is fresh
+    if cache_path.exists():
+        file_time = datetime.fromtimestamp(cache_path.stat().st_mtime)
+        if datetime.now() - file_time < timedelta(hours=CACHE_MAX_AGE_HOURS):
+            print(f"Using cached dataset from {cache_path}")
+            return pd.read_csv(cache_path)
+    
+    # Download fresh data
+    print(f"Downloading dataset from {url}")
+    response = requests.get(url, timeout=30)
+    response.raise_for_status()
+    df = pd.read_csv(StringIO(response.text))
+    
+    # Save to cache
+    df.to_csv(cache_path, index=False)
+    print(f"Dataset cached to {cache_path}")
+    
+    return df
 
 def safe_int(value, default=1):
     """
@@ -160,15 +223,24 @@ def safe_int(value, default=1):
     except (ValueError, TypeError):
         return default
 
-def load_and_prep_data():
+def load_and_prep_data(use_cache=True):
     """
     Load, sample, and prepare raw COMPAS dataset.
-    NOW PRE-SAMPLES ALL DATA SIZES.
+    NOW PRE-SAMPLES ALL DATA SIZES and creates warm mini dataset.
     """
     url = "https://raw.githubusercontent.com/propublica/compas-analysis/master/compas-scores-two-years.csv"
 
-    response = requests.get(url)
-    df = pd.read_csv(StringIO(response.text))
+    # Use cached version if available
+    if use_cache:
+        try:
+            df = _safe_request_csv(url)
+        except Exception as e:
+            print(f"Cache failed, fetching directly: {e}")
+            response = requests.get(url)
+            df = pd.read_csv(StringIO(response.text))
+    else:
+        response = requests.get(url)
+        df = pd.read_csv(StringIO(response.text))
 
     # Calculate length_of_stay
     try:
@@ -206,7 +278,7 @@ def load_and_prep_data():
     )
 
     # Pre-sample all data sizes
-    global X_TRAIN_SAMPLES_MAP, Y_TRAIN_SAMPLES_MAP
+    global X_TRAIN_SAMPLES_MAP, Y_TRAIN_SAMPLES_MAP, X_TRAIN_WARM, Y_TRAIN_WARM
 
     X_TRAIN_SAMPLES_MAP["Full (100%)"] = X_train_raw
     Y_TRAIN_SAMPLES_MAP["Full (100%)"] = y_train
@@ -218,9 +290,255 @@ def load_and_prep_data():
             X_TRAIN_SAMPLES_MAP[label] = X_train_sampled
             Y_TRAIN_SAMPLES_MAP[label] = y_train_sampled
 
+    # Create warm mini dataset for instant preview
+    warm_size = min(WARM_MINI_ROWS, len(X_train_raw))
+    X_TRAIN_WARM = X_train_raw.sample(n=warm_size, random_state=42)
+    Y_TRAIN_WARM = y_train.loc[X_TRAIN_WARM.index]
+
     print(f"Pre-sampling complete. {len(X_TRAIN_SAMPLES_MAP)} data sizes cached.")
+    print(f"Warm mini dataset: {len(X_TRAIN_WARM)} rows")
 
     return X_train_raw, X_test_raw, y_train, y_test
+
+def _background_initializer():
+    """
+    Background thread that performs sequential initialization tasks.
+    Updates INIT_FLAGS dict with readiness booleans and captures errors.
+    
+    Initialization sequence:
+    1. Competition object connection
+    2. Dataset cached download and core split
+    3. Warm mini dataset creation
+    4. Progressive sampling: small → medium → large → full
+    5. Leaderboard prefetch
+    6. Default preprocessor fit on small sample
+    """
+    global playground, X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST
+    
+    try:
+        # Step 1: Connect to competition
+        print("Background init: Connecting to competition...")
+        with INIT_LOCK:
+            if playground is None:
+                playground = Competition(MY_PLAYGROUND_ID)
+            INIT_FLAGS["competition"] = True
+        print("✓ Competition connected")
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Competition connection failed: {str(e)}")
+        print(f"✗ Competition connection failed: {e}")
+    
+    try:
+        # Step 2: Load dataset core (train/test split)
+        print("Background init: Loading dataset core...")
+        X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data(use_cache=True)
+        with INIT_LOCK:
+            INIT_FLAGS["dataset_core"] = True
+        print("✓ Dataset core loaded")
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Dataset loading failed: {str(e)}")
+        print(f"✗ Dataset loading failed: {e}")
+        return  # Cannot proceed without data
+    
+    try:
+        # Step 3: Warm mini dataset (already created in load_and_prep_data)
+        if X_TRAIN_WARM is not None and len(X_TRAIN_WARM) > 0:
+            with INIT_LOCK:
+                INIT_FLAGS["warm_mini"] = True
+            print("✓ Warm mini dataset ready")
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Warm mini dataset failed: {str(e)}")
+        print(f"✗ Warm mini dataset failed: {e}")
+    
+    # Progressive sampling - samples are already created in load_and_prep_data
+    # Just mark them as ready sequentially with delays to simulate progressive loading
+    
+    try:
+        # Step 4a: Small sample (20%)
+        print("Background init: Small sample (20%)...")
+        time.sleep(0.5)  # Simulate processing
+        with INIT_LOCK:
+            INIT_FLAGS["pre_samples_small"] = True
+        print("✓ Small sample ready")
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Small sample failed: {str(e)}")
+        print(f"✗ Small sample failed: {e}")
+    
+    try:
+        # Step 4b: Medium sample (60%)
+        print("Background init: Medium sample (60%)...")
+        time.sleep(0.5)
+        with INIT_LOCK:
+            INIT_FLAGS["pre_samples_medium"] = True
+        print("✓ Medium sample ready")
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Medium sample failed: {str(e)}")
+        print(f"✗ Medium sample failed: {e}")
+    
+    try:
+        # Step 4c: Large sample (80%)
+        print("Background init: Large sample (80%)...")
+        time.sleep(0.5)
+        with INIT_LOCK:
+            INIT_FLAGS["pre_samples_large"] = True
+        print("✓ Large sample ready")
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Large sample failed: {str(e)}")
+        print(f"✗ Large sample failed: {e}")
+    
+    try:
+        # Step 4d: Full sample (100%)
+        print("Background init: Full sample (100%)...")
+        time.sleep(0.5)
+        with INIT_LOCK:
+            INIT_FLAGS["pre_samples_full"] = True
+        print("✓ Full sample ready")
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Full sample failed: {str(e)}")
+        print(f"✗ Full sample failed: {e}")
+    
+    try:
+        # Step 5: Leaderboard prefetch
+        if playground is not None:
+            print("Background init: Prefetching leaderboard...")
+            _ = playground.get_leaderboard()
+            with INIT_LOCK:
+                INIT_FLAGS["leaderboard"] = True
+            print("✓ Leaderboard prefetched")
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Leaderboard prefetch failed: {str(e)}")
+        print(f"✗ Leaderboard prefetch failed: {e}")
+    
+    try:
+        # Step 6: Default preprocessor on small sample
+        print("Background init: Fitting default preprocessor...")
+        _fit_default_preprocessor()
+        with INIT_LOCK:
+            INIT_FLAGS["default_preprocessor"] = True
+        print("✓ Default preprocessor ready")
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Default preprocessor failed: {str(e)}")
+        print(f"✗ Default preprocessor failed: {e}")
+    
+    print("=== Background initialization complete ===")
+
+def _fit_default_preprocessor():
+    """
+    Pre-fit a default preprocessor on the small sample with default features.
+    This is cached for potential future use.
+    """
+    if "Small (20%)" not in X_TRAIN_SAMPLES_MAP:
+        return
+    
+    X_sample = X_TRAIN_SAMPLES_MAP["Small (20%)"]
+    
+    # Use default feature set
+    numeric_cols = [f for f in DEFAULT_FEATURE_SET if f in ALL_NUMERIC_COLS]
+    categorical_cols = [f for f in DEFAULT_FEATURE_SET if f in ALL_CATEGORICAL_COLS]
+    
+    if not numeric_cols and not categorical_cols:
+        return
+    
+    num_tf = Pipeline(steps=[
+        ("imputer", SimpleImputer(strategy="median")),
+        ("scaler", StandardScaler())
+    ])
+    cat_tf = Pipeline(steps=[
+        ("imputer", SimpleImputer(strategy="constant", fill_value="missing")),
+        ("onehot", OneHotEncoder(handle_unknown="ignore", sparse_output=False))
+    ])
+    
+    transformers = []
+    if numeric_cols:
+        transformers.append(("num", num_tf, numeric_cols))
+    if categorical_cols:
+        transformers.append(("cat", cat_tf, categorical_cols))
+    
+    preprocessor = ColumnTransformer(transformers=transformers, remainder="drop")
+    preprocessor.fit(X_sample[numeric_cols + categorical_cols])
+
+def start_background_init():
+    """
+    Start the background initialization thread.
+    Should be called once at app creation.
+    """
+    thread = threading.Thread(target=_background_initializer, daemon=True)
+    thread.start()
+    print("Background initialization started...")
+
+def poll_init_status():
+    """
+    Poll the initialization status and return HTML status display and readiness bool.
+    Called by gr.Timer to update UI.
+    
+    Returns:
+        tuple: (status_html, ready_bool)
+    """
+    with INIT_LOCK:
+        flags = INIT_FLAGS.copy()
+    
+    # Determine if minimum requirements met
+    ready = flags["competition"] and flags["dataset_core"] and flags["pre_samples_small"]
+    
+    # Build status HTML
+    status_items = [
+        ("Competition", flags["competition"]),
+        ("Dataset", flags["dataset_core"]),
+        ("Small Sample", flags["pre_samples_small"]),
+        ("Medium Sample", flags["pre_samples_medium"]),
+        ("Large Sample", flags["pre_samples_large"]),
+        ("Full Sample", flags["pre_samples_full"]),
+        ("Leaderboard", flags["leaderboard"]),
+    ]
+    
+    status_html = "<div style='background:#f9fafb; padding:12px; border-radius:8px; border:1px solid #e5e7eb; font-size:0.9rem;'>"
+    status_html += "<div style='font-weight:600; margin-bottom:8px; color:#374151;'>🔄 Initialization Status</div>"
+    status_html += "<div style='display:grid; grid-template-columns: auto 1fr; gap:8px 12px; color:#1f2937;'>"
+    
+    for label, is_ready in status_items:
+        icon = "✅" if is_ready else "⏳"
+        status_html += f"<div>{icon}</div><div>{label}</div>"
+    
+    status_html += "</div>"
+    
+    # Show last 3 errors if any
+    if flags["errors"]:
+        status_html += "<div style='margin-top:12px; padding-top:12px; border-top:1px solid #e5e7eb;'>"
+        status_html += "<div style='font-weight:600; color:#dc2626; margin-bottom:4px;'>⚠️ Errors:</div>"
+        for err in flags["errors"][-3:]:
+            status_html += f"<div style='color:#991b1b; font-size:0.85rem;'>• {err}</div>"
+        status_html += "</div>"
+    
+    status_html += "</div>"
+    
+    return status_html, ready
+
+def get_available_data_sizes():
+    """
+    Return list of data sizes that are currently available based on init flags.
+    """
+    with INIT_LOCK:
+        flags = INIT_FLAGS.copy()
+    
+    available = []
+    if flags["pre_samples_small"]:
+        available.append("Small (20%)")
+    if flags["pre_samples_medium"]:
+        available.append("Medium (60%)")
+    if flags["pre_samples_large"]:
+        available.append("Large (80%)")
+    if flags["pre_samples_full"]:
+        available.append("Full (100%)")
+    
+    return available if available else ["Small (20%)"]  # Fallback
 
 def tune_model_complexity(model, level):
     """Map a simple 1–5 slider value to model hyperparameters."""
@@ -243,11 +561,61 @@ def tune_model_complexity(model, level):
 
 # --- New Helper Functions for HTML Generation ---
 
-def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_count):
-    """Generates the HTML for the KPI feedback card."""
+def _build_skeleton_leaderboard(rows=6, is_team=True):
+    """
+    Generate a skeleton placeholder for leaderboards during loading.
+    Shows shimmer animation with stable dimensions.
+    """
+    if is_team:
+        headers = ["Rank", "Team", "Best_Score", "Avg_Score", "Submissions"]
+    else:
+        headers = ["Rank", "Engineer", "Best_Score", "Submissions"]
+    
+    skeleton_html = """
+    <div class='skeleton-container'>
+        <table class='leaderboard-html-table'>
+            <thead>
+                <tr>
+    """
+    
+    for header in headers:
+        skeleton_html += f"<th>{header}</th>"
+    
+    skeleton_html += """
+                </tr>
+            </thead>
+            <tbody>
+    """
+    
+    for i in range(rows):
+        skeleton_html += "<tr class='skeleton-row'>"
+        for j in range(len(headers)):
+            skeleton_html += "<td><div class='skeleton-item'></div></td>"
+        skeleton_html += "</tr>"
+    
+    skeleton_html += """
+            </tbody>
+        </table>
+    </div>
+    """
+    
+    return skeleton_html
 
+def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_count, is_preview=False):
+    """Generates the HTML for the KPI feedback card. Supports preview mode label."""
+
+    # Handle preview mode
+    if is_preview:
+        title = "🔬 Preview Run (Warm Subset)"
+        acc_color = "#f59e0b"  # orange
+        acc_text = f"{new_score:.4f}" if new_score > 0 else "N/A"
+        acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #92400e; margin:0; padding-top: 8px;'>(Preview only - not submitted to leaderboard)</p>"
+        border_color = acc_color
+        rank_color = "#f59e0b"
+        rank_text = "Preview"
+        rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #92400e; margin:0;'>Waiting for full data...</p>"
     # 1. Handle First Submission
-    if submission_count == 0:
+    elif submission_count == 0:
         title = "🎉 First Model Submitted!"
         acc_color = "#16a34a" # green
         acc_text = f"{new_score:.4f}"
@@ -555,6 +923,7 @@ def run_experiment(
 ):
     """
     Core experiment: Now uses 'yield' and HTML helpers.
+    Supports preview mode with warm mini dataset if full data not ready.
     """
 
     # --- Stage 1: Lock UI and give initial feedback ---
@@ -571,15 +940,90 @@ def run_experiment(
 
     log_output = f"▶ New Experiment\nModel: {model_name_key}\n..."
 
-    if playground is None:
+    # Check readiness
+    with INIT_LOCK:
+        flags = INIT_FLAGS.copy()
+    
+    ready_for_submission = flags["competition"] and flags["dataset_core"] and flags["pre_samples_small"]
+    
+    # If not ready but warm mini available, run preview
+    if not ready_for_submission and flags["warm_mini"] and X_TRAIN_WARM is not None:
+        yield { submission_feedback_display: gr.update(value="<p style='text-align:center; padding: 20px 0;'>⏳ Running preview with warm subset...</p>") }
+        
+        try:
+            # Run preview on warm mini dataset
+            numeric_cols = [f for f in feature_set if f in ALL_NUMERIC_COLS]
+            categorical_cols = [f for f in feature_set if f in ALL_CATEGORICAL_COLS]
+            
+            if not numeric_cols and not categorical_cols:
+                raise ValueError("No features selected for modeling.")
+            
+            # Quick preprocessing and training on warm mini
+            num_tf = Pipeline(steps=[("imputer", SimpleImputer(strategy="median")), ("scaler", StandardScaler())])
+            cat_tf = Pipeline(steps=[("imputer", SimpleImputer(strategy="constant", fill_value="missing")),
+                                     ("onehot", OneHotEncoder(handle_unknown="ignore", sparse_output=False))])
+            transformers = []
+            if numeric_cols: transformers.append(("num", num_tf, numeric_cols))
+            if categorical_cols: transformers.append(("cat", cat_tf, categorical_cols))
+            preprocessor = ColumnTransformer(transformers=transformers, remainder="drop")
+            
+            X_warm_processed = preprocessor.fit_transform(X_TRAIN_WARM[numeric_cols + categorical_cols])
+            X_test_processed = preprocessor.transform(X_TEST_RAW[numeric_cols + categorical_cols])
+            
+            base_model = MODEL_TYPES[model_name_key]["model_builder"]()
+            tuned_model = tune_model_complexity(base_model, complexity_level)
+            tuned_model.fit(X_warm_processed, Y_TRAIN_WARM)
+            
+            # Get preview score
+            from sklearn.metrics import accuracy_score
+            predictions = tuned_model.predict(X_test_processed)
+            preview_score = accuracy_score(Y_TEST, predictions)
+            
+            # Show preview card
+            preview_html = _build_kpi_card_html(preview_score, 0, 0, 0, -1, is_preview=True)
+            
+            settings = compute_rank_settings(
+                 submission_count, model_name_key, complexity_level, feature_set, data_size_str
+            )
+            
+            final_updates = {
+                submission_feedback_display: preview_html,
+                team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
+                individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
+                last_submission_score_state: last_submission_score,
+                last_rank_state: last_rank,
+                submission_count_state: submission_count,
+                rank_message_display: settings["rank_message"],
+                model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
+                complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
+                feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
+                data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
+                submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True)
+            }
+            yield final_updates
+            return
+            
+        except Exception as e:
+            print(f"Preview failed: {e}")
+            # Fall through to error handling
+    
+    if playground is None or not ready_for_submission:
         settings = compute_rank_settings(
              submission_count, model_name_key, complexity_level, feature_set, data_size_str
         )
+        
+        error_msg = "<p style='text-align:center; color:red; padding:20px 0;'>"
+        if playground is None:
+            error_msg += "Playground not connected. Please try again later."
+        else:
+            error_msg += "Data still initializing. Please wait a moment and try again."
+        error_msg += "</p>"
+        
         error_updates = {
-            submission_feedback_display: "<p style='text-align:center; color:red; padding:20px 0;'>Playground not connected.</p>",
+            submission_feedback_display: error_msg,
             submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
-            team_leaderboard_display: "<p style='text-align:center; color:red; padding-top:20px;'>Playground not connected.</p>",
-            individual_leaderboard_display: "<p style='text-align:center; color:red; padding-top:20px;'>Playground not connected.</p>",
+            team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
+            individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
             last_submission_score_state: last_submission_score,
             last_rank_state: last_rank,
             submission_count_state: submission_count,
@@ -647,7 +1091,12 @@ def run_experiment(
         log_output += "\nSUCCESS! Model submitted.\n"
 
         # --- Stage 4: Refresh Leaderboard (API Call 2) ---
-        yield { submission_feedback_display: gr.update(value="<p style='text-align:center; padding: 20px 0;'>🏆 (4/5) Fetching new leaderboard rankings...</p>") }
+        # Show skeletons while fetching
+        yield {
+            submission_feedback_display: gr.update(value="<p style='text-align:center; padding: 20px 0;'>🏆 (4/5) Fetching new leaderboard rankings...</p>"),
+            team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
+            individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False)
+        }
 
         full_leaderboard_df = playground.get_leaderboard()
 
@@ -708,27 +1157,40 @@ def run_experiment(
 
 
 def on_initial_load(username):
-    """Updated to load HTML leaderboards."""
+    """
+    Updated to load HTML leaderboards with skeleton placeholders during init.
+    Shows skeleton if leaderboard not yet ready, real data otherwise.
+    """
 
     initial_ui = compute_rank_settings(
         0, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE
     )
 
-    team_html = "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Submit a model to see team rankings.</p>"
-    individual_html = "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Submit a model to see individual rankings.</p>"
-    try:
-        if playground:
-            full_leaderboard_df = playground.get_leaderboard()
-            team_html, individual_html, _, _, _, _ = generate_competitive_summary(
-                full_leaderboard_df,
-                CURRENT_TEAM_NAME,
-                username,
-                0, 0, -1
-            )
-    except Exception as e:
-        print(f"Error on initial load: {e}")
-        team_html = "<p style='text-align:center; color:red; padding-top:20px;'>Could not load leaderboard.</p>"
-        individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>Could not load leaderboard.</p>"
+    # Check if leaderboard is ready
+    with INIT_LOCK:
+        leaderboard_ready = INIT_FLAGS["leaderboard"]
+    
+    if not leaderboard_ready:
+        # Show skeleton placeholders while loading
+        team_html = _build_skeleton_leaderboard(rows=6, is_team=True)
+        individual_html = _build_skeleton_leaderboard(rows=6, is_team=False)
+    else:
+        # Try to load real leaderboard data
+        team_html = "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Submit a model to see team rankings.</p>"
+        individual_html = "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Submit a model to see individual rankings.</p>"
+        try:
+            if playground:
+                full_leaderboard_df = playground.get_leaderboard()
+                team_html, individual_html, _, _, _, _ = generate_competitive_summary(
+                    full_leaderboard_df,
+                    CURRENT_TEAM_NAME,
+                    username,
+                    0, 0, -1
+                )
+        except Exception as e:
+            print(f"Error on initial load: {e}")
+            team_html = "<p style='text-align:center; color:red; padding-top:20px;'>Could not load leaderboard.</p>"
+            individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>Could not load leaderboard.</p>"
 
     return (
         get_model_card(DEFAULT_MODEL),
@@ -748,7 +1210,11 @@ def on_initial_load(username):
 def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """
     Create (but do not launch) the model building game app.
+    Starts background initialization automatically.
     """
+    # Start background initialization thread
+    start_background_init()
+    
     css = """
     .panel-box {
         background:#fef3c7; padding:20px; border-radius:16px;
@@ -808,6 +1274,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
     .leaderboard-html-table {
         width: 100%; border-collapse: collapse; text-align: left;
         font-size: 1rem; color: #1f2937;
+        min-height: 300px; /* Stable dimensions to prevent layout shift */
     }
     .leaderboard-html-table thead { background: #f3f4f6; }
     .leaderboard-html-table th {
@@ -820,6 +1287,39 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         background: #dbeafe; /* light blue */
         font-weight: 600;
         color: #1e3a8a; /* dark blue */
+    }
+    
+    /* Skeleton Loading Styles */
+    .skeleton-container {
+        min-height: 300px; /* Stable dimensions */
+    }
+    .skeleton-item {
+        height: 20px;
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+        border-radius: 4px;
+    }
+    .skeleton-row td {
+        padding: 12px 16px;
+    }
+    
+    @keyframes shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+    
+    /* Reduced motion accessibility */
+    @media (prefers-reduced-motion: reduce) {
+        .skeleton-item {
+            animation: none;
+            background: #f0f0f0;
+        }
+    }
+    
+    /* KPI Card stable dimensions */
+    .kpi-card {
+        min-height: 200px; /* Prevent layout shift */
     }
     """
 
@@ -1207,6 +1707,17 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         # Model Building App (Main Interface)
         with gr.Column(visible=False) as model_building_step:
             gr.Markdown("<h1 style='text-align:center;'>🛠️ Model Building Arena</h1>")
+            
+            # Status panel for initialization progress
+            init_status_display = gr.HTML(value="<p style='text-align:center; padding:12px; color:#6b7280;'>Initializing...</p>")
+            
+            # Banner for UI state
+            init_banner = gr.HTML(
+                value="<div style='background:#fef3c7; padding:12px; border-radius:8px; text-align:center; margin-bottom:16px; border:1px solid #f59e0b;'>"
+                "<p style='margin:0; color:#92400e; font-weight:500;'>⏳ Initializing data & leaderboard… you can explore but must wait for readiness to submit.</p>"
+                "</div>",
+                visible=True
+            )
 
             team_name_state = gr.State(CURRENT_TEAM_NAME)
             last_submission_score_state = gr.State(0.0)
@@ -1330,27 +1841,21 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         ]
 
         def create_nav(current_step, next_step):
+            """
+            Simplified navigation: directly switches visibility without artificial loading screen.
+            Loading screen only shown when entering arena if not yet ready.
+            """
             def _nav():
-                updates = {loading_screen: gr.update(visible=True)}
-                for s in all_steps_nav:
-                    if s != loading_screen:
-                        updates[s] = gr.update(visible=False)
-                yield updates
-
+                # Direct single-step navigation
                 updates = {next_step: gr.update(visible=True)}
                 for s in all_steps_nav:
                     if s != next_step:
                         updates[s] = gr.update(visible=False)
-                yield updates
+                return updates
             return _nav
 
         def navigate_to_step_3(feedback_text):
-            updates = {loading_screen: gr.update(visible=True)}
-            for s in all_steps_nav:
-                if s != loading_screen:
-                    updates[s] = gr.update(visible=False)
-            yield updates
-
+            """Direct navigation to conclusion without loading screen."""
             updates = {
                 conclusion_step: gr.update(visible=True),
                 final_score_display: gr.HTML(feedback_text) 
@@ -1358,7 +1863,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             for s in all_steps_nav:
                 if s != conclusion_step:
                     updates[s] = gr.update(visible=False)
-            yield updates
+            return updates
 
         # Wire up slide buttons
         briefing_1_next.click(
@@ -1498,6 +2003,47 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             outputs=all_outputs,
             show_progress="full",
             js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+        )
+
+        # Timer for polling initialization status
+        status_timer = gr.Timer(value=0.5, active=True)  # Poll every 0.5 seconds
+        
+        def update_init_status():
+            """
+            Poll initialization status and update UI elements.
+            Returns status HTML, banner visibility, submit button state, and data size choices.
+            """
+            status_html, ready = poll_init_status()
+            
+            # Update banner visibility - hide when ready
+            banner_visible = not ready
+            
+            # Update submit button
+            if ready:
+                submit_label = "5. 🔬 Build & Submit Model"
+                submit_interactive = True
+            else:
+                submit_label = "⏳ Waiting for data..."
+                submit_interactive = False
+            
+            # Get available data sizes based on init progress
+            available_sizes = get_available_data_sizes()
+            
+            # Stop timer once fully initialized
+            timer_active = not (ready and INIT_FLAGS.get("pre_samples_full", False))
+            
+            return (
+                status_html,
+                gr.update(visible=banner_visible),
+                gr.update(value=submit_label, interactive=submit_interactive),
+                gr.update(choices=available_sizes),
+                timer_active
+            )
+        
+        status_timer.tick(
+            fn=update_init_status,
+            inputs=None,
+            outputs=[init_status_display, init_banner, submit_button, data_size_radio, status_timer]
         )
 
         demo.load(
