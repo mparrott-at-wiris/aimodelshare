@@ -1,37 +1,3 @@
-"""
-Model Building Game (Ètica en Joc) - Justice & Equity Challenge
-
-This app teaches:
-1. The experiment loop of iterative AI model development
-2. How model parameters (type, complexity, data size, features) affect performance
-3. Competition-driven improvement (individual & team leaderboards
-4. Ethical awareness via controlled unlocking of sensitive features
-
-Structure:
-- Factory function `create_model_building_game_app()` returns a Gradio Blocks object
-- Convenience wrapper `launch_model_building_game_app()` launches it inline (for notebooks)
-
----
-V26 Updates - Early Experience Performance & UX Enhancements:
-- Asynchronous background initialization (dataset, competition, leaderboard)
-- Cached dataset downloads (~/.aimodelshare_cache, 24h validity)
-- Progressive data sampling (small → medium → large → full)
-- Warm mini dataset (300 rows) for instant preview when data not ready
-- Status polling panel with ✅/⏳ icons and error display
-- Skeleton placeholders for leaderboards during loading (shimmer animation)
-- Simplified navigation (removed artificial two-step loading screens)
-- Dynamic UI state management (banners, disabled controls until ready)
-- Preview mode: runs on warm subset, shows orange card, doesn't submit
-- Preprocessor memoization with @lru_cache for efficiency
-- Layout stability: min-heights prevent shifts during loading
-- Accessibility: reduced-motion fallback for animations
-
-V25 Updates:
-- Styled Slide 1 to match the standard 'panel-box' theme.
-- Removed pink ethical reminder below the game interface.
----
-"""
-
 import os
 import time
 import random
@@ -476,8 +442,8 @@ def start_background_init():
 
 def poll_init_status():
     """
-    Poll the initialization status and return HTML status display and readiness bool.
-    Called by gr.Timer to update UI.
+    Poll the initialization status and return readiness bool.
+    Returns empty string for HTML so users don't see the checklist.
     
     Returns:
         tuple: (status_html, ready_bool)
@@ -488,38 +454,7 @@ def poll_init_status():
     # Determine if minimum requirements met
     ready = flags["competition"] and flags["dataset_core"] and flags["pre_samples_small"]
     
-    # Build status HTML
-    status_items = [
-        ("Competition", flags["competition"]),
-        ("Dataset", flags["dataset_core"]),
-        ("Small Sample", flags["pre_samples_small"]),
-        ("Medium Sample", flags["pre_samples_medium"]),
-        ("Large Sample", flags["pre_samples_large"]),
-        ("Full Sample", flags["pre_samples_full"]),
-        ("Leaderboard", flags["leaderboard"]),
-    ]
-    
-    status_html = "<div style='background:#f9fafb; padding:12px; border-radius:8px; border:1px solid #e5e7eb; font-size:0.9rem;'>"
-    status_html += "<div style='font-weight:600; margin-bottom:8px; color:#374151;'>🔄 Initialization Status</div>"
-    status_html += "<div style='display:grid; grid-template-columns: auto 1fr; gap:8px 12px; color:#1f2937;'>"
-    
-    for label, is_ready in status_items:
-        icon = "✅" if is_ready else "⏳"
-        status_html += f"<div>{icon}</div><div>{label}</div>"
-    
-    status_html += "</div>"
-    
-    # Show last 3 errors if any
-    if flags["errors"]:
-        status_html += "<div style='margin-top:12px; padding-top:12px; border-top:1px solid #e5e7eb;'>"
-        status_html += "<div style='font-weight:600; color:#dc2626; margin-bottom:4px;'>⚠️ Errors:</div>"
-        for err in flags["errors"][-3:]:
-            status_html += f"<div style='color:#991b1b; font-size:0.85rem;'>• {err}</div>"
-        status_html += "</div>"
-    
-    status_html += "</div>"
-    
-    return status_html, ready
+    return "", ready
 
 def get_available_data_sizes():
     """
@@ -967,17 +902,28 @@ def run_experiment(
     last_submission_score, 
     last_rank, 
     submission_count,
-    username
+    username,
+    progress=gr.Progress()
 ):
     """
-    Core experiment: Now uses 'yield' and HTML helpers.
-    Supports preview mode with warm mini dataset if full data not ready.
+    Core experiment: Uses 'yield' for visual updates and progress bar.
     """
+    
+    # Helper to generate the animated HTML
+    def get_status_html(step_num, title, subtitle):
+        return f"""
+        <div class='processing-status'>
+            <span class='processing-icon'>⚙️</span>
+            <div class='processing-text'>Step {step_num}/5: {title}</div>
+            <div class='processing-subtext'>{subtitle}</div>
+        </div>
+        """
 
     # --- Stage 1: Lock UI and give initial feedback ---
+    progress(0.1, desc="Starting Experiment...")
     initial_updates = {
-        submit_button: gr.update(value="🔬 (1/5) Starting Experiment...", interactive=False),
-        submission_feedback_display: gr.update(value="<p style='text-align:center; padding: 20px 0;'>Starting experiment...</p>"),
+        submit_button: gr.update(value="⏳ Experiment Running...", interactive=False),
+        submission_feedback_display: gr.update(value=get_status_html(1, "Initializing", "Preparing your data ingredients...")),
     }
     yield initial_updates
 
@@ -996,7 +942,8 @@ def run_experiment(
     
     # If not ready but warm mini available, run preview
     if not ready_for_submission and flags["warm_mini"] and X_TRAIN_WARM is not None:
-        yield { submission_feedback_display: gr.update(value="<p style='text-align:center; padding: 20px 0;'>⏳ Running preview with warm subset...</p>") }
+        progress(0.5, desc="Running Preview...")
+        yield { submission_feedback_display: gr.update(value=get_status_html("Preview", "Warm-up Run", "Testing on mini-dataset...")) }
         
         try:
             # Run preview on warm mini dataset
@@ -1080,7 +1027,8 @@ def run_experiment(
 
     try:
         # --- Stage 2: Train Model (Local) ---
-        yield { submission_feedback_display: gr.update(value="<p style='text-align:center; padding: 20px 0;'>🔬 (2/5) Training model locally...</p>") }
+        progress(0.3, desc="Training Model...")
+        yield { submission_feedback_display: gr.update(value=get_status_html(2, "Training Model", "The machine is learning from history...")) }
 
         # A. Get pre-sampled data
         sample_frac = DATA_SIZE_MAP.get(data_size_str, 0.2)
@@ -1113,7 +1061,8 @@ def run_experiment(
         log_output += "Training done.\n"
 
         # --- Stage 3: Submit (API Call 1) ---
-        yield { submission_feedback_display: gr.update(value="<p style='text-align:center; padding: 20px 0;'>📡 (3/5) Submitting model to leaderboard...</p>") }
+        progress(0.5, desc="Submitting to Cloud...")
+        yield { submission_feedback_display: gr.update(value=get_status_html(3, "Submitting", "Sending model to the competition server...")) }
 
         predictions = tuned_model.predict(X_test_processed)
         description = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
@@ -1128,8 +1077,9 @@ def run_experiment(
 
         # --- Stage 4: Refresh Leaderboard (API Call 2) ---
         # Show skeletons while fetching
+        progress(0.8, desc="Updating Leaderboard...")
         yield {
-            submission_feedback_display: gr.update(value="<p style='text-align:center; padding: 20px 0;'>🏆 (4/5) Fetching new leaderboard rankings...</p>"),
+            submission_feedback_display: gr.update(value=get_status_html(4, "Calculating Rank", "Comparing your score against others...")),
             team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
             individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False)
         }
@@ -1147,7 +1097,8 @@ def run_experiment(
         )
 
         # --- Stage 5: Final UI Update ---
-        yield { submission_feedback_display: gr.update(value="<p style='text-align:center; padding: 20px 0;'>✅ (5/5) All done! Updating results.</p>") }
+        progress(1.0, desc="Complete!")
+        # No need for Step 5 HTML update, jumping to results
 
         new_submission_count = submission_count + 1
         settings = compute_rank_settings(
@@ -1356,6 +1307,47 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
     /* KPI Card stable dimensions */
     .kpi-card {
         min-height: 200px; /* Prevent layout shift */
+    }
+
+    /* Processing Status Box Animation */
+    .processing-status {
+        background: #eef2ff; /* Very light indigo */
+        border: 2px solid #6366f1; /* Indigo border */
+        border-radius: 16px;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        animation: pulse-indigo 2s infinite;
+    }
+    
+    @keyframes pulse-indigo {
+        0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+        70% { box-shadow: 0 0 0 15px rgba(99, 102, 241, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+    }
+    
+    .processing-icon {
+        font-size: 4rem;
+        margin-bottom: 10px;
+        display: block;
+        animation: spin-slow 3s linear infinite;
+    }
+    
+    @keyframes spin-slow {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    .processing-text {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #4338ca;
+    }
+    
+    .processing-subtext {
+        font-size: 1.1rem;
+        color: #6b7280;
+        margin-top: 8px;
     }
     """
 
@@ -1744,8 +1736,8 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         with gr.Column(visible=False) as model_building_step:
             gr.Markdown("<h1 style='text-align:center;'>🛠️ Model Building Arena</h1>")
             
-            # Status panel for initialization progress
-            init_status_display = gr.HTML(value="<p style='text-align:center; padding:12px; color:#6b7280;'>Initializing...</p>")
+            # Status panel for initialization progress - HIDDEN
+            init_status_display = gr.HTML(value="", visible=False)
             
             # Banner for UI state
             init_banner = gr.HTML(
