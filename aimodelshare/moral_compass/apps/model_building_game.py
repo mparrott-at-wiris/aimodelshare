@@ -546,43 +546,18 @@ def tune_model_complexity(model, level):
 
 def _build_skeleton_leaderboard(rows=6, is_team=True):
     """
-    Generate a skeleton placeholder for leaderboards during loading.
-    Shows shimmer animation with stable dimensions.
+    Generate a static placeholder for leaderboards during loading.
+    Returns a calm, non-animated card to reduce visual distraction.
+    Parameters retained for backward compatibility.
     """
-    if is_team:
-        headers = ["Rank", "Team", "Best_Score", "Avg_Score", "Submissions"]
-    else:
-        headers = ["Rank", "Engineer", "Best_Score", "Submissions"]
-    
-    skeleton_html = """
-    <div class='skeleton-container'>
-        <table class='leaderboard-html-table'>
-            <thead>
-                <tr>
-    """
-    
-    for header in headers:
-        skeleton_html += f"<th>{header}</th>"
-    
-    skeleton_html += """
-                </tr>
-            </thead>
-            <tbody>
-    """
-    
-    for i in range(rows):
-        skeleton_html += "<tr class='skeleton-row'>"
-        for j in range(len(headers)):
-            skeleton_html += "<td><div class='skeleton-item'></div></td>"
-        skeleton_html += "</tr>"
-    
-    skeleton_html += """
-            </tbody>
-        </table>
+    # Parameters rows and is_team are ignored but kept for backward compatibility
+    placeholder_html = """
+    <div class='lb-placeholder'>
+        <div class='lb-placeholder-title'>Loading Standings...</div>
+        <div class='lb-placeholder-sub'>Data is being prepared</div>
     </div>
     """
-    
-    return skeleton_html
+    return placeholder_html
 
 def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_count, is_preview=False):
     """Generates the HTML for the KPI feedback card. Supports preview mode label."""
@@ -1279,8 +1254,8 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         border:2px solid #f59e0b; margin-bottom:18px; color: #92400e;
     }
     .leaderboard-box {
-        background:#dbeafe; padding:20px; border-radius:16px;
-        border:2px solid #3b82f6; margin-top:12px; color: #1e3a8a;
+        background:#f0f9ff; padding:20px; border-radius:16px;
+        border:1px solid #bae6fd; margin-top:12px; color: #1e3a8a;
     }
     .slide-content {
         max-width: 900px; margin-left: auto; margin-right: auto;
@@ -1319,6 +1294,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         background: #f9fafb; border: 2px solid #16a34a; padding: 24px;
         border-radius: 16px; text-align: center; max-width: 600px; margin: auto;
         color: #111827;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
     .kpi-card-body {
         display: flex; flex-wrap: wrap; justify-content: space-around;
@@ -1334,12 +1310,12 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         font-size: 1rem; color: #1f2937;
         min-height: 300px; /* Stable dimensions to prevent layout shift */
     }
-    .leaderboard-html-table thead { background: #f3f4f6; }
+    .leaderboard-html-table thead { background: #f9fafb; }
     .leaderboard-html-table th {
-        padding: 12px 16px; font-size: 0.9rem; color: #374151;
-        font-weight: 600;
+        padding: 12px 16px; font-size: 0.9rem; color: #6b7280;
+        font-weight: 500;
     }
-    .leaderboard-html-table tbody tr { border-bottom: 1px solid #e5e7eb; }
+    .leaderboard-html-table tbody tr { border-bottom: 1px solid #f3f4f6; }
     .leaderboard-html-table td { padding: 12px 16px; }
     .leaderboard-html-table .user-row-highlight {
         background: #dbeafe; /* light blue */
@@ -1347,32 +1323,28 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         color: #1e3a8a; /* dark blue */
     }
     
-    /* Skeleton Loading Styles */
-    .skeleton-container {
-        min-height: 300px; /* Stable dimensions */
+    /* Static Placeholder Styles (No Animation) */
+    .lb-placeholder {
+        min-height: 300px; /* Stable dimensions to prevent layout shift */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 40px 20px;
+        text-align: center;
     }
-    .skeleton-item {
-        height: 20px;
-        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-        background-size: 200% 100%;
-        animation: shimmer 1.5s infinite;
-        border-radius: 4px;
+    .lb-placeholder-title {
+        font-size: 1.25rem;
+        font-weight: 500;
+        color: #6b7280;
+        margin-bottom: 8px;
     }
-    .skeleton-row td {
-        padding: 12px 16px;
-    }
-    
-    @keyframes shimmer {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
-    }
-    
-    /* Reduced motion accessibility */
-    @media (prefers-reduced-motion: reduce) {
-        .skeleton-item {
-            animation: none;
-            background: #f0f0f0;
-        }
+    .lb-placeholder-sub {
+        font-size: 1rem;
+        color: #9ca3af;
     }
     
     /* KPI Card stable dimensions */
