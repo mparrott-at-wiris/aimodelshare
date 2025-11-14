@@ -30,22 +30,20 @@ def test_cache_directory_creation():
 
 
 def test_skeleton_leaderboard_generation():
-    """Test that skeleton placeholders are generated correctly."""
+    """Test that static placeholder is generated correctly."""
     from aimodelshare.moral_compass.apps.model_building_game import _build_skeleton_leaderboard
     
-    # Test team leaderboard skeleton
+    # Test team leaderboard placeholder (now returns static placeholder)
     team_skeleton = _build_skeleton_leaderboard(rows=6, is_team=True)
-    assert "skeleton-container" in team_skeleton
-    assert "skeleton-item" in team_skeleton
-    assert "Rank" in team_skeleton
-    assert "Team" in team_skeleton
-    assert "Best_Score" in team_skeleton
+    assert "lb-placeholder" in team_skeleton
+    assert "Loading Standings..." in team_skeleton
+    assert "Data is being prepared" in team_skeleton
     
-    # Test individual leaderboard skeleton
+    # Test individual leaderboard placeholder (now returns same static placeholder)
     individual_skeleton = _build_skeleton_leaderboard(rows=6, is_team=False)
-    assert "skeleton-container" in individual_skeleton
-    assert "Engineer" in individual_skeleton
-    assert "Team" not in individual_skeleton  # Should not have team column
+    assert "lb-placeholder" in individual_skeleton
+    # Both return the same static placeholder now
+    assert team_skeleton == individual_skeleton
 
 
 def test_init_flags_structure():
@@ -121,9 +119,8 @@ def test_poll_init_status():
     assert isinstance(status_html, str)
     assert isinstance(ready, bool)
     
-    # Check HTML contains expected elements
-    assert "Initialization Status" in status_html
-    assert "✅" in status_html or "⏳" in status_html
+    # Status HTML should be empty (by design)
+    assert status_html == ""
     
     # Should be ready with these flags
     assert ready is True
@@ -145,11 +142,12 @@ def test_poll_init_status_not_ready():
     
     # Should not be ready
     assert ready is False
-    assert "⏳" in status_html
+    # Status HTML should be empty (by design)
+    assert status_html == ""
 
 
 def test_poll_init_status_with_errors():
-    """Test that errors are displayed in status."""
+    """Test that errors don't prevent status polling."""
     from aimodelshare.moral_compass.apps.model_building_game import (
         poll_init_status, INIT_FLAGS, INIT_LOCK
     )
@@ -160,8 +158,8 @@ def test_poll_init_status_with_errors():
     
     status_html, ready = poll_init_status()
     
-    # Should show error
-    assert "Test error message" in status_html or "Errors:" in status_html
+    # Status HTML should still be empty (errors are tracked internally but not displayed in status HTML)
+    assert status_html == ""
     
     # Clean up
     with INIT_LOCK:
