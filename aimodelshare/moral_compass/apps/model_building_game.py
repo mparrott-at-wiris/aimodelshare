@@ -559,6 +559,47 @@ def _build_skeleton_leaderboard(rows=6, is_team=True):
     """
     return placeholder_html
 
+def build_login_prompt_html(preview_score=None):
+    """
+    Generate HTML card prompting user to sign in to submit and rank.
+    
+    Args:
+        preview_score: Optional float representing the preview accuracy score (0-1)
+    
+    Returns:
+        str: HTML card with login prompt, preview score display, and signup link
+    """
+    preview_section = ""
+    if preview_score is not None:
+        preview_section = f"""
+        <div style='background:#fef3c7; padding:16px; border-radius:12px; margin:16px 0; border:2px solid #f59e0b;'>
+            <p style='margin:0; font-size:1.1rem; color:#92400e;'>
+                <strong>Preview Score:</strong> {(preview_score * 100):.2f}%
+            </p>
+            <p style='margin:8px 0 0 0; font-size:0.95rem; color:#78350f;'>
+                (Trained on warm subset - not submitted to leaderboard)
+            </p>
+        </div>
+        """
+    
+    return f"""
+    <div class='kpi-card' style='border-color: #6366f1;'>
+        <h2 style='color: #111827; margin-top:0;'>🔐 Sign in to submit & rank</h2>
+        {preview_section}
+        <div style='margin-top:16px; text-align:left; font-size:1rem; line-height:1.6; color:#374151;'>
+            <p style='margin:12px 0;'>
+                This is a preview run only. Sign in to publish your score to the live leaderboard, 
+                earn promotions, and contribute team points.
+            </p>
+            <p style='margin:12px 0;'>
+                <strong>New user?</strong> Create a free account at 
+                <a href='https://www.modelshare.ai/login' target='_blank' 
+                   style='color:#4f46e5; text-decoration:underline;'>modelshare.ai/login</a>
+            </p>
+        </div>
+    </div>
+    """
+
 def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_count, is_preview=False):
     """Generates the HTML for the KPI feedback card. Supports preview mode label."""
 
@@ -868,8 +909,114 @@ model_type_radio = None
 complexity_slider = None
 feature_set_checkbox = None
 data_size_radio = None
+# Login components (will be assigned in create_model_building_game_app)
+login_username = None
+login_password = None
+login_submit = None
+login_error = None
 # This one will be assigned globally but is also defined in the function
 # first_submission_score_state = None 
+
+def perform_inline_login(username_input, password_input):
+    """
+    Perform inline authentication and set credentials in environment.
+    
+    Validates non-empty credentials, sets environment variables, and attempts
+    to fetch AWS token via get_aws_token(). Returns Gradio component updates
+    for login UI visibility and feedback messages.
+    
+    Args:
+        username_input: str, the username entered by user
+        password_input: str, the password entered by user
+    
+    Returns:
+        dict: Gradio component updates for login UI elements and submit button
+            - On success: hides login form, shows success message, enables submit
+            - On failure: keeps login form visible, shows error with signup link
+    """
+    from aimodelshare.aws import get_aws_token
+    
+    # Validate inputs
+    if not username_input or not username_input.strip():
+        error_html = """
+        <div style='background:#fef2f2; padding:12px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
+            <p style='margin:0; color:#991b1b; font-weight:500;'>⚠️ Username is required</p>
+        </div>
+        """
+        return {
+            login_username: gr.update(),
+            login_password: gr.update(),
+            login_submit: gr.update(),
+            login_error: gr.update(value=error_html, visible=True),
+            submit_button: gr.update()
+        }
+    
+    if not password_input or not password_input.strip():
+        error_html = """
+        <div style='background:#fef2f2; padding:12px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
+            <p style='margin:0; color:#991b1b; font-weight:500;'>⚠️ Password is required</p>
+        </div>
+        """
+        return {
+            login_username: gr.update(),
+            login_password: gr.update(),
+            login_submit: gr.update(),
+            login_error: gr.update(value=error_html, visible=True),
+            submit_button: gr.update()
+        }
+    
+    # Set credentials in environment
+    os.environ["username"] = username_input.strip()
+    os.environ["password"] = password_input.strip()
+    
+    # Attempt to get AWS token
+    try:
+        token = get_aws_token()
+        os.environ["AWS_TOKEN"] = token
+        
+        # Success: hide login form, show success message, enable submit button
+        success_html = """
+        <div style='background:#f0fdf4; padding:16px; border-radius:8px; border-left:4px solid #16a34a; margin-top:12px;'>
+            <p style='margin:0; color:#15803d; font-weight:600; font-size:1.1rem;'>✓ Signed in successfully!</p>
+            <p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>
+                Click "Build & Submit Model" again to publish your score.
+            </p>
+        </div>
+        """
+        return {
+            login_username: gr.update(visible=False),
+            login_password: gr.update(visible=False),
+            login_submit: gr.update(visible=False),
+            login_error: gr.update(value=success_html, visible=True),
+            submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True)
+        }
+        
+    except Exception as e:
+        # Authentication failed: show error with signup link
+        error_html = f"""
+        <div style='background:#fef2f2; padding:16px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
+            <p style='margin:0; color:#991b1b; font-weight:600; font-size:1.1rem;'>⚠️ Authentication failed</p>
+            <p style='margin:8px 0; color:#7f1d1d; font-size:0.95rem;'>
+                Could not verify your credentials. Please check your username and password.
+            </p>
+            <p style='margin:8px 0 0 0; color:#7f1d1d; font-size:0.95rem;'>
+                <strong>New user?</strong> Create a free account at 
+                <a href='https://www.modelshare.ai/login' target='_blank' 
+                   style='color:#dc2626; text-decoration:underline;'>modelshare.ai/login</a>
+            </p>
+            <details style='margin-top:12px; font-size:0.85rem; color:#7f1d1d;'>
+                <summary style='cursor:pointer;'>Technical details</summary>
+                <pre style='margin-top:8px; padding:8px; background:#fee; border-radius:4px; overflow-x:auto;'>{str(e)}</pre>
+            </details>
+        </div>
+        """
+        return {
+            login_username: gr.update(visible=True),
+            login_password: gr.update(visible=True),
+            login_submit: gr.update(visible=True),
+            login_error: gr.update(value=error_html, visible=True),
+            submit_button: gr.update()
+        }
 
 def run_experiment(
     model_name_key,
@@ -1043,6 +1190,47 @@ def run_experiment(
         log_output += "Training done.\n"
 
         # --- Stage 3: Submit (API Call 1) ---
+        # AUTHENTICATION GATE: Check for AWS_TOKEN before submission
+        if os.environ.get("AWS_TOKEN") is None:
+            # User not authenticated - compute preview score and show login prompt
+            progress(0.6, desc="Computing Preview Score...")
+            
+            predictions = tuned_model.predict(X_test_processed)
+            from sklearn.metrics import accuracy_score
+            preview_score = accuracy_score(Y_TEST, predictions)
+            
+            # Generate login prompt with preview score
+            login_prompt_html = build_login_prompt_html(preview_score=preview_score)
+            
+            settings = compute_rank_settings(
+                submission_count, model_name_key, complexity_level, feature_set, data_size_str
+            )
+            
+            # Show login prompt and enable login form
+            gate_updates = {
+                submission_feedback_display: login_prompt_html,
+                submit_button: gr.update(value="Sign In Required", interactive=False),
+                login_username: gr.update(visible=True),
+                login_password: gr.update(visible=True),
+                login_submit: gr.update(visible=True),
+                login_error: gr.update(value="", visible=False),
+                team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
+                individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
+                last_submission_score_state: last_submission_score,
+                last_rank_state: last_rank,
+                best_score_state: best_score,
+                submission_count_state: submission_count,
+                first_submission_score_state: first_submission_score,
+                rank_message_display: settings["rank_message"],
+                model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
+                complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
+                feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
+                data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
+            }
+            yield gate_updates
+            return  # Stop here - user needs to login and resubmit
+        
+        # User is authenticated - proceed with submission
         progress(0.5, desc="Submitting to Cloud...")
         yield { submission_feedback_display: gr.update(value=get_status_html(3, "Submitting", "Sending model to the competition server...")) }
 
@@ -1417,6 +1605,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
     # --- END OF FIX ---
     global rank_message_display, model_type_radio, complexity_slider
     global feature_set_checkbox, data_size_radio
+    global login_username, login_password, login_submit, login_error
 
     with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css) as demo:
         username = os.environ.get("username") or "Unknown_User"
@@ -1884,6 +2073,28 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                     submission_feedback_display = gr.HTML(
                         "<p style='text-align:center; color:#6b7280; padding:20px 0;'>Submit your first model to get feedback!</p>"
                     )
+                    
+                    # Inline Login Components (initially hidden)
+                    login_username = gr.Textbox(
+                        label="Username",
+                        placeholder="Enter your modelshare.ai username",
+                        visible=False
+                    )
+                    login_password = gr.Textbox(
+                        label="Password",
+                        type="password",
+                        placeholder="Enter your password",
+                        visible=False
+                    )
+                    login_submit = gr.Button(
+                        "Sign In & Submit",
+                        variant="primary",
+                        visible=False
+                    )
+                    login_error = gr.HTML(
+                        value="",
+                        visible=False
+                    )
 
                     with gr.Tabs():
                         with gr.TabItem("Team Standings"):
@@ -2064,8 +2275,19 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             complexity_slider,
             feature_set_checkbox,
             data_size_radio,
-            submit_button
+            submit_button,
+            login_username,
+            login_password,
+            login_submit,
+            login_error
         ]
+
+        # Wire up login button
+        login_submit.click(
+            fn=perform_inline_login,
+            inputs=[login_username, login_password],
+            outputs=[login_username, login_password, login_submit, login_error, submit_button]
+        )
 
         submit_button.click(
             fn=run_experiment,
