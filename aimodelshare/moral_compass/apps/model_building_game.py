@@ -559,51 +559,31 @@ def _build_skeleton_leaderboard(rows=6, is_team=True):
     """
     return placeholder_html
 
-def build_login_prompt_html(preview_score=None):
+# --- FIX APPLIED HERE ---
+def build_login_prompt_html():
     """
-    Generate HTML card prompting user to sign in to submit and rank.
-    
-    Args:
-        preview_score: Optional float representing the preview accuracy score (0-1)
-    
-    Returns:
-        str: HTML card with login prompt, preview score display, and signup link
+    Generate HTML for the login prompt text *only*.
+    The styled preview card will be prepended to this.
     """
-    preview_section = ""
-    if preview_score is not None:
-        preview_section = f"""
-        <div style='background:#fef3c7; padding:16px; border-radius:12px; margin:16px 0; border:2px solid #f59e0b;'>
-            <p style='margin:0; font-size:1.1rem; color:#92400e;'>
-                <strong>Preview Score:</strong> {(preview_score * 100):.2f}%
-            </p>
-            <p style='margin:8px 0 0 0; font-size:0.95rem; color:#78350f;'>
-                (Trained on warm subset - not submitted to leaderboard)
-            </p>
-        </div>
-        """
-    
     return f"""
-    <div class='kpi-card' style='border-color: #6366f1;'>
-        <h2 style='color: #111827; margin-top:0;'>🔐 Sign in to submit & rank</h2>
-        {preview_section}
-        <div style='margin-top:16px; text-align:left; font-size:1rem; line-height:1.6; color:#374151;'>
-            <p style='margin:12px 0;'>
-                This is a preview run only. Sign in to publish your score to the live leaderboard, 
-                earn promotions, and contribute team points.
-            </p>
-            <p style='margin:12px 0;'>
-                <strong>New user?</strong> Create a free account at 
-                <a href='https://www.modelshare.ai/login' target='_blank' 
-                   style='color:#4f46e5; text-decoration:underline;'>modelshare.ai/login</a>
-            </p>
-        </div>
+    <h2 style='color: #111827; margin-top:20px; border-top: 2px solid #e5e7eb; padding-top: 20px;'>🔐 Sign in to submit & rank</h2>
+    <div style='margin-top:16px; text-align:left; font-size:1rem; line-height:1.6; color:#374151;'>
+        <p style='margin:12px 0;'>
+            This is a preview run only. Sign in to publish your score to the live leaderboard, 
+            earn promotions, and contribute team points.
+        </p>
+        <p style='margin:12px 0;'>
+            <strong>New user?</strong> Create a free account at 
+            <a href='https://www.modelshare.ai/login' target='_blank' 
+                style='color:#4f46e5; text-decoration:underline;'>modelshare.ai/login</a>
+        </p>
     </div>
     """
+# --- END OF FIX ---
 
 def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_count, is_preview=False):
     """Generates the HTML for the KPI feedback card. Supports preview mode label."""
 
-    # --- FIX APPLIED HERE ---
     # Handle preview mode - Styled to match "success" card
     if is_preview:
         title = "🔬 Preview Run (Warm Subset)"
@@ -614,7 +594,6 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
         rank_color = "#3b82f6" # Blue (like rank)
         rank_text = "N/A" # Placeholder
         rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0;'>Not ranked (preview)</p>" # Neutral color
-    # --- END OF FIX ---
     
     # 1. Handle First Submission
     elif submission_count == 0:
@@ -951,7 +930,8 @@ def perform_inline_login(username_input, password_input):
             login_password: gr.update(),
             login_submit: gr.update(),
             login_error: gr.update(value=error_html, visible=True),
-            submit_button: gr.update()
+            submit_button: gr.update(),
+            submission_feedback_display: gr.update() # Keep login prompt visible
         }
     
     if not password_input or not password_input.strip():
@@ -965,7 +945,8 @@ def perform_inline_login(username_input, password_input):
             login_password: gr.update(),
             login_submit: gr.update(),
             login_error: gr.update(value=error_html, visible=True),
-            submit_button: gr.update()
+            submit_button: gr.update(),
+            submission_feedback_display: gr.update() # Keep login prompt visible
         }
     
     # Set credentials in environment
@@ -991,7 +972,8 @@ def perform_inline_login(username_input, password_input):
             login_password: gr.update(visible=False),
             login_submit: gr.update(visible=False),
             login_error: gr.update(value=success_html, visible=True),
-            submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True)
+            submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
+            submission_feedback_display: gr.update(visible=False) # <<< --- FIX ADDED ---
         }
         
     except Exception as e:
@@ -1018,7 +1000,8 @@ def perform_inline_login(username_input, password_input):
             login_password: gr.update(visible=True),
             login_submit: gr.update(visible=True),
             login_error: gr.update(value=error_html, visible=True),
-            submit_button: gr.update()
+            submit_button: gr.update(),
+            submission_feedback_display: gr.update() # Keep login prompt visible
         }
 
 def run_experiment(
@@ -1055,8 +1038,8 @@ def run_experiment(
     progress(0.1, desc="Starting Experiment...")
     initial_updates = {
         submit_button: gr.update(value="⏳ Experiment Running...", interactive=False),
-        submission_feedback_display: gr.update(value=get_status_html(1, "Initializing", "Preparing your data ingredients...")),
-        login_error: gr.update(visible=False) # <<< --- FIX APPLIED HERE
+        submission_feedback_display: gr.update(value=get_status_html(1, "Initializing", "Preparing your data ingredients..."), visible=True), # Make sure it's visible
+        login_error: gr.update(visible=False) # Hide login success/error message
     }
     yield initial_updates
 
@@ -1076,7 +1059,10 @@ def run_experiment(
     # If not ready but warm mini available, run preview
     if not ready_for_submission and flags["warm_mini"] and X_TRAIN_WARM is not None:
         progress(0.5, desc="Running Preview...")
-        yield { submission_feedback_display: gr.update(value=get_status_html("Preview", "Warm-up Run", "Testing on mini-dataset...")) }
+        yield { 
+            submission_feedback_display: gr.update(value=get_status_html("Preview", "Warm-up Run", "Testing on mini-dataset..."), visible=True),
+            login_error: gr.update(visible=False)
+        }
         
         try:
             # Run preview on warm mini dataset
@@ -1109,7 +1095,7 @@ def run_experiment(
             )
             
             final_updates = {
-                submission_feedback_display: preview_html,
+                submission_feedback_display: gr.update(value=preview_html, visible=True),
                 team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
                 individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
                 last_submission_score_state: last_submission_score,
@@ -1121,7 +1107,8 @@ def run_experiment(
                 complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
                 feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
                 data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-                submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True)
+                submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
+                login_error: gr.update(visible=False)
             }
             yield final_updates
             return
@@ -1143,7 +1130,7 @@ def run_experiment(
         error_msg += "</p>"
         
         error_updates = {
-            submission_feedback_display: error_msg,
+            submission_feedback_display: gr.update(value=error_msg, visible=True),
             submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
             team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
             individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
@@ -1156,6 +1143,7 @@ def run_experiment(
             complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
             feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
             data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
+            login_error: gr.update(visible=False)
         }
         yield error_updates
         return
@@ -1163,7 +1151,10 @@ def run_experiment(
     try:
         # --- Stage 2: Train Model (Local) ---
         progress(0.3, desc="Training Model...")
-        yield { submission_feedback_display: gr.update(value=get_status_html(2, "Training Model", "The machine is learning from history...")) }
+        yield { 
+            submission_feedback_display: gr.update(value=get_status_html(2, "Training Model", "The machine is learning from history..."), visible=True),
+            login_error: gr.update(visible=False)
+        }
 
         # A. Get pre-sampled data
         sample_frac = DATA_SIZE_MAP.get(data_size_str, 0.2)
@@ -1205,16 +1196,35 @@ def run_experiment(
             from sklearn.metrics import accuracy_score
             preview_score = accuracy_score(Y_TEST, predictions)
             
-            # Generate login prompt with preview score
-            login_prompt_html = build_login_prompt_html(preview_score=preview_score)
+            # --- FIX APPLIED HERE ---
+            # 1. Generate the styled preview card
+            preview_card_html = _build_kpi_card_html(
+                new_score=preview_score,
+                last_score=0,
+                new_rank=0,
+                last_rank=0,
+                submission_count=-1, # Force preview
+                is_preview=True
+            )
             
+            # 2. Get the login prompt text
+            login_prompt_text_html = build_login_prompt_html() # No longer pass score
+            
+            # 3. Manually combine them by injecting login text inside the kpi-card div
+            closing_div_index = preview_card_html.rfind("</div>")
+            if closing_div_index != -1:
+                combined_html = preview_card_html[:closing_div_index] + login_prompt_text_html + "</div>"
+            else:
+                combined_html = preview_card_html + login_prompt_text_html # Fallback
+            # --- END OF FIX ---
+                
             settings = compute_rank_settings(
                 submission_count, model_name_key, complexity_level, feature_set, data_size_str
             )
             
             # Show login prompt and enable login form
             gate_updates = {
-                submission_feedback_display: login_prompt_html,
+                submission_feedback_display: gr.update(value=combined_html, visible=True), # Use combined HTML
                 submit_button: gr.update(value="Sign In Required", interactive=False),
                 login_username: gr.update(visible=True),
                 login_password: gr.update(visible=True),
@@ -1238,7 +1248,10 @@ def run_experiment(
         
         # User is authenticated - proceed with submission
         progress(0.5, desc="Submitting to Cloud...")
-        yield { submission_feedback_display: gr.update(value=get_status_html(3, "Submitting", "Sending model to the competition server...")) }
+        yield { 
+            submission_feedback_display: gr.update(value=get_status_html(3, "Submitting", "Sending model to the competition server..."), visible=True),
+            login_error: gr.update(visible=False)
+        }
 
         predictions = tuned_model.predict(X_test_processed)
         description = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
@@ -1255,9 +1268,10 @@ def run_experiment(
         # Show skeletons while fetching
         progress(0.8, desc="Updating Leaderboard...")
         yield {
-            submission_feedback_display: gr.update(value=get_status_html(4, "Calculating Rank", "Comparing your score against others...")),
+            submission_feedback_display: gr.update(value=get_status_html(4, "Calculating Rank", "Comparing your score against others..."), visible=True),
             team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
-            individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False)
+            individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
+            login_error: gr.update(visible=False)
         }
 
         full_leaderboard_df = playground.get_leaderboard()
@@ -1288,7 +1302,7 @@ def run_experiment(
         )
 
         final_updates = {
-            submission_feedback_display: kpi_card_html,
+            submission_feedback_display: gr.update(value=kpi_card_html, visible=True),
             team_leaderboard_display: team_html,
             individual_leaderboard_display: individual_html,
             last_submission_score_state: this_submission_score, 
@@ -1301,7 +1315,8 @@ def run_experiment(
             complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
             feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
             data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-            submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True)
+            submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
+            login_error: gr.update(visible=False)
         }
         yield final_updates
 
@@ -1311,7 +1326,7 @@ def run_experiment(
              submission_count, model_name_key, complexity_level, feature_set, data_size_str
         )
         error_updates = {
-            submission_feedback_display: f"<p style='text-align:center; color:red; padding:20px 0;'>An error occurred: {error_msg}</p>",
+            submission_feedback_display: gr.update(f"<p style='text-align:center; color:red; padding:20px 0;'>An error occurred: {error_msg}</p>", visible=True),
             team_leaderboard_display: "<p style='text-align:center; color:red; padding-top:20px;'>Error loading data.</p>",
             individual_leaderboard_display: "<p style='text-align:center; color:red; padding-top:20px;'>Error loading data.</p>",
             last_submission_score_state: last_submission_score,
@@ -1324,7 +1339,8 @@ def run_experiment(
             complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
             feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
             data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-            submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True)
+            submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
+            login_error: gr.update(visible=False)
         }
         yield error_updates
 
@@ -2292,7 +2308,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         login_submit.click(
             fn=perform_inline_login,
             inputs=[login_username, login_password],
-            outputs=[login_username, login_password, login_submit, login_error, submit_button]
+            outputs=[login_username, login_password, login_submit, login_error, submit_button, submission_feedback_display]
         )
 
         # Removed gr.State(username) from the inputs list
