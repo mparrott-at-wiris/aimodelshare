@@ -750,18 +750,11 @@ def _build_attempts_tracker_html(current_count, limit=ATTEMPT_LIMIT):
     """
     if current_count >= limit:
         # Limit reached - red styling
-        bg_color = "#fef2f2"
-        border_color = "#ef4444"
-        text_color = "#991b1b"
+        bg_color = "#f0f9ff"
+        border_color = "#bae6fd"
+        text_color = "#0369a1"
         icon = "🛑"
         label = f"Attempts used: {current_count}/{limit} (Limit Reached)"
-    elif current_count >= limit - 2:
-        # Warning - getting close (8-9 of 10)
-        bg_color = "#fef3c7"
-        border_color = "#f59e0b"
-        text_color = "#92400e"
-        icon = "⚠️"
-        label = f"Attempts used: {current_count}/{limit}"
     else:
         # Normal - blue styling
         bg_color = "#f0f9ff"
@@ -1313,7 +1306,7 @@ def run_experiment(
                     </div>
                 </div>
                 <div style='margin-top: 16px; background:#fef2f2; padding:16px; border-radius:12px; text-align:left; font-size:0.98rem; line-height:1.4;'>
-                    <p style='margin:0; color:#991b1b;'><b>No further submissions allowed.</b></p>
+                    <p style='margin:0; color:#991b1b;'><b>No further submissions now, but you will be able to submit as many as you like below.</b></p>
                     <p style='margin:8px 0 0 0; color:#7f1d1d;'>
                         You have used all {ATTEMPT_LIMIT} allowed submission attempts for this session. 
                         You can still view the leaderboard and your results below.
