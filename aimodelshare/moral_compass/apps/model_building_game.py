@@ -8,6 +8,7 @@ import threading
 import functools
 from pathlib import Path
 from datetime import datetime, timedelta
+import logging
 
 import numpy as np
 import pandas as pd
@@ -32,6 +33,42 @@ except ImportError:
     raise ImportError(
         "The 'aimodelshare' library is required. Install with: pip install aimodelshare aim-widgets"
     )
+
+# -------------------------------------------------------------------------
+# Logging Configuration
+# -------------------------------------------------------------------------
+
+# Module-level logger
+logger = logging.getLogger(__name__)
+
+def configure_logging(debug=False, q=False):
+    """
+    Configure logging level based on debug flags.
+    
+    Sets root logger to DEBUG when debug or q are True, otherwise WARNING.
+    Only configures if no handlers exist to avoid duplicate handlers in notebook re-runs.
+    
+    Args:
+        debug: Enable debug logging when True
+        q: Alternative debug flag for future extensibility (when True, also enables debug logging)
+    """
+    # Determine target log level
+    if debug or q:
+        level = logging.DEBUG
+    else:
+        level = logging.WARNING
+    
+    # Configure root logger if no handlers exist (avoid duplicate handlers)
+    root_logger = logging.getLogger()
+    if not root_logger.handlers:
+        logging.basicConfig(
+            level=level,
+            format='%(levelname)s - %(name)s - %(message)s',
+            force=True
+        )
+    else:
+        # Handlers exist, just update the level
+        root_logger.setLevel(level)
 
 # -------------------------------------------------------------------------
 # 1. Configuration
@@ -182,18 +219,18 @@ def _safe_request_csv(url, cache_filename="compas.csv"):
     if cache_path.exists():
         file_time = datetime.fromtimestamp(cache_path.stat().st_mtime)
         if datetime.now() - file_time < timedelta(hours=CACHE_MAX_AGE_HOURS):
-            print(f"Using cached dataset from {cache_path}")
+            logger.debug(f"Using cached dataset from {cache_path}")
             return pd.read_csv(cache_path)
     
     # Download fresh data
-    print(f"Downloading dataset from {url}")
+    logger.debug(f"Downloading dataset from {url}")
     response = requests.get(url, timeout=30)
     response.raise_for_status()
     df = pd.read_csv(StringIO(response.text))
     
     # Save to cache
     df.to_csv(cache_path, index=False)
-    print(f"Dataset cached to {cache_path}")
+    logger.debug(f"Dataset cached to {cache_path}")
     
     return df
 
@@ -221,7 +258,7 @@ def load_and_prep_data(use_cache=True):
         try:
             df = _safe_request_csv(url)
         except Exception as e:
-            print(f"Cache failed, fetching directly: {e}")
+            logger.error(f"Cache failed, fetching directly: {e}")
             response = requests.get(url)
             df = pd.read_csv(StringIO(response.text))
     else:
@@ -281,8 +318,8 @@ def load_and_prep_data(use_cache=True):
     X_TRAIN_WARM = X_train_raw.sample(n=warm_size, random_state=42)
     Y_TRAIN_WARM = y_train.loc[X_TRAIN_WARM.index]
 
-    print(f"Pre-sampling complete. {len(X_TRAIN_SAMPLES_MAP)} data sizes cached.")
-    print(f"Warm mini dataset: {len(X_TRAIN_WARM)} rows")
+    logger.debug(f"Pre-sampling complete. {len(X_TRAIN_SAMPLES_MAP)} data sizes cached.")
+    logger.debug(f"Warm mini dataset: {len(X_TRAIN_WARM)} rows")
 
     return X_train_raw, X_test_raw, y_train, y_test
 
@@ -303,28 +340,28 @@ def _background_initializer():
     
     try:
         # Step 1: Connect to competition
-        print("Background init: Connecting to competition...")
+        logger.debug("Background init: Connecting to competition...")
         with INIT_LOCK:
             if playground is None:
                 playground = Competition(MY_PLAYGROUND_ID)
             INIT_FLAGS["competition"] = True
-        print("✓ Competition connected")
+        logger.debug("✓ Competition connected")
     except Exception as e:
         with INIT_LOCK:
             INIT_FLAGS["errors"].append(f"Competition connection failed: {str(e)}")
-        print(f"✗ Competition connection failed: {e}")
+        logger.error(f"✗ Competition connection failed: {e}")
     
     try:
         # Step 2: Load dataset core (train/test split)
-        print("Background init: Loading dataset core...")
+        logger.debug("Background init: Loading dataset core...")
         X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data(use_cache=True)
         with INIT_LOCK:
             INIT_FLAGS["dataset_core"] = True
-        print("✓ Dataset core loaded")
+        logger.debug("✓ Dataset core loaded")
     except Exception as e:
         with INIT_LOCK:
             INIT_FLAGS["errors"].append(f"Dataset loading failed: {str(e)}")
-        print(f"✗ Dataset loading failed: {e}")
+        logger.error(f"✗ Dataset loading failed: {e}")
         return  # Cannot proceed without data
     
     try:
@@ -332,89 +369,89 @@ def _background_initializer():
         if X_TRAIN_WARM is not None and len(X_TRAIN_WARM) > 0:
             with INIT_LOCK:
                 INIT_FLAGS["warm_mini"] = True
-            print("✓ Warm mini dataset ready")
+            logger.debug("✓ Warm mini dataset ready")
     except Exception as e:
         with INIT_LOCK:
             INIT_FLAGS["errors"].append(f"Warm mini dataset failed: {str(e)}")
-        print(f"✗ Warm mini dataset failed: {e}")
+        logger.error(f"✗ Warm mini dataset failed: {e}")
     
     # Progressive sampling - samples are already created in load_and_prep_data
     # Just mark them as ready sequentially with delays to simulate progressive loading
     
     try:
         # Step 4a: Small sample (20%)
-        print("Background init: Small sample (20%)...")
+        logger.debug("Background init: Small sample (20%)...")
         time.sleep(0.5)  # Simulate processing
         with INIT_LOCK:
             INIT_FLAGS["pre_samples_small"] = True
-        print("✓ Small sample ready")
+        logger.debug("✓ Small sample ready")
     except Exception as e:
         with INIT_LOCK:
             INIT_FLAGS["errors"].append(f"Small sample failed: {str(e)}")
-        print(f"✗ Small sample failed: {e}")
+        logger.error(f"✗ Small sample failed: {e}")
     
     try:
         # Step 4b: Medium sample (60%)
-        print("Background init: Medium sample (60%)...")
+        logger.debug("Background init: Medium sample (60%)...")
         time.sleep(0.5)
         with INIT_LOCK:
             INIT_FLAGS["pre_samples_medium"] = True
-        print("✓ Medium sample ready")
+        logger.debug("✓ Medium sample ready")
     except Exception as e:
         with INIT_LOCK:
             INIT_FLAGS["errors"].append(f"Medium sample failed: {str(e)}")
-        print(f"✗ Medium sample failed: {e}")
+        logger.error(f"✗ Medium sample failed: {e}")
     
     try:
         # Step 4c: Large sample (80%)
-        print("Background init: Large sample (80%)...")
+        logger.debug("Background init: Large sample (80%)...")
         time.sleep(0.5)
         with INIT_LOCK:
             INIT_FLAGS["pre_samples_large"] = True
-        print("✓ Large sample ready")
+        logger.debug("✓ Large sample ready")
     except Exception as e:
         with INIT_LOCK:
             INIT_FLAGS["errors"].append(f"Large sample failed: {str(e)}")
-        print(f"✗ Large sample failed: {e}")
+        logger.error(f"✗ Large sample failed: {e}")
     
     try:
         # Step 4d: Full sample (100%)
-        print("Background init: Full sample (100%)...")
+        logger.debug("Background init: Full sample (100%)...")
         time.sleep(0.5)
         with INIT_LOCK:
             INIT_FLAGS["pre_samples_full"] = True
-        print("✓ Full sample ready")
+        logger.debug("✓ Full sample ready")
     except Exception as e:
         with INIT_LOCK:
             INIT_FLAGS["errors"].append(f"Full sample failed: {str(e)}")
-        print(f"✗ Full sample failed: {e}")
+        logger.error(f"✗ Full sample failed: {e}")
     
     try:
         # Step 5: Leaderboard prefetch
         if playground is not None:
-            print("Background init: Prefetching leaderboard...")
+            logger.debug("Background init: Prefetching leaderboard...")
             _ = playground.get_leaderboard()
             with INIT_LOCK:
                 INIT_FLAGS["leaderboard"] = True
-            print("✓ Leaderboard prefetched")
+            logger.debug("✓ Leaderboard prefetched")
     except Exception as e:
         with INIT_LOCK:
             INIT_FLAGS["errors"].append(f"Leaderboard prefetch failed: {str(e)}")
-        print(f"✗ Leaderboard prefetch failed: {e}")
+        logger.error(f"✗ Leaderboard prefetch failed: {e}")
     
     try:
         # Step 6: Default preprocessor on small sample
-        print("Background init: Fitting default preprocessor...")
+        logger.debug("Background init: Fitting default preprocessor...")
         _fit_default_preprocessor()
         with INIT_LOCK:
             INIT_FLAGS["default_preprocessor"] = True
-        print("✓ Default preprocessor ready")
+        logger.debug("✓ Default preprocessor ready")
     except Exception as e:
         with INIT_LOCK:
             INIT_FLAGS["errors"].append(f"Default preprocessor failed: {str(e)}")
-        print(f"✗ Default preprocessor failed: {e}")
+        logger.error(f"✗ Default preprocessor failed: {e}")
     
-    print("=== Background initialization complete ===")
+    logger.debug("=== Background initialization complete ===")
 
 def _fit_default_preprocessor():
     """
@@ -444,7 +481,7 @@ def start_background_init():
     """
     thread = threading.Thread(target=_background_initializer, daemon=True)
     thread.start()
-    print("Background initialization started...")
+    logger.debug("Background initialization started...")
 
 def poll_init_status():
     """
@@ -999,7 +1036,7 @@ def get_or_assign_team(username):
         # Query the leaderboard
         if playground is None:
             # Fallback to random assignment if playground not available
-            print("Playground not available, assigning random team")
+            logger.debug("Playground not available, assigning random team")
             new_team = _normalize_team_name(random.choice(TEAM_NAMES))
             return new_team, True
         
@@ -1019,10 +1056,10 @@ def get_or_assign_team(username):
                         user_submissions = user_submissions.copy()
                         user_submissions["timestamp"] = pd.to_datetime(user_submissions["timestamp"], errors='coerce')
                         user_submissions = user_submissions.sort_values("timestamp", ascending=False)
-                        print(f"Sorted {len(user_submissions)} submissions by timestamp for {username}")
+                        logger.debug(f"Sorted {len(user_submissions)} submissions by timestamp for {username}")
                     except Exception as ts_error:
                         # If timestamp parsing fails, continue with unsorted DataFrame
-                        print(f"Warning: Could not sort by timestamp for {username}: {ts_error}")
+                        logger.debug(f"Warning: Could not sort by timestamp for {username}: {ts_error}")
                 
                 # Get the most recent team assignment (first row after sorting)
                 existing_team = user_submissions.iloc[0]["Team"]
@@ -1030,19 +1067,19 @@ def get_or_assign_team(username):
                 # Check if team value is valid (not null/empty)
                 if pd.notna(existing_team) and existing_team and str(existing_team).strip():
                     normalized_team = _normalize_team_name(existing_team)
-                    print(f"Found existing team for {username}: {normalized_team}")
+                    logger.debug(f"Found existing team for {username}: {normalized_team}")
                     return normalized_team, False
         
         # No existing team found - assign random
         new_team = _normalize_team_name(random.choice(TEAM_NAMES))
-        print(f"Assigning new team to {username}: {new_team}")
+        logger.debug(f"Assigning new team to {username}: {new_team}")
         return new_team, True
         
     except Exception as e:
         # On any error, fall back to random assignment
-        print(f"Error checking leaderboard for team: {e}")
+        logger.error(f"Error checking leaderboard for team: {e}")
         new_team = _normalize_team_name(random.choice(TEAM_NAMES))
-        print(f"Fallback: assigning random team to {username}: {new_team}")
+        logger.debug(f"Fallback: assigning random team to {username}: {new_team}")
         return new_team, True
 
 def perform_inline_login(username_input, password_input):
@@ -1602,7 +1639,7 @@ def on_initial_load(username):
                     0, 0, -1
                 )
         except Exception as e:
-            print(f"Error on initial load: {e}")
+            logger.error(f"Error on initial load: {e}")
             team_html = "<p style='text-align:center; color:red; padding-top:20px;'>Could not load leaderboard.</p>"
             individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>Could not load leaderboard.</p>"
 
@@ -1702,11 +1739,19 @@ def build_conclusion_from_state(best_score, submissions, rank, first_score, feat
 # 3. Factory Function: Build Gradio App
 # -------------------------------------------------------------------------
 
-def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
+def create_model_building_game_app(theme_primary_hue: str = "indigo", debug: bool = False, q: bool = False) -> "gr.Blocks":
     """
     Create (but do not launch) the model building game app.
     Starts background initialization automatically.
+    
+    Args:
+        theme_primary_hue: Primary color theme hue
+        debug: Enable debug logging when True
+        q: Alternative debug flag (when True, also enables debug logging)
     """
+    # Configure logging based on debug flags
+    configure_logging(debug=debug, q=q)
+    
     # Start background initialization thread
     start_background_init()
     
@@ -2649,22 +2694,31 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
 # 4. Convenience Launcher
 # -------------------------------------------------------------------------
 
-def launch_model_building_game_app(height: int = 1200, share: bool = False, debug: bool = False) -> None:
+def launch_model_building_game_app(height: int = 1200, share: bool = False, debug: bool = False, q: bool = False) -> None:
     """
     Create and directly launch the Model Building Game app inline (e.g., in notebooks).
+    
+    Args:
+        height: Height of the app in pixels
+        share: Whether to create a public shareable link
+        debug: Enable debug logging and Gradio debug mode when True
+        q: Alternative debug flag (when True, also enables debug logging)
     """
+    # Configure logging based on debug flags
+    configure_logging(debug=debug, q=q)
+    
     global playground, X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST
     if playground is None:
         try:
             playground = Competition(MY_PLAYGROUND_ID)
         except Exception as e:
-            print(f"WARNING: Could not connect to playground: {e}")
+            logger.error(f"WARNING: Could not connect to playground: {e}")
             playground = None
 
     if X_TRAIN_RAW is None:
         X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data()
 
-    demo = create_model_building_game_app()
+    demo = create_model_building_game_app(debug=debug, q=q)
     with contextlib.redirect_stdout(open(os.devnull, "w")), contextlib.redirect_stderr(open(os.devnull, "w")):
         demo.launch(share=share, inline=True, debug=debug, height=height)
 
@@ -2673,15 +2727,18 @@ def launch_model_building_game_app(height: int = 1200, share: bool = False, debu
 # -------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    print("--- Initializing Model Building Game ---")
+    # Configure logging for standalone execution
+    configure_logging(debug=False)
+    
+    logger.debug("--- Initializing Model Building Game ---")
     try:
         playground = Competition(MY_PLAYGROUND_ID)
-        print("Playground connection successful.")
+        logger.debug("Playground connection successful.")
     except Exception as e:
-        print(f"Playground connection failed: {e}")
+        logger.error(f"Playground connection failed: {e}")
         playground = None
 
     X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data()
-    print("--- Launching App ---")
-    app = create_model_building_game_app()
+    logger.debug("--- Launching App ---")
+    app = create_model_building_game_app(debug=False)
     app.launch(share=False, debug=False, height=1100)
