@@ -16,6 +16,24 @@ import gradio as gr
 # --- Scikit-learn Imports ---
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+from sklearn.impute import SimpleImputerimport os
+import time
+import random
+import requests
+import contextlib
+from io import StringIO
+import threading
+import functools
+from pathlib import Path
+from datetime import datetime, timedelta
+
+import numpy as np
+import pandas as pd
+import gradio as gr
+
+# --- Scikit-learn Imports ---
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
@@ -1554,16 +1572,14 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
         <ul style='list-style:none; padding:0; font-size:1.05rem; text-align:left; max-width:640px; margin:20px auto;'>
           <li>🏁 <b>Best Accuracy:</b> {(best_score * 100):.2f}%</li>
           <li>📊 <b>Rank Achieved:</b> {('#'+str(rank)) if rank > 0 else '—'}</li>
-          <li>🔁 <b>Submissions:</b> {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li>
-          <li>🧗 <b>Improvement Over First Score:</b> {(improvement * 100):+.2f}%</li>
+          <li>🔁 <b>Submissions Mad This Session:</b> {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li>
+          <li>🧗 <b>Improvement Over First Score This Session:</b> {(improvement * 100):+.2f}</li>
           <li>🎖️ <b>Tier Progress:</b> {tier_line}</li>
           <li>🧪 <b>Strong Predictors Used:</b> {len(strong_used)} ({', '.join(strong_used) if strong_used else 'None yet'})</li>
         </ul>
         
         {starter_msg}
         
-        {attempt_cap_note}
-
         <div style='margin-top: 16px; background:#fef2f2; padding:18px; border-radius:12px; border-left:6px solid #ef4444; text-align:left; font-size:0.98rem; line-height:1.4;'>
           <p style='margin:0;'><b>Ethical Reflection:</b> {ethical_note}</p>
         </div>
