@@ -16,24 +16,6 @@ import gradio as gr
 # --- Scikit-learn Imports ---
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.impute import SimpleImputerimport os
-import time
-import random
-import requests
-import contextlib
-from io import StringIO
-import threading
-import functools
-from pathlib import Path
-from datetime import datetime, timedelta
-
-import numpy as np
-import pandas as pd
-import gradio as gr
-
-# --- Scikit-learn Imports ---
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
@@ -1846,22 +1828,21 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         with gr.Column(visible=False) as briefing_slide_2:
             gr.Markdown("<h1 style='text-align:center;'>📋 Your Mission - Build Better AI</h1>")
             
-            # --- FIX FOR SLIDE 2 ---
-            # Combined all content into single gr.HTML()
             gr.HTML(
-                f"""
+                """
                 <div class='slide-content'>
                     <div class='panel-box'>
                         <h3>The Mission</h3>
                         <p>Build an AI model that helps judges make better decisions. The model you used previously gave you imperfect advice. Your job now is to build a new model that predicts risk more accurately, providing judges with the reliable insights they need to be fair.</p>
+                        
                         <h3>The Competition</h3>
-                        <p>To do this, you will compete against other engineers! To help you in your mission, you have been assigned to an engineering team. Your results will be tracked both individually and as a group in the Live Standings Leaderboards.</p>
+                        <p>To do this, you will compete against other engineers! To help you in your mission, you will join an engineering team. Your results will be tracked both individually and as a group in the Live Standings Leaderboards.</p>
                     </div>
 
                     <div class='leaderboard-box' style='max-width: 600px; margin: 16px auto; text-align: center; padding: 16px;'>
-                        <p style='font-size: 1.1rem; margin:0;'>Your team is:</p>
-                        <h3 style='font-size: 1.75rem; color: #4338ca; margin: 8px 0;'>
-                            🛡️ {CURRENT_TEAM_NAME}
+                        <p style='font-size: 1.1rem; margin:0;'>You will join a team like...</p>
+                        <h3 style='font-size: 1.75rem; color: #6b7280; margin: 8px 0;'>
+                            🛡️ The Ethical Explorers
                         </h3>
                     </div>
 
@@ -1880,6 +1861,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                                 </ul>
                             </li>
                         </ol>
+                        
                         <h3>The Core Task</h3>
                         <p>You need to teach your AI to look at the "Profiles" and accurately predict the "Outcome."</p>
                         <p><strong>Ready to build something that could change how justice works?</strong></p>
@@ -1887,7 +1869,6 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 </div>
                 """
             )
-            # --- END FIX ---
             
             with gr.Row():
                 briefing_2_back = gr.Button("◀️ Back", size="lg")
