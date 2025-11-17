@@ -39,6 +39,12 @@ except ImportError:
 
 MY_PLAYGROUND_ID = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
 
+# --- Submission Limit Configuration ---
+# Maximum number of successful leaderboard submissions per user per session.
+# Preview runs (pre-login) and failed/invalid attempts do NOT count toward this limit.
+# Only actual successful playground.submit_model() calls increment the count.
+ATTEMPT_LIMIT = 10
+
 MODEL_TYPES = {
     "The Balanced Generalist": {
         "model_builder": lambda: LogisticRegression(
@@ -730,6 +736,37 @@ def _build_individual_html(individual_summary_df, username):
     footer = "</tbody></table>"
     return header + body + footer
 
+def _build_attempts_tracker_html(current_count, limit=ATTEMPT_LIMIT):
+    """
+    Generate HTML for the attempts tracker display.
+    Shows current attempt count vs limit with color coding.
+    
+    Args:
+        current_count: Number of attempts used so far
+        limit: Maximum allowed attempts (default: ATTEMPT_LIMIT)
+    
+    Returns:
+        str: HTML string for the tracker display
+    """
+    if current_count >= limit:
+        # Limit reached - red styling
+        bg_color = "#f0f9ff"
+        border_color = "#bae6fd"
+        text_color = "#0369a1"
+        icon = "🛑"
+        label = f"Last chance (for now) to boost your score!: {current_count}/{limit}"
+    else:
+        # Normal - blue styling
+        bg_color = "#f0f9ff"
+        border_color = "#bae6fd"
+        text_color = "#0369a1"
+        icon = "📊"
+        label = f"Attempts used: {current_count}/{limit}"
+    
+    return f"""<div style='text-align:center; padding:8px; margin:8px 0; background:{bg_color}; border-radius:8px; border:1px solid {border_color};'>
+        <p style='margin:0; color:{text_color}; font-weight:600; font-size:1rem;'>{icon} {label}</p>
+    </div>"""
+
 # --- End Helper Functions ---
 
 
@@ -891,6 +928,7 @@ model_type_radio = None
 complexity_slider = None
 feature_set_checkbox = None
 data_size_radio = None
+attempts_tracker_display = None
 # Login components (will be assigned in create_model_building_game_app)
 login_username = None
 login_password = None
@@ -1039,7 +1077,8 @@ def run_experiment(
     initial_updates = {
         submit_button: gr.update(value="⏳ Experiment Running...", interactive=False),
         submission_feedback_display: gr.update(value=get_status_html(1, "Initializing", "Preparing your data ingredients..."), visible=True), # Make sure it's visible
-        login_error: gr.update(visible=False) # Hide login success/error message
+        login_error: gr.update(visible=False), # Hide login success/error message
+        attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))
     }
     yield initial_updates
 
@@ -1108,7 +1147,8 @@ def run_experiment(
                 feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
                 data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
                 submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
-                login_error: gr.update(visible=False)
+                login_error: gr.update(visible=False),
+                attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))
             }
             yield final_updates
             return
@@ -1143,7 +1183,8 @@ def run_experiment(
             complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
             feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
             data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-            login_error: gr.update(visible=False)
+            login_error: gr.update(visible=False),
+            attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))
         }
         yield error_updates
         return
@@ -1242,11 +1283,66 @@ def run_experiment(
                 complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
                 feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
                 data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
+                attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))
             }
             yield gate_updates
             return  # Stop here - user needs to login and resubmit
         
         # User is authenticated - proceed with submission
+        # --- ATTEMPT LIMIT CHECK ---
+        # Check if user has reached the submission limit BEFORE submitting to leaderboard.
+        # Only successful submissions to playground.submit_model() count toward ATTEMPT_LIMIT.
+        # Preview runs, failed attempts, and pre-login runs do NOT count.
+        if submission_count >= ATTEMPT_LIMIT:
+            # User has reached the attempt limit - show warning and disable controls
+            limit_warning_html = f"""
+            <div class='kpi-card' style='border-color: #ef4444;'>
+                <h2 style='color: #111827; margin-top:0;'>🛑 Submission Limit Reached</h2>
+                <div class='kpi-card-body'>
+                    <div class='kpi-metric-box'>
+                        <p class='kpi-label'>Attempts Used</p>
+                        <p class='kpi-score' style='color: #ef4444;'>{ATTEMPT_LIMIT} / {ATTEMPT_LIMIT}</p>
+                        <p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Maximum submissions reached</p>
+                    </div>
+                </div>
+                <div style='margin-top: 16px; background:#fef2f2; padding:16px; border-radius:12px; text-align:left; font-size:0.98rem; line-height:1.4;'>
+                    <p style='margin:0; color:#991b1b;'><b>Nice Work!  Don't worry, you will have a chance compete further to improve your model more after a few new activities.  </b></p>
+                    <p style='margin:8px 0 0 0; color:#7f1d1d;'>
+                        Scroll down to click "Finish and Reflect" to see a summary of your results so far.
+                    </p>
+                </div>
+            </div>
+            """
+            
+            settings = compute_rank_settings(
+                submission_count, model_name_key, complexity_level, feature_set, data_size_str
+            )
+            
+            # Disable all interactive controls - user can only view results
+            limit_reached_updates = {
+                submission_feedback_display: gr.update(value=limit_warning_html, visible=True),
+                submit_button: gr.update(value="🛑 Submission Limit Reached", interactive=False),
+                model_type_radio: gr.update(interactive=False),
+                complexity_slider: gr.update(interactive=False),
+                feature_set_checkbox: gr.update(interactive=False),
+                data_size_radio: gr.update(interactive=False),
+                attempts_tracker_display: gr.update(value=f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'>"
+                    f"<p style='margin:0; color:#991b1b; font-weight:600; font-size:1rem;'>🛑 Attempts used: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT} (Limit Reached)</p>"
+                    "</div>"),
+                team_leaderboard_display: team_leaderboard_display,
+                individual_leaderboard_display: individual_leaderboard_display,
+                last_submission_score_state: last_submission_score,
+                last_rank_state: last_rank,
+                best_score_state: best_score,
+                submission_count_state: submission_count,
+                first_submission_score_state: first_submission_score,
+                rank_message_display: settings["rank_message"],
+                login_error: gr.update(visible=False)
+            }
+            yield limit_reached_updates
+            return  # Stop here - no more submissions allowed
+        # --- END ATTEMPT LIMIT CHECK ---
+        
         progress(0.5, desc="Submitting to Cloud...")
         yield { 
             submission_feedback_display: gr.update(value=get_status_html(3, "Submitting", "Sending model to the competition server..."), visible=True),
@@ -1316,7 +1412,8 @@ def run_experiment(
             feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
             data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
             submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
-            login_error: gr.update(visible=False)
+            login_error: gr.update(visible=False),
+            attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(new_submission_count))
         }
         yield final_updates
 
@@ -1340,7 +1437,8 @@ def run_experiment(
             feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
             data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
             submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
-            login_error: gr.update(visible=False)
+            login_error: gr.update(visible=False),
+            attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))
         }
         yield error_updates
 
@@ -1397,6 +1495,19 @@ def on_initial_load(username):
 # -------------------------------------------------------------------------
 
 def build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set):
+    """
+    Build the final conclusion HTML with performance summary.
+    
+    Args:
+        best_score: Best accuracy achieved
+        submissions: Number of submissions made
+        rank: Final rank achieved
+        first_score: Score from first submission
+        feature_set: List of features used
+    
+    Returns:
+        str: HTML string for conclusion display
+    """
     unlocked_tiers = min(3, max(0, submissions - 1))  # 0..3
     tier_names = ["Trainee", "Junior", "Senior", "Lead"]
     reached = tier_names[:unlocked_tiers+1]
@@ -1419,6 +1530,15 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
         )
     else:
         starter_msg = ""
+    
+    # Add note if user reached the 10 attempt cap
+    attempt_cap_note = ""
+    if submissions >= ATTEMPT_LIMIT:
+        attempt_cap_note = f"""
+        <div style='background:#fef2f2; padding:16px; border-radius:12px; border-left:6px solid #ef4444; text-align:left; margin-top:16px;'>
+            <p style='margin:0;'><b>📊 Attempt Limit Reached:</b> You used all {ATTEMPT_LIMIT} allowed submission attempts for this session. We will open up submissions again after you complete some new activities next.</p>
+        </div>
+        """
 
     return f"""
     <div style='text-align:center;'>
@@ -1428,13 +1548,15 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
         <ul style='list-style:none; padding:0; font-size:1.05rem; text-align:left; max-width:640px; margin:20px auto;'>
           <li>🏁 <b>Best Accuracy:</b> {(best_score * 100):.2f}%</li>
           <li>📊 <b>Rank Achieved:</b> {('#'+str(rank)) if rank > 0 else '—'}</li>
-          <li>🔁 <b>Submissions:</b> {submissions}</li>
+          <li>🔁 <b>Submissions:</b> {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li>
           <li>🧗 <b>Improvement Over First Score:</b> {(improvement * 100):+.2f}%</li>
           <li>🎖️ <b>Tier Progress:</b> {tier_line}</li>
           <li>🧪 <b>Strong Predictors Used:</b> {len(strong_used)} ({', '.join(strong_used) if strong_used else 'None yet'})</li>
         </ul>
         
         {starter_msg}
+        
+        {attempt_cap_note}
 
         <div style='margin-top: 16px; background:#fef2f2; padding:18px; border-radius:12px; border-left:6px solid #ef4444; text-align:left; font-size:0.98rem; line-height:1.4;'>
           <p style='margin:0;'><b>Ethical Reflection:</b> {ethical_note}</p>
@@ -1628,6 +1750,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
     global rank_message_display, model_type_radio, complexity_slider
     global feature_set_checkbox, data_size_radio
     global login_username, login_password, login_submit, login_error
+    global attempts_tracker_display
 
     with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css) as demo:
         username = os.environ.get("username") or "Unknown_User"
@@ -2075,6 +2198,14 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
 
                     gr.Markdown("---") # Separator
 
+                    # Attempt tracker display
+                    attempts_tracker_display = gr.HTML(
+                        value="<div style='text-align:center; padding:8px; margin:8px 0; background:#f0f9ff; border-radius:8px; border:1px solid #bae6fd;'>"
+                        "<p style='margin:0; color:#0369a1; font-weight:600; font-size:1rem;'>📊 Attempts used: 0/10</p>"
+                        "</div>",
+                        visible=True
+                    )
+
                     submit_button = gr.Button(
                         value="5. 🔬 Build & Submit Model",
                         variant="primary",
@@ -2301,7 +2432,8 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             login_username,
             login_password,
             login_submit,
-            login_error
+            login_error,
+            attempts_tracker_display
         ]
 
         # Wire up login button
