@@ -556,6 +556,31 @@ def tune_model_complexity(model, level):
 
 # --- New Helper Functions for HTML Generation ---
 
+def _normalize_team_name(name: str) -> str:
+    """
+    Normalize team name for consistent comparison and storage.
+    
+    Strips leading/trailing whitespace and collapses multiple spaces into single spaces.
+    This ensures consistent formatting across environment variables, state, and leaderboard rendering.
+    
+    Args:
+        name: Team name to normalize (can be None or empty)
+    
+    Returns:
+        str: Normalized team name, or empty string if input is None/empty
+    
+    Examples:
+        >>> _normalize_team_name("  The Ethical Explorers  ")
+        'The Ethical Explorers'
+        >>> _normalize_team_name("The  Moral   Champions")
+        'The Moral Champions'
+        >>> _normalize_team_name(None)
+        ''
+    """
+    if not name:
+        return ""
+    return " ".join(str(name).strip().split())
+
 def _build_skeleton_leaderboard(rows=6, is_team=True):
     """
     Generate a static placeholder for leaderboards during loading.
@@ -673,9 +698,17 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
     """
 
 def _build_team_html(team_summary_df, team_name):
-    """Generates the HTML for the team leaderboard."""
+    """
+    Generates the HTML for the team leaderboard.
+    
+    Uses normalized, case-insensitive comparison to highlight the user's team row,
+    ensuring reliable highlighting even with whitespace or casing variations.
+    """
     if team_summary_df is None or team_summary_df.empty:
         return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>No team submissions yet.</p>"
+
+    # Normalize the current user's team name for comparison
+    normalized_user_team = _normalize_team_name(team_name).lower()
 
     header = """
     <table class='leaderboard-html-table'>
@@ -693,7 +726,9 @@ def _build_team_html(team_summary_df, team_name):
 
     body = ""
     for index, row in team_summary_df.iterrows():
-        is_user_team = row["Team"] == team_name
+        # Normalize the row's team name and compare case-insensitively
+        normalized_row_team = _normalize_team_name(row["Team"]).lower()
+        is_user_team = normalized_row_team == normalized_user_team
         row_class = "class='user-row-highlight'" if is_user_team else ""
         body += f"""
         <tr {row_class}>
@@ -949,14 +984,15 @@ def get_or_assign_team(username):
     Get the existing team for a user from the leaderboard, or assign a new random team.
     
     Queries the playground leaderboard to check if the user has prior submissions with
-    a team assignment. If found, returns that team. Otherwise assigns a random team.
+    a team assignment. If found, returns that team (most recent if multiple submissions).
+    Otherwise assigns a random team. All team names are normalized for consistency.
     
     Args:
         username: str, the username to check for existing team
     
     Returns:
         tuple: (team_name: str, is_new: bool)
-            - team_name: The team name (existing or newly assigned)
+            - team_name: The normalized team name (existing or newly assigned)
             - is_new: True if newly assigned, False if existing team recovered
     """
     try:
@@ -964,7 +1000,8 @@ def get_or_assign_team(username):
         if playground is None:
             # Fallback to random assignment if playground not available
             print("Playground not available, assigning random team")
-            return random.choice(TEAM_NAMES), True
+            new_team = _normalize_team_name(random.choice(TEAM_NAMES))
+            return new_team, True
         
         leaderboard_df = playground.get_leaderboard()
         
@@ -974,23 +1011,37 @@ def get_or_assign_team(username):
             user_submissions = leaderboard_df[leaderboard_df["username"] == username]
             
             if not user_submissions.empty:
-                # Get the most recent team assignment (in case there are multiple)
+                # Sort by timestamp (most recent first) if timestamp column exists
+                # Use contextlib.suppress for resilient timestamp parsing
+                if "timestamp" in user_submissions.columns:
+                    try:
+                        # Attempt to coerce timestamp column to datetime and sort descending
+                        user_submissions = user_submissions.copy()
+                        user_submissions["timestamp"] = pd.to_datetime(user_submissions["timestamp"], errors='coerce')
+                        user_submissions = user_submissions.sort_values("timestamp", ascending=False)
+                        print(f"Sorted {len(user_submissions)} submissions by timestamp for {username}")
+                    except Exception as ts_error:
+                        # If timestamp parsing fails, continue with unsorted DataFrame
+                        print(f"Warning: Could not sort by timestamp for {username}: {ts_error}")
+                
+                # Get the most recent team assignment (first row after sorting)
                 existing_team = user_submissions.iloc[0]["Team"]
                 
                 # Check if team value is valid (not null/empty)
                 if pd.notna(existing_team) and existing_team and str(existing_team).strip():
-                    print(f"Found existing team for {username}: {existing_team}")
-                    return str(existing_team).strip(), False
+                    normalized_team = _normalize_team_name(existing_team)
+                    print(f"Found existing team for {username}: {normalized_team}")
+                    return normalized_team, False
         
         # No existing team found - assign random
-        new_team = random.choice(TEAM_NAMES)
+        new_team = _normalize_team_name(random.choice(TEAM_NAMES))
         print(f"Assigning new team to {username}: {new_team}")
         return new_team, True
         
     except Exception as e:
         # On any error, fall back to random assignment
         print(f"Error checking leaderboard for team: {e}")
-        new_team = random.choice(TEAM_NAMES)
+        new_team = _normalize_team_name(random.choice(TEAM_NAMES))
         print(f"Fallback: assigning random team to {username}: {new_team}")
         return new_team, True
 
@@ -1055,8 +1106,10 @@ def perform_inline_login(username_input, password_input):
         token = get_aws_token()
         os.environ["AWS_TOKEN"] = token
         
-        # Get or assign team for this user
+        # Get or assign team for this user (already normalized by get_or_assign_team)
         team_name, is_new_team = get_or_assign_team(username_input.strip())
+        # Normalize team name before storing (defensive - already normalized by get_or_assign_team)
+        team_name = _normalize_team_name(team_name)
         os.environ["TEAM_NAME"] = team_name
         
         # Build success message based on whether team is new or existing
