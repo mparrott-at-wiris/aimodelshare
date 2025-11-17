@@ -935,6 +935,7 @@ complexity_slider = None
 feature_set_checkbox = None
 data_size_radio = None
 attempts_tracker_display = None
+team_name_state = None
 # Login components (will be assigned in create_model_building_game_app)
 login_username = None
 login_password = None
@@ -942,6 +943,56 @@ login_submit = None
 login_error = None
 # This one will be assigned globally but is also defined in the function
 # first_submission_score_state = None 
+
+def get_or_assign_team(username):
+    """
+    Get the existing team for a user from the leaderboard, or assign a new random team.
+    
+    Queries the playground leaderboard to check if the user has prior submissions with
+    a team assignment. If found, returns that team. Otherwise assigns a random team.
+    
+    Args:
+        username: str, the username to check for existing team
+    
+    Returns:
+        tuple: (team_name: str, is_new: bool)
+            - team_name: The team name (existing or newly assigned)
+            - is_new: True if newly assigned, False if existing team recovered
+    """
+    try:
+        # Query the leaderboard
+        if playground is None:
+            # Fallback to random assignment if playground not available
+            print("Playground not available, assigning random team")
+            return random.choice(TEAM_NAMES), True
+        
+        leaderboard_df = playground.get_leaderboard()
+        
+        # Check if leaderboard has data and Team column
+        if leaderboard_df is not None and not leaderboard_df.empty and "Team" in leaderboard_df.columns:
+            # Filter for this user's submissions
+            user_submissions = leaderboard_df[leaderboard_df["username"] == username]
+            
+            if not user_submissions.empty:
+                # Get the most recent team assignment (in case there are multiple)
+                existing_team = user_submissions.iloc[0]["Team"]
+                
+                # Check if team value is valid (not null/empty)
+                if pd.notna(existing_team) and existing_team and str(existing_team).strip():
+                    print(f"Found existing team for {username}: {existing_team}")
+                    return str(existing_team).strip(), False
+        
+        # No existing team found - assign random
+        new_team = random.choice(TEAM_NAMES)
+        print(f"Assigning new team to {username}: {new_team}")
+        return new_team, True
+        
+    except Exception as e:
+        # On any error, fall back to random assignment
+        print(f"Error checking leaderboard for team: {e}")
+        new_team = random.choice(TEAM_NAMES)
+        print(f"Fallback: assigning random team to {username}: {new_team}")
+        return new_team, True
 
 def perform_inline_login(username_input, password_input):
     """
@@ -975,7 +1026,8 @@ def perform_inline_login(username_input, password_input):
             login_submit: gr.update(),
             login_error: gr.update(value=error_html, visible=True),
             submit_button: gr.update(),
-            submission_feedback_display: gr.update() # Keep login prompt visible
+            submission_feedback_display: gr.update(),
+            team_name_state: gr.update()
         }
     
     if not password_input or not password_input.strip():
@@ -990,7 +1042,8 @@ def perform_inline_login(username_input, password_input):
             login_submit: gr.update(),
             login_error: gr.update(value=error_html, visible=True),
             submit_button: gr.update(),
-            submission_feedback_display: gr.update() # Keep login prompt visible
+            submission_feedback_display: gr.update(),
+            team_name_state: gr.update()
         }
     
     # Set credentials in environment
@@ -1002,10 +1055,23 @@ def perform_inline_login(username_input, password_input):
         token = get_aws_token()
         os.environ["AWS_TOKEN"] = token
         
-        # Success: hide login form, show success message, enable submit button
-        success_html = """
+        # Get or assign team for this user
+        team_name, is_new_team = get_or_assign_team(username_input.strip())
+        os.environ["TEAM_NAME"] = team_name
+        
+        # Build success message based on whether team is new or existing
+        if is_new_team:
+            team_message = f"You have been assigned to a new team: <b>{team_name}</b> 🎉"
+        else:
+            team_message = f"Welcome back! You remain on team: <b>{team_name}</b> ✅"
+        
+        # Success: hide login form, show success message with team info, enable submit button
+        success_html = f"""
         <div style='background:#f0fdf4; padding:16px; border-radius:8px; border-left:4px solid #16a34a; margin-top:12px;'>
             <p style='margin:0; color:#15803d; font-weight:600; font-size:1.1rem;'>✓ Signed in successfully!</p>
+            <p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>
+                {team_message}
+            </p>
             <p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>
                 Click "Build & Submit Model" again to publish your score.
             </p>
@@ -1017,7 +1083,8 @@ def perform_inline_login(username_input, password_input):
             login_submit: gr.update(visible=False),
             login_error: gr.update(value=success_html, visible=True),
             submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
-            submission_feedback_display: gr.update(visible=False) # <<< --- FIX ADDED ---
+            submission_feedback_display: gr.update(visible=False),
+            team_name_state: gr.update(value=team_name)
         }
         
     except Exception as e:
@@ -1045,7 +1112,8 @@ def perform_inline_login(username_input, password_input):
             login_submit: gr.update(visible=True),
             login_error: gr.update(value=error_html, visible=True),
             submit_button: gr.update(),
-            submission_feedback_display: gr.update() # Keep login prompt visible
+            submission_feedback_display: gr.update(),
+            team_name_state: gr.update()
         }
 
 def run_experiment(
@@ -1754,7 +1822,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
     global rank_message_display, model_type_radio, complexity_slider
     global feature_set_checkbox, data_size_radio
     global login_username, login_password, login_submit, login_error
-    global attempts_tracker_display
+    global attempts_tracker_display, team_name_state
 
     with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css) as demo:
         username = os.environ.get("username") or "Unknown_User"
@@ -2443,7 +2511,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         login_submit.click(
             fn=perform_inline_login,
             inputs=[login_username, login_password],
-            outputs=[login_username, login_password, login_submit, login_error, submit_button, submission_feedback_display]
+            outputs=[login_username, login_password, login_submit, login_error, submit_button, submission_feedback_display, team_name_state]
         )
 
         # Removed gr.State(username) from the inputs list
