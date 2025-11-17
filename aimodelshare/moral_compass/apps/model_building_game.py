@@ -623,7 +623,7 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
 
     # Handle preview mode - Styled to match "success" card
     if is_preview:
-        title = "🔬 Preview Run (Warm Subset)"
+        title = "🔬 Successful Preview Run!"
         acc_color = "#16a34a"  # Green (like success)
         acc_text = f"{(new_score * 100):.2f}%" if new_score > 0 else "N/A"
         acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>(Preview only - not submitted)</p>" # Neutral color
@@ -896,7 +896,7 @@ def compute_rank_settings(
 
     if submission_count == 0:
         return {
-            "rank_message": "### 🧑‍🎓 Rank: Trainee Engineer\n<p style='font-size:24px; line-height:1.4;'>For your first submission, just use the defaults and click the big '🔬 Build & Submit Model' button below!</p>",
+            "rank_message": "# 🧑‍🎓 Rank: Trainee Engineer\n<p style='font-size:24px; line-height:1.4;'>For your first submission, just click the big '🔬 Build & Submit Model' button below!</p>",
             "model_choices": ["The Balanced Generalist"],
             "model_value": "The Balanced Generalist",
             "model_interactive": False,
@@ -911,7 +911,7 @@ def compute_rank_settings(
         }
     elif submission_count == 1:
         return {
-            "rank_message": "# 🎉 Rank Up! Junior Engineer\nNew models, data sizes, and data ingredients unlocked!",
+            "rank_message": "# 🎉 Rank Up! Junior Engineer\n<p style='font-size:24px; line-height:1.4;'>New models, data sizes, and data ingredients unlocked!</p>",
             "model_choices": ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"],
             "model_value": current_model if current_model in ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"] else "The Balanced Generalist",
             "model_interactive": True,
@@ -941,7 +941,7 @@ def compute_rank_settings(
         }
     else:
         return {
-            "rank_message": "# 👑 Rank: Lead Engineer\nAll tools unlocked — optimize freely!",
+            "rank_message": "# 👑 Rank: Lead Engineer\n<p style='font-size:24px; line-height:1.4;'>All tools unlocked — optimize freely!</p>",
             "model_choices": list(MODEL_TYPES.keys()),
             "model_value": current_model if current_model in MODEL_TYPES else "The Balanced Generalist",
             "model_interactive": True,
@@ -1675,7 +1675,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
         <ul style='list-style:none; padding:0; font-size:1.05rem; text-align:left; max-width:640px; margin:20px auto;'>
           <li>🏁 <b>Best Accuracy:</b> {(best_score * 100):.2f}%</li>
           <li>📊 <b>Rank Achieved:</b> {('#'+str(rank)) if rank > 0 else '—'}</li>
-          <li>🔁 <b>Submissions Mad This Session:</b> {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li>
+          <li>🔁 <b>Submissions Made This Session:</b> {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li>
           <li>🧗 <b>Improvement Over First Score This Session:</b> {(improvement * 100):+.2f}</li>
           <li>🎖️ <b>Tier Progress:</b> {tier_line}</li>
           <li>🧪 <b>Strong Predictors Used:</b> {len(strong_used)} ({', '.join(strong_used) if strong_used else 'None yet'})</li>
