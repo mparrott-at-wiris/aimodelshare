@@ -530,22 +530,28 @@ def build_preprocessor(numeric_cols, categorical_cols):
     return preprocessor, selected_cols
 
 def tune_model_complexity(model, level):
-    """Map a simple 1–5 slider value to model hyperparameters."""
+    """
+    Map a 1–10 slider value to model hyperparameters.
+    Levels 1–3: Conservative / simple
+    Levels 4–7: Balanced
+    Levels 8–10: Aggressive / risk of overfitting
+    """
     level = int(level)
     if isinstance(model, LogisticRegression):
-        c_map = {1: 0.1, 2: 0.5, 3: 1.0, 4: 5.0, 5: 10.0}
+        c_map = {1: 0.01, 2: 0.025, 3: 0.05, 4: 0.1, 5: 0.25, 6: 0.5, 7: 1.0, 8: 2.0, 9: 5.0, 10: 10.0}
         model.C = c_map.get(level, 1.0)
+        model.max_iter = max(getattr(model, "max_iter", 0), 500)
     elif isinstance(model, RandomForestClassifier):
-        depth_map = {1: 3, 2: 5, 3: 10, 4: 20, 5: None}
-        est_map = {1: 20, 2: 40, 3: 50, 4: 100, 5: 150}
+        depth_map = {1: 3, 2: 5, 3: 7, 4: 9, 5: 11, 6: 15, 7: 20, 8: 25, 9: None, 10: None}
+        est_map = {1: 20, 2: 30, 3: 40, 4: 60, 5: 80, 6: 100, 7: 120, 8: 150, 9: 180, 10: 220}
         model.max_depth = depth_map.get(level, 10)
-        model.n_estimators = est_map.get(level, 50)
+        model.n_estimators = est_map.get(level, 100)
     elif isinstance(model, DecisionTreeClassifier):
-        depth_map = {1: 2, 2: 4, 3: 6, 4: 10, 5: None}
+        depth_map = {1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 8, 7: 10, 8: 12, 9: 15, 10: None}
         model.max_depth = depth_map.get(level, 6)
     elif isinstance(model, KNeighborsClassifier):
-        k_map = {1: 50, 2: 25, 3: 10, 4: 5, 5: 3}
-        model.n_neighbors = k_map.get(level, 10)
+        k_map = {1: 100, 2: 75, 3: 60, 4: 50, 5: 40, 6: 30, 7: 25, 8: 15, 9: 7, 10: 3}
+        model.n_neighbors = k_map.get(level, 25)
     return model
 
 # --- New Helper Functions for HTML Generation ---
@@ -844,7 +850,7 @@ def compute_rank_settings(
     current_feature_set,
     current_data_size
 ):
-    """Returns rank gating settings."""
+    """Returns rank gating settings (updated for 1–10 complexity scale)."""
 
     def get_choices_for_rank(rank):
         if rank == 0: # Trainee
@@ -859,8 +865,8 @@ def compute_rank_settings(
             "model_choices": ["The Balanced Generalist"],
             "model_value": "The Balanced Generalist",
             "model_interactive": False,
-            "complexity_max": 2,
-            "complexity_value": 2,
+            "complexity_max": 3,
+            "complexity_value": min(current_complexity, 3),
             "feature_set_choices": get_choices_for_rank(0),
             "feature_set_value": FEATURE_SET_GROUP_1_VALS,
             "feature_set_interactive": False,
@@ -874,8 +880,8 @@ def compute_rank_settings(
             "model_choices": ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"],
             "model_value": current_model if current_model in ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"] else "The Balanced Generalist",
             "model_interactive": True,
-            "complexity_max": 4,
-            "complexity_value": min(current_complexity, 4),
+            "complexity_max": 6,
+            "complexity_value": min(current_complexity, 6),
             "feature_set_choices": get_choices_for_rank(1),
             "feature_set_value": current_feature_set,
             "feature_set_interactive": True,
@@ -889,8 +895,8 @@ def compute_rank_settings(
             "model_choices": list(MODEL_TYPES.keys()),
             "model_value": current_model if current_model in MODEL_TYPES else "The Deep Pattern-Finder",
             "model_interactive": True,
-            "complexity_max": 5,
-            "complexity_value": min(current_complexity, 5),
+            "complexity_max": 8,
+            "complexity_value": min(current_complexity, 8),
             "feature_set_choices": get_choices_for_rank(2),
             "feature_set_value": current_feature_set,
             "feature_set_interactive": True,
@@ -904,7 +910,7 @@ def compute_rank_settings(
             "model_choices": list(MODEL_TYPES.keys()),
             "model_value": current_model if current_model in MODEL_TYPES else "The Balanced Generalist",
             "model_interactive": True,
-            "complexity_max": 5,
+            "complexity_max": 10,
             "complexity_value": current_complexity,
             "feature_set_choices": get_choices_for_rank(3),
             "feature_set_value": current_feature_set,
@@ -2001,7 +2007,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
 
                         <h3>2. Model Complexity (Fitting Level)</h3>
                         <div class='mock-ui-control-box' style='text-align: center;'>
-                            <p style='font-size: 1.1rem; margin:0;'>Range: Level 1 ─── ● ─── 5</p>
+                            <p style='font-size: 1.1rem; margin:0;'>Range: Level 1 ─── ● ─── 10</p>
                         </div>
                         
                         <div style='margin-top: 16px; font-size: 1rem;'>
@@ -2172,9 +2178,9 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                     gr.Markdown("---") # Separator
 
                     complexity_slider = gr.Slider(
-                        label="2. Model Complexity",
-                        minimum=1, maximum=2, step=1, value=2,
-                        info="Higher may capture deeper patterns; may overfit."
+                        label="2. Model Complexity (1–10)",
+                        minimum=1, maximum=3, step=1, value=2,
+                        info="Higher values allow deeper pattern learning; very high values may overfit."
                     )
 
                     gr.Markdown("---") # Separator
