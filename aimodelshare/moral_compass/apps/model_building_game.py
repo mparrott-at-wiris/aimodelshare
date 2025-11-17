@@ -977,7 +977,12 @@ login_password = None
 login_submit = None
 login_error = None
 # This one will be assigned globally but is also defined in the function
-# first_submission_score_state = None 
+# first_submission_score_state = None
+
+# --- AUTO-RESUME-AFTER-LOGIN ENHANCEMENT: Pending submission state ---
+# This state stores submission parameters when login is triggered,
+# enabling automatic submission after successful authentication.
+pending_submission_state = None 
 
 def get_or_assign_team(username):
     """
@@ -1045,9 +1050,14 @@ def get_or_assign_team(username):
         print(f"Fallback: assigning random team to {username}: {new_team}")
         return new_team, True
 
-def perform_inline_login(username_input, password_input):
+def perform_inline_login(username_input, password_input, pending_submission):
     """
     Perform inline authentication and set credentials in environment.
+    
+    --- AUTO-RESUME-AFTER-LOGIN ENHANCEMENT ---
+    After successful authentication, this function now checks for pending submission
+    parameters. If found, it automatically triggers run_experiment to complete
+    the user's submission seamlessly without requiring a second button click.
     
     Validates non-empty credentials, sets environment variables, and attempts
     to fetch AWS token via get_aws_token(). Returns Gradio component updates
@@ -1056,6 +1066,8 @@ def perform_inline_login(username_input, password_input):
     Args:
         username_input: str, the username entered by user
         password_input: str, the password entered by user
+        pending_submission: dict or None, saved submission parameters if login was
+                           triggered during submission attempt
     
     Returns:
         dict: Gradio component updates for login UI elements and submit button
@@ -1078,7 +1090,8 @@ def perform_inline_login(username_input, password_input):
             login_error: gr.update(value=error_html, visible=True),
             submit_button: gr.update(),
             submission_feedback_display: gr.update(),
-            team_name_state: gr.update()
+            team_name_state: gr.update(),
+            pending_submission_state: gr.update()  # Keep pending state unchanged
         }
     
     if not password_input or not password_input.strip():
@@ -1094,7 +1107,8 @@ def perform_inline_login(username_input, password_input):
             login_error: gr.update(value=error_html, visible=True),
             submit_button: gr.update(),
             submission_feedback_display: gr.update(),
-            team_name_state: gr.update()
+            team_name_state: gr.update(),
+            pending_submission_state: gr.update()  # Keep pending state unchanged
         }
     
     # Set credentials in environment
@@ -1118,18 +1132,38 @@ def perform_inline_login(username_input, password_input):
         else:
             team_message = f"Welcome back! You remain on team: <b>{team_name}</b> ✅"
         
-        # Success: hide login form, show success message with team info, enable submit button
-        success_html = f"""
-        <div style='background:#f0fdf4; padding:16px; border-radius:8px; border-left:4px solid #16a34a; margin-top:12px;'>
-            <p style='margin:0; color:#15803d; font-weight:600; font-size:1.1rem;'>✓ Signed in successfully!</p>
-            <p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>
-                {team_message}
-            </p>
-            <p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>
-                Click "Build & Submit Model" again to publish your score.
-            </p>
-        </div>
-        """
+        # --- AUTO-RESUME-AFTER-LOGIN ENHANCEMENT ---
+        # Check if there's a pending submission that should auto-resume
+        has_pending = pending_submission is not None and isinstance(pending_submission, dict)
+        
+        # Success: hide login form, show success message with team info
+        if has_pending:
+            # Auto-resume message - submission will happen automatically
+            success_html = f"""
+            <div style='background:#f0fdf4; padding:16px; border-radius:8px; border-left:4px solid #16a34a; margin-top:12px;'>
+                <p style='margin:0; color:#15803d; font-weight:600; font-size:1.1rem;'>✓ Signed in successfully!</p>
+                <p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>
+                    {team_message}
+                </p>
+                <p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>
+                    ⚡ Resuming your submission automatically...
+                </p>
+            </div>
+            """
+        else:
+            # No pending submission - user clicked login without submitting first
+            success_html = f"""
+            <div style='background:#f0fdf4; padding:16px; border-radius:8px; border-left:4px solid #16a34a; margin-top:12px;'>
+                <p style='margin:0; color:#15803d; font-weight:600; font-size:1.1rem;'>✓ Signed in successfully!</p>
+                <p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>
+                    {team_message}
+                </p>
+                <p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>
+                    You can now submit models to the leaderboard!
+                </p>
+            </div>
+            """
+        
         return {
             login_username: gr.update(visible=False),
             login_password: gr.update(visible=False),
@@ -1137,7 +1171,8 @@ def perform_inline_login(username_input, password_input):
             login_error: gr.update(value=success_html, visible=True),
             submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
             submission_feedback_display: gr.update(visible=False),
-            team_name_state: gr.update(value=team_name)
+            team_name_state: gr.update(value=team_name),
+            pending_submission_state: gr.update(value=pending_submission)  # Pass through for auto-trigger check
         }
         
     except Exception as e:
@@ -1166,7 +1201,8 @@ def perform_inline_login(username_input, password_input):
             login_error: gr.update(value=error_html, visible=True),
             submit_button: gr.update(),
             submission_feedback_display: gr.update(),
-            team_name_state: gr.update()
+            team_name_state: gr.update(),
+            pending_submission_state: gr.update()  # Keep pending state unchanged
         }
 
 def run_experiment(
@@ -1385,6 +1421,23 @@ def run_experiment(
             else:
                 combined_html = preview_card_html + login_prompt_text_html # Fallback
             # --- END OF FIX ---
+            
+            # --- AUTO-RESUME-AFTER-LOGIN ENHANCEMENT ---
+            # Save all submission parameters as pending state for auto-resume after login.
+            # This enables seamless submission without requiring the user to click submit again.
+            pending_params = {
+                "model_name_key": model_name_key,
+                "complexity_level": complexity_level,
+                "feature_set": feature_set,
+                "data_size_str": data_size_str,
+                "team_name": team_name,
+                "last_submission_score": last_submission_score,
+                "last_rank": last_rank,
+                "submission_count": submission_count,
+                "first_submission_score": first_submission_score,
+                "best_score": best_score
+            }
+            # --- END AUTO-RESUME-AFTER-LOGIN ENHANCEMENT ---
                 
             settings = compute_rank_settings(
                 submission_count, model_name_key, complexity_level, feature_set, data_size_str
@@ -1410,10 +1463,11 @@ def run_experiment(
                 complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
                 feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
                 data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-                attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))
+                attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
+                pending_submission_state: gr.update(value=pending_params)  # Store pending submission
             }
             yield gate_updates
-            return  # Stop here - user needs to login and resubmit
+            return  # Stop here - user needs to login, then submission will auto-resume
         
         # User is authenticated - proceed with submission
         # --- ATTEMPT LIMIT CHECK ---
@@ -1698,6 +1752,78 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
 def build_conclusion_from_state(best_score, submissions, rank, first_score, feature_set):
     return build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set)
 
+# --- AUTO-RESUME-AFTER-LOGIN ENHANCEMENT: Auto-trigger wrapper function ---
+def auto_resume_submission_if_pending(
+    pending_params,
+    model_type_state_val,
+    complexity_state_val,
+    feature_set_state_val,
+    data_size_state_val,
+    team_name_state_val,
+    last_submission_score_state_val,
+    last_rank_state_val,
+    submission_count_state_val,
+    first_submission_score_state_val,
+    best_score_state_val,
+    progress=gr.Progress()
+):
+    """
+    Wrapper function that automatically resumes submission after successful login.
+    
+    This is the key function for the seamless submission flow. After login succeeds,
+    this function checks if there were pending submission parameters. If found, it
+    calls run_experiment with those parameters to complete the submission automatically.
+    If no pending params, it returns empty updates (no-op).
+    
+    Args:
+        pending_params: dict or None, saved submission parameters from before login
+        model_type_state_val through best_score_state_val: current state values
+        progress: Gradio progress bar
+        
+    Yields:
+        dict: Gradio component updates from run_experiment if pending submission exists,
+              or empty dict if no pending submission
+    """
+    # Check if there's a pending submission to resume
+    if pending_params is None or not isinstance(pending_params, dict):
+        # No pending submission - return no-op updates
+        yield {}
+        return
+    
+    # Extract parameters from pending state
+    model_name_key = pending_params.get("model_name_key")
+    complexity_level = pending_params.get("complexity_level")
+    feature_set = pending_params.get("feature_set")
+    data_size_str = pending_params.get("data_size_str")
+    team_name = pending_params.get("team_name")
+    last_submission_score = pending_params.get("last_submission_score")
+    last_rank = pending_params.get("last_rank")
+    submission_count = pending_params.get("submission_count")
+    first_submission_score = pending_params.get("first_submission_score")
+    best_score = pending_params.get("best_score")
+    
+    # Validate that we have the minimum required parameters
+    if model_name_key is None or feature_set is None or data_size_str is None:
+        # Invalid pending params - return no-op
+        yield {}
+        return
+    
+    # Auto-resume: call run_experiment with the saved parameters
+    # This yields all updates from run_experiment
+    yield from run_experiment(
+        model_name_key,
+        complexity_level,
+        feature_set,
+        data_size_str,
+        team_name,
+        last_submission_score,
+        last_rank,
+        submission_count,
+        first_submission_score,
+        best_score,
+        progress=progress
+    )
+
 # -------------------------------------------------------------------------
 # 3. Factory Function: Build Gradio App
 # -------------------------------------------------------------------------
@@ -1876,6 +2002,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
     global feature_set_checkbox, data_size_radio
     global login_username, login_password, login_submit, login_error
     global attempts_tracker_display, team_name_state
+    global pending_submission_state  # AUTO-RESUME-AFTER-LOGIN ENHANCEMENT
 
     with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css) as demo:
         username = os.environ.get("username") or "Unknown_User"
@@ -2275,6 +2402,11 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             submission_count_state = gr.State(0)
             first_submission_score_state = gr.State(None)
 
+            # --- AUTO-RESUME-AFTER-LOGIN ENHANCEMENT: Pending submission state ---
+            # Stores submission parameters when login is triggered, enabling seamless
+            # submission after successful authentication without requiring user to click submit again
+            pending_submission_state = gr.State(None)
+
             # Buffered states for all dynamic inputs
             model_type_state = gr.State(DEFAULT_MODEL)
             complexity_state = gr.State(2)
@@ -2538,6 +2670,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             outputs=data_size_state
         )
 
+        # --- AUTO-RESUME-AFTER-LOGIN ENHANCEMENT: Include pending submission state in outputs ---
         all_outputs = [
             submission_feedback_display,
             team_leaderboard_display,
@@ -2557,14 +2690,39 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             login_password,
             login_submit,
             login_error,
-            attempts_tracker_display
+            attempts_tracker_display,
+            pending_submission_state  # Store pending submission params for auto-resume
         ]
 
-        # Wire up login button
-        login_submit.click(
+        # --- AUTO-RESUME-AFTER-LOGIN ENHANCEMENT: Wire up login with auto-resume chain ---
+        # The login button now accepts pending_submission_state and can trigger auto-resume.
+        # After successful login, if there's a pending submission, it will automatically
+        # resume without requiring the user to click "Build & Submit" again.
+        login_event = login_submit.click(
             fn=perform_inline_login,
-            inputs=[login_username, login_password],
-            outputs=[login_username, login_password, login_submit, login_error, submit_button, submission_feedback_display, team_name_state]
+            inputs=[login_username, login_password, pending_submission_state],
+            outputs=[login_username, login_password, login_submit, login_error, submit_button, submission_feedback_display, team_name_state, pending_submission_state]
+        )
+        
+        # Chain: After login completes, automatically resume submission if pending params exist
+        # This creates the seamless submission experience - no second click needed
+        login_event.then(
+            fn=auto_resume_submission_if_pending,
+            inputs=[
+                pending_submission_state,
+                model_type_state,
+                complexity_state,
+                feature_set_state,
+                data_size_state,
+                team_name_state,
+                last_submission_score_state,
+                last_rank_state,
+                submission_count_state,
+                first_submission_score_state,
+                best_score_state
+            ],
+            outputs=all_outputs,
+            show_progress="full"
         )
 
         # Removed gr.State(username) from the inputs list
