@@ -59,9 +59,58 @@ def create_tutorial_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         color: #1E40AF !important;
         text-align: center !important;
     }
+    
+    /* Navigation Loading Overlay Styles */
+    #nav-loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.95);
+        z-index: 9999;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .nav-spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #e5e7eb;
+        border-top: 5px solid #6366f1;
+        border-radius: 50%;
+        animation: nav-spin 1s linear infinite;
+        margin-bottom: 20px;
+    }
+    
+    @keyframes nav-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    #nav-loading-text {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #4338ca;
+    }
     """
 
     with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
+        # Persistent top anchor for scroll-to-top navigation
+        gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
+        
+        # Navigation loading overlay with spinner and dynamic message
+        gr.HTML("""
+            <div id='nav-loading-overlay'>
+                <div class='nav-spinner'></div>
+                <span id='nav-loading-text'>Loading...</span>
+            </div>
+        """)
+        
         gr.Markdown("<h1 style='text-align:center;'>👋 How to Use an App (A Quick Tutorial)</h1>")
         gr.Markdown(
             """
@@ -85,7 +134,7 @@ def create_tutorial_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             )
 
         # Step 1
-        with gr.Column(visible=True) as step_1_container:
+        with gr.Column(visible=True, elem_id="step-1") as step_1_container:
             gr.Markdown("<h2 style='text-align:center;'>Step 1: How to Use \"Slideshows\"</h2>")
             gr.Markdown(
                 """
@@ -99,7 +148,7 @@ def create_tutorial_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             step_1_next = gr.Button("Next Step ▶️", variant="primary")
 
         # Step 2
-        with gr.Column(visible=False) as step_2_container:
+        with gr.Column(visible=False, elem_id="step-2") as step_2_container:
             gr.Markdown("<h2 style='text-align:center;'>Step 2: How to Use \"Interactive Demos\"</h2>")
             gr.Markdown(
                 """
@@ -165,7 +214,7 @@ def create_tutorial_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 step_2_next = gr.Button("Finish Tutorial ▶️", variant="primary")
 
         # Step 3
-        with gr.Column(visible=False) as step_3_container:
+        with gr.Column(visible=False, elem_id="step-3") as step_3_container:
             gr.Markdown(
                 """
                 <div style='text-align:center;'>
@@ -202,33 +251,109 @@ def create_tutorial_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 yield updates
             return navigate
 
+        # Helper function to generate navigation JS with loading overlay
+        def nav_js(target_id: str, message: str, min_show_ms: int = 400) -> str:
+            """
+            Generate JavaScript for enhanced slide navigation with loading overlay.
+            
+            Args:
+                target_id: Element ID of the target slide (e.g., 'step-2')
+                message: Loading message to display during transition
+                min_show_ms: Minimum time to show overlay (prevents flicker)
+            
+            Returns:
+                JavaScript arrow function string for Gradio's js parameter
+            """
+            return f"""
+()=>{{
+  try {{
+    const overlay = document.getElementById('nav-loading-overlay');
+    const messageEl = document.getElementById('nav-loading-text');
+    if(overlay && messageEl) {{
+      messageEl.textContent = '{message}';
+      overlay.style.display = 'flex';
+      setTimeout(() => {{ overlay.style.opacity = '1'; }}, 10);
+    }}
+    
+    const startTime = Date.now();
+    
+    setTimeout(() => {{
+      const anchor = document.getElementById('app_top_anchor');
+      const container = document.querySelector('.gradio-container') || document.scrollingElement || document.documentElement;
+      
+      function doScroll() {{
+        if(anchor) {{ anchor.scrollIntoView({{behavior:'smooth', block:'start'}}); }}
+        else {{ container.scrollTo({{top:0, behavior:'smooth'}}); }}
+        
+        try {{
+          if(window.parent && window.parent !== window && window.frameElement) {{
+            const top = window.frameElement.getBoundingClientRect().top + window.parent.scrollY;
+            window.parent.scrollTo({{top: Math.max(top - 10, 0), behavior:'smooth'}});
+          }}
+        }} catch(e2) {{}}
+      }}
+      
+      doScroll();
+      let scrollAttempts = 0;
+      const scrollInterval = setInterval(() => {{
+        scrollAttempts++;
+        doScroll();
+        if(scrollAttempts >= 3) clearInterval(scrollInterval);
+      }}, 130);
+    }}, 40);
+    
+    const targetId = '{target_id}';
+    const minShowMs = {min_show_ms};
+    let pollCount = 0;
+    const maxPolls = 77;
+    
+    const pollInterval = setInterval(() => {{
+      pollCount++;
+      const elapsed = Date.now() - startTime;
+      const target = document.getElementById(targetId);
+      const isVisible = target && target.offsetParent !== null && 
+                       window.getComputedStyle(target).display !== 'none';
+      
+      if((isVisible && elapsed >= minShowMs) || pollCount >= maxPolls) {{
+        clearInterval(pollInterval);
+        if(overlay) {{
+          overlay.style.opacity = '0';
+          setTimeout(() => {{ overlay.style.display = 'none'; }}, 300);
+        }}
+      }}
+    }}, 90);
+    
+  }} catch(e) {{ console.warn('nav-js error', e); }}
+}}
+"""
+
         step_1_next.click(
             fn=create_nav_generator(step_1_container, step_2_container),
             inputs=None,
             outputs=all_steps,
             show_progress="full",
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=nav_js("step-2", "Learning to interact...")
         )
         step_2_back.click(
             fn=create_nav_generator(step_2_container, step_1_container),
             inputs=None,
             outputs=all_steps,
             show_progress="full",
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=nav_js("step-1", "Returning to start...")
         )
         step_2_next.click(
             fn=create_nav_generator(step_2_container, step_3_container),
             inputs=None,
             outputs=all_steps,
             show_progress="full",
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=nav_js("step-3", "Completing tutorial...")
         )
         step_3_back.click(
             fn=create_nav_generator(step_3_container, step_2_container),
             inputs=None,
             outputs=all_steps,
             show_progress="full",
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=nav_js("step-2", "Going back...")
         )
 
     return demo
