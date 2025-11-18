@@ -8,6 +8,7 @@ import threading
 import functools
 from pathlib import Path
 from datetime import datetime, timedelta
+import inspect
 
 import numpy as np
 import pandas as pd
@@ -32,6 +33,28 @@ except ImportError:
     raise ImportError(
         "The 'aimodelshare' library is required. Install with: pip install aimodelshare aim-widgets"
     )
+
+# -------------------------------------------------------------------------
+# Team action logging helper (adds prints with workflow context and source line)
+# -------------------------------------------------------------------------
+def _log_team_action(action_desc: str):
+    """
+    Helper to print team-related debug messages that include:
+      - A timestamp
+      - The action description
+      - The calling function name
+      - The source line number in this file where the call originated
+
+    This helps trace team-related events through the code workflow.
+    """
+    try:
+        caller = inspect.currentframe().f_back
+        info = inspect.getframeinfo(caller)
+        ts = datetime.now().isoformat()
+        print(f"[TEAM ACTION] {ts} | {action_desc} -- {info.function} (line {info.lineno})")
+    except Exception as e:
+        # Fall back to a simpler print if anything goes wrong in inspection
+        print(f"[TEAM ACTION] {datetime.now().isoformat()} | {action_desc} -- (inspect failed: {e})")
 
 # -------------------------------------------------------------------------
 # 1. Configuration
@@ -77,7 +100,7 @@ TEAM_NAMES = [
     "The Ethical Explorers", "The Fairness Finders", "The Accuracy Avengers"
 ]
 CURRENT_TEAM_NAME = random.choice(TEAM_NAMES)
-
+_log_team_action(f"Initial random CURRENT_TEAM_NAME selected: {CURRENT_TEAM_NAME}")
 
 # --- Feature groups for scaffolding (Weak -> Medium -> Strong) ---
 FEATURE_SET_ALL_OPTIONS = [
@@ -308,10 +331,13 @@ def _background_initializer():
             if playground is None:
                 playground = Competition(MY_PLAYGROUND_ID)
             INIT_FLAGS["competition"] = True
+        INIT_FLAGS["competition"] = True
+        _log_team_action("Background init: Competition connected")
         print("✓ Competition connected")
     except Exception as e:
         with INIT_LOCK:
             INIT_FLAGS["errors"].append(f"Competition connection failed: {str(e)}")
+        _log_team_action(f"Background init: Competition connection failed: {e}")
         print(f"✗ Competition connection failed: {e}")
     
     try:
@@ -568,14 +594,6 @@ def _normalize_team_name(name: str) -> str:
     
     Returns:
         str: Normalized team name, or empty string if input is None/empty
-    
-    Examples:
-        >>> _normalize_team_name("  The Ethical Explorers  ")
-        'The Ethical Explorers'
-        >>> _normalize_team_name("The  Moral   Champions")
-        'The Moral Champions'
-        >>> _normalize_team_name(None)
-        ''
     """
     if not name:
         return ""
@@ -896,7 +914,7 @@ def compute_rank_settings(
 
     if submission_count == 0:
         return {
-            "rank_message": "# 🧑‍🎓 Rank: Trainee Engineer\n<p style='font-size:24px; line-height:1.4;'>For your first submission, just click the big '🔬 Build & Submit Model' button below!</p>",
+            "rank_message": "# 🧑‍🎓 Rank: Trainee Engineer\n<p style='font-size:24px; line-height:1.4;'>For your first submission, just click the big '🔬 Build & Submit Model' button below!</[...]
             "model_choices": ["The Balanced Generalist"],
             "model_value": "The Balanced Generalist",
             "model_interactive": False,
@@ -926,7 +944,7 @@ def compute_rank_settings(
         }
     elif submission_count == 2:
         return {
-            "rank_message": "# 🌟 Rank Up! Senior Engineer\n<p style='font-size:24px; line-height:1.4;'>Strongest Data Ingredients Unlocked! The most powerful predictors (like 'Age' and 'Prior Crimes Count') are now available in your list. These will likely boost your accuracy, but remember they often carry the most societal bias.</p>",
+            "rank_message": "# 🌟 Rank Up! Senior Engineer\n<p style='font-size:24px; line-height:1.4;'>Strongest Data Ingredients Unlocked! The most powerful predictors (like 'Age' and 'Prior Crime[...]
             "model_choices": list(MODEL_TYPES.keys()),
             "model_value": current_model if current_model in MODEL_TYPES else "The Deep Pattern-Finder",
             "model_interactive": True,
@@ -999,8 +1017,8 @@ def get_or_assign_team(username):
         # Query the leaderboard
         if playground is None:
             # Fallback to random assignment if playground not available
-            print("Playground not available, assigning random team")
             new_team = _normalize_team_name(random.choice(TEAM_NAMES))
+            _log_team_action(f"playground is None in get_or_assign_team; assigning random team '{new_team}' to user '{username}'")
             return new_team, True
         
         leaderboard_df = playground.get_leaderboard()
@@ -1020,9 +1038,11 @@ def get_or_assign_team(username):
                         user_submissions["timestamp"] = pd.to_datetime(user_submissions["timestamp"], errors='coerce')
                         user_submissions = user_submissions.sort_values("timestamp", ascending=False)
                         print(f"Sorted {len(user_submissions)} submissions by timestamp for {username}")
+                        _log_team_action(f"Sorted {len(user_submissions)} submissions by timestamp for '{username}'")
                     except Exception as ts_error:
                         # If timestamp parsing fails, continue with unsorted DataFrame
                         print(f"Warning: Could not sort by timestamp for {username}: {ts_error}")
+                        _log_team_action(f"Warning: Could not sort submissions by timestamp for '{username}': {ts_error}")
                 
                 # Get the most recent team assignment (first row after sorting)
                 existing_team = user_submissions.iloc[0]["Team"]
@@ -1031,11 +1051,13 @@ def get_or_assign_team(username):
                 if pd.notna(existing_team) and existing_team and str(existing_team).strip():
                     normalized_team = _normalize_team_name(existing_team)
                     print(f"Found existing team for {username}: {normalized_team}")
+                    _log_team_action(f"Found existing team for '{username}': '{normalized_team}' (recovered from leaderboard)")
                     return normalized_team, False
         
         # No existing team found - assign random
         new_team = _normalize_team_name(random.choice(TEAM_NAMES))
         print(f"Assigning new team to {username}: {new_team}")
+        _log_team_action(f"No existing team found for '{username}'; assigning new team '{new_team}'")
         return new_team, True
         
     except Exception as e:
@@ -1043,6 +1065,7 @@ def get_or_assign_team(username):
         print(f"Error checking leaderboard for team: {e}")
         new_team = _normalize_team_name(random.choice(TEAM_NAMES))
         print(f"Fallback: assigning random team to {username}: {new_team}")
+        _log_team_action(f"Exception in get_or_assign_team for '{username}': {e}; fallback assigned '{new_team}'")
         return new_team, True
 
 def perform_inline_login(username_input, password_input):
@@ -1111,6 +1134,8 @@ def perform_inline_login(username_input, password_input):
         # Normalize team name before storing (defensive - already normalized by get_or_assign_team)
         team_name = _normalize_team_name(team_name)
         os.environ["TEAM_NAME"] = team_name
+
+        _log_team_action(f"User '{username_input.strip()}' authenticated; TEAM_NAME set to '{team_name}'; is_new_team={is_new_team}")
         
         # Build success message based on whether team is new or existing
         if is_new_team:
@@ -1480,6 +1505,9 @@ def run_experiment(
         description = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
         tags = f"team:{team_name},model:{model_name_key}"
 
+        # Log the team submission action
+        _log_team_action(f"About to submit model for user '{username}' on team '{team_name}' - description: '{description}', tags: '{tags}'")
+
         playground.submit_model(
             model=tuned_model, preprocessor=preprocessor, prediction_submission=predictions,
             input_dict={'description': description, 'tags': tags},
@@ -1567,6 +1595,7 @@ def run_experiment(
             login_error: gr.update(visible=False),
             attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))
         }
+        _log_team_action(f"Exception during run_experiment submit flow for user '{username}' on team '{team_name}': {e}")
         yield error_updates
 
 
@@ -1595,6 +1624,7 @@ def on_initial_load(username):
         try:
             if playground:
                 full_leaderboard_df = playground.get_leaderboard()
+                _log_team_action(f"on_initial_load: attempting to generate competitive summary using CURRENT_TEAM_NAME='{CURRENT_TEAM_NAME}' for user '{username}'")
                 team_html, individual_html, _, _, _, _ = generate_competitive_summary(
                     full_leaderboard_df,
                     CURRENT_TEAM_NAME,
@@ -1603,6 +1633,7 @@ def on_initial_load(username):
                 )
         except Exception as e:
             print(f"Error on initial load: {e}")
+            _log_team_action(f"on_initial_load encountered error while loading leaderboard: {e}")
             team_html = "<p style='text-align:center; color:red; padding-top:20px;'>Could not load leaderboard.</p>"
             individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>Could not load leaderboard.</p>"
 
@@ -1663,7 +1694,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     if submissions >= ATTEMPT_LIMIT:
         attempt_cap_note = f"""
         <div style='background:#fef2f2; padding:16px; border-radius:12px; border-left:6px solid #ef4444; text-align:left; margin-top:16px;'>
-            <p style='margin:0;'><b>📊 Attempt Limit Reached:</b> You used all {ATTEMPT_LIMIT} allowed submission attempts for this session. We will open up submissions again after you complete some new activities next.</p>
+            <p style='margin:0;'><b>📊 Attempt Limit Reached:</b> You used all {ATTEMPT_LIMIT} allowed submission attempts for this session. We will open up submissions again after you complete some[...]
         </div>
         """
 
@@ -1954,10 +1985,10 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 <div class='slide-content'>
                     <div class='panel-box'>
                         <h3>The Mission</h3>
-                        <p>Build an AI model that helps judges make better decisions. The model you used previously gave you imperfect advice. Your job now is to build a new model that predicts risk more accurately, providing judges with the reliable insights they need to be fair.</p>
+                        <p>Build an AI model that helps judges make better decisions. The model you used previously gave you imperfect advice. Your job now is to build a new model that predicts risk m[...]
                         
                         <h3>The Competition</h3>
-                        <p>To do this, you will compete against other engineers! To help you in your mission, you will join an engineering team. Your results will be tracked both individually and as a group in the Live Standings Leaderboards.</p>
+                        <p>To do this, you will compete against other engineers! To help you in your mission, you will join an engineering team. Your results will be tracked both individually and as a[...]
                     </div>
 
                     <div class='leaderboard-box' style='max-width: 600px; margin: 16px auto; text-align: center; padding: 16px;'>
@@ -2032,7 +2063,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
 
                         <hr>
                         
-                        <p><strong>How it learns:</strong> You show the model thousands of old cases (Inputs) + what actually happened (Outcomes). It studies them to find the rules, so it can make predictions on new cases it hasn't seen before.</p>
+                        <p><strong>How it learns:</strong> You show the model thousands of old cases (Inputs) + what actually happened (Outcomes). It studies them to find the rules, so it can make pre[...]
                     </div>
                 </div>
                 """
@@ -2099,7 +2130,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 """
                 <div class='slide-content'>
                     <div class='mock-ui-inner'>
-                        <p>To build your model, you will use Control Knobs to configure your Prediction Machine. The first two knobs allow you to choose a type of model and adjust how it learns patterns in data.</p>
+                        <p>To build your model, you will use Control Knobs to configure your Prediction Machine. The first two knobs allow you to choose a type of model and adjust how it learns patter[...]
                         <hr style='margin: 16px 0;'>
 
                         <h3 style='margin-top:0;'>1. Model Strategy (Type of Model)</h3>
@@ -2138,7 +2169,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                                     </ul>
                                 </li>
                             </ul>
-                            <p style='color:#b91c1c; font-weight:bold; margin-top:10px;'>Warning: Setting this too high causes the machine to "memorize" random, irrelevant details or random coincidences (noise) in the past data rather than learning the general rule.</p>
+                            <p style='color:#b91c1c; font-weight:bold; margin-top:10px;'>Warning: Setting this too high causes the machine to "memorize" random, irrelevant details or random coincidenc[...]
                         </div>
                     </div>
                 </div>
@@ -2223,7 +2254,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
 
                         <h3>How You Are Scored</h3>
                         <ul style='list-style-position: inside;'>
-                            <li><strong>Prediction Accuracy:</strong> Your model is tested on <strong>Hidden Data</strong> (cases kept in a "secret vault" that your model has never seen). This simulates predicting the future to ensure you get a real-world prediction accuracy score.</li>
+                            <li><strong>Prediction Accuracy:</strong> Your model is tested on <strong>Hidden Data</strong> (cases kept in a "secret vault" that your model has never seen). This simulat[...]
                             <li><strong>The Leaderboard:</strong> Live Standings track your progress individually and as a team.</li>
                         </ul>
 
