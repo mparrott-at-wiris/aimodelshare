@@ -550,21 +550,19 @@ def _normalize_team_name(name: str) -> str:
         return ""
     return " ".join(str(name).strip().split())
 
-def _build_skeleton_leaderboard(rows=6, is_team=True):
-    """
-    Generate a static placeholder for leaderboards during loading.
-    Returns a calm, non-animated card to reduce visual distraction.
-    Parameters retained for backward compatibility.
-    """
-    # Parameters rows and is_team are ignored but kept for backward compatibility
-    placeholder_html = """
-    <div class='lb-placeholder'>
-        <div class='lb-placeholder-title'>Submit Your First Model to See Standings...</div>
-        <div class='lb-placeholder-sub'>Good Luck!!</div>
+
+
+def _build_skeleton_leaderboard(rows=6, is_team=True, submit_button_label="5. 🔬 Build & Submit Model"):
+    context_label = "Team" if is_team else "Individual"
+    return f"""
+    <div class='lb-placeholder' aria-live='polite'>
+        <div class='lb-placeholder-title'>{context_label} Standings Pending</div>
+        <div class='lb-placeholder-sub'>
+            <p style='margin:0 0 6px 0;'>Submit your first model to populate this table.</p>
+            <p style='margin:0;'><strong>Click “{submit_button_label}” (bottom-left)</strong> to begin!</p>
+        </div>
     </div>
     """
-    return placeholder_html
-
 # --- FIX APPLIED HERE ---
 def build_login_prompt_html():
     """
@@ -2826,5 +2824,6 @@ def launch_model_building_game_app(height: int = 1200, share: bool = False, debu
     demo = create_model_building_game_app()
     with contextlib.redirect_stdout(open(os.devnull, "w")), contextlib.redirect_stderr(open(os.devnull, "w")):
         demo.launch(share=share, inline=True, debug=debug, height=height)
+
 
 
