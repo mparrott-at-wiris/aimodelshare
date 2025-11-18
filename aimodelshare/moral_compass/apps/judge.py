@@ -153,9 +153,58 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         font-size: 18px !important;
         padding: 12px 24px !important;
     }
+    
+    /* Navigation Loading Overlay Styles */
+    #nav-loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.95);
+        z-index: 9999;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .nav-spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #e5e7eb;
+        border-top: 5px solid #6366f1;
+        border-radius: 50%;
+        animation: nav-spin 1s linear infinite;
+        margin-bottom: 20px;
+    }
+    
+    @keyframes nav-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    #nav-loading-text {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #4338ca;
+    }
     """
     
     with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
+        # Persistent top anchor for scroll-to-top navigation
+        gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
+        
+        # Navigation loading overlay with spinner and dynamic message
+        gr.HTML("""
+            <div id='nav-loading-overlay'>
+                <div class='nav-spinner'></div>
+                <span id='nav-loading-text'>Loading...</span>
+            </div>
+        """)
+        
         gr.Markdown("<h1 style='text-align:center;'>⚖️ You Be the Judge</h1>")
         gr.Markdown(
             """
@@ -180,7 +229,7 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             )
         
         # Introduction
-        with gr.Column(visible=True) as intro_section:
+        with gr.Column(visible=True, elem_id="intro") as intro_section:
             gr.Markdown("<h2 style='text-align:center;'>📋 The Scenario</h2>")
             gr.Markdown(
                 """
@@ -204,7 +253,7 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             start_btn = gr.Button("Begin Making Decisions ▶️", variant="primary", size="lg")
         
         # Defendant profiles section
-        with gr.Column(visible=False) as profiles_section:
+        with gr.Column(visible=False, elem_id="profiles") as profiles_section:
             gr.Markdown("<h2 style='text-align:center;'>👥 Defendant Profiles</h2>")
             gr.Markdown(
                 """
@@ -257,7 +306,7 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             complete_btn = gr.Button("Complete This Section ▶️", variant="primary", size="lg")
         
         # Completion section
-        with gr.Column(visible=False) as complete_section:
+        with gr.Column(visible=False, elem_id="complete") as complete_section:
             gr.Markdown(
                 """
                 <div style='text-align:center;'>
@@ -303,21 +352,87 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 yield updates
             return navigate
 
+        # Helper function to generate navigation JS with loading overlay
+        def nav_js(target_id: str, message: str, min_show_ms: int = 400) -> str:
+            """Generate JavaScript for enhanced slide navigation with loading overlay."""
+            return f"""
+()=>{{
+  try {{
+    const overlay = document.getElementById('nav-loading-overlay');
+    const messageEl = document.getElementById('nav-loading-text');
+    if(overlay && messageEl) {{
+      messageEl.textContent = '{message}';
+      overlay.style.display = 'flex';
+      setTimeout(() => {{ overlay.style.opacity = '1'; }}, 10);
+    }}
+    
+    const startTime = Date.now();
+    
+    setTimeout(() => {{
+      const anchor = document.getElementById('app_top_anchor');
+      const container = document.querySelector('.gradio-container') || document.scrollingElement || document.documentElement;
+      
+      function doScroll() {{
+        if(anchor) {{ anchor.scrollIntoView({{behavior:'smooth', block:'start'}}); }}
+        else {{ container.scrollTo({{top:0, behavior:'smooth'}}); }}
+        
+        try {{
+          if(window.parent && window.parent !== window && window.frameElement) {{
+            const top = window.frameElement.getBoundingClientRect().top + window.parent.scrollY;
+            window.parent.scrollTo({{top: Math.max(top - 10, 0), behavior:'smooth'}});
+          }}
+        }} catch(e2) {{}}
+      }}
+      
+      doScroll();
+      let scrollAttempts = 0;
+      const scrollInterval = setInterval(() => {{
+        scrollAttempts++;
+        doScroll();
+        if(scrollAttempts >= 3) clearInterval(scrollInterval);
+      }}, 130);
+    }}, 40);
+    
+    const targetId = '{target_id}';
+    const minShowMs = {min_show_ms};
+    let pollCount = 0;
+    const maxPolls = 77;
+    
+    const pollInterval = setInterval(() => {{
+      pollCount++;
+      const elapsed = Date.now() - startTime;
+      const target = document.getElementById(targetId);
+      const isVisible = target && target.offsetParent !== null && 
+                       window.getComputedStyle(target).display !== 'none';
+      
+      if((isVisible && elapsed >= minShowMs) || pollCount >= maxPolls) {{
+        clearInterval(pollInterval);
+        if(overlay) {{
+          overlay.style.opacity = '0';
+          setTimeout(() => {{ overlay.style.display = 'none'; }}, 300);
+        }}
+      }}
+    }}, 90);
+    
+  }} catch(e) {{ console.warn('nav-js error', e); }}
+}}
+"""
+
         # --- Wire up each button to its own unique generator ---
         start_btn.click(
             fn=create_nav_generator(intro_section, profiles_section), 
             inputs=None, outputs=all_steps, show_progress="full",
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=nav_js("profiles", "Loading defendant profiles...")
         )
         complete_btn.click(
             fn=create_nav_generator(profiles_section, complete_section), 
             inputs=None, outputs=all_steps, show_progress="full",
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=nav_js("complete", "Reviewing your decisions...")
         )
         back_to_profiles_btn.click(
             fn=create_nav_generator(complete_section, profiles_section), 
             inputs=None, outputs=all_steps, show_progress="full",
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=nav_js("profiles", "Returning to profiles...")
         )
     
     return demo
