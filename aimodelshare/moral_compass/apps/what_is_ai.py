@@ -248,7 +248,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 <h3 style='color:#92400e; margin-top:0;'>1. It Learns from Examples</h3>
                 
                 <p>An AI model isn't programmed with answers. Instead, it's trained on a huge number of examples, and it learns how to find the answers on its own.</p>
-                <p>In our justice scenario, this means feeding the model thousands of past cases (<b>examples</b>) to teach it how to find the <b>patterns</b> that connect a person's details to their [...]
+                <p>In our justice scenario, this means feeding the model thousands of past cases (<b>examples</b>) to teach it how to find the <b>patterns</b> that connect a person's details to their criminal risk.</p>
                 
                 <hr style='margin:24px 0;'>
                 
