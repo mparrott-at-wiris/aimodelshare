@@ -1847,6 +1847,8 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
     global attempts_tracker_display, team_name_state
 
     with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css) as demo:
+        gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
+
         username = os.environ.get("username") or "Unknown_User"
 
         # Loading screen
@@ -2394,72 +2396,117 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                     updates[s] = gr.update(visible=False)
             return [updates[s] if s in updates else gr.update() for s in all_steps_nav] + [html]
 
+        scroll_js = (
+            "()=>{"
+            "  try {"
+            "    const anchor = document.getElementById('app_top_anchor');"
+            "    const gradioContainer = document.querySelector('.gradio-container');"
+            "    const scrollElement = gradioContainer || document.scrollingElement || document.documentElement || document.body;"
+            "    function doScroll(){"
+            "      if(anchor){ anchor.scrollIntoView({behavior:'smooth', block:'start'}); }"
+            "      else { scrollElement.scrollTo({top:0, behavior:'smooth'}); }"
+            "      /* Colab iframe outer scroll (best-effort) */"
+            "      try {"
+            "         if(window.parent && window.parent !== window && window.frameElement){"
+            "            const top = window.frameElement.getBoundingClientRect().top + window.parent.scrollY;"
+            "            window.parent.scrollTo({top: Math.max(top - 10, 0), behavior:'smooth'});"
+            "         }"
+            "      } catch(e2) { /* ignore */ }"
+            "    }"
+            "    /* Initial scroll + a few repeats to fight layout shifts */"
+            "    doScroll();"
+            "    let attempts = 0;"
+            "    const maxAttempts = 4;"
+            "    const interval = setInterval(()=>{"
+            "       attempts++;"
+            "       doScroll();"
+            "       if(attempts >= maxAttempts){ clearInterval(interval); }"
+            "    }, 140);"
+            "  } catch(e) { console.warn('scroll-js error', e); }"
+            "}"
+        )
+
+        initial_load_scroll_js = (
+          "()=>{try{"
+          " const anchor=document.getElementById('app_top_anchor');"
+          " const container=document.querySelector('.gradio-container')||document.scrollingElement||document.documentElement;"
+          " function doScroll(){"
+          "   if(anchor){anchor.scrollIntoView({behavior:'auto',block:'start'});}else{container.scrollTo({top:0,behavior:'auto'});} "
+          "   try{ if(window.parent && window.parent!==window && window.frameElement){"
+          "        const r=window.frameElement.getBoundingClientRect();"
+          "        window.parent.scrollTo({top:Math.max(r.top+window.parent.scrollY-10,0),behavior:'auto'});"
+          "   }}catch(e2){}"
+          " }"
+          " doScroll();"
+          " let tries=0; const h=setInterval(()=>{tries++; doScroll(); if(tries>=2)clearInterval(h);},160);"
+          "}catch(e){console.warn('initial-scroll',e)}}"
+      )
         # Wire up slide buttons
         briefing_1_next.click(
             fn=create_nav(briefing_slide_1, briefing_slide_2),
             inputs=None, outputs=all_steps_nav,
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=scroll_js
         )
         briefing_2_back.click(
             fn=create_nav(briefing_slide_2, briefing_slide_1),
             inputs=None, outputs=all_steps_nav,
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=scroll_js
         )
         briefing_2_next.click(
             fn=create_nav(briefing_slide_2, briefing_slide_3),
             inputs=None, outputs=all_steps_nav,
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=scroll_js
         )
         briefing_3_back.click(
             fn=create_nav(briefing_slide_3, briefing_slide_2),
             inputs=None, outputs=all_steps_nav,
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=scroll_js
         )
         briefing_3_next.click(
             fn=create_nav(briefing_slide_3, briefing_slide_4),
             inputs=None, outputs=all_steps_nav,
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=scroll_js
         )
         briefing_4_back.click(
             fn=create_nav(briefing_slide_4, briefing_slide_3),
             inputs=None, outputs=all_steps_nav,
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=scroll_js
         )
         briefing_4_next.click(
             fn=create_nav(briefing_slide_4, briefing_slide_5),
             inputs=None, outputs=all_steps_nav,
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=scroll_js
         )
         briefing_5_back.click(
             fn=create_nav(briefing_slide_5, briefing_slide_4),
             inputs=None, outputs=all_steps_nav,
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=scroll_js
         )
         briefing_5_next.click(
             fn=create_nav(briefing_slide_5, briefing_slide_6),
             inputs=None, outputs=all_steps_nav,
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=scroll_js
         )
         briefing_6_back.click(
             fn=create_nav(briefing_slide_6, briefing_slide_5),
             inputs=None, outputs=all_steps_nav,
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=scroll_js
         )
         briefing_6_next.click(
             fn=create_nav(briefing_slide_6, briefing_slide_7),
             inputs=None, outputs=all_steps_nav,
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=scroll_js
         )
         briefing_7_back.click(
             fn=create_nav(briefing_slide_7, briefing_slide_6),
             inputs=None, outputs=all_steps_nav,
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=scroll_js
         )
         # Slide 7 -> App
         briefing_7_next.click(
             fn=create_nav(briefing_slide_7, model_building_step),
             inputs=None, outputs=all_steps_nav,
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=scroll_js
         )
 
         # App -> Conclusion
@@ -2473,14 +2520,14 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 feature_set_state
             ],
             outputs=all_steps_nav + [final_score_display],
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=scroll_js
         )
 
         # Conclusion -> App
         step_3_back.click(
             fn=create_nav(conclusion_step, model_building_step),
             inputs=None, outputs=all_steps_nav,
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=scroll_js
         )
 
         # Events
@@ -2553,7 +2600,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             ],
             outputs=all_outputs,
             show_progress="full",
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=scroll_js
         )
 
         # Timer for polling initialization status
@@ -2609,7 +2656,8 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 complexity_slider,
                 feature_set_checkbox,
                 data_size_radio,
-            ]
+            ],
+            js=initial_load_scroll_js 
         )
 
     return demo
