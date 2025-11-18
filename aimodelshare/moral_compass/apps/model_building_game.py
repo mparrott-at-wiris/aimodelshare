@@ -866,7 +866,7 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
         pass # Keep defaults
 
     # Generate HTML outputs
-    team_html = _build_team_html(team_summary_df, team_name)
+    team_html = _build_team_html(team_summary_df, os.environ.get("TEAM_NAME"))
     individual_html = _build_individual_html(individual_summary_df, username)
     kpi_card_html = _build_kpi_card_html(
         this_submission_score, last_submission_score, new_rank, last_rank, submission_count
@@ -1478,12 +1478,12 @@ def run_experiment(
 
         predictions = tuned_model.predict(X_test_processed)
         description = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
-        tags = f"team:{team_name},model:{model_name_key}"
+        tags = f"team:{os.environ.get("TEAM_NAME")},model:{model_name_key}"
 
         playground.submit_model(
             model=tuned_model, preprocessor=preprocessor, prediction_submission=predictions,
             input_dict={'description': description, 'tags': tags},
-            custom_metadata={'Team': team_name, 'Moral_Compass': 0}
+            custom_metadata={'Team': os.environ.get("TEAM_NAME"), 'Moral_Compass': 0}
         )
         log_output += "\nSUCCESS! Model submitted.\n"
 
@@ -1597,7 +1597,7 @@ def on_initial_load(username):
                 full_leaderboard_df = playground.get_leaderboard()
                 team_html, individual_html, _, _, _, _ = generate_competitive_summary(
                     full_leaderboard_df,
-                    CURRENT_TEAM_NAME,
+                    os.environ.get("TEAM_NAME"),
                     username,
                     0, 0, -1
                 )
@@ -2268,7 +2268,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 visible=True
             )
 
-            team_name_state = gr.State(CURRENT_TEAM_NAME)
+            team_name_state = gr.State(os.environ.get("TEAM_NAME"))
             last_submission_score_state = gr.State(0.0)
             last_rank_state = gr.State(0)
             best_score_state = gr.State(0.0)
