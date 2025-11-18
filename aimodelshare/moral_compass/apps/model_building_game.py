@@ -88,24 +88,22 @@ FEATURE_SET_ALL_OPTIONS = [
     ("Sex", "sex"),
     ("Charge Severity (M/F)", "c_charge_degree"),
     ("Days Before Arrest", "days_b_screening_arrest"),
-    ("Charge Description", "c_charge_desc"),
     ("Age", "age"),
     ("Length of Stay", "length_of_stay"),
     ("Prior Crimes Count", "priors_count"),
-    ("Age Group", "age_cat"),
 ]
 FEATURE_SET_GROUP_1_VALS = [
     "juv_fel_count", "juv_misd_count", "juv_other_count", "race", "sex",
     "c_charge_degree", "days_b_screening_arrest"
 ]
-FEATURE_SET_GROUP_2_VALS = ["c_charge_desc"]
-FEATURE_SET_GROUP_3_VALS = ["age", "length_of_stay", "priors_count", "age_cat"]
+FEATURE_SET_GROUP_2_VALS = ["c_charge_desc", "age"]
+FEATURE_SET_GROUP_3_VALS = ["length_of_stay", "priors_count"]
 ALL_NUMERIC_COLS = [
     "juv_fel_count", "juv_misd_count", "juv_other_count",
     "days_b_screening_arrest", "age", "length_of_stay", "priors_count"
 ]
 ALL_CATEGORICAL_COLS = [
-    "race", "sex", "c_charge_degree", "c_charge_desc", "age_cat"
+    "race", "sex", "c_charge_degree"
 ]
 DEFAULT_FEATURE_SET = FEATURE_SET_GROUP_1_VALS
 
@@ -1616,7 +1614,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
 
     ethical_note = (
         "You unlocked powerful predictors. Consider: Would removing demographic fields change fairness? "
-        "Real engineering balances accuracy with equity."
+        "In the next section we will begin to investigate this question further."
     )
 
     # Tailor message for very few submissions
