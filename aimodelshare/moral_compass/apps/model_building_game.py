@@ -1834,6 +1834,44 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
     @media (prefers-reduced-motion: reduce) {
         [style*='pulseArrow'] { animation: none !important; }
     }
+    
+    /* Navigation Loading Overlay Styles */
+    #nav-loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.95);
+        z-index: 9999;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .nav-spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #e5e7eb;
+        border-top: 5px solid #6366f1;
+        border-radius: 50%;
+        animation: nav-spin 1s linear infinite;
+        margin-bottom: 20px;
+    }
+    
+    @keyframes nav-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    #nav-loading-text {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #4338ca;
+    }
     """
 
     # Define globals for yield
@@ -1847,7 +1885,16 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
     global attempts_tracker_display, team_name_state
 
     with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css) as demo:
+        # Persistent top anchor for scroll-to-top navigation
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
+        
+        # Navigation loading overlay with spinner and dynamic message
+        gr.HTML("""
+            <div id='nav-loading-overlay'>
+                <div class='nav-spinner'></div>
+                <span id='nav-loading-text'>Loading...</span>
+            </div>
+        """)
 
         username = os.environ.get("username") or "Unknown_User"
 
@@ -1864,7 +1911,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         # --- Briefing Slideshow (Updated with New Cards) ---
 
         # Slide 1: From Understanding to Building (Retained as transition)
-        with gr.Column(visible=True) as briefing_slide_1:
+        with gr.Column(visible=True, elem_id="slide-1") as briefing_slide_1:
             gr.Markdown("<h1 style='text-align:center;'>🔄 From Understanding to Building</h1>")
             gr.HTML(
                 """
@@ -1917,7 +1964,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             briefing_1_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
         # Slide 2: Card 1 (Your Engineering Mission)
-        with gr.Column(visible=False) as briefing_slide_2:
+        with gr.Column(visible=False, elem_id="slide-2") as briefing_slide_2:
             gr.Markdown("<h1 style='text-align:center;'>📋 Your Mission - Build Better AI</h1>")
             
             gr.HTML(
@@ -1967,7 +2014,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 briefing_2_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
         # Slide 3: Card 2 (What is a "Model"?)
-        with gr.Column(visible=False) as briefing_slide_3:
+        with gr.Column(visible=False, elem_id="slide-3") as briefing_slide_3:
             gr.Markdown("<h1 style='text-align:center;'>🧠 What is a \"Model\"?</h1>")
             
             # --- FIX FOR SLIDE 3 ---
@@ -2015,7 +2062,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 briefing_3_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
         # Slide 4: Card 3 (How Engineers Work — The Loop)
-        with gr.Column(visible=False) as briefing_slide_4:
+        with gr.Column(visible=False, elem_id="slide-4") as briefing_slide_4:
             gr.Markdown("<h1 style='text-align:center;'>🔁 How Engineers Work — The Loop</h1>")
 
             # --- FIX FOR SLIDE 4 ---
@@ -2061,7 +2108,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 briefing_4_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
         # Slide 5: Card 4 (Control Knobs — The "Brain" Settings)
-        with gr.Column(visible=False) as briefing_slide_5:
+        with gr.Column(visible=False, elem_id="slide-5") as briefing_slide_5:
             gr.Markdown("<h1 style='text-align:center;'>🎛️ Control Knobs — The \"Brain\" Settings</h1>")
             
             # --- FIX FOR SLIDE 5 ---
@@ -2122,7 +2169,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 briefing_5_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
         # Slide 6: Card 5 (Control Knobs — The "Data" Settings)
-        with gr.Column(visible=False) as briefing_slide_6:
+        with gr.Column(visible=False, elem_id="slide-6") as briefing_slide_6:
             gr.Markdown("<h1 style='text-align:center;'>🎛️ Control Knobs — The \"Data\" Settings</h1>")
 
             # --- FIX FOR SLIDE 6 ---
@@ -2181,7 +2228,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 briefing_6_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
         # Slide 7: Card 6 (Your Score as an Engineer)
-        with gr.Column(visible=False) as briefing_slide_7:
+        with gr.Column(visible=False, elem_id="slide-7") as briefing_slide_7:
             gr.Markdown("<h1 style='text-align:center;'>🏆 Your Score as an Engineer</h1>")
             
             # --- FIX FOR SLIDE 7 ---
@@ -2225,7 +2272,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
 
 
         # Model Building App (Main Interface)
-        with gr.Column(visible=False) as model_building_step:
+        with gr.Column(visible=False, elem_id="model-step") as model_building_step:
             gr.Markdown("<h1 style='text-align:center;'>🛠️ Model Building Arena</h1>")
             
             # Status panel for initialization progress - HIDDEN
@@ -2358,7 +2405,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             step_2_next = gr.Button("Finish & Reflect ▶️", variant="secondary")
 
         # Conclusion Step
-        with gr.Column(visible=False) as conclusion_step:
+        with gr.Column(visible=False, elem_id="conclusion-step") as conclusion_step:
             gr.Markdown("<h1 style='text-align:center;'>✅ Section Complete</h1>")
             final_score_display = gr.HTML(value="<p>Preparing final summary...</p>")
             step_3_back = gr.Button("◀️ Back to Experiment")
@@ -2396,117 +2443,213 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                     updates[s] = gr.update(visible=False)
             return [updates[s] if s in updates else gr.update() for s in all_steps_nav] + [html]
 
-        scroll_js = (
-            "()=>{"
-            "  try {"
-            "    const anchor = document.getElementById('app_top_anchor');"
-            "    const gradioContainer = document.querySelector('.gradio-container');"
-            "    const scrollElement = gradioContainer || document.scrollingElement || document.documentElement || document.body;"
-            "    function doScroll(){"
-            "      if(anchor){ anchor.scrollIntoView({behavior:'smooth', block:'start'}); }"
-            "      else { scrollElement.scrollTo({top:0, behavior:'smooth'}); }"
-            "      /* Colab iframe outer scroll (best-effort) */"
-            "      try {"
-            "         if(window.parent && window.parent !== window && window.frameElement){"
-            "            const top = window.frameElement.getBoundingClientRect().top + window.parent.scrollY;"
-            "            window.parent.scrollTo({top: Math.max(top - 10, 0), behavior:'smooth'});"
-            "         }"
-            "      } catch(e2) { /* ignore */ }"
-            "    }"
-            "    /* Initial scroll + a few repeats to fight layout shifts */"
-            "    doScroll();"
-            "    let attempts = 0;"
-            "    const maxAttempts = 4;"
-            "    const interval = setInterval(()=>{"
-            "       attempts++;"
-            "       doScroll();"
-            "       if(attempts >= maxAttempts){ clearInterval(interval); }"
-            "    }, 140);"
-            "  } catch(e) { console.warn('scroll-js error', e); }"
-            "}"
-        )
+        # Helper function to generate navigation JS with loading overlay
+        def nav_js(target_id: str, message: str, min_show_ms: int = 1000) -> str:
+            """
+            Generate JavaScript for enhanced slide navigation with loading overlay.
+            
+            Args:
+                target_id: Element ID of the target slide (e.g., 'slide-2', 'model-step')
+                message: Loading message to display during transition
+                min_show_ms: Minimum time to show overlay (prevents flicker)
+            
+            Returns:
+                JavaScript arrow function string for Gradio's js parameter
+            """
+            return f"""
+()=>{{
+  try {{
+    // Show overlay immediately
+    const overlay = document.getElementById('nav-loading-overlay');
+    const messageEl = document.getElementById('nav-loading-text');
+    if(overlay && messageEl) {{
+      messageEl.textContent = '{message}';
+      overlay.style.display = 'flex';
+      setTimeout(() => {{ overlay.style.opacity = '1'; }}, 10);
+    }}
+    
+    const startTime = Date.now();
+    
+    // Scroll to top after brief delay
+    setTimeout(() => {{
+      const anchor = document.getElementById('app_top_anchor');
+      const container = document.querySelector('.gradio-container') || document.scrollingElement || document.documentElement;
+      
+      function doScroll() {{
+        if(anchor) {{ anchor.scrollIntoView({{behavior:'smooth', block:'start'}}); }}
+        else {{ container.scrollTo({{top:0, behavior:'smooth'}}); }}
+        
+        // Best-effort Colab iframe scroll
+        try {{
+          if(window.parent && window.parent !== window && window.frameElement) {{
+            const top = window.frameElement.getBoundingClientRect().top + window.parent.scrollY;
+            window.parent.scrollTo({{top: Math.max(top - 10, 0), behavior:'smooth'}});
+          }}
+        }} catch(e2) {{}}
+      }}
+      
+      doScroll();
+      // Retry scroll to combat layout shifts
+      let scrollAttempts = 0;
+      const scrollInterval = setInterval(() => {{
+        scrollAttempts++;
+        doScroll();
+        if(scrollAttempts >= 3) clearInterval(scrollInterval);
+      }}, 130);
+    }}, 40);
+    
+    // Poll for target visibility and minimum display time
+    const targetId = '{target_id}';
+    const minShowMs = {min_show_ms};
+    let pollCount = 0;
+    const maxPolls = 77; // ~7 seconds max
+    
+    const pollInterval = setInterval(() => {{
+      pollCount++;
+      const elapsed = Date.now() - startTime;
+      const target = document.getElementById(targetId);
+      const isVisible = target && target.offsetParent !== null && 
+                       window.getComputedStyle(target).display !== 'none';
+      
+      // Hide overlay when target is visible AND minimum time elapsed
+      if((isVisible && elapsed >= minShowMs) || pollCount >= maxPolls) {{
+        clearInterval(pollInterval);
+        if(overlay) {{
+          overlay.style.opacity = '0';
+          setTimeout(() => {{ overlay.style.display = 'none'; }}, 300);
+        }}
+      }}
+    }}, 90);
+    
+  }} catch(e) {{ console.warn('nav-js error', e); }}
+}}
+"""
 
-        initial_load_scroll_js = (
-          "()=>{try{"
-          " const anchor=document.getElementById('app_top_anchor');"
-          " const container=document.querySelector('.gradio-container')||document.scrollingElement||document.documentElement;"
-          " function doScroll(){"
-          "   if(anchor){anchor.scrollIntoView({behavior:'auto',block:'start'});}else{container.scrollTo({top:0,behavior:'auto'});} "
-          "   try{ if(window.parent && window.parent!==window && window.frameElement){"
-          "        const r=window.frameElement.getBoundingClientRect();"
-          "        window.parent.scrollTo({top:Math.max(r.top+window.parent.scrollY-10,0),behavior:'auto'});"
-          "   }}catch(e2){}"
-          " }"
-          " doScroll();"
-          " let tries=0; const h=setInterval(()=>{tries++; doScroll(); if(tries>=2)clearInterval(h);},160);"
-          "}catch(e){console.warn('initial-scroll',e)}}"
-      )
-        # Wire up slide buttons
+        # Initial load scroll with overlay
+        initial_load_scroll_js = """
+()=>{
+  try {
+    // Show overlay for initial load
+    const overlay = document.getElementById('nav-loading-overlay');
+    const messageEl = document.getElementById('nav-loading-text');
+    if(overlay && messageEl) {
+      messageEl.textContent = 'Initializing experience...';
+      overlay.style.display = 'flex';
+      setTimeout(() => { overlay.style.opacity = '1'; }, 10);
+    }
+    
+    const startTime = Date.now();
+    
+    // Scroll to top
+    const anchor = document.getElementById('app_top_anchor');
+    const container = document.querySelector('.gradio-container') || document.scrollingElement || document.documentElement;
+    
+    function doScroll() {
+      if(anchor) { anchor.scrollIntoView({behavior:'auto', block:'start'}); }
+      else { container.scrollTo({top:0, behavior:'auto'}); }
+      
+      try {
+        if(window.parent && window.parent !== window && window.frameElement) {
+          const r = window.frameElement.getBoundingClientRect();
+          window.parent.scrollTo({top: Math.max(r.top + window.parent.scrollY - 10, 0), behavior:'auto'});
+        }
+      } catch(e2) {}
+    }
+    
+    doScroll();
+    let tries = 0;
+    const scrollInterval = setInterval(() => {
+      tries++;
+      doScroll();
+      if(tries >= 2) clearInterval(scrollInterval);
+    }, 160);
+    
+    // Poll for slide-1 visibility
+    let pollCount = 0;
+    const pollInterval = setInterval(() => {
+      pollCount++;
+      const elapsed = Date.now() - startTime;
+      const target = document.getElementById('slide-1');
+      const isVisible = target && target.offsetParent !== null;
+      
+      if((isVisible && elapsed >= 300) || pollCount >= 30) {
+        clearInterval(pollInterval);
+        if(overlay) {
+          overlay.style.opacity = '0';
+          setTimeout(() => { overlay.style.display = 'none'; }, 300);
+        }
+      }
+    }, 100);
+    
+  } catch(e) { console.warn('initial-scroll error', e); }
+}
+"""
+        # Wire up slide buttons with enhanced navigation
         briefing_1_next.click(
             fn=create_nav(briefing_slide_1, briefing_slide_2),
             inputs=None, outputs=all_steps_nav,
-            js=scroll_js
+            js=nav_js("slide-2", "Loading mission overview...")
         )
         briefing_2_back.click(
             fn=create_nav(briefing_slide_2, briefing_slide_1),
             inputs=None, outputs=all_steps_nav,
-            js=scroll_js
+            js=nav_js("slide-1", "Returning to introduction...")
         )
         briefing_2_next.click(
             fn=create_nav(briefing_slide_2, briefing_slide_3),
             inputs=None, outputs=all_steps_nav,
-            js=scroll_js
+            js=nav_js("slide-3", "Exploring model concept...")
         )
         briefing_3_back.click(
             fn=create_nav(briefing_slide_3, briefing_slide_2),
             inputs=None, outputs=all_steps_nav,
-            js=scroll_js
+            js=nav_js("slide-2", "Going back one step...")
         )
         briefing_3_next.click(
             fn=create_nav(briefing_slide_3, briefing_slide_4),
             inputs=None, outputs=all_steps_nav,
-            js=scroll_js
+            js=nav_js("slide-4", "Understanding the experiment loop...")
         )
         briefing_4_back.click(
             fn=create_nav(briefing_slide_4, briefing_slide_3),
             inputs=None, outputs=all_steps_nav,
-            js=scroll_js
+            js=nav_js("slide-3", "Reviewing previous concepts...")
         )
         briefing_4_next.click(
             fn=create_nav(briefing_slide_4, briefing_slide_5),
             inputs=None, outputs=all_steps_nav,
-            js=scroll_js
+            js=nav_js("slide-5", "Configuring brain settings...")
         )
         briefing_5_back.click(
             fn=create_nav(briefing_slide_5, briefing_slide_4),
             inputs=None, outputs=all_steps_nav,
-            js=scroll_js
+            js=nav_js("slide-4", "Revisiting the loop...")
         )
         briefing_5_next.click(
             fn=create_nav(briefing_slide_5, briefing_slide_6),
             inputs=None, outputs=all_steps_nav,
-            js=scroll_js
+            js=nav_js("slide-6", "Configuring data inputs...")
         )
         briefing_6_back.click(
             fn=create_nav(briefing_slide_6, briefing_slide_5),
             inputs=None, outputs=all_steps_nav,
-            js=scroll_js
+            js=nav_js("slide-5", "Adjusting model strategy...")
         )
         briefing_6_next.click(
             fn=create_nav(briefing_slide_6, briefing_slide_7),
             inputs=None, outputs=all_steps_nav,
-            js=scroll_js
+            js=nav_js("slide-7", "Preparing scoring overview...")
         )
         briefing_7_back.click(
             fn=create_nav(briefing_slide_7, briefing_slide_6),
             inputs=None, outputs=all_steps_nav,
-            js=scroll_js
+            js=nav_js("slide-6", "Reviewing data knobs...")
         )
         # Slide 7 -> App
         briefing_7_next.click(
             fn=create_nav(briefing_slide_7, model_building_step),
             inputs=None, outputs=all_steps_nav,
-            js=scroll_js
+            js=nav_js("model-step", "Entering model arena...")
         )
 
         # App -> Conclusion
@@ -2520,14 +2663,14 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 feature_set_state
             ],
             outputs=all_steps_nav + [final_score_display],
-            js=scroll_js
+            js=nav_js("conclusion-step", "Generating performance summary...")
         )
 
         # Conclusion -> App
         step_3_back.click(
             fn=create_nav(conclusion_step, model_building_step),
             inputs=None, outputs=all_steps_nav,
-            js=scroll_js
+            js=nav_js("model-step", "Returning to experiment workspace...")
         )
 
         # Events
@@ -2581,7 +2724,6 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             fn=perform_inline_login,
             inputs=[login_username, login_password],
             outputs=[login_username, login_password, login_submit, login_error, submit_button, submission_feedback_display, team_name_state]
-        )
 
         # Removed gr.State(username) from the inputs list
         submit_button.click(
@@ -2600,7 +2742,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             ],
             outputs=all_outputs,
             show_progress="full",
-            js=scroll_js
+            js=nav_js("model-step", "Running experiment...", 500)
         )
 
         # Timer for polling initialization status
