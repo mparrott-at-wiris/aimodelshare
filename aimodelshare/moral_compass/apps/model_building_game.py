@@ -884,7 +884,7 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
         pass # Keep defaults
 
     # Generate HTML outputs
-    team_html = _build_team_html(team_summary_df, team_name)
+    team_html = _build_team_html(team_summary_df, os.environ.get("TEAM_NAME"))
     individual_html = _build_individual_html(individual_summary_df, username)
     kpi_card_html = _build_kpi_card_html(
         this_submission_score, last_submission_score, new_rank, last_rank, submission_count
@@ -914,7 +914,7 @@ def compute_rank_settings(
 
     if submission_count == 0:
         return {
-            "rank_message": "# 🧑‍🎓 Rank: Trainee Engineer\n<p style='font-size:24px; line-height:1.4;'>For your first submission, just click the big '🔬 Build & Submit Model' button below!</[...]
+            "rank_message": "# 🧑‍🎓 Rank: Trainee Engineer\n<p style='font-size:24px; line-height:1.4;'>For your first submission, just click the big '🔬 Build & Submit Model' button below!</p>",
             "model_choices": ["The Balanced Generalist"],
             "model_value": "The Balanced Generalist",
             "model_interactive": False,
@@ -944,7 +944,7 @@ def compute_rank_settings(
         }
     elif submission_count == 2:
         return {
-            "rank_message": "# 🌟 Rank Up! Senior Engineer\n<p style='font-size:24px; line-height:1.4;'>Strongest Data Ingredients Unlocked! The most powerful predictors (like 'Age' and 'Prior Crime[...]
+            "rank_message": "# 🌟 Rank Up! Senior Engineer\n<p style='font-size:24px; line-height:1.4;'>Strongest Data Ingredients Unlocked! The most powerful predictors (like 'Age' and 'Prior Crime</p>",
             "model_choices": list(MODEL_TYPES.keys()),
             "model_value": current_model if current_model in MODEL_TYPES else "The Deep Pattern-Finder",
             "model_interactive": True,
@@ -1503,15 +1503,15 @@ def run_experiment(
 
         predictions = tuned_model.predict(X_test_processed)
         description = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
-        tags = f"team:{team_name},model:{model_name_key}"
+        tags = f"team:{os.environ.get("TEAM_NAME")},model:{model_name_key}"
 
         # Log the team submission action
-        _log_team_action(f"About to submit model for user '{username}' on team '{team_name}' - description: '{description}', tags: '{tags}'")
+        _log_team_action(f"About to submit model for user '{username}' on team '{os.environ.get("TEAM_NAME")}' - description: '{description}', tags: '{tags}'")
 
         playground.submit_model(
             model=tuned_model, preprocessor=preprocessor, prediction_submission=predictions,
             input_dict={'description': description, 'tags': tags},
-            custom_metadata={'Team': team_name, 'Moral_Compass': 0}
+            custom_metadata={'Team': os.environ.get("TEAM_NAME"), 'Moral_Compass': 0}
         )
         log_output += "\nSUCCESS! Model submitted.\n"
 
@@ -1627,7 +1627,7 @@ def on_initial_load(username):
                 _log_team_action(f"on_initial_load: attempting to generate competitive summary using CURRENT_TEAM_NAME='{CURRENT_TEAM_NAME}' for user '{username}'")
                 team_html, individual_html, _, _, _, _ = generate_competitive_summary(
                     full_leaderboard_df,
-                    CURRENT_TEAM_NAME,
+                    os.environ.get("TEAM_NAME"),
                     username,
                     0, 0, -1
                 )
@@ -1694,7 +1694,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     if submissions >= ATTEMPT_LIMIT:
         attempt_cap_note = f"""
         <div style='background:#fef2f2; padding:16px; border-radius:12px; border-left:6px solid #ef4444; text-align:left; margin-top:16px;'>
-            <p style='margin:0;'><b>📊 Attempt Limit Reached:</b> You used all {ATTEMPT_LIMIT} allowed submission attempts for this session. We will open up submissions again after you complete some[...]
+            <p style='margin:0;'><b>📊 Attempt Limit Reached:</b> You used all {ATTEMPT_LIMIT} allowed submission attempts for this session. We will open up submissions again after you complete some</p>",
         </div>
         """
 
@@ -1985,10 +1985,10 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 <div class='slide-content'>
                     <div class='panel-box'>
                         <h3>The Mission</h3>
-                        <p>Build an AI model that helps judges make better decisions. The model you used previously gave you imperfect advice. Your job now is to build a new model that predicts risk m[...]
+                        <p>Build an AI model that helps judges make better decisions. The model you used previously gave you imperfect advice. Your job now is to build a new model that predicts risk m</p>",
                         
                         <h3>The Competition</h3>
-                        <p>To do this, you will compete against other engineers! To help you in your mission, you will join an engineering team. Your results will be tracked both individually and as a[...]
+                        <p>To do this, you will compete against other engineers! To help you in your mission, you will join an engineering team. Your results will be tracked both individually and as a</p>",
                     </div>
 
                     <div class='leaderboard-box' style='max-width: 600px; margin: 16px auto; text-align: center; padding: 16px;'>
@@ -2063,7 +2063,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
 
                         <hr>
                         
-                        <p><strong>How it learns:</strong> You show the model thousands of old cases (Inputs) + what actually happened (Outcomes). It studies them to find the rules, so it can make pre[...]
+                        <p><strong>How it learns:</strong> You show the model thousands of old cases (Inputs) + what actually happened (Outcomes). It studies them to find the rules, so it can make pre</p>",
                     </div>
                 </div>
                 """
@@ -2130,7 +2130,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 """
                 <div class='slide-content'>
                     <div class='mock-ui-inner'>
-                        <p>To build your model, you will use Control Knobs to configure your Prediction Machine. The first two knobs allow you to choose a type of model and adjust how it learns patter[...]
+                        <p>To build your model, you will use Control Knobs to configure your Prediction Machine. The first two knobs allow you to choose a type of model and adjust how it learns patter</p>",
                         <hr style='margin: 16px 0;'>
 
                         <h3 style='margin-top:0;'>1. Model Strategy (Type of Model)</h3>
@@ -2169,7 +2169,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                                     </ul>
                                 </li>
                             </ul>
-                            <p style='color:#b91c1c; font-weight:bold; margin-top:10px;'>Warning: Setting this too high causes the machine to "memorize" random, irrelevant details or random coincidenc[...]
+                            <p style='color:#b91c1c; font-weight:bold; margin-top:10px;'>Warning: Setting this too high causes the machine to "memorize" random, irrelevant details or random coincidenc</p>",
                         </div>
                     </div>
                 </div>
@@ -2254,7 +2254,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
 
                         <h3>How You Are Scored</h3>
                         <ul style='list-style-position: inside;'>
-                            <li><strong>Prediction Accuracy:</strong> Your model is tested on <strong>Hidden Data</strong> (cases kept in a "secret vault" that your model has never seen). This simulat[...]
+                            <li><strong>Prediction Accuracy:</strong> Your model is tested on <strong>Hidden Data</strong> (cases kept in a "secret vault" that your model has never seen). This simulat</p>",
                             <li><strong>The Leaderboard:</strong> Live Standings track your progress individually and as a team.</li>
                         </ul>
 
@@ -2299,7 +2299,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 visible=True
             )
 
-            team_name_state = gr.State(CURRENT_TEAM_NAME)
+            team_name_state = gr.State(os.environ.get("TEAM_NAME"))
             last_submission_score_state = gr.State(0.0)
             last_rank_state = gr.State(0)
             best_score_state = gr.State(0.0)
@@ -2715,4 +2715,4 @@ if __name__ == "__main__":
     X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data()
     print("--- Launching App ---")
     app = create_model_building_game_app()
-    app.launch(share=False, debug=False, height=1100)
+    app.launch(share=False, debug=True, height=1100)
