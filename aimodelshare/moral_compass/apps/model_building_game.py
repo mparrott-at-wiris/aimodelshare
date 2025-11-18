@@ -182,18 +182,15 @@ def _safe_request_csv(url, cache_filename="compas.csv"):
     if cache_path.exists():
         file_time = datetime.fromtimestamp(cache_path.stat().st_mtime)
         if datetime.now() - file_time < timedelta(hours=CACHE_MAX_AGE_HOURS):
-            print(f"Using cached dataset from {cache_path}")
             return pd.read_csv(cache_path)
     
     # Download fresh data
-    print(f"Downloading dataset from {url}")
     response = requests.get(url, timeout=30)
     response.raise_for_status()
     df = pd.read_csv(StringIO(response.text))
     
     # Save to cache
     df.to_csv(cache_path, index=False)
-    print(f"Dataset cached to {cache_path}")
     
     return df
 
@@ -281,8 +278,7 @@ def load_and_prep_data(use_cache=True):
     X_TRAIN_WARM = X_train_raw.sample(n=warm_size, random_state=42)
     Y_TRAIN_WARM = y_train.loc[X_TRAIN_WARM.index]
 
-    print(f"Pre-sampling complete. {len(X_TRAIN_SAMPLES_MAP)} data sizes cached.")
-    print(f"Warm mini dataset: {len(X_TRAIN_WARM)} rows")
+
 
     return X_train_raw, X_test_raw, y_train, y_test
 
@@ -303,28 +299,22 @@ def _background_initializer():
     
     try:
         # Step 1: Connect to competition
-        print("Background init: Connecting to competition...")
         with INIT_LOCK:
             if playground is None:
                 playground = Competition(MY_PLAYGROUND_ID)
             INIT_FLAGS["competition"] = True
-        print("✓ Competition connected")
     except Exception as e:
         with INIT_LOCK:
             INIT_FLAGS["errors"].append(f"Competition connection failed: {str(e)}")
-        print(f"✗ Competition connection failed: {e}")
     
     try:
         # Step 2: Load dataset core (train/test split)
-        print("Background init: Loading dataset core...")
         X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data(use_cache=True)
         with INIT_LOCK:
             INIT_FLAGS["dataset_core"] = True
-        print("✓ Dataset core loaded")
     except Exception as e:
         with INIT_LOCK:
             INIT_FLAGS["errors"].append(f"Dataset loading failed: {str(e)}")
-        print(f"✗ Dataset loading failed: {e}")
         return  # Cannot proceed without data
     
     try:
@@ -332,46 +322,36 @@ def _background_initializer():
         if X_TRAIN_WARM is not None and len(X_TRAIN_WARM) > 0:
             with INIT_LOCK:
                 INIT_FLAGS["warm_mini"] = True
-            print("✓ Warm mini dataset ready")
     except Exception as e:
         with INIT_LOCK:
             INIT_FLAGS["errors"].append(f"Warm mini dataset failed: {str(e)}")
-        print(f"✗ Warm mini dataset failed: {e}")
     
     # Progressive sampling - samples are already created in load_and_prep_data
     # Just mark them as ready sequentially with delays to simulate progressive loading
     
     try:
         # Step 4a: Small sample (20%)
-        print("Background init: Small sample (20%)...")
         time.sleep(0.5)  # Simulate processing
         with INIT_LOCK:
             INIT_FLAGS["pre_samples_small"] = True
-        print("✓ Small sample ready")
     except Exception as e:
         with INIT_LOCK:
             INIT_FLAGS["errors"].append(f"Small sample failed: {str(e)}")
-        print(f"✗ Small sample failed: {e}")
     
     try:
         # Step 4b: Medium sample (60%)
-        print("Background init: Medium sample (60%)...")
         time.sleep(0.5)
         with INIT_LOCK:
             INIT_FLAGS["pre_samples_medium"] = True
-        print("✓ Medium sample ready")
     except Exception as e:
         with INIT_LOCK:
             INIT_FLAGS["errors"].append(f"Medium sample failed: {str(e)}")
-        print(f"✗ Medium sample failed: {e}")
     
     try:
         # Step 4c: Large sample (80%)
-        print("Background init: Large sample (80%)...")
         time.sleep(0.5)
         with INIT_LOCK:
             INIT_FLAGS["pre_samples_large"] = True
-        print("✓ Large sample ready")
     except Exception as e:
         with INIT_LOCK:
             INIT_FLAGS["errors"].append(f"Large sample failed: {str(e)}")
@@ -383,38 +363,30 @@ def _background_initializer():
         time.sleep(0.5)
         with INIT_LOCK:
             INIT_FLAGS["pre_samples_full"] = True
-        print("✓ Full sample ready")
     except Exception as e:
         with INIT_LOCK:
             INIT_FLAGS["errors"].append(f"Full sample failed: {str(e)}")
-        print(f"✗ Full sample failed: {e}")
     
     try:
         # Step 5: Leaderboard prefetch
         if playground is not None:
-            print("Background init: Prefetching leaderboard...")
             _ = playground.get_leaderboard()
             with INIT_LOCK:
                 INIT_FLAGS["leaderboard"] = True
-            print("✓ Leaderboard prefetched")
     except Exception as e:
         with INIT_LOCK:
             INIT_FLAGS["errors"].append(f"Leaderboard prefetch failed: {str(e)}")
-        print(f"✗ Leaderboard prefetch failed: {e}")
     
     try:
         # Step 6: Default preprocessor on small sample
-        print("Background init: Fitting default preprocessor...")
         _fit_default_preprocessor()
         with INIT_LOCK:
             INIT_FLAGS["default_preprocessor"] = True
-        print("✓ Default preprocessor ready")
     except Exception as e:
         with INIT_LOCK:
             INIT_FLAGS["errors"].append(f"Default preprocessor failed: {str(e)}")
         print(f"✗ Default preprocessor failed: {e}")
     
-    print("=== Background initialization complete ===")
 
 def _fit_default_preprocessor():
     """
@@ -444,7 +416,6 @@ def start_background_init():
     """
     thread = threading.Thread(target=_background_initializer, daemon=True)
     thread.start()
-    print("Background initialization started...")
 
 def poll_init_status():
     """
@@ -2673,15 +2644,11 @@ def launch_model_building_game_app(height: int = 1200, share: bool = False, debu
 # -------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    print("--- Initializing Model Building Game ---")
     try:
         playground = Competition(MY_PLAYGROUND_ID)
-        print("Playground connection successful.")
     except Exception as e:
-        print(f"Playground connection failed: {e}")
         playground = None
 
     X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data()
-    print("--- Launching App ---")
     app = create_model_building_game_app()
-    app.launch(share=False, debug=False, height=1100)
+    app.launch(share=False, debug=False, height=1100, quiet=True)
