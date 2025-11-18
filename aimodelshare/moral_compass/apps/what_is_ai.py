@@ -83,9 +83,58 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     .large-text {
         font-size: 20px !important;
     }
+    
+    /* Navigation Loading Overlay Styles */
+    #nav-loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.95);
+        z-index: 9999;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .nav-spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #e5e7eb;
+        border-top: 5px solid #6366f1;
+        border-radius: 50%;
+        animation: nav-spin 1s linear infinite;
+        margin-bottom: 20px;
+    }
+    
+    @keyframes nav-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    #nav-loading-text {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #4338ca;
+    }
     """
     
     with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
+        # Persistent top anchor for scroll-to-top navigation
+        gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
+        
+        # Navigation loading overlay with spinner and dynamic message
+        gr.HTML("""
+            <div id='nav-loading-overlay'>
+                <div class='nav-spinner'></div>
+                <span id='nav-loading-text'>Loading...</span>
+            </div>
+        """)
+        
         gr.Markdown("<h1 style='text-align:center;'>🤖 What is AI, Anyway?</h1>")
         gr.HTML(
             """
@@ -109,7 +158,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             )
         
         # Step 1: Introduction
-        with gr.Column(visible=True) as step_1:
+        with gr.Column(visible=True, elem_id="step-1") as step_1:
             gr.Markdown("<h2 style='text-align:center;'>🎯 A Simple Definition</h2>")
             gr.HTML(
                 """
@@ -137,7 +186,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             step_1_next = gr.Button("Next: The AI Formula ▶️", variant="primary", size="lg")
         
         # Step 2: The Three-Part Formula
-        with gr.Column(visible=False) as step_2:
+        with gr.Column(visible=False, elem_id="step-2") as step_2:
             gr.Markdown("<h2 style='text-align:center;'>📐 The Three-Part Formula</h2>")
             gr.HTML(
                 """
@@ -189,7 +238,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 step_2_next = gr.Button("Next: How Models Learn ▶️", variant="primary", size="lg")
         
         # Step 3: How Models Learn (Shorter Version - Direct Intro)
-        with gr.Column(visible=False) as step_3:
+        with gr.Column(visible=False, elem_id="step-3") as step_3:
             gr.Markdown("<h2 style='text-align:center;'>🧠 How Does an AI Model Learn?</h2>")
             
             gr.HTML(
@@ -254,7 +303,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 step_3_next = gr.Button("Next: Try It Yourself ▶️", variant="primary", size="lg")
         
         # Step 4: Interactive Demo
-        with gr.Column(visible=False) as step_4:
+        with gr.Column(visible=False, elem_id="step-4") as step_4:
             gr.Markdown("<h2 style='text-align:center;'>🎮 Try It Yourself!</h2>")
             gr.Markdown(
                 """
@@ -332,7 +381,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 step_4_next = gr.Button("Next: Connection to Justice ▶️", variant="primary", size="lg")
         
         # Step 5: Connection to the Challenge
-        with gr.Column(visible=False) as step_5:
+        with gr.Column(visible=False, elem_id="step-5") as step_5:
             gr.Markdown("<h2 style='text-align:center;'>🔗 Connecting to Criminal Justice</h2>")
             gr.HTML(
                 """
@@ -384,7 +433,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 step_5_next = gr.Button("Complete This Section ▶️", variant="primary", size="lg")
         
         # Step 6: Completion
-        with gr.Column(visible=False) as step_6:
+        with gr.Column(visible=False, elem_id="step-6") as step_6:
             gr.HTML(
                 """
                 <div style='text-align:center;'>
@@ -448,56 +497,122 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 yield updates
             return navigate
 
+        # Helper function to generate navigation JS with loading overlay
+        def nav_js(target_id: str, message: str, min_show_ms: int = 400) -> str:
+            """Generate JavaScript for enhanced slide navigation with loading overlay."""
+            return f"""
+()=>{{
+  try {{
+    const overlay = document.getElementById('nav-loading-overlay');
+    const messageEl = document.getElementById('nav-loading-text');
+    if(overlay && messageEl) {{
+      messageEl.textContent = '{message}';
+      overlay.style.display = 'flex';
+      setTimeout(() => {{ overlay.style.opacity = '1'; }}, 10);
+    }}
+    
+    const startTime = Date.now();
+    
+    setTimeout(() => {{
+      const anchor = document.getElementById('app_top_anchor');
+      const container = document.querySelector('.gradio-container') || document.scrollingElement || document.documentElement;
+      
+      function doScroll() {{
+        if(anchor) {{ anchor.scrollIntoView({{behavior:'smooth', block:'start'}}); }}
+        else {{ container.scrollTo({{top:0, behavior:'smooth'}}); }}
+        
+        try {{
+          if(window.parent && window.parent !== window && window.frameElement) {{
+            const top = window.frameElement.getBoundingClientRect().top + window.parent.scrollY;
+            window.parent.scrollTo({{top: Math.max(top - 10, 0), behavior:'smooth'}});
+          }}
+        }} catch(e2) {{}}
+      }}
+      
+      doScroll();
+      let scrollAttempts = 0;
+      const scrollInterval = setInterval(() => {{
+        scrollAttempts++;
+        doScroll();
+        if(scrollAttempts >= 3) clearInterval(scrollInterval);
+      }}, 130);
+    }}, 40);
+    
+    const targetId = '{target_id}';
+    const minShowMs = {min_show_ms};
+    let pollCount = 0;
+    const maxPolls = 77;
+    
+    const pollInterval = setInterval(() => {{
+      pollCount++;
+      const elapsed = Date.now() - startTime;
+      const target = document.getElementById(targetId);
+      const isVisible = target && target.offsetParent !== null && 
+                       window.getComputedStyle(target).display !== 'none';
+      
+      if((isVisible && elapsed >= minShowMs) || pollCount >= maxPolls) {{
+        clearInterval(pollInterval);
+        if(overlay) {{
+          overlay.style.opacity = '0';
+          setTimeout(() => {{ overlay.style.display = 'none'; }}, 300);
+        }}
+      }}
+    }}, 90);
+    
+  }} catch(e) {{ console.warn('nav-js error', e); }}
+}}
+"""
+
         # --- Wire up each button to its own unique generator ---
         step_1_next.click(
             fn=create_nav_generator(step_1, step_2), 
             inputs=None, outputs=all_steps, show_progress="full",
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=nav_js("step-2", "Learning the formula...")
         )
         step_2_back.click(
             fn=create_nav_generator(step_2, step_1), 
             inputs=None, outputs=all_steps, show_progress="full",
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=nav_js("step-1", "Returning to introduction...")
         )
         step_2_next.click(
             fn=create_nav_generator(step_2, step_3), 
             inputs=None, outputs=all_steps, show_progress="full",
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=nav_js("step-3", "Understanding model training...")
         )
         step_3_back.click(
             fn=create_nav_generator(step_3, step_2), 
             inputs=None, outputs=all_steps, show_progress="full",
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=nav_js("step-2", "Going back...")
         )
         step_3_next.click(
             fn=create_nav_generator(step_3, step_4), 
             inputs=None, outputs=all_steps, show_progress="full",
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=nav_js("step-4", "Loading interactive demo...")
         )
         step_4_back.click(
             fn=create_nav_generator(step_4, step_3), 
             inputs=None, outputs=all_steps, show_progress="full",
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=nav_js("step-3", "Reviewing training concepts...")
         )
         step_4_next.click(
             fn=create_nav_generator(step_4, step_5), 
             inputs=None, outputs=all_steps, show_progress="full",
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=nav_js("step-5", "Connecting to criminal justice...")
         )
         step_5_back.click(
             fn=create_nav_generator(step_5, step_4), 
             inputs=None, outputs=all_steps, show_progress="full",
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=nav_js("step-4", "Returning to demo...")
         )
         step_5_next.click(
             fn=create_nav_generator(step_5, step_6), 
             inputs=None, outputs=all_steps, show_progress="full",
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=nav_js("step-6", "Completing section...")
         )
         back_to_connection_btn.click(
             fn=create_nav_generator(step_6, step_5), 
             inputs=None, outputs=all_steps, show_progress="full",
-            js="()=>{window.scrollTo({top:0,behavior:'smooth'})}"
+            js=nav_js("step-5", "Reviewing connections...")
         )
         # --- END NAVIGATION LOGIC ---
     
