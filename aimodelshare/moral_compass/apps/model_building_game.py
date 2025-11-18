@@ -2444,7 +2444,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             return [updates[s] if s in updates else gr.update() for s in all_steps_nav] + [html]
 
         # Helper function to generate navigation JS with loading overlay
-        def nav_js(target_id: str, message: str, min_show_ms: int = 400) -> str:
+        def nav_js(target_id: str, message: str, min_show_ms: int = 1200) -> str:
             """
             Generate JavaScript for enhanced slide navigation with loading overlay.
             
@@ -2723,9 +2723,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         login_submit.click(
             fn=perform_inline_login,
             inputs=[login_username, login_password],
-            outputs=[login_username, login_password, login_submit, login_error, submit_button, submission_feedback_display, team_name_state],
-            js=nav_js("model-step", "Authenticating...")
-        )
+            outputs=[login_username, login_password, login_submit, login_error, submit_button, submission_feedback_display, team_name_state])
 
         # Removed gr.State(username) from the inputs list
         submit_button.click(
@@ -2829,16 +2827,4 @@ def launch_model_building_game_app(height: int = 1200, share: bool = False, debu
     with contextlib.redirect_stdout(open(os.devnull, "w")), contextlib.redirect_stderr(open(os.devnull, "w")):
         demo.launch(share=share, inline=True, debug=debug, height=height)
 
-# -------------------------------------------------------------------------
-# 5. Script Entrypoint
-# -------------------------------------------------------------------------
 
-if __name__ == "__main__":
-    try:
-        playground = Competition(MY_PLAYGROUND_ID)
-    except Exception as e:
-        playground = None
-
-    X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data()
-    app = create_model_building_game_app()
-    app.launch(share=False, debug=False, height=1100, quiet=True)
