@@ -498,7 +498,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             return navigate
 
         # Helper function to generate navigation JS with loading overlay
-        def nav_js(target_id: str, message: str, min_show_ms: int = 400) -> str:
+        def nav_js(target_id: str, message: str, min_show_ms: int = 1200) -> str:
             """Generate JavaScript for enhanced slide navigation with loading overlay."""
             return f"""
 ()=>{{
