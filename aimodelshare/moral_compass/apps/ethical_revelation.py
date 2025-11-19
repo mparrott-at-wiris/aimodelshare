@@ -475,7 +475,7 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
                         </div>
 
                         <p style='font-size: 1.2rem; margin-top:16px; color:#475569; font-weight:500;'>
-                            Ready to deploy your model and explore its real-world impact?
+                            Ready to share your model and explore its real-world impact?
                         </p>
                     </div>
                 </div>
@@ -645,7 +645,7 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
                                 </div>
 
                                 <p style='font-size: 1.2rem; margin-top:16px; color:#475569; font-weight:500;'>
-                                    Ready to deploy your model and explore its real-world impact?
+                                    Ready to share your model and explore its real-world impact?
                                 </p>
                             </div>
                         </div>
@@ -717,7 +717,7 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
             gr.HTML("<div style='margin:32px 0;'></div>")
 
             deploy_button = gr.Button(
-                "🌍 Deploy: Share Your AI Model with the World!",
+                "🌍 Share Your AI Model (Simulation Only)",
                 variant="primary",
                 size="lg",
                 scale=1
@@ -730,13 +730,13 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
                 """
                 <div style='font-size: 20px; background:#fef9c3; padding:28px; border-radius:16px; border: 3px solid #f59e0b;'>
                     <p style='text-align:center; font-size:1.5rem; font-weight:600; margin:0;'>
-                        Before we deploy, there's something you need to know...
+                        Before we share the model, there's something you need to know...
                     </p>
 
                     <div style='margin-top:32px; background:white; padding:24px; border-radius:12px;'>
                         <h3 style='margin-top:0; color:#92400e;'>A Real-World Story</h3>
                         <p>
-                            A model similar to yours was actually deployed in the real world.
+                            A model similar to yours was actually used in the real world.
                             It was used by judges across the United States to help make decisions
                             about defendants' futures.
                         </p>
@@ -768,7 +768,7 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
                     </h3>
 
                     <p style='font-size:1.1rem; line-height:1.6;'>
-                        In 2016, <strong>ProPublica</strong> investigated a widely-used criminal risk
+                        In 2016, journalists at <strong>ProPublica</strong> investigated a widely-used criminal risk
                         assessment algorithm called <strong>COMPAS</strong>. They analyzed over
                         <strong>7,000 actual cases</strong> to see if the AI's predictions came true.
                     </p>
@@ -1082,7 +1082,7 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
         deploy_button.click(
             fn=create_nav_generator(step_1, step_2),
             inputs=None, outputs=all_steps, show_progress="full",
-            js=nav_js("step-2", "Deploying model...")
+            js=nav_js("step-2", "Sharing model...")
         )
         step_2_back.click(
             fn=create_nav_generator(step_2, step_1),
@@ -1137,3 +1137,4 @@ def launch_ethical_revelation_app(height: int = 1000, share: bool = False, debug
     """Convenience wrapper to create and launch the ethical revelation app inline."""
     demo = create_ethical_revelation_app()
     demo.launch(share=share, inline=True, debug=debug, height=height)
+
