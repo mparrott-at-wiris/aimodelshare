@@ -15,6 +15,8 @@ from .ai_consequences import create_ai_consequences_app, launch_ai_consequences_
 from .what_is_ai import create_what_is_ai_app, launch_what_is_ai_app
 from .model_building_game import create_model_building_game_app, launch_model_building_game_app
 from .model_building_game_beginner import create_model_building_game_beginner_app, launch_model_building_game_beginner_app
+from .ethical_revelation import create_ethical_revelation_app, launch_ethical_revelation_app
+from .moral_compass_challenge import create_moral_compass_challenge_app, launch_moral_compass_challenge_app
 
 __all__ = [
     "create_tutorial_app",
@@ -28,5 +30,9 @@ __all__ = [
     "create_model_building_game_app",
     "launch_model_building_game_app",
     "create_model_building_game_beginner_app",
-    "launch_model_building_game_beginner_app"
+    "launch_model_building_game_beginner_app",
+    "create_ethical_revelation_app",
+    "launch_ethical_revelation_app",
+    "create_moral_compass_challenge_app",
+    "launch_moral_compass_challenge_app"
 ]

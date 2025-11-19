@@ -48,6 +48,24 @@ def test_what_is_ai_app_can_be_created():
     assert hasattr(app, 'launch')
 
 
+def test_ethical_revelation_app_can_be_created():
+    """Test that Ethical Revelation app can be instantiated."""
+    from aimodelshare.moral_compass.apps import create_ethical_revelation_app
+    
+    app = create_ethical_revelation_app()
+    assert app is not None
+    assert hasattr(app, 'launch')
+
+
+def test_moral_compass_challenge_app_can_be_created():
+    """Test that Moral Compass Challenge app can be instantiated."""
+    from aimodelshare.moral_compass.apps import create_moral_compass_challenge_app
+    
+    app = create_moral_compass_challenge_app()
+    assert app is not None
+    assert hasattr(app, 'launch')
+
+
 def test_all_apps_exported_from_init():
     """Test that all apps are properly exported from __init__.py"""
     from aimodelshare.moral_compass import apps

@@ -30,7 +30,7 @@ try:
     from aimodelshare.playground import Competition
 except ImportError:
     raise ImportError(
-        "The 'aimodelshare' library is required. Install with: pip install aimodelshare aim-widgets"
+        "The 'aimodelshare' library is required. Install with: pip install aimodelshare"
     )
 
 # -------------------------------------------------------------------------
