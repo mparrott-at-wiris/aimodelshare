@@ -15,6 +15,100 @@ import contextlib
 import os
 
 
+def _get_user_stats_from_leaderboard():
+    """
+    Fetch the user's statistics from the model building game leaderboard.
+    
+    Returns:
+        dict: Dictionary containing:
+            - username: str or None
+            - best_score: float or None
+            - rank: int or None
+            - team_name: str or None
+            - is_signed_in: bool
+    """
+    try:
+        # Import here to avoid circular dependencies
+        from aimodelshare.playground import Competition
+        import pandas as pd
+        
+        # Check if user is signed in
+        username = os.environ.get("username")
+        if not username:
+            return {
+                "username": None,
+                "best_score": None,
+                "rank": None,
+                "team_name": None,
+                "is_signed_in": False
+            }
+        
+        # Try to connect to playground
+        playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+        playground = Competition(playground_id)
+        leaderboard_df = playground.get_leaderboard()
+        
+        if leaderboard_df is None or leaderboard_df.empty:
+            return {
+                "username": username,
+                "best_score": None,
+                "rank": None,
+                "team_name": os.environ.get("TEAM_NAME"),
+                "is_signed_in": True
+            }
+        
+        # Get user's best score and rank
+        best_score = None
+        rank = None
+        team_name = os.environ.get("TEAM_NAME")
+        
+        if "accuracy" in leaderboard_df.columns and "username" in leaderboard_df.columns:
+            # Get best score
+            user_submissions = leaderboard_df[leaderboard_df["username"] == username]
+            if not user_submissions.empty:
+                best_score = user_submissions["accuracy"].max()
+                
+                # Get team name from most recent submission
+                if "Team" in user_submissions.columns:
+                    if "timestamp" in user_submissions.columns:
+                        try:
+                            user_submissions = user_submissions.copy()
+                            user_submissions["timestamp"] = pd.to_datetime(user_submissions["timestamp"], errors='coerce')
+                            user_submissions = user_submissions.sort_values("timestamp", ascending=False)
+                        except:
+                            pass
+                    team_name = user_submissions.iloc[0]["Team"]
+            
+            # Calculate rank
+            user_bests = leaderboard_df.groupby("username")["accuracy"].max()
+            individual_summary_df = user_bests.reset_index()
+            individual_summary_df.columns = ["Engineer", "Best_Score"]
+            individual_summary_df = individual_summary_df.sort_values("Best_Score", ascending=False).reset_index(drop=True)
+            individual_summary_df.index = individual_summary_df.index + 1
+            
+            my_rank_row = individual_summary_df[individual_summary_df["Engineer"] == username]
+            if not my_rank_row.empty:
+                rank = my_rank_row.index[0]
+        
+        return {
+            "username": username,
+            "best_score": best_score,
+            "rank": rank,
+            "team_name": team_name,
+            "is_signed_in": True
+        }
+        
+    except Exception as e:
+        print(f"Error fetching user stats: {e}")
+        return {
+            "username": os.environ.get("username"),
+            "best_score": None,
+            "rank": None,
+            "team_name": os.environ.get("TEAM_NAME"),
+            "is_signed_in": bool(os.environ.get("username"))
+        }
+
+
 def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """Create the Ethical Revelation Gradio Blocks app (not launched yet)."""
     try:
@@ -119,9 +213,19 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
         
         # Step 1: Celebration - High Performance Model
         with gr.Column(visible=True, elem_id="step-1") as step_1:
+            # Get user stats
+            user_stats = _get_user_stats_from_leaderboard()
+            
             gr.Markdown("<h2 style='text-align:center;'>🎉 Congratulations, Engineer!</h2>")
-            gr.HTML(
-                """
+            
+            # Build personalized content based on user stats
+            if user_stats["is_signed_in"] and user_stats["best_score"] is not None:
+                # Show actual user stats
+                best_score_pct = f"{(user_stats['best_score'] * 100):.1f}%"
+                rank_text = f"#{user_stats['rank']}" if user_stats['rank'] else "N/A"
+                team_text = user_stats['team_name'] if user_stats['team_name'] else "N/A"
+                
+                celebration_html = f"""
                 <div class='celebration-box'>
                     <div style='text-align:center; padding:20px;'>
                         <h2 style='font-size: 2.5rem; margin:0; color:#92400e;'>
@@ -130,10 +234,24 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
                         <p style='font-size: 1.5rem; margin-top:20px; color:#78350f;'>
                             You've built a high-performing AI model!
                         </p>
-                        <div style='background:white; padding:24px; border-radius:12px; margin:24px auto; max-width:500px;'>
-                            <p style='font-size:1.2rem; margin:0; color:#374151;'>
-                                Your model achieved impressive accuracy scores.<br>
-                                You competed, improved, and climbed the leaderboard.
+                        <div style='background:white; padding:24px; border-radius:12px; margin:24px auto; max-width:600px;'>
+                            <h3 style='margin-top:0; color:#374151;'>Your Achievement Summary</h3>
+                            <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;'>
+                                <div style='text-align:center; padding:12px; background:#f0fdf4; border-radius:8px;'>
+                                    <p style='margin:0; font-size:0.9rem; color:#6b7280;'>Best Accuracy</p>
+                                    <p style='margin:4px 0 0 0; font-size:2rem; font-weight:700; color:#16a34a;'>{best_score_pct}</p>
+                                </div>
+                                <div style='text-align:center; padding:12px; background:#eff6ff; border-radius:8px;'>
+                                    <p style='margin:0; font-size:0.9rem; color:#6b7280;'>Your Rank</p>
+                                    <p style='margin:4px 0 0 0; font-size:2rem; font-weight:700; color:#2563eb;'>{rank_text}</p>
+                                </div>
+                            </div>
+                            <div style='text-align:center; padding:12px; background:#fef3c7; border-radius:8px; margin-top:16px;'>
+                                <p style='margin:0; font-size:0.9rem; color:#6b7280;'>Your Team</p>
+                                <p style='margin:4px 0 0 0; font-size:1.3rem; font-weight:600; color:#92400e;'>🛡️ {team_text}</p>
+                            </div>
+                            <p style='font-size:1.1rem; margin-top:20px; color:#374151;'>
+                                You competed, improved, and climbed the leaderboard!
                             </p>
                         </div>
                         <p style='font-size: 1.3rem; margin-top:24px; color:#78350f; font-weight:600;'>
@@ -142,7 +260,54 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
                     </div>
                 </div>
                 """
-            )
+            elif user_stats["is_signed_in"]:
+                # Signed in but no submissions yet
+                celebration_html = """
+                <div class='celebration-box'>
+                    <div style='text-align:center; padding:20px;'>
+                        <h2 style='font-size: 2.5rem; margin:0; color:#92400e;'>
+                            🏆 Ready to Deploy! 🏆
+                        </h2>
+                        <p style='font-size: 1.5rem; margin-top:20px; color:#78350f;'>
+                            You've learned about building AI models!
+                        </p>
+                        <div style='background:white; padding:24px; border-radius:12px; margin:24px auto; max-width:500px;'>
+                            <p style='font-size:1.2rem; margin:0; color:#374151;'>
+                                You've gone through the model-building process.<br>
+                                Now let's explore what happens when we deploy AI to the real world.
+                            </p>
+                        </div>
+                        <p style='font-size: 1.3rem; margin-top:24px; color:#78350f; font-weight:600;'>
+                            It's time to share your creation with the world!
+                        </p>
+                    </div>
+                </div>
+                """
+            else:
+                # Not signed in - show prompt
+                celebration_html = """
+                <div style='background:#fef3c7; padding:32px; border-radius:16px; border:3px solid #f59e0b; text-align:center;'>
+                    <h2 style='font-size: 2rem; margin:0; color:#92400e;'>
+                        📊 Sign In to See Your Stats
+                    </h2>
+                    <p style='font-size: 1.2rem; margin-top:20px; color:#78350f; line-height:1.6;'>
+                        To view your personalized achievement summary, please sign in through the 
+                        <strong>Model Building Game</strong> activity above.
+                    </p>
+                    <div style='background:white; padding:24px; border-radius:12px; margin:24px auto; max-width:500px;'>
+                        <p style='font-size:1rem; margin:0; color:#374151; line-height:1.6;'>
+                            If you've completed the Model Building Game and haven't signed in yet, 
+                            scroll up to that section and click the sign-in button to authenticate. 
+                            Then return here to see your actual scores and rankings!
+                        </p>
+                    </div>
+                    <p style='font-size: 1.1rem; margin-top:24px; color:#78350f;'>
+                        You can still continue through this lesson without signing in.
+                    </p>
+                </div>
+                """
+            
+            gr.HTML(celebration_html)
             
             gr.HTML("<div style='margin:32px 0;'></div>")
             

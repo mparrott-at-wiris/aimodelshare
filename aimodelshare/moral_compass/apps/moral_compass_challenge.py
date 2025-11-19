@@ -23,6 +23,121 @@ TEAM_NAMES = [
 ]
 
 
+def _get_user_stats_from_leaderboard():
+    """
+    Fetch the user's statistics from the model building game leaderboard.
+    
+    Returns:
+        dict: Dictionary containing:
+            - username: str or None
+            - best_score: float or None
+            - rank: int or None
+            - team_name: str or None
+            - team_rank: int or None
+            - is_signed_in: bool
+    """
+    try:
+        # Import here to avoid circular dependencies
+        from aimodelshare.playground import Competition
+        import pandas as pd
+        
+        # Check if user is signed in
+        username = os.environ.get("username")
+        if not username:
+            return {
+                "username": None,
+                "best_score": None,
+                "rank": None,
+                "team_name": None,
+                "team_rank": None,
+                "is_signed_in": False
+            }
+        
+        # Try to connect to playground
+        playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+        playground = Competition(playground_id)
+        leaderboard_df = playground.get_leaderboard()
+        
+        if leaderboard_df is None or leaderboard_df.empty:
+            return {
+                "username": username,
+                "best_score": None,
+                "rank": None,
+                "team_name": os.environ.get("TEAM_NAME"),
+                "team_rank": None,
+                "is_signed_in": True
+            }
+        
+        # Get user's best score and rank
+        best_score = None
+        rank = None
+        team_name = os.environ.get("TEAM_NAME")
+        team_rank = None
+        
+        if "accuracy" in leaderboard_df.columns and "username" in leaderboard_df.columns:
+            # Get best score
+            user_submissions = leaderboard_df[leaderboard_df["username"] == username]
+            if not user_submissions.empty:
+                best_score = user_submissions["accuracy"].max()
+                
+                # Get team name from most recent submission
+                if "Team" in user_submissions.columns:
+                    if "timestamp" in user_submissions.columns:
+                        try:
+                            user_submissions = user_submissions.copy()
+                            user_submissions["timestamp"] = pd.to_datetime(user_submissions["timestamp"], errors='coerce')
+                            user_submissions = user_submissions.sort_values("timestamp", ascending=False)
+                        except:
+                            pass
+                    team_name = user_submissions.iloc[0]["Team"]
+            
+            # Calculate individual rank
+            user_bests = leaderboard_df.groupby("username")["accuracy"].max()
+            individual_summary_df = user_bests.reset_index()
+            individual_summary_df.columns = ["Engineer", "Best_Score"]
+            individual_summary_df = individual_summary_df.sort_values("Best_Score", ascending=False).reset_index(drop=True)
+            individual_summary_df.index = individual_summary_df.index + 1
+            
+            my_rank_row = individual_summary_df[individual_summary_df["Engineer"] == username]
+            if not my_rank_row.empty:
+                rank = my_rank_row.index[0]
+            
+            # Calculate team rank
+            if "Team" in leaderboard_df.columns and team_name:
+                team_summary_df = (
+                    leaderboard_df.groupby("Team")["accuracy"]
+                    .agg(Best_Score="max")
+                    .reset_index()
+                    .sort_values("Best_Score", ascending=False)
+                    .reset_index(drop=True)
+                )
+                team_summary_df.index = team_summary_df.index + 1
+                
+                my_team_row = team_summary_df[team_summary_df["Team"] == team_name]
+                if not my_team_row.empty:
+                    team_rank = my_team_row.index[0]
+        
+        return {
+            "username": username,
+            "best_score": best_score,
+            "rank": rank,
+            "team_name": team_name,
+            "team_rank": team_rank,
+            "is_signed_in": True
+        }
+        
+    except Exception as e:
+        print(f"Error fetching user stats: {e}")
+        return {
+            "username": os.environ.get("username"),
+            "best_score": None,
+            "rank": None,
+            "team_name": os.environ.get("TEAM_NAME"),
+            "team_rank": None,
+            "is_signed_in": bool(os.environ.get("username"))
+        }
+
+
 def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """Create the Moral Compass Challenge Gradio Blocks app (not launched yet)."""
     try:
@@ -265,9 +380,20 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
         
         # Step 1: A Higher Standard
         with gr.Column(visible=True, elem_id="step-1") as step_1:
+            # Get user stats
+            user_stats = _get_user_stats_from_leaderboard()
+            
             gr.Markdown("<h2 style='text-align:center;'>📊 Your Current Standing</h2>")
-            gr.HTML(
-                """
+            
+            # Build personalized content based on user stats
+            if user_stats["is_signed_in"] and user_stats["best_score"] is not None:
+                # Show actual user stats
+                best_score_pct = f"{(user_stats['best_score'] * 100):.1f}%"
+                rank_text = f"#{user_stats['rank']}" if user_stats['rank'] else "N/A"
+                team_text = user_stats['team_name'] if user_stats['team_name'] else "N/A"
+                team_rank_text = f"#{user_stats['team_rank']}" if user_stats['team_rank'] else "N/A"
+                
+                standing_html = f"""
                 <div style='font-size: 20px; background:#e0f2fe; padding:28px; border-radius:16px; border: 3px solid #0369a1;'>
                     <h3 style='color:#0c4a6e; margin-top:0; text-align:center;'>
                         You've Built an Accurate Model
@@ -278,7 +404,24 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
                             Through experimentation and iteration, you've achieved impressive results:
                         </p>
                         
-                        <ul style='list-style:none; padding:0; text-align:left; max-width:600px; margin:20px auto; font-size:1.1rem;'>
+                        <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px auto; max-width: 600px;'>
+                            <div style='text-align:center; padding:16px; background:#f0fdf4; border-radius:8px; border:2px solid #16a34a;'>
+                                <p style='margin:0; font-size:0.9rem; color:#6b7280;'>Your Best Accuracy</p>
+                                <p style='margin:8px 0 0 0; font-size:2.5rem; font-weight:800; color:#16a34a;'>{best_score_pct}</p>
+                            </div>
+                            <div style='text-align:center; padding:16px; background:#eff6ff; border-radius:8px; border:2px solid #2563eb;'>
+                                <p style='margin:0; font-size:0.9rem; color:#6b7280;'>Your Individual Rank</p>
+                                <p style='margin:8px 0 0 0; font-size:2.5rem; font-weight:800; color:#2563eb;'>{rank_text}</p>
+                            </div>
+                        </div>
+                        
+                        <div style='text-align:center; padding:16px; background:#fef3c7; border-radius:8px; margin-top:16px; border:2px solid #f59e0b;'>
+                            <p style='margin:0; font-size:0.9rem; color:#6b7280;'>Your Team</p>
+                            <p style='margin:8px 0; font-size:1.5rem; font-weight:700; color:#92400e;'>🛡️ {team_text}</p>
+                            <p style='margin:0; font-size:1rem; color:#78350f;'>Team Rank: {team_rank_text}</p>
+                        </div>
+                        
+                        <ul style='list-style:none; padding:0; text-align:left; max-width:600px; margin:24px auto 0 auto; font-size:1.1rem;'>
                             <li style='padding:8px 0;'>✅ Mastered the model-building process</li>
                             <li style='padding:8px 0;'>✅ Climbed the accuracy leaderboard</li>
                             <li style='padding:8px 0;'>✅ Competed with fellow engineers</li>
@@ -301,15 +444,90 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
                     </div>
                 </div>
                 """
-            )
+            elif user_stats["is_signed_in"]:
+                # Signed in but no submissions yet
+                standing_html = """
+                <div style='font-size: 20px; background:#e0f2fe; padding:28px; border-radius:16px; border: 3px solid #0369a1;'>
+                    <h3 style='color:#0c4a6e; margin-top:0; text-align:center;'>
+                        Ready to Begin Your Journey
+                    </h3>
+                    
+                    <div style='background:white; padding:24px; border-radius:12px; margin:24px 0;'>
+                        <p style='line-height:1.8; text-align:center;'>
+                            You've learned about the model-building process and are ready to take on the challenge:
+                        </p>
+                        
+                        <ul style='list-style:none; padding:0; text-align:left; max-width:600px; margin:20px auto; font-size:1.1rem;'>
+                            <li style='padding:8px 0;'>✅ Understood the AI model-building process</li>
+                            <li style='padding:8px 0;'>✅ Learned about accuracy and performance</li>
+                            <li style='padding:8px 0;'>✅ Discovered real-world bias in AI systems</li>
+                        </ul>
+                        
+                        <p style='text-align:center; font-size:1.2rem; font-weight:600; color:#2563eb; margin-top:24px;'>
+                            🎯 Ready to learn about ethical AI!
+                        </p>
+                    </div>
+                    
+                    <div style='background:#fef9c3; padding:20px; border-radius:8px; border-left:6px solid #f59e0b; margin-top:24px;'>
+                        <p style='font-size:1.15rem; font-weight:600; margin:0; color:#92400e;'>
+                            Now you know the full story...
+                        </p>
+                        <p style='margin:12px 0 0 0; line-height:1.6;'>
+                            High accuracy isn't enough. Real-world AI systems must also be 
+                            <strong>fair, equitable, and minimize harm</strong> across all groups of people.
+                        </p>
+                    </div>
+                </div>
+                """
+            else:
+                # Not signed in - show prompt
+                standing_html = """
+                <div style='background:#fef3c7; padding:32px; border-radius:16px; border:3px solid #f59e0b; text-align:center;'>
+                    <h2 style='font-size: 2rem; margin:0; color:#92400e;'>
+                        📊 Sign In to See Your Stats
+                    </h2>
+                    <p style='font-size: 1.2rem; margin-top:20px; color:#78350f; line-height:1.6;'>
+                        To view your personalized standing with actual scores and rankings, please sign in through the 
+                        <strong>Model Building Game</strong> activity above.
+                    </p>
+                    <div style='background:white; padding:24px; border-radius:12px; margin:24px auto; max-width:500px;'>
+                        <p style='font-size:1rem; margin:0; color:#374151; line-height:1.6;'>
+                            If you've completed the Model Building Game and haven't signed in yet, 
+                            scroll up to that section and click the sign-in button to authenticate. 
+                            Then return here to see your actual scores, rankings, and team information!
+                        </p>
+                    </div>
+                    <div style='background:#e0f2fe; padding:20px; border-radius:8px; margin-top:24px;'>
+                        <p style='font-size:1rem; font-weight:600; margin:0; color:#0c4a6e;'>
+                            💡 You can still continue through this lesson without signing in.
+                        </p>
+                        <p style='margin:12px 0 0 0; line-height:1.6; color:#1e40af;'>
+                            The concepts apply whether you've submitted models or not!
+                        </p>
+                    </div>
+                </div>
+                """
+            
+            gr.HTML(standing_html)
             
             step_1_next = gr.Button("Introduce the New Standard ▶️", variant="primary", size="lg")
         
         # Step 2: The Dramatic Reset
         with gr.Column(visible=False, elem_id="step-2") as step_2:
+            # Calculate gauge value based on user stats
+            if user_stats["is_signed_in"] and user_stats["best_score"] is not None:
+                gauge_value = int(user_stats['best_score'] * 100)
+                gauge_fill_percent = f"{gauge_value}%"
+                gauge_display = str(gauge_value)
+            else:
+                # Default values for unsigned users
+                gauge_value = 75
+                gauge_fill_percent = "75%"
+                gauge_display = "75"
+            
             gr.Markdown("<h2 style='text-align:center;'>⚠️ The Paradigm Shift</h2>")
-            gr.HTML(
-                """
+            
+            step_2_html = f"""
                 <div style='font-size: 20px; background:#fef2f2; padding:28px; border-radius:16px; border: 3px solid #dc2626;'>
                     <h3 style='color:#991b1b; margin-top:0; text-align:center; font-size:1.8rem;'>
                         We Need a Higher Standard
@@ -326,9 +544,9 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
                         </h4>
                         
                         <div class='score-gauge-container'>
-                            <div class='score-gauge' style='--fill-percent: 75%;'>
+                            <div class='score-gauge' style='--fill-percent: {gauge_fill_percent};'>
                                 <div class='score-gauge-inner'>
-                                    <div class='score-gauge-value'>75</div>
+                                    <div class='score-gauge-value'>{gauge_display}</div>
                                     <div class='score-gauge-label'>Accuracy Score</div>
                                 </div>
                             </div>
@@ -349,7 +567,8 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
                     </div>
                 </div>
                 """
-            )
+            
+            gr.HTML(step_2_html)
             
             with gr.Row():
                 step_2_back = gr.Button("◀️ Back", size="lg")
@@ -564,8 +783,25 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
         # Step 6: The Challenge Ahead
         with gr.Column(visible=False, elem_id="step-6") as step_6:
             gr.Markdown("<h2 style='text-align:center;'>🎯 The Challenge Ahead</h2>")
-            gr.HTML(
+            
+            # Build personalized message based on user stats
+            if user_stats["is_signed_in"] and user_stats["rank"]:
+                rank_text = f"#{user_stats['rank']}"
+                position_message = f"""
+                            <p style='font-size:1.2rem; line-height:1.8; text-align:left;'>
+                                You were previously <strong>ranked {rank_text}</strong> on the accuracy leaderboard.
+                                But now, with the introduction of the Moral Compass Score, your position has changed:
+                            </p>
                 """
+            else:
+                position_message = """
+                            <p style='font-size:1.2rem; line-height:1.8; text-align:left;'>
+                                With the introduction of the Moral Compass Score, everyone starts fresh.
+                                Your previous work on accuracy is valuable, but now we need to add ethics:
+                            </p>
+                """
+            
+            step_6_html = f"""
                 <div style='text-align:center;'>
                     <div style='font-size: 20px; background:#e0f2fe; padding:36px; border-radius:16px; 
                                 border: 3px solid #0369a1; max-width:900px; margin:auto;'>
@@ -574,14 +810,11 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
                         </h3>
                         
                         <div style='background:white; padding:28px; border-radius:12px; margin:24px 0;'>
-                            <p style='font-size:1.2rem; line-height:1.8; text-align:left;'>
-                                You were previously <strong>ranked high</strong> on the accuracy leaderboard.
-                                But now, with the introduction of the Moral Compass Score, your position has changed:
-                            </p>
+                            {position_message}
                             
                             <div style='background:#fef2f2; padding:24px; border-radius:8px; margin:24px 0; border:2px solid #dc2626;'>
                                 <p style='font-size:1.5rem; font-weight:700; margin:0; color:#991b1b;'>
-                                    Current Rank: Tied for Last Place
+                                    Current Moral Compass Rank: Starting Fresh
                                 </p>
                                 <p style='font-size:1.1rem; margin:12px 0 0 0; color:#7f1d1d;'>
                                     (Because your Moral Compass Score = 0)
@@ -625,7 +858,8 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
                     </div>
                 </div>
                 """
-            )
+            
+            gr.HTML(step_6_html)
             
             back_to_teams_btn = gr.Button("◀️ Review Team Information", size="lg")
         
