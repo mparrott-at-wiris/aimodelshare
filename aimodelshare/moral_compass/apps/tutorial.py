@@ -53,6 +53,22 @@ def create_tutorial_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     predict_exam = _build_synthetic_model()
 
     css = """
+    /* Global forced light background overrides */
+    html, body, .gradio-container {
+      background:#ffffff !important;
+      color:#1f2937;
+    }
+    body.dark, html.dark, body[class*="dark"], html[class*="dark"] {
+      background:#ffffff !important;
+      color:#1f2937 !important;
+    }
+    :root { color-scheme: light; }
+    .gradio-container, .gradio-container * {
+      --color-background-primary: #ffffff !important;
+      --color-background-secondary: #ffffff !important;
+      --color-background-tertiary: #ffffff !important;
+    }
+    
     #prediction_output_textbox textarea {
         font-size: 2.5rem !important;
         font-weight: bold !important;

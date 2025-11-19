@@ -1678,6 +1678,22 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
     start_background_init()
     
     css = """
+    /* Global forced light background overrides */
+    html, body, .gradio-container {
+      background:#ffffff !important;
+      color:#1f2937;
+    }
+    body.dark, html.dark, body[class*="dark"], html[class*="dark"] {
+      background:#ffffff !important;
+      color:#1f2937 !important;
+    }
+    :root { color-scheme: light; }
+    .gradio-container, .gradio-container * {
+      --color-background-primary: #ffffff !important;
+      --color-background-secondary: #ffffff !important;
+      --color-background-tertiary: #ffffff !important;
+    }
+    
     .panel-box {
         background:#fef3c7; padding:20px; border-radius:16px;
         border:2px solid #f59e0b; margin-bottom:18px; color: #92400e;

@@ -80,6 +80,22 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     predict_outcome = _create_simple_predictor()
     
     css = """
+    /* Global forced light background overrides */
+    html, body, .gradio-container {
+      background:#ffffff !important;
+      color:#1f2937;
+    }
+    body.dark, html.dark, body[class*="dark"], html[class*="dark"] {
+      background:#ffffff !important;
+      color:#1f2937 !important;
+    }
+    :root { color-scheme: light; }
+    .gradio-container, .gradio-container * {
+      --color-background-primary: #ffffff !important;
+      --color-background-secondary: #ffffff !important;
+      --color-background-tertiary: #ffffff !important;
+    }
+    
     .large-text {
         font-size: 20px !important;
     }
