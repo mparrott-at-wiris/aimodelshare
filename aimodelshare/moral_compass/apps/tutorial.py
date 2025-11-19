@@ -56,17 +56,21 @@ def create_tutorial_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     /* Global forced light background overrides */
     html, body, .gradio-container {
       background:#ffffff !important;
-      color:#1f2937;
+      color:#1f2937 !important;
     }
     body.dark, html.dark, body[class*="dark"], html[class*="dark"] {
       background:#ffffff !important;
       color:#1f2937 !important;
     }
-    :root { color-scheme: light; }
+    body.dark *, html.dark *, body[class*="dark"] *, html[class*="dark"] * {
+      color-scheme: light !important;
+    }
+    :root { color-scheme: light !important; }
     .gradio-container, .gradio-container * {
       --color-background-primary: #ffffff !important;
       --color-background-secondary: #ffffff !important;
       --color-background-tertiary: #ffffff !important;
+      color-scheme: light !important;
     }
     
     #prediction_output_textbox textarea {
