@@ -138,6 +138,145 @@ def _get_user_stats_from_leaderboard():
         }
 
 
+def _perform_inline_login(username_input, password_input):
+    """
+    Perform inline authentication and set credentials in environment.
+    
+    Returns tuple of (success_bool, message_html, user_stats_dict)
+    """
+    def _normalize_team_name(team_name):
+        """Normalize team name to match standard format."""
+        if not team_name or not str(team_name).strip():
+            return random.choice(TEAM_NAMES)
+        team_str = str(team_name).strip()
+        for standard_name in TEAM_NAMES:
+            if team_str.lower() == standard_name.lower():
+                return standard_name
+        return team_str
+    
+    def _get_or_assign_team(username):
+        """Get existing team or assign new one."""
+        try:
+            from aimodelshare.playground import Competition
+            import pandas as pd
+            
+            playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+            playground = Competition(playground_id)
+            leaderboard_df = playground.get_leaderboard()
+            
+            if leaderboard_df is not None and not leaderboard_df.empty and "Team" in leaderboard_df.columns:
+                user_submissions = leaderboard_df[leaderboard_df["username"] == username]
+                
+                if not user_submissions.empty:
+                    if "timestamp" in user_submissions.columns:
+                        try:
+                            user_submissions = user_submissions.copy()
+                            user_submissions["timestamp"] = pd.to_datetime(user_submissions["timestamp"], errors='coerce')
+                            user_submissions = user_submissions.sort_values("timestamp", ascending=False)
+                        except:
+                            pass
+                    
+                    existing_team = user_submissions.iloc[0]["Team"]
+                    if pd.notna(existing_team) and existing_team and str(existing_team).strip():
+                        return _normalize_team_name(existing_team), False
+            
+            new_team = _normalize_team_name(random.choice(TEAM_NAMES))
+            return new_team, True
+            
+        except Exception:
+            new_team = _normalize_team_name(random.choice(TEAM_NAMES))
+            return new_team, True
+    
+    # Validate inputs
+    if not username_input or not username_input.strip():
+        error_html = """
+        <div style='background:#fef2f2; padding:16px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
+            <p style='margin:0; color:#991b1b; font-weight:600;'>⚠️ Username is required</p>
+        </div>
+        """
+        return False, error_html, _get_user_stats_from_leaderboard()
+    
+    if not password_input or not password_input.strip():
+        error_html = """
+        <div style='background:#fef2f2; padding:16px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
+            <p style='margin:0; color:#991b1b; font-weight:600;'>⚠️ Password is required</p>
+        </div>
+        """
+        return False, error_html, _get_user_stats_from_leaderboard()
+    
+    # Set credentials in environment
+    os.environ["username"] = username_input.strip()
+    os.environ["password"] = password_input.strip()
+    
+    # Attempt to get AWS token
+    try:
+        from aimodelshare.aws import get_aws_token
+        token = get_aws_token()
+        os.environ["AWS_TOKEN"] = token
+        
+        # Get or assign team for this user
+        team_name, is_new_team = _get_or_assign_team(username_input.strip())
+        os.environ["TEAM_NAME"] = team_name
+        
+        # Get updated stats
+        user_stats = _get_user_stats_from_leaderboard()
+        
+        # Check if user has submitted any models
+        if user_stats["best_score"] is None:
+            # User signed in but hasn't submitted models yet
+            warning_html = f"""
+            <div style='background:#fef9c3; padding:16px; border-radius:8px; border-left:4px solid #f59e0b; margin-top:12px;'>
+                <p style='margin:0; color:#92400e; font-weight:600; font-size:1.1rem;'>✓ Signed in successfully!</p>
+                <p style='margin:8px 0; color:#78350f; font-size:0.95rem;'>
+                    Team: <b>{team_name}</b>
+                </p>
+                <p style='margin:8px 0 0 0; color:#92400e; font-weight:600; font-size:0.95rem;'>
+                    ⚠️ You haven't submitted any models yet!
+                </p>
+                <p style='margin:8px 0 0 0; color:#78350f; font-size:0.95rem;'>
+                    Please go back to the <strong>Model Building Game</strong> activity and submit at least one model 
+                    to see your personalized stats here.
+                </p>
+            </div>
+            """
+            return True, warning_html, user_stats
+        
+        # Success with submissions
+        if is_new_team:
+            team_message = f"You have been assigned to: <b>{team_name}</b> 🎉"
+        else:
+            team_message = f"Welcome back to team: <b>{team_name}</b> ✅"
+        
+        success_html = f"""
+        <div style='background:#f0fdf4; padding:16px; border-radius:8px; border-left:4px solid #16a34a; margin-top:12px;'>
+            <p style='margin:0; color:#15803d; font-weight:600; font-size:1.1rem;'>✓ Signed in successfully!</p>
+            <p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>
+                {team_message}
+            </p>
+            <p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>
+                Your personalized stats are now displayed above!
+            </p>
+        </div>
+        """
+        return True, success_html, user_stats
+        
+    except Exception as e:
+        # Authentication failed
+        error_html = f"""
+        <div style='background:#fef2f2; padding:16px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
+            <p style='margin:0; color:#991b1b; font-weight:600; font-size:1.1rem;'>⚠️ Authentication failed</p>
+            <p style='margin:8px 0; color:#7f1d1d; font-size:0.95rem;'>
+                Could not verify your credentials. Please check your username and password.
+            </p>
+            <p style='margin:8px 0 0 0; color:#7f1d1d; font-size:0.95rem;'>
+                <strong>New user?</strong> Create a free account at 
+                <a href='https://www.modelshare.ai/login' target='_blank' style='color:#dc2626; text-decoration:underline;'>modelshare.ai/login</a>
+            </p>
+        </div>
+        """
+        return False, error_html, _get_user_stats_from_leaderboard()
+
+
 def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """Create the Moral Compass Challenge Gradio Blocks app (not launched yet)."""
     try:
@@ -480,35 +619,159 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
                 </div>
                 """
             else:
-                # Not signed in - show prompt
+                # Not signed in - show prompt with login form
                 standing_html = """
                 <div style='background:#fef3c7; padding:32px; border-radius:16px; border:3px solid #f59e0b; text-align:center;'>
                     <h2 style='font-size: 2rem; margin:0; color:#92400e;'>
                         📊 Sign In to See Your Stats
                     </h2>
                     <p style='font-size: 1.2rem; margin-top:20px; color:#78350f; line-height:1.6;'>
-                        To view your personalized standing with actual scores and rankings, please sign in through the 
-                        <strong>Model Building Game</strong> activity above.
+                        To view your personalized standing with actual scores and rankings, 
+                        please sign in below.
                     </p>
-                    <div style='background:white; padding:24px; border-radius:12px; margin:24px auto; max-width:500px;'>
-                        <p style='font-size:1rem; margin:0; color:#374151; line-height:1.6;'>
-                            If you've completed the Model Building Game and haven't signed in yet, 
-                            scroll up to that section and click the sign-in button to authenticate. 
-                            Then return here to see your actual scores, rankings, and team information!
-                        </p>
-                    </div>
-                    <div style='background:#e0f2fe; padding:20px; border-radius:8px; margin-top:24px;'>
-                        <p style='font-size:1rem; font-weight:600; margin:0; color:#0c4a6e;'>
-                            💡 You can still continue through this lesson without signing in.
-                        </p>
-                        <p style='margin:12px 0 0 0; line-height:1.6; color:#1e40af;'>
-                            The concepts apply whether you've submitted models or not!
-                        </p>
-                    </div>
+                    <p style='font-size: 1.1rem; margin-top:16px; color:#78350f;'>
+                        You can still continue through this lesson without signing in.
+                    </p>
                 </div>
                 """
             
-            gr.HTML(standing_html)
+            stats_display = gr.HTML(standing_html)
+            
+            # Login form (only shown if not signed in)
+            with gr.Column(visible=not user_stats["is_signed_in"]) as login_form:
+                gr.Markdown("### Sign In")
+                login_username = gr.Textbox(
+                    label="Username",
+                    placeholder="Enter your modelshare.ai username"
+                )
+                login_password = gr.Textbox(
+                    label="Password",
+                    type="password",
+                    placeholder="Enter your password"
+                )
+                login_submit = gr.Button("Sign In", variant="primary")
+                login_feedback = gr.HTML(value="", visible=False)
+                
+                # Handle login
+                def handle_login(username, password):
+                    success, message, new_stats = _perform_inline_login(username, password)
+                    
+                    # Rebuild standing HTML with new stats
+                    if success and new_stats["best_score"] is not None:
+                        best_score_pct = f"{(new_stats['best_score'] * 100):.1f}%"
+                        rank_text = f"#{new_stats['rank']}" if new_stats['rank'] else "N/A"
+                        team_text = new_stats['team_name'] if new_stats['team_name'] else "N/A"
+                        team_rank_text = f"#{new_stats['team_rank']}" if new_stats['team_rank'] else "N/A"
+                        
+                        new_standing_html = f"""
+                        <div style='font-size: 20px; background:#e0f2fe; padding:28px; border-radius:16px; border: 3px solid #0369a1;'>
+                            <h3 style='color:#0c4a6e; margin-top:0; text-align:center;'>
+                                You've Built an Accurate Model
+                            </h3>
+                            
+                            <div style='background:white; padding:24px; border-radius:12px; margin:24px 0;'>
+                                <p style='line-height:1.8; text-align:center;'>
+                                    Through experimentation and iteration, you've achieved impressive results:
+                                </p>
+                                
+                                <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px auto; max-width: 600px;'>
+                                    <div style='text-align:center; padding:16px; background:#f0fdf4; border-radius:8px; border:2px solid #16a34a;'>
+                                        <p style='margin:0; font-size:0.9rem; color:#6b7280;'>Your Best Accuracy</p>
+                                        <p style='margin:8px 0 0 0; font-size:2.5rem; font-weight:800; color:#16a34a;'>{best_score_pct}</p>
+                                    </div>
+                                    <div style='text-align:center; padding:16px; background:#eff6ff; border-radius:8px; border:2px solid #2563eb;'>
+                                        <p style='margin:0; font-size:0.9rem; color:#6b7280;'>Your Individual Rank</p>
+                                        <p style='margin:8px 0 0 0; font-size:2.5rem; font-weight:800; color:#2563eb;'>{rank_text}</p>
+                                    </div>
+                                </div>
+                                
+                                <div style='text-align:center; padding:16px; background:#fef3c7; border-radius:8px; margin-top:16px; border:2px solid #f59e0b;'>
+                                    <p style='margin:0; font-size:0.9rem; color:#6b7280;'>Your Team</p>
+                                    <p style='margin:8px 0; font-size:1.5rem; font-weight:700; color:#92400e;'>🛡️ {team_text}</p>
+                                    <p style='margin:0; font-size:1rem; color:#78350f;'>Team Rank: {team_rank_text}</p>
+                                </div>
+                                
+                                <ul style='list-style:none; padding:0; text-align:left; max-width:600px; margin:24px auto 0 auto; font-size:1.1rem;'>
+                                    <li style='padding:8px 0;'>✅ Mastered the model-building process</li>
+                                    <li style='padding:8px 0;'>✅ Climbed the accuracy leaderboard</li>
+                                    <li style='padding:8px 0;'>✅ Competed with fellow engineers</li>
+                                    <li style='padding:8px 0;'>✅ Earned promotions and unlocked tools</li>
+                                </ul>
+                                
+                                <p style='text-align:center; font-size:1.2rem; font-weight:600; color:#16a34a; margin-top:24px;'>
+                                    🏆 Congratulations on your technical achievement!
+                                </p>
+                            </div>
+                            
+                            <div style='background:#fef9c3; padding:20px; border-radius:8px; border-left:6px solid #f59e0b; margin-top:24px;'>
+                                <p style='font-size:1.15rem; font-weight:600; margin:0; color:#92400e;'>
+                                    But now you know the full story...
+                                </p>
+                                <p style='margin:12px 0 0 0; line-height:1.6;'>
+                                    High accuracy isn't enough. Real-world AI systems must also be 
+                                    <strong>fair, equitable, and minimize harm</strong> across all groups of people.
+                                </p>
+                            </div>
+                        </div>
+                        """
+                        return {
+                            stats_display: gr.update(value=new_standing_html),
+                            login_form: gr.update(visible=False),
+                            login_feedback: gr.update(value=message, visible=True)
+                        }
+                    elif success:
+                        # Signed in but no submissions
+                        new_standing_html = """
+                        <div style='font-size: 20px; background:#e0f2fe; padding:28px; border-radius:16px; border: 3px solid #0369a1;'>
+                            <h3 style='color:#0c4a6e; margin-top:0; text-align:center;'>
+                                Ready to Begin Your Journey
+                            </h3>
+                            
+                            <div style='background:white; padding:24px; border-radius:12px; margin:24px 0;'>
+                                <p style='line-height:1.8; text-align:center;'>
+                                    You've learned about the model-building process and are ready to take on the challenge:
+                                </p>
+                                
+                                <ul style='list-style:none; padding:0; text-align:left; max-width:600px; margin:20px auto; font-size:1.1rem;'>
+                                    <li style='padding:8px 0;'>✅ Understood the AI model-building process</li>
+                                    <li style='padding:8px 0;'>✅ Learned about accuracy and performance</li>
+                                    <li style='padding:8px 0;'>✅ Discovered real-world bias in AI systems</li>
+                                </ul>
+                                
+                                <p style='text-align:center; font-size:1.2rem; font-weight:600; color:#2563eb; margin-top:24px;'>
+                                    🎯 Ready to learn about ethical AI!
+                                </p>
+                            </div>
+                            
+                            <div style='background:#fef9c3; padding:20px; border-radius:8px; border-left:6px solid #f59e0b; margin-top:24px;'>
+                                <p style='font-size:1.15rem; font-weight:600; margin:0; color:#92400e;'>
+                                    Now you know the full story...
+                                </p>
+                                <p style='margin:12px 0 0 0; line-height:1.6;'>
+                                    High accuracy isn't enough. Real-world AI systems must also be 
+                                    <strong>fair, equitable, and minimize harm</strong> across all groups of people.
+                                </p>
+                            </div>
+                        </div>
+                        """
+                        return {
+                            stats_display: gr.update(value=new_standing_html),
+                            login_form: gr.update(visible=False),
+                            login_feedback: gr.update(value=message, visible=True)
+                        }
+                    else:
+                        # Login failed
+                        return {
+                            stats_display: gr.update(),
+                            login_form: gr.update(visible=True),
+                            login_feedback: gr.update(value=message, visible=True)
+                        }
+                
+                login_submit.click(
+                    fn=handle_login,
+                    inputs=[login_username, login_password],
+                    outputs=[stats_display, login_form, login_feedback]
+                )
             
             step_1_next = gr.Button("Introduce the New Standard ▶️", variant="primary", size="lg")
         
