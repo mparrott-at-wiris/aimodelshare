@@ -440,7 +440,7 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
 
                 <p style='text-align:center; font-size:1.2rem; line-height:1.8;'>
                     While your model is accurate, a higher standard is needed to prevent
-                    real-world harm. To incentivize this new focus, we're introducing a new metric.
+                    real-world harm. To incentivize this new focus, we're introducing a new score.
                 </p>
 
                 <div style='background:white; padding:32px; border-radius:12px; margin:32px 0; text-align:center;'>
@@ -457,9 +457,7 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
                         </div>
                     </div>
 
-                    <p style='font-size:1.1rem; color:#6b7280; margin-top:24px;'>
-                        Your hard-earned accuracy score
-                    </p>
+
                 </div>
 
                 <div style='background:#fef3c7; padding:24px; border-radius:8px; text-align:center; border:2px solid #f59e0b;'>
@@ -765,7 +763,7 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
 
         # Step 3: The Reset Animation
         with gr.Column(visible=False, elem_id="step-3") as step_3:
-            gr.Markdown("<h2 style='text-align:center;'>🔄 The Dramatic Reset</h2>")
+            
             gr.HTML(
                 """
                 <div style='font-size: 20px; background:#f9fafb; padding:40px; border-radius:16px; border: 3px solid #6b7280;'>
@@ -788,10 +786,13 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
                                 ⚠️ Why This Reset?
                             </h4>
                             <p style='line-height:1.8; text-align:left;'>
-                                This powerful moment emphasizes the paradigm shift. Your previous success
-                                was measured by only <strong>one metric</strong>. Moving forward, you'll
-                                need to excel on <strong>two fronts</strong>: technical performance
-                                <em>and</em> ethical responsibility.
+                                We reset your score to emphasize a critical truth: your previous success
+                                was measured by only <strong>one dimension</strong> — prediction accuracy. So far, you
+                                <strong>have not demonstrated</strong> that you know how to make your AI system
+                                safe for society. You don’t yet know whether the model you built is
+                                <strong>just as biased</strong> as the harmful examples we studied in the
+                                previous activity. Moving forward, you’ll need to excel on
+                                <strong>two fronts</strong>: technical performance <em>and</em> ethical responsibility.
                             </p>
                         </div>
 
