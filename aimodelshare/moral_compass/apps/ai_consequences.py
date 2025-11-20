@@ -223,7 +223,7 @@ def create_ai_consequences_app(theme_primary_hue: str = "indigo") -> "gr.Blocks"
                 <div class='nav-spinner'></div>
                 <span id='nav-loading-text'>Loading...</span>
             </div>
-        """
+            """
         )
 
         gr.Markdown("<h1 style='text-align:center;'>⚠️ What If the AI Was Wrong?</h1>")
@@ -622,5 +622,7 @@ def launch_ai_consequences_app(
         open(os.devnull, "w")
     ):
         demo.launch(share=share, inline=True, debug=debug, height=height)
+
+
 
 
