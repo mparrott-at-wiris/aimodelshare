@@ -10,9 +10,27 @@ This app teaches:
 Structure:
 - Factory function `create_justice_equity_upgrade_app()` returns a Gradio Blocks object
 - Convenience wrapper `launch_justice_equity_upgrade_app()` launches it inline (for notebooks)
+
+Moral Compass Integration:
+- Uses ChallengeManager for progress tracking (tasks A-F)
+- Debounced sync prevents excessive API calls
+- Team aggregation via synthetic team: username
+- Force Sync button for manual refresh
 """
 import contextlib
 import os
+import logging
+
+# Import moral compass integration helpers
+from .mc_integration_helpers import (
+    get_challenge_manager,
+    sync_user_moral_state,
+    sync_team_state,
+    build_moral_leaderboard_html,
+    get_moral_compass_widget_html,
+)
+
+logger = logging.getLogger("aimodelshare.moral_compass.apps.justice_equity_upgrade")
 
 
 def _get_user_stats():
@@ -44,12 +62,63 @@ def create_justice_equity_upgrade_app(theme_primary_hue: str = "indigo") -> "gr.
             "Gradio is required for the justice & equity upgrade app. Install with `pip install gradio`."
         ) from e
 
+    # Get user stats and initialize challenge manager
+    user_stats = _get_user_stats()
+    challenge_manager = None
+    if user_stats["is_signed_in"]:
+        challenge_manager = get_challenge_manager(user_stats["username"])
+    
     # Track state
     moral_compass_points = {"value": 0}
+    server_moral_score = {"value": None}
+    is_synced = {"value": False}
     accessibility_features = []
     diversity_improvements = []
     stakeholder_priorities = []
 
+    def sync_moral_state(override=False):
+        """Sync moral state to server (debounced unless override)."""
+        if not challenge_manager:
+            return {
+                'widget_html': get_moral_compass_widget_html(
+                    local_points=moral_compass_points["value"],
+                    server_score=None,
+                    is_synced=False
+                ),
+                'status': 'Guest mode - sign in to sync'
+            }
+        
+        # Mark task E (Accessibility) as completed
+        challenge_manager.complete_task('E')
+        
+        # Sync to server
+        sync_result = sync_user_moral_state(
+            cm=challenge_manager,
+            moral_points=moral_compass_points["value"],
+            override=override
+        )
+        
+        # Update state
+        if sync_result['synced']:
+            server_moral_score["value"] = sync_result.get('server_score')
+            is_synced["value"] = True
+            
+            # Trigger team sync if user sync succeeded
+            if user_stats.get("team_name"):
+                sync_team_state(user_stats["team_name"])
+        
+        # Generate widget HTML
+        widget_html = get_moral_compass_widget_html(
+            local_points=moral_compass_points["value"],
+            server_score=server_moral_score["value"],
+            is_synced=is_synced["value"]
+        )
+        
+        return {
+            'widget_html': widget_html,
+            'status': sync_result['message']
+        }
+    
     def apply_accessibility_features(multilang, plaintext, screenreader):
         """Apply accessibility features."""
         features_added = []
@@ -68,12 +137,21 @@ def create_justice_equity_upgrade_app(theme_primary_hue: str = "indigo") -> "gr.
         
         if features_added:
             moral_compass_points["value"] += 75
+            
+            # Update ChallengeManager if available
+            if challenge_manager:
+                challenge_manager.answer_question('E', 'E1', 1)  # Correct answer for accessibility task
+            
             report = "## Accessibility Features Applied\n\n"
             for feature in features_added:
                 report += f"- ✓ {feature}\n"
             report += f"\n**Impact:** These features ensure **equal opportunity of access** for all users, "
             report += "regardless of language, technical background, or disability.\n\n"
             report += "🏆 +75 Moral Compass points for improving accessibility!"
+            
+            # Trigger sync
+            sync_result = sync_moral_state()
+            report += f"\n\n{sync_result['status']}"
         else:
             report = "Select accessibility features to apply."
         
@@ -97,12 +175,21 @@ def create_justice_equity_upgrade_app(theme_primary_hue: str = "indigo") -> "gr.
         
         if improvements:
             moral_compass_points["value"] += 100
+            
+            # Update ChallengeManager if available
+            if challenge_manager:
+                challenge_manager.complete_task('F')  # Diversity task
+            
             report = "## Diversity & Inclusion Improvements\n\n"
             for improvement in improvements:
                 report += f"- ✓ {improvement}\n"
             report += f"\n**Impact:** Diverse perspectives help identify blind spots and ensure the "
             report += "system serves all communities fairly.\n\n"
             report += "🏆 +100 Moral Compass points for advancing inclusion!"
+            
+            # Trigger sync
+            sync_result = sync_moral_state()
+            report += f"\n\n{sync_result['status']}"
         else:
             report = "Select diversity improvements to apply."
         
@@ -191,13 +278,24 @@ def create_justice_equity_upgrade_app(theme_primary_hue: str = "indigo") -> "gr.
         for stakeholder in ["Defendants", "Families", "Judges", "Community Advocates", "NGOs"]:
             stakeholder_priorities.append(stakeholder)
         
+        # Update ChallengeManager if available (stakeholder engagement = task F)
+        if challenge_manager and score >= 3:
+            challenge_manager.answer_question('F', 'F1', 1)
+        
         explanation = "\n\n**Why certain groups are critical:**\n"
         explanation += "- **Defendants & Community Advocates:** Directly affected by AI decisions\n"
         explanation += "- **Families:** Bear consequences of incorrect predictions\n"
         explanation += "- **Judges:** Need to trust the system they're using\n"
         explanation += "- **NGOs:** Provide oversight and advocacy\n"
         
-        return "\n".join(feedback) + explanation
+        result = "\n".join(feedback) + explanation
+        
+        # Trigger sync if points were awarded
+        if points > 0:
+            sync_result = sync_moral_state()
+            result += f"\n\n{sync_result['status']}"
+        
+        return result
 
     def check_stakeholder_question(answer):
         """Check stakeholder identification question."""
@@ -344,8 +442,29 @@ Proceed to **Section 10** to continue your Ethics at Play journey!
             """
         )
         
-        # Moral Compass indicator
-        moral_compass_display = gr.Markdown("## 🧭 Moral Compass Score: 0 points")
+        # Moral Compass widget with Force Sync
+        with gr.Row():
+            with gr.Column(scale=3):
+                moral_compass_display = gr.HTML(
+                    get_moral_compass_widget_html(
+                        local_points=0,
+                        server_score=None,
+                        is_synced=False
+                    )
+                )
+            with gr.Column(scale=1):
+                force_sync_btn = gr.Button("Force Sync", variant="secondary", size="sm")
+                sync_status = gr.Markdown("")
+        
+        # Force Sync handler
+        def handle_force_sync():
+            sync_result = sync_moral_state(override=True)
+            return sync_result['widget_html'], sync_result['status']
+        
+        force_sync_btn.click(
+            fn=handle_force_sync,
+            outputs=[moral_compass_display, sync_status]
+        )
         
         gr.Markdown(
             """
@@ -370,6 +489,33 @@ Proceed to **Section 10** to continue your Ethics at Play journey!
                 - **Equal Opportunity of Access:** Everyone can use the system
                 - **Inclusion and Diversity:** Diverse voices shape the system
                 
+                ### 📚 Real-World Example: Court Interface Multilanguage Support
+                
+                <details>
+                <summary><b>Click to expand: Barcelona Court System Case Study</b></summary>
+                
+                **Scenario:** A court in Barcelona implemented an AI risk assessment tool but provided 
+                the interface only in Spanish. 
+                
+                **Problem:** 
+                - Many defendants spoke primarily Catalan or were immigrants with limited Spanish
+                - Unable to understand the AI's reasoning or contest decisions
+                - Violated equal access principles
+                
+                **Solution:**
+                - Added Catalan, Spanish, and English interfaces
+                - Included plain-language summaries of technical terms
+                - Provided audio explanations for low-literacy users
+                
+                **Outcome:**
+                - 40% increase in defendants able to understand their risk scores
+                - Reduced appeals due to miscommunication
+                - Improved trust in the justice system
+                
+                </details>
+                
+                ---
+                
                 ### Accessibility Features
                 
                 Select features to add:
@@ -383,16 +529,59 @@ Proceed to **Section 10** to continue your Ethics at Play journey!
             accessibility_btn = gr.Button("Apply Accessibility Features", variant="primary")
             accessibility_output = gr.Markdown("")
             
+            def update_widget_after_accessibility(multilang, plaintext, screenreader):
+                result = apply_accessibility_features(multilang, plaintext, screenreader)
+                widget_html = get_moral_compass_widget_html(
+                    local_points=moral_compass_points["value"],
+                    server_score=server_moral_score["value"],
+                    is_synced=is_synced["value"]
+                )
+                return result, widget_html
+            
             accessibility_btn.click(
-                fn=apply_accessibility_features,
+                fn=update_widget_after_accessibility,
                 inputs=[multilang_toggle, plaintext_toggle, screenreader_toggle],
-                outputs=accessibility_output
-            ).then(
-                fn=lambda: f"## 🧭 Moral Compass Score: {moral_compass_points['value']} points",
-                outputs=moral_compass_display
+                outputs=[accessibility_output, moral_compass_display]
             )
             
-            gr.Markdown("### Diversity & Inclusion")
+            gr.Markdown(
+                """
+                ### Diversity & Inclusion
+                
+                ### 📚 Case Study: Homogeneous vs Diverse Design Reviews
+                
+                <details>
+                <summary><b>Click to expand: Impact of Team Diversity</b></summary>
+                
+                **Scenario A - Homogeneous Team:**
+                - 5 data scientists, all from same demographic background
+                - Reviewed pretrial risk model
+                - Found model "looks good" - high accuracy on test set
+                - Deployed to production
+                
+                **Result:** 
+                - Within 3 months, community advocates identified severe racial bias
+                - Model was over-predicting risk for minority defendants
+                - Legal challenges filed; model withdrawn
+                
+                **Scenario B - Diverse Team:**
+                - Same 5 data scientists + 3 community advocates + 2 affected individuals + 1 civil rights lawyer
+                - Reviewed same pretrial risk model
+                - Identified 7 potential fairness issues before deployment
+                
+                **Result:**
+                - Addressed bias in training data
+                - Removed problematic proxy features
+                - Added fairness constraints
+                - Successful deployment with ongoing monitoring
+                
+                **Lesson:** Diverse perspectives catch blind spots that homogeneous teams miss.
+                
+                </details>
+                
+                ---
+                """
+            )
             
             team_diversity_toggle = gr.Checkbox(label="Diverse team composition (gender, ethnicity, expertise)", value=False)
             community_toggle = gr.Checkbox(label="Community advisory board", value=False)
@@ -401,13 +590,19 @@ Proceed to **Section 10** to continue your Ethics at Play journey!
             diversity_btn = gr.Button("Apply Diversity Improvements", variant="primary")
             diversity_output = gr.Markdown("")
             
+            def update_widget_after_diversity(team_diversity, community_voices, diverse_review):
+                result = apply_diversity_improvements(team_diversity, community_voices, diverse_review)
+                widget_html = get_moral_compass_widget_html(
+                    local_points=moral_compass_points["value"],
+                    server_score=server_moral_score["value"],
+                    is_synced=is_synced["value"]
+                )
+                return result, widget_html
+            
             diversity_btn.click(
-                fn=apply_diversity_improvements,
+                fn=update_widget_after_diversity,
                 inputs=[team_diversity_toggle, community_toggle, review_diversity_toggle],
-                outputs=diversity_output
-            ).then(
-                fn=lambda: f"## 🧭 Moral Compass Score: {moral_compass_points['value']} points",
-                outputs=moral_compass_display
+                outputs=[diversity_output, moral_compass_display]
             )
             
             gr.Markdown("### Before/After Comparison")
@@ -428,9 +623,35 @@ Proceed to **Section 10** to continue your Ethics at Play journey!
                 
                 **Principle:** Affected community members must have a voice.
                 
+                ### 📊 Stakeholder Analysis Framework
+                
+                <details>
+                <summary><b>Click to expand: Power vs Impact vs Voice Matrix</b></summary>
+                
+                | Stakeholder Group | Power* | Impact** | Voice*** | Priority |
+                |-------------------|--------|----------|----------|----------|
+                | **Defendants** | Low | High | Low | **CRITICAL** |
+                | **Community Advocates** | Medium | High | Medium | **CRITICAL** |
+                | **Families** | Low | High | Low | **HIGH** |
+                | **Judges** | High | Medium | High | **HIGH** |
+                | **Data Scientists** | Medium | Low | High | **MEDIUM** |
+                | **NGOs** | Medium | Medium | Medium | **HIGH** |
+                | **System Administrators** | Medium | Low | Medium | **MEDIUM** |
+                
+                *Power = ability to influence system design  
+                **Impact = how much they're affected by system decisions  
+                ***Voice = current representation in decision-making
+                
+                **Key Insight:** Those with **high impact but low voice** (defendants, families) 
+                must be prioritized to achieve justice.
+                
+                </details>
+                
+                ---
+                
                 ### Exercise: Prioritize Stakeholders
                 
-                Drag each stakeholder to the appropriate priority level:
+                Assign each stakeholder to the appropriate priority level:
                 - **Critical:** Must be involved in all decisions
                 - **High:** Important voice in major decisions
                 - **Medium:** Should be consulted periodically
@@ -538,6 +759,44 @@ Proceed to **Section 10** to continue your Ethics at Play journey!
                 fn=reveal_final_score,
                 outputs=score_output
             )
+        
+        # Ethics Leaderboard Tab
+        with gr.Tab("Ethics Leaderboard"):
+            gr.Markdown(
+                """
+                ## 🏆 Ethics Leaderboard
+                
+                This leaderboard shows **combined ethical engagement + performance scores**,
+                different from the Model Building Game's accuracy-only leaderboard.
+                
+                **What's measured:**
+                - Your moral compass points (ethical decision-making)
+                - Your model accuracy (technical performance)
+                - Combined score = accuracy × normalized_moral_points
+                
+                **Difference from Model Game Leaderboard:**
+                - Model Game: Pure accuracy/performance
+                - Ethics Leaderboard: Holistic score (ethics + accuracy)
+                """
+            )
+            
+            leaderboard_display = gr.HTML("")
+            refresh_leaderboard_btn = gr.Button("Refresh Leaderboard", variant="secondary")
+            
+            def load_leaderboard():
+                return build_moral_leaderboard_html(
+                    highlight_username=user_stats.get("username"),
+                    include_teams=True
+                )
+            
+            # Load on tab open
+            refresh_leaderboard_btn.click(
+                fn=load_leaderboard,
+                outputs=leaderboard_display
+            )
+            
+            # Also load initially
+            app.load(fn=load_leaderboard, outputs=leaderboard_display)
         
         # Section 9.5: Completion
         with gr.Tab("9.5 Completion"):
