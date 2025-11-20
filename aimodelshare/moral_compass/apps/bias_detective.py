@@ -10,10 +10,29 @@ This app teaches:
 Structure:
 - Factory function `create_bias_detective_app()` returns a Gradio Blocks object
 - Convenience wrapper `launch_bias_detective_app()` launches it inline (for notebooks)
+
+Moral Compass Integration:
+- Uses ChallengeManager for progress tracking (tasks A-C)
+- Task A: Framework understanding
+- Task B: Demographics identification
+- Task C: Bias analysis
+- Debounced sync with Force Sync option
 """
 import contextlib
 import os
 import random
+import logging
+
+# Import moral compass integration helpers
+from .mc_integration_helpers import (
+    get_challenge_manager,
+    sync_user_moral_state,
+    sync_team_state,
+    build_moral_leaderboard_html,
+    get_moral_compass_widget_html,
+)
+
+logger = logging.getLogger("aimodelshare.moral_compass.apps.bias_detective")
 
 
 def _get_compas_demographic_data():
@@ -70,6 +89,25 @@ def _get_fairness_metrics():
     return metrics
 
 
+def _get_user_stats():
+    """Get user statistics."""
+    try:
+        username = os.environ.get("username")
+        team_name = os.environ.get("TEAM_NAME", "Unknown Team")
+        
+        return {
+            "username": username or "Guest",
+            "team_name": team_name,
+            "is_signed_in": bool(username)
+        }
+    except Exception:
+        return {
+            "username": "Guest",
+            "team_name": "Unknown Team",
+            "is_signed_in": False
+        }
+
+
 def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """Create the Bias Detective Gradio Blocks app (not launched yet)."""
     try:
@@ -83,11 +121,59 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     demographics = _get_compas_demographic_data()
     fairness_metrics = _get_fairness_metrics()
 
+    # Get user stats and initialize challenge manager
+    user_stats = _get_user_stats()
+    challenge_manager = None
+    if user_stats["is_signed_in"]:
+        challenge_manager = get_challenge_manager(user_stats["username"])
+    
     # Track state
     framework_score = {"value": 0}
     identified_issues = {"demographics": [], "biases": []}
     moral_compass_points = {"value": 0}
+    server_moral_score = {"value": None}
+    is_synced = {"value": False}
 
+    def sync_moral_state(override=False):
+        """Sync moral state to server (debounced unless override)."""
+        if not challenge_manager:
+            return {
+                'widget_html': get_moral_compass_widget_html(
+                    local_points=moral_compass_points["value"],
+                    server_score=None,
+                    is_synced=False
+                ),
+                'status': 'Guest mode - sign in to sync'
+            }
+        
+        # Sync to server
+        sync_result = sync_user_moral_state(
+            cm=challenge_manager,
+            moral_points=moral_compass_points["value"],
+            override=override
+        )
+        
+        # Update state
+        if sync_result['synced']:
+            server_moral_score["value"] = sync_result.get('server_score')
+            is_synced["value"] = True
+            
+            # Trigger team sync if user sync succeeded
+            if user_stats.get("team_name"):
+                sync_team_state(user_stats["team_name"])
+        
+        # Generate widget HTML
+        widget_html = get_moral_compass_widget_html(
+            local_points=moral_compass_points["value"],
+            server_score=server_moral_score["value"],
+            is_synced=is_synced["value"]
+        )
+        
+        return {
+            'widget_html': widget_html,
+            'status': sync_result['message']
+        }
+    
     def check_framework_answer(principle, indicator, observable):
         """Check if framework components are correctly categorized."""
         correct_mapping = {
@@ -122,6 +208,15 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         if score == 3:
             moral_compass_points["value"] += 100
             feedback.append("\n🎉 Perfect! You've earned 100 Moral Compass points!")
+            
+            # Update ChallengeManager (Task A: Framework understanding)
+            if challenge_manager:
+                challenge_manager.complete_task('A')
+                challenge_manager.answer_question('A', 'A1', 1)
+            
+            # Trigger sync
+            sync_result = sync_moral_state()
+            feedback.append(f"\n{sync_result['status']}")
         
         return "\n".join(feedback)
 
@@ -159,10 +254,20 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         
         if found:
             moral_compass_points["value"] += 50
+            
+            # Update ChallengeManager (Task B: Demographics identification)
+            if challenge_manager:
+                challenge_manager.complete_task('B')
+                challenge_manager.answer_question('B', 'B1', 1)
+            
             summary = f"✓ Found demographic variables: {', '.join(found)}\n\n"
             summary += "⚠️ **Warning:** These variables can encode bias in AI predictions.\n\n"
             summary += "\n".join(charts)
             summary += f"\n\n🏆 +50 Moral Compass points for identifying potential bias sources!"
+            
+            # Trigger sync
+            sync_result = sync_moral_state()
+            summary += f"\n\n{sync_result['status']}"
         else:
             summary = "Select variables to scan the dataset."
         
@@ -196,7 +301,17 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         
         identified_issues["biases"].append("racial_disparity_in_fpr")
         moral_compass_points["value"] += 100
+        
+        # Update ChallengeManager (Task C: Bias analysis)
+        if challenge_manager:
+            challenge_manager.complete_task('C')
+            challenge_manager.answer_question('C', 'C1', 1)
+        
         report += "🏆 +100 Moral Compass points for identifying bias patterns!"
+        
+        # Trigger sync
+        sync_result = sync_moral_state()
+        report += f"\n\n{sync_result['status']}"
         
         return report
 
@@ -253,8 +368,29 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             """
         )
         
-        # Moral Compass indicator
-        moral_compass_display = gr.Markdown("## 🧭 Moral Compass Score: 0 points")
+        # Moral Compass widget with Force Sync
+        with gr.Row():
+            with gr.Column(scale=3):
+                moral_compass_display = gr.HTML(
+                    get_moral_compass_widget_html(
+                        local_points=0,
+                        server_score=None,
+                        is_synced=False
+                    )
+                )
+            with gr.Column(scale=1):
+                force_sync_btn = gr.Button("Force Sync", variant="secondary", size="sm")
+                sync_status = gr.Markdown("")
+        
+        # Force Sync handler
+        def handle_force_sync():
+            sync_result = sync_moral_state(override=True)
+            return sync_result['widget_html'], sync_result['status']
+        
+        force_sync_btn.click(
+            fn=handle_force_sync,
+            outputs=[moral_compass_display, sync_status]
+        )
         
         # Section 7.2: Expert Framework Overview
         with gr.Tab("7.2 Expert Framework"):
@@ -301,13 +437,19 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             check_btn = gr.Button("Check My Answers", variant="primary")
             framework_feedback = gr.Markdown("")
             
+            def update_widget_after_framework(principle, indicator, observable):
+                feedback = check_framework_answer(principle, indicator, observable)
+                widget_html = get_moral_compass_widget_html(
+                    local_points=moral_compass_points["value"],
+                    server_score=server_moral_score["value"],
+                    is_synced=is_synced["value"]
+                )
+                return feedback, widget_html
+            
             check_btn.click(
-                fn=check_framework_answer,
+                fn=update_widget_after_framework,
                 inputs=[principle_choice, indicator_choice, observable_choice],
-                outputs=framework_feedback
-            ).then(
-                fn=lambda: f"## 🧭 Moral Compass Score: {moral_compass_points['value']} points",
-                outputs=moral_compass_display
+                outputs=[framework_feedback, moral_compass_display]
             )
         
         # Section 7.3: Identify Demographic Data
@@ -329,13 +471,19 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             scan_btn = gr.Button("Run Demographics Scan", variant="primary")
             demographics_output = gr.Markdown("")
             
+            def update_widget_after_scan(race, gender, age):
+                output = scan_demographics(race, gender, age)
+                widget_html = get_moral_compass_widget_html(
+                    local_points=moral_compass_points["value"],
+                    server_score=server_moral_score["value"],
+                    is_synced=is_synced["value"]
+                )
+                return output, widget_html
+            
             scan_btn.click(
-                fn=scan_demographics,
+                fn=update_widget_after_scan,
                 inputs=[race_toggle, gender_toggle, age_toggle],
-                outputs=demographics_output
-            ).then(
-                fn=lambda: f"## 🧭 Moral Compass Score: {moral_compass_points['value']} points",
-                outputs=moral_compass_display
+                outputs=[demographics_output, moral_compass_display]
             )
             
             gr.Markdown("### Check-In Question")
@@ -381,18 +529,59 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 - **False Negative Rate:** How often the model wrongly predicts someone won't reoffend
                 
                 These errors have serious real-world consequences in criminal justice decisions.
+                
+                ### 📊 Understanding False Positives via Confusion Matrix
+                
+                <details>
+                <summary><b>Click to expand: Example Confusion Matrix by Race</b></summary>
+                
+                **African-American Defendants (n=3,175):**
+                ```
+                                Predicted: Low Risk  |  Predicted: High Risk
+                ----------------------------------------------------------------
+                Actually Safe        805 (TN)       |      1,425 (FP ⚠️)
+                Actually Risky       890 (FN)       |        55 (TP)
+                ```
+                
+                **Caucasian Defendants (n=2,103):**
+                ```
+                                Predicted: Low Risk  |  Predicted: High Risk
+                ----------------------------------------------------------------
+                Actually Safe      1,210 (TN)       |       494 (FP)
+                Actually Risky       203 (FN)       |       196 (TP)
+                ```
+                
+                **Key Finding:** 
+                - African-American FP rate: 1,425 / (805 + 1,425) = **63.9%** wrongly flagged
+                - Caucasian FP rate: 494 / (1,210 + 494) = **28.9%** wrongly flagged
+                - **Disparity: 2.2x higher** for African-American defendants
+                
+                **Real-world impact of False Positives:**
+                - Denied bail → pretrial detention
+                - Longer sentences recommended
+                - Family/job disruption while innocent person detained
+                
+                </details>
+                
+                ---
                 """
             )
             
             analyze_btn = gr.Button("Analyze Fairness Metrics", variant="primary")
             bias_analysis_output = gr.Markdown("")
             
+            def update_widget_after_analysis():
+                output = analyze_bias()
+                widget_html = get_moral_compass_widget_html(
+                    local_points=moral_compass_points["value"],
+                    server_score=server_moral_score["value"],
+                    is_synced=is_synced["value"]
+                )
+                return output, widget_html
+            
             analyze_btn.click(
-                fn=analyze_bias,
-                outputs=bias_analysis_output
-            ).then(
-                fn=lambda: f"## 🧭 Moral Compass Score: {moral_compass_points['value']} points",
-                outputs=moral_compass_display
+                fn=update_widget_after_analysis,
+                outputs=[bias_analysis_output, moral_compass_display]
             )
             
             gr.Markdown("### Check-In Question")
@@ -417,6 +606,41 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 fn=lambda: f"## 🧭 Moral Compass Score: {moral_compass_points['value']} points",
                 outputs=moral_compass_display
             )
+        
+        # Ethics Leaderboard Tab
+        with gr.Tab("Ethics Leaderboard"):
+            gr.Markdown(
+                """
+                ## 🏆 Ethics Leaderboard
+                
+                This leaderboard shows **combined ethical engagement + performance scores**.
+                
+                **What's measured:**
+                - Moral compass points (bias detection skills)
+                - Model accuracy (technical performance)
+                - Combined score = accuracy × normalized_moral_points
+                
+                **Why this matters:**
+                Being good at building models isn't enough - we must also understand fairness and bias!
+                """
+            )
+            
+            leaderboard_display = gr.HTML("")
+            refresh_leaderboard_btn = gr.Button("Refresh Leaderboard", variant="secondary")
+            
+            def load_leaderboard():
+                return build_moral_leaderboard_html(
+                    highlight_username=user_stats.get("username"),
+                    include_teams=True
+                )
+            
+            refresh_leaderboard_btn.click(
+                fn=load_leaderboard,
+                outputs=leaderboard_display
+            )
+            
+            # Load initially
+            app.load(fn=load_leaderboard, outputs=leaderboard_display)
         
         # Section 7.5: Completion
         with gr.Tab("7.5 Diagnosis Report"):
