@@ -90,6 +90,12 @@ jobs:
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
           region: ${{ env.REGION }}
           # Optimization Flags (Single line to prevent syntax errors)
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ matrix.app_name }}
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
           flags: >-
             --allow-unauthenticated
             --memory=2Gi
@@ -98,9 +104,5 @@ jobs:
             --concurrency=80
             --min-instances=0
             --max-instances=50
-            --timeout=300          
-            env_vars: |
-            APP_NAME=${{ matrix.app_name }}
-            GRADIO_SERVER_NAME=0.0.0.0
-            GRADIO_ANALYTICS_ENABLED=False
-            GRADIO_NUM_PORTS=1
+            --timeout=300
+            --set-env-vars=APP_NAME=${{ matrix.app_name }},GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
