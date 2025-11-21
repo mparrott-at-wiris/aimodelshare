@@ -24,9 +24,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write
-    outputs:
-      image_tag: ${{ steps.image-tag.outputs.image }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -44,17 +41,13 @@ jobs:
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
 
       - name: Build and Push Docker Image
-        id: image-tag
         run: |
-          # Define the image tag
+          # Construct Image Tag
           IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}"
           
-          # Build and Push
-          docker build -t "$IMAGE" .
+          echo "Building: $IMAGE"
+          docker build --pull -t "$IMAGE" .
           docker push "$IMAGE"
-          
-          # Output the variable securely to GITHUB_OUTPUT
-          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
 
   # ----------------------------------------------------------------
   # JOB 2: DEPLOY (Deploy Many)
@@ -63,7 +56,7 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -86,19 +79,18 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Echo Debug Info
-        run: |
-          echo "Deploying App: ${{ matrix.app_name }}"
-          echo "Using Image: ${{ needs.build-and-push.outputs.image_tag }}"
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: ${{ matrix.app_name }}
-          image: '${{ needs.build-and-push.outputs.image_tag }}'
+          # FIX: We reconstruct the image name here instead of relying on 'outputs'
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
           region: ${{ env.REGION }}
-          # Optimization Flags
-          flags: '--allow-unauthenticated --memory=1Gi --cpu=1 --session-affinity --concurrency=80 --min-instances=0 --max-instances=50'
+          # Optimization Flags (Single line to prevent syntax errors)
+          flags: --allow-unauthenticated --memory=1Gi --cpu=1 --session-affinity --concurrency=80 --min-instances=0 --max-instances=50
           env_vars: |
             APP_NAME=${{ matrix.app_name }}
             GRADIO_SERVER_NAME=0.0.0.0
