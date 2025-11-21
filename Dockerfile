@@ -1,5 +1,5 @@
-# Use python 3.9 slim for smaller image size (~100MB base)
-FROM python:3.9-slim
+# Use python 3.12 slim for smaller image size (~100MB base)
+FROM python:3.12-slim
 
 # 1. Install system dependencies
 # libgl1-mesa-glx is needed for visual libraries like seaborn/matplotlib
