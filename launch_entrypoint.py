@@ -1,21 +1,21 @@
 import os
 import logging
 import sys
+import traceback
 
-# Configure logging
+# Configure logging to ensure output appears in Cloud Run logs
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("launcher")
 
 if __name__ == "__main__":
-    # 1. Configuration
-    app_name = os.environ.get("APP_NAME", "tutorial")
-    port = int(os.environ.get("PORT", 8080))
-
-    logger.info(f"Initializing Application: {app_name}")
-
-    # 2. Lazy Import Strategy
-    # We import inside blocks so "Tutorial" doesn't load "Game" dependencies
     try:
+        # 1. Configuration
+        app_name = os.environ.get("APP_NAME", "tutorial")
+        port = int(os.environ.get("PORT", 8080))
+
+        logger.info(f"--- STARTING APP: {app_name} on PORT {port} ---")
+
+        # 2. Lazy Import Strategy
         if app_name == "tutorial":
             from aimodelshare.moral_compass.apps.tutorial import create_tutorial_app as factory
         elif app_name == "judge":
@@ -39,16 +39,20 @@ if __name__ == "__main__":
         else:
             raise ValueError(f"Unknown APP_NAME: {app_name}")
 
-        # 3. Launch
-        logger.info(f"Starting Gradio Server on port {port}...")
+        logger.info(f"Factory loaded. Creating app...")
         demo = factory()
+        
+        logger.info(f"Launching Gradio Server...")
+        # 3. Launch
         demo.launch(
             server_name="0.0.0.0",
             server_port=port,
             show_api=False,
-            analytics_enabled=False,  # Disable for performance/privacy
+            analytics_enabled=False,
             show_error=True
         )
     except Exception as e:
-        logger.error(f"Failed to launch app: {e}")
+        # This print statement is critical for debugging Cloud Run "Container failed to start" errors
+        logger.error(f"CRITICAL FAILURE LAUNCHING {os.environ.get('APP_NAME')}: {e}")
+        traceback.print_exc()
         sys.exit(1)
