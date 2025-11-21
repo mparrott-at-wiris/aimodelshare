@@ -110,10 +110,12 @@ def test_requirements_apps_dependencies():
     assert "boto3" in content
     assert "pandas" in content
     
-    # Check that heavy deps are excluded
+    # Check that onnx is included (needed for model_building_game)
+    assert "onnx" in content
+    
+    # Check that heavy ML frameworks are excluded
     assert "tensorflow" not in content or "# EXCLUDED" in content
     assert "torch" not in content or "# EXCLUDED" in content
-    assert "onnx" not in content or "# EXCLUDED" in content
 
 
 def test_dockerfile_exists():

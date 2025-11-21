@@ -46,7 +46,7 @@ if __name__ == "__main__":
             server_name="0.0.0.0",
             server_port=port,
             show_api=False,
-            analytics_enabled=False, # Disable for performance/privacy
+            analytics_enabled=False,  # Disable for performance/privacy
             show_error=True
         )
     except Exception as e:
