@@ -42,7 +42,7 @@ jobs:
       - name: Configure Docker Auth
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
 
-      # OPTIONAL: Cache Python deps if the Dockerfile copies requirements first.
+      # OPTIONAL: Cache Python deps
       # - name: Cache pip
       #   uses: actions/cache@v4
       #   with:
@@ -59,7 +59,7 @@ jobs:
           docker push "$IMAGE"
           echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
 
-      # OPTIONAL: Add a 'latest' mutable tag if desired for quick rollbacks
+      # OPTIONAL: Tag latest
       # - name: Tag latest
       #   run: |
       #     LATEST_IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:latest"
@@ -74,19 +74,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app_name: [
-          "tutorial",
-          "judge",
-          "ai-consequences",
-          "what-is-ai",
-          "model-building-game",
-          "ethical-revelation",
-          "moral-compass-challenge",
-          "bias-detective",
-          "fairness-fixer",
-          "justice-equity-upgrade"
-        ]
-        # OPTIONAL: per-service overrides example:
+        app_name:
+          - tutorial
+          - judge
+          - ai-consequences
+          - what-is-ai
+          - model-building-game
+          - ethical-revelation
+          - moral-compass-challenge
+          - bias-detective
+          - fairness-fixer
+          - justice-equity-upgrade
+        # OPTIONAL per-service overrides example:
         # include:
         #   - app_name: tutorial
         #     min_instances: 1
@@ -98,7 +97,6 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # OPTIONAL: Set up Cloud SDK if you plan custom gcloud commands
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
@@ -112,27 +110,17 @@ jobs:
           service: ${{ matrix.app_name }}
           image: ${{ needs.build-and-push.outputs.image_tag }}
           region: ${{ env.REGION }}
-          # You can lower concurrency if latency is high (e.g. --concurrency=40)
-          # Add --timeout=600 if needed, --cpu-boost for faster cold starts.
-          flags: >-
-            --allow-unauthenticated
-            --memory=1Gi
-            --cpu=1
-            --session-affinity
-            --concurrency=80
-            --min-instances=0
-            --max-instances=50
-            # --timeout=600
-            # --cpu-boost
-            # --revision-suffix=${{ github.run_number }}-${{ matrix.app_name }}
-            # --ingress=all
+          flags: '--allow-unauthenticated --memory=1Gi --cpu=1 --session-affinity --concurrency=80 --min-instances=0 --max-instances=50'
+          # OPTIONAL flags you can test:
+          # flags: '--allow-unauthenticated --memory=1Gi --cpu=1 --session-affinity --concurrency=40 --min-instances=0 --max-instances=50 --timeout=600 --cpu-boost'
           env_vars: |
             APP_NAME=${{ matrix.app_name }}
             GRADIO_SERVER_NAME=0.0.0.0
             GRADIO_ANALYTICS_ENABLED=False
             GRADIO_NUM_PORTS=1
+          # OPTIONAL revision suffix:
+          # revision_suffix: ${{ github.run_number }}-${{ matrix.app_name }}
 
-      # OPTIONAL: Output service URL
       - name: Show Service URL
         if: steps.deploy.outputs.url != ''
         run: echo "Service URL: ${{ steps.deploy.outputs.url }}"
