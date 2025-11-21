@@ -1,0 +1,93 @@
+name: Deploy Moral Compass Apps
+
+on:
+  workflow_dispatch: # Manual trigger
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'aimodelshare/moral_compass/apps/**'
+      - 'requirements-apps.txt'
+      - 'launch_entrypoint.py'
+      - 'Dockerfile'
+      - '.github/workflows/deploy_gradio_apps.yml'
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: us-central1
+  REPO_NAME: moral-compass-apps # NOTE: Create this in Google Artifact Registry first!
+
+jobs:
+  # ----------------------------------------------------------------
+  # JOB 1: BUILD (Build Once)
+  # ----------------------------------------------------------------
+  build-and-push:
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.image-tag.outputs.image }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v1'
+
+      - name: 'Configure Docker Auth'
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+
+      - name: 'Build and Push Docker Image'
+        id: image-tag
+        run: |
+          IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}"
+          docker build -t $IMAGE .
+          docker push $IMAGE
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
+
+  # ----------------------------------------------------------------
+  # JOB 2: DEPLOY (Deploy Many)
+  # ----------------------------------------------------------------
+  deploy-services:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app_name: [
+          "tutorial",
+          "judge",
+          "ai-consequences",
+          "what-is-ai",
+          "model-building-game",
+          "ethical-revelation",
+          "moral-compass-challenge",
+          "bias-detective",
+          "fairness-fixer",
+          "justice-equity-upgrade"
+        ]
+    steps:
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: 'Deploy to Cloud Run'
+        uses: 'google-github-actions/deploy-cloudrun@v1'
+        with:
+          service: ${{ matrix.app_name }}
+          image: ${{ needs.build-and-push.outputs.image_tag }}
+          region: ${{ env.REGION }}
+          # Critical Optimization Flags:
+          # --session-affinity: Keeps user state consistent (essential for Gradio)
+          # --concurrency 80: Handles 80 students per instance (cost savings)
+          # --min-instances 0: Scales to zero when not in use
+          # --memory 1Gi: Sufficient since we removed heavy ML libs
+          flags: '--allow-unauthenticated --memory=1Gi --cpu=1 --session-affinity --concurrency=80 --min-instances=0 --max-instances=50'
+          env_vars: |
+            APP_NAME=${{ matrix.app_name }}
+            GRADIO_SERVER_NAME=0.0.0.0
+            GRADIO_ANALYTICS_ENABLED=False
+            GRADIO_NUM_PORTS=1

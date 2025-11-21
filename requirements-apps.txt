@@ -1,0 +1,10 @@
+gradio==5.49.1
+boto3==1.26.69
+scikit-learn==1.2.1
+pandas
+numpy
+requests
+Pympler
+shortuuid
+seaborn>=0.11.2
+# EXCLUDED: tensorflow, torch, onnx, keras, opencv
