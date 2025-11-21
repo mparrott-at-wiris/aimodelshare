@@ -90,8 +90,16 @@ jobs:
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
           region: ${{ env.REGION }}
           # Optimization Flags (Single line to prevent syntax errors)
-          flags: --allow-unauthenticated --memory=1Gi --cpu=1 --session-affinity --concurrency=80 --min-instances=0 --max-instances=50
-          env_vars: |
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=80
+            --min-instances=0
+            --max-instances=50
+            --timeout=300          
+            env_vars: |
             APP_NAME=${{ matrix.app_name }}
             GRADIO_SERVER_NAME=0.0.0.0
             GRADIO_ANALYTICS_ENABLED=False
