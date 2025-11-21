@@ -14,7 +14,6 @@ Structure:
 import os
 import random
 
-
 # Team names for assignment (still used in stats/login messaging)
 TEAM_NAMES = [
     "The Justice League", "The Moral Champions", "The Data Detectives",
@@ -213,16 +212,16 @@ def _perform_inline_login(username_input, password_input):
     # Validate inputs
     if not username_input or not username_input.strip():
         error_html = """
-        <div style='background:#fef2f2; padding:16px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
-            <p style='margin:0; color:#991b1b; font-weight:600;'>⚠️ Username is required</p>
+        <div class='alert alert--error'>
+            <p class='alert__title'>⚠️ Username is required</p>
         </div>
         """
         return False, error_html, _get_user_stats_from_leaderboard()
 
     if not password_input or not password_input.strip():
         error_html = """
-        <div style='background:#fef2f2; padding:16px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
-            <p style='margin:0; color:#991b1b; font-weight:600;'>⚠️ Password is required</p>
+        <div class='alert alert--error'>
+            <p class='alert__title'>⚠️ Password is required</p>
         </div>
         """
         return False, error_html, _get_user_stats_from_leaderboard()
@@ -249,15 +248,15 @@ def _perform_inline_login(username_input, password_input):
         if user_stats["best_score"] is None:
             # User signed in but hasn't submitted models yet
             warning_html = f"""
-            <div style='background:#fef9c3; padding:16px; border-radius:8px; border-left:4px solid #f59e0b; margin-top:12px;'>
-                <p style='margin:0; color:#92400e; font-weight:600; font-size:1.1rem;'>✓ Signed in successfully!</p>
-                <p style='margin:8px 0; color:#78350f; font-size:0.95rem;'>
+            <div class='alert alert--warning'>
+                <p class='alert__title'>✓ Signed in successfully!</p>
+                <p class='alert__body'>
                     Team: <b>{team_name}</b>
                 </p>
-                <p style='margin:8px 0 0 0; color:#92400e; font-weight:600; font-size:0.95rem;'>
+                <p class='alert__subtitle'>
                     ⚠️ You haven't submitted any models yet!
                 </p>
-                <p style='margin:8px 0 0 0; color:#78350f; font-size:0.95rem;'>
+                <p class='alert__body'>
                     Please go back to the <strong>Model Building Game</strong> activity and submit at least one model
                     to see your personalized stats here.
                 </p>
@@ -272,12 +271,12 @@ def _perform_inline_login(username_input, password_input):
             team_message = f"Welcome back to team: <b>{team_name}</b> ✅"
 
         success_html = f"""
-        <div style='background:#f0fdf4; padding:16px; border-radius:8px; border-left:4px solid #16a34a; margin-top:12px;'>
-            <p style='margin:0; color:#15803d; font-weight:600; font-size:1.1rem;'>✓ Signed in successfully!</p>
-            <p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>
+        <div class='alert alert--success'>
+            <p class='alert__title'>✓ Signed in successfully!</p>
+            <p class='alert__body'>
                 {team_message}
             </p>
-            <p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>
+            <p class='alert__body'>
                 Your personalized stats are now displayed above!
             </p>
         </div>
@@ -287,14 +286,14 @@ def _perform_inline_login(username_input, password_input):
     except Exception:
         # Authentication failed
         error_html = """
-        <div style='background:#fef2f2; padding:16px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
-            <p style='margin:0; color:#991b1b; font-weight:600; font-size:1.1rem;'>⚠️ Authentication failed</p>
-            <p style='margin:8px 0; color:#7f1d1d; font-size:0.95rem;'>
+        <div class='alert alert--error'>
+            <p class='alert__title'>⚠️ Authentication failed</p>
+            <p class='alert__body'>
                 Could not verify your credentials. Please check your username and password.
             </p>
-            <p style='margin:8px 0 0 0; color:#7f1d1d; font-size:0.95rem;'>
+            <p class='alert__body'>
                 <strong>New user?</strong> Create a free account at
-                <a href='https://www.modelshare.ai/login' target='_blank' style='color:#dc2626; text-decoration:underline;'>modelshare.ai/login</a>
+                <a href='https://www.modelshare.ai/login' target='_blank' class='alert__link'>modelshare.ai/login</a>
             </p>
         </div>
         """
@@ -305,7 +304,6 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
     """Create the Moral Compass Challenge Gradio Blocks app (not launched yet)."""
     try:
         import gradio as gr
-
         gr.close_all(verbose=False)
     except ImportError as e:
         raise ImportError(
@@ -324,101 +322,103 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
             )
 
             return f"""
-            <div style='font-size: 20px; background:#e0f2fe; padding:28px; border-radius:16px; border: 3px solid #0369a1;'>
-                <h3 style='color:#0c4a6e; margin-top:0; text-align:center;'>
+            <div class='slide-shell slide-shell--info'>
+                <h3 class='slide-shell__title'>
                     You've Built an Accurate Model
                 </h3>
 
-                <div style='background:white; padding:24px; border-radius:12px; margin:24px 0;'>
-                    <p style='line-height:1.8; text-align:center;'>
+                <div class='content-box'>
+                    <p class='slide-shell__subtitle'>
                         Through experimentation and iteration, you've achieved impressive results:
                     </p>
 
-                    <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px auto; max-width: 600px;'>
-                        <div style='text-align:center; padding:16px; background:#f0fdf4; border-radius:8px; border:2px solid #16a34a;'>
-                            <p style='margin:0; font-size:0.9rem; color:#6b7280;'>Your Best Accuracy</p>
-                            <p style='margin:8px 0 0 0; font-size:2.5rem; font-weight:800; color:#16a34a;'>{best_score_pct}</p>
+                    <div class='stat-grid'>
+                        <div class='stat-card stat-card--success'>
+                            <p class='stat-card__label'>Your Best Accuracy</p>
+                            <p class='stat-card__value'>{best_score_pct}</p>
                         </div>
-                        <div style='text-align:center; padding:16px; background:#eff6ff; border-radius:8px; border:2px solid #2563eb;'>
-                            <p style='margin:0; font-size:0.9rem; color:#6b7280;'>Your Individual Rank</p>
-                            <p style='margin:8px 0 0 0; font-size:2.5rem; font-weight:800; color:#2563eb;'>{rank_text}</p>
+                        <div class='stat-card stat-card--accent'>
+                            <p class='stat-card__label'>Your Individual Rank</p>
+                            <p class='stat-card__value'>{rank_text}</p>
                         </div>
                     </div>
 
-                    <div style='text-align:center; padding:16px; background:#fef3c7; border-radius:8px; margin-top:16px; border:2px solid #f59e0b;'>
-                        <p style='margin:0; font-size:0.9rem; color:#6b7280;'>Your Team</p>
-                        <p style='margin:8px 0; font-size:1.5rem; font-weight:700; color:#92400e;'>🛡️ {team_text}</p>
-                        <p style='margin:0; font-size:1rem; color:#78350f;'>Team Rank: {team_rank_text}</p>
+                    <div class='team-card'>
+                        <p class='team-card__label'>Your Team</p>
+                        <p class='team-card__value'>🛡️ {team_text}</p>
+                        <p class='team-card__rank'>Team Rank: {team_rank_text}</p>
                     </div>
 
-                    <ul style='list-style:none; padding:0; text-align:left; max-width:600px; margin:24px auto 0 auto; font-size:1.1rem;'>
-                        <li style='padding:8px 0;'>✅ Mastered the model-building process</li>
-                        <li style='padding:8px 0;'>✅ Climbed the accuracy leaderboard</li>
-                        <li style='padding:8px 0;'>✅ Competed with fellow engineers</li>
-                        <li style='padding:8px 0;'>✅ Earned promotions and unlocked tools</li>
+                    <ul class='bullet-list'>
+                        <li>✅ Mastered the model-building process</li>
+                        <li>✅ Climbed the accuracy leaderboard</li>
+                        <li>✅ Competed with fellow engineers</li>
+                        <li>✅ Earned promotions and unlocked tools</li>
                     </ul>
 
-                    <p style='text-align:center; font-size:1.2rem; font-weight:600; color:#16a34a; margin-top:24px;'>
+                    <p class='slide-shell__subtitle' style='font-weight:600;'>
                         🏆 Congratulations on your technical achievement!
                     </p>
                 </div>
 
-                <div style='background:#fef9c3; padding:20px; border-radius:8px; border-left:6px solid #f59e0b; margin-top:24px;'>
-                    <p style='font-size:1.15rem; font-weight:600; margin:0; color:#92400e;'>
+                <div class='content-box content-box--emphasis'>
+                    <p class='content-box__heading'>
                         But now you know the full story...
                     </p>
-                    <p style='margin:12px 0 0 0; line-height:1.6;'>
+                    <p>
                         High accuracy isn't enough. Real-world AI systems must also be
-                        <strong>fair, equitable, and minimize harm</strong> across all groups of people.
+                        <strong>fair, equitable, and <span class='emph-harm'>minimize harm</span></strong>
+                        across all groups of people.
                     </p>
                 </div>
             </div>
             """
         elif user_stats["is_signed_in"]:
             return """
-            <div style='font-size: 20px; background:#e0f2fe; padding:28px; border-radius:16px; border: 3px solid #0369a1;'>
-                <h3 style='color:#0c4a6e; margin-top:0; text-align:center;'>
+            <div class='slide-shell slide-shell--info'>
+                <h3 class='slide-shell__title'>
                     Ready to Begin Your Journey
                 </h3>
 
-                <div style='background:white; padding:24px; border-radius:12px; margin:24px 0;'>
-                    <p style='line-height:1.8; text-align:center;'>
+                <div class='content-box'>
+                    <p class='slide-shell__subtitle'>
                         You've learned about the model-building process and are ready to take on the challenge:
                     </p>
 
-                    <ul style='list-style:none; padding:0; text-align:left; max-width:600px; margin:20px auto; font-size:1.1rem;'>
-                        <li style='padding:8px 0;'>✅ Understood the AI model-building process</li>
-                        <li style='padding:8px 0;'>✅ Learned about accuracy and performance</li>
-                        <li style='padding:8px 0;'>✅ Discovered real-world bias in AI systems</li>
+                    <ul class='bullet-list'>
+                        <li>✅ Understood the AI model-building process</li>
+                        <li>✅ Learned about accuracy and performance</li>
+                        <li>✅ Discovered real-world bias in AI systems</li>
                     </ul>
 
-                    <p style='text-align:center; font-size:1.2rem; font-weight:600; color:#2563eb; margin-top:24px;'>
+                    <p class='slide-shell__subtitle' style='font-weight:600;'>
                         🎯 Ready to learn about ethical AI!
                     </p>
                 </div>
 
-                <div style='background:#fef9c3; padding:20px; border-radius:8px; border-left:6px solid #f59e0b; margin-top:24px;'>
-                    <p style='font-size:1.15rem; font-weight:600; margin:0; color:#92400e;'>
+                <div class='content-box content-box--emphasis'>
+                    <p class='content-box__heading'>
                         Now you know the full story...
                     </p>
-                    <p style='margin:12px 0 0 0; line-height:1.6;'>
+                    <p>
                         High accuracy isn't enough. Real-world AI systems must also be
-                        <strong>fair, equitable, and minimize harm</strong> across all groups of people.
+                        <strong>fair, equitable, and <span class='emph-harm'>minimize harm</span></strong>
+                        across all groups of people.
                     </p>
                 </div>
             </div>
             """
         else:
             return """
-            <div style='background:#fef3c7; padding:32px; border-radius:16px; border:3px solid #f59e0b; text-align:center;'>
-                <h2 style='font-size: 2rem; margin:0; color:#92400e;'>
+            <div class='slide-shell slide-shell--warning' style='text-align:center;'>
+                <h2 class='slide-shell__title'>
                     📊 Sign In to See Your Stats
                 </h2>
-                <p style='font-size: 1.2rem; margin-top:20px; color:#78350f; line-height:1.6;'>
+                <p class='slide-shell__subtitle'>
                     To view your personalized standing with actual scores and rankings,
                     please sign in below.
                 </p>
-                <p style='font-size: 1.1rem; margin-top:16px; color:#78350f;'>
+                <p class='slide-shell__subtitle'>
                     You can still continue through this lesson without signing in.
                 </p>
             </div>
@@ -433,20 +433,19 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
         gauge_display = str(gauge_value)
 
         return f"""
-            <div style='font-size: 20px; background:#fef2f2; padding:28px; border-radius:16px; border: 3px solid #dc2626;'>
-                <h3 style='color:#991b1b; margin-top:0; text-align:center; font-size:1.8rem;'>
+            <div class='slide-shell slide-shell--warning'>
+                <h3 class='slide-shell__title'>
                     We Need a Higher Standard
                 </h3>
 
-                <p style='text-align:center; font-size:1.2rem; line-height:1.8;'>
+                <p class='slide-shell__subtitle'>
                     While your model is accurate, a higher standard is needed to prevent
-                    real-world harm. To incentivize this new focus, we're introducing a new score.
+                    <span class='emph-harm'>real-world harm</span>. To incentivize this new focus,
+                    we're introducing a new score.
                 </p>
 
-                <div style='background:white; padding:32px; border-radius:12px; margin:32px 0; text-align:center;'>
-                    <h4 style='margin-top:0; color:#374151; font-size:1.5rem;'>
-                        Watch Your Score
-                    </h4>
+                <div class='content-box'>
+                    <h4 class='content-box__heading'>Watch Your Score</h4>
 
                     <div class='score-gauge-container'>
                         <div class='score-gauge' style='--fill-percent: {gauge_fill_percent};'>
@@ -456,16 +455,15 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
                             </div>
                         </div>
                     </div>
-
-
                 </div>
 
-                <div style='background:#fef3c7; padding:24px; border-radius:8px; text-align:center; border:2px solid #f59e0b;'>
-                    <p style='font-size:1.3rem; font-weight:600; margin:0; color:#92400e;'>
+                <div class='content-box content-box--emphasis'>
+                    <p class='content-box__heading'>
                         This score measures only <strong>one dimension</strong> of success.
                     </p>
-                    <p style='font-size:1.1rem; margin:12px 0 0 0; color:#78350f;'>
-                        It's time to add a second, equally important dimension: <strong>Ethics</strong>
+                    <p>
+                        It's time to add a second, equally important dimension:
+                        <strong class='emph-fairness'>Ethics</strong>.
                     </p>
                 </div>
             </div>
@@ -475,74 +473,71 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
         if user_stats["is_signed_in"] and user_stats["rank"]:
             rank_text = f"#{user_stats['rank']}"
             position_message = f"""
-                        <p style='font-size:1.2rem; line-height:1.8; text-align:left;'>
+                        <p class='slide-teaching-body' style='text-align:left;'>
                             You were previously <strong>ranked {rank_text}</strong> on the accuracy leaderboard.
                             But now, with the introduction of the Moral Compass Score, your position has changed:
                         </p>
             """
         else:
             position_message = """
-                        <p style='font-size:1.2rem; line-height:1.8; text-align:left;'>
+                        <p class='slide-teaching-body' style='text-align:left;'>
                             With the introduction of the Moral Compass Score, everyone starts fresh.
                             Your previous work on accuracy is valuable, but now we need to add ethics:
                         </p>
             """
 
         return f"""
-            <div style='text-align:center;'>
-                <div style='font-size: 20px; background:#e0f2fe; padding:36px; border-radius:16px;
-                            border: 3px solid #0369a1; max-width:900px; margin:auto;'>
-                    <h3 style='color:#0c4a6e; margin-top:0; font-size:2rem;'>
-                        📍 Your Current Position
-                    </h3>
+            <div class='slide-shell slide-shell--info'>
+                <h3 class='slide-shell__title'>
+                    📍 Your Current Position
+                </h3>
 
-                    <div style='background:white; padding:28px; border-radius:12px; margin:24px 0;'>
-                        {position_message}
+                <div class='content-box'>
+                    {position_message}
 
-                        <div style='background:#fef2f2; padding:24px; border-radius:8px; margin:24px 0; border:2px solid #dc2626;'>
-                            <p style='font-size:1.5rem; font-weight:700; margin:0; color:#991b1b;'>
-                                Current Moral Compass Rank: Starting Fresh
-                            </p>
-                            <p style='font-size:1.1rem; margin:12px 0 0 0; color:#7f1d1d;'>
-                                (Because your Moral Compass Score = 0)
-                            </p>
-                        </div>
-                    </div>
-
-                    <div style='background:#f0fdf4; padding:28px; border-radius:12px; border-left:6px solid #16a34a; text-align:left;'>
-                        <h4 style='margin-top:0; color:#15803d; font-size:1.4rem;'>
-                            🛤️ The Path Forward
-                        </h4>
-                        <p style='font-size:1.1rem; line-height:1.8;'>
-                            The next section will provide expert guidance from the <strong>UdG's
-                            OEIAC AI Ethics Center</strong>. You'll learn to:
+                    <div class='content-box content-box--danger'>
+                        <p class='content-box__heading'>
+                            Current Moral Compass Rank: <span class='emph-risk'>Starting Fresh</span>
                         </p>
-                        <ul style='font-size:1.05rem; line-height:2;'>
-                            <li>🔍 <strong>Detect and measure bias</strong> in your AI models</li>
-                            <li>⚖️ <strong>Apply fairness metrics</strong> to evaluate equity</li>
-                            <li>🔧 <strong>Redesign your system</strong> to minimize harm</li>
-                            <li>📊 <strong>Balance accuracy with fairness</strong> for better outcomes</li>
-                        </ul>
-                    </div>
-
-                    <div style='background:#fef3c7; padding:24px; border-radius:12px; margin-top:24px; border:2px solid #f59e0b;'>
-                        <p style='font-size:1.2rem; font-weight:600; margin:0; color:#92400e;'>
-                            🏆 Upon Completion
-                        </p>
-                        <p style='font-size:1.05rem; margin:12px 0 0 0; line-height:1.8;'>
-                            By completing the full learning module and improving your Moral Compass Score,
-                            you will earn your <strong>AI Ethical Risk Training Certificate</strong>.
-                        </p>
-                        <p style='font-size:0.95rem; margin:12px 0 0 0; color:#78350f; font-style:italic;'>
-                            (Certificate details and delivery will be covered in upcoming sections)
+                        <p>
+                            (Because your Moral Compass Score = <span class='emph-harm'>0</span>)
                         </p>
                     </div>
+                </div>
 
-                    <h1 style='margin:32px 0 16px 0; font-size: 3rem;'>👇 SCROLL DOWN 👇</h1>
-                    <p style='font-size:1.2rem;'>
-                        Continue to the expert guidance section to begin improving your Moral Compass Score.
+                <div class='content-box content-box--success'>
+                    <h4 class='content-box__heading'>
+                        🛤️ The Path Forward
+                    </h4>
+                    <p class='slide-teaching-body'>
+                        The next section will provide expert guidance from the <strong>UdG's
+                        OEIAC AI Ethics Center</strong>. You'll learn to:
+                    </p>
+                    <ul class='bullet-list'>
+                        <li>🔍 <strong>Detect and measure bias</strong> in your AI models</li>
+                        <li>⚖️ <strong>Apply fairness metrics</strong> to evaluate equity</li>
+                        <li>🔧 <strong>Redesign your system</strong> to <span class='emph-harm'>minimize harm</span></li>
+                        <li>📊 <strong>Balance accuracy with fairness</strong> for better outcomes</li>
+                    </ul>
+                </div>
+
+                <div class='content-box content-box--emphasis'>
+                    <p class='content-box__heading'>
+                        🏆 Upon Completion
+                    </p>
+                    <p>
+                        By completing the full learning module and improving your Moral Compass Score,
+                        you will earn your <strong class='emph-fairness'>AI Ethical Risk Training Certificate</strong>.
+                    </p>
+                    <p class='note-text'>
+                        (Certificate details and delivery will be covered in upcoming sections)
                     </p>
                 </div>
+
+                <h1 style='margin:32px 0 16px 0; font-size: 3rem; text-align:center;'>👇 SCROLL DOWN 👇</h1>
+                <p style='font-size:1.2rem; text-align:center;'>
+                    Continue to the expert guidance section to begin improving your Moral Compass Score.
+                </p>
             </div>
         """
 
@@ -553,12 +548,227 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
         font-size: 20px !important;
     }
 
-    /* Gauge/Meter styles for dramatic reset */
+    /* --------------------------------------------- */
+    /*  Slide + content containers (theme-aware)     */
+    /* --------------------------------------------- */
+
+    .slide-shell {
+        padding: 28px;
+        border-radius: 16px;
+        background-color: var(--block-background-fill);
+        color: var(--body-text-color);
+        border: 2px solid var(--border-color-primary);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+        max-width: 900px;
+        margin: 0 auto 24px auto;
+        font-size: 20px;
+    }
+
+    .slide-shell--info {
+        border-color: var(--color-accent);
+    }
+
+    .slide-shell--warning {
+        border-color: var(--color-accent);
+    }
+
+    .slide-shell__title {
+        font-size: 2rem;
+        margin: 0 0 16px 0;
+        text-align: center;
+    }
+
+    .slide-shell__subtitle {
+        font-size: 1.1rem;
+        margin-top: 8px;
+        text-align: center;
+        color: var(--secondary-text-color);
+        line-height: 1.7;
+    }
+
+    .content-box {
+        background-color: var(--block-background-fill);
+        border-radius: 12px;
+        border: 1px solid var(--border-color-primary);
+        padding: 24px;
+        margin: 24px 0;
+    }
+
+    .content-box__heading {
+        margin-top: 0;
+        font-weight: 600;
+        font-size: 1.2rem;
+    }
+
+    .content-box--emphasis {
+        border-left: 6px solid var(--color-accent);
+    }
+
+    .content-box--danger {
+        border-left: 6px solid #dc2626;
+    }
+
+    .content-box--success {
+        border-left: 6px solid #16a34a;
+    }
+
+    .bullet-list {
+        list-style: none;
+        padding-left: 0;
+        margin: 16px auto 0 auto;
+        max-width: 600px;
+        font-size: 1.05rem;
+    }
+
+    .bullet-list li {
+        padding: 6px 0;
+    }
+
+    .note-text {
+        font-size: 0.95rem;
+        margin-top: 12px;
+        font-style: italic;
+        color: var(--secondary-text-color);
+    }
+
+    /* Stats cards */
+    .stat-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin: 24px auto;
+        max-width: 600px;
+    }
+
+    .stat-card {
+        text-align: center;
+        padding: 16px;
+        border-radius: 10px;
+        border: 1px solid var(--border-color-primary);
+        background-color: var(--block-background-fill);
+    }
+
+    .stat-card__label {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--secondary-text-color);
+    }
+
+    .stat-card__value {
+        margin: 8px 0 0 0;
+        font-size: 2.2rem;
+        font-weight: 800;
+    }
+
+    .stat-card--success .stat-card__value {
+        color: #16a34a;
+    }
+
+    .stat-card--accent .stat-card__value {
+        color: var(--color-accent);
+    }
+
+    .team-card {
+        text-align: center;
+        padding: 16px;
+        border-radius: 10px;
+        border: 1px solid var(--border-color-primary);
+        background-color: var(--block-background-fill);
+        margin-top: 8px;
+    }
+
+    .team-card__label {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--secondary-text-color);
+    }
+
+    .team-card__value {
+        margin: 8px 0 4px 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    .team-card__rank {
+        margin: 0;
+        font-size: 1rem;
+        color: var(--secondary-text-color);
+    }
+
+    /* Larger teaching text */
+    .slide-teaching-body {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        margin-top: 1rem;
+    }
+
+    /* Ethical-risk emphasis utilities */
+    .emph-harm {
+        color: #b91c1c;
+        font-weight: 700;
+    }
+
+    .emph-risk {
+        color: #b45309;
+        font-weight: 600;
+    }
+
+    .emph-fairness {
+        color: var(--color-accent);
+        font-weight: 600;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .emph-harm {
+            color: #fca5a5;
+        }
+        .emph-risk {
+            color: #fed7aa;
+        }
+    }
+
+    /* Alerts used by inline login + feedback */
+    .alert {
+        padding: 16px;
+        border-radius: 8px;
+        border-left: 4px solid var(--border-color-primary);
+        margin-top: 12px;
+        background-color: var(--block-background-fill);
+        color: var(--body-text-color);
+        font-size: 0.95rem;
+    }
+    .alert__title {
+        margin: 0;
+        font-weight: 600;
+        font-size: 1.05rem;
+    }
+    .alert__subtitle {
+        margin: 8px 0 0 0;
+        font-weight: 600;
+    }
+    .alert__body {
+        margin: 8px 0 0 0;
+    }
+    .alert__link {
+        text-decoration: underline;
+    }
+
+    .alert--error {
+        border-left-color: #dc2626;
+    }
+    .alert--warning {
+        border-left-color: #f59e0b;
+    }
+    .alert--success {
+        border-left-color: #16a34a;
+    }
+
+    /* Gauge/Meter styles (theme-aware) */
     .score-gauge-container {
         position: relative;
-        width: 300px;
-        height: 300px;
-        margin: 32px auto;
+        width: 260px;
+        height: 260px;
+        margin: 24px auto;
     }
 
     .score-gauge {
@@ -569,50 +779,51 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
             from 180deg,
             #16a34a 0%,
             #16a34a var(--fill-percent, 0%),
-            #e5e7eb var(--fill-percent, 0%),
-            #e5e7eb 100%
+            var(--border-color-primary) var(--fill-percent, 0%),
+            var(--border-color-primary) 100%
         );
         display: flex;
         align-items: center;
         justify-content: center;
         position: relative;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
     }
 
     .score-gauge-inner {
         width: 70%;
         height: 70%;
         border-radius: 50%;
-        background: white;
+        background-color: var(--block-background-fill);
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         z-index: 2;
+        border: 1px solid var(--border-color-primary);
     }
 
     .score-gauge-value {
-        font-size: 4rem;
+        font-size: 3.2rem;
         font-weight: 800;
-        color: #1f2937;
+        color: var(--body-text-color);
         line-height: 1;
     }
 
     .score-gauge-label {
-        font-size: 1rem;
-        color: #6b7280;
+        font-size: 0.95rem;
+        color: var(--secondary-text-color);
         margin-top: 8px;
     }
 
-    /* Animation for gauge drop */
+    /* Animation for gauge drop (Step 3) */
     @keyframes gauge-drop {
         0% {
             background: conic-gradient(
                 from 180deg,
                 #16a34a 0%,
                 #16a34a 75%,
-                #e5e7eb 75%,
-                #e5e7eb 100%
+                var(--border-color-primary) 75%,
+                var(--border-color-primary) 100%
             );
         }
         100% {
@@ -620,8 +831,8 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
                 from 180deg,
                 #dc2626 0%,
                 #dc2626 0%,
-                #e5e7eb 0%,
-                #e5e7eb 100%
+                var(--border-color-primary) 0%,
+                var(--border-color-primary) 100%
             );
         }
     }
@@ -632,49 +843,48 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
 
     /* Formula box styles */
     .formula-box {
-        background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
-        border: 3px solid #7c3aed;
+        background-color: var(--block-background-fill);
+        border: 3px solid var(--color-accent);
         border-radius: 16px;
-        padding: 32px;
+        padding: 24px;
         margin: 24px 0;
-        box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     .formula-math {
-        font-family: 'Courier New', monospace;
-        font-size: 1.3rem;
+        font-family: "Courier New", monospace;
+        font-size: 1.2rem;
         font-weight: 600;
-        background: white;
-        padding: 20px;
+        background-color: var(--body-background-fill);
+        padding: 18px;
         border-radius: 8px;
         text-align: center;
-        color: #5b21b6;
         margin: 16px 0;
-        line-height: 2;
+        line-height: 1.9;
     }
 
-    /* Navigation Loading Overlay Styles */
+    /* Navigation Loading Overlay Styles (opaque, theme-aware) */
     #nav-loading-overlay {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(255, 255, 255, 0.95);
+        background-color: var(--body-background-fill);
         z-index: 9999;
         display: none;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         opacity: 0;
-        transition: opacity 0.3s ease;
+        transition: opacity 0.25s ease;
     }
 
     .nav-spinner {
         width: 50px;
         height: 50px;
-        border: 5px solid #e5e7eb;
-        border-top: 5px solid #6366f1;
+        border: 5px solid var(--block-background-fill);
+        border-top: 5px solid var(--color-accent);
         border-radius: 50%;
         animation: nav-spin 1s linear infinite;
         margin-bottom: 20px;
@@ -688,7 +898,21 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
     #nav-loading-text {
         font-size: 1.3rem;
         font-weight: 600;
-        color: #4338ca;
+        color: var(--body-text-color);
+    }
+
+    /* Dark-mode fine-tuning */
+    @media (prefers-color-scheme: dark) {
+        .slide-shell,
+        .content-box,
+        .alert,
+        .formula-box {
+            box-shadow: none;
+        }
+
+        .score-gauge {
+            box-shadow: none;
+        }
     }
     """
 
@@ -717,7 +941,7 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
             gr.Markdown(
                 """
                 <div style='text-align:center; padding: 100px 0;'>
-                    <h2 style='font-size: 2rem; color: #6b7280;'>⏳ Loading...</h2>
+                    <h2 class='large-text' style='color: var(--secondary-text-color);'>⏳ Loading...</h2>
                 </div>
                 """
             )
@@ -763,12 +987,12 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
 
         # Step 3: The Reset Animation
         with gr.Column(visible=False, elem_id="step-3") as step_3:
-            
+
             gr.HTML(
                 """
-                <div style='font-size: 20px; background:#f9fafb; padding:40px; border-radius:16px; border: 3px solid #6b7280;'>
+                <div class='slide-shell slide-shell--warning'>
                     <div style='text-align:center;'>
-                        <h3 style='color:#1f2937; margin-top:0; font-size:2rem;'>
+                        <h3 class='slide-shell__title'>
                             Your Accuracy Score Is Being Reset
                         </h3>
 
@@ -781,26 +1005,27 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
                             </div>
                         </div>
 
-                        <div style='background:#fef2f2; padding:28px; border-radius:12px; margin:32px auto; max-width:700px; border:2px solid #dc2626;'>
-                            <h4 style='margin-top:0; color:#991b1b; font-size:1.5rem;'>
+                        <div class='content-box content-box--danger'>
+                            <h4 class='content-box__heading'>
                                 ⚠️ Why This Reset?
                             </h4>
-                            <p style='line-height:1.8; text-align:left;'>
+                            <p class='slide-teaching-body' style='text-align:left;'>
                                 We reset your score to emphasize a critical truth: your previous success
                                 was measured by only <strong>one dimension</strong> — prediction accuracy. So far, you
                                 <strong>have not demonstrated</strong> that you know how to make your AI system
-                                safe for society. You don’t yet know whether the model you built is
-                                <strong>just as biased</strong> as the harmful examples we studied in the
-                                previous activity. Moving forward, you’ll need to excel on
-                                <strong>two fronts</strong>: technical performance <em>and</em> ethical responsibility.
+                                <span class='emph-fairness'>safe for society</span>. You don’t yet know whether
+                                the model you built is <strong class='emph-harm'>just as biased</strong> as the
+                                harmful examples we studied in the previous activity. Moving forward, you’ll need
+                                to excel on <strong>two fronts</strong>: technical performance <em>and</em>
+                                ethical responsibility.
                             </p>
                         </div>
 
-                        <div style='background:#d1fae5; padding:24px; border-radius:12px; border-left:6px solid #16a34a;'>
-                            <h4 style='margin-top:0; color:#15803d; font-size:1.3rem;'>
+                        <div class='content-box content-box--success'>
+                            <h4 class='content-box__heading'>
                                 ✅ Don't Worry!
                             </h4>
-                            <p style='font-size:1.1rem; margin:0; line-height:1.8;'>
+                            <p class='slide-teaching-body'>
                                 As you make your AI more ethical through the upcoming lessons and challenges,
                                 <strong>your score will be restored</strong>—and could climb even higher than before.
                             </p>
@@ -821,38 +1046,36 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
             gr.Markdown("<h2 style='text-align:center;'>🧭 The Moral Compass Score</h2>")
             gr.HTML(
                 """
-                <div style='font-size: 20px; background:linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-                            padding:32px; border-radius:16px; border: 3px solid #0284c7;'>
-                    <h3 style='color:#0c4a6e; margin-top:0; text-align:center; font-size:2rem;'>
+                <div class='slide-shell slide-shell--info'>
+                    <h3 class='slide-shell__title'>
                         A New Way to Win
                     </h3>
 
-                    <p style='text-align:center; font-size:1.2rem; line-height:1.8;'>
+                    <p class='slide-shell__subtitle'>
                         Your new goal is to climb the leaderboard by increasing your
                         <strong>Moral Compass Score</strong>.
                     </p>
 
                     <div class='formula-box'>
-                        <h4 style='margin-top:0; color:#5b21b6; text-align:center; font-size:1.5rem;'>
+                        <h4 class='content-box__heading' style='text-align:center;'>
                             📐 The Scoring Formula
                         </h4>
 
                         <div class='formula-math'>
-                            <strong>Moral Compass Score</strong> =<br>
-                            <br>
+                            <strong>Moral Compass Score</strong> =<br><br>
                             [ Current Model Accuracy ] × [ Ethical Progress % ]
                         </div>
 
-                        <div style='background:white; padding:20px; border-radius:8px; margin-top:20px;'>
-                            <p style='margin:0; line-height:1.8;'><strong>Where:</strong></p>
-                            <ul style='line-height:2; text-align:left;'>
+                        <div class='content-box' style='margin-top:20px;'>
+                            <p class='content-box__heading'>Where:</p>
+                            <ul class='bullet-list'>
                                 <li>
                                     <strong>Current Model Accuracy:</strong> Your technical performance
                                     (can be improved through model refinement)
                                 </li>
                                 <li>
                                     <strong>Ethical Progress %:</strong> Percentage of:
-                                    <ul style='margin-top:8px;'>
+                                    <ul class='bullet-list' style='margin-top:8px;'>
                                         <li>✅ Ethical learning tasks completed</li>
                                         <li>✅ Check-in questions answered correctly</li>
                                     </ul>
@@ -861,12 +1084,15 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
                         </div>
                     </div>
 
-                    <div style='background:#ecfdf5; padding:24px; border-radius:12px; border-left:6px solid #10b981; margin-top:24px;'>
-                        <h4 style='margin-top:0; color:#047857;'>💡 What This Means:</h4>
-                        <p style='margin:0; line-height:1.8;'>
+                    <div class='content-box content-box--success'>
+                        <h4 class='content-box__heading'>
+                            💡 What This Means:
+                        </h4>
+                        <p class='slide-teaching-body'>
                             You <strong>cannot</strong> win by accuracy alone—you must also demonstrate
-                            ethical understanding. And you <strong>cannot</strong> win by just completing
-                            lessons—you need a working model too. <strong>Both dimensions matter.</strong>
+                            <strong class='emph-fairness'>ethical understanding</strong>. And you
+                            <strong>cannot</strong> win by just completing lessons—you need a working model too.
+                            <strong class='emph-risk'>Both dimensions matter</strong>.
                         </p>
                     </div>
                 </div>
