@@ -17,6 +17,9 @@ env:
   REPO_NAME: moral-compass-apps
 
 jobs:
+  # ----------------------------------------------------------------
+  # JOB 1: BUILD (Build Once)
+  # ----------------------------------------------------------------
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
@@ -25,31 +28,20 @@ jobs:
     outputs:
       image_tag: ${{ steps.image-tag.outputs.image }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - id: auth
         name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
-          # For keyless (future):
-          # workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
-          # service_account: ${{ secrets.DEPLOYER_SA }}
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Configure Docker Auth
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
-
-      # OPTIONAL: Cache Python deps
-      # - name: Cache pip
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: ~/.cache/pip
-      #     key: pip-${{ runner.os }}-${{ hashFiles('requirements*.txt') }}
-      #     restore-keys: |
-      #       pip-${{ runner.os }}-
 
       - name: Build and Push Docker Image
         id: image-tag
@@ -59,13 +51,9 @@ jobs:
           docker push "$IMAGE"
           echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
 
-      # OPTIONAL: Tag latest
-      # - name: Tag latest
-      #   run: |
-      #     LATEST_IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:latest"
-      #     docker tag "${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}" "$LATEST_IMAGE"
-      #     docker push "$LATEST_IMAGE"
-
+  # ----------------------------------------------------------------
+  # JOB 2: DEPLOY (Deploy Many)
+  # ----------------------------------------------------------------
   deploy-services:
     needs: build-and-push
     runs-on: ubuntu-latest
@@ -85,14 +73,9 @@ jobs:
           - bias-detective
           - fairness-fixer
           - justice-equity-upgrade
-        # OPTIONAL per-service overrides example:
-        # include:
-        #   - app_name: tutorial
-        #     min_instances: 1
-        #   - app_name: judge
-        #     min_instances: 1
+
     steps:
-      - id: auth
+      - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
@@ -101,7 +84,8 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Show Docker Image Tag
-        run: echo "Deploying image: ${{ needs.build-and-push.outputs.image_tag }} to service: ${{ matrix.app_name }}"
+        run: |
+          echo "Deploying image: ${{ needs.build-and-push.outputs.image_tag }} to service: ${{ matrix.app_name }}"
 
       - name: Deploy to Cloud Run
         id: deploy
@@ -111,17 +95,12 @@ jobs:
           image: ${{ needs.build-and-push.outputs.image_tag }}
           region: ${{ env.REGION }}
           flags: '--allow-unauthenticated --memory=1Gi --cpu=1 --session-affinity --concurrency=80 --min-instances=0 --max-instances=50'
-          # OPTIONAL flags you can test:
-          # flags: '--allow-unauthenticated --memory=1Gi --cpu=1 --session-affinity --concurrency=40 --min-instances=0 --max-instances=50 --timeout=600 --cpu-boost'
           env_vars: |
             APP_NAME=${{ matrix.app_name }}
             GRADIO_SERVER_NAME=0.0.0.0
             GRADIO_ANALYTICS_ENABLED=False
             GRADIO_NUM_PORTS=1
-          # OPTIONAL revision suffix:
-          # revision_suffix: ${{ github.run_number }}-${{ matrix.app_name }}
 
       - name: Show Service URL
         if: steps.deploy.outputs.url != ''
         run: echo "Service URL: ${{ steps.deploy.outputs.url }}"
-
