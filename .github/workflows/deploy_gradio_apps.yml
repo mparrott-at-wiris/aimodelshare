@@ -3,7 +3,7 @@ name: Deploy Moral Compass Apps to Production
 on:
   workflow_dispatch:
   push:
-    branches: [ "master" ]
+    branches: [ "master" ] # Verify this is 'master' and not 'main'
     paths:
       - 'aimodelshare/moral_compass/apps/**'
       - 'requirements-apps.txt'
@@ -24,7 +24,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write
     outputs:
       image_tag: ${{ steps.image-tag.outputs.image }}
     steps:
@@ -57,8 +56,6 @@ jobs:
   deploy-services:
     needs: build-and-push
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
     strategy:
       fail-fast: false
       matrix:
@@ -89,11 +86,12 @@ jobs:
 
       - name: Deploy to Cloud Run
         id: deploy
-        uses: google-github-actions/deploy-cloudrun@v1
+        uses: google-github-actions/deploy-cloudrun@v2 # Updated to v2
         with:
           service: ${{ matrix.app_name }}
           image: ${{ needs.build-and-push.outputs.image_tag }}
           region: ${{ env.REGION }}
+          # Note: v2 uses 'flags' string just like v1, this syntax remains valid
           flags: '--allow-unauthenticated --memory=1Gi --cpu=1 --session-affinity --concurrency=80 --min-instances=0 --max-instances=50'
           env_vars: |
             APP_NAME=${{ matrix.app_name }}
@@ -102,5 +100,5 @@ jobs:
             GRADIO_NUM_PORTS=1
 
       - name: Show Service URL
-        if: steps.deploy.outputs.url != ''
+        run: echo "Service URL: ${{ steps.deploy.outputs.url }}"
         run: echo "Service URL: ${{ steps.deploy.outputs.url }}"
