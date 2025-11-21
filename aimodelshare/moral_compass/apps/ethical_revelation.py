@@ -190,9 +190,11 @@ def _perform_inline_login(username_input, password_input):
                     if "timestamp" in user_submissions.columns:
                         try:
                             user_submissions = user_submissions.copy()
-                            user_submissions["timestamp"] = pd.to_datetime(user_submissions["timestamp"], errors='coerce')
+                            user_submissions["timestamp"] = pd.to_datetime(
+                                user_submissions["timestamp"], errors='coerce'
+                            )
                             user_submissions = user_submissions.sort_values("timestamp", ascending=False)
-                        except:
+                        except Exception:
                             pass
 
                     existing_team = user_submissions.iloc[0]["Team"]
@@ -209,16 +211,16 @@ def _perform_inline_login(username_input, password_input):
     # Validate inputs
     if not username_input or not username_input.strip():
         error_html = """
-        <div style='background:#fef2f2; padding:16px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
-            <p style='margin:0; color:#991b1b; font-weight:600;'>⚠️ Username is required</p>
+        <div class='alert alert--error'>
+            <p class='alert__title'>⚠️ Username is required</p>
         </div>
         """
         return False, error_html, _get_user_stats_from_leaderboard()
 
     if not password_input or not password_input.strip():
         error_html = """
-        <div style='background:#fef2f2; padding:16px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
-            <p style='margin:0; color:#991b1b; font-weight:600;'>⚠️ Password is required</p>
+        <div class='alert alert--error'>
+            <p class='alert__title'>⚠️ Password is required</p>
         </div>
         """
         return False, error_html, _get_user_stats_from_leaderboard()
@@ -244,15 +246,15 @@ def _perform_inline_login(username_input, password_input):
         if user_stats["best_score"] is None:
             # User signed in but hasn't submitted models yet
             warning_html = f"""
-            <div style='background:#fef9c3; padding:16px; border-radius:8px; border-left:4px solid #f59e0b; margin-top:12px;'>
-                <p style='margin:0; color:#92400e; font-weight:600; font-size:1.1rem;'>✓ Signed in successfully!</p>
-                <p style='margin:8px 0; color:#78350f; font-size:0.95rem;'>
+            <div class='alert alert--warning'>
+                <p class='alert__title'>✓ Signed in successfully!</p>
+                <p class='alert__body'>
                     Team: <b>{team_name}</b>
                 </p>
-                <p style='margin:8px 0 0 0; color:#92400e; font-weight:600; font-size:0.95rem;'>
+                <p class='alert__subtitle'>
                     ⚠️ You haven't submitted any models yet!
                 </p>
-                <p style='margin:8px 0 0 0; color:#78350f; font-size:0.95rem;'>
+                <p class='alert__body'>
                     Please go back to the <strong>Model Building Game</strong> activity and submit at least one model
                     to see your personalized stats here.
                 </p>
@@ -267,29 +269,29 @@ def _perform_inline_login(username_input, password_input):
             team_message = f"Welcome back to team: <b>{team_name}</b> ✅"
 
         success_html = f"""
-        <div style='background:#f0fdf4; padding:16px; border-radius:8px; border-left:4px solid #16a34a; margin-top:12px;'>
-            <p style='margin:0; color:#15803d; font-weight:600; font-size:1.1rem;'>✓ Signed in successfully!</p>
-            <p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>
+        <div class='alert alert--success'>
+            <p class='alert__title'>✓ Signed in successfully!</p>
+            <p class='alert__body'>
                 {team_message}
             </p>
-            <p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>
+            <p class='alert__body'>
                 Your personalized stats are now displayed above!
             </p>
         </div>
         """
         return True, success_html, user_stats
 
-    except Exception as e:
+    except Exception:
         # Authentication failed
-        error_html = f"""
-        <div style='background:#fef2f2; padding:16px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
-            <p style='margin:0; color:#991b1b; font-weight:600; font-size:1.1rem;'>⚠️ Authentication failed</p>
-            <p style='margin:8px 0; color:#7f1d1d; font-size:0.95rem;'>
+        error_html = """
+        <div class='alert alert--error'>
+            <p class='alert__title'>⚠️ Authentication failed</p>
+            <p class='alert__body'>
                 Could not verify your credentials. Please check your username and password.
             </p>
-            <p style='margin:8px 0 0 0; color:#7f1d1d; font-size:0.95rem;'>
+            <p class='alert__body'>
                 <strong>New user?</strong> Create a free account at
-                <a href='https://www.modelshare.ai/login' target='_blank' style='color:#dc2626; text-decoration:underline;'>modelshare.ai/login</a>
+                <a href='https://www.modelshare.ai/login' target='_blank' class='alert__link'>modelshare.ai/login</a>
             </p>
         </div>
         """
@@ -307,22 +309,251 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
         ) from e
 
     css = """
+    /* --------------------------------------------- */
+    /* Base utility + theme-variable driven styling  */
+    /* --------------------------------------------- */
+
     .large-text {
         font-size: 20px !important;
     }
-    .celebration-box {
-        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
-        border: 3px solid #f59e0b !important;
-        border-radius: 16px !important;
-        padding: 32px !important;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+    /* 25% larger paragraph text for the "But Wait..." slide */
+    .slide-warning-body {
+        font-size: 1.25em;     /* 25% larger than normal text */
+        line-height: 1.75;     /* improve readability */
     }
+    .celebration-box,
+    .slide-shell {
+        padding: 24px;
+        border-radius: 16px;
+        background-color: var(--block-background-fill);
+        color: var(--body-text-color);
+        border: 2px solid var(--border-color-primary);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+        max-width: 900px;
+        margin: auto;
+    }
+
+    .slide-shell--primary {
+        border-color: var(--color-accent);
+    }
+
+    .slide-shell--warning {
+        border-color: var(--color-accent);
+    }
+
+    .slide-shell--info {
+        border-color: var(--color-accent);
+    }
+
+    .slide-shell__title {
+        font-size: 2.3rem;
+        margin: 0;
+        text-align: center;
+    }
+
+    .slide-shell__subtitle {
+        font-size: 1.2rem;
+        margin-top: 16px;
+        text-align: center;
+        color: var(--secondary-text-color);
+    }
+
+    .stat-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 16px;
+    }
+
+    .stat-card {
+        text-align: center;
+        padding: 16px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color-primary);
+        background-color: var(--block-background-fill);
+    }
+
+    .stat-card__label {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--secondary-text-color);
+    }
+
+    .stat-card__value {
+        margin: 4px 0 0 0;
+        font-size: 1.8rem;
+        font-weight: 700;
+    }
+
+    .team-card {
+        text-align: center;
+        padding: 16px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color-primary);
+        background-color: var(--block-background-fill);
+        margin-top: 16px;
+    }
+
+    .team-card__label {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--secondary-text-color);
+    }
+
+    .team-card__value {
+        margin: 4px 0 0 0;
+        font-size: 1.3rem;
+        font-weight: 600;
+    }
+
+    .content-box {
+        background-color: var(--block-background-fill);
+        border-radius: 12px;
+        border: 1px solid var(--border-color-primary);
+        padding: 24px;
+        margin: 24px 0;
+    }
+
+    .content-box__heading {
+        margin-top: 0;
+    }
+
+    .content-box--emphasis {
+        border-left: 6px solid var(--color-accent);
+    }
+
     .revelation-box {
-        background: #fef2f2 !important;
-        border-left: 6px solid #dc2626 !important;
-        border-radius: 8px !important;
-        padding: 24px !important;
-        margin-top: 24px !important;
+        background-color: var(--block-background-fill);
+        border-left: 6px solid var(--color-accent);
+        border-radius: 8px;
+        padding: 24px;
+        margin-top: 24px;
+    }
+
+    /* Alerts used by inline login + feedback */
+    .alert {
+        padding: 16px;
+        border-radius: 8px;
+        border-left: 4px solid var(--border-color-primary);
+        margin-top: 12px;
+        background-color: var(--block-background-fill);
+        color: var(--body-text-color);
+        font-size: 0.95rem;
+    }
+    .alert__title {
+        margin: 0;
+        font-weight: 600;
+        font-size: 1.05rem;
+    }
+    .alert__subtitle {
+        margin: 8px 0 0 0;
+        font-weight: 600;
+    }
+    .alert__body {
+        margin: 8px 0 0 0;
+    }
+    .alert__link {
+        text-decoration: underline;
+    }
+
+    .alert--error {
+        border-left-color: var(--color-accent);
+    }
+    .alert--warning {
+        border-left-color: var(--color-accent);
+    }
+    .alert--success {
+        border-left-color: var(--color-accent);
+    }
+
+    /* EU panel / info slide */
+    .eu-panel {
+        font-size: 20px;
+        padding: 32px;
+        border-radius: 16px;
+        border: 3px solid var(--border-color-primary);
+        background-color: var(--block-background-fill);
+        max-width: 900px;
+        margin: auto;
+    }
+
+    .eu-panel h3,
+    .eu-panel h4 {
+        margin-top: 0;
+    }
+
+    .eu-panel__highlight {
+        padding: 22px;
+        border-radius: 12px;
+        border-left: 6px solid var(--color-accent);
+        background-color: var(--block-background-fill);
+        margin: 28px 0;
+    }
+
+    .eu-panel__note {
+        padding: 22px;
+        border-radius: 12px;
+        border-left: 6px solid var(--color-accent);
+        background-color: var(--block-background-fill);
+    }
+
+    /* --------------------------------------------- */
+    /*  Semantic Emphasis Utilities (Light + Dark)   */
+    /* --------------------------------------------- */
+
+    /* Strong warning / harm emphasis – used in Machine Bias slide */
+    .emph-danger {
+        color: #b91c1c; /* red-700 */
+        font-weight: 700;
+    }
+    @media (prefers-color-scheme: dark) {
+        .emph-danger {
+            color: #fca5a5; /* red-300 */
+        }
+    }
+
+    /* Mild harm background block */
+    .bg-danger-soft {
+        background-color: #fee2e2; /* red-100 */
+        border-left: 6px solid #dc2626; /* red-600 */
+        padding: 16px;
+        border-radius: 8px;
+    }
+    @media (prefers-color-scheme: dark) {
+        .bg-danger-soft {
+            background-color: rgba(220, 38, 38, 0.15);
+            border-left-color: #f87171; /* red-400 */
+        }
+    }
+
+    /* EU context blue emphasis */
+    .emph-eu {
+        color: #1e40af; /* blue-800 */
+        font-weight: 700;
+    }
+    @media (prefers-color-scheme: dark) {
+        .emph-eu {
+            color: #93c5fd; /* blue-300 */
+        }
+    }
+
+    .bg-eu-soft {
+        background-color: #dbeafe; /* blue-100 */
+        padding: 16px;
+        border-radius: 8px;
+        border-left: 6px solid #2563eb; /* blue-600 */
+    }
+    @media (prefers-color-scheme: dark) {
+        .bg-eu-soft {
+            background-color: rgba(37, 99, 235, 0.15);
+            border-left-color: #60a5fa; /* blue-400 */
+        }
+    }
+
+    /* Key teaching point emphasis */
+    .emph-key {
+        color: var(--color-accent);
+        font-weight: 700;
     }
 
     /* Navigation Loading Overlay Styles */
@@ -332,7 +563,7 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(255, 255, 255, 0.95);
+        background-color: var(--body-background-fill);
         z-index: 9999;
         display: none;
         flex-direction: column;
@@ -345,8 +576,8 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
     .nav-spinner {
         width: 50px;
         height: 50px;
-        border: 5px solid #e5e7eb;
-        border-top: 5px solid #6366f1;
+        border: 5px solid var(--block-background-fill);
+        border-top: 5px solid var(--color-accent);
         border-radius: 50%;
         animation: nav-spin 1s linear infinite;
         margin-bottom: 20px;
@@ -360,7 +591,75 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
     #nav-loading-text {
         font-size: 1.3rem;
         font-weight: 600;
-        color: #4338ca;
+        color: var(--body-text-color);
+    }
+
+    /* Dark-mode specific fine-tuning */
+    @media (prefers-color-scheme: dark) {
+        .celebration-box,
+        .slide-shell,
+        .content-box,
+        .alert,
+        .eu-panel {
+            box-shadow: none;
+        }
+        .team-card,
+        .stat-card {
+            box-shadow: none;
+        }
+        .revelation-box {
+            background-color: var(--block-background-fill);
+        }
+        #nav-loading-overlay {
+            background-color: var(--body-background-fill);
+        }
+    }
+    /* Larger text for teaching content */
+    .slide-teaching-body {
+        font-size: 1.25em;
+        line-height: 1.75;
+        margin-top: 1rem;
+    }
+
+    /* Numbered lesson headers */
+    .lesson-item-title {
+        font-size: 1.35em;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        display: block;
+        color: var(--body-text-color);
+    }
+
+    /* Decorative number badge */
+    .lesson-badge {
+        display: inline-block;
+        background-color: var(--color-accent);
+        color: var(--button-text-color);
+        padding: 6px 12px;
+        border-radius: 10px;
+        font-weight: 700;
+        margin-right: 10px;
+        font-size: 0.9em;
+    }
+
+    /* Soft background emphasis block */
+    .lesson-emphasis-box {
+        background-color: var(--block-background-fill);
+        border-left: 6px solid var(--color-accent);
+        padding: 18px 20px;
+        border-radius: 10px;
+        margin-top: 1.5rem;
+    }
+
+    /* Additional emotional emphasis */
+    .emph-harm {
+        color: #b91c1c;
+        font-weight: 700;
+    }
+    @media (prefers-color-scheme: dark) {
+        .emph-harm {
+            color: #fca5a5;
+        }
     }
 
     """
@@ -384,7 +683,7 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
             gr.Markdown(
                 """
                 <div style='text-align:center; padding: 100px 0;'>
-                    <h2 style='font-size: 2rem; color: #6b7280;'>⏳ Loading...</h2>
+                    <h2 class='large-text'>⏳ Loading...</h2>
                 </div>
                 """
             )
@@ -404,77 +703,43 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
                 team_text = user_stats['team_name'] if user_stats['team_name'] else "N/A"
 
                 celebration_html = f"""
-                <div style='
-                    background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 100%);
-                    border: 2px solid #6366f1;
-                    border-radius: 16px;
-                    padding: 32px;
-                    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-                    max-width: 800px;
-                    margin: auto;
-                '>
+                <div class='slide-shell slide-shell--primary'>
                     <div style='text-align:center;'>
-                        <h2 style='font-size: 2.3rem; margin:0; color:#4338ca;'>
+                        <h2 class='slide-shell__title'>
                             🏆 Great Work, Engineer! 🏆
                         </h2>
-                        <p style='font-size: 1.3rem; margin-top:16px; color:#475569;'>
+                        <p class='slide-shell__subtitle'>
                             Here's your performance summary.
                         </p>
 
-                        <div style='
-                            background:white;
-                            padding:24px;
-                            border-radius:12px;
-                            margin:24px auto;
-                            border:1px solid #e2e8f0;
-                            max-width:600px;
-                        '>
-                            <h3 style='margin-top:0; color:#1e293b;'>Your Stats</h3>
+                        <div class='content-box'>
+                            <h3 class='content-box__heading'>Your Stats</h3>
 
-                            <div style='display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:16px;'>
-                                <div style='
-                                    text-align:center;
-                                    padding:16px;
-                                    background:#eef2ff;
-                                    border-radius:8px;
-                                    border:1px solid #c7d2fe;
-                                '>
-                                    <p style='margin:0; font-size:0.9rem; color:#64748b;'>Best Accuracy</p>
-                                    <p style='margin:4px 0 0 0; font-size:1.8rem; font-weight:700; color:#4338ca;'>
+                            <div class='stat-grid'>
+                                <div class='stat-card'>
+                                    <p class='stat-card__label'>Best Accuracy</p>
+                                    <p class='stat-card__value'>
                                         {best_score_pct}
                                     </p>
                                 </div>
 
-                                <div style='
-                                    text-align:center;
-                                    padding:16px;
-                                    background:#f0fdf4;
-                                    border-radius:8px;
-                                    border:1px solid #bbf7d0;
-                                '>
-                                    <p style='margin:0; font-size:0.9rem; color:#64748b;'>Your Rank</p>
-                                    <p style='margin:4px 0 0 0; font-size:1.8rem; font-weight:700; color:#15803d;'>
+                                <div class='stat-card'>
+                                    <p class='stat-card__label'>Your Rank</p>
+                                    <p class='stat-card__value'>
                                         {rank_text}
                                     </p>
                                 </div>
                             </div>
 
-                            <div style='
-                                text-align:center;
-                                padding:16px;
-                                background:#f8fafc;
-                                border-radius:8px;
-                                border:1px solid #e2e8f0;
-                                margin-top:16px;
-                            '>
-                                <p style='margin:0; font-size:0.9rem; color:#64748b;'>Team</p>
-                                <p style='margin:4px 0 0 0; font-size:1.3rem; font-weight:600; color:#4338ca;'>
+                            <div class='team-card'>
+                                <p class='team-card__label'>Team</p>
+                                <p class='team-card__value'>
                                     🛡️ {team_text}
                                 </p>
                             </div>
                         </div>
 
-                        <p style='font-size: 1.2rem; margin-top:16px; color:#475569; font-weight:500;'>
+                        <p class='slide-shell__subtitle' style='font-weight:500;'>
                             Ready to share your model and explore its real-world impact?
                         </p>
                     </div>
@@ -483,38 +748,23 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
             elif user_stats["is_signed_in"]:
                 # Signed in but no submissions yet
                 celebration_html = """
-                <div style='
-                    background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 100%);
-                    border: 2px solid #6366f1;
-                    border-radius: 16px;
-                    padding: 32px;
-                    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-                    max-width: 800px;
-                    margin: auto;
-                '>
+                <div class='slide-shell slide-shell--primary'>
                     <div style='text-align:center;'>
-                        <h2 style='font-size: 2.3rem; margin:0; color:#4338ca;'>
+                        <h2 class='slide-shell__title'>
                             🚀 You're Signed In!
                         </h2>
-                        <p style='font-size: 1.2rem; margin-top:20px; color:#475569;'>
+                        <p class='slide-shell__subtitle'>
                             You haven't submitted a model yet, but you're all set to continue learning.
                         </p>
 
-                        <div style='
-                            background:white;
-                            padding:24px;
-                            border-radius:12px;
-                            margin:24px auto;
-                            border:1px solid #e2e8f0;
-                            max-width:600px;
-                        '>
-                            <p style='font-size:1.1rem; margin:0; color:#334155;'>
+                        <div class='content-box'>
+                            <p style='margin:0;'>
                                 Once you submit a model in the Model Building Game,
                                 your accuracy and ranking will appear here.
                             </p>
                         </div>
 
-                        <p style='font-size: 1.2rem; margin-top:16px; color:#475569; font-weight:500;'>
+                        <p class='slide-shell__subtitle' style='font-weight:500;'>
                             Continue to the next section when you're ready.
                         </p>
                     </div>
@@ -523,24 +773,15 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
             else:
                 # Not signed in - show prompt with login form
                 celebration_html = """
-                <div style='
-                    background: #f8fafc;
-                    border: 2px solid #6366f1;
-                    border-radius: 16px;
-                    padding: 32px;
-                    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-                    max-width: 800px;
-                    margin: auto;
-                    text-align:center;
-                '>
-                    <h2 style='font-size: 2rem; margin:0; color:#4338ca;'>
+                <div class='slide-shell slide-shell--primary' style='text-align:center;'>
+                    <h2 class='slide-shell__title'>
                         🔐 Sign In to View Your Stats
                     </h2>
-                    <p style='font-size:1.1rem; margin-top:16px; color:#475569; line-height:1.6;'>
+                    <p class='slide-shell__subtitle' style='line-height:1.6;'>
                         Sign in to see your personalized performance summary, including your
                         score, rank, and team assignment.
                     </p>
-                    <p style='font-size:1rem; margin-top:16px; color:#64748b;'>
+                    <p class='slide-shell__subtitle'>
                         You can still continue the lesson even if you skip signing in.
                     </p>
                 </div>
@@ -574,77 +815,43 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
                         team_text = new_stats['team_name'] if new_stats['team_name'] else "N/A"
 
                         new_celebration_html = f"""
-                        <div style='
-                            background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 100%);
-                            border: 2px solid #6366f1;
-                            border-radius: 16px;
-                            padding: 32px;
-                            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-                            max-width: 800px;
-                            margin: auto;
-                        '>
+                        <div class='slide-shell slide-shell--primary'>
                             <div style='text-align:center;'>
-                                <h2 style='font-size: 2.3rem; margin:0; color:#4338ca;'>
+                                <h2 class='slide-shell__title'>
                                     🏆 Great Work, Engineer! 🏆
                                 </h2>
-                                <p style='font-size: 1.3rem; margin-top:16px; color:#475569;'>
+                                <p class='slide-shell__subtitle'>
                                     Here's your performance summary.
                                 </p>
 
-                                <div style='
-                                    background:white;
-                                    padding:24px;
-                                    border-radius:12px;
-                                    margin:24px auto;
-                                    border:1px solid #e2e8f0;
-                                    max-width:600px;
-                                '>
-                                    <h3 style='margin-top:0; color:#1e293b;'>Your Stats</h3>
+                                <div class='content-box'>
+                                    <h3 class='content-box__heading'>Your Stats</h3>
 
-                                    <div style='display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:16px;'>
-                                        <div style='
-                                            text-align:center;
-                                            padding:16px;
-                                            background:#eef2ff;
-                                            border-radius:8px;
-                                            border:1px solid #c7d2fe;
-                                        '>
-                                            <p style='margin:0; font-size:0.9rem; color:#64748b;'>Best Accuracy</p>
-                                            <p style='margin:4px 0 0 0; font-size:1.8rem; font-weight:700; color:#4338ca;'>
+                                    <div class='stat-grid'>
+                                        <div class='stat-card'>
+                                            <p class='stat-card__label'>Best Accuracy</p>
+                                            <p class='stat-card__value'>
                                                 {best_score_pct}
                                             </p>
                                         </div>
 
-                                        <div style='
-                                            text-align:center;
-                                            padding:16px;
-                                            background:#f0fdf4;
-                                            border-radius:8px;
-                                            border:1px solid #bbf7d0;
-                                        '>
-                                            <p style='margin:0; font-size:0.9rem; color:#64748b;'>Your Rank</p>
-                                            <p style='margin:4px 0 0 0; font-size:1.8rem; font-weight:700; color:#15803d;'>
+                                        <div class='stat-card'>
+                                            <p class='stat-card__label'>Your Rank</p>
+                                            <p class='stat-card__value'>
                                                 {rank_text}
                                             </p>
                                         </div>
                                     </div>
 
-                                    <div style='
-                                        text-align:center;
-                                        padding:16px;
-                                        background:#f8fafc;
-                                        border-radius:8px;
-                                        border:1px solid #e2e8f0;
-                                        margin-top:16px;
-                                    '>
-                                        <p style='margin:0; font-size:0.9rem; color:#64748b;'>Team</p>
-                                        <p style='margin:4px 0 0 0; font-size:1.3rem; font-weight:600; color:#4338ca;'>
+                                    <div class='team-card'>
+                                        <p class='team-card__label'>Team</p>
+                                        <p class='team-card__value'>
                                             🛡️ {team_text}
                                         </p>
                                     </div>
                                 </div>
 
-                                <p style='font-size: 1.2rem; margin-top:16px; color:#475569; font-weight:500;'>
+                                <p class='slide-shell__subtitle' style='font-weight:500;'>
                                     Ready to share your model and explore its real-world impact?
                                 </p>
                             </div>
@@ -658,38 +865,23 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
                     elif success:
                         # Signed in but no submissions
                         new_celebration_html = """
-                        <div style='
-                            background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 100%);
-                            border: 2px solid #6366f1;
-                            border-radius: 16px;
-                            padding: 32px;
-                            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-                            max-width: 800px;
-                            margin: auto;
-                        '>
+                        <div class='slide-shell slide-shell--primary'>
                             <div style='text-align:center;'>
-                                <h2 style='font-size: 2.3rem; margin:0; color:#4338ca;'>
+                                <h2 class='slide-shell__title'>
                                     🚀 You're Signed In!
                                 </h2>
-                                <p style='font-size: 1.2rem; margin-top:20px; color:#475569;'>
+                                <p class='slide-shell__subtitle'>
                                     You haven't submitted a model yet, but you're all set to continue learning.
                                 </p>
 
-                                <div style='
-                                    background:white;
-                                    padding:24px;
-                                    border-radius:12px;
-                                    margin:24px auto;
-                                    border:1px solid #e2e8f0;
-                                    max-width:600px;
-                                '>
-                                    <p style='font-size:1.1rem; margin:0; color:#334155;'>
+                                <div class='content-box'>
+                                    <p style='margin:0;'>
                                         Once you submit a model in the Model Building Game,
                                         your accuracy and ranking will appear here.
                                     </p>
                                 </div>
 
-                                <p style='font-size: 1.2rem; margin-top:16px; color:#475569; font-weight:500;'>
+                                <p class='slide-shell__subtitle' style='font-weight:500;'>
                                     Continue to the next section when you're ready.
                                 </p>
                             </div>
@@ -728,24 +920,27 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
             gr.Markdown("<h2 style='text-align:center;'>⚠️ But Wait...</h2>")
             gr.HTML(
                 """
-                <div style='font-size: 20px; background:#fef9c3; padding:28px; border-radius:16px; border: 3px solid #f59e0b;'>
-                    <p style='text-align:center; font-size:1.5rem; font-weight:600; margin:0;'>
+                <div class='slide-shell slide-shell--warning'>
+                    <p class='large-text' style='text-align:center; font-weight:600; margin:0;'>
                         Before we share the model, there's something you need to know...
                     </p>
 
-                    <div style='margin-top:32px; background:white; padding:24px; border-radius:12px;'>
-                        <h3 style='margin-top:0; color:#92400e;'>A Real-World Story</h3>
-                        <p>
+                    <div class='content-box'>
+                        <h3 class='content-box__heading'>A Real-World Story</h3>
+
+                        <p class='slide-warning-body'>
                             A model similar to yours was actually used in the real world.
                             It was used by judges across the United States to help make decisions
                             about defendants' futures.
                         </p>
-                        <p style='margin-top:16px;'>
+
+                        <p class='slide-warning-body' style='margin-top:16px;'>
                             Like yours, it had impressive accuracy scores. Like yours, it was built
                             on data about past criminal cases. Like yours, it aimed to predict
                             who would re-offend.
                         </p>
-                        <p style='margin-top:16px; font-weight:600;'>
+
+                        <p class='slide-warning-body' style='margin-top:16px; font-weight:600;'>
                             But something was terribly wrong...
                         </p>
                     </div>
@@ -762,8 +957,8 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
             gr.Markdown("<h2 style='text-align:center;'>📰 The ProPublica Investigation</h2>")
             gr.HTML(
                 """
-                <div class='revelation-box dramatic-reveal'>
-                    <h3 style='color:#991b1b; margin-top:0; font-size:1.8rem;'>
+                <div class='revelation-box'>
+                    <h3 style='margin-top:0; font-size:1.8rem;'>
                         "Machine Bias" - A Landmark Investigation
                     </h3>
 
@@ -773,12 +968,12 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
                         <strong>7,000 actual cases</strong> to see if the AI's predictions came true.
                     </p>
 
-                    <div style='background:#fff; padding:24px; border-radius:12px; margin:24px 0; border:2px solid #dc2626;'>
-                        <h4 style='margin-top:0; color:#dc2626;'>Their Shocking Findings:</h4>
+                    <div class='content-box content-box--emphasis'>
+                        <h4 class='content-box__heading'>Their Shocking Findings:</h4>
 
-                        <div style='margin:20px 0; padding:20px; background:#fef2f2; border-radius:8px;'>
-                            <p style='font-size:1.15rem; font-weight:600; margin:0; color:#991b1b;'>
-                                ⚠️ Black defendants were labeled "high-risk" at nearly TWICE the rate of white defendants
+                        <div class='bg-danger-soft' style='margin:20px 0;'>
+                            <p class='emph-danger' style='font-size:1.15rem; margin:0;'>
+                                ⚠️ Black defendants were labeled "high-risk" at nearly <u>TWICE</u> the rate of white defendants.
                             </p>
                         </div>
 
@@ -787,9 +982,10 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
                         </p>
                         <ul style='font-size:1.05rem; line-height:1.8;'>
                             <li>
-                                <strong style='color:#dc2626;'>Black defendants</strong> who
+                                <span class='emph-danger'>Black defendants</span> who
                                 <em>did NOT re-offend</em> were incorrectly labeled as
-                                <strong>"high-risk"</strong> at a rate of <strong>45%</strong>
+                                <strong>"high-risk"</strong> at a rate of
+                                <span class='emph-danger'> 45%</span>
                             </li>
                             <li>
                                 <strong>White defendants</strong> who <em>did NOT re-offend</em>
@@ -797,22 +993,22 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
                                 of only <strong>24%</strong>
                             </li>
                             <li style='margin-top:12px;'>
-                                Meanwhile, <strong style='color:#dc2626;'>white defendants</strong> who
+                                Meanwhile, <strong>white defendants</strong> who
                                 <em>DID re-offend</em> were <strong>more likely to be labeled
                                 "low-risk"</strong> compared to Black defendants
                             </li>
                         </ul>
                     </div>
 
-                    <div style='background:#dbeafe; padding:20px; border-radius:8px; border-left:6px solid #2563eb;'>
-                        <h4 style='margin-top:0; color:#1e40af;'>What Does This Mean?</h4>
+                    <div class='content-box content-box--emphasis'>
+                        <h4 class='content-box__heading'>What Does This Mean?</h4>
                         <p style='font-size:1.05rem; margin:0; line-height:1.6;'>
-                            The AI system was <strong>systematically biased</strong>. It didn't just
+                            The AI system was <strong class='emph-danger'>systematically biased</strong>. It didn't just
                             make random errors—it made <strong>different kinds of errors for different
                             groups of people</strong>.
                         </p>
                         <p style='font-size:1.05rem; margin-top:12px; line-height:1.6;'>
-                            Black defendants faced a much higher risk of being <strong>unfairly labeled
+                            Black defendants faced a much higher risk of being <strong class='emph-danger'>unfairly labeled
                             as dangerous</strong>, potentially leading to longer prison sentences or
                             denied parole—even when they would not have re-offended.
                         </p>
@@ -830,9 +1026,8 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
             gr.Markdown("<h2 style='text-align:center;'>🇪🇺 This Isn’t Just a US Problem</h2>")
             gr.HTML(
                 """
-                <div style='font-size: 20px; background:#e0f2fe; padding:32px; border-radius:16px;
-                            border: 3px solid #0369a1; max-width:900px; margin:auto;'>
-                    <h3 style='color:#0c4a6e; margin-top:0; font-size:1.9rem; text-align:center;'>
+                <div class='eu-panel'>
+                    <h3 class='emph-eu' style='font-size:1.9rem; text-align:center;'>
                         AI for “Risky Offenders” Is Already in Europe
                     </h3>
 
@@ -844,20 +1039,20 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
 
                     <ul style='line-height:1.9; font-size:1.05rem; margin:20px 0;'>
                         <li>
-                            <strong>United Kingdom – HART (Harm Assessment Risk Tool)</strong><br>
+                            <strong class='emph-eu'>United Kingdom – HART (Harm Assessment Risk Tool)</strong><br>
                             A machine-learning model used by Durham Police to predict who will reoffend within
                             two years. It uses variables like age, gender, <em>postcode</em>, housing and job
                             instability – socio-economic proxies that can reproduce the same kinds of biased
                             patterns exposed in COMPAS.
                         </li>
                         <li style='margin-top:14px;'>
-                            <strong>Spain – VioGén</strong><br>
+                            <strong class='emph-eu'>Spain – VioGén</strong><br>
                             A risk tool for gender-violence cases whose inner workings are largely a
                             <em>"black box"</em>. Officers rely heavily on its scores to decide protection
                             measures, even though the algorithm cannot easily be audited for bias or errors.
                         </li>
                         <li style='margin-top:14px;'>
-                            <strong>Netherlands &amp; Denmark – Predictive profiling</strong><br>
+                            <strong class='emph-eu'>Netherlands &amp; Denmark – Predictive profiling</strong><br>
                             Systems like the Dutch <em>Crime Anticipation System (CAS)</em> and Denmark’s
                             algorithmic <em>“ghetto”</em> classifications use demographic and socio-economic
                             data to steer policing and penalties, risking feedback loops that target certain
@@ -865,8 +1060,8 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
                         </li>
                     </ul>
 
-                    <div style='background:#eff6ff; padding:22px; border-radius:12px; border-left:6px solid #1d4ed8; margin:28px 0;'>
-                        <h4 style='margin-top:0; color:#1d4ed8;'>Ongoing European Debate</h4>
+                    <div class='bg-eu-soft eu-panel__highlight'>
+                        <h4 class='emph-eu'>Ongoing European Debate</h4>
                         <p style='margin:0; line-height:1.7; font-size:1.05rem;'>
                             The Barcelona Prosecuter's office has proposed an "electronic repeat-offense calculator".  
                             Courts, regulators and researchers are actively examining how these tools affect
@@ -874,10 +1069,10 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
                         </p>
                     </div>
 
-                    <div style='background:#fef3c7; padding:22px; border-radius:12px; border-left:6px solid #f59e0b;'>
+                    <div class='eu-panel__note'>
                         <p style='margin:0; line-height:1.8; font-size:1.1rem;'>
                             <strong>Key point:</strong> The risks you saw with COMPAS are not far away
-                            in another country. <strong>They are live questions in both Europe and the U.S. right now.</strong>
+                            in another country. <strong class='emph-key'>They are live questions in both Europe and the U.S. right now.</strong>
                         </p>
                     </div>
                 </div>
@@ -893,42 +1088,50 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
             gr.Markdown("<h2 style='text-align:center;'>💡 The Critical Lesson</h2>")
             gr.HTML(
                 """
-                <div style='font-size: 20px; background:#fef3c7; padding:32px; border-radius:16px; border: 3px solid #f59e0b;'>
-                    <h3 style='color:#92400e; margin-top:0; text-align:center; font-size:2rem;'>
-                        High Accuracy ≠ Fair Outcomes
-                    </h3>
+                <div class='content-box'>
+                    <h4 class='content-box__heading emph-key' style='font-size:1.5rem;'>
+                        Why This Matters:
+                    </h4>
 
-                    <div style='background:white; padding:28px; border-radius:12px; margin:24px 0;'>
-                        <h4 style='margin-top:0; color:#1f2937;'>Why This Matters:</h4>
+                    <!-- LESSON 1 -->
+                    <div class='lesson-emphasis-box'>
+                        <span class='lesson-item-title'>
+                            <span class='lesson-badge'>1</span>
+                            Overall accuracy can hide group-specific harm
+                        </span>
 
-                        <p style='line-height:1.8;'>
-                            <strong>1. Overall accuracy can hide group-specific harm</strong><br>
-                            A model might be 70% accurate overall, but that 30% error rate might
-                            fall disproportionately on certain groups.
-                        </p>
-
-                        <p style='line-height:1.8; margin-top:20px;'>
-                            <strong>2. Historical bias in training data gets amplified</strong><br>
-                            If past policing or judicial decisions were biased, the AI will learn
-                            and replicate those patterns—often making them worse.
-                        </p>
-
-                        <p style='line-height:1.8; margin-top:20px;'>
-                            <strong>3. Real people's lives are affected</strong><br>
-                            These aren't just statistics. Each "false positive" represents a person
-                            who lost years of their life, separated from family, denied opportunities—
-                            all based on a biased prediction.
+                        <p class='slide-teaching-body'>
+                            A model might be 70% accurate overall — but the remaining 30% of errors
+                            can fall disproportionately on <span class='emph-harm'>specific groups</span>,
+                            resulting in real harm even when the total accuracy appears “good”.
                         </p>
                     </div>
 
-                    <div class='revelation-box' style='margin-top:24px;'>
-                        <h4 style='margin-top:0; font-size:1.5rem; color:#991b1b;'>
-                            ⚖️ The New Standard
-                        </h4>
-                        <p style='font-size:1.15rem; line-height:1.8; margin:0;'>
-                            Building accurate AI is not enough. We must also ask:
-                            <strong>Is this system fair? Does it treat all groups equitably?
-                            Could it amplify existing societal harms?</strong>
+                    <!-- LESSON 2 -->
+                    <div class='lesson-emphasis-box'>
+                        <span class='lesson-item-title'>
+                            <span class='lesson-badge'>2</span>
+                            Historical bias in training data gets amplified
+                        </span>
+
+                        <p class='slide-teaching-body'>
+                            If past policing or judicial decisions were biased, the AI system will
+                            <span class='emph-harm'>learn and reinforce</span> those inequities —
+                            often making them worse at scale.
+                        </p>
+                    </div>
+
+                    <!-- LESSON 3 -->
+                    <div class='lesson-emphasis-box'>
+                        <span class='lesson-item-title'>
+                            <span class='lesson-badge'>3</span>
+                            Real people's lives are affected
+                        </span>
+
+                        <p class='slide-teaching-body'>
+                            Each <strong class='emph-harm'>"false positive"</strong> represents a person
+                            who may lose years of freedom, employment, housing, or family connection —
+                            all due to a single <strong class='emph-harm'>biased prediction</strong>.
                         </p>
                     </div>
                 </div>
@@ -945,9 +1148,8 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
             gr.HTML(
                 """
                 <div style='text-align:center;'>
-                    <div style='font-size: 20px; background:#e0f2fe; padding:32px; border-radius:16px;
-                                border: 3px solid #0369a1; max-width:900px; margin:auto;'>
-                        <h3 style='color:#0c4a6e; margin-top:0; font-size:2rem;'>
+                    <div class='slide-shell slide-shell--info'>
+                        <h3 class='slide-shell__title'>
                             From Accuracy to Ethics
                         </h3>
 
@@ -961,23 +1163,23 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
                             <li>🤔 You understand that accuracy alone is not enough</li>
                         </ul>
 
-                        <div style='background:white; padding:28px; border-radius:12px; margin:32px 0; text-align:left;'>
-                            <h4 style='margin-top:0; color:#0c4a6e;'>What You'll Do Next:</h4>
+                        <div class='content-box'>
+                            <h4 class='content-box__heading'>What You'll Do Next:</h4>
                             <p style='font-size:1.1rem; line-height:1.8;'>
-                                In the next section, you'll be introduced to a <strong>new way of measuring
+                                In the next section, you'll be introduced to a <strong class='emph-key'>new way of measuring
                                 success</strong>—one that balances performance with fairness and ethics.
                             </p>
                             <p style='font-size:1.1rem; line-height:1.8; margin-top:16px;'>
-                                You'll learn techniques to <strong>detect bias</strong> in your models,
-                                <strong>measure fairness</strong> across different groups, and
-                                <strong>redesign your AI</strong> to minimize harm.
+                                You'll learn techniques to <strong class='emph-key'>detect bias</strong> in your models,
+                                <strong class='emph-key'>measure fairness</strong> across different groups, and
+                                <strong class='emph-key'>redesign your AI</strong> to minimize harm.
                             </p>
                         </div>
 
-                        <div style='background:#fef3c7; padding:24px; border-radius:12px; border-left:6px solid #f59e0b; text-align:left;'>
+                        <div class='content-box content-box--emphasis'>
                             <p style='font-size:1.15rem; font-weight:600; margin:0;'>
                                 🎯 Your new mission: Build AI that is not just accurate, but also
-                                <strong>fair, equitable, and ethically sound</strong>.
+                                <strong class='emph-key'>fair, equitable, and ethically sound</strong>.
                             </p>
                         </div>
 
@@ -1135,6 +1337,7 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
 
 def launch_ethical_revelation_app(height: int = 1000, share: bool = False, debug: bool = False) -> None:
     """Convenience wrapper to create and launch the ethical revelation app inline."""
+    import gradio as gr  # ensure available here if user calls this directly
     demo = create_ethical_revelation_app()
     demo.launch(share=share, inline=True, debug=debug, height=height)
 
