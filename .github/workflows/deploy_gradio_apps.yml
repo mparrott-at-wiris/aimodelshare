@@ -1,56 +1,4 @@
-name: Deploy Moral Compass Apps to Production
-
-on:
-  workflow_dispatch:
-  push:
-    branches: [ "master" ] # Verify this is 'master' and not 'main'
-    paths:
-      - 'aimodelshare/moral_compass/apps/**'
-      - 'requirements-apps.txt'
-      - 'launch_entrypoint.py'
-      - 'Dockerfile'
-      - '.github/workflows/deploy_gradio_apps.yml'
-
-env:
-  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  REGION: us-central1
-  REPO_NAME: moral-compass-apps
-
-jobs:
-  # ----------------------------------------------------------------
-  # JOB 1: BUILD (Build Once)
-  # ----------------------------------------------------------------
-  build-and-push:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    outputs:
-      image_tag: ${{ steps.image-tag.outputs.image }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - id: auth
-        name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-
-      - name: Configure Docker Auth
-        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
-
-      - name: Build and Push Docker Image
-        id: image-tag
-        run: |
-          IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}"
-          docker build --pull -t "$IMAGE" .
-          docker push "$IMAGE"
-          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
-
-  # ----------------------------------------------------------------
+# ----------------------------------------------------------------
   # JOB 2: DEPLOY (Deploy Many)
   # ----------------------------------------------------------------
   deploy-services:
@@ -86,19 +34,25 @@ jobs:
 
       - name: Deploy to Cloud Run
         id: deploy
-        uses: google-github-actions/deploy-cloudrun@v2 # Updated to v2
+        uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: ${{ matrix.app_name }}
           image: ${{ needs.build-and-push.outputs.image_tag }}
           region: ${{ env.REGION }}
-          # Note: v2 uses 'flags' string just like v1, this syntax remains valid
-          flags: '--allow-unauthenticated --memory=1Gi --cpu=1 --session-affinity --concurrency=80 --min-instances=0 --max-instances=50'
-          env_vars: |
+          # We use >- to allow this long string to be split on multiple lines for safety
+          flags: >-
+            --allow-unauthenticated
+            --memory=1Gi
+            --cpu=1
+            --session-affinity
+            --concurrency=80
+            --min-instances=0
+            --max-instances=50
+          env_vars: |-
             APP_NAME=${{ matrix.app_name }}
             GRADIO_SERVER_NAME=0.0.0.0
             GRADIO_ANALYTICS_ENABLED=False
             GRADIO_NUM_PORTS=1
 
       - name: Show Service URL
-        run: echo "Service URL: ${{ steps.deploy.outputs.url }}"
         run: echo "Service URL: ${{ steps.deploy.outputs.url }}"
