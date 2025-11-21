@@ -1,9 +1,63 @@
-# ----------------------------------------------------------------
+name: Deploy Moral Compass Apps to Production
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "master" ]
+    paths:
+      - 'aimodelshare/moral_compass/apps/**'
+      - 'requirements-apps.txt'
+      - 'launch_entrypoint.py'
+      - 'Dockerfile'
+      - '.github/workflows/deploy_gradio_apps.yml'
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: us-central1
+  REPO_NAME: moral-compass-apps
+
+jobs:
+  # ----------------------------------------------------------------
+  # JOB 1: BUILD (Build Once)
+  # ----------------------------------------------------------------
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      image_tag: ${{ steps.image-tag.outputs.image }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker Auth
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+
+      - name: Build and Push Docker Image
+        id: image-tag
+        run: |
+          IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}"
+          docker build --pull -t "$IMAGE" .
+          docker push "$IMAGE"
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+
+  # ----------------------------------------------------------------
   # JOB 2: DEPLOY (Deploy Many)
   # ----------------------------------------------------------------
   deploy-services:
     needs: build-and-push
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -39,7 +93,7 @@
           service: ${{ matrix.app_name }}
           image: ${{ needs.build-and-push.outputs.image_tag }}
           region: ${{ env.REGION }}
-          # We use >- to allow this long string to be split on multiple lines for safety
+          # Optimization Flags: 80 concurrency for low cost, min-instances 0 for zero cost when idle
           flags: >-
             --allow-unauthenticated
             --memory=1Gi
