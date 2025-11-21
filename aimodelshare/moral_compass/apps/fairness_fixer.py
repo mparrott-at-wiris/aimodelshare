@@ -10,9 +10,27 @@ This app teaches:
 Structure:
 - Factory function `create_fairness_fixer_app()` returns a Gradio Blocks object
 - Convenience wrapper `launch_fairness_fixer_app()` launches it inline (for notebooks)
+
+Moral Compass Integration:
+- Uses ChallengeManager for progress tracking (tasks D-E)
+- Task D: Feature removal and proxy identification
+- Task E: Representative data and improvement planning
+- Debounced sync with Force Sync option
 """
 import contextlib
 import os
+import logging
+
+# Import moral compass integration helpers
+from .mc_integration_helpers import (
+    get_challenge_manager,
+    sync_user_moral_state,
+    sync_team_state,
+    build_moral_leaderboard_html,
+    get_moral_compass_widget_html,
+)
+
+logger = logging.getLogger("aimodelshare.moral_compass.apps.fairness_fixer")
 
 
 def _get_initial_metrics():
@@ -66,6 +84,25 @@ def _get_post_proxy_removal_metrics():
     }
 
 
+def _get_user_stats():
+    """Get user statistics."""
+    try:
+        username = os.environ.get("username")
+        team_name = os.environ.get("TEAM_NAME", "Unknown Team")
+        
+        return {
+            "username": username or "Guest",
+            "team_name": team_name,
+            "is_signed_in": bool(username)
+        }
+    except Exception:
+        return {
+            "username": "Guest",
+            "team_name": "Unknown Team",
+            "is_signed_in": False
+        }
+
+
 def create_fairness_fixer_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """Create the Fairness Fixer Gradio Blocks app (not launched yet)."""
     try:
@@ -78,15 +115,68 @@ def create_fairness_fixer_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
 
     initial_metrics = _get_initial_metrics()
     
+    # Get user stats and initialize challenge manager
+    user_stats = _get_user_stats()
+    challenge_manager = None
+    if user_stats["is_signed_in"]:
+        challenge_manager = get_challenge_manager(user_stats["username"])
+    
     # Track state
     moral_compass_points = {"value": 0}
+    server_moral_score = {"value": None}
+    is_synced = {"value": False}
     features_removed = []
     proxy_fixes_applied = []
 
+    def sync_moral_state(override=False):
+        """Sync moral state to server (debounced unless override)."""
+        if not challenge_manager:
+            return {
+                'widget_html': get_moral_compass_widget_html(
+                    local_points=moral_compass_points["value"],
+                    server_score=None,
+                    is_synced=False
+                ),
+                'status': 'Guest mode - sign in to sync'
+            }
+        
+        # Sync to server
+        sync_result = sync_user_moral_state(
+            cm=challenge_manager,
+            moral_points=moral_compass_points["value"],
+            override=override
+        )
+        
+        # Update state
+        if sync_result['synced']:
+            server_moral_score["value"] = sync_result.get('server_score')
+            is_synced["value"] = True
+            
+            # Trigger team sync if user sync succeeded
+            if user_stats.get("team_name"):
+                sync_team_state(user_stats["team_name"])
+        
+        # Generate widget HTML
+        widget_html = get_moral_compass_widget_html(
+            local_points=moral_compass_points["value"],
+            server_score=server_moral_score["value"],
+            is_synced=is_synced["value"]
+        )
+        
+        return {
+            'widget_html': widget_html,
+            'status': sync_result['message']
+        }
+    
     def remove_demographics():
         """Remove direct demographic features and show impact."""
         features_removed.extend(["race", "sex", "age"])
         moral_compass_points["value"] += 100
+        
+        # Update ChallengeManager (Task D: Remove demographics)
+        if challenge_manager:
+            challenge_manager.complete_task('D')
+            challenge_manager.answer_question('D', 'D1', 1)
         
         before = initial_metrics
         after = _get_post_demographic_removal_metrics()
@@ -109,6 +199,10 @@ def create_fairness_fixer_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         report += "- ✓ Model is now more equitable across racial groups\n\n"
         report += "**Trade-off Note:** We accept a small accuracy decrease to achieve greater fairness.\n\n"
         report += "🏆 +100 Moral Compass points for removing biased features!"
+        
+        # Trigger sync
+        sync_result = sync_moral_state()
+        report += f"\n\n{sync_result['status']}"
         
         return report
 
@@ -163,6 +257,10 @@ def create_fairness_fixer_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         proxy_fixes_applied.extend(["neighborhood", "prior_arrests_count", "income"])
         moral_compass_points["value"] += 100
         
+        # Update ChallengeManager (continuing Task D: Remove proxies)
+        if challenge_manager:
+            challenge_manager.answer_question('D', 'D2', 1)
+        
         before = _get_post_demographic_removal_metrics()
         after = _get_post_proxy_removal_metrics()
         
@@ -182,6 +280,10 @@ def create_fairness_fixer_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         report += "**Important:** Removing proxies prevents indirect discrimination through correlated variables.\n\n"
         report += "🏆 +100 Moral Compass points for eliminating proxy bias!"
         
+        # Trigger sync
+        sync_result = sync_moral_state()
+        report += f"\n\n{sync_result['status']}"
+        
         return report
 
     def check_proxy_question(answer):
@@ -195,6 +297,11 @@ def create_fairness_fixer_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     def generate_data_guidelines():
         """Generate representative data guidelines."""
         moral_compass_points["value"] += 75
+        
+        # Update ChallengeManager (Task E: Representative data)
+        if challenge_manager:
+            challenge_manager.complete_task('E')
+            challenge_manager.answer_question('E', 'E1', 1)
         
         guidelines = """
 ## 📋 Representative Data Guidelines
@@ -228,6 +335,10 @@ Based on expert consensus between data scientists, judges, and community members
 
 🏆 +75 Moral Compass points for developing data guidelines!
 """
+        # Trigger sync
+        sync_result = sync_moral_state()
+        guidelines += f"\n\n{sync_result['status']}"
+        
         return guidelines
 
     def check_representative_data_question(answer):
@@ -361,8 +472,29 @@ Based on expert consensus between data scientists, judges, and community members
             """
         )
         
-        # Moral Compass indicator
-        moral_compass_display = gr.Markdown("## 🧭 Moral Compass Score: 0 points")
+        # Moral Compass widget with Force Sync
+        with gr.Row():
+            with gr.Column(scale=3):
+                moral_compass_display = gr.HTML(
+                    get_moral_compass_widget_html(
+                        local_points=0,
+                        server_score=None,
+                        is_synced=False
+                    )
+                )
+            with gr.Column(scale=1):
+                force_sync_btn = gr.Button("Force Sync", variant="secondary", size="sm")
+                sync_status = gr.Markdown("")
+        
+        # Force Sync handler
+        def handle_force_sync():
+            sync_result = sync_moral_state(override=True)
+            return sync_result['widget_html'], sync_result['status']
+        
+        force_sync_btn.click(
+            fn=handle_force_sync,
+            outputs=[moral_compass_display, sync_status]
+        )
         
         # Section 8.2: Remove Direct Demographics
         with gr.Tab("8.2 Remove Demographics"):
@@ -419,6 +551,39 @@ Based on expert consensus between data scientists, judges, and community members
                 
                 **Problem:** Even after removing race, other variables can serve as **proxies** that 
                 replicate bias. A proxy is a variable that strongly correlates with a protected attribute.
+                
+                ### 📚 Fairness Metrics: Statistical Parity vs Equal Opportunity
+                
+                <details>
+                <summary><b>Click to expand: Fairness Metric Comparison</b></summary>
+                
+                **Scenario:** Pretrial risk model predicting recidivism
+                
+                | Metric | Definition | Example Calculation | Limitation |
+                |--------|-----------|---------------------|------------|
+                | **Statistical Parity** | Equal positive prediction rates across groups | P(Predicted High Risk \\| African-American) = P(Predicted High Risk \\| Caucasian) | May require unequal treatment of equally risky individuals |
+                | **Equal Opportunity** | Equal true positive rates across groups | P(Predicted High Risk \\| Actually Risky, African-American) = P(Predicted High Risk \\| Actually Risky, Caucasian) | Ignores false positive disparity |
+                | **Equalized Odds** | Both TPR and FPR equal across groups | Both conditions above must hold | Difficult to achieve simultaneously |
+                
+                **Numeric Example:**
+                
+                **Group A (1,000 people, 200 actually risky):**
+                - Predicted High Risk: 250 people
+                - True Positives: 150 / 200 = **75% TPR**
+                - False Positives: 100 / 800 = 12.5% FPR
+                
+                **Group B (1,000 people, 200 actually risky):**
+                - Predicted High Risk: 400 people
+                - True Positives: 180 / 200 = **90% TPR** ⚠️ (disparity!)
+                - False Positives: 220 / 800 = **27.5% FPR** ⚠️ (disparity!)
+                
+                **Analysis:** Even though both groups have same base rate (20% risky), Group B is 
+                over-predicted, leading to higher both TPR and FPR. Equal Opportunity would require 
+                equalizing TPR; Equalized Odds would require equalizing both.
+                
+                </details>
+                
+                ---
                 
                 ### Proxy Identification Mini-Game
                 
@@ -644,6 +809,41 @@ Based on expert consensus between data scientists, judges, and community members
             )
         
         # Section 8.6: Completion
+        # Ethics Leaderboard Tab
+        with gr.Tab("Ethics Leaderboard"):
+            gr.Markdown(
+                """
+                ## 🏆 Ethics Leaderboard
+                
+                This leaderboard shows **combined ethical engagement + performance scores**.
+                
+                **What's measured:**
+                - Moral compass points (fairness engineering skills)
+                - Model accuracy (technical performance)
+                - Combined score = accuracy × normalized_moral_points
+                
+                **Your progress:**
+                Track how you compare to others who have also tackled bias and fairness challenges!
+                """
+            )
+            
+            leaderboard_display = gr.HTML("")
+            refresh_leaderboard_btn = gr.Button("Refresh Leaderboard", variant="secondary")
+            
+            def load_leaderboard():
+                return build_moral_leaderboard_html(
+                    highlight_username=user_stats.get("username"),
+                    include_teams=True
+                )
+            
+            refresh_leaderboard_btn.click(
+                fn=load_leaderboard,
+                outputs=leaderboard_display
+            )
+            
+            # Load initially
+            app.load(fn=load_leaderboard, outputs=leaderboard_display)
+        
         with gr.Tab("8.6 Fix Summary"):
             gr.Markdown(
                 """

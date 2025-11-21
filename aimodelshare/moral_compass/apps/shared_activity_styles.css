@@ -1,0 +1,349 @@
+/*
+ * Shared Activity Styles for Activities 7, 8, and 9
+ * 
+ * Consistent styling aligned with model_building_game.py patterns
+ */
+
+/* ============================================================================
+   KPI Cards (Moral Compass widgets, score displays)
+   ============================================================================ */
+
+.kpi-card {
+    background: var(--card-bg-strong, var(--block-background-fill));
+    border: 2px solid var(--accent-strong, #4f46e5);
+    padding: 24px;
+    border-radius: var(--slide-radius-lg, 12px);
+    text-align: center;
+    max-width: 600px;
+    margin: auto;
+    color: var(--text-main, #1f2937);
+    box-shadow: var(--shadow-drop, 0 4px 6px -1px rgba(0,0,0,0.08));
+    min-height: 200px;
+}
+
+.kpi-card-body {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    align-items: flex-end;
+    margin-top: 24px;
+}
+
+.kpi-metric-box {
+    min-width: 150px;
+    margin: 10px;
+}
+
+.kpi-label {
+    font-size: 1rem;
+    color: var(--text-muted, #6b7280);
+    margin: 0;
+}
+
+.kpi-score {
+    font-size: 3rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.1;
+    color: var(--accent-strong, #4f46e5);
+}
+
+.kpi-subtext-muted {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: var(--text-muted, #6b7280);
+}
+
+/* KPI Card Variants */
+.kpi-card--neutral {
+    border-color: var(--card-border-subtle, #e5e7eb);
+}
+
+.kpi-card--subtle-accent {
+    border-color: var(--accent-strong, #4f46e5);
+}
+
+.kpi-score--muted {
+    color: var(--text-muted, #6b7280);
+}
+
+/* ============================================================================
+   Leaderboard Tables
+   ============================================================================ */
+
+.leaderboard-html-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 1rem;
+    color: var(--text-main, #1f2937);
+    min-height: 300px;
+}
+
+.leaderboard-html-table thead {
+    background: var(--block-background-fill, #f9fafb);
+}
+
+.leaderboard-html-table th {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    color: var(--text-muted, #6b7280);
+    font-weight: 500;
+}
+
+.leaderboard-html-table tbody tr {
+    border-bottom: 1px solid var(--card-border-subtle, #e5e7eb);
+}
+
+.leaderboard-html-table td {
+    padding: 12px 16px;
+}
+
+.leaderboard-html-table tbody tr:hover {
+    background: var(--block-background-fill, #f9fafb);
+}
+
+/* User row highlighting */
+.user-row-highlight {
+    background: color-mix(in srgb, var(--accent-strong, #4f46e5) 10%, transparent) !important;
+    font-weight: 600;
+}
+
+.user-row-highlight td {
+    color: var(--accent-strong, #4f46e5);
+}
+
+/* ============================================================================
+   Buttons (Consistent variants)
+   ============================================================================ */
+
+/* Primary buttons - main progression actions */
+.btn-primary {
+    background: var(--accent-strong, #4f46e5);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background: color-mix(in srgb, var(--accent-strong, #4f46e5) 90%, black);
+}
+
+/* Secondary buttons - back, cancel */
+.btn-secondary {
+    background: var(--block-background-fill, #f9fafb);
+    color: var(--text-main, #1f2937);
+    border: 2px solid var(--card-border-subtle, #e5e7eb);
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    border-color: var(--accent-strong, #4f46e5);
+}
+
+/* Neutral buttons - force sync, utility actions */
+.btn-neutral {
+    background: var(--block-background-fill, #f9fafb);
+    color: var(--text-muted, #6b7280);
+    border: 1px solid var(--card-border-subtle, #e5e7eb);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-neutral:hover {
+    background: var(--card-bg-strong, var(--block-background-fill));
+}
+
+/* Success buttons - certificate, completion */
+.btn-success {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-success:hover {
+    background: #059669;
+}
+
+/* Info buttons - educational expansions, help */
+.btn-info {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-info:hover {
+    background: #2563eb;
+}
+
+/* ============================================================================
+   Moral Compass Widget
+   ============================================================================ */
+
+.moral-compass-widget {
+    background: var(--block-background-fill, #f9fafb);
+    padding: 16px;
+    border-radius: 8px;
+    border: 2px solid var(--accent-strong, #4f46e5);
+    margin: 16px 0;
+}
+
+.moral-compass-widget h3 {
+    margin-top: 0;
+    color: var(--text-main, #1f2937);
+}
+
+.moral-compass-metrics {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+
+.moral-compass-metric {
+    text-align: center;
+    margin: 10px;
+}
+
+.moral-compass-metric-label {
+    font-size: 0.9rem;
+    color: var(--text-muted, #6b7280);
+}
+
+.moral-compass-metric-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--accent-strong, #4f46e5);
+}
+
+.moral-compass-metric-status {
+    font-size: 0.8rem;
+    color: var(--text-muted, #6b7280);
+}
+
+/* ============================================================================
+   Alert Panels (Error/Warning/Success messages)
+   ============================================================================ */
+
+.alert-panel {
+    padding: 16px;
+    border-radius: 8px;
+    margin: 16px 0;
+    border-left: 4px solid;
+}
+
+.alert-panel--error {
+    background: #fef2f2;
+    border-color: #ef4444;
+    color: #991b1b;
+}
+
+.alert-panel--warning {
+    background: #fffbeb;
+    border-color: #f59e0b;
+    color: #92400e;
+}
+
+.alert-panel--success {
+    background: #f0fdf4;
+    border-color: #10b981;
+    color: #065f46;
+}
+
+.alert-panel--info {
+    background: #eff6ff;
+    border-color: #3b82f6;
+    color: #1e40af;
+}
+
+/* ============================================================================
+   Educational Content Expansions
+   ============================================================================ */
+
+.educational-expansion {
+    background: var(--block-background-fill, #f9fafb);
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid var(--card-border-subtle, #e5e7eb);
+    margin: 16px 0;
+}
+
+.educational-expansion h4 {
+    margin-top: 0;
+    color: var(--accent-strong, #4f46e5);
+}
+
+.educational-expansion-content {
+    color: var(--text-main, #1f2937);
+    line-height: 1.6;
+}
+
+/* ============================================================================
+   Dark Mode Support
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+    .kpi-card {
+        background: color-mix(in srgb, var(--block-background-fill) 85%, #000 15%);
+    }
+
+    .leaderboard-html-table thead {
+        background: color-mix(in srgb, var(--block-background-fill) 75%, #000 25%);
+    }
+
+    .btn-secondary {
+        background: color-mix(in srgb, var(--block-background-fill) 90%, #fff 10%);
+    }
+
+    .btn-neutral {
+        background: color-mix(in srgb, var(--block-background-fill) 85%, #fff 15%);
+    }
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .kpi-card {
+        padding: 16px;
+        min-height: 150px;
+    }
+
+    .kpi-score {
+        font-size: 2rem;
+    }
+
+    .leaderboard-html-table {
+        font-size: 0.9rem;
+    }
+
+    .leaderboard-html-table th,
+    .leaderboard-html-table td {
+        padding: 8px 12px;
+    }
+
+    .moral-compass-metric-value {
+        font-size: 1.5rem;
+    }
+}
