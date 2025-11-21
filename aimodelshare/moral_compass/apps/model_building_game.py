@@ -1669,40 +1669,6 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
     # Start background initialization thread
     start_background_init()
     
-import os
-import time
-import random
-import requests
-import contextlib
-from io import StringIO
-import threading
-import functools
-from pathlib import Path
-from datetime import datetime, timedelta
-
-import numpy as np
-import pandas as pd
-import gradio as gr
-
-# --- Scikit-learn Imports ---
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.impute import SimpleImputer
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.neighbors import KNeighborsClassifier
-
-# --- AI Model Share Imports ---
-try:
-    from aimodelshare.playground import Competition
-except ImportError:
-    raise ImportError(
-        "The 'aimodelshare' library is required. Install with: pip install aimodelshare"
-    )
 
 # -------------------------------------------------------------------------
 # 1. Configuration
