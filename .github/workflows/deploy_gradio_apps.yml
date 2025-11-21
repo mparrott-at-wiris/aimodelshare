@@ -1,9 +1,9 @@
-name: Deploy Moral Compass Apps
+name: Deploy Moral Compass Apps to Production
 
 on:
   workflow_dispatch: # Manual trigger
   push:
-    branches: [ "main" ]
+    branches: [ "master" ]
     paths:
       - 'aimodelshare/moral_compass/apps/**'
       - 'requirements-apps.txt'
