@@ -744,25 +744,7 @@ def _build_individual_html(individual_summary_df, username):
     footer = "</tbody></table>"
     return header + body + footer
 
-def _build_attempts_tracker_html(current_count, limit=ATTEMPT_LIMIT):
-    """
-    Generate HTML for the attempts tracker display.
-    Uses semantic classes + theme-aware CSS (see .attempts-tracker in css).
-    """
-    if current_count >= limit:
-        icon = "🛑"
-        label = f"Last chance (for now) to boost your score!: {current_count}/{limit}"
-        extra_class = " attempts-tracker--limit"
-    else:
-        icon = "📊"
-        label = f"Attempts used: {current_count}/{limit}"
-        extra_class = ""
 
-    return f"""
-    <div class='attempts-tracker{extra_class}'>
-        <p class='attempts-tracker__text'>{icon} {label}</p>
-    </div>
-    """
 
 
 # --- End Helper Functions ---
@@ -1669,6 +1651,40 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
     # Start background initialization thread
     start_background_init()
     
+import os
+import time
+import random
+import requests
+import contextlib
+from io import StringIO
+import threading
+import functools
+from pathlib import Path
+from datetime import datetime, timedelta
+
+import numpy as np
+import pandas as pd
+import gradio as gr
+
+# --- Scikit-learn Imports ---
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.impute import SimpleImputer
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
+
+# --- AI Model Share Imports ---
+try:
+    from aimodelshare.playground import Competition
+except ImportError:
+    raise ImportError(
+        "The 'aimodelshare' library is required. Install with: pip install aimodelshare"
+    )
 
 # -------------------------------------------------------------------------
 # 1. Configuration
@@ -4093,6 +4109,39 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             background-color: rgba(248, 113, 113, 0.26);
         }
     }
+    /* ---------------------------------------------------- */
+    /* Slide 3: INPUT → MODEL → OUTPUT flow (theme-aware)   */
+    /* ---------------------------------------------------- */
+
+
+    .model-flow {
+        text-align: center;
+        font-weight: 600;
+        font-size: 1.2rem;
+        margin: 20px 0;
+        /* No explicit color – inherit from the card */
+    }
+
+    .model-flow-label {
+        padding: 0 0.1rem;
+        /* No explicit color – inherit */
+    }
+
+    .model-flow-arrow {
+        margin: 0 0.35rem;
+        font-size: 1.4rem;
+        /* No explicit color – inherit */
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .model-flow {
+            color: var(--body-text-color);
+        }
+        .model-flow-arrow {
+            /* In dark mode, nudge arrows toward accent for contrast/confidence */
+            color: color-mix(in srgb, var(--color-accent) 75%, var(--body-text-color) 25%);
+        }
+    }
     """
 
 
@@ -4249,8 +4298,18 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                         <h3>Think of a Model as a "Prediction Machine."</h3>
                         <p>You already know the flow:</p>
                         
-                        <div style='text-align:center; font-weight:bold; font-size:1.2rem; margin: 20px 0; color: #1f2937;'>
-                            INPUT <span style='color:#6b7280'>→</span> MODEL <span style='color:#6b7280'>→</span> OUTPUT
+                        <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
+                            <div style='display:inline-block; background:#dbeafe; padding:12px 16px; border-radius:8px; margin:4px;'>
+                                <h3 style='margin:0; color:#0369a1;'>INPUT</h3>
+                            </div>
+                            <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
+                            <div style='display:inline-block; background:#fef3c7; padding:12px 16px; border-radius:8px; margin:4px;'>
+                                <h3 style='margin:0; color:#92400e;'>MODEL</h3>
+                            </div>
+                            <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
+                            <div style='display:inline-block; background:#f0fdf4; padding:12px 16px; border-radius:8px; margin:4px;'>
+                                <h3 style='margin:0; color:#15803d;'>OUTPUT</h3>
+                            </div>
                         </div>
                         
                         <p>As an engineer, you don't need to write complex code from scratch. Instead, you assemble this machine using three main components.</p>
@@ -5209,8 +5268,18 @@ def launch_model_building_game_app(height: int = 1200, share: bool = False, debu
                         <h3>Think of a Model as a "Prediction Machine."</h3>
                         <p>You already know the flow:</p>
                         
-                        <div style='text-align:center; font-weight:bold; font-size:1.2rem; margin: 20px 0; color: #1f2937;'>
-                            INPUT <span style='color:#6b7280'>→</span> MODEL <span style='color:#6b7280'>→</span> OUTPUT
+                        <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
+                            <div style='display:inline-block; background:#dbeafe; padding:12px 16px; border-radius:8px; margin:4px;'>
+                                <h3 style='margin:0; color:#0369a1;'>INPUT</h3>
+                            </div>
+                            <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
+                            <div style='display:inline-block; background:#fef3c7; padding:12px 16px; border-radius:8px; margin:4px;'>
+                                <h3 style='margin:0; color:#92400e;'>MODEL</h3>
+                            </div>
+                            <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
+                            <div style='display:inline-block; background:#f0fdf4; padding:12px 16px; border-radius:8px; margin:4px;'>
+                                <h3 style='margin:0; color:#15803d;'>OUTPUT</h3>
+                            </div>
                         </div>
                         
                         <p>As an engineer, you don't need to write complex code from scratch. Instead, you assemble this machine using three main components.</p>
