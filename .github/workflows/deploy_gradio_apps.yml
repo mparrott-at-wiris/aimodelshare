@@ -41,12 +41,13 @@ jobs:
           echo "IMAGE=$IMAGE" >> $GITHUB_ENV
 
   # ------------------------------------------------------------
-  # Parallel deploy jobs (no matrix)
-  # Each job depends on build-and-push and sets APP_NAME explicitly
+  # Parallel deploy jobs (each exposes its URL as an output)
   # ------------------------------------------------------------
   deploy-tutorial:
     runs-on: ubuntu-latest
     needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
     steps:
       - name: Auth
         uses: google-github-actions/auth@v2
@@ -55,6 +56,7 @@ jobs:
       - name: Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
       - name: Deploy tutorial
+        id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: tutorial
@@ -74,12 +76,15 @@ jobs:
   deploy-judge:
     runs-on: ubuntu-latest
     needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
     steps:
       - uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
       - uses: google-github-actions/setup-gcloud@v2
       - name: Deploy judge
+        id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: judge
@@ -99,12 +104,15 @@ jobs:
   deploy-ai-consequences:
     runs-on: ubuntu-latest
     needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
     steps:
       - uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
       - uses: google-github-actions/setup-gcloud@v2
       - name: Deploy ai-consequences
+        id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: ai-consequences
@@ -124,12 +132,15 @@ jobs:
   deploy-what-is-ai:
     runs-on: ubuntu-latest
     needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
     steps:
       - uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
       - uses: google-github-actions/setup-gcloud@v2
       - name: Deploy what-is-ai
+        id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: what-is-ai
@@ -149,12 +160,15 @@ jobs:
   deploy-model-building-game:
     runs-on: ubuntu-latest
     needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
     steps:
       - uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
       - uses: google-github-actions/setup-gcloud@v2
       - name: Deploy model-building-game
+        id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: model-building-game
@@ -174,12 +188,15 @@ jobs:
   deploy-ethical-revelation:
     runs-on: ubuntu-latest
     needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
     steps:
       - uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
       - uses: google-github-actions/setup-gcloud@v2
       - name: Deploy ethical-revelation
+        id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: ethical-revelation
@@ -199,12 +216,15 @@ jobs:
   deploy-moral-compass-challenge:
     runs-on: ubuntu-latest
     needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
     steps:
       - uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
       - uses: google-github-actions/setup-gcloud@v2
       - name: Deploy moral-compass-challenge
+        id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: moral-compass-challenge
@@ -224,12 +244,15 @@ jobs:
   deploy-bias-detective:
     runs-on: ubuntu-latest
     needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
     steps:
       - uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
       - uses: google-github-actions/setup-gcloud@v2
       - name: Deploy bias-detective
+        id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: bias-detective
@@ -249,12 +272,15 @@ jobs:
   deploy-fairness-fixer:
     runs-on: ubuntu-latest
     needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
     steps:
       - uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
       - uses: google-github-actions/setup-gcloud@v2
       - name: Deploy fairness-fixer
+        id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: fairness-fixer
@@ -274,12 +300,15 @@ jobs:
   deploy-justice-equity-upgrade:
     runs-on: ubuntu-latest
     needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
     steps:
       - uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
       - uses: google-github-actions/setup-gcloud@v2
       - name: Deploy justice-equity-upgrade
+        id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: justice-equity-upgrade
@@ -296,3 +325,52 @@ jobs:
             --timeout=3000
             --set-env-vars=APP_NAME=justice-equity-upgrade,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
+  # ------------------------------------------------------------
+  # Collect and publish all deployed service URLs
+  # ------------------------------------------------------------
+  collect-urls:
+    runs-on: ubuntu-latest
+    needs:
+      - deploy-tutorial
+      - deploy-judge
+      - deploy-ai-consequences
+      - deploy-what-is-ai
+      - deploy-model-building-game
+      - deploy-ethical-revelation
+      - deploy-moral-compass-challenge
+      - deploy-bias-detective
+      - deploy-fairness-fixer
+      - deploy-justice-equity-upgrade
+    steps:
+      - name: Generate JSON of deployed URLs
+        run: |
+          cat > deployed_urls.json <<'EOF'
+          {
+            "tutorial": "${{ needs.deploy-tutorial.outputs.url }}",
+            "judge": "${{ needs.deploy-judge.outputs.url }}",
+            "ai-consequences": "${{ needs.deploy-ai-consequences.outputs.url }}",
+            "what-is-ai": "${{ needs.deploy-what-is-ai.outputs.url }}",
+            "model-building-game": "${{ needs.deploy-model-building-game.outputs.url }}",
+            "ethical-revelation": "${{ needs.deploy-ethical-revelation.outputs.url }}",
+            "moral-compass-challenge": "${{ needs.deploy-moral-compass-challenge.outputs.url }}",
+            "bias-detective": "${{ needs.deploy-bias-detective.outputs.url }}",
+            "fairness-fixer": "${{ needs.deploy-fairness-fixer.outputs.url }}",
+            "justice-equity-upgrade": "${{ needs.deploy-justice-equity-upgrade.outputs.url }}"
+          }
+          EOF
+          echo "Deployed service URLs JSON:"
+          cat deployed_urls.json
+      - name: Upload deployed_urls.json artifact
+        uses: actions/upload-artifact@v4
+        with:
+            name: deployed-urls
+            path: deployed_urls.json
+      - name: Append URLs to summary
+        run: |
+          {
+            echo "### Deployed Cloud Run Service URLs"
+            echo ""
+            echo '```json'
+            cat deployed_urls.json
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
