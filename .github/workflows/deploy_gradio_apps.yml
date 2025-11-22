@@ -2,14 +2,6 @@ name: Deploy Moral Compass Apps to Production
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ "master" ]
-    paths:
-      - 'aimodelshare/moral_compass/apps/**'
-      - 'requirements-apps.txt'
-      - 'launch_entrypoint.py'
-      - 'Dockerfile'
-      - '.github/workflows/deploy_gradio_apps.yml'
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
