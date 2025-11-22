@@ -69,6 +69,11 @@ resource "aws_dynamodb_table" "playground" {
     enabled = var.enable_pitr
   }
 
+  ttl {
+      attribute_name = "ttl"
+      enabled        = true
+    }
+
   dynamic "global_secondary_index" {
     for_each = var.enable_gsi_by_user ? [1] : []
     content {
@@ -204,6 +209,7 @@ resource "aws_lambda_function" "api" {
       ALLOW_TABLE_DELETE                = var.allow_table_delete ? "true" : "false"
       ALLOW_PUBLIC_READ                 = var.allow_public_read ? "true" : "false"
       AWS_REGION_NAME                   = var.region
+      SESSION_TTL_SECONDS            = "72000"
     }
   }
 
@@ -292,6 +298,12 @@ resource "aws_apigatewayv2_route" "route_put_moral_compass_legacy" {
 resource "aws_apigatewayv2_route" "route_health" {
   api_id    = aws_apigatewayv2_api.http_api.id
   route_key = "GET /health"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda_proxy.id}"
+}
+
+resource "aws_apigatewayv2_route" "route_create_session" {
+  api_id    = aws_apigatewayv2_api.http_api.id
+  route_key = "POST /sessions"
   target    = "integrations/${aws_apigatewayv2_integration.lambda_proxy.id}"
 }
 
