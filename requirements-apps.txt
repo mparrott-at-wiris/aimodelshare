@@ -24,5 +24,4 @@ dill
 IPython
 networkx
 onnxmltools
-absl
 
