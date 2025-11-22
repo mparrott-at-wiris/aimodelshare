@@ -14,7 +14,7 @@ APP_NAME_TO_FACTORY = {
     "judge": "create_judge_app",
     "ai-consequences": "create_ai_consequences_app",
     "what-is-ai": "create_what_is_ai_app",
-    "model-building-game": "create_model_building_game_app",
+    "model-building-game": "launch_model_building_game_app",
     "ethical-revelation": "create_ethical_revelation_app",
     "moral-compass-challenge": "create_moral_compass_challenge_app",
     "bias-detective": "create_bias_detective_app",
