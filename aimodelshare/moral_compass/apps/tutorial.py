@@ -478,4 +478,4 @@ def launch_tutorial_app(height: int = 950, share: bool = False, debug: bool = Fa
     port = int(os.environ.get("PORT", 8080))
     demo.launch(share=share, inline=True, debug=debug, height=height, server_port=port)
 
-launch_tutorial_app()
+
