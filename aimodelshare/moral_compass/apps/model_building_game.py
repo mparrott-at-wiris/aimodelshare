@@ -6078,7 +6078,6 @@ def launch_model_building_game_app(height: int = 1200, share: bool = False, debu
     demo = create_model_building_game_app()
     demo.launch(share=share, inline=True, debug=debug, height=height, server_port=port)
 
-launch_model_building_game_app()
 
 
 
