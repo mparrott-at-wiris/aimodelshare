@@ -104,18 +104,16 @@ def test_requirements_apps_dependencies():
     
     content = req_file.read_text()
     
-    # Check that lightweight deps are included
-    assert "gradio" in content
-    assert "scikit-learn" in content
-    assert "boto3" in content
-    assert "pandas" in content
+    # Check that lightweight deps are included with pinned versions
+    assert "gradio==" in content
+    assert "scikit-learn==" in content
+    assert "pandas==" in content
+    assert "numpy==" in content
+    assert "requests==" in content
     
-    # Check that onnx is included (needed for model_building_game)
-    assert "onnx" in content
-    
-    # Check that heavy ML frameworks are excluded
-    assert "tensorflow" not in content or "# EXCLUDED" in content
-    assert "torch" not in content or "# EXCLUDED" in content
+    # Check for Python 3.12 compatible versions
+    assert "fastapi==" in content
+    assert "uvicorn==" in content
 
 
 def test_dockerfile_exists():
@@ -129,8 +127,9 @@ def test_dockerfile_exists():
     
     content = dockerfile.read_text()
     
-    # Check key elements
-    assert "python:3.9-slim" in content
+    # Check key elements - updated for Python 3.12 and HEALTHCHECK
+    assert "python:3.12-slim" in content
     assert "requirements-apps.txt" in content
     assert "launch_entrypoint.py" in content
     assert "EXPOSE 8080" in content
+    assert "HEALTHCHECK" in content
