@@ -12,7 +12,7 @@ Structure:
 """
 import contextlib
 import os
-
+os.environ.setdefault("APP_NAME", "judge")
 
 def _generate_defendant_profiles():
     """Generate synthetic defendant profiles for the exercise."""
@@ -82,7 +82,6 @@ def _generate_defendant_profiles():
 
 def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """Create the You Be the Judge Gradio Blocks app (not launched yet)."""
-    os.environ["APP_NAME"] = "judge"
 
     try:
         import gradio as gr
@@ -659,4 +658,5 @@ def launch_judge_app(height: int = 1200, share: bool = False, debug: bool = Fals
     port = int(os.environ.get("PORT", 8080))
     demo.launch(share=share, inline=True, debug=debug, height=height, server_port=port)
 
-launch_judge_app()
+if __name__ == "__main__":
+    launch_judge_app()
