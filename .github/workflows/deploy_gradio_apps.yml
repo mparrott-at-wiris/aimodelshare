@@ -110,7 +110,7 @@ jobs:
     steps:
       - uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.GCP_SA_KY }} # NOTE: Typo? Should be GCP_SA_KEY; fix if needed
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
       - uses: google-github-actions/setup-gcloud@v2
       - name: Deploy ai-consequences
         uses: google-github-actions/deploy-cloudrun@v2
