@@ -32,6 +32,17 @@ from .mc_integration_helpers import (
     get_moral_compass_widget_html,
 )
 
+# Import session-based authentication
+from .session_auth import (
+    create_session_state,
+    authenticate_session,
+    get_session_username,
+    get_session_token,
+    is_session_authenticated,
+    get_session_team,
+    set_session_team,
+)
+
 logger = logging.getLogger("aimodelshare.moral_compass.apps.bias_detective")
 
 
@@ -120,23 +131,20 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
 
     demographics = _get_compas_demographic_data()
     fairness_metrics = _get_fairness_metrics()
-
-    # Get user stats and initialize challenge manager
-    user_stats = _get_user_stats()
-    challenge_manager = None
-    if user_stats["is_signed_in"]:
-        challenge_manager = get_challenge_manager(user_stats["username"])
     
-    # Track state
+    # Track state - now using closures for moral compass points
+    # Session state will be managed via Gradio State
     framework_score = {"value": 0}
     identified_issues = {"demographics": [], "biases": []}
     moral_compass_points = {"value": 0}
     server_moral_score = {"value": None}
     is_synced = {"value": False}
 
-    def sync_moral_state(override=False):
+    def sync_moral_state(session_state, override=False):
         """Sync moral state to server (debounced unless override)."""
-        if not challenge_manager:
+        username = get_session_username(session_state)
+        
+        if not is_session_authenticated(session_state):
             return {
                 'widget_html': get_moral_compass_widget_html(
                     local_points=moral_compass_points["value"],
@@ -144,6 +152,18 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                     is_synced=False
                 ),
                 'status': 'Guest mode - sign in to sync'
+            }
+        
+        # Get or create challenge manager for this user
+        challenge_manager = get_challenge_manager(username)
+        if not challenge_manager:
+            return {
+                'widget_html': get_moral_compass_widget_html(
+                    local_points=moral_compass_points["value"],
+                    server_score=None,
+                    is_synced=False
+                ),
+                'status': 'Could not create challenge manager'
             }
         
         # Sync to server
@@ -158,9 +178,10 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             server_moral_score["value"] = sync_result.get('server_score')
             is_synced["value"] = True
             
-            # Trigger team sync if user sync succeeded
-            if user_stats.get("team_name"):
-                sync_team_state(user_stats["team_name"])
+            # Trigger team sync if user has team
+            team_name = get_session_team(session_state)
+            if team_name:
+                sync_team_state(team_name)
         
         # Generate widget HTML
         widget_html = get_moral_compass_widget_html(
@@ -174,7 +195,7 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             'status': sync_result['message']
         }
     
-    def check_framework_answer(principle, indicator, observable):
+    def check_framework_answer(session_state, principle, indicator, observable):
         """Check if framework components are correctly categorized."""
         correct_mapping = {
             "Equal Treatment": "Principle",
@@ -209,13 +230,16 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             moral_compass_points["value"] += 100
             feedback.append("\n🎉 Perfect! You've earned 100 Moral Compass points!")
             
-            # Update ChallengeManager (Task A: Framework understanding)
-            if challenge_manager:
-                challenge_manager.complete_task('A')
-                challenge_manager.answer_question('A', 'A1', 1)
+            # Update ChallengeManager (Task A: Framework understanding) if authenticated
+            username = get_session_username(session_state)
+            if username:
+                challenge_manager = get_challenge_manager(username)
+                if challenge_manager:
+                    challenge_manager.complete_task('A')
+                    challenge_manager.answer_question('A', 'A1', 1)
             
             # Trigger sync
-            sync_result = sync_moral_state()
+            sync_result = sync_moral_state(session_state)
             feedback.append(f"\n{sync_result['status']}")
         
         return "\n".join(feedback)
