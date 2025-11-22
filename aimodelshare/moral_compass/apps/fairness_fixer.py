@@ -887,4 +887,3 @@ def launch_fairness_fixer_app(
     if server_port is None:
         server_port = int(os.environ.get("PORT", 8080))
     app.launch(share=share, sserver_port=server_port)
-launch_fairness_fixer_app()
