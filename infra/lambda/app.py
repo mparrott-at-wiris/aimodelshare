@@ -31,7 +31,7 @@ ALLOW_TABLE_DELETE = os.environ.get('ALLOW_TABLE_DELETE', 'false').lower() == 't
 ALLOW_PUBLIC_READ = os.environ.get('ALLOW_PUBLIC_READ', 'true').lower() == 'true'
 
 # Session Configuration (New)
-SESSION_TTL_SECONDS = int(os.environ.get('SESSION_TTL_SECONDS', '3600')) # Default 1 hour
+SESSION_TTL_SECONDS = int(os.environ.get('SESSION_TTL_SECONDS', '720000')) # Default 1 hour
 
 # Region configuration (using AWS_REGION_NAME to avoid conflict with AWS_REGION)
 AWS_REGION_NAME = os.environ.get('AWS_REGION_NAME', os.environ.get('AWS_REGION', 'us-east-1'))
