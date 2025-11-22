@@ -488,6 +488,40 @@ def create_session(event):
         print(f"[ERROR] create_session exception: {e}")
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
+def get_session(event):
+    """
+    Retrieves the token for a specific session ID.
+    """
+    try:
+        params = event.get('pathParameters') or {}
+        session_id = params.get('sessionId')
+        
+        if not session_id or not _TABLE_ID_RE.match(session_id):
+            return create_response(400, {'error': 'Invalid sessionId format'})
+
+        # Retrieve from DynamoDB (Looking for Sort Key: _session)
+        resp = retry_dynamo(lambda: table.get_item(
+            Key={'tableId': session_id, 'username': '_session'},
+            ConsistentRead=True # Use consistent read for immediate validity
+        ))
+
+        if 'Item' not in resp:
+            return create_response(404, {'error': 'Session not found or expired'})
+
+        item = resp['Item']
+        
+        # Check TTL manually (just in case DynamoDB hasn't swept it yet)
+        if item.get('ttl') and int(time.time()) > int(item['ttl']):
+             return create_response(404, {'error': 'Session expired'})
+
+        return create_response(200, {
+            'sessionId': session_id,
+            'token': item.get('jwtToken')
+        })
+    except Exception as e:
+        print(f"[ERROR] get_session exception: {e}")
+        return create_response(500, {'error': f'Internal server error: {str(e)}'})
+        
 
 def create_table(event):
     try:
@@ -1350,8 +1384,10 @@ def handler(event, context):
             return put_user_moral_compass(event)
         elif route_key == 'PUT /tables/{tableId}/users/{username}/moralcompass':
             return put_user_moral_compass(event)
-        elif route_key == 'POST /sessions':  # <--- NEW ROUTE
+        elif route_key == 'POST /sessions': 
             return create_session(event)
+        elif route_key == 'GET /sessions/{sessionId}':  
+            return get_session(event)
         elif route_key == 'GET /health':
             return health(event)
 
@@ -1381,8 +1417,12 @@ def handler(event, context):
             return put_user_moral_compass(event)
         elif method == 'PUT' and '/users/' in path and path.count('/') == 4:
             return put_user(event)
-        elif method == 'POST' and path == '/sessions': # <--- NEW ROUTE
+        elif method == 'POST' and path == '/sessions': 
             return create_session(event)
+        elif method == 'GET' and '/sessions/' in path:  
+             # Extract ID from path /sessions/<id>
+             # (You might need logic to parse it cleanly depending on your path structure)
+             return get_session(event)
         elif method == 'GET' and path == '/health':
             return health(event)
 
