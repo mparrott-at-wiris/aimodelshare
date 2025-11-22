@@ -1489,9 +1489,11 @@ def run_experiment(
              submission_count, model_name_key, complexity_level, feature_set, data_size_str
         )
         error_updates = {
-            submission_feedback_display: gr.update(f"<p style='text-align:center; color:red; padding:20px 0;'>An error occurred: {error_msg}</p>", visible=True),
-            team_leaderboard_display: "<p style='text-align:center; color:red; padding-top:20px;'>An error occurred: {error_msg}</p>",
-            individual_leaderboard_display: "<p style='text-align:center; color:red; padding-top:20px;'>An error occurred: {error_msg}</p>",
+            submission_feedback_display: gr.update(
+                f"<p style='text-align:center; color:red; padding:20px 0;'>An error occurred: {error_msg}</p>", visible=True
+            ),
+            team_leaderboard_display: f"<p style='text-align:center; color:red; padding-top:20px;'>An error occurred: {error_msg}</p>",
+            individual_leaderboard_display: f"<p style='text-align:center; color:red; padding-top:20px;'>An error occurred: {error_msg}</p>",
             last_submission_score_state: last_submission_score,
             last_rank_state: last_rank,
             best_score_state: best_score,
@@ -3181,9 +3183,11 @@ def run_experiment(
              submission_count, model_name_key, complexity_level, feature_set, data_size_str
         )
         error_updates = {
-            submission_feedback_display: gr.update(f"<p style='text-align:center; color:red; padding:20px 0;'>An error occurred: {error_msg}</p>", visible=True),
-            team_leaderboard_display: "<p style='text-align:center; color:red; padding-top:20px;'>An error occurred: {error_msg}</p>",
-            individual_leaderboard_display: "<p style='text-align:center; color:red; padding-top:20px;'>An error occurred: {error_msg}</p>",
+            submission_feedback_display: gr.update(
+                f"<p style='text-align:center; color:red; padding:20px 0;'>An error occurred: {error_msg}</p>", visible=True
+            ),
+            team_leaderboard_display: f"<p style='text-align:center; color:red; padding-top:20px;'>An error occurred: {error_msg}</p>",
+            individual_leaderboard_display: f"<p style='text-align:center; color:red; padding-top:20px;'>An error occurred: {error_msg}</p>",
             last_submission_score_state: last_submission_score,
             last_rank_state: last_rank,
             best_score_state: best_score,
