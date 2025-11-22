@@ -682,9 +682,9 @@ def launch_bias_detective_app(
     """Convenience wrapper to create and launch the bias detective app inline."""
     app = create_bias_detective_app(theme_primary_hue=theme_primary_hue)
     # Use provided values or fall back to PORT env var and 0.0.0.0
-    if server_name is None:
-        server_name = "0.0.0.0"
+
     if server_port is None:
         server_port = int(os.environ.get("PORT", 8080))
-    app.launch(share=share, server_name=server_name, server_port=server_port)
-# Code review placeholder
+    app.launch(share=share, server_port=server_port)
+
+launch_bias_detective_app()
