@@ -1,127 +1,151 @@
-name: Deploy Moral Compass Apps to Production
+name: Manual Publish to PyPI (Tagged Release Only)
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ "master" ]
-    paths:
-      - 'aimodelshare/moral_compass/apps/**'
-      - 'requirements-apps.txt'
-      - 'launch_entrypoint.py'
-      - 'Dockerfile'
-      - '.github/workflows/deploy_gradio_apps.yml'
+    inputs:
+      tag:
+        description: "Existing git tag to publish (e.g. v0.2.1)"
+        required: true
+      versioning_method:
+        description: "Version strategy: setuptools_scm (tag-based) or inject_static (write into pyproject.toml)"
+        required: true
+        type: choice
+        options:
+          - setuptools_scm
+          - inject_static
+      dry_run:
+        description: "Set true to build & validate without uploading"
+        required: false
+        default: "false"
 
-env:
-  REGION: us-central1
-  REPO_NAME: moral-compass-apps
+concurrency:
+  group: pypi-publish-${{ github.workflow }}-${{ inputs.tag }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write   # Needed for PyPI Trusted Publishing (OIDC)
 
 jobs:
-  build-image:
+  publish:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    outputs:
-      image-artifact-name: image-tag
+    # Optional: uncomment if you want an environment gate
+    # environment: pypi
     steps:
-      - name: Verify required secrets
-        run: |
-          if [ -z "${{ secrets.GCP_SA_KEY }}" ]; then
-            echo "Missing secret GCP_SA_KEY. Aborting."
-            exit 1
-          fi
-          if [ -z "${{ secrets.GCP_PROJECT_ID }}" ]; then
-            echo "Missing secret GCP_PROJECT_ID. Aborting."
-            exit 1
-
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Auth to Google Cloud
-        uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          fetch-depth: 0
 
-      - name: Setup gcloud
-        uses: google-github-actions/setup-gcloud@v2
-
-      - name: Configure Docker auth
-        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
-
-      - name: Build & Push Image
+      - name: Validate tag
+        id: validate_tag
         run: |
-          set -e
-          IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}"
-          echo "Building image: $IMAGE"
-          docker build --pull -t "$IMAGE" .
-          docker push "$IMAGE"
-          echo "$IMAGE" > image.txt
-          echo "Image tag written to image.txt:"
-          cat image.txt
-
-      - name: Upload image tag artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: image-tag
-          path: image.txt
-          retention-days: 1
-
-  # Reusable deploy job via matrix
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build-image
-    strategy:
-      fail-fast: false
-      matrix:
-        service:
-          - tutorial
-          - judge
-          - ai-consequences
-          - what-is-ai
-          - model-building-game
-          - ethical-revelation
-          - moral-compass-challenge
-          - bias-detective
-          - fairness-fixer
-          - justice-equity-upgrade
-    steps:
-      - name: Auth to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Setup gcloud
-        uses: google-github-actions/setup-gcloud@v2
-
-      - name: Download image artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: image-tag
-
-      - name: Read image tag
-        id: read_image
-        run: |
-          set -e
-          IMAGE_TAG="$(cat image.txt)"
-          echo "Read image tag: $IMAGE_TAG"
-          if [ -z "$IMAGE_TAG" ]; then
-            echo "ERROR: Image tag empty."
+          TAG="${{ inputs.tag }}"
+          git fetch --tags --force
+          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag '$TAG' not found." >&2
             exit 1
           fi
-          echo "IMAGE=$IMAGE_TAG" >> $GITHUB_ENV
+          if [[ ! "$TAG" =~ ^v[0-9]+(\.[0-9]+){1,2}([a-zA-Z0-9._-]+)?$ ]]; then
+            echo "Tag format invalid: $TAG" >&2
+            exit 1
+          fi
+            TAG_COMMIT="$(git rev-list -n 1 "$TAG")"
+          HEAD_COMMIT="$(git rev-parse HEAD)"
+          if [ "$TAG_COMMIT" != "$HEAD_COMMIT" ]; then
+            git checkout "$TAG"
+          fi
+          VERSION="${TAG#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Deploy ${{ matrix.service }}
-        uses: google-github-actions/deploy-cloudrun@v2
+      - name: Show derived version
+        run: |
+          echo "Version: ${{ steps.validate_tag.outputs.version }}"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          service: ${{ matrix.service }}
-          image: ${{ env.IMAGE }}
-          region: ${{ env.REGION }}
-          flags: >-
-            --allow-unauthenticated
-            --memory=2Gi
-            --cpu=2
-            --session-affinity
-            --concurrency=80
-            --min-instances=0
-            --max-instances=50
-            --timeout=3000
-            --set-env-vars=APP_NAME=${{ matrix.service }},GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+          python-version: "3.10"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('pyproject.toml', 'setup.cfg', 'requirements*.txt') }}
+          restore-keys: |
+            pip-${{ runner.os }}-
+
+      - name: Install build tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install --upgrade build twine
+
+      - name: Inject static version (if selected)
+        if: inputs.versioning_method == 'inject_static'
+        run: |
+          VERSION="${{ steps.validate_tag.outputs.version }}"
+          if [ -f pyproject.toml ]; then
+            if grep -q "^version *= *" pyproject.toml; then
+              sed -i "s/^version *= *.*/version = \"${VERSION}\"/" pyproject.toml
+            else
+              echo "version = \"${VERSION}\"" >> pyproject.toml
+            fi
+          elif [ -f setup.cfg ]; then
+            if grep -q "^version =" setup.cfg; then
+              sed -i "s/^version = .*/version = ${VERSION}/" setup.cfg
+            else
+              echo "version = ${VERSION}" >> setup.cfg
+            fi
+          else
+            echo "No metadata file found for static injection." >&2
+            exit 1
+          fi
+
+      - name: Check setuptools_scm presence (info)
+        if: inputs.versioning_method == 'setuptools_scm'
+        run: |
+          if grep -qi "setuptools_scm" pyproject.toml 2>/dev/null; then
+            echo "setuptools_scm detected."
+          else
+            echo "Warning: setuptools_scm strategy chosen but not listed in pyproject.toml."
+          fi
+
+      - name: Build distributions
+        run: |
+          rm -rf dist
+          python -m build
+
+      - name: Validate distributions
+        run: twine check dist/*
+
+      - name: Pre-upload smoke test (install from local wheel)
+        if: inputs.dry_run != 'true'
+        run: |
+          WHEEL_FILE=$(ls dist/*.whl | head -n 1)
+          pip install "$WHEEL_FILE"
+          python -c "from importlib.metadata import version; print('Smoke test passed. Version:', version('aimodelshare'))"
+
+      - name: Dry run (skip upload)
+        if: inputs.dry_run == 'true'
+        run: |
+          echo "Dry run enabled; skipping upload."
+          ls -l dist
+
+      - name: Publish to PyPI (Trusted Publisher)
+        if: inputs.dry_run != 'true'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: false
+          # No password: uses OIDC trusted publishing
+
+      - name: Post-publish check
+        if: inputs.dry_run != 'true'
+        run: |
+          pip install --upgrade aimodelshare
+          python -c "from importlib.metadata import version; print('Installed version:', version('aimodelshare'))"
+
+      - name: Summary
+        run: |
+          echo "Tag: ${{ inputs.tag }}"
+          echo "Version: ${{ steps.validate_tag.outputs.version }}"
+          echo "Dry run: ${{ inputs.dry_run }}"
