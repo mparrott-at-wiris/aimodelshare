@@ -7,26 +7,32 @@ import time
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("launcher")
 
-FACTORY_LOOKUP = {
-    "tutorial": ("aimodelshare.moral_compass.apps", "create_tutorial_app"),
-    "judge": ("aimodelshare.moral_compass.apps", "create_judge_app"),
-    "ai-consequences": ("aimodelshare.moral_compass.apps", "create_ai_consequences_app"),
-    "what-is-ai": ("aimodelshare.moral_compass.apps", "create_what_is_ai_app"),
-    "model-building-game": ("aimodelshare.moral_compass.apps", "create_model_building_game_app"),
-    "ethical-revelation": ("aimodelshare.moral_compass.apps", "create_ethical_revelation_app"),
-    "moral-compass-challenge": ("aimodelshare.moral_compass.apps", "create_moral_compass_challenge_app"),
-    "bias-detective": ("aimodelshare.moral_compass.apps", "create_bias_detective_app"),
-    "fairness-fixer": ("aimodelshare.moral_compass.apps", "create_fairness_fixer_app"),
-    "justice-equity-upgrade": ("aimodelshare.moral_compass.apps", "create_justice_equity_upgrade_app"),
+# Map app-name (from APP_NAME env var) to factory function name
+# Uses create_* factories which are lazily imported from apps module
+APP_NAME_TO_FACTORY = {
+    "tutorial": "create_tutorial_app",
+    "judge": "create_judge_app",
+    "ai-consequences": "create_ai_consequences_app",
+    "what-is-ai": "create_what_is_ai_app",
+    "model-building-game": "create_model_building_game_app",
+    "ethical-revelation": "create_ethical_revelation_app",
+    "moral-compass-challenge": "create_moral_compass_challenge_app",
+    "bias-detective": "create_bias_detective_app",
+    "fairness-fixer": "create_fairness_fixer_app",
+    "justice-equity-upgrade": "create_justice_equity_upgrade_app",
 }
 
 def load_factory(app_name: str):
-    if app_name not in FACTORY_LOOKUP:
-        raise ValueError(f"Unknown APP_NAME '{app_name}'. Valid: {sorted(FACTORY_LOOKUP.keys())}")
-    mod, attr = FACTORY_LOOKUP[app_name]
-    logger.info(f"Importing factory '{attr}' from '{mod}' (lazy)...")
-    module = __import__(mod, fromlist=[attr])
-    return getattr(module, attr)
+    """Load the factory function for the given app name using lazy imports."""
+    if app_name not in APP_NAME_TO_FACTORY:
+        raise ValueError(f"Unknown APP_NAME '{app_name}'. Valid: {sorted(APP_NAME_TO_FACTORY.keys())}")
+    
+    factory_name = APP_NAME_TO_FACTORY[app_name]
+    logger.info(f"Importing factory '{factory_name}' from apps module (lazy)...")
+    
+    # Import from apps module - this uses the lazy __getattr__ mechanism
+    from aimodelshare.moral_compass import apps
+    return getattr(apps, factory_name)
 
 if __name__ == "__main__":
     start_ts = time.time()
