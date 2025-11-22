@@ -6073,12 +6073,12 @@ def launch_model_building_game_app(height: int = 1200, share: bool = False, debu
 
     if X_TRAIN_RAW is None:
         X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data()
+    port = int(os.environ.get("PORT", 8080))
 
     demo = create_model_building_game_app()
-    demo.launch(share=share, inline=True, debug=debug, height=height)
+    demo.launch(share=share, inline=True, debug=debug, height=height, server_port=port)
 
-
-
+launch_model_building_game_app()
 
 
 
