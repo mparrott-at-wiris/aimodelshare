@@ -1490,8 +1490,8 @@ def run_experiment(
         )
         error_updates = {
             submission_feedback_display: gr.update(f"<p style='text-align:center; color:red; padding:20px 0;'>An error occurred: {error_msg}</p>", visible=True),
-            team_leaderboard_display: "<p style='text-align:center; color:red; padding-top:20px;'>Error loading data.</p>",
-            individual_leaderboard_display: "<p style='text-align:center; color:red; padding-top:20px;'>Error loading data.</p>",
+            team_leaderboard_display: "<p style='text-align:center; color:red; padding-top:20px;'>An error occurred: {error_msg}</p>",
+            individual_leaderboard_display: "<p style='text-align:center; color:red; padding-top:20px;'>An error occurred: {error_msg}</p>",
             last_submission_score_state: last_submission_score,
             last_rank_state: last_rank,
             best_score_state: best_score,
