@@ -658,5 +658,3 @@ def launch_judge_app(height: int = 1200, share: bool = False, debug: bool = Fals
     port = int(os.environ.get("PORT", 8080))
     demo.launch(share=share, inline=True, debug=debug, height=height, server_port=port)
 
-if __name__ == "__main__":
-    launch_judge_app()
