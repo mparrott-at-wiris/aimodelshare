@@ -883,8 +883,8 @@ def launch_fairness_fixer_app(
     """Convenience wrapper to create and launch the fairness fixer app inline."""
     app = create_fairness_fixer_app(theme_primary_hue=theme_primary_hue)
     # Use provided values or fall back to PORT env var and 0.0.0.0
-    if server_name is None:
-        server_name = "0.0.0.0"
+
     if server_port is None:
         server_port = int(os.environ.get("PORT", 8080))
-    app.launch(share=share, server_name=server_name, server_port=server_port)
+    app.launch(share=share, sserver_port=server_port)
+launch_fairness_fixer_app()
