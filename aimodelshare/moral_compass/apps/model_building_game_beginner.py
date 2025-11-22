@@ -666,8 +666,9 @@ def launch_model_building_game_beginner_app(height: int = 1100, share: bool = Fa
         X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data()
 
     app = create_model_building_game_beginner_app()
+    port = int(os.environ.get("PORT", 8080))
     with contextlib.redirect_stdout(open(os.devnull, "w")), contextlib.redirect_stderr(open(os.devnull, "w")):
-        app.launch(share=share, inline=True, debug=debug, height=height)
+        app.launch(share=share, inline=True, debug=debug, height=height, server_name="0.0.0.0", server_port=port)
 
 # ---------------------------------------------------------------------
 # Entrypoint

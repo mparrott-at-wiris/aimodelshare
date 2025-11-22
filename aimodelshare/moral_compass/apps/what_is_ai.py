@@ -921,7 +921,8 @@ def launch_what_is_ai_app(
         ) from e
 
     # This is the original wrapper, designed for use in a notebook (like Colab)
+    port = int(os.environ.get("PORT", 8080))
     with contextlib.redirect_stdout(open(os.devnull, "w")), contextlib.redirect_stderr(
         open(os.devnull, "w")
     ):
-        demo.launch(share=share, inline=True, debug=debug, height=height)
+        demo.launch(share=share, inline=True, debug=debug, height=height, server_name="0.0.0.0", server_port=port)

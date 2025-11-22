@@ -1339,5 +1339,6 @@ def launch_ethical_revelation_app(height: int = 1000, share: bool = False, debug
     """Convenience wrapper to create and launch the ethical revelation app inline."""
     import gradio as gr  # ensure available here if user calls this directly
     demo = create_ethical_revelation_app()
-    demo.launch(share=share, inline=True, debug=debug, height=height)
+    port = int(os.environ.get("PORT", 8080))
+    demo.launch(share=share, inline=True, debug=debug, height=height, server_name="0.0.0.0", server_port=port)
 

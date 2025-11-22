@@ -1303,4 +1303,5 @@ def launch_moral_compass_challenge_app(
     import gradio as gr
 
     demo = create_moral_compass_challenge_app()
-    demo.launch(share=share, inline=True, debug=debug, height=height)
+    port = int(os.environ.get("PORT", 8080))
+    demo.launch(share=share, inline=True, debug=debug, height=height, server_name="0.0.0.0", server_port=port)
