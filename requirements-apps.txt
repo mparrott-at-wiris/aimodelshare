@@ -22,3 +22,5 @@ regex
 psutil
 dill
 IPython
+networkx
+onnxmltools
