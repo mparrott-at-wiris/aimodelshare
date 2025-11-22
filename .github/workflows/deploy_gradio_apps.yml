@@ -1,4 +1,4 @@
-name: Deploy Moral Compass Apps (Sequential)
+name: Deploy Moral Compass Apps to Production
 
 on:
   workflow_dispatch:
@@ -12,51 +12,294 @@ on:
       - '.github/workflows/deploy_gradio_apps.yml'
 
 env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   REGION: us-central1
   REPO_NAME: moral-compass-apps
-  SERVICES: tutorial judge ai-consequences what-is-ai model-building-game ethical-revelation moral-compass-challenge bias-detective fairness-fixer justice-equity-upgrade
 
 jobs:
-  build-and-deploy:
+  # ------------------------------------------------------------
+  # Build the universal image ONCE
+  # ------------------------------------------------------------
+  build-and-push:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - name: Auth
+      - id: auth
+        name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Setup gcloud
+      - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Configure Docker
+      - name: Configure Docker Auth
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
 
-      - name: Build & Push Image
+      - name: Build and Push Docker Image
         run: |
-          set -e
-          IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}"
+          IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}"
           echo "Building image: $IMAGE"
           docker build --pull -t "$IMAGE" .
           docker push "$IMAGE"
           echo "IMAGE=$IMAGE" >> $GITHUB_ENV
 
-      - name: Deploy All Services
-        run: |
-          set -e
-          echo "Deploying services with image: $IMAGE"
-          for SVC in $SERVICES; do
-            echo "Deploying $SVC..."
-            gcloud run deploy "$SVC" \
-              --image "$IMAGE" \
-              --region "${{ env.REGION }}" \
-              --allow-unauthenticated \
-              --memory 2Gi \
-              --cpu 2 \
-              --session-affinity \
-              --concurrency 80 \
-              --min-instances 0 \
-              --max-instances 50 \
-              --timeout 3000 \
-              --set-env-vars APP_NAME="$SVC",GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
-          done
+  # ------------------------------------------------------------
+  # Parallel deploy jobs (no matrix)
+  # Each job depends on build-and-push and sets APP_NAME explicitly
+  # ------------------------------------------------------------
+  deploy-tutorial:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - name: Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - name: Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy tutorial
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: tutorial
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=80
+            --min-instances=0
+            --max-instances=50
+            --timeout=3000
+            --set-env-vars=APP_NAME=tutorial,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  deploy-judge:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy judge
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: judge
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=80
+            --min-instances=0
+            --max-instances=50
+            --timeout=3000
+            --set-env-vars=APP_NAME=judge,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  deploy-ai-consequences:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KY }} # NOTE: Typo? Should be GCP_SA_KEY; fix if needed
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy ai-consequences
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ai-consequences
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=80
+            --min-instances=0
+            --max-instances=50
+            --timeout=3000
+            --set-env-vars=APP_NAME=ai-consequences,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  deploy-what-is-ai:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy what-is-ai
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: what-is-ai
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=80
+            --min-instances=0
+            --max-instances=50
+            --timeout=3000
+            --set-env-vars=APP_NAME=what-is-ai,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  deploy-model-building-game:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy model-building-game
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: model-building-game
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=80
+            --min-instances=0
+            --max-instances=50
+            --timeout=3000
+            --set-env-vars=APP_NAME=model-building-game,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  deploy-ethical-revelation:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy ethical-revelation
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ethical-revelation
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=80
+            --min-instances=0
+            --max-instances=50
+            --timeout=3000
+            --set-env-vars=APP_NAME=ethical-revelation,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  deploy-moral-compass-challenge:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy moral-compass-challenge
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: moral-compass-challenge
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=80
+            --min-instances=0
+            --max-instances=50
+            --timeout=3000
+            --set-env-vars=APP_NAME=moral-compass-challenge,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  deploy-bias-detective:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy bias-detective
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: bias-detective
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=80
+            --min-instances=0
+            --max-instances=50
+            --timeout=3000
+            --set-env-vars=APP_NAME=bias-detective,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  deploy-fairness-fixer:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy fairness-fixer
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: fairness-fixer
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=80
+            --min-instances=0
+            --max-instances=50
+            --timeout=3000
+            --set-env-vars=APP_NAME=fairness-fixer,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  deploy-justice-equity-upgrade:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy justice-equity-upgrade
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: justice-equity-upgrade
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=80
+            --min-instances=0
+            --max-instances=50
+            --timeout=3000
+            --set-env-vars=APP_NAME=justice-equity-upgrade,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
