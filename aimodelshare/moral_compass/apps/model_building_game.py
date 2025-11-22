@@ -33,6 +33,17 @@ except ImportError:
         "The 'aimodelshare' library is required. Install with: pip install aimodelshare"
     )
 
+# --- Session-Based Authentication (for multi-user Cloud Run support) ---
+from .session_auth import (
+    create_session_state,
+    authenticate_session,
+    get_session_username,
+    get_session_token,
+    is_session_authenticated,
+    get_session_team,
+    set_session_team,
+)
+
 # -------------------------------------------------------------------------
 # 1. Configuration
 # -------------------------------------------------------------------------
@@ -805,7 +816,7 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
         pass # Keep defaults
 
     # Generate HTML outputs
-    team_html = _build_team_html(team_summary_df, os.environ.get("TEAM_NAME"))
+    team_html = _build_team_html(team_summary_df, team_name)
     individual_html = _build_individual_html(individual_summary_df, username)
     kpi_card_html = _build_kpi_card_html(
         this_submission_score, last_submission_score, new_rank, last_rank, submission_count
@@ -911,8 +922,7 @@ data_size_radio = None
 attempts_tracker_display = None
 team_name_state = None
 # Login components (will be assigned in create_model_building_game_app)
-login_username = None
-login_password = None
+# NOTE: Login credentials now managed via session state (not globals)
 login_submit = None
 login_error = None
 # This one will be assigned globally but is also defined in the function
@@ -984,25 +994,23 @@ def get_or_assign_team(username):
         print(f"Fallback: assigning random team to {username}: {new_team}")
         return new_team, True
 
-def perform_inline_login(username_input, password_input):
+def perform_inline_login(session_state, username_input, password_input):
     """
-    Perform inline authentication and set credentials in environment.
+    Perform inline authentication using session-based auth (multi-user safe).
     
-    Validates non-empty credentials, sets environment variables, and attempts
-    to fetch AWS token via get_aws_token(). Returns Gradio component updates
-    for login UI visibility and feedback messages.
+    Validates credentials, authenticates via session_auth module, and returns
+    updated session state along with Gradio component updates.
     
     Args:
+        session_state: dict, current session state
         username_input: str, the username entered by user
         password_input: str, the password entered by user
     
     Returns:
-        dict: Gradio component updates for login UI elements and submit button
-            - On success: hides login form, shows success message, enables submit
-            - On failure: keeps login form visible, shows error with signup link
+        tuple: (updated_session_state, dict of Gradio component updates)
+            - On success: session authenticated, login form hidden, team assigned
+            - On failure: session unchanged, error message shown
     """
-    from aimodelshare.aws import get_aws_token
-    
     # Validate inputs
     if not username_input or not username_input.strip():
         error_html = """
@@ -1010,7 +1018,7 @@ def perform_inline_login(username_input, password_input):
             <p style='margin:0; color:#991b1b; font-weight:500;'>⚠️ Username is required</p>
         </div>
         """
-        return {
+        return session_state, {
             login_username: gr.update(),
             login_password: gr.update(),
             login_submit: gr.update(),
@@ -1026,7 +1034,7 @@ def perform_inline_login(username_input, password_input):
             <p style='margin:0; color:#991b1b; font-weight:500;'>⚠️ Password is required</p>
         </div>
         """
-        return {
+        return session_state, {
             login_username: gr.update(),
             login_password: gr.update(),
             login_submit: gr.update(),
@@ -1036,24 +1044,26 @@ def perform_inline_login(username_input, password_input):
             team_name_state: gr.update()
         }
     
-    # Set credentials in environment
-    os.environ["username"] = username_input.strip()
-    os.environ["password"] = password_input.strip()
-    
-    # Attempt to get AWS token
+    # Authenticate using session_auth (no environment variables!)
     try:
-        token = get_aws_token()
-        os.environ["AWS_TOKEN"] = token
+        new_session_state, success, auth_message = authenticate_session(
+            session_state, username_input.strip(), password_input.strip()
+        )
         
-        # Get or assign team for this user (already normalized by get_or_assign_team)
-        team_name, is_new_team = get_or_assign_team(username_input.strip())
-        # Normalize team name before storing (defensive - already normalized by get_or_assign_team)
+        if not success:
+            raise Exception(auth_message)
+        
+        # Get or assign team for this user
+        username = get_session_username(new_session_state)
+        team_name, is_new_team = get_or_assign_team(username)
         team_name = _normalize_team_name(team_name)
-        os.environ["TEAM_NAME"] = team_name
+        
+        # Store team in session state (not environment!)
+        new_session_state = set_session_team(new_session_state, team_name)
         
         # Build success message based on whether team is new or existing
         if is_new_team:
-            team_message = f"You have been assigned to a new team: <b>{team_name}</b> 🎉"
+            team_message = f"You have been assigned to a new team: <b>{team_name}</b> ��"
         else:
             team_message = f"Welcome back! You remain on team: <b>{team_name}</b> ✅"
         
@@ -1069,7 +1079,7 @@ def perform_inline_login(username_input, password_input):
             </p>
         </div>
         """
-        return {
+        return new_session_state, {
             login_username: gr.update(visible=False),
             login_password: gr.update(visible=False),
             login_submit: gr.update(visible=False),
@@ -1098,7 +1108,7 @@ def perform_inline_login(username_input, password_input):
             </details>
         </div>
         """
-        return {
+        return session_state, {
             login_username: gr.update(visible=True),
             login_password: gr.update(visible=True),
             login_submit: gr.update(visible=True),
@@ -1109,6 +1119,7 @@ def perform_inline_login(username_input, password_input):
         }
 
 def run_experiment(
+    session_state,
     model_name_key,
     complexity_level,
     feature_set,
@@ -1125,8 +1136,8 @@ def run_experiment(
     Core experiment: Uses 'yield' for visual updates and progress bar.
     """
     
-    # Fetch the username from os.environ at runtime, not from a stale state.
-    username = os.environ.get("username") or "Unknown_User"
+    # Get username from session state (multi-user safe)
+    username = get_session_username(session_state) or "Unknown_User"
     
     # Helper to generate the animated HTML
     def get_status_html(step_num, title, subtitle):
@@ -1294,8 +1305,8 @@ def run_experiment(
         log_output += "Training done.\n"
 
         # --- Stage 3: Submit (API Call 1) ---
-        # AUTHENTICATION GATE: Check for AWS_TOKEN before submission
-        if os.environ.get("AWS_TOKEN") is None:
+        # AUTHENTICATION GATE: Check for authentication via session state
+        if not is_session_authenticated(session_state):
             # User not authenticated - compute preview score and show login prompt
             progress(0.6, desc="Computing Preview Score...")
             
@@ -1417,12 +1428,13 @@ def run_experiment(
 
         predictions = tuned_model.predict(X_test_processed)
         description = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
-        tags = f"team:{os.environ.get("TEAM_NAME")},model:{model_name_key}"
+        team_name = get_session_team(session_state) or "Unknown_Team"
+        tags = f"team:{team_name},model:{model_name_key}"
 
         playground.submit_model(
             model=tuned_model, preprocessor=preprocessor, prediction_submission=predictions,
             input_dict={'description': description, 'tags': tags},
-            custom_metadata={'Team': os.environ.get("TEAM_NAME"), 'Moral_Compass': 0}
+            custom_metadata={'Team': team_name, 'Moral_Compass': 0}
         )
         log_output += "\nSUCCESS! Model submitted.\n"
 
@@ -1509,7 +1521,7 @@ def run_experiment(
         yield error_updates
 
 
-def on_initial_load(username):
+def on_initial_load(session_state):
     """
     Updated to load HTML leaderboards with skeleton placeholders during init.
     Shows skeleton if leaderboard not yet ready, real data otherwise.
@@ -1534,9 +1546,11 @@ def on_initial_load(username):
         try:
             if playground:
                 full_leaderboard_df = playground.get_leaderboard()
+                username = get_session_username(session_state) or "Unknown_User"
+                team_name = get_session_team(session_state) or "Unknown_Team"
                 team_html, individual_html, _, _, _, _ = generate_competitive_summary(
                     full_leaderboard_df,
-                    os.environ.get("TEAM_NAME"),
+                    team_name,
                     username,
                     0, 0, -1
                 )
@@ -2493,7 +2507,7 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
         pass # Keep defaults
 
     # Generate HTML outputs
-    team_html = _build_team_html(team_summary_df, os.environ.get("TEAM_NAME"))
+    team_html = _build_team_html(team_summary_df, team_name)
     individual_html = _build_individual_html(individual_summary_df, username)
     kpi_card_html = _build_kpi_card_html(
         this_submission_score, last_submission_score, new_rank, last_rank, submission_count
@@ -2599,8 +2613,7 @@ data_size_radio = None
 attempts_tracker_display = None
 team_name_state = None
 # Login components (will be assigned in create_model_building_game_app)
-login_username = None
-login_password = None
+# NOTE: Login credentials now managed via session state (not globals)
 login_submit = None
 login_error = None
 # This one will be assigned globally but is also defined in the function
@@ -2672,25 +2685,23 @@ def get_or_assign_team(username):
         print(f"Fallback: assigning random team to {username}: {new_team}")
         return new_team, True
 
-def perform_inline_login(username_input, password_input):
+def perform_inline_login(session_state, username_input, password_input):
     """
-    Perform inline authentication and set credentials in environment.
+    Perform inline authentication using session-based auth (multi-user safe).
     
-    Validates non-empty credentials, sets environment variables, and attempts
-    to fetch AWS token via get_aws_token(). Returns Gradio component updates
-    for login UI visibility and feedback messages.
+    Validates credentials, authenticates via session_auth module, and returns
+    updated session state along with Gradio component updates.
     
     Args:
+        session_state: dict, current session state
         username_input: str, the username entered by user
         password_input: str, the password entered by user
     
     Returns:
-        dict: Gradio component updates for login UI elements and submit button
-            - On success: hides login form, shows success message, enables submit
-            - On failure: keeps login form visible, shows error with signup link
+        tuple: (updated_session_state, dict of Gradio component updates)
+            - On success: session authenticated, login form hidden, team assigned
+            - On failure: session unchanged, error message shown
     """
-    from aimodelshare.aws import get_aws_token
-    
     # Validate inputs
     if not username_input or not username_input.strip():
         error_html = """
@@ -2698,7 +2709,7 @@ def perform_inline_login(username_input, password_input):
             <p style='margin:0; color:#991b1b; font-weight:500;'>⚠️ Username is required</p>
         </div>
         """
-        return {
+        return session_state, {
             login_username: gr.update(),
             login_password: gr.update(),
             login_submit: gr.update(),
@@ -2714,7 +2725,7 @@ def perform_inline_login(username_input, password_input):
             <p style='margin:0; color:#991b1b; font-weight:500;'>⚠️ Password is required</p>
         </div>
         """
-        return {
+        return session_state, {
             login_username: gr.update(),
             login_password: gr.update(),
             login_submit: gr.update(),
@@ -2724,24 +2735,26 @@ def perform_inline_login(username_input, password_input):
             team_name_state: gr.update()
         }
     
-    # Set credentials in environment
-    os.environ["username"] = username_input.strip()
-    os.environ["password"] = password_input.strip()
-    
-    # Attempt to get AWS token
+    # Authenticate using session_auth (no environment variables!)
     try:
-        token = get_aws_token()
-        os.environ["AWS_TOKEN"] = token
+        new_session_state, success, auth_message = authenticate_session(
+            session_state, username_input.strip(), password_input.strip()
+        )
         
-        # Get or assign team for this user (already normalized by get_or_assign_team)
-        team_name, is_new_team = get_or_assign_team(username_input.strip())
-        # Normalize team name before storing (defensive - already normalized by get_or_assign_team)
+        if not success:
+            raise Exception(auth_message)
+        
+        # Get or assign team for this user
+        username = get_session_username(new_session_state)
+        team_name, is_new_team = get_or_assign_team(username)
         team_name = _normalize_team_name(team_name)
-        os.environ["TEAM_NAME"] = team_name
+        
+        # Store team in session state (not environment!)
+        new_session_state = set_session_team(new_session_state, team_name)
         
         # Build success message based on whether team is new or existing
         if is_new_team:
-            team_message = f"You have been assigned to a new team: <b>{team_name}</b> 🎉"
+            team_message = f"You have been assigned to a new team: <b>{team_name}</b> ��"
         else:
             team_message = f"Welcome back! You remain on team: <b>{team_name}</b> ✅"
         
@@ -2757,7 +2770,7 @@ def perform_inline_login(username_input, password_input):
             </p>
         </div>
         """
-        return {
+        return new_session_state, {
             login_username: gr.update(visible=False),
             login_password: gr.update(visible=False),
             login_submit: gr.update(visible=False),
@@ -2786,7 +2799,7 @@ def perform_inline_login(username_input, password_input):
             </details>
         </div>
         """
-        return {
+        return session_state, {
             login_username: gr.update(visible=True),
             login_password: gr.update(visible=True),
             login_submit: gr.update(visible=True),
@@ -2797,6 +2810,7 @@ def perform_inline_login(username_input, password_input):
         }
 
 def run_experiment(
+    session_state,
     model_name_key,
     complexity_level,
     feature_set,
@@ -2813,8 +2827,8 @@ def run_experiment(
     Core experiment: Uses 'yield' for visual updates and progress bar.
     """
     
-    # Fetch the username from os.environ at runtime, not from a stale state.
-    username = os.environ.get("username") or "Unknown_User"
+    # Get username from session state (multi-user safe)
+    username = get_session_username(session_state) or "Unknown_User"
     
     # Helper to generate the animated HTML
     def get_status_html(step_num, title, subtitle):
@@ -2982,8 +2996,8 @@ def run_experiment(
         log_output += "Training done.\n"
 
         # --- Stage 3: Submit (API Call 1) ---
-        # AUTHENTICATION GATE: Check for AWS_TOKEN before submission
-        if os.environ.get("AWS_TOKEN") is None:
+        # AUTHENTICATION GATE: Check for authentication via session state
+        if not is_session_authenticated(session_state):
             # User not authenticated - compute preview score and show login prompt
             progress(0.6, desc="Computing Preview Score...")
             
@@ -3105,12 +3119,13 @@ def run_experiment(
 
         predictions = tuned_model.predict(X_test_processed)
         description = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
-        tags = f"team:{os.environ.get("TEAM_NAME")},model:{model_name_key}"
+        team_name = get_session_team(session_state) or "Unknown_Team"
+        tags = f"team:{team_name},model:{model_name_key}"
 
         playground.submit_model(
             model=tuned_model, preprocessor=preprocessor, prediction_submission=predictions,
             input_dict={'description': description, 'tags': tags},
-            custom_metadata={'Team': os.environ.get("TEAM_NAME"), 'Moral_Compass': 0}
+            custom_metadata={'Team': team_name, 'Moral_Compass': 0}
         )
         log_output += "\nSUCCESS! Model submitted.\n"
 
@@ -3197,7 +3212,7 @@ def run_experiment(
         yield error_updates
 
 
-def on_initial_load(username):
+def on_initial_load(session_state):
     """
     Updated to load HTML leaderboards with skeleton placeholders during init.
     Shows skeleton if leaderboard not yet ready, real data otherwise.
@@ -3222,9 +3237,11 @@ def on_initial_load(username):
         try:
             if playground:
                 full_leaderboard_df = playground.get_leaderboard()
+                username = get_session_username(session_state) or "Unknown_User"
+                team_name = get_session_team(session_state) or "Unknown_Team"
                 team_html, individual_html, _, _, _, _ = generate_competitive_summary(
                     full_leaderboard_df,
-                    os.environ.get("TEAM_NAME"),
+                    team_name,
                     username,
                     0, 0, -1
                 )
@@ -4156,6 +4173,9 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
     global attempts_tracker_display, team_name_state
 
     with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css) as demo:
+        # Session state for multi-user authentication (Cloud Run safe)
+        session_state = gr.State(value=create_session_state())
+        
         # Persistent top anchor for scroll-to-top navigation
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
         
@@ -4166,8 +4186,6 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 <span id='nav-loading-text'>Loading...</span>
             </div>
         """)
-
-        username = os.environ.get("username") or "Unknown_User"
 
         # Loading screen
         with gr.Column(visible=False) as loading_screen:
@@ -4571,7 +4589,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
               ),
               visible=True)
 
-            team_name_state = gr.State(os.environ.get("TEAM_NAME"))
+            team_name_state = gr.State(None)  # Team set via session state after login
             last_submission_score_state = gr.State(0.0)
             last_rank_state = gr.State(0)
             best_score_state = gr.State(0.0)
@@ -5004,16 +5022,17 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             attempts_tracker_display
         ]
 
-        # Wire up login button
+        # Wire up login button (with session_state for multi-user safety)
         login_submit.click(
             fn=perform_inline_login,
-            inputs=[login_username, login_password],
-            outputs=[login_username, login_password, login_submit, login_error, submit_button, submission_feedback_display, team_name_state])
+            inputs=[session_state, login_username, login_password],
+            outputs=[session_state, login_username, login_password, login_submit, login_error, submit_button, submission_feedback_display, team_name_state])
 
-        # Removed gr.State(username) from the inputs list
+        # Submit button with session_state for multi-user authentication
         submit_button.click(
             fn=run_experiment,
             inputs=[
+                session_state,
                 model_type_state,
                 complexity_state,
                 feature_set_state,
@@ -5072,8 +5091,8 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         )
 
         demo.load(
-            fn=lambda u: on_initial_load(u),
-            inputs=[gr.State(username)],
+            fn=on_initial_load,
+            inputs=[session_state],
             outputs=[
                 model_card_display,
                 team_leaderboard_display, 
@@ -5126,6 +5145,9 @@ def launch_model_building_game_app(height: int = 1200, share: bool = False, debu
     global attempts_tracker_display, team_name_state
 
     with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css) as demo:
+        # Session state for multi-user authentication (Cloud Run safe)
+        session_state = gr.State(value=create_session_state())
+        
         # Persistent top anchor for scroll-to-top navigation
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
         
@@ -5136,8 +5158,6 @@ def launch_model_building_game_app(height: int = 1200, share: bool = False, debu
                 <span id='nav-loading-text'>Loading...</span>
             </div>
         """)
-
-        username = os.environ.get("username") or "Unknown_User"
 
         # Loading screen
         with gr.Column(visible=False) as loading_screen:
@@ -5537,7 +5557,7 @@ def launch_model_building_game_app(height: int = 1200, share: bool = False, debu
                 visible=True
             )
 
-            team_name_state = gr.State(os.environ.get("TEAM_NAME"))
+            team_name_state = gr.State(None)  # Team set via session state after login
             last_submission_score_state = gr.State(0.0)
             last_rank_state = gr.State(0)
             best_score_state = gr.State(0.0)
@@ -5970,16 +5990,17 @@ def launch_model_building_game_app(height: int = 1200, share: bool = False, debu
             attempts_tracker_display
         ]
 
-        # Wire up login button
+        # Wire up login button (with session_state for multi-user safety)
         login_submit.click(
             fn=perform_inline_login,
-            inputs=[login_username, login_password],
-            outputs=[login_username, login_password, login_submit, login_error, submit_button, submission_feedback_display, team_name_state])
+            inputs=[session_state, login_username, login_password],
+            outputs=[session_state, login_username, login_password, login_submit, login_error, submit_button, submission_feedback_display, team_name_state])
 
-        # Removed gr.State(username) from the inputs list
+        # Submit button with session_state for multi-user authentication
         submit_button.click(
             fn=run_experiment,
             inputs=[
+                session_state,
                 model_type_state,
                 complexity_state,
                 feature_set_state,
@@ -6038,8 +6059,8 @@ def launch_model_building_game_app(height: int = 1200, share: bool = False, debu
         )
 
         demo.load(
-            fn=lambda u: on_initial_load(u),
-            inputs=[gr.State(username)],
+            fn=on_initial_load,
+            inputs=[session_state],
             outputs=[
                 model_card_display,
                 team_leaderboard_display, 
