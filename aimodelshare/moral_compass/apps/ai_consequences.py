@@ -618,10 +618,11 @@ def launch_ai_consequences_app(
         raise ImportError(
             "Gradio must be installed to launch the AI consequences app."
         ) from e
+    port = int(os.environ.get("PORT", 8080))
     with contextlib.redirect_stdout(open(os.devnull, "w")), contextlib.redirect_stderr(
         open(os.devnull, "w")
     ):
-        demo.launch(share=share, inline=True, debug=debug, height=height)
+        demo.launch(share=share, inline=True, debug=debug, height=height, server_name="0.0.0.0", server_port=port)
 
 
 

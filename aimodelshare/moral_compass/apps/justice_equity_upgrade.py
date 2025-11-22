@@ -840,10 +840,15 @@ Proceed to **Section 10** to continue your Ethics at Play journey!
 
 def launch_justice_equity_upgrade_app(
     share: bool = False,
-    server_name: str = "127.0.0.1",
-    server_port: int = 7862,
+    server_name: str = None,
+    server_port: int = None,
     theme_primary_hue: str = "indigo"
 ) -> None:
     """Convenience wrapper to create and launch the justice & equity upgrade app inline."""
     app = create_justice_equity_upgrade_app(theme_primary_hue=theme_primary_hue)
+    # Use provided values or fall back to PORT env var and 0.0.0.0
+    if server_name is None:
+        server_name = "0.0.0.0"
+    if server_port is None:
+        server_port = int(os.environ.get("PORT", 8080))
     app.launch(share=share, server_name=server_name, server_port=server_port)

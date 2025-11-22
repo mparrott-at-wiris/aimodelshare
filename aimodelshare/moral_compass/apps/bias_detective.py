@@ -675,11 +675,16 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
 
 def launch_bias_detective_app(
     share: bool = False,
-    server_name: str = "127.0.0.1",
-    server_port: int = 7860,
+    server_name: str = None,
+    server_port: int = None,
     theme_primary_hue: str = "indigo"
 ) -> None:
     """Convenience wrapper to create and launch the bias detective app inline."""
     app = create_bias_detective_app(theme_primary_hue=theme_primary_hue)
+    # Use provided values or fall back to PORT env var and 0.0.0.0
+    if server_name is None:
+        server_name = "0.0.0.0"
+    if server_port is None:
+        server_port = int(os.environ.get("PORT", 8080))
     app.launch(share=share, server_name=server_name, server_port=server_port)
 # Code review placeholder
