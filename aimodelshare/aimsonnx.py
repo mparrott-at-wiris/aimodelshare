@@ -78,7 +78,9 @@ from copy import copy
 import psutil
 from pympler import asizeof
 from IPython.display import display, HTML, SVG
-import absl.logging
+import logging
+
+
 import networkx as nx
 import warnings
 from pathlib import Path
@@ -95,7 +97,7 @@ except ImportError:
     KerasRegressor = None
 
 
-absl.logging.set_verbosity(absl.logging.ERROR)
+logging.getLogger().setLevel(logging.ERROR)
 
 def _check_tf2onnx_available():
     """Check if tf2onnx and TensorFlow are available, and load them if needed.
