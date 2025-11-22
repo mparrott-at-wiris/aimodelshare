@@ -621,5 +621,4 @@ def launch_ai_consequences_app(
     port = int(os.environ.get("PORT", 8080))
     demo.launch(share=share, inline=True, debug=debug, height=height, server_port=port)
 
-launch_ai_consequences_app()
 
