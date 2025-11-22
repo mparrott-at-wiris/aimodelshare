@@ -1340,5 +1340,6 @@ def launch_ethical_revelation_app(height: int = 1000, share: bool = False, debug
     import gradio as gr  # ensure available here if user calls this directly
     demo = create_ethical_revelation_app()
     port = int(os.environ.get("PORT", 8080))
-    demo.launch(share=share, inline=True, debug=debug, height=height, server_name="0.0.0.0", server_port=port)
+    demo.launch(share=share, inline=True, debug=debug, height=height, server_port=port)
 
+launch_ethical_revelation_app()
