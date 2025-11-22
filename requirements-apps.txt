@@ -5,7 +5,7 @@ pandas==2.2.3
 numpy==1.26.4
 scikit-learn==1.5.2
 requests==2.32.3
-aimodelshare==0.4.4
+aimodelshare==0.2.41
 matplotlib==3.9.2
 seaborn==0.13.2
 typing-extensions==4.12.2
