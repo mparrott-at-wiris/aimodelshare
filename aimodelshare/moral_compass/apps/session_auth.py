@@ -14,6 +14,18 @@ Key Design Principles:
 
 import logging
 from typing import Optional, Dict, Any, Tuple
+import os
+
+# Import dependencies at module level
+try:
+    import botocore.config
+    import boto3
+    from aimodelshare.exceptions import AuthorizationError
+except ImportError as e:
+    # These are required dependencies
+    raise ImportError(
+        "Required dependencies not found. Ensure boto3 and botocore are installed."
+    ) from e
 
 logger = logging.getLogger("aimodelshare.moral_compass.apps.session_auth")
 
@@ -48,9 +60,10 @@ def generate_auth_token(username: str, password: str) -> str:
         raise ValueError("Password cannot be empty")
     
     try:
-        import botocore.config
-        import boto3
-        from aimodelshare.exceptions import AuthorizationError
+        # Get Cognito client ID from environment or use default
+        # Note: This default is for the shared modelshare.ai Cognito pool
+        client_id = os.getenv('COGNITO_CLIENT_ID', '7ptv9f8pt36elmg0e4v9v7jo9t')
+        region = os.getenv('COGNITO_REGION', 'us-east-2')
         
         # Create unsigned config for Cognito client
         config = botocore.config.Config(signature_version=botocore.UNSIGNED)
@@ -58,13 +71,13 @@ def generate_auth_token(username: str, password: str) -> str:
         # Initialize Cognito provider client
         provider_client = boto3.client(
             "cognito-idp", 
-            region_name="us-east-2", 
+            region_name=region, 
             config=config
         )
         
         # Authenticate with Cognito using USER_PASSWORD_AUTH flow
         response = provider_client.initiate_auth(
-            ClientId="7ptv9f8pt36elmg0e4v9v7jo9t",
+            ClientId=client_id,
             AuthFlow="USER_PASSWORD_AUTH",
             AuthParameters={
                 "USERNAME": username.strip(),
@@ -80,7 +93,6 @@ def generate_auth_token(username: str, password: str) -> str:
         
     except Exception as err:
         logger.error(f"Authentication failed for user {username}: {err}")
-        from aimodelshare.exceptions import AuthorizationError
         raise AuthorizationError(f"Could not authorize user. {str(err)}")
 
 

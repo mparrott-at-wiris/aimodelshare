@@ -21,22 +21,32 @@ from aimodelshare.moral_compass.apps.session_auth import (
 )
 
 
+# Module-level user data storage
+# NOTE: In production, use a database, Redis, or other persistent storage.
+# This dict is shared but operations are per-user (keyed by username from session).
+# For true thread safety in production, use threading.Lock or a thread-safe data structure.
+USER_DATA = {}
+
+
 def create_demo_app():
     """Create a minimal demo app showing session-based authentication."""
     
-    # Simulated user data storage (per-session via Gradio State)
-    user_data = {}
+    # NOTE: In production, user_data should be stored in a database or cache.
+    # For this demo, we use a module-level dict which is read-only safe for
+    # concurrent access since dict get/set operations are atomic in CPython.
+    # However, for true isolation, each modification should use proper locking
+    # or use a thread-safe data structure.
     
     def handle_login(session_state, username, password):
         """Authenticate user and update session state."""
         new_state, success, message = authenticate_session(session_state, username, password)
         
         if success:
-            # Initialize user data for this session
-            if username not in user_data:
-                user_data[username] = {"points": 0, "tasks_completed": []}
+            # Initialize user data for this session's authenticated user
+            if username not in USER_DATA:
+                USER_DATA[username] = {"points": 0, "tasks_completed": []}
             
-            welcome_msg = f"✓ Welcome {username}! You have {user_data[username]['points']} points."
+            welcome_msg = f"✓ Welcome {username}! You have {USER_DATA[username]['points']} points."
             return (
                 new_state,
                 gr.update(visible=False),  # Hide login
@@ -60,15 +70,15 @@ def create_demo_app():
         if not is_session_authenticated(session_state):
             return "⚠️ Please sign in to complete tasks."
         
-        # Award points to the authenticated user
-        if username not in user_data:
-            user_data[username] = {"points": 0, "tasks_completed": []}
+        # Award points to the authenticated user (from their session)
+        if username not in USER_DATA:
+            USER_DATA[username] = {"points": 0, "tasks_completed": []}
         
-        user_data[username]["points"] += 100
-        user_data[username]["tasks_completed"].append(task_name)
+        USER_DATA[username]["points"] += 100
+        USER_DATA[username]["tasks_completed"].append(task_name)
         
-        points = user_data[username]["points"]
-        tasks = len(user_data[username]["tasks_completed"])
+        points = USER_DATA[username]["points"]
+        tasks = len(USER_DATA[username]["tasks_completed"])
         
         return f"✓ Task '{task_name}' completed! You now have {points} points ({tasks} tasks completed)."
     
@@ -76,9 +86,9 @@ def create_demo_app():
         """Show leaderboard highlighting current user."""
         username = get_session_username(session_state)
         
-        # Build leaderboard
+        # Build leaderboard (keyed by username, so multi-user safe)
         leaderboard = sorted(
-            [(user, data["points"]) for user, data in user_data.items()],
+            [(user, data["points"]) for user, data in USER_DATA.items()],
             key=lambda x: x[1],
             reverse=True
         )
