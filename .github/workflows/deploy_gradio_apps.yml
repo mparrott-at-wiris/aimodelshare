@@ -86,14 +86,6 @@ jobs:
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: ${{ matrix.app_name }}
-          # FIX: We reconstruct the image name here instead of relying on 'outputs'
-          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
-          region: ${{ env.REGION }}
-          # Optimization Flags (Single line to prevent syntax errors)
-      - name: Deploy to Cloud Run
-        uses: google-github-actions/deploy-cloudrun@v2
-        with:
-          service: ${{ matrix.app_name }}
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
           region: ${{ env.REGION }}
           flags: >-

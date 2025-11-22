@@ -2,48 +2,62 @@ import os
 import logging
 import sys
 import traceback
+import time
 
-# Configure logging to ensure output appears in Cloud Run logs
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("launcher")
 
-if __name__ == "__main__":
+# Map app-name (from APP_NAME env var) to factory function name
+# Uses create_* factories which are lazily imported from apps module
+APP_NAME_TO_FACTORY = {
+    "tutorial": "create_tutorial_app",
+    "judge": "create_judge_app",
+    "ai-consequences": "create_ai_consequences_app",
+    "what-is-ai": "create_what_is_ai_app",
+    "model-building-game": "create_model_building_game_app",
+    "ethical-revelation": "create_ethical_revelation_app",
+    "moral-compass-challenge": "create_moral_compass_challenge_app",
+    "bias-detective": "create_bias_detective_app",
+    "fairness-fixer": "create_fairness_fixer_app",
+    "justice-equity-upgrade": "create_justice_equity_upgrade_app",
+}
+
+def load_factory(app_name: str):
+    """Load the factory function for the given app name using lazy imports."""
+    if app_name not in APP_NAME_TO_FACTORY:
+        raise ValueError(f"Unknown APP_NAME '{app_name}'. Valid: {sorted(APP_NAME_TO_FACTORY.keys())}")
+    
+    factory_name = APP_NAME_TO_FACTORY[app_name]
+    logger.info(f"Importing factory '{factory_name}' from apps module (lazy)...")
+    
+    # Import from apps module - this uses the lazy __getattr__ mechanism
     try:
-        # 1. Configuration
-        app_name = os.environ.get("APP_NAME", "tutorial")
-        port = int(os.environ.get("PORT", 8080))
+        from aimodelshare.moral_compass import apps
+        return getattr(apps, factory_name)
+    except AttributeError as e:
+        raise RuntimeError(
+            f"Failed to load factory '{factory_name}' for app '{app_name}'. "
+            f"The factory function may not exist in the apps module. Error: {e}"
+        ) from e
+    except ImportError as e:
+        raise RuntimeError(
+            f"Failed to import dependencies for app '{app_name}' factory '{factory_name}'. "
+            f"Check that all required packages are installed. Error: {e}"
+        ) from e
 
-        logger.info(f"--- STARTING APP: {app_name} on PORT {port} ---")
+if __name__ == "__main__":
+    start_ts = time.time()
+    app_name = os.environ.get("APP_NAME", "tutorial")
+    port = int(os.environ.get("PORT", "8080"))
 
-        # 2. Lazy Import Strategy
-        if app_name == "tutorial":
-            from aimodelshare.moral_compass.apps.tutorial import create_tutorial_app as factory
-        elif app_name == "judge":
-            from aimodelshare.moral_compass.apps.judge import create_judge_app as factory
-        elif app_name == "ai-consequences":
-            from aimodelshare.moral_compass.apps.ai_consequences import create_ai_consequences_app as factory
-        elif app_name == "what-is-ai":
-            from aimodelshare.moral_compass.apps.what_is_ai import create_what_is_ai_app as factory
-        elif app_name == "model-building-game":
-            from aimodelshare.moral_compass.apps.model_building_game import create_model_building_game_app as factory
-        elif app_name == "ethical-revelation":
-            from aimodelshare.moral_compass.apps.ethical_revelation import create_ethical_revelation_app as factory
-        elif app_name == "moral-compass-challenge":
-            from aimodelshare.moral_compass.apps.moral_compass_challenge import create_moral_compass_challenge_app as factory
-        elif app_name == "bias-detective":
-            from aimodelshare.moral_compass.apps.bias_detective import create_bias_detective_app as factory
-        elif app_name == "fairness-fixer":
-            from aimodelshare.moral_compass.apps.fairness_fixer import create_fairness_fixer_app as factory
-        elif app_name == "justice-equity-upgrade":
-            from aimodelshare.moral_compass.apps.justice_equity_upgrade import create_justice_equity_upgrade_app as factory
-        else:
-            raise ValueError(f"Unknown APP_NAME: {app_name}")
+    logger.info(f"=== BOOTSTRAP === APP_NAME={app_name} PORT={port}")
 
-        logger.info(f"Factory loaded. Creating app...")
+    try:
+        factory = load_factory(app_name)
+        logger.info("Factory loaded; building Blocks object...")
         demo = factory()
-        
-        logger.info(f"Launching Gradio Server...")
-        # 3. Launch
+        logger.info("Launching Gradio server (non-inline)...")
+
         demo.launch(
             server_name="0.0.0.0",
             server_port=port,
@@ -51,8 +65,10 @@ if __name__ == "__main__":
             analytics_enabled=False,
             show_error=True
         )
+
+        logger.info(f"Gradio server started successfully in {time.time() - start_ts:.2f}s (listening on :{port}).")
+
     except Exception as e:
-        # This print statement is critical for debugging Cloud Run "Container failed to start" errors
-        logger.error(f"CRITICAL FAILURE LAUNCHING {os.environ.get('APP_NAME')}: {e}")
+        logger.error(f"CRITICAL FAILURE LAUNCHING APP_NAME={app_name}: {e}")
         traceback.print_exc()
         sys.exit(1)
