@@ -2442,14 +2442,18 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
     """
     Build summaries, HTML, and KPI card.
     Returns (team_html, individual_html, kpi_card_html, new_best_accuracy, new_rank, this_submission_score).
+    If the leaderboard is empty or missing required columns, returns the skeleton placeholder instead of "Leaderboard empty.".
     """
     team_summary_df = pd.DataFrame(columns=["Team", "Best_Score", "Avg_Score", "Submissions"])
     individual_summary_df = pd.DataFrame(columns=["Engineer", "Best_Score", "Submissions"])
 
+    # Use skeleton placeholder if leaderboard is missing "accuracy" or is empty
     if leaderboard_df is None or leaderboard_df.empty or "accuracy" not in leaderboard_df.columns:
+        team_html = _build_skeleton_leaderboard(rows=6, is_team=True)
+        individual_html = _build_skeleton_leaderboard(rows=6, is_team=False)
         return (
-            "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Leaderboard empty.</p>",
-            "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Leaderboard empty.</p>",
+            team_html,
+            individual_html,
             _build_kpi_card_html(0, 0, 0, 0, 0), 0.0, 0, 0.0
         )
 
