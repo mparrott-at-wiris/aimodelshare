@@ -851,4 +851,3 @@ def launch_justice_equity_upgrade_app(
     if server_port is None:
         server_port = int(os.environ.get("PORT", 8080))
     app.launch(share=share, server_port=server_port)
-launch_justice_equity_upgrade_app()
