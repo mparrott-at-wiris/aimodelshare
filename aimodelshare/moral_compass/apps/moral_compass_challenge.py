@@ -1304,4 +1304,6 @@ def launch_moral_compass_challenge_app(
 
     demo = create_moral_compass_challenge_app()
     port = int(os.environ.get("PORT", 8080))
-    demo.launch(share=share, inline=True, debug=debug, height=height, server_name="0.0.0.0", server_port=port)
+    demo.launch(share=share, inline=True, debug=debug, height=height, server_port=port)
+
+launch_moral_compass_app()
