@@ -31,8 +31,19 @@ def load_factory(app_name: str):
     logger.info(f"Importing factory '{factory_name}' from apps module (lazy)...")
     
     # Import from apps module - this uses the lazy __getattr__ mechanism
-    from aimodelshare.moral_compass import apps
-    return getattr(apps, factory_name)
+    try:
+        from aimodelshare.moral_compass import apps
+        return getattr(apps, factory_name)
+    except AttributeError as e:
+        raise RuntimeError(
+            f"Failed to load factory '{factory_name}' for app '{app_name}'. "
+            f"The factory function may not exist in the apps module. Error: {e}"
+        ) from e
+    except ImportError as e:
+        raise RuntimeError(
+            f"Failed to import dependencies for app '{app_name}' factory '{factory_name}'. "
+            f"Check that all required packages are installed. Error: {e}"
+        ) from e
 
 if __name__ == "__main__":
     start_ts = time.time()
