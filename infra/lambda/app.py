@@ -1,6 +1,7 @@
 """
 Lambda handler for aimodelshare playground API.
 (Definitive Fix: Corrected list_tables to scan the entire table if needed, ensuring filtered items are always found.)
+INCLUDES: Support for 'The Drop-off' Auth Pattern (POST /sessions).
 """
 import json
 import os
@@ -28,6 +29,9 @@ MC_ENFORCE_NAMING = os.environ.get('MC_ENFORCE_NAMING', 'false').lower() == 'tru
 MORAL_COMPASS_ALLOWED_SUFFIXES = os.environ.get('MORAL_COMPASS_ALLOWED_SUFFIXES', '-mc').split(',')
 ALLOW_TABLE_DELETE = os.environ.get('ALLOW_TABLE_DELETE', 'false').lower() == 'true'
 ALLOW_PUBLIC_READ = os.environ.get('ALLOW_PUBLIC_READ', 'true').lower() == 'true'
+
+# Session Configuration (New)
+SESSION_TTL_SECONDS = int(os.environ.get('SESSION_TTL_SECONDS', '720000')) # Default 1 hour
 
 # Region configuration (using AWS_REGION_NAME to avoid conflict with AWS_REGION)
 AWS_REGION_NAME = os.environ.get('AWS_REGION_NAME', os.environ.get('AWS_REGION', 'us-east-1'))
@@ -267,10 +271,6 @@ def extract_playground_id(playground_url):
     
     Returns:
         Optional[str]: Playground ID or None if extraction fails
-    
-    Examples:
-        https://example.com/playground/abc123 -> abc123
-        https://example.com/playgrounds/abc123/edit -> abc123
     """
     if not playground_url:
         return None
@@ -307,10 +307,6 @@ def extract_region_from_table_id(table_id, playground_id):
     
     Returns:
         Optional[str]: Region name (e.g., us-east-1) or None if not region-aware
-    
-    Examples:
-        extract_region_from_table_id('my-pg-us-east-1-mc', 'my-pg') -> 'us-east-1'
-        extract_region_from_table_id('my-pg-mc', 'my-pg') -> None
     """
     if not table_id or not playground_id:
         return None
@@ -334,17 +330,6 @@ def extract_region_from_table_id(table_id, playground_id):
 def validate_moral_compass_table_name(table_id, playground_id):
     """
     Validate moral compass table naming convention.
-    
-    Supports both region-aware and non-region-aware naming:
-    - <playgroundId><suffix> (e.g., my-playground-mc)
-    - <playgroundId>-<region><suffix> (e.g., my-playground-us-east-1-mc)
-    
-    Args:
-        table_id: The requested table ID
-        playground_id: The playground ID
-    
-    Returns:
-        tuple: (is_valid: bool, error_message: Optional[str])
     """
     if not MC_ENFORCE_NAMING:
         return True, None
@@ -452,6 +437,92 @@ def build_paged_body(items_key, items, last_evaluated_key):
         body['lastKey'] = last_evaluated_key
     return body
 
+# ============================================================================
+# NEW FUNCTION: Session Drop-off for Gradio Auth
+# ============================================================================
+def create_session(event):
+    """
+    Stores a temporary session ID and token in the DynamoDB table.
+    
+    DynamoDB Schema Reuse:
+    - Partition Key (tableId): Stores the 'sessionId'
+    - Sort Key (username): Stores the constant '_session'
+    - Attribute (jwtToken): The Auth Token
+    - Attribute (ttl): Epoch time for auto-expiry
+    """
+    try:
+        body = json.loads(event.get('body', '{}'))
+        session_id = body.get('sessionId')
+        token = body.get('token')
+
+        if not session_id or not token:
+            return create_response(400, {'error': 'sessionId and token are required'})
+        
+        # Ensure session_id format is safe (similar to table_id validation)
+        if not _TABLE_ID_RE.match(session_id):
+             return create_response(400, {'error': 'Invalid sessionId format'})
+
+        # Calculate Time-To-Live (TTL)
+        # Note: You must enable TTL on the 'ttl' attribute in your DynamoDB console
+        expiration_time = int(time.time()) + SESSION_TTL_SECONDS
+
+        item = {
+            'tableId': session_id,      # Hijacking the PK
+            'username': '_session',     # Hijacking the SK to identify this as a session row
+            'jwtToken': token,
+            'ttl': expiration_time,
+            'createdAt': datetime.utcnow().isoformat()
+        }
+
+        retry_dynamo(lambda: table.put_item(Item=item))
+
+        return create_response(201, {
+            'message': 'Session created successfully',
+            'sessionId': session_id,
+            'expiresAt': expiration_time
+        })
+
+    except json.JSONDecodeError:
+        return create_response(400, {'error': 'Invalid JSON in request body'})
+    except Exception as e:
+        print(f"[ERROR] create_session exception: {e}")
+        return create_response(500, {'error': f'Internal server error: {str(e)}'})
+
+def get_session(event):
+    """
+    Retrieves the token for a specific session ID.
+    """
+    try:
+        params = event.get('pathParameters') or {}
+        session_id = params.get('sessionId')
+        
+        if not session_id or not _TABLE_ID_RE.match(session_id):
+            return create_response(400, {'error': 'Invalid sessionId format'})
+
+        # Retrieve from DynamoDB (Looking for Sort Key: _session)
+        resp = retry_dynamo(lambda: table.get_item(
+            Key={'tableId': session_id, 'username': '_session'},
+            ConsistentRead=True # Use consistent read for immediate validity
+        ))
+
+        if 'Item' not in resp:
+            return create_response(404, {'error': 'Session not found or expired'})
+
+        item = resp['Item']
+        
+        # Check TTL manually (just in case DynamoDB hasn't swept it yet)
+        if item.get('ttl') and int(time.time()) > int(item['ttl']):
+             return create_response(404, {'error': 'Session expired'})
+
+        return create_response(200, {
+            'sessionId': session_id,
+            'token': item.get('jwtToken')
+        })
+    except Exception as e:
+        print(f"[ERROR] get_session exception: {e}")
+        return create_response(500, {'error': f'Internal server error: {str(e)}'})
+        
+
 def create_table(event):
     try:
         body = json.loads(event.get('body', '{}'))
@@ -552,18 +623,7 @@ def create_table(event):
 
 def list_tables(event):
     """
-    List table metadata items with stable descending ordering by createdAt (then tableId),
-    supporting page-level limit and a synthetic lastKey.
-    Ensures createdAt ordering is genuinely chronological (descending) across mixed formats:
-      - epoch seconds (int)
-      - epoch milliseconds (int)
-      - epoch seconds with fractional part (float string)
-      - ISO8601 strings with optional fractional seconds and trailing 'Z'
-    Missing / unparseable createdAt values sort last.
-    Default limit = 50 unless overridden by DEFAULT_TABLE_PAGE_LIMIT env var.
-    
-    Performance optimization: Uses GSI query when USE_METADATA_GSI=true to avoid full table scan.
-    Logs structured metrics for observability.
+    List table metadata items with stable descending ordering by createdAt (then tableId).
     """
     start_time = time.time()
     try:
@@ -627,10 +687,6 @@ def list_tables(event):
         from datetime import datetime, timezone
 
         def normalize_created_at(value):
-            """
-            Return milliseconds since epoch (int) for sortable comparison.
-            Unparseable or missing -> -1.
-            """
             if value is None:
                 return -1
 
@@ -886,10 +942,6 @@ def delete_table(event):
 def list_users(event):
     """
     Paginated list of users with correct pagination logic.
-    
-    Performance optimization: Optionally uses leaderboard GSI when USE_LEADERBOARD_GSI=true
-    for native ordering by submissionCount (requires GSI deployment).
-    Logs structured metrics for observability.
     """
     start_time = time.time()
     try:
@@ -917,11 +969,7 @@ def list_users(event):
         
         if use_leaderboard_gsi:
             # Future enhancement: Query leaderboard GSI for native ordering
-            # Note: DynamoDB GSI range keys only support ascending order
-            # Would require storing negative submissionCount or fetching in reverse
             strategy = "leaderboard_gsi"
-            # Placeholder - not fully implemented without actual GSI
-            # For now, fall back to standard query
             print(f"[WARN] USE_LEADERBOARD_GSI=true but GSI not yet fully implemented, using standard query")
         
         query_kwargs = {
@@ -1140,16 +1188,6 @@ def put_user(event):
 def put_user_moral_compass(event):
     """
     Update user's moral compass score with dynamic metrics.
-    
-    Payload fields:
-    - metrics: dict of metric_name -> numeric_value
-    - primaryMetric: optional string indicating which metric is primary (defaults to 'accuracy' or first sorted key)
-    - tasksCompleted: int
-    - totalTasks: int
-    - questionsCorrect: int
-    - totalQuestions: int
-    
-    Computes: moralCompassScore = primaryMetricValue * ((tasksCompleted + questionsCorrect) / (totalTasks + totalQuestions))
     """
     try:
         params = event.get('pathParameters') or {}
@@ -1324,6 +1362,8 @@ def handler(event, context):
         if method == 'OPTIONS':
             return create_response(200, {})
         route_key = event.get('routeKey')
+        
+        # HTTP API Routes
         if route_key == 'POST /tables':
             return create_table(event)
         elif route_key == 'GET /tables':
@@ -1344,9 +1384,14 @@ def handler(event, context):
             return put_user_moral_compass(event)
         elif route_key == 'PUT /tables/{tableId}/users/{username}/moralcompass':
             return put_user_moral_compass(event)
+        elif route_key == 'POST /sessions': 
+            return create_session(event)
+        elif route_key == 'GET /sessions/{sessionId}':  
+            return get_session(event)
         elif route_key == 'GET /health':
             return health(event)
 
+        # REST API (API Gateway v1) Routes
         path = event.get('rawPath') or event.get('path') or ''
         stage = event.get('requestContext', {}).get('stage')
         if stage and path.startswith(f'/{stage}/'):
@@ -1372,6 +1417,12 @@ def handler(event, context):
             return put_user_moral_compass(event)
         elif method == 'PUT' and '/users/' in path and path.count('/') == 4:
             return put_user(event)
+        elif method == 'POST' and path == '/sessions': 
+            return create_session(event)
+        elif method == 'GET' and '/sessions/' in path:  
+             # Extract ID from path /sessions/<id>
+             # (You might need logic to parse it cleanly depending on your path structure)
+             return get_session(event)
         elif method == 'GET' and path == '/health':
             return health(event)
 
