@@ -21,15 +21,17 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    outputs:
+      image: ${{ steps.build_push.outputs.image }}
     steps:
-      - name: Verify GCP_SA_KEY secret exists
+      - name: Verify required secrets
         run: |
           if [ -z "${{ secrets.GCP_SA_KEY }}" ]; then
-            echo "GCP_SA_KEY secret is missing or not available (fork PRs do not get secrets). Aborting."
+            echo "Missing secret GCP_SA_KEY. Aborting."
             exit 1
           fi
           if [ -z "${{ secrets.GCP_PROJECT_ID }}" ]; then
-            echo "GCP_PROJECT_ID secret missing. Aborting."
+            echo "Missing secret GCP_PROJECT_ID. Aborting."
             exit 1
           fi
 
@@ -39,7 +41,6 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          # Must be a valid JSON service account key stored in the repo secrets
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Set up Cloud SDK
@@ -49,12 +50,13 @@ jobs:
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
 
       - name: Build and Push Docker Image
+        id: build_push
         run: |
           IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}"
           echo "Building image: $IMAGE"
           docker build --pull -t "$IMAGE" .
           docker push "$IMAGE"
-          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
 
   deploy-tutorial:
     runs-on: ubuntu-latest
@@ -70,7 +72,7 @@ jobs:
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: tutorial
-          image: ${{ env.IMAGE }}
+          image: ${{ needs.build-and-push.outputs.image }}
           region: ${{ env.REGION }}
           flags: >-
             --allow-unauthenticated
@@ -95,7 +97,7 @@ jobs:
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: judge
-          image: ${{ env.IMAGE }}
+          image: ${{ needs.build-and-push.outputs.image }}
           region: ${{ env.REGION }}
           flags: >-
             --allow-unauthenticated
@@ -120,7 +122,7 @@ jobs:
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: ai-consequences
-          image: ${{ env.IMAGE }}
+          image: ${{ needs.build-and-push.outputs.image }}
           region: ${{ env.REGION }}
           flags: >-
             --allow-unauthenticated
@@ -145,7 +147,7 @@ jobs:
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: what-is-ai
-          image: ${{ env.IMAGE }}
+          image: ${{ needs.build-and-push.outputs.image }}
           region: ${{ env.REGION }}
           flags: >-
             --allow-unauthenticated
@@ -170,7 +172,7 @@ jobs:
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: model-building-game
-          image: ${{ env.IMAGE }}
+          image: ${{ needs.build-and-push.outputs.image }}
           region: ${{ env.REGION }}
           flags: >-
             --allow-unauthenticated
@@ -195,7 +197,7 @@ jobs:
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: ethical-revelation
-          image: ${{ env.IMAGE }}
+          image: ${{ needs.build-and-push.outputs.image }}
           region: ${{ env.REGION }}
           flags: >-
             --allow-unauthenticated
@@ -220,7 +222,7 @@ jobs:
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: moral-compass-challenge
-          image: ${{ env.IMAGE }}
+          image: ${{ needs.build-and-push.outputs.image }}
           region: ${{ env.REGION }}
           flags: >-
             --allow-unauthenticated
@@ -245,7 +247,7 @@ jobs:
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: bias-detective
-          image: ${{ env.IMAGE }}
+          image: ${{ needs.build-and-push.outputs.image }}
           region: ${{ env.REGION }}
           flags: >-
             --allow-unauthenticated
@@ -270,7 +272,7 @@ jobs:
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: fairness-fixer
-          image: ${{ env.IMAGE }}
+          image: ${{ needs.build-and-push.outputs.image }}
           region: ${{ env.REGION }}
           flags: >-
             --allow-unauthenticated
@@ -295,7 +297,7 @@ jobs:
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: justice-equity-upgrade
-          image: ${{ env.IMAGE }}
+          image: ${{ needs.build-and-push.outputs.image }}
           region: ${{ env.REGION }}
           flags: >-
             --allow-unauthenticated
