@@ -476,8 +476,6 @@ def launch_tutorial_app(height: int = 950, share: bool = False, debug: bool = Fa
     except ImportError as e:
         raise ImportError("Gradio must be installed to launch the tutorial app.") from e
     port = int(os.environ.get("PORT", 8080))
-    with contextlib.redirect_stdout(open(os.devnull, "w")), contextlib.redirect_stderr(
-        open(os.devnull, "w")
-    ):
-        demo.launch(share=share, inline=True, debug=debug, height=height, server_name="0.0.0.0", server_port=port)
+    demo.launch(share=share, inline=True, debug=debug, height=height, server_port=port)
 
+launch_tutorial_app()
