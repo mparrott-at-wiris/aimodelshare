@@ -47,7 +47,7 @@ def load_factory(app_name: str):
 
 if __name__ == "__main__":
     start_ts = time.time()
-    app_name = os.environ.get("APP_NAME", "tutorial")
+    app_name = os.environ.get("APP_NAME", "judge")
     port = int(os.environ.get("PORT", "8080"))
 
     logger.info(f"=== BOOTSTRAP === APP_NAME={app_name} PORT={port}")
