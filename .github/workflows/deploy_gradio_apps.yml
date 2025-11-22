@@ -20,12 +20,6 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Verify secrets
-        run: |
-          test -n "${{ secrets.GCP_SA_KEY }}" || (echo "Missing GCP_SA_KEY" && exit 1)
-          test -n "${{ secrets.GCP_PROJECT_ID }}" || (echo "Missing GCP_PROJECT_ID" && exit 1)
-
-      - uses: actions/checkout@v4
 
       - name: Auth
         uses: google-github-actions/auth@v2
