@@ -1532,3 +1532,4 @@ def launch_ethical_revelation_app(height: int = 1000, share: bool = False, debug
     demo.launch(share=share, inline=True, debug=debug, height=height, server_port=port)
 
 
+
