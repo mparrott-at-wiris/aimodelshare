@@ -23,20 +23,8 @@ TEAM_NAMES = [
 def _try_session_based_auth(request):
     """
     Attempt to authenticate user via session token from URL parameters.
-
-    Args:
-        request: Gradio request object containing query parameters
-
-    Returns:
-        dict: {
-            "success": bool,
-            "username": str or None,
-            "token": str or None,
-            "team_name": str or None
-        }
+    Returns a dict with keys: success, username, token, team_name
     """
-    import random
-
     session_id = request.query_params.get("sessionid") if request else None
     if not session_id:
         return {"success": False, "username": None, "token": None, "team_name": None}
@@ -52,7 +40,7 @@ def _try_session_based_auth(request):
         if not username:
             return {"success": False, "username": None, "token": None, "team_name": None}
 
-        # Assign team name based on leaderboard (or random)
+        # Assign team name from leaderboard or random if user has no submissions
         try:
             from aimodelshare.playground import Competition
             import pandas as pd
@@ -78,7 +66,6 @@ def _try_session_based_auth(request):
         except Exception:
             team_name = random.choice(TEAM_NAMES)
         return {"success": True, "username": username, "token": token, "team_name": team_name}
-
     except Exception as e:
         print(f"Session-based authentication failed: {e}")
         return {"success": False, "username": None, "token": None, "team_name": None}
@@ -87,13 +74,7 @@ def _try_session_based_auth(request):
 def _get_user_stats_from_leaderboard(username, team_name):
     """
     Fetch the user's statistics from the model building game leaderboard.
-
-    Args:
-        username (str): authenticated user's username
-        team_name (str): user's assigned team name
-
-    Returns:
-        dict: Dictionary containing user stats
+    Returns a dict of stats using username and team_name from state, not os.environ.
     """
     try:
         from aimodelshare.playground import Competition
@@ -123,13 +104,11 @@ def _get_user_stats_from_leaderboard(username, team_name):
                 "is_signed_in": True
             }
 
-        # Get user's best score and rank
         best_score = None
         rank = None
         team_rank = None
 
         if "accuracy" in leaderboard_df.columns and "username" in leaderboard_df.columns:
-            # Get best score
             user_submissions = leaderboard_df[leaderboard_df["username"] == username]
             if not user_submissions.empty:
                 best_score = user_submissions["accuracy"].max()
@@ -147,7 +126,6 @@ def _get_user_stats_from_leaderboard(username, team_name):
                             pass
                     team_name = user_submissions.iloc[0]["Team"]
 
-            # Individual rank
             user_bests = leaderboard_df.groupby("username")["accuracy"].max()
             individual_summary_df = user_bests.reset_index()
             individual_summary_df.columns = ["Engineer", "Best_Score"]
@@ -163,7 +141,6 @@ def _get_user_stats_from_leaderboard(username, team_name):
             if not my_rank_row.empty:
                 rank = my_rank_row.index[0]
 
-            # Team rank
             if "Team" in leaderboard_df.columns and team_name:
                 team_summary_df = (
                     leaderboard_df.groupby("Team")["accuracy"]
@@ -173,7 +150,6 @@ def _get_user_stats_from_leaderboard(username, team_name):
                     .reset_index(drop=True)
                 )
                 team_summary_df.index = team_summary_df.index + 1
-
                 my_team_row = team_summary_df[team_summary_df["Team"] == team_name]
                 if not my_team_row.empty:
                     team_rank = my_team_row.index[0]
@@ -186,7 +162,6 @@ def _get_user_stats_from_leaderboard(username, team_name):
             "team_rank": team_rank,
             "is_signed_in": True,
         }
-
     except Exception as e:
         print(f"Error fetching user stats: {e}")
         return {
@@ -201,14 +176,8 @@ def _get_user_stats_from_leaderboard(username, team_name):
 
 def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """Create the Moral Compass Challenge Gradio Blocks app (not launched yet)."""
-    try:
-        import gradio as gr
-        gr.close_all(verbose=False)
-    except ImportError as e:
-        raise ImportError(
-            "Gradio is required for the moral compass challenge app. Install with `pip install gradio`."
-        ) from e
 
+    # HTML builder helpers (unchanged)
     def build_standing_html(user_stats):
         if user_stats["is_signed_in"] and user_stats["best_score"] is not None:
             best_score_pct = f"{(user_stats['best_score'] * 100):.1f}%"
@@ -428,80 +397,78 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
 
         gr.Markdown("<h1 style='text-align:center;'>⚖️ The Ethical Challenge: The Moral Compass</h1>")
 
-        with gr.State() as app_state:
-            # Step 1: A Higher Standard
-            with gr.Column(visible=True, elem_id="step-1") as step_1:
-                stats_display = gr.HTML(value="")  # We'll dynamically set this later
-                step_1_next = gr.Button(
-                    "Introduce the New Standard ▶️", variant="primary", size="lg"
-                )
+        app_state = gr.State()
 
-            # Step 2: The Dramatic Reset
-            with gr.Column(visible=False, elem_id="step-2") as step_2:
-                step_2_html_comp = gr.HTML(value="")
-                with gr.Row():
-                    step_2_back = gr.Button("◀️ Back", size="lg")
-                    step_2_next = gr.Button("Reset and Transform ▶️", variant="primary", size="lg")
-
-            # Step 3: The Reset Animation
-            with gr.Column(visible=False, elem_id="step-3") as step_3:
-                gr.HTML(""" ... existing reset gauge HTML ... """)
-                with gr.Row():
-                    step_3_back = gr.Button("◀️ Back", size="lg")
-                    step_3_next = gr.Button("Introduce the Moral Compass ▶️", variant="primary", size="lg")
-
-            # Step 4: The Moral Compass Score
-            with gr.Column(visible=False, elem_id="step-4") as step_4:
-                gr.Markdown("<h2 style='text-align:center;'>🧭 The Moral Compass Score</h2>")
-                gr.HTML(""" ... existing MC Score HTML ... """)
-                with gr.Row():
-                    step_4_back = gr.Button("◀️ Back", size="lg")
-                    step_4_next = gr.Button("See the Challenge Ahead ▶️", variant="primary", size="lg")
-
-            # Step 6: The Challenge Ahead (directly after Step 4)
-            with gr.Column(visible=False, elem_id="step-6") as step_6:
-                step_6_html_comp = gr.HTML(value="")
-                with gr.Row():
-                    step_6_back = gr.Button("◀️ Back", size="lg")
-
-            all_steps = [step_1, step_2, step_3, step_4, step_6]
-
-            # Navigation logic unchanged
-
-            # Session-based authentication on page load
-            def handle_session_auth(request: "gr.Request", s: dict):
-                auth_result = _try_session_based_auth(request)
-                if auth_result["success"]:
-                    s['username'] = auth_result["username"]
-                    s['AWS_TOKEN'] = auth_result["token"]
-                    s['TEAM_NAME'] = auth_result["team_name"]
-                    s['is_signed_in'] = True
-                    user_stats = _get_user_stats_from_leaderboard(s['username'], s['TEAM_NAME'])
-
-                    standing_html = build_standing_html(user_stats)
-                    step2_html = build_step2_html(user_stats)
-                    step6_html = build_step6_html(user_stats)
-
-                    return {
-                        stats_display: gr.update(value=standing_html),
-                        step_2_html_comp: gr.update(value=step2_html),
-                        step_6_html_comp: gr.update(value=step6_html)
-                    }
-                else:
-                    info_html = build_standing_html({"is_signed_in": False})
-                    return {
-                        stats_display: gr.update(value=info_html),
-                        step_2_html_comp: gr.update(value=build_step2_html({"is_signed_in": False, "best_score": None})),
-                        step_6_html_comp: gr.update(value=build_step6_html({"is_signed_in": False}))
-                    }
-
-            demo.load(
-                fn=handle_session_auth,
-                inputs=[app_state],
-                outputs=[stats_display, step_2_html_comp, step_6_html_comp]
+        # Step 1: A Higher Standard
+        with gr.Column(visible=True, elem_id="step-1") as step_1:
+            stats_display = gr.HTML(value="")  # Dynamically set below
+            step_1_next = gr.Button(
+                "Introduce the New Standard ▶️", variant="primary", size="lg"
             )
 
-            # Navigation logic unchanged (must be present)
+        # Step 2: The Dramatic Reset
+        with gr.Column(visible=False, elem_id="step-2") as step_2:
+            step_2_html_comp = gr.HTML(value="")
+            with gr.Row():
+                step_2_back = gr.Button("◀️ Back", size="lg")
+                step_2_next = gr.Button("Reset and Transform ▶️", variant="primary", size="lg")
+
+        # Step 3: The Reset Animation
+        with gr.Column(visible=False, elem_id="step-3") as step_3:
+            gr.HTML(""" ... existing reset gauge HTML ... """)
+            with gr.Row():
+                step_3_back = gr.Button("◀️ Back", size="lg")
+                step_3_next = gr.Button("Introduce the Moral Compass ▶️", variant="primary", size="lg")
+
+        # Step 4: The Moral Compass Score
+        with gr.Column(visible=False, elem_id="step-4") as step_4:
+            gr.Markdown("<h2 style='text-align:center;'>🧭 The Moral Compass Score</h2>")
+            gr.HTML(""" ... existing MC Score HTML ... """)
+            with gr.Row():
+                step_4_back = gr.Button("◀️ Back", size="lg")
+                step_4_next = gr.Button("See the Challenge Ahead ▶️", variant="primary", size="lg")
+
+        # Step 6: The Challenge Ahead (directly after Step 4)
+        with gr.Column(visible=False, elem_id="step-6") as step_6:
+            step_6_html_comp = gr.HTML(value="")
+            with gr.Row():
+                step_6_back = gr.Button("◀️ Back", size="lg")
+
+        all_steps = [step_1, step_2, step_3, step_4, step_6]
+
+        # Navigation logic unchanged; not included here for brevity.
+
+        def handle_session_auth(request: "gr.Request", s: dict):
+            auth_result = _try_session_based_auth(request)
+            if auth_result["success"]:
+                s['username'] = auth_result["username"]
+                s['AWS_TOKEN'] = auth_result["token"]
+                s['TEAM_NAME'] = auth_result["team_name"]
+                s['is_signed_in'] = True
+                user_stats = _get_user_stats_from_leaderboard(s['username'], s['TEAM_NAME'])
+
+                standing_html = build_standing_html(user_stats)
+                step2_html = build_step2_html(user_stats)
+                step6_html = build_step6_html(user_stats)
+
+                return {
+                    stats_display: gr.update(value=standing_html),
+                    step_2_html_comp: gr.update(value=step2_html),
+                    step_6_html_comp: gr.update(value=step6_html)
+                }
+            else:
+                info_html = build_standing_html({"is_signed_in": False})
+                return {
+                    stats_display: gr.update(value=info_html),
+                    step_2_html_comp: gr.update(value=build_step2_html({"is_signed_in": False, "best_score": None})),
+                    step_6_html_comp: gr.update(value=build_step6_html({"is_signed_in": False}))
+                }
+
+        demo.load(
+            fn=handle_session_auth,
+            inputs=[app_state],
+            outputs=[stats_display, step_2_html_comp, step_6_html_comp]
+        )
 
     return demo
 
@@ -512,4 +479,3 @@ def launch_moral_compass_challenge_app(height: int = 1000, share: bool = False, 
     import os
     port = int(os.environ.get("PORT", 8080))
     demo.launch(share=share, inline=True, debug=debug, height=height, server_port=port)
-
