@@ -1423,6 +1423,7 @@ def handler(event, context):
         elif method == 'GET' and '/sessions/' in path:  
              # Extract ID from path /sessions/<id>
              # (You might need logic to parse it cleanly depending on your path structure)
+             print(get_session())
              return get_session(event)
         elif method == 'GET' and path == '/health':
             return health(event)
