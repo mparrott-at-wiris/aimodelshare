@@ -1383,10 +1383,6 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
             if success and username:
                 # Get or assign team for this user
                 import random
-                TEAM_NAMES = [
-                    "The Justice League", "The Moral Champions", "The Data Detectives",
-                    "The Ethical Explorers", "The Fairness Finders", "The Accuracy Avengers"
-                ]
                 
                 # Try to get existing team from leaderboard
                 try:
@@ -1396,6 +1392,12 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
                     playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
                     playground = Competition(playground_id)
                     leaderboard_df = playground.get_leaderboard()
+                    
+                    # Use same TEAM_NAMES as used in other parts of the app
+                    TEAM_NAMES = [
+                        "The Justice League", "The Moral Champions", "The Data Detectives",
+                        "The Ethical Explorers", "The Fairness Finders", "The Accuracy Avengers"
+                    ]
                     
                     team_name = None
                     if leaderboard_df is not None and not leaderboard_df.empty and "Team" in leaderboard_df.columns:

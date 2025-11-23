@@ -306,8 +306,12 @@ def get_token_from_session(session_id):
         AuthorizationError: If session is invalid or API request fails
     """
     try:
-        # TODO: Update this URL to the actual session API endpoint when available
-        session_api_url = f"https://api.modelshare.ai/session/{session_id}/token"
+        # NOTE: This URL should be configured via environment variable or config file
+        # Update AIMODELSHARE_SESSION_API_URL environment variable to override
+        session_api_url = os.getenv(
+            "AIMODELSHARE_SESSION_API_URL",
+            f"https://api.modelshare.ai/session/{session_id}/token"
+        )
         
         response = requests.get(session_api_url, timeout=10)
         response.raise_for_status()
@@ -334,7 +338,7 @@ def _get_username_from_token(token):
         token: JWT token string
         
     Returns:
-        str: Username extracted from 'cognito:username' claim, or None if not found
+        str: Username extracted from 'cognito:username' or 'username' claim, or None if not found
     """
     try:
         # JWT tokens have 3 parts: header.payload.signature
@@ -353,7 +357,8 @@ def _get_username_from_token(token):
         claims = json.loads(decoded)
         
         # Try different possible username claim names
-        username = claims.get('cognito:username') or claims.get('username') or claims.get('sub')
+        # Note: 'sub' is excluded as it's typically a UUID, not a human-readable username
+        username = claims.get('cognito:username') or claims.get('username')
         
         return username
         
