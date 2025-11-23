@@ -13,6 +13,7 @@ Structure:
 """
 import os
 import random
+import gradio as gr
 
 # Team names for assignment (still used in stats/login messaging)
 TEAM_NAMES = [
