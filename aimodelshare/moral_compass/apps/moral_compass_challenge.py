@@ -47,7 +47,7 @@ def _try_session_based_auth(request):
 
             playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
             playground = Competition(playground_id)
-            leaderboard_df = playground.get_leaderboard()
+            leaderboard_df = playground.get_leaderboard(token=token)
             team_name = None
             if leaderboard_df is not None and not leaderboard_df.empty and "Team" in leaderboard_df.columns:
                 user_submissions = leaderboard_df[leaderboard_df["username"] == username]
@@ -71,7 +71,7 @@ def _try_session_based_auth(request):
         return {"success": False, "username": None, "token": None, "team_name": None}
 
 
-def _get_user_stats_from_leaderboard(username, team_name):
+def _get_user_stats_from_leaderboard(username, team_name, token):
     """
     Fetch the user's statistics from the model building game leaderboard.
     Returns a dict of stats using username and team_name from state, not os.environ.
@@ -92,7 +92,7 @@ def _get_user_stats_from_leaderboard(username, team_name):
 
         playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
         playground = Competition(playground_id)
-        leaderboard_df = playground.get_leaderboard()
+        leaderboard_df = playground.get_leaderboard(token=token)
 
         if leaderboard_df is None or leaderboard_df.empty:
             return {
@@ -441,11 +441,11 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
         def handle_session_auth(request: "gr.Request", s: dict):
             auth_result = _try_session_based_auth(request)
             if auth_result["success"]:
-                s['username'] = auth_result["username"]
-                s['AWS_TOKEN'] = auth_result["token"]
-                s['TEAM_NAME'] = auth_result["team_name"]
-                s['is_signed_in'] = True
-                user_stats = _get_user_stats_from_leaderboard(s['username'], s['TEAM_NAME'])
+                username = auth_result["username"]
+                token= auth_result["token"]
+                team = auth_result["team_name"]
+                signedin = True
+                user_stats = _get_user_stats_from_leaderboard(username, team, token)
 
                 standing_html = build_standing_html(user_stats)
                 step2_html = build_step2_html(user_stats)
