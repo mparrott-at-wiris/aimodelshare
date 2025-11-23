@@ -33,10 +33,12 @@ def _try_session_based_auth(request):
         from aimodelshare.aws import get_token_from_session, _get_username_from_token
 
         token = get_token_from_session(session_id)
+        print(token)
         if not token:
             return {"success": False, "username": None, "token": None, "team_name": None}
 
         username = _get_username_from_token(token)
+        print(username)
         if not username:
             return {"success": False, "username": None, "token": None, "team_name": None}
 
@@ -48,6 +50,7 @@ def _try_session_based_auth(request):
             playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
             playground = Competition(playground_id)
             leaderboard_df = playground.get_leaderboard(token=token)
+            print("try_sess "+leaderboard_df.columns)
             team_name = None
             if leaderboard_df is not None and not leaderboard_df.empty and "Team" in leaderboard_df.columns:
                 user_submissions = leaderboard_df[leaderboard_df["username"] == username]
@@ -59,6 +62,7 @@ def _try_session_based_auth(request):
                         )
                         user_submissions = user_submissions.sort_values("timestamp", ascending=False)
                     existing_team = user_submissions.iloc[0]["Team"]
+                    print(existing_team)
                     if pd.notna(existing_team) and existing_team and str(existing_team).strip():
                         team_name = str(existing_team).strip()
             if not team_name:
@@ -93,6 +97,7 @@ def _get_user_stats_from_leaderboard(username, team_name, token):
         playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
         playground = Competition(playground_id)
         leaderboard_df = playground.get_leaderboard(token=token)
+        print("get_user_stats: "+leaderboard_df.columns)
 
         if leaderboard_df is None or leaderboard_df.empty:
             return {
