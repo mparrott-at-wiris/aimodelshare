@@ -23,6 +23,49 @@ except ImportError:
     )
 
 
+def _try_session_based_auth(request: "gr.Request"):
+    """
+    Attempt to authenticate user via session token from URL parameters.
+    
+    Args:
+        request: Gradio request object containing query parameters
+        
+    Returns:
+        tuple: (success: bool, username: str or None, team_name: str or None)
+    """
+    try:
+        # Check if sessionid is in URL query parameters
+        session_id = request.query_params.get("sessionid") if request else None
+        if not session_id:
+            return False, None, None
+        
+        # Import here to avoid circular dependencies
+        from aimodelshare.aws import get_token_from_session, _get_username_from_token
+        
+        # Get token from session API
+        token = get_token_from_session(session_id)
+        if not token:
+            return False, None, None
+            
+        # Extract username from token
+        username = _get_username_from_token(token)
+        if not username:
+            return False, None, None
+        
+        # Set environment variables for authenticated session
+        os.environ["username"] = username
+        os.environ["AWS_TOKEN"] = token
+        
+        # Get or assign team (reusing existing logic from _perform_inline_login)
+        # This will be handled by the calling code
+        
+        return True, username, None
+        
+    except Exception as e:
+        print(f"Session-based authentication failed: {e}")
+        return False, None, None
+
+
 def _get_user_stats_from_leaderboard():
     """
     Fetch the user's statistics from the model building game leaderboard.
@@ -1330,6 +1373,151 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
             fn=create_nav_generator(step_5, step_4),
             inputs=None, outputs=all_steps, show_progress="full",
             js=nav_js("step-4", "Reviewing key lesson...")
+        )
+
+        # Session-based authentication on page load
+        def handle_session_auth(request: "gr.Request"):
+            """Check for session token and auto-login if present."""
+            success, username, _ = _try_session_based_auth(request)
+            
+            if success and username:
+                # Get or assign team for this user
+                import random
+                
+                # Try to get existing team from leaderboard
+                try:
+                    from aimodelshare.playground import Competition
+                    import pandas as pd
+                    
+                    playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+                    playground = Competition(playground_id)
+                    leaderboard_df = playground.get_leaderboard()
+                    
+                    # Use same TEAM_NAMES as used in other parts of the app
+                    TEAM_NAMES = [
+                        "The Justice League", "The Moral Champions", "The Data Detectives",
+                        "The Ethical Explorers", "The Fairness Finders", "The Accuracy Avengers"
+                    ]
+                    
+                    team_name = None
+                    if leaderboard_df is not None and not leaderboard_df.empty and "Team" in leaderboard_df.columns:
+                        user_submissions = leaderboard_df[leaderboard_df["username"] == username]
+                        if not user_submissions.empty:
+                            if "timestamp" in user_submissions.columns:
+                                try:
+                                    user_submissions = user_submissions.copy()
+                                    user_submissions["timestamp"] = pd.to_datetime(
+                                        user_submissions["timestamp"], errors='coerce'
+                                    )
+                                    user_submissions = user_submissions.sort_values("timestamp", ascending=False)
+                                except Exception:
+                                    pass
+                            existing_team = user_submissions.iloc[0]["Team"]
+                            if pd.notna(existing_team) and existing_team and str(existing_team).strip():
+                                team_name = str(existing_team).strip()
+                    
+                    if not team_name:
+                        team_name = random.choice(TEAM_NAMES)
+                    
+                    os.environ["TEAM_NAME"] = team_name
+                    
+                except Exception:
+                    team_name = random.choice(TEAM_NAMES)
+                    os.environ["TEAM_NAME"] = team_name
+                
+                # User is authenticated, hide login form
+                user_stats = _get_user_stats_from_leaderboard()
+                
+                # Build celebration HTML with user stats
+                if user_stats["best_score"] is not None:
+                    best_score_pct = f"{(user_stats['best_score'] * 100):.1f}%"
+                    rank_text = f"#{user_stats['rank']}" if user_stats['rank'] else "N/A"
+                    team_text = user_stats['team_name'] if user_stats['team_name'] else team_name
+                    
+                    celebration_html = f"""
+                    <div class='slide-shell slide-shell--primary'>
+                        <div style='text-align:center;'>
+                            <h2 class='slide-shell__title'>
+                                🏆 Great Work, Engineer! 🏆
+                            </h2>
+                            <p class='slide-shell__subtitle'>
+                                Here's your performance summary.
+                            </p>
+
+                            <div class='content-box'>
+                                <h3 class='content-box__heading'>Your Stats</h3>
+
+                                <div class='stat-grid'>
+                                    <div class='stat-card'>
+                                        <p class='stat-card__label'>Best Accuracy</p>
+                                        <p class='stat-card__value'>
+                                            {best_score_pct}
+                                        </p>
+                                    </div>
+
+                                    <div class='stat-card'>
+                                        <p class='stat-card__label'>Your Rank</p>
+                                        <p class='stat-card__value'>
+                                            {rank_text}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class='team-card'>
+                                    <p class='team-card__label'>Team</p>
+                                    <p class='team-card__value'>
+                                        🛡️ {team_text}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <p class='slide-shell__subtitle' style='font-weight:500;'>
+                                Ready to share your model and explore its real-world impact?
+                            </p>
+                        </div>
+                    </div>
+                    """
+                else:
+                    celebration_html = f"""
+                    <div class='slide-shell slide-shell--primary'>
+                        <div style='text-align:center;'>
+                            <h2 class='slide-shell__title'>
+                                🚀 You're Signed In!
+                            </h2>
+                            <p class='slide-shell__subtitle'>
+                                You haven't submitted a model yet, but you're all set to continue learning.
+                            </p>
+
+                            <div class='content-box'>
+                                <p style='margin:0;'>
+                                    Once you submit a model in the Model Building Game,
+                                    your accuracy and ranking will appear here.
+                                </p>
+                            </div>
+
+                            <p class='slide-shell__subtitle' style='font-weight:500;'>
+                                Continue to the next section when you're ready.
+                            </p>
+                        </div>
+                    </div>
+                    """
+                
+                return {
+                    stats_display: gr.update(value=celebration_html),
+                    login_form: gr.update(visible=False)
+                }
+            else:
+                # No valid session, keep login form visible
+                return {
+                    stats_display: gr.update(),
+                    login_form: gr.update()
+                }
+        
+        # Wire up session auth on page load
+        demo.load(
+            fn=handle_session_auth,
+            inputs=None,
+            outputs=[stats_display, login_form]
         )
 
     return demo
