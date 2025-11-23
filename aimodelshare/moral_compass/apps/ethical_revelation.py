@@ -22,7 +22,101 @@ except ImportError:
     raise ImportError(
         "The 'aimodelshare' library is required. Install with: pip install aimodelshare"
     )
-
+TEAM_NAMES = [
+    "The Moral Champions", "The Justice League", "The Data Detectives",
+    "The Ethical Explorers", "The Fairness Finders", "The Accuracy Avengers"
+]
+CURRENT_TEAM_NAME = random.choice(TEAM_NAMES)
+def _normalize_team_name(name: str) -> str:
+    """
+    Normalize team name for consistent comparison and storage.
+    
+    Strips leading/trailing whitespace and collapses multiple spaces into single spaces.
+    This ensures consistent formatting across environment variables, state, and leaderboard rendering.
+    
+    Args:
+        name: Team name to normalize (can be None or empty)
+    
+    Returns:
+        str: Normalized team name, or empty string if input is None/empty
+    
+    Examples:
+        >>> _normalize_team_name("  The Ethical Explorers  ")
+        'The Ethical Explorers'
+        >>> _normalize_team_name("The  Moral   Champions")
+        'The Moral Champions'
+        >>> _normalize_team_name(None)
+        ''
+    """
+    if not name:
+        return ""
+    return " ".join(str(name).strip().split())
+    
+def get_or_assign_team(username, token):
+    """
+    Get the existing team for a user from the leaderboard, or assign a new random team.
+    
+    Queries the playground leaderboard to check if the user has prior submissions with
+    a team assignment. If found, returns that team (most recent if multiple submissions).
+    Otherwise assigns a random team. All team names are normalized for consistency.
+    
+    Args:
+        username: str, the username to check for existing team
+    
+    Returns:
+        tuple: (team_name: str, is_new: bool)
+            - team_name: The normalized team name (existing or newly assigned)
+            - is_new: True if newly assigned, False if existing team recovered
+    """
+    try:
+        # Query the leaderboard
+        if playground is None:
+            # Fallback to random assignment if playground not available
+            print("Playground not available, assigning random team")
+            new_team = _normalize_team_name(random.choice(TEAM_NAMES))
+            return new_team, True
+        
+        leaderboard_df = playground.get_leaderboard(token=token)
+        
+        # Check if leaderboard has data and Team column
+        if leaderboard_df is not None and not leaderboard_df.empty and "Team" in leaderboard_df.columns:
+            # Filter for this user's submissions
+            user_submissions = leaderboard_df[leaderboard_df["username"] == username]
+            
+            if not user_submissions.empty:
+                # Sort by timestamp (most recent first) if timestamp column exists
+                # Use contextlib.suppress for resilient timestamp parsing
+                if "timestamp" in user_submissions.columns:
+                    try:
+                        # Attempt to coerce timestamp column to datetime and sort descending
+                        user_submissions = user_submissions.copy()
+                        user_submissions["timestamp"] = pd.to_datetime(user_submissions["timestamp"], errors='coerce')
+                        user_submissions = user_submissions.sort_values("timestamp", ascending=False)
+                        print(f"Sorted {len(user_submissions)} submissions by timestamp for {username}")
+                    except Exception as ts_error:
+                        # If timestamp parsing fails, continue with unsorted DataFrame
+                        print(f"Warning: Could not sort by timestamp for {username}: {ts_error}")
+                
+                # Get the most recent team assignment (first row after sorting)
+                existing_team = user_submissions.iloc[0]["Team"]
+                
+                # Check if team value is valid (not null/empty)
+                if pd.notna(existing_team) and existing_team and str(existing_team).strip():
+                    normalized_team = _normalize_team_name(existing_team)
+                    print(f"Found existing team for {username}: {normalized_team}")
+                    return normalized_team, False
+        
+        # No existing team found - assign random
+        new_team = _normalize_team_name(random.choice(TEAM_NAMES))
+        print(f"Assigning new team to {username}: {new_team}")
+        return new_team, True
+        
+    except Exception as e:
+        # On any error, fall back to random assignment
+        print(f"Error checking leaderboard for team: {e}")
+        new_team = _normalize_team_name(random.choice(TEAM_NAMES))
+        print(f"Fallback: assigning random team to {username}: {new_team}")
+        return new_team, True
 
 def _try_session_based_auth(request: "gr.Request"):
     """
@@ -53,21 +147,18 @@ def _try_session_based_auth(request: "gr.Request"):
         if not username:
             return False, None, None
         
-        # Set environment variables for authenticated session
-        os.environ["username"] = username
-        os.environ["AWS_TOKEN"] = token
         
         # Get or assign team (reusing existing logic from _perform_inline_login)
         # This will be handled by the calling code
         
-        return True, username, None
+        return True, username, token
         
     except Exception as e:
         print(f"Session-based authentication failed: {e}")
         return False, None, None
 
 
-def _get_user_stats_from_leaderboard():
+def _get_user_stats_from_leaderboard(username=None,token=None):
     """
     Fetch the user's statistics from the model building game leaderboard.
 
@@ -87,7 +178,6 @@ def _get_user_stats_from_leaderboard():
         import os
 
         # Check if user is signed in (via environment)
-        username = os.environ.get("username")
         if not username:
             # User not signed in yet: just tell the UI that
             return {
@@ -99,9 +189,9 @@ def _get_user_stats_from_leaderboard():
             }
 
         # User is "signed in" (username present) – make sure we have an AWS token
-        if not os.environ.get("AWS_TOKEN"):
+        if not token:
             try:
-                os.environ["AWS_TOKEN"] = get_aws_token()
+                raise
             except Exception as e:
                 # If we can't get a token, log it and return minimal signed-in info
                 print(f"Warning: could not obtain AWS token for user stats: {e}")
@@ -109,14 +199,14 @@ def _get_user_stats_from_leaderboard():
                     "username": username,
                     "best_score": None,
                     "rank": None,
-                    "team_name": os.environ.get("TEAM_NAME"),
+                    "team_name": None,
                     "is_signed_in": True,
                 }
-
         # Connect to playground and fetch leaderboard
         playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
         playground = Competition(playground_id)
-        leaderboard_df = playground.get_leaderboard()
+        leaderboard_df = playground.get_leaderboard(token=token)
+        team,newteam=get_or_assign_team(username, token)
 
         # If leaderboard is unavailable or empty, still show basic signed-in state
         if leaderboard_df is None or leaderboard_df.empty:
@@ -124,14 +214,14 @@ def _get_user_stats_from_leaderboard():
                 "username": username,
                 "best_score": None,
                 "rank": None,
-                "team_name": os.environ.get("TEAM_NAME"),
+                "team_name": team,
                 "is_signed_in": True
             }
 
         # Compute user-specific stats
         best_score = None
         rank = None
-        team_name = os.environ.get("TEAM_NAME")
+        team_name = team
 
         if "accuracy" in leaderboard_df.columns and "username" in leaderboard_df.columns:
             # Filter to this user's submissions
@@ -185,11 +275,11 @@ def _get_user_stats_from_leaderboard():
         import os
         print(f"Error fetching user stats: {e}")
         return {
-            "username": os.environ.get("username"),
+            "username": username,
             "best_score": None,
             "rank": None,
-            "team_name": os.environ.get("TEAM_NAME"),
-            "is_signed_in": bool(os.environ.get("username"))
+            "team_name": team,
+            "is_signed_in": bool(username)
         }
 
 
@@ -1379,7 +1469,7 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
         # Session-based authentication on page load
         def handle_session_auth(request: "gr.Request"):
             """Check for session token and auto-login if present."""
-            success, username, _ = _try_session_based_auth(request)
+            success, username, token = _try_session_based_auth(request)
             
             if success and username:
                 # Get or assign team for this user
@@ -1392,7 +1482,7 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
                     
                     playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
                     playground = Competition(playground_id)
-                    leaderboard_df = playground.get_leaderboard()
+                    leaderboard_df = playground.get_leaderboard(token=token)
                     
                     # Use same TEAM_NAMES as used in other parts of the app
                     TEAM_NAMES = [
@@ -1420,14 +1510,13 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
                     if not team_name:
                         team_name = random.choice(TEAM_NAMES)
                     
-                    os.environ["TEAM_NAME"] = team_name
                     
                 except Exception:
-                    team_name = random.choice(TEAM_NAMES)
-                    os.environ["TEAM_NAME"] = team_name
+                    pass
+
                 
                 # User is authenticated, hide login form
-                user_stats = _get_user_stats_from_leaderboard()
+                user_stats = _get_user_stats_from_leaderboard(username, token)
                 
                 # Build celebration HTML with user stats
                 if user_stats["best_score"] is not None:
@@ -1505,7 +1594,6 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
                 
                 return {
                     stats_display: gr.update(value=celebration_html),
-                    login_form: gr.update(visible=False)
                 }
             else:
                 # No valid session, keep login form visible
@@ -1518,7 +1606,7 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
         demo.load(
             fn=handle_session_auth,
             inputs=None,
-            outputs=[stats_display, login_form]
+            outputs=[stats_display]
         )
 
     return demo
