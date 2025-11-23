@@ -310,7 +310,7 @@ def get_token_from_session(session_id):
         # Update AIMODELSHARE_SESSION_API_URL environment variable to override
         session_api_url = os.getenv(
             "AIMODELSHARE_SESSION_API_URL",
-            f"https://b22q73wp50.execute-api.us-east-1.amazonaws.com/dev/session/{session_id}/token"
+            f"https://b22q73wp50.execute-api.us-east-1.amazonaws.com/dev/sessions/{session_id}"
         )
         
         response = requests.get(session_api_url, timeout=10)
