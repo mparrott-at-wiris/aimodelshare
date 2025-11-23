@@ -73,4 +73,4 @@ jobs:
         EOF
 
     - name: Summarize results
-      run: echo "If any step above FAILED, investigate the console logs for details on precisely which part of auth failed: sessionid->token, token->username, or leaderboard fetch."
+      run: echo "If any step above FAILED, investigate the console logs for details on precisely which part of auth failed including sessionid to token, token to username, or leaderboard fetch."
