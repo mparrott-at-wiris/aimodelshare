@@ -23,9 +23,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install -r requirements.txt
+        pip install -r requirements-apps.txt
         pip install awscli
-        pip install gradio pandas numpy requests aimodelshare
 
     - name: Debug auth mechanism in challenge app
       env:
