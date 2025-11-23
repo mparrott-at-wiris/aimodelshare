@@ -289,7 +289,7 @@ def _get_user_stats_from_leaderboard(username=None,token=None):
             "username": username,
             "best_score": None,
             "rank": None,
-            "team_name": team,
+            "team_name": None,
             "is_signed_in": bool(username)
         }
 
