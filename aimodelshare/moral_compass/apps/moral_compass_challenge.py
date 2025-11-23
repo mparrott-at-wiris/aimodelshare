@@ -21,6 +21,49 @@ TEAM_NAMES = [
 ]
 
 
+def _try_session_based_auth(request: "gr.Request"):
+    """
+    Attempt to authenticate user via session token from URL parameters.
+    
+    Args:
+        request: Gradio request object containing query parameters
+        
+    Returns:
+        tuple: (success: bool, username: str or None, team_name: str or None)
+    """
+    try:
+        # Check if sessionid is in URL query parameters
+        session_id = request.query_params.get("sessionid") if request else None
+        if not session_id:
+            return False, None, None
+        
+        # Import here to avoid circular dependencies
+        from aimodelshare.aws import get_token_from_session, _get_username_from_token
+        
+        # Get token from session API
+        token = get_token_from_session(session_id)
+        if not token:
+            return False, None, None
+            
+        # Extract username from token
+        username = _get_username_from_token(token)
+        if not username:
+            return False, None, None
+        
+        # Set environment variables for authenticated session
+        os.environ["username"] = username
+        os.environ["AWS_TOKEN"] = token
+        
+        # Get or assign team (reusing existing logic from _perform_inline_login)
+        # This will be handled by the calling code
+        
+        return True, username, None
+        
+    except Exception as e:
+        print(f"Session-based authentication failed: {e}")
+        return False, None, None
+
+
 def _get_user_stats_from_leaderboard():
     """
     Fetch the user's statistics from the model building game leaderboard.
@@ -1291,6 +1334,77 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
             outputs=all_steps,
             show_progress="full",
             js=nav_js("step-4", "Reviewing scoring..."),
+        )
+
+        # Session-based authentication on page load
+        def handle_session_auth(request: "gr.Request"):
+            """Check for session token and auto-login if present."""
+            success, username, _ = _try_session_based_auth(request)
+            
+            if success and username:
+                # Get or assign team for this user
+                try:
+                    from aimodelshare.playground import Competition
+                    import pandas as pd
+                    
+                    playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+                    playground = Competition(playground_id)
+                    leaderboard_df = playground.get_leaderboard()
+                    
+                    team_name = None
+                    if leaderboard_df is not None and not leaderboard_df.empty and "Team" in leaderboard_df.columns:
+                        user_submissions = leaderboard_df[leaderboard_df["username"] == username]
+                        if not user_submissions.empty:
+                            if "timestamp" in user_submissions.columns:
+                                try:
+                                    user_submissions = user_submissions.copy()
+                                    user_submissions["timestamp"] = pd.to_datetime(
+                                        user_submissions["timestamp"], errors='coerce'
+                                    )
+                                    user_submissions = user_submissions.sort_values("timestamp", ascending=False)
+                                except Exception:
+                                    pass
+                            existing_team = user_submissions.iloc[0]["Team"]
+                            if pd.notna(existing_team) and existing_team and str(existing_team).strip():
+                                team_name = str(existing_team).strip()
+                    
+                    if not team_name:
+                        team_name = random.choice(TEAM_NAMES)
+                    
+                    os.environ["TEAM_NAME"] = team_name
+                    
+                except Exception:
+                    team_name = random.choice(TEAM_NAMES)
+                    os.environ["TEAM_NAME"] = team_name
+                
+                # User is authenticated, hide login form
+                user_stats = _get_user_stats_from_leaderboard()
+                
+                # Build standing HTML with user stats
+                standing_html = build_standing_html(user_stats)
+                step2_html = build_step2_html(user_stats)
+                step6_html = build_step6_html(user_stats)
+                
+                return {
+                    stats_display: gr.update(value=standing_html),
+                    login_form: gr.update(visible=False),
+                    step_2_html_comp: gr.update(value=step2_html),
+                    step_6_html_comp: gr.update(value=step6_html)
+                }
+            else:
+                # No valid session, keep login form visible
+                return {
+                    stats_display: gr.update(),
+                    login_form: gr.update(),
+                    step_2_html_comp: gr.update(),
+                    step_6_html_comp: gr.update()
+                }
+        
+        # Wire up session auth on page load
+        demo.load(
+            fn=handle_session_auth,
+            inputs=None,
+            outputs=[stats_display, login_form, step_2_html_comp, step_6_html_comp]
         )
 
     return demo

@@ -33,6 +33,49 @@ except ImportError:
         "The 'aimodelshare' library is required. Install with: pip install aimodelshare"
     )
 
+
+def _try_session_based_auth(request: "gr.Request"):
+    """
+    Attempt to authenticate user via session token from URL parameters.
+    
+    Args:
+        request: Gradio request object containing query parameters
+        
+    Returns:
+        tuple: (success: bool, username: str or None, team_name: str or None)
+    """
+    try:
+        # Check if sessionid is in URL query parameters
+        session_id = request.query_params.get("sessionid") if request else None
+        if not session_id:
+            return False, None, None
+        
+        # Import here to avoid circular dependencies
+        from aimodelshare.aws import get_token_from_session, _get_username_from_token
+        
+        # Get token from session API
+        token = get_token_from_session(session_id)
+        if not token:
+            return False, None, None
+            
+        # Extract username from token
+        username = _get_username_from_token(token)
+        if not username:
+            return False, None, None
+        
+        # Set environment variables for authenticated session
+        os.environ["username"] = username
+        os.environ["AWS_TOKEN"] = token
+        
+        # Get or assign team (reusing existing logic from perform_inline_login)
+        # This will be handled by the calling code
+        
+        return True, username, None
+        
+    except Exception as e:
+        print(f"Session-based authentication failed: {e}")
+        return False, None, None
+
 # -------------------------------------------------------------------------
 # 1. Configuration
 # -------------------------------------------------------------------------
@@ -5079,8 +5122,37 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             outputs=[init_status_display, init_banner, submit_button, data_size_radio, status_timer]
         )
 
+        # Handle session-based authentication on page load
+        def handle_load_with_session_auth(username_state, request: "gr.Request"):
+            """Check for session token, auto-login if present, then load initial UI."""
+            success, session_username, _ = _try_session_based_auth(request)
+            
+            if success and session_username:
+                # Get or assign team for this user
+                team_name = get_or_assign_team(session_username)[0]
+                os.environ["TEAM_NAME"] = team_name
+                
+                # Hide login form since user is authenticated via session
+                # Return initial load results plus login form hidden
+                initial_results = on_initial_load(session_username)
+                return initial_results + (
+                    gr.update(visible=False),  # login_username
+                    gr.update(visible=False),  # login_password  
+                    gr.update(visible=False),  # login_submit
+                    gr.update(visible=False),  # login_error (hide any messages)
+                )
+            else:
+                # No valid session, proceed with normal load
+                initial_results = on_initial_load(username_state)
+                return initial_results + (
+                    gr.update(),  # login_username
+                    gr.update(),  # login_password
+                    gr.update(),  # login_submit
+                    gr.update(),  # login_error
+                )
+        
         demo.load(
-            fn=lambda u: on_initial_load(u),
+            fn=handle_load_with_session_auth,
             inputs=[gr.State(username)],
             outputs=[
                 model_card_display,
@@ -5091,6 +5163,10 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 complexity_slider,
                 feature_set_checkbox,
                 data_size_radio,
+                login_username,
+                login_password,
+                login_submit,
+                login_error,
             ],
             js=initial_load_scroll_js 
         )
@@ -6045,8 +6121,37 @@ def launch_model_building_game_app(height: int = 1200, share: bool = False, debu
             outputs=[init_status_display, init_banner, submit_button, data_size_radio, status_timer]
         )
 
+        # Handle session-based authentication on page load
+        def handle_load_with_session_auth(username_state, request: "gr.Request"):
+            """Check for session token, auto-login if present, then load initial UI."""
+            success, session_username, _ = _try_session_based_auth(request)
+            
+            if success and session_username:
+                # Get or assign team for this user
+                team_name = get_or_assign_team(session_username)[0]
+                os.environ["TEAM_NAME"] = team_name
+                
+                # Hide login form since user is authenticated via session
+                # Return initial load results plus login form hidden
+                initial_results = on_initial_load(session_username)
+                return initial_results + (
+                    gr.update(visible=False),  # login_username
+                    gr.update(visible=False),  # login_password  
+                    gr.update(visible=False),  # login_submit
+                    gr.update(visible=False),  # login_error (hide any messages)
+                )
+            else:
+                # No valid session, proceed with normal load
+                initial_results = on_initial_load(username_state)
+                return initial_results + (
+                    gr.update(),  # login_username
+                    gr.update(),  # login_password
+                    gr.update(),  # login_submit
+                    gr.update(),  # login_error
+                )
+        
         demo.load(
-            fn=lambda u: on_initial_load(u),
+            fn=handle_load_with_session_auth,
             inputs=[gr.State(username)],
             outputs=[
                 model_card_display,
@@ -6057,6 +6162,10 @@ def launch_model_building_game_app(height: int = 1200, share: bool = False, debu
                 complexity_slider,
                 feature_set_checkbox,
                 data_size_radio,
+                login_username,
+                login_password,
+                login_submit,
+                login_error,
             ],
             js=initial_load_scroll_js 
         )
