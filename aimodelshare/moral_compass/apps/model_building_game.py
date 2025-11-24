@@ -40,17 +40,6 @@ except ImportError:
         "The 'aimodelshare' library is required. Install with: pip install aimodelshare"
     )
 
-# --- Session-Based Authentication (for multi-user Cloud Run support) ---
-from .session_auth import (
-    create_session_state,
-    authenticate_session,
-    get_session_username,
-    get_session_token,
-    is_session_authenticated,
-    get_session_team,
-    set_session_team,
-)
-
 # -------------------------------------------------------------------------
 # Configuration & Caching Infrastructure
 # -------------------------------------------------------------------------
@@ -224,7 +213,7 @@ def check_attempt_limit(submission_count: int, limit: int = None) -> Tuple[bool,
         limit = ATTEMPT_LIMIT
     
     if submission_count >= limit:
-        msg = f"Attempt limit reached ({submission_count}/{limit})"
+        msg = f"⚠️ Attempt limit reached ({submission_count}/{limit})"
         return False, msg
     return True, f"Attempts: {submission_count}/{limit}"
 
@@ -1022,7 +1011,7 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
         pass # Keep defaults
 
     # Generate HTML outputs
-    team_html = _build_team_html(team_summary_df, team_name)
+    team_html = _build_team_html(team_summary_df, os.environ.get("TEAM_NAME"))
     individual_html = _build_individual_html(individual_summary_df, username)
     kpi_card_html = _build_kpi_card_html(
         this_submission_score, last_submission_score, new_rank, last_rank, submission_count
@@ -1128,7 +1117,8 @@ data_size_radio = None
 attempts_tracker_display = None
 team_name_state = None
 # Login components (will be assigned in create_model_building_game_app)
-# NOTE: Login credentials now managed via session state (not globals)
+login_username = None
+login_password = None
 login_submit = None
 login_error = None
 # This one will be assigned globally but is also defined in the function
@@ -1200,31 +1190,33 @@ def get_or_assign_team(username):
         print(f"Fallback: assigning random team to {username}: {new_team}")
         return new_team, True
 
-def perform_inline_login(session_state, username_input, password_input):
+def perform_inline_login(username_input, password_input):
     """
-    Perform inline authentication using session-based auth (multi-user safe).
+    Perform inline authentication and set credentials in environment.
     
-    Validates credentials, authenticates via session_auth module, and returns
-    updated session state along with Gradio component updates.
+    Validates non-empty credentials, sets environment variables, and attempts
+    to fetch AWS token via get_aws_token(). Returns Gradio component updates
+    for login UI visibility and feedback messages.
     
     Args:
-        session_state: dict, current session state
         username_input: str, the username entered by user
         password_input: str, the password entered by user
     
     Returns:
-        tuple: (updated_session_state, dict of Gradio component updates)
-            - On success: session authenticated, login form hidden, team assigned
-            - On failure: session unchanged, error message shown
+        dict: Gradio component updates for login UI elements and submit button
+            - On success: hides login form, shows success message, enables submit
+            - On failure: keeps login form visible, shows error with signup link
     """
+    from aimodelshare.aws import get_aws_token
+    
     # Validate inputs
     if not username_input or not username_input.strip():
         error_html = """
         <div style='background:#fef2f2; padding:12px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
-            <p style='margin:0; color:#991b1b; font-weight:500;'>Username is required</p>
+            <p style='margin:0; color:#991b1b; font-weight:500;'>⚠️ Username is required</p>
         </div>
         """
-        return session_state, {
+        return {
             login_username: gr.update(),
             login_password: gr.update(),
             login_submit: gr.update(),
@@ -1239,10 +1231,10 @@ def perform_inline_login(session_state, username_input, password_input):
     if not password_input or not password_input.strip():
         error_html = """
         <div style='background:#fef2f2; padding:12px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
-            <p style='margin:0; color:#991b1b; font-weight:500;'>Password is required</p>
+            <p style='margin:0; color:#991b1b; font-weight:500;'>⚠️ Password is required</p>
         </div>
         """
-        return session_state, {
+        return {
             login_username: gr.update(),
             login_password: gr.update(),
             login_submit: gr.update(),
@@ -1254,26 +1246,24 @@ def perform_inline_login(session_state, username_input, password_input):
             token_state: gr.update()      # NEW
         }
     
-    # Authenticate using session_auth (no environment variables!)
+    # Set credentials in environment
+    os.environ["username"] = username_input.strip()
+    os.environ["password"] = password_input.strip()
+    
+    # Attempt to get AWS token
     try:
-        new_session_state, success, auth_message = authenticate_session(
-            session_state, username_input.strip(), password_input.strip()
-        )
+        token = get_aws_token()
+        os.environ["AWS_TOKEN"] = token
         
-        if not success:
-            raise Exception(auth_message)
-        
-        # Get or assign team for this user
-        username = get_session_username(new_session_state)
-        team_name, is_new_team = get_or_assign_team(username)
+        # Get or assign team for this user (already normalized by get_or_assign_team)
+        team_name, is_new_team = get_or_assign_team(username_input.strip())
+        # Normalize team name before storing (defensive - already normalized by get_or_assign_team)
         team_name = _normalize_team_name(team_name)
-        
-        # Store team in session state (not environment!)
-        new_session_state = set_session_team(new_session_state, team_name)
+        os.environ["TEAM_NAME"] = team_name
         
         # Build success message based on whether team is new or existing
         if is_new_team:
-            team_message = f"You have been assigned to a new team: <b>{team_name}</b> ��"
+            team_message = f"You have been assigned to a new team: <b>{team_name}</b> 🎉"
         else:
             team_message = f"Welcome back! You remain on team: <b>{team_name}</b> ✅"
         
@@ -1289,7 +1279,7 @@ def perform_inline_login(session_state, username_input, password_input):
             </p>
         </div>
         """
-        return new_session_state, {
+        return {
             login_username: gr.update(visible=False),
             login_password: gr.update(visible=False),
             login_submit: gr.update(visible=False),
@@ -1305,7 +1295,7 @@ def perform_inline_login(session_state, username_input, password_input):
         # Authentication failed: show error with signup link
         error_html = f"""
         <div style='background:#fef2f2; padding:16px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
-            <p style='margin:0; color:#991b1b; font-weight:600; font-size:1.1rem;'>Authentication failed</p>
+            <p style='margin:0; color:#991b1b; font-weight:600; font-size:1.1rem;'>⚠️ Authentication failed</p>
             <p style='margin:8px 0; color:#7f1d1d; font-size:0.95rem;'>
                 Could not verify your credentials. Please check your username and password.
             </p>
@@ -1320,7 +1310,7 @@ def perform_inline_login(session_state, username_input, password_input):
             </details>
         </div>
         """
-        return session_state, {
+        return {
             login_username: gr.update(visible=True),
             login_password: gr.update(visible=True),
             login_submit: gr.update(visible=True),
@@ -1332,39 +1322,7 @@ def perform_inline_login(session_state, username_input, password_input):
             token_state: gr.update()      # NEW
         }
 
-def _build_attempts_tracker_html(current_count, limit=ATTEMPT_LIMIT):
-    """
-    Generate HTML for the attempts tracker display.
-    Shows current attempt count vs limit with color coding.
-    
-    Args:
-        current_count: Number of attempts used so far
-        limit: Maximum allowed attempts (default: ATTEMPT_LIMIT)
-    
-    Returns:
-        str: HTML string for the tracker display
-    """
-    if current_count >= limit:
-        # Limit reached - red styling
-        bg_color = "#f0f9ff"
-        border_color = "#bae6fd"
-        text_color = "#0369a1"
-        icon = "🛑"
-        label = f"Last chance (for now) to boost your score!: {current_count}/{limit}"
-    else:
-        # Normal - blue styling
-        bg_color = "#f0f9ff"
-        border_color = "#bae6fd"
-        text_color = "#0369a1"
-        icon = "📊"
-        label = f"Attempts used: {current_count}/{limit}"
-    
-    return f"""<div style='text-align:center; padding:8px; margin:8px 0; background:{bg_color}; border-radius:8px; border:1px solid {border_color};'>
-        <p style='margin:0; color:{text_color}; font-weight:600; font-size:1rem;'>{icon} {label}</p>
-    </div>"""
-
 def run_experiment(
-    session_state,
     model_name_key,
     complexity_level,
     feature_set,
@@ -1384,10 +1342,17 @@ def run_experiment(
     Now accepts username and token parameters for session-based auth.
     """
     
-
-    # Get username from session state (multi-user safe)
-    username = get_session_username(session_state) or "Unknown_User"
-
+    # Use provided username or fallback to environment (backwards compatibility)
+    if not username:
+        username = os.environ.get("username") or "Unknown_User"
+    
+    # For backwards compatibility with code that still reads from environment
+    # TODO: Remove once all dependent code uses parameters instead
+    if username and username != "Unknown_User":
+        os.environ["username"] = username
+    if token:
+        os.environ["AWS_TOKEN"] = token
+    
     # Helper to generate the animated HTML
     def get_status_html(step_num, title, subtitle):
         return f"""
@@ -1554,8 +1519,8 @@ def run_experiment(
         log_output += "Training done.\n"
 
         # --- Stage 3: Submit (API Call 1) ---
-        # AUTHENTICATION GATE: Check for authentication via session state
-        if not is_session_authenticated(session_state):
+        # AUTHENTICATION GATE: Check for AWS_TOKEN before submission
+        if os.environ.get("AWS_TOKEN") is None:
             # User not authenticated - compute preview score and show login prompt
             progress(0.6, desc="Computing Preview Score...")
             
@@ -1677,13 +1642,12 @@ def run_experiment(
 
         predictions = tuned_model.predict(X_test_processed)
         description = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
-        team_name = get_session_team(session_state) or "Unknown_Team"
-        tags = f"team:{team_name},model:{model_name_key}"
+        tags = f"team:{os.environ.get("TEAM_NAME")},model:{model_name_key}"
 
         playground.submit_model(
             model=tuned_model, preprocessor=preprocessor, prediction_submission=predictions,
             input_dict={'description': description, 'tags': tags},
-            custom_metadata={'Team': team_name, 'Moral_Compass': 0}
+            custom_metadata={'Team': os.environ.get("TEAM_NAME"), 'Moral_Compass': 0}
         )
         log_output += "\nSUCCESS! Model submitted.\n"
 
@@ -1772,7 +1736,7 @@ def run_experiment(
         yield error_updates
 
 
-def on_initial_load(session_state):
+def on_initial_load(username):
     """
     Updated to load HTML leaderboards with skeleton placeholders during init.
     Shows skeleton if leaderboard not yet ready, real data otherwise.
@@ -1797,11 +1761,9 @@ def on_initial_load(session_state):
         try:
             if playground:
                 full_leaderboard_df = playground.get_leaderboard()
-                username = get_session_username(session_state) or "Unknown_User"
-                team_name = get_session_team(session_state) or "Unknown_Team"
                 team_html, individual_html, _, _, _, _ = generate_competitive_summary(
                     full_leaderboard_df,
-                    team_name,
+                    os.environ.get("TEAM_NAME"),
                     username,
                     0, 0, -1
                 )
@@ -1902,1396 +1864,6 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
 
 def build_conclusion_from_state(best_score, submissions, rank, first_score, feature_set):
     return build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set)
-def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
-    """
-    Create (but do not launch) the model building game app.
-    Starts background initialization automatically.
-    """
-    # Start background initialization thread
-    start_background_init()
-    
-    css = """
-    /* ------------------------------
-      Shared Design Tokens (local)
-      ------------------------------ */
-
-    /* We keep everything driven by Gradio theme vars:
-      --body-background-fill, --body-text-color, --secondary-text-color,
-      --border-color-primary, --block-background-fill, --color-accent,
-      --shadow-drop, --prose-background-fill
-    */
-
-    :root {
-        --slide-radius-md: 12px;
-        --slide-radius-lg: 16px;
-        --slide-radius-xl: 18px;
-        --slide-spacing-lg: 24px;
-
-        /* Local, non-brand tokens built *on top of* theme vars */
-        --card-bg-soft: var(--block-background-fill);
-        --card-bg-strong: var(--prose-background-fill, var(--block-background-fill));
-        --card-border-subtle: var(--border-color-primary);
-        --accent-strong: var(--color-accent);
-        --text-main: var(--body-text-color);
-        --text-muted: var(--secondary-text-color);
-    }
-
-    /* ------------------------------------------------------------------
-      Base Layout Helpers
-      ------------------------------------------------------------------ */
-
-    .slide-content {
-        max-width: 900px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    /* Shared card-like panels used throughout slides */
-    .panel-box {
-        background: var(--card-bg-soft);
-        padding: 20px;
-        border-radius: var(--slide-radius-lg);
-        border: 2px solid var(--card-border-subtle);
-        margin-bottom: 18px;
-        color: var(--text-main);
-        box-shadow: var(--shadow-drop, 0 2px 4px rgba(0,0,0,0.04));
-    }
-
-    .leaderboard-box {
-        background: var(--card-bg-soft);
-        padding: 20px;
-        border-radius: var(--slide-radius-lg);
-        border: 1px solid var(--card-border-subtle);
-        margin-top: 12px;
-        color: var(--text-main);
-    }
-
-    /* For “explanatory UI” scaffolding */
-    .mock-ui-box {
-        background: var(--card-bg-strong);
-        border: 2px solid var(--card-border-subtle);
-        padding: 24px;
-        border-radius: var(--slide-radius-lg);
-        color: var(--text-main);
-    }
-
-    .mock-ui-inner {
-        background: var(--block-background-fill);
-        border: 1px solid var(--card-border-subtle);
-        padding: 24px;
-        border-radius: var(--slide-radius-md);
-    }
-
-    /* “Control box” inside the mock UI */
-    .mock-ui-control-box {
-        padding: 12px;
-        background: var(--block-background-fill);
-        border-radius: 8px;
-        border: 1px solid var(--card-border-subtle);
-    }
-
-    /* Little radio / check icons */
-    .mock-ui-radio-on {
-        font-size: 1.5rem;
-        vertical-align: middle;
-        color: var(--accent-strong);
-    }
-
-    .mock-ui-radio-off {
-        font-size: 1.5rem;
-        vertical-align: middle;
-        color: var(--text-muted);
-    }
-
-    .mock-ui-slider-text {
-        font-size: 1.5rem;
-        margin: 0;
-        color: var(--accent-strong);
-        letter-spacing: 4px;
-    }
-
-    .mock-ui-slider-bar {
-        color: var(--text-muted);
-    }
-
-    /* Simple mock button representation */
-    .mock-button {
-        width: 100%;
-        font-size: 1.25rem;
-        font-weight: 600;
-        padding: 16px 24px;
-        background-color: var(--accent-strong);
-        color: var(--body-background-fill);
-        border: none;
-        border-radius: 8px;
-        cursor: not-allowed;
-    }
-
-    /* Step visuals on slides */
-    .step-visual {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-around;
-        align-items: center;
-        margin: 24px 0;
-        text-align: center;
-        font-size: 1rem;
-    }
-
-    .step-visual-box {
-        padding: 16px;
-        background: var(--block-background-fill);   /* ✅ theme-aware */
-        border-radius: 8px;
-        border: 2px solid var(--border-color-primary);
-        margin: 5px;
-        color: var(--body-text-color);              /* optional, safe */
-    }
-
-    .step-visual-arrow {
-        font-size: 2rem;
-        margin: 5px;
-        /* no explicit color – inherit from theme or override in dark mode */
-    }
-
-    /* ------------------------------------------------------------------
-      KPI Card (score feedback)
-      ------------------------------------------------------------------ */
-
-    .kpi-card {
-        background: var(--card-bg-strong);
-        border: 2px solid var(--accent-strong);
-        padding: 24px;
-        border-radius: var(--slide-radius-lg);
-        text-align: center;
-        max-width: 600px;
-        margin: auto;
-        color: var(--text-main);
-        box-shadow: var(--shadow-drop, 0 4px 6px -1px rgba(0,0,0,0.08));
-        min-height: 200px; /* prevent layout shift */
-    }
-
-    .kpi-card-body {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-around;
-        align-items: flex-end;
-        margin-top: 24px;
-    }
-
-    .kpi-metric-box {
-        min-width: 150px;
-        margin: 10px;
-    }
-
-    .kpi-label {
-        font-size: 1rem;
-        color: var(--text-muted);
-        margin: 0;
-    }
-
-    .kpi-score {
-        font-size: 3rem;
-        font-weight: 700;
-        margin: 0;
-        line-height: 1.1;
-        color: var(--accent-strong);
-    }
-
-    .kpi-subtext-muted {
-        font-size: 1.2rem;
-        font-weight: 500;
-        color: var(--text-muted);
-        margin: 0;
-        padding-top: 8px;
-    }
-
-    /* Small variants to hint semantic state without hard-coded colors */
-    .kpi-card--neutral {
-        border-color: var(--card-border-subtle);
-    }
-
-    .kpi-card--subtle-accent {
-        border-color: var(--accent-strong);
-    }
-
-    .kpi-score--muted {
-        color: var(--text-muted);
-    }
-
-    /* ------------------------------------------------------------------
-      Leaderboard Table + Placeholder
-      ------------------------------------------------------------------ */
-
-    .leaderboard-html-table {
-        width: 100%;
-        border-collapse: collapse;
-        text-align: left;
-        font-size: 1rem;
-        color: var(--text-main);
-        min-height: 300px; /* Stable height */
-    }
-
-    .leaderboard-html-table thead {
-        background: var(--block-background-fill);
-    }
-
-    .leaderboard-html-table th {
-        padding: 12px 16px;
-        font-size: 0.9rem;
-        color: var(--text-muted);
-        font-weight: 500;
-    }
-
-    .leaderboard-html-table tbody tr {
-        border-bottom: 1px solid var(--card-border-subtle);
-    }
-
-    .leaderboard-html-table td {
-        padding: 12px 16px;
-    }
-
-    .leaderboard-html-table .user-row-highlight {
-        background: rgba( var(--color-accent-rgb, 59,130,246), 0.1 );
-        font-weight: 600;
-        color: var(--accent-strong);
-    }
-
-    /* Static placeholder (no shimmer, no animation) */
-    .lb-placeholder {
-        min-height: 300px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background: var(--block-background-fill);
-        border: 1px solid var(--card-border-subtle);
-        border-radius: 12px;
-        padding: 40px 20px;
-        text-align: center;
-    }
-
-    .lb-placeholder-title {
-        font-size: 1.25rem;
-        font-weight: 500;
-        color: var(--text-muted);
-        margin-bottom: 8px;
-    }
-
-    .lb-placeholder-sub {
-        font-size: 1rem;
-        color: var(--text-muted);
-    }
-
-    /* ------------------------------------------------------------------
-      Processing / “Experiment running” status
-      ------------------------------------------------------------------ */
-
-    .processing-status {
-        background: var(--block-background-fill);
-        border: 2px solid var(--accent-strong);
-        border-radius: 16px;
-        padding: 30px;
-        text-align: center;
-        box-shadow: var(--shadow-drop, 0 4px 6px rgba(0,0,0,0.12));
-        animation: pulse-indigo 2s infinite;
-        color: var(--text-main);
-    }
-
-    .processing-icon {
-        font-size: 4rem;
-        margin-bottom: 10px;
-        display: block;
-        animation: spin-slow 3s linear infinite;
-    }
-
-    .processing-text {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--accent-strong);
-    }
-
-    .processing-subtext {
-        font-size: 1.1rem;
-        color: var(--text-muted);
-        margin-top: 8px;
-    }
-
-    /* Pulse & spin animations */
-    @keyframes pulse-indigo {
-        0%   { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
-        70%  { box-shadow: 0 0 0 15px rgba(99, 102, 241, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
-    }
-
-    @keyframes spin-slow {
-        from { transform: rotate(0deg); }
-        to   { transform: rotate(360deg); }
-    }
-
-    /* Conclusion arrow pulse */
-    @keyframes pulseArrow {
-        0%   { transform: scale(1);     opacity: 1; }
-        50%  { transform: scale(1.08);  opacity: 0.85; }
-        100% { transform: scale(1);     opacity: 1; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        [style*='pulseArrow'] {
-            animation: none !important;
-        }
-        .processing-status,
-        .processing-icon {
-            animation: none !important;
-        }
-    }
-
-    /* ------------------------------------------------------------------
-      Attempts Tracker + Init Banner + Alerts
-      ------------------------------------------------------------------ */
-
-    .init-banner {
-        background: var(--card-bg-strong);
-        padding: 12px;
-        border-radius: 8px;
-        text-align: center;
-        margin-bottom: 16px;
-        border: 1px solid var(--card-border-subtle);
-        color: var(--text-main);
-    }
-
-    .init-banner__text {
-        margin: 0;
-        font-weight: 500;
-        color: var(--text-muted);
-    }
-
-    /* Attempts tracker shell */
-    .attempts-tracker {
-        text-align: center;
-        padding: 8px;
-        margin: 8px 0;
-        background: var(--block-background-fill);
-        border-radius: 8px;
-        border: 1px solid var(--card-border-subtle);
-    }
-
-    .attempts-tracker__text {
-        margin: 0;
-        font-weight: 600;
-        font-size: 1rem;
-        color: var(--accent-strong);
-    }
-
-    /* Limit reached variant – we *still* stick to theme colors */
-    .attempts-tracker--limit .attempts-tracker__text {
-        color: var(--text-main);
-    }
-
-    /* Generic alert helpers used in inline login messages */
-    .alert {
-        padding: 12px 16px;
-        border-radius: 8px;
-        margin-top: 12px;
-        text-align: left;
-        font-size: 0.95rem;
-    }
-
-    .alert--error {
-        border-left: 4px solid var(--accent-strong);
-        background: var(--block-background-fill);
-        color: var(--text-main);
-    }
-
-    .alert--success {
-        border-left: 4px solid var(--accent-strong);
-        background: var(--block-background-fill);
-        color: var(--text-main);
-    }
-
-    .alert__title {
-        margin: 0;
-        font-weight: 600;
-        color: var(--text-main);
-    }
-
-    .alert__body {
-        margin: 8px 0 0 0;
-        color: var(--text-muted);
-    }
-
-    /* ------------------------------------------------------------------
-      Navigation Loading Overlay
-      ------------------------------------------------------------------ */
-
-    #nav-loading-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: color-mix(in srgb, var(--body-background-fill) 90%, transparent);
-        z-index: 9999;
-        display: none;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-
-    .nav-spinner {
-        width: 50px;
-        height: 50px;
-        border: 5px solid var(--card-border-subtle);
-        border-top: 5px solid var(--accent-strong);
-        border-radius: 50%;
-        animation: nav-spin 1s linear infinite;
-        margin-bottom: 20px;
-    }
-
-    @keyframes nav-spin {
-        0%   { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    #nav-loading-text {
-        font-size: 1.3rem;
-        font-weight: 600;
-        color: var(--accent-strong);
-    }
-
-    /* ------------------------------------------------------------------
-      Utility: Image inversion for dark mode (if needed)
-      ------------------------------------------------------------------ */
-
-    .dark-invert-image {
-        filter: invert(0);
-    }
-
-    @media (prefers-color-scheme: dark) {
-        .dark-invert-image {
-            filter: invert(1) hue-rotate(180deg);
-        }
-    }
-
-    /* ------------------------------------------------------------------
-      Dark Mode Specific Fine Tuning
-      ------------------------------------------------------------------ */
-
-    @media (prefers-color-scheme: dark) {
-        .panel-box,
-        .leaderboard-box,
-        .mock-ui-box,
-        .mock-ui-inner,
-        .processing-status,
-        .kpi-card {
-            background: color-mix(in srgb, var(--block-background-fill) 85%, #000 15%);
-            border-color: color-mix(in srgb, var(--card-border-subtle) 70%, var(--accent-strong) 30%);
-        }
-
-        .leaderboard-html-table thead {
-            background: color-mix(in srgb, var(--block-background-fill) 75%, #000 25%);
-        }
-
-        .lb-placeholder {
-            background: color-mix(in srgb, var(--block-background-fill) 75%, #000 25%);
-        }
-
-# --- End Helper Functions ---
-
-        --conclusion-tip-bg: #fef9c3;           /* amber-100 */
-        --conclusion-tip-border: #f59e0b;       /* amber-500 */
-        --conclusion-tip-fg: #713f12;           /* amber-900 */
-
-        --conclusion-ethics-bg: #fef2f2;        /* red-50 */
-        --conclusion-ethics-border: #ef4444;    /* red-500 */
-        --conclusion-ethics-fg: #7f1d1d;        /* red-900 */
-
-        --conclusion-attempt-bg: #fee2e2;       /* red-100 */
-        --conclusion-attempt-border: #ef4444;   /* red-500 */
-        --conclusion-attempt-fg: #7f1d1d;       /* red-900 */
-
-        --conclusion-next-fg: #0f172a;          /* main text color */
-    }
-
-    /* Dark theme overrides – keep contrast high on dark background */
-    [data-theme="dark"] {
-        --conclusion-card-bg: #020617;          /* slate-950 */
-        --conclusion-card-border: #38bdf8;      /* sky-400 */
-        --conclusion-card-fg: #e5e7eb;          /* slate-200 */
-
-        --conclusion-tip-bg: rgba(250, 204, 21, 0.08);   /* soft amber tint */
-        --conclusion-tip-border: #facc15;                /* amber-400 */
-        --conclusion-tip-fg: #facc15;
-
-        --conclusion-ethics-bg: rgba(248, 113, 113, 0.10); /* soft red tint */
-        --conclusion-ethics-border: #f97373;               /* red-ish */
-        --conclusion-ethics-fg: #fecaca;
-
-        --conclusion-attempt-bg: rgba(248, 113, 113, 0.16);
-        --conclusion-attempt-border: #f97373;
-        --conclusion-attempt-fg: #fee2e2;
-
-        --conclusion-next-fg: #e5e7eb;
-    }
-
-    # Generate HTML outputs
-    team_html = _build_team_html(team_summary_df, team_name)
-    individual_html = _build_individual_html(individual_summary_df, username)
-    kpi_card_html = _build_kpi_card_html(
-        this_submission_score, last_submission_score, new_rank, last_rank, submission_count
-    )
-
-    .app-conclusion-wrapper {
-        text-align: center;
-    }
-
-    .app-conclusion-title {
-        font-size: 2.4rem;
-        margin: 0;
-    }
-
-    .app-conclusion-card {
-        margin-top: 24px;
-        max-width: 950px;
-        margin-left: auto;
-        margin-right: auto;
-        padding: 28px;
-        border-radius: 18px;
-        border-width: 3px;
-        border-style: solid;
-        background: var(--conclusion-card-bg);
-        border-color: var(--conclusion-card-border);
-        color: var(--conclusion-card-fg);
-        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.25);
-    }
-
-    .app-conclusion-subtitle {
-        margin-top: 0;
-        font-size: 1.5rem;
-    }
-
-    .app-conclusion-metrics {
-        list-style: none;
-        padding: 0;
-        font-size: 1.05rem;
-        text-align: left;
-        max-width: 640px;
-        margin: 20px auto;
-    }
-
-    if submission_count == 0:
-        return {
-            "rank_message": "# 🧑‍🎓 Rank: Trainee Engineer\n<p style='font-size:24px; line-height:1.4;'>For your first submission, just click the big '🔬 Build & Submit Model' button below!</p>",
-            "model_choices": ["The Balanced Generalist"],
-            "model_value": "The Balanced Generalist",
-            "model_interactive": False,
-            "complexity_max": 3,
-            "complexity_value": min(current_complexity, 3),
-            "feature_set_choices": get_choices_for_rank(0),
-            "feature_set_value": FEATURE_SET_GROUP_1_VALS,
-            "feature_set_interactive": False,
-            "data_size_choices": ["Small (20%)"],
-            "data_size_value": "Small (20%)",
-            "data_size_interactive": False,
-        }
-    elif submission_count == 1:
-        return {
-            "rank_message": "# 🎉 Rank Up! Junior Engineer\n<p style='font-size:24px; line-height:1.4;'>New models, data sizes, and data ingredients unlocked!</p>",
-            "model_choices": ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"],
-            "model_value": current_model if current_model in ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"] else "The Balanced Generalist",
-            "model_interactive": True,
-            "complexity_max": 6,
-            "complexity_value": min(current_complexity, 6),
-            "feature_set_choices": get_choices_for_rank(1),
-            "feature_set_value": current_feature_set,
-            "feature_set_interactive": True,
-            "data_size_choices": ["Small (20%)", "Medium (60%)"],
-            "data_size_value": current_data_size if current_data_size in ["Small (20%)", "Medium (60%)"] else "Small (20%)",
-            "data_size_interactive": True,
-        }
-    elif submission_count == 2:
-        return {
-            "rank_message": "# 🌟 Rank Up! Senior Engineer\n<p style='font-size:24px; line-height:1.4;'>Strongest Data Ingredients Unlocked! The most powerful predictors (like 'Age' and 'Prior Crimes Count') are now available in your list. These will likely boost your accuracy, but remember they often carry the most societal bias.</p>",
-            "model_choices": list(MODEL_TYPES.keys()),
-            "model_value": current_model if current_model in MODEL_TYPES else "The Deep Pattern-Finder",
-            "model_interactive": True,
-            "complexity_max": 8,
-            "complexity_value": min(current_complexity, 8),
-            "feature_set_choices": get_choices_for_rank(2),
-            "feature_set_value": current_feature_set,
-            "feature_set_interactive": True,
-            "data_size_choices": ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"],
-            "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Small (20%)",
-            "data_size_interactive": True,
-        }
-    else:
-        return {
-            "rank_message": "# 👑 Rank: Lead Engineer\n<p style='font-size:24px; line-height:1.4;'>All tools unlocked — optimize freely!</p>",
-            "model_choices": list(MODEL_TYPES.keys()),
-            "model_value": current_model if current_model in MODEL_TYPES else "The Balanced Generalist",
-            "model_interactive": True,
-            "complexity_max": 10,
-            "complexity_value": current_complexity,
-            "feature_set_choices": get_choices_for_rank(3),
-            "feature_set_value": current_feature_set,
-            "feature_set_interactive": True,
-            "data_size_choices": ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"],
-            "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Small (20%)",
-            "data_size_interactive": True,
-        }
-
-# Find components by name to yield updates
-submit_button = None
-submission_feedback_display = None
-team_leaderboard_display = None
-individual_leaderboard_display = None
-last_submission_score_state = None 
-last_rank_state = None 
-best_score_state = None
-submission_count_state = None
-rank_message_display = None
-model_type_radio = None
-complexity_slider = None
-feature_set_checkbox = None
-data_size_radio = None
-attempts_tracker_display = None
-team_name_state = None
-# Login components (will be assigned in create_model_building_game_app)
-# NOTE: Login credentials now managed via session state (not globals)
-login_submit = None
-login_error = None
-# This one will be assigned globally but is also defined in the function
-# first_submission_score_state = None 
-
-def get_or_assign_team(username):
-    """
-    Get the existing team for a user from the leaderboard, or assign a new random team.
-    
-    Queries the playground leaderboard to check if the user has prior submissions with
-    a team assignment. If found, returns that team (most recent if multiple submissions).
-    Otherwise assigns a random team. All team names are normalized for consistency.
-    
-    Args:
-        username: str, the username to check for existing team
-    
-    Returns:
-        tuple: (team_name: str, is_new: bool)
-            - team_name: The normalized team name (existing or newly assigned)
-            - is_new: True if newly assigned, False if existing team recovered
-    """
-    try:
-        # Query the leaderboard
-        if playground is None:
-            # Fallback to random assignment if playground not available
-            print("Playground not available, assigning random team")
-            new_team = _normalize_team_name(random.choice(TEAM_NAMES))
-            return new_team, True
-        
-        leaderboard_df = playground.get_leaderboard()
-        
-        # Check if leaderboard has data and Team column
-        if leaderboard_df is not None and not leaderboard_df.empty and "Team" in leaderboard_df.columns:
-            # Filter for this user's submissions
-            user_submissions = leaderboard_df[leaderboard_df["username"] == username]
-            
-            if not user_submissions.empty:
-                # Sort by timestamp (most recent first) if timestamp column exists
-                # Use contextlib.suppress for resilient timestamp parsing
-                if "timestamp" in user_submissions.columns:
-                    try:
-                        # Attempt to coerce timestamp column to datetime and sort descending
-                        user_submissions = user_submissions.copy()
-                        user_submissions["timestamp"] = pd.to_datetime(user_submissions["timestamp"], errors='coerce')
-                        user_submissions = user_submissions.sort_values("timestamp", ascending=False)
-                        print(f"Sorted {len(user_submissions)} submissions by timestamp for {username}")
-                    except Exception as ts_error:
-                        # If timestamp parsing fails, continue with unsorted DataFrame
-                        print(f"Warning: Could not sort by timestamp for {username}: {ts_error}")
-                
-                # Get the most recent team assignment (first row after sorting)
-                existing_team = user_submissions.iloc[0]["Team"]
-                
-                # Check if team value is valid (not null/empty)
-                if pd.notna(existing_team) and existing_team and str(existing_team).strip():
-                    normalized_team = _normalize_team_name(existing_team)
-                    print(f"Found existing team for {username}: {normalized_team}")
-                    return normalized_team, False
-        
-        # No existing team found - assign random
-        new_team = _normalize_team_name(random.choice(TEAM_NAMES))
-        print(f"Assigning new team to {username}: {new_team}")
-        return new_team, True
-        
-    except Exception as e:
-        # On any error, fall back to random assignment
-        print(f"Error checking leaderboard for team: {e}")
-        new_team = _normalize_team_name(random.choice(TEAM_NAMES))
-        print(f"Fallback: assigning random team to {username}: {new_team}")
-        return new_team, True
-
-def perform_inline_login(session_state, username_input, password_input):
-    """
-    Perform inline authentication using session-based auth (multi-user safe).
-    
-    Validates credentials, authenticates via session_auth module, and returns
-    updated session state along with Gradio component updates.
-    
-    Args:
-        session_state: dict, current session state
-        username_input: str, the username entered by user
-        password_input: str, the password entered by user
-    
-    Returns:
-        tuple: (updated_session_state, dict of Gradio component updates)
-            - On success: session authenticated, login form hidden, team assigned
-            - On failure: session unchanged, error message shown
-    """
-    # Validate inputs
-    if not username_input or not username_input.strip():
-        error_html = """
-        <div style='background:#fef2f2; padding:12px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
-            <p style='margin:0; color:#991b1b; font-weight:500;'>Username is required</p>
-        </div>
-        """
-        return session_state, {
-            login_username: gr.update(),
-            login_password: gr.update(),
-            login_submit: gr.update(),
-            login_error: gr.update(value=error_html, visible=True),
-            submit_button: gr.update(),
-            submission_feedback_display: gr.update(),
-            team_name_state: gr.update()
-        }
-    
-    if not password_input or not password_input.strip():
-        error_html = """
-        <div style='background:#fef2f2; padding:12px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
-            <p style='margin:0; color:#991b1b; font-weight:500;'>Password is required</p>
-        </div>
-        """
-        return session_state, {
-            login_username: gr.update(),
-            login_password: gr.update(),
-            login_submit: gr.update(),
-            login_error: gr.update(value=error_html, visible=True),
-            submit_button: gr.update(),
-            submission_feedback_display: gr.update(),
-            team_name_state: gr.update()
-        }
-    
-    # Authenticate using session_auth (no environment variables!)
-    try:
-        new_session_state, success, auth_message = authenticate_session(
-            session_state, username_input.strip(), password_input.strip()
-        )
-        
-        if not success:
-            raise Exception(auth_message)
-        
-        # Get or assign team for this user
-        username = get_session_username(new_session_state)
-        team_name, is_new_team = get_or_assign_team(username)
-        team_name = _normalize_team_name(team_name)
-        
-        # Store team in session state (not environment!)
-        new_session_state = set_session_team(new_session_state, team_name)
-        
-        # Build success message based on whether team is new or existing
-        if is_new_team:
-            team_message = f"You have been assigned to a new team: <b>{team_name}</b> ��"
-        else:
-            team_message = f"Welcome back! You remain on team: <b>{team_name}</b> ✅"
-        
-        # Success: hide login form, show success message with team info, enable submit button
-        success_html = f"""
-        <div style='background:#f0fdf4; padding:16px; border-radius:8px; border-left:4px solid #16a34a; margin-top:12px;'>
-            <p style='margin:0; color:#15803d; font-weight:600; font-size:1.1rem;'>✓ Signed in successfully!</p>
-            <p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>
-                {team_message}
-            </p>
-            <p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>
-                Click "Build & Submit Model" again to publish your score.
-            </p>
-        </div>
-        """
-        return new_session_state, {
-            login_username: gr.update(visible=False),
-            login_password: gr.update(visible=False),
-            login_submit: gr.update(visible=False),
-            login_error: gr.update(value=success_html, visible=True),
-            submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
-            submission_feedback_display: gr.update(visible=False),
-            team_name_state: gr.update(value=team_name)
-        }
-        
-    except Exception as e:
-        # Authentication failed: show error with signup link
-        error_html = f"""
-        <div style='background:#fef2f2; padding:16px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
-            <p style='margin:0; color:#991b1b; font-weight:600; font-size:1.1rem;'>Authentication failed</p>
-            <p style='margin:8px 0; color:#7f1d1d; font-size:0.95rem;'>
-                Could not verify your credentials. Please check your username and password.
-            </p>
-            <p style='margin:8px 0 0 0; color:#7f1d1d; font-size:0.95rem;'>
-                <strong>New user?</strong> Create a free account at 
-                <a href='https://www.modelshare.ai/login' target='_blank' 
-                   style='color:#dc2626; text-decoration:underline;'>modelshare.ai/login</a>
-            </p>
-            <details style='margin-top:12px; font-size:0.85rem; color:#7f1d1d;'>
-                <summary style='cursor:pointer;'>Technical details</summary>
-                <pre style='margin-top:8px; padding:8px; background:#fee; border-radius:4px; overflow-x:auto;'>{str(e)}</pre>
-            </details>
-        </div>
-        """
-        return session_state, {
-            login_username: gr.update(visible=True),
-            login_password: gr.update(visible=True),
-            login_submit: gr.update(visible=True),
-            login_error: gr.update(value=error_html, visible=True),
-            submit_button: gr.update(),
-            submission_feedback_display: gr.update(),
-            team_name_state: gr.update()
-        }
-
-def run_experiment(
-    session_state,
-    model_name_key,
-    complexity_level,
-    feature_set,
-    data_size_str,
-    team_name,
-    last_submission_score, 
-    last_rank, 
-    submission_count,
-    first_submission_score,
-    best_score,
-    progress=gr.Progress()
-):
-    """
-    Core experiment: Uses 'yield' for visual updates and progress bar.
-    """
-    
-    # Get username from session state (multi-user safe)
-    username = get_session_username(session_state) or "Unknown_User"
-    
-    # Helper to generate the animated HTML
-    def get_status_html(step_num, title, subtitle):
-        return f"""
-        <div class='processing-status'>
-            <span class='processing-icon'>⚙️</span>
-            <div class='processing-text'>Step {step_num}/5: {title}</div>
-            <div class='processing-subtext'>{subtitle}</div>
-        </div>
-        """
-
-    # --- Stage 1: Lock UI and give initial feedback ---
-    progress(0.1, desc="Starting Experiment...")
-    initial_updates = {
-        submit_button: gr.update(value="⏳ Experiment Running...", interactive=False),
-        submission_feedback_display: gr.update(value=get_status_html(1, "Initializing", "Preparing your data ingredients..."), visible=True), # Make sure it's visible
-        login_error: gr.update(visible=False), # Hide login success/error message
-        attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))
-    }
-    yield initial_updates
-
-    if not model_name_key or model_name_key not in MODEL_TYPES:
-        model_name_key = DEFAULT_MODEL
-    feature_set = feature_set or []
-    complexity_level = safe_int(complexity_level, 2)
-
-    log_output = f"▶ New Experiment\nModel: {model_name_key}\n..."
-
-    # Check readiness
-    with INIT_LOCK:
-        flags = INIT_FLAGS.copy()
-    
-    ready_for_submission = flags["competition"] and flags["dataset_core"] and flags["pre_samples_small"]
-    
-    # If not ready but warm mini available, run preview
-    if not ready_for_submission and flags["warm_mini"] and X_TRAIN_WARM is not None:
-        progress(0.5, desc="Running Preview...")
-        yield { 
-            submission_feedback_display: gr.update(value=get_status_html("Preview", "Warm-up Run", "Testing on mini-dataset..."), visible=True),
-            login_error: gr.update(visible=False)
-        }
-        
-        try:
-            # Run preview on warm mini dataset
-            numeric_cols = [f for f in feature_set if f in ALL_NUMERIC_COLS]
-            categorical_cols = [f for f in feature_set if f in ALL_CATEGORICAL_COLS]
-            
-            if not numeric_cols and not categorical_cols:
-                raise ValueError("No features selected for modeling.")
-            
-            # Quick preprocessing and training on warm mini (uses memoized preprocessor)
-            preprocessor, selected_cols = build_preprocessor(numeric_cols, categorical_cols)
-            
-            X_warm_processed = preprocessor.fit_transform(X_TRAIN_WARM[selected_cols])
-            X_test_processed = preprocessor.transform(X_TEST_RAW[selected_cols])
-            
-            base_model = MODEL_TYPES[model_name_key]["model_builder"]()
-            tuned_model = tune_model_complexity(base_model, complexity_level)
-            tuned_model.fit(X_warm_processed, Y_TRAIN_WARM)
-            
-            # Get preview score
-            from sklearn.metrics import accuracy_score
-            predictions = tuned_model.predict(X_test_processed)
-            preview_score = accuracy_score(Y_TEST, predictions)
-            
-            # Show preview card
-            preview_html = _build_kpi_card_html(preview_score, 0, 0, 0, -1, is_preview=True)
-            
-            settings = compute_rank_settings(
-                 submission_count, model_name_key, complexity_level, feature_set, data_size_str
-            )
-            
-            final_updates = {
-                submission_feedback_display: gr.update(value=preview_html, visible=True),
-                team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
-                individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
-                last_submission_score_state: last_submission_score,
-                last_rank_state: last_rank,
-                best_score_state: best_score,
-                submission_count_state: submission_count,
-                rank_message_display: settings["rank_message"],
-                model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
-                complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
-                feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
-                data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-                submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
-                login_error: gr.update(visible=False),
-                attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))
-            }
-            yield final_updates
-            return
-            
-        except Exception as e:
-            print(f"Preview failed: {e}")
-            # Fall through to error handling
-    
-    if playground is None or not ready_for_submission:
-        settings = compute_rank_settings(
-             submission_count, model_name_key, complexity_level, feature_set, data_size_str
-        )
-        
-        error_msg = "<p style='text-align:center; color:red; padding:20px 0;'>"
-        if playground is None:
-            error_msg += "Playground not connected. Please try again later."
-        else:
-            error_msg += "Data still initializing. Please wait a moment and try again."
-        error_msg += "</p>"
-        
-        error_updates = {
-            submission_feedback_display: gr.update(value=error_msg, visible=True),
-            submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
-            team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
-            individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
-            last_submission_score_state: last_submission_score,
-            last_rank_state: last_rank,
-            best_score_state: best_score,
-            submission_count_state: submission_count,
-            rank_message_display: settings["rank_message"],
-            model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
-            complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
-            feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
-            data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-            login_error: gr.update(visible=False),
-            attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))
-        }
-        yield error_updates
-        return
-
-    try:
-        # --- Stage 2: Train Model (Local) ---
-        progress(0.3, desc="Training Model...")
-        yield { 
-            submission_feedback_display: gr.update(value=get_status_html(2, "Training Model", "The machine is learning from history..."), visible=True),
-            login_error: gr.update(visible=False)
-        }
-
-        # A. Get pre-sampled data
-        sample_frac = DATA_SIZE_MAP.get(data_size_str, 0.2)
-        X_train_sampled = X_TRAIN_SAMPLES_MAP[data_size_str]
-        y_train_sampled = Y_TRAIN_SAMPLES_MAP[data_size_str]
-        log_output += f"Using {int(sample_frac * 100)}% data.\n"
-
-        # B. Determine features...
-        numeric_cols = []
-        categorical_cols = []
-        for feat in feature_set:
-            if feat in ALL_NUMERIC_COLS: numeric_cols.append(feat)
-            elif feat in ALL_CATEGORICAL_COLS: categorical_cols.append(feat)
-
-        if not numeric_cols and not categorical_cols:
-            raise ValueError("No features selected for modeling.")
-
-        # C. Preprocessing (uses memoized preprocessor builder)
-        preprocessor, selected_cols = build_preprocessor(numeric_cols, categorical_cols)
-
-        X_train_processed = preprocessor.fit_transform(X_train_sampled[selected_cols])
-        X_test_processed = preprocessor.transform(X_TEST_RAW[selected_cols])
-
-        # D. Model build & tune
-        base_model = MODEL_TYPES[model_name_key]["model_builder"]()
-        tuned_model = tune_model_complexity(base_model, complexity_level)
-
-        # E. Train
-        tuned_model.fit(X_train_processed, y_train_sampled)
-        log_output += "Training done.\n"
-
-        # --- Stage 3: Submit (API Call 1) ---
-        # AUTHENTICATION GATE: Check for authentication via session state
-        if not is_session_authenticated(session_state):
-            # User not authenticated - compute preview score and show login prompt
-            progress(0.6, desc="Computing Preview Score...")
-            
-            predictions = tuned_model.predict(X_test_processed)
-            from sklearn.metrics import accuracy_score
-            preview_score = accuracy_score(Y_TEST, predictions)
-            
-            # --- FIX APPLIED HERE ---
-            # 1. Generate the styled preview card
-            preview_card_html = _build_kpi_card_html(
-                new_score=preview_score,
-                last_score=0,
-                new_rank=0,
-                last_rank=0,
-                submission_count=-1, # Force preview
-                is_preview=True
-            )
-            
-            # 2. Get the login prompt text
-            login_prompt_text_html = build_login_prompt_html() # No longer pass score
-            
-            # 3. Manually combine them by injecting login text inside the kpi-card div
-            closing_div_index = preview_card_html.rfind("</div>")
-            if closing_div_index != -1:
-                combined_html = preview_card_html[:closing_div_index] + login_prompt_text_html + "</div>"
-            else:
-                combined_html = preview_card_html + login_prompt_text_html # Fallback
-            # --- END OF FIX ---
-                
-            settings = compute_rank_settings(
-                submission_count, model_name_key, complexity_level, feature_set, data_size_str
-            )
-            
-            # Show login prompt and enable login form
-            gate_updates = {
-                submission_feedback_display: gr.update(value=combined_html, visible=True), # Use combined HTML
-                submit_button: gr.update(value="Sign In Required", interactive=False),
-                login_username: gr.update(visible=True),
-                login_password: gr.update(visible=True),
-                login_submit: gr.update(visible=True),
-                login_error: gr.update(value="", visible=False),
-                team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
-                individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
-                last_submission_score_state: last_submission_score,
-                last_rank_state: last_rank,
-                best_score_state: best_score,
-                submission_count_state: submission_count,
-                first_submission_score_state: first_submission_score,
-                rank_message_display: settings["rank_message"],
-                model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
-                complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
-                feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
-                data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-                attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))
-            }
-            yield gate_updates
-            return  # Stop here - user needs to login and resubmit
-        
-        # User is authenticated - proceed with submission
-        # --- ATTEMPT LIMIT CHECK ---
-        # Check if user has reached the submission limit BEFORE submitting to leaderboard.
-        # Only successful submissions to playground.submit_model() count toward ATTEMPT_LIMIT.
-        # Preview runs, failed attempts, and pre-login runs do NOT count.
-        if submission_count >= ATTEMPT_LIMIT:
-            # User has reached the attempt limit - show warning and disable controls
-            limit_warning_html = f"""
-            <div class='kpi-card' style='border-color: #ef4444;'>
-                <h2 style='color: #111827; margin-top:0;'>🛑 Submission Limit Reached</h2>
-                <div class='kpi-card-body'>
-                    <div class='kpi-metric-box'>
-                        <p class='kpi-label'>Attempts Used</p>
-                        <p class='kpi-score' style='color: #ef4444;'>{ATTEMPT_LIMIT} / {ATTEMPT_LIMIT}</p>
-                        <p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Maximum submissions reached</p>
-                    </div>
-                </div>
-                <div style='margin-top: 16px; background:#fef2f2; padding:16px; border-radius:12px; text-align:left; font-size:0.98rem; line-height:1.4;'>
-                    <p style='margin:0; color:#991b1b;'><b>Nice Work!  Don't worry, you will have a chance compete further to improve your model more after a few new activities.  </b></p>
-                    <p style='margin:8px 0 0 0; color:#7f1d1d;'>
-                        Scroll down to click "Finish and Reflect" to see a summary of your results so far.
-                    </p>
-                </div>
-            </div>
-            """
-            
-            settings = compute_rank_settings(
-                submission_count, model_name_key, complexity_level, feature_set, data_size_str
-            )
-            
-            # Disable all interactive controls - user can only view results
-            limit_reached_updates = {
-                submission_feedback_display: gr.update(value=limit_warning_html, visible=True),
-                submit_button: gr.update(value="🛑 Submission Limit Reached", interactive=False),
-                model_type_radio: gr.update(interactive=False),
-                complexity_slider: gr.update(interactive=False),
-                feature_set_checkbox: gr.update(interactive=False),
-                data_size_radio: gr.update(interactive=False),
-                attempts_tracker_display: gr.update(value=f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'>"
-                    f"<p style='margin:0; color:#991b1b; font-weight:600; font-size:1rem;'>🛑 Attempts used: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT} (Limit Reached)</p>"
-                    "</div>"),
-                team_leaderboard_display: team_leaderboard_display,
-                individual_leaderboard_display: individual_leaderboard_display,
-                last_submission_score_state: last_submission_score,
-                last_rank_state: last_rank,
-                best_score_state: best_score,
-                submission_count_state: submission_count,
-                first_submission_score_state: first_submission_score,
-                rank_message_display: settings["rank_message"],
-                login_error: gr.update(visible=False)
-            }
-            yield limit_reached_updates
-            return  # Stop here - no more submissions allowed
-        # --- END ATTEMPT LIMIT CHECK ---
-        
-        progress(0.5, desc="Submitting to Cloud...")
-        yield { 
-            submission_feedback_display: gr.update(value=get_status_html(3, "Submitting", "Sending model to the competition server..."), visible=True),
-            login_error: gr.update(visible=False)
-        }
-
-        predictions = tuned_model.predict(X_test_processed)
-        description = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
-        team_name = get_session_team(session_state) or "Unknown_Team"
-        tags = f"team:{team_name},model:{model_name_key}"
-
-        playground.submit_model(
-            model=tuned_model, preprocessor=preprocessor, prediction_submission=predictions,
-            input_dict={'description': description, 'tags': tags},
-            custom_metadata={'Team': team_name, 'Moral_Compass': 0}
-        )
-        log_output += "\nSUCCESS! Model submitted.\n"
-
-        # --- Stage 4: Refresh Leaderboard (API Call 2) ---
-        # Show skeletons while fetching
-        progress(0.8, desc="Updating Leaderboard...")
-        yield {
-            submission_feedback_display: gr.update(value=get_status_html(4, "Calculating Rank", "Comparing your score against others..."), visible=True),
-            team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
-            individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
-            login_error: gr.update(visible=False)
-        }
-
-        full_leaderboard_df = playground.get_leaderboard()
-
-        # Call new summary function
-        team_html, individual_html, kpi_card_html, new_best_accuracy, new_rank, this_submission_score = generate_competitive_summary(
-            full_leaderboard_df,
-            team_name,
-            username,
-            last_submission_score,
-            last_rank,
-            submission_count
-        )
-
-        # --- Stage 5: Final UI Update ---
-        progress(1.0, desc="Complete!")
-        # No need for Step 5 HTML update, jumping to results
-
-        new_submission_count = submission_count + 1
-        
-        # Track first submission score
-        new_first_submission_score = first_submission_score
-        if submission_count == 0 and first_submission_score is None:
-            new_first_submission_score = this_submission_score
-        
-        settings = compute_rank_settings(
-            new_submission_count, model_name_key, complexity_level, feature_set, data_size_str
-        )
-
-        final_updates = {
-            submission_feedback_display: gr.update(value=kpi_card_html, visible=True),
-            team_leaderboard_display: team_html,
-            individual_leaderboard_display: individual_html,
-            last_submission_score_state: this_submission_score, 
-            last_rank_state: new_rank, 
-            best_score_state: new_best_accuracy,
-            submission_count_state: new_submission_count,
-            first_submission_score_state: new_first_submission_score,
-            rank_message_display: settings["rank_message"],
-            model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
-            complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
-            feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
-            data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-            submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
-            login_error: gr.update(visible=False),
-            attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(new_submission_count))
-        }
-        yield final_updates
-
-    except Exception as e:
-        error_msg = f"ERROR: {e}"
-        settings = compute_rank_settings(
-             submission_count, model_name_key, complexity_level, feature_set, data_size_str
-        )
-        error_updates = {
-            submission_feedback_display: gr.update(f"<p style='text-align:center; color:red; padding:20px 0;'>An error occurred: {error_msg}</p>", visible=True),
-            team_leaderboard_display: "<p style='text-align:center; color:red; padding-top:20px;'>Error loading data.</p>",
-            individual_leaderboard_display: "<p style='text-align:center; color:red; padding-top:20px;'>Error loading data.</p>",
-            last_submission_score_state: last_submission_score,
-            last_rank_state: last_rank,
-            best_score_state: best_score,
-            submission_count_state: submission_count,
-            first_submission_score_state: first_submission_score,
-            rank_message_display: settings["rank_message"],
-            model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
-            complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
-            feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
-            data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-            submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
-            login_error: gr.update(visible=False),
-            attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))
-        }
-        yield error_updates
-
-
-def on_initial_load(session_state):
-    """
-    Updated to load HTML leaderboards with skeleton placeholders during init.
-    Shows skeleton if leaderboard not yet ready, real data otherwise.
-    """
-
-    initial_ui = compute_rank_settings(
-        0, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE
-    )
-
-    # Check if leaderboard is ready
-    with INIT_LOCK:
-        leaderboard_ready = INIT_FLAGS["leaderboard"]
-    
-    if not leaderboard_ready:
-        # Show skeleton placeholders while loading
-        team_html = _build_skeleton_leaderboard(rows=6, is_team=True)
-        individual_html = _build_skeleton_leaderboard(rows=6, is_team=False)
-    else:
-        # Try to load real leaderboard data
-        team_html = "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Submit a model to see team rankings.</p>"
-        individual_html = "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Submit a model to see individual rankings.</p>"
-        try:
-            if playground:
-                full_leaderboard_df = playground.get_leaderboard()
-                username = get_session_username(session_state) or "Unknown_User"
-                team_name = get_session_team(session_state) or "Unknown_Team"
-                team_html, individual_html, _, _, _, _ = generate_competitive_summary(
-                    full_leaderboard_df,
-                    team_name,
-                    username,
-                    0, 0, -1
-                )
-        except Exception as e:
-            print(f"Error on initial load: {e}")
-            team_html = "<p style='text-align:center; color:red; padding-top:20px;'>Could not load leaderboard.</p>"
-            individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>Could not load leaderboard.</p>"
-
-    return (
-        get_model_card(DEFAULT_MODEL),
-        team_html,
-        individual_html,
-        initial_ui["rank_message"],
-        gr.update(choices=initial_ui["model_choices"], value=initial_ui["model_value"], interactive=initial_ui["model_interactive"]),
-        gr.update(minimum=1, maximum=initial_ui["complexity_max"], value=initial_ui["complexity_value"]),
-        gr.update(choices=initial_ui["feature_set_choices"], value=initial_ui["feature_set_value"], interactive=initial_ui["feature_set_interactive"]),
-        gr.update(choices=initial_ui["data_size_choices"], value=initial_ui["data_size_value"], interactive=initial_ui["data_size_interactive"]),
-    )
-
-# -------------------------------------------------------------------------
-# Conclusion helpers
-# -------------------------------------------------------------------------
-
-def build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set):
-    """
-    Build the final conclusion HTML with performance summary.
-    Colors are handled via CSS classes so that light/dark mode work correctly.
-    """
-    unlocked_tiers = min(3, max(0, submissions - 1))  # 0..3
-    tier_names = ["Trainee", "Junior", "Senior", "Lead"]
-    reached = tier_names[: unlocked_tiers + 1]
-    tier_line = " → ".join([f"{t}{' ✅' if t in reached else ''}" for t in tier_names])
-
-    improvement = (best_score - first_score) if (first_score is not None and submissions > 1) else 0.0
-    strong_predictors = {"age", "length_of_stay", "priors_count", "age_cat"}
-    strong_used = [f for f in feature_set if f in strong_predictors]
-
-    ethical_note = (
-        "You unlocked powerful predictors. Consider: Would removing demographic fields change fairness? "
-        "In the next section we will begin to investigate this question further."
-    )
-
-    # Tailor message for very few submissions
-    tip_html = ""
-    if submissions < 2:
-        tip_html = """
-        <div class="final-conclusion-tip">
-          <b>Tip:</b> Try at least 2–3 submissions changing ONE setting at a time to see clear cause/effect.
-        </div>
-        """
-
-    # Add note if user reached the attempt cap
-    attempt_cap_html = ""
-    if submissions >= ATTEMPT_LIMIT:
-        attempt_cap_html = f"""
-        <div class="final-conclusion-attempt-cap">
-          <p style="margin:0;">
-            <b>📊 Attempt Limit Reached:</b> You used all {ATTEMPT_LIMIT} allowed submission attempts for this session.
-            We will open up submissions again after you complete some new activities next.
-          </p>
-        </div>
-        """
-
-    return f"""
-    <div class="final-conclusion-root">
-      <h1 class="final-conclusion-title">🎉 Engineering Phase Complete</h1>
-      <div class="final-conclusion-card">
-        <h2 class="final-conclusion-subtitle">Your Performance Snapshot</h2>
-        <ul class="final-conclusion-list">
-          <li>🏁 <b>Best Accuracy:</b> {(best_score * 100):.2f}%</li>
-          <li>📊 <b>Rank Achieved:</b> {('#' + str(rank)) if rank > 0 else '—'}</li>
-          <li>🔁 <b>Submissions Made This Session:</b> {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li>
-          <li>🧗 <b>Improvement Over First Score This Session:</b> {(improvement * 100):+.2f}</li>
-          <li>🎖️ <b>Tier Progress:</b> {tier_line}</li>
-          <li>🧪 <b>Strong Predictors Used:</b> {len(strong_used)} ({', '.join(strong_used) if strong_used else 'None yet'})</li>
-        </ul>
-
-        {tip_html}
-
-        <div class="final-conclusion-ethics">
-          <p style="margin:0;"><b>Ethical Reflection:</b> {ethical_note}</p>
-        </div>
-
-        {attempt_cap_html}
-
-        <hr class="final-conclusion-divider" />
-
-        <div class="final-conclusion-next">
-          <h2>➡️ Next: Real-World Consequences</h2>
-          <p>Scroll below this app to continue. You'll examine how models like yours shape judicial outcomes.</p>
-          <h1 class="final-conclusion-scroll">👇 SCROLL DOWN 👇</h1>
-        </div>
-      </div>
-    </div>
-    """
-
-
-
-def build_conclusion_from_state(best_score, submissions, rank, first_score, feature_set):
-    return build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set)
-
-# -------------------------------------------------------------------------
-# 3. Factory Function: Build Gradio App
-# -------------------------------------------------------------------------
-
 def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """
     Create (but do not launch) the model building game app.
@@ -4118,9 +2690,6 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
     global attempts_tracker_display, team_name_state
 
     with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css) as demo:
-        # Session state for multi-user authentication (Cloud Run safe)
-        session_state = gr.State(value=create_session_state())
-        
         # Persistent top anchor for scroll-to-top navigation
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
         
@@ -4131,6 +2700,8 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 <span id='nav-loading-text'>Loading...</span>
             </div>
         """)
+
+        username = os.environ.get("username") or "Unknown_User"
 
         # Loading screen
         with gr.Column(visible=False) as loading_screen:
@@ -4534,718 +3105,11 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
               ),
               visible=True)
 
-            team_name_state = gr.State(None)  # Team set via session state after login
-            last_submission_score_state = gr.State(0.0)
-            last_rank_state = gr.State(0)
-            best_score_state = gr.State(0.0)
-            submission_count_state = gr.State(0)
-            first_submission_score_state = gr.State(None)
-
-            # Buffered states for all dynamic inputs
-            model_type_state = gr.State(DEFAULT_MODEL)
-            complexity_state = gr.State(2)
-            feature_set_state = gr.State(DEFAULT_FEATURE_SET)
-            data_size_state = gr.State(DEFAULT_DATA_SIZE)
-
-            rank_message_display = gr.Markdown("### Rank loading...")
-            with gr.Row():
-                with gr.Column(scale=1):
-
-                    model_type_radio = gr.Radio(
-                        label="1. Model Strategy",
-                        choices=[],
-                        value=None,
-                        interactive=False
-                    )
-                    model_card_display = gr.Markdown(get_model_card(DEFAULT_MODEL))
-
-                    gr.Markdown("---") # Separator
-
-    .app-panel-tip,
-    .app-panel-critical,
-    .app-panel-warning {
-        padding: 16px;
-        border-radius: 12px;
-        border-left-width: 6px;
-        border-left-style: solid;
-        text-align: left;
-        font-size: 0.98rem;
-        line-height: 1.4;
-        margin-top: 16px;
-    }
-
-    .app-panel-title {
-        margin: 0 0 4px 0;
-        font-weight: 700;
-    }
-
-    .app-panel-body {
-        margin: 0;
-    }
-
-    /* Specific variants */
-
-    .app-conclusion-tip.app-panel-tip {
-        background: var(--conclusion-tip-bg);
-        border-left-color: var(--conclusion-tip-border);
-        color: var(--conclusion-tip-fg);
-    }
-
-    .app-conclusion-ethics.app-panel-critical {
-        background: var(--conclusion-ethics-bg);
-        border-left-color: var(--conclusion-ethics-border);
-        color: var(--conclusion-ethics-fg);
-    }
-
-    .app-conclusion-attempt-cap.app-panel-warning {
-        background: var(--conclusion-attempt-bg);
-        border-left-color: var(--conclusion-attempt-border);
-        color: var(--conclusion-attempt-fg);
-    }
-
-    /* Divider + next section */
-
-    .app-conclusion-divider {
-        margin: 28px 0;
-        border: 0;
-        border-top: 2px solid rgba(148, 163, 184, 0.8); /* slate-400-ish */
-    }
-
-    .app-conclusion-next-title {
-        margin: 0;
-        color: var(--conclusion-next-fg);
-    }
-
-    .app-conclusion-next-body {
-        font-size: 1rem;
-        color: var(--conclusion-next-fg);
-    }
-
-    /* Arrow inherits the same color, keeps pulse animation defined earlier */
-    .app-conclusion-arrow {
-        margin: 12px 0;
-        font-size: 3rem;
-        animation: pulseArrow 2.5s infinite;
-        color: var(--conclusion-next-fg);
-    }
-
-    /* ---------------------------------------------------- */
-    /* Final Conclusion Slide (Light Mode Defaults)         */
-    /* ---------------------------------------------------- */
-
-    .final-conclusion-root {
-        text-align: center;
-        color: var(--body-text-color);
-    }
-
-    .final-conclusion-title {
-        font-size: 2.4rem;
-        margin: 0;
-    }
-
-    .final-conclusion-card {
-        background-color: var(--block-background-fill);
-        color: var(--body-text-color);
-        padding: 28px;
-        border-radius: 18px;
-        border: 2px solid var(--border-color-primary);
-        margin-top: 24px;
-        max-width: 950px;
-        margin-left: auto;
-        margin-right: auto;
-        box-shadow: var(--shadow-drop, 0 4px 10px rgba(15, 23, 42, 0.08));
-    }
-
-    .final-conclusion-subtitle {
-        margin-top: 0;
-        margin-bottom: 8px;
-    }
-
-    .final-conclusion-list {
-        list-style: none;
-        padding: 0;
-        font-size: 1.05rem;
-        text-align: left;
-        max-width: 640px;
-        margin: 20px auto;
-    }
-
-    .final-conclusion-list li {
-        margin: 4px 0;
-    }
-
-    .final-conclusion-tip {
-        margin-top: 16px;
-        padding: 16px;
-        border-radius: 12px;
-        border-left: 6px solid var(--color-accent);
-        background-color: color-mix(in srgb, var(--color-accent) 12%, transparent);
-        text-align: left;
-        font-size: 0.98rem;
-        line-height: 1.4;
-    }
-
-    .final-conclusion-ethics {
-        margin-top: 16px;
-        padding: 18px;
-        border-radius: 12px;
-        border-left: 6px solid #ef4444;
-        background-color: color-mix(in srgb, #ef4444 10%, transparent);
-        text-align: left;
-        font-size: 0.98rem;
-        line-height: 1.4;
-    }
-
-    .final-conclusion-attempt-cap {
-        margin-top: 16px;
-        padding: 16px;
-        border-radius: 12px;
-        border-left: 6px solid #ef4444;
-        background-color: color-mix(in srgb, #ef4444 16%, transparent);
-        text-align: left;
-        font-size: 0.98rem;
-        line-height: 1.4;
-    }
-
-    .final-conclusion-divider {
-        margin: 28px 0;
-        border: 0;
-        border-top: 2px solid var(--border-color-primary);
-    }
-
-    .final-conclusion-next h2 {
-        margin: 0;
-    }
-
-    .final-conclusion-next p {
-        font-size: 1rem;
-        margin-top: 4px;
-        margin-bottom: 0;
-    }
-
-        # Wire up login button (with session_state for multi-user safety)
-        login_submit.click(
-            fn=perform_inline_login,
-            inputs=[session_state, login_username, login_password],
-            outputs=[session_state, login_username, login_password, login_submit, login_error, submit_button, submission_feedback_display, team_name_state])
-
-        # Submit button with session_state for multi-user authentication
-        submit_button.click(
-            fn=run_experiment,
-            inputs=[
-                session_state,
-                model_type_state,
-                complexity_state,
-                feature_set_state,
-                data_size_state,
-                team_name_state,
-                last_submission_score_state,
-                last_rank_state,
-                submission_count_state,
-                first_submission_score_state,
-                best_score_state,
-            ],
-            outputs=all_outputs,
-            show_progress="full",
-            js=nav_js("model-step", "Running experiment...", 500)
-        )
-
-    @media (prefers-color-scheme: dark) {
-        .final-conclusion-card {
-            background-color: #0b1120;        /* deep slate */
-            color: white;                     /* 100% contrast confidence */
-            border-color: #38bdf8;
-            box-shadow: none;
-        }
-
-        demo.load(
-            fn=on_initial_load,
-            inputs=[session_state],
-            outputs=[
-                model_card_display,
-                team_leaderboard_display, 
-                individual_leaderboard_display, 
-                rank_message_display,
-                model_type_radio,
-                complexity_slider,
-                feature_set_checkbox,
-                data_size_radio,
-            ],
-            js=initial_load_scroll_js 
-        )
-
-        .final-conclusion-ethics {
-            background-color: rgba(248, 113, 113, 0.18);
-        }
-
-        .final-conclusion-attempt-cap {
-            background-color: rgba(248, 113, 113, 0.26);
-        }
-    }
-    /* ---------------------------------------------------- */
-    /* Slide 3: INPUT → MODEL → OUTPUT flow (theme-aware)   */
-    /* ---------------------------------------------------- */
-
-
-    .model-flow {
-        text-align: center;
-        font-weight: 600;
-        font-size: 1.2rem;
-        margin: 20px 0;
-        /* No explicit color – inherit from the card */
-    }
-
-    .model-flow-label {
-        padding: 0 0.1rem;
-        /* No explicit color – inherit */
-    }
-
-    .model-flow-arrow {
-        margin: 0 0.35rem;
-        font-size: 1.4rem;
-        /* No explicit color – inherit */
-    }
-
-    @media (prefers-color-scheme: dark) {
-        .model-flow {
-            color: var(--body-text-color);
-        }
-        .model-flow-arrow {
-            /* In dark mode, nudge arrows toward accent for contrast/confidence */
-            color: color-mix(in srgb, var(--color-accent) 75%, var(--body-text-color) 25%);
-        }
-    }
-    """
-
-
-    # Define globals for yield
-    global submit_button, submission_feedback_display, team_leaderboard_display
-    # --- THIS IS THE FIXED LINE ---
-    global individual_leaderboard_display, last_submission_score_state, last_rank_state, best_score_state, submission_count_state, first_submission_score_state
-    # --- END OF FIX ---
-    global rank_message_display, model_type_radio, complexity_slider
-    global feature_set_checkbox, data_size_radio
-    global login_username, login_password, login_submit, login_error
-    global attempts_tracker_display, team_name_state
-
-    with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css) as demo:
-        # Session state for multi-user authentication (Cloud Run safe)
-        session_state = gr.State(value=create_session_state())
-        
-        # Persistent top anchor for scroll-to-top navigation
-        gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
-        
-        # Navigation loading overlay with spinner and dynamic message
-        gr.HTML("""
-            <div id='nav-loading-overlay'>
-                <div class='nav-spinner'></div>
-                <span id='nav-loading-text'>Loading...</span>
-            </div>
-        """)
-
-        # Loading screen
-        with gr.Column(visible=False) as loading_screen:
-            gr.Markdown(
-                """
-                <div style='text-align:center; padding:100px 0;'>
-                    <h2 style='font-size:2rem; color:#6b7280;'>⏳ Loading...</h2>
-                </div>
-                """
-            )
-
-        # --- Briefing Slideshow (Updated with New Cards) ---
-
-        # Slide 1: From Understanding to Building (Retained as transition)
-        with gr.Column(visible=True, elem_id="slide-1") as briefing_slide_1:
-            gr.Markdown("<h1 style='text-align:center;'>🔄 From Understanding to Building</h1>")
-            gr.HTML(
-                """
-                <div class='slide-content'>
-                <div class='panel-box'>
-                <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>Great progress! You've now:</h3>
-
-                <ul style='list-style: none; padding-left: 0; margin-top: 24px; margin-bottom: 24px;'>
-                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
-                        <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Made tough decisions as a judge using AI predictions
-                    </li>
-                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
-                        <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Learned about false positives and false negatives
-                    </li>
-                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
-                        <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Understood how AI works:
-                    </li>
-                </ul>
-
-                <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
-                    <div style='display:inline-block; background:#dbeafe; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#0369a1;'>INPUT</h3>
-                    </div>
-                    <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
-                    <div style='display:inline-block; background:#fef3c7; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#92400e;'>MODEL</h3>
-                    </div>
-                    <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
-                    <div style='display:inline-block; background:#f0fdf4; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#15803d;'>OUTPUT</h3>
-                    </div>
-                </div>
-
-                <hr style='margin: 24px 0; border-top: 2px solid #c7d2fe;'>
-
-                <h3 style='font-size: 1.5rem; text-align:center;'>Now it's time to step into the shoes of an AI Engineer.</h3>
-                <p style='font-size: 1.1rem; text-align:center; margin-top: 12px;'>
-                    <strong>Your New Challenge:</strong> Build AI models that are more accurate than the one you used as a judge.
-                </p>
-                <p style='font-size: 1.1rem; text-align:center; margin-top: 12px;'>
-                    Remember: You experienced firsthand how AI predictions affect real people's lives. Use that knowledge to build something better.
-                </p>
-                </div>
-                </div>
-                """
-            )
-            briefing_1_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
-        # Slide 2: Card 1 (Your Engineering Mission)
-        with gr.Column(visible=False, elem_id="slide-2") as briefing_slide_2:
-            gr.Markdown("<h1 style='text-align:center;'>📋 Your Mission - Build Better AI</h1>")
+            # Session-based authentication state objects
+            username_state = gr.State(None)
+            token_state = gr.State(None)
             
-            gr.HTML(
-                """
-                <div class='slide-content'>
-                    <div class='panel-box'>
-                        <h3>The Mission</h3>
-                        <p>Build an AI model that helps judges make better decisions. The model you used previously gave you imperfect advice. Your job now is to build a new model that predicts risk more accurately, providing judges with the reliable insights they need to be fair.</p>
-                        
-                        <h3>The Competition</h3>
-                        <p>To do this, you will compete against other engineers! To help you in your mission, you will join an engineering team. Your results will be tracked both individually and as a group in the Live Standings Leaderboards.</p>
-                    </div>
-
-                    <div class='leaderboard-box' style='max-width: 600px; margin: 16px auto; text-align: center; padding: 16px;'>
-                        <p style='font-size: 1.1rem; margin:0;'>You will join a team like...</p>
-                        <h3 style='font-size: 1.75rem; color: #6b7280; margin: 8px 0;'>
-                            🛡️ The Ethical Explorers
-                        </h3>
-                    </div>
-
-                    <div class='mock-ui-box'>
-                        <h3>The Data Challenge</h3>
-                        <p>To compete, you have access to thousands of old case files. You have two distinct types of information:</p>
-                        <ol style='list-style-position: inside; padding-left: 20px;'>
-                            <li><strong>Defendant Profiles:</strong> This is like what the judge saw at the time of arrest.
-                                <ul style='margin-left: 20px; list-style-type: disc;'>
-                                    <li><em>Age, Number of Prior Offenses, Type of Charge.</em></li>
-                                </ul>
-                            </li>
-                            <li><strong>Historical Outcomes:</strong> This is what actually happened to those people later.
-                                <ul style='margin-left: 20px; list-style-type: disc;'>
-                                    <li><em>Did they re-offend within 2 years? (Yes/No)</em></li>
-                                </ul>
-                            </li>
-                        </ol>
-                        
-                        <h3>The Core Task</h3>
-                        <p>You need to teach your AI to look at the "Profiles" and accurately predict the "Outcome."</p>
-                        <p><strong>Ready to build something that could change how justice works?</strong></p>
-                    </div>
-                </div>
-                """
-            )
-            
-            with gr.Row():
-                briefing_2_back = gr.Button("◀️ Back", size="lg")
-                briefing_2_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
-        # Slide 3: Card 2 (What is a "Model"?)
-        with gr.Column(visible=False, elem_id="slide-3") as briefing_slide_3:
-            gr.Markdown("<h1 style='text-align:center;'>🧠 What is a \"Model\"?</h1>")
-            
-            # --- FIX FOR SLIDE 3 ---
-            # Combined all content into single gr.HTML()
-            gr.HTML(
-                """
-                <div class='slide-content'>
-                    <div class='panel-box'>
-                        <p>Before we start competing, let's break down exactly what you are building.</p>
-                        <h3>Think of a Model as a "Prediction Machine."</h3>
-                        <p>You already know the flow:</p>
-                        
-                        <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
-                            <div style='display:inline-block; background:#dbeafe; padding:12px 16px; border-radius:8px; margin:4px;'>
-                                <h3 style='margin:0; color:#0369a1;'>INPUT</h3>
-                            </div>
-                            <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
-                            <div style='display:inline-block; background:#fef3c7; padding:12px 16px; border-radius:8px; margin:4px;'>
-                                <h3 style='margin:0; color:#92400e;'>MODEL</h3>
-                            </div>
-                            <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
-                            <div style='display:inline-block; background:#f0fdf4; padding:12px 16px; border-radius:8px; margin:4px;'>
-                                <h3 style='margin:0; color:#15803d;'>OUTPUT</h3>
-                            </div>
-                        </div>
-                        
-                        <p>As an engineer, you don't need to write complex code from scratch. Instead, you assemble this machine using three main components.</p>
-                    </div>
-
-                    <div class='mock-ui-box'>
-                        <h3>The 3 Components:</h3>
-                        <p><strong>1. The Inputs (Data)</strong><br>
-                        The information you feed the machine.<br>
-                        <em>* Examples: Age, Prior Crimes, Charge Details.</em></p>
-
-                        <p><strong>2. The Model (Prediction Machine)</strong><br>
-                        The mathematical "brain" that looks for patterns in the inputs.<br>
-                        <em>* Examples: You will choose different "brains" that learn in different ways (e.g., simple rules vs. deep patterns).</em></p>
-
-                        <p><strong>3. The Output (Prediction)</strong><br>
-                        The model's best guess.<br>
-                        <em>* Example: Risk Level: High or Low.</em></p>
-
-                        <hr>
-                        
-                        <p><strong>How it learns:</strong> You show the model thousands of old cases (Inputs) + what actually happened (Outcomes). It studies them to find the rules, so it can make predictions on new cases it hasn't seen before.</p>
-                    </div>
-                </div>
-                """
-            )
-            # --- END FIX ---
-            
-            with gr.Row():
-                briefing_3_back = gr.Button("◀️ Back", size="lg")
-                briefing_3_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
-        # Slide 4: Card 3 (How Engineers Work — The Loop)
-        with gr.Column(visible=False, elem_id="slide-4") as briefing_slide_4:
-            gr.Markdown("<h1 style='text-align:center;'>🔁 How Engineers Work — The Loop</h1>")
-
-            # --- FIX FOR SLIDE 4 ---
-            # Combined all content into single gr.HTML()
-            gr.HTML(
-                """
-                <div class='slide-content'>
-                    <div class='panel-box'>
-                        <p>Now that you know the components of a model, how do you build a better one?</p>
-                        <h3>Here is the secret:</h3>
-                        <p>Real AI teams almost never get it right on the first try. Instead, they follow a continuous loop of experimentation: <strong>Try, Test, Learn, Repeat.</strong></p>
-                        
-                        <h3>The Experiment Loop:</h3>
-                        <ol style='list-style-position: inside;'>
-                            <li><strong>Build a Model:</strong> Assemble your components and get a starting prediction accuracy score.</li>
-                            <li><strong>Ask a Question:</strong> (e.g., "What happens if I change the 'Brain' type?")</li>
-                            <li><strong>Test & Compare:</strong> Did the score get better... or did it get worse?</li>
-                        </ol>
-                    </div>
-
-                    <h3>You will do the exact same thing in a competition!</h3>
-                    
-                    <div class='step-visual'>
-                        <div class='step-visual-box'><b>1. Configure</b><br/>Use Control Knobs to select Strategy and Data.</div>
-                        <div class='step-visual-arrow'>→</div>
-                        <div class='step-visual-box'><b>2. Submit</b><br/>Click "Build & Submit" to train your model.</div>
-                        <div class='step-visual-arrow'>→</div>
-                        <div class='step-visual-box'><b>3. Analyze</b><br/>Check your rank on the Live Leaderboard.</div>
-                        <div class='step-visual-arrow'>→</div>
-                        <div class='step-visual-box'><b>4. Refine</b><br/>Change one setting and submit again!</div>
-                    </div>
-                    
-                    <div class='leaderboard-box' style='text-align:center;'>
-                        <p><strong>Pro Tip:</strong> Try to change only one thing at a time. If you change too many things at once, you won't know what made your model better or worse!</p>
-                    </div>
-                </div>
-                """
-            )
-            # --- END FIX ---
-            
-            with gr.Row():
-                briefing_4_back = gr.Button("◀️ Back", size="lg")
-                briefing_4_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
-        # Slide 5: Card 4 (Control Knobs — The "Brain" Settings)
-        with gr.Column(visible=False, elem_id="slide-5") as briefing_slide_5:
-            gr.Markdown("<h1 style='text-align:center;'>🎛️ Control Knobs — The \"Brain\" Settings</h1>")
-            
-            # --- FIX FOR SLIDE 5 ---
-            # Combined all content into single gr.HTML()
-            gr.HTML(
-                """
-                <div class='slide-content'>
-                    <div class='mock-ui-inner'>
-                        <p>To build your model, you will use Control Knobs to configure your Prediction Machine. The first two knobs allow you to choose a type of model and adjust how it learns patterns in data.</p>
-                        <hr style='margin: 16px 0;'>
-
-                        <h3 style='margin-top:0;'>1. Model Strategy (Type of Model)</h3>
-                        <div style='font-size: 1rem; margin-bottom:12px;'>
-                            <b>What it is:</b> The specific mathematical method the machine uses to find patterns.
-                        </div>
-                        <div class='mock-ui-control-box'>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-on'>◉</span>
-                                <b>The Balanced Generalist:</b> A reliable, all-purpose algorithm. It provides stable results across most data.
-                            </p>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-off'>○</span>
-                                <b>The Rule-Maker:</b> Creates strict "If... Then..." logic (e.g., If prior crimes > 2, then High Risk).
-                            </p>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-off'>○</span>
-                                <b>The Deep Pattern-Finder:</b> A complex algorithm designed to detect subtle, hidden connections in the data.
-                            </p>
-                        </div>
-
-                        <hr style='margin: 24px 0;'>
-
-                        <h3>2. Model Complexity (Fitting Level)</h3>
-                        <div class='mock-ui-control-box' style='text-align: center;'>
-                            <p style='font-size: 1.1rem; margin:0;'>Range: Level 1 ─── ● ─── 10</p>
-                        </div>
-                        
-                        <div style='margin-top: 16px; font-size: 1rem;'>
-                            <ul style='list-style-position: inside;'>
-                                <li><b>What it is:</b> Tunes how tightly the machine fits its logic to find patterns in the data.</li>
-                                <li><b>The Trade-off:</b>
-                                    <ul style='list-style-position: inside; margin-left: 20px;'>
-                                    <li><b>Low (Level 1):</b> Captures only the broad, obvious trends.</li>
-                                    <li><b>High (Level 5):</b> Captures every tiny detail and variation.</li>
-                                    </ul>
-                                </li>
-                            </ul>
-                            <p style='color:#b91c1c; font-weight:bold; margin-top:10px;'>Warning: Setting this too high causes the machine to "memorize" random, irrelevant details or random coincidences (noise) in the past data rather than learning the general rule.</p>
-                        </div>
-                    </div>
-                </div>
-                """
-            )
-            # --- END FIX ---
-            
-            with gr.Row():
-                briefing_5_back = gr.Button("◀️ Back", size="lg")
-                briefing_5_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
-        # Slide 6: Card 5 (Control Knobs — The "Data" Settings)
-        with gr.Column(visible=False, elem_id="slide-6") as briefing_slide_6:
-            gr.Markdown("<h1 style='text-align:center;'>🎛️ Control Knobs — The \"Data\" Settings</h1>")
-
-            # --- FIX FOR SLIDE 6 ---
-            # Combined all content into single gr.HTML()
-            gr.HTML(
-                """
-                <div class='slide-content'>
-                    <div class='mock-ui-inner'>
-                        <p>Now that you have set up your prediction machine, you must decide what information the machine processes. These next knobs control the Inputs (Data).</p>
-                        <hr style='margin: 16px 0;'>
-
-                        <h3 style='margin-top:0;'>3. Data Ingredients</h3>
-                        <div style='font-size: 1rem; margin-bottom:12px;'>
-                            <b>What it is:</b> The specific data points the machine is allowed to access.
-                            <br><b>Why it matters:</b> The machine's output depends largely on its input.
-                        </div>
-                        
-                        <div class='mock-ui-control-box'>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-on'>☑</span>
-                                <b>Behavioral Inputs:</b> Data like <i>Juvenile Felony Count</i> may help the logic find valid risk patterns.
-                            </p>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-off'>☐</span>
-                                <b>Demographic Inputs:</b> Data like <i>Race</i> may help the model learn, but they may also replicate human bias.
-                            </p>
-                        </div>
-                        <p style='margin-top:10px;'><b>Your Job:</b> Check ☑ or uncheck ☐ the boxes to select the inputs to feed your model.</p>
-
-                        <hr style='margin: 24px 0;'>
-
-                        <h3>4. Data Size (Training Volume)</h3>
-                        <div style='font-size: 1rem; margin-bottom:12px;'>
-                            <b>What it is:</b> The amount of historical cases the machine uses to learn patterns.
-                        </div>
-                        
-                        <div class='mock-ui-control-box'>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-on'>◉</span>
-                                <b>Small (20%):</b> Fast processing. Great for running quick tests to check your settings.
-                            </p>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-off'>○</span>
-                                <b>Full (100%):</b> Maximum data processing. It takes longer to build, but gives the machine the best chance to calibrate its accuracy.
-                            </p>
-                        </div>
-
-                    </div>
-                </div>
-                """
-            )
-            # --- END FIX ---
-            
-            with gr.Row():
-                briefing_6_back = gr.Button("◀️ Back", size="lg")
-                briefing_6_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
-        # Slide 7: Card 6 (Your Score as an Engineer)
-        with gr.Column(visible=False, elem_id="slide-7") as briefing_slide_7:
-            gr.Markdown("<h1 style='text-align:center;'>🏆 Your Score as an Engineer</h1>")
-            
-            # --- FIX FOR SLIDE 7 ---
-            # Combined all content into single gr.HTML()
-            gr.HTML(
-                """
-                <div class='slide-content'>
-                    <div class='panel-box'>
-                        <p>You now know more about how to build a model. But how do we know if it works?</p>
-
-                        <h3>How You Are Scored</h3>
-                        <ul style='list-style-position: inside;'>
-                            <li><strong>Prediction Accuracy:</strong> Your model is tested on <strong>Hidden Data</strong> (cases kept in a "secret vault" that your model has never seen). This simulates predicting the future to ensure you get a real-world prediction accuracy score.</li>
-                            <li><strong>The Leaderboard:</strong> Live Standings track your progress individually and as a team.</li>
-                        </ul>
-
-                        <h3>How You Improve: The Game</h3>
-                        <ul style='list-style-position: inside;'>
-                            <li><strong>Compete to Improve:</strong> Refine your model to beat your personal best score.</li>
-                            <li><strong>Get Promoted as an Engineer & Unlock Tools:</strong> As you submit more models, you rise in rank and unlock better analysis tools:</li>
-                        </ul>
-                        
-                        <div style='text-align:center; font-weight:bold; font-size:1.2rem; color:#4f46e5; margin:16px 0;'>
-                        Trainee → Junior → Senior → Lead Engineer
-                        </div>
-
-                        <h3>Begin Your Mission</h3>
-                        <p>You are now ready. Use the experiment loop, get promoted, unlock all the tools, and find the best combination to get the highest score.</p>
-                        <p><strong>Remember: You've seen how these predictions affect real life decisions. Build accordingly.</strong></p>
-                    </div>
-                </div>
-                """
-            )
-            # --- END FIX ---
-            
-            with gr.Row():
-                briefing_7_back = gr.Button("◀️ Back", size="lg")
-                briefing_7_next = gr.Button("Begin Model Building ▶️", variant="primary", size="lg")
-
-        # --- End Briefing Slideshow ---
-
-
-        # Model Building App (Main Interface)
-        with gr.Column(visible=False, elem_id="model-step") as model_building_step:
-            gr.Markdown("<h1 style='text-align:center;'>🛠️ Model Building Arena</h1>")
-            
-            # Status panel for initialization progress - HIDDEN
-            init_status_display = gr.HTML(value="", visible=False)
-            
-            # Banner for UI state
-
-            init_banner = gr.HTML(
-              value=(
-                  "<div class='init-banner'>"
-                  "<p class='init-banner__text'>"
-                  "⏳ Initializing data & leaderboard… you can explore but must wait for readiness to submit."
-                  "</p>"
-                  "</div>"
-              ),
-              visible=True)
-
-            team_name_state = gr.State(None)  # Team set via session state after login
+            team_name_state = gr.State(os.environ.get("TEAM_NAME"))
             last_submission_score_state = gr.State(0.0)
             last_rank_state = gr.State(0)
             best_score_state = gr.State(0.0)
@@ -5678,17 +3542,27 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             attempts_tracker_display
         ]
 
-        # Wire up login button (with session_state for multi-user safety)
+        # Wire up login button
         login_submit.click(
             fn=perform_inline_login,
-            inputs=[session_state, login_username, login_password],
-            outputs=[session_state, login_username, login_password, login_submit, login_error, submit_button, submission_feedback_display, team_name_state])
+            inputs=[login_username, login_password],
+            outputs=[
+                login_username, 
+                login_password, 
+                login_submit, 
+                login_error, 
+                submit_button, 
+                submission_feedback_display, 
+                team_name_state,
+                username_state,  # NEW
+                token_state      # NEW
+            ]
+        )
 
-        # Submit button with session_state for multi-user authentication
+        # Removed gr.State(username) from the inputs list
         submit_button.click(
             fn=run_experiment,
             inputs=[
-                session_state,
                 model_type_state,
                 complexity_state,
                 feature_set_state,
@@ -5794,8 +3668,8 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 )
         
         demo.load(
-            fn=on_initial_load,
-            inputs=[session_state],
+            fn=handle_load_with_session_auth,
+            inputs=None,  # Request is auto-injected
             outputs=[
                 model_card_display,
                 team_leaderboard_display, 
