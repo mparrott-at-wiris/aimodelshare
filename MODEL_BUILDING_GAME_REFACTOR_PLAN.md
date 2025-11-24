@@ -1,132 +1,49 @@
 # Model Building Game Refactoring Plan
 
-## Status: Phase 1 Complete (Deduplication)
+## Status: Phase 2 Complete (Session Auth Infrastructure)
 
 ### What Was Accomplished
 
-#### 1. File Deduplication ✅
-- **Original size:** 6200 lines
-- **Current size:** 3401 lines  
-- **Reduction:** 2799 lines (45% smaller)
-- **Removed:**
-  - Duplicate `create_model_building_game_app()` function
-  - Duplicate helper functions (HTML generation, team assignment, etc.)
-  - Orphaned global variable declarations
-  - Duplicate `launch_model_building_game_app()` function
+#### Phase 1 ✅ Complete  
+- **File Deduplication:** 6200 → 3661 lines (41% reduction)
+- Removed duplicate `create_model_building_game_app()` function
+- Removed duplicate helper functions
+- Single source of truth for all functions
 
-#### 2. File Structure (Clean) ✅
-```
-Lines 1-79:     Imports & session auth stub (OLD, needs replacement)
-Lines 80-1690:  Configuration, data utilities, helpers, run_experiment
-Lines 1691-3383: create_model_building_game_app() - main Gradio UI  
-Lines 3384-3401: launch_model_building_game_app() - launcher
-```
-
-#### 3. Validation ✅
-- Python syntax validated
-- File compiles successfully
-- Git history preserved
+#### Phase 2 ✅ Complete
+- **Session-Based Authentication Infrastructure**
+  - `_try_session_based_auth(request)` → (success, username, token)
+  - NO os.environ mutation for credentials
+  - Reads `?sessionid=` from URL query parameters
+  
+- **Leaderboard & Stats Caching**
+  - `_fetch_leaderboard(token)` with TTL caching (45s default)
+  - `_user_stats_cache` with per-user caching
+  - Thread-safe via `_cache_lock`
+  - Configurable via env vars
+  
+- **Team Assignment Logic**
+  - `_get_or_assign_team(username, leaderboard_df)`
+  - Timestamp-based team recovery
+  - Normalized team names
+  
+- **User Stats Computation**
+  - `_compute_user_stats(username, token)` with caching
+  - Returns best_score, rank, team_name, submission_count
+  
+- **Attempt Limit Checking**
+  - `check_attempt_limit(count, limit)` helper
+  
+- **Fairness Metrics Stub**
+  - Commented `compute_fairness_metrics()` ready for implementation
 
 ---
 
-## Phase 2: Session-Based Authentication Implementation
+## Phase 3: UI Integration & State Management
 
-### Reference Implementation
-Use `moral_compass_challenge.py` and `ethical_revelation.py` as reference for:
-- `_fetch_leaderboard(token)` with TTL caching
-- `_get_or_assign_team(username, leaderboard_df)` with timestamp sorting
-- `_try_session_based_auth(request)` returning (success, username, token)
-- `_compute_user_stats(username, token)` with per-user caching
-- `check_attempt_limit(count, limit)` for submission gating
+**Current Commit:** 0d9e245
 
-### Step 1: Add Caching & Auth Helpers (Lines 1-79)
-
-Replace current session auth stub with:
-
-```python
-"""
-Model Building Game - Session-based authentication with caching.
-"""
-
-from typing import Optional, Dict, Any, Tuple
-# ... existing imports ...
-
-# Configuration
-LEADERBOARD_CACHE_SECONDS = int(os.environ.get("LEADERBOARD_CACHE_SECONDS", "45"))
-MAX_LEADERBOARD_ENTRIES = os.environ.get("MAX_LEADERBOARD_ENTRIES")
-MAX_LEADERBOARD_ENTRIES = int(MAX_LEADERBOARD_ENTRIES) if MAX_LEADERBOARD_ENTRIES else None
-DEBUG_LOG = os.environ.get("DEBUG_LOG", "false").lower() == "true"
-
-# In-memory caches
-_cache_lock = threading.Lock()
-_leaderboard_cache: Dict[str, Any] = {"data": None, "timestamp": 0.0}
-_user_stats_cache: Dict[str, Dict[str, Any]] = {}
-USER_STATS_TTL = LEADERBOARD_CACHE_SECONDS
-
-def _log(msg: str):
-    if DEBUG_LOG:
-        print(f"[ModelBuildingGame] {msg}")
-
-def _normalize_team_name(name: str) -> str:
-    if not name:
-        return ""
-    return " ".join(str(name).strip().split())
-
-def _fetch_leaderboard(token: str) -> Optional[pd.DataFrame]:
-    # ... implementation from moral_compass_challenge.py ...
-
-def _get_or_assign_team(username: str, leaderboard_df: Optional[pd.DataFrame]) -> Tuple[str, bool]:
-    # ... implementation from moral_compass_challenge.py ...
-
-def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str], Optional[str]]:
-    # ... implementation from moral_compass_challenge.py ...
-    # Returns (success, username, token) - NO os.environ mutation
-
-def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
-    # ... implementation from moral_compass_challenge.py ...
-
-def check_attempt_limit(submission_count: int, limit: int = None) -> Tuple[bool, str]:
-    if limit is None:
-        limit = ATTEMPT_LIMIT
-    if submission_count >= limit:
-        return False, f"⚠️ Attempt limit reached ({submission_count}/{limit})"
-    return True, f"Attempts: {submission_count}/{limit}"
-```
-
-### Step 2: Update run_experiment Signature
-
-**Current (line ~1308):**
-```python
-def run_experiment(
-    model_name_key, complexity_level, feature_set, data_size_str,
-    team_name, last_submission_score, last_rank, submission_count,
-    first_submission_score, best_score, progress=gr.Progress()
-):
-    username = os.environ.get("username") or "Unknown_User"
-```
-
-**New:**
-```python
-def run_experiment(
-    model_name_key, complexity_level, feature_set, data_size_str,
-    team_name, last_submission_score, last_rank, submission_count,
-    first_submission_score, best_score,
-    username=None,  # NEW: from session auth
-    token=None,     # NEW: from session auth
-    progress=gr.Progress()
-):
-    # Use provided or fallback
-    if not username:
-        username = os.environ.get("username") or "Unknown_User"
-    
-    # Temp backwards compat (TODO: remove when all code uses params)
-    if username and username != "Unknown_User":
-        os.environ["username"] = username
-    if token:
-        os.environ["AWS_TOKEN"] = token
-```
-
-### Step 3: Add State Objects in create_model_building_game_app
+### Remaining Tasks
 
 Find where state objects are created (around line ~2780) and add:
 
