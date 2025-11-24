@@ -12,12 +12,15 @@ from aimodelshare.aimsonnx import _get_layer_names, layer_mapping
 
 
 def get_leaderboard(apiurl, verbose=3, columns=None, submission_type="competition",token=None):
-    if all(["username" in os.environ, 
-           "password" in os.environ]):
-        pass
+    if token == None:
+        if all(["username" in os.environ, 
+               "password" in os.environ]):
+            pass
+        else:
+            return print("'get_leaderboard()' unsuccessful. Please provide credentials with set_credentials().")
     else:
-        return print("'get_leaderboard()' unsuccessful. Please provide credentials with set_credentials().")
-
+        pass
+        
     if columns == None: 
         columns = str(columns)
 
