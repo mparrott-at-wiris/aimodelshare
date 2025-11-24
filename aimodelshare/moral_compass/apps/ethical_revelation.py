@@ -43,6 +43,20 @@ try:
 except ImportError:
     raise ImportError("The 'aimodelshare' library is required. Install with: pip install aimodelshare")
 
+import os
+import random
+import time
+import threading
+from typing import Optional, Dict, Any, Tuple
+
+import gradio as gr
+import pandas as pd
+
+try:
+    from aimodelshare.playground import Competition
+except ImportError as e:
+    raise ImportError("The 'aimodelshare' library is required. Install with: pip install aimodelshare") from e
+
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
@@ -52,12 +66,12 @@ MAX_LEADERBOARD_ENTRIES = int(MAX_LEADERBOARD_ENTRIES) if MAX_LEADERBOARD_ENTRIE
 DEBUG_LOG = os.environ.get("DEBUG_LOG", "false").lower() == "true"
 
 TEAM_NAMES = [
-    "The Moral Champions", "The Justice League", "The Data Detectives",
+    "The Justice League", "The Moral Champions", "The Data Detectives",
     "The Ethical Explorers", "The Fairness Finders", "The Accuracy Avengers"
 ]
 
 # ---------------------------------------------------------------------------
-# Caches
+# In-memory caches (per container instance)
 # ---------------------------------------------------------------------------
 _cache_lock = threading.Lock()
 _leaderboard_cache: Dict[str, Any] = {"data": None, "timestamp": 0.0}
@@ -66,7 +80,7 @@ USER_STATS_TTL = LEADERBOARD_CACHE_SECONDS
 
 def _log(msg: str):
     if DEBUG_LOG:
-        print(f"[EthicalRevelation] {msg}")
+        print(f"[MoralCompassApp] {msg}")
 
 def _normalize_team_name(name: str) -> str:
     if not name:
@@ -82,7 +96,6 @@ def _fetch_leaderboard(token: str) -> Optional[pd.DataFrame]:
         ):
             return _leaderboard_cache["data"]
 
-    # Fetch outside lock to avoid long lock holds
     try:
         playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
         playground = Competition(playground_id)
@@ -101,85 +114,24 @@ def _fetch_leaderboard(token: str) -> Optional[pd.DataFrame]:
 def _get_or_assign_team(username: str, leaderboard_df: Optional[pd.DataFrame]) -> Tuple[str, bool]:
     try:
         if leaderboard_df is not None and not leaderboard_df.empty and "Team" in leaderboard_df.columns:
-            subs = leaderboard_df[leaderboard_df["username"] == username]
-            if not subs.empty:
-                if "timestamp" in subs.columns:
+            user_submissions = leaderboard_df[leaderboard_df["username"] == username]
+            if not user_submissions.empty:
+                if "timestamp" in user_submissions.columns:
                     try:
-                        subs = subs.copy()
-                        subs["timestamp"] = pd.to_datetime(subs["timestamp"], errors="coerce")
-                        subs = subs.sort_values("timestamp", ascending=False)
+                        user_submissions = user_submissions.copy()
+                        user_submissions["timestamp"] = pd.to_datetime(
+                            user_submissions["timestamp"], errors="coerce"
+                        )
+                        user_submissions = user_submissions.sort_values("timestamp", ascending=False)
                     except Exception as ts_err:
-                        _log(f"Timestamp sort error (team): {ts_err}")
-                team_val = subs.iloc[0]["Team"]
-                if pd.notna(team_val) and str(team_val).strip():
-                    return _normalize_team_name(team_val), False
+                        _log(f"Timestamp sort error: {ts_err}")
+                existing_team = user_submissions.iloc[0]["Team"]
+                if pd.notna(existing_team) and str(existing_team).strip():
+                    return _normalize_team_name(existing_team), False
         return _normalize_team_name(random.choice(TEAM_NAMES)), True
     except Exception as e:
         _log(f"Team assignment error: {e}")
         return _normalize_team_name(random.choice(TEAM_NAMES)), True
-
-def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
-    now = time.time()
-    cached = _user_stats_cache.get(username)
-    if cached and (now - cached.get("_ts", 0) < USER_STATS_TTL):
-        return cached
-
-    leaderboard_df = _fetch_leaderboard(token)
-    team_name, _ = _get_or_assign_team(username, leaderboard_df)
-
-    if leaderboard_df is None or leaderboard_df.empty:
-        stats = {
-            "username": username,
-            "best_score": None,
-            "rank": None,
-            "team_name": team_name,
-            "is_signed_in": True,
-            "_ts": now
-        }
-        _user_stats_cache[username] = stats
-        return stats
-
-    best_score = None
-    rank = None
-    try:
-        if "accuracy" in leaderboard_df.columns and "username" in leaderboard_df.columns:
-            subs = leaderboard_df[leaderboard_df["username"] == username]
-            if not subs.empty:
-                best_score = subs["accuracy"].max()
-                if "Team" in subs.columns:
-                    if "timestamp" in subs.columns:
-                        try:
-                            subs = subs.copy()
-                            subs["timestamp"] = pd.to_datetime(subs["timestamp"], errors="coerce")
-                            subs = subs.sort_values("timestamp", ascending=False)
-                        except Exception:
-                            pass
-                    team_val = subs.iloc[0]["Team"]
-                    if pd.notna(team_val) and str(team_val).strip():
-                        team_name = _normalize_team_name(team_val)
-
-            # Rank calculation
-            user_bests = leaderboard_df.groupby("username")["accuracy"].max()
-            summary_df = user_bests.reset_index()
-            summary_df.columns = ["Engineer", "Best_Score"]
-            summary_df = summary_df.sort_values("Best_Score", ascending=False).reset_index(drop=True)
-            summary_df.index = summary_df.index + 1
-            my_row = summary_df[summary_df["Engineer"] == username]
-            if not my_row.empty:
-                rank = my_row.index[0]
-    except Exception as e:
-        _log(f"Error computing stats: {e}")
-
-    stats = {
-        "username": username,
-        "best_score": best_score,
-        "rank": rank,
-        "team_name": team_name,
-        "is_signed_in": True,
-        "_ts": now
-    }
-    _user_stats_cache[username] = stats
-    return stats
 
 def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str], Optional[str]]:
     try:
@@ -198,6 +150,67 @@ def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str],
         _log(f"Session auth failed: {e}")
         return False, None, None
 
+def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
+    now = time.time()
+    cached = _user_stats_cache.get(username)
+    if cached and (now - cached.get("_ts", 0) < USER_STATS_TTL):
+        return cached
+
+    leaderboard_df = _fetch_leaderboard(token)
+    team_name, _ = _get_or_assign_team(username, leaderboard_df)
+    best_score = None
+    rank = None
+    team_rank = None
+
+    try:
+        if leaderboard_df is not None and not leaderboard_df.empty:
+            if "accuracy" in leaderboard_df.columns and "username" in leaderboard_df.columns:
+                user_submissions = leaderboard_df[leaderboard_df["username"] == username]
+                if not user_submissions.empty:
+                    best_score = user_submissions["accuracy"].max()
+                    if "Team" in user_submissions.columns:
+                        team_val = user_submissions.iloc[0]["Team"]
+                        if pd.notna(team_val) and str(team_val).strip():
+                            team_name = _normalize_team_name(team_val)
+
+                # Individual rank
+                user_bests = leaderboard_df.groupby("username")["accuracy"].max()
+                summary_df = user_bests.reset_index()
+                summary_df.columns = ["Engineer", "Best_Score"]
+                summary_df = summary_df.sort_values("Best_Score", ascending=False).reset_index(drop=True)
+                summary_df.index = summary_df.index + 1
+                my_row = summary_df[summary_df["Engineer"] == username]
+                if not my_row.empty:
+                    rank = my_row.index[0]
+
+                # Team rank
+                if "Team" in leaderboard_df.columns and team_name:
+                    team_summary_df = (
+                        leaderboard_df.groupby("Team")["accuracy"]
+                        .agg(Best_Score="max")
+                        .reset_index()
+                        .sort_values("Best_Score", ascending=False)
+                        .reset_index(drop=True)
+                    )
+                    team_summary_df.index = team_summary_df.index + 1
+                    my_team_row = team_summary_df[team_summary_df["Team"] == team_name]
+                    if not my_team_row.empty:
+                        team_rank = my_team_row.index[0]
+    except Exception as e:
+        _log(f"User stats error for {username}: {e}")
+
+    stats = {
+        "username": username,
+        "best_score": best_score,
+        "rank": rank,
+        "team_name": team_name,
+        "team_rank": team_rank,
+        "is_signed_in": True,
+        "_ts": now
+    }
+    _user_stats_cache[username] = stats
+    return stats
+   
 # ---------------------------------------------------------------------------
 # HTML Builders (v3 content preserved)
 # ---------------------------------------------------------------------------
@@ -636,13 +649,8 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
             else:
                 html = """
                 <div class='slide-shell slide-shell--primary' style='text-align:center;'>
-                    <h2 class='slide-shell__title'>🔒 Session Required</h2>
-                    <p class='slide-shell__subtitle'>
-                        Append ?sessionid=YOUR_SESSION_ID to the app URL to view personalized stats.
-                    </p>
-                    <p class='slide-shell__subtitle'>
-                        You can still proceed through the educational content.
-                    </p>
+                    <h2 class='slide-shell__title'>🔒 Loading your session...</h2>
+
                 </div>
                 """
             return {
