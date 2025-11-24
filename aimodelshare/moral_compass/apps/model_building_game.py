@@ -224,7 +224,7 @@ def check_attempt_limit(submission_count: int, limit: int = None) -> Tuple[bool,
         limit = ATTEMPT_LIMIT
     
     if submission_count >= limit:
-        msg = f"⚠️ Attempt limit reached ({submission_count}/{limit})"
+        msg = f"Attempt limit reached ({submission_count}/{limit})"
         return False, msg
     return True, f"Attempts: {submission_count}/{limit}"
 
@@ -1221,7 +1221,7 @@ def perform_inline_login(session_state, username_input, password_input):
     if not username_input or not username_input.strip():
         error_html = """
         <div style='background:#fef2f2; padding:12px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
-            <p style='margin:0; color:#991b1b; font-weight:500;'>⚠️ Username is required</p>
+            <p style='margin:0; color:#991b1b; font-weight:500;'>Username is required</p>
         </div>
         """
         return session_state, {
@@ -1239,7 +1239,7 @@ def perform_inline_login(session_state, username_input, password_input):
     if not password_input or not password_input.strip():
         error_html = """
         <div style='background:#fef2f2; padding:12px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
-            <p style='margin:0; color:#991b1b; font-weight:500;'>⚠️ Password is required</p>
+            <p style='margin:0; color:#991b1b; font-weight:500;'>Password is required</p>
         </div>
         """
         return session_state, {
@@ -1305,7 +1305,7 @@ def perform_inline_login(session_state, username_input, password_input):
         # Authentication failed: show error with signup link
         error_html = f"""
         <div style='background:#fef2f2; padding:16px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
-            <p style='margin:0; color:#991b1b; font-weight:600; font-size:1.1rem;'>⚠️ Authentication failed</p>
+            <p style='margin:0; color:#991b1b; font-weight:600; font-size:1.1rem;'>Authentication failed</p>
             <p style='margin:8px 0; color:#7f1d1d; font-size:0.95rem;'>
                 Could not verify your credentials. Please check your username and password.
             </p>
@@ -2651,7 +2651,7 @@ def perform_inline_login(session_state, username_input, password_input):
     if not username_input or not username_input.strip():
         error_html = """
         <div style='background:#fef2f2; padding:12px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
-            <p style='margin:0; color:#991b1b; font-weight:500;'>⚠️ Username is required</p>
+            <p style='margin:0; color:#991b1b; font-weight:500;'>Username is required</p>
         </div>
         """
         return session_state, {
@@ -2667,7 +2667,7 @@ def perform_inline_login(session_state, username_input, password_input):
     if not password_input or not password_input.strip():
         error_html = """
         <div style='background:#fef2f2; padding:12px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
-            <p style='margin:0; color:#991b1b; font-weight:500;'>⚠️ Password is required</p>
+            <p style='margin:0; color:#991b1b; font-weight:500;'>Password is required</p>
         </div>
         """
         return session_state, {
@@ -2729,7 +2729,7 @@ def perform_inline_login(session_state, username_input, password_input):
         # Authentication failed: show error with signup link
         error_html = f"""
         <div style='background:#fef2f2; padding:16px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
-            <p style='margin:0; color:#991b1b; font-weight:600; font-size:1.1rem;'>⚠️ Authentication failed</p>
+            <p style='margin:0; color:#991b1b; font-weight:600; font-size:1.1rem;'>Authentication failed</p>
             <p style='margin:8px 0; color:#7f1d1d; font-size:0.95rem;'>
                 Could not verify your credentials. Please check your username and password.
             </p>
