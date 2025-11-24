@@ -1,18 +1,16 @@
 """
-The Moral Compass Challenge - Gradio application for the Justice & Equity Challenge.
+The Ethical Revelation: Real-World Impact - Gradio application for the Justice & Equity Challenge.
 
 This app teaches:
-1. The paradigm shift from pure accuracy to ethics-focused scoring
-2. Introduction of the Moral Compass Score
-3. Team-based collaborative learning
-4. The balance between technical performance and ethical understanding
+1. The pivot from technical accuracy to real-world ethical consequences
+2. Introduction to fairness concepts through real-world case study
+3. The ProPublica "Machine Bias" investigation findings
+4. How high-performing models can still amplify societal harms
 
 Structure:
-- Factory function `create_moral_compass_challenge_app()` returns a Gradio Blocks object
-- Convenience wrapper `launch_moral_compass_challenge_app()` launches it inline (for notebooks)
+- Factory function `create_ethical_revelation_app()` returns a Gradio Blocks object
+- Convenience wrapper `launch_ethical_revelation_app()` launches it inline (for notebooks)
 """
-
-
 import contextlib
 import os
 import gradio as gr
@@ -27,386 +25,794 @@ from datetime import datetime, timedelta
 
 import numpy as np
 import pandas as pd
-import gradio as gr
-
+# --- AI Model Share Imports ---
+try:
+    from aimodelshare.playground import Competition
+except ImportError:
+    raise ImportError(
+        "The 'aimodelshare' library is required. Install with: pip install aimodelshare"
+    )
 TEAM_NAMES = [
-    "The Justice League", "The Moral Champions", "The Data Detectives",
+    "The Moral Champions", "The Justice League", "The Data Detectives",
     "The Ethical Explorers", "The Fairness Finders", "The Accuracy Avengers"
 ]
+CURRENT_TEAM_NAME = random.choice(TEAM_NAMES)
+def _normalize_team_name(name: str) -> str:
+    """
+    Normalize team name for consistent comparison and storage.
+    
+    Strips leading/trailing whitespace and collapses multiple spaces into single spaces.
+    This ensures consistent formatting across environment variables, state, and leaderboard rendering.
+    
+    Args:
+        name: Team name to normalize (can be None or empty)
+    
+    Returns:
+        str: Normalized team name, or empty string if input is None/empty
+    
+    Examples:
+        >>> _normalize_team_name("  The Ethical Explorers  ")
+        'The Ethical Explorers'
+        >>> _normalize_team_name("The  Moral   Champions")
+        'The Moral Champions'
+        >>> _normalize_team_name(None)
+        ''
+    """
+    if not name:
+        return ""
+    return " ".join(str(name).strip().split())
+    
+def get_or_assign_team(username, token):
+    """
+    Get the existing team for a user from the leaderboard, or assign a new random team.
+    
+    Queries the playground leaderboard to check if the user has prior submissions with
+    a team assignment. If found, returns that team (most recent if multiple submissions).
+    Otherwise assigns a random team. All team names are normalized for consistency.
+    
+    Args:
+        username: str, the username to check for existing team
+    
+    Returns:
+        tuple: (team_name: str, is_new: bool)
+            - team_name: The normalized team name (existing or newly assigned)
+            - is_new: True if newly assigned, False if existing team recovered
+    """
+    try:
+        # Query the leaderboard
+        if playground is None:
+            # Fallback to random assignment if playground not available
+            print("Playground not available, assigning random team")
+            new_team = _normalize_team_name(random.choice(TEAM_NAMES))
+            return new_team, True
+        
+        leaderboard_df = playground.get_leaderboard(token=token)
+        
+        # Check if leaderboard has data and Team column
+        if leaderboard_df is not None and not leaderboard_df.empty and "Team" in leaderboard_df.columns:
+            # Filter for this user's submissions
+            user_submissions = leaderboard_df[leaderboard_df["username"] == username]
+            
+            if not user_submissions.empty:
+                # Sort by timestamp (most recent first) if timestamp column exists
+                # Use contextlib.suppress for resilient timestamp parsing
+                if "timestamp" in user_submissions.columns:
+                    try:
+                        # Attempt to coerce timestamp column to datetime and sort descending
+                        user_submissions = user_submissions.copy()
+                        user_submissions["timestamp"] = pd.to_datetime(user_submissions["timestamp"], errors='coerce')
+                        user_submissions = user_submissions.sort_values("timestamp", ascending=False)
+                        print(f"Sorted {len(user_submissions)} submissions by timestamp for {username}")
+                    except Exception as ts_error:
+                        # If timestamp parsing fails, continue with unsorted DataFrame
+                        print(f"Warning: Could not sort by timestamp for {username}: {ts_error}")
+                
+                # Get the most recent team assignment (first row after sorting)
+                existing_team = user_submissions.iloc[0]["Team"]
+                
+                # Check if team value is valid (not null/empty)
+                if pd.notna(existing_team) and existing_team and str(existing_team).strip():
+                    normalized_team = _normalize_team_name(existing_team)
+                    print(f"Found existing team for {username}: {normalized_team}")
+                    return normalized_team, False
+        
+        # No existing team found - assign random
+        new_team = _normalize_team_name(random.choice(TEAM_NAMES))
+        print(f"Assigning new team to {username}: {new_team}")
+        return new_team, True
+        
+    except Exception as e:
+        # On any error, fall back to random assignment
+        print(f"Error checking leaderboard for team: {e}")
+        new_team = _normalize_team_name(random.choice(TEAM_NAMES))
+        print(f"Fallback: assigning random team to {username}: {new_team}")
+        return new_team, True
 
-def _try_session_based_auth(request):
+def _try_session_based_auth(request: "gr.Request"):
     """
     Attempt to authenticate user via session token from URL parameters.
-    Returns a dict with keys: success, username, token, team_name
+    
+    Args:
+        request: Gradio request object containing query parameters
+        
+    Returns:
+        tuple: (success: bool, username: str or None, team_name: str or None)
     """
-    session_id = request.query_params.get("sessionid") if request else None
-    if not session_id:
-        return {"success": False, "username": None, "token": None, "team_name": None}
-
     try:
+        # Check if sessionid is in URL query parameters
+        session_id = request.query_params.get("sessionid") if request else None
+        if not session_id:
+            return False, None, None
+        
+        # Import here to avoid circular dependencies
         from aimodelshare.aws import get_token_from_session, _get_username_from_token
-
+        
+        # Get token from session API
         token = get_token_from_session(session_id)
-        print(token)
         if not token:
-            return {"success": False, "username": None, "token": None, "team_name": None}
-
+            return False, None, None
+            
+        # Extract username from token
         username = _get_username_from_token(token)
-        print(username)
         if not username:
-            return {"success": False, "username": None, "token": None, "team_name": None}
-
-        # Assign team name from leaderboard or random if user has no submissions
-        try:
-            from aimodelshare.playground import Competition
-            import pandas as pd
-
-            playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
-            playground = Competition(playground_id)
-            leaderboard_df = playground.get_leaderboard(token=token)
-            print("try_sess "+leaderboard_df.columns)
-            team_name = None
-            if leaderboard_df is not None and not leaderboard_df.empty and "Team" in leaderboard_df.columns:
-                user_submissions = leaderboard_df[leaderboard_df["username"] == username]
-                if not user_submissions.empty:
-                    if "timestamp" in user_submissions.columns:
-                        user_submissions = user_submissions.copy()
-                        user_submissions["timestamp"] = pd.to_datetime(
-                            user_submissions["timestamp"], errors='coerce'
-                        )
-                        user_submissions = user_submissions.sort_values("timestamp", ascending=False)
-                    existing_team = user_submissions.iloc[0]["Team"]
-                    print(existing_team)
-                    if pd.notna(existing_team) and existing_team and str(existing_team).strip():
-                        team_name = str(existing_team).strip()
-            if not team_name:
-                team_name = random.choice(TEAM_NAMES)
-        except Exception:
-            team_name = random.choice(TEAM_NAMES)
-        return {"success": True, "username": username, "token": token, "team_name": team_name}
+            return False, None, None
+        
+        
+        # Get or assign team (reusing existing logic from _perform_inline_login)
+        # This will be handled by the calling code
+        
+        return True, username, token
+        
     except Exception as e:
         print(f"Session-based authentication failed: {e}")
-        return {"success": False, "username": None, "token": None, "team_name": None}
+        return False, None, None
 
 
-def _get_user_stats_from_leaderboard(username, team_name, token):
+def _get_user_stats_from_leaderboard(username=None,token=None):
     """
     Fetch the user's statistics from the model building game leaderboard.
-    Returns a dict of stats using username and team_name from state, not os.environ.
+
+    Returns:
+        dict: Dictionary containing:
+            - username: str or None
+            - best_score: float or None
+            - rank: int or None
+            - team_name: str or None
+            - is_signed_in: bool
     """
     try:
+        # Import here to avoid circular dependencies / unnecessary imports for unsigned users
         from aimodelshare.playground import Competition
+        from aimodelshare.aws import get_aws_token
         import pandas as pd
+        import os
 
+        # Check if user is signed in (via environment)
         if not username:
+            # User not signed in yet: just tell the UI that
             return {
                 "username": None,
                 "best_score": None,
                 "rank": None,
                 "team_name": None,
-                "team_rank": None,
                 "is_signed_in": False
             }
 
+        # User is "signed in" (username present) – make sure we have an AWS token
+        if not token:
+            try:
+                raise
+            except Exception as e:
+                # If we can't get a token, log it and return minimal signed-in info
+                print(f"Warning: could not obtain AWS token for user stats: {e}")
+                return {
+                    "username": username,
+                    "best_score": None,
+                    "rank": None,
+                    "team_name": None,
+                    "is_signed_in": True,
+                }
+        # Connect to playground and fetch leaderboard
         playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
         playground = Competition(playground_id)
         leaderboard_df = playground.get_leaderboard(token=token)
-        print("get_user_stats: "+leaderboard_df.columns)
+        team,newteam=get_or_assign_team(username, token)
 
+        # If leaderboard is unavailable or empty, still show basic signed-in state
         if leaderboard_df is None or leaderboard_df.empty:
             return {
                 "username": username,
                 "best_score": None,
                 "rank": None,
-                "team_name": team_name,
-                "team_rank": None,
+                "team_name": team,
                 "is_signed_in": True
             }
 
+        # Compute user-specific stats
         best_score = None
         rank = None
-        team_rank = None
+        team_name = team
 
         if "accuracy" in leaderboard_df.columns and "username" in leaderboard_df.columns:
+            # Filter to this user's submissions
             user_submissions = leaderboard_df[leaderboard_df["username"] == username]
             if not user_submissions.empty:
+                # Best accuracy
                 best_score = user_submissions["accuracy"].max()
+
+                # Get team name from most recent submission (if available)
                 if "Team" in user_submissions.columns:
                     if "timestamp" in user_submissions.columns:
                         try:
                             user_submissions = user_submissions.copy()
                             user_submissions["timestamp"] = pd.to_datetime(
-                                user_submissions["timestamp"], errors="coerce"
+                                user_submissions["timestamp"],
+                                errors="coerce"
                             )
                             user_submissions = user_submissions.sort_values(
-                                "timestamp", ascending=False
+                                "timestamp",
+                                ascending=False
                             )
                         except Exception:
+                            # If parsing timestamps fails, just use current ordering
                             pass
                     team_name = user_submissions.iloc[0]["Team"]
 
+            # Calculate rank: best score per user, sorted descending
             user_bests = leaderboard_df.groupby("username")["accuracy"].max()
             individual_summary_df = user_bests.reset_index()
             individual_summary_df.columns = ["Engineer", "Best_Score"]
-            individual_summary_df = (
-                individual_summary_df.sort_values("Best_Score", ascending=False)
-                .reset_index(drop=True)
-            )
-            individual_summary_df.index = individual_summary_df.index + 1
+            individual_summary_df = individual_summary_df.sort_values(
+                "Best_Score",
+                ascending=False
+            ).reset_index(drop=True)
+            individual_summary_df.index = individual_summary_df.index + 1  # ranks start at 1
 
-            my_rank_row = individual_summary_df[
-                individual_summary_df["Engineer"] == username
-            ]
+            my_rank_row = individual_summary_df[individual_summary_df["Engineer"] == username]
             if not my_rank_row.empty:
                 rank = my_rank_row.index[0]
-
-            if "Team" in leaderboard_df.columns and team_name:
-                team_summary_df = (
-                    leaderboard_df.groupby("Team")["accuracy"]
-                    .agg(Best_Score="max")
-                    .reset_index()
-                    .sort_values("Best_Score", ascending=False)
-                    .reset_index(drop=True)
-                )
-                team_summary_df.index = team_summary_df.index + 1
-                my_team_row = team_summary_df[team_summary_df["Team"] == team_name]
-                if not my_team_row.empty:
-                    team_rank = my_team_row.index[0]
 
         return {
             "username": username,
             "best_score": best_score,
             "rank": rank,
             "team_name": team_name,
-            "team_rank": team_rank,
-            "is_signed_in": True,
+            "is_signed_in": True
         }
+
     except Exception as e:
+        # Generic fallback: don't break the app, just log and return minimal info
+        import os
         print(f"Error fetching user stats: {e}")
         return {
             "username": username,
             "best_score": None,
             "rank": None,
-            "team_name": team_name,
-            "team_rank": None,
-            "is_signed_in": bool(username),
+            "team_name": None,
+            "is_signed_in": bool(username)
         }
 
 
-def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
-    """Create the Moral Compass Challenge Gradio Blocks app (not launched yet)."""
+def _perform_inline_login(username_input, password_input):
+    """
+    Perform inline authentication and set credentials in environment.
 
-    # HTML builder helpers (unchanged)
-    def build_standing_html(user_stats):
-        if user_stats["is_signed_in"] and user_stats["best_score"] is not None:
-            best_score_pct = f"{(user_stats['best_score'] * 100):.1f}%"
-            rank_text = f"#{user_stats['rank']}" if user_stats["rank"] else "N/A"
-            team_text = user_stats["team_name"] if user_stats["team_name"] else "N/A"
-            team_rank_text = (
-                f"#{user_stats['team_rank']}" if user_stats["team_rank"] else "N/A"
-            )
-            return f"""
-            <div class='slide-shell slide-shell--info'>
-                <h3 class='slide-shell__title'>
-                    You've Built an Accurate Model
-                </h3>
-                <div class='content-box'>
-                    <p class='slide-shell__subtitle'>
-                        Through experimentation and iteration, you've achieved impressive results:
-                    </p>
-                    <div class='stat-grid'>
-                        <div class='stat-card stat-card--success'>
-                            <p class='stat-card__label'>Your Best Accuracy</p>
-                            <p class='stat-card__value'>{best_score_pct}</p>
-                        </div>
-                        <div class='stat-card stat-card--accent'>
-                            <p class='stat-card__label'>Your Individual Rank</p>
-                            <p class='stat-card__value'>{rank_text}</p>
-                        </div>
-                    </div>
-                    <div class='team-card'>
-                        <p class='team-card__label'>Your Team</p>
-                        <p class='team-card__value'>🛡️ {team_text}</p>
-                        <p class='team-card__rank'>Team Rank: {team_rank_text}</p>
-                    </div>
-                    <ul class='bullet-list'>
-                        <li>✅ Mastered the model-building process</li>
-                        <li>✅ Climbed the accuracy leaderboard</li>
-                        <li>✅ Competed with fellow engineers</li>
-                        <li>✅ Earned promotions and unlocked tools</li>
-                    </ul>
-                    <p class='slide-shell__subtitle' style='font-weight:600;'>
-                        🏆 Congratulations on your technical achievement!
-                    </p>
-                </div>
-                <div class='content-box content-box--emphasis'>
-                    <p class='content-box__heading'>
-                        But now you know the full story...
-                    </p>
-                    <p>
-                        High accuracy isn't enough. Real-world AI systems must also be
-                        <strong>fair, equitable, and <span class='emph-harm'>minimize harm</span></strong>
-                        across all groups of people.
-                    </p>
-                </div>
-            </div>
-            """
-        elif user_stats["is_signed_in"]:
-            return """
-            <div class='slide-shell slide-shell--info'>
-                <h3 class='slide-shell__title'>
-                    Ready to Begin Your Journey
-                </h3>
-                <div class='content-box'>
-                    <p class='slide-shell__subtitle'>
-                        You've learned about the model-building process and are ready to take on the challenge:
-                    </p>
-                    <ul class='bullet-list'>
-                        <li>✅ Understood the AI model-building process</li>
-                        <li>✅ Learned about accuracy and performance</li>
-                        <li>✅ Discovered real-world bias in AI systems</li>
-                    </ul>
-                    <p class='slide-shell__subtitle' style='font-weight:600;'>
-                        🎯 Ready to learn about ethical AI!
-                    </p>
-                </div>
-                <div class='content-box content-box--emphasis'>
-                    <p class='content-box__heading'>
-                        Now you know the full story...
-                    </p>
-                    <p>
-                        High accuracy isn't enough. Real-world AI systems must also be
-                        <strong>fair, equitable, and <span class='emph-harm'>minimize harm</span></strong>
-                        across all groups of people.
-                    </p>
-                </div>
-            </div>
-            """
-        else:
-            return """
-            <div class='slide-shell slide-shell--warning' style='text-align:center;'>
-                <h2 class='slide-shell__title'>
-                    🔒 Session Required
-                </h2>
-                <p class='slide-shell__subtitle'>
-                    Please access this app via a valid session URL.<br>
-                    No manual sign-in is offered.<br>
-                    You can still continue through this lesson to learn!
-                </p>
-            </div>
-            """
+    Returns tuple of (success_bool, message_html, user_stats_dict)
+    """
+    import random
 
-    def build_step2_html(user_stats):
-        if user_stats["is_signed_in"] and user_stats["best_score"] is not None:
-            gauge_value = int(user_stats["best_score"] * 100)
-        else:
-            gauge_value = 75
-        gauge_fill_percent = f"{gauge_value}%"
-        gauge_display = str(gauge_value)
-        return f"""
-            <div class='slide-shell slide-shell--warning'>
-                <h3 class='slide-shell__title'>
-                    We Need a Higher Standard
-                </h3>
-                <p class='slide-shell__subtitle'>
-                    While your model is accurate, a higher standard is needed to prevent
-                    <span class='emph-harm'>real-world harm</span>. To incentivize this new focus,
-                    we're introducing a new score.
-                </p>
-                <div class='content-box'>
-                    <h4 class='content-box__heading'>Watch Your Score</h4>
-                    <div class='score-gauge-container'>
-                        <div class='score-gauge' style='--fill-percent: {gauge_fill_percent};'>
-                            <div class='score-gauge-inner'>
-                                <div class='score-gauge-value'>{gauge_display}</div>
-                                <div class='score-gauge-label'>Accuracy Score</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class='content-box content-box--emphasis'>
-                    <p class='content-box__heading'>
-                        This score measures only <strong>one dimension</strong> of success.
-                    </p>
-                    <p>
-                        It's time to add a second, equally important dimension:
-                        <strong class='emph-fairness'>Ethics</strong>.
-                    </p>
-                </div>
-            </div>
+    # Team names for assignment
+    TEAM_NAMES = [
+        "The Justice League", "The Moral Champions", "The Data Detectives",
+        "The Ethical Explorers", "The Fairness Finders", "The Accuracy Avengers"
+    ]
+
+    def _normalize_team_name(team_name):
+        """Normalize team name to match standard format."""
+        if not team_name or not str(team_name).strip():
+            return random.choice(TEAM_NAMES)
+        team_str = str(team_name).strip()
+        for standard_name in TEAM_NAMES:
+            if team_str.lower() == standard_name.lower():
+                return standard_name
+        return team_str
+
+    def _get_or_assign_team(username):
+        """Get existing team or assign new one."""
+        try:
+            from aimodelshare.playground import Competition
+            import pandas as pd
+
+            playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+            playground = Competition(playground_id)
+            leaderboard_df = playground.get_leaderboard()
+
+            if leaderboard_df is not None and not leaderboard_df.empty and "Team" in leaderboard_df.columns:
+                user_submissions = leaderboard_df[leaderboard_df["username"] == username]
+
+                if not user_submissions.empty:
+                    if "timestamp" in user_submissions.columns:
+                        try:
+                            user_submissions = user_submissions.copy()
+                            user_submissions["timestamp"] = pd.to_datetime(
+                                user_submissions["timestamp"], errors='coerce'
+                            )
+                            user_submissions = user_submissions.sort_values("timestamp", ascending=False)
+                        except Exception:
+                            pass
+
+                    existing_team = user_submissions.iloc[0]["Team"]
+                    if pd.notna(existing_team) and existing_team and str(existing_team).strip():
+                        return _normalize_team_name(existing_team), False
+
+            new_team = _normalize_team_name(random.choice(TEAM_NAMES))
+            return new_team, True
+
+        except Exception:
+            new_team = _normalize_team_name(random.choice(TEAM_NAMES))
+            return new_team, True
+
+    # Validate inputs
+    if not username_input or not username_input.strip():
+        error_html = """
+        <div class='alert alert--error'>
+            <p class='alert__title'>⚠️ Username is required</p>
+        </div>
         """
+        return False, error_html, _get_user_stats_from_leaderboard()
 
-    def build_step6_html(user_stats):
-        if user_stats["is_signed_in"] and user_stats["rank"]:
-            rank_text = f"#{user_stats['rank']}"
-            position_message = f"""
-                        <p class='slide-teaching-body' style='text-align:left;'>
-                            You were previously <strong>ranked {rank_text}</strong> on the accuracy leaderboard.
-                            But now, with the introduction of the Moral Compass Score, your position has changed:
-                        </p>
-            """
-        else:
-            position_message = """
-                        <p class='slide-teaching-body' style='text-align:left;'>
-                            With the introduction of the Moral Compass Score, everyone starts fresh.
-                            Your previous work on accuracy is valuable, but now we need to add ethics:
-                        </p>
-            """
+    if not password_input or not password_input.strip():
+        error_html = """
+        <div class='alert alert--error'>
+            <p class='alert__title'>⚠️ Password is required</p>
+        </div>
+        """
+        return False, error_html, _get_user_stats_from_leaderboard()
 
-        return f"""
-            <div class='slide-shell slide-shell--info'>
-                <h3 class='slide-shell__title'>
-                    📍 Your Current Position
-                </h3>
-                <div class='content-box'>
-                    {position_message}
-                    <div class='content-box content-box--danger'>
-                        <p class='content-box__heading'>
-                            Current Moral Compass Rank: <span class='emph-risk'>Starting Fresh</span>
-                        </p>
-                        <p>
-                            (Because your Moral Compass Score = <span class='emph-harm'>0</span>)
-                        </p>
-                    </div>
-                </div>
-                <div class='content-box content-box--success'>
-                    <h4 class='content-box__heading'>
-                        🛤️ The Path Forward
-                    </h4>
-                    <p class='slide-teaching-body'>
-                        The next section will provide expert guidance from the <strong>UdG's
-                        OEIAC AI Ethics Center</strong>. You'll learn to:
-                    </p>
-                    <ul class='bullet-list'>
-                        <li>🔍 <strong>Detect and measure bias</strong> in your AI models</li>
-                        <li>⚖️ <strong>Apply fairness metrics</strong> to evaluate equity</li>
-                        <li>🔧 <strong>Redesign your system</strong> to <span class='emph-harm'>minimize harm</span></li>
-                        <li>📊 <strong>Balance accuracy with fairness</strong> for better outcomes</li>
-                    </ul>
-                </div>
-                <div class='content-box content-box--emphasis'>
-                    <p class='content-box__heading'>
-                        🏆 Upon Completion
-                    </p>
-                    <p>
-                        By completing the full learning module and improving your Moral Compass Score,
-                        you will earn your <strong class='emph-fairness'>AI Ethical Risk Training Certificate</strong>.
-                    </p>
-                    <p class='note-text'>
-                        (Certificate details and delivery will be covered in upcoming sections)
-                    </p>
-                </div>
-                <h1 style='margin:32px 0 16px 0; font-size: 3rem; text-align:center;'>👇 SCROLL DOWN 👇</h1>
-                <p style='font-size:1.2rem; text-align:center;'>
-                    Continue to the expert guidance section to begin improving your Moral Compass Score.
+    # Set credentials in environment
+    os.environ["username"] = username_input.strip()
+    os.environ["password"] = password_input.strip()
+
+    # Attempt to get AWS token
+    try:
+        from aimodelshare.aws import get_aws_token
+        token = get_aws_token()
+        os.environ["AWS_TOKEN"] = token
+
+        # Get or assign team for this user
+        team_name, is_new_team = _get_or_assign_team(username_input.strip())
+        os.environ["TEAM_NAME"] = team_name
+
+        # Get updated stats
+        user_stats = _get_user_stats_from_leaderboard()
+
+        # Check if user has submitted any models
+        if user_stats["best_score"] is None:
+            # User signed in but hasn't submitted models yet
+            warning_html = f"""
+            <div class='alert alert--warning'>
+                <p class='alert__title'>✓ Signed in successfully!</p>
+                <p class='alert__body'>
+                    Team: <b>{team_name}</b>
+                </p>
+                <p class='alert__subtitle'>
+                    ⚠️ You haven't submitted any models yet!
+                </p>
+                <p class='alert__body'>
+                    Please go back to the <strong>Model Building Game</strong> activity and submit at least one model
+                    to see your personalized stats here.
                 </p>
             </div>
-        """
+            """
+            return True, warning_html, user_stats
 
-    css = """ ... [CSS unchanged for brevity] ... """
+        # Success with submissions
+        if is_new_team:
+            team_message = f"You have been assigned to: <b>{team_name}</b> 🎉"
+        else:
+            team_message = f"Welcome back to team: <b>{team_name}</b> ✅"
+
+        success_html = f"""
+        <div class='alert alert--success'>
+            <p class='alert__title'>✓ Signed in successfully!</p>
+            <p class='alert__body'>
+                {team_message}
+            </p>
+            <p class='alert__body'>
+                Your personalized stats are now displayed above!
+            </p>
+        </div>
+        """
+        return True, success_html, user_stats
+
+    except Exception:
+        # Authentication failed
+        error_html = """
+        <div class='alert alert--error'>
+            <p class='alert__title'>⚠️ Authentication failed</p>
+            <p class='alert__body'>
+                Could not verify your credentials. Please check your username and password.
+            </p>
+            <p class='alert__body'>
+                <strong>New user?</strong> Create a free account at
+                <a href='https://www.modelshare.ai/login' target='_blank' class='alert__link'>modelshare.ai/login</a>
+            </p>
+        </div>
+        """
+        return False, error_html, _get_user_stats_from_leaderboard()
+
+
+def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
+    """Create the Ethical Revelation Gradio Blocks app (not launched yet)."""
+    try:
+        import gradio as gr
+        gr.close_all(verbose=False)
+    except ImportError as e:
+        raise ImportError(
+            "Gradio is required for the ethical revelation app. Install with `pip install gradio`."
+        ) from e
+
+    css = """
+    /* --------------------------------------------- */
+    /* Base utility + theme-variable driven styling  */
+    /* --------------------------------------------- */
+
+    .large-text {
+        font-size: 20px !important;
+    }
+    /* 25% larger paragraph text for the "But Wait..." slide */
+    .slide-warning-body {
+        font-size: 1.25em;     /* 25% larger than normal text */
+        line-height: 1.75;     /* improve readability */
+    }
+    .celebration-box,
+    .slide-shell {
+        padding: 24px;
+        border-radius: 16px;
+        background-color: var(--block-background-fill);
+        color: var(--body-text-color);
+        border: 2px solid var(--border-color-primary);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+        max-width: 900px;
+        margin: auto;
+    }
+
+    .slide-shell--primary {
+        border-color: var(--color-accent);
+    }
+
+    .slide-shell--warning {
+        border-color: var(--color-accent);
+    }
+
+    .slide-shell--info {
+        border-color: var(--color-accent);
+    }
+
+    .slide-shell__title {
+        font-size: 2.3rem;
+        margin: 0;
+        text-align: center;
+    }
+
+    .slide-shell__subtitle {
+        font-size: 1.2rem;
+        margin-top: 16px;
+        text-align: center;
+        color: var(--secondary-text-color);
+    }
+
+    .stat-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 16px;
+    }
+
+    .stat-card {
+        text-align: center;
+        padding: 16px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color-primary);
+        background-color: var(--block-background-fill);
+    }
+
+    .stat-card__label {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--secondary-text-color);
+    }
+
+    .stat-card__value {
+        margin: 4px 0 0 0;
+        font-size: 1.8rem;
+        font-weight: 700;
+    }
+
+    .team-card {
+        text-align: center;
+        padding: 16px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color-primary);
+        background-color: var(--block-background-fill);
+        margin-top: 16px;
+    }
+
+    .team-card__label {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--secondary-text-color);
+    }
+
+    .team-card__value {
+        margin: 4px 0 0 0;
+        font-size: 1.3rem;
+        font-weight: 600;
+    }
+
+    .content-box {
+        background-color: var(--block-background-fill);
+        border-radius: 12px;
+        border: 1px solid var(--border-color-primary);
+        padding: 24px;
+        margin: 24px 0;
+    }
+
+    .content-box__heading {
+        margin-top: 0;
+    }
+
+    .content-box--emphasis {
+        border-left: 6px solid var(--color-accent);
+    }
+
+    .revelation-box {
+        background-color: var(--block-background-fill);
+        border-left: 6px solid var(--color-accent);
+        border-radius: 8px;
+        padding: 24px;
+        margin-top: 24px;
+    }
+
+    /* Alerts used by inline login + feedback */
+    .alert {
+        padding: 16px;
+        border-radius: 8px;
+        border-left: 4px solid var(--border-color-primary);
+        margin-top: 12px;
+        background-color: var(--block-background-fill);
+        color: var(--body-text-color);
+        font-size: 0.95rem;
+    }
+    .alert__title {
+        margin: 0;
+        font-weight: 600;
+        font-size: 1.05rem;
+    }
+    .alert__subtitle {
+        margin: 8px 0 0 0;
+        font-weight: 600;
+    }
+    .alert__body {
+        margin: 8px 0 0 0;
+    }
+    .alert__link {
+        text-decoration: underline;
+    }
+
+    .alert--error {
+        border-left-color: var(--color-accent);
+    }
+    .alert--warning {
+        border-left-color: var(--color-accent);
+    }
+    .alert--success {
+        border-left-color: var(--color-accent);
+    }
+
+    /* EU panel / info slide */
+    .eu-panel {
+        font-size: 20px;
+        padding: 32px;
+        border-radius: 16px;
+        border: 3px solid var(--border-color-primary);
+        background-color: var(--block-background-fill);
+        max-width: 900px;
+        margin: auto;
+    }
+
+    .eu-panel h3,
+    .eu-panel h4 {
+        margin-top: 0;
+    }
+
+    .eu-panel__highlight {
+        padding: 22px;
+        border-radius: 12px;
+        border-left: 6px solid var(--color-accent);
+        background-color: var(--block-background-fill);
+        margin: 28px 0;
+    }
+
+    .eu-panel__note {
+        padding: 22px;
+        border-radius: 12px;
+        border-left: 6px solid var(--color-accent);
+        background-color: var(--block-background-fill);
+    }
+
+    /* --------------------------------------------- */
+    /*  Semantic Emphasis Utilities (Light + Dark)   */
+    /* --------------------------------------------- */
+
+    /* Strong warning / harm emphasis – used in Machine Bias slide */
+    .emph-danger {
+        color: #b91c1c; /* red-700 */
+        font-weight: 700;
+    }
+    @media (prefers-color-scheme: dark) {
+        .emph-danger {
+            color: #fca5a5; /* red-300 */
+        }
+    }
+
+    /* Mild harm background block */
+    .bg-danger-soft {
+        background-color: #fee2e2; /* red-100 */
+        border-left: 6px solid #dc2626; /* red-600 */
+        padding: 16px;
+        border-radius: 8px;
+    }
+    @media (prefers-color-scheme: dark) {
+        .bg-danger-soft {
+            background-color: rgba(220, 38, 38, 0.15);
+            border-left-color: #f87171; /* red-400 */
+        }
+    }
+
+    /* EU context blue emphasis */
+    .emph-eu {
+        color: #1e40af; /* blue-800 */
+        font-weight: 700;
+    }
+    @media (prefers-color-scheme: dark) {
+        .emph-eu {
+            color: #93c5fd; /* blue-300 */
+        }
+    }
+
+    .bg-eu-soft {
+        background-color: #dbeafe; /* blue-100 */
+        padding: 16px;
+        border-radius: 8px;
+        border-left: 6px solid #2563eb; /* blue-600 */
+    }
+    @media (prefers-color-scheme: dark) {
+        .bg-eu-soft {
+            background-color: rgba(37, 99, 235, 0.15);
+            border-left-color: #60a5fa; /* blue-400 */
+        }
+    }
+
+    /* Key teaching point emphasis */
+    .emph-key {
+        color: var(--color-accent);
+        font-weight: 700;
+    }
+
+    /* Navigation Loading Overlay Styles */
+    #nav-loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--body-background-fill);
+        z-index: 9999;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .nav-spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid var(--block-background-fill);
+        border-top: 5px solid var(--color-accent);
+        border-radius: 50%;
+        animation: nav-spin 1s linear infinite;
+        margin-bottom: 20px;
+    }
+
+    @keyframes nav-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    #nav-loading-text {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: var(--body-text-color);
+    }
+
+    /* Dark-mode specific fine-tuning */
+    @media (prefers-color-scheme: dark) {
+        .celebration-box,
+        .slide-shell,
+        .content-box,
+        .alert,
+        .eu-panel {
+            box-shadow: none;
+        }
+        .team-card,
+        .stat-card {
+            box-shadow: none;
+        }
+        .revelation-box {
+            background-color: var(--block-background-fill);
+        }
+        #nav-loading-overlay {
+            background-color: var(--body-background-fill);
+        }
+    }
+    /* Larger text for teaching content */
+    .slide-teaching-body {
+        font-size: 1.25em;
+        line-height: 1.75;
+        margin-top: 1rem;
+    }
+
+    /* Numbered lesson headers */
+    .lesson-item-title {
+        font-size: 1.35em;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        display: block;
+        color: var(--body-text-color);
+    }
+
+    /* Decorative number badge */
+    .lesson-badge {
+        display: inline-block;
+        background-color: var(--color-accent);
+        color: var(--button-text-color);
+        padding: 6px 12px;
+        border-radius: 10px;
+        font-weight: 700;
+        margin-right: 10px;
+        font-size: 0.9em;
+    }
+
+    /* Soft background emphasis block */
+    .lesson-emphasis-box {
+        background-color: var(--block-background-fill);
+        border-left: 6px solid var(--color-accent);
+        padding: 18px 20px;
+        border-radius: 10px;
+        margin-top: 1.5rem;
+    }
+
+    /* Additional emotional emphasis */
+    .emph-harm {
+        color: #b91c1c;
+        font-weight: 700;
+    }
+    @media (prefers-color-scheme: dark) {
+        .emph-harm {
+            color: #fca5a5;
+        }
+    }
+
+    """
 
     with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
+        # Persistent top anchor for scroll-to-top navigation
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
+
+        # Navigation loading overlay with spinner and dynamic message
         gr.HTML("""
             <div id='nav-loading-overlay'>
                 <div class='nav-spinner'></div>
@@ -414,88 +820,820 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
             </div>
         """)
 
-        gr.Markdown("<h1 style='text-align:center;'>⚖️ The Ethical Challenge: The Moral Compass</h1>")
+        gr.Markdown("<h1 style='text-align:center;'>🚀 The Ethical Revelation: Real-World Impact</h1>")
 
-        app_state = gr.State()
-
-        # Step 1: A Higher Standard
-        with gr.Column(visible=True, elem_id="step-1") as step_1:
-            stats_display = gr.HTML(value="")  # Dynamically set below
-            step_1_next = gr.Button(
-                "Introduce the New Standard ▶️", variant="primary", size="lg"
+        # --- Loading screen ---
+        with gr.Column(visible=False) as loading_screen:
+            gr.Markdown(
+                """
+                <div style='text-align:center; padding: 100px 0;'>
+                    <h2 class='large-text'>⏳ Loading...</h2>
+                </div>
+                """
             )
 
-        # Step 2: The Dramatic Reset
+        # Step 1: Celebration - High Performance Model
+        with gr.Column(visible=True, elem_id="step-1") as step_1:
+            # Get user stats
+            user_stats = _get_user_stats_from_leaderboard()
+
+            gr.Markdown("<h2 style='text-align:center;'>🎉 Congratulations, Engineer!</h2>")
+
+            # Build personalized content based on user stats
+            if user_stats["is_signed_in"] and user_stats["best_score"] is not None:
+                # Show actual user stats
+                best_score_pct = f"{(user_stats['best_score'] * 100):.1f}%"
+                rank_text = f"#{user_stats['rank']}" if user_stats['rank'] else "N/A"
+                team_text = user_stats['team_name'] if user_stats['team_name'] else "N/A"
+
+                celebration_html = f"""
+                <div class='slide-shell slide-shell--primary'>
+                    <div style='text-align:center;'>
+                        <h2 class='slide-shell__title'>
+                            🏆 Great Work, Engineer! 🏆
+                        </h2>
+                        <p class='slide-shell__subtitle'>
+                            Here's your performance summary.
+                        </p>
+
+                        <div class='content-box'>
+                            <h3 class='content-box__heading'>Your Stats</h3>
+
+                            <div class='stat-grid'>
+                                <div class='stat-card'>
+                                    <p class='stat-card__label'>Best Accuracy</p>
+                                    <p class='stat-card__value'>
+                                        {best_score_pct}
+                                    </p>
+                                </div>
+
+                                <div class='stat-card'>
+                                    <p class='stat-card__label'>Your Rank</p>
+                                    <p class='stat-card__value'>
+                                        {rank_text}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class='team-card'>
+                                <p class='team-card__label'>Team</p>
+                                <p class='team-card__value'>
+                                    🛡️ {team_text}
+                                </p>
+                            </div>
+                        </div>
+
+                        <p class='slide-shell__subtitle' style='font-weight:500;'>
+                            Ready to share your model and explore its real-world impact?
+                        </p>
+                    </div>
+                </div>
+                """
+            elif user_stats["is_signed_in"]:
+                # Signed in but no submissions yet
+                celebration_html = """
+                <div class='slide-shell slide-shell--primary'>
+                    <div style='text-align:center;'>
+                        <h2 class='slide-shell__title'>
+                            🚀 You're Signed In!
+                        </h2>
+                        <p class='slide-shell__subtitle'>
+                            You haven't submitted a model yet, but you're all set to continue learning.
+                        </p>
+
+                        <div class='content-box'>
+                            <p style='margin:0;'>
+                                Once you submit a model in the Model Building Game,
+                                your accuracy and ranking will appear here.
+                            </p>
+                        </div>
+
+                        <p class='slide-shell__subtitle' style='font-weight:500;'>
+                            Continue to the next section when you're ready.
+                        </p>
+                    </div>
+                </div>
+                """
+            else:
+                # Not signed in - show prompt with login form
+                celebration_html = """
+                <div class='slide-shell slide-shell--primary' style='text-align:center;'>
+                    <h2 class='slide-shell__title'>
+                        🔐 Sign In to View Your Stats
+                    </h2>
+                    <p class='slide-shell__subtitle' style='line-height:1.6;'>
+                        Sign in to see your personalized performance summary, including your
+                        score, rank, and team assignment.
+                    </p>
+                    <p class='slide-shell__subtitle'>
+                        You can still continue the lesson even if you skip signing in.
+                    </p>
+                </div>
+                """
+
+            stats_display = gr.HTML(celebration_html)
+
+            # Login form (only shown if not signed in)
+            with gr.Column(visible=not user_stats["is_signed_in"]) as login_form:
+                gr.Markdown("### Sign In")
+                login_username = gr.Textbox(
+                    label="Username",
+                    placeholder="Enter your modelshare.ai username"
+                )
+                login_password = gr.Textbox(
+                    label="Password",
+                    type="password",
+                    placeholder="Enter your password"
+                )
+                login_submit = gr.Button("Sign In", variant="primary")
+                login_feedback = gr.HTML(value="", visible=False)
+
+                # Handle login
+                def handle_login(username, password):
+                    success, message, new_stats = _perform_inline_login(username, password)
+
+                    # Rebuild celebration HTML with new stats
+                    if success and new_stats["best_score"] is not None:
+                        best_score_pct = f"{(new_stats['best_score'] * 100):.1f}%"
+                        rank_text = f"#{new_stats['rank']}" if new_stats['rank'] else "N/A"
+                        team_text = new_stats['team_name'] if new_stats['team_name'] else "N/A"
+
+                        new_celebration_html = f"""
+                        <div class='slide-shell slide-shell--primary'>
+                            <div style='text-align:center;'>
+                                <h2 class='slide-shell__title'>
+                                    🏆 Great Work, Engineer! 🏆
+                                </h2>
+                                <p class='slide-shell__subtitle'>
+                                    Here's your performance summary.
+                                </p>
+
+                                <div class='content-box'>
+                                    <h3 class='content-box__heading'>Your Stats</h3>
+
+                                    <div class='stat-grid'>
+                                        <div class='stat-card'>
+                                            <p class='stat-card__label'>Best Accuracy</p>
+                                            <p class='stat-card__value'>
+                                                {best_score_pct}
+                                            </p>
+                                        </div>
+
+                                        <div class='stat-card'>
+                                            <p class='stat-card__label'>Your Rank</p>
+                                            <p class='stat-card__value'>
+                                                {rank_text}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class='team-card'>
+                                        <p class='team-card__label'>Team</p>
+                                        <p class='team-card__value'>
+                                            🛡️ {team_text}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <p class='slide-shell__subtitle' style='font-weight:500;'>
+                                    Ready to share your model and explore its real-world impact?
+                                </p>
+                            </div>
+                        </div>
+                        """
+                        return {
+                            stats_display: gr.update(value=new_celebration_html),
+                            login_form: gr.update(visible=False),
+                            login_feedback: gr.update(value=message, visible=True)
+                        }
+                    elif success:
+                        # Signed in but no submissions
+                        new_celebration_html = """
+                        <div class='slide-shell slide-shell--primary'>
+                            <div style='text-align:center;'>
+                                <h2 class='slide-shell__title'>
+                                    🚀 You're Signed In!
+                                </h2>
+                                <p class='slide-shell__subtitle'>
+                                    You haven't submitted a model yet, but you're all set to continue learning.
+                                </p>
+
+                                <div class='content-box'>
+                                    <p style='margin:0;'>
+                                        Once you submit a model in the Model Building Game,
+                                        your accuracy and ranking will appear here.
+                                    </p>
+                                </div>
+
+                                <p class='slide-shell__subtitle' style='font-weight:500;'>
+                                    Continue to the next section when you're ready.
+                                </p>
+                            </div>
+                        </div>
+                        """
+                        return {
+                            stats_display: gr.update(value=new_celebration_html),
+                            login_form: gr.update(visible=False),
+                            login_feedback: gr.update(value=message, visible=True)
+                        }
+                    else:
+                        # Login failed
+                        return {
+                            stats_display: gr.update(),
+                            login_form: gr.update(visible=True),
+                            login_feedback: gr.update(value=message, visible=True)
+                        }
+
+                login_submit.click(
+                    fn=handle_login,
+                    inputs=[login_username, login_password],
+                    outputs=[stats_display, login_form, login_feedback]
+                )
+
+            gr.HTML("<div style='margin:32px 0;'></div>")
+
+            deploy_button = gr.Button(
+                "🌍 Share Your AI Model (Simulation Only)",
+                variant="primary",
+                size="lg",
+                scale=1
+            )
+
+        # Step 2: The Twist - Reality Check
         with gr.Column(visible=False, elem_id="step-2") as step_2:
-            step_2_html_comp = gr.HTML(value="")
+            gr.Markdown("<h2 style='text-align:center;'>⚠️ But Wait...</h2>")
+            gr.HTML(
+                """
+                <div class='slide-shell slide-shell--warning'>
+                    <p class='large-text' style='text-align:center; font-weight:600; margin:0;'>
+                        Before we share the model, there's something you need to know...
+                    </p>
+
+                    <div class='content-box'>
+                        <h3 class='content-box__heading'>A Real-World Story</h3>
+
+                        <p class='slide-warning-body'>
+                            A model similar to yours was actually used in the real world.
+                            It was used by judges across the United States to help make decisions
+                            about defendants' futures.
+                        </p>
+
+                        <p class='slide-warning-body' style='margin-top:16px;'>
+                            Like yours, it had impressive accuracy scores. Like yours, it was built
+                            on data about past criminal cases. Like yours, it aimed to predict
+                            who would re-offend.
+                        </p>
+
+                        <p class='slide-warning-body' style='margin-top:16px; font-weight:600;'>
+                            But something was terribly wrong...
+                        </p>
+                    </div>
+                </div>
+                """
+            )
+
             with gr.Row():
                 step_2_back = gr.Button("◀️ Back", size="lg")
-                step_2_next = gr.Button("Reset and Transform ▶️", variant="primary", size="lg")
+                step_2_next = gr.Button("Reveal the Truth ▶️", variant="primary", size="lg")
 
-        # Step 3: The Reset Animation
+        # Step 3: The Revelation - ProPublica Investigation
         with gr.Column(visible=False, elem_id="step-3") as step_3:
-            gr.HTML(""" ... existing reset gauge HTML ... """)
+            gr.Markdown("<h2 style='text-align:center;'>📰 The ProPublica Investigation</h2>")
+            gr.HTML(
+                """
+                <div class='revelation-box'>
+                    <h3 style='margin-top:0; font-size:1.8rem;'>
+                        "Machine Bias" - A Landmark Investigation
+                    </h3>
+
+                    <p style='font-size:1.1rem; line-height:1.6;'>
+                        In 2016, journalists at <strong>ProPublica</strong> investigated a widely-used criminal risk
+                        assessment algorithm called <strong>COMPAS</strong>. They analyzed over
+                        <strong>7,000 actual cases</strong> to see if the AI's predictions came true.
+                    </p>
+
+                    <div class='content-box content-box--emphasis'>
+                        <h4 class='content-box__heading'>Their Shocking Findings:</h4>
+
+                        <div class='bg-danger-soft' style='margin:20px 0;'>
+                            <p class='emph-danger' style='font-size:1.15rem; margin:0;'>
+                                ⚠️ Black defendants were labeled "high-risk" at nearly <u>TWICE</u> the rate of white defendants.
+                            </p>
+                        </div>
+
+                        <p style='font-size:1.05rem; margin-top:20px;'>
+                            <strong>Specifically:</strong>
+                        </p>
+                        <ul style='font-size:1.05rem; line-height:1.8;'>
+                            <li>
+                                <span class='emph-danger'>Black defendants</span> who
+                                <em>did NOT re-offend</em> were incorrectly labeled as
+                                <strong>"high-risk"</strong> at a rate of
+                                <span class='emph-danger'> 45%</span>
+                            </li>
+                            <li>
+                                <strong>White defendants</strong> who <em>did NOT re-offend</em>
+                                were incorrectly labeled as <strong>"high-risk"</strong> at a rate
+                                of only <strong>24%</strong>
+                            </li>
+                            <li style='margin-top:12px;'>
+                                Meanwhile, <strong>white defendants</strong> who
+                                <em>DID re-offend</em> were <strong>more likely to be labeled
+                                "low-risk"</strong> compared to Black defendants
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class='content-box content-box--emphasis'>
+                        <h4 class='content-box__heading'>What Does This Mean?</h4>
+                        <p style='font-size:1.05rem; margin:0; line-height:1.6;'>
+                            The AI system was <strong class='emph-danger'>systematically biased</strong>. It didn't just
+                            make random errors—it made <strong>different kinds of errors for different
+                            groups of people</strong>.
+                        </p>
+                        <p style='font-size:1.05rem; margin-top:12px; line-height:1.6;'>
+                            Black defendants faced a much higher risk of being <strong class='emph-danger'>unfairly labeled
+                            as dangerous</strong>, potentially leading to longer prison sentences or
+                            denied parole—even when they would not have re-offended.
+                        </p>
+                    </div>
+                </div>
+                """
+            )
+
             with gr.Row():
                 step_3_back = gr.Button("◀️ Back", size="lg")
-                step_3_next = gr.Button("Introduce the Moral Compass ▶️", variant="primary", size="lg")
+                step_3_next = gr.Button("See This in Europe ▶️", variant="primary", size="lg")
 
-        # Step 4: The Moral Compass Score
+        # NEW Step 4: Europe Too – This Isn’t Just a US Problem
+        with gr.Column(visible=False, elem_id="step-4-eu") as step_4_eu:
+            gr.Markdown("<h2 style='text-align:center;'>🇪🇺 This Isn’t Just a US Problem</h2>")
+            gr.HTML(
+                """
+                <div class='eu-panel'>
+                    <h3 class='emph-eu' style='font-size:1.9rem; text-align:center;'>
+                        AI for “Risky Offenders” Is Already in Europe
+                    </h3>
+
+                    <p style='line-height:1.8;'>
+                        The COMPAS story is not just an American warning. Across Europe, public authorities
+                        have experimented with <strong>very similar tools</strong> that aim to predict
+                        who will reoffend or which areas are “high risk”.
+                    </p>
+
+                    <ul style='line-height:1.9; font-size:1.05rem; margin:20px 0;'>
+                        <li>
+                            <strong class='emph-eu'>United Kingdom – HART (Harm Assessment Risk Tool)</strong><br>
+                            A machine-learning model used by Durham Police to predict who will reoffend within
+                            two years. It uses variables like age, gender, <em>postcode</em>, housing and job
+                            instability – socio-economic proxies that can reproduce the same kinds of biased
+                            patterns exposed in COMPAS.
+                        </li>
+                        <li style='margin-top:14px;'>
+                            <strong class='emph-eu'>Spain – VioGén</strong><br>
+                            A risk tool for gender-violence cases whose inner workings are largely a
+                            <em>"black box"</em>. Officers rely heavily on its scores to decide protection
+                            measures, even though the algorithm cannot easily be audited for bias or errors.
+                        </li>
+                        <li style='margin-top:14px;'>
+                            <strong class='emph-eu'>Netherlands &amp; Denmark – Predictive profiling</strong><br>
+                            Systems like the Dutch <em>Crime Anticipation System (CAS)</em> and Denmark’s
+                            algorithmic <em>“ghetto”</em> classifications use demographic and socio-economic
+                            data to steer policing and penalties, risking feedback loops that target certain
+                            communities again and again.
+                        </li>
+                    </ul>
+
+                    <div class='bg-eu-soft eu-panel__highlight'>
+                        <h4 class='emph-eu'>Ongoing European Debate</h4>
+                        <p style='margin:0; line-height:1.7; font-size:1.05rem;'>
+                            The Barcelona Prosecuter's office has proposed an "electronic repeat-offense calculator".  
+                            Courts, regulators and researchers are actively examining how these tools affect
+                            fundamental rights such as non-discrimination, fair trial and data protection.
+                        </p>
+                    </div>
+
+                    <div class='eu-panel__note'>
+                        <p style='margin:0; line-height:1.8; font-size:1.1rem;'>
+                            <strong>Key point:</strong> The risks you saw with COMPAS are not far away
+                            in another country. <strong class='emph-key'>They are live questions in both Europe and the U.S. right now.</strong>
+                        </p>
+                    </div>
+                </div>
+                """
+            )
+
+            with gr.Row():
+                step_4_eu_back = gr.Button("◀️ Back to the Investigation", size="lg")
+                step_4_eu_next = gr.Button("Zoom Out to the Lesson ▶️", variant="primary", size="lg")
+
+        # Step 5: The Key Takeaway (was Step 4)
         with gr.Column(visible=False, elem_id="step-4") as step_4:
-            gr.Markdown("<h2 style='text-align:center;'>🧭 The Moral Compass Score</h2>")
-            gr.HTML(""" ... existing MC Score HTML ... """)
+            gr.Markdown("<h2 style='text-align:center;'>💡 The Critical Lesson</h2>")
+            gr.HTML(
+                """
+                <div class='content-box'>
+                    <h4 class='content-box__heading emph-key' style='font-size:1.5rem;'>
+                        Why This Matters:
+                    </h4>
+
+                    <!-- LESSON 1 -->
+                    <div class='lesson-emphasis-box'>
+                        <span class='lesson-item-title'>
+                            <span class='lesson-badge'>1</span>
+                            Overall accuracy can hide group-specific harm
+                        </span>
+
+                        <p class='slide-teaching-body'>
+                            A model might be 70% accurate overall — but the remaining 30% of errors
+                            can fall disproportionately on <span class='emph-harm'>specific groups</span>,
+                            resulting in real harm even when the total accuracy appears “good”.
+                        </p>
+                    </div>
+
+                    <!-- LESSON 2 -->
+                    <div class='lesson-emphasis-box'>
+                        <span class='lesson-item-title'>
+                            <span class='lesson-badge'>2</span>
+                            Historical bias in training data gets amplified
+                        </span>
+
+                        <p class='slide-teaching-body'>
+                            If past policing or judicial decisions were biased, the AI system will
+                            <span class='emph-harm'>learn and reinforce</span> those inequities —
+                            often making them worse at scale.
+                        </p>
+                    </div>
+
+                    <!-- LESSON 3 -->
+                    <div class='lesson-emphasis-box'>
+                        <span class='lesson-item-title'>
+                            <span class='lesson-badge'>3</span>
+                            Real people's lives are affected
+                        </span>
+
+                        <p class='slide-teaching-body'>
+                            Each <strong class='emph-harm'>"false positive"</strong> represents a person
+                            who may lose years of freedom, employment, housing, or family connection —
+                            all due to a single <strong class='emph-harm'>biased prediction</strong>.
+                        </p>
+                    </div>
+                </div>
+                """
+            )
+
             with gr.Row():
                 step_4_back = gr.Button("◀️ Back", size="lg")
-                step_4_next = gr.Button("See the Challenge Ahead ▶️", variant="primary", size="lg")
+                step_4_next = gr.Button("What Can We Do? ▶️", variant="primary", size="lg")
 
-        # Step 6: The Challenge Ahead (directly after Step 4)
-        with gr.Column(visible=False, elem_id="step-6") as step_6:
-            step_6_html_comp = gr.HTML(value="")
-            with gr.Row():
-                step_6_back = gr.Button("◀️ Back", size="lg")
+        # Step 6: The Path Forward (was Step 5)
+        with gr.Column(visible=False, elem_id="step-5") as step_5:
+            gr.Markdown("<h2 style='text-align:center;'>🛤️ The Path Forward</h2>")
+            gr.HTML(
+                """
+                <div style='text-align:center;'>
+                    <div class='slide-shell slide-shell--info'>
+                        <h3 class='slide-shell__title'>
+                            From Accuracy to Ethics
+                        </h3>
 
-        all_steps = [step_1, step_2, step_3, step_4, step_6]
+                        <p style='line-height:1.8; text-align:left;'>
+                            You've now seen both sides of the AI story:
+                        </p>
 
-        # Navigation logic unchanged; not included here for brevity.
+                        <ul style='text-align:left; line-height:2; font-size:1.1rem; margin:24px 0;'>
+                            <li>✅ You built models that achieved higher accuracy scores</li>
+                            <li>⚠️ You learned how similar models caused real-world harm</li>
+                            <li>🤔 You understand that accuracy alone is not enough</li>
+                        </ul>
 
-        def handle_session_auth(request: "gr.Request", s: dict):
-            auth_result = _try_session_based_auth(request)
-            if auth_result["success"]:
-                username = auth_result["username"]
-                token= auth_result["token"]
-                team = auth_result["team_name"]
-                signedin = True
-                user_stats = _get_user_stats_from_leaderboard(username, team, token)
+                        <div class='content-box'>
+                            <h4 class='content-box__heading'>What You'll Do Next:</h4>
+                            <p style='font-size:1.1rem; line-height:1.8;'>
+                                In the next section, you'll be introduced to a <strong class='emph-key'>new way of measuring
+                                success</strong>—one that balances performance with fairness and ethics.
+                            </p>
+                            <p style='font-size:1.1rem; line-height:1.8; margin-top:16px;'>
+                                You'll learn techniques to <strong class='emph-key'>detect bias</strong> in your models,
+                                <strong class='emph-key'>measure fairness</strong> across different groups, and
+                                <strong class='emph-key'>redesign your AI</strong> to minimize harm.
+                            </p>
+                        </div>
 
-                standing_html = build_standing_html(user_stats)
-                step2_html = build_step2_html(user_stats)
-                step6_html = build_step6_html(user_stats)
+                        <div class='content-box content-box--emphasis'>
+                            <p style='font-size:1.15rem; font-weight:600; margin:0;'>
+                                🎯 Your new mission: Build AI that is not just accurate, but also
+                                <strong class='emph-key'>fair, equitable, and ethically sound</strong>.
+                            </p>
+                        </div>
 
-                return {
-                    stats_display: gr.update(value=standing_html),
-                    step_2_html_comp: gr.update(value=step2_html),
-                    step_6_html_comp: gr.update(value=step6_html)
-                }
-            else:
-                info_html = build_standing_html({"is_signed_in": False})
-                return {
-                    stats_display: gr.update(value=info_html),
-                    step_2_html_comp: gr.update(value=build_step2_html({"is_signed_in": False, "best_score": None})),
-                    step_6_html_comp: gr.update(value=build_step6_html({"is_signed_in": False}))
-                }
+                        <h1 style='margin:32px 0 16px 0; font-size: 3rem;'>👇 SCROLL DOWN 👇</h1>
+                        <p style='font-size:1.2rem;'>Continue to the next section below to begin your ethical AI journey.</p>
+                    </div>
+                </div>
+                """
+            )
 
-        demo.load(
-            fn=handle_session_auth,
-            inputs=[app_state],
-            outputs=[stats_display, step_2_html_comp, step_6_html_comp]
+            back_to_lesson_btn = gr.Button("◀️ Review the Investigation", size="lg")
+
+        # --- NAVIGATION LOGIC ---
+
+        all_steps = [step_1, step_2, step_3, step_4_eu, step_4, step_5, loading_screen]
+
+        def create_nav_generator(current_step, next_step):
+            """A helper to create the generator functions to avoid repetitive code."""
+            def navigate():
+                # Yield 1: Show loading, hide all
+                updates = {loading_screen: gr.update(visible=True)}
+                for step in all_steps:
+                    if step != loading_screen:
+                        updates[step] = gr.update(visible=False)
+                yield updates
+
+                # Yield 2: Show new step, hide all
+                updates = {next_step: gr.update(visible=True)}
+                for step in all_steps:
+                    if step != next_step:
+                        updates[step] = gr.update(visible=False)
+                yield updates
+            return navigate
+
+        # Helper function to generate navigation JS with loading overlay
+        def nav_js(target_id: str, message: str, min_show_ms: int = 1200) -> str:
+            """Generate JavaScript for enhanced slide navigation with loading overlay."""
+            return f"""
+()=>{{
+  try {{
+    const overlay = document.getElementById('nav-loading-overlay');
+    const messageEl = document.getElementById('nav-loading-text');
+    if(overlay && messageEl) {{
+      messageEl.textContent = '{message}';
+      overlay.style.display = 'flex';
+      setTimeout(() => {{ overlay.style.opacity = '1'; }}, 10);
+    }}
+
+    const startTime = Date.now();
+
+    setTimeout(() => {{
+      const anchor = document.getElementById('app_top_anchor');
+      const container = document.querySelector('.gradio-container') || document.scrollingElement || document.documentElement;
+
+      function doScroll() {{
+        if(anchor) {{ anchor.scrollIntoView({{behavior:'smooth', block:'start'}}); }}
+        else {{ container.scrollTo({{top:0, behavior:'smooth'}}); }}
+
+        try {{
+          if(window.parent && window.parent !== window && window.frameElement) {{
+            const top = window.frameElement.getBoundingClientRect().top + window.parent.scrollY;
+            window.parent.scrollTo({{top: Math.max(top - 10, 0), behavior:'smooth'}});
+          }}
+        }} catch(e2) {{}}
+      }}
+
+      doScroll();
+      let scrollAttempts = 0;
+      const scrollInterval = setInterval(() => {{
+        scrollAttempts++;
+        doScroll();
+        if(scrollAttempts >= 3) clearInterval(scrollInterval);
+      }}, 130);
+    }}, 40);
+
+    const targetId = '{target_id}';
+    const minShowMs = {min_show_ms};
+    let pollCount = 0;
+    const maxPolls = 77;
+
+    const pollInterval = setInterval(() => {{
+      pollCount++;
+      const elapsed = Date.now() - startTime;
+      const target = document.getElementById(targetId);
+      const isVisible = target && target.offsetParent !== null &&
+                       window.getComputedStyle(target).display !== 'none';
+
+      if((isVisible && elapsed >= minShowMs) || pollCount >= maxPolls) {{
+        clearInterval(pollInterval);
+        if(overlay) {{
+          overlay.style.opacity = '0';
+          setTimeout(() => {{ overlay.style.display = 'none'; }}, 300);
+        }}
+      }}
+    }}, 90);
+
+  }} catch(e) {{ console.warn('nav-js error', e); }}
+}}
+"""
+
+        # --- Wire up navigation ---
+        deploy_button.click(
+            fn=create_nav_generator(step_1, step_2),
+            inputs=None, outputs=all_steps, show_progress="full",
+            js=nav_js("step-2", "Sharing model...")
+        )
+        step_2_back.click(
+            fn=create_nav_generator(step_2, step_1),
+            inputs=None, outputs=all_steps, show_progress="full",
+            js=nav_js("step-1", "Returning...")
+        )
+        step_2_next.click(
+            fn=create_nav_generator(step_2, step_3),
+            inputs=None, outputs=all_steps, show_progress="full",
+            js=nav_js("step-3", "Loading investigation findings...")
+        )
+        step_3_back.click(
+            fn=create_nav_generator(step_3, step_2),
+            inputs=None, outputs=all_steps, show_progress="full",
+            js=nav_js("step-2", "Going back...")
+        )
+        step_3_next.click(
+            fn=create_nav_generator(step_3, step_4_eu),
+            inputs=None, outputs=all_steps, show_progress="full",
+            js=nav_js("step-4-eu", "Seeing how this plays out in Europe...")
+        )
+        step_4_eu_back.click(
+            fn=create_nav_generator(step_4_eu, step_3),
+            inputs=None, outputs=all_steps, show_progress="full",
+            js=nav_js("step-3", "Reviewing the ProPublica findings...")
+        )
+        step_4_eu_next.click(
+            fn=create_nav_generator(step_4_eu, step_4),
+            inputs=None, outputs=all_steps, show_progress="full",
+            js=nav_js("step-4", "Zooming out to the key lesson...")
+        )
+        step_4_back.click(
+            fn=create_nav_generator(step_4, step_4_eu),
+            inputs=None, outputs=all_steps, show_progress="full",
+            js=nav_js("step-4-eu", "Revisiting the European context...")
+        )
+        step_4_next.click(
+            fn=create_nav_generator(step_4, step_5),
+            inputs=None, outputs=all_steps, show_progress="full",
+            js=nav_js("step-5", "Exploring solutions...")
+        )
+        back_to_lesson_btn.click(
+            fn=create_nav_generator(step_5, step_4),
+            inputs=None, outputs=all_steps, show_progress="full",
+            js=nav_js("step-4", "Reviewing key lesson...")
         )
 
+        # Session-based authentication on page load
+        def handle_session_auth(request: "gr.Request"):
+            """Check for session token and auto-login if present."""
+            success, username, token = _try_session_based_auth(request)
+            
+            if success and username:
+                # Get or assign team for this user
+                import random
+                
+                # Try to get existing team from leaderboard
+                try:
+                    from aimodelshare.playground import Competition
+                    import pandas as pd
+                    
+                    playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+                    playground = Competition(playground_id)
+                    leaderboard_df = playground.get_leaderboard(token=token)
+                    
+                    # Use same TEAM_NAMES as used in other parts of the app
+                    TEAM_NAMES = [
+                        "The Justice League", "The Moral Champions", "The Data Detectives",
+                        "The Ethical Explorers", "The Fairness Finders", "The Accuracy Avengers"
+                    ]
+                    
+                    team_name = None
+                    if leaderboard_df is not None and not leaderboard_df.empty and "Team" in leaderboard_df.columns:
+                        user_submissions = leaderboard_df[leaderboard_df["username"] == username]
+                        if not user_submissions.empty:
+                            if "timestamp" in user_submissions.columns:
+                                try:
+                                    user_submissions = user_submissions.copy()
+                                    user_submissions["timestamp"] = pd.to_datetime(
+                                        user_submissions["timestamp"], errors='coerce'
+                                    )
+                                    user_submissions = user_submissions.sort_values("timestamp", ascending=False)
+                                except Exception:
+                                    pass
+                            existing_team = user_submissions.iloc[0]["Team"]
+                            if pd.notna(existing_team) and existing_team and str(existing_team).strip():
+                                team_name = str(existing_team).strip()
+                    
+                    if not team_name:
+                        team_name = random.choice(TEAM_NAMES)
+                    
+                    
+                except Exception:
+                    pass
+
+                
+                # User is authenticated, hide login form
+                user_stats = _get_user_stats_from_leaderboard(username, token)
+                
+                # Build celebration HTML with user stats
+                if user_stats["best_score"] is not None:
+                    best_score_pct = f"{(user_stats['best_score'] * 100):.1f}%"
+                    rank_text = f"#{user_stats['rank']}" if user_stats['rank'] else "N/A"
+                    team_text = user_stats['team_name'] if user_stats['team_name'] else team_name
+                    
+                    celebration_html = f"""
+                    <div class='slide-shell slide-shell--primary'>
+                        <div style='text-align:center;'>
+                            <h2 class='slide-shell__title'>
+                                🏆 Great Work, Engineer! 🏆
+                            </h2>
+                            <p class='slide-shell__subtitle'>
+                                Here's your performance summary.
+                            </p>
+
+                            <div class='content-box'>
+                                <h3 class='content-box__heading'>Your Stats</h3>
+
+                                <div class='stat-grid'>
+                                    <div class='stat-card'>
+                                        <p class='stat-card__label'>Best Accuracy</p>
+                                        <p class='stat-card__value'>
+                                            {best_score_pct}
+                                        </p>
+                                    </div>
+
+                                    <div class='stat-card'>
+                                        <p class='stat-card__label'>Your Rank</p>
+                                        <p class='stat-card__value'>
+                                            {rank_text}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class='team-card'>
+                                    <p class='team-card__label'>Team</p>
+                                    <p class='team-card__value'>
+                                        🛡️ {team_text}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <p class='slide-shell__subtitle' style='font-weight:500;'>
+                                Ready to share your model and explore its real-world impact?
+                            </p>
+                        </div>
+                    </div>
+                    """
+                else:
+                    celebration_html = f"""
+                    <div class='slide-shell slide-shell--primary'>
+                        <div style='text-align:center;'>
+                            <h2 class='slide-shell__title'>
+                                🚀 You're Signed In!
+                            </h2>
+                            <p class='slide-shell__subtitle'>
+                                You haven't submitted a model yet, but you're all set to continue learning.
+                            </p>
+
+                            <div class='content-box'>
+                                <p style='margin:0;'>
+                                    Once you submit a model in the Model Building Game,
+                                    your accuracy and ranking will appear here.
+                                </p>
+                            </div>
+
+                            <p class='slide-shell__subtitle' style='font-weight:500;'>
+                                Continue to the next section when you're ready.
+                            </p>
+                        </div>
+                    </div>
+                    """
+                
+                # <--- CHANGED HERE!
+                # Also hide the login form when displaying stats
+                return {
+                    stats_display: gr.update(value=celebration_html),
+                    login_form: gr.update(visible=False)
+                }
+            else:
+                # No valid session, keep login form visible
+                return {
+                    stats_display: gr.update(),
+                    login_form: gr.update(visible=True)
+                }
+        
+        # Wire up session auth on page load
+        demo.load(
+            fn=handle_session_auth,
+            inputs=None,
+            outputs=[stats_display, login_form]
+        )
     return demo
 
-def launch_moral_compass_challenge_app(height: int = 1000, share: bool = False, debug: bool = False) -> None:
-    """Convenience wrapper to create and launch the moral compass challenge app inline."""
-    import gradio as gr
-    demo = create_moral_compass_challenge_app()
-    import os
+
+
+def launch_ethical_revelation_app(height: int = 1000, share: bool = False, debug: bool = False) -> None:
+    """Convenience wrapper to create and launch the ethical revelation app inline."""
+    import gradio as gr  # ensure available here if user calls this directly
+    demo = create_ethical_revelation_app()
     port = int(os.environ.get("PORT", 8080))
     demo.launch(share=share, inline=True, debug=debug, height=height, server_port=port)
+
+
+
+
+
 
