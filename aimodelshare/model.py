@@ -1007,7 +1007,8 @@ def submit_model(
         if token==None:
             headers = { 'Content-Type':'application/json', 'authorizationToken': json.dumps({"token":os.environ.get("AWS_TOKEN"),"eval":"TEST"}), } 
         else:
-            headers = { 'Content-Type':'application/json', 'authorizationToken': json.dumps({"token":token,"eval":"TEST"}), }         apiurl_eval=apiurl[:-1]+"eval"
+            headers = { 'Content-Type':'application/json', 'authorizationToken': json.dumps({"token":token,"eval":"TEST"}), }         
+            apiurl_eval=apiurl[:-1]+"eval"
         import requests
         prediction = requests.post(apiurl_eval,headers=headers,data=json.dumps(post_dict)) 
 
