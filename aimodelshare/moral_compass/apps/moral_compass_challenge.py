@@ -2,13 +2,16 @@
 The Moral Compass Challenge - Gradio application for the Justice & Equity Challenge.
 
 This version:
-- Restores original slide content & styling helpers (standing, step 2, step 6) from the prior version you wanted.
-- Keeps session-only authentication (no manual sign-in).
-- Adds caching & concurrency optimizations (leaderboard + per-user stats TTL cache).
-- Avoids per-user environment variable mutation.
-- Retains navigation logic structure.
+- Uses sessionid-only authentication (no username/password UI).
+- Retains the restored original slide text/content you wanted (standing, paradigm shift, reset, formula, challenge ahead).
+- Keeps lightweight leaderboard + per-user stats caching for scalability.
+- Integrates the richer dark/light mode optimized CSS from the older version you supplied (including gauge, alerts, emphasis classes, etc.).
+- No per-user environment mutation; everything resolved per request.
 
-Replace placeholder HTML and CSS sections (“... existing ...”) with your original full content if needed.
+Environment Variables (optional):
+    LEADERBOARD_CACHE_SECONDS (int) default=45
+    MAX_LEADERBOARD_ENTRIES (int) default=None
+    DEBUG_LOG ('true'/'false') default='false'
 """
 
 import os
@@ -23,9 +26,7 @@ import pandas as pd
 try:
     from aimodelshare.playground import Competition
 except ImportError as e:
-    raise ImportError(
-        "The 'aimodelshare' library is required. Install with: pip install aimodelshare"
-    ) from e
+    raise ImportError("The 'aimodelshare' library is required. Install with: pip install aimodelshare") from e
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -41,12 +42,12 @@ TEAM_NAMES = [
 ]
 
 # ---------------------------------------------------------------------------
-# In-memory caches
+# In-memory caches (per container instance)
 # ---------------------------------------------------------------------------
 _cache_lock = threading.Lock()
 _leaderboard_cache: Dict[str, Any] = {"data": None, "timestamp": 0.0}
 _user_stats_cache: Dict[str, Dict[str, Any]] = {}
-USER_STATS_TTL = LEADERBOARD_CACHE_SECONDS  # align TTLs
+USER_STATS_TTL = LEADERBOARD_CACHE_SECONDS
 
 def _log(msg: str):
     if DEBUG_LOG:
@@ -83,11 +84,7 @@ def _fetch_leaderboard(token: str) -> Optional[pd.DataFrame]:
 
 def _get_or_assign_team(username: str, leaderboard_df: Optional[pd.DataFrame]) -> Tuple[str, bool]:
     try:
-        if (
-            leaderboard_df is not None
-            and not leaderboard_df.empty
-            and "Team" in leaderboard_df.columns
-        ):
+        if leaderboard_df is not None and not leaderboard_df.empty and "Team" in leaderboard_df.columns:
             user_submissions = leaderboard_df[leaderboard_df["username"] == username]
             if not user_submissions.empty:
                 if "timestamp" in user_submissions.columns:
@@ -96,9 +93,7 @@ def _get_or_assign_team(username: str, leaderboard_df: Optional[pd.DataFrame]) -
                         user_submissions["timestamp"] = pd.to_datetime(
                             user_submissions["timestamp"], errors="coerce"
                         )
-                        user_submissions = user_submissions.sort_values(
-                            "timestamp", ascending=False
-                        )
+                        user_submissions = user_submissions.sort_values("timestamp", ascending=False)
                     except Exception as ts_err:
                         _log(f"Timestamp sort error: {ts_err}")
                 existing_team = user_submissions.iloc[0]["Team"]
@@ -188,7 +183,7 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
     return stats
 
 # ---------------------------------------------------------------------------
-# Original HTML builder helpers (restored)
+# HTML Builders (restored original wording)
 # ---------------------------------------------------------------------------
 def build_standing_html(user_stats):
     if user_stats["is_signed_in"] and user_stats["best_score"] is not None:
@@ -280,128 +275,322 @@ def build_standing_html(user_stats):
                 🔒 Session Required
             </h2>
             <p class='slide-shell__subtitle'>
-                Please access this app via a valid session URL.<br>
-                No manual sign-in is offered.<br>
-                You can still continue through this lesson to learn!
+                Supply a valid ?sessionid=... in the URL to view personalized stats.
+                No manual sign-in is available.
             </p>
         </div>
         """
 
 def build_step2_html(user_stats):
-    if user_stats["is_signed_in"] and user_stats["best_score"] is not None:
+    if user_stats.get("is_signed_in") and user_stats.get("best_score") is not None:
         gauge_value = int(user_stats["best_score"] * 100)
     else:
         gauge_value = 75
-    gauge_fill_percent = f"{gauge_value}%"
-    gauge_display = str(gauge_value)
+    gauge_percent = f"{gauge_value}%"
     return f"""
-        <div class='slide-shell slide-shell--warning'>
-            <h3 class='slide-shell__title'>
-                We Need a Higher Standard
-            </h3>
-            <p class='slide-shell__subtitle'>
-                While your model is accurate, a higher standard is needed to prevent
-                <span class='emph-harm'>real-world harm</span>. To incentivize this new focus,
-                we're introducing a new score.
-            </p>
-            <div class='content-box'>
-                <h4 class='content-box__heading'>Watch Your Score</h4>
-                <div class='score-gauge-container'>
-                    <div class='score-gauge' style='--fill-percent: {gauge_fill_percent};'>
-                        <div class='score-gauge-inner'>
-                            <div class='score-gauge-value'>{gauge_display}</div>
-                            <div class='score-gauge-label'>Accuracy Score</div>
-                        </div>
+    <div class='slide-shell slide-shell--warning'>
+        <h3 class='slide-shell__title'>We Need a Higher Standard</h3>
+        <p class='slide-shell__subtitle'>
+            While your model is accurate, a higher standard is needed to prevent
+            <span class='emph-harm'>real-world harm</span>. To incentivize this new focus,
+            we're introducing a new score.
+        </p>
+        <div class='content-box'>
+            <h4 class='content-box__heading'>Watch Your Score</h4>
+            <div class='score-gauge-container'>
+                <div class='score-gauge' style='--fill-percent:{gauge_percent};'>
+                    <div class='score-gauge-inner'>
+                        <div class='score-gauge-value'>{gauge_value}</div>
+                        <div class='score-gauge-label'>Accuracy Score</div>
                     </div>
                 </div>
             </div>
-            <div class='content-box content-box--emphasis'>
-                <p class='content-box__heading'>
-                    This score measures only <strong>one dimension</strong> of success.
-                </p>
-                <p>
-                    It's time to add a second, equally important dimension:
-                    <strong class='emph-fairness'>Ethics</strong>.
-                </p>
-            </div>
         </div>
+        <div class='content-box content-box--emphasis'>
+            <p class='content-box__heading'>
+                This score measures only <strong>one dimension</strong> of success.
+            </p>
+            <p>
+                It's time to add a second, equally important dimension:
+                <strong class='emph-fairness'>Ethics</strong>.
+            </p>
+        </div>
+    </div>
     """
 
 def build_step6_html(user_stats):
-    if user_stats["is_signed_in"] and user_stats["rank"]:
+    if user_stats.get("is_signed_in") and user_stats.get("rank"):
         rank_text = f"#{user_stats['rank']}"
-        position_message = f"""
-                    <p class='slide-teaching-body' style='text-align:left;'>
-                        You were previously <strong>ranked {rank_text}</strong> on the accuracy leaderboard.
-                        But now, with the introduction of the Moral Compass Score, your position has changed:
-                    </p>
-        """
+        position_msg = f"You were previously ranked {rank_text} on the accuracy leaderboard."
     else:
-        position_message = """
-                    <p class='slide-teaching-body' style='text-align:left;'>
-                        With the introduction of the Moral Compass Score, everyone starts fresh.
-                        Your previous work on accuracy is valuable, but now we need to add ethics:
-                    </p>
-        """
+        position_msg = "You will establish your position as you build ethically aware models."
 
     return f"""
-        <div class='slide-shell slide-shell--info'>
-            <h3 class='slide-shell__title'>
-                📍 Your Current Position
-            </h3>
-            <div class='content-box'>
-                {position_message}
-                <div class='content-box content-box--danger'>
-                    <p class='content-box__heading'>
-                        Current Moral Compass Rank: <span class='emph-risk'>Starting Fresh</span>
-                    </p>
-                    <p>
-                        (Because your Moral Compass Score = <span class='emph-harm'>0</span>)
-                    </p>
-                </div>
-            </div>
-            <div class='content-box content-box--success'>
-                <h4 class='content-box__heading'>
-                    🛤️ The Path Forward
-                </h4>
-                <p class='slide-teaching-body'>
-                    The next section will provide expert guidance from the <strong>UdG's
-                    OEIAC AI Ethics Center</strong>. You'll learn to:
-                </p>
-                <ul class='bullet-list'>
-                    <li>🔍 <strong>Detect and measure bias</strong> in your AI models</li>
-                    <li>⚖️ <strong>Apply fairness metrics</strong> to evaluate equity</li>
-                    <li>🔧 <strong>Redesign your system</strong> to <span class='emph-harm'>minimize harm</span></li>
-                    <li>📊 <strong>Balance accuracy with fairness</strong> for better outcomes</li>
-                </ul>
-            </div>
-            <div class='content-box content-box--emphasis'>
+    <div class='slide-shell slide-shell--info'>
+        <h3 class='slide-shell__title'>📍 Your New Starting Point</h3>
+        <div class='content-box'>
+            <p>{position_msg}</p>
+            <div class='content-box content-box--danger'>
                 <p class='content-box__heading'>
-                    🏆 Upon Completion
+                    Current Moral Compass Rank: <span style='color:#b91c1c;'>Not Yet Established</span>
                 </p>
-                <p>
-                    By completing the full learning module and improving your Moral Compass Score,
-                    you will earn your <strong class='emph-fairness'>AI Ethical Risk Training Certificate</strong>.
-                </p>
-                <p class='note-text'>
-                    (Certificate details and delivery will be covered in upcoming sections)
-                </p>
+                <p>(Moral Compass Score = 0 initially)</p>
             </div>
-            <h1 style='margin:32px 0 16px 0; font-size: 3rem; text-align:center;'>👇 SCROLL DOWN 👇</h1>
-            <p style='font-size:1.2rem; text-align:center;'>
-                Continue to the expert guidance section to begin improving your Moral Compass Score.
-            </p>
         </div>
+        <div class='content-box content-box--success'>
+            <h4 class='content-box__heading'>🛤️ Path Forward</h4>
+            <ul class='bullet-list'>
+                <li>🔍 Detect and measure bias</li>
+                <li>⚖️ Apply fairness metrics</li>
+                <li>🔧 Redesign models to minimize harm</li>
+                <li>📊 Balance performance & ethics</li>
+            </ul>
+        </div>
+        <div class='content-box content-box--emphasis'>
+            <p class='content-box__heading'>
+                🏆 Achievement
+            </p>
+            <p>Improve your Moral Compass Score to earn certification.</p>
+        </div>
+        <h1 style='margin:32px 0 16px 0; font-size:2.5rem; text-align:center;'>👇 CONTINUE 👇</h1>
+        <p style='text-align:center;'>Proceed to ethical tooling & evaluation modules.</p>
+    </div>
     """
 
-# Restore your original (full) CSS here – only placeholder shown previously.
+# ---------------------------------------------------------------------------
+# Dark/Light Mode Optimized CSS (from older version)
+# ---------------------------------------------------------------------------
 CSS = """
-/* Restore your full original CSS here (previous file showed placeholder).
-   Ensure all classes (slide-shell--info, slide-shell--warning, stat-card modifiers,
-   emph-harm, emph-fairness, emph-risk, etc.) are present exactly as before. */
-... [CSS unchanged for brevity in original snippet] ...
+.large-text { font-size: 20px !important; }
+
+/* Slide + containers */
+.slide-shell {
+  padding: 28px;
+  border-radius: 16px;
+  background-color: var(--block-background-fill);
+  color: var(--body-text-color);
+  border: 2px solid var(--border-color-primary);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  max-width: 900px;
+  margin: 0 auto 24px auto;
+  font-size: 20px;
+}
+
+.slide-shell--info { border-color: var(--color-accent); }
+.slide-shell--warning { border-color: var(--color-accent); }
+
+.slide-shell__title {
+  font-size: 2rem;
+  margin: 0 0 16px 0;
+  text-align: center;
+}
+.slide-shell__subtitle {
+  font-size: 1.1rem;
+  margin-top: 8px;
+  text-align: center;
+  color: var(--secondary-text-color);
+  line-height: 1.7;
+}
+
+.content-box {
+  background-color: var(--block-background-fill);
+  border-radius: 12px;
+  border: 1px solid var(--border-color-primary);
+  padding: 24px;
+  margin: 24px 0;
+}
+.content-box__heading {
+  margin-top: 0;
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+.content-box--emphasis { border-left: 6px solid var(--color-accent); }
+.content-box--danger { border-left: 6px solid #dc2626; }
+.content-box--success { border-left: 6px solid #16a34a; }
+
+.bullet-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 16px auto 0 auto;
+  max-width: 600px;
+  font-size: 1.05rem;
+}
+.bullet-list li { padding: 6px 0; }
+
+.note-text {
+  font-size: 0.95rem;
+  margin-top: 12px;
+  font-style: italic;
+  color: var(--secondary-text-color);
+}
+
+/* Stats cards */
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 24px auto;
+  max-width: 600px;
+}
+.stat-card, .team-card {
+  text-align: center;
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color-primary);
+  background-color: var(--block-background-fill);
+}
+.stat-card__label, .team-card__label {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--secondary-text-color);
+}
+.stat-card__value {
+  margin: 8px 0 0 0;
+  font-size: 2.2rem;
+  font-weight: 800;
+}
+.stat-card--success .stat-card__value { color: #16a34a; }
+.stat-card--accent .stat-card__value { color: var(--color-accent); }
+.team-card__value {
+  margin: 8px 0 4px 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.team-card__rank { margin: 0; font-size: 1rem; color: var(--secondary-text-color); }
+
+/* Teaching body */
+.slide-teaching-body {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  margin-top: 1rem;
+}
+
+/* Emphasis */
+.emph-harm { color: #b91c1c; font-weight: 700; }
+.emph-risk { color: #b45309; font-weight: 600; }
+.emph-fairness { color: var(--color-accent); font-weight: 600; }
+
+@media (prefers-color-scheme: dark) {
+  .emph-harm { color: #fca5a5; }
+  .emph-risk { color: #fed7aa; }
+}
+
+/* Alerts */
+.alert {
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid var(--border-color-primary);
+  margin-top: 12px;
+  background-color: var(--block-background-fill);
+  color: var(--body-text-color);
+  font-size: 0.95rem;
+}
+.alert__title { margin: 0; font-weight: 600; font-size: 1.05rem; }
+.alert__subtitle { margin: 8px 0 0 0; font-weight: 600; }
+.alert__body { margin: 8px 0 0 0; }
+.alert__link { text-decoration: underline; }
+.alert--error { border-left-color: #dc2626; }
+.alert--warning { border-left-color: #f59e0b; }
+.alert--success { border-left-color: #16a34a; }
+
+/* Gauge */
+.score-gauge-container {
+  position: relative;
+  width: 260px;
+  height: 260px;
+  margin: 24px auto;
+}
+.score-gauge {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 180deg,
+    #16a34a 0%,
+    #16a34a var(--fill-percent, 0%),
+    var(--border-color-primary) var(--fill-percent, 0%),
+    var(--border-color-primary) 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+}
+.score-gauge-inner {
+  width: 70%;
+  height: 70%;
+  border-radius: 50%;
+  background-color: var(--block-background-fill);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  border: 1px solid var(--border-color-primary);
+}
+.score-gauge-value {
+  font-size: 3.2rem;
+  font-weight: 800;
+  color: var(--body-text-color);
+  line-height: 1;
+}
+.score-gauge-label {
+  font-size: 0.95rem;
+  color: var(--secondary-text-color);
+  margin-top: 8px;
+}
+
+/* Gauge reset animation */
+@keyframes gauge-drop {
+  0% { background: conic-gradient(from 180deg,#16a34a 0%,#16a34a 75%,var(--border-color-primary) 75%,var(--border-color-primary) 100%); }
+  100% { background: conic-gradient(from 180deg,#dc2626 0%,#dc2626 0%,var(--border-color-primary) 0%,var(--border-color-primary) 100%); }
+}
+.gauge-dropped { animation: gauge-drop 2s ease-out forwards; }
+
+/* Navigation overlay */
+#nav-loading-overlay {
+  position: fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background-color: var(--body-background-fill);
+  z-index:9999;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  opacity:0;
+  transition:opacity .25s ease;
+}
+.nav-spinner {
+  width:50px; height:50px;
+  border:5px solid var(--block-background-fill);
+  border-top:5px solid var(--color-accent);
+  border-radius:50%;
+  animation: nav-spin 1s linear infinite;
+  margin-bottom:20px;
+}
+@keyframes nav-spin { to { transform: rotate(360deg); } }
+#nav-loading-text {
+  font-size:1.3rem;
+  font-weight:600;
+  color: var(--body-text-color);
+}
+
+/* Dark mode: reduce shadows */
+@media (prefers-color-scheme: dark) {
+  .slide-shell,
+  .content-box,
+  .alert {
+    box-shadow:none;
+  }
+  .score-gauge { box-shadow:none; }
+}
 """
 
+# ---------------------------------------------------------------------------
+# App Factory
+# ---------------------------------------------------------------------------
 def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=CSS) as demo:
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
@@ -411,49 +600,127 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
                 <span id='nav-loading-text'>Loading...</span>
             </div>
         """)
-
-        gr.Markdown("<h1 style='text-align:center;'>⚖️ The Ethical Challenge: The Moral Compass</h1>")
+        gr.Markdown("<h1 style='text-align:center;'>⚖️ The Moral Compass Challenge</h1>")
 
         # Step 1
         with gr.Column(visible=True, elem_id="step-1") as step_1:
-            stats_display = gr.HTML(value="")  # Set after session auth
+            stats_display = gr.HTML(build_standing_html({"is_signed_in": False}))
             step_1_next = gr.Button("Introduce the New Standard ▶️", variant="primary", size="lg")
 
         # Step 2
         with gr.Column(visible=False, elem_id="step-2") as step_2:
-            step_2_html_comp = gr.HTML(value="")
+            step_2_html_comp = gr.HTML(build_step2_html({"is_signed_in": False, "best_score": None}))
             with gr.Row():
                 step_2_back = gr.Button("◀️ Back", size="lg")
                 step_2_next = gr.Button("Reset and Transform ▶️", variant="primary", size="lg")
 
         # Step 3
         with gr.Column(visible=False, elem_id="step-3") as step_3:
-            # Placeholder from original file – replace with full original reset gauge HTML if needed
-            step_3_html_comp = gr.HTML(""" ... existing reset gauge HTML ... """)
+            step_3_html_comp = gr.HTML("""
+            <div class='slide-shell slide-shell--warning'>
+                <div style='text-align:center;'>
+                    <h3 class='slide-shell__title'>
+                        Your Accuracy Score Is Being Reset
+                    </h3>
+                    <div class='score-gauge-container'>
+                        <div class='score-gauge gauge-dropped' style='--fill-percent: 0%;'>
+                            <div class='score-gauge-inner'>
+                                <div class='score-gauge-value' style='color:#dc2626;'>0</div>
+                                <div class='score-gauge-label'>Score Reset</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='content-box content-box--danger'>
+                        <h4 class='content-box__heading'>
+                            ⚠️ Why This Reset?
+                        </h4>
+                        <p class='slide-teaching-body' style='text-align:left;'>
+                            We reset your score to emphasize a critical truth: your previous success
+                            was measured by only <strong>one dimension</strong> — prediction accuracy. So far, you
+                            <strong>have not demonstrated</strong> that you know how to make your AI system
+                            <span class='emph-fairness'>safe for society</span>. You don’t yet know whether
+                            the model you built is <strong class='emph-harm'>just as biased</strong> as the
+                            harmful examples we studied in the previous activity. Moving forward, you’ll need
+                            to excel on <strong>two fronts</strong>: technical performance <em>and</em>
+                            ethical responsibility.
+                        </p>
+                    </div>
+                    <div class='content-box content-box--success'>
+                        <h4 class='content-box__heading'>
+                            ✅ Don't Worry!
+                        </h4>
+                        <p class='slide-teaching-body'>
+                            As you make your AI more ethical through the upcoming lessons and challenges,
+                            <strong>your score will be restored</strong>—and could climb even higher than before.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            """)
             with gr.Row():
                 step_3_back = gr.Button("◀️ Back", size="lg")
-                step_3_next = gr.Button("Introduce the Moral Compass ▶️", variant="primary", size="lg")
+                step_3_next = gr.Button("Introduce Moral Compass ▶️", variant="primary", size="lg")
 
         # Step 4
         with gr.Column(visible=False, elem_id="step-4") as step_4:
-            gr.Markdown("<h2 style='text-align:center;'>🧭 The Moral Compass Score</h2>")
-            # Placeholder from original file – replace with full MC Score HTML if needed
-            step_4_html_comp = gr.HTML(""" ... existing MC Score HTML ... """)
+            step_4_html_comp = gr.HTML("""
+            <div class='slide-shell slide-shell--info'>
+                <h3 class='slide-shell__title'>
+                    A New Way to Win
+                </h3>
+                <p class='slide-shell__subtitle'>
+                    Your new goal is to climb the leaderboard by increasing your
+                    <strong>Moral Compass Score</strong>.
+                </p>
+                <div class='content-box formula-box'>
+                    <h4 class='content-box__heading' style='text-align:center;'>📐 The Scoring Formula</h4>
+                    <div class='formula-math'>
+                        <strong>Moral Compass Score</strong> =<br><br>
+                        [ Current Model Accuracy ] × [ Ethical Progress % ]
+                    </div>
+                    <div class='content-box' style='margin-top:20px;'>
+                        <p class='content-box__heading'>Where:</p>
+                        <ul class='bullet-list'>
+                            <li><strong>Current Model Accuracy:</strong> Your technical performance</li>
+                            <li>
+                                <strong>Ethical Progress %:</strong> Percentage of:
+                                <ul class='bullet-list' style='margin-top:8px;'>
+                                    <li>✅ Ethical learning tasks completed</li>
+                                    <li>✅ Check-in questions answered correctly</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class='content-box content-box--success'>
+                    <h4 class='content-box__heading'>💡 What This Means:</h4>
+                    <p class='slide-teaching-body'>
+                        You <strong>cannot</strong> win by accuracy alone—you must also demonstrate
+                        <strong class='emph-fairness'>ethical understanding</strong>. And you
+                        <strong>cannot</strong> win by just completing lessons—you need a working model too.
+                        <strong class='emph-risk'>Both dimensions matter</strong>.
+                    </p>
+                </div>
+            </div>
+            """)
             with gr.Row():
                 step_4_back = gr.Button("◀️ Back", size="lg")
-                step_4_next = gr.Button("See the Challenge Ahead ▶️", variant="primary", size="lg")
+                step_4_next = gr.Button("See Challenge Ahead ▶️", variant="primary", size="lg")
 
         # Step 6
         with gr.Column(visible=False, elem_id="step-6") as step_6:
-            step_6_html_comp = gr.HTML(value="")
+            step_6_html_comp = gr.HTML(build_step6_html({"is_signed_in": False}))
             with gr.Row():
                 step_6_back = gr.Button("◀️ Back", size="lg")
 
         all_steps = [step_1, step_2, step_3, step_4, step_6]
 
+        # Navigation helpers
         def _nav_generator(target):
             def go():
+                # Phase 1
                 yield {**{s: gr.update(visible=False) for s in all_steps}}
+                # Phase 2
                 yield {**{s: gr.update(visible=False) for s in all_steps}, target: gr.update(visible=True)}
             return go
 
@@ -475,11 +742,11 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
         if(overlay){{ overlay.style.opacity='0'; setTimeout(()=>overlay.style.display='none',300); }}
       }}
     }},90);
-  }} catch(e){{}}
+  }} catch(e){{ console.warn('nav js error', e); }}
 }}
 """
 
-        # Navigation wiring
+        # Wire navigation
         step_1_next.click(fn=_nav_generator(step_2), inputs=None, outputs=all_steps, js=_nav_js("step-2", "Introducing new standard..."))
         step_2_back.click(fn=_nav_generator(step_1), inputs=None, outputs=all_steps, js=_nav_js("step-1", "Returning..."))
         step_2_next.click(fn=_nav_generator(step_3), inputs=None, outputs=all_steps, js=_nav_js("step-3", "Resetting perspective..."))
@@ -489,7 +756,7 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
         step_4_next.click(fn=_nav_generator(step_6), inputs=None, outputs=all_steps, js=_nav_js("step-6", "Computing starting point..."))
         step_6_back.click(fn=_nav_generator(step_4), inputs=None, outputs=all_steps, js=_nav_js("step-4", "Reviewing..."))
 
-        # Session auth load
+        # Session auth handler
         def handle_session_auth(request: "gr.Request"):
             success, username, token = _try_session_based_auth(request)
             if not success or not username:
@@ -505,11 +772,7 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
                 step_6_html_comp: gr.update(value=build_step6_html(stats))
             }
 
-        demo.load(
-            fn=handle_session_auth,
-            inputs=None,
-            outputs=[stats_display, step_2_html_comp, step_6_html_comp]
-        )
+        demo.load(fn=handle_session_auth, inputs=None, outputs=[stats_display, step_2_html_comp, step_6_html_comp])
 
     return demo
 
@@ -517,7 +780,3 @@ def launch_moral_compass_challenge_app(height: int = 1000, share: bool = False, 
     demo = create_moral_compass_challenge_app()
     port = int(os.environ.get("PORT", 8080))
     demo.launch(share=share, inline=True, debug=debug, height=height, server_port=port)
-
-
-
-
