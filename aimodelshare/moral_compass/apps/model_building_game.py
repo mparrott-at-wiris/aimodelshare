@@ -205,7 +205,7 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
     _user_stats_cache[username] = stats
     _log(f"Stats for {username}: {stats}")
     return stats
-def _build_attempts_tracker_html(current_count, limit=ATTEMPT_LIMIT):
+def _build_attempts_tracker_html(current_count, limit=10):
     """
     Generate HTML for the attempts tracker display.
     Shows current attempt count vs limit with color coding.
