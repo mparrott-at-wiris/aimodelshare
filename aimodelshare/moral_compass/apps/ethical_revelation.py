@@ -1621,6 +1621,7 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
             inputs=None,
             outputs=[stats_display, login_form]
         )
+    return demo
 
 
 
