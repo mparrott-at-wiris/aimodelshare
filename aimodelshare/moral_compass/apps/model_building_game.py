@@ -1677,7 +1677,7 @@ def run_experiment(
         playground.submit_model(
             model=tuned_model, preprocessor=preprocessor, prediction_submission=predictions,
             input_dict={'description': description, 'tags': tags},
-            custom_metadata={'Team': os.environ.get("TEAM_NAME"), 'Moral_Compass': 0}
+            custom_metadata={'Team': os.environ.get("TEAM_NAME"), 'Moral_Compass': 0}, token=token
         )
         log_output += "\nSUCCESS! Model submitted.\n"
 
