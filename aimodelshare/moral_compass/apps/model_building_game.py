@@ -1223,7 +1223,9 @@ def perform_inline_login(username_input, password_input):
             login_error: gr.update(value=error_html, visible=True),
             submit_button: gr.update(),
             submission_feedback_display: gr.update(),
-            team_name_state: gr.update()
+            team_name_state: gr.update(),
+            username_state: gr.update(),  # NEW
+            token_state: gr.update()      # NEW
         }
     
     if not password_input or not password_input.strip():
@@ -1239,7 +1241,9 @@ def perform_inline_login(username_input, password_input):
             login_error: gr.update(value=error_html, visible=True),
             submit_button: gr.update(),
             submission_feedback_display: gr.update(),
-            team_name_state: gr.update()
+            team_name_state: gr.update(),
+            username_state: gr.update(),  # NEW
+            token_state: gr.update()      # NEW
         }
     
     # Set credentials in environment
@@ -1282,7 +1286,9 @@ def perform_inline_login(username_input, password_input):
             login_error: gr.update(value=success_html, visible=True),
             submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
             submission_feedback_display: gr.update(visible=False),
-            team_name_state: gr.update(value=team_name)
+            team_name_state: gr.update(value=team_name),
+            username_state: gr.update(value=username_input.strip()),  # NEW
+            token_state: gr.update(value=token)                       # NEW
         }
         
     except Exception as e:
@@ -1311,7 +1317,9 @@ def perform_inline_login(username_input, password_input):
             login_error: gr.update(value=error_html, visible=True),
             submit_button: gr.update(),
             submission_feedback_display: gr.update(),
-            team_name_state: gr.update()
+            team_name_state: gr.update(),
+            username_state: gr.update(),  # NEW
+            token_state: gr.update()      # NEW
         }
 
 def run_experiment(
@@ -1325,14 +1333,25 @@ def run_experiment(
     submission_count,
     first_submission_score,
     best_score,
+    username=None,  # NEW: Session-based auth parameter
+    token=None,     # NEW: Session-based auth parameter
     progress=gr.Progress()
 ):
     """
     Core experiment: Uses 'yield' for visual updates and progress bar.
+    Now accepts username and token parameters for session-based auth.
     """
     
-    # Fetch the username from os.environ at runtime, not from a stale state.
-    username = os.environ.get("username") or "Unknown_User"
+    # Use provided username or fallback to environment (backwards compatibility)
+    if not username:
+        username = os.environ.get("username") or "Unknown_User"
+    
+    # For backwards compatibility with code that still reads from environment
+    # TODO: Remove once all dependent code uses parameters instead
+    if username and username != "Unknown_User":
+        os.environ["username"] = username
+    if token:
+        os.environ["AWS_TOKEN"] = token
     
     # Helper to generate the animated HTML
     def get_status_html(step_num, title, subtitle):
@@ -3086,6 +3105,10 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
               ),
               visible=True)
 
+            # Session-based authentication state objects
+            username_state = gr.State(None)
+            token_state = gr.State(None)
+            
             team_name_state = gr.State(os.environ.get("TEAM_NAME"))
             last_submission_score_state = gr.State(0.0)
             last_rank_state = gr.State(0)
@@ -3523,7 +3546,18 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         login_submit.click(
             fn=perform_inline_login,
             inputs=[login_username, login_password],
-            outputs=[login_username, login_password, login_submit, login_error, submit_button, submission_feedback_display, team_name_state])
+            outputs=[
+                login_username, 
+                login_password, 
+                login_submit, 
+                login_error, 
+                submit_button, 
+                submission_feedback_display, 
+                team_name_state,
+                username_state,  # NEW
+                token_state      # NEW
+            ]
+        )
 
         # Removed gr.State(username) from the inputs list
         submit_button.click(
@@ -3539,6 +3573,8 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 submission_count_state,
                 first_submission_score_state,
                 best_score_state,
+                username_state,  # NEW: Session-based auth
+                token_state,     # NEW: Session-based auth
             ],
             outputs=all_outputs,
             show_progress="full",
@@ -3587,37 +3623,53 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         )
 
         # Handle session-based authentication on page load
-        def handle_load_with_session_auth(username_state, request: "gr.Request"):
-            """Check for session token, auto-login if present, then load initial UI."""
-            success, session_username, _ = _try_session_based_auth(request)
+        def handle_load_with_session_auth(request: "gr.Request"):
+            """Check for session token, auto-login if present, then load initial UI with stats."""
+            success, username, token = _try_session_based_auth(request)
             
-            if success and session_username:
-                # Get or assign team for this user
-                team_name = get_or_assign_team(session_username)[0]
+            if success and username and token:
+                _log(f"Session auth successful on load for {username}")
+                
+                # Get user stats and team from cache/leaderboard
+                stats = _compute_user_stats(username, token)
+                team_name = stats.get("team_name", "")
+                
+                # For backwards compatibility, set environment variables
+                # TODO: Remove once all code uses state objects
+                os.environ["username"] = username
                 os.environ["TEAM_NAME"] = team_name
+                if token:
+                    os.environ["AWS_TOKEN"] = token
                 
                 # Hide login form since user is authenticated via session
                 # Return initial load results plus login form hidden
-                initial_results = on_initial_load(session_username)
+                initial_results = on_initial_load(username)
                 return initial_results + (
                     gr.update(visible=False),  # login_username
                     gr.update(visible=False),  # login_password  
                     gr.update(visible=False),  # login_submit
                     gr.update(visible=False),  # login_error (hide any messages)
+                    username,  # username_state
+                    token,     # token_state
+                    team_name, # team_name_state
                 )
             else:
-                # No valid session, proceed with normal load
-                initial_results = on_initial_load(username_state)
+                _log("No valid session on load, showing login form")
+                # No valid session, proceed with normal load (show login form)
+                initial_results = on_initial_load(None)
                 return initial_results + (
-                    gr.update(),  # login_username
-                    gr.update(),  # login_password
-                    gr.update(),  # login_submit
-                    gr.update(),  # login_error
+                    gr.update(visible=True),   # login_username
+                    gr.update(visible=True),   # login_password
+                    gr.update(visible=True),   # login_submit
+                    gr.update(visible=False),  # login_error
+                    None,  # username_state
+                    None,  # token_state
+                    "",    # team_name_state
                 )
         
         demo.load(
             fn=handle_load_with_session_auth,
-            inputs=[gr.State(username)],
+            inputs=None,  # Request is auto-injected
             outputs=[
                 model_card_display,
                 team_leaderboard_display, 
@@ -3631,6 +3683,9 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 login_password,
                 login_submit,
                 login_error,
+                username_state,  # NEW
+                token_state,     # NEW
+                team_name_state, # NEW
             ],
             js=initial_load_scroll_js 
         )
