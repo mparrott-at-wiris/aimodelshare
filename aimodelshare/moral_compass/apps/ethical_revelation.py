@@ -1603,24 +1603,26 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
                     </div>
                     """
                 
+                # <--- CHANGED HERE!
+                # Also hide the login form when displaying stats
                 return {
                     stats_display: gr.update(value=celebration_html),
+                    login_form: gr.update(visible=False)
                 }
             else:
                 # No valid session, keep login form visible
                 return {
                     stats_display: gr.update(),
-                    login_form: gr.update()
+                    login_form: gr.update(visible=True)
                 }
         
         # Wire up session auth on page load
         demo.load(
             fn=handle_session_auth,
             inputs=None,
-            outputs=[stats_display]
+            outputs=[stats_display, login_form]
         )
 
-    return demo
 
 
 def launch_ethical_revelation_app(height: int = 1000, share: bool = False, debug: bool = False) -> None:
