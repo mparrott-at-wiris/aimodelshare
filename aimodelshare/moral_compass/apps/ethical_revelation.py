@@ -183,7 +183,6 @@ def _get_user_stats_from_leaderboard(username=None,token=None):
     try:
         # Import here to avoid circular dependencies / unnecessary imports for unsigned users
         from aimodelshare.playground import Competition
-        from aimodelshare.aws import get_aws_token
         import pandas as pd
         import os
 
