@@ -205,7 +205,37 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
     _user_stats_cache[username] = stats
     _log(f"Stats for {username}: {stats}")
     return stats
+def _build_attempts_tracker_html(current_count, limit=ATTEMPT_LIMIT):
+    """
+    Generate HTML for the attempts tracker display.
+    Shows current attempt count vs limit with color coding.
+    
+    Args:
+        current_count: Number of attempts used so far
+        limit: Maximum allowed attempts (default: ATTEMPT_LIMIT)
+    
+    Returns:
+        str: HTML string for the tracker display
+    """
+    if current_count >= limit:
+        # Limit reached - red styling
+        bg_color = "#f0f9ff"
+        border_color = "#bae6fd"
+        text_color = "#0369a1"
+        icon = "🛑"
+        label = f"Last chance (for now) to boost your score!: {current_count}/{limit}"
+    else:
+        # Normal - blue styling
+        bg_color = "#f0f9ff"
+        border_color = "#bae6fd"
+        text_color = "#0369a1"
+        icon = "📊"
+        label = f"Attempts used: {current_count}/{limit}"
 
+    return f"""<div style='text-align:center; padding:8px; margin:8px 0; background:{bg_color}; border-radius:8px; border:1px solid {border_color};'>
+        <p style='margin:0; color:{text_color}; font-weight:600; font-size:1rem;'>{icon} {label}</p>
+    </div>"""
+    
 def check_attempt_limit(submission_count: int, limit: int = None) -> Tuple[bool, str]:
     """Check if submission count exceeds limit."""
     # ATTEMPT_LIMIT is defined in configuration section below
