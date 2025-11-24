@@ -5,6 +5,15 @@ import numpy as np
 # Import optional dependency checker
 from aimodelshare.utils.optional_deps import check_optional
 
+# --- ML FRAMEWORKS IMPORT SECTION ---
+# Initialize to None to prevent NameErrors later if imports fail
+sklearn = None
+torch = None
+xgboost = None
+tf = None
+keras = None
+pyspark = None
+
 # ml frameworks
 try:
     import sklearn
@@ -73,7 +82,7 @@ import sys
 import shutil
 from pathlib import Path
 from zipfile import ZipFile
-import wget            
+import wget             
 from copy import copy
 import psutil
 from pympler import asizeof
@@ -177,26 +186,32 @@ def _extract_onnx_metadata(onnx_model, framework):
     layers_n_params = []
 
     if framework == 'keras':
-        initializer = list(reversed(graph.initializer))
-        for layer_id, layer in enumerate(initializer):
-            if(len(layer.dims)>= 2):
-                layers_shapes.append(layer.dims[1])
+        try:
+            initializer = list(reversed(graph.initializer))
+            for layer_id, layer in enumerate(initializer):
+                if(len(layer.dims)>= 2):
+                    layers_shapes.append(layer.dims[1])
 
-                try:
-                    n_params = int(np.prod(layer.dims) + initializer[layer_id-1].dims)
-                except:
-                    n_params = None
+                    try:
+                        n_params = int(np.prod(layer.dims) + initializer[layer_id-1].dims)
+                    except:
+                        n_params = None
 
-                layers_n_params.append(n_params)
+                    layers_n_params.append(n_params)
+        except:
+            pass
                 
 
     elif framework == 'pytorch':
-        initializer = graph.initializer
-        for layer_id, layer in enumerate(initializer):
-            if(len(layer.dims)>= 2):
-                layers_shapes.append(layer.dims[0])
-                n_params = int(np.prod(layer.dims) + initializer[layer_id-1].dims)
-                layers_n_params.append(n_params)
+        try:
+            initializer = graph.initializer
+            for layer_id, layer in enumerate(initializer):
+                if(len(layer.dims)>= 2):
+                    layers_shapes.append(layer.dims[0])
+                    n_params = int(np.prod(layer.dims) + initializer[layer_id-1].dims)
+                    layers_n_params.append(n_params)
+        except:
+            pass
 
 
     # get model architecture stats
@@ -207,7 +222,7 @@ def _extract_onnx_metadata(onnx_model, framework):
                       'layers_shapes': layers_shapes,
                       'activations_sequence': activations,
                       'activations_summary': {i:activations.count(i) for i in set(activations)}
-                     }
+                      }
 
     metadata_onnx["model_architecture"] = model_architecture
 
@@ -225,9 +240,10 @@ def _misc_to_onnx(model, initial_types, transfer_learning=None,
     metadata['model_id'] = None
     metadata['data_id'] = None
     metadata['preprocessor_id'] = None
+    
     try:
         # infer ml framework from function call
-        if isinstance(model, (xgboost.XGBClassifier, xgboost.XGBRegressor)):
+        if xgboost is not None and isinstance(model, (xgboost.XGBClassifier, xgboost.XGBRegressor)):
             metadata['ml_framework'] = 'xgboost'
             onx = onnxmltools.convert.convert_xgboost(model, initial_types=initial_types)
     except:
@@ -252,7 +268,7 @@ def _misc_to_onnx(model, initial_types, transfer_learning=None,
     metadata['target_distribution'] = None
     metadata['input_type'] = None
     metadata['input_shape'] = None
-    metadata['input_dtypes'] = None       
+    metadata['input_dtypes'] = None        
     metadata['input_distribution'] = None
     
     # get model config dict from sklearn model object
@@ -297,11 +313,15 @@ def _sklearn_to_onnx(model, initial_types=None, transfer_learning=None,
     # sklearn.utils.validation.check_is_fitted(model)
 
     # deal with pipelines and parameter search 
-    if isinstance(model, (GridSearchCV, RandomizedSearchCV)):
-        model = model.best_estimator_
+    try:
+        if sklearn is not None:
+            if isinstance(model, (GridSearchCV, RandomizedSearchCV)):
+                model = model.best_estimator_
 
-    if isinstance(model, sklearn.pipeline.Pipeline):
-        model = model.steps[-1][1]
+            if isinstance(model, sklearn.pipeline.Pipeline):
+                model = model.steps[-1][1]
+    except:
+        pass
 
     # fix ensemble voting models
     if all([hasattr(model, 'flatten_transform'),hasattr(model, 'voting')]):
@@ -345,7 +365,7 @@ def _sklearn_to_onnx(model, initial_types=None, transfer_learning=None,
     metadata['target_distribution'] = None
     metadata['input_type'] = None
     metadata['input_shape'] = None
-    metadata['input_dtypes'] = None       
+    metadata['input_dtypes'] = None        
     metadata['input_distribution'] = None
     
     # get model config dict from sklearn model object
@@ -366,7 +386,7 @@ def _sklearn_to_onnx(model, initial_types=None, transfer_learning=None,
     # get model state from sklearn model object
     metadata['model_state'] = None
 
-    # get model architecture    
+    # get model architecture     
     if model_type == 'MLPClassifier' or model_type == 'MLPRegressor':
 
         if model_type == 'MLPClassifier':
@@ -444,20 +464,23 @@ def _pyspark_to_onnx(model, initial_types, spark_session,
         raise("Error: Please install pyspark to enable pyspark features")
 
     # deal with pipelines and parameter search
-    if isinstance(model, (TrainValidationSplitModel, CrossValidatorModel)):
-        model = model.bestModel
+    try:
+        if isinstance(model, (TrainValidationSplitModel, CrossValidatorModel)):
+            model = model.bestModel
 
-    whole_model = copy(model)
-    
-    # Look for the last model in the pipeline
-    if isinstance(model, PipelineModel):
-        for t in model.stages:
-            if isinstance(t, Model):
-                model = t
+        whole_model = copy(model)
+        
+        # Look for the last model in the pipeline
+        if isinstance(model, PipelineModel):
+            for t in model.stages:
+                if isinstance(t, Model):
+                    model = t
+    except:
+        pass
 
     # convert to onnx
     onx = convert_sparkml(whole_model, 'Pyspark model', initial_types, 
-                         spark_session=spark_session)
+                          spark_session=spark_session)
             
     # generate metadata dict 
     metadata = {}
@@ -487,13 +510,16 @@ def _pyspark_to_onnx(model, initial_types, spark_session,
     metadata['target_distribution'] = None
     metadata['input_type'] = None
     metadata['input_shape'] = None
-    metadata['input_dtypes'] = None       
+    metadata['input_dtypes'] = None        
     metadata['input_distribution'] = None
     
     # get model config dict from pyspark model object
     model_config = {}
-    for key, value in model.extractParamMap().items():
-        model_config[key.name] = value
+    try:
+        for key, value in model.extractParamMap().items():
+            model_config[key.name] = value
+    except:
+        pass
     metadata['model_config'] = str(model_config)
 
     # get weights for pretrained models 
@@ -526,7 +552,7 @@ def _pyspark_to_onnx(model, initial_types, spark_session,
     # get model state from sklearn model object
     metadata['model_state'] = None
 
-    # get model architecture    
+    # get model architecture     
     if model_type == 'MultilayerPerceptronClassificationModel':
 
         #  https://spark.apache.org/docs/latest/ml-classification-regression.html#multilayer-perceptron-classifier
@@ -581,7 +607,7 @@ def _pyspark_to_onnx(model, initial_types, spark_session,
     return onx
 
 def _keras_to_onnx(model, transfer_learning=None,
-                   deep_learning=None, task_type=None, epochs=None):
+                    deep_learning=None, task_type=None, epochs=None):
     '''Converts a Keras model to ONNX and extracts metadata.'''
 
     # Check and load tf2onnx and TensorFlow lazily (only when needed)
@@ -614,16 +640,23 @@ def _keras_to_onnx(model, transfer_learning=None,
     tf2onnx_logger.setLevel(logging.CRITICAL)
 
     # Unwrap scikeras, sklearn pipelines etc.
-    from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
-    from sklearn.pipeline import Pipeline
-    from scikeras.wrappers import KerasClassifier, KerasRegressor
+    try:
+        from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
+        from sklearn.pipeline import Pipeline
+        
+        if isinstance(model, (GridSearchCV, RandomizedSearchCV)):
+            model = model.best_estimator_
+        if isinstance(model, Pipeline):
+            model = model.steps[-1][1]
+    except:
+        pass
 
-    if isinstance(model, (GridSearchCV, RandomizedSearchCV)):
-        model = model.best_estimator_
-    if isinstance(model, Pipeline):
-        model = model.steps[-1][1]
-    if isinstance(model, (KerasClassifier, KerasRegressor)):
-        model = model.model
+    try:
+        from scikeras.wrappers import KerasClassifier, KerasRegressor
+        if isinstance(model, (KerasClassifier, KerasRegressor)):
+            model = model.model
+    except:
+        pass
 
     # Input signature
     input_shape = model.input_shape
@@ -802,7 +835,7 @@ def _pytorch_to_onnx(model, model_input, transfer_learning=None,
     metadata['target_distribution'] = None
     metadata['input_type'] = None
     metadata['input_shape'] = None
-    metadata['input_dtypes'] = None       
+    metadata['input_dtypes'] = None        
     metadata['input_distribution'] = None
 
     # get model config dict from pytorch model object
@@ -874,7 +907,7 @@ def model_to_onnx(model, framework=None, model_input=None, initial_types=None,
     Required when framework="pytorch".
     initial_types: initial types tuple, default=None
     Required when framework="sklearn".
-     
+      
     transfer_learning: bool, default=None
     Indicates whether transfer learning was used. 
     
@@ -1311,7 +1344,7 @@ def _model_summary(meta_dict, from_onnx=False):
         model_summary = pd.read_json(io.StringIO(meta_dict['metadata_onnx']["model_summary"]))
     else:
         model_summary = pd.read_json(io.StringIO(meta_dict["model_summary"]))
-       
+        
     return model_summary
 
 
@@ -1671,20 +1704,23 @@ def instantiate_model(apiurl, version=None, trained=False, reproduce=False, subm
 
 def _get_layer_names():
 
-    activation_list = [i for i in dir(tf.keras.activations)]
-    activation_list = [i for i in activation_list if callable(getattr(tf.keras.activations, i))]
-    activation_list = [i for i in activation_list if  not i.startswith("_")]
-    activation_list.remove('deserialize')
-    activation_list.remove('get')
-    activation_list.remove('linear')
-    activation_list = activation_list+['Activation', 'ReLU', 'Softmax', 'LeakyReLU', 'PReLU', 'ELU', 'ThresholdedReLU']
+    try:
+        activation_list = [i for i in dir(tf.keras.activations)]
+        activation_list = [i for i in activation_list if callable(getattr(tf.keras.activations, i))]
+        activation_list = [i for i in activation_list if  not i.startswith("_")]
+        activation_list.remove('deserialize')
+        activation_list.remove('get')
+        activation_list.remove('linear')
+        activation_list = activation_list+['Activation', 'ReLU', 'Softmax', 'LeakyReLU', 'PReLU', 'ELU', 'ThresholdedReLU']
 
 
-    layer_list = [i for i in dir(tf.keras.layers)]
-    layer_list = [i for i in dir(tf.keras.layers) if callable(getattr(tf.keras.layers, i))]
-    layer_list = [i for i in layer_list if not i.startswith("_")]
-    layer_list = [i for i in layer_list if re.match('^[A-Z]', i)]
-    layer_list = [i for i in layer_list if i.lower() not in [i.lower() for i in activation_list]]
+        layer_list = [i for i in dir(tf.keras.layers)]
+        layer_list = [i for i in dir(tf.keras.layers) if callable(getattr(tf.keras.layers, i))]
+        layer_list = [i for i in layer_list if not i.startswith("_")]
+        layer_list = [i for i in layer_list if re.match('^[A-Z]', i)]
+        layer_list = [i for i in layer_list if i.lower() not in [i.lower() for i in activation_list]]
+    except:
+        return [], []
 
     return layer_list, activation_list
 
@@ -1709,21 +1745,24 @@ def _get_layer_names_pytorch():
 
 def _get_sklearn_modules():
     
-    import sklearn
+    try:
+        import sklearn
 
-    sklearn_modules = ['ensemble', 'gaussian_process', 'isotonic',
-                       'linear_model', 'mixture', 'multiclass', 'naive_bayes',
-                       'neighbors', 'neural_network', 'svm', 'tree',
-                       'discriminant_analysis', 'calibration']
+        sklearn_modules = ['ensemble', 'gaussian_process', 'isotonic',
+                            'linear_model', 'mixture', 'multiclass', 'naive_bayes',
+                            'neighbors', 'neural_network', 'svm', 'tree',
+                            'discriminant_analysis', 'calibration']
 
-    models_modules_dict = {}
+        models_modules_dict = {}
 
-    for i in sklearn_modules:
-        models_list = [j for j in dir(eval('sklearn.'+i)) if callable(getattr(eval('sklearn.'+i), j))]
-        models_list = [j for j in models_list if re.match('^[A-Z]', j)]
+        for i in sklearn_modules:
+            models_list = [j for j in dir(eval('sklearn.'+i)) if callable(getattr(eval('sklearn.'+i), j))]
+            models_list = [j for j in models_list if re.match('^[A-Z]', j)]
 
-        for k in models_list: 
-            models_modules_dict[k] = 'sklearn.'+i
+            for k in models_list: 
+                models_modules_dict[k] = 'sklearn.'+i
+    except:
+        models_modules_dict = {}
     
     return models_modules_dict
 
@@ -1955,14 +1994,14 @@ def model_graph_keras(model):
 
 
         graph_nodes.append((layer_name, {"label": layer_type + '\n' + str(layer_shape),
-                                         "URL": "https://keras.io/search.html?query="+layer_type.lower(),
-                                         "color": layer_color,
-                                         "style": "bold",
-                                    "Name": layer_name,
-                                    "Layer": layer_type,
-                                    "Shape": layer_shape,
-                                    "Params": layer_params,
-                                    "Activation": activation}))
+                                                 "URL": "https://keras.io/search.html?query="+layer_type.lower(),
+                                                 "color": layer_color,
+                                                 "style": "bold",
+                                            "Name": layer_name,
+                                            "Layer": layer_type,
+                                            "Shape": layer_shape,
+                                            "Params": layer_params,
+                                            "Activation": activation}))
         
         if isinstance(layer_input, list):
             for i in layer_input:
@@ -2012,11 +2051,14 @@ def torch_unpack(model):
     
 def keras_unpack(model):
     layers = []
-    for module in model.layers:
-        if isinstance(module, (tf.keras.Model, tf.keras.Sequential)):
-            layers += keras_unpack(module)
-        else:
-            layers.append(module)
+    try:
+        for module in model.layers:
+            if isinstance(module, (tf.keras.Model, tf.keras.Sequential)):
+                layers += keras_unpack(module)
+            else:
+                layers.append(module)
+    except:
+        pass
     return layers
 
 
@@ -2028,30 +2070,33 @@ def torch_metadata(model):
     weight_list = []
     activation_list = []
     
-    layers, name_list = torch_unpack(model)
+    try:
+        layers, name_list = torch_unpack(model)
 
-    layer_names, activation_names = _get_layer_names_pytorch()
+        layer_names, activation_names = _get_layer_names_pytorch()
 
-    for module, name in zip(layers, name_list):
+        for module, name in zip(layers, name_list):
 
-        module_name = module._get_name()
+            module_name = module._get_name()
 
 
-        if module_name in layer_names:
+            if module_name in layer_names:
 
-                name_list_out.append(name)
+                    name_list_out.append(name)
 
-                layer_list.append(module_name)
+                    layer_list.append(module_name)
 
-                params = sum([np.prod(p.size()) for p in module.parameters()])
-                param_list.append(params)
+                    params = sum([np.prod(p.size()) for p in module.parameters()])
+                    param_list.append(params)
 
-                weights = tuple([tuple(p.size()) for p in module.parameters()])
-                weight_list.append(weights)
+                    weights = tuple([tuple(p.size()) for p in module.parameters()])
+                    weight_list.append(weights)
 
-        if module_name in activation_names: 
+            if module_name in activation_names: 
 
-                activation_list.append(module_name)
+                    activation_list.append(module_name)
+    except:
+        pass
 
     return name_list_out, layer_list, param_list, weight_list, activation_list
 
@@ -2333,5 +2378,4 @@ def rename_layers(in_layers, direction="torch_to_keras", activation=False):
       out_layers.append(layer_name_temp)
 
   return out_layers
-
 

@@ -3,6 +3,7 @@ import boto3
 import botocore
 import requests
 import json
+import base64
 from aimodelshare.exceptions import AuthorizationError, AWSAccessError
 from aimodelshare.modeluser import get_jwt_token
 
@@ -289,6 +290,81 @@ def get_aws_token():
         raise AuthorizationError("Could not authorize user. " + str(err))
 
     return response["AuthenticationResult"]["IdToken"]
+
+
+def get_token_from_session(session_id):
+    """
+    Retrieve AWS JWT token from session API endpoint.
+    
+    Args:
+        session_id: The session identifier from URL parameter
+        
+    Returns:
+        str: JWT token if session is valid
+        
+    Raises:
+        AuthorizationError: If session is invalid or API request fails
+    """
+    try:
+        # NOTE: This URL should be configured via environment variable or config file
+        # Update AIMODELSHARE_SESSION_API_URL environment variable to override
+        session_api_url = os.getenv(
+            "AIMODELSHARE_SESSION_API_URL",
+            f"https://b22q73wp50.execute-api.us-east-1.amazonaws.com/dev/sessions/{session_id}"
+        )
+        
+        response = requests.get(session_api_url, timeout=10)
+        response.raise_for_status()
+        
+        data = response.json()
+        token = data.get("token") or data.get("id_token") or data.get("IdToken")
+        
+        if not token:
+            raise AuthorizationError("No token found in session API response")
+            
+        return token
+        
+    except requests.RequestException as err:
+        raise AuthorizationError(f"Failed to retrieve token from session: {err}")
+    except (KeyError, ValueError) as err:
+        raise AuthorizationError(f"Invalid session API response: {err}")
+
+
+def _get_username_from_token(token):
+    """
+    Extract username from JWT token claims.
+    
+    Args:
+        token: JWT token string
+        
+    Returns:
+        str: Username extracted from 'cognito:username' or 'username' claim, or None if not found
+    """
+    try:
+        # JWT tokens have 3 parts: header.payload.signature
+        parts = token.split('.')
+        if len(parts) != 3:
+            return None
+            
+        # Decode the payload (second part)
+        # Add padding if needed for base64 decoding
+        payload = parts[1]
+        padding = 4 - (len(payload) % 4)
+        if padding != 4:
+            payload += '=' * padding
+            
+        decoded = base64.urlsafe_b64decode(payload)
+        claims = json.loads(decoded)
+        
+        # Try different possible username claim names
+        # Note: 'sub' is excluded as it's typically a UUID, not a human-readable username
+        username = claims.get('cognito:username') or claims.get('username')
+        
+        return username
+        
+    except (ValueError, json.JSONDecodeError, KeyError, IndexError) as err:
+        print(f"Warning: Could not extract username from token: {err}")
+        return None
 
 
 def get_aws_session(aws_key=None, aws_secret=None, aws_region=None):

@@ -1,0 +1,75 @@
+name: Debug Moral Compass Challenge App Auth
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'aimodelshare/moral_compass/apps/moral_compass_challenge.py'
+      - '.github/workflows/moral_compass_auth_debug.yml'
+
+jobs:
+  auth-debug:
+    runs-on: ubuntu-latest
+    env:
+      TEST_SESSIONID: ${{ secrets.MC_TEST_SESSIONID }}   # Set this in repo secrets for a valid test
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements-apps.txt
+        pip install awscli
+
+    - name: Debug auth mechanism in challenge app
+      env:
+        SESSIONID: ${{ env.TEST_SESSIONID }}
+      run: |
+        python <<EOF
+        import sys
+        sys.path.append('aimodelshare/moral_compass/apps')
+        # Direct import (skip Gradio UI)
+        from moral_compass_challenge import _try_session_based_auth
+
+        class DummyRequest:
+            def __init__(self, sessionid):
+                self.query_params = {'sessionid': sessionid}
+
+        sessionid = "${{ env.SESSIONID }}"
+        print(f"Testing with sessionid: {sessionid}")
+
+        if not sessionid or sessionid == 'None':
+            print("ERROR: SESSIONID env variable is not set. Test aborting.")
+            exit(1)
+
+        result = _try_session_based_auth(DummyRequest(sessionid))
+        print(f"Step 1: Token {'generated' if result['token'] else 'FAILED'}")
+        print(f"Step 2: Username: {result['username'] if result['username'] else 'FAILED'}")
+        print(f"Step 3: Team Name: {result['team_name'] if result['team_name'] else 'FAILED'}")
+        print(f"Step 4: Success: {result['success']}")
+
+        # Deeper leaderboard test only if token/username exist
+        if result['token'] and result['username']:
+            from aimodelshare.playground import Competition
+            playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+            playground = Competition(playground_id)
+            try:
+                leaderboard_df = playground.get_leaderboard(token=result['token'])
+                if leaderboard_df is not None and not leaderboard_df.empty:
+                    print(f"Step 5: Leaderboard returned successfully with columns: {leaderboard_df.columns.tolist()}")
+                else:
+                    print("Step 5: FAILED to retrieve leaderboard (empty or None)")
+            except Exception as e:
+                print(f"Step 5: FAILED retrieving leaderboard due to error: {e}")
+        else:
+            print("Step 5: Skipped leaderboard test (no token and/or username)")
+
+        EOF
+
+    - name: Summarize results
+      run: echo "If any step above FAILED, investigate the console logs for details on precisely which part of auth failed including sessionid to token, token to username, or leaderboard fetch."

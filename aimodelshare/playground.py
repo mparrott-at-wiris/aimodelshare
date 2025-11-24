@@ -1560,7 +1560,7 @@ class ModelPlayground:
         if self.model_page:
             print(self.model_page)
 
-    def get_leaderboard(self, verbose=3, columns=None, submission_type="experiment"):
+    def get_leaderboard(self, verbose=3, columns=None, submission_type="experiment",token=None):
         """
         Get current competition leaderboard to rank all submitted models.
         Use in conjuction with stylize_leaderboard to visualize data.
@@ -1581,7 +1581,7 @@ class ModelPlayground:
         data = get_leaderboard(verbose=verbose,
                                columns=columns,
                                apiurl=self.playground_url,
-                               submission_type=submission_type)
+                               submission_type=submission_type,token=token)
         return data
 
     def stylize_leaderboard(self, leaderboard, naming_convention="keras"):
@@ -1872,7 +1872,7 @@ class Competition:
         data = inspect_y_test(apiurl=self.playground_url, submission_type=self.submission_type)
         return data
 
-    def get_leaderboard(self, verbose=3, columns=None):
+    def get_leaderboard(self, verbose=3, columns=None,token=None):
         """
         Get current competition leaderboard to rank all submitted models.
         Use in conjuction with stylize_leaderboard to visualize data.
@@ -1893,7 +1893,7 @@ class Competition:
         data = get_leaderboard(verbose=verbose,
                                columns=columns,
                                apiurl=self.playground_url,
-                               submission_type=self.submission_type)
+                               submission_type=self.submission_type, token=token)
         return data
 
     def stylize_leaderboard(self, leaderboard, naming_convention="keras"):

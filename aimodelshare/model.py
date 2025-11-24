@@ -7,7 +7,10 @@ import pandas as pd
 import requests 
 import json
 import ast
-import tensorflow as tf
+try:
+    import tensorflow as tf
+except ImportError:
+    pass
 import tempfile as tmp
 from datetime import datetime
 try:

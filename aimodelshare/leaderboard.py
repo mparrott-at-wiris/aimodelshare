@@ -11,13 +11,16 @@ from aimodelshare.aws import run_function_on_lambda, get_aws_client
 from aimodelshare.aimsonnx import _get_layer_names, layer_mapping
 
 
-def get_leaderboard(apiurl, verbose=3, columns=None, submission_type="competition"):
-    if all(["username" in os.environ, 
-           "password" in os.environ]):
-        pass
+def get_leaderboard(apiurl, verbose=3, columns=None, submission_type="competition",token=None):
+    if token == None:
+        if all(["username" in os.environ, 
+               "password" in os.environ]):
+            pass
+        else:
+            return print("'get_leaderboard()' unsuccessful. Please provide credentials with set_credentials().")
     else:
-        return print("'get_leaderboard()' unsuccessful. Please provide credentials with set_credentials().")
-
+        pass
+        
     if columns == None: 
         columns = str(columns)
 
@@ -32,8 +35,11 @@ def get_leaderboard(apiurl, verbose=3, columns=None, submission_type="competitio
                "submission_type": submission_type,
                "verbose": verbose,
                "columns": columns}
-    
-    headers = { 'Content-Type':'application/json', 'authorizationToken': os.environ.get("AWS_TOKEN"),} 
+    if token == None:
+        token=os.environ.get("AWS_TOKEN")
+    else:
+       pass
+    headers = { 'Content-Type':'application/json', 'authorizationToken': token,} 
 
     apiurl_eval=apiurl[:-1]+"eval"
 

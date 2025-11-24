@@ -20,7 +20,6 @@ __all__ = [
     "upload_preprocessor",
     "import_preprocessor",
     "export_preprocessor",
-    "download_data",
     # Moral Compass client (lightweight)
     "MoralcompassApiClient",
     "MoralcompassTableMeta",
@@ -68,16 +67,17 @@ _safe_import(
     ["export_preprocessor", "upload_preprocessor", "import_preprocessor"],
 )
 
-_safe_import(
-    "aimodelshare.data_sharing.download_data",
-    ["download_data", "import_quickstart_data"],  # import_quickstart_data not in __all__
-    remove_if_missing=True,
-)
-# If import_quickstart_data is missing, we don't expose it; if present we leave it accessible.
-if "import_quickstart_data" not in globals():
-    # Ensure it's not accidentally in __all__
-    if "import_quickstart_data" in __all__:
-        __all__.remove("import_quickstart_data")
+# DO NOT IMPORT download_data or import_quickstart_data HERE
+# Instead, provide a lazy loader for download_data only when accessed
+
+def _lazy_download_data(*args, **kwargs):
+    # Import only when called
+    mod = import_module("aimodelshare.data_sharing.download_data")
+    return mod.download_data(*args, **kwargs)
+
+# Expose lazy loader as attribute (optional)
+download_data = _lazy_download_data
+# DO NOT expose import_quickstart_data at this level, recommend direct import
 
 # Moral Compass submodule (expected always present in new branch)
 _safe_import(
@@ -96,3 +96,5 @@ _safe_import(
 
 # Ensure __all__ only contains names actually available (except intentional exposure for debug)
 __all__ = [name for name in __all__ if name in globals()]
+if "download_data" not in __all__:
+    __all__.append("download_data")  # Only if you want aimodelshare.download_data available
