@@ -25,7 +25,6 @@ from datetime import datetime, timedelta
 
 import numpy as np
 import pandas as pd
-import gradio as gr
 # --- AI Model Share Imports ---
 try:
     from aimodelshare.playground import Competition
