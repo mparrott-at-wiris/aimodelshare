@@ -1,3 +1,9 @@
+"""
+Model Building Game - Gradio application for the Justice & Equity Challenge.
+
+Session-based authentication with leaderboard caching and progressive rank unlocking.
+"""
+
 import os
 import time
 import random
@@ -8,6 +14,7 @@ import threading
 import functools
 from pathlib import Path
 from datetime import datetime, timedelta
+from typing import Optional, Dict, Any, Tuple
 
 import numpy as np
 import pandas as pd
@@ -33,48 +40,205 @@ except ImportError:
         "The 'aimodelshare' library is required. Install with: pip install aimodelshare"
     )
 
+# -------------------------------------------------------------------------
+# Configuration & Caching Infrastructure
+# -------------------------------------------------------------------------
 
-def _try_session_based_auth(request: "gr.Request"):
+LEADERBOARD_CACHE_SECONDS = int(os.environ.get("LEADERBOARD_CACHE_SECONDS", "45"))
+MAX_LEADERBOARD_ENTRIES = os.environ.get("MAX_LEADERBOARD_ENTRIES")
+MAX_LEADERBOARD_ENTRIES = int(MAX_LEADERBOARD_ENTRIES) if MAX_LEADERBOARD_ENTRIES else None
+DEBUG_LOG = os.environ.get("DEBUG_LOG", "false").lower() == "true"
+
+# In-memory caches (per container instance)
+_cache_lock = threading.Lock()
+_leaderboard_cache: Dict[str, Any] = {"data": None, "timestamp": 0.0}
+_user_stats_cache: Dict[str, Dict[str, Any]] = {}
+USER_STATS_TTL = LEADERBOARD_CACHE_SECONDS
+
+def _log(msg: str):
+    """Log message if DEBUG_LOG is enabled."""
+    if DEBUG_LOG:
+        print(f"[ModelBuildingGame] {msg}")
+
+def _normalize_team_name(name: str) -> str:
+    """
+    Normalize team name for consistent comparison and storage.
+    Strips leading/trailing whitespace and collapses multiple spaces.
+    """
+    if not name:
+        return ""
+    return " ".join(str(name).strip().split())
+
+
+def _fetch_leaderboard(token: str) -> Optional[pd.DataFrame]:
+    """
+    Fetch leaderboard with caching (TTL: LEADERBOARD_CACHE_SECONDS).
+    Thread-safe via _cache_lock.
+    """
+    now = time.time()
+    with _cache_lock:
+        if (
+            _leaderboard_cache["data"] is not None
+            and now - _leaderboard_cache["timestamp"] < LEADERBOARD_CACHE_SECONDS
+        ):
+            _log("Leaderboard cache hit")
+            return _leaderboard_cache["data"]
+
+    _log("Fetching fresh leaderboard...")
+    try:
+        playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+        playground = Competition(playground_id)
+        df = playground.get_leaderboard(token=token)
+        if df is not None and not df.empty and MAX_LEADERBOARD_ENTRIES:
+            df = df.head(MAX_LEADERBOARD_ENTRIES)
+        _log(f"Leaderboard fetched: {len(df) if df is not None else 0} entries")
+    except Exception as e:
+        _log(f"Leaderboard fetch failed: {e}")
+        df = None
+
+    with _cache_lock:
+        _leaderboard_cache["data"] = df
+        _leaderboard_cache["timestamp"] = time.time()
+    return df
+
+def _get_or_assign_team(username: str, leaderboard_df: Optional[pd.DataFrame]) -> Tuple[str, bool]:
+    """
+    Get existing team from leaderboard or assign random team.
+    Uses most recent submission timestamp to recover team.
+    Returns: (team_name, is_new_assignment)
+    """
+    # TEAM_NAMES is defined in configuration section below
+    try:
+        if leaderboard_df is not None and not leaderboard_df.empty and "Team" in leaderboard_df.columns:
+            user_submissions = leaderboard_df[leaderboard_df["username"] == username]
+            if not user_submissions.empty:
+                if "timestamp" in user_submissions.columns:
+                    try:
+                        user_submissions = user_submissions.copy()
+                        user_submissions["timestamp"] = pd.to_datetime(
+                            user_submissions["timestamp"], errors="coerce"
+                        )
+                        user_submissions = user_submissions.sort_values("timestamp", ascending=False)
+                        _log(f"Sorted {len(user_submissions)} submissions by timestamp for {username}")
+                    except Exception as ts_err:
+                        _log(f"Timestamp sort error: {ts_err}")
+                existing_team = user_submissions.iloc[0]["Team"]
+                if pd.notna(existing_team) and str(existing_team).strip():
+                    normalized = _normalize_team_name(existing_team)
+                    _log(f"Found existing team for {username}: {normalized}")
+                    return normalized, False
+        # TEAM_NAMES is defined in configuration section
+        new_team = _normalize_team_name(random.choice(TEAM_NAMES))
+        _log(f"Assigning new team to {username}: {new_team}")
+        return new_team, True
+    except Exception as e:
+        _log(f"Team assignment error: {e}")
+        new_team = _normalize_team_name(random.choice(TEAM_NAMES))
+        return new_team, True
+
+def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str], Optional[str]]:
     """
     Attempt to authenticate user via session token from URL parameters.
-    
-    Args:
-        request: Gradio request object containing query parameters
-        
-    Returns:
-        tuple: (success: bool, username: str or None, team_name: str or None)
+    Returns: (success, username, token) - NO os.environ mutation.
     """
     try:
-        # Check if sessionid is in URL query parameters
         session_id = request.query_params.get("sessionid") if request else None
         if not session_id:
+            _log("No sessionid in request")
             return False, None, None
         
-        # Import here to avoid circular dependencies
         from aimodelshare.aws import get_token_from_session, _get_username_from_token
         
-        # Get token from session API
         token = get_token_from_session(session_id)
         if not token:
+            _log("Failed to get token from session")
             return False, None, None
             
-        # Extract username from token
         username = _get_username_from_token(token)
         if not username:
+            _log("Failed to extract username from token")
             return False, None, None
         
-        # Set environment variables for authenticated session
-        os.environ["username"] = username
-        os.environ["AWS_TOKEN"] = token
-        
-        # Get or assign team (reusing existing logic from perform_inline_login)
-        # This will be handled by the calling code
-        
-        return True, username, None
+        _log(f"Session auth successful for {username}")
+        return True, username, token
         
     except Exception as e:
-        print(f"Session-based authentication failed: {e}")
+        _log(f"Session auth failed: {e}")
         return False, None, None
+
+def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
+    """
+    Compute user statistics with caching (TTL: USER_STATS_TTL).
+    Returns dict with best_score, rank, team_name, submission_count.
+    """
+    now = time.time()
+    cached = _user_stats_cache.get(username)
+    if cached and (now - cached.get("_ts", 0) < USER_STATS_TTL):
+        _log(f"User stats cache hit for {username}")
+        return cached
+
+    _log(f"Computing fresh stats for {username}")
+    leaderboard_df = _fetch_leaderboard(token)
+    team_name, _ = _get_or_assign_team(username, leaderboard_df)
+    
+    stats = {
+        "best_score": 0.0,
+        "rank": 0,
+        "team_name": team_name,
+        "submission_count": 0,
+        "last_score": 0.0,
+        "_ts": time.time()
+    }
+
+    try:
+        if leaderboard_df is not None and not leaderboard_df.empty:
+            user_submissions = leaderboard_df[leaderboard_df["username"] == username]
+            if not user_submissions.empty:
+                stats["submission_count"] = len(user_submissions)
+                if "accuracy" in user_submissions.columns:
+                    stats["best_score"] = float(user_submissions["accuracy"].max())
+                    # Get most recent score
+                    if "timestamp" in user_submissions.columns:
+                        try:
+                            user_submissions = user_submissions.copy()
+                            user_submissions["timestamp"] = pd.to_datetime(
+                                user_submissions["timestamp"], errors="coerce"
+                            )
+                            recent = user_submissions.sort_values("timestamp", ascending=False).iloc[0]
+                            stats["last_score"] = float(recent["accuracy"])
+                        except:
+                            stats["last_score"] = stats["best_score"]
+                    else:
+                        stats["last_score"] = stats["best_score"]
+            
+            # Compute rank
+            if "accuracy" in leaderboard_df.columns:
+                user_bests = leaderboard_df.groupby("username")["accuracy"].max()
+                ranked = user_bests.sort_values(ascending=False)
+                try:
+                    stats["rank"] = int(ranked.index.get_loc(username) + 1)
+                except KeyError:
+                    stats["rank"] = 0
+    except Exception as e:
+        _log(f"Error computing stats for {username}: {e}")
+
+    _user_stats_cache[username] = stats
+    _log(f"Stats for {username}: {stats}")
+    return stats
+
+def check_attempt_limit(submission_count: int, limit: int = None) -> Tuple[bool, str]:
+    """
+    Check if submission count exceeds limit.
+    Returns: (can_submit, message)
+    """
+    # ATTEMPT_LIMIT is defined in configuration section below
+    if limit is None:
+        limit = ATTEMPT_LIMIT
+    
+    if submission_count >= limit:
+        msg = f"⚠️ Attempt limit reached ({submission_count}/{limit})"
+        return False, msg
+    return True, f"Attempts: {submission_count}/{limit}"
 
 # -------------------------------------------------------------------------
 # 1. Configuration
@@ -791,6 +955,32 @@ def _build_individual_html(individual_summary_df, username):
 
 
 # --- End Helper Functions ---
+
+# -------------------------------------------------------------------------
+# Future: Fairness Metrics
+# -------------------------------------------------------------------------
+
+# def compute_fairness_metrics(y_true, y_pred, sensitive_attrs):
+#     """
+#     Compute fairness metrics for model predictions.
+#     
+#     Args:
+#         y_true: Ground truth labels
+#         y_pred: Model predictions
+#         sensitive_attrs: DataFrame with sensitive attributes (race, sex, age)
+#     
+#     Returns:
+#         dict: Fairness metrics including demographic parity, equalized odds
+#     
+#     TODO: Implement using fairlearn or aif360
+#     Examples:
+#         - Demographic parity: P(pred=1|sensitive=A) ≈ P(pred=1|sensitive=B)
+#         - Equalized odds: FPR and TPR should be similar across groups
+#         - Disparate impact ratio: min/max of positive prediction rates
+#     """
+#     pass
+
+# -------------------------------------------------------------------------
 
 
 def generate_competitive_summary(leaderboard_df, team_name, username, last_submission_score, last_rank, submission_count):
@@ -3380,6 +3570,7 @@ def build_conclusion_from_state(best_score, submissions, rank, first_score, feat
 # -------------------------------------------------------------------------
 # 3. Factory Function: Build Gradio App
 # -------------------------------------------------------------------------
+
 
 def launch_model_building_game_app(height: int = 1200, share: bool = False, debug: bool = False) -> None:
     """
