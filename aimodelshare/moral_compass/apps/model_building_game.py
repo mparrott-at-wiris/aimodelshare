@@ -60,6 +60,11 @@ def _log(msg: str):
     if DEBUG_LOG:
         print(f"[ModelBuildingGame] {msg}")
 
+def _normalize_team_name(name: str) -> str:
+    """Normalize team name for consistent comparison and storage."""
+    if not name:
+        return ""
+    return " ".join(str(name).strip().split())
 
 def _get_leaderboard_with_optional_token(playground_instance: Optional["Competition"], token: Optional[str] = None) -> Optional[pd.DataFrame]:
     """
@@ -111,6 +116,8 @@ def _fetch_leaderboard(token: str) -> Optional[pd.DataFrame]:
     return df
 
 def _get_or_assign_team(username: str, leaderboard_df: Optional[pd.DataFrame]) -> Tuple[str, bool]:
+    """Get existing team from leaderboard or assign random team."""
+    # TEAM_NAMES is defined in configuration section below
     try:
         if leaderboard_df is not None and not leaderboard_df.empty and "Team" in leaderboard_df.columns:
             user_submissions = leaderboard_df[leaderboard_df["username"] == username]
@@ -122,16 +129,21 @@ def _get_or_assign_team(username: str, leaderboard_df: Optional[pd.DataFrame]) -
                             user_submissions["timestamp"], errors="coerce"
                         )
                         user_submissions = user_submissions.sort_values("timestamp", ascending=False)
+                        _log(f"Sorted {len(user_submissions)} submissions by timestamp for {username}")
                     except Exception as ts_err:
                         _log(f"Timestamp sort error: {ts_err}")
                 existing_team = user_submissions.iloc[0]["Team"]
                 if pd.notna(existing_team) and str(existing_team).strip():
-                    return _normalize_team_name(existing_team), False
-        return _normalize_team_name(random.choice(TEAM_NAMES)), True
+                    normalized = _normalize_team_name(existing_team)
+                    _log(f"Found existing team for {username}: {normalized}")
+                    return normalized, False
+        new_team = _normalize_team_name(random.choice(TEAM_NAMES))
+        _log(f"Assigning new team to {username}: {new_team}")
+        return new_team, True
     except Exception as e:
         _log(f"Team assignment error: {e}")
-        return _normalize_team_name(random.choice(TEAM_NAMES)), True
-
+        new_team = _normalize_team_name(random.choice(TEAM_NAMES))
+        return new_team, True
 
 def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str], Optional[str]]:
     """Attempt to authenticate via session token. Returns (success, username, token)."""
@@ -318,7 +330,7 @@ MODEL_TYPES = {
 DEFAULT_MODEL = "The Balanced Generalist"
 
 TEAM_NAMES = [
-    "The Justice League", "The Moral Champions", "The Data Detectives",
+    "The Moral Champions", "The Justice League", "The Data Detectives",
     "The Ethical Explorers", "The Fairness Finders", "The Accuracy Avengers"
 ]
 CURRENT_TEAM_NAME = random.choice(TEAM_NAMES)
@@ -1052,7 +1064,7 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
         pass # Keep defaults
 
     # Generate HTML outputs
-    team_html = _build_team_html(team_summary_df, team_name)
+    team_html = _build_team_html(team_summary_df, os.environ.get("TEAM_NAME"))
     individual_html = _build_individual_html(individual_summary_df, username)
     kpi_card_html = _build_kpi_card_html(
         this_submission_score, last_submission_score, new_rank, last_rank, submission_count
@@ -1165,6 +1177,73 @@ login_error = None
 # This one will be assigned globally but is also defined in the function
 # first_submission_score_state = None 
 
+def get_or_assign_team(username, token=None):
+    """
+    Get the existing team for a user from the leaderboard, or assign a new random team.
+    
+    Queries the playground leaderboard to check if the user has prior submissions with
+    a team assignment. If found, returns that team (most recent if multiple submissions).
+    Otherwise assigns a random team. All team names are normalized for consistency.
+    
+    Args:
+        username: str, the username to check for existing team
+        token: str, optional authentication token for leaderboard fetch
+    
+    Returns:
+        tuple: (team_name: str, is_new: bool)
+            - team_name: The normalized team name (existing or newly assigned)
+            - is_new: True if newly assigned, False if existing team recovered
+    """
+    try:
+        # Query the leaderboard
+        if playground is None:
+            # Fallback to random assignment if playground not available
+            print("Playground not available, assigning random team")
+            new_team = _normalize_team_name(random.choice(TEAM_NAMES))
+            return new_team, True
+        
+        # Use centralized helper for authenticated leaderboard fetch
+        leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
+        
+        # Check if leaderboard has data and Team column
+        if leaderboard_df is not None and not leaderboard_df.empty and "Team" in leaderboard_df.columns:
+            # Filter for this user's submissions
+            user_submissions = leaderboard_df[leaderboard_df["username"] == username]
+            
+            if not user_submissions.empty:
+                # Sort by timestamp (most recent first) if timestamp column exists
+                # Use contextlib.suppress for resilient timestamp parsing
+                if "timestamp" in user_submissions.columns:
+                    try:
+                        # Attempt to coerce timestamp column to datetime and sort descending
+                        user_submissions = user_submissions.copy()
+                        user_submissions["timestamp"] = pd.to_datetime(user_submissions["timestamp"], errors='coerce')
+                        user_submissions = user_submissions.sort_values("timestamp", ascending=False)
+                        print(f"Sorted {len(user_submissions)} submissions by timestamp for {username}")
+                    except Exception as ts_error:
+                        # If timestamp parsing fails, continue with unsorted DataFrame
+                        print(f"Warning: Could not sort by timestamp for {username}: {ts_error}")
+                
+                # Get the most recent team assignment (first row after sorting)
+                existing_team = user_submissions.iloc[0]["Team"]
+                
+                # Check if team value is valid (not null/empty)
+                if pd.notna(existing_team) and existing_team and str(existing_team).strip():
+                    normalized_team = _normalize_team_name(existing_team)
+                    print(f"Found existing team for {username}: {normalized_team}")
+                    return normalized_team, False
+        
+        # No existing team found - assign random
+        new_team = _normalize_team_name(random.choice(TEAM_NAMES))
+        print(f"Assigning new team to {username}: {new_team}")
+        return new_team, True
+        
+    except Exception as e:
+        # On any error, fall back to random assignment
+        print(f"Error checking leaderboard for team: {e}")
+        new_team = _normalize_team_name(random.choice(TEAM_NAMES))
+        print(f"Fallback: assigning random team to {username}: {new_team}")
+        return new_team, True
 
 def perform_inline_login(username_input, password_input):
     """
@@ -1618,12 +1697,12 @@ def run_experiment(
 
         predictions = tuned_model.predict(X_test_processed)
         description = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
-        tags = f"team:{team_name},model:{model_name_key}"
+        tags = f"team:{os.environ.get("TEAM_NAME")},model:{model_name_key}"
 
         playground.submit_model(
             model=tuned_model, preprocessor=preprocessor, prediction_submission=predictions,
             input_dict={'description': description, 'tags': tags},
-            custom_metadata={'Team': team_name, 'Moral_Compass': 0}, token=token
+            custom_metadata={'Team': os.environ.get("TEAM_NAME"), 'Moral_Compass': 0}, token=token
         )
         log_output += "\nSUCCESS! Model submitted.\n"
 
@@ -1745,7 +1824,7 @@ def on_initial_load(username, token=None):
                 full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
                 team_html, individual_html, _, _, _, _ = generate_competitive_summary(
                     full_leaderboard_df,
-                    team_name,
+                    os.environ.get("TEAM_NAME"),
                     username,
                     0, 0, -1
                 )
