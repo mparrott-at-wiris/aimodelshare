@@ -66,7 +66,7 @@ def _normalize_team_name(name: str) -> str:
         return ""
     return " ".join(str(name).strip().split())
 
-def _get_leaderboard_with_optional_token(playground_instance, token: Optional[str] = None) -> Optional[pd.DataFrame]:
+def _get_leaderboard_with_optional_token(playground_instance: Optional["Competition"], token: Optional[str] = None) -> Optional[pd.DataFrame]:
     """
     Fetch fresh leaderboard with optional token authentication.
     
@@ -75,11 +75,11 @@ def _get_leaderboard_with_optional_token(playground_instance, token: Optional[st
     Use this for user-facing flows that require fresh, full data.
     
     Args:
-        playground_instance: The Competition playground instance
+        playground_instance: The Competition playground instance (or None)
         token: Optional authentication token for the fetch
     
     Returns:
-        DataFrame with leaderboard data, or None if fetch fails
+        DataFrame with leaderboard data, or None if fetch fails or playground is None
     """
     if playground_instance is None:
         return None
