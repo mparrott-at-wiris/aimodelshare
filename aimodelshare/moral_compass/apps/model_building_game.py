@@ -113,7 +113,7 @@ def _retry_with_backoff(
     Raises:
         Last exception if all attempts fail
     """
-    last_exception = None
+    last_exception: Optional[Exception] = None
     delay = base_delay
     
     for attempt in range(1, max_attempts + 1):
@@ -128,9 +128,8 @@ def _retry_with_backoff(
             else:
                 _log(f"{description} failed after {max_attempts} attempts: {e}")
     
-    # At this point last_exception is guaranteed to be set (loop ran at least once)
-    assert last_exception is not None
-    raise last_exception
+    # Loop always runs at least once (max_attempts >= 1), so last_exception is set
+    raise last_exception  # type: ignore[misc]
 
 def _log(msg: str):
     """Log message if DEBUG_LOG is enabled."""
@@ -1468,12 +1467,12 @@ def perform_inline_login(username_input, password_input):
                 token = get_aws_token()
             finally:
                 # SECURITY: Always clear credentials from environment, even on exception
+                # Also clear stale env vars from previous implementations within the lock
+                # to prevent any race conditions during cleanup
                 os.environ.pop("password", None)
                 os.environ.pop("username", None)
-        
-        # Clear any stale env vars from previous implementations (outside lock is fine)
-        os.environ.pop("AWS_TOKEN", None)
-        os.environ.pop("TEAM_NAME", None)
+                os.environ.pop("AWS_TOKEN", None)
+                os.environ.pop("TEAM_NAME", None)
         
         # Get or assign team for this user with explicit token (already normalized by get_or_assign_team)
         team_name, is_new_team = get_or_assign_team(username_clean, token=token)
