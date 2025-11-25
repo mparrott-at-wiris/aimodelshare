@@ -1195,19 +1195,36 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
     this_submission_score = 0.0
 
     try:
-        my_submissions = leaderboard_df[leaderboard_df["username"] == username].sort_values(
-            by="timestamp", ascending=False
-        )
-        if not my_submissions.empty:
-            this_submission_score = my_submissions.iloc[0]["accuracy"]
+        # All submissions for this user
+        user_rows = leaderboard_df[leaderboard_df["username"] == username].copy()
 
+        if not user_rows.empty:
+            # Attempt robust timestamp parsing
+            if "timestamp" in user_rows.columns:
+                parsed_ts = pd.to_datetime(user_rows["timestamp"], errors="coerce")
+
+                if parsed_ts.notna().any():
+                    # At least one valid timestamp → use parsed ordering
+                    user_rows["__parsed_ts"] = parsed_ts
+                    user_rows = user_rows.sort_values("__parsed_ts", ascending=False)
+                    this_submission_score = float(user_rows.iloc[0]["accuracy"])
+                else:
+                    # All timestamps invalid → assume append order, take last as "latest"
+                    this_submission_score = float(user_rows.iloc[-1]["accuracy"])
+            else:
+                # No timestamp column → fallback to last row
+                this_submission_score = float(user_rows.iloc[-1]["accuracy"])
+
+        # Rank & best accuracy (unchanged logic, but make sure we use the same best row)
+        my_rank_row = None
+        # Build individual summary before this block (already done above)
         my_rank_row = individual_summary_df[individual_summary_df["Engineer"] == username]
         if not my_rank_row.empty:
             new_rank = my_rank_row.index[0]
-            new_best_accuracy = my_rank_row["Best_Score"].iloc[0]
+            new_best_accuracy = float(my_rank_row["Best_Score"].iloc[0])
 
-    except Exception:
-        pass # Keep defaults
+    except Exception as e:
+        _log(f"Latest submission score extraction failed: {e}")
 
     # Generate HTML outputs
     # Concurrency Note: Use team_name parameter directly, not os.environ
