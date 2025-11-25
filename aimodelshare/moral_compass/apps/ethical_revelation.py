@@ -168,10 +168,6 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
                 user_submissions = leaderboard_df[leaderboard_df["username"] == username]
                 if not user_submissions.empty:
                     best_score = user_submissions["accuracy"].max()
-                    if "Team" in user_submissions.columns:
-                        team_val = user_submissions.iloc[0]["Team"]
-                        if pd.notna(team_val) and str(team_val).strip():
-                            team_name = _normalize_team_name(team_val)
 
                 # Individual rank
                 user_bests = leaderboard_df.groupby("username")["accuracy"].max()
