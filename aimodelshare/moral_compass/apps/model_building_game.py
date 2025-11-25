@@ -330,7 +330,7 @@ MODEL_TYPES = {
 DEFAULT_MODEL = "The Balanced Generalist"
 
 TEAM_NAMES = [
-    "The Moral Champions", "The Justice League", "The Data Detectives",
+    "The Justice League", "The Moral Champions", "The Data Detectives",
     "The Ethical Explorers", "The Fairness Finders", "The Accuracy Avengers"
 ]
 CURRENT_TEAM_NAME = random.choice(TEAM_NAMES)
@@ -1064,7 +1064,7 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
         pass # Keep defaults
 
     # Generate HTML outputs
-    team_html = _build_team_html(team_summary_df, os.environ.get("TEAM_NAME"))
+    team_html = _build_team_html(team_summary_df, team_name)
     individual_html = _build_individual_html(individual_summary_df, username)
     kpi_card_html = _build_kpi_card_html(
         this_submission_score, last_submission_score, new_rank, last_rank, submission_count
@@ -1697,12 +1697,12 @@ def run_experiment(
 
         predictions = tuned_model.predict(X_test_processed)
         description = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
-        tags = f"team:{os.environ.get("TEAM_NAME")},model:{model_name_key}"
+        tags = f"team:{team_name},model:{model_name_key}"
 
         playground.submit_model(
             model=tuned_model, preprocessor=preprocessor, prediction_submission=predictions,
             input_dict={'description': description, 'tags': tags},
-            custom_metadata={'Team': os.environ.get("TEAM_NAME"), 'Moral_Compass': 0}, token=token
+            custom_metadata={'Team': team_name, 'Moral_Compass': 0}, token=token
         )
         log_output += "\nSUCCESS! Model submitted.\n"
 
@@ -1824,7 +1824,7 @@ def on_initial_load(username, token=None):
                 full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
                 team_html, individual_html, _, _, _, _ = generate_competitive_summary(
                     full_leaderboard_df,
-                    os.environ.get("TEAM_NAME"),
+                    team_name,
                     username,
                     0, 0, -1
                 )
