@@ -426,14 +426,22 @@ def get_s3_iam_client(aws_key=None,aws_password=None, aws_region=None):
   return s3,iam,region
 
 
-def run_function_on_lambda(url, **kwargs):
-    kwargs["apideveloper"] = os.environ.get("username")
+def run_function_on_lambda(url, username=None, token=None **kwargs):
+    if username==None:
+      kwargs["apideveloper"] = os.environ.get("username")
+    else:
+      kwargs["apideveloper"] = username
     kwargs["apiurl"] = url
-
-    headers_with_authentication = {
-        "content-type": "application/json",
-        "authorizationToken": os.environ.get("AWS_TOKEN"),
-    }
+    if token==None:
+      headers_with_authentication = {
+          "content-type": "application/json",
+          "authorizationToken": os.environ.get("AWS_TOKEN"),
+      }
+    else:
+      headers_with_authentication = {
+          "content-type": "application/json",
+          "authorizationToken": token,
+      }
 
     response = requests.post(
         "https://bhrdesksak.execute-api.us-east-1.amazonaws.com/dev/modeldata",
