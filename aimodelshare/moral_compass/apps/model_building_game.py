@@ -70,6 +70,7 @@ DEBUG_LOG = os.environ.get("DEBUG_LOG", "false").lower() == "true"
 # Each cache has its own lock for thread safety under concurrent requests
 _cache_lock = threading.Lock()  # Protects _leaderboard_cache
 _user_stats_lock = threading.Lock()  # Protects _user_stats_cache
+_auth_lock = threading.Lock()  # Protects get_aws_token() credential injection
 
 # Auth-aware leaderboard cache: separate entries for authenticated vs anonymous
 # Structure: {"anon": {"data": df, "timestamp": float}, "auth": {"data": df, "timestamp": float}}
@@ -127,7 +128,9 @@ def _retry_with_backoff(
             else:
                 _log(f"{description} failed after {max_attempts} attempts: {e}")
     
-    raise last_exception  # type: ignore[misc]
+    # At this point last_exception is guaranteed to be set (loop ran at least once)
+    assert last_exception is not None
+    raise last_exception
 
 def _log(msg: str):
     """Log message if DEBUG_LOG is enabled."""
@@ -286,7 +289,9 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
         cached = _user_stats_cache.get(username)
         if cached and (now - cached.get("_ts", 0) < USER_STATS_TTL):
             _log(f"User stats cache hit for {username}")
-            return cached.copy()  # Return copy to prevent mutation
+            # Return shallow copy to prevent caller mutations from affecting cache.
+            # Stats dict contains only primitives (float, int, str), so shallow copy is sufficient.
+            return cached.copy()
 
     _log(f"Computing fresh stats for {username}")
     leaderboard_df = _fetch_leaderboard(token)
@@ -1445,21 +1450,28 @@ def perform_inline_login(username_input, password_input):
             token_state: gr.update()
         }
     
-    # Concurrency Note: Set credentials temporarily in os.environ ONLY for get_aws_token()
-    # call, as that function reads from environment. We do NOT persist these values.
-    # The password is immediately cleared after authentication attempt.
+    # Concurrency Note: get_aws_token() reads credentials from os.environ, which creates
+    # a race condition in multi-threaded environments. We use _auth_lock to serialize
+    # credential injection, preventing concurrent requests from seeing each other's
+    # credentials. The password is immediately cleared after the auth attempt.
+    # 
+    # FUTURE: Ideally get_aws_token() would be refactored to accept credentials as
+    # parameters instead of reading from os.environ. This lock is a workaround.
     username_clean = username_input.strip()
-    os.environ["username"] = username_clean
-    os.environ["password"] = password_input.strip()  # Only for get_aws_token() call
     
-    # Attempt to get AWS token
+    # Attempt to get AWS token with serialized credential injection
     try:
-        token = get_aws_token()
+        with _auth_lock:
+            os.environ["username"] = username_clean
+            os.environ["password"] = password_input.strip()  # Only for get_aws_token() call
+            try:
+                token = get_aws_token()
+            finally:
+                # SECURITY: Always clear credentials from environment, even on exception
+                os.environ.pop("password", None)
+                os.environ.pop("username", None)
         
-        # SECURITY: Immediately clear password from environment after auth attempt
-        os.environ.pop("password", None)
-        # Clear other per-user env vars - state is returned via gr.State only
-        os.environ.pop("username", None)
+        # Clear any stale env vars from previous implementations (outside lock is fine)
         os.environ.pop("AWS_TOKEN", None)
         os.environ.pop("TEAM_NAME", None)
         
@@ -1499,9 +1511,8 @@ def perform_inline_login(username_input, password_input):
         }
         
     except Exception as e:
-        # SECURITY: Clear password from environment on failure too
-        os.environ.pop("password", None)
-        os.environ.pop("username", None)
+        # Note: Credentials are already cleaned up by the finally block in the try above.
+        # The lock ensures no race condition during cleanup.
         
         # Authentication failed: show error with signup link
         error_html = f"""
