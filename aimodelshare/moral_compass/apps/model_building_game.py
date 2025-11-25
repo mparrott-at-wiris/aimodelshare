@@ -2,9 +2,26 @@
 Model Building Game - Gradio application for the Justice & Equity Challenge.
 
 Session-based authentication with leaderboard caching and progressive rank unlocking.
+
+Concurrency Notes:
+- This app is designed to run in a multi-threaded environment (Cloud Run).
+- Per-user state is stored in gr.State objects, NOT in os.environ.
+- Caches are protected by locks to ensure thread safety.
+- Linear algebra libraries are constrained to single-threaded mode to prevent
+  CPU oversubscription in containerized deployments.
 """
 
 import os
+
+# -------------------------------------------------------------------------
+# Thread Limit Configuration (MUST be set before importing numpy/sklearn)
+# Prevents CPU oversubscription in containerized environments like Cloud Run.
+# -------------------------------------------------------------------------
+os.environ.setdefault("OMP_NUM_THREADS", "1")
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+os.environ.setdefault("MKL_NUM_THREADS", "1")
+os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
+
 import time
 import random
 import requests
@@ -14,7 +31,7 @@ import threading
 import functools
 from pathlib import Path
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, Tuple
+from typing import Optional, Dict, Any, Tuple, Callable, TypeVar
 
 import numpy as np
 import pandas as pd
@@ -50,10 +67,69 @@ MAX_LEADERBOARD_ENTRIES = int(MAX_LEADERBOARD_ENTRIES) if MAX_LEADERBOARD_ENTRIE
 DEBUG_LOG = os.environ.get("DEBUG_LOG", "false").lower() == "true"
 
 # In-memory caches (per container instance)
-_cache_lock = threading.Lock()
-_leaderboard_cache: Dict[str, Any] = {"data": None, "timestamp": 0.0}
+# Each cache has its own lock for thread safety under concurrent requests
+_cache_lock = threading.Lock()  # Protects _leaderboard_cache
+_user_stats_lock = threading.Lock()  # Protects _user_stats_cache
+_auth_lock = threading.Lock()  # Protects get_aws_token() credential injection
+
+# Auth-aware leaderboard cache: separate entries for authenticated vs anonymous
+# Structure: {"anon": {"data": df, "timestamp": float}, "auth": {"data": df, "timestamp": float}}
+_leaderboard_cache: Dict[str, Dict[str, Any]] = {
+    "anon": {"data": None, "timestamp": 0.0},
+    "auth": {"data": None, "timestamp": 0.0},
+}
 _user_stats_cache: Dict[str, Dict[str, Any]] = {}
 USER_STATS_TTL = LEADERBOARD_CACHE_SECONDS
+
+# -------------------------------------------------------------------------
+# Retry Helper for External API Calls
+# -------------------------------------------------------------------------
+
+T = TypeVar("T")
+
+def _retry_with_backoff(
+    func: Callable[[], T],
+    max_attempts: int = 3,
+    base_delay: float = 0.5,
+    description: str = "operation"
+) -> T:
+    """
+    Execute a function with exponential backoff retry on failure.
+    
+    Concurrency Note: This helper provides resilience against transient
+    network failures when calling external APIs (Competition.get_leaderboard,
+    playground.submit_model). Essential for Cloud Run deployments where
+    network calls may occasionally fail under load.
+    
+    Args:
+        func: Callable to execute (should take no arguments)
+        max_attempts: Maximum number of attempts (default: 3)
+        base_delay: Initial delay in seconds, doubled each retry (default: 0.5)
+        description: Human-readable description for logging
+    
+    Returns:
+        Result from successful function call
+    
+    Raises:
+        Last exception if all attempts fail
+    """
+    last_exception: Optional[Exception] = None
+    delay = base_delay
+    
+    for attempt in range(1, max_attempts + 1):
+        try:
+            return func()
+        except Exception as e:
+            last_exception = e
+            if attempt < max_attempts:
+                _log(f"{description} attempt {attempt} failed: {e}. Retrying in {delay}s...")
+                time.sleep(delay)
+                delay *= 2  # Exponential backoff
+            else:
+                _log(f"{description} failed after {max_attempts} attempts: {e}")
+    
+    # Loop always runs at least once (max_attempts >= 1), so last_exception is set
+    raise last_exception  # type: ignore[misc]
 
 def _log(msg: str):
     """Log message if DEBUG_LOG is enabled."""
@@ -68,11 +144,14 @@ def _normalize_team_name(name: str) -> str:
 
 def _get_leaderboard_with_optional_token(playground_instance: Optional["Competition"], token: Optional[str] = None) -> Optional[pd.DataFrame]:
     """
-    Fetch fresh leaderboard with optional token authentication.
+    Fetch fresh leaderboard with optional token authentication and retry logic.
     
     This is a helper function that centralizes the pattern of fetching
     a fresh (non-cached) leaderboard with optional token authentication.
     Use this for user-facing flows that require fresh, full data.
+    
+    Concurrency Note: Uses _retry_with_backoff for resilience against
+    transient network failures.
     
     Args:
         playground_instance: The Competition playground instance (or None)
@@ -83,36 +162,59 @@ def _get_leaderboard_with_optional_token(playground_instance: Optional["Competit
     """
     if playground_instance is None:
         return None
-    if token:
-        return playground_instance.get_leaderboard(token=token)
-    return playground_instance.get_leaderboard()
+    
+    def _fetch():
+        if token:
+            return playground_instance.get_leaderboard(token=token)
+        return playground_instance.get_leaderboard()
+    
+    try:
+        return _retry_with_backoff(_fetch, description="leaderboard fetch")
+    except Exception as e:
+        _log(f"Leaderboard fetch failed after retries: {e}")
+        return None
 
-def _fetch_leaderboard(token: str) -> Optional[pd.DataFrame]:
-    """Fetch leaderboard with caching (TTL: LEADERBOARD_CACHE_SECONDS)."""
+def _fetch_leaderboard(token: Optional[str]) -> Optional[pd.DataFrame]:
+    """
+    Fetch leaderboard with auth-aware caching (TTL: LEADERBOARD_CACHE_SECONDS).
+    
+    Concurrency Note: Cache is keyed by auth scope ("anon" vs "auth") to prevent
+    cross-user data leakage. Authenticated users share a single "auth" cache entry
+    to avoid unbounded cache growth. Protected by _cache_lock.
+    """
+    # Determine cache key based on authentication status
+    cache_key = "auth" if token else "anon"
     now = time.time()
+    
     with _cache_lock:
+        cache_entry = _leaderboard_cache[cache_key]
         if (
-            _leaderboard_cache["data"] is not None
-            and now - _leaderboard_cache["timestamp"] < LEADERBOARD_CACHE_SECONDS
+            cache_entry["data"] is not None
+            and now - cache_entry["timestamp"] < LEADERBOARD_CACHE_SECONDS
         ):
-            _log("Leaderboard cache hit")
-            return _leaderboard_cache["data"]
+            _log(f"Leaderboard cache hit ({cache_key})")
+            return cache_entry["data"]
 
-    _log("Fetching fresh leaderboard...")
+    _log(f"Fetching fresh leaderboard ({cache_key})...")
+    df = None
     try:
         playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
-        playground = Competition(playground_id)
-        df = playground.get_leaderboard(token=token)
+        playground_instance = Competition(playground_id)
+        
+        def _fetch():
+            return playground_instance.get_leaderboard(token=token) if token else playground_instance.get_leaderboard()
+        
+        df = _retry_with_backoff(_fetch, description="leaderboard fetch")
         if df is not None and not df.empty and MAX_LEADERBOARD_ENTRIES:
             df = df.head(MAX_LEADERBOARD_ENTRIES)
-        _log(f"Leaderboard fetched: {len(df) if df is not None else 0} entries")
+        _log(f"Leaderboard fetched ({cache_key}): {len(df) if df is not None else 0} entries")
     except Exception as e:
-        _log(f"Leaderboard fetch failed: {e}")
+        _log(f"Leaderboard fetch failed ({cache_key}): {e}")
         df = None
 
     with _cache_lock:
-        _leaderboard_cache["data"] = df
-        _leaderboard_cache["timestamp"] = time.time()
+        _leaderboard_cache[cache_key]["data"] = df
+        _leaderboard_cache[cache_key]["timestamp"] = time.time()
     return df
 
 def _get_or_assign_team(username: str, leaderboard_df: Optional[pd.DataFrame]) -> Tuple[str, bool]:
@@ -173,12 +275,22 @@ def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str],
         return False, None, None
 
 def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
-    """Compute user statistics with caching."""
+    """
+    Compute user statistics with caching.
+    
+    Concurrency Note: Protected by _user_stats_lock for thread-safe
+    cache reads and writes.
+    """
     now = time.time()
-    cached = _user_stats_cache.get(username)
-    if cached and (now - cached.get("_ts", 0) < USER_STATS_TTL):
-        _log(f"User stats cache hit for {username}")
-        return cached
+    
+    # Thread-safe cache check
+    with _user_stats_lock:
+        cached = _user_stats_cache.get(username)
+        if cached and (now - cached.get("_ts", 0) < USER_STATS_TTL):
+            _log(f"User stats cache hit for {username}")
+            # Return shallow copy to prevent caller mutations from affecting cache.
+            # Stats dict contains only primitives (float, int, str), so shallow copy is sufficient.
+            return cached.copy()
 
     _log(f"Computing fresh stats for {username}")
     leaderboard_df = _fetch_leaderboard(token)
@@ -223,7 +335,9 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
     except Exception as e:
         _log(f"Error computing stats for {username}: {e}")
 
-    _user_stats_cache[username] = stats
+    # Thread-safe cache update
+    with _user_stats_lock:
+        _user_stats_cache[username] = stats
     _log(f"Stats for {username}: {stats}")
     return stats
 def _build_attempts_tracker_html(current_count, limit=10):
@@ -300,6 +414,12 @@ MY_PLAYGROUND_ID = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/
 # Maximum number of successful leaderboard submissions per user per session.
 # Preview runs (pre-login) and failed/invalid attempts do NOT count toward this limit.
 # Only actual successful playground.submit_model() calls increment the count.
+#
+# TODO: Server-side persistent enforcement recommended
+# The current attempt limit is stored in gr.State (per-session) and can be bypassed
+# by refreshing the browser. For production use with 100+ concurrent users,
+# consider implementing server-side persistence via Redis or Firestore to track
+# attempt counts per user across sessions.
 ATTEMPT_LIMIT = 10
 
 MODEL_TYPES = {
@@ -623,11 +743,11 @@ def _background_initializer():
             INIT_FLAGS["errors"].append(f"Full sample failed: {str(e)}")
     
     try:
-        # Step 5: Leaderboard prefetch (best-effort with ambient token if available)
+        # Step 5: Leaderboard prefetch (best-effort, unauthenticated)
+        # Concurrency Note: Do NOT use os.environ for ambient token - prefetch
+        # anonymously to warm the cache for initial page loads.
         if playground is not None:
-            # Use ambient token if present for authenticated prefetch
-            ambient_token = os.environ.get("AWS_TOKEN")
-            _ = _get_leaderboard_with_optional_token(playground, ambient_token)
+            _ = _get_leaderboard_with_optional_token(playground, None)
             with INIT_LOCK:
                 INIT_FLAGS["leaderboard"] = True
     except Exception as e:
@@ -715,6 +835,11 @@ def _get_cached_preprocessor_config(numeric_cols_tuple, categorical_cols_tuple):
     Create and return preprocessor configuration (memoized).
     Uses tuples for hashability in lru_cache.
     
+    Concurrency Note: Uses sparse_output=True for OneHotEncoder to reduce memory
+    footprint under concurrent requests. Downstream models that require dense
+    arrays (DecisionTree, RandomForest) will convert via .toarray() as needed.
+    LogisticRegression and KNeighborsClassifier handle sparse matrices natively.
+    
     Returns tuple of (transformers_list, selected_columns) ready for ColumnTransformer.
     """
     numeric_cols = list(numeric_cols_tuple)
@@ -732,9 +857,10 @@ def _get_cached_preprocessor_config(numeric_cols_tuple, categorical_cols_tuple):
         selected_cols.extend(numeric_cols)
     
     if categorical_cols:
+        # Use sparse_output=True to reduce memory footprint
         cat_tf = Pipeline(steps=[
             ("imputer", SimpleImputer(strategy="constant", fill_value="missing")),
-            ("onehot", OneHotEncoder(handle_unknown="ignore", sparse_output=False))
+            ("onehot", OneHotEncoder(handle_unknown="ignore", sparse_output=True))
         ])
         transformers.append(("cat", cat_tf, categorical_cols))
         selected_cols.extend(categorical_cols)
@@ -745,6 +871,9 @@ def build_preprocessor(numeric_cols, categorical_cols):
     """
     Build a preprocessor using cached configuration.
     The configuration (pipeline structure) is memoized; the actual fit is not.
+    
+    Note: Returns sparse matrices when categorical columns are present.
+    Use _ensure_dense() helper if model requires dense input.
     """
     # Convert to tuples for caching
     numeric_tuple = tuple(sorted(numeric_cols))
@@ -756,6 +885,19 @@ def build_preprocessor(numeric_cols, categorical_cols):
     preprocessor = ColumnTransformer(transformers=transformers, remainder="drop")
     
     return preprocessor, selected_cols
+
+def _ensure_dense(X):
+    """
+    Convert sparse matrix to dense if necessary.
+    
+    Helper function for models that don't support sparse input
+    (DecisionTree, RandomForest). LogisticRegression and KNN
+    handle sparse matrices natively.
+    """
+    from scipy import sparse
+    if sparse.issparse(X):
+        return X.toarray()
+    return X
 
 def tune_model_complexity(model, level):
     """
@@ -1012,6 +1154,10 @@ def _build_individual_html(individual_summary_df, username):
 def generate_competitive_summary(leaderboard_df, team_name, username, last_submission_score, last_rank, submission_count):
     """
     Build summaries, HTML, and KPI card.
+    
+    Concurrency Note: Uses the team_name parameter directly for team highlighting,
+    NOT os.environ, to prevent cross-user data leakage under concurrent requests.
+    
     Returns (team_html, individual_html, kpi_card_html, new_best_accuracy, new_rank, this_submission_score).
     """
     team_summary_df = pd.DataFrame(columns=["Team", "Best_Score", "Avg_Score", "Submissions"])
@@ -1064,7 +1210,8 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
         pass # Keep defaults
 
     # Generate HTML outputs
-    team_html = _build_team_html(team_summary_df, os.environ.get("TEAM_NAME"))
+    # Concurrency Note: Use team_name parameter directly, not os.environ
+    team_html = _build_team_html(team_summary_df, team_name)
     individual_html = _build_individual_html(individual_summary_df, username)
     kpi_card_html = _build_kpi_card_html(
         this_submission_score, last_submission_score, new_rank, last_rank, submission_count
@@ -1247,11 +1394,12 @@ def get_or_assign_team(username, token=None):
 
 def perform_inline_login(username_input, password_input):
     """
-    Perform inline authentication and set credentials in environment.
+    Perform inline authentication and return credentials via gr.State updates.
     
-    Validates non-empty credentials, sets environment variables, and attempts
-    to fetch AWS token via get_aws_token(). Returns Gradio component updates
-    for login UI visibility and feedback messages.
+    Concurrency Note: This function NO LONGER stores per-user credentials in
+    os.environ to prevent cross-user data leakage. Authentication state is
+    returned exclusively via gr.State updates (username_state, token_state,
+    team_name_state). Password is never stored server-side.
     
     Args:
         username_input: str, the username entered by user
@@ -1279,8 +1427,8 @@ def perform_inline_login(username_input, password_input):
             submit_button: gr.update(),
             submission_feedback_display: gr.update(),
             team_name_state: gr.update(),
-            username_state: gr.update(),  # NEW
-            token_state: gr.update()      # NEW
+            username_state: gr.update(),
+            token_state: gr.update()
         }
     
     if not password_input or not password_input.strip():
@@ -1297,24 +1445,39 @@ def perform_inline_login(username_input, password_input):
             submit_button: gr.update(),
             submission_feedback_display: gr.update(),
             team_name_state: gr.update(),
-            username_state: gr.update(),  # NEW
-            token_state: gr.update()      # NEW
+            username_state: gr.update(),
+            token_state: gr.update()
         }
     
-    # Set credentials in environment
-    os.environ["username"] = username_input.strip()
-    os.environ["password"] = password_input.strip()
+    # Concurrency Note: get_aws_token() reads credentials from os.environ, which creates
+    # a race condition in multi-threaded environments. We use _auth_lock to serialize
+    # credential injection, preventing concurrent requests from seeing each other's
+    # credentials. The password is immediately cleared after the auth attempt.
+    # 
+    # FUTURE: Ideally get_aws_token() would be refactored to accept credentials as
+    # parameters instead of reading from os.environ. This lock is a workaround.
+    username_clean = username_input.strip()
     
-    # Attempt to get AWS token
+    # Attempt to get AWS token with serialized credential injection
     try:
-        token = get_aws_token()
-        os.environ["AWS_TOKEN"] = token
+        with _auth_lock:
+            os.environ["username"] = username_clean
+            os.environ["password"] = password_input.strip()  # Only for get_aws_token() call
+            try:
+                token = get_aws_token()
+            finally:
+                # SECURITY: Always clear credentials from environment, even on exception
+                # Also clear stale env vars from previous implementations within the lock
+                # to prevent any race conditions during cleanup
+                os.environ.pop("password", None)
+                os.environ.pop("username", None)
+                os.environ.pop("AWS_TOKEN", None)
+                os.environ.pop("TEAM_NAME", None)
         
         # Get or assign team for this user with explicit token (already normalized by get_or_assign_team)
-        team_name, is_new_team = get_or_assign_team(username_input.strip(), token=token)
+        team_name, is_new_team = get_or_assign_team(username_clean, token=token)
         # Normalize team name before storing (defensive - already normalized by get_or_assign_team)
         team_name = _normalize_team_name(team_name)
-        os.environ["TEAM_NAME"] = team_name
         
         # Build success message based on whether team is new or existing
         if is_new_team:
@@ -1342,11 +1505,14 @@ def perform_inline_login(username_input, password_input):
             submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
             submission_feedback_display: gr.update(visible=False),
             team_name_state: gr.update(value=team_name),
-            username_state: gr.update(value=username_input.strip()),  # NEW
-            token_state: gr.update(value=token)                       # NEW
+            username_state: gr.update(value=username_clean),
+            token_state: gr.update(value=token)
         }
         
     except Exception as e:
+        # Note: Credentials are already cleaned up by the finally block in the try above.
+        # The lock ensures no race condition during cleanup.
+        
         # Authentication failed: show error with signup link
         error_html = f"""
         <div style='background:#fef2f2; padding:16px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
@@ -1373,8 +1539,8 @@ def perform_inline_login(username_input, password_input):
             submit_button: gr.update(),
             submission_feedback_display: gr.update(),
             team_name_state: gr.update(),
-            username_state: gr.update(),  # NEW
-            token_state: gr.update()      # NEW
+            username_state: gr.update(),
+            token_state: gr.update()
         }
 
 def run_experiment(
@@ -1388,25 +1554,38 @@ def run_experiment(
     submission_count,
     first_submission_score,
     best_score,
-    username=None,  # NEW: Session-based auth parameter
-    token=None,     # NEW: Session-based auth parameter
+    username=None,  # Session-based auth parameter
+    token=None,     # Session-based auth parameter
     progress=gr.Progress()
 ):
     """
     Core experiment: Uses 'yield' for visual updates and progress bar.
-    Now accepts username and token parameters for session-based auth.
+    
+    Concurrency Note: Authentication is determined SOLELY from the passed-in
+    username and token parameters (from gr.State). This function does NOT
+    read from os.environ for per-user credentials, preventing cross-user
+    data leakage under concurrent requests.
+    
+    Args:
+        model_name_key: Selected model type
+        complexity_level: Model complexity slider value
+        feature_set: List of selected features
+        data_size_str: Data size selection
+        team_name: User's team name (from gr.State)
+        last_submission_score: Previous submission score
+        last_rank: Previous rank
+        submission_count: Number of submissions made
+        first_submission_score: Score from first submission
+        best_score: Best score achieved
+        username: User's username (from gr.State, not os.environ)
+        token: Authentication token (from gr.State, not os.environ)
+        progress: Gradio progress tracker
     """
     
-    # Use provided username or fallback to environment (backwards compatibility)
+    # Concurrency Note: Use provided parameters exclusively, not os.environ.
+    # Default to "Unknown_User" only if no username provided via state.
     if not username:
-        username = os.environ.get("username") or "Unknown_User"
-    
-    # For backwards compatibility with code that still reads from environment
-    # TODO: Remove once all dependent code uses parameters instead
-    if username and username != "Unknown_User":
-        os.environ["username"] = username
-    if token:
-        os.environ["AWS_TOKEN"] = token
+        username = "Unknown_User"
     
     # Helper to generate the animated HTML
     def get_status_html(step_num, title, subtitle):
@@ -1465,11 +1644,20 @@ def run_experiment(
             
             base_model = MODEL_TYPES[model_name_key]["model_builder"]()
             tuned_model = tune_model_complexity(base_model, complexity_level)
-            tuned_model.fit(X_warm_processed, Y_TRAIN_WARM)
+            
+            # Handle sparse arrays for models that require dense input
+            if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
+                X_warm_for_fit = _ensure_dense(X_warm_processed)
+                X_test_for_predict = _ensure_dense(X_test_processed)
+            else:
+                X_warm_for_fit = X_warm_processed
+                X_test_for_predict = X_test_processed
+            
+            tuned_model.fit(X_warm_for_fit, Y_TRAIN_WARM)
             
             # Get preview score
             from sklearn.metrics import accuracy_score
-            predictions = tuned_model.predict(X_test_processed)
+            predictions = tuned_model.predict(X_test_for_predict)
             preview_score = accuracy_score(Y_TEST, predictions)
             
             # Show preview card
@@ -1570,16 +1758,31 @@ def run_experiment(
         tuned_model = tune_model_complexity(base_model, complexity_level)
 
         # E. Train
-        tuned_model.fit(X_train_processed, y_train_sampled)
+        # Concurrency Note: DecisionTree and RandomForest require dense arrays.
+        # LogisticRegression and KNN handle sparse matrices natively.
+        if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
+            X_train_for_fit = _ensure_dense(X_train_processed)
+        else:
+            X_train_for_fit = X_train_processed
+        
+        tuned_model.fit(X_train_for_fit, y_train_sampled)
         log_output += "Training done.\n"
 
         # --- Stage 3: Submit (API Call 1) ---
-        # AUTHENTICATION GATE: Check for AWS_TOKEN before submission
-        if os.environ.get("AWS_TOKEN") is None:
+        # AUTHENTICATION GATE: Check for token before submission
+        # Concurrency Note: Uses passed-in token parameter from gr.State,
+        # NOT os.environ, to determine authentication status.
+        if token is None:
             # User not authenticated - compute preview score and show login prompt
             progress(0.6, desc="Computing Preview Score...")
             
-            predictions = tuned_model.predict(X_test_processed)
+            # Ensure dense for prediction if model requires it
+            if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
+                X_test_for_predict = _ensure_dense(X_test_processed)
+            else:
+                X_test_for_predict = X_test_processed
+            
+            predictions = tuned_model.predict(X_test_for_predict)
             from sklearn.metrics import accuracy_score
             preview_score = accuracy_score(Y_TEST, predictions)
             
@@ -1695,15 +1898,26 @@ def run_experiment(
             login_error: gr.update(visible=False)
         }
 
-        predictions = tuned_model.predict(X_test_processed)
+        # Ensure dense for prediction if model requires it
+        if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
+            X_test_for_predict = _ensure_dense(X_test_processed)
+        else:
+            X_test_for_predict = X_test_processed
+        
+        predictions = tuned_model.predict(X_test_for_predict)
         description = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
-        tags = f"team:{os.environ.get("TEAM_NAME")},model:{model_name_key}"
+        # Concurrency Note: Use team_name parameter from gr.State, not os.environ
+        tags = f"team:{team_name},model:{model_name_key}"
 
-        playground.submit_model(
-            model=tuned_model, preprocessor=preprocessor, prediction_submission=predictions,
-            input_dict={'description': description, 'tags': tags},
-            custom_metadata={'Team': os.environ.get("TEAM_NAME"), 'Moral_Compass': 0}, token=token
-        )
+        # Concurrency Note: Wrap submit_model with retry logic for resilience
+        def _submit():
+            playground.submit_model(
+                model=tuned_model, preprocessor=preprocessor, prediction_submission=predictions,
+                input_dict={'description': description, 'tags': tags},
+                custom_metadata={'Team': team_name, 'Moral_Compass': 0}, token=token
+            )
+        
+        _retry_with_backoff(_submit, description="model submission")
         log_output += "\nSUCCESS! Model submitted.\n"
 
         # --- Stage 4: Refresh Leaderboard (API Call 2) ---
@@ -1792,14 +2006,18 @@ def run_experiment(
         yield error_updates
 
 
-def on_initial_load(username, token=None):
+def on_initial_load(username, token=None, team_name=""):
     """
     Updated to load HTML leaderboards with skeleton placeholders during init.
     Shows skeleton if leaderboard not yet ready, real data otherwise.
     
+    Concurrency Note: Uses the team_name parameter directly, not os.environ,
+    to prevent cross-user data leakage under concurrent requests.
+    
     Args:
         username: str, the username for generating user-specific leaderboard views
         token: str, optional authentication token for leaderboard fetch
+        team_name: str, the user's team name (from gr.State, not os.environ)
     """
 
     initial_ui = compute_rank_settings(
@@ -1822,9 +2040,10 @@ def on_initial_load(username, token=None):
             if playground:
                 # Use centralized helper for authenticated leaderboard fetch
                 full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
+                # Concurrency Note: Use team_name parameter directly, not os.environ
                 team_html, individual_html, _, _, _, _ = generate_competitive_summary(
                     full_leaderboard_df,
-                    os.environ.get("TEAM_NAME"),
+                    team_name,
                     username,
                     0, 0, -1
                 )
@@ -2762,7 +2981,9 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             </div>
         """)
 
-        username = os.environ.get("username") or "Unknown_User"
+        # Concurrency Note: Do NOT read per-user state from os.environ here.
+        # Username and other per-user data are managed via gr.State objects
+        # and populated during handle_load_with_session_auth.
 
         # Loading screen
         with gr.Column(visible=False) as loading_screen:
@@ -3167,10 +3388,12 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
               visible=True)
 
             # Session-based authentication state objects
+            # Concurrency Note: These are initialized to None/empty and populated
+            # during handle_load_with_session_auth. Do NOT use os.environ here.
             username_state = gr.State(None)
             token_state = gr.State(None)
             
-            team_name_state = gr.State(os.environ.get("TEAM_NAME"))
+            team_name_state = gr.State(None)  # Populated via handle_load_with_session_auth
             last_submission_score_state = gr.State(0.0)
             last_rank_state = gr.State(0)
             best_score_state = gr.State(0.0)
@@ -3627,7 +3850,13 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
 
         # Handle session-based authentication on page load
         def handle_load_with_session_auth(request: "gr.Request"):
-            """Check for session token, auto-login if present, then load initial UI with stats."""
+            """
+            Check for session token, auto-login if present, then load initial UI with stats.
+            
+            Concurrency Note: This function does NOT set per-user values in os.environ.
+            All authentication state is returned via gr.State objects (username_state,
+            token_state, team_name_state) to prevent cross-user data leakage.
+            """
             success, username, token = _try_session_based_auth(request)
             
             if success and username and token:
@@ -3637,17 +3866,13 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 stats = _compute_user_stats(username, token)
                 team_name = stats.get("team_name", "")
                 
-                # For backwards compatibility, set environment variables
-                # TODO: Remove once all code uses state objects
-                os.environ["username"] = username
-                os.environ["TEAM_NAME"] = team_name
-                if token:
-                    os.environ["AWS_TOKEN"] = token
+                # Concurrency Note: Do NOT set os.environ for per-user values.
+                # Return state via gr.State objects exclusively.
                 
                 # Hide login form since user is authenticated via session
                 # Return initial load results plus login form hidden
                 # Pass token explicitly for authenticated leaderboard fetch
-                initial_results = on_initial_load(username, token=token)
+                initial_results = on_initial_load(username, token=token, team_name=team_name)
                 return initial_results + (
                     gr.update(visible=False),  # login_username
                     gr.update(visible=False),  # login_password  
@@ -3661,7 +3886,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 _log("No valid session on load, showing login form")
                 # No valid session, proceed with normal load (show login form)
                 # No token available, call without token
-                initial_results = on_initial_load(None, token=None)
+                initial_results = on_initial_load(None, token=None, team_name="")
                 return initial_results + (
                     gr.update(visible=True),   # login_username
                     gr.update(visible=True),   # login_password
