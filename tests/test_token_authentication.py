@@ -6,6 +6,7 @@ Tests the explicit token passing functionality:
 - get_or_assign_team with optional token parameter
 - on_initial_load with optional token parameter
 - _background_initializer with ambient token
+- _get_leaderboard_with_optional_token helper function
 
 Run with: pytest tests/test_token_authentication.py -v
 """
@@ -14,6 +15,41 @@ import pytest
 import os
 import pandas as pd
 from unittest.mock import Mock, patch, MagicMock
+
+
+def test_get_leaderboard_with_optional_token_with_token():
+    """Test that _get_leaderboard_with_optional_token passes token when provided."""
+    from aimodelshare.moral_compass.apps.model_building_game import _get_leaderboard_with_optional_token
+    
+    mock_playground = Mock()
+    mock_playground.get_leaderboard.return_value = pd.DataFrame({'username': ['test']})
+    
+    result = _get_leaderboard_with_optional_token(mock_playground, token="my_token")
+    
+    mock_playground.get_leaderboard.assert_called_once_with(token="my_token")
+    assert result is not None
+
+
+def test_get_leaderboard_with_optional_token_without_token():
+    """Test that _get_leaderboard_with_optional_token works without token."""
+    from aimodelshare.moral_compass.apps.model_building_game import _get_leaderboard_with_optional_token
+    
+    mock_playground = Mock()
+    mock_playground.get_leaderboard.return_value = pd.DataFrame({'username': ['test']})
+    
+    result = _get_leaderboard_with_optional_token(mock_playground, token=None)
+    
+    mock_playground.get_leaderboard.assert_called_once_with()
+    assert result is not None
+
+
+def test_get_leaderboard_with_optional_token_none_playground():
+    """Test that _get_leaderboard_with_optional_token handles None playground."""
+    from aimodelshare.moral_compass.apps.model_building_game import _get_leaderboard_with_optional_token
+    
+    result = _get_leaderboard_with_optional_token(None, token="my_token")
+    
+    assert result is None
 
 
 def test_get_or_assign_team_with_token():

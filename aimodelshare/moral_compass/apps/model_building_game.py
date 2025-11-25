@@ -66,6 +66,27 @@ def _normalize_team_name(name: str) -> str:
         return ""
     return " ".join(str(name).strip().split())
 
+def _get_leaderboard_with_optional_token(playground_instance, token: Optional[str] = None) -> Optional[pd.DataFrame]:
+    """
+    Fetch fresh leaderboard with optional token authentication.
+    
+    This is a helper function that centralizes the pattern of fetching
+    a fresh (non-cached) leaderboard with optional token authentication.
+    Use this for user-facing flows that require fresh, full data.
+    
+    Args:
+        playground_instance: The Competition playground instance
+        token: Optional authentication token for the fetch
+    
+    Returns:
+        DataFrame with leaderboard data, or None if fetch fails
+    """
+    if playground_instance is None:
+        return None
+    if token:
+        return playground_instance.get_leaderboard(token=token)
+    return playground_instance.get_leaderboard()
+
 def _fetch_leaderboard(token: str) -> Optional[pd.DataFrame]:
     """Fetch leaderboard with caching (TTL: LEADERBOARD_CACHE_SECONDS)."""
     now = time.time()
@@ -606,10 +627,7 @@ def _background_initializer():
         if playground is not None:
             # Use ambient token if present for authenticated prefetch
             ambient_token = os.environ.get("AWS_TOKEN")
-            if ambient_token:
-                _ = playground.get_leaderboard(token=ambient_token)
-            else:
-                _ = playground.get_leaderboard()
+            _ = _get_leaderboard_with_optional_token(playground, ambient_token)
             with INIT_LOCK:
                 INIT_FLAGS["leaderboard"] = True
     except Exception as e:
@@ -1184,11 +1202,8 @@ def get_or_assign_team(username, token=None):
             new_team = _normalize_team_name(random.choice(TEAM_NAMES))
             return new_team, True
         
-        # Use token if provided for authenticated leaderboard fetch
-        if token:
-            leaderboard_df = playground.get_leaderboard(token=token)
-        else:
-            leaderboard_df = playground.get_leaderboard()
+        # Use centralized helper for authenticated leaderboard fetch
+        leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
         
         # Check if leaderboard has data and Team column
         if leaderboard_df is not None and not leaderboard_df.empty and "Team" in leaderboard_df.columns:
@@ -1701,8 +1716,8 @@ def run_experiment(
             login_error: gr.update(visible=False)
         }
 
-        # Use explicit token for authenticated, fresh leaderboard fetch after submission
-        full_leaderboard_df = playground.get_leaderboard(token=token)
+        # Use centralized helper for authenticated, fresh leaderboard fetch after submission
+        full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
 
         # Call new summary function
         team_html, individual_html, kpi_card_html, new_best_accuracy, new_rank, this_submission_score = generate_competitive_summary(
@@ -1805,11 +1820,8 @@ def on_initial_load(username, token=None):
         individual_html = "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Submit a model to see individual rankings.</p>"
         try:
             if playground:
-                # Use explicit token if provided for authenticated leaderboard fetch
-                if token:
-                    full_leaderboard_df = playground.get_leaderboard(token=token)
-                else:
-                    full_leaderboard_df = playground.get_leaderboard()
+                # Use centralized helper for authenticated leaderboard fetch
+                full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
                 team_html, individual_html, _, _, _, _ = generate_competitive_summary(
                     full_leaderboard_df,
                     os.environ.get("TEAM_NAME"),
