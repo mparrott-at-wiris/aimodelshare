@@ -1301,6 +1301,7 @@ def compute_rank_settings(
         }
 
 # Find components by name to yield updates
+# --- Existing global component placeholders ---
 submit_button = None
 submission_feedback_display = None
 team_leaderboard_display = None
@@ -1316,13 +1317,16 @@ feature_set_checkbox = None
 data_size_radio = None
 attempts_tracker_display = None
 team_name_state = None
-# Login components (will be assigned in create_model_building_game_app)
+# Login components
 login_username = None
 login_password = None
 login_submit = None
 login_error = None
-# This one will be assigned globally but is also defined in the function
-# first_submission_score_state = None 
+# Add missing placeholders for auth states (FIX)
+username_state = None
+token_state = None
+first_submission_score_state = None  # (already commented as "will be assigned globally")
+
 
 def get_or_assign_team(username, token=None):
     """
@@ -1549,13 +1553,13 @@ def run_experiment(
     feature_set,
     data_size_str,
     team_name,
-    last_submission_score, 
-    last_rank, 
+    last_submission_score,
+    last_rank,
     submission_count,
     first_submission_score,
     best_score,
-    username=None,  # Session-based auth parameter
-    token=None,     # Session-based auth parameter
+    username=None,
+    token=None,
     progress=gr.Progress()
 ):
     """
@@ -1581,7 +1585,8 @@ def run_experiment(
         token: Authentication token (from gr.State, not os.environ)
         progress: Gradio progress tracker
     """
-    
+    # Add debug log (optional)
+    _log(f"run_experiment received username={username} token_present={token is not None}")    
     # Concurrency Note: Use provided parameters exclusively, not os.environ.
     # Default to "Unknown_User" only if no username provided via state.
     if not username:
@@ -2147,10 +2152,18 @@ def build_conclusion_from_state(best_score, submissions, rank, first_score, feat
 def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """
     Create (but do not launch) the model building game app.
-    Starts background initialization automatically.
     """
-    # Start background initialization thread
     start_background_init()
+
+    # Add missing globals (FIX)
+    global submit_button, submission_feedback_display, team_leaderboard_display
+    global individual_leaderboard_display, last_submission_score_state, last_rank_state
+    global best_score_state, submission_count_state, first_submission_score_state
+    global rank_message_display, model_type_radio, complexity_slider
+    global feature_set_checkbox, data_size_radio
+    global login_username, login_password, login_submit, login_error
+    global attempts_tracker_display, team_name_state
+    global username_state, token_state  # <-- Added
     
     css = """
     /* ------------------------------
