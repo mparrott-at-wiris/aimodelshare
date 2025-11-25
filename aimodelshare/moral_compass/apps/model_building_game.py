@@ -66,6 +66,27 @@ def _normalize_team_name(name: str) -> str:
         return ""
     return " ".join(str(name).strip().split())
 
+def _get_leaderboard_with_optional_token(playground_instance: Optional["Competition"], token: Optional[str] = None) -> Optional[pd.DataFrame]:
+    """
+    Fetch fresh leaderboard with optional token authentication.
+    
+    This is a helper function that centralizes the pattern of fetching
+    a fresh (non-cached) leaderboard with optional token authentication.
+    Use this for user-facing flows that require fresh, full data.
+    
+    Args:
+        playground_instance: The Competition playground instance (or None)
+        token: Optional authentication token for the fetch
+    
+    Returns:
+        DataFrame with leaderboard data, or None if fetch fails or playground is None
+    """
+    if playground_instance is None:
+        return None
+    if token:
+        return playground_instance.get_leaderboard(token=token)
+    return playground_instance.get_leaderboard()
+
 def _fetch_leaderboard(token: str) -> Optional[pd.DataFrame]:
     """Fetch leaderboard with caching (TTL: LEADERBOARD_CACHE_SECONDS)."""
     now = time.time()
@@ -602,9 +623,11 @@ def _background_initializer():
             INIT_FLAGS["errors"].append(f"Full sample failed: {str(e)}")
     
     try:
-        # Step 5: Leaderboard prefetch
+        # Step 5: Leaderboard prefetch (best-effort with ambient token if available)
         if playground is not None:
-            _ = playground.get_leaderboard()
+            # Use ambient token if present for authenticated prefetch
+            ambient_token = os.environ.get("AWS_TOKEN")
+            _ = _get_leaderboard_with_optional_token(playground, ambient_token)
             with INIT_LOCK:
                 INIT_FLAGS["leaderboard"] = True
     except Exception as e:
@@ -1154,7 +1177,7 @@ login_error = None
 # This one will be assigned globally but is also defined in the function
 # first_submission_score_state = None 
 
-def get_or_assign_team(username):
+def get_or_assign_team(username, token=None):
     """
     Get the existing team for a user from the leaderboard, or assign a new random team.
     
@@ -1164,6 +1187,7 @@ def get_or_assign_team(username):
     
     Args:
         username: str, the username to check for existing team
+        token: str, optional authentication token for leaderboard fetch
     
     Returns:
         tuple: (team_name: str, is_new: bool)
@@ -1178,7 +1202,8 @@ def get_or_assign_team(username):
             new_team = _normalize_team_name(random.choice(TEAM_NAMES))
             return new_team, True
         
-        leaderboard_df = playground.get_leaderboard()
+        # Use centralized helper for authenticated leaderboard fetch
+        leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
         
         # Check if leaderboard has data and Team column
         if leaderboard_df is not None and not leaderboard_df.empty and "Team" in leaderboard_df.columns:
@@ -1285,8 +1310,8 @@ def perform_inline_login(username_input, password_input):
         token = get_aws_token()
         os.environ["AWS_TOKEN"] = token
         
-        # Get or assign team for this user (already normalized by get_or_assign_team)
-        team_name, is_new_team = get_or_assign_team(username_input.strip())
+        # Get or assign team for this user with explicit token (already normalized by get_or_assign_team)
+        team_name, is_new_team = get_or_assign_team(username_input.strip(), token=token)
         # Normalize team name before storing (defensive - already normalized by get_or_assign_team)
         team_name = _normalize_team_name(team_name)
         os.environ["TEAM_NAME"] = team_name
@@ -1691,7 +1716,8 @@ def run_experiment(
             login_error: gr.update(visible=False)
         }
 
-        full_leaderboard_df = playground.get_leaderboard()
+        # Use centralized helper for authenticated, fresh leaderboard fetch after submission
+        full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
 
         # Call new summary function
         team_html, individual_html, kpi_card_html, new_best_accuracy, new_rank, this_submission_score = generate_competitive_summary(
@@ -1766,10 +1792,14 @@ def run_experiment(
         yield error_updates
 
 
-def on_initial_load(username):
+def on_initial_load(username, token=None):
     """
     Updated to load HTML leaderboards with skeleton placeholders during init.
     Shows skeleton if leaderboard not yet ready, real data otherwise.
+    
+    Args:
+        username: str, the username for generating user-specific leaderboard views
+        token: str, optional authentication token for leaderboard fetch
     """
 
     initial_ui = compute_rank_settings(
@@ -1790,7 +1820,8 @@ def on_initial_load(username):
         individual_html = "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Submit a model to see individual rankings.</p>"
         try:
             if playground:
-                full_leaderboard_df = playground.get_leaderboard()
+                # Use centralized helper for authenticated leaderboard fetch
+                full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
                 team_html, individual_html, _, _, _, _ = generate_competitive_summary(
                     full_leaderboard_df,
                     os.environ.get("TEAM_NAME"),
@@ -3673,7 +3704,8 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 
                 # Hide login form since user is authenticated via session
                 # Return initial load results plus login form hidden
-                initial_results = on_initial_load(username)
+                # Pass token explicitly for authenticated leaderboard fetch
+                initial_results = on_initial_load(username, token=token)
                 return initial_results + (
                     gr.update(visible=False),  # login_username
                     gr.update(visible=False),  # login_password  
@@ -3686,7 +3718,8 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             else:
                 _log("No valid session on load, showing login form")
                 # No valid session, proceed with normal load (show login form)
-                initial_results = on_initial_load(None)
+                # No token available, call without token
+                initial_results = on_initial_load(None, token=None)
                 return initial_results + (
                     gr.update(visible=True),   # login_username
                     gr.update(visible=True),   # login_password
