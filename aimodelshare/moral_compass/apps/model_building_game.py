@@ -3330,65 +3330,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
 }}
 """
 
-        # Initial load scroll with overlay
-        initial_load_scroll_js = """
-()=>{
-  try {
-    // Show overlay for initial load
-    const overlay = document.getElementById('nav-loading-overlay');
-    const messageEl = document.getElementById('nav-loading-text');
-    if(overlay && messageEl) {
-      messageEl.textContent = 'Initializing experience...';
-      overlay.style.display = 'flex';
-      setTimeout(() => { overlay.style.opacity = '1'; }, 10);
-    }
-    
-    const startTime = Date.now();
-    
-    // Scroll to top
-    const anchor = document.getElementById('app_top_anchor');
-    const container = document.querySelector('.gradio-container') || document.scrollingElement || document.documentElement;
-    
-    function doScroll() {
-      if(anchor) { anchor.scrollIntoView({behavior:'auto', block:'start'}); }
-      else { container.scrollTo({top:0, behavior:'auto'}); }
-      
-      try {
-        if(window.parent && window.parent !== window && window.frameElement) {
-          const r = window.frameElement.getBoundingClientRect();
-          window.parent.scrollTo({top: Math.max(r.top + window.parent.scrollY - 10, 0), behavior:'auto'});
-        }
-      } catch(e2) {}
-    }
-    
-    doScroll();
-    let tries = 0;
-    const scrollInterval = setInterval(() => {
-      tries++;
-      doScroll();
-      if(tries >= 2) clearInterval(scrollInterval);
-    }, 160);
-    
-    // Poll for slide-1 visibility
-    let pollCount = 0;
-    const pollInterval = setInterval(() => {
-      pollCount++;
-      const elapsed = Date.now() - startTime;
-      const target = document.getElementById('slide-1');
-      const isVisible = target && target.offsetParent !== null;
-      
-      if((isVisible && elapsed >= 300) || pollCount >= 30) {
-        clearInterval(pollInterval);
-        if(overlay) {
-          overlay.style.opacity = '0';
-          setTimeout(() => { overlay.style.display = 'none'; }, 300);
-        }
-      }
-    }, 100);
-    
-  } catch(e) { console.warn('initial-scroll error', e); }
-}
-"""
+
         # Wire up slide buttons with enhanced navigation
         briefing_1_next.click(
             fn=create_nav(briefing_slide_1, briefing_slide_2),
@@ -3670,8 +3612,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 username_state,  # NEW
                 token_state,     # NEW
                 team_name_state, # NEW
-            ],
-            js=initial_load_scroll_js 
+            ]
         )
 
     return demo
