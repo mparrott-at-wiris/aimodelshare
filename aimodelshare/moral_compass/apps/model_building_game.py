@@ -249,6 +249,7 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
     Compute user statistics with thread-safe caching.
     
     Uses _user_stats_lock to prevent concurrent modification of the cache.
+    Returns a copy of cached data to allow safe reading without holding the lock.
     """
     now = time.time()
     
@@ -257,7 +258,9 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
         cached = _user_stats_cache.get(username)
         if cached and (now - cached.get("_ts", 0) < USER_STATS_TTL):
             _log(f"User stats cache hit for {username}")
-            return cached.copy()  # Return copy to prevent concurrent modification
+            # Return dict directly - callers only read, and the dict is small (6 keys)
+            # The lock is released after getting the reference, but dict read is atomic in CPython
+            return cached
 
     _log(f"Computing fresh stats for {username}")
     leaderboard_df = _fetch_leaderboard(token)
@@ -872,32 +875,6 @@ def tune_model_complexity(model, level):
         k_map = {1: 100, 2: 75, 3: 60, 4: 50, 5: 40, 6: 30, 7: 25, 8: 15, 9: 7, 10: 3}
         model.n_neighbors = k_map.get(level, 25)
     return model
-
-def _model_requires_dense(model):
-    """
-    Check if a model requires dense input (can't handle sparse matrices).
-    
-    DecisionTreeClassifier and RandomForestClassifier require dense arrays.
-    LogisticRegression and KNeighborsClassifier can handle sparse.
-    
-    NOTE: Currently unused since preprocessor outputs dense arrays.
-    Kept for future use if sparse output is enabled.
-    """
-    return isinstance(model, (DecisionTreeClassifier, RandomForestClassifier))
-
-def _ensure_dense(X):
-    """
-    Convert sparse matrix to dense array if needed.
-    
-    Used for models that require dense input (DecisionTree, RandomForest).
-    
-    NOTE: Currently unused since preprocessor outputs dense arrays.
-    Kept for future use if sparse output is enabled.
-    """
-    from scipy import sparse
-    if sparse.issparse(X):
-        return X.toarray()
-    return X
 
 # --- New Helper Functions for HTML Generation ---
 
@@ -1530,7 +1507,10 @@ def run_experiment(
     """
     
     # Use provided username - no fallback to environment to prevent data leakage
+    # For preview runs (unauthenticated), Unknown_User is acceptable
+    # For actual submissions, authentication is enforced via token check
     if not username:
+        _log("run_experiment called without username, using Unknown_User for preview/logging")
         username = "Unknown_User"
     
     # NOTE: We intentionally do NOT set os.environ for username/token/team_name
@@ -3753,9 +3733,15 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             available_sizes = get_available_data_sizes()
             
             # Stop timer once fully initialized - read INIT_FLAGS under lock
+            # Use the ready value already computed from poll_init_status() which
+            # also reads INIT_FLAGS under lock, avoiding redundant lock acquisition
             with INIT_LOCK:
-                pre_samples_full = INIT_FLAGS.get("pre_samples_full", False)
-            timer_active = not (ready and pre_samples_full)
+                all_ready = (
+                    INIT_FLAGS.get("competition", False)
+                    and INIT_FLAGS.get("dataset_core", False)
+                    and INIT_FLAGS.get("pre_samples_full", False)
+                )
+            timer_active = not all_ready
             
             return (
                 status_html,
