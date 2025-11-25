@@ -918,9 +918,16 @@ def submit_model(
     apiurl=apiurl.replace('"','')
 
     # Get bucket and model_id for user {{{
-    response, error = run_function_on_lambda(
-        apiurl, **{"delete": "FALSE", "versionupdateget": "TRUE"}
-    )
+    if token==None:
+        response, error = run_function_on_lambda(
+            apiurl, **{"delete": "FALSE", "versionupdateget": "TRUE"}
+        )
+    else:
+        from aimodelshare.aws import get_token_from_session, _get_username_from_token
+        username=_get_username_from_token(token)
+        response, error = run_function_on_lambda(
+            apiurl, username=username, token=token,**{"delete": "FALSE", "versionupdateget": "TRUE"}
+        )
     if error is not None:
         raise error
 
