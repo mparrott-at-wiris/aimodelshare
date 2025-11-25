@@ -426,7 +426,7 @@ def get_s3_iam_client(aws_key=None,aws_password=None, aws_region=None):
   return s3,iam,region
 
 
-def run_function_on_lambda(url, username=None, token=None **kwargs):
+def run_function_on_lambda(url, username=None, token=None, **kwargs):
     if username==None:
       kwargs["apideveloper"] = os.environ.get("username")
     else:
