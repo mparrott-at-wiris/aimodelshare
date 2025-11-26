@@ -11,9 +11,7 @@ jobs:
       contents: read
 
     env:
-      # Read SESSION_ID from repo secrets. REQUIRED if any test exercises real auth.
       SESSION_ID: ${{ secrets.MC_TEST_SESSIONID }}
-      # Optional: enable debug logging in app
       DEBUG_LOG: "true"
 
     steps:
@@ -41,8 +39,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install --no-cache-dir -r requirements-apps.txt
           pip install --no-cache-dir aimodelshare --no-dependencies
-          # Test-only dependencies
-          pip install --no-cache-dir pytest pytest-timeout
+          pip install --no-cache-dir pytest pytest-timeout pytest-rerunfailures
 
-      - name: Run integration tests (dict/hashability + submission count + KPI second submission)
-        run: pytest -q --disable-warnings --maxfail=1 tests/test_kpi_updates_on_second_submission.py tests/test_kpi_dict_unhashable_integration.py tests/test_submission_count_updates.py 
+      - name: Run integration tests with verbose diagnostics
+        run: |
+          pytest -vv -s --ra --tb=long --durations=10 --log-cli-level=DEBUG --maxfail=0 \
+            --timeout=600 --timeout-method=thread tests/test_kpi_updates_on_second_submission.py tests/test_kpi_dict_unhashable_integration.py tests/test_submission_count_updates.py
+           
