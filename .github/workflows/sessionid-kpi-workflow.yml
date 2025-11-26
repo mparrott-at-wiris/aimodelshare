@@ -1,4 +1,4 @@
-name: KPI Dict and Submission Count Integration Tests
+name: SessionID KPI Integration Test
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ jobs:
       contents: read
 
     env:
-      # Read SESSION_ID from repo secrets. REQUIRED if any test exercises real auth.
+      # Read SESSION_ID from repo secrets. REQUIRED.
       SESSION_ID: ${{ secrets.MC_TEST_SESSIONID }}
       # Optional: enable debug logging in app
       DEBUG_LOG: "true"
@@ -35,18 +35,14 @@ jobs:
             gcc \
             python3-dev
           sudo rm -rf /var/lib/apt/lists/*
-
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install --no-cache-dir -r requirements-apps.txt
           pip install --no-cache-dir aimodelshare --no-dependencies
-          # Test-only dependencies
+          # Test-only dependencies (keep if not in requirements-apps.txt)
           pip install --no-cache-dir pytest pytest-timeout
 
-      - name: Run integration tests (dict/hashability + submission count + KPI second submission)
+      - name: Run integration tests
         run: |
-          pytest -q --disable-warnings --maxfail=1 \
-            tests/test_kpi_updates_on_second_submission.py
-            tests/test_kpi_dict_unhashable_integration.py \
-            tests/test_submission_count_updates.py
+          pytest -q --disable-warnings --maxfail=1 tests/test_sessionid_kpi_integration.py
