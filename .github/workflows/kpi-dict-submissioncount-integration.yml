@@ -43,6 +43,4 @@ jobs:
 
       - name: Run integration tests with verbose diagnostics
         run: |
-          pytest -vv -s --log-cli-level=DEBUG --maxfail=0 \
-            --timeout=600 --timeout-method=thread tests/test_kpi_updates_on_second_submission.py tests/test_kpi_dict_unhashable_integration.py tests/test_submission_count_updates.py
-           
+          pytest -vv -s -ra --tb=long --durations=10 --log-cli-level=DEBUG --maxfail=0 --timeout=600 --timeout-method=thread tests/test_kpi_updates_on_second_submission.py tests/test_kpi_dict_unhashable_integration.py tests/test_submission_count_updates.py

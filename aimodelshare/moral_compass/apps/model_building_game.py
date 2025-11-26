@@ -2191,6 +2191,15 @@ def run_experiment(
         # Compute local test accuracy for metadata
         from sklearn.metrics import accuracy_score
         local_test_accuracy = accuracy_score(Y_TEST, predictions)
+        
+        # Immediately increment submission count and set first submission score
+        # This ensures states update even if leaderboard polling doesn't detect change (eventual consistency)
+        new_submission_count = submission_count + 1
+        new_first_submission_score = first_submission_score
+        if submission_count == 0 and first_submission_score is None:
+            # First authenticated submission - set the score immediately
+            new_first_submission_score = local_test_accuracy if local_test_accuracy is not None else 0.0
+            _log(f"First submission score set immediately: {new_first_submission_score:.4f}")
 
         # --- Stage 4: Refresh Leaderboard with Polling (API Calls 2+) ---
         # Show skeletons while fetching
@@ -2267,18 +2276,18 @@ def run_experiment(
             
             # Render pending UI with refresh button label
             settings = compute_rank_settings(
-                submission_count, model_name_key, complexity_level, feature_set, data_size_str
+                new_submission_count, model_name_key, complexity_level, feature_set, data_size_str
             )
             
             pending_updates = {
                 submission_feedback_display: gr.update(value=pending_kpi_html, visible=True),
                 team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
                 individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
-                last_submission_score_state: last_submission_score,  # Don't update states
+                last_submission_score_state: last_submission_score,  # Don't update yet
                 last_rank_state: last_rank,
                 best_score_state: best_score,
-                submission_count_state: submission_count,  # Don't increment yet
-                first_submission_score_state: first_submission_score,
+                submission_count_state: new_submission_count,  # Increment immediately
+                first_submission_score_state: new_first_submission_score,  # Set immediately on first submission
                 rank_message_display: settings["rank_message"],
                 model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
                 complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
@@ -2289,7 +2298,7 @@ def run_experiment(
                 login_password: gr.update(visible=False),
                 login_submit: gr.update(visible=False),
                 login_error: gr.update(visible=False),
-                attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
+                attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(new_submission_count)),
                 was_preview_state: False,
                 kpi_meta_state: pending_kpi_meta,
                 last_seen_ts_state: old_latest_ts
@@ -2312,13 +2321,11 @@ def run_experiment(
         progress(1.0, desc="Complete!")
         # No need for Step 5 HTML update, jumping to results
 
-        new_submission_count = submission_count + 1
-        
-        # Track first submission score - set immediately even if polling doesn't detect change
-        new_first_submission_score = first_submission_score
-        if submission_count == 0 and first_submission_score is None:
+        # Note: new_submission_count and new_first_submission_score were already computed after submit_model()
+        # Preserve new_first_submission_score if it was set; only update from leaderboard if still None
+        if new_first_submission_score is None and submission_count == 0:
             new_first_submission_score = this_submission_score
-            _log(f"First submission score set: {new_first_submission_score:.4f}")
+            _log(f"First submission score set from leaderboard: {new_first_submission_score:.4f}")
         
         # Update last seen timestamp
         new_latest_ts = _get_user_latest_ts(full_leaderboard_df, username)
