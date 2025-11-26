@@ -1279,7 +1279,8 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
         return (
             "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Leaderboard empty.</p>",
             "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Leaderboard empty.</p>",
-            _build_kpi_card_html(0, 0, 0, 0, 0), 0.0, 0, 0.0
+            _build_kpi_card_html(0, 0, 0, 0, 0, is_preview=False, is_pending=False, local_test_accuracy=None), 
+            0.0, 0, 0.0
         )
 
     # Team summary
@@ -1343,7 +1344,8 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
     team_html = _build_team_html(team_summary_df, team_name)
     individual_html = _build_individual_html(individual_summary_df, username)
     kpi_card_html = _build_kpi_card_html(
-        this_submission_score, last_submission_score, new_rank, last_rank, submission_count
+        this_submission_score, last_submission_score, new_rank, last_rank, submission_count,
+        is_preview=False, is_pending=False, local_test_accuracy=None
     )
 
     return team_html, individual_html, kpi_card_html, new_best_accuracy, new_rank, this_submission_score
