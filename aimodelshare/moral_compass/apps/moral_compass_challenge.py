@@ -1,17 +1,6 @@
 """
 The Moral Compass Challenge - Gradio application for the Justice & Equity Challenge.
-
-This version:
-- Uses sessionid-only authentication (no username/password UI).
-- Retains the restored original slide text/content you wanted (standing, paradigm shift, reset, formula, challenge ahead).
-- Keeps lightweight leaderboard + per-user stats caching for scalability.
-- Integrates the richer dark/light mode optimized CSS from the older version you supplied (including gauge, alerts, emphasis classes, etc.).
-- No per-user environment mutation; everything resolved per request.
-
-Environment Variables (optional):
-    LEADERBOARD_CACHE_SECONDS (int) default=45
-    MAX_LEADERBOARD_ENTRIES (int) default=None
-    DEBUG_LOG ('true'/'false') default='false'
+Updated with i18n support for English (en), Spanish (es), and Catalan (ca).
 """
 
 import os
@@ -25,8 +14,10 @@ import pandas as pd
 
 try:
     from aimodelshare.playground import Competition
-except ImportError as e:
-    raise ImportError("The 'aimodelshare' library is required. Install with: pip install aimodelshare") from e
+    from aimodelshare.aws import get_token_from_session, _get_username_from_token
+except ImportError:
+    # Mock/Pass if not available locally
+    pass
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -42,12 +33,226 @@ TEAM_NAMES = [
 ]
 
 # ---------------------------------------------------------------------------
-# In-memory caches (per container instance)
+# In-memory caches
 # ---------------------------------------------------------------------------
 _cache_lock = threading.Lock()
 _leaderboard_cache: Dict[str, Any] = {"data": None, "timestamp": 0.0}
 _user_stats_cache: Dict[str, Dict[str, Any]] = {}
 USER_STATS_TTL = LEADERBOARD_CACHE_SECONDS
+
+# ---------------------------------------------------------------------------
+# TRANSLATION CONFIGURATION
+# ---------------------------------------------------------------------------
+
+TRANSLATIONS = {
+    "en": {
+        "title": "⚖️ The Moral Compass Challenge",
+        "loading": "⏳ Loading...",
+        "loading_session": "🔒 Loading your session...",
+        # Step 1 (Standing)
+        "s1_title_auth": "You've Built an Accurate Model",
+        "s1_sub_auth": "Through experimentation and iteration, you've achieved impressive results:",
+        "lbl_best_acc": "Your Best Accuracy",
+        "lbl_ind_rank": "Your Individual Rank",
+        "lbl_team": "Your Team",
+        "lbl_team_rank": "Team Rank:",
+        "s1_li1": "✅ Mastered the model-building process",
+        "s1_li2": "✅ Climbed the accuracy leaderboard",
+        "s1_li3": "✅ Competed with fellow engineers",
+        "s1_li4": "✅ Earned promotions and unlocked tools",
+        "s1_congrats": "🏆 Congratulations on your technical achievement!",
+        "s1_box_title": "But now you know the full story...",
+        "s1_box_text": "High accuracy isn't enough. Real-world AI systems must also be <strong>fair, equitable, and <span class='emph-harm'>minimize harm</span></strong> across all groups of people.",
+        "s1_title_guest": "Ready to Begin Your Journey",
+        "s1_sub_guest": "You've learned about the model-building process and are ready to take on the challenge:",
+        "s1_li1_guest": "✅ Understood the AI model-building process",
+        "s1_li2_guest": "✅ Learned about accuracy and performance",
+        "s1_li3_guest": "✅ Discovered real-world bias in AI systems",
+        "s1_ready": "🎯 Ready to learn about ethical AI!",
+        "btn_new_std": "Introduce the New Standard ▶️",
+        # Step 2 (Gauge)
+        "s2_title": "We Need a Higher Standard",
+        "s2_sub": "While your model is accurate, a higher standard is needed to prevent <span class='emph-harm'>real-world harm</span>. To incentivize this new focus, we're introducing a new score.",
+        "s2_box_head": "Watch Your Score",
+        "lbl_acc_score": "Accuracy Score",
+        "s2_box_emph_head": "This score measures only <strong>one dimension</strong> of success.",
+        "s2_box_emph_text": "It's time to add a second, equally important dimension: <strong class='emph-fairness'>Ethics</strong>.",
+        "btn_back": "◀️ Back",
+        "btn_reset": "Reset and Transform ▶️",
+        # Step 3 (Reset)
+        "s3_title": "Your Accuracy Score Is Being Reset",
+        "lbl_score_reset": "Score Reset",
+        "s3_why_head": "⚠️ Why This Reset?",
+        "s3_why_text": "We reset your score to emphasize a critical truth: your previous success was measured by only <strong>one dimension</strong> — prediction accuracy. So far, you <strong>have not demonstrated</strong> that you know how to make your AI system <span class='emph-fairness'>safe for society</span>. You don’t yet know whether the model you built is <strong class='emph-harm'>just as biased</strong> as the harmful examples we studied in the previous activity. Moving forward, you’ll need to excel on <strong>two fronts</strong>: technical performance <em>and</em> ethical responsibility.",
+        "s3_worry_head": "✅ Don't Worry!",
+        "s3_worry_text": "As you make your AI more ethical through the upcoming lessons and challenges, <strong>your score will be restored</strong>—and could climb even higher than before.",
+        "btn_intro_mc": "Introduce Moral Compass ▶️",
+        # Step 4 (Formula)
+        "s4_title": "A New Way to Win",
+        "s4_sub": "Your new goal is to climb the leaderboard by increasing your <strong>Moral Compass Score</strong>.",
+        "s4_formula_head": "📐 The Scoring Formula",
+        "s4_formula_text": "<strong>Moral Compass Score</strong> =<br><br>[ Current Model Accuracy ] × [ Ethical Progress % ]",
+        "s4_where": "Where:",
+        "s4_li1": "<strong>Current Model Accuracy:</strong> Your technical performance",
+        "s4_li2": "<strong>Ethical Progress %:</strong> Percentage of:",
+        "s4_li2_sub1": "✅ Ethical learning tasks completed",
+        "s4_li2_sub2": "✅ Check-in questions answered correctly",
+        "s4_mean_head": "💡 What This Means:",
+        "s4_mean_text": "You <strong>cannot</strong> win by accuracy alone—you must also demonstrate <strong class='emph-fairness'>ethical understanding</strong>. And you <strong>cannot</strong> win by just completing lessons—you need a working model too. <strong class='emph-risk'>Both dimensions matter</strong>.",
+        "btn_see_chal": "See Challenge Ahead ▶️",
+        # Step 6 (Path)
+        "s6_title": "📍 Your New Starting Point",
+        "s6_pos_auth": "You were previously ranked #{rank} on the accuracy leaderboard.",
+        "s6_pos_guest": "You will establish your position as you build ethically aware models.",
+        "s6_mc_rank": "Current Moral Compass Rank: <span style='color:#b91c1c;'>Not Yet Established</span>",
+        "s6_mc_score": "(Moral Compass Score = 0 initially)",
+        "s6_path_head": "🛤️ Path Forward",
+        "s6_li1": "🔍 Detect and measure bias",
+        "s6_li2": "⚖️ Apply fairness metrics",
+        "s6_li3": "🔧 Redesign models to minimize harm",
+        "s6_li4": "📊 Balance performance & ethics",
+        "s6_ach_head": "🏆 Achievement",
+        "s6_ach_text": "Improve your Moral Compass Score to earn certification.",
+        "s6_scroll": "👇 CONTINUE 👇",
+        "s6_proceed": "Proceed to ethical tooling & evaluation modules."
+    },
+    "es": {
+        "title": "⚖️ El Desafío de la Brújula Moral",
+        "loading": "⏳ Cargando...",
+        "loading_session": "🔒 Cargando tu sesión...",
+        "s1_title_auth": "Has Construido un Modelo Preciso",
+        "s1_sub_auth": "A través de la experimentación e iteración, has logrado resultados impresionantes:",
+        "lbl_best_acc": "Tu Mejor Precisión",
+        "lbl_ind_rank": "Tu Rango Individual",
+        "lbl_team": "Tu Equipo",
+        "lbl_team_rank": "Rango de Equipo:",
+        "s1_li1": "✅ Dominaste el proceso de construcción de modelos",
+        "s1_li2": "✅ Escalaste en la tabla de clasificación de precisión",
+        "s1_li3": "✅ Competiste con otros ingenieros",
+        "s1_li4": "✅ Ganaste promociones y desbloqueaste herramientas",
+        "s1_congrats": "🏆 ¡Felicidades por tu logro técnico!",
+        "s1_box_title": "Pero ahora conoces la historia completa...",
+        "s1_box_text": "La alta precisión no es suficiente. Los sistemas de IA del mundo real también deben ser <strong>justos, equitativos y <span class='emph-harm'>minimizar el daño</span></strong> para todos los grupos de personas.",
+        "s1_title_guest": "Listo para Comenzar tu Viaje",
+        "s1_sub_guest": "Has aprendido sobre el proceso de construcción de modelos y estás listo para aceptar el desafío:",
+        "s1_li1_guest": "✅ Entendiste el proceso de construcción de modelos de IA",
+        "s1_li2_guest": "✅ Aprendiste sobre precisión y rendimiento",
+        "s1_li3_guest": "✅ Descubriste el sesgo del mundo real en los sistemas de IA",
+        "s1_ready": "🎯 ¡Listo para aprender sobre IA ética!",
+        "btn_new_std": "Introducir el Nuevo Estándar ▶️",
+        "s2_title": "Necesitamos un Estándar Más Alto",
+        "s2_sub": "Aunque tu modelo es preciso, se necesita un estándar más alto para prevenir <span class='emph-harm'>daños en el mundo real</span>. Para incentivar este nuevo enfoque, introducimos una nueva puntuación.",
+        "s2_box_head": "Observa tu Puntuación",
+        "lbl_acc_score": "Puntuación de Precisión",
+        "s2_box_emph_head": "Esta puntuación mide solo <strong>una dimensión</strong> del éxito.",
+        "s2_box_emph_text": "Es hora de agregar una segunda dimensión igualmente importante: <strong class='emph-fairness'>Ética</strong>.",
+        "btn_back": "◀️ Atrás",
+        "btn_reset": "Restablecer y Transformar ▶️",
+        "s3_title": "Tu Puntuación de Precisión Se Está Restableciendo",
+        "lbl_score_reset": "Puntuación Restablecida",
+        "s3_why_head": "⚠️ ¿Por Qué Este Restablecimiento?",
+        "s3_why_text": "Restablecemos tu puntuación para enfatizar una verdad crítica: tu éxito anterior se midió por solo <strong>una dimensión</strong> — precisión de predicción. Hasta ahora, <strong>no has demostrado</strong> que sabes cómo hacer que tu sistema de IA sea <span class='emph-fairness'>seguro para la sociedad</span>. Aún no sabes si el modelo que construiste está <strong class='emph-harm'>tan sesgado</strong> como los ejemplos dañinos que estudiamos en la actividad anterior. De ahora en adelante, necesitarás sobresalir en <strong>dos frentes</strong>: rendimiento técnico <em>y</em> responsabilidad ética.",
+        "s3_worry_head": "✅ ¡No Te Preocupes!",
+        "s3_worry_text": "A medida que hagas que tu IA sea más ética a través de las próximas lecciones y desafíos, <strong>tu puntuación será restaurada</strong>—y podría subir aún más que antes.",
+        "btn_intro_mc": "Introducir Brújula Moral ▶️",
+        "s4_title": "Una Nueva Forma de Ganar",
+        "s4_sub": "Tu nuevo objetivo es escalar en la clasificación aumentando tu <strong>Puntuación de Brújula Moral</strong>.",
+        "s4_formula_head": "📐 La Fórmula de Puntuación",
+        "s4_formula_text": "<strong>Puntuación de Brújula Moral</strong> =<br><br>[ Precisión del Modelo Actual ] × [ Progreso Ético % ]",
+        "s4_where": "Donde:",
+        "s4_li1": "<strong>Precisión del Modelo Actual:</strong> Tu rendimiento técnico",
+        "s4_li2": "<strong>Progreso Ético %:</strong> Porcentaje de:",
+        "s4_li2_sub1": "✅ Tareas de aprendizaje ético completadas",
+        "s4_li2_sub2": "✅ Preguntas de control respondidas correctamente",
+        "s4_mean_head": "💡 Qué Significa Esto:",
+        "s4_mean_text": "<strong>No puedes</strong> ganar solo con precisión—también debes demostrar <strong class='emph-fairness'>comprensión ética</strong>. Y <strong>no puedes</strong> ganar solo completando lecciones—necesitas un modelo funcional también. <strong class='emph-risk'>Ambas dimensiones importan</strong>.",
+        "btn_see_chal": "Ver el Desafío por Delante ▶️",
+        "s6_title": "📍 Tu Nuevo Punto de Partida",
+        "s6_pos_auth": "Anteriormente estabas clasificado #{rank} en la tabla de precisión.",
+        "s6_pos_guest": "Establecerás tu posición a medida que construyas modelos éticamente conscientes.",
+        "s6_mc_rank": "Rango Actual de Brújula Moral: <span style='color:#b91c1c;'>Aún No Establecido</span>",
+        "s6_mc_score": "(Puntuación de Brújula Moral = 0 inicialmente)",
+        "s6_path_head": "🛤️ Camino a Seguir",
+        "s6_li1": "🔍 Detectar y medir sesgos",
+        "s6_li2": "⚖️ Aplicar métricas de equidad",
+        "s6_li3": "🔧 Rediseñar modelos para minimizar daños",
+        "s6_li4": "📊 Equilibrar rendimiento y ética",
+        "s6_ach_head": "🏆 Logro",
+        "s6_ach_text": "Mejora tu Puntuación de Brújula Moral para obtener la certificación.",
+        "s6_scroll": "👇 CONTINUAR 👇",
+        "s6_proceed": "Proceder a herramientas y evaluación ética."
+    },
+    "ca": {
+        "title": "⚖️ El Repte de la Brúixola Moral",
+        "loading": "⏳ Carregant...",
+        "loading_session": "🔒 Carregant la teva sessió...",
+        "s1_title_auth": "Has Construït un Model Precís",
+        "s1_sub_auth": "A través de l'experimentació i iteració, has aconseguit resultats impressionants:",
+        "lbl_best_acc": "La Teva Millor Precisió",
+        "lbl_ind_rank": "El Teu Rang Individual",
+        "lbl_team": "El Teu Equip",
+        "lbl_team_rank": "Rang d'Equip:",
+        "s1_li1": "✅ Has dominat el procés de construcció de models",
+        "s1_li2": "✅ Has escalat a la taula de classificació de precisió",
+        "s1_li3": "✅ Has competit amb altres enginyers",
+        "s1_li4": "✅ Has guanyat promocions i desbloquejat eines",
+        "s1_congrats": "🏆 Felicitats pel teu èxit tècnic!",
+        "s1_box_title": "Però ara coneixes la història completa...",
+        "s1_box_text": "L'alta precisió no és suficient. Els sistemes d'IA del món real també han de ser <strong>justos, equitatius i <span class='emph-harm'>minimitzar el dany</span></strong> per a tots els grups de persones.",
+        "s1_title_guest": "A Punt per Començar el Teu Viatge",
+        "s1_sub_guest": "Has après sobre el procés de construcció de models i estàs a punt per acceptar el repte:",
+        "s1_li1_guest": "✅ Has entès el procés de construcció de models d'IA",
+        "s1_li2_guest": "✅ Has après sobre precisió i rendiment",
+        "s1_li3_guest": "✅ Has descobert el biaix del món real en els sistemes d'IA",
+        "s1_ready": "🎯 A punt per aprendre sobre IA ètica!",
+        "btn_new_std": "Introduir el Nou Estàndard ▶️",
+        "s2_title": "Necessitem un Estàndard Més Alt",
+        "s2_sub": "Tot i que el teu model és precís, es necessita un estàndard més alt per prevenir <span class='emph-harm'>danys al món real</span>. Per incentivar aquest nou enfocament, introduïm una nova puntuació.",
+        "s2_box_head": "Observa la teva Puntuació",
+        "lbl_acc_score": "Puntuació de Precisió",
+        "s2_box_emph_head": "Aquesta puntuació mesura només <strong>una dimensió</strong> de l'èxit.",
+        "s2_box_emph_text": "És hora d'afegir una segona dimensió igualment important: <strong class='emph-fairness'>Ètica</strong>.",
+        "btn_back": "◀️ Enrere",
+        "btn_reset": "Restablir i Transformar ▶️",
+        "s3_title": "La Teva Puntuació de Precisió S'està Restablint",
+        "lbl_score_reset": "Puntuació Restablerta",
+        "s3_why_head": "⚠️ Per Què Aquest Restabliment?",
+        "s3_why_text": "Restablim la teva puntuació per emfatitzar una veritat crítica: el teu èxit anterior es va mesurar per només <strong>una dimensió</strong> — precisió de predicció. Fins ara, <strong>no has demostrat</strong> que saps com fer que el teu sistema d'IA sigui <span class='emph-fairness'>segur per a la societat</span>. Encara no saps si el model que has construït està <strong class='emph-harm'>tan esbiaixat</strong> com els exemples nocius que vam estudiar en l'activitat anterior. D'ara endavant, necessitaràs sobresortir en <strong>dos fronts</strong>: rendiment tècnic <em>i</em> responsabilitat ètica.",
+        "s3_worry_head": "✅ No Et Preocupis!",
+        "s3_worry_text": "A mesura que facis que la teva IA sigui més ètica a través de les properes lliçons i reptes, <strong>la teva puntuació serà restaurada</strong>—i podria pujar encara més que abans.",
+        "btn_intro_mc": "Introduir Brúixola Moral ▶️",
+        "s4_title": "Una Nova Manera de Guanyar",
+        "s4_sub": "El teu nou objectiu és escalar a la classificació augmentant la teva <strong>Puntuació de Brúixola Moral</strong>.",
+        "s4_formula_head": "📐 La Fórmula de Puntuació",
+        "s4_formula_text": "<strong>Puntuació de Brúixola Moral</strong> =<br><br>[ Precisió del Model Actual ] × [ Progrés Ètic % ]",
+        "s4_where": "On:",
+        "s4_li1": "<strong>Precisió del Model Actual:</strong> El teu rendiment tècnic",
+        "s4_li2": "<strong>Progrés Ètic %:</strong> Percentatge de:",
+        "s4_li2_sub1": "✅ Tasques d'aprenentatge ètic completades",
+        "s4_li2_sub2": "✅ Preguntes de control respostes correctament",
+        "s4_mean_head": "💡 Què Significa Això:",
+        "s4_mean_text": "<strong>No pots</strong> guanyar només amb precisió—també has de demostrar <strong class='emph-fairness'>comprensió ètica</strong>. I <strong>no pots</strong> guanyar només completant lliçons—necessites un model funcional també. <strong class='emph-risk'>Les dues dimensions importen</strong>.",
+        "btn_see_chal": "Veure el Repte per Endavant ▶️",
+        "s6_title": "📍 El Teu Nou Punt de Partida",
+        "s6_pos_auth": "Anteriorment estaves classificat #{rank} a la taula de precisió.",
+        "s6_pos_guest": "Establiràs la teva posició a mesura que construeixis models èticament conscients.",
+        "s6_mc_rank": "Rang Actual de Brúixola Moral: <span style='color:#b91c1c;'>Encara No Establert</span>",
+        "s6_mc_score": "(Puntuació de Brúixola Moral = 0 inicialment)",
+        "s6_path_head": "🛤️ Camí a Seguir",
+        "s6_li1": "🔍 Detectar i mesurar biaixos",
+        "s6_li2": "⚖️ Aplicar mètriques d'equitat",
+        "s6_li3": "🔧 Redissenyar models per minimitzar danys",
+        "s6_li4": "📊 Equilibrar rendiment i ètica",
+        "s6_ach_head": "🏆 Assoliment",
+        "s6_ach_text": "Millora la teva Puntuació de Brúixola Moral per obtenir la certificació.",
+        "s6_scroll": "👇 CONTINUAR 👇",
+        "s6_proceed": "Procedir a eines i avaluació ètica."
+    }
+}
+
+# ---------------------------------------------------------------------------
+# Logic / Helpers
+# ---------------------------------------------------------------------------
 
 def _log(msg: str):
     if DEBUG_LOG:
@@ -109,7 +314,6 @@ def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str],
         session_id = request.query_params.get("sessionid") if request else None
         if not session_id:
             return False, None, None
-        from aimodelshare.aws import get_token_from_session, _get_username_from_token
         token = get_token_from_session(session_id)
         if not token:
             return False, None, None
@@ -139,7 +343,6 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
                 user_submissions = leaderboard_df[leaderboard_df["username"] == username]
                 if not user_submissions.empty:
                     best_score = user_submissions["accuracy"].max()
-
 
                 # Individual rank
                 user_bests = leaderboard_df.groupby("username")["accuracy"].max()
@@ -180,9 +383,13 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
     return stats
 
 # ---------------------------------------------------------------------------
-# HTML Builders (restored original wording)
+# HTML Helpers (I18N)
 # ---------------------------------------------------------------------------
-def build_standing_html(user_stats):
+
+def t(lang, key):
+    return TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(key, key)
+
+def build_standing_html(user_stats, lang="en"):
     if user_stats["is_signed_in"] and user_stats["best_score"] is not None:
         best_score_pct = f"{(user_stats['best_score'] * 100):.1f}%"
         rank_text = f"#{user_stats['rank']}" if user_stats["rank"] else "N/A"
@@ -191,94 +398,86 @@ def build_standing_html(user_stats):
         return f"""
         <div class='slide-shell slide-shell--info'>
             <h3 class='slide-shell__title'>
-                You've Built an Accurate Model
+                {t(lang, 's1_title_auth')}
             </h3>
             <div class='content-box'>
                 <p class='slide-shell__subtitle'>
-                    Through experimentation and iteration, you've achieved impressive results:
+                    {t(lang, 's1_sub_auth')}
                 </p>
                 <div class='stat-grid'>
                     <div class='stat-card stat-card--success'>
-                        <p class='stat-card__label'>Your Best Accuracy</p>
+                        <p class='stat-card__label'>{t(lang, 'lbl_best_acc')}</p>
                         <p class='stat-card__value'>{best_score_pct}</p>
                     </div>
                     <div class='stat-card stat-card--accent'>
-                        <p class='stat-card__label'>Your Individual Rank</p>
+                        <p class='stat-card__label'>{t(lang, 'lbl_ind_rank')}</p>
                         <p class='stat-card__value'>{rank_text}</p>
                     </div>
                 </div>
                 <div class='team-card'>
-                    <p class='team-card__label'>Your Team</p>
+                    <p class='team-card__label'>{t(lang, 'lbl_team')}</p>
                     <p class='team-card__value'>🛡️ {team_text}</p>
-                    <p class='team-card__rank'>Team Rank: {team_rank_text}</p>
+                    <p class='team-card__rank'>{t(lang, 'lbl_team_rank')} {team_rank_text}</p>
                 </div>
                 <ul class='bullet-list'>
-                    <li>✅ Mastered the model-building process</li>
-                    <li>✅ Climbed the accuracy leaderboard</li>
-                    <li>✅ Competed with fellow engineers</li>
-                    <li>✅ Earned promotions and unlocked tools</li>
+                    <li>{t(lang, 's1_li1')}</li>
+                    <li>{t(lang, 's1_li2')}</li>
+                    <li>{t(lang, 's1_li3')}</li>
+                    <li>{t(lang, 's1_li4')}</li>
                 </ul>
                 <p class='slide-shell__subtitle' style='font-weight:600;'>
-                    🏆 Congratulations on your technical achievement!
+                    {t(lang, 's1_congrats')}
                 </p>
             </div>
             <div class='content-box content-box--emphasis'>
                 <p class='content-box__heading'>
-                    But now you know the full story...
+                    {t(lang, 's1_box_title')}
                 </p>
                 <p>
-                    High accuracy isn't enough. Real-world AI systems must also be
-                    <strong>fair, equitable, and <span class='emph-harm'>minimize harm</span></strong>
-                    across all groups of people.
+                    {t(lang, 's1_box_text')}
                 </p>
             </div>
         </div>
         """
     elif user_stats["is_signed_in"]:
-        return """
+        return f"""
         <div class='slide-shell slide-shell--info'>
             <h3 class='slide-shell__title'>
-                Ready to Begin Your Journey
+                {t(lang, 's1_title_guest')}
             </h3>
             <div class='content-box'>
                 <p class='slide-shell__subtitle'>
-                    You've learned about the model-building process and are ready to take on the challenge:
+                    {t(lang, 's1_sub_guest')}
                 </p>
                 <ul class='bullet-list'>
-                    <li>✅ Understood the AI model-building process</li>
-                    <li>✅ Learned about accuracy and performance</li>
-                    <li>✅ Discovered real-world bias in AI systems</li>
+                    <li>{t(lang, 's1_li1_guest')}</li>
+                    <li>{t(lang, 's1_li2_guest')}</li>
+                    <li>{t(lang, 's1_li3_guest')}</li>
                 </ul>
                 <p class='slide-shell__subtitle' style='font-weight:600;'>
-                    🎯 Ready to learn about ethical AI!
+                    {t(lang, 's1_ready')}
                 </p>
             </div>
             <div class='content-box content-box--emphasis'>
                 <p class='content-box__heading'>
-                    Now you know the full story...
+                    {t(lang, 's1_box_title')}
                 </p>
                 <p>
-                    High accuracy isn't enough. Real-world AI systems must also be
-                    <strong>fair, equitable, and <span class='emph-harm'>minimize harm</span></strong>
-                    across all groups of people.
+                    {t(lang, 's1_box_text')}
                 </p>
             </div>
         </div>
         """
     else:
-        return """
+        return f"""
         <div class='slide-shell slide-shell--warning' style='text-align:center;'>
             <h2 class='slide-shell__title'>
-                🔒 Session Required
+                {t(lang, 'loading_session')}
             </h2>
-            <p class='slide-shell__subtitle'>
-                Supply a valid ?sessionid=... in the URL to view personalized stats.
-                No manual sign-in is available.
-            </p>
         </div>
         """
 
-def build_step2_html(user_stats):
+def build_step2_html(user_stats, lang="en"):
     if user_stats.get("is_signed_in") and user_stats.get("best_score") is not None:
         gauge_value = int(user_stats["best_score"] * 100)
     else:
@@ -286,80 +485,147 @@ def build_step2_html(user_stats):
     gauge_percent = f"{gauge_value}%"
     return f"""
     <div class='slide-shell slide-shell--warning'>
-        <h3 class='slide-shell__title'>We Need a Higher Standard</h3>
+        <h3 class='slide-shell__title'>{t(lang, 's2_title')}</h3>
         <p class='slide-shell__subtitle'>
-            While your model is accurate, a higher standard is needed to prevent
-            <span class='emph-harm'>real-world harm</span>. To incentivize this new focus,
-            we're introducing a new score.
+            {t(lang, 's2_sub')}
         </p>
         <div class='content-box'>
-            <h4 class='content-box__heading'>Watch Your Score</h4>
+            <h4 class='content-box__heading'>{t(lang, 's2_box_head')}</h4>
             <div class='score-gauge-container'>
                 <div class='score-gauge' style='--fill-percent:{gauge_percent};'>
                     <div class='score-gauge-inner'>
                         <div class='score-gauge-value'>{gauge_value}</div>
-                        <div class='score-gauge-label'>Accuracy Score</div>
+                        <div class='score-gauge-label'>{t(lang, 'lbl_acc_score')}</div>
                     </div>
                 </div>
             </div>
         </div>
         <div class='content-box content-box--emphasis'>
             <p class='content-box__heading'>
-                This score measures only <strong>one dimension</strong> of success.
+                {t(lang, 's2_box_emph_head')}
             </p>
             <p>
-                It's time to add a second, equally important dimension:
-                <strong class='emph-fairness'>Ethics</strong>.
+                {t(lang, 's2_box_emph_text')}
             </p>
         </div>
     </div>
     """
 
-def build_step6_html(user_stats):
+def _get_step3_html(lang):
+    return f"""
+    <div class='slide-shell slide-shell--warning'>
+        <div style='text-align:center;'>
+            <h3 class='slide-shell__title'>
+                {t(lang, 's3_title')}
+            </h3>
+            <div class='score-gauge-container'>
+                <div class='score-gauge gauge-dropped' style='--fill-percent: 0%;'>
+                    <div class='score-gauge-inner'>
+                        <div class='score-gauge-value' style='color:#dc2626;'>0</div>
+                        <div class='score-gauge-label'>{t(lang, 'lbl_score_reset')}</div>
+                    </div>
+                </div>
+            </div>
+            <div class='content-box content-box--danger'>
+                <h4 class='content-box__heading'>
+                    {t(lang, 's3_why_head')}
+                </h4>
+                <p class='slide-teaching-body' style='text-align:left;'>
+                    {t(lang, 's3_why_text')}
+                </p>
+            </div>
+            <div class='content-box content-box--success'>
+                <h4 class='content-box__heading'>
+                    {t(lang, 's3_worry_head')}
+                </h4>
+                <p class='slide-teaching-body'>
+                    {t(lang, 's3_worry_text')}
+                </p>
+            </div>
+        </div>
+    </div>
+    """
+
+def _get_step4_html(lang):
+    return f"""
+    <div class='slide-shell slide-shell--info'>
+        <h3 class='slide-shell__title'>
+            {t(lang, 's4_title')}
+        </h3>
+        <p class='slide-shell__subtitle'>
+            {t(lang, 's4_sub')}
+        </p>
+        <div class='content-box formula-box'>
+            <h4 class='content-box__heading' style='text-align:center;'>{t(lang, 's4_formula_head')}</h4>
+            <div class='formula-math'>
+                {t(lang, 's4_formula_text')}
+            </div>
+            <div class='content-box' style='margin-top:20px;'>
+                <p class='content-box__heading'>{t(lang, 's4_where')}</p>
+                <ul class='bullet-list'>
+                    <li>{t(lang, 's4_li1')}</li>
+                    <li>
+                        {t(lang, 's4_li2')}
+                        <ul class='bullet-list' style='margin-top:8px;'>
+                            <li>{t(lang, 's4_li2_sub1')}</li>
+                            <li>{t(lang, 's4_li2_sub2')}</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class='content-box content-box--success'>
+            <h4 class='content-box__heading'>{t(lang, 's4_mean_head')}</h4>
+            <p class='slide-teaching-body'>
+                {t(lang, 's4_mean_text')}
+            </p>
+        </div>
+    </div>
+    """
+
+def build_step6_html(user_stats, lang="en"):
     if user_stats.get("is_signed_in") and user_stats.get("rank"):
-        rank_text = f"#{user_stats['rank']}"
-        position_msg = f"You were previously ranked {rank_text} on the accuracy leaderboard."
+        position_msg = t(lang, 's6_pos_auth').replace("{rank}", str(user_stats['rank']))
     else:
-        position_msg = "You will establish your position as you build ethically aware models."
+        position_msg = t(lang, 's6_pos_guest')
 
     return f"""
     <div class='slide-shell slide-shell--info'>
-        <h3 class='slide-shell__title'>📍 Your New Starting Point</h3>
+        <h3 class='slide-shell__title'>{t(lang, 's6_title')}</h3>
         <div class='content-box'>
             <p>{position_msg}</p>
             <div class='content-box content-box--danger'>
                 <p class='content-box__heading'>
-                    Current Moral Compass Rank: <span style='color:#b91c1c;'>Not Yet Established</span>
+                    {t(lang, 's6_mc_rank')}
                 </p>
-                <p>(Moral Compass Score = 0 initially)</p>
+                <p>{t(lang, 's6_mc_score')}</p>
             </div>
         </div>
         <div class='content-box content-box--success'>
-            <h4 class='content-box__heading'>🛤️ Path Forward</h4>
+            <h4 class='content-box__heading'>{t(lang, 's6_path_head')}</h4>
             <ul class='bullet-list'>
-                <li>🔍 Detect and measure bias</li>
-                <li>⚖️ Apply fairness metrics</li>
-                <li>🔧 Redesign models to minimize harm</li>
-                <li>📊 Balance performance & ethics</li>
+                <li>{t(lang, 's6_li1')}</li>
+                <li>{t(lang, 's6_li2')}</li>
+                <li>{t(lang, 's6_li3')}</li>
+                <li>{t(lang, 's6_li4')}</li>
             </ul>
         </div>
         <div class='content-box content-box--emphasis'>
             <p class='content-box__heading'>
-                🏆 Achievement
+                {t(lang, 's6_ach_head')}
             </p>
-            <p>Improve your Moral Compass Score to earn certification.</p>
+            <p>{t(lang, 's6_ach_text')}</p>
         </div>
-        <h1 style='margin:32px 0 16px 0; font-size:2.5rem; text-align:center;'>👇 CONTINUE 👇</h1>
-        <p style='text-align:center;'>Proceed to ethical tooling & evaluation modules.</p>
+        <h1 style='margin:32px 0 16px 0; font-size:2.5rem; text-align:center;'>{t(lang, 's6_scroll')}</h1>
+        <p style='text-align:center;'>{t(lang, 's6_proceed')}</p>
     </div>
     """
 
 # ---------------------------------------------------------------------------
-# Dark/Light Mode Optimized CSS (from older version)
+# CSS
 # ---------------------------------------------------------------------------
 CSS = """
 .large-text { font-size: 20px !important; }
-
 /* Slide + containers */
 .slide-shell {
   padding: 28px;
@@ -372,217 +638,73 @@ CSS = """
   margin: 0 auto 24px auto;
   font-size: 20px;
 }
-
 .slide-shell--info { border-color: var(--color-accent); }
 .slide-shell--warning { border-color: var(--color-accent); }
-
 .slide-shell__title {
-  font-size: 2rem;
-  margin: 0 0 16px 0;
-  text-align: center;
+  font-size: 2rem; margin: 0 0 16px 0; text-align: center;
 }
 .slide-shell__subtitle {
-  font-size: 1.1rem;
-  margin-top: 8px;
-  text-align: center;
-  color: var(--secondary-text-color);
-  line-height: 1.7;
+  font-size: 1.1rem; margin-top: 8px; text-align: center; color: var(--secondary-text-color); line-height: 1.7;
 }
-
 .content-box {
-  background-color: var(--block-background-fill);
-  border-radius: 12px;
-  border: 1px solid var(--border-color-primary);
-  padding: 24px;
-  margin: 24px 0;
+  background-color: var(--block-background-fill); border-radius: 12px; border: 1px solid var(--border-color-primary); padding: 24px; margin: 24px 0;
 }
 .content-box__heading {
-  margin-top: 0;
-  font-weight: 600;
-  font-size: 1.2rem;
+  margin-top: 0; font-weight: 600; font-size: 1.2rem;
 }
 .content-box--emphasis { border-left: 6px solid var(--color-accent); }
 .content-box--danger { border-left: 6px solid #dc2626; }
 .content-box--success { border-left: 6px solid #16a34a; }
-
 .bullet-list {
-  list-style: none;
-  padding-left: 0;
-  margin: 16px auto 0 auto;
-  max-width: 600px;
-  font-size: 1.05rem;
+  list-style: none; padding-left: 0; margin: 16px auto 0 auto; max-width: 600px; font-size: 1.05rem;
 }
 .bullet-list li { padding: 6px 0; }
-
-.note-text {
-  font-size: 0.95rem;
-  margin-top: 12px;
-  font-style: italic;
-  color: var(--secondary-text-color);
-}
-
 /* Stats cards */
-.stat-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin: 24px auto;
-  max-width: 600px;
-}
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px auto; max-width: 600px; }
 .stat-card, .team-card {
-  text-align: center;
-  padding: 16px;
-  border-radius: 10px;
-  border: 1px solid var(--border-color-primary);
-  background-color: var(--block-background-fill);
+  text-align: center; padding: 16px; border-radius: 10px; border: 1px solid var(--border-color-primary); background-color: var(--block-background-fill);
 }
-.stat-card__label, .team-card__label {
-  margin: 0;
-  font-size: 0.9rem;
-  color: var(--secondary-text-color);
-}
-.stat-card__value {
-  margin: 8px 0 0 0;
-  font-size: 2.2rem;
-  font-weight: 800;
-}
+.stat-card__label, .team-card__label { margin: 0; font-size: 0.9rem; color: var(--secondary-text-color); }
+.stat-card__value { margin: 8px 0 0 0; font-size: 2.2rem; font-weight: 800; }
 .stat-card--success .stat-card__value { color: #16a34a; }
 .stat-card--accent .stat-card__value { color: var(--color-accent); }
-.team-card__value {
-  margin: 8px 0 4px 0;
-  font-size: 1.5rem;
-  font-weight: 700;
-}
+.team-card__value { margin: 8px 0 4px 0; font-size: 1.5rem; font-weight: 700; }
 .team-card__rank { margin: 0; font-size: 1rem; color: var(--secondary-text-color); }
-
 /* Teaching body */
-.slide-teaching-body {
-  font-size: 1.1rem;
-  line-height: 1.8;
-  margin-top: 1rem;
-}
-
+.slide-teaching-body { font-size: 1.1rem; line-height: 1.8; margin-top: 1rem; }
 /* Emphasis */
 .emph-harm { color: #b91c1c; font-weight: 700; }
 .emph-risk { color: #b45309; font-weight: 600; }
 .emph-fairness { color: var(--color-accent); font-weight: 600; }
-
 @media (prefers-color-scheme: dark) {
   .emph-harm { color: #fca5a5; }
   .emph-risk { color: #fed7aa; }
 }
-
-/* Alerts */
-.alert {
-  padding: 16px;
-  border-radius: 8px;
-  border-left: 4px solid var(--border-color-primary);
-  margin-top: 12px;
-  background-color: var(--block-background-fill);
-  color: var(--body-text-color);
-  font-size: 0.95rem;
-}
-.alert__title { margin: 0; font-weight: 600; font-size: 1.05rem; }
-.alert__subtitle { margin: 8px 0 0 0; font-weight: 600; }
-.alert__body { margin: 8px 0 0 0; }
-.alert__link { text-decoration: underline; }
-.alert--error { border-left-color: #dc2626; }
-.alert--warning { border-left-color: #f59e0b; }
-.alert--success { border-left-color: #16a34a; }
-
 /* Gauge */
-.score-gauge-container {
-  position: relative;
-  width: 260px;
-  height: 260px;
-  margin: 24px auto;
-}
+.score-gauge-container { position: relative; width: 260px; height: 260px; margin: 24px auto; }
 .score-gauge {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: conic-gradient(
-    from 180deg,
-    #16a34a 0%,
-    #16a34a var(--fill-percent, 0%),
-    var(--border-color-primary) var(--fill-percent, 0%),
-    var(--border-color-primary) 100%
-  );
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+  width: 100%; height: 100%; border-radius: 50%;
+  background: conic-gradient(from 180deg, #16a34a 0%, #16a34a var(--fill-percent, 0%), var(--border-color-primary) var(--fill-percent, 0%), var(--border-color-primary) 100%);
+  display: flex; align-items: center; justify-content: center; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.12);
 }
 .score-gauge-inner {
-  width: 70%;
-  height: 70%;
-  border-radius: 50%;
-  background-color: var(--block-background-fill);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
-  border: 1px solid var(--border-color-primary);
+  width: 70%; height: 70%; border-radius: 50%; background-color: var(--block-background-fill);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2; border: 1px solid var(--border-color-primary);
 }
-.score-gauge-value {
-  font-size: 3.2rem;
-  font-weight: 800;
-  color: var(--body-text-color);
-  line-height: 1;
-}
-.score-gauge-label {
-  font-size: 0.95rem;
-  color: var(--secondary-text-color);
-  margin-top: 8px;
-}
-
+.score-gauge-value { font-size: 3.2rem; font-weight: 800; color: var(--body-text-color); line-height: 1; }
+.score-gauge-label { font-size: 0.95rem; color: var(--secondary-text-color); margin-top: 8px; }
 /* Gauge reset animation */
 @keyframes gauge-drop {
   0% { background: conic-gradient(from 180deg,#16a34a 0%,#16a34a 75%,var(--border-color-primary) 75%,var(--border-color-primary) 100%); }
   100% { background: conic-gradient(from 180deg,#dc2626 0%,#dc2626 0%,var(--border-color-primary) 0%,var(--border-color-primary) 100%); }
 }
 .gauge-dropped { animation: gauge-drop 2s ease-out forwards; }
-
 /* Navigation overlay */
-#nav-loading-overlay {
-  position: fixed;
-  top:0; left:0;
-  width:100%; height:100%;
-  background-color: var(--body-background-fill);
-  z-index:9999;
-  display:none;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  opacity:0;
-  transition:opacity .25s ease;
-}
-.nav-spinner {
-  width:50px; height:50px;
-  border:5px solid var(--block-background-fill);
-  border-top:5px solid var(--color-accent);
-  border-radius:50%;
-  animation: nav-spin 1s linear infinite;
-  margin-bottom:20px;
-}
+#nav-loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background-color: var(--body-background-fill); z-index:9999; display:none; flex-direction:column; align-items:center; justify-content:center; opacity:0; transition:opacity .25s ease; }
+.nav-spinner { width:50px; height:50px; border:5px solid var(--block-background-fill); border-top:5px solid var(--color-accent); border-radius:50%; animation: nav-spin 1s linear infinite; margin-bottom:20px; }
 @keyframes nav-spin { to { transform: rotate(360deg); } }
-#nav-loading-text {
-  font-size:1.3rem;
-  font-weight:600;
-  color: var(--body-text-color);
-}
-
-/* Dark mode: reduce shadows */
-@media (prefers-color-scheme: dark) {
-  .slide-shell,
-  .content-box,
-  .alert {
-    box-shadow:none;
-  }
-  .score-gauge { box-shadow:none; }
-}
+#nav-loading-text { font-size:1.3rem; font-weight:600; color: var(--body-text-color); }
+@media (prefers-color-scheme: dark) { .slide-shell, .content-box, .alert { box-shadow:none; } .score-gauge { box-shadow:none; } }
 """
 
 # ---------------------------------------------------------------------------
@@ -597,179 +719,136 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
                 <span id='nav-loading-text'>Loading...</span>
             </div>
         """)
-        gr.Markdown("<h1 style='text-align:center;'>⚖️ The Moral Compass Challenge</h1>")
+        
+        # --- Components ---
+        c_title = gr.Markdown("<h1 style='text-align:center;'>⚖️ The Moral Compass Challenge</h1>")
+
+        # Initial loading (visible first)
+        with gr.Column(visible=True, elem_id="initial-loading") as initial_loading:
+            c_loading = gr.Markdown("<div style='text-align:center; padding:80px 0;'><h2>⏳ Loading...</h2></div>")
 
         # Step 1
-        with gr.Column(visible=True, elem_id="step-1") as step_1:
-            stats_display = gr.HTML(build_standing_html({"is_signed_in": False}))
-            step_1_next = gr.Button("Introduce the New Standard ▶️", variant="primary", size="lg")
+        with gr.Column(visible=False, elem_id="step-1") as step_1:
+            stats_display = gr.HTML() # Built dynamically
+            step_1_next = gr.Button(t('en', 'btn_new_std'), variant="primary", size="lg")
 
         # Step 2
         with gr.Column(visible=False, elem_id="step-2") as step_2:
-            step_2_html_comp = gr.HTML(build_step2_html({"is_signed_in": False, "best_score": None}))
+            step_2_html_comp = gr.HTML() # Built dynamically
             with gr.Row():
-                step_2_back = gr.Button("◀️ Back", size="lg")
-                step_2_next = gr.Button("Reset and Transform ▶️", variant="primary", size="lg")
+                step_2_back = gr.Button(t('en', 'btn_back'), size="lg")
+                step_2_next = gr.Button(t('en', 'btn_reset'), variant="primary", size="lg")
 
         # Step 3
         with gr.Column(visible=False, elem_id="step-3") as step_3:
-            step_3_html_comp = gr.HTML("""
-            <div class='slide-shell slide-shell--warning'>
-                <div style='text-align:center;'>
-                    <h3 class='slide-shell__title'>
-                        Your Accuracy Score Is Being Reset
-                    </h3>
-                    <div class='score-gauge-container'>
-                        <div class='score-gauge gauge-dropped' style='--fill-percent: 0%;'>
-                            <div class='score-gauge-inner'>
-                                <div class='score-gauge-value' style='color:#dc2626;'>0</div>
-                                <div class='score-gauge-label'>Score Reset</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class='content-box content-box--danger'>
-                        <h4 class='content-box__heading'>
-                            ⚠️ Why This Reset?
-                        </h4>
-                        <p class='slide-teaching-body' style='text-align:left;'>
-                            We reset your score to emphasize a critical truth: your previous success
-                            was measured by only <strong>one dimension</strong> — prediction accuracy. So far, you
-                            <strong>have not demonstrated</strong> that you know how to make your AI system
-                            <span class='emph-fairness'>safe for society</span>. You don’t yet know whether
-                            the model you built is <strong class='emph-harm'>just as biased</strong> as the
-                            harmful examples we studied in the previous activity. Moving forward, you’ll need
-                            to excel on <strong>two fronts</strong>: technical performance <em>and</em>
-                            ethical responsibility.
-                        </p>
-                    </div>
-                    <div class='content-box content-box--success'>
-                        <h4 class='content-box__heading'>
-                            ✅ Don't Worry!
-                        </h4>
-                        <p class='slide-teaching-body'>
-                            As you make your AI more ethical through the upcoming lessons and challenges,
-                            <strong>your score will be restored</strong>—and could climb even higher than before.
-                        </p>
-                    </div>
-                </div>
-            </div>
-            """)
+            step_3_html_comp = gr.HTML(_get_step3_html('en'))
             with gr.Row():
-                step_3_back = gr.Button("◀️ Back", size="lg")
-                step_3_next = gr.Button("Introduce Moral Compass ▶️", variant="primary", size="lg")
+                step_3_back = gr.Button(t('en', 'btn_back'), size="lg")
+                step_3_next = gr.Button(t('en', 'btn_intro_mc'), variant="primary", size="lg")
 
         # Step 4
         with gr.Column(visible=False, elem_id="step-4") as step_4:
-            step_4_html_comp = gr.HTML("""
-            <div class='slide-shell slide-shell--info'>
-                <h3 class='slide-shell__title'>
-                    A New Way to Win
-                </h3>
-                <p class='slide-shell__subtitle'>
-                    Your new goal is to climb the leaderboard by increasing your
-                    <strong>Moral Compass Score</strong>.
-                </p>
-                <div class='content-box formula-box'>
-                    <h4 class='content-box__heading' style='text-align:center;'>📐 The Scoring Formula</h4>
-                    <div class='formula-math'>
-                        <strong>Moral Compass Score</strong> =<br><br>
-                        [ Current Model Accuracy ] × [ Ethical Progress % ]
-                    </div>
-                    <div class='content-box' style='margin-top:20px;'>
-                        <p class='content-box__heading'>Where:</p>
-                        <ul class='bullet-list'>
-                            <li><strong>Current Model Accuracy:</strong> Your technical performance</li>
-                            <li>
-                                <strong>Ethical Progress %:</strong> Percentage of:
-                                <ul class='bullet-list' style='margin-top:8px;'>
-                                    <li>✅ Ethical learning tasks completed</li>
-                                    <li>✅ Check-in questions answered correctly</li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-                <div class='content-box content-box--success'>
-                    <h4 class='content-box__heading'>💡 What This Means:</h4>
-                    <p class='slide-teaching-body'>
-                        You <strong>cannot</strong> win by accuracy alone—you must also demonstrate
-                        <strong class='emph-fairness'>ethical understanding</strong>. And you
-                        <strong>cannot</strong> win by just completing lessons—you need a working model too.
-                        <strong class='emph-risk'>Both dimensions matter</strong>.
-                    </p>
-                </div>
-            </div>
-            """)
+            step_4_html_comp = gr.HTML(_get_step4_html('en'))
             with gr.Row():
-                step_4_back = gr.Button("◀️ Back", size="lg")
-                step_4_next = gr.Button("See Challenge Ahead ▶️", variant="primary", size="lg")
+                step_4_back = gr.Button(t('en', 'btn_back'), size="lg")
+                step_4_next = gr.Button(t('en', 'btn_see_chal'), variant="primary", size="lg")
 
         # Step 6
         with gr.Column(visible=False, elem_id="step-6") as step_6:
-            step_6_html_comp = gr.HTML(build_step6_html({"is_signed_in": False}))
+            step_6_html_comp = gr.HTML() # Built dynamically
             with gr.Row():
-                step_6_back = gr.Button("◀️ Back", size="lg")
+                step_6_back = gr.Button(t('en', 'btn_back'), size="lg")
 
-        all_steps = [step_1, step_2, step_3, step_4, step_6]
+        loading_screen = gr.Column(visible=False)
+        all_steps = [step_1, step_2, step_3, step_4, step_6, loading_screen, initial_loading]
 
-        # Navigation helpers
+        # --- Initial Load Handler ---
+        def initial_load(request: gr.Request):
+            # 1. Language
+            params = request.query_params
+            lang = params.get("lang", "en")
+            if lang not in TRANSLATIONS: lang = "en"
+            
+            # 2. Auth
+            success, username, token = _try_session_based_auth(request)
+            
+            # 3. Stats
+            stats = {"is_signed_in": False, "best_score": None}
+            if success and username:
+                stats = _compute_user_stats(username, token)
+            
+            return [
+                gr.update(visible=False), # initial_loading
+                gr.update(visible=True),  # step_1
+                
+                # Text Updates
+                f"<h1 style='text-align:center;'>{t(lang, 'title')}</h1>",
+                f"<div style='text-align:center; padding:80px 0;'><h2>{t(lang, 'loading')}</h2></div>",
+                
+                # HTML Components
+                build_standing_html(stats, lang),
+                build_step2_html(stats, lang),
+                _get_step3_html(lang),
+                _get_step4_html(lang),
+                build_step6_html(stats, lang),
+                
+                # Buttons
+                gr.Button(value=t(lang, 'btn_new_std')), # s1 next
+                gr.Button(value=t(lang, 'btn_back')),    # s2 back
+                gr.Button(value=t(lang, 'btn_reset')),   # s2 next
+                gr.Button(value=t(lang, 'btn_back')),    # s3 back
+                gr.Button(value=t(lang, 'btn_intro_mc')), # s3 next
+                gr.Button(value=t(lang, 'btn_back')),    # s4 back
+                gr.Button(value=t(lang, 'btn_see_chal')), # s4 next
+                gr.Button(value=t(lang, 'btn_back')),    # s6 back
+            ]
+
+        update_targets = [
+            initial_loading, step_1,
+            c_title, c_loading,
+            stats_display, step_2_html_comp, step_3_html_comp, step_4_html_comp, step_6_html_comp,
+            step_1_next, step_2_back, step_2_next, step_3_back, step_3_next, step_4_back, step_4_next, step_6_back
+        ]
+        
+        demo.load(fn=initial_load, inputs=None, outputs=update_targets)
+
+        # --- Navigation ---
         def _nav_generator(target):
             def go():
-                # Phase 1
-                yield {**{s: gr.update(visible=False) for s in all_steps}}
-                # Phase 2
+                yield {**{s: gr.update(visible=False) for s in all_steps}, loading_screen: gr.update(visible=True)}
                 yield {**{s: gr.update(visible=False) for s in all_steps}, target: gr.update(visible=True)}
             return go
 
-        def _nav_js(target_id: str, message: str, min_show_ms: int = 600) -> str:
+        def _nav_js(target_id: str, message: str) -> str:
             return f"""
-()=>{{
-  try {{
-    const overlay=document.getElementById('nav-loading-overlay');
-    const msg=document.getElementById('nav-loading-text');
-    if(overlay && msg){{ msg.textContent='{message}'; overlay.style.display='flex'; setTimeout(()=>overlay.style.opacity='1',10); }}
-    const start=Date.now();
-    setTimeout(()=>{{ window.scrollTo({{top:0, behavior:'smooth'}}); }},40);
-    const poll=setInterval(()=>{{
-      const elapsed=Date.now()-start;
-      const target=document.getElementById('{target_id}');
-      const visible=target && target.offsetParent!==null;
-      if((visible && elapsed>={min_show_ms}) || elapsed>5000){{
-        clearInterval(poll);
-        if(overlay){{ overlay.style.opacity='0'; setTimeout(()=>overlay.style.display='none',300); }}
-      }}
-    }},90);
-  }} catch(e){{ console.warn('nav js error', e); }}
-}}
-"""
+            ()=>{{
+              try {{
+                const overlay=document.getElementById('nav-loading-overlay');
+                const msg=document.getElementById('nav-loading-text');
+                if(overlay && msg){{ msg.textContent='{message}'; overlay.style.display='flex'; setTimeout(()=>overlay.style.opacity='1',10); }}
+                const start=Date.now();
+                setTimeout(()=>{{ window.scrollTo({{top:0, behavior:'smooth'}}); }},40);
+                const poll=setInterval(()=>{{
+                  const elapsed=Date.now()-start;
+                  const target=document.getElementById('{target_id}');
+                  const visible=target && target.offsetParent!==null;
+                  if((visible && elapsed>=600) || elapsed>5000){{
+                    clearInterval(poll);
+                    if(overlay){{ overlay.style.opacity='0'; setTimeout(()=>overlay.style.display='none',300); }}
+                  }}
+                }},90);
+              }} catch(e){{}}
+            }}
+            """
 
-        # Wire navigation
-        step_1_next.click(fn=_nav_generator(step_2), inputs=None, outputs=all_steps, js=_nav_js("step-2", "Introducing new standard..."))
-        step_2_back.click(fn=_nav_generator(step_1), inputs=None, outputs=all_steps, js=_nav_js("step-1", "Returning..."))
-        step_2_next.click(fn=_nav_generator(step_3), inputs=None, outputs=all_steps, js=_nav_js("step-3", "Resetting perspective..."))
-        step_3_back.click(fn=_nav_generator(step_2), inputs=None, outputs=all_steps, js=_nav_js("step-2", "Revisiting..."))
-        step_3_next.click(fn=_nav_generator(step_4), inputs=None, outputs=all_steps, js=_nav_js("step-4", "Introducing Moral Compass..."))
-        step_4_back.click(fn=_nav_generator(step_3), inputs=None, outputs=all_steps, js=_nav_js("step-3", "Back..."))
-        step_4_next.click(fn=_nav_generator(step_6), inputs=None, outputs=all_steps, js=_nav_js("step-6", "Computing starting point..."))
-        step_6_back.click(fn=_nav_generator(step_4), inputs=None, outputs=all_steps, js=_nav_js("step-4", "Reviewing..."))
-
-        # Session auth handler
-        def handle_session_auth(request: "gr.Request"):
-            success, username, token = _try_session_based_auth(request)
-            if not success or not username:
-                return {
-                    stats_display: gr.update(value=build_standing_html({"is_signed_in": False})),
-                    step_2_html_comp: gr.update(value=build_step2_html({"is_signed_in": False, "best_score": None})),
-                    step_6_html_comp: gr.update(value=build_step6_html({"is_signed_in": False}))
-                }
-            stats = _compute_user_stats(username, token)
-            return {
-                stats_display: gr.update(value=build_standing_html(stats)),
-                step_2_html_comp: gr.update(value=build_step2_html(stats)),
-                step_6_html_comp: gr.update(value=build_step6_html(stats))
-            }
-
-        demo.load(fn=handle_session_auth, inputs=None, outputs=[stats_display, step_2_html_comp, step_6_html_comp])
+        step_1_next.click(fn=_nav_generator(step_2), outputs=all_steps, js=_nav_js("step-2", "Loading..."))
+        step_2_back.click(fn=_nav_generator(step_1), outputs=all_steps, js=_nav_js("step-1", "Loading..."))
+        step_2_next.click(fn=_nav_generator(step_3), outputs=all_steps, js=_nav_js("step-3", "Loading..."))
+        step_3_back.click(fn=_nav_generator(step_2), outputs=all_steps, js=_nav_js("step-2", "Loading..."))
+        step_3_next.click(fn=_nav_generator(step_4), outputs=all_steps, js=_nav_js("step-4", "Loading..."))
+        step_4_back.click(fn=_nav_generator(step_3), outputs=all_steps, js=_nav_js("step-3", "Loading..."))
+        step_4_next.click(fn=_nav_generator(step_6), outputs=all_steps, js=_nav_js("step-6", "Loading..."))
+        step_6_back.click(fn=_nav_generator(step_4), outputs=all_steps, js=_nav_js("step-4", "Loading..."))
 
     return demo
 
