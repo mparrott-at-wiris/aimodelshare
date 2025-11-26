@@ -1,234 +1,45 @@
-import os
-import time
-import pytest
+name: SessionID KPI Integration Test
 
-import numpy as np
-import pandas as pd
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
 
-import gradio as gr
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
 
-from aimodelshare.moral_compass.apps import model_building_game as app
+    permissions:
+      contents: read
 
-# Integration settings
-name: SessionID KPI Workflow Tests
-              assert "First Model Submitted" in parsed.get("title", "")
-              assert parsed.get("acc_text") and parsed["acc_text"].endswith("%")
-              assert parsed.get("rank_text") == f"#{new_rank}"
-              assert abs(this_score - 0.62) < 1e-6
-              assert abs(best_acc - 0.62) < 1e-6
-              assert new_rank == 1
+    env:
+      # Read SESSION_ID from repo secrets. REQUIRED.
+      SESSION_ID: ${{ secrets.SESSION_ID }}
+      # Optional: enable debug logging in app
+      DEBUG_LOG: "true"
 
-              comp.submit_model(
-                  model=None, preprocessor=None, prediction_submission=None,
-                  input_dict={"description": "test2"},
-                  custom_metadata={"Team": team_name, "Moral_Compass": 0, "__test_accuracy": 0.71, "__test_username": username},
-                  token=token
-              )
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-              for _ in range(3):
-                  lb = comp.get_leaderboard(token=token)
-                  if len(lb[lb["username"] == username]) >= 2:
-                      break
-                  time.sleep(0.2)
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-              team_html2, indiv_html2, kpi_html2, best_acc2, new_rank2, this_score2 = generate_competitive_summary(
-                  lb, team_name, username, last_submission_score=this_score, last_rank=new_rank, submission_count=1
-              )
-              parsed2 = parse_kpi(kpi_html2)
-              assert "Submission Successful" in parsed2.get("title", "")
-              assert abs(this_score2 - 0.71) < 1e-6
-              assert abs(best_acc2 - 0.71) < 1e-6
-              assert parsed2.get("rank_text") == f"#{new_rank2}"
-              assert kpi_html2 != kpi_html
-
-              preview_html = _build_kpi_card_html(new_score=0.55, last_score=0.0, new_rank=0, last_rank=0, submission_count=-1, is_preview=True)
-              parsed_prev = parse_kpi(preview_html)
-              assert "Successful Preview Run" in parsed_prev.get("title", "")
-              assert parsed_prev.get("rank_text") == "N/A"
-
-              comp.submit_model(
-                  model=None, preprocessor=None, prediction_submission=None,
-                  input_dict={"description": "test3"},
-                  custom_metadata={"Team": team_name, "Moral_Compass": 0, "__test_accuracy": 0.60, "__test_username": username},
-                  token=token
-              )
-
-              for _ in range(3):
-                  lb = comp.get_leaderboard(token=token)
-                  if len(lb[lb["username"] == username]) >= 3:
-                      break
-                  time.sleep(0.2)
-
-              team_html3, indiv_html3, kpi_html3, best_acc3, new_rank3, this_score3 = generate_competitive_summary(
-                  lb, team_name, username, last_submission_score=this_score2, last_rank=new_rank2, submission_count=2
-              )
-              parsed3 = parse_kpi(kpi_html3)
-              assert ("Score Dropped" in parsed3.get("title", "")) or ("Submission Successful" in parsed3.get("title", ""))
-              assert abs(this_score3 - 0.60) < 1e-6
-              assert abs(best_acc3 - 0.71) < 1e-6
-
-          def test_empty_leaderboard_yields_neutral_kpi(monkeypatch):
-              comp = Competition("pid")
-              lb = comp.get_leaderboard(token="any")
-              team_html, indiv_html, kpi_html, best_acc, new_rank, this_score = generate_competitive_summary(
-                  lb, TEAM_NAMES[0], "userX", 0, 0, 0
-              )
-              parsed = parse_kpi(kpi_html)
-              assert "Submission Successful" in parsed.get("title", "")
-              assert parsed.get("rank_text") == "#0"
-              assert parsed.get("acc_text") in ("0.00%", "N/A")
-
-          PYTEST
-
-      - name: Run tests
+      - name: Install system deps
         run: |
-          pytest -q tests/test_sessionid_kpi.py --disable-warnings --maxfail=1WAIT_READY_TIMEOUT_SEC = 120    # max time to wait for init readiness
-LEADERBOARD_SETTLE_SEC = 2.0    # allow server-side leaderboard to update
-SLEEP_BETWEEN_SUBMISSIONS_SEC = 2.0
+          sudo apt-get update
+          sudo apt-get install -y libatlas-base-dev gfortran
 
-def wait_for_ready():
-    """Poll the app INIT_FLAGS until competition/data/pre_samples_small are ready."""
-    start = time.time()
-    while time.time() - start < WAIT_READY_TIMEOUT_SEC:
-        with app.INIT_LOCK:
-            flags = app.INIT_FLAGS.copy()
-        ready = flags.get("competition") and flags.get("dataset_core") and flags.get("pre_samples_small")
-        if ready:
-            return True
-        time.sleep(1.0)
-    return False
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy pandas scikit-learn gradio requests pytest pytest-timeout
+          pip install aimodelshare
 
-def parse_kpi(html: str):
-    out = {}
-    # Title
-    if "<h2" in html:
-        start = html.find("<h2")
-        end = html.find("</h2>", start)
-        out["title"] = html[start:end].split(">")[-1]
-    # Accuracy text
-    acc_idx = html.find("New Accuracy")
-    if acc_idx != -1:
-        score_idx = html.find("kpi-score", acc_idx)
-        pct_start = html.find(">", score_idx) + 1
-        pct_end = html.find("</", pct_start)
-        out["acc_text"] = html[pct_start:pct_end]
-    # Rank text
-    rank_idx = html.find("Your Rank")
-    if rank_idx != -1:
-        score_idx = html.find("kpi-score", rank_idx)
-        val_start = html.find(">", score_idx) + 1
-        val_end = html.find("</", val_start)
-        out["rank_text"] = html[val_start:val_end]
-    return out
-
-@pytest.mark.timeout(300)
-def test_sessionid_kpi_integration_flow():
-    """
-    Full integration test:
-    - Get token from SESSION_ID.
-    - Wait for app readiness.
-    - Run two authenticated submissions via run_experiment.
-    - Verify KPI card transitions: first submission vs subsequent submission.
-    """
-    session_id = os.getenv("SESSION_ID")
-    assert session_id, "SESSION_ID GitHub Action secret must be set."
-
-    # Get token and username via aimodelshare
-    from aimodelshare.aws import get_token_from_session, _get_username_from_token
-    token = get_token_from_session(session_id)
-    assert token, "Failed to derive token from SESSION_ID."
-    username = _get_username_from_token(token)
-    assert username, "Failed to derive username from token."
-
-    # Start background init (if not already started)
-    app.start_background_init()
-
-    # Wait for readiness
-    assert wait_for_ready(), "App did not become ready in time."
-
-    # Determine a team name for the user (using leaderboard or assign)
-    team_name, _ = app.get_or_assign_team(username, token=token)
-    assert team_name and isinstance(team_name, str), "Could not resolve team name."
-
-    # Prepare initial session KPI states (as in the app)
-    last_submission_score = 0.0
-    last_rank = 0
-    submission_count = 0
-    first_submission_score = None
-    best_score = 0.0
-
-    # Choose conservative settings for speed and predictability
-    model_name_key = app.DEFAULT_MODEL  # "The Balanced Generalist" (LogisticRegression)
-    complexity_level = 2                # low complexity
-    feature_set = app.DEFAULT_FEATURE_SET  # initial allowed features
-    data_size_str = "Small (20%)"       # smallest sample for speed
-
-    # Build the run_experiment generator inputs (matching app wiring)
-    def run_once():
-        gen = app.run_experiment(
-            model_name_key,
-            complexity_level,
-            feature_set,
-            data_size_str,
-            team_name,
-            last_submission_score,
-            last_rank,
-            submission_count,
-            first_submission_score,
-            best_score,
-            username=username,
-            token=token,
-            progress=gr.Progress()
-        )
-        last_update = None
-        for updates in gen:
-            last_update = updates
-        return last_update
-
-    # First authenticated submission
-    updates1 = run_once()
-    assert isinstance(updates1, dict), "Expected a dict of final updates from run_experiment."
-    # Extract KPI and states
-    kpi_html_1 = updates1.get(app.submission_feedback_display)
-    rank_message_1 = updates1.get(app.rank_message_display)
-    last_submission_score = updates1.get(app.last_submission_score_state, last_submission_score)
-    last_rank = updates1.get(app.last_rank_state, last_rank)
-    best_score = updates1.get(app.best_score_state, best_score)
-    submission_count = updates1.get(app.submission_count_state, submission_count)
-    first_submission_score = updates1.get(app.first_submission_score_state, first_submission_score)
-
-    assert submission_count >= 1, "Submission count should increment after authenticated submission."
-    assert isinstance(kpi_html_1, str) and len(kpi_html_1) > 0, "KPI HTML should be present."
-
-    parsed1 = parse_kpi(kpi_html_1)
-    # For a genuine first submission within the session, expect first-submission KPI title
-    assert ("First Model Submitted" in parsed1.get("title", "")) or ("Submission Successful" in parsed1.get("title", "")), \
-        "KPI title should indicate a successful first submission."
-
-    # Small settle pause
-    time.sleep(LEADERBOARD_SETTLE_SEC)
-
-    # Second authenticated submission (same settings; state comparisons should reflect change or neutrality)
-    updates2 = run_once()
-    assert isinstance(updates2, dict), "Expected a dict of final updates from second run_experiment."
-
-    kpi_html_2 = updates2.get(app.submission_feedback_display)
-    last_submission_score_2 = updates2.get(app.last_submission_score_state, last_submission_score)
-    last_rank_2 = updates2.get(app.last_rank_state, last_rank)
-    best_score_2 = updates2.get(app.best_score_state, best_score)
-    submission_count_2 = updates2.get(app.submission_count_state, submission_count)
-
-    assert submission_count_2 == submission_count + 1, "Submission count should increment again."
-
-    parsed2 = parse_kpi(kpi_html_2)
-    assert isinstance(kpi_html_2, str) and len(kpi_html_2) > 0, "Second KPI HTML should be present."
-
-    # The title should be a general success or reflect score change
-    assert ("Submission Successful" in parsed2.get("title", "")) or ("Score Dropped" in parsed2.get("title", "")) or ("Successful Preview Run" not in parsed2.get("title", "")), \
-        "Second KPI should indicate a real submission result, not a preview."
-
-    # Basic sanity on rank formatting
-    assert parsed2.get("rank_text", "").startswith("#") or parsed2.get("rank_text") == "N/A", "Rank text should be formatted."
-
-    # At least ensure KPI changed across submissions
-    assert kpi_html_2 != kpi_html_1, "KPI card content should change between submissions."
+      - name: Run integration tests
+        run: |
+          pytest -q --disable-warnings --maxfail=1 tests/test_sessionid_kpi_integration.py
