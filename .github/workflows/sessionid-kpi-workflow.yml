@@ -33,7 +33,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install --no-cache-dir -r requirements-apps.txt
-          pip install --no-cache-dir aimodelshare --no-dependencies
+          pip install --no-cache-dir aimodelshare
           # Test-only dependencies (keep if not in requirements-apps.txt)
           pip install --no-cache-dir pytest pytest-timeout
 
