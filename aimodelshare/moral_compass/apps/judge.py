@@ -90,7 +90,7 @@ TRANSLATIONS = {
         "Burglary": "Burglary"
     },
     "es": {
-        "title": "⚖️ Tu Eres el Juez",
+        "title": "⚖️ Tú Eres el Juez",
         "intro_role": "<b>Tu Rol:</b> Eres un juez que debe decidir si liberar a los acusados de la prisión.<br>Un sistema de IA ha analizado cada caso y ha proporcionado una evaluación de riesgos.<br><br><b>Tu Tarea:</b> Revisa el perfil de cada acusado y la predicción de la IA, luego toma tu decisión.",
         "loading": "⏳ Cargando...",
         "scenario_title": "📋 El Escenario",
