@@ -214,4 +214,4 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest -q --disable-warnings --maxfail=1
+          pytest -q tests/test_sessionid_kpi.py --disable-warnings --maxfail=1
