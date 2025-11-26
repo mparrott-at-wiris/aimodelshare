@@ -1718,10 +1718,11 @@ def run_experiment(
     with INIT_LOCK:
         flags = INIT_FLAGS.copy()
     
-    ready_for_submission = flags["competition"] and flags["dataset_core"] and flags["pre_samples_small"]
+    # Normalize variable name for consistency
+    ready_for_submission = ready
     
     # If not ready but warm mini available, run preview
-    if not ready and flags["warm_mini"] and X_TRAIN_WARM is not None:
+    if not ready_for_submission and flags["warm_mini"] and X_TRAIN_WARM is not None:
         _log("Running warm mini preview (not ready yet)")
         progress(0.5, desc="Running Preview...")
         yield { 
@@ -1810,7 +1811,7 @@ def run_experiment(
             _log(f"Preview failed: {e}")
             # Fall through to error handling
     
-    if playground is None or not ready:
+    if playground is None or not ready_for_submission:
         settings = compute_rank_settings(
              submission_count, model_name_key, complexity_level, feature_set, data_size_str
         )
@@ -2115,18 +2116,19 @@ def run_experiment(
             old_best_score = 0.0
         
         # Poll leaderboard to detect update (mitigate eventual consistency)
+        # Start at 1 since we already did one initial fetch
         poll_iterations = 1
         for i in range(LEADERBOARD_POLL_TRIES):
             _log(f"Polling leaderboard: attempt {i+1}/{LEADERBOARD_POLL_TRIES}")
             time.sleep(LEADERBOARD_POLL_SLEEP)
             refreshed = _get_leaderboard_with_optional_token(playground, token)
-            poll_iterations += 1
+            poll_iterations = i + 2  # +2 because we start from attempt 1 (0-indexed loop + initial fetch)
             if _user_rows_changed(refreshed, username, old_row_count, old_best_score):
                 full_leaderboard_df = refreshed
-                _log(f"Leaderboard updated after {poll_iterations} polls")
+                _log(f"Leaderboard updated after {poll_iterations} total fetches")
                 break
         else:
-            _log(f"Leaderboard polling complete: {poll_iterations} iterations, no change detected")
+            _log(f"Leaderboard polling complete: {poll_iterations} total fetches, no change detected")
         
         # Call new summary function
         team_html, individual_html, kpi_card_html, new_best_accuracy, new_rank, this_submission_score = generate_competitive_summary(
