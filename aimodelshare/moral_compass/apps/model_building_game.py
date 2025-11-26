@@ -1865,7 +1865,10 @@ def run_experiment(
             }
             
             # Show preview card
-            preview_html = _build_kpi_card_html(preview_score, 0, 0, 0, -1, is_preview=True)
+            preview_html = _build_kpi_card_html(
+                preview_score, 0, 0, 0, -1, 
+                is_preview=True, is_pending=False, local_test_accuracy=None
+            )
             
             settings = compute_rank_settings(
                  submission_count, model_name_key, complexity_level, feature_set, data_size_str
@@ -2036,7 +2039,9 @@ def run_experiment(
                 new_rank=0,
                 last_rank=0,
                 submission_count=-1, # Force preview
-                is_preview=True
+                is_preview=True,
+                is_pending=False,
+                local_test_accuracy=None
             )
             
             # 2. Get the login prompt text
