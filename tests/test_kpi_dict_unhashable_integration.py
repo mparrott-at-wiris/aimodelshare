@@ -22,7 +22,10 @@ class MockCompetition:
 @pytest.fixture(autouse=True)
 def patch_playground(monkeypatch):
     # Patch Competition used by the app to avoid live API calls
-    monkeypatch.setattr(app, "Competition", lambda pid: MockCompetition(pid))
+    mock_comp = MockCompetition("test-pid")
+    monkeypatch.setattr(app, "Competition", lambda pid: mock_comp)
+    # Set the global playground to use our mock
+    app.playground = mock_comp
 
     # Ensure app flags reflect a ready state to avoid preview gating in tests
     with app.INIT_LOCK:
@@ -59,6 +62,30 @@ def patch_playground(monkeypatch):
         app.X_TEST_RAW = app.X_TRAIN_SAMPLES_MAP[app.DEFAULT_DATA_SIZE].copy()
     if app.Y_TEST is None:
         app.Y_TEST = app.Y_TRAIN_SAMPLES_MAP[app.DEFAULT_DATA_SIZE].copy()
+
+    # Create mock component objects to avoid None-key collisions in update dicts
+    # When components are None, all updates use None as key and only last value survives
+    app.submit_button = object()
+    app.submission_feedback_display = object()
+    app.team_leaderboard_display = object()
+    app.individual_leaderboard_display = object()
+    app.last_submission_score_state = object()
+    app.last_rank_state = object()
+    app.best_score_state = object()
+    app.submission_count_state = object()
+    app.first_submission_score_state = object()
+    app.rank_message_display = object()
+    app.model_type_radio = object()
+    app.complexity_slider = object()
+    app.feature_set_checkbox = object()
+    app.data_size_radio = object()
+    app.login_username = object()
+    app.login_password = object()
+    app.login_submit = object()
+    app.login_error = object()
+    app.attempts_tracker_display = object()
+    app.was_preview_state = object()
+    app.kpi_meta_state = object()
 
     yield
 

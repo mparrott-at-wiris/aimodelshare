@@ -1404,6 +1404,10 @@ login_error = None
 username_state = None
 token_state = None
 first_submission_score_state = None  # (already commented as "will be assigned globally")
+# Add state placeholders for readiness gating and preview tracking
+readiness_state = None
+was_preview_state = None
+kpi_meta_state = None
 
 
 def get_or_assign_team(username, token=None):
@@ -1638,9 +1642,8 @@ def run_experiment(
     best_score,
     username=None,
     token=None,
-    readiness_state=None,
-    was_preview_state=None,
-    kpi_meta_state=None,
+    readiness_flag=None,
+    was_preview_prev=None,
     progress=gr.Progress()
 ):
     """
@@ -1664,20 +1667,53 @@ def run_experiment(
         best_score: Best score achieved
         username: User's username (from gr.State, not os.environ)
         token: Authentication token (from gr.State, not os.environ)
-        readiness_state: System readiness flag (from gr.State)
-        was_preview_state: Whether last run was preview (from gr.State)
-        kpi_meta_state: Metadata dict for debugging (from gr.State)
+        readiness_flag: System readiness flag (from gr.State, renamed to avoid shadowing)
+        was_preview_prev: Whether last run was preview (from gr.State, renamed to avoid shadowing)
         progress: Gradio progress tracker
     
     Returns:
         Updates for all output components including new state variables
     """
-    # Initialize metadata state if not provided
-    if kpi_meta_state is None:
-        kpi_meta_state = {}
+    # --- COLLISION GUARDS ---
+    # Log types of potentially shadowed names to ensure they refer to component objects, not dicts
+    _log(f"DEBUG guard: types — submit_button={type(submit_button)} submission_feedback_display={type(submission_feedback_display)} kpi_meta_state={type(kpi_meta_state)} was_preview_state={type(was_preview_state)} readiness_flag_param={type(readiness_flag)}")
     
-    # Check readiness
-    ready = _is_ready()
+    # If any of the component names are found as dicts (indicating parameter shadowing), short-circuit
+    if isinstance(submit_button, dict) or isinstance(submission_feedback_display, dict) or isinstance(kpi_meta_state, dict) or isinstance(was_preview_state, dict):
+        error_html = """
+        <div class='kpi-card' style='border-color: #ef4444;'>
+            <h2 style='color: #111827; margin-top:0;'>⚠️ Configuration Error</h2>
+            <div class='kpi-card-body'>
+                <p style='color: #991b1b;'>Parameter shadowing detected. Global component variables were shadowed by local parameters.</p>
+                <p style='color: #7f1d1d; margin-top: 8px;'>Please refresh the page and try again. If the issue persists, contact support.</p>
+            </div>
+        </div>
+        """
+        yield {
+            submission_feedback_display: gr.update(value=error_html, visible=True),
+            submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True)
+        }
+        return
+    
+    # Sanitize feature_set: convert dicts/tuples to their string values
+    sanitized_feature_set = []
+    for feat in (feature_set or []):
+        if isinstance(feat, dict):
+            # Extract 'value' key if present, otherwise use string representation
+            sanitized_feature_set.append(feat.get("value", str(feat)))
+        elif isinstance(feat, tuple):
+            # For tuples like ("Label", "value"), take the second element
+            sanitized_feature_set.append(feat[1] if len(feat) > 1 else str(feat))
+        else:
+            # Already a string
+            sanitized_feature_set.append(str(feat))
+    feature_set = sanitized_feature_set
+    
+    # Use readiness_flag parameter if provided, otherwise check readiness
+    if readiness_flag is not None:
+        ready = readiness_flag
+    else:
+        ready = _is_ready()
     _log(f"run_experiment: ready={ready}, username={username}, token_present={token is not None}")
     
     # Add debug log (optional)
@@ -2393,6 +2429,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
     global login_username, login_password, login_submit, login_error
     global attempts_tracker_display, team_name_state
     global username_state, token_state  # <-- Added
+    global readiness_state, was_preview_state, kpi_meta_state  # <-- Added for parameter shadowing guards
     
     css = """
     /* ------------------------------
@@ -4050,9 +4087,9 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 best_score_state,
                 username_state,  # NEW: Session-based auth
                 token_state,     # NEW: Session-based auth
-                readiness_state,
-                was_preview_state,
-                kpi_meta_state,
+                readiness_state, # Renamed to readiness_flag in function signature
+                was_preview_state, # Renamed to was_preview_prev in function signature
+                # kpi_meta_state removed from inputs - used only as output
             ],
             outputs=all_outputs,
             show_progress="full",
