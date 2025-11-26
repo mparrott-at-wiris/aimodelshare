@@ -2323,9 +2323,10 @@ def run_experiment(
 
         # Note: new_submission_count and new_first_submission_score were already computed after submit_model()
         # Preserve new_first_submission_score if it was set; only update from leaderboard if still None
+        # This is a safety fallback - should rarely execute if immediate set (line ~2201) succeeded
         if new_first_submission_score is None and submission_count == 0:
             new_first_submission_score = this_submission_score
-            _log(f"First submission score set from leaderboard: {new_first_submission_score:.4f}")
+            _log(f"First submission score set from leaderboard (fallback): {new_first_submission_score:.4f}")
         
         # Update last seen timestamp
         new_latest_ts = _get_user_latest_ts(full_leaderboard_df, username)
