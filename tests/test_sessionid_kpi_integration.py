@@ -1,34 +1,76 @@
 import os
 import time
 import pytest
-
-import numpy as np
 import pandas as pd
-
 import gradio as gr
 
 from aimodelshare.moral_compass.apps import model_building_game as app
+from aimodelshare.aws import get_token_from_session, _get_username_from_token
 
-# Integration settings
-WAIT_READY_TIMEOUT_SEC = 120    # max time to wait for init readiness
-LEADERBOARD_SETTLE_SEC = 2.0    # allow server-side leaderboard to update
-SLEEP_BETWEEN_SUBMISSIONS_SEC = 2.0
+WAIT_READY_TIMEOUT_SEC = 180
+LEADERBOARD_POLL_TRIES = 8
+LEADERBOARD_POLL_SLEEP_SEC = 1.0
 
-def wait_for_ready():
-    """Poll the app INIT_FLAGS until competition/data/pre_samples_small are ready."""
+def wait_for_ready(timeout_sec=WAIT_READY_TIMEOUT_SEC):
     start = time.time()
-    while time.time() - start < WAIT_READY_TIMEOUT_SEC:
+    while time.time() - start < timeout_sec:
         with app.INIT_LOCK:
             flags = app.INIT_FLAGS.copy()
-        ready = flags.get("competition") and flags.get("dataset_core") and flags.get("pre_samples_small")
-        if ready:
+        if flags.get("competition") and flags.get("dataset_core") and flags.get("pre_samples_small"):
             return True
         time.sleep(1.0)
     return False
 
+def fetch_leaderboard(token):
+    # Uses the app’s helper which applies retry and the configured Competition in app.playground
+    return app._get_leaderboard_with_optional_token(app.playground, token)
+
+def get_user_metrics(df, username):
+    """
+    Compute (latest_submission_score, best_accuracy, rank) from a leaderboard DataFrame.
+    - latest score: last by timestamp (parsed), falling back to last row for the user
+    - best_accuracy: max accuracy across user's submissions
+    - rank: position of the user's best in sorted unique-user bests (1-based); 0 if absent
+    """
+    latest_score = 0.0
+    best_acc = 0.0
+    rank = 0
+
+    if df is None or df.empty or "accuracy" not in df.columns:
+        return latest_score, best_acc, rank
+
+    user_rows = df[df["username"] == username].copy()
+    if not user_rows.empty:
+        # Best accuracy
+        best_acc = float(user_rows["accuracy"].max())
+        # Latest score by timestamp if possible
+        if "timestamp" in user_rows.columns:
+            parsed = pd.to_datetime(user_rows["timestamp"], errors="coerce")
+            if parsed.notna().any():
+                user_rows["__t"] = parsed
+                user_rows = user_rows.sort_values("__t", ascending=False)
+                latest_score = float(user_rows.iloc[0]["accuracy"])
+            else:
+                latest_score = float(user_rows.iloc[-1]["accuracy"])
+        else:
+            latest_score = float(user_rows.iloc[-1]["accuracy"])
+
+    # Rank among users by best
+    if "accuracy" in df.columns:
+        user_bests = df.groupby("username")["accuracy"].max()
+        ranked = user_bests.sort_values(ascending=False)
+        try:
+            rank = int(ranked.index.get_loc(username) + 1)
+        except KeyError:
+            rank = 0
+
+    return latest_score, best_acc, rank
+
 def parse_kpi(html: str):
     out = {}
-    # Title
+    if not isinstance(html, str):
+        return out
+    # Title in <h2>...</h2>
     if "<h2" in html:
         start = html.find("<h2")
         end = html.find("</h2>", start)
@@ -49,114 +91,125 @@ def parse_kpi(html: str):
         out["rank_text"] = html[val_start:val_end]
     return out
 
-@pytest.mark.timeout(300)
+def consume_run_experiment_once(
+    username, token, team_name,
+    model_name_key, complexity_level, feature_set, data_size_str,
+    last_submission_score, last_rank, submission_count, first_submission_score, best_score
+):
+    """
+    Drive one run_experiment call to completion (perform a real submission),
+    but do not attempt to read the yielded UI mapping (component keys are None outside Blocks).
+    """
+    gen = app.run_experiment(
+        model_name_key,
+        complexity_level,
+        feature_set,
+        data_size_str,
+        team_name,
+        last_submission_score,
+        last_rank,
+        submission_count,
+        first_submission_score,
+        best_score,
+        username=username,
+        token=token,
+        progress=gr.Progress()
+    )
+    # Exhaust generator
+    for _ in gen:
+        pass
+
+@pytest.mark.timeout(600)
 def test_sessionid_kpi_integration_flow():
-    """
-    Full integration test:
-    - Get token from SESSION_ID.
-    - Wait for app readiness.
-    - Run two authenticated submissions via run_experiment.
-    - Verify KPI card transitions: first submission vs subsequent submission.
-    """
+    # 1) Real auth from SESSION_ID
     session_id = os.getenv("SESSION_ID")
-    assert session_id, "SESSION_ID GitHub Action secret must be set."
+    assert session_id, "SESSION_ID GitHub Action secret must be set (Settings → Secrets → Actions)."
 
-    # Get token and username via aimodelshare
-    from aimodelshare.aws import get_token_from_session, _get_username_from_token
     token = get_token_from_session(session_id)
-    assert token, "Failed to derive token from SESSION_ID."
+    assert token, "Failed to obtain token from SESSION_ID."
     username = _get_username_from_token(token)
-    assert username, "Failed to derive username from token."
+    assert username, "Failed to obtain username from token."
 
-    # Start background init (if not already started)
+    # 2) Ensure playground exists and background init is running
+    if app.playground is None:
+        app.playground = app.Competition(app.MY_PLAYGROUND_ID)
     app.start_background_init()
-
-    # Wait for readiness
     assert wait_for_ready(), "App did not become ready in time."
 
-    # Determine a team name for the user (using leaderboard or assign)
+    # 3) Resolve team
     team_name, _ = app.get_or_assign_team(username, token=token)
-    assert team_name and isinstance(team_name, str), "Could not resolve team name."
+    assert isinstance(team_name, str) and team_name.strip(), "Could not resolve team name."
 
-    # Prepare initial session KPI states (as in the app)
-    last_submission_score = 0.0
-    last_rank = 0
-    submission_count = 0
-    first_submission_score = None
-    best_score = 0.0
+    # 4) Baseline leaderboard metrics for user
+    df0 = fetch_leaderboard(token) or pd.DataFrame()
+    base_rows = len(df0[df0.get("username", pd.Series(dtype=str)) == username]) if not df0.empty else 0
+    last_score0, best0, rank0 = get_user_metrics(df0, username)
 
-    # Choose conservative settings for speed and predictability
-    model_name_key = app.DEFAULT_MODEL  # "The Balanced Generalist" (LogisticRegression)
-    complexity_level = 2                # low complexity
-    feature_set = app.DEFAULT_FEATURE_SET  # initial allowed features
-    data_size_str = "Small (20%)"       # smallest sample for speed
+    # 5) Run first authenticated submission (session perspective: submission_count=0)
+    model_name_key = app.DEFAULT_MODEL
+    complexity_level = 2
+    feature_set = app.DEFAULT_FEATURE_SET
+    data_size_str = "Small (20%)"
 
-    # Build the run_experiment generator inputs (matching app wiring)
-    def run_once():
-        gen = app.run_experiment(
-            model_name_key,
-            complexity_level,
-            feature_set,
-            data_size_str,
-            team_name,
-            last_submission_score,
-            last_rank,
-            submission_count,
-            first_submission_score,
-            best_score,
-            username=username,
-            token=token,
-            progress=gr.Progress()
-        )
-        last_update = None
-        for updates in gen:
-            last_update = updates
-        return last_update
+    consume_run_experiment_once(
+        username, token, team_name,
+        model_name_key, complexity_level, feature_set, data_size_str,
+        last_submission_score=last_score0, last_rank=rank0, submission_count=0,
+        first_submission_score=None, best_score=best0
+    )
 
-    # First authenticated submission
-    updates1 = run_once()
-    assert isinstance(updates1, dict), "Expected a dict of final updates from run_experiment."
-    # Extract KPI and states
-    kpi_html_1 = updates1.get(app.submission_feedback_display)
-    rank_message_1 = updates1.get(app.rank_message_display)
-    last_submission_score = updates1.get(app.last_submission_score_state, last_submission_score)
-    last_rank = updates1.get(app.last_rank_state, last_rank)
-    best_score = updates1.get(app.best_score_state, best_score)
-    submission_count = updates1.get(app.submission_count_state, submission_count)
-    first_submission_score = updates1.get(app.first_submission_score_state, first_submission_score)
+    # Poll until a new row appears for the user
+    df1 = df0
+    for _ in range(LEADERBOARD_POLL_TRIES):
+        df1 = fetch_leaderboard(token) or pd.DataFrame()
+        rows1 = len(df1[df1.get("username", pd.Series(dtype=str)) == username]) if not df1.empty else 0
+        if rows1 > base_rows:
+            break
+        time.sleep(LEADERBOARD_POLL_SLEEP_SEC)
 
-    assert submission_count >= 1, "Submission count should increment after authenticated submission."
-    assert isinstance(kpi_html_1, str) and len(kpi_html_1) > 0, "KPI HTML should be present."
+    rows1 = 0 if df1 is None or df1.empty else len(df1[df1["username"] == username])
+    assert rows1 > base_rows, "First submission did not appear on leaderboard."
 
-    parsed1 = parse_kpi(kpi_html_1)
-    # For a genuine first submission within the session, expect first-submission KPI title
-    assert ("First Model Submitted" in parsed1.get("title", "")) or ("Submission Successful" in parsed1.get("title", "")), \
-        "KPI title should indicate a successful first submission."
+    # Compute metrics and KPI HTML from fresh leaderboard
+    last_score1, best1, rank1 = get_user_metrics(df1, username)
+    team_html_1, indev_html_1, kpi_html_1, new_best_1, new_rank_1, this_score_1 = app.generate_competitive_summary(
+        df1, team_name, username, last_submission_score=last_score0, last_rank=rank0, submission_count=0
+    )
+    p1 = parse_kpi(kpi_html_1)
+    assert isinstance(kpi_html_1, str) and len(kpi_html_1) > 0, "KPI HTML missing after first submission."
+    # Accept either first-submission or general success title (depends on session history vs global history)
+    assert ("First Model Submitted" in p1.get("title", "")) or ("Submission Successful" in p1.get("title", ""))
 
-    # Small settle pause
-    time.sleep(LEADERBOARD_SETTLE_SEC)
+    # 6) Run second authenticated submission (submission_count=1)
+    consume_run_experiment_once(
+        username, token, team_name,
+        model_name_key, complexity_level, feature_set, data_size_str,
+        last_submission_score=last_score1, last_rank=rank1, submission_count=1,
+        first_submission_score=this_score_1, best_score=new_best_1
+    )
 
-    # Second authenticated submission (same settings; state comparisons should reflect change or neutrality)
-    updates2 = run_once()
-    assert isinstance(updates2, dict), "Expected a dict of final updates from second run_experiment."
+    # Poll for second new row
+    df2 = df1
+    for _ in range(LEADERBOARD_POLL_TRIES):
+        df2 = fetch_leaderboard(token) or pd.DataFrame()
+        rows2 = len(df2[df2.get("username", pd.Series(dtype=str)) == username]) if not df2.empty else 0
+        if rows2 > rows1:
+            break
+        time.sleep(LEADERBOARD_POLL_SLEEP_SEC)
 
-    kpi_html_2 = updates2.get(app.submission_feedback_display)
-    last_submission_score_2 = updates2.get(app.last_submission_score_state, last_submission_score)
-    last_rank_2 = updates2.get(app.last_rank_state, last_rank)
-    best_score_2 = updates2.get(app.best_score_state, best_score)
-    submission_count_2 = updates2.get(app.submission_count_state, submission_count)
+    rows2 = 0 if df2 is None or df2.empty else len(df2[df2["username"] == username])
+    assert rows2 > rows1, "Second submission did not appear on leaderboard."
 
-    assert submission_count_2 == submission_count + 1, "Submission count should increment again."
+    last_score2, best2, rank2 = get_user_metrics(df2, username)
+    team_html_2, indev_html_2, kpi_html_2, new_best_2, new_rank_2, this_score_2 = app.generate_competitive_summary(
+        df2, team_name, username, last_submission_score=last_score1, last_rank=rank1, submission_count=1
+    )
+    p2 = parse_kpi(kpi_html_2)
+    assert isinstance(kpi_html_2, str) and len(kpi_html_2) > 0, "KPI HTML missing after second submission."
+    assert ("Submission Successful" in p2.get("title", "")) or ("Score Dropped" in p2.get("title", "")), \
+        "Second KPI should indicate a real submission result."
 
-    parsed2 = parse_kpi(kpi_html_2)
-    assert isinstance(kpi_html_2, str) and len(kpi_html_2) > 0, "Second KPI HTML should be present."
-
-    # The title should be a general success or reflect score change
-    assert ("Submission Successful" in parsed2.get("title", "")) or ("Score Dropped" in parsed2.get("title", "")) or ("Successful Preview Run" not in parsed2.get("title", "")), \
-        "Second KPI should indicate a real submission result, not a preview."
-
-    # Basic sanity on rank formatting
-    assert parsed2.get("rank_text", "").startswith("#") or parsed2.get("rank_text") == "N/A", "Rank text should be formatted."
-
-    # At least ensure KPI changed across submissions
-    assert kpi_html_2 != kpi_html_1, "KPI card content should change between submissions."
+    # Sanity checks across the two submissions
+    assert kpi_html_1 != kpi_html_2, "KPI HTML should change between submissions."
+    # Rank format sanity
+    assert p2.get("rank_text", "").startswith("#") or p2.get("rank_text") == "N/A"
