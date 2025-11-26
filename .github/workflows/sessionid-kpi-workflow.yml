@@ -19,18 +19,23 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install system deps
+      - name: Install system dependencies (match Dockerfile pattern)
         run: |
           sudo apt-get update
-          sudo apt-get install -y libatlas-base-dev gfortran
+          sudo apt-get install -y --no-install-recommends \
+            libgl1 \
+            libglib2.0-0 \
+            gcc \
+            python3-dev
+          sudo rm -rf /var/lib/apt/lists/*
 
-      - name: Install Python deps
+      - name: Install Python dependencies (match Dockerfile pattern)
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-timeout
-          pip install numpy pandas scikit-learn gradio requests
-          # Install aimodelshare playground library; if private or optional, mock in tests
-          pip install aimodelshare || true
+          pip install --no-cache-dir -r requirements-apps.txt
+          pip install --no-cache-dir aimodelshare --no-dependencies
+          # Test-only dependencies (keep if not in requirements-apps.txt)
+          pip install --no-cache-dir pytest pytest-timeout
 
       - name: Create tests
         run: |
@@ -42,35 +47,25 @@ jobs:
           import numpy as np
           import pytest
 
-          # Import the target module
           from aimodelshare.moral_compass.apps.model_building_game import (
               create_model_building_game_app,
               run_experiment,
               generate_competitive_summary,
               _build_kpi_card_html,
               _get_leaderboard_with_optional_token,
-              Competition,  # original import from aimodelshare.playground
+              Competition,
               INIT_FLAGS,
               TEAM_NAMES,
               ATTEMPT_LIMIT,
               _normalize_team_name,
           )
 
-          # -----------------------
-          # Mocks and test fixtures
-          # -----------------------
-
           class MockCompetition:
               def __init__(self, pid):
                   self.pid = pid
-                  self.submissions = []  # list of dict rows with username, accuracy, Team, timestamp
+                  self.submissions = []
 
               def submit_model(self, model, preprocessor, prediction_submission, input_dict, custom_metadata, token):
-                  # Simulate a submit that immediately becomes visible to leaderboard
-                  # prediction_submission shape gives accuracy against simulated Y_TEST
-                  # In test we inject accuracy into input_dict or custom_metadata
-                  # Here we infer accuracy from input_dict['description'] marker or via probability
-                  # For test control, accuracy will be passed in custom_metadata['__test_accuracy']
                   acc = float(custom_metadata.get("__test_accuracy", 0.5))
                   username = custom_metadata.get("__test_username", "user1")
                   team = custom_metadata.get("Team", TEAM_NAMES[0])
@@ -84,21 +79,16 @@ jobs:
                   return True
 
               def get_leaderboard(self, token=None):
-                  # Return DataFrame of submissions (most recent last, like append behavior)
                   if not self.submissions:
                       return pd.DataFrame(columns=["username", "accuracy", "Team", "timestamp"])
-                  df = pd.DataFrame(self.submissions)
-                  # Sort optional to simulate server behavior; keep append order for reliability
-                  return df
+                  return pd.DataFrame(self.submissions)
 
           @pytest.fixture(autouse=True)
           def patch_playground(monkeypatch):
-              # Patch Competition constructor everywhere in module
               monkeypatch.setattr(
                   "aimodelshare.moral_compass.apps.model_building_game.Competition",
                   lambda pid: MockCompetition(pid)
               )
-              # Reset init flags to allow warm preview and then full readiness
               INIT_FLAGS.update({
                   "competition": True,
                   "dataset_core": True,
@@ -113,29 +103,18 @@ jobs:
               })
               yield
 
-          # -------------
-          # Test helpers
-          # -------------
           def parse_kpi(html: str):
-              """
-              Extracts key values from KPI HTML for assertion.
-              Returns dict with keys: title, acc_text, rank_text
-              """
               out = {}
-              # Title is in <h2>...</h2>
               if "<h2" in html:
                   start = html.find("<h2")
                   end = html.find("</h2>", start)
                   out["title"] = html[start:end].split(">")[-1]
-              # New Accuracy as percentage in kpi-score (first block)
-              # This is simplistic; robust parsing not needed
               acc_idx = html.find("New Accuracy")
               if acc_idx != -1:
                   score_idx = html.find("kpi-score", acc_idx)
                   pct_start = html.find(">", score_idx) + 1
                   pct_end = html.find("</", pct_start)
                   out["acc_text"] = html[pct_start:pct_end]
-              # Rank text
               rank_idx = html.find("Your Rank")
               if rank_idx != -1:
                   score_idx = html.find("kpi-score", rank_idx)
@@ -144,32 +123,14 @@ jobs:
                   out["rank_text"] = html[val_start:val_end]
               return out
 
-          # ------------------------
-          # Tests of KPI state flow
-          # ------------------------
-
           def test_sessionid_authenticated_kpi_flow(monkeypatch):
-              """
-              Simulate a session-authenticated user:
-              - First authenticated submit: KPI shows 'First Model Submitted!' and rank starts at #1
-              - Second submit improves score: KPI shows green delta and rank movement if applicable
-              - Preview runs do not change the session KPI states
-              """
-              # Prepare demo and state values
               demo = create_model_building_game_app()
-
-              # Use a fixed username + team
               username = "session_user"
               token = "valid_token"
               team_name = _normalize_team_name(TEAM_NAMES[1])
 
-              # Build a mock Competition instance from patched constructor
               comp = Competition("pid")
-              # Seed leaderboard with zero rows initially
 
-              # Step 1: First authenticated submission
-              # We call generate_competitive_summary after a manual submission to mock post-submit behavior
-              # Submit a first score: 0.62 accuracy
               comp.submit_model(
                   model=None, preprocessor=None, prediction_submission=None,
                   input_dict={"description": "test"},
@@ -181,16 +142,14 @@ jobs:
               team_html, indiv_html, kpi_html, best_acc, new_rank, this_score = generate_competitive_summary(
                   lb, team_name, username, last_submission_score=0.0, last_rank=0, submission_count=0
               )
-
               parsed = parse_kpi(kpi_html)
-              assert "First Model Submitted" in parsed.get("title", ""), "Should show first submission title"
-              assert parsed.get("acc_text") is not None and parsed["acc_text"].endswith("%"), "Accuracy should be shown"
-              assert parsed.get("rank_text") == f"#{new_rank}", "Rank should reflect new_rank"
+              assert "First Model Submitted" in parsed.get("title", "")
+              assert parsed.get("acc_text") and parsed["acc_text"].endswith("%")
+              assert parsed.get("rank_text") == f"#{new_rank}"
               assert abs(this_score - 0.62) < 1e-6
               assert abs(best_acc - 0.62) < 1e-6
-              assert new_rank == 1  # Single user, rank #1
+              assert new_rank == 1
 
-              # Step 2: Second authenticated submission with improved score (0.71)
               comp.submit_model(
                   model=None, preprocessor=None, prediction_submission=None,
                   input_dict={"description": "test2"},
@@ -198,7 +157,6 @@ jobs:
                   token=token
               )
 
-              # Small poll to mimic eventual consistency
               for _ in range(3):
                   lb = comp.get_leaderboard(token=token)
                   if len(lb[lb["username"] == username]) >= 2:
@@ -208,23 +166,18 @@ jobs:
               team_html2, indiv_html2, kpi_html2, best_acc2, new_rank2, this_score2 = generate_competitive_summary(
                   lb, team_name, username, last_submission_score=this_score, last_rank=new_rank, submission_count=1
               )
-
               parsed2 = parse_kpi(kpi_html2)
-              assert "Submission Successful" in parsed2.get("title", ""), "Should show general success title"
-              # Accuracy should reflect second score
+              assert "Submission Successful" in parsed2.get("title", "")
               assert abs(this_score2 - 0.71) < 1e-6
               assert abs(best_acc2 - 0.71) < 1e-6
-              assert parsed2.get("rank_text") == f"#{new_rank2}", "Rank updated (still #1 with single user)"
-              # Delta text contained in card; just ensure not identical to first KPI
+              assert parsed2.get("rank_text") == f"#{new_rank2}"
               assert kpi_html2 != kpi_html
 
-              # Step 3: Preview card should not alter states
               preview_html = _build_kpi_card_html(new_score=0.55, last_score=0.0, new_rank=0, last_rank=0, submission_count=-1, is_preview=True)
               parsed_prev = parse_kpi(preview_html)
-              assert "Successful Preview Run" in parsed_prev.get("title", ""), "Preview title expected"
-              assert parsed_prev.get("rank_text") == "N/A", "Preview rank is N/A"
+              assert "Successful Preview Run" in parsed_prev.get("title", "")
+              assert parsed_prev.get("rank_text") == "N/A"
 
-              # Step 4: Third authenticated submission with worse score (0.60)
               comp.submit_model(
                   model=None, preprocessor=None, prediction_submission=None,
                   input_dict={"description": "test3"},
@@ -241,13 +194,9 @@ jobs:
               team_html3, indiv_html3, kpi_html3, best_acc3, new_rank3, this_score3 = generate_competitive_summary(
                   lb, team_name, username, last_submission_score=this_score2, last_rank=new_rank2, submission_count=2
               )
-
               parsed3 = parse_kpi(kpi_html3)
-              # Expect drop title or red delta depending on conditional branch
-              assert ("Score Dropped" in parsed3.get("title", "")) or ("Submission Successful" in parsed3.get("title", "")), \
-                  "Should indicate a decline or neutral result"
+              assert ("Score Dropped" in parsed3.get("title", "")) or ("Submission Successful" in parsed3.get("title", ""))
               assert abs(this_score3 - 0.60) < 1e-6
-              # Best remains at 0.71
               assert abs(best_acc3 - 0.71) < 1e-6
 
           def test_empty_leaderboard_yields_neutral_kpi(monkeypatch):
@@ -257,9 +206,9 @@ jobs:
                   lb, TEAM_NAMES[0], "userX", 0, 0, 0
               )
               parsed = parse_kpi(kpi_html)
-              assert "Submission Successful" in parsed.get("title", ""), "Neutral success title expected when empty"
-              assert parsed.get("rank_text") == "#0", "Rank is 0 when none"
-              assert parsed.get("acc_text") in ("0.00%", "N/A"), "Accuracy neutral value expected"
+              assert "Submission Successful" in parsed.get("title", "")
+              assert parsed.get("rank_text") == "#0"
+              assert parsed.get("acc_text") in ("0.00%", "N/A")
 
           PYTEST
 
