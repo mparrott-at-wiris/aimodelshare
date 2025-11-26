@@ -847,6 +847,45 @@ def _is_ready() -> bool:
         flags = INIT_FLAGS.copy()
     return flags["competition"] and flags["dataset_core"] and flags["pre_samples_small"]
 
+def _get_user_latest_accuracy(df: Optional[pd.DataFrame], username: str) -> Optional[float]:
+    """
+    Extract the user's latest submission accuracy from the leaderboard.
+    
+    Uses timestamp sorting when available; otherwise assumes last row is latest.
+    
+    Args:
+        df: Leaderboard DataFrame
+        username: Username to extract accuracy for
+    
+    Returns:
+        float: Latest submission accuracy, or None if not found/invalid
+    """
+    if df is None or df.empty:
+        return None
+    
+    try:
+        user_rows = df[df["username"] == username]
+        if user_rows.empty or "accuracy" not in user_rows.columns:
+            return None
+        
+        # Try timestamp-based sorting if available
+        if "timestamp" in user_rows.columns:
+            user_rows = user_rows.copy()
+            user_rows["__parsed_ts"] = pd.to_datetime(user_rows["timestamp"], errors="coerce")
+            valid_ts = user_rows[user_rows["__parsed_ts"].notna()]
+            
+            if not valid_ts.empty:
+                # Sort by timestamp and get latest
+                latest_row = valid_ts.sort_values("__parsed_ts", ascending=False).iloc[0]
+                return float(latest_row["accuracy"])
+        
+        # Fallback: assume last row is latest (append order)
+        return float(user_rows.iloc[-1]["accuracy"])
+        
+    except Exception as e:
+        _log(f"Error extracting latest accuracy for {username}: {e}")
+        return None
+
 def _get_user_latest_ts(df: Optional[pd.DataFrame], username: str) -> Optional[float]:
     """
     Extract the user's latest valid timestamp from the leaderboard.
@@ -885,13 +924,15 @@ def _user_rows_changed(
     username: str,
     old_row_count: int,
     old_best_score: float,
-    old_latest_ts: Optional[float] = None
+    old_latest_ts: Optional[float] = None,
+    old_latest_score: Optional[float] = None
 ) -> bool:
     """
     Check if user's leaderboard entries have changed after submission.
     
     Used after polling to detect if the leaderboard has updated with the new submission.
-    Checks row count (new submission added), best score (score improved), and latest timestamp.
+    Checks row count (new submission added), best score (score improved), latest timestamp,
+    and latest accuracy (handles backend overwrite without append).
     
     Args:
         refreshed_leaderboard: Fresh leaderboard data
@@ -899,9 +940,10 @@ def _user_rows_changed(
         old_row_count: Previous number of submissions for this user
         old_best_score: Previous best accuracy score
         old_latest_ts: Previous latest timestamp (unix epoch), optional
+        old_latest_score: Previous latest submission accuracy, optional
     
     Returns:
-        bool: True if user has more rows, better score, or newer timestamp than before
+        bool: True if user has more rows, better score, newer timestamp, or changed latest accuracy
     """
     if refreshed_leaderboard is None or refreshed_leaderboard.empty:
         return False
@@ -914,16 +956,28 @@ def _user_rows_changed(
         new_row_count = len(user_rows)
         new_best_score = float(user_rows["accuracy"].max()) if "accuracy" in user_rows.columns else 0.0
         new_latest_ts = _get_user_latest_ts(refreshed_leaderboard, username)
+        new_latest_score = _get_user_latest_accuracy(refreshed_leaderboard, username)
         
-        # Changed if we have more submissions, better score, or newer timestamp
+        # Changed if we have more submissions, better score, newer timestamp, or changed latest accuracy
         changed = (new_row_count > old_row_count) or (new_best_score > old_best_score + 0.0001)
         
-        # Also check timestamp if available
+        # Check timestamp if available
         if old_latest_ts is not None and new_latest_ts is not None:
             changed = changed or (new_latest_ts > old_latest_ts)
         
+        # Check latest accuracy change (handles overwrite-without-append case)
+        if old_latest_score is not None and new_latest_score is not None:
+            accuracy_changed = abs(new_latest_score - old_latest_score) >= 0.00001
+            if accuracy_changed:
+                _log(f"Latest accuracy changed: {old_latest_score:.4f} -> {new_latest_score:.4f}")
+            changed = changed or accuracy_changed
+        
         if changed:
-            _log(f"User rows changed: count {old_row_count}->{new_row_count}, score {old_best_score:.4f}->{new_best_score:.4f}, ts {old_latest_ts}->{new_latest_ts}")
+            _log(f"User rows changed for {username}:")
+            _log(f"  Row count: {old_row_count} -> {new_row_count}")
+            _log(f"  Best score: {old_best_score:.4f} -> {new_best_score:.4f}")
+            _log(f"  Latest score: {old_latest_score if old_latest_score else 'N/A'} -> {new_latest_score if new_latest_score else 'N/A'}")
+            _log(f"  Timestamp: {old_latest_ts} -> {new_latest_ts}")
         
         return changed
     except Exception as e:
@@ -1090,12 +1144,25 @@ def build_login_prompt_html():
 def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_count, is_preview=False, is_pending=False, local_test_accuracy=None):
     """Generates the HTML for the KPI feedback card. Supports preview mode label and pending state."""
 
-    # Handle pending state - show processing message
+    # Handle pending state - show processing message with provisional diff
     if is_pending:
         title = "⏳ Submission Processing"
         acc_color = "#3b82f6"  # Blue
         acc_text = f"{(local_test_accuracy * 100):.2f}%" if local_test_accuracy is not None else "N/A"
-        acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
+        
+        # Compute provisional diff between local (new) and last score
+        if local_test_accuracy is not None and last_score is not None and last_score > 0:
+            score_diff = local_test_accuracy - last_score
+            if abs(score_diff) < 0.0001:
+                acc_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #6b7280; margin:0;'>No Change (↔) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
+            elif score_diff > 0:
+                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>+{(score_diff * 100):.2f} (⬆️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
+            else:
+                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>{(score_diff * 100):.2f} (⬇️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
+        else:
+            # No last score available - just show pending message
+            acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
+        
         border_color = acc_color
         rank_color = "#6b7280"  # Gray
         rank_text = "Pending"
@@ -2214,18 +2281,20 @@ def run_experiment(
         # Initial fetch to get baseline
         full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
         
-        # Get baseline user stats before polling (including timestamp)
+        # Get baseline user stats before polling (including timestamp and latest accuracy)
         if full_leaderboard_df is not None and not full_leaderboard_df.empty:
             user_rows_before = full_leaderboard_df[full_leaderboard_df["username"] == username]
             old_row_count = len(user_rows_before)
             old_best_score = float(user_rows_before["accuracy"].max()) if not user_rows_before.empty and "accuracy" in user_rows_before.columns else 0.0
             old_latest_ts = _get_user_latest_ts(full_leaderboard_df, username)
+            old_latest_score = _get_user_latest_accuracy(full_leaderboard_df, username)
         else:
             old_row_count = 0
             old_best_score = 0.0
             old_latest_ts = None
+            old_latest_score = None
         
-        _log(f"Pre-submission baseline: rows={old_row_count}, best={old_best_score:.4f}, ts={old_latest_ts}")
+        _log(f"Pre-submission baseline: rows={old_row_count}, best={old_best_score:.4f}, latest_score={old_latest_score if old_latest_score else 'N/A'}, ts={old_latest_ts}")
         
         # Poll leaderboard to detect update (mitigate eventual consistency)
         # Start at 1 since we already did one initial fetch
@@ -2236,7 +2305,7 @@ def run_experiment(
             time.sleep(LEADERBOARD_POLL_SLEEP)
             refreshed = _get_leaderboard_with_optional_token(playground, token)
             poll_iterations = i + 2  # +2 because we start from attempt 1 (0-indexed loop + initial fetch)
-            if _user_rows_changed(refreshed, username, old_row_count, old_best_score, old_latest_ts):
+            if _user_rows_changed(refreshed, username, old_row_count, old_best_score, old_latest_ts, old_latest_score):
                 full_leaderboard_df = refreshed
                 change_detected = True
                 _log(f"Leaderboard updated after {poll_iterations} total fetches")
@@ -2246,13 +2315,13 @@ def run_experiment(
         
         # Check if change was detected
         if not change_detected:
-            # No change detected - show pending KPI state
-            _log(f"Pending state: poll_iterations={poll_iterations}, local_test_accuracy={local_test_accuracy:.4f}")
+            # No change detected - show pending KPI state with provisional diff
+            _log(f"Pending state: poll_iterations={poll_iterations}, local_test_accuracy={local_test_accuracy:.4f}, last_submission_score={last_submission_score}")
             
-            # Build pending KPI card
+            # Build pending KPI card with provisional diff between local and last score
             pending_kpi_html = _build_kpi_card_html(
-                new_score=0,
-                last_score=0,
+                new_score=local_test_accuracy,  # Use local score as "new"
+                last_score=last_submission_score,  # Compare against last submission
                 new_rank=0,
                 last_rank=0,
                 submission_count=0,
