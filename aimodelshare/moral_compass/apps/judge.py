@@ -1,6 +1,6 @@
 """
 You Be the Judge - Gradio application for the Justice & Equity Challenge.
-Updated with i18n support for English (en), Spanish (es), and Catalan (ca).
+Updated with i18n support and visual fixes (gr.HTML implementation).
 """
 import contextlib
 import os
@@ -602,8 +602,8 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         # Title
         c_main_title = gr.Markdown("<h1 style='text-align:center;'>⚖️ You Be the Judge</h1>")
         
-        # Intro
-        c_intro_md = gr.Markdown(
+        # Intro - CHANGED TO HTML to fix broken visuals
+        c_intro_html = gr.HTML(
             f"""<div class="judge-intro-box">{t('en', 'intro_role')}</div>"""
         )
         
@@ -611,14 +611,15 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
 
         # --- Loading screen ---
         with gr.Column(visible=False) as loading_screen:
-            c_loading_title = gr.Markdown(
+            c_loading_title = gr.HTML(
                 f"""<div style='text-align:center; padding: 100px 0;'><h2 class='loading-title'>{t('en', 'loading')}</h2></div>"""
             )
 
         # --- Introduction Section ---
         with gr.Column(visible=True, elem_id="intro") as intro_section:
             c_scenario_title = gr.Markdown(f"<h2 style='text-align:center;'>{t('en', 'scenario_title')}</h2>")
-            c_scenario_box = gr.Markdown(f"""<div class="scenario-box">{t('en', 'scenario_box')}</div>""")
+            # CHANGED TO HTML
+            c_scenario_box = gr.HTML(f"""<div class="scenario-box">{t('en', 'scenario_box')}</div>""")
             start_btn = gr.Button(t('en', 'btn_start'), variant="primary", size="lg")
 
         # --- Defendant profiles section ---
@@ -626,7 +627,8 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         
         with gr.Column(visible=False, elem_id="profiles") as profiles_section:
             c_profiles_title = gr.Markdown(f"<h2 style='text-align:center;'>{t('en', 'profiles_title')}</h2>")
-            c_hint_box = gr.Markdown(f"""<div class="hint-box">{t('en', 'hint_box')}</div>""")
+            # CHANGED TO HTML
+            c_hint_box = gr.HTML(f"""<div class="hint-box">{t('en', 'hint_box')}</div>""")
             gr.HTML("<br>")
 
             # Create UI for each defendant
@@ -683,8 +685,8 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
 
         # --- Completion section ---
         with gr.Column(visible=False, elem_id="complete") as complete_section:
-            # We construct this as one big HTML block, but need to reconstruct on lang change
-            c_completion_md = gr.Markdown(
+            # CHANGED TO HTML
+            c_completion_html = gr.HTML(
                  f"""
                 <div style='text-align:center;'>
                     <h2 style='font-size: 2.5rem;'>{t('en', 'completion_title')}</h2>
@@ -707,7 +709,7 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         update_targets = [
             lang_state,          # 0
             c_main_title,        # 1
-            c_intro_md,          # 2
+            c_intro_html,        # 2
             c_loading_title,     # 3
             c_scenario_title,    # 4
             c_scenario_box,      # 5
@@ -716,7 +718,7 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             c_hint_box,          # 8
             show_summary_btn,    # 9
             complete_btn,        # 10
-            c_completion_md,     # 11
+            c_completion_html,   # 11
             back_to_profiles_btn # 12
         ]
         
@@ -769,7 +771,7 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             # 10. Complete Button
             updates.append(gr.Button(value=t(lang, 'btn_complete')))
             
-            # 11. Completion MD
+            # 11. Completion HTML
             updates.append(f"""
                 <div style='text-align:center;'>
                     <h2 style='font-size: 2.5rem;'>{t(lang, 'completion_title')}</h2>
@@ -798,9 +800,7 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         demo.load(update_language, inputs=None, outputs=update_targets)
 
         # -------------------------------------------------------------------------
-        # NAVIGATION GENERATORS (Passing JS messages based on language?)
-        # For simplicity, we keep the JS generic or hardcoded to English in JS 
-        # because passing dynamic JS strings via Gradio is tricky.
+        # NAVIGATION GENERATORS
         # -------------------------------------------------------------------------
 
         all_steps = [intro_section, profiles_section, complete_section, loading_screen]
