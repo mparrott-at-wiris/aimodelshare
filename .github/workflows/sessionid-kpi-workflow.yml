@@ -12,7 +12,7 @@ jobs:
 
     env:
       # Read SESSION_ID from repo secrets. REQUIRED.
-      SESSION_ID: ${{ secrets.SESSION_ID }}
+      SESSION_ID: ${{ secrets.MC_TEST_SESSIONID }}
       # Optional: enable debug logging in app
       DEBUG_LOG: "true"
 
