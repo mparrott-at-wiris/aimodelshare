@@ -422,6 +422,13 @@ MY_PLAYGROUND_ID = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/
 # attempt counts per user across sessions.
 ATTEMPT_LIMIT = 10
 
+# --- Leaderboard Polling Configuration ---
+# After a real authenticated submission, we poll the leaderboard to detect eventual consistency.
+# This prevents the "stuck on first preview KPI" issue where the leaderboard hasn't updated yet.
+LEADERBOARD_POLL_TRIES = 4  # Number of polling attempts
+LEADERBOARD_POLL_SLEEP = 0.8  # Sleep duration between polls (seconds)
+ENABLE_AUTO_RESUBMIT_AFTER_READY = False  # Future feature flag for auto-resubmit
+
 MODEL_TYPES = {
     "The Balanced Generalist": {
         "model_builder": lambda: LogisticRegression(
@@ -828,6 +835,60 @@ def get_available_data_sizes():
         available.append("Full (100%)")
     
     return available if available else ["Small (20%)"]  # Fallback
+
+def _is_ready() -> bool:
+    """
+    Check if initialization is complete and system is ready for real submissions.
+    
+    Returns:
+        bool: True if competition, dataset, and small sample are initialized
+    """
+    with INIT_LOCK:
+        flags = INIT_FLAGS.copy()
+    return flags["competition"] and flags["dataset_core"] and flags["pre_samples_small"]
+
+def _user_rows_changed(
+    refreshed_leaderboard: Optional[pd.DataFrame],
+    username: str,
+    old_row_count: int,
+    old_best_score: float
+) -> bool:
+    """
+    Check if user's leaderboard entries have changed after submission.
+    
+    Used after polling to detect if the leaderboard has updated with the new submission.
+    Checks both row count (new submission added) and best score (score improved).
+    
+    Args:
+        refreshed_leaderboard: Fresh leaderboard data
+        username: Username to check for
+        old_row_count: Previous number of submissions for this user
+        old_best_score: Previous best accuracy score
+    
+    Returns:
+        bool: True if user has more rows or better score than before
+    """
+    if refreshed_leaderboard is None or refreshed_leaderboard.empty:
+        return False
+    
+    try:
+        user_rows = refreshed_leaderboard[refreshed_leaderboard["username"] == username]
+        if user_rows.empty:
+            return False
+        
+        new_row_count = len(user_rows)
+        new_best_score = float(user_rows["accuracy"].max()) if "accuracy" in user_rows.columns else 0.0
+        
+        # Changed if we have more submissions or better score
+        changed = (new_row_count > old_row_count) or (new_best_score > old_best_score + 0.0001)
+        
+        if changed:
+            _log(f"User rows changed: count {old_row_count}->{new_row_count}, score {old_best_score:.4f}->{new_best_score:.4f}")
+        
+        return changed
+    except Exception as e:
+        _log(f"Error checking user rows: {e}")
+        return False
 
 @functools.lru_cache(maxsize=32)
 def _get_cached_preprocessor_config(numeric_cols_tuple, categorical_cols_tuple):
@@ -1577,6 +1638,9 @@ def run_experiment(
     best_score,
     username=None,
     token=None,
+    readiness_state=None,
+    was_preview_state=None,
+    kpi_meta_state=None,
     progress=gr.Progress()
 ):
     """
@@ -1600,8 +1664,22 @@ def run_experiment(
         best_score: Best score achieved
         username: User's username (from gr.State, not os.environ)
         token: Authentication token (from gr.State, not os.environ)
+        readiness_state: System readiness flag (from gr.State)
+        was_preview_state: Whether last run was preview (from gr.State)
+        kpi_meta_state: Metadata dict for debugging (from gr.State)
         progress: Gradio progress tracker
+    
+    Returns:
+        Updates for all output components including new state variables
     """
+    # Initialize metadata state if not provided
+    if kpi_meta_state is None:
+        kpi_meta_state = {}
+    
+    # Check readiness
+    ready = _is_ready()
+    _log(f"run_experiment: ready={ready}, username={username}, token_present={token is not None}")
+    
     # Add debug log (optional)
     _log(f"run_experiment received username={username} token_present={token is not None}")    
     # Concurrency Note: Use provided parameters exclusively, not os.environ.
@@ -1643,7 +1721,8 @@ def run_experiment(
     ready_for_submission = flags["competition"] and flags["dataset_core"] and flags["pre_samples_small"]
     
     # If not ready but warm mini available, run preview
-    if not ready_for_submission and flags["warm_mini"] and X_TRAIN_WARM is not None:
+    if not ready and flags["warm_mini"] and X_TRAIN_WARM is not None:
+        _log("Running warm mini preview (not ready yet)")
         progress(0.5, desc="Running Preview...")
         yield { 
             submission_feedback_display: gr.update(value=get_status_html("Preview", "Warm-up Run", "Testing on mini-dataset..."), visible=True),
@@ -1682,6 +1761,18 @@ def run_experiment(
             predictions = tuned_model.predict(X_test_for_predict)
             preview_score = accuracy_score(Y_TEST, predictions)
             
+            # Update metadata state
+            new_kpi_meta = {
+                "was_preview": True,
+                "preview_score": preview_score,
+                "ready_at_run_start": False,
+                "poll_iterations": 0,
+                "local_test_accuracy": preview_score,
+                "this_submission_score": None,
+                "new_best_accuracy": None,
+                "rank": None
+            }
+            
             # Show preview card
             preview_html = _build_kpi_card_html(preview_score, 0, 0, 0, -1, is_preview=True)
             
@@ -1697,23 +1788,29 @@ def run_experiment(
                 last_rank_state: last_rank,
                 best_score_state: best_score,
                 submission_count_state: submission_count,
+                first_submission_score_state: first_submission_score,
                 rank_message_display: settings["rank_message"],
                 model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
                 complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
                 feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
                 data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
                 submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
+                login_username: gr.update(visible=False),
+                login_password: gr.update(visible=False),
+                login_submit: gr.update(visible=False),
                 login_error: gr.update(visible=False),
-                attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))
+                attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
+                was_preview_state: True,
+                kpi_meta_state: new_kpi_meta
             }
             yield final_updates
             return
             
         except Exception as e:
-            print(f"Preview failed: {e}")
+            _log(f"Preview failed: {e}")
             # Fall through to error handling
     
-    if playground is None or not ready_for_submission:
+    if playground is None or not ready:
         settings = compute_rank_settings(
              submission_count, model_name_key, complexity_level, feature_set, data_size_str
         )
@@ -1725,6 +1822,17 @@ def run_experiment(
             error_msg += "Data still initializing. Please wait a moment and try again."
         error_msg += "</p>"
         
+        error_kpi_meta = {
+            "was_preview": False,
+            "preview_score": None,
+            "ready_at_run_start": False,
+            "poll_iterations": 0,
+            "local_test_accuracy": None,
+            "this_submission_score": None,
+            "new_best_accuracy": None,
+            "rank": None
+        }
+        
         error_updates = {
             submission_feedback_display: gr.update(value=error_msg, visible=True),
             submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
@@ -1734,13 +1842,19 @@ def run_experiment(
             last_rank_state: last_rank,
             best_score_state: best_score,
             submission_count_state: submission_count,
+            first_submission_score_state: first_submission_score,
             rank_message_display: settings["rank_message"],
             model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
             complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
             feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
             data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
+            login_username: gr.update(visible=False),
+            login_password: gr.update(visible=False),
+            login_submit: gr.update(visible=False),
             login_error: gr.update(visible=False),
-            attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))
+            attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
+            was_preview_state: False,
+            kpi_meta_state: error_kpi_meta
         }
         yield error_updates
         return
@@ -1808,6 +1922,19 @@ def run_experiment(
             from sklearn.metrics import accuracy_score
             preview_score = accuracy_score(Y_TEST, predictions)
             
+            # Update metadata state for preview
+            preview_kpi_meta = {
+                "was_preview": True,
+                "preview_score": preview_score,
+                "ready_at_run_start": ready,
+                "poll_iterations": 0,
+                "local_test_accuracy": preview_score,
+                "this_submission_score": None,
+                "new_best_accuracy": None,
+                "rank": None
+            }
+            _log(f"Preview mode: score={preview_score:.4f}, ready={ready}")
+            
             # --- FIX APPLIED HERE ---
             # 1. Generate the styled preview card
             preview_card_html = _build_kpi_card_html(
@@ -1854,7 +1981,9 @@ def run_experiment(
                 complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
                 feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
                 data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-                attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))
+                attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
+                was_preview_state: True,
+                kpi_meta_state: preview_kpi_meta
             }
             yield gate_updates
             return  # Stop here - user needs to login and resubmit
@@ -1889,6 +2018,17 @@ def run_experiment(
                 submission_count, model_name_key, complexity_level, feature_set, data_size_str
             )
             
+            limit_kpi_meta = {
+                "was_preview": False,
+                "preview_score": None,
+                "ready_at_run_start": ready,
+                "poll_iterations": 0,
+                "local_test_accuracy": None,
+                "this_submission_score": None,
+                "new_best_accuracy": None,
+                "rank": None
+            }
+            
             # Disable all interactive controls - user can only view results
             limit_reached_updates = {
                 submission_feedback_display: gr.update(value=limit_warning_html, visible=True),
@@ -1908,7 +2048,12 @@ def run_experiment(
                 submission_count_state: submission_count,
                 first_submission_score_state: first_submission_score,
                 rank_message_display: settings["rank_message"],
-                login_error: gr.update(visible=False)
+                login_username: gr.update(visible=False),
+                login_password: gr.update(visible=False),
+                login_submit: gr.update(visible=False),
+                login_error: gr.update(visible=False),
+                was_preview_state: False,
+                kpi_meta_state: limit_kpi_meta
             }
             yield limit_reached_updates
             return  # Stop here - no more submissions allowed
@@ -1941,8 +2086,13 @@ def run_experiment(
         
         _retry_with_backoff(_submit, description="model submission")
         log_output += "\nSUCCESS! Model submitted.\n"
+        _log(f"Submission successful for {username}")
+        
+        # Compute local test accuracy for metadata
+        from sklearn.metrics import accuracy_score
+        local_test_accuracy = accuracy_score(Y_TEST, predictions)
 
-        # --- Stage 4: Refresh Leaderboard (API Call 2) ---
+        # --- Stage 4: Refresh Leaderboard with Polling (API Calls 2+) ---
         # Show skeletons while fetching
         progress(0.8, desc="Updating Leaderboard...")
         yield {
@@ -1952,9 +2102,32 @@ def run_experiment(
             login_error: gr.update(visible=False)
         }
 
-        # Use centralized helper for authenticated, fresh leaderboard fetch after submission
+        # Initial fetch to get baseline
         full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
-
+        
+        # Get baseline user stats before polling
+        if full_leaderboard_df is not None and not full_leaderboard_df.empty:
+            user_rows_before = full_leaderboard_df[full_leaderboard_df["username"] == username]
+            old_row_count = len(user_rows_before)
+            old_best_score = float(user_rows_before["accuracy"].max()) if not user_rows_before.empty and "accuracy" in user_rows_before.columns else 0.0
+        else:
+            old_row_count = 0
+            old_best_score = 0.0
+        
+        # Poll leaderboard to detect update (mitigate eventual consistency)
+        poll_iterations = 1
+        for i in range(LEADERBOARD_POLL_TRIES):
+            _log(f"Polling leaderboard: attempt {i+1}/{LEADERBOARD_POLL_TRIES}")
+            time.sleep(LEADERBOARD_POLL_SLEEP)
+            refreshed = _get_leaderboard_with_optional_token(playground, token)
+            poll_iterations += 1
+            if _user_rows_changed(refreshed, username, old_row_count, old_best_score):
+                full_leaderboard_df = refreshed
+                _log(f"Leaderboard updated after {poll_iterations} polls")
+                break
+        else:
+            _log(f"Leaderboard polling complete: {poll_iterations} iterations, no change detected")
+        
         # Call new summary function
         team_html, individual_html, kpi_card_html, new_best_accuracy, new_rank, this_submission_score = generate_competitive_summary(
             full_leaderboard_df,
@@ -1971,10 +2144,23 @@ def run_experiment(
 
         new_submission_count = submission_count + 1
         
-        # Track first submission score
+        # Track first submission score - set immediately even if polling doesn't detect change
         new_first_submission_score = first_submission_score
         if submission_count == 0 and first_submission_score is None:
             new_first_submission_score = this_submission_score
+            _log(f"First submission score set: {new_first_submission_score:.4f}")
+        
+        # Build metadata state
+        success_kpi_meta = {
+            "was_preview": False,
+            "preview_score": None,
+            "ready_at_run_start": ready,
+            "poll_iterations": poll_iterations,
+            "local_test_accuracy": local_test_accuracy,
+            "this_submission_score": this_submission_score,
+            "new_best_accuracy": new_best_accuracy,
+            "rank": new_rank
+        }
         
         settings = compute_rank_settings(
             new_submission_count, model_name_key, complexity_level, feature_set, data_size_str
@@ -1995,16 +2181,35 @@ def run_experiment(
             feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
             data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
             submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
+            login_username: gr.update(visible=False),
+            login_password: gr.update(visible=False),
+            login_submit: gr.update(visible=False),
             login_error: gr.update(visible=False),
-            attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(new_submission_count))
+            attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(new_submission_count)),
+            was_preview_state: False,
+            kpi_meta_state: success_kpi_meta
         }
         yield final_updates
 
     except Exception as e:
         error_msg = f"ERROR: {e}"
+        _log(f"Exception in run_experiment: {error_msg}")
         settings = compute_rank_settings(
              submission_count, model_name_key, complexity_level, feature_set, data_size_str
         )
+        
+        exception_kpi_meta = {
+            "was_preview": False,
+            "preview_score": None,
+            "ready_at_run_start": ready if 'ready' in locals() else False,
+            "poll_iterations": 0,
+            "local_test_accuracy": None,
+            "this_submission_score": None,
+            "new_best_accuracy": None,
+            "rank": None,
+            "error": str(e)
+        }
+        
         error_updates = {
             submission_feedback_display: gr.update(
                 f"<p style='text-align:center; color:red; padding:20px 0;'>An error occurred: {error_msg}</p>", visible=True
@@ -2022,8 +2227,13 @@ def run_experiment(
             feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
             data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
             submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
+            login_username: gr.update(visible=False),
+            login_password: gr.update(visible=False),
+            login_submit: gr.update(visible=False),
             login_error: gr.update(visible=False),
-            attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))
+            attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
+            was_preview_state: False,
+            kpi_meta_state: exception_kpi_meta
         }
         yield error_updates
 
@@ -3429,6 +3639,11 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             best_score_state = gr.State(0.0)
             submission_count_state = gr.State(0)
             first_submission_score_state = gr.State(None)
+            
+            # New states for readiness gating and preview tracking
+            readiness_state = gr.State(False)
+            was_preview_state = gr.State(False)
+            kpi_meta_state = gr.State({})
 
             # Buffered states for all dynamic inputs
             model_type_state = gr.State(DEFAULT_MODEL)
@@ -3795,7 +4010,9 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             login_password,
             login_submit,
             login_error,
-            attempts_tracker_display
+            attempts_tracker_display,
+            was_preview_state,
+            kpi_meta_state
         ]
 
         # Wire up login button
@@ -3831,6 +4048,9 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 best_score_state,
                 username_state,  # NEW: Session-based auth
                 token_state,     # NEW: Session-based auth
+                readiness_state,
+                was_preview_state,
+                kpi_meta_state,
             ],
             outputs=all_outputs,
             show_progress="full",
@@ -3843,7 +4063,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         def update_init_status():
             """
             Poll initialization status and update UI elements.
-            Returns status HTML, banner visibility, submit button state, and data size choices.
+            Returns status HTML, banner visibility, submit button state, data size choices, and readiness_state.
             """
             status_html, ready = poll_init_status()
             
@@ -3869,13 +4089,14 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 gr.update(visible=banner_visible),
                 gr.update(value=submit_label, interactive=submit_interactive),
                 gr.update(choices=available_sizes),
-                timer_active
+                timer_active,
+                ready  # readiness_state
             )
         
         status_timer.tick(
             fn=update_init_status,
             inputs=None,
-            outputs=[init_status_display, init_banner, submit_button, data_size_radio, status_timer]
+            outputs=[init_status_display, init_banner, submit_button, data_size_radio, status_timer, readiness_state]
         )
 
         # Handle session-based authentication on page load
