@@ -278,8 +278,9 @@ def test_build_kpi_card_pending_no_last_score():
     # Should show accuracy but no diff (just pending message)
     assert "75.00%" in html
     assert "Pending leaderboard update" in html
-    # Should NOT show provisional diff when no last score
-    assert "(Provisional)" not in html or "No Change" not in html
+    # When no last score, should NOT show provisional diff
+    # (it only shows "Pending leaderboard update..." without provisional annotation)
+    assert "(Provisional)" not in html
 
 
 def test_build_kpi_card_success_shows_diff():

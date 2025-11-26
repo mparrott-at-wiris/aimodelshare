@@ -973,7 +973,11 @@ def _user_rows_changed(
             changed = changed or accuracy_changed
         
         if changed:
-            _log(f"User rows changed: count {old_row_count}->{new_row_count}, best {old_best_score:.4f}->{new_best_score:.4f}, latest {old_latest_score if old_latest_score else 'N/A'}->{new_latest_score if new_latest_score else 'N/A'}, ts {old_latest_ts}->{new_latest_ts}")
+            _log(f"User rows changed for {username}:")
+            _log(f"  Row count: {old_row_count} -> {new_row_count}")
+            _log(f"  Best score: {old_best_score:.4f} -> {new_best_score:.4f}")
+            _log(f"  Latest score: {old_latest_score if old_latest_score else 'N/A'} -> {new_latest_score if new_latest_score else 'N/A'}")
+            _log(f"  Timestamp: {old_latest_ts} -> {new_latest_ts}")
         
         return changed
     except Exception as e:
