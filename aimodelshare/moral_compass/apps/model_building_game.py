@@ -425,8 +425,8 @@ ATTEMPT_LIMIT = 10
 # --- Leaderboard Polling Configuration ---
 # After a real authenticated submission, we poll the leaderboard to detect eventual consistency.
 # This prevents the "stuck on first preview KPI" issue where the leaderboard hasn't updated yet.
-LEADERBOARD_POLL_TRIES = 4  # Number of polling attempts
-LEADERBOARD_POLL_SLEEP = 0.8  # Sleep duration between polls (seconds)
+LEADERBOARD_POLL_TRIES = 12  # Number of polling attempts (increased for stronger detection)
+LEADERBOARD_POLL_SLEEP = 1.0  # Sleep duration between polls (seconds)
 ENABLE_AUTO_RESUBMIT_AFTER_READY = False  # Future feature flag for auto-resubmit
 
 MODEL_TYPES = {
@@ -847,26 +847,61 @@ def _is_ready() -> bool:
         flags = INIT_FLAGS.copy()
     return flags["competition"] and flags["dataset_core"] and flags["pre_samples_small"]
 
+def _get_user_latest_ts(df: Optional[pd.DataFrame], username: str) -> Optional[float]:
+    """
+    Extract the user's latest valid timestamp from the leaderboard.
+    
+    Args:
+        df: Leaderboard DataFrame
+        username: Username to extract timestamp for
+    
+    Returns:
+        float: Latest timestamp as unix epoch, or None if not found/invalid
+    """
+    if df is None or df.empty:
+        return None
+    
+    try:
+        user_rows = df[df["username"] == username]
+        if user_rows.empty or "timestamp" not in user_rows.columns:
+            return None
+        
+        # Parse timestamps and get the latest
+        user_rows = user_rows.copy()
+        user_rows["__parsed_ts"] = pd.to_datetime(user_rows["timestamp"], errors="coerce")
+        valid_ts = user_rows[user_rows["__parsed_ts"].notna()]
+        
+        if valid_ts.empty:
+            return None
+        
+        latest_ts = valid_ts["__parsed_ts"].max()
+        return latest_ts.timestamp() if pd.notna(latest_ts) else None
+    except Exception as e:
+        _log(f"Error extracting latest timestamp for {username}: {e}")
+        return None
+
 def _user_rows_changed(
     refreshed_leaderboard: Optional[pd.DataFrame],
     username: str,
     old_row_count: int,
-    old_best_score: float
+    old_best_score: float,
+    old_latest_ts: Optional[float] = None
 ) -> bool:
     """
     Check if user's leaderboard entries have changed after submission.
     
     Used after polling to detect if the leaderboard has updated with the new submission.
-    Checks both row count (new submission added) and best score (score improved).
+    Checks row count (new submission added), best score (score improved), and latest timestamp.
     
     Args:
         refreshed_leaderboard: Fresh leaderboard data
         username: Username to check for
         old_row_count: Previous number of submissions for this user
         old_best_score: Previous best accuracy score
+        old_latest_ts: Previous latest timestamp (unix epoch), optional
     
     Returns:
-        bool: True if user has more rows or better score than before
+        bool: True if user has more rows, better score, or newer timestamp than before
     """
     if refreshed_leaderboard is None or refreshed_leaderboard.empty:
         return False
@@ -878,12 +913,17 @@ def _user_rows_changed(
         
         new_row_count = len(user_rows)
         new_best_score = float(user_rows["accuracy"].max()) if "accuracy" in user_rows.columns else 0.0
+        new_latest_ts = _get_user_latest_ts(refreshed_leaderboard, username)
         
-        # Changed if we have more submissions or better score
+        # Changed if we have more submissions, better score, or newer timestamp
         changed = (new_row_count > old_row_count) or (new_best_score > old_best_score + 0.0001)
         
+        # Also check timestamp if available
+        if old_latest_ts is not None and new_latest_ts is not None:
+            changed = changed or (new_latest_ts > old_latest_ts)
+        
         if changed:
-            _log(f"User rows changed: count {old_row_count}->{new_row_count}, score {old_best_score:.4f}->{new_best_score:.4f}")
+            _log(f"User rows changed: count {old_row_count}->{new_row_count}, score {old_best_score:.4f}->{new_best_score:.4f}, ts {old_latest_ts}->{new_latest_ts}")
         
         return changed
     except Exception as e:
@@ -1047,11 +1087,22 @@ def build_login_prompt_html():
     """
 # --- END OF FIX ---
 
-def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_count, is_preview=False):
-    """Generates the HTML for the KPI feedback card. Supports preview mode label."""
+def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_count, is_preview=False, is_pending=False, local_test_accuracy=None):
+    """Generates the HTML for the KPI feedback card. Supports preview mode label and pending state."""
 
+    # Handle pending state - show processing message
+    if is_pending:
+        title = "⏳ Submission Processing"
+        acc_color = "#3b82f6"  # Blue
+        acc_text = f"{(local_test_accuracy * 100):.2f}%" if local_test_accuracy is not None else "N/A"
+        acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
+        border_color = acc_color
+        rank_color = "#6b7280"  # Gray
+        rank_text = "Pending"
+        rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0;'>Calculating rank...</p>"
+        
     # Handle preview mode - Styled to match "success" card
-    if is_preview:
+    elif is_preview:
         title = "🔬 Successful Preview Run!"
         acc_color = "#16a34a"  # Green (like success)
         acc_text = f"{(new_score * 100):.2f}%" if new_score > 0 else "N/A"
@@ -1408,6 +1459,7 @@ first_submission_score_state = None  # (already commented as "will be assigned g
 readiness_state = None
 was_preview_state = None
 kpi_meta_state = None
+last_seen_ts_state = None  # Track last seen user timestamp from leaderboard
 
 
 def get_or_assign_team(username, token=None):
@@ -1838,7 +1890,8 @@ def run_experiment(
                 login_error: gr.update(visible=False),
                 attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
                 was_preview_state: True,
-                kpi_meta_state: new_kpi_meta
+                kpi_meta_state: new_kpi_meta,
+                last_seen_ts_state: None  # No timestamp for preview
             }
             yield final_updates
             return
@@ -1891,7 +1944,8 @@ def run_experiment(
             login_error: gr.update(visible=False),
             attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
             was_preview_state: False,
-            kpi_meta_state: error_kpi_meta
+            kpi_meta_state: error_kpi_meta,
+            last_seen_ts_state: None
         }
         yield error_updates
         return
@@ -2020,7 +2074,8 @@ def run_experiment(
                 data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
                 attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
                 was_preview_state: True,
-                kpi_meta_state: preview_kpi_meta
+                kpi_meta_state: preview_kpi_meta,
+                last_seen_ts_state: None  # No timestamp for preview
             }
             yield gate_updates
             return  # Stop here - user needs to login and resubmit
@@ -2090,7 +2145,8 @@ def run_experiment(
                 login_submit: gr.update(visible=False),
                 login_error: gr.update(visible=False),
                 was_preview_state: False,
-                kpi_meta_state: limit_kpi_meta
+                kpi_meta_state: limit_kpi_meta,
+                last_seen_ts_state: None
             }
             yield limit_reached_updates
             return  # Stop here - no more submissions allowed
@@ -2142,30 +2198,99 @@ def run_experiment(
         # Initial fetch to get baseline
         full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
         
-        # Get baseline user stats before polling
+        # Get baseline user stats before polling (including timestamp)
         if full_leaderboard_df is not None and not full_leaderboard_df.empty:
             user_rows_before = full_leaderboard_df[full_leaderboard_df["username"] == username]
             old_row_count = len(user_rows_before)
             old_best_score = float(user_rows_before["accuracy"].max()) if not user_rows_before.empty and "accuracy" in user_rows_before.columns else 0.0
+            old_latest_ts = _get_user_latest_ts(full_leaderboard_df, username)
         else:
             old_row_count = 0
             old_best_score = 0.0
+            old_latest_ts = None
+        
+        _log(f"Pre-submission baseline: rows={old_row_count}, best={old_best_score:.4f}, ts={old_latest_ts}")
         
         # Poll leaderboard to detect update (mitigate eventual consistency)
         # Start at 1 since we already did one initial fetch
         poll_iterations = 1
+        change_detected = False
         for i in range(LEADERBOARD_POLL_TRIES):
             _log(f"Polling leaderboard: attempt {i+1}/{LEADERBOARD_POLL_TRIES}")
             time.sleep(LEADERBOARD_POLL_SLEEP)
             refreshed = _get_leaderboard_with_optional_token(playground, token)
             poll_iterations = i + 2  # +2 because we start from attempt 1 (0-indexed loop + initial fetch)
-            if _user_rows_changed(refreshed, username, old_row_count, old_best_score):
+            if _user_rows_changed(refreshed, username, old_row_count, old_best_score, old_latest_ts):
                 full_leaderboard_df = refreshed
+                change_detected = True
                 _log(f"Leaderboard updated after {poll_iterations} total fetches")
                 break
         else:
             _log(f"Leaderboard polling complete: {poll_iterations} total fetches, no change detected")
         
+        # Check if change was detected
+        if not change_detected:
+            # No change detected - show pending KPI state
+            _log(f"Pending state: poll_iterations={poll_iterations}, local_test_accuracy={local_test_accuracy:.4f}")
+            
+            # Build pending KPI card
+            pending_kpi_html = _build_kpi_card_html(
+                new_score=0,
+                last_score=0,
+                new_rank=0,
+                last_rank=0,
+                submission_count=0,
+                is_preview=False,
+                is_pending=True,
+                local_test_accuracy=local_test_accuracy
+            )
+            
+            # Update metadata state with pending flag
+            pending_kpi_meta = {
+                "was_preview": False,
+                "preview_score": None,
+                "ready_at_run_start": ready,
+                "poll_iterations": poll_iterations,
+                "local_test_accuracy": local_test_accuracy,
+                "this_submission_score": None,
+                "new_best_accuracy": None,
+                "rank": None,
+                "pending": True
+            }
+            
+            # Render pending UI with refresh button label
+            settings = compute_rank_settings(
+                submission_count, model_name_key, complexity_level, feature_set, data_size_str
+            )
+            
+            pending_updates = {
+                submission_feedback_display: gr.update(value=pending_kpi_html, visible=True),
+                team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
+                individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
+                last_submission_score_state: last_submission_score,  # Don't update states
+                last_rank_state: last_rank,
+                best_score_state: best_score,
+                submission_count_state: submission_count,  # Don't increment yet
+                first_submission_score_state: first_submission_score,
+                rank_message_display: settings["rank_message"],
+                model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
+                complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
+                feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
+                data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
+                submit_button: gr.update(value="🔄 Refresh Results", interactive=True),
+                login_username: gr.update(visible=False),
+                login_password: gr.update(visible=False),
+                login_submit: gr.update(visible=False),
+                login_error: gr.update(visible=False),
+                attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
+                was_preview_state: False,
+                kpi_meta_state: pending_kpi_meta,
+                last_seen_ts_state: old_latest_ts
+            }
+            yield pending_updates
+            return  # Exit without updating states
+        
+        # Change detected - proceed with normal flow
         # Call new summary function
         team_html, individual_html, kpi_card_html, new_best_accuracy, new_rank, this_submission_score = generate_competitive_summary(
             full_leaderboard_df,
@@ -2188,6 +2313,10 @@ def run_experiment(
             new_first_submission_score = this_submission_score
             _log(f"First submission score set: {new_first_submission_score:.4f}")
         
+        # Update last seen timestamp
+        new_latest_ts = _get_user_latest_ts(full_leaderboard_df, username)
+        _log(f"Updated last_seen_ts: {new_latest_ts}")
+        
         # Build metadata state
         success_kpi_meta = {
             "was_preview": False,
@@ -2197,7 +2326,8 @@ def run_experiment(
             "local_test_accuracy": local_test_accuracy,
             "this_submission_score": this_submission_score,
             "new_best_accuracy": new_best_accuracy,
-            "rank": new_rank
+            "rank": new_rank,
+            "pending": False
         }
         
         settings = compute_rank_settings(
@@ -2225,7 +2355,8 @@ def run_experiment(
             login_error: gr.update(visible=False),
             attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(new_submission_count)),
             was_preview_state: False,
-            kpi_meta_state: success_kpi_meta
+            kpi_meta_state: success_kpi_meta,
+            last_seen_ts_state: new_latest_ts
         }
         yield final_updates
 
@@ -2271,7 +2402,8 @@ def run_experiment(
             login_error: gr.update(visible=False),
             attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
             was_preview_state: False,
-            kpi_meta_state: exception_kpi_meta
+            kpi_meta_state: exception_kpi_meta,
+            last_seen_ts_state: None
         }
         yield error_updates
 
@@ -2430,6 +2562,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
     global attempts_tracker_display, team_name_state
     global username_state, token_state  # <-- Added
     global readiness_state, was_preview_state, kpi_meta_state  # <-- Added for parameter shadowing guards
+    global last_seen_ts_state  # <-- Added for timestamp tracking
     
     css = """
     /* ------------------------------
@@ -3683,6 +3816,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             readiness_state = gr.State(False)
             was_preview_state = gr.State(False)
             kpi_meta_state = gr.State({})
+            last_seen_ts_state = gr.State(None)  # Track last seen user timestamp
 
             # Buffered states for all dynamic inputs
             model_type_state = gr.State(DEFAULT_MODEL)
@@ -4051,7 +4185,8 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             login_error,
             attempts_tracker_display,
             was_preview_state,
-            kpi_meta_state
+            kpi_meta_state,
+            last_seen_ts_state
         ]
 
         # Wire up login button
