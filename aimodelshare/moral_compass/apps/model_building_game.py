@@ -2253,7 +2253,10 @@ def run_experiment(
         if baseline_leaderboard_df is not None and not baseline_leaderboard_df.empty:
             baseline_user_rows = baseline_leaderboard_df[baseline_leaderboard_df["username"] == username]
             old_row_count = len(baseline_user_rows)
-            old_best_score = float(baseline_user_rows["accuracy"].max()) if not baseline_user_rows.empty and "accuracy" in baseline_user_rows.columns else 0.0
+            # Extract best score with defensive checks for empty rows and missing column
+            has_accuracy_col = "accuracy" in baseline_user_rows.columns
+            has_user_data = not baseline_user_rows.empty and has_accuracy_col
+            old_best_score = float(baseline_user_rows["accuracy"].max()) if has_user_data else 0.0
             old_latest_ts = _get_user_latest_ts(baseline_leaderboard_df, username)
             old_latest_score = _get_user_latest_accuracy(baseline_leaderboard_df, username)
         else:
@@ -2305,19 +2308,26 @@ def run_experiment(
         # Poll leaderboard to detect update (mitigate eventual consistency)
         poll_iterations = 0
         change_detected = False
-        full_leaderboard_df = baseline_leaderboard_df  # Start with baseline as fallback
+        # Initialize with None; will be set during polling or remain None if all polls fail
+        full_leaderboard_df = None
         for i in range(LEADERBOARD_POLL_TRIES):
             _log(f"Polling leaderboard: attempt {i+1}/{LEADERBOARD_POLL_TRIES}")
             time.sleep(LEADERBOARD_POLL_SLEEP)
             refreshed = _get_leaderboard_with_optional_token(playground, token)
             poll_iterations = i + 1  # Track number of post-submit fetches performed
-            if _user_rows_changed(refreshed, username, old_row_count, old_best_score, old_latest_ts, old_latest_score):
+            # Keep track of the latest valid leaderboard for fallback
+            if refreshed is not None:
                 full_leaderboard_df = refreshed
+            if _user_rows_changed(refreshed, username, old_row_count, old_best_score, old_latest_ts, old_latest_score):
                 change_detected = True
                 _log(f"Leaderboard updated after {poll_iterations} poll(s)")
                 break
         else:
             _log(f"Leaderboard polling complete: {poll_iterations} poll(s), no change detected")
+        
+        # Fallback to baseline if all polls returned None
+        if full_leaderboard_df is None:
+            full_leaderboard_df = baseline_leaderboard_df
         
         # Check if change was detected
         if not change_detected:
