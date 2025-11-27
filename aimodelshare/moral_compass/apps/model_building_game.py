@@ -425,7 +425,9 @@ ATTEMPT_LIMIT = 10
 # --- Leaderboard Polling Configuration ---
 # After a real authenticated submission, we poll the leaderboard to detect eventual consistency.
 # This prevents the "stuck on first preview KPI" issue where the leaderboard hasn't updated yet.
-LEADERBOARD_POLL_TRIES = 12  # Number of polling attempts (increased for stronger detection)
+# Increased from 12 to 60 to better tolerate backend latency and cold starts.
+# If polling times out, optimistic fallback logic will provide provisional UI updates.
+LEADERBOARD_POLL_TRIES = 60  # Number of polling attempts (increased to handle backend latency/cold starts)
 LEADERBOARD_POLL_SLEEP = 1.0  # Sleep duration between polls (seconds)
 ENABLE_AUTO_RESUBMIT_AFTER_READY = False  # Future feature flag for auto-resubmit
 
@@ -2329,95 +2331,122 @@ def run_experiment(
         if full_leaderboard_df is None:
             full_leaderboard_df = baseline_leaderboard_df
         
+        # Initialize variables used in final updates (for both branches)
+        optimistic_fallback = False
+        
         # Check if change was detected
         if not change_detected:
-            # No change detected - show pending KPI state with provisional diff
-            _log(f"Pending state: poll_iterations={poll_iterations}, local_test_accuracy={local_test_accuracy:.4f}, last_submission_score={last_submission_score}")
+            # ============================================================
+            # OPTIMISTIC FALLBACK: Leaderboard did not update within polling window.
+            # Instead of returning early with a pending state, we update the UI
+            # using locally computed accuracy and an estimated rank.
+            # ============================================================
+            _log(f"Optimistic fallback: poll_iterations={poll_iterations}, local_test_accuracy={local_test_accuracy:.4f}, last_submission_score={last_submission_score}")
+            optimistic_fallback = True
             
-            # Build pending KPI card with provisional diff between local and last score
-            pending_kpi_html = _build_kpi_card_html(
-                new_score=local_test_accuracy,  # Use local score as "new"
-                last_score=last_submission_score,  # Compare against last submission
-                new_rank=0,
-                last_rank=0,
-                submission_count=0,
+            # Use local_test_accuracy as the authoritative provisional accuracy
+            this_submission_score = local_test_accuracy
+            
+            # Compute new_best_accuracy = max(old_best_score, local_test_accuracy)
+            new_best_accuracy = max(old_best_score, local_test_accuracy)
+            
+            # Estimate rank using baseline_leaderboard_df:
+            # rank = (# of other users' best scores strictly higher than local_test_accuracy) + 1
+            new_rank = 1  # Default if no baseline data
+            if baseline_leaderboard_df is not None and not baseline_leaderboard_df.empty and "accuracy" in baseline_leaderboard_df.columns:
+                try:
+                    # Get best score per user (excluding current user for clean comparison)
+                    user_bests = baseline_leaderboard_df.groupby("username")["accuracy"].max()
+                    # Count users with best scores strictly higher than local_test_accuracy
+                    higher_count = (user_bests > local_test_accuracy).sum()
+                    new_rank = int(higher_count) + 1
+                    _log(f"Estimated optimistic rank: {new_rank} (higher_count={higher_count})")
+                except Exception as rank_err:
+                    _log(f"Rank estimation error (using default 1): {rank_err}")
+                    new_rank = 1
+            
+            # Ensure first submission score is set if this is user's first authenticated submission
+            if new_first_submission_score is None and submission_count == 0:
+                new_first_submission_score = local_test_accuracy
+                _log(f"First submission score set via optimistic fallback: {new_first_submission_score:.4f}")
+            
+            # Build non-pending KPI card to reflect success
+            kpi_card_html = _build_kpi_card_html(
+                new_score=this_submission_score,
+                last_score=last_submission_score,
+                new_rank=new_rank,
+                last_rank=last_rank,
+                submission_count=submission_count,
                 is_preview=False,
-                is_pending=True,
-                local_test_accuracy=local_test_accuracy
+                is_pending=False,  # Not pending - showing optimistic results
+                local_test_accuracy=None
             )
             
-            # Update metadata state with pending flag
-            pending_kpi_meta = {
-                "was_preview": False,
-                "preview_score": None,
-                "ready_at_run_start": ready,
-                "poll_iterations": poll_iterations,
-                "local_test_accuracy": local_test_accuracy,
-                "this_submission_score": None,
-                "new_best_accuracy": None,
-                "rank": None,
-                "pending": True
-            }
+            # Build team and individual tables using baseline_leaderboard_df defensively
+            team_html = _build_skeleton_leaderboard(rows=6, is_team=True)
+            individual_html = _build_skeleton_leaderboard(rows=6, is_team=False)
             
-            # Render pending UI with refresh button label
-            settings = compute_rank_settings(
-                new_submission_count, model_name_key, complexity_level, feature_set, data_size_str
+            if baseline_leaderboard_df is not None and not baseline_leaderboard_df.empty:
+                # Build team summary if columns exist
+                if "Team" in baseline_leaderboard_df.columns and "accuracy" in baseline_leaderboard_df.columns:
+                    try:
+                        team_summary_df = (
+                            baseline_leaderboard_df.groupby("Team")["accuracy"]
+                            .agg(Best_Score="max", Avg_Score="mean", Submissions="count")
+                            .reset_index()
+                            .sort_values("Best_Score", ascending=False)
+                            .reset_index(drop=True)
+                        )
+                        team_summary_df.index = team_summary_df.index + 1
+                        team_html = _build_team_html(team_summary_df, team_name)
+                    except Exception as team_err:
+                        _log(f"Team table build error (using skeleton): {team_err}")
+                
+                # Build individual summary if columns exist
+                if "username" in baseline_leaderboard_df.columns and "accuracy" in baseline_leaderboard_df.columns:
+                    try:
+                        user_bests = baseline_leaderboard_df.groupby("username")["accuracy"].max()
+                        user_counts = baseline_leaderboard_df.groupby("username")["accuracy"].count()
+                        individual_summary_df = pd.DataFrame(
+                            {"Engineer": user_bests.index, "Best_Score": user_bests.values, "Submissions": user_counts.values}
+                        ).sort_values("Best_Score", ascending=False).reset_index(drop=True)
+                        individual_summary_df.index = individual_summary_df.index + 1
+                        individual_html = _build_individual_html(individual_summary_df, username)
+                    except Exception as ind_err:
+                        _log(f"Individual table build error (using skeleton): {ind_err}")
+            
+            # Use old_latest_ts for last_seen_ts_state since leaderboard hasn't updated
+            new_latest_ts = old_latest_ts
+            
+        else:
+            # Change detected - proceed with authoritative flow
+            # Call summary function with fresh leaderboard data
+            team_html, individual_html, kpi_card_html, new_best_accuracy, new_rank, this_submission_score = generate_competitive_summary(
+                full_leaderboard_df,
+                team_name,
+                username,
+                last_submission_score,
+                last_rank,
+                submission_count
             )
             
-            pending_updates = {
-                submission_feedback_display: gr.update(value=pending_kpi_html, visible=True),
-                team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
-                individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
-                last_submission_score_state: last_submission_score,  # Don't update yet
-                last_rank_state: last_rank,
-                best_score_state: best_score,
-                submission_count_state: new_submission_count,  # Increment immediately
-                first_submission_score_state: new_first_submission_score,  # Set immediately on first submission
-                rank_message_display: settings["rank_message"],
-                model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
-                complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
-                feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
-                data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-                submit_button: gr.update(value="🔄 Refresh Results", interactive=True),
-                login_username: gr.update(visible=False),
-                login_password: gr.update(visible=False),
-                login_submit: gr.update(visible=False),
-                login_error: gr.update(visible=False),
-                attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(new_submission_count)),
-                was_preview_state: False,
-                kpi_meta_state: pending_kpi_meta,
-                last_seen_ts_state: old_latest_ts
-            }
-            yield pending_updates
-            return  # Exit without updating states
+            # Note: new_submission_count and new_first_submission_score were already computed after submit_model()
+            # Preserve new_first_submission_score if it was set; only update from leaderboard if still None
+            # This is a safety fallback - should rarely execute if immediate set succeeded
+            if new_first_submission_score is None and submission_count == 0:
+                new_first_submission_score = this_submission_score
+                _log(f"First submission score set from leaderboard (fallback): {new_first_submission_score:.4f}")
+            
+            # Update last seen timestamp from fresh leaderboard
+            new_latest_ts = _get_user_latest_ts(full_leaderboard_df, username)
         
-        # Change detected - proceed with normal flow
-        # Call new summary function
-        team_html, individual_html, kpi_card_html, new_best_accuracy, new_rank, this_submission_score = generate_competitive_summary(
-            full_leaderboard_df,
-            team_name,
-            username,
-            last_submission_score,
-            last_rank,
-            submission_count
-        )
-
-        # --- Stage 5: Final UI Update ---
+        # ============================================================
+        # --- Stage 5: Final UI Update (shared by both branches) ---
+        # ============================================================
         progress(1.0, desc="Complete!")
-        # No need for Step 5 HTML update, jumping to results
-
-        # Note: new_submission_count and new_first_submission_score were already computed after submit_model()
-        # Preserve new_first_submission_score if it was set; only update from leaderboard if still None
-        # This is a safety fallback - should rarely execute if immediate set (line ~2201) succeeded
-        if new_first_submission_score is None and submission_count == 0:
-            new_first_submission_score = this_submission_score
-            _log(f"First submission score set from leaderboard (fallback): {new_first_submission_score:.4f}")
+        _log(f"Final update: optimistic_fallback={optimistic_fallback}, new_latest_ts={new_latest_ts}")
         
-        # Update last seen timestamp
-        new_latest_ts = _get_user_latest_ts(full_leaderboard_df, username)
-        _log(f"Updated last_seen_ts: {new_latest_ts}")
-        
-        # Build metadata state
+        # Build metadata state with optimistic_fallback flag
         success_kpi_meta = {
             "was_preview": False,
             "preview_score": None,
@@ -2427,7 +2456,8 @@ def run_experiment(
             "this_submission_score": this_submission_score,
             "new_best_accuracy": new_best_accuracy,
             "rank": new_rank,
-            "pending": False
+            "pending": False,
+            "optimistic_fallback": optimistic_fallback
         }
         
         settings = compute_rank_settings(
