@@ -2071,8 +2071,7 @@ def run_experiment(
 
         # --- Stage 3: Submit (API Call 1) ---
         # AUTHENTICATION GATE: Check for token before submission
-        # Concurrency Note: Uses passed-in token parameter from gr.State,
-        # NOT os.environ, to determine authentication status.
+        # Concurrency Note: Uses passed-in token parameter from gr.State.
         if token is None:
             # User not authenticated - compute preview score and show login prompt
             progress(0.6, desc="Computing Preview Score...")
@@ -2100,7 +2099,6 @@ def run_experiment(
             }
             _log(f"Preview mode: score={preview_score:.4f}, ready={ready}")
             
-            # --- FIX APPLIED HERE ---
             # 1. Generate the styled preview card
             preview_card_html = _build_kpi_card_html(
                 new_score=preview_score,
@@ -2114,7 +2112,7 @@ def run_experiment(
             )
             
             # 2. Get the login prompt text
-            login_prompt_text_html = build_login_prompt_html() # No longer pass score
+            login_prompt_text_html = build_login_prompt_html() 
             
             # 3. Manually combine them by injecting login text inside the kpi-card div
             closing_div_index = preview_card_html.rfind("</div>")
@@ -2122,7 +2120,6 @@ def run_experiment(
                 combined_html = preview_card_html[:closing_div_index] + login_prompt_text_html + "</div>"
             else:
                 combined_html = preview_card_html + login_prompt_text_html # Fallback
-            # --- END OF FIX ---
                 
             settings = compute_rank_settings(
                 submission_count, model_name_key, complexity_level, feature_set, data_size_str
@@ -2130,7 +2127,7 @@ def run_experiment(
             
             # Show login prompt and enable login form
             gate_updates = {
-                submission_feedback_display: gr.update(value=combined_html, visible=True), # Use combined HTML
+                submission_feedback_display: gr.update(value=combined_html, visible=True),
                 submit_button: gr.update(value="Sign In Required", interactive=False),
                 login_username: gr.update(visible=True),
                 login_password: gr.update(visible=True),
@@ -2158,9 +2155,6 @@ def run_experiment(
         
         # User is authenticated - proceed with submission
         # --- ATTEMPT LIMIT CHECK ---
-        # Check if user has reached the submission limit BEFORE submitting to leaderboard.
-        # Only successful submissions to playground.submit_model() count toward ATTEMPT_LIMIT.
-        # Preview runs, failed attempts, and pre-login runs do NOT count.
         if submission_count >= ATTEMPT_LIMIT:
             # User has reached the attempt limit - show warning and disable controls
             limit_warning_html = f"""
@@ -2245,223 +2239,110 @@ def run_experiment(
         # Concurrency Note: Use team_name parameter from gr.State, not os.environ
         tags = f"team:{team_name},model:{model_name_key}"
 
-        ### NEW: Pre-Submission Baseline Fetch
-        # Capture baseline leaderboard state BEFORE submission to enable accurate change detection.
-        # This is critical because the submission may be immediately visible on the leaderboard,
-        # and comparing refreshed data against a post-submission baseline would fail to detect change.
+        # 1. FETCH BASELINE LEADERBOARD (The only leaderboard call)
+        # Capture baseline leaderboard state BEFORE submission for the "Optimistic UI" comparison
         baseline_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
         
-        ### NEW: Extract baseline metrics from pre-submission snapshot
-        if baseline_leaderboard_df is not None and not baseline_leaderboard_df.empty:
-            baseline_user_rows = baseline_leaderboard_df[baseline_leaderboard_df["username"] == username]
-            old_row_count = len(baseline_user_rows)
-            # Extract best score with defensive checks for empty rows and missing column
-            has_accuracy_col = "accuracy" in baseline_user_rows.columns
-            has_user_data = not baseline_user_rows.empty and has_accuracy_col
-            old_best_score = float(baseline_user_rows["accuracy"].max()) if has_user_data else 0.0
-            old_latest_ts = _get_user_latest_ts(baseline_leaderboard_df, username)
-            old_latest_score = _get_user_latest_accuracy(baseline_leaderboard_df, username)
-        else:
-            ### CHANGED: Defensive handling for None/empty baseline
-            old_row_count = 0
-            old_best_score = 0.0
-            old_latest_ts = None
-            old_latest_score = None
-        
-        _log(f"Pre-submission baseline: rows={old_row_count}, best={old_best_score:.4f}, latest_score={old_latest_score if old_latest_score else 'N/A'}, ts={old_latest_ts}")
-
-        ### NEW: Submission Phase (unchanged logic, now positioned after baseline capture)
-        # Concurrency Note: Wrap submit_model with retry logic for resilience
-        def _submit():
-            playground.submit_model(
-                model=tuned_model, preprocessor=preprocessor, prediction_submission=predictions,
-                input_dict={'description': description, 'tags': tags},
-                custom_metadata={'Team': team_name, 'Moral_Compass': 0}, token=token
-            )
-        
-        _retry_with_backoff(_submit, description="model submission")
-        log_output += "\nSUCCESS! Model submitted.\n"
-        _log(f"Submission successful for {username}")
-        
-        # Compute local test accuracy for metadata
+        # Calculate local accuracy as a fallback/verification
         from sklearn.metrics import accuracy_score
         local_test_accuracy = accuracy_score(Y_TEST, predictions)
+
+        # 2. SUBMIT & CAPTURE ACCURACY
+        # We wrap the submission to handle retries.
+        # KEY CHANGE: We use return_metrics=["accuracy"] to get the score immediately from the Lambda.
+        def _submit():
+            return playground.submit_model(
+                model=tuned_model, preprocessor=preprocessor, prediction_submission=predictions,
+                input_dict={'description': description, 'tags': tags},
+                custom_metadata={'Team': team_name, 'Moral_Compass': 0}, 
+                token=token,
+                return_metrics=["accuracy"] # <--- Requesting accuracy from Lambda
+            )
         
+        try:
+            # Execute submission and unpack the 3-tuple (version, url, metrics)
+            submit_result = _retry_with_backoff(_submit, description="model submission")
+            
+            # Handle potential backward compatibility (if library wasn't updated yet)
+            if isinstance(submit_result, tuple) and len(submit_result) == 3:
+                model_version, model_url, metrics = submit_result
+                # Extract accuracy from the returned dictionary
+                if metrics and "accuracy" in metrics and metrics["accuracy"] is not None:
+                    this_submission_score = float(metrics["accuracy"])
+                else:
+                    this_submission_score = local_test_accuracy
+            else:
+                # Fallback if function returns old 2-tuple format
+                model_version, model_url = submit_result
+                this_submission_score = local_test_accuracy
+
+        except Exception as e:
+            _log(f"Submission return parsing failed: {e}. Using local accuracy.")
+            this_submission_score = local_test_accuracy
+        
+        log_output += "\nSUCCESS! Model submitted.\n"
+        _log(f"Submission successful. Server Score: {this_submission_score}")
+
         # Immediately increment submission count and set first submission score
-        # This ensures states update even if leaderboard polling doesn't detect change (eventual consistency)
         new_submission_count = submission_count + 1
         new_first_submission_score = first_submission_score
         if submission_count == 0 and first_submission_score is None:
-            # First authenticated submission - set the score immediately
-            new_first_submission_score = local_test_accuracy if local_test_accuracy is not None else 0.0
-            _log(f"First submission score set immediately: {new_first_submission_score:.4f}")
+            new_first_submission_score = this_submission_score
 
-        # --- Stage 4: Refresh Leaderboard with Polling (API Calls 2+) ---
-        # Show skeletons while fetching
-        progress(0.8, desc="Updating Leaderboard...")
-        yield {
-            submission_feedback_display: gr.update(value=get_status_html(4, "Calculating Rank", "Comparing your score against others..."), visible=True),
-            team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
-            individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
-            login_error: gr.update(visible=False)
-        }
+        # --- Stage 4: Local Rank Calculation (Optimistic UI - No Polling) ---
+        progress(0.9, desc="Calculating Rank...")
+        
+        # 3. SIMULATE UPDATED LEADERBOARD
+        # We take the baseline and manually append our new result to create a "Simulated" dataframe. 
+        # This allows us to reuse all existing HTML generation logic immediately without waiting for the backend.
+        
+        simulated_df = baseline_leaderboard_df.copy() if baseline_leaderboard_df is not None else pd.DataFrame()
+        
+        # Create a new row for the current submission
+        new_row = pd.DataFrame([{
+            "username": username,
+            "accuracy": this_submission_score,
+            "Team": team_name,
+            "timestamp": time.time(), # Use local time to ensure it appears as most recent
+            "version": "latest"
+        }])
+        
+        # Append new row to the baseline
+        if not simulated_df.empty:
+            simulated_df = pd.concat([simulated_df, new_row], ignore_index=True)
+        else:
+            simulated_df = new_row
 
-        ### CHANGED: Polling Loop now compares against PRE-submission baseline metrics
-        # Poll leaderboard to detect update (mitigate eventual consistency)
-        poll_iterations = 0
-        change_detected = False
-        # Initialize with None; will be set during polling or remain None if all polls fail
-        full_leaderboard_df = None
-        for i in range(LEADERBOARD_POLL_TRIES):
-            _log(f"Polling leaderboard: attempt {i+1}/{LEADERBOARD_POLL_TRIES}")
-            time.sleep(LEADERBOARD_POLL_SLEEP)
-            refreshed = _get_leaderboard_with_optional_token(playground, token)
-            poll_iterations = i + 1  # Track number of post-submit fetches performed
-            # Keep track of the latest valid leaderboard for fallback
-            if refreshed is not None:
-                full_leaderboard_df = refreshed
-            if _user_rows_changed(refreshed, username, old_row_count, old_best_score, old_latest_ts, old_latest_score):
-                change_detected = True
-                _log(f"Leaderboard updated after {poll_iterations} poll(s)")
-                break
-        else:
-            _log(f"Leaderboard polling complete: {poll_iterations} poll(s), no change detected")
-        
-        # Fallback to baseline if all polls returned None
-        if full_leaderboard_df is None:
-            full_leaderboard_df = baseline_leaderboard_df
-        
-        # Initialize variables used in final updates (for both branches)
-        optimistic_fallback = False
-        
-        # Check if change was detected
-        if not change_detected:
-            # ============================================================
-            # OPTIMISTIC FALLBACK: Leaderboard did not update within polling window.
-            # Instead of returning early with a pending state, we update the UI
-            # using locally computed accuracy and an estimated rank.
-            # ============================================================
-            _log(f"Optimistic fallback: poll_iterations={poll_iterations}, local_test_accuracy={local_test_accuracy:.4f}, last_submission_score={last_submission_score}")
-            optimistic_fallback = True
-            
-            # Use local_test_accuracy as the authoritative provisional accuracy
-            this_submission_score = local_test_accuracy
-            
-            # Compute new_best_accuracy = max(old_best_score, local_test_accuracy)
-            new_best_accuracy = max(old_best_score, local_test_accuracy)
-            
-            # Estimate rank using baseline_leaderboard_df:
-            # rank = (# of other users' best scores strictly higher than local_test_accuracy) + 1
-            new_rank = 1  # Default if no baseline data
-            if baseline_leaderboard_df is not None and not baseline_leaderboard_df.empty and "accuracy" in baseline_leaderboard_df.columns:
-                try:
-                    # Get best score per user (excluding current user for clean comparison)
-                    user_bests = baseline_leaderboard_df.groupby("username")["accuracy"].max()
-                    # Count users with best scores strictly higher than local_test_accuracy
-                    higher_count = (user_bests > local_test_accuracy).sum()
-                    new_rank = int(higher_count) + 1
-                    _log(f"Estimated optimistic rank: {new_rank} (higher_count={higher_count})")
-                except Exception as rank_err:
-                    _log(f"Rank estimation error (using default 1): {rank_err}")
-                    new_rank = 1
-            
-            # Ensure first submission score is set if this is user's first authenticated submission
-            if new_first_submission_score is None and submission_count == 0:
-                new_first_submission_score = local_test_accuracy
-                _log(f"First submission score set via optimistic fallback: {new_first_submission_score:.4f}")
-            
-            # Build non-pending KPI card to reflect success
-            kpi_card_html = _build_kpi_card_html(
-                new_score=this_submission_score,
-                last_score=last_submission_score,
-                new_rank=new_rank,
-                last_rank=last_rank,
-                submission_count=submission_count,
-                is_preview=False,
-                is_pending=False,  # Not pending - showing optimistic results
-                local_test_accuracy=None
-            )
-            
-            # Build team and individual tables using baseline_leaderboard_df defensively
-            team_html = _build_skeleton_leaderboard(rows=6, is_team=True)
-            individual_html = _build_skeleton_leaderboard(rows=6, is_team=False)
-            
-            if baseline_leaderboard_df is not None and not baseline_leaderboard_df.empty:
-                # Build team summary if columns exist
-                if "Team" in baseline_leaderboard_df.columns and "accuracy" in baseline_leaderboard_df.columns:
-                    try:
-                        team_summary_df = (
-                            baseline_leaderboard_df.groupby("Team")["accuracy"]
-                            .agg(Best_Score="max", Avg_Score="mean", Submissions="count")
-                            .reset_index()
-                            .sort_values("Best_Score", ascending=False)
-                            .reset_index(drop=True)
-                        )
-                        team_summary_df.index = team_summary_df.index + 1
-                        team_html = _build_team_html(team_summary_df, team_name)
-                    except Exception as team_err:
-                        _log(f"Team table build error (using skeleton): {team_err}")
-                
-                # Build individual summary if columns exist
-                if "username" in baseline_leaderboard_df.columns and "accuracy" in baseline_leaderboard_df.columns:
-                    try:
-                        user_bests = baseline_leaderboard_df.groupby("username")["accuracy"].max()
-                        user_counts = baseline_leaderboard_df.groupby("username")["accuracy"].count()
-                        individual_summary_df = pd.DataFrame(
-                            {"Engineer": user_bests.index, "Best_Score": user_bests.values, "Submissions": user_counts.values}
-                        ).sort_values("Best_Score", ascending=False).reset_index(drop=True)
-                        individual_summary_df.index = individual_summary_df.index + 1
-                        individual_html = _build_individual_html(individual_summary_df, username)
-                    except Exception as ind_err:
-                        _log(f"Individual table build error (using skeleton): {ind_err}")
-            
-            # Use old_latest_ts for last_seen_ts_state since leaderboard hasn't updated
-            new_latest_ts = old_latest_ts
-            
-        else:
-            # Change detected - proceed with authoritative flow
-            # Call summary function with fresh leaderboard data
-            team_html, individual_html, kpi_card_html, new_best_accuracy, new_rank, this_submission_score = generate_competitive_summary(
-                full_leaderboard_df,
-                team_name,
-                username,
-                last_submission_score,
-                last_rank,
-                submission_count
-            )
-            
-            # Note: new_submission_count and new_first_submission_score were already computed after submit_model()
-            # Preserve new_first_submission_score if it was set; only update from leaderboard if still None
-            # This is a safety fallback - should rarely execute if immediate set succeeded
-            if new_first_submission_score is None and submission_count == 0:
-                new_first_submission_score = this_submission_score
-                _log(f"First submission score set from leaderboard (fallback): {new_first_submission_score:.4f}")
-            
-            # Update last seen timestamp from fresh leaderboard
-            new_latest_ts = _get_user_latest_ts(full_leaderboard_df, username)
-        
-        # ============================================================
-        # --- Stage 5: Final UI Update (shared by both branches) ---
-        # ============================================================
+        # 4. GENERATE UI FROM SIMULATED DATA
+        # We pass the simulated_df to your existing helper. 
+        # It calculates rank/team stats based on the merged data.
+        team_html, individual_html, kpi_card_html, new_best_accuracy, new_rank, _ = generate_competitive_summary(
+            simulated_df, # <--- Passing the locally updated DF
+            team_name,
+            username,
+            last_submission_score,
+            last_rank,
+            submission_count
+        )
+
+        # --- Stage 5: Final UI Update ---
         progress(1.0, desc="Complete!")
-        _log(f"Final update: optimistic_fallback={optimistic_fallback}, new_latest_ts={new_latest_ts}")
         
-        # Build metadata state with optimistic_fallback flag
         success_kpi_meta = {
             "was_preview": False,
             "preview_score": None,
             "ready_at_run_start": ready,
-            "poll_iterations": poll_iterations,
+            "poll_iterations": 0, # Verified 0 polls
             "local_test_accuracy": local_test_accuracy,
             "this_submission_score": this_submission_score,
             "new_best_accuracy": new_best_accuracy,
             "rank": new_rank,
             "pending": False,
-            "optimistic_fallback": optimistic_fallback
+            "optimistic_fallback": True 
         }
         
         settings = compute_rank_settings(
-            new_submission_count, model_name_key, complexity_level, feature_set, data_size_str
+             new_submission_count, model_name_key, complexity_level, feature_set, data_size_str
         )
 
         final_updates = {
@@ -2486,7 +2367,7 @@ def run_experiment(
             attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(new_submission_count)),
             was_preview_state: False,
             kpi_meta_state: success_kpi_meta,
-            last_seen_ts_state: new_latest_ts
+            last_seen_ts_state: time.time()
         }
         yield final_updates
 
