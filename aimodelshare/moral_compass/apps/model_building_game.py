@@ -2069,14 +2069,12 @@ def run_experiment(
         tuned_model.fit(X_train_for_fit, y_train_sampled)
         log_output += "Training done.\n"
 
-        # --- Stage 3: Submit (API Call 1) ---
+# --- Stage 3: Submit (API Call 1) ---
         # AUTHENTICATION GATE: Check for token before submission
-        # Concurrency Note: Uses passed-in token parameter from gr.State.
         if token is None:
             # User not authenticated - compute preview score and show login prompt
             progress(0.6, desc="Computing Preview Score...")
             
-            # Ensure dense for prediction if model requires it
             if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
                 X_test_for_predict = _ensure_dense(X_test_processed)
             else:
@@ -2086,59 +2084,37 @@ def run_experiment(
             from sklearn.metrics import accuracy_score
             preview_score = accuracy_score(Y_TEST, predictions)
             
-            # Update metadata state for preview
             preview_kpi_meta = {
-                "was_preview": True,
-                "preview_score": preview_score,
-                "ready_at_run_start": ready,
-                "poll_iterations": 0,
-                "local_test_accuracy": preview_score,
-                "this_submission_score": None,
-                "new_best_accuracy": None,
-                "rank": None
+                "was_preview": True, "preview_score": preview_score, "ready_at_run_start": ready,
+                "poll_iterations": 0, "local_test_accuracy": preview_score,
+                "this_submission_score": None, "new_best_accuracy": None, "rank": None
             }
-            _log(f"Preview mode: score={preview_score:.4f}, ready={ready}")
             
             # 1. Generate the styled preview card
             preview_card_html = _build_kpi_card_html(
-                new_score=preview_score,
-                last_score=0,
-                new_rank=0,
-                last_rank=0,
-                submission_count=-1, # Force preview
-                is_preview=True,
-                is_pending=False,
-                local_test_accuracy=None
+                new_score=preview_score, last_score=0, new_rank=0, last_rank=0,
+                submission_count=-1, is_preview=True, is_pending=False, local_test_accuracy=None
             )
             
-            # 2. Get the login prompt text
+            # 2. Inject login text
             login_prompt_text_html = build_login_prompt_html() 
-            
-            # 3. Manually combine them by injecting login text inside the kpi-card div
             closing_div_index = preview_card_html.rfind("</div>")
             if closing_div_index != -1:
                 combined_html = preview_card_html[:closing_div_index] + login_prompt_text_html + "</div>"
             else:
-                combined_html = preview_card_html + login_prompt_text_html # Fallback
+                combined_html = preview_card_html + login_prompt_text_html 
                 
-            settings = compute_rank_settings(
-                submission_count, model_name_key, complexity_level, feature_set, data_size_str
-            )
+            settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
             
-            # Show login prompt and enable login form
             gate_updates = {
                 submission_feedback_display: gr.update(value=combined_html, visible=True),
                 submit_button: gr.update(value="Sign In Required", interactive=False),
-                login_username: gr.update(visible=True),
-                login_password: gr.update(visible=True),
-                login_submit: gr.update(visible=True),
-                login_error: gr.update(value="", visible=False),
+                login_username: gr.update(visible=True), login_password: gr.update(visible=True),
+                login_submit: gr.update(visible=True), login_error: gr.update(value="", visible=False),
                 team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
                 individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
-                last_submission_score_state: last_submission_score,
-                last_rank_state: last_rank,
-                best_score_state: best_score,
-                submission_count_state: submission_count,
+                last_submission_score_state: last_submission_score, last_rank_state: last_rank,
+                best_score_state: best_score, submission_count_state: submission_count,
                 first_submission_score_state: first_submission_score,
                 rank_message_display: settings["rank_message"],
                 model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
@@ -2146,17 +2122,13 @@ def run_experiment(
                 feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
                 data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
                 attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
-                was_preview_state: True,
-                kpi_meta_state: preview_kpi_meta,
-                last_seen_ts_state: None  # No timestamp for preview
+                was_preview_state: True, kpi_meta_state: preview_kpi_meta, last_seen_ts_state: None
             }
             yield gate_updates
-            return  # Stop here - user needs to login and resubmit
+            return  # Stop here
         
-        # User is authenticated - proceed with submission
         # --- ATTEMPT LIMIT CHECK ---
         if submission_count >= ATTEMPT_LIMIT:
-            # User has reached the attempt limit - show warning and disable controls
             limit_warning_html = f"""
             <div class='kpi-card' style='border-color: #ef4444;'>
                 <h2 style='color: #111827; margin-top:0;'>🛑 Submission Limit Reached</h2>
@@ -2164,63 +2136,29 @@ def run_experiment(
                     <div class='kpi-metric-box'>
                         <p class='kpi-label'>Attempts Used</p>
                         <p class='kpi-score' style='color: #ef4444;'>{ATTEMPT_LIMIT} / {ATTEMPT_LIMIT}</p>
-                        <p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Maximum submissions reached</p>
                     </div>
                 </div>
                 <div style='margin-top: 16px; background:#fef2f2; padding:16px; border-radius:12px; text-align:left; font-size:0.98rem; line-height:1.4;'>
-                    <p style='margin:0; color:#991b1b;'><b>Nice Work!  Don't worry, you will have a chance compete further to improve your model more after a few new activities.  </b></p>
-                    <p style='margin:8px 0 0 0; color:#7f1d1d;'>
-                        Scroll down to click "Finish and Reflect" to see a summary of your results so far.
-                    </p>
+                    <p style='margin:0; color:#991b1b;'><b>Nice Work!</b> Scroll down to "Finish and Reflect".</p>
                 </div>
-            </div>
-            """
-            
-            settings = compute_rank_settings(
-                submission_count, model_name_key, complexity_level, feature_set, data_size_str
-            )
-            
-            limit_kpi_meta = {
-                "was_preview": False,
-                "preview_score": None,
-                "ready_at_run_start": ready,
-                "poll_iterations": 0,
-                "local_test_accuracy": None,
-                "this_submission_score": None,
-                "new_best_accuracy": None,
-                "rank": None
-            }
-            
-            # Disable all interactive controls - user can only view results
+            </div>"""
+            settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
             limit_reached_updates = {
                 submission_feedback_display: gr.update(value=limit_warning_html, visible=True),
                 submit_button: gr.update(value="🛑 Submission Limit Reached", interactive=False),
-                model_type_radio: gr.update(interactive=False),
-                complexity_slider: gr.update(interactive=False),
-                feature_set_checkbox: gr.update(interactive=False),
-                data_size_radio: gr.update(interactive=False),
-                attempts_tracker_display: gr.update(value=f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'>"
-                    f"<p style='margin:0; color:#991b1b; font-weight:600; font-size:1rem;'>🛑 Attempts used: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT} (Limit Reached)</p>"
-                    "</div>"),
-                team_leaderboard_display: team_leaderboard_display,
-                individual_leaderboard_display: individual_leaderboard_display,
-                last_submission_score_state: last_submission_score,
-                last_rank_state: last_rank,
-                best_score_state: best_score,
-                submission_count_state: submission_count,
-                first_submission_score_state: first_submission_score,
-                rank_message_display: settings["rank_message"],
-                login_username: gr.update(visible=False),
-                login_password: gr.update(visible=False),
-                login_submit: gr.update(visible=False),
-                login_error: gr.update(visible=False),
-                was_preview_state: False,
-                kpi_meta_state: limit_kpi_meta,
-                last_seen_ts_state: None
+                model_type_radio: gr.update(interactive=False), complexity_slider: gr.update(interactive=False),
+                feature_set_checkbox: gr.update(interactive=False), data_size_radio: gr.update(interactive=False),
+                attempts_tracker_display: gr.update(value=f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'><p style='margin:0; color:#991b1b; font-weight:600;'>🛑 Attempts used: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT}</p></div>"),
+                team_leaderboard_display: team_leaderboard_display, individual_leaderboard_display: individual_leaderboard_display,
+                last_submission_score_state: last_submission_score, last_rank_state: last_rank,
+                best_score_state: best_score, submission_count_state: submission_count,
+                first_submission_score_state: first_submission_score, rank_message_display: settings["rank_message"],
+                login_username: gr.update(visible=False), login_password: gr.update(visible=False),
+                login_submit: gr.update(visible=False), login_error: gr.update(visible=False),
+                was_preview_state: False, kpi_meta_state: {}, last_seen_ts_state: None
             }
             yield limit_reached_updates
-            return  # Stop here - no more submissions allowed
-        # --- END ATTEMPT LIMIT CHECK ---
+            return
         
         progress(0.5, desc="Submitting to Cloud...")
         yield { 
@@ -2228,7 +2166,6 @@ def run_experiment(
             login_error: gr.update(visible=False)
         }
 
-        # Ensure dense for prediction if model requires it
         if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
             X_test_for_predict = _ensure_dense(X_test_processed)
         else:
@@ -2236,114 +2173,94 @@ def run_experiment(
         
         predictions = tuned_model.predict(X_test_for_predict)
         description = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
-        # Concurrency Note: Use team_name parameter from gr.State, not os.environ
         tags = f"team:{team_name},model:{model_name_key}"
 
-        # 1. FETCH BASELINE LEADERBOARD (The only leaderboard call)
-        # Capture baseline leaderboard state BEFORE submission for the "Optimistic UI" comparison
+        # 1. FETCH BASELINE
         baseline_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
         
-        # Calculate local accuracy as a fallback/verification
         from sklearn.metrics import accuracy_score
         local_test_accuracy = accuracy_score(Y_TEST, predictions)
 
         # 2. SUBMIT & CAPTURE ACCURACY
-        # We wrap the submission to handle retries.
-        # KEY CHANGE: We use return_metrics=["accuracy"] to get the score immediately from the Lambda.
         def _submit():
             return playground.submit_model(
                 model=tuned_model, preprocessor=preprocessor, prediction_submission=predictions,
                 input_dict={'description': description, 'tags': tags},
-                custom_metadata={'Team': team_name, 'Moral_Compass': 0}, 
-                token=token,
-                return_metrics=["accuracy"] # <--- Requesting accuracy from Lambda
+                custom_metadata={'Team': team_name, 'Moral_Compass': 0}, token=token,
+                return_metrics=["accuracy"] 
             )
         
         try:
-            # Execute submission and unpack the 3-tuple (version, url, metrics)
             submit_result = _retry_with_backoff(_submit, description="model submission")
-            
-            # Handle potential backward compatibility (if library wasn't updated yet)
             if isinstance(submit_result, tuple) and len(submit_result) == 3:
-                model_version, model_url, metrics = submit_result
-                # Extract accuracy from the returned dictionary
+                _, _, metrics = submit_result
                 if metrics and "accuracy" in metrics and metrics["accuracy"] is not None:
                     this_submission_score = float(metrics["accuracy"])
                 else:
                     this_submission_score = local_test_accuracy
             else:
-                # Fallback if function returns old 2-tuple format
-                model_version, model_url = submit_result
                 this_submission_score = local_test_accuracy
-
         except Exception as e:
-            _log(f"Submission return parsing failed: {e}. Using local accuracy.")
+            _log(f"Submission parsing failed: {e}. Using local.")
             this_submission_score = local_test_accuracy
         
-        log_output += "\nSUCCESS! Model submitted.\n"
-        _log(f"Submission successful. Server Score: {this_submission_score}")
+        _log(f"Submission successful. Score: {this_submission_score}")
 
-        # Immediately increment submission count and set first submission score
         new_submission_count = submission_count + 1
         new_first_submission_score = first_submission_score
         if submission_count == 0 and first_submission_score is None:
             new_first_submission_score = this_submission_score
 
-        # --- Stage 4: Local Rank Calculation (Optimistic UI - No Polling) ---
+        # --- Stage 4: Local Rank Calculation (Optimistic) ---
         progress(0.9, desc="Calculating Rank...")
         
         # 3. SIMULATE UPDATED LEADERBOARD
-        # We take the baseline and manually append our new result to create a "Simulated" dataframe. 
-        # This allows us to reuse all existing HTML generation logic immediately without waiting for the backend.
-        
         simulated_df = baseline_leaderboard_df.copy() if baseline_leaderboard_df is not None else pd.DataFrame()
         
-        # Create a new row for the current submission
+        # We use pd.Timestamp.now() to ensure pandas sorting logic sees this as the absolute latest
         new_row = pd.DataFrame([{
             "username": username,
             "accuracy": this_submission_score,
             "Team": team_name,
-            "timestamp": time.time(), # Use local time to ensure it appears as most recent
+            "timestamp": pd.Timestamp.now(), 
             "version": "latest"
         }])
         
-        # Append new row to the baseline
         if not simulated_df.empty:
             simulated_df = pd.concat([simulated_df, new_row], ignore_index=True)
         else:
             simulated_df = new_row
 
-        # 4. GENERATE UI FROM SIMULATED DATA
-        # We pass the simulated_df to your existing helper. 
-        # It calculates rank/team stats based on the merged data.
-        team_html, individual_html, kpi_card_html, new_best_accuracy, new_rank, _ = generate_competitive_summary(
-            simulated_df, # <--- Passing the locally updated DF
-            team_name,
-            username,
-            last_submission_score,
-            last_rank,
-            submission_count
+        # 4. GENERATE TABLES (Use helper for tables only)
+        # We ignore the kpi_card return from this function because it might use internal sorting 
+        # that doesn't respect our new row perfectly.
+        team_html, individual_html, _, new_best_accuracy, new_rank, _ = generate_competitive_summary(
+            simulated_df, team_name, username, last_submission_score, last_rank, submission_count
+        )
+
+        # 5. GENERATE KPI CARD EXPLICITLY (The Authority Fix)
+        # We manually build the card using the score we KNOW we just got.
+        kpi_card_html = _build_kpi_card_html(
+            new_score=this_submission_score,
+            last_score=last_submission_score,
+            new_rank=new_rank,
+            last_rank=last_rank,
+            submission_count=submission_count, 
+            is_preview=False,
+            is_pending=False
         )
 
         # --- Stage 5: Final UI Update ---
         progress(1.0, desc="Complete!")
         
         success_kpi_meta = {
-            "was_preview": False,
-            "preview_score": None,
-            "ready_at_run_start": ready,
-            "poll_iterations": 0, # Verified 0 polls
-            "local_test_accuracy": local_test_accuracy,
-            "this_submission_score": this_submission_score,
-            "new_best_accuracy": new_best_accuracy,
-            "rank": new_rank,
-            "pending": False,
-            "optimistic_fallback": True 
+            "was_preview": False, "preview_score": None, "ready_at_run_start": ready,
+            "poll_iterations": 0, "local_test_accuracy": local_test_accuracy,
+            "this_submission_score": this_submission_score, "new_best_accuracy": new_best_accuracy,
+            "rank": new_rank, "pending": False, "optimistic_fallback": True 
         }
         
-        settings = compute_rank_settings(
-             new_submission_count, model_name_key, complexity_level, feature_set, data_size_str
-        )
+        settings = compute_rank_settings(new_submission_count, model_name_key, complexity_level, feature_set, data_size_str)
 
         final_updates = {
             submission_feedback_display: gr.update(value=kpi_card_html, visible=True),
@@ -2360,17 +2277,14 @@ def run_experiment(
             feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
             data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
             submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
-            login_username: gr.update(visible=False),
-            login_password: gr.update(visible=False),
-            login_submit: gr.update(visible=False),
-            login_error: gr.update(visible=False),
+            login_username: gr.update(visible=False), login_password: gr.update(visible=False),
+            login_submit: gr.update(visible=False), login_error: gr.update(visible=False),
             attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(new_submission_count)),
             was_preview_state: False,
             kpi_meta_state: success_kpi_meta,
             last_seen_ts_state: time.time()
         }
         yield final_updates
-
     except Exception as e:
         error_msg = f"ERROR: {e}"
         _log(f"Exception in run_experiment: {error_msg}")
