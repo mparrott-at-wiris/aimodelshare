@@ -2243,6 +2243,29 @@ def run_experiment(
         # Concurrency Note: Use team_name parameter from gr.State, not os.environ
         tags = f"team:{team_name},model:{model_name_key}"
 
+        ### NEW: Pre-Submission Baseline Fetch
+        # Capture baseline leaderboard state BEFORE submission to enable accurate change detection.
+        # This is critical because the submission may be immediately visible on the leaderboard,
+        # and comparing refreshed data against a post-submission baseline would fail to detect change.
+        baseline_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
+        
+        ### NEW: Extract baseline metrics from pre-submission snapshot
+        if baseline_leaderboard_df is not None and not baseline_leaderboard_df.empty:
+            baseline_user_rows = baseline_leaderboard_df[baseline_leaderboard_df["username"] == username]
+            old_row_count = len(baseline_user_rows)
+            old_best_score = float(baseline_user_rows["accuracy"].max()) if not baseline_user_rows.empty and "accuracy" in baseline_user_rows.columns else 0.0
+            old_latest_ts = _get_user_latest_ts(baseline_leaderboard_df, username)
+            old_latest_score = _get_user_latest_accuracy(baseline_leaderboard_df, username)
+        else:
+            ### CHANGED: Defensive handling for None/empty baseline
+            old_row_count = 0
+            old_best_score = 0.0
+            old_latest_ts = None
+            old_latest_score = None
+        
+        _log(f"Pre-submission baseline: rows={old_row_count}, best={old_best_score:.4f}, latest_score={old_latest_score if old_latest_score else 'N/A'}, ts={old_latest_ts}")
+
+        ### NEW: Submission Phase (unchanged logic, now positioned after baseline capture)
         # Concurrency Note: Wrap submit_model with retry logic for resilience
         def _submit():
             playground.submit_model(
@@ -2278,40 +2301,23 @@ def run_experiment(
             login_error: gr.update(visible=False)
         }
 
-        # Initial fetch to get baseline
-        full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
-        
-        # Get baseline user stats before polling (including timestamp and latest accuracy)
-        if full_leaderboard_df is not None and not full_leaderboard_df.empty:
-            user_rows_before = full_leaderboard_df[full_leaderboard_df["username"] == username]
-            old_row_count = len(user_rows_before)
-            old_best_score = float(user_rows_before["accuracy"].max()) if not user_rows_before.empty and "accuracy" in user_rows_before.columns else 0.0
-            old_latest_ts = _get_user_latest_ts(full_leaderboard_df, username)
-            old_latest_score = _get_user_latest_accuracy(full_leaderboard_df, username)
-        else:
-            old_row_count = 0
-            old_best_score = 0.0
-            old_latest_ts = None
-            old_latest_score = None
-        
-        _log(f"Pre-submission baseline: rows={old_row_count}, best={old_best_score:.4f}, latest_score={old_latest_score if old_latest_score else 'N/A'}, ts={old_latest_ts}")
-        
+        ### CHANGED: Polling Loop now compares against PRE-submission baseline metrics
         # Poll leaderboard to detect update (mitigate eventual consistency)
-        # Start at 1 since we already did one initial fetch
-        poll_iterations = 1
+        poll_iterations = 0
         change_detected = False
+        full_leaderboard_df = baseline_leaderboard_df  # Start with baseline as fallback
         for i in range(LEADERBOARD_POLL_TRIES):
             _log(f"Polling leaderboard: attempt {i+1}/{LEADERBOARD_POLL_TRIES}")
             time.sleep(LEADERBOARD_POLL_SLEEP)
             refreshed = _get_leaderboard_with_optional_token(playground, token)
-            poll_iterations = i + 2  # +2 because we start from attempt 1 (0-indexed loop + initial fetch)
+            poll_iterations = i + 1  # Track number of post-submit fetches performed
             if _user_rows_changed(refreshed, username, old_row_count, old_best_score, old_latest_ts, old_latest_score):
                 full_leaderboard_df = refreshed
                 change_detected = True
-                _log(f"Leaderboard updated after {poll_iterations} total fetches")
+                _log(f"Leaderboard updated after {poll_iterations} poll(s)")
                 break
         else:
-            _log(f"Leaderboard polling complete: {poll_iterations} total fetches, no change detected")
+            _log(f"Leaderboard polling complete: {poll_iterations} poll(s), no change detected")
         
         # Check if change was detected
         if not change_detected:
