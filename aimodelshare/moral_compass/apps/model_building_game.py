@@ -2347,49 +2347,57 @@ def run_experiment(
 
 def on_initial_load(username, token=None, team_name=""):
     """
-    Updated to load HTML leaderboards with skeleton placeholders during init.
-    Shows skeleton if leaderboard not yet ready, real data otherwise.
-    
-    Concurrency Note: Uses the team_name parameter directly, not os.environ,
-    to prevent cross-user data leakage under concurrent requests.
-    
-    Args:
-        username: str, the username for generating user-specific leaderboard views
-        token: str, optional authentication token for leaderboard fetch
-        team_name: str, the user's team name (from gr.State, not os.environ)
+    Updated to prioritize authenticated data fetching.
+    If a token is present, we attempt to load the leaderboard immediately,
+    bypassing the background initialization flag.
     """
-
     initial_ui = compute_rank_settings(
         0, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE
     )
 
-    # Check if leaderboard is ready
+    # Check if background init is done
     with INIT_LOCK:
-        leaderboard_ready = INIT_FLAGS["leaderboard"]
+        background_ready = INIT_FLAGS["leaderboard"]
     
-    if not leaderboard_ready:
-        # Show skeleton placeholders while loading
-        team_html = _build_skeleton_leaderboard(rows=6, is_team=True)
-        individual_html = _build_skeleton_leaderboard(rows=6, is_team=False)
-    else:
-        # Try to load real leaderboard data
-        team_html = "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Submit a model to see team rankings.</p>"
-        individual_html = "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Submit a model to see individual rankings.</p>"
+    # LOGIC FIX: 
+    # Attempt to fetch if background is ready OR if we have a specific user token.
+    # This ensures session-auth users get data immediately even on cold starts.
+    should_attempt_fetch = background_ready or (token is not None)
+
+    full_leaderboard_df = None
+    
+    if should_attempt_fetch:
         try:
             if playground:
                 # Use centralized helper for authenticated leaderboard fetch
                 full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
-                # Concurrency Note: Use team_name parameter directly, not os.environ
-                team_html, individual_html, _, _, _, _ = generate_competitive_summary(
-                    full_leaderboard_df,
-                    team_name,
-                    username,
-                    0, 0, -1
-                )
         except Exception as e:
-            print(f"Error on initial load: {e}")
-            team_html = "<p style='text-align:center; color:red; padding-top:20px;'>Could not load leaderboard.</p>"
-            individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>Could not load leaderboard.</p>"
+            print(f"Error on initial load fetch: {e}")
+            full_leaderboard_df = None
+
+    # Decide what to render based on whether we successfully got data
+    if full_leaderboard_df is None or full_leaderboard_df.empty:
+        if not background_ready and token is None:
+            # Case 1: Anonymous user, background not ready -> Show Skeleton
+            team_html = _build_skeleton_leaderboard(rows=6, is_team=True)
+            individual_html = _build_skeleton_leaderboard(rows=6, is_team=False)
+        else:
+            # Case 2: Auth user (but fetch failed) OR background ready (but empty) -> Show Empty Message
+            team_html = "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Leaderboard empty or unavailable.</p>"
+            individual_html = "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Leaderboard empty or unavailable.</p>"
+    else:
+        # Case 3: We have data! Render it.
+        try:
+            team_html, individual_html, _, _, _, _ = generate_competitive_summary(
+                full_leaderboard_df,
+                team_name,
+                username,
+                0, 0, -1
+            )
+        except Exception as e:
+            print(f"Error generating summary HTML: {e}")
+            team_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
+            individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
 
     return (
         get_model_card(DEFAULT_MODEL),
