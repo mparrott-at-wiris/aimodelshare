@@ -1122,14 +1122,30 @@ def submit_model(
     # Upload model metrics and metadata
     if load_onnx_from_path:
         modelleaderboarddata = _update_leaderboard_public(
-            model_filepath, eval_metrics, s3_presigned_dict, username,custom_metadata)
+            modelpath, eval_metrics, s3_presigned_dict, 
+            username=username, # Explicit keyword argument
+            custom_metadata=custom_metadata
+        )
         modelleaderboarddata_private = _update_leaderboard_public(
-            model_filepath, eval_metrics_private, s3_presigned_dict,username, custom_metadata, private=True)
+            modelpath, eval_metrics_private, s3_presigned_dict, 
+            username=username, # Explicit keyword argument
+            custom_metadata=custom_metadata, 
+            private=True
+        )
     else:
         modelleaderboarddata = _update_leaderboard_public(
-            None, eval_metrics, s3_presigned_dict, custom_metadata, username,onnx_model=onnx_model)
+            None, eval_metrics, s3_presigned_dict, 
+            username=username, # FIX: Explicitly map username
+            custom_metadata=custom_metadata, # FIX: Explicitly map metadata
+            onnx_model=onnx_model
+        )
         modelleaderboarddata_private = _update_leaderboard_public(
-            None, eval_metrics_private, s3_presigned_dict, custom_metadata,username, private=True, onnx_model=onnx_model)
+            None, eval_metrics_private, s3_presigned_dict, 
+            username=username, # FIX: Explicitly map username
+            custom_metadata=custom_metadata, # FIX: Explicitly map metadata
+            private=True, 
+            onnx_model=onnx_model
+        )
 
     model_versions = [os.path.splitext(f)[0].split("_")[-1][1:] for f in s3_presigned_dict['put'].keys()]
     model_versions = filter(lambda v: v.isnumeric(), model_versions)
