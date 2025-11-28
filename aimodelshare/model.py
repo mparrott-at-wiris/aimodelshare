@@ -396,6 +396,7 @@ def _update_leaderboard_public(
     modelpath,
     eval_metrics,
     s3_presigned_dict,
+    username=None,
     custom_metadata=None,
     private=False,
     leaderboard_type="competition",
@@ -433,7 +434,7 @@ def _update_leaderboard_public(
     if custom_metadata:
         metadata = {**metadata, **custom_metadata}
 
-    metadata["username"] = os.environ.get("username")
+    metadata["username"] = username if username else os.environ.get("username")
     metadata["timestamp"] = str(datetime.now())
     metadata["version"] = model_version
 
@@ -884,6 +885,7 @@ def submit_model(
         response, error = run_function_on_lambda(
             apiurl, **{"delete": "FALSE", "versionupdateget": "TRUE"}
         )
+        username = os.environ.get("username")
     else:
         from aimodelshare.aws import get_token_from_session, _get_username_from_token
         username=_get_username_from_token(token)
@@ -1120,14 +1122,14 @@ def submit_model(
     # Upload model metrics and metadata
     if load_onnx_from_path:
         modelleaderboarddata = _update_leaderboard_public(
-            model_filepath, eval_metrics, s3_presigned_dict, custom_metadata)
+            model_filepath, eval_metrics, s3_presigned_dict, username,custom_metadata)
         modelleaderboarddata_private = _update_leaderboard_public(
-            model_filepath, eval_metrics_private, s3_presigned_dict, custom_metadata, private=True)
+            model_filepath, eval_metrics_private, s3_presigned_dict,username, custom_metadata, private=True)
     else:
         modelleaderboarddata = _update_leaderboard_public(
-            None, eval_metrics, s3_presigned_dict, custom_metadata, onnx_model=onnx_model)
+            None, eval_metrics, s3_presigned_dict, custom_metadata, username,onnx_model=onnx_model)
         modelleaderboarddata_private = _update_leaderboard_public(
-            None, eval_metrics_private, s3_presigned_dict, custom_metadata, private=True, onnx_model=onnx_model)
+            None, eval_metrics_private, s3_presigned_dict, custom_metadata,username, private=True, onnx_model=onnx_model)
 
     model_versions = [os.path.splitext(f)[0].split("_")[-1][1:] for f in s3_presigned_dict['put'].keys()]
     model_versions = filter(lambda v: v.isnumeric(), model_versions)
