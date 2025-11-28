@@ -2181,12 +2181,13 @@ def run_experiment(
         from sklearn.metrics import accuracy_score
         local_test_accuracy = accuracy_score(Y_TEST, predictions)
 
-        # 2. SUBMIT & CAPTURE ACCURACY
+# 2. SUBMIT & CAPTURE ACCURACY
         def _submit():
             return playground.submit_model(
                 model=tuned_model, preprocessor=preprocessor, prediction_submission=predictions,
                 input_dict={'description': description, 'tags': tags},
-                custom_metadata={'Team': team_name, 'Moral_Compass': 0}, token=token,
+                custom_metadata={'Team': team_name, 'Moral_Compass': 0}, 
+                token=token,
                 return_metrics=["accuracy"] 
             )
         
@@ -2201,11 +2202,30 @@ def run_experiment(
             else:
                 this_submission_score = local_test_accuracy
         except Exception as e:
-            _log(f"Submission parsing failed: {e}. Using local.")
+            _log(f"Submission return parsing failed: {e}. Using local accuracy.")
             this_submission_score = local_test_accuracy
         
-        _log(f"Submission successful. Score: {this_submission_score}")
+        _log(f"Submission successful. Server Score: {this_submission_score}")
 
+        # -------------------------------------------------------------------------
+        # NEW FIX: Trigger Server-Side Persistence (Fire-and-Forget)
+        # -------------------------------------------------------------------------
+        # We start a background thread to ping get_leaderboard(). 
+        # This forces the Lambda to find the new files in S3 and update the Master CSV.
+        # We do NOT wait for this thread to finish.
+        def _trigger_persistence():
+            try:
+                _log("Triggering background leaderboard update...")
+                # We use the playground instance directly to avoid caching logic
+                playground.get_leaderboard(token=token)
+                _log("Background leaderboard update complete.")
+            except Exception as e:
+                _log(f"Background persistence trigger failed (harmless): {e}")
+
+        threading.Thread(target=_trigger_persistence, daemon=True).start()
+        # -------------------------------------------------------------------------
+
+        # Immediately increment submission count...
         new_submission_count = submission_count + 1
         new_first_submission_score = first_submission_score
         if submission_count == 0 and first_submission_score is None:
