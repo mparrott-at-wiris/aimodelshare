@@ -2207,22 +2207,14 @@ def run_experiment(
         
         _log(f"Submission successful. Server Score: {this_submission_score}")
 
-        # -------------------------------------------------------------------------
-        # NEW FIX: Trigger Server-Side Persistence (Fire-and-Forget)
-        # -------------------------------------------------------------------------
-        # We start a background thread to ping get_leaderboard(). 
-        # This forces the Lambda to find the new files in S3 and update the Master CSV.
-        # We do NOT wait for this thread to finish.
-        def _trigger_persistence():
-            try:
-                _log("Triggering background leaderboard update...")
-                # We use the playground instance directly to avoid caching logic
-                playground.get_leaderboard(token=token)
-                _log("Background leaderboard update complete.")
-            except Exception as e:
-                _log(f"Background persistence trigger failed (harmless): {e}")
-
-        threading.Thread(target=_trigger_persistence, daemon=True).start()
+        try:
+            # Short timeout to trigger the lambda without hanging the UI
+            _log("Triggering backend merge...")
+            playground.get_leaderboard(token=token) 
+        except Exception:
+            # We ignore errors here because the 'submit_model' post 
+            # already succeeded. This is just a cleanup task.
+            pass
         # -------------------------------------------------------------------------
 
         # Immediately increment submission count...
