@@ -2262,6 +2262,8 @@ def run_experiment(
             is_pending=False
         )
 
+# ... (Previous Stage 1-4 logic remains unchanged) ...
+
         # --- Stage 5: Final UI Update ---
         progress(1.0, desc="Complete!")
         
@@ -2274,8 +2276,41 @@ def run_experiment(
         
         settings = compute_rank_settings(new_submission_count, model_name_key, complexity_level, feature_set, data_size_str)
 
+        # -------------------------------------------------------------------------
+        # NEW LOGIC: Check for Limit Reached immediately AFTER this submission
+        # -------------------------------------------------------------------------
+        limit_reached = new_submission_count >= ATTEMPT_LIMIT
+        
+        # Prepare the UI state based on whether limit is reached
+        if limit_reached:
+            # 1. Append the Limit Warning HTML *below* the Result Card
+            limit_html = f"""
+            <div style='margin-top: 16px; border: 2px solid #ef4444; background:#fef2f2; padding:16px; border-radius:12px; text-align:left;'>
+                <h3 style='margin:0 0 8px 0; color:#991b1b;'>🛑 Submission Limit Reached ({ATTEMPT_LIMIT}/{ATTEMPT_LIMIT})</h3>
+                <p style='margin:0; color:#7f1d1d; line-height:1.4;'>
+                    <b>You have used all your attempts for this session.</b><br>
+                    Review your final results above, then scroll down to "Finish and Reflect" to continue.
+                </p>
+            </div>
+            """
+            final_html_display = kpi_card_html + limit_html
+            
+            # 2. Disable all controls
+            button_update = gr.update(value="🛑 Limit Reached", interactive=False)
+            interactive_state = False
+            tracker_html = f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'><p style='margin:0; color:#991b1b; font-weight:600;'>🛑 Attempts used: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT} (Max)</p></div>"
+        
+        else:
+            # Normal State: Show just the result card and keep controls active
+            final_html_display = kpi_card_html
+            button_update = gr.update(value="🔬 Build & Submit Model", interactive=True)
+            interactive_state = True
+            tracker_html = _build_attempts_tracker_html(new_submission_count)
+
+        # -------------------------------------------------------------------------
+
         final_updates = {
-            submission_feedback_display: gr.update(value=kpi_card_html, visible=True),
+            submission_feedback_display: gr.update(value=final_html_display, visible=True),
             team_leaderboard_display: team_html,
             individual_leaderboard_display: individual_html,
             last_submission_score_state: this_submission_score, 
@@ -2284,19 +2319,24 @@ def run_experiment(
             submission_count_state: new_submission_count,
             first_submission_score_state: new_first_submission_score,
             rank_message_display: settings["rank_message"],
-            model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
-            complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
-            feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
-            data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-            submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
+            
+            # Apply the interactive state calculated above
+            model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=(settings["model_interactive"] and interactive_state)),
+            complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"], interactive=interactive_state),
+            feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=(settings["feature_set_interactive"] and interactive_state)),
+            data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=(settings["data_size_interactive"] and interactive_state)),
+            
+            submit_button: button_update,
+            
             login_username: gr.update(visible=False), login_password: gr.update(visible=False),
             login_submit: gr.update(visible=False), login_error: gr.update(visible=False),
-            attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(new_submission_count)),
+            attempts_tracker_display: gr.update(value=tracker_html),
             was_preview_state: False,
             kpi_meta_state: success_kpi_meta,
             last_seen_ts_state: time.time()
         }
         yield final_updates
+      
     except Exception as e:
         error_msg = f"ERROR: {e}"
         _log(f"Exception in run_experiment: {error_msg}")
