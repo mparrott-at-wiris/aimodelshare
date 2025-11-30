@@ -1,6 +1,6 @@
 """
 What is AI - Gradio application for the Justice & Equity Challenge.
-Updated with i18n support for English (en), Spanish (es), and Catalan (ca).
+Updated with "Open the Black Box" logic and clearer definitions.
 """
 import contextlib
 import os
@@ -18,13 +18,14 @@ TRANSLATIONS = {
         # Step 1
         "s1_title": "🎯 A Simple Definition",
         "s1_head": "Artificial Intelligence (AI) is just a fancy name for:",
-        "s1_big": "A system that makes predictions based on patterns",
-        "s1_sub": "That's it! Let's break down what that means...",
-        "s1_list_title": "Think About How YOU Make Predictions:",
-        "s1_li1": "<b>Weather:</b> Dark clouds → You predict rain → You bring an umbrella",
-        "s1_li2": "<b>Traffic:</b> Rush hour time → You predict congestion → You leave early",
-        "s1_li3": "<b>Movies:</b> Actor you like → You predict you'll enjoy it → You watch it",
-        "s1_highlight": "AI does the same thing, but using data and math instead of human experience and intuition.",
+        "s1_big": "A Prediction Machine",
+        "s1_sub": "It treats the world like a math problem: <b>Inputs + Rules = Prediction</b>.",
+        "s1_list_title": "Compare: Intuition vs. Math",
+        "s1_human_head": "🧠 <b>Human Intuition:</b>",
+        "s1_human_text": "Dark clouds? -> I feel like it will rain. -> I'll bring an umbrella.",
+        "s1_ai_head": "💻 <b>AI Calculation:</b>",
+        "s1_ai_text": "Cloud Density (90%) + Humidity (85%) = <b>95% Rain Probability</b>.",
+        "s1_highlight": "AI predicts the future just like you do, but it uses <b>data and math</b> instead of gut feelings.",
         "btn_next_formula": "Next: The AI Formula ▶️",
         # Step 2
         "s2_title": "📐 The Three-Part Formula",
@@ -33,39 +34,40 @@ TRANSLATIONS = {
         "lbl_model": "MODEL",
         "lbl_output": "OUTPUT",
         "desc_input": "Data goes in",
-        "desc_model": "AI processes it",
+        "desc_model": "The Mathematical Brain", # Updated definition
         "desc_output": "Prediction comes out",
         "s2_ex_title": "Real-World Examples:",
         "s2_ex1_in": "Photo of a dog",
-        "s2_ex1_mod": "Image recognition AI",
+        "s2_ex1_mod": "Image Rules",
         "s2_ex1_out": "\"This is a Golden Retriever\"",
         "s2_ex2_in": "\"How's the weather?\"",
-        "s2_ex2_mod": "Language AI (like ChatGPT)",
+        "s2_ex2_mod": "Language Rules",
         "s2_ex2_out": "A helpful response",
         "s2_ex3_in": "Person's criminal history",
-        "s2_ex3_mod": "Risk assessment AI",
+        "s2_ex3_mod": "Risk Assessment Rules",
         "s2_ex3_out": "\"High Risk\" or \"Low Risk\"",
         "btn_back": "◀️ Back",
         "btn_next_learn": "Next: How Models Learn ▶️",
         # Step 3
         "s3_title": "🧠 How Does an AI Model Learn?",
         "s3_h1": "1. It Learns from Examples",
-        "s3_p1": "An AI model isn't programmed with answers. Instead, it's trained on a huge number of examples, and it learns how to find the answers on its own.",
-        "s3_p2": "In our justice scenario, this means feeding the model thousands of past cases (<b>examples</b>) to teach it how to find the <b>patterns</b> that connect a person's details to their criminal risk.",
-        "s3_h2": "2. The Training Process",
-        "s3_p3": "The AI \"trains\" by looping through historical data (past cases) millions of times:",
+        "s3_p1": "An AI model isn't programmed with answers. Instead, it's trained on a huge number of examples.",
+        "s3_p2": "We show it thousands of past cases (<b>examples</b>) and say \"Find the pattern that predicts re-offense.\"",
+        "s3_h2": "2. The Training Loop",
+        "s3_p3": "The AI \"trains\" by looping through data millions of times:",
         "flow_1": "1. INPUT<br>EXAMPLES",
         "flow_2": "2. MODEL<br>GUESSES",
         "flow_3": "3. CHECK<br>ANSWER",
-        "flow_4": "4. ADJUST<br>WEIGHTS",
+        "flow_4": "4. ADJUST<br>IMPORTANCE", # Renamed from Weights
         "flow_5": "LEARNED<br>MODEL",
-        "s3_p4": "During the <b>\"Adjust\"</b> step, the model changes its internal rules (called <b>\"weights\"</b>) to get closer to the right answer. For example, it learns <b>how much</b> \"prior offenses\" should matter more than \"age\".",
+        "s3_vol_title": "🎚️ The \"Volume Knob\" Concept",
+        "s3_vol_desc": "Think of the model like a mixing board. When it makes a mistake, it adjusts the <b>Importance (Weight)</b> of the inputs.<br>It might learn to turn the volume <b>UP</b> on \"Prior Crimes\" and turn the volume <b>DOWN</b> on \"Age\".",
         "s3_eth_title": "⚠️ The Ethical Challenge",
-        "s3_eth_p": "<b>Here's the critical problem:</b> The model *only* learns from the data. If the historical data is biased (e.g., certain groups were arrested more often), the model will learn those biased patterns.<br><br><b>The model doesn't know \"fairness\" or \"justice,\" it only knows patterns.</b>",
+        "s3_eth_p": "<b>The model is blind to justice.</b> If the historical data is biased (e.g., certain groups were arrested more often), the AI will simply learn that bias as a mathematical pattern.",
         "btn_next_try": "Next: Try It Yourself ▶️",
         # Step 4 (Interactive)
         "s4_title": "🎮 Try It Yourself!",
-        "s4_intro": "<b>Let's use a simple AI model to predict criminal risk.</b><br>Adjust the inputs below and see how the model's prediction changes!",
+        "s4_intro": "<b>Let's look inside the brain of a simple AI.</b><br>Adjust the inputs, and we will show you exactly how the model calculates the score.",
         "s4_sect1": "1️⃣ INPUT: Adjust the Data",
         "lbl_age": "Age",
         "info_age": "Defendant's age",
@@ -78,34 +80,35 @@ TRANSLATIONS = {
         "opt_serious": "Serious",
         "s4_sect2": "2️⃣ MODEL: Process the Data",
         "btn_run": "🔮 Run AI Prediction",
-        "s4_sect3": "3️⃣ OUTPUT: See the Prediction",
-        "res_placeholder": "Click \"Run AI Prediction\" above to see the result",
-        "s4_highlight": "<b>What You Just Did:</b><br><br>You used a very simple AI model! You provided <b style='color:#0369a1;'>input data</b> (age, priors, severity), the <b style='color:#92400e;'>model processed it</b> using rules and patterns, and it produced an <b style='color:#15803d;'>output prediction</b>.<br><br>Real AI models are more complex, but they work on the same principle!",
+        "s4_sect3": "3️⃣ OUTPUT: See the Math",
+        "res_placeholder": "Click \"Run AI Prediction\" above to see the calculation.",
+        "s4_highlight": "<b>Did you see the math?</b><br><br>The model didn't \"think\" about the person. It just applied a <b>rule</b> (+Points) to every input. Real AI does this same math, just with millions of rules instead of three.",
         "btn_next_conn": "Next: Connection to Justice ▶️",
+        # Step 4 Math Breakdown
+        "math_title": "🧮 How the Model Decided:",
+        "math_pts": "pts",
+        "math_total": "Total Score",
         # Step 5
         "s5_title": "🔗 Connecting to Criminal Justice",
-        "s5_p1": "<b>Remember the risk prediction you used earlier as a judge?</b>",
-        "s5_p2": "That was a real-world example of AI in action:",
-        "s5_in_desc": "• Age, race, gender, prior offenses, charge details",
-        "s5_mod_desc1": "• Trained on historical criminal justice data",
-        "s5_mod_desc2": "• Looks for patterns in who re-offended in the past",
-        "s5_out_desc": "• \"High Risk\", \"Medium Risk\", or \"Low Risk\"",
-        "s5_h2": "Why This Matters for Ethics:",
-        "s5_li1": "The <b>input data</b> might contain historical biases",
-        "s5_li2": "The <b>model</b> learns patterns from potentially unfair past decisions",
-        "s5_li3": "The <b>output predictions</b> can perpetuate discrimination",
-        "s5_final": "<b>Understanding how AI works is the first step to building fairer systems.</b><br><br>Now that you know what AI is, you're ready to help design better models that are more ethical and less biased!",
+        "s5_p1": "<b>Why do we care about 'Math' and 'Inputs'?</b>",
+        "s5_p2": "Because the same logic you just used is applied to real people. But there is a key difference between Human and AI bias:",
+        "s5_col1_title": "🧑‍⚖️ Human Judge",
+        "s5_col1_desc": "Relies on experience and intuition. Bias comes from subconscious beliefs or personal mood.",
+        "s5_col2_title": "🤖 AI Model",
+        "s5_col2_desc": "Relies on historical data. Bias comes from <b>past statistics</b>. It repeats history exactly.",
+        "s5_h2": "The Engineering Goal:",
+        "s5_final": "Your job as an engineer is to check the <b>Inputs</b> and test the <b>Model</b> to ensure it doesn't just repeat the mistakes of the past.<br><br><b>Understanding this is the first step to building fairness.</b>",
         "btn_complete": "Complete This Section ▶️",
         # Step 6
         "s6_title": "🎓 You Now Understand AI!",
-        "s6_congrats": "<b>Congratulations!</b> You now know:",
-        "s6_li1": "What AI is (a prediction system)",
-        "s6_li2": "How it works (Input → Model → Output)",
-        "s6_li3": "How AI models learn from data",
-        "s6_li4": "Why it matters for criminal justice",
-        "s6_li5": "The ethical implications of AI decisions",
+        "s6_congrats": "<b>Congratulations!</b> You can now answer the question:",
+        "s6_li1": "<b>What is AI?</b> A machine that turns data into predictions using math rules.",
+        "s6_li2": "<b>How does it work?</b> Input + Model (Rules) = Output.",
+        "s6_li3": "<b>How does it learn?</b> By adjusting the \"importance\" of inputs based on past examples.",
+        "s6_li4": "<b>Why is it risky?</b> It trusts historical data completely, even if that data contains bias.",
+        "s6_li5": "", # Removed 5th point to keep it simpler as per review
         "s6_next": "<b>Next Steps:</b>",
-        "s6_next_desc": "In the following sections, you'll learn how to build and improve AI models to make them more fair and ethical.",
+        "s6_next_desc": "In the following sections, you will become the Engineer. You will choose the inputs and build the model yourself.",
         "s6_scroll": "👇 SCROLL DOWN 👇",
         "s6_find": "Continue to the next section below.",
         "btn_review": "◀️ Back to Review",
@@ -117,99 +120,95 @@ TRANSLATIONS = {
     },
     "es": {
         "title": "🤖 ¿Qué es la IA, en realidad?",
-        "intro_box": "Antes de poder construir mejores sistemas de IA, necesitas entender qué es realmente la IA.<br>No te preocupes, ¡lo explicaremos en términos simples y cotidianos!",
+        "intro_box": "Antes de poder construir mejores sistemas de IA, necesitas entender qué es realmente la IA.<br>No te preocupes, ¡lo explicaremos en términos simples!",
         "loading": "⏳ Cargando...",
-        # Step 1
         "s1_title": "🎯 Una Definición Simple",
         "s1_head": "Inteligencia Artificial (IA) es solo un nombre elegante para:",
-        "s1_big": "Un sistema que hace predicciones basadas en patrones",
-        "s1_sub": "¡Eso es todo! Desglosemos qué significa eso...",
-        "s1_list_title": "Piensa en cómo TÚ haces predicciones:",
-        "s1_li1": "<b>Clima:</b> Nubes oscuras → Predices lluvia → Llevas paraguas",
-        "s1_li2": "<b>Tráfico:</b> Hora pico → Predices congestión → Sales temprano",
-        "s1_li3": "<b>Cine:</b> Actor que te gusta → Predices que te gustará → La ves",
-        "s1_highlight": "La IA hace lo mismo, pero usando datos y matemáticas en lugar de experiencia humana e intuición.",
+        "s1_big": "Una Máquina de Predicción",
+        "s1_sub": "Trata al mundo como un problema matemático: <b>Entradas + Reglas = Predicción</b>.",
+        "s1_list_title": "Compara: Intuición vs. Matemáticas",
+        "s1_human_head": "🧠 <b>Intuición Humana:</b>",
+        "s1_human_text": "¿Nubes oscuras? -> Siento que lloverá. -> Llevo paraguas.",
+        "s1_ai_head": "💻 <b>Cálculo de IA:</b>",
+        "s1_ai_text": "Densidad de Nubes (90%) + Humedad (85%) = <b>95% Probabilidad de Lluvia</b>.",
+        "s1_highlight": "La IA predice el futuro igual que tú, pero usa <b>datos y matemáticas</b> en lugar de instinto.",
         "btn_next_formula": "Siguiente: La Fórmula de la IA ▶️",
-        # Step 2
         "s2_title": "📐 La Fórmula de Tres Partes",
-        "s2_intro": "Todo sistema de IA funciona de la misma manera, siguiendo esta fórmula simple:",
+        "s2_intro": "Todo sistema de IA funciona igual, siguiendo esta fórmula:",
         "lbl_input": "ENTRADA",
         "lbl_model": "MODELO",
         "lbl_output": "SALIDA",
         "desc_input": "Entran datos",
-        "desc_model": "IA procesa",
+        "desc_model": "El Cerebro Matemático",
         "desc_output": "Sale predicción",
         "s2_ex_title": "Ejemplos del Mundo Real:",
         "s2_ex1_in": "Foto de un perro",
-        "s2_ex1_mod": "IA de reconocimiento de imagen",
-        "s2_ex1_out": "\"Esto es un Golden Retriever\"",
+        "s2_ex1_mod": "Reglas de Imagen",
+        "s2_ex1_out": "\"Es un Golden Retriever\"",
         "s2_ex2_in": "\"¿Qué tal el clima?\"",
-        "s2_ex2_mod": "IA de lenguaje (como ChatGPT)",
+        "s2_ex2_mod": "Reglas de Lenguaje",
         "s2_ex2_out": "Una respuesta útil",
-        "s2_ex3_in": "Historial criminal de una persona",
-        "s2_ex3_mod": "IA de evaluación de riesgos",
+        "s2_ex3_in": "Historial criminal",
+        "s2_ex3_mod": "Reglas de Riesgo",
         "s2_ex3_out": "\"Alto Riesgo\" o \"Bajo Riesgo\"",
         "btn_back": "◀️ Atrás",
         "btn_next_learn": "Siguiente: Cómo Aprenden los Modelos ▶️",
-        # Step 3
-        "s3_title": "🧠 ¿Cómo Aprende un Modelo de IA?",
+        "s3_title": "🧠 ¿Cómo Aprende un Modelo?",
         "s3_h1": "1. Aprende de Ejemplos",
-        "s3_p1": "Un modelo de IA no está programado con respuestas. En cambio, se entrena con una gran cantidad de ejemplos y aprende a encontrar las respuestas por sí mismo.",
-        "s3_p2": "En nuestro escenario de justicia, esto significa alimentar al modelo con miles de casos pasados (<b>ejemplos</b>) para enseñarle a encontrar los <b>patrones</b> que conectan los detalles de una persona con su riesgo criminal.",
-        "s3_h2": "2. El Proceso de Entrenamiento",
-        "s3_p3": "La IA \"entrena\" recorriendo datos históricos (casos pasados) millones de veces:",
+        "s3_p1": "Un modelo de IA no está programado con respuestas. Se entrena con muchos ejemplos.",
+        "s3_p2": "Le mostramos miles de casos pasados (<b>ejemplos</b>) y le decimos \"Encuentra el patrón que predice la reincidencia.\"",
+        "s3_h2": "2. El Bucle de Entrenamiento",
+        "s3_p3": "La IA \"entrena\" recorriendo datos millones de veces:",
         "flow_1": "1. EJEMPLOS<br>ENTRADA",
         "flow_2": "2. MODELO<br>ADIVINA",
         "flow_3": "3. REVISAR<br>RESPUESTA",
-        "flow_4": "4. AJUSTAR<br>PESOS",
+        "flow_4": "4. AJUSTAR<br>IMPORTANCIA",
         "flow_5": "MODELO<br>APRENDIDO",
-        "s3_p4": "Durante el paso de <b>\"Ajustar\"</b>, el modelo cambia sus reglas internas (llamadas <b>\"pesos\"</b>) para acercarse a la respuesta correcta. Por ejemplo, aprende <b>cuánto</b> deben importar más los \"delitos previos\" que la \"edad\".",
+        "s3_vol_title": "🎚️ El Concepto de \"Volumen\"",
+        "s3_vol_desc": "Piensa en el modelo como una mesa de mezclas. Cuando se equivoca, ajusta la <b>Importancia (Peso)</b> de las entradas.<br>Podría aprender a subir el volumen a \"Delitos Previos\" y bajarlo a \"Edad\".",
         "s3_eth_title": "⚠️ El Desafío Ético",
-        "s3_eth_p": "<b>Aquí está el problema crítico:</b> El modelo *solo* aprende de los datos. Si los datos históricos están sesgados (por ejemplo, ciertos grupos fueron arrestados con más frecuencia), el modelo aprenderá esos patrones sesgados.<br><br><b>El modelo no conoce la \"equidad\" o la \"justicia\", solo conoce patrones.</b>",
+        "s3_eth_p": "<b>El modelo es ciego a la justicia.</b> Si los datos históricos están sesgados, la IA aprenderá ese sesgo como un patrón matemático.",
         "btn_next_try": "Siguiente: Pruébalo Tú Mismo ▶️",
-        # Step 4
         "s4_title": "🎮 ¡Pruébalo Tú Mismo!",
-        "s4_intro": "<b>Usemos un modelo de IA simple para predecir el riesgo criminal.</b><br>¡Ajusta las entradas a continuación y ve cómo cambia la predicción del modelo!",
+        "s4_intro": "<b>Miremos dentro del cerebro de una IA simple.</b><br>Ajusta las entradas y te mostraremos exactamente cómo el modelo calcula el puntaje.",
         "s4_sect1": "1️⃣ ENTRADA: Ajusta los Datos",
         "lbl_age": "Edad",
         "info_age": "Edad del acusado",
         "lbl_priors": "Delitos Previos",
         "info_priors": "Número de crímenes anteriores",
-        "lbl_severity": "Gravedad del Cargo Actual",
-        "info_severity": "¿Qué tan grave es el cargo actual?",
+        "lbl_severity": "Gravedad del Cargo",
+        "info_severity": "¿Qué tan grave es el cargo?",
         "opt_minor": "Menor",
         "opt_moderate": "Moderado",
         "opt_serious": "Grave",
         "s4_sect2": "2️⃣ MODELO: Procesa los Datos",
         "btn_run": "🔮 Ejecutar Predicción IA",
-        "s4_sect3": "3️⃣ SALIDA: Ver la Predicción",
-        "res_placeholder": "Haz clic en \"Ejecutar Predicción IA\" arriba para ver el resultado",
-        "s4_highlight": "<b>Lo Que Acabas de Hacer:</b><br><br>¡Usaste un modelo de IA muy simple! Proporcionaste <b style='color:#0369a1;'>datos de entrada</b> (edad, delitos, gravedad), el <b style='color:#92400e;'>modelo los procesó</b> usando reglas y patrones, y produjo una <b style='color:#15803d;'>predicción de salida</b>.<br><br>¡Los modelos de IA reales son más complejos, pero funcionan bajo el mismo principio!",
+        "s4_sect3": "3️⃣ SALIDA: Ver las Matemáticas",
+        "res_placeholder": "Haz clic en \"Ejecutar Predicción IA\" para ver el cálculo.",
+        "s4_highlight": "<b>¿Viste las matemáticas?</b><br><br>El modelo no \"pensó\" en la persona. Solo aplicó una <b>regla</b> (+Puntos) a cada entrada. La IA real hace esta misma matemática, pero con millones de reglas en lugar de tres.",
         "btn_next_conn": "Siguiente: Conexión con la Justicia ▶️",
-        # Step 5
+        "math_title": "🧮 Cómo Decidió el Modelo:",
+        "math_pts": "pts",
+        "math_total": "Puntaje Total",
         "s5_title": "🔗 Conectando con la Justicia Penal",
-        "s5_p1": "<b>¿Recuerdas la predicción de riesgo que usaste antes como juez?</b>",
-        "s5_p2": "Ese fue un ejemplo del mundo real de IA en acción:",
-        "s5_in_desc": "• Edad, raza, género, delitos previos, detalles del cargo",
-        "s5_mod_desc1": "• Entrenado con datos históricos de justicia penal",
-        "s5_mod_desc2": "• Busca patrones en quién reincidió en el pasado",
-        "s5_out_desc": "• \"Alto Riesgo\", \"Riesgo Medio\" o \"Bajo Riesgo\"",
-        "s5_h2": "Por Qué Esto Importa para la Ética:",
-        "s5_li1": "Los <b>datos de entrada</b> pueden contener sesgos históricos",
-        "s5_li2": "El <b>modelo</b> aprende patrones de decisiones pasadas potencialmente injustas",
-        "s5_li3": "Las <b>predicciones de salida</b> pueden perpetuar la discriminación",
-        "s5_final": "<b>Entender cómo funciona la IA es el primer paso para construir sistemas más justos.</b><br><br>¡Ahora que sabes qué es la IA, estás listo para ayudar a diseñar mejores modelos que sean más éticos y menos sesgados!",
+        "s5_p1": "<b>¿Por qué nos importan las 'Matemáticas' y las 'Entradas'?</b>",
+        "s5_p2": "Porque la misma lógica se aplica a personas reales. Pero hay una diferencia clave entre el sesgo Humano y el de la IA:",
+        "s5_col1_title": "🧑‍⚖️ Juez Humano",
+        "s5_col1_desc": "Se basa en experiencia e intuición. El sesgo proviene de creencias subconscientes o estado de ánimo.",
+        "s5_col2_title": "🤖 Modelo de IA",
+        "s5_col2_desc": "Se basa en datos históricos. El sesgo proviene de <b>estadísticas pasadas</b>. Repite la historia exactamente.",
+        "s5_h2": "El Objetivo del Ingeniero:",
+        "s5_final": "Tu trabajo es revisar las <b>Entradas</b> y probar el <b>Modelo</b> para asegurar que no repita los errores del pasado.<br><br><b>Entender esto es el primer paso para construir equidad.</b>",
         "btn_complete": "Completar esta Sección ▶️",
-        # Step 6
         "s6_title": "🎓 ¡Ahora Entiendes la IA!",
-        "s6_congrats": "<b>¡Felicidades!</b> Ahora sabes:",
-        "s6_li1": "Qué es la IA (un sistema de predicción)",
-        "s6_li2": "Cómo funciona (Entrada → Modelo → Salida)",
-        "s6_li3": "Cómo aprenden los modelos de IA de los datos",
-        "s6_li4": "Por qué importa para la justicia penal",
-        "s6_li5": "Las implicaciones éticas de las decisiones de IA",
+        "s6_congrats": "<b>¡Felicidades!</b> Ahora puedes responder:",
+        "s6_li1": "<b>¿Qué es la IA?</b> Una máquina que convierte datos en predicciones usando reglas matemáticas.",
+        "s6_li2": "<b>¿Cómo funciona?</b> Entrada + Modelo (Reglas) = Salida.",
+        "s6_li3": "<b>¿Cómo aprende?</b> Ajustando la \"importancia\" de las entradas basándose en ejemplos pasados.",
+        "s6_li4": "<b>¿Por qué es riesgosa?</b> Confía completamente en datos históricos, incluso si contienen sesgos.",
+        "s6_li5": "",
         "s6_next": "<b>Próximos Pasos:</b>",
-        "s6_next_desc": "En las siguientes secciones, aprenderás cómo construir y mejorar modelos de IA para hacerlos más justos y éticos.",
+        "s6_next_desc": "En las siguientes secciones, te convertirás en el Ingeniero. Elegirás las entradas y construirás el modelo tú mismo.",
         "s6_scroll": "👇 DESPLÁZATE HACIA ABAJO 👇",
         "s6_find": "Continúa en la siguiente sección abajo.",
         "btn_review": "◀️ Volver a Revisar",
@@ -220,99 +219,95 @@ TRANSLATIONS = {
     },
     "ca": {
         "title": "🤖 Què és la IA, realment?",
-        "intro_box": "Abans de poder construir millors sistemes d'IA, necessites entendre què és realment la IA.<br>No et preocupis, ho explicarem en termes simples i quotidians!",
+        "intro_box": "Abans de poder construir millors sistemes d'IA, necessites entendre què és realment la IA.<br>No et preocupis, ho explicarem en termes simples!",
         "loading": "⏳ Carregant...",
-        # Step 1
         "s1_title": "🎯 Una Definició Simple",
         "s1_head": "Intel·ligència Artificial (IA) és només un nom elegant per a:",
-        "s1_big": "Un sistema que fa prediccions basades en patrons",
-        "s1_sub": "Això és tot! Desglossem què significa això...",
-        "s1_list_title": "Pensa en com TU fas prediccions:",
-        "s1_li1": "<b>Temps:</b> Núvols foscos → Predius pluja → Portes paraigua",
-        "s1_li2": "<b>Trànsit:</b> Hora punta → Predius congestió → Surts d'hora",
-        "s1_li3": "<b>Cinema:</b> Actor que t'agrada → Predius que t'agradarà → La veus",
-        "s1_highlight": "La IA fa el mateix, però utilitzant dades i matemàtiques en lloc d'experiència humana i intuïció.",
+        "s1_big": "Una Màquina de Predicció",
+        "s1_sub": "Tracta el món com un problema matemàtic: <b>Entrades + Regles = Predicció</b>.",
+        "s1_list_title": "Compara: Intuïció vs. Matemàtiques",
+        "s1_human_head": "🧠 <b>Intuïció Humana:</b>",
+        "s1_human_text": "Núvols foscos? -> Sento que plourà. -> Porto paraigua.",
+        "s1_ai_head": "💻 <b>Càlcul d'IA:</b>",
+        "s1_ai_text": "Densitat de Núvols (90%) + Humitat (85%) = <b>95% Probabilitat de Pluja</b>.",
+        "s1_highlight": "La IA prediu el futur igual que tu, però utilitza <b>dades i matemàtiques</b> en lloc d'instint.",
         "btn_next_formula": "Següent: La Fórmula de la IA ▶️",
-        # Step 2
         "s2_title": "📐 La Fórmula de Tres Parts",
-        "s2_intro": "Tot sistema d'IA funciona de la mateixa manera, seguint aquesta fórmula simple:",
+        "s2_intro": "Tot sistema d'IA funciona igual, seguint aquesta fórmula:",
         "lbl_input": "ENTRADA",
         "lbl_model": "MODEL",
         "lbl_output": "SORTIDA",
         "desc_input": "Entren dades",
-        "desc_model": "IA processa",
+        "desc_model": "El Cervell Matemàtic",
         "desc_output": "Surt predicció",
         "s2_ex_title": "Exemples del Món Real:",
         "s2_ex1_in": "Foto d'un gos",
-        "s2_ex1_mod": "IA de reconeixement d'imatge",
+        "s2_ex1_mod": "Regles d'Imatge",
         "s2_ex1_out": "\"Això és un Golden Retriever\"",
         "s2_ex2_in": "\"Quin temps fa?\"",
-        "s2_ex2_mod": "IA de llenguatge (com ChatGPT)",
+        "s2_ex2_mod": "Regles de Llenguatge",
         "s2_ex2_out": "Una resposta útil",
-        "s2_ex3_in": "Historial criminal d'una persona",
-        "s2_ex3_mod": "IA d'avaluació de riscos",
+        "s2_ex3_in": "Historial criminal",
+        "s2_ex3_mod": "Regles de Risc",
         "s2_ex3_out": "\"Alt Risc\" o \"Baix Risc\"",
         "btn_back": "◀️ Enrere",
         "btn_next_learn": "Següent: Com Aprenen els Models ▶️",
-        # Step 3
-        "s3_title": "🧠 Com Aprèn un Model d'IA?",
+        "s3_title": "🧠 Com Aprèn un Model?",
         "s3_h1": "1. Aprèn d'Exemples",
-        "s3_p1": "Un model d'IA no està programat amb respostes. En canvi, s'entrena amb una gran quantitat d'exemples i aprèn a trobar les respostes per si mateix.",
-        "s3_p2": "En el nostre escenari de justícia, això significa alimentar el model amb milers de casos passats (<b>exemples</b>) per ensenyar-li a trobar els <b>patrons</b> que connecten els detalls d'una persona amb el seu risc criminal.",
-        "s3_h2": "2. El Procés d'Entrenament",
-        "s3_p3": "La IA \"entrena\" recorrent dades històriques (casos passats) milions de vegades:",
+        "s3_p1": "Un model d'IA no està programat amb respostes. S'entrena amb molts exemples.",
+        "s3_p2": "Li mostrem milers de casos passats (<b>exemples</b>) i li diem \"Troba el patró que prediu la reincidència.\"",
+        "s3_h2": "2. El Bucle d'Entrenament",
+        "s3_p3": "La IA \"entrena\" recorrent dades milions de vegades:",
         "flow_1": "1. EXEMPLES<br>ENTRADA",
         "flow_2": "2. MODEL<br>ENDEVINA",
         "flow_3": "3. REVISAR<br>RESPOSTA",
-        "flow_4": "4. AJUSTAR<br>PESOS",
+        "flow_4": "4. AJUSTAR<br>IMPORTÀNCIA",
         "flow_5": "MODEL<br>APRÈS",
-        "s3_p4": "Durant el pas d'<b>\"Ajustar\"</b>, el model canvia les seves regles internes (anomenades <b>\"pesos\"</b>) per apropar-se a la resposta correcta. Per exemple, aprèn <b>quant</b> han d'importar més els \"delictes previs\" que l'\"edat\".",
+        "s3_vol_title": "🎚️ El Concepte de \"Volum\"",
+        "s3_vol_desc": "Pensa en el model com una taula de mescles. Quan s'equivoca, ajusta la <b>Importància (Pes)</b> de les entrades.<br>Podria aprendre a pujar el volum a \"Delictes Previs\" i baixar-lo a \"Edat\".",
         "s3_eth_title": "⚠️ El Desafiament Ètic",
-        "s3_eth_p": "<b>Aquí hi ha el problema crític:</b> El model *només* aprèn de les dades. Si les dades històriques estan esbiaixades (per exemple, certs grups van ser arrestats amb més freqüència), el model aprendrà aquests patrons esbiaixats.<br><br><b>El model no coneix l'\"equitat\" o la \"justícia\", només coneix patrons.</b>",
+        "s3_eth_p": "<b>El model és cec a la justícia.</b> Si les dades històriques estan esbiaixades, la IA aprendrà aquest biaix com un patró matemàtic.",
         "btn_next_try": "Següent: Prova-ho Tu Mateix ▶️",
-        # Step 4
         "s4_title": "🎮 Prova-ho Tu Mateix!",
-        "s4_intro": "<b>Utilitzem un model d'IA simple per predir el risc criminal.</b><br>Ajusta les entrades a continuació i veus com canvia la predicció del model!",
+        "s4_intro": "<b>Mirem dins del cervell d'una IA simple.</b><br>Ajusta les entrades i et mostrarem exactament com el model calcula la puntuació.",
         "s4_sect1": "1️⃣ ENTRADA: Ajusta les Dades",
         "lbl_age": "Edat",
         "info_age": "Edat de l'acusat",
         "lbl_priors": "Delictes Previs",
         "info_priors": "Nombre de crims anteriors",
-        "lbl_severity": "Gravetat del Càrrec Actual",
-        "info_severity": "Què tan greu és el càrrec actual?",
+        "lbl_severity": "Gravetat del Càrrec",
+        "info_severity": "Què tan greu és el càrrec?",
         "opt_minor": "Menor",
         "opt_moderate": "Moderat",
         "opt_serious": "Greu",
         "s4_sect2": "2️⃣ MODEL: Processa les Dades",
         "btn_run": "🔮 Executar Predicció IA",
-        "s4_sect3": "3️⃣ SORTIDA: Veure la Predicció",
-        "res_placeholder": "Fes clic a \"Executar Predicció IA\" a dalt per veure el resultat",
-        "s4_highlight": "<b>El Que Acabes de Fer:</b><br><br>Has utilitzat un model d'IA molt simple! Has proporcionat <b style='color:#0369a1;'>dades d'entrada</b> (edat, delictes, gravetat), el <b style='color:#92400e;'>model les ha processat</b> utilitzant regles i patrons, i ha produït una <b style='color:#15803d;'>predicció de sortida</b>.<br><br>Els models d'IA reals són més complexos, però funcionen sota el mateix principi!",
+        "s4_sect3": "3️⃣ SORTIDA: Veure les Matemàtiques",
+        "res_placeholder": "Fes clic a \"Executar Predicció IA\" per veure el càlcul.",
+        "s4_highlight": "<b>Has vist les matemàtiques?</b><br><br>El model no va \"pensar\" en la persona. Només va aplicar una <b>regla</b> (+Punts) a cada entrada. La IA real fa aquesta mateixa matemàtica, però amb milions de regles en lloc de tres.",
         "btn_next_conn": "Següent: Connexió amb la Justícia ▶️",
-        # Step 5
+        "math_title": "🧮 Com ha Decidit el Model:",
+        "math_pts": "punts",
+        "math_total": "Puntuació Total",
         "s5_title": "🔗 Connectant amb la Justícia Penal",
-        "s5_p1": "<b>Recordes la predicció de risc que vas utilitzar abans com a jutge?</b>",
-        "s5_p2": "Aquest va ser un exemple del món real d'IA en acció:",
-        "s5_in_desc": "• Edat, raça, gènere, delictes previs, detalls del càrrec",
-        "s5_mod_desc1": "• Entrenat amb dades històriques de justícia penal",
-        "s5_mod_desc2": "• Busca patrons en qui va reincidir en el passat",
-        "s5_out_desc": "• \"Alt Risc\", \"Risc Mitjà\" o \"Baix Risc\"",
-        "s5_h2": "Per Què Això Importa per a l'Ètica:",
-        "s5_li1": "Les <b>dades d'entrada</b> poden contenir biaixos històrics",
-        "s5_li2": "El <b>model</b> aprèn patrons de decisions passades potencialment injustes",
-        "s5_li3": "Les <b>prediccions de sortida</b> poden perpetuar la discriminació",
-        "s5_final": "<b>Entendre com funciona la IA és el primer pas per construir sistemes més justos.</b><br><br>Ara que saps què és la IA, estàs llest per ajudar a dissenyar millors models que siguin més ètics i menys esbiaixats!",
+        "s5_p1": "<b>Per què ens importen les 'Matemàtiques' i les 'Entrades'?</b>",
+        "s5_p2": "Perquè la mateixa lògica s'aplica a persones reals. Però hi ha una diferència clau entre el biaix Humà i el de la IA:",
+        "s5_col1_title": "🧑‍⚖️ Jutge Humà",
+        "s5_col1_desc": "Es basa en experiència i intuïció. El biaix prové de creences subconscients o estat d'ànim.",
+        "s5_col2_title": "🤖 Model d'IA",
+        "s5_col2_desc": "Es basa en dades històriques. El biaix prové de <b>estadístiques passades</b>. Repeteix la història exactament.",
+        "s5_h2": "L'Objectiu de l'Enginyer:",
+        "s5_final": "La teva feina és revisar les <b>Entrades</b> i provar el <b>Model</b> per assegurar que no repeteixi els errors del passat.<br><br><b>Entendre això és el primer pas per construir equitat.</b>",
         "btn_complete": "Completar aquesta Secció ▶️",
-        # Step 6
         "s6_title": "🎓 Ara Entens la IA!",
-        "s6_congrats": "<b>Felicitats!</b> Ara saps:",
-        "s6_li1": "Què és la IA (un sistema de predicció)",
-        "s6_li2": "Com funciona (Entrada → Model → Sortida)",
-        "s6_li3": "Com aprenen els models d'IA de les dades",
-        "s6_li4": "Per què importa per a la justícia penal",
-        "s6_li5": "Les implicacions ètiques de les decisions d'IA",
+        "s6_congrats": "<b>Felicitats!</b> Ara pots respondre:",
+        "s6_li1": "<b>Què és la IA?</b> Una màquina que converteix dades en prediccions usant regles matemàtiques.",
+        "s6_li2": "<b>Com funciona?</b> Entrada + Model (Regles) = Sortida.",
+        "s6_li3": "<b>Com aprèn?</b> Ajustant la \"importància\" de les entrades basant-se en exemples passats.",
+        "s6_li4": "<b>Per què és perillosa?</b> Confia completament en dades històriques, fins i tot si contenen biaixos.",
+        "s6_li5": "",
         "s6_next": "<b>Propers Passos:</b>",
-        "s6_next_desc": "En les següents seccions, aprendràs com construir i millorar models d'IA per fer-los més justos i ètics.",
+        "s6_next_desc": "En les següents seccions, et convertiràs en l'Enginyer. Triaràs les entrades i construiràs el model tu mateix.",
         "s6_scroll": "👇 DESPLAÇA'T CAP AVALL 👇",
         "s6_find": "Continua a la següent secció a sota.",
         "btn_review": "◀️ Tornar a Revisar",
@@ -325,34 +320,56 @@ TRANSLATIONS = {
 
 
 def _create_simple_predictor():
-    """Create a simple demonstration predictor for teaching purposes."""
+    """Create a simple demonstration predictor that shows the math score."""
     
     # Helper for translation
     def t(lang, key):
         return TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(key, key)
 
     def predict_outcome(age, priors, severity, lang="en"):
-        """Simple rule-based predictor for demonstration."""
+        """Simple rule-based predictor that outputs the Score Card explanation."""
         
-        # Translate generic input to English for logic if needed (or map values)
-        # Assuming severity inputs come in as the localized string, we map them
+        # 1. Normalize Inputs
         severity_map = {
             "Minor": 1, "Menor": 1,
             "Moderate": 2, "Moderado": 2, "Moderat": 2,
             "Serious": 3, "Grave": 3, "Greu": 3
         }
         
+        # 2. Logic (The "Model")
+        # Breakdown list to store the math explanation lines
+        breakdown = []
         score = 0
-        if age < 25: score += 3
-        elif age < 35: score += 2
-        else: score += 1
+        pts_label = t(lang, "math_pts")
 
-        if priors >= 3: score += 3
-        elif priors >= 1: score += 2
-        else: score += 0
+        # Age Rule
+        if age < 25: 
+            score += 3
+            breakdown.append(f"<li><b>{t(lang, 'lbl_age')} &lt; 25:</b> <span style='color:#dc2626; font-weight:bold;'>+3 {pts_label}</span></li>")
+        elif age < 35: 
+            score += 2
+            breakdown.append(f"<li><b>{t(lang, 'lbl_age')} 25-35:</b> <span style='color:#f59e0b; font-weight:bold;'>+2 {pts_label}</span></li>")
+        else: 
+            score += 1
+            breakdown.append(f"<li><b>{t(lang, 'lbl_age')} 35+:</b> <span style='color:#16a34a; font-weight:bold;'>+1 {pts_label}</span></li>")
 
-        score += severity_map.get(severity, 2)
+        # Priors Rule
+        if priors >= 3: 
+            score += 3
+            breakdown.append(f"<li><b>{t(lang, 'lbl_priors')} ({priors}):</b> <span style='color:#dc2626; font-weight:bold;'>+3 {pts_label}</span></li>")
+        elif priors >= 1: 
+            score += 2
+            breakdown.append(f"<li><b>{t(lang, 'lbl_priors')} ({priors}):</b> <span style='color:#f59e0b; font-weight:bold;'>+2 {pts_label}</span></li>")
+        else: 
+            score += 0
+            breakdown.append(f"<li><b>{t(lang, 'lbl_priors')} (0):</b> <span style='color:#16a34a; font-weight:bold;'>+0 {pts_label}</span></li>")
 
+        # Severity Rule
+        sev_val = severity_map.get(severity, 2)
+        score += sev_val
+        breakdown.append(f"<li><b>{t(lang, 'lbl_severity')} ({severity}):</b> <span style='font-weight:bold;'>+{sev_val} {pts_label}</span></li>")
+
+        # 3. Determine Outcome
         if score >= 7:
             risk = t(lang, "risk_high")
             color = "#dc2626"
@@ -366,12 +383,23 @@ def _create_simple_predictor():
             color = "#16a34a"
             emoji = "🟢"
 
-        score_label = t(lang, "risk_score")
-
+        # 4. Construct HTML Output (Math + Result)
+        breakdown_html = "".join(breakdown)
+        
         return f"""
-        <div class="prediction-card" style="border-color:{color};">
+        <div class="math-card">
+            <h4 style="margin:0 0 10px 0; color:#4b5563;">{t(lang, 'math_title')}</h4>
+            <ul style="margin:0; padding-left:20px; list-style-type:disc;">
+                {breakdown_html}
+            </ul>
+            <div style="margin-top:10px; border-top:1px solid #e5e7eb; padding-top:8px; display:flex; justify-content:space-between; align-items:center;">
+                <b>{t(lang, 'math_total')}:</b>
+                <b style="font-size:1.2rem;">{score} / 9</b>
+            </div>
+        </div>
+        
+        <div class="prediction-card" style="border-color:{color}; margin-top:16px;">
             <h2 class="prediction-title" style="color:{color};">{emoji} {risk}</h2>
-            <p class="prediction-score">{score_label} {score}/9</p>
         </div>
         """
 
@@ -402,14 +430,22 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 {t(lang, 's1_big')}
               </h2>
           </div>
-          <p>{t(lang, 's1_sub')}</p>
-          <h3 style='color:#0369a1; margin-top:24px;'>{t(lang, 's1_list_title')}</h3>
-          <ul style='font-size:19px; margin-top:12px;'>
-              <li>{t(lang, 's1_li1')}</li>
-              <li>{t(lang, 's1_li2')}</li>
-              <li>{t(lang, 's1_li3')}</li>
-          </ul>
-          <div class='highlight-soft' style='border-left:6px solid #f59e0b;'>
+          <p style='text-align:center; font-size:1.1rem; margin-top:12px;'>{t(lang, 's1_sub')}</p>
+          
+          <h3 style='color:#0369a1; margin-top:32px;'>{t(lang, 's1_list_title')}</h3>
+          
+          <div class='comparison-row'>
+              <div class='comparison-col' style='background-color:#eff6ff; border-color:#93c5fd;'>
+                  <p style='margin:0 0 8px 0;'>{t(lang, 's1_human_head')}</p>
+                  <p style='font-size:0.95rem; margin:0;'>{t(lang, 's1_human_text')}</p>
+              </div>
+              <div class='comparison-col' style='background-color:#f0fdf4; border-color:#86efac;'>
+                  <p style='margin:0 0 8px 0;'>{t(lang, 's1_ai_head')}</p>
+                  <p style='font-size:0.95rem; margin:0;'>{t(lang, 's1_ai_text')}</p>
+              </div>
+          </div>
+
+          <div class='highlight-soft' style='border-left:6px solid #f59e0b; margin-top:24px;'>
               <p style='font-size:18px; margin:0;'>{t(lang, 's1_highlight')}</p>
           </div>
         </div>
@@ -485,7 +521,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                       <b style='color:#92400e;'>{t(lang, 'flow_3')}</b>
                   </div>
                   <div style='font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
-                  <div style='background:#fef3c7; padding:12px 16px; border-radius:8px; margin:8px; flex:1; min-width:140px; text-align:center;'>
+                  <div style='background:#fef3c7; padding:12px 16px; border-radius:8px; margin:8px; flex:1; min-width:140px; text-align:center; border:2px solid #f59e0b;'>
                       <b style='color:#92400e;'>{t(lang, 'flow_4')}</b>
                   </div>
                   <div style='font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
@@ -494,12 +530,15 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                   </div>
               </div>
           </div>
-          <p style='margin-top:20px;'>{t(lang, 's3_p4')}</p>
+          
+          <div class='keypoint-box' style='border-left-color:#f59e0b; margin-top:24px;'>
+              <h4 style='margin:0 0 8px 0; color:#b45309;'>{t(lang, 's3_vol_title')}</h4>
+              <p style='margin:0;'>{t(lang, 's3_vol_desc')}</p>
+          </div>
+
           <hr style='margin:24px 0;'>
           <h3 style='color:#dc2626;'>{t(lang, 's3_eth_title')}</h3>
-          <div class='keypoint-box'>
-              <p style='margin:0;'>{t(lang, 's3_eth_p')}</p>
-          </div>
+          <p style='margin:0;'>{t(lang, 's3_eth_p')}</p>
         </div>
         """
 
@@ -521,31 +560,21 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         return f"""
         <div class='step-card step-card-purple'>
           <p><b>{t(lang, 's5_p1')}</b></p>
-          <p style='margin-top:20px;'>{t(lang, 's5_p2')}</p>
-          <div class='inner-card inner-card-emphasis-blue' style='border-color:#9333ea;'>
-              <p style='font-size:18px; margin-bottom:16px;'>
-              <b class='io-label-input'>{t(lang, 'lbl_input')}:</b> {t(lang, 'info_age')}, ...<br>
-              <span style='margin-left:24px; color:#6b7280;'>{t(lang, 's5_in_desc')}</span>
-              </p>
-              <p style='font-size:18px; margin:16px 0;'>
-              <b class='io-label-model'>{t(lang, 'lbl_model')}:</b> {t(lang, 's2_ex3_mod')}<br>
-              <span style='margin-left:24px; color:#6b7280;'>{t(lang, 's5_mod_desc1')}</span><br>
-              <span style='margin-left:24px; color:#6b7280;'>{t(lang, 's5_mod_desc2')}</span>
-              </p>
-              <p style='font-size:18px; margin-top:16px; margin-bottom:0;'>
-              <b class='io-label-output'>{t(lang, 'lbl_output')}:</b> {t(lang, 's2_ex3_out')}<br>
-              <span style='margin-left:24px; color:#6b7280;'>{t(lang, 's5_out_desc')}</span>
-              </p>
+          <p style='margin-top:10px;'>{t(lang, 's5_p2')}</p>
+          
+          <div class='comparison-row' style='margin-top:20px;'>
+              <div class='comparison-col' style='background-color:#fff1f2; border-color:#fda4af;'>
+                  <h4 style='margin:0 0 8px 0; font-size:1.1rem;'>{t(lang, 's5_col1_title')}</h4>
+                  <p style='font-size:0.95rem; margin:0;'>{t(lang, 's5_col1_desc')}</p>
+              </div>
+              <div class='comparison-col' style='background-color:#f3e8ff; border-color:#d8b4fe;'>
+                  <h4 style='margin:0 0 8px 0; font-size:1.1rem;'>{t(lang, 's5_col2_title')}</h4>
+                  <p style='font-size:0.95rem; margin:0;'>{t(lang, 's5_col2_desc')}</p>
+              </div>
           </div>
+
           <h3 style='color:#7e22ce; margin-top:32px;'>{t(lang, 's5_h2')}</h3>
-          <div class='keypoint-box'>
-              <ul style='font-size:18px; margin:8px 0;'>
-                  <li>{t(lang, 's5_li1')}</li>
-                  <li>{t(lang, 's5_li2')}</li>
-                  <li>{t(lang, 's5_li3')}</li>
-              </ul>
-          </div>
-          <div class='highlight-soft' style='margin-top:24px;'>
+          <div class='highlight-soft' style='border-color:#9333ea; margin-top:16px;'>
               <p style='font-size:18px; margin:0;'>{t(lang, 's5_final')}</p>
           </div>
         </div>
@@ -562,7 +591,6 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                     <li>{t(lang, 's6_li2')}</li>
                     <li>{t(lang, 's6_li3')}</li>
                     <li>{t(lang, 's6_li4')}</li>
-                    <li>{t(lang, 's6_li5')}</li>
                 </ul>
                 <p style='margin-top:32px;'><b>{t(lang, 's6_next')}</b></p>
                 <p>{t(lang, 's6_next_desc')}</p>
@@ -572,9 +600,8 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         </div>
         """
 
-    # --- CSS (Standard) ---
+    # --- CSS (Updated for new layouts) ---
     css = """
-    /* (All original CSS classes kept intact) */
     .large-text { font-size: 20px !important; }
     .loading-title { font-size: 2rem; color: var(--secondary-text-color); }
     .io-step-label-input, .io-label-input { color: #0369a1; font-weight: 700; }
@@ -602,11 +629,34 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     .prediction-title { margin: 0; font-size: 2.5rem; }
     .prediction-score { font-size: 18px; margin-top: 12px; color: var(--secondary-text-color); }
     .prediction-placeholder { background-color: var(--block-background-fill); color: var(--secondary-text-color); padding: 40px; border-radius: 12px; text-align: center; border: 1px solid var(--border-color-primary); }
+    
+    /* NEW CSS FOR COLUMNS */
+    .comparison-row { display: flex; gap: 16px; margin-top: 20px; }
+    .comparison-col { flex: 1; padding: 20px; border-radius: 12px; border: 2px solid #ccc; font-size: 1rem; color: #111827; }
+    .math-card { background-color: var(--body-background-fill); border: 1px solid var(--border-color-primary); border-radius: 12px; padding: 16px; font-size: 1rem; }
+
     #nav-loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: color-mix(in srgb, var(--body-background-fill) 95%, transparent); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; }
     .nav-spinner { width: 50px; height: 50px; border: 5px solid var(--border-color-primary); border-top: 5px solid var(--color-accent); border-radius: 50%; animation: nav-spin 1s linear infinite; margin-bottom: 20px; }
     @keyframes nav-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     #nav-loading-text { font-size: 1.3rem; font-weight: 600; color: var(--color-accent); }
-    @media (prefers-color-scheme: dark) { .ai-intro-box, .step-card, .inner-card, .inner-card-wide, .keypoint-box, .highlight-soft, .completion-box, .prediction-card, .prediction-placeholder { background-color: #2D323E; color: white; border-color: #555555; box-shadow: none; } .inner-card, .inner-card-wide { background-color: #181B22; } #nav-loading-overlay { background: rgba(15, 23, 42, 0.9); } .nav-spinner { border-color: rgba(148, 163, 184, 0.4); border-top-color: var(--color-accent); } .io-chip-input { background-color: color-mix(in srgb, #1d4ed8 35%, #020617 65%); } .io-chip-model { background-color: color-mix(in srgb, #b45309 40%, #020617 60%); } .io-chip-output { background-color: color-mix(in srgb, #15803d 40%, #020617 60%); } .io-arrow { color: #e5e7eb; } }
+    
+    @media (max-width: 600px) { .comparison-row { flex-direction: column; } }
+    @media (prefers-color-scheme: dark) { 
+        .ai-intro-box, .step-card, .inner-card, .inner-card-wide, .keypoint-box, .highlight-soft, .completion-box, .prediction-card, .prediction-placeholder, .math-card { background-color: #2D323E; color: white; border-color: #555555; box-shadow: none; } 
+        .inner-card, .inner-card-wide, .math-card { background-color: #181B22; } 
+        .comparison-col { color: white; border-color: #555; }
+        .comparison-col[style*="eff6ff"] { background-color: #1e3a8a !important; border-color: #3b82f6 !important; }
+        .comparison-col[style*="f0fdf4"] { background-color: #14532d !important; border-color: #22c55e !important; }
+        .comparison-col[style*="fff1f2"] { background-color: #881337 !important; border-color: #f43f5e !important; }
+        .comparison-col[style*="f3e8ff"] { background-color: #581c87 !important; border-color: #a855f7 !important; }
+        #nav-loading-overlay { background: rgba(15, 23, 42, 0.9); } 
+        .nav-spinner { border-color: rgba(148, 163, 184, 0.4); border-top-color: var(--color-accent); } 
+        .io-chip-input { background-color: color-mix(in srgb, #1d4ed8 35%, #020617 65%); } 
+        .io-chip-model { background-color: color-mix(in srgb, #b45309 40%, #020617 60%); } 
+        .io-chip-output { background-color: color-mix(in srgb, #15803d 40%, #020617 60%); } 
+        .io-arrow { color: #e5e7eb; } 
+        .math-card h4 { color: #9ca3af !important; }
+    }
     """
 
     with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
