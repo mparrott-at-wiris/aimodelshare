@@ -57,6 +57,533 @@ except ImportError:
         "The 'aimodelshare' library is required. Install with: pip install aimodelshare"
     )
 
+
+# -------------------------------------------------------------------------
+# TRANSLATION CONFIGURATION
+# -------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------
+# TRANSLATION CONFIGURATION
+# -------------------------------------------------------------------------
+
+TRANSLATIONS = {
+    "en": {
+        # --- General & Nav ---
+        "title": "🛠️ Model Building Arena",
+        "loading": "⏳ Loading...",
+        "btn_next": "Next ▶️",
+        "btn_back": "◀️ Back",
+        "btn_return": "◀️ Back to Experiment",
+        "btn_finish": "Finish & Reflect ▶️",
+        "btn_begin": "Begin Model Building ▶️",
+        "btn_submit": "5. 🔬 Build & Submit Model",
+        
+        # --- Login ---
+        "login_title": "🔐 Sign in to submit & rank",
+        "login_desc": "This is a preview run only. Sign in to publish your score to the live leaderboard.",
+        "login_new": "New user? Create a free account at",
+
+        # --- Slides 1-7 ---
+        "s1_title": "🔄 From Understanding to Building",
+        "s1_intro": "Great progress! You've now:",
+        "s1_li1": "Made tough decisions as a judge using AI predictions",
+        "s1_li2": "Learned about false positives and false negatives",
+        "s1_li3": "Understood how AI works:",
+        "s1_in": "INPUT",
+        "s1_mod": "MODEL",
+        "s1_out": "OUTPUT",
+        "s1_chal_title": "Now it's time to step into the shoes of an AI Engineer.",
+        "s1_chal_body": "<strong>Your New Challenge:</strong> Build AI models that are more accurate than the one you used as a judge.",
+        "s1_rem": "Remember: You experienced firsthand how AI predictions affect real people's lives. Use that knowledge to build something better.",
+
+        "s2_title": "📋 Your Mission - Build Better AI",
+        "s2_miss_head": "The Mission",
+        "s2_miss_body": "Build an AI model that helps judges make better decisions. The model you used previously gave you imperfect advice. Your job now is to build a new model that predicts risk more accurately, providing judges with the reliable insights they need to be fair.",
+        "s2_comp_head": "The Competition",
+        "s2_comp_body": "To do this, you will compete against other engineers! To help you in your mission, you will join an engineering team. Your results will be tracked both individually and as a group in the Live Standings Leaderboards.",
+        "s2_join": "You will join a team like...",
+        "s2_data_head": "The Data Challenge",
+        "s2_data_intro": "To compete, you have access to thousands of old case files. You have two distinct types of information:",
+        "s2_li1": "<strong>Defendant Profiles:</strong> This is like what the judge saw at the time of arrest.",
+        "s2_li1_sub": "<em>Age, Number of Prior Offenses, Type of Charge.</em>",
+        "s2_li2": "<strong>Historical Outcomes:</strong> This is what actually happened to those people later.",
+        "s2_li2_sub": "<em>Did they re-offend within 2 years? (Yes/No)</em>",
+        "s2_core_head": "The Core Task",
+        "s2_core_body": "You need to teach your AI to look at the \"Profiles\" and accurately predict the \"Outcome.\"",
+        "s2_ready": "<strong>Ready to build something that could change how justice works?</strong>",
+
+        "s3_title": "🧠 What is a \"Model\"?",
+        "s3_p1": "Before we start competing, let's break down exactly what you are building.",
+        "s3_head1": "Think of a Model as a \"Prediction Machine.\"",
+        "s3_p2": "You already know the flow:",
+        "s3_eng_note": "As an engineer, you don't need to write complex code from scratch. Instead, you assemble this machine using three main components.",
+        "s3_comp_head": "The 3 Components:",
+        "s3_c1": "<strong>1. The Inputs (Data)</strong><br>The information you feed the machine.<br><em>* Examples: Age, Prior Crimes, Charge Details.</em>",
+        "s3_c2": "<strong>2. The Model (Prediction Machine)</strong><br>The mathematical \"brain\" that looks for patterns in the inputs.<br><em>* Examples: You will choose different \"brains\" that learn in different ways (e.g., simple rules vs. deep patterns).</em>",
+        "s3_c3": "<strong>3. The Output (Prediction)</strong><br>The model's best guess.<br><em>* Example: Risk Level: High or Low.</em>",
+        "s3_learn": "<strong>How it learns:</strong> You show the model thousands of old cases (Inputs) + what actually happened (Outcomes). It studies them to find the rules, so it can make predictions on new cases it hasn't seen before.",
+
+        "s4_title": "🔁 How Engineers Work — The Loop",
+        "s4_p1": "Now that you know the components of a model, how do you build a better one?",
+        "s4_sec_head": "Here is the secret:",
+        "s4_sec_body": "Real AI teams almost never get it right on the first try. Instead, they follow a continuous loop of experimentation: <strong>Try, Test, Learn, Repeat.</strong>",
+        "s4_loop_head": "The Experiment Loop:",
+        "s4_l1": "<strong>Build a Model:</strong> Assemble your components and get a starting prediction accuracy score.",
+        "s4_l2": "<strong>Ask a Question:</strong> (e.g., \"What happens if I change the 'Brain' type?\")",
+        "s4_l3": "<strong>Test & Compare:</strong> Did the score get better... or did it get worse?",
+        "s4_same": "You will do the exact same thing in a competition!",
+        "s4_v1": "<b>1. Configure</b><br/>Use Control Knobs to select Strategy and Data.",
+        "s4_v2": "<b>2. Submit</b><br/>Click \"Build & Submit\" to train your model.",
+        "s4_v3": "<b>3. Analyze</b><br/>Check your rank on the Live Leaderboard.",
+        "s4_v4": "<b>4. Refine</b><br/>Change one setting and submit again!",
+        "s4_tip": "<strong>Pro Tip:</strong> Try to change only one thing at a time. If you change too many things at once, you won't know what made your model better or worse!",
+
+        "s5_title": "🎛️ Control Knobs — The \"Brain\" Settings",
+        "s5_intro": "To build your model, you will use Control Knobs to configure your Prediction Machine. The first two knobs allow you to choose a type of model and adjust how it learns patterns in data.",
+        "s5_k1": "1. Model Strategy (Type of Model)",
+        "s5_k1_desc": "<b>What it is:</b> The specific mathematical method the machine uses to find patterns.",
+        "s5_m1": "<b>The Balanced Generalist:</b> A reliable, all-purpose algorithm. It provides stable results across most data.",
+        "s5_m2": "<b>The Rule-Maker:</b> Creates strict \"If... Then...\" logic (e.g., If prior crimes > 2, then High Risk).",
+        "s5_m3": "<b>The Deep Pattern-Finder:</b> A complex algorithm designed to detect subtle, hidden connections in the data.",
+        "s5_k2": "2. Model Complexity (Fitting Level)",
+        "s5_range": "Range: Level 1 ─── ● ─── 10",
+        "s5_k2_desc1": "<b>What it is:</b> Tunes how tightly the machine fits its logic to find patterns in the data.",
+        "s5_k2_desc2": "<b>The Trade-off:</b>",
+        "s5_low": "<b>Low (Level 1):</b> Captures only the broad, obvious trends.",
+        "s5_high": "<b>High (Level 5):</b> Captures every tiny detail and variation.",
+        "s5_warn": "Warning: Setting this too high causes the machine to \"memorize\" random, irrelevant details or random coincidences (noise) in the past data rather than learning the general rule.",
+
+        "s6_title": "🎛️ Control Knobs — The \"Data\" Settings",
+        "s6_intro": "Now that you have set up your prediction machine, you must decide what information the machine processes. These next knobs control the Inputs (Data).",
+        "s6_k3": "3. Data Ingredients",
+        "s6_k3_desc": "<b>What it is:</b> The specific data points the machine is allowed to access.<br><b>Why it matters:</b> The machine's output depends largely on its input.",
+        "s6_behav": "<b>Behavioral Inputs:</b> Data like <i>Juvenile Felony Count</i> may help the logic find valid risk patterns.",
+        "s6_demo": "<b>Demographic Inputs:</b> Data like <i>Race</i> may help the model learn, but they may also replicate human bias.",
+        "s6_job": "<b>Your Job:</b> Check ☑ or uncheck ☐ the boxes to select the inputs to feed your model.",
+        "s6_k4": "4. Data Size (Training Volume)",
+        "s6_k4_desc": "<b>What it is:</b> The amount of historical cases the machine uses to learn patterns.",
+        "s6_small": "<b>Small (20%):</b> Fast processing. Great for running quick tests to check your settings.",
+        "s6_full": "<b>Full (100%):</b> Maximum data processing. It takes longer to build, but gives the machine the best chance to calibrate its accuracy.",
+
+        "s7_title": "🏆 Your Score as an Engineer",
+        "s7_p1": "You now know more about how to build a model. But how do we know if it works?",
+        "s7_head1": "How You Are Scored",
+        "s7_acc": "<strong>Prediction Accuracy:</strong> Your model is tested on <strong>Hidden Data</strong> (cases kept in a \"secret vault\" that your model has never seen). This simulates predicting the future to ensure you get a real-world prediction accuracy score.",
+        "s7_lead": "<strong>The Leaderboard:</strong> Live Standings track your progress individually and as a team.",
+        "s7_head2": "How You Improve: The Game",
+        "s7_comp": "<strong>Compete to Improve:</strong> Refine your model to beat your personal best score.",
+        "s7_promo": "<strong>Get Promoted as an Engineer & Unlock Tools:</strong> As you submit more models, you rise in rank and unlock better analysis tools:",
+        "s7_ranks": "Trainee → Junior → Senior → Lead Engineer",
+        "s7_head3": "Begin Your Mission",
+        "s7_final": "You are now ready. Use the experiment loop, get promoted, unlock all the tools, and find the best combination to get the highest score.",
+        "s7_rem": "<strong>Remember: You've seen how these predictions affect real life decisions. Build accordingly.</strong>",
+
+        # --- App Interface ---
+        "app_title": "🛠️ Model Building Arena",
+        "lbl_model": "1. Model Strategy",
+        "lbl_complex": "2. Model Complexity (1–10)",
+        "info_complex": "Higher values allow deeper pattern learning; very high values may overfit.",
+        "lbl_feat": "3. Select Data Ingredients",
+        "info_feat": "More ingredients unlock as you rank up!",
+        "lbl_data": "4. Data Size",
+        "lbl_team_stand": "🏆 Live Standings",
+        "lbl_team_sub": "Submit a model to see your rank.",
+        "tab_team": "Team Standings",
+        "tab_ind": "Individual Standings",
+        
+        # --- Ranks ---
+        "rank_trainee": "# 🧑‍🎓 Rank: Trainee Engineer\n<p style='font-size:24px; line-height:1.4;'>For your first submission, just click the big '🔬 Build & Submit Model' button below!</p>",
+        "rank_junior": "# 🎉 Rank Up! Junior Engineer\n<p style='font-size:24px; line-height:1.4;'>New models, data sizes, and data ingredients unlocked!</p>",
+        "rank_senior": "# 🌟 Rank Up! Senior Engineer\n<p style='font-size:24px; line-height:1.4;'>Strongest Data Ingredients Unlocked! The most powerful predictors (like 'Age' and 'Prior Crimes Count') are now available in your list. These will likely boost your accuracy, but remember they often carry the most societal bias.</p>",
+        "rank_lead": "# 👑 Rank: Lead Engineer\n<p style='font-size:24px; line-height:1.4;'>All tools unlocked — optimize freely!</p>",
+
+        # --- Model Types ---
+        "mod_bal": "The Balanced Generalist",
+        "mod_rule": "The Rule-Maker",
+        "mod_knn": "The 'Nearest Neighbor'",
+        "mod_deep": "The Deep Pattern-Finder",
+        "desc_bal": "A fast, reliable, well-rounded model. Good starting point; less prone to overfitting.",
+        "desc_rule": "Learns simple 'if/then' rules. Easy to interpret, but can miss subtle patterns.",
+        "desc_knn": "Looks at the closest past examples. 'You look like these others; I'll predict like they behave.'",
+        "desc_deep": "An ensemble of many decision trees. Powerful, can capture deep patterns; watch complexity.",
+
+        # --- KPI Card ---
+        "kpi_new_acc": "New Accuracy",
+        "kpi_rank": "Your Rank",
+        "kpi_no_change": "No Change (↔)",
+        "kpi_dropped": "Dropped",
+        "kpi_moved_up": "Moved up",
+        "kpi_spot": "spot",
+        "kpi_spots": "spots",
+        "kpi_on_board": "You're on the board!",
+        "kpi_preview": "Preview only - not submitted",
+        "kpi_success": "✅ Submission Successful",
+        "kpi_first": "🎉 First Model Submitted!",
+        "kpi_lower": "📉 Score Dropped",
+
+        # --- Final Conclusion Screen (NEW KEYS) ---
+        "concl_title": "✅ Section Complete",
+        "concl_prep": "<p>Preparing final summary...</p>",
+        "tier_trainee": "Trainee", 
+        "tier_junior": "Junior", 
+        "tier_senior": "Senior", 
+        "tier_lead": "Lead",
+        "none_yet": "None yet",
+        "tip_label": "Tip:",
+        "concl_tip_body": "Try at least 2–3 submissions changing ONE setting at a time to see clear cause/effect.",
+        "limit_title": "Attempt Limit Reached",
+        "limit_body": "You used all {limit} allowed submission attempts for this session. We will open up submissions again after you complete some new activities next.",
+        "concl_snapshot": "Your Performance Snapshot",
+        "concl_rank_achieved": "Rank Achieved",
+        "concl_subs_made": "Submissions Made This Session",
+        "concl_improvement": "Improvement Over First Score",
+        "concl_tier_prog": "Tier Progress",
+        "concl_strong_pred": "Strong Predictors Used",
+        "lbl_best_acc": "Best Accuracy",
+        "concl_eth_ref": "Ethical Reflection",
+        "concl_eth_body": "You unlocked powerful predictors. Consider: Would removing demographic fields change fairness? In the next section we will begin to investigate this question further.",
+        "concl_next_title": "Next: Real-World Consequences",
+        "concl_next_body": "Scroll below this app to continue. You'll examine how models like yours shape judicial outcomes.",
+        "s6_scroll": "👇 SCROLL DOWN 👇"
+    },
+    "es": {
+        "title": "🛠️ Arena de Construcción de Modelos",
+        "loading": "⏳ Cargando...",
+        "btn_next": "Siguiente ▶️",
+        "btn_back": "◀️ Atrás",
+        "btn_return": "◀️ Volver",
+        "btn_finish": "Terminar y Reflexionar ▶️",
+        "btn_begin": "Comenzar ▶️",
+        "btn_submit": "5. 🔬 Construir y Enviar Modelo",
+
+        # Login
+        "login_title": "🔐 Iniciar sesión para clasificar",
+        "login_desc": "Esta es solo una vista previa. Inicia sesión para publicar tu puntuación.",
+        "login_new": "¿Nuevo usuario? Crea una cuenta gratis en",
+
+        # Slides
+        "s1_title": "🔄 De Entender a Construir",
+        "s1_intro": "¡Gran progreso! Ahora has:",
+        "s1_li1": "Tomado decisiones difíciles como juez usando predicciones de IA",
+        "s1_li2": "Aprendido sobre falsos positivos y falsos negativos",
+        "s1_li3": "Entendido cómo funciona la IA:",
+        "s1_in": "ENTRADA",
+        "s1_mod": "MODELO",
+        "s1_out": "SALIDA",
+        "s1_chal_title": "Ahora es el momento de ponerse en los zapatos de un Ingeniero de IA.",
+        "s1_chal_body": "<strong>Tu Nuevo Desafío:</strong> Construir modelos de IA que sean más precisos que el que usaste como juez.",
+        "s1_rem": "Recuerda: Experimentaste de primera mano cómo las predicciones de IA afectan la vida de personas reales. Usa ese conocimiento para construir algo mejor.",
+        "s2_title": "📋 Tu Misión - Construir Mejor IA",
+        "s2_miss_head": "La Misión",
+        "s2_miss_body": "Construye un modelo de IA que ayude a los jueces a tomar mejores decisiones. El modelo que usaste anteriormente te dio consejos imperfectos. Tu trabajo ahora es construir un nuevo modelo que prediga el riesgo con mayor precisión, proporcionando a los jueces las ideas confiables que necesitan para ser justos.",
+        "s2_comp_head": "La Competencia",
+        "s2_comp_body": "¡Para hacer esto, competirás contra otros ingenieros! Para ayudarte en tu misión, te unirás a un equipo de ingeniería. Tus resultados serán rastreados tanto individualmente como en grupo en las Tablas de Clasificación en Vivo.",
+        "s2_join": "Te unirás a un equipo como...",
+        "s2_data_head": "El Desafío de Datos",
+        "s2_data_intro": "Para competir, tienes acceso a miles de archivos de casos antiguos. Tienes dos tipos distintos de información:",
+        "s2_li1": "<strong>Perfiles de Acusados:</strong> Esto es como lo que vio el juez en el momento del arresto.",
+        "s2_li1_sub": "<em>Edad, Número de Delitos Previos, Tipo de Cargo.</em>",
+        "s2_li2": "<strong>Resultados Históricos:</strong> Esto es lo que realmente les sucedió a esas personas después.",
+        "s2_li2_sub": "<em>¿Reincidieron dentro de 2 años? (Sí/No)</em>",
+        "s2_core_head": "La Tarea Principal",
+        "s2_core_body": "Necesitas enseñar a tu IA a mirar los \"Perfiles\" y predecir con precisión el \"Resultado.\"",
+        "s2_ready": "<strong>¿Listo para construir algo que podría cambiar cómo funciona la justicia?</strong>",
+        "s3_title": "🧠 ¿Qué es un \"Modelo\"?",
+        "s3_p1": "Antes de comenzar a competir, desglosemos exactamente lo que estás construyendo.",
+        "s3_head1": "Piensa en un Modelo como una \"Máquina de Predicción\".",
+        "s3_p2": "Ya conoces el flujo:",
+        "s3_eng_note": "Como ingeniero, no necesitas escribir código complejo desde cero. En cambio, ensamblas esta máquina usando tres componentes principales.",
+        "s3_comp_head": "Los 3 Componentes:",
+        "s3_c1": "<strong>1. Las Entradas (Datos)</strong><br>La información que alimentas a la máquina.<br><em>* Ejemplos: Edad, Crímenes Previos, Detalles del Cargo.</em>",
+        "s3_c2": "<strong>2. El Modelo (Máquina de Predicción)</strong><br>El \"cerebro\" matemático que busca patrones en las entradas.<br><em>* Ejemplos: Elegirás diferentes \"cerebros\" que aprenden de diferentes maneras (por ejemplo, reglas simples vs. patrones profundos).</em>",
+        "s3_c3": "<strong>3. La Salida (Predicción)</strong><br>La mejor suposición del modelo.<br><em>* Ejemplo: Nivel de Riesgo: Alto o Bajo.</em>",
+        "s3_learn": "<strong>Cómo aprende:</strong> Muestras al modelo miles de casos antiguos (Entradas) + lo que realmente sucedió (Resultados). Los estudia para encontrar las reglas, para que pueda hacer predicciones sobre nuevos casos que no ha visto antes.",
+        "s4_title": "🔁 Cómo Trabajan los Ingenieros — El Bucle",
+        "s4_p1": "Ahora que conoces los componentes de un modelo, ¿cómo construyes uno mejor?",
+        "s4_sec_head": "Aquí está el secreto:",
+        "s4_sec_body": "Los equipos de IA reales casi nunca lo hacen bien en el primer intento. En cambio, siguen un bucle continuo de experimentación: <strong>Probar, Testear, Aprender, Repetir.</strong>",
+        "s4_loop_head": "El Bucle de Experimentación:",
+        "s4_l1": "<strong>Construir un Modelo:</strong> Ensambla tus componentes y obtén una puntuación de precisión de predicción inicial.",
+        "s4_l2": "<strong>Hacer una Pregunta:</strong> (por ejemplo, \"¿Qué pasa si cambio el tipo de 'Cerebro'?\")",
+        "s4_l3": "<strong>Probar y Comparar:</strong> ¿Mejoró la puntuación... o empeoró?",
+        "s4_same": "¡Harás exactamente lo mismo en una competencia!",
+        "s4_v1": "<b>1. Configurar</b><br/>Usa Perillas de Control para seleccionar Estrategia y Datos.",
+        "s4_v2": "<b>2. Enviar</b><br/>Haz clic en \"Construir y Enviar\" para entrenar tu modelo.",
+        "s4_v3": "<b>3. Analizar</b><br/>Revisa tu rango en la Tabla de Clasificación en Vivo.",
+        "s4_v4": "<b>4. Refinar</b><br/>¡Cambia una configuración y envía de nuevo!",
+        "s4_tip": "<strong>Consejo Pro:</strong> Intenta cambiar solo una cosa a la vez. Si cambias demasiadas cosas a la vez, ¡no sabrás qué hizo que tu modelo fuera mejor o peor!",
+        "s5_title": "🎛️ Configuración del \"Cerebro\"",
+        "s5_intro": "Para construir tu modelo, usarás Perillas de Control para configurar tu Máquina de Predicción. Las primeras dos perillas te permiten elegir un tipo de modelo y ajustar cómo aprende patrones en los datos.",
+        "s5_k1": "1. Estrategia del Modelo (Tipo de Modelo)",
+        "s5_k1_desc": "<b>Qué es:</b> El método matemático específico que la máquina usa para encontrar patrones.",
+        "s5_m1": "<b>El Generalista Equilibrado:</b> Un algoritmo confiable y multipropósito. Proporciona resultados estables en la mayoría de los datos.",
+        "s5_m2": "<b>El Creador de Reglas:</b> Crea lógica estricta \"Si... Entonces...\" (por ejemplo, Si crímenes previos > 2, entonces Alto Riesgo).",
+        "s5_m3": "<b>El Buscador de Patrones Profundos:</b> Un algoritmo complejo diseñado para detectar conexiones sutiles y ocultas en los datos.",
+        "s5_k2": "2. Complejidad del Modelo (Nivel de Ajuste)",
+        "s5_range": "Rango: Nivel 1 ─── ● ─── 10",
+        "s5_k2_desc1": "<b>Qué es:</b> Ajusta qué tan ajustadamente la máquina ajusta su lógica para encontrar patrones en los datos.",
+        "s5_k2_desc2": "<b>El Intercambio:</b>",
+        "s5_low": "<b>Bajo (Nivel 1):</b> Captura solo las tendencias amplias y obvias.",
+        "s5_high": "<b>Alto (Nivel 5):</b> Captura cada pequeño detalle y variación.",
+        "s5_warn": "Advertencia: Configurar esto demasiado alto hace que la máquina \"memorice\" detalles aleatorios e irrelevantes o coincidencias aleatorias (ruido) en los datos pasados en lugar de aprender la regla general.",
+        "s6_title": "🎛️ Configuración de \"Datos\"",
+        "s6_intro": "Ahora que has configurado tu máquina de predicción, debes decidir qué información procesa la máquina. Estas siguientes perillas controlan las Entradas (Datos).",
+        "s6_k3": "3. Ingredientes de Datos",
+        "s6_k3_desc": "<b>Qué es:</b> Los puntos de datos específicos a los que la máquina tiene permitido acceder.<br><b>Por qué importa:</b> La salida de la máquina depende en gran medida de su entrada.",
+        "s6_behav": "<b>Entradas de Comportamiento:</b> Datos como <i>Conteo de Delitos Juveniles</i> pueden ayudar a la lógica a encontrar patrones de riesgo válidos.",
+        "s6_demo": "<b>Entradas Demográficas:</b> Datos como <i>Raza</i> pueden ayudar al modelo a aprender, pero también pueden replicar el sesgo humano.",
+        "s6_job": "<b>Tu Trabajo:</b> Marca ☑ o desmarca ☐ las casillas para seleccionar las entradas para alimentar tu modelo.",
+        "s6_k4": "4. Tamaño de Datos (Volumen de Entrenamiento)",
+        "s6_k4_desc": "<b>Qué es:</b> La cantidad de casos históricos que la máquina usa para aprender patrones.",
+        "s6_small": "<b>Pequeño (20%):</b> Procesamiento rápido. Genial para ejecutar pruebas rápidas para verificar tu configuración.",
+        "s6_full": "<b>Completo (100%):</b> Procesamiento máximo de datos. Tarda más en construirse, pero le da a la máquina la mejor oportunidad de calibrar su precisión.",
+        "s7_title": "🏆 Tu Puntuación",
+        "s7_p1": "Ahora sabes más sobre cómo construir un modelo. Pero, ¿cómo sabemos si funciona?",
+        "s7_head1": "Cómo eres Puntuado",
+        "s7_acc": "<strong>Precisión de Predicción:</strong> Tu modelo se prueba en <strong>Datos Ocultos</strong> (casos guardados en una \"bóveda secreta\" que tu modelo nunca ha visto). Esto simula predecir el futuro para asegurar que obtengas una puntuación de precisión de predicción del mundo real.",
+        "s7_lead": "<strong>La Tabla de Clasificación:</strong> Las Clasificaciones en Vivo rastrean tu progreso individualmente y como equipo.",
+        "s7_head2": "Cómo Mejoras: El Juego",
+        "s7_comp": "<strong>Compite para Mejorar:</strong> Refina tu modelo para superar tu mejor puntuación personal.",
+        "s7_promo": "<strong>Sé Promovido como Ingeniero y Desbloquea Herramientas:</strong> A medida que envías más modelos, subes de rango y desbloqueas mejores herramientas de análisis:",
+        "s7_ranks": "Aprendiz → Junior → Senior → Ingeniero Principal",
+        "s7_head3": "Comienza Tu Misión",
+        "s7_final": "Ahora estás listo. Usa el bucle de experimentación, sé promovido, desbloquea todas las herramientas y encuentra la mejor combinación para obtener la puntuación más alta.",
+        "s7_rem": "<strong>Recuerda: Has visto cómo estas predicciones afectan las decisiones de la vida real. Construye en consecuencia.</strong>",
+
+        # Labels
+        "lbl_model": "1. Estrategia del Modelo",
+        "lbl_complex": "2. Complejidad del Modelo",
+        "info_complex": "Valores altos permiten aprendizaje profundo; cuidado con el sobreajuste.",
+        "lbl_feat": "3. Ingredientes de Datos",
+        "info_feat": "¡Más ingredientes se desbloquean al subir de rango!",
+        "lbl_data": "4. Tamaño de Datos",
+        "lbl_team_stand": "🏆 Clasificaciones en Vivo",
+        "lbl_team_sub": "Envía un modelo para ver tu rango.",
+        "tab_team": "Clasificaciones de Equipo",
+        "tab_ind": "Clasificaciones Individuales",
+        "concl_title": "✅ Sección Completada",
+        "concl_prep": "<p>Preparando resumen final...</p>",
+
+        # Ranks
+        "rank_trainee": "# 🧑‍🎓 Rango: Ingeniero Aprendiz\n<p style='font-size:24px; line-height:1.4;'>¡Para tu primer envío, solo haz clic en el botón grande '🔬 Construir y Enviar Modelo' abajo!</p>",
+        "rank_junior": "# 🎉 ¡Subida de Rango! Ingeniero Junior\n<p style='font-size:24px; line-height:1.4;'>¡Nuevos modelos, tamaños de datos e ingredientes de datos desbloqueados!</p>",
+        "rank_senior": "# 🌟 ¡Subida de Rango! Ingeniero Senior\n<p style='font-size:24px; line-height:1.4;'>¡Ingredientes de Datos Más Fuertes Desbloqueados! Los predictores más poderosos (como 'Edad' y 'Conteo de Crímenes Previos') ahora están disponibles en tu lista. Estos probablemente aumentarán tu precisión, pero recuerda que a menudo conllevan el mayor sesgo social.</p>",
+        "rank_lead": "# 👑 Rango: Ingeniero Principal\n<p style='font-size:24px; line-height:1.4;'>¡Todas las herramientas desbloqueadas — optimiza libremente!</p>",
+
+        # Models
+        "mod_bal": "El Generalista Equilibrado",
+        "mod_rule": "El Creador de Reglas",
+        "mod_knn": "El 'Vecino Más Cercano'",
+        "mod_deep": "El Buscador de Patrones Profundos",
+        "desc_bal": "Un modelo rápido, confiable y completo. Buen punto de partida; menos propenso al sobreajuste.",
+        "desc_rule": "Aprende reglas simples 'si/entonces'. Fácil de interpretar, pero puede perder patrones sutiles.",
+        "desc_knn": "Mira los ejemplos pasados más cercanos. 'Te pareces a estos otros; predeciré como ellos se comportan.'",
+        "desc_deep": "Un conjunto de muchos árboles de decisión. Poderoso, puede capturar patrones profundos; cuidado con la complejidad.",
+
+        # KPI
+        "kpi_new_acc": "Nueva Precisión",
+        "kpi_rank": "Tu Rango",
+        "kpi_no_change": "Sin Cambio (↔)",
+        "kpi_dropped": "Bajó",
+        "kpi_moved_up": "Subió",
+        "kpi_spot": "puesto",
+        "kpi_spots": "puestos",
+        "kpi_on_board": "¡Estás en el tablero!",
+        "kpi_preview": "Vista previa - no enviado",
+        "kpi_success": "✅ Envío Exitoso",
+        "kpi_first": "🎉 Primer Modelo Enviado!",
+        "kpi_lower": "📉 Puntuación Bajó",
+
+        # Conclusion Screen (New)
+        "tier_trainee": "Aprendiz", "tier_junior": "Junior", "tier_senior": "Senior", "tier_lead": "Líder",
+        "none_yet": "Ninguno aún",
+        "tip_label": "Consejo:",
+        "concl_tip_body": "Intenta al menos 2–3 envíos cambiando UNA configuración a la vez para ver causa/efecto claro.",
+        "limit_title": "Límite de Intentos Alcanzado",
+        "limit_body": "Has usado los {limit} intentos permitidos. Abriremos los envíos nuevamente después de que completes nuevas actividades.",
+        "concl_snapshot": "Tu Resumen de Rendimiento",
+        "concl_rank_achieved": "Rango Logrado",
+        "concl_subs_made": "Envíos Hechos Esta Sesión",
+        "concl_improvement": "Mejora Sobre la Primera Puntuación",
+        "concl_tier_prog": "Progreso de Nivel",
+        "concl_strong_pred": "Predictores Fuertes Usados",
+        "lbl_best_acc": "Mejor Precisión",
+        "concl_eth_ref": "Reflexión Ética",
+        "concl_eth_body": "Desbloqueaste predictores poderosos. Considera: ¿Eliminar campos demográficos cambiaría la equidad? Investigaremos esto más a fondo a continuación.",
+        "concl_next_title": "Siguiente: Consecuencias en el Mundo Real",
+        "concl_next_body": "Desplázate hacia abajo. Examinarás cómo modelos como el tuyo dan forma a los resultados judiciales.",
+        "s6_scroll": "👇 DESPLÁZATE HACIA ABAJO 👇"
+    },
+    "ca": {
+        "title": "🛠️ Arena de Construcció de Models",
+        "loading": "⏳ Carregant...",
+        "btn_next": "Següent ▶️",
+        "btn_back": "◀️ Enrere",
+        "btn_return": "◀️ Tornar",
+        "btn_finish": "Acabar i Reflexionar ▶️",
+        "btn_begin": "Començar ▶️",
+        "btn_submit": "5. 🔬 Construir i Enviar Model",
+
+        # Login
+        "login_title": "🔐 Inicia sessió per classificar",
+        "login_desc": "Això és només una vista prèvia. Inicia sessió per publicar la teva puntuació.",
+        "login_new": "Nou usuari? Crea un compte gratuït a",
+
+        # Slides
+        "s1_title": "🔄 D'Entendre a Construir",
+        "s1_intro": "Gran progrés! Ara has:",
+        "s1_li1": "Pres decisions difícils com a jutge utilitzant prediccions d'IA",
+        "s1_li2": "Après sobre falsos positius i falsos negatius",
+        "s1_li3": "Entès com funciona la IA:",
+        "s1_in": "ENTRADA",
+        "s1_mod": "MODEL",
+        "s1_out": "SORTIDA",
+        "s1_chal_title": "Ara és el moment de posar-se a la pell d'un Enginyer d'IA.",
+        "s1_chal_body": "<strong>El Teu Nou Repte:</strong> Construir models d'IA que siguin més precisos que el que vas utilitzar com a jutge.",
+        "s1_rem": "Recorda: Vas experimentar de primera mà com les prediccions d'IA afecten la vida de persones reals. Utilitza aquest coneixement per construir alguna cosa millor.",
+        "s2_title": "📋 La Teva Missió - Construir Millor IA",
+        "s2_miss_head": "La Missió",
+        "s2_miss_body": "Construeix un model d'IA que ajudi els jutges a prendre millors decisions. El model que vas utilitzar anteriorment et va donar consells imperfectes. La teva feina ara és construir un nou model que predigui el risc amb més precisió, proporcionant als jutges les idees fiables que necessiten per ser justos.",
+        "s2_comp_head": "La Competició",
+        "s2_comp_body": "Per fer això, competiràs contra altres enginyers! Per ajudar-te en la teva missió, t'uniràs a un equip d'enginyeria. Els teus resultats seran rastrejats tant individualment com en grup a les Taules de Classificació en Viu.",
+        "s2_join": "T'uniràs a un equip com...",
+        "s2_data_head": "El Repte de Dades",
+        "s2_data_intro": "Per competir, tens accés a milers d'arxius de casos antics. Tens dos tipus diferents d'informació:",
+        "s2_li1": "<strong>Perfils d'Acusats:</strong> Això és com el que va veure el jutge en el moment de l'arrest.",
+        "s2_li1_sub": "<em>Edat, Nombre de Delictes Previs, Tipus de Càrrec.</em>",
+        "s2_li2": "<strong>Resultats Històrics:</strong> Això és el que realment els va passar a aquestes persones després.",
+        "s2_li2_sub": "<em>Van reincidir en 2 anys? (Sí/No)</em>",
+        "s2_core_head": "La Tasca Principal",
+        "s2_core_body": "Necessites ensenyar a la teva IA a mirar els \"Perfils\" i predir amb precisió el \"Resultat.\"",
+        "s2_ready": "<strong>A punt per construir alguna cosa que podria canviar com funciona la justícia?</strong>",
+        "s3_title": "🧠 Què és un \"Model\"?",
+        "s3_p1": "Abans de començar a competir, desglossem exactament el que estàs construint.",
+        "s3_head1": "Pensa en un Model com una \"Màquina de Predicció\".",
+        "s3_p2": "Ja coneixes el flux:",
+        "s3_eng_note": "Com a enginyer, no necessites escriure codi complex des de zero. En canvi, muntes aquesta màquina utilitzant tres components principals.",
+        "s3_comp_head": "Els 3 Components:",
+        "s3_c1": "<strong>1. Les Entrades (Dades)</strong><br>La informació que alimentes a la màquina.<br><em>* Exemples: Edat, Crims Previs, Detalls del Càrrec.</em>",
+        "s3_c2": "<strong>2. El Model (Màquina de Predicció)</strong><br>El \"cervell\" matemàtic que busca patrons en les entrades.<br><em>* Exemples: Triaràs diferents \"cervells\" que aprenen de diferents maneres (per exemple, regles simples vs. patrons profunds).</em>",
+        "s3_c3": "<strong>3. La Sortida (Predicció)</strong><br>La millor suposició del model.<br><em>* Exemple: Nivell de Risc: Alt o Baix.</em>",
+        "s3_learn": "<strong>Com aprèn:</strong> Mostres al model milers de casos antics (Entrades) + el que realment va passar (Resultats). Els estudia per trobar les regles, per tal que pugui fer prediccions sobre nous casos que no ha vist abans.",
+        "s4_title": "🔁 Com Treballen els Enginyers — El Bucle",
+        "s4_p1": "Ara que coneixes els components d'un model, com en construeixes un de millor?",
+        "s4_sec_head": "Aquí està el secret:",
+        "s4_sec_body": "Els equips d'IA reals gairebé mai ho fan bé al primer intent. En canvi, segueixen un bucle continu d'experimentació: <strong>Provar, Testejar, Aprendre, Repetir.</strong>",
+        "s4_loop_head": "El Bucle d'Experimentació:",
+        "s4_l1": "<strong>Construir un Model:</strong> Munta els teus components i obtén una puntuació de precisió de predicció inicial.",
+        "s4_l2": "<strong>Fer una Pregunta:</strong> (per exemple, \"Què passa si canvio el tipus de 'Cervell'?\")",
+        "s4_l3": "<strong>Provar i Comparar:</strong> Ha millorat la puntuació... o ha empitjorat?",
+        "s4_same": "Faràs exactament el mateix en una competició!",
+        "s4_v1": "<b>1. Configurar</b><br/>Utilitza Perilles de Control per seleccionar Estratègia i Dades.",
+        "s4_v2": "<b>2. Enviar</b><br/>Fes clic a \"Construir i Enviar\" per entrenar el teu model.",
+        "s4_v3": "<b>3. Analitzar</b><br/>Revisa el teu rang a la Taula de Classificació en Viu.",
+        "s4_v4": "<b>4. Refinar</b><br/>Canvia una configuració i envia de nou!",
+        "s4_tip": "<strong>Consell Pro:</strong> Intenta canviar només una cosa a la vegada. Si canvies massa coses a la vegada, no sabràs què va fer que el teu model fos millor o pitjor!",
+        "s5_title": "🎛️ Configuració del \"Cervell\"",
+        "s5_intro": "Per construir el teu model, utilitzaràs Perilles de Control per configurar la teva Màquina de Predicció. Les primeres dues perilles et permeten triar un tipus de model i ajustar com aprèn patrons en les dades.",
+        "s5_k1": "1. Estratègia del Model (Tipus de Model)",
+        "s5_k1_desc": "<b>Què és:</b> El mètode matemàtic específic que la màquina utilitza per trobar patrons.",
+        "s5_m1": "<b>El Generalista Equilibrat:</b> Un algorisme fiable i multipropòsit. Proporciona resultats estables en la majoria de les dades.",
+        "s5_m2": "<b>El Creador de Regles:</b> Crea lògica estricta \"Si... Llavors...\" (per exemple, Si crims previs > 2, llavors Alt Risc).",
+        "s5_m3": "<b>El Cercador de Patrons Profunds:</b> Un algorisme complex dissenyat per detectar connexions subtils i ocultes en les dades.",
+        "s5_k2": "2. Complexitat del Model (Nivell d'Ajust)",
+        "s5_range": "Rang: Nivell 1 ─── ● ─── 10",
+        "s5_k2_desc1": "<b>Què és:</b> Ajusta com d'ajustadament la màquina ajusta la seva lògica per trobar patrons en les dades.",
+        "s5_k2_desc2": "<b>L'Intercanvi:</b>",
+        "s5_low": "<b>Baix (Nivell 1):</b> Captura només les tendències àmplies i òbvies.",
+        "s5_high": "<b>Alt (Nivell 5):</b> Captura cada petit detall i variació.",
+        "s5_warn": "Advertència: Configurar això massa alt fa que la màquina \"memoritzi\" detalls aleatoris i irrellevants o coincidències aleatòries (soroll) en les dades passades en lloc d'aprendre la regla general.",
+        "s6_title": "🎛️ Configuració de \"Dades\"",
+        "s6_intro": "Ara que has configurat la teva màquina de predicció, has de decidir quina informació processa la màquina. Aquestes següents perilles controlen les Entrades (Dades).",
+        "s6_k3": "3. Ingredients de Dades",
+        "s6_k3_desc": "<b>Què és:</b> Els punts de dades específics als quals la màquina té permès accedir.<br><b>Per què importa:</b> La sortida de la màquina depèn en gran mesura de la seva entrada.",
+        "s6_behav": "<b>Entrades de Comportament:</b> Dades com <i>Recompte de Delictes Juvenils</i> poden ajudar a la lògica a trobar patrons de risc vàlids.",
+        "s6_demo": "<b>Entrades Demogràfiques:</b> Dades com <i>Raça</i> poden ajudar al model a aprendre, però també poden replicar el biaix humà.",
+        "s6_job": "<b>La Teva Feina:</b> Marca ☑ o desmarca ☐ les caselles per seleccionar les entrades per alimentar el teu model.",
+        "s6_k4": "4. Mida de Dades (Volum d'Entrenament)",
+        "s6_k4_desc": "<b>Què és:</b> La quantitat de casos històrics que la màquina utilitza per aprendre patrons.",
+        "s6_small": "<b>Petit (20%):</b> Processament ràpid. Genial per executar proves ràpides per verificar la teva configuració.",
+        "s6_full": "<b>Complet (100%):</b> Processament màxim de dades. Triga més a construir-se, però li dóna a la màquina la millor oportunitat de calibrar la seva precisió.",
+        "s7_title": "🏆 La Teva Puntuació",
+        "s7_p1": "Ara saps més sobre com construir un model. Però, com sabem si funciona?",
+        "s7_head1": "Com ets Puntuat",
+        "s7_acc": "<strong>Precisió de Predicció:</strong> El teu model es prova en <strong>Dades Ocultes</strong> (casos guardats en una \"cambra secreta\" que el teu model mai ha vist). Això simula predir el futur per assegurar que obtinguis una puntuació de precisió de predicció del món real.",
+        "s7_lead": "<strong>La Taula de Classificació:</strong> Les Classificacions en Viu rastregen el teu progrés individualment i com a equip.",
+        "s7_head2": "Com Millores: El Joc",
+        "s7_comp": "<strong>Competeix per Millorar:</strong> Refina el teu model per superar la teva millor puntuació personal.",
+        "s7_promo": "<strong>Sigues Promogut com a Enginyer i Desbloqueja Eines:</strong> A mesura que envies més models, puges de rang i desbloqueges millors eines d'anàlisi:",
+        "s7_ranks": "Aprenent → Junior → Senior → Enginyer Principal",
+        "s7_head3": "Comença La Teva Missió",
+        "s7_final": "Ara estàs llest. Utilitza el bucle d'experimentació, sigues promogut, desbloqueja totes les eines i troba la millor combinació per obtenir la puntuació més alta.",
+        "s7_rem": "<strong>Recorda: Has vist com aquestes prediccions afecten les decisions de la vida real. Construeix en conseqüència.</strong>",
+
+        # Labels
+        "lbl_model": "1. Estratègia del Model",
+        "lbl_complex": "2. Complexitat del Model",
+        "info_complex": "Valors alts permeten aprenentatge profund; cura amb el sobreajust.",
+        "lbl_feat": "3. Ingredients de Dades",
+        "info_feat": "Més ingredients es desbloquegen al pujar de rang!",
+        "lbl_data": "4. Mida de Dades",
+        "lbl_team_stand": "🏆 Classificacions en Viu",
+        "lbl_team_sub": "Envia un model per veure el teu rang.",
+        "tab_team": "Classificacions d'Equip",
+        "tab_ind": "Classificacions Individuals",
+        "concl_title": "✅ Secció Completada",
+        "concl_prep": "<p>Preparant resum final...</p>",
+
+        # Ranks
+        "rank_trainee": "# 🧑‍🎓 Rang: Enginyer Aprenent\n<p style='font-size:24px; line-height:1.4;'>Fes clic a 'Construir i Enviar' per començar!</p>",
+        "rank_junior": "# 🎉 Pujada de Rang! Enginyer Junior\n<p style='font-size:24px; line-height:1.4;'>Nous models i dades desbloquejats!</p>",
+        "rank_senior": "# 🌟 Pujada de Rang! Enginyer Senior\n<p style='font-size:24px; line-height:1.4;'>Ingredients de Dades Més Forts Desbloquejats!</p>",
+        "rank_lead": "# 👑 Rang: Enginyer Principal\n<p style='font-size:24px; line-height:1.4;'>Totes les eines desbloquejades!</p>",
+
+        # Models
+        "mod_bal": "El Generalista Equilibrat",
+        "mod_rule": "El Creador de Reglas",
+        "mod_knn": "El 'Veí Més Proper'",
+        "mod_deep": "El Cercador de Patrons Profunds",
+        "desc_bal": "Un model ràpid, fiable i complet. Bon punt de partida; menys propens al sobreajust.",
+        "desc_rule": "Aprèn regles simples 'si/llavors'. Fàcil d'interpretar, però pot perdre patrons subtils.",
+        "desc_knn": "Mira els exemples passats més propers. 'T'assembles a aquests altres; prediré com ells es comporten.'",
+        "desc_deep": "Un conjunt de molts arbres de decisió. Potent, pot capturar patrons profunds; cura amb la complexitat.",
+
+        # KPI
+        "kpi_new_acc": "Nova Precisió",
+        "kpi_rank": "El Teu Rang",
+        "kpi_no_change": "Sense Canvi (↔)",
+        "kpi_dropped": "Va baixar",
+        "kpi_moved_up": "Va pujar",
+        "kpi_spot": "lloc",
+        "kpi_spots": "llocs",
+        "kpi_on_board": "Estàs al tauler!",
+        "kpi_preview": "Vista prèvia - no enviat",
+        "kpi_success": "✅ Enviament Exitós",
+        "kpi_first": "🎉 Primer Model Enviat!",
+        "kpi_lower": "📉 Puntuació Va Baixar",
+
+        # Conclusion Screen (New)
+        "tier_trainee": "Aprenent", "tier_junior": "Junior", "tier_senior": "Senior", "tier_lead": "Líder",
+        "none_yet": "Cap encara",
+        "tip_label": "Consell:",
+        "concl_tip_body": "Intenta almenys 2–3 enviaments canviant UNA configuració a la vegada per veure causa/efecte clar.",
+        "limit_title": "Límit d'Intents Assolit",
+        "limit_body": "Has utilitzat tots els {limit} intents permesos. Obrirem els enviaments de nou després que completis noves activitats.",
+        "concl_snapshot": "El Teu Resum de Rendiment",
+        "concl_rank_achieved": "Rang Assolit",
+        "concl_subs_made": "Enviaments Fets Aquesta Sessió",
+        "concl_improvement": "Millora Sobre la Primera Puntuació",
+        "concl_tier_prog": "Progrés de Nivell",
+        "concl_strong_pred": "Predictors Forts Utilitzats",
+        "lbl_best_acc": "Millor Precisió",
+        "concl_eth_ref": "Reflexió Ètica",
+        "concl_eth_body": "Has desbloquejat predictors potents. Considera: Eliminar camps demogràfics canviaria l'equitat? Investigarem això més a fons a continuació.",
+        "concl_next_title": "Següent: Conseqüències al Món Real",
+        "concl_next_body": "Desplaça't cap avall. Examinaràs com models com el teu donen forma als resultats judicials.",
+        "s6_scroll": "👇 DESPLAÇA'T CAP AVALL 👇"
+    }
+}
+
 # -------------------------------------------------------------------------
 # Configuration & Caching Infrastructure
 # -------------------------------------------------------------------------
@@ -84,7 +611,13 @@ USER_STATS_TTL = LEADERBOARD_CACHE_SECONDS
 # -------------------------------------------------------------------------
 # Retry Helper for External API Calls
 # -------------------------------------------------------------------------
-
+def t(lang, key):
+    """Helper to get translation with fallback to English."""
+    # TRANSLATIONS must be defined globally before this is called
+    if lang not in TRANSLATIONS:
+        lang = "en"
+    return TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(key, key)
+  
 T = TypeVar("T")
 
 def _retry_with_backoff(
@@ -666,6 +1199,217 @@ def load_and_prep_data(use_cache=True):
 
     return X_train_raw, X_test_raw, y_train, y_test
 
+
+# [NEW]
+def _get_slide1_html(lang):
+    return f"""
+    <div class='slide-content'>
+    <div class='panel-box'>
+    <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>{t(lang, 's1_intro')}</h3>
+    <ul style='list-style: none; padding-left: 0; margin-top: 24px; margin-bottom: 24px;'>
+        <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'><span style='font-size: 1.5rem; vertical-align: middle;'>✅</span> {t(lang, 's1_li1')}</li>
+        <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'><span style='font-size: 1.5rem; vertical-align: middle;'>✅</span> {t(lang, 's1_li2')}</li>
+        <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'><span style='font-size: 1.5rem; vertical-align: middle;'>✅</span> {t(lang, 's1_li3')}</li>
+    </ul>
+    <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
+        <div style='display:inline-block; background:#dbeafe; padding:12px 16px; border-radius:8px; margin:4px;'><h3 style='margin:0; color:#0369a1;'>{t(lang, 's1_in')}</h3></div>
+        <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
+        <div style='display:inline-block; background:#fef3c7; padding:12px 16px; border-radius:8px; margin:4px;'><h3 style='margin:0; color:#92400e;'>{t(lang, 's1_mod')}</h3></div>
+        <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
+        <div style='display:inline-block; background:#f0fdf4; padding:12px 16px; border-radius:8px; margin:4px;'><h3 style='margin:0; color:#15803d;'>{t(lang, 's1_out')}</h3></div>
+    </div>
+    <hr style='margin: 24px 0; border-top: 2px solid #c7d2fe;'>
+    <h3 style='font-size: 1.5rem; text-align:center;'>{t(lang, 's1_chal_title')}</h3>
+    <p style='font-size: 1.1rem; text-align:center; margin-top: 12px;'>{t(lang, 's1_chal_body')}</p>
+    <p style='font-size: 1.1rem; text-align:center; margin-top: 12px;'>{t(lang, 's1_rem')}</p>
+    </div>
+    </div>
+    """
+
+# [NEW]
+def _get_slide2_html(lang):
+    return f"""
+    <div class='slide-content'>
+        <div class='panel-box'>
+            <h3>{t(lang, 's2_miss_head')}</h3>
+            <p>{t(lang, 's2_miss_body')}</p>
+            <h3>{t(lang, 's2_comp_head')}</h3>
+            <p>{t(lang, 's2_comp_body')}</p>
+        </div>
+        <div class='leaderboard-box' style='max-width: 600px; margin: 16px auto; text-align: center; padding: 16px;'>
+            <p style='font-size: 1.1rem; margin:0;'>{t(lang, 's2_join')}</p>
+            <h3 style='font-size: 1.75rem; color: #6b7280; margin: 8px 0;'>🛡️ The Ethical Explorers</h3>
+        </div>
+        <div class='mock-ui-box'>
+            <h3>{t(lang, 's2_data_head')}</h3>
+            <p>{t(lang, 's2_data_intro')}</p>
+            <ol style='list-style-position: inside; padding-left: 20px;'>
+                <li>{t(lang, 's2_li1')}
+                    <ul style='margin-left: 20px; list-style-type: disc;'><li>{t(lang, 's2_li1_sub')}</li></ul>
+                </li>
+                <li>{t(lang, 's2_li2')}
+                    <ul style='margin-left: 20px; list-style-type: disc;'><li>{t(lang, 's2_li2_sub')}</li></ul>
+                </li>
+            </ol>
+            <h3>{t(lang, 's2_core_head')}</h3>
+            <p>{t(lang, 's2_core_body')}</p>
+            <p>{t(lang, 's2_ready')}</p>
+        </div>
+    </div>
+    """
+
+# [NEW]
+def _get_slide3_html(lang):
+    return f"""
+    <div class='slide-content'>
+        <div class='panel-box'>
+            <p>{t(lang, 's3_p1')}</p>
+            <h3>{t(lang, 's3_head1')}</h3>
+            <p>{t(lang, 's3_p2')}</p>
+            <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
+                <div style='display:inline-block; background:#dbeafe; padding:12px 16px; border-radius:8px; margin:4px;'><h3 style='margin:0; color:#0369a1;'>{t(lang, 's1_in')}</h3></div>
+                <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
+                <div style='display:inline-block; background:#fef3c7; padding:12px 16px; border-radius:8px; margin:4px;'><h3 style='margin:0; color:#92400e;'>{t(lang, 's1_mod')}</h3></div>
+                <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
+                <div style='display:inline-block; background:#f0fdf4; padding:12px 16px; border-radius:8px; margin:4px;'><h3 style='margin:0; color:#15803d;'>{t(lang, 's1_out')}</h3></div>
+            </div>
+            <p>{t(lang, 's3_eng_note')}</p>
+        </div>
+        <div class='mock-ui-box'>
+            <h3>{t(lang, 's3_comp_head')}</h3>
+            <p>{t(lang, 's3_c1')}</p>
+            <p>{t(lang, 's3_c2')}</p>
+            <p>{t(lang, 's3_c3')}</p>
+            <hr>
+            <p>{t(lang, 's3_learn')}</p>
+        </div>
+    </div>
+    """
+
+# [NEW]
+def _get_slide4_html(lang):
+    return f"""
+    <div class='slide-content'>
+        <div class='panel-box'>
+            <p>{t(lang, 's4_p1')}</p>
+            <h3>{t(lang, 's4_sec_head')}</h3>
+            <p>{t(lang, 's4_sec_body')}</p>
+            <h3>{t(lang, 's4_loop_head')}</h3>
+            <ol style='list-style-position: inside;'>
+                <li>{t(lang, 's4_l1')}</li>
+                <li>{t(lang, 's4_l2')}</li>
+                <li>{t(lang, 's4_l3')}</li>
+            </ol>
+        </div>
+        <h3>{t(lang, 's4_same')}</h3>
+        <div class='step-visual'>
+            <div class='step-visual-box'>{t(lang, 's4_v1')}</div><div class='step-visual-arrow'>→</div>
+            <div class='step-visual-box'>{t(lang, 's4_v2')}</div><div class='step-visual-arrow'>→</div>
+            <div class='step-visual-box'>{t(lang, 's4_v3')}</div><div class='step-visual-arrow'>→</div>
+            <div class='step-visual-box'>{t(lang, 's4_v4')}</div>
+        </div>
+        <div class='leaderboard-box' style='text-align:center;'>
+            <p>{t(lang, 's4_tip')}</p>
+        </div>
+    </div>
+    """
+
+# [NEW]
+def _get_slide5_html(lang):
+    return f"""
+    <div class='slide-content'>
+        <div class='mock-ui-inner'>
+            <p>{t(lang, 's5_intro')}</p>
+            <hr style='margin: 16px 0;'>
+            <h3 style='margin-top:0;'>{t(lang, 's5_k1')}</h3>
+            <div style='font-size: 1rem; margin-bottom:12px;'>{t(lang, 's5_k1_desc')}</div>
+            <div class='mock-ui-control-box'>
+                <p style='font-size: 1.1rem; margin: 8px 0;'><span class='mock-ui-radio-on'>◉</span> {t(lang, 's5_m1')}</p>
+                <p style='font-size: 1.1rem; margin: 8px 0;'><span class='mock-ui-radio-off'>○</span> {t(lang, 's5_m2')}</p>
+                <p style='font-size: 1.1rem; margin: 8px 0;'><span class='mock-ui-radio-off'>○</span> {t(lang, 's5_m3')}</p>
+            </div>
+            <hr style='margin: 24px 0;'>
+            <h3>{t(lang, 's5_k2')}</h3>
+            <div class='mock-ui-control-box' style='text-align: center;'><p style='font-size: 1.1rem; margin:0;'>{t(lang, 's5_range')}</p></div>
+            <div style='margin-top: 16px; font-size: 1rem;'>
+                <ul style='list-style-position: inside;'>
+                    <li>{t(lang, 's5_k2_desc1')}</li>
+                    <li>{t(lang, 's5_k2_desc2')}
+                        <ul style='list-style-position: inside; margin-left: 20px;'>
+                            <li>{t(lang, 's5_low')}</li>
+                            <li>{t(lang, 's5_high')}</li>
+                        </ul>
+                    </li>
+                </ul>
+                <p style='color:#b91c1c; font-weight:bold; margin-top:10px;'>{t(lang, 's5_warn')}</p>
+            </div>
+        </div>
+    </div>
+    """
+
+# [NEW]
+def _get_slide6_html(lang):
+    return f"""
+    <div class='slide-content'>
+        <div class='mock-ui-inner'>
+            <p>{t(lang, 's6_intro')}</p>
+            <hr style='margin: 16px 0;'>
+            <h3 style='margin-top:0;'>{t(lang, 's6_k3')}</h3>
+            <div style='font-size: 1rem; margin-bottom:12px;'>{t(lang, 's6_k3_desc')}</div>
+            <div class='mock-ui-control-box'>
+                <p style='font-size: 1.1rem; margin: 8px 0;'><span class='mock-ui-radio-on'>☑</span> {t(lang, 's6_behav')}</p>
+                <p style='font-size: 1.1rem; margin: 8px 0;'><span class='mock-ui-radio-off'>☐</span> {t(lang, 's6_demo')}</p>
+            </div>
+            <p style='margin-top:10px;'>{t(lang, 's6_job')}</p>
+            <hr style='margin: 24px 0;'>
+            <h3>{t(lang, 's6_k4')}</h3>
+            <div style='font-size: 1rem; margin-bottom:12px;'>{t(lang, 's6_k4_desc')}</div>
+            <div class='mock-ui-control-box'>
+                <p style='font-size: 1.1rem; margin: 8px 0;'><span class='mock-ui-radio-on'>◉</span> {t(lang, 's6_small')}</p>
+                <p style='font-size: 1.1rem; margin: 8px 0;'><span class='mock-ui-radio-off'>○</span> {t(lang, 's6_full')}</p>
+            </div>
+        </div>
+    </div>
+    """
+
+# [NEW]
+def _get_slide7_html(lang):
+    return f"""
+    <div class='slide-content'>
+        <div class='panel-box'>
+            <p>{t(lang, 's7_p1')}</p>
+            <h3>{t(lang, 's7_head1')}</h3>
+            <ul style='list-style-position: inside;'>
+                <li>{t(lang, 's7_acc')}</li>
+                <li>{t(lang, 's7_lead')}</li>
+            </ul>
+            <h3>{t(lang, 's7_head2')}</h3>
+            <ul style='list-style-position: inside;'>
+                <li>{t(lang, 's7_comp')}</li>
+                <li>{t(lang, 's7_promo')}</li>
+            </ul>
+            <div style='text-align:center; font-weight:bold; font-size:1.2rem; color:#4f46e5; margin:16px 0;'>
+                {t(lang, 's7_ranks')}
+            </div>
+            <h3>{t(lang, 's7_head3')}</h3>
+            <p>{t(lang, 's7_final')}</p>
+            <p>{t(lang, 's7_rem')}</p>
+        </div>
+    </div>
+    """
+  
+  # [NEW]
+def build_login_prompt_html(lang="en"):
+    return f"""
+    <h2 style='color: #111827; margin-top:20px; border-top: 2px solid #e5e7eb; padding-top: 20px;'>{t(lang, 'login_title')}</h2>
+    <div style='margin-top:16px; text-align:left; font-size:1rem; line-height:1.6; color:#374151;'>
+        <p style='margin:12px 0;'>{t(lang, 'login_desc')}</p>
+        <p style='margin:12px 0;'>
+            <strong>{t(lang, 'login_new')}</strong>
+            <a href='https://www.modelshare.ai/login' target='_blank' style='color:#4f46e5; text-decoration:underline;'>modelshare.ai/login</a>
+        </p>
+    </div>
+    """
 def _background_initializer():
     """
     Background thread that performs sequential initialization tasks.
@@ -1143,108 +1887,91 @@ def build_login_prompt_html():
     """
 # --- END OF FIX ---
 
-def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_count, is_preview=False, is_pending=False, local_test_accuracy=None):
-    """Generates the HTML for the KPI feedback card. Supports preview mode label and pending state."""
+# [CHANGED] - Added lang parameter and t() calls
+def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_count, is_preview=False, is_pending=False, local_test_accuracy=None, lang="en"):
+    """Generates the HTML for the KPI feedback card with translations."""
 
-    # Handle pending state - show processing message with provisional diff
     if is_pending:
-        title = "⏳ Submission Processing"
-        acc_color = "#3b82f6"  # Blue
+        title = "⏳ Processing..."
+        acc_color = "#3b82f6"
         acc_text = f"{(local_test_accuracy * 100):.2f}%" if local_test_accuracy is not None else "N/A"
-        
-        # Compute provisional diff between local (new) and last score
-        if local_test_accuracy is not None and last_score is not None and last_score > 0:
-            score_diff = local_test_accuracy - last_score
-            if abs(score_diff) < 0.0001:
-                acc_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #6b7280; margin:0;'>No Change (↔) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
-            elif score_diff > 0:
-                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>+{(score_diff * 100):.2f} (⬆️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
-            else:
-                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>{(score_diff * 100):.2f} (⬇️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
-        else:
-            # No last score available - just show pending message
-            acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
-        
+        acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending update...</p>"
         border_color = acc_color
-        rank_color = "#6b7280"  # Gray
-        rank_text = "Pending"
-        rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0;'>Calculating rank...</p>"
-        
-    # Handle preview mode - Styled to match "success" card
-    elif is_preview:
-        title = "🔬 Successful Preview Run!"
-        acc_color = "#16a34a"  # Green (like success)
-        acc_text = f"{(new_score * 100):.2f}%" if new_score > 0 else "N/A"
-        acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>(Preview only - not submitted)</p>" # Neutral color
-        border_color = acc_color # Green border
-        rank_color = "#3b82f6" # Blue (like rank)
-        rank_text = "N/A" # Placeholder
-        rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0;'>Not ranked (preview)</p>" # Neutral color
-    
-    # 1. Handle First Submission
-    elif submission_count == 0:
-        title = "🎉 First Model Submitted!"
-        acc_color = "#16a34a" # green
-        acc_text = f"{(new_score * 100):.2f}%"
-        acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>(Your first score!)</p>"
+        rank_color = "#6b7280"
+        rank_text = "..."
+        rank_diff_html = ""
 
-        rank_color = "#3b82f6" # blue
+    elif is_preview:
+        title = "🔬 " + t(lang, 'kpi_preview')
+        acc_color = "#16a34a"
+        acc_text = f"{(new_score * 100):.2f}%" if new_score > 0 else "N/A"
+        acc_diff_html = ""
+        border_color = acc_color
+        rank_color = "#3b82f6"
+        rank_text = "N/A"
+        rank_diff_html = ""
+
+    elif submission_count == 0:
+        title = t(lang, 'kpi_first')
+        acc_color = "#16a34a"
+        acc_text = f"{(new_score * 100):.2f}%"
+        acc_diff_html = ""
+        rank_color = "#3b82f6"
         rank_text = f"#{new_rank}"
-        rank_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #3b82f6; margin:0;'>You're on the board!</p>"
+        rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #3b82f6; margin:0;'>{t(lang, 'kpi_on_board')}</p>"
         border_color = acc_color
 
     else:
-        # 2. Handle Score Changes
         score_diff = new_score - last_score
         if abs(score_diff) < 0.0001:
-            title = "✅ Submission Successful"
-            acc_color = "#6b7280" # gray
+            title = t(lang, 'kpi_success')
+            acc_color = "#6b7280"
             acc_text = f"{(new_score * 100):.2f}%"
-            acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>No Change (↔)</p>"
+            acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>{t(lang, 'kpi_no_change')}</p>"
             border_color = acc_color
         elif score_diff > 0:
-            title = "✅ Submission Successful!"
-            acc_color = "#16a34a" # green
+            title = t(lang, 'kpi_success')
+            acc_color = "#16a34a"
             acc_text = f"{(new_score * 100):.2f}%"
             acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>+{(score_diff * 100):.2f} (⬆️)</p>"
             border_color = acc_color
         else:
-            title = "📉 Score Dropped"
-            acc_color = "#ef4444" # red
+            title = t(lang, 'kpi_lower')
+            acc_color = "#ef4444"
             acc_text = f"{(new_score * 100):.2f}%"
             acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>{(score_diff * 100):.2f} (⬇️)</p>"
             border_color = acc_color
 
-        # 3. Handle Rank Changes
         rank_diff = last_rank - new_rank
-        rank_color = "#3b82f6" # blue
+        rank_color = "#3b82f6"
         rank_text = f"#{new_rank}"
-        if last_rank == 0: # Handle first rank
-             rank_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #3b82f6; margin:0;'>You're on the board!</p>"
+        if last_rank == 0:
+            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #3b82f6; margin:0;'>{t(lang, 'kpi_on_board')}</p>"
         elif rank_diff > 0:
-            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>🚀 Moved up {rank_diff} spot{'s' if rank_diff > 1 else ''}!</p>"
+            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>🚀 {t(lang, 'kpi_moved_up')} {rank_diff}!</p>"
         elif rank_diff < 0:
-            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>🔻 Dropped {abs(rank_diff)} spot{'s' if abs(rank_diff) > 1 else ''}</p>"
+            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>🔻 {t(lang, 'kpi_dropped')} {abs(rank_diff)}</p>"
         else:
-            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {rank_color}; margin:0;'>No Change (↔)</p>"
+            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {rank_color}; margin:0;'>{t(lang, 'kpi_no_change')}</p>"
 
     return f"""
     <div class='kpi-card' style='border-color: {border_color};'>
         <h2 style='color: #111827; margin-top:0;'>{title}</h2>
         <div class='kpi-card-body'>
             <div class='kpi-metric-box'>
-                <p class='kpi-label'>New Accuracy</p>
+                <p class='kpi-label'>{t(lang, 'kpi_new_acc')}</p>
                 <p class='kpi-score' style='color: {acc_color};'>{acc_text}</p>
                 {acc_diff_html}
             </div>
             <div class='kpi-metric-box'>
-                <p class='kpi-label'>Your Rank</p>
+                <p class='kpi-label'>{t(lang, 'kpi_rank')}</p>
                 <p class='kpi-score' style='color: {rank_color};'>{rank_text}</p>
                 {rank_diff_html}
             </div>
         </div>
     </div>
     """
+  
 
 def _build_team_html(team_summary_df, team_name):
     """
@@ -1331,8 +2058,7 @@ def _build_individual_html(individual_summary_df, username):
 
 # --- End Helper Functions ---
 
-
-def generate_competitive_summary(leaderboard_df, team_name, username, last_submission_score, last_rank, submission_count):
+def generate_competitive_summary(leaderboard_df, team_name, username, last_submission_score, last_rank, submission_count, lang="en"):
     """
     Build summaries, HTML, and KPI card.
     
@@ -1344,15 +2070,17 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
     team_summary_df = pd.DataFrame(columns=["Team", "Best_Score", "Avg_Score", "Submissions"])
     individual_summary_df = pd.DataFrame(columns=["Engineer", "Best_Score", "Submissions"])
 
+    # 1. Handle Empty Leaderboard
     if leaderboard_df is None or leaderboard_df.empty or "accuracy" not in leaderboard_df.columns:
         return (
             "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Leaderboard empty.</p>",
             "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Leaderboard empty.</p>",
-            _build_kpi_card_html(0, 0, 0, 0, 0, is_preview=False, is_pending=False, local_test_accuracy=None), 
+            # Pass lang to KPI builder for "Preview/N/A" text localization
+            _build_kpi_card_html(0, 0, 0, 0, 0, is_preview=False, is_pending=False, local_test_accuracy=None, lang=lang), 
             0.0, 0, 0.0
         )
 
-    # Team summary
+    # 2. Generate Team Summary
     if "Team" in leaderboard_df.columns:
         team_summary_df = (
             leaderboard_df.groupby("Team")["accuracy"]
@@ -1363,7 +2091,7 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
         )
         team_summary_df.index = team_summary_df.index + 1
 
-    # Individual summary
+    # 3. Generate Individual Summary
     user_bests = leaderboard_df.groupby("username")["accuracy"].max()
     user_counts = leaderboard_df.groupby("username")["accuracy"].count()
     individual_summary_df = pd.DataFrame(
@@ -1371,17 +2099,17 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
     ).sort_values("Best_Score", ascending=False).reset_index(drop=True)
     individual_summary_df.index = individual_summary_df.index + 1
 
-    # Get stats for KPI card
+    # 4. Extract Stats for KPI Card
     new_rank = 0
     new_best_accuracy = 0.0
     this_submission_score = 0.0
 
     try:
-        # All submissions for this user
+        # Get all submissions for this user
         user_rows = leaderboard_df[leaderboard_df["username"] == username].copy()
 
         if not user_rows.empty:
-            # Attempt robust timestamp parsing
+            # Attempt robust timestamp parsing to find the absolute latest score
             if "timestamp" in user_rows.columns:
                 parsed_ts = pd.to_datetime(user_rows["timestamp"], errors="coerce")
 
@@ -1397,9 +2125,7 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
                 # No timestamp column → fallback to last row
                 this_submission_score = float(user_rows.iloc[-1]["accuracy"])
 
-        # Rank & best accuracy (unchanged logic, but make sure we use the same best row)
-        my_rank_row = None
-        # Build individual summary before this block (already done above)
+        # Get Rank & Best Accuracy from the pre-calculated summary
         my_rank_row = individual_summary_df[individual_summary_df["Engineer"] == username]
         if not my_rank_row.empty:
             new_rank = my_rank_row.index[0]
@@ -1408,46 +2134,46 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
     except Exception as e:
         _log(f"Latest submission score extraction failed: {e}")
 
-    # Generate HTML outputs
-    # Concurrency Note: Use team_name parameter directly, not os.environ
+    # 5. Generate HTML outputs
     team_html = _build_team_html(team_summary_df, team_name)
     individual_html = _build_individual_html(individual_summary_df, username)
+    
+    # Pass lang to KPI builder
     kpi_card_html = _build_kpi_card_html(
-        this_submission_score, last_submission_score, new_rank, last_rank, submission_count,
-        is_preview=False, is_pending=False, local_test_accuracy=None
+        new_score=this_submission_score,
+        last_score=last_submission_score,
+        new_rank=new_rank,
+        last_rank=last_rank,
+        submission_count=submission_count,
+        is_preview=False,
+        is_pending=False,
+        local_test_accuracy=None,
+        lang=lang
     )
 
     return team_html, individual_html, kpi_card_html, new_best_accuracy, new_rank, this_submission_score
 
 
-def get_model_card(model_name):
-    return MODEL_TYPES.get(model_name, {}).get("card", "No description available.")
+def get_model_card(model_name, lang="en"):
+    """Get localized model description."""
+    if model_name not in MODEL_TYPES:
+        return "No description available."
+    # MODEL_TYPES now contains "desc_key" instead of raw text
+    key = MODEL_TYPES[model_name]["desc_key"]
+    return t(lang, key)
 
-def compute_rank_settings(
-    submission_count,
-    current_model,
-    current_complexity,
-    current_feature_set,
-    current_data_size
-):
-    """Returns rank gating settings (updated for 1–10 complexity scale)."""
-
-    def get_choices_for_rank(rank):
-        if rank == 0: # Trainee
-            return [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in FEATURE_SET_GROUP_1_VALS]
-        if rank == 1: # Junior
-            return [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in (FEATURE_SET_GROUP_1_VALS + FEATURE_SET_GROUP_2_VALS)]
-        return FEATURE_SET_ALL_OPTIONS # Senior+
-
+def compute_rank_settings(submission_count, current_model, current_complexity, current_feature_set, current_data_size, lang="en"):
+    """Returns rank gating settings with localized messages."""
+    
     if submission_count == 0:
         return {
-            "rank_message": "# 🧑‍🎓 Rank: Trainee Engineer\n<p style='font-size:24px; line-height:1.4;'>For your first submission, just click the big '🔬 Build & Submit Model' button below!</p>",
+            "rank_message": t(lang, 'rank_trainee'),
             "model_choices": ["The Balanced Generalist"],
             "model_value": "The Balanced Generalist",
             "model_interactive": False,
             "complexity_max": 3,
             "complexity_value": min(current_complexity, 3),
-            "feature_set_choices": get_choices_for_rank(0),
+            "feature_set_choices": [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in FEATURE_SET_GROUP_1_VALS],
             "feature_set_value": FEATURE_SET_GROUP_1_VALS,
             "feature_set_interactive": False,
             "data_size_choices": ["Small (20%)"],
@@ -1456,13 +2182,13 @@ def compute_rank_settings(
         }
     elif submission_count == 1:
         return {
-            "rank_message": "# 🎉 Rank Up! Junior Engineer\n<p style='font-size:24px; line-height:1.4;'>New models, data sizes, and data ingredients unlocked!</p>",
+            "rank_message": t(lang, 'rank_junior'),
             "model_choices": ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"],
             "model_value": current_model if current_model in ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"] else "The Balanced Generalist",
             "model_interactive": True,
             "complexity_max": 6,
             "complexity_value": min(current_complexity, 6),
-            "feature_set_choices": get_choices_for_rank(1),
+            "feature_set_choices": [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in (FEATURE_SET_GROUP_1_VALS + FEATURE_SET_GROUP_2_VALS)],
             "feature_set_value": current_feature_set,
             "feature_set_interactive": True,
             "data_size_choices": ["Small (20%)", "Medium (60%)"],
@@ -1471,13 +2197,13 @@ def compute_rank_settings(
         }
     elif submission_count == 2:
         return {
-            "rank_message": "# 🌟 Rank Up! Senior Engineer\n<p style='font-size:24px; line-height:1.4;'>Strongest Data Ingredients Unlocked! The most powerful predictors (like 'Age' and 'Prior Crimes Count') are now available in your list. These will likely boost your accuracy, but remember they often carry the most societal bias.</p>",
+            "rank_message": t(lang, 'rank_senior'),
             "model_choices": list(MODEL_TYPES.keys()),
             "model_value": current_model if current_model in MODEL_TYPES else "The Deep Pattern-Finder",
             "model_interactive": True,
             "complexity_max": 8,
             "complexity_value": min(current_complexity, 8),
-            "feature_set_choices": get_choices_for_rank(2),
+            "feature_set_choices": FEATURE_SET_ALL_OPTIONS,
             "feature_set_value": current_feature_set,
             "feature_set_interactive": True,
             "data_size_choices": ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"],
@@ -1486,13 +2212,13 @@ def compute_rank_settings(
         }
     else:
         return {
-            "rank_message": "# 👑 Rank: Lead Engineer\n<p style='font-size:24px; line-height:1.4;'>All tools unlocked — optimize freely!</p>",
+            "rank_message": t(lang, 'rank_lead'),
             "model_choices": list(MODEL_TYPES.keys()),
             "model_value": current_model if current_model in MODEL_TYPES else "The Balanced Generalist",
             "model_interactive": True,
             "complexity_max": 10,
             "complexity_value": current_complexity,
-            "feature_set_choices": get_choices_for_rank(3),
+            "feature_set_choices": FEATURE_SET_ALL_OPTIONS,
             "feature_set_value": current_feature_set,
             "feature_set_interactive": True,
             "data_size_choices": ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"],
@@ -2478,64 +3204,76 @@ def on_initial_load(username, token=None, team_name=""):
 # -------------------------------------------------------------------------
 # Conclusion helpers (dark/light mode aware)
 # -------------------------------------------------------------------------
-def build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set):
+def build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set, lang="en"):
     """
     Build the final conclusion HTML with performance summary.
     Colors are handled via CSS classes so that light/dark mode work correctly.
     """
-    unlocked_tiers = min(3, max(0, submissions - 1))  # 0..3
-    tier_names = ["Trainee", "Junior", "Senior", "Lead"]
-    reached = tier_names[: unlocked_tiers + 1]
-    tier_line = " → ".join([f"{t}{' ✅' if t in reached else ''}" for t in tier_names])
+    # 1. Calculate Tier Progress
+    # Tiers: 0=Trainee, 1=Junior, 2=Senior, 3=Lead
+    unlocked_tiers = min(3, max(0, submissions - 1))
+    
+    # Localized Tier Names (Add these keys to your TRANSLATIONS dict)
+    tier_labels = [
+        t(lang, "tier_trainee"), 
+        t(lang, "tier_junior"), 
+        t(lang, "tier_senior"), 
+        t(lang, "tier_lead")
+    ]
+    
+    # Build the visual "Trainee -> Junior -> ..." line
+    reached = tier_labels[: unlocked_tiers + 1]
+    tier_line_html = " → ".join([f"{label}{' ✅' if label in reached else ''}" for label in tier_labels])
 
+    # 2. Calculate Improvement
     improvement = (best_score - first_score) if (first_score is not None and submissions > 1) else 0.0
+    
+    # 3. Check Strong Predictors
     strong_predictors = {"age", "length_of_stay", "priors_count", "age_cat"}
     strong_used = [f for f in feature_set if f in strong_predictors]
+    strong_txt = ", ".join(strong_used) if strong_used else t(lang, "none_yet")
 
-    ethical_note = (
-        "You unlocked powerful predictors. Consider: Would removing demographic fields change fairness? "
-        "In the next section we will begin to investigate this question further."
-    )
-
-    # Tailor message for very few submissions
+    # 4. Dynamic Tip (if few submissions)
     tip_html = ""
     if submissions < 2:
-        tip_html = """
+        tip_html = f"""
         <div class="final-conclusion-tip">
-          <b>Tip:</b> Try at least 2–3 submissions changing ONE setting at a time to see clear cause/effect.
+          <b>{t(lang, 'tip_label')}</b> {t(lang, 'concl_tip_body')}
         </div>
         """
 
-    # Add note if user reached the attempt cap
+    # 5. Attempt Cap Message (if limit reached)
     attempt_cap_html = ""
     if submissions >= ATTEMPT_LIMIT:
         attempt_cap_html = f"""
         <div class="final-conclusion-attempt-cap">
           <p style="margin:0;">
-            <b>📊 Attempt Limit Reached:</b> You used all {ATTEMPT_LIMIT} allowed submission attempts for this session.
-            We will open up submissions again after you complete some new activities next.
+            <b>📊 {t(lang, 'limit_title')}:</b> {t(lang, 'limit_body').format(limit=ATTEMPT_LIMIT)}
           </p>
         </div>
         """
 
+    # 6. Return Full HTML
     return f"""
     <div class="final-conclusion-root">
-      <h1 class="final-conclusion-title">🎉 Engineering Phase Complete</h1>
+      <h1 class="final-conclusion-title">{t(lang, 'concl_title')}</h1>
+      
       <div class="final-conclusion-card">
-        <h2 class="final-conclusion-subtitle">Your Performance Snapshot</h2>
+        <h2 class="final-conclusion-subtitle">{t(lang, 'concl_snapshot')}</h2>
+        
         <ul class="final-conclusion-list">
-          <li>🏁 <b>Best Accuracy:</b> {(best_score * 100):.2f}%</li>
-          <li>📊 <b>Rank Achieved:</b> {('#' + str(rank)) if rank > 0 else '—'}</li>
-          <li>🔁 <b>Submissions Made This Session:</b> {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li>
-          <li>🧗 <b>Improvement Over First Score This Session:</b> {(improvement * 100):+.2f}</li>
-          <li>🎖️ <b>Tier Progress:</b> {tier_line}</li>
-          <li>🧪 <b>Strong Predictors Used:</b> {len(strong_used)} ({', '.join(strong_used) if strong_used else 'None yet'})</li>
+          <li>🏁 <b>{t(lang, 'lbl_best_acc')}:</b> {(best_score * 100):.2f}%</li>
+          <li>📊 <b>{t(lang, 'concl_rank_achieved')}:</b> {('#' + str(rank)) if rank > 0 else '—'}</li>
+          <li>🔁 <b>{t(lang, 'concl_subs_made')}:</b> {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li>
+          <li>🧗 <b>{t(lang, 'concl_improvement')}:</b> {(improvement * 100):+.2f}</li>
+          <li>🎖️ <b>{t(lang, 'concl_tier_prog')}:</b> {tier_line_html}</li>
+          <li>🧪 <b>{t(lang, 'concl_strong_pred')}:</b> {len(strong_used)} ({strong_txt})</li>
         </ul>
 
         {tip_html}
 
         <div class="final-conclusion-ethics">
-          <p style="margin:0;"><b>Ethical Reflection:</b> {ethical_note}</p>
+          <p style="margin:0;"><b>{t(lang, 'concl_eth_ref')}:</b> {t(lang, 'concl_eth_body')}</p>
         </div>
 
         {attempt_cap_html}
@@ -2543,18 +3281,18 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
         <hr class="final-conclusion-divider" />
 
         <div class="final-conclusion-next">
-          <h2>➡️ Next: Real-World Consequences</h2>
-          <p>Scroll below this app to continue. You'll examine how models like yours shape judicial outcomes.</p>
-          <h1 class="final-conclusion-scroll">👇 SCROLL DOWN 👇</h1>
+          <h2>➡️ {t(lang, 'concl_next_title')}</h2>
+          <p>{t(lang, 'concl_next_body')}</p>
+          <h1 class="final-conclusion-scroll">{t(lang, 's6_scroll')}</h1>
         </div>
       </div>
     </div>
     """
 
 
-
-def build_conclusion_from_state(best_score, submissions, rank, first_score, feature_set):
-    return build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set)
+def build_conclusion_from_state(best_score, submissions, rank, first_score, feature_set, lang="en"):
+    return build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set, lang)
+  
 def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """
     Create (but do not launch) the model building game app.
