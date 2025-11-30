@@ -2387,15 +2387,14 @@ def run_experiment(
 
 def on_initial_load(username, token=None, team_name=""):
     """
-    Updated to show a "Welcome & Call to Action" card on the Team tab
-    when the app loads for a new session.
+    Updated to show "Welcome & CTA" if the SPECIFIC USER has 0 submissions,
+    even if the leaderboard/team already has data from others.
     """
     initial_ui = compute_rank_settings(
         0, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE
     )
 
-    # 1. Prepare the Welcome HTML (The "Start to Play" Prompt)
-    # We use the team_name passed from the session loader
+    # 1. Prepare the Welcome HTML
     display_team = team_name if team_name else "Your Team"
     
     welcome_html = f"""
@@ -2414,13 +2413,11 @@ def on_initial_load(username, token=None, team_name=""):
     </div>
     """
 
-    # Check if background init is done
+    # Check background init
     with INIT_LOCK:
         background_ready = INIT_FLAGS["leaderboard"]
     
-    # Attempt to fetch if background is ready OR if we have a specific user token.
     should_attempt_fetch = background_ready or (token is not None)
-
     full_leaderboard_df = None
     
     if should_attempt_fetch:
@@ -2431,18 +2428,29 @@ def on_initial_load(username, token=None, team_name=""):
             print(f"Error on initial load fetch: {e}")
             full_leaderboard_df = None
 
-    # Decide what to render
-    if full_leaderboard_df is None or full_leaderboard_df.empty:
-        if not background_ready and token is None:
-            # Anonymous cold start -> Show Skeleton
-            team_html = _build_skeleton_leaderboard(rows=6, is_team=True)
-            individual_html = _build_skeleton_leaderboard(rows=6, is_team=False)
-        else:
-            # Authenticated but empty (New User Start) -> SHOW WELCOME HTML
-            team_html = welcome_html
-            individual_html = "<p style='text-align:center; color:#6b7280; padding-top:40px;'>Submit your model to see where you rank!</p>"
+    # -------------------------------------------------------------------------
+    # LOGIC UPDATE: Check if THIS user has submitted anything
+    # -------------------------------------------------------------------------
+    user_has_submitted = False
+    if full_leaderboard_df is not None and not full_leaderboard_df.empty:
+        if "username" in full_leaderboard_df.columns and username:
+            # Check if the username exists in the dataframe
+            user_has_submitted = username in full_leaderboard_df["username"].values
+
+    # Decision Logic
+    if not user_has_submitted:
+        # CASE 1: New User (or first time loading session) -> FORCE WELCOME
+        # regardless of whether the leaderboard has other people's data.
+        team_html = welcome_html
+        individual_html = "<p style='text-align:center; color:#6b7280; padding-top:40px;'>Submit your model to see where you rank!</p>"
+        
+    elif full_leaderboard_df is None or full_leaderboard_df.empty:
+        # CASE 2: Returning user, but data fetch failed -> Show Skeleton
+        team_html = _build_skeleton_leaderboard(rows=6, is_team=True)
+        individual_html = _build_skeleton_leaderboard(rows=6, is_team=False)
+        
     else:
-        # We have data! Render the actual leaderboard.
+        # CASE 3: Returning user WITH data -> Show Real Tables
         try:
             team_html, individual_html, _, _, _, _ = generate_competitive_summary(
                 full_leaderboard_df,
@@ -2450,11 +2458,6 @@ def on_initial_load(username, token=None, team_name=""):
                 username,
                 0, 0, -1
             )
-            # If the user has never submitted, generate_competitive_summary might return an empty table.
-            # In that specific edge case, we override it with the welcome message again.
-            if "No team submissions yet" in team_html:
-                team_html = welcome_html
-
         except Exception as e:
             print(f"Error generating summary HTML: {e}")
             team_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
