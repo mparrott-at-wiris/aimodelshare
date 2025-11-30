@@ -2387,21 +2387,38 @@ def run_experiment(
 
 def on_initial_load(username, token=None, team_name=""):
     """
-    Updated to prioritize authenticated data fetching.
-    If a token is present, we attempt to load the leaderboard immediately,
-    bypassing the background initialization flag.
+    Updated to show a "Welcome & Call to Action" card on the Team tab
+    when the app loads for a new session.
     """
     initial_ui = compute_rank_settings(
         0, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE
     )
 
+    # 1. Prepare the Welcome HTML (The "Start to Play" Prompt)
+    # We use the team_name passed from the session loader
+    display_team = team_name if team_name else "Your Team"
+    
+    welcome_html = f"""
+    <div style='text-align:center; padding: 30px 20px;'>
+        <div style='font-size: 3rem; margin-bottom: 10px;'>👋</div>
+        <h3 style='margin: 0 0 8px 0; color: #111827; font-size: 1.5rem;'>Welcome to <b>{display_team}</b>!</h3>
+        <p style='font-size: 1.1rem; color: #4b5563; margin: 0 0 20px 0;'>
+            Your team is waiting for your help to improve the AI.
+        </p>
+        
+        <div style='background:#eff6ff; padding:16px; border-radius:12px; border:2px solid #bfdbfe; display:inline-block;'>
+            <p style='margin:0; color:#1e40af; font-weight:bold; font-size:1.1rem;'>
+                👈 Click "Build & Submit Model" to Start Playing!
+            </p>
+        </div>
+    </div>
+    """
+
     # Check if background init is done
     with INIT_LOCK:
         background_ready = INIT_FLAGS["leaderboard"]
     
-    # LOGIC FIX: 
     # Attempt to fetch if background is ready OR if we have a specific user token.
-    # This ensures session-auth users get data immediately even on cold starts.
     should_attempt_fetch = background_ready or (token is not None)
 
     full_leaderboard_df = None
@@ -2409,24 +2426,23 @@ def on_initial_load(username, token=None, team_name=""):
     if should_attempt_fetch:
         try:
             if playground:
-                # Use centralized helper for authenticated leaderboard fetch
                 full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
         except Exception as e:
             print(f"Error on initial load fetch: {e}")
             full_leaderboard_df = None
 
-    # Decide what to render based on whether we successfully got data
+    # Decide what to render
     if full_leaderboard_df is None or full_leaderboard_df.empty:
         if not background_ready and token is None:
-            # Case 1: Anonymous user, background not ready -> Show Skeleton
+            # Anonymous cold start -> Show Skeleton
             team_html = _build_skeleton_leaderboard(rows=6, is_team=True)
             individual_html = _build_skeleton_leaderboard(rows=6, is_team=False)
         else:
-            # Case 2: Auth user (but fetch failed) OR background ready (but empty) -> Show Empty Message
-            team_html = "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Leaderboard empty or unavailable.</p>"
-            individual_html = "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Leaderboard empty or unavailable.</p>"
+            # Authenticated but empty (New User Start) -> SHOW WELCOME HTML
+            team_html = welcome_html
+            individual_html = "<p style='text-align:center; color:#6b7280; padding-top:40px;'>Submit your model to see where you rank!</p>"
     else:
-        # Case 3: We have data! Render it.
+        # We have data! Render the actual leaderboard.
         try:
             team_html, individual_html, _, _, _, _ = generate_competitive_summary(
                 full_leaderboard_df,
@@ -2434,6 +2450,11 @@ def on_initial_load(username, token=None, team_name=""):
                 username,
                 0, 0, -1
             )
+            # If the user has never submitted, generate_competitive_summary might return an empty table.
+            # In that specific edge case, we override it with the welcome message again.
+            if "No team submissions yet" in team_html:
+                team_html = welcome_html
+
         except Exception as e:
             print(f"Error generating summary HTML: {e}")
             team_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
