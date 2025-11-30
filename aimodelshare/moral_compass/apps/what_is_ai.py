@@ -1,6 +1,6 @@
 """
 What is AI - Gradio application for the Justice & Equity Challenge.
-Updated with "Open the Black Box" logic and clearer definitions.
+Updated with "Open the Black Box" logic, clearer definitions, and softer conclusion text.
 """
 import contextlib
 import os
@@ -25,7 +25,7 @@ TRANSLATIONS = {
         "s1_human_text": "Dark clouds? -> I feel like it will rain. -> I'll bring an umbrella.",
         "s1_ai_head": "💻 <b>AI Calculation:</b>",
         "s1_ai_text": "Cloud Density (90%) + Humidity (85%) = <b>95% Rain Probability</b>.",
-        "s1_highlight": "AI predicts the future just like you do, but it uses <b>data and math</b> instead of gut feelings.",
+        "s1_highlight": "AI predicts the future just like you do, but it uses <b>data and math</b>.",
         "btn_next_formula": "Next: The AI Formula ▶️",
         # Step 2
         "s2_title": "📐 The Three-Part Formula",
@@ -34,7 +34,7 @@ TRANSLATIONS = {
         "lbl_model": "MODEL",
         "lbl_output": "OUTPUT",
         "desc_input": "Data goes in",
-        "desc_model": "The Mathematical Brain", # Updated definition
+        "desc_model": "The Mathematical Brain",
         "desc_output": "Prediction comes out",
         "s2_ex_title": "Real-World Examples:",
         "s2_ex1_in": "Photo of a dog",
@@ -58,10 +58,10 @@ TRANSLATIONS = {
         "flow_1": "1. INPUT<br>EXAMPLES",
         "flow_2": "2. MODEL<br>GUESSES",
         "flow_3": "3. CHECK<br>ANSWER",
-        "flow_4": "4. ADJUST<br>IMPORTANCE", # Renamed from Weights
+        "flow_4": "4. ADJUST<br>IMPORTANCE", 
         "flow_5": "LEARNED<br>MODEL",
         "s3_vol_title": "🎚️ The \"Volume Knob\" Concept",
-        "s3_vol_desc": "Think of the model like a mixing board. When it makes a mistake, it adjusts the <b>Importance (Weight)</b> of the inputs.<br>It might learn to turn the volume <b>UP</b> on \"Prior Crimes\" and turn the volume <b>DOWN</b> on \"Age\".",
+        "s3_vol_desc": "Think of the model like a control board with different knobs. When it makes a mistake, it adjusts the <b>Importance (Weight)</b> of the inputs.<br>It might learn to turn the volume <b>UP</b> on \"Prior Crimes\" and turn the volume <b>DOWN</b> on \"Age\".",
         "s3_eth_title": "⚠️ The Ethical Challenge",
         "s3_eth_p": "<b>The model is blind to justice.</b> If the historical data is biased (e.g., certain groups were arrested more often), the AI will simply learn that bias as a mathematical pattern.",
         "btn_next_try": "Next: Try It Yourself ▶️",
@@ -93,20 +93,18 @@ TRANSLATIONS = {
         "s5_p1": "<b>Why do we care about 'Math' and 'Inputs'?</b>",
         "s5_p2": "Because the same logic you just used is applied to real people. But there is a key difference between Human and AI bias:",
         "s5_col1_title": "🧑‍⚖️ Human Judge",
-        "s5_col1_desc": "Relies on experience and intuition. Bias comes from subconscious beliefs or personal mood.",
+        "s5_col1_desc": "Relies on things like experience, knowledge, and personal beliefs.  ",
         "s5_col2_title": "🤖 AI Model",
-        "s5_col2_desc": "Relies on historical data. Bias comes from <b>past statistics</b>. It repeats history exactly.",
-        "s5_h2": "The Engineering Goal:",
-        "s5_final": "Your job as an engineer is to check the <b>Inputs</b> and test the <b>Model</b> to ensure it doesn't just repeat the mistakes of the past.<br><br><b>Understanding this is the first step to building fairness.</b>",
+        "s5_col2_desc": "Relies on historical data. It repeats biased patterns that exist in data.",
         "btn_complete": "Complete This Section ▶️",
         # Step 6
-        "s6_title": "🎓 You Now Understand AI!",
-        "s6_congrats": "<b>Congratulations!</b> You can now answer the question:",
+        "s6_title": "🎓 You Know the Basics of AI!", # UPDATED
+        "s6_congrats": "<b>Great job!</b> You've learned the core concepts:", # UPDATED
         "s6_li1": "<b>What is AI?</b> A machine that turns data into predictions using math rules.",
         "s6_li2": "<b>How does it work?</b> Input + Model (Rules) = Output.",
         "s6_li3": "<b>How does it learn?</b> By adjusting the \"importance\" of inputs based on past examples.",
         "s6_li4": "<b>Why is it risky?</b> It trusts historical data completely, even if that data contains bias.",
-        "s6_li5": "", # Removed 5th point to keep it simpler as per review
+        "s6_li5": "",
         "s6_next": "<b>Next Steps:</b>",
         "s6_next_desc": "In the following sections, you will become the Engineer. You will choose the inputs and build the model yourself.",
         "s6_scroll": "👇 SCROLL DOWN 👇",
@@ -200,8 +198,8 @@ TRANSLATIONS = {
         "s5_h2": "El Objetivo del Ingeniero:",
         "s5_final": "Tu trabajo es revisar las <b>Entradas</b> y probar el <b>Modelo</b> para asegurar que no repita los errores del pasado.<br><br><b>Entender esto es el primer paso para construir equidad.</b>",
         "btn_complete": "Completar esta Sección ▶️",
-        "s6_title": "🎓 ¡Ahora Entiendes la IA!",
-        "s6_congrats": "<b>¡Felicidades!</b> Ahora puedes responder:",
+        "s6_title": "🎓 ¡Conoces los Fundamentos de la IA!", # UPDATED
+        "s6_congrats": "<b>¡Buen trabajo!</b> Has aprendido los conceptos clave:", # UPDATED
         "s6_li1": "<b>¿Qué es la IA?</b> Una máquina que convierte datos en predicciones usando reglas matemáticas.",
         "s6_li2": "<b>¿Cómo funciona?</b> Entrada + Modelo (Reglas) = Salida.",
         "s6_li3": "<b>¿Cómo aprende?</b> Ajustando la \"importancia\" de las entradas basándose en ejemplos pasados.",
@@ -299,8 +297,8 @@ TRANSLATIONS = {
         "s5_h2": "L'Objectiu de l'Enginyer:",
         "s5_final": "La teva feina és revisar les <b>Entrades</b> i provar el <b>Model</b> per assegurar que no repeteixi els errors del passat.<br><br><b>Entendre això és el primer pas per construir equitat.</b>",
         "btn_complete": "Completar aquesta Secció ▶️",
-        "s6_title": "🎓 Ara Entens la IA!",
-        "s6_congrats": "<b>Felicitats!</b> Ara pots respondre:",
+        "s6_title": "🎓 Coneixes els Fonaments de la IA!", # UPDATED
+        "s6_congrats": "<b>Bona feina!</b> Has après els conceptes clau:", # UPDATED
         "s6_li1": "<b>Què és la IA?</b> Una màquina que converteix dades en prediccions usant regles matemàtiques.",
         "s6_li2": "<b>Com funciona?</b> Entrada + Model (Regles) = Sortida.",
         "s6_li3": "<b>Com aprèn?</b> Ajustant la \"importància\" de les entrades basant-se en exemples passats.",
