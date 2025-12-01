@@ -14,7 +14,12 @@ APP_NAME_TO_FACTORY = {
     "judge": "create_judge_app",
     "ai-consequences": "create_ai_consequences_app",
     "what-is-ai": "create_what_is_ai_app",
+    # Original generic game (keep for backward compatibility)
     "model-building-game": "create_model_building_game_app",
+    # New language-specific variants
+    "model-building-game-en": "create_model_building_game_en_app",
+    "model-building-game-ca": "create_model_building_game_ca_app",
+    "model-building-game-es": "create_model_building_game_es_app",
     "ethical-revelation": "create_ethical_revelation_app",
     "moral-compass-challenge": "create_moral_compass_challenge_app",
     "bias-detective": "create_bias_detective_app",
@@ -30,7 +35,6 @@ def load_factory(app_name: str):
     factory_name = APP_NAME_TO_FACTORY[app_name]
     logger.info(f"Importing factory '{factory_name}' from apps module (lazy)...")
     
-    # Import from apps module - this uses the lazy __getattr__ mechanism
     try:
         from aimodelshare.moral_compass import apps
         return getattr(apps, factory_name)
