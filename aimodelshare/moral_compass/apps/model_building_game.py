@@ -2027,27 +2027,24 @@ def _build_skeleton_leaderboard(rows=6, is_team=True, submit_button_label="5. ü
         </div>
     </div>
     """
-# --- FIX APPLIED HERE ---
-def build_login_prompt_html():
+def build_login_prompt_html(lang="en"):
     """
     Generate HTML for the login prompt text *only*.
     The styled preview card will be prepended to this.
     """
     return f"""
-    <h2 style='color: #111827; margin-top:20px; border-top: 2px solid #e5e7eb; padding-top: 20px;'>üîê Sign in to submit & rank</h2>
+    <h2 style='color: #111827; margin-top:20px; border-top: 2px solid #e5e7eb; padding-top: 20px;'>{t(lang, 'login_title')}</h2>
     <div style='margin-top:16px; text-align:left; font-size:1rem; line-height:1.6; color:#374151;'>
         <p style='margin:12px 0;'>
-            This is a preview run only. Sign in to publish your score to the live leaderboard, 
-            earn promotions, and contribute team points.
+            {t(lang, 'login_desc')}
         </p>
         <p style='margin:12px 0;'>
-            <strong>New user?</strong> Create a free account at 
+            <strong>{t(lang, 'login_new')}</strong>
             <a href='https://www.modelshare.ai/login' target='_blank' 
                 style='color:#4f46e5; text-decoration:underline;'>modelshare.ai/login</a>
         </p>
     </div>
     """
-# --- END OF FIX ---
 
 # [CHANGED] - Added lang parameter and t() calls
 def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_count, is_preview=False, is_pending=False, local_test_accuracy=None, lang="en"):
