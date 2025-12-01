@@ -1,15 +1,18 @@
 """
 Lazy export layer for Moral Compass Gradio app factories.
 
-Previously this module eagerly imported all app modules, causing Cloud Run
-startup failures if any heavy dependency (pandas, scikit-learn, aimodelshare)
-was missing or slow. We now do on-demand (lazy) imports.
+Updated to include language-specific model building game variants:
+- model_building_game_en
+- model_building_game_ca
+- model_building_game_es
 
-Public factories & launch helpers are resolved dynamically via __getattr__.
+Ensure each module defines its own factory & launcher:
+    create_model_building_game_en_app / launch_model_building_game_en_app
+    create_model_building_game_ca_app / launch_model_building_game_ca_app
+    create_model_building_game_es_app / launch_model_building_game_es_app
 
-Usage:
-from aimodelshare.moral_compass.apps.tutorial import create_tutorial_app
-(or) from aimodelshare.moral_compass.apps import create_tutorial_app  # lazy
+If the modules still use the old names (create_model_building_game_app), rename them
+or adjust _EXPORT_MAP accordingly.
 """
 
 import importlib
@@ -27,8 +30,17 @@ _EXPORT_MAP = {
     "launch_ai_consequences_app": ("ai_consequences", "launch_ai_consequences_app"),
     "create_what_is_ai_app": ("what_is_ai", "create_what_is_ai_app"),
     "launch_what_is_ai_app": ("what_is_ai", "launch_what_is_ai_app"),
+    # Generic model building game (legacy)
     "create_model_building_game_app": ("model_building_game", "create_model_building_game_app"),
     "launch_model_building_game_app": ("model_building_game", "launch_model_building_game_app"),
+    # Language-specific model building game variants
+    "create_model_building_game_en_app": ("model_building_game_en", "create_model_building_game_en_app"),
+    "launch_model_building_game_en_app": ("model_building_game_en", "launch_model_building_game_en_app"),
+    "create_model_building_game_ca_app": ("model_building_game_ca", "create_model_building_game_ca_app"),
+    "launch_model_building_game_ca_app": ("model_building_game_ca", "launch_model_building_game_ca_app"),
+    "create_model_building_game_es_app": ("model_building_game_es", "create_model_building_game_es_app"),
+    "launch_model_building_game_es_app": ("model_building_game_es", "launch_model_building_game_es_app"),
+    # Beginner variant (unchanged)
     "create_model_building_game_beginner_app": ("model_building_game_beginner", "create_model_building_game_beginner_app"),
     "launch_model_building_game_beginner_app": ("model_building_game_beginner", "launch_model_building_game_beginner_app"),
     "create_ethical_revelation_app": ("ethical_revelation", "create_ethical_revelation_app"),
@@ -44,7 +56,6 @@ _EXPORT_MAP = {
 }
 
 __all__ = list(_EXPORT_MAP.keys())
-
 
 def __getattr__(name: str):
     """Dynamically import requested factory/launcher."""
@@ -63,7 +74,6 @@ def __getattr__(name: str):
         logger.error(f"Symbol '{symbol}' not found in module '{mod_name}': {e}")
         raise
 
-
 def list_available_apps():
-    """Utility: return list of logical app names (for diagnostics)."""
+    """Utility: return list of logical app modules (for diagnostics)."""
     return sorted({m for (m, _) in _EXPORT_MAP.values()})
