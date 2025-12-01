@@ -68,7 +68,7 @@ TRANSLATIONS = {
         "label_defendant": "Defendant",
         "label_age": "Age",
         "label_gender": "Gender",
-        "label_race": "Race",
+        "label_race": "Race/Etnicity",
         "label_prior": "Prior Offenses",
         "label_charge": "Current Charge",
         "label_ai_risk": "🤖 AI Risk Assessment:",
