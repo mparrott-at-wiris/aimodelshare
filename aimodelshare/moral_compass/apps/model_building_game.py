@@ -4322,74 +4322,174 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         )
 
         # Handle session-based authentication on page load
-        def handle_load_with_session_auth(request: "gr.Request"):
-            """
-            Check for session token, auto-login if present, then load initial UI with stats.
+        # ---------------------------------------------------------------------
+        # Initial Load Logic (Auth + Language + Stats)
+        # ---------------------------------------------------------------------
+        
+        def handle_load(request: gr.Request):
+            """Unified handler: Parsing params, Auth check, and UI text update."""
+            # 1. Parse Lang & Update Visuals
+            # We re-use the logic from update_language to get the visual component updates
+            visual_updates = update_language(request)
             
-            Concurrency Note: This function does NOT set per-user values in os.environ.
-            All authentication state is returned via gr.State objects (username_state,
-            token_state, team_name_state) to prevent cross-user data leakage.
-            """
+            # 2. Try Auth
             success, username, token = _try_session_based_auth(request)
             
+            # 3. Get Stats if authenticated
+            stats = {"best_score": 0.0, "rank": 0, "team_name": "", "submission_count": 0}
             if success and username and token:
-                _log(f"Session auth successful on load for {username}")
-                
-                # Get user stats and team from cache/leaderboard
                 stats = _compute_user_stats(username, token)
-                team_name = stats.get("team_name", "")
-                
-                # Concurrency Note: Do NOT set os.environ for per-user values.
-                # Return state via gr.State objects exclusively.
-                
-                # Hide login form since user is authenticated via session
-                # Return initial load results plus login form hidden
-                # Pass token explicitly for authenticated leaderboard fetch
-                initial_results = on_initial_load(username, token=token, team_name=team_name)
-                return initial_results + (
-                    gr.update(visible=False),  # login_username
-                    gr.update(visible=False),  # login_password  
-                    gr.update(visible=False),  # login_submit
-                    gr.update(visible=False),  # login_error (hide any messages)
-                    username,  # username_state
-                    token,     # token_state
-                    team_name, # team_name_state
-                )
-            else:
-                _log("No valid session on load, showing login form")
-                # No valid session, proceed with normal load (show login form)
-                # No token available, call without token
-                initial_results = on_initial_load(None, token=None, team_name="")
-                return initial_results + (
-                    gr.update(visible=True),   # login_username
-                    gr.update(visible=True),   # login_password
-                    gr.update(visible=True),   # login_submit
-                    gr.update(visible=False),  # login_error
-                    None,  # username_state
-                    None,  # token_state
-                    "",    # team_name_state
-                )
-        
-        demo.load(
-            fn=handle_load_with_session_auth,
-            inputs=None,  # Request is auto-injected
-            outputs=[
-                model_card_display,
-                team_leaderboard_display, 
-                individual_leaderboard_display, 
-                rank_message_display,
-                model_type_radio,
-                complexity_slider,
-                feature_set_checkbox,
-                data_size_radio,
-                login_username,
-                login_password,
-                login_submit,
-                login_error,
-                username_state,  # NEW
-                token_state,     # NEW
-                team_name_state, # NEW
+
+            # 4. Append State Updates to the return list
+            # The order here effectively concatenates [Visual Updates] + [State Updates]
+            return visual_updates + [
+                username, 
+                token, 
+                stats["team_name"], 
+                stats.get("last_score", 0.0), 
+                stats["rank"], 
+                stats["best_score"], 
+                stats["submission_count"], 
+                None # first_submission_score
             ]
+
+        # Target list for initial load 
+        # MUST MATCH: [All targets from update_language] + [The State targets added above]
+        load_targets = [
+            # --- Visual Targets (From update_language) ---
+            lang_state,
+            c_s1_title, c_s1_html, briefing_1_next,
+            c_s2_title, c_s2_html, briefing_2_back, briefing_2_next,
+            c_s3_title, c_s3_html, briefing_3_back, briefing_3_next,
+            c_s4_title, c_s4_html, briefing_4_back, briefing_4_next,
+            c_s5_title, c_s5_html, briefing_5_back, briefing_5_next,
+            c_s6_title, c_s6_html, briefing_6_back, briefing_6_next,
+            c_s7_title, c_s7_html, briefing_7_back, briefing_7_next,
+            c_app_title, model_type_radio, complexity_slider, feature_set_checkbox, data_size_radio, submit_button,
+            c_concl_title, final_score_display, step_3_back,
+            
+            # --- State Targets (Appended in handle_load) ---
+            username_state, token_state, team_name_state,
+            last_submission_score_state, last_rank_state, best_score_state, submission_count_state, first_submission_score_state
+        ]
+        
+        # Trigger on page load
+        demo.load(handle_load, inputs=None, outputs=load_targets)
+# ---------------------------------------------------------------------
+        # Navigation Logic (Fixed List Return)
+        # ---------------------------------------------------------------------
+        
+        def create_nav(next_step):
+            def navigate():
+                # Return a list of updates for ALL steps in 'all_steps_nav'
+                # 1. Hide everything except the target
+                return [gr.update(visible=True) if s == next_step else gr.update(visible=False) for s in all_steps_nav]
+            return navigate
+
+        def nav_js(target_id, msg):
+            return f"""
+            ()=>{{
+              const overlay = document.getElementById('nav-loading-overlay');
+              if(overlay) {{
+                document.getElementById('nav-loading-text').textContent = '{msg}';
+                overlay.style.display = 'flex';
+                setTimeout(()=>{{ overlay.style.opacity = '1'; }}, 10);
+              }}
+              setTimeout(()=>{{
+                  overlay.style.opacity = '0';
+                  setTimeout(()=>{{ overlay.style.display = 'none'; }}, 300);
+                  const anchor = document.getElementById('app_top_anchor');
+                  if(anchor) anchor.scrollIntoView({{behavior:'smooth', block:'start'}});
+              }}, 800);
+            }}
+            """
+
+        # --- Wiring Navigation Buttons ---
+        briefing_1_next.click(fn=create_nav(briefing_slide_2), outputs=all_steps_nav, js=nav_js("slide-2", "Loading..."))
+        
+        briefing_2_back.click(fn=create_nav(briefing_slide_1), outputs=all_steps_nav, js=nav_js("slide-1", "Back..."))
+        briefing_2_next.click(fn=create_nav(briefing_slide_3), outputs=all_steps_nav, js=nav_js("slide-3", "Loading..."))
+        
+        briefing_3_back.click(fn=create_nav(briefing_slide_2), outputs=all_steps_nav, js=nav_js("slide-2", "Back..."))
+        briefing_3_next.click(fn=create_nav(briefing_slide_4), outputs=all_steps_nav, js=nav_js("slide-4", "Loading..."))
+        
+        briefing_4_back.click(fn=create_nav(briefing_slide_3), outputs=all_steps_nav, js=nav_js("slide-3", "Back..."))
+        briefing_4_next.click(fn=create_nav(briefing_slide_5), outputs=all_steps_nav, js=nav_js("slide-5", "Loading..."))
+        
+        briefing_5_back.click(fn=create_nav(briefing_slide_4), outputs=all_steps_nav, js=nav_js("slide-4", "Back..."))
+        briefing_5_next.click(fn=create_nav(briefing_slide_6), outputs=all_steps_nav, js=nav_js("slide-6", "Loading..."))
+        
+        briefing_6_back.click(fn=create_nav(briefing_slide_5), outputs=all_steps_nav, js=nav_js("slide-5", "Back..."))
+        briefing_6_next.click(fn=create_nav(briefing_slide_7), outputs=all_steps_nav, js=nav_js("slide-7", "Loading..."))
+        
+        briefing_7_back.click(fn=create_nav(briefing_slide_6), outputs=all_steps_nav, js=nav_js("slide-6", "Back..."))
+        briefing_7_next.click(fn=create_nav(model_building_step), outputs=all_steps_nav, js=nav_js("model-step", "Entering Arena..."))
+        
+        # Conclusion Navigation
+        step_2_next.click(
+            fn=finalize_and_show_conclusion,
+            inputs=[best_score_state, submission_count_state, last_rank_state, first_submission_score_state, feature_set_state, lang_state],
+            outputs=all_steps_nav + [final_score_display],
+            js=nav_js("conclusion-step", "Calculating...")
+        )
+        
+        step_3_back.click(fn=create_nav(model_building_step), outputs=all_steps_nav, js=nav_js("model-step", "Returning..."))
+
+        # --- Logic Wiring ---
+        
+        # 1. Poll init status (updates banner/button when data is ready)
+        status_timer = gr.Timer(value=0.5, active=True)
+        status_timer.tick(
+            fn=update_init_status,
+            outputs=[init_status_display, init_banner, submit_button, data_size_radio, status_timer, readiness_state]
+        )
+
+        # 2. Input Events (State Updates)
+        # Update model description based on selection AND current language
+        model_type_radio.change(lambda m, l: get_model_card(m, l), inputs=[model_type_radio, lang_state], outputs=model_card_display)
+        model_type_radio.change(lambda m: m or DEFAULT_MODEL, inputs=model_type_radio, outputs=model_type_state)
+        
+        complexity_slider.change(lambda v: v, inputs=complexity_slider, outputs=complexity_state)
+        feature_set_checkbox.change(lambda v: v or [], inputs=feature_set_checkbox, outputs=feature_set_state)
+        data_size_radio.change(lambda v: v or DEFAULT_DATA_SIZE, inputs=data_size_radio, outputs=data_size_state)
+        
+        # 3. Login Logic
+        login_submit.click(
+            fn=perform_inline_login,
+            inputs=[login_username, login_password],
+            outputs=[login_username, login_password, login_submit, login_error, submit_button, submission_feedback_display, team_name_state, username_state, token_state]
+        )
+
+        # 4. Submit Experiment Logic (Crucial: lang_state added to inputs)
+        submit_button.click(
+            fn=run_experiment,
+            inputs=[
+                model_type_state, 
+                complexity_state, 
+                feature_set_state, 
+                data_size_state,
+                team_name_state, 
+                last_submission_score_state, 
+                last_rank_state,
+                submission_count_state, 
+                first_submission_score_state, 
+                best_score_state,
+                username_state, 
+                token_state, 
+                readiness_state, 
+                was_preview_state, 
+                lang_state  # <--- I18n support
+            ],
+            outputs=[
+                submission_feedback_display, team_leaderboard_display, individual_leaderboard_display,
+                last_submission_score_state, last_rank_state, best_score_state,
+                submission_count_state, first_submission_score_state,
+                rank_message_display, model_type_radio, complexity_slider, feature_set_checkbox,
+                data_size_radio, submit_button, login_username, login_password, login_submit,
+                login_error, attempts_tracker_display, was_preview_state, kpi_meta_state, last_seen_ts_state
+            ],
+            js=nav_js("model-step", "Running Experiment..."),
+            show_progress="full"
         )
 
     return demo
