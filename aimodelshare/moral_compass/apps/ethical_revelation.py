@@ -348,17 +348,17 @@ def translate_team_name_to_english(display_name: str, lang: str = "en") -> str:
     return display_name  # UPDATED: Return display_name instead of None for consistency
 
 # NEW: Format leaderboard DataFrame with localized team names (non-destructive copy)
-def _format_leaderboard_for_display(df: pd.DataFrame, lang: str = "en") -> pd.DataFrame:
+def _format_leaderboard_for_display(df: Optional[pd.DataFrame], lang: str = "en") -> Optional[pd.DataFrame]:
     """
     Create a copy of the leaderboard DataFrame with team names translated for display.
     Does not mutate the original DataFrame.
     For potential future use when displaying full leaderboard.
     """
-    if df is None or df.empty:
-        return df if df is None else df.copy()  # UPDATED: Return copy for empty DataFrame
+    if df is None:
+        return None  # UPDATED: Handle None explicitly
     
-    if "Team" not in df.columns:
-        return df.copy()  # UPDATED: Return copy even when Team column missing
+    if df.empty or "Team" not in df.columns:
+        return df.copy()  # UPDATED: Return copy for empty or missing Team column
     
     df_display = df.copy()
     df_display["Team"] = df_display["Team"].apply(lambda t: translate_team_name_for_display(t, lang))
