@@ -2746,311 +2746,7 @@ def perform_inline_login(username_input, password_input):
             token_state: gr.update()
         }
 
-      # ---------------------------------------------------------------------
-        # CORE EXPERIMENT LOGIC (Updated for I18n)
-        # ---------------------------------------------------------------------
-        def run_experiment(
-            model_name_key, complexity_level, feature_set, data_size_str,
-            team_name, last_score, last_rank, submission_count, first_score, best_score,
-            username, token, readiness, was_preview, lang,
-            progress=gr.Progress()
-        ):
-            """
-            Full experiment logic:
-            1. Validates inputs
-            2. Runs preview on warm dataset if not ready/logged in
-            3. Trains full model on requested data size
-            4. Submits to cloud (if logged in)
-            5. Updates UI with results
-            """
-            # A. Validate & Setup
-            if not model_name_key: model_name_key = DEFAULT_MODEL
-            feature_set = feature_set or []
-            complexity_level = safe_int(complexity_level, 2)
-            
-            # Define helper for localized status updates
-            def status(step, title_en, sub_en):
-                # (Optional) You could add translation keys for these status messages 
-                # in the dictionary if you want strict localization for the loading spinner too.
-                return f"""
-                <div class='processing-status'>
-                    <span class='processing-icon'>⚙️</span>
-                    <div class='processing-text'>Step {step}/5: {title_en}</div>
-                    <div class='processing-subtext'>{sub_en}</div>
-                </div>
-                """
 
-            # B. Initial Feedback
-            progress(0.1, desc="Initializing...")
-            yield {
-                submission_feedback_display: gr.update(value=status(1, "Initializing", "Preparing data ingredients..."), visible=True),
-                submit_button: gr.update(value="⏳ Running...", interactive=False),
-                login_error: gr.update(visible=False)
-            }
-
-            # C. Check Features
-            numeric_cols = [f for f in feature_set if f in ALL_NUMERIC_COLS]
-            categorical_cols = [f for f in feature_set if f in ALL_CATEGORICAL_COLS]
-            
-            if not numeric_cols and not categorical_cols:
-                # Error state
-                yield {
-                    submission_feedback_display: gr.update(value="<p style='color:red; text-align:center;'>⚠️ Error: No features selected.</p>"),
-                    submit_button: gr.update(value=t(lang, 'btn_submit'), interactive=True)
-                }
-                return
-
-            # D. Determine if Preview or Full Run
-            # Use warm mini if: Not logged in OR Playground not ready
-            is_preview_run = (token is None) or (playground is None)
-            
-            # Select Data
-            if is_preview_run:
-                X_train_curr = X_TRAIN_WARM
-                y_train_curr = Y_TRAIN_WARM
-                # If warm data isn't ready yet, stop
-                if X_train_curr is None:
-                    yield { submission_feedback_display: gr.update(value="<p style='color:red;'>⚠️ Data not yet loaded. Please wait...</p>"), submit_button: gr.update(interactive=True) }
-                    return
-            else:
-                # Full Run
-                X_train_curr = X_TRAIN_SAMPLES_MAP.get(data_size_str, X_TRAIN_SAMPLES_MAP[DEFAULT_DATA_SIZE])
-                y_train_curr = Y_TRAIN_SAMPLES_MAP.get(data_size_str, Y_TRAIN_SAMPLES_MAP[DEFAULT_DATA_SIZE])
-
-            # E. Train Model
-            progress(0.3, desc="Training...")
-            yield { submission_feedback_display: gr.update(value=status(2, "Training", "Learning patterns from history...")) }
-
-            # Build & Fit
-            try:
-                preprocessor, selected_cols = build_preprocessor(tuple(sorted(numeric_cols)), tuple(sorted(categorical_cols)))
-                
-                X_train_processed = preprocessor.fit_transform(X_train_curr[selected_cols])
-                # Ensure dense if needed
-                base_model = MODEL_TYPES[model_name_key]["model_builder"]()
-                tuned_model = tune_model_complexity(base_model, complexity_level)
-                
-                if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
-                    from scipy import sparse
-                    if sparse.issparse(X_train_processed): X_train_processed = X_train_processed.toarray()
-                
-                tuned_model.fit(X_train_processed, y_train_curr)
-            except Exception as e:
-                print(f"Train Error: {e}")
-                yield { submission_feedback_display: gr.update(value=f"<p style='color:red;'>Training Error: {e}</p>"), submit_button: gr.update(interactive=True) }
-                return
-
-            # F. Evaluate / Submit
-            progress(0.6, desc="Evaluating...")
-            
-            # Preprocess Test Set
-            X_test_processed = preprocessor.transform(X_TEST_RAW[selected_cols])
-            if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
-                from scipy import sparse
-                if sparse.issparse(X_test_processed): X_test_processed = X_test_processed.toarray()
-            
-            predictions = tuned_model.predict(X_test_processed)
-            local_score = accuracy_score(Y_TEST, predictions)
-
-            # Logic Branch: Preview vs Submit
-            if is_preview_run:
-                # --- PREVIEW MODE ---
-                # Pass lang here
-                preview_card = _build_kpi_card_html(local_score, 0, 0, 0, -1, is_preview=True, lang=lang)
-                
-                # Append Login Prompt if not logged in
-                if token is None:
-                    preview_card += build_login_prompt_html(lang)
-
-                # Settings for next run (Rank calculation)
-                # Preview doesn't increment submission count, so we pass current count
-                settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str, lang)
-
-                yield {
-                    submission_feedback_display: gr.update(value=preview_card),
-                    submit_button: gr.update(value=t(lang, 'btn_submit'), interactive=True),
-                    login_username: gr.update(visible=True), login_password: gr.update(visible=True),
-                    login_submit: gr.update(visible=True),
-                    rank_message_display: gr.update(value=settings["rank_message"]),
-                    # Update inputs based on rank
-                    model_type_radio: gr.update(choices=settings["model_choices"], interactive=settings["model_interactive"]),
-                    complexity_slider: gr.update(maximum=settings["complexity_max"]),
-                    feature_set_checkbox: gr.update(choices=[f[0] for f in settings["feature_set_choices"]], interactive=settings["feature_set_interactive"]),
-                    data_size_radio: gr.update(choices=settings["data_size_choices"], interactive=settings["data_size_interactive"]),
-                    was_preview_state: True
-                }
-            
-            else:
-                # --- SUBMISSION MODE ---
-                progress(0.8, desc="Submitting...")
-                yield { submission_feedback_display: gr.update(value=status(3, "Submitting", "Sending results to leaderboard...")) }
-                
-                # Submit to Cloud
-                try:
-                    desc = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
-                    playground.submit_model(
-                        model=tuned_model, preprocessor=preprocessor, prediction_submission=predictions,
-                        input_dict={'description': desc}, custom_metadata={'Team': team_name}, token=token
-                    )
-                except Exception as e:
-                    print(f"Submission Warning: {e}") # Non-fatal if local score exists
-
-                # Update Stats
-                new_count = submission_count + 1
-                new_first_score = first_score if first_score is not None else local_score
-                
-                # Generate Result Card (Pass lang)
-                result_card = _build_kpi_card_html(
-                    new_score=local_score, last_score=last_score, 
-                    new_rank=0, last_rank=last_rank, # Rank would be updated by next fetch
-                    submission_count=new_count, is_preview=False, lang=lang
-                )
-                
-                # Check Limits
-                if new_count >= ATTEMPT_LIMIT:
-                    result_card += f"<div style='margin-top:15px; border:2px solid red; padding:10px; border-radius:8px; background:#fee;'><b>{t(lang, 'limit_title')}</b></div>"
-                    btn_state = gr.update(value="🛑 Limit Reached", interactive=False)
-                else:
-                    btn_state = gr.update(value=t(lang, 'btn_submit'), interactive=True)
-
-                settings = compute_rank_settings(new_count, model_name_key, complexity_level, feature_set, data_size_str, lang)
-
-                yield {
-                    submission_feedback_display: gr.update(value=result_card),
-                    submit_button: btn_state,
-                    submission_count_state: new_count,
-                    last_submission_score_state: local_score,
-                    best_score_state: max(best_score, local_score),
-                    first_submission_score_state: new_first_score,
-                    # Update UI Permissions
-                    rank_message_display: gr.update(value=settings["rank_message"]),
-                    model_type_radio: gr.update(choices=settings["model_choices"], interactive=settings["model_interactive"]),
-                    complexity_slider: gr.update(maximum=settings["complexity_max"]),
-                    feature_set_checkbox: gr.update(choices=[f[0] for f in settings["feature_set_choices"]], interactive=settings["feature_set_interactive"]),
-                    data_size_radio: gr.update(choices=settings["data_size_choices"], interactive=settings["data_size_interactive"]),
-                    # Hide login
-                    login_username: gr.update(visible=False), login_password: gr.update(visible=False), login_submit: gr.update(visible=False)
-                }
-
-
-# ---------------------------------------------------------------------
-        # Navigation Logic (Fixed List Return)
-        # ---------------------------------------------------------------------
-        
-        def create_nav(next_step):
-            def navigate():
-                # Return a list of updates for ALL steps in 'all_steps_nav'
-                # 1. Hide everything except the target
-                return [gr.update(visible=True) if s == next_step else gr.update(visible=False) for s in all_steps_nav]
-            return navigate
-
-        def nav_js(target_id, msg):
-            return f"""
-            ()=>{{
-              const overlay = document.getElementById('nav-loading-overlay');
-              if(overlay) {{
-                document.getElementById('nav-loading-text').textContent = '{msg}';
-                overlay.style.display = 'flex';
-                setTimeout(()=>{{ overlay.style.opacity = '1'; }}, 10);
-              }}
-              setTimeout(()=>{{
-                  overlay.style.opacity = '0';
-                  setTimeout(()=>{{ overlay.style.display = 'none'; }}, 300);
-                  const anchor = document.getElementById('app_top_anchor');
-                  if(anchor) anchor.scrollIntoView({{behavior:'smooth', block:'start'}});
-              }}, 800);
-            }}
-            """
-
-        # --- Wiring Navigation Buttons ---
-        briefing_1_next.click(fn=create_nav(briefing_slide_2), outputs=all_steps_nav, js=nav_js("slide-2", "Loading..."))
-        
-        briefing_2_back.click(fn=create_nav(briefing_slide_1), outputs=all_steps_nav, js=nav_js("slide-1", "Back..."))
-        briefing_2_next.click(fn=create_nav(briefing_slide_3), outputs=all_steps_nav, js=nav_js("slide-3", "Loading..."))
-        
-        briefing_3_back.click(fn=create_nav(briefing_slide_2), outputs=all_steps_nav, js=nav_js("slide-2", "Back..."))
-        briefing_3_next.click(fn=create_nav(briefing_slide_4), outputs=all_steps_nav, js=nav_js("slide-4", "Loading..."))
-        
-        briefing_4_back.click(fn=create_nav(briefing_slide_3), outputs=all_steps_nav, js=nav_js("slide-3", "Back..."))
-        briefing_4_next.click(fn=create_nav(briefing_slide_5), outputs=all_steps_nav, js=nav_js("slide-5", "Loading..."))
-        
-        briefing_5_back.click(fn=create_nav(briefing_slide_4), outputs=all_steps_nav, js=nav_js("slide-4", "Back..."))
-        briefing_5_next.click(fn=create_nav(briefing_slide_6), outputs=all_steps_nav, js=nav_js("slide-6", "Loading..."))
-        
-        briefing_6_back.click(fn=create_nav(briefing_slide_5), outputs=all_steps_nav, js=nav_js("slide-5", "Back..."))
-        briefing_6_next.click(fn=create_nav(briefing_slide_7), outputs=all_steps_nav, js=nav_js("slide-7", "Loading..."))
-        
-        briefing_7_back.click(fn=create_nav(briefing_slide_6), outputs=all_steps_nav, js=nav_js("slide-6", "Back..."))
-        briefing_7_next.click(fn=create_nav(model_building_step), outputs=all_steps_nav, js=nav_js("model-step", "Entering Arena..."))
-        
-        # Conclusion Navigation
-        step_2_next.click(
-            fn=finalize_and_show_conclusion,
-            inputs=[best_score_state, submission_count_state, last_rank_state, first_submission_score_state, feature_set_state, lang_state],
-            outputs=all_steps_nav + [final_score_display],
-            js=nav_js("conclusion-step", "Calculating...")
-        )
-        
-        step_3_back.click(fn=create_nav(model_building_step), outputs=all_steps_nav, js=nav_js("model-step", "Returning..."))
-
-        # --- Logic Wiring ---
-        
-        # 1. Poll init status (updates banner/button when data is ready)
-        status_timer = gr.Timer(value=0.5, active=True)
-        status_timer.tick(
-            fn=update_init_status,
-            outputs=[init_status_display, init_banner, submit_button, data_size_radio, status_timer, readiness_state]
-        )
-
-        # 2. Input Events (State Updates)
-        # Update model description based on selection AND current language
-        model_type_radio.change(lambda m, l: get_model_card(m, l), inputs=[model_type_radio, lang_state], outputs=model_card_display)
-        model_type_radio.change(lambda m: m or DEFAULT_MODEL, inputs=model_type_radio, outputs=model_type_state)
-        
-        complexity_slider.change(lambda v: v, inputs=complexity_slider, outputs=complexity_state)
-        feature_set_checkbox.change(lambda v: v or [], inputs=feature_set_checkbox, outputs=feature_set_state)
-        data_size_radio.change(lambda v: v or DEFAULT_DATA_SIZE, inputs=data_size_radio, outputs=data_size_state)
-        
-        # 3. Login Logic
-        login_submit.click(
-            fn=perform_inline_login,
-            inputs=[login_username, login_password],
-            outputs=[login_username, login_password, login_submit, login_error, submit_button, submission_feedback_display, team_name_state, username_state, token_state]
-        )
-
-        # 4. Submit Experiment Logic (Crucial: lang_state added to inputs)
-        submit_button.click(
-            fn=run_experiment,
-            inputs=[
-                model_type_state, 
-                complexity_state, 
-                feature_set_state, 
-                data_size_state,
-                team_name_state, 
-                last_submission_score_state, 
-                last_rank_state,
-                submission_count_state, 
-                first_submission_score_state, 
-                best_score_state,
-                username_state, 
-                token_state, 
-                readiness_state, 
-                was_preview_state, 
-                lang_state  # <--- I18n support
-            ],
-            outputs=[
-                submission_feedback_display, team_leaderboard_display, individual_leaderboard_display,
-                last_submission_score_state, last_rank_state, best_score_state,
-                submission_count_state, first_submission_score_state,
-                rank_message_display, model_type_radio, complexity_slider, feature_set_checkbox,
-                data_size_radio, submit_button, login_username, login_password, login_submit,
-                login_error, attempts_tracker_display, was_preview_state, kpi_meta_state, last_seen_ts_state
-            ],
-            js=nav_js("model-step", "Running Experiment..."),
-            show_progress="full"
-        )
-
-    return demo
 
 # -------------------------------------------------------------------------
 # Conclusion helpers (dark/light mode aware)
@@ -4768,6 +4464,190 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         
         # Trigger on Page Load
         demo.load(handle_load, inputs=None, outputs=load_targets)
+        # CORE EXPERIMENT LOGIC (Updated for I18n)
+        # ---------------------------------------------------------------------
+        def run_experiment(
+            model_name_key, complexity_level, feature_set, data_size_str,
+            team_name, last_score, last_rank, submission_count, first_score, best_score,
+            username, token, readiness, was_preview, lang,
+            progress=gr.Progress()
+        ):
+            """
+            Full experiment logic:
+            1. Validates inputs
+            2. Runs preview on warm dataset if not ready/logged in
+            3. Trains full model on requested data size
+            4. Submits to cloud (if logged in)
+            5. Updates UI with results
+            """
+            # A. Validate & Setup
+            if not model_name_key: model_name_key = DEFAULT_MODEL
+            feature_set = feature_set or []
+            complexity_level = safe_int(complexity_level, 2)
+            
+            # Define helper for localized status updates
+            def status(step, title_en, sub_en):
+                # (Optional) You could add translation keys for these status messages 
+                # in the dictionary if you want strict localization for the loading spinner too.
+                return f"""
+                <div class='processing-status'>
+                    <span class='processing-icon'>⚙️</span>
+                    <div class='processing-text'>Step {step}/5: {title_en}</div>
+                    <div class='processing-subtext'>{sub_en}</div>
+                </div>
+                """
+
+            # B. Initial Feedback
+            progress(0.1, desc="Initializing...")
+            yield {
+                submission_feedback_display: gr.update(value=status(1, "Initializing", "Preparing data ingredients..."), visible=True),
+                submit_button: gr.update(value="⏳ Running...", interactive=False),
+                login_error: gr.update(visible=False)
+            }
+
+            # C. Check Features
+            numeric_cols = [f for f in feature_set if f in ALL_NUMERIC_COLS]
+            categorical_cols = [f for f in feature_set if f in ALL_CATEGORICAL_COLS]
+            
+            if not numeric_cols and not categorical_cols:
+                # Error state
+                yield {
+                    submission_feedback_display: gr.update(value="<p style='color:red; text-align:center;'>⚠️ Error: No features selected.</p>"),
+                    submit_button: gr.update(value=t(lang, 'btn_submit'), interactive=True)
+                }
+                return
+
+            # D. Determine if Preview or Full Run
+            # Use warm mini if: Not logged in OR Playground not ready
+            is_preview_run = (token is None) or (playground is None)
+            
+            # Select Data
+            if is_preview_run:
+                X_train_curr = X_TRAIN_WARM
+                y_train_curr = Y_TRAIN_WARM
+                # If warm data isn't ready yet, stop
+                if X_train_curr is None:
+                    yield { submission_feedback_display: gr.update(value="<p style='color:red;'>⚠️ Data not yet loaded. Please wait...</p>"), submit_button: gr.update(interactive=True) }
+                    return
+            else:
+                # Full Run
+                X_train_curr = X_TRAIN_SAMPLES_MAP.get(data_size_str, X_TRAIN_SAMPLES_MAP[DEFAULT_DATA_SIZE])
+                y_train_curr = Y_TRAIN_SAMPLES_MAP.get(data_size_str, Y_TRAIN_SAMPLES_MAP[DEFAULT_DATA_SIZE])
+
+            # E. Train Model
+            progress(0.3, desc="Training...")
+            yield { submission_feedback_display: gr.update(value=status(2, "Training", "Learning patterns from history...")) }
+
+            # Build & Fit
+            try:
+                preprocessor, selected_cols = build_preprocessor(tuple(sorted(numeric_cols)), tuple(sorted(categorical_cols)))
+                
+                X_train_processed = preprocessor.fit_transform(X_train_curr[selected_cols])
+                # Ensure dense if needed
+                base_model = MODEL_TYPES[model_name_key]["model_builder"]()
+                tuned_model = tune_model_complexity(base_model, complexity_level)
+                
+                if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
+                    from scipy import sparse
+                    if sparse.issparse(X_train_processed): X_train_processed = X_train_processed.toarray()
+                
+                tuned_model.fit(X_train_processed, y_train_curr)
+            except Exception as e:
+                print(f"Train Error: {e}")
+                yield { submission_feedback_display: gr.update(value=f"<p style='color:red;'>Training Error: {e}</p>"), submit_button: gr.update(interactive=True) }
+                return
+
+            # F. Evaluate / Submit
+            progress(0.6, desc="Evaluating...")
+            
+            # Preprocess Test Set
+            X_test_processed = preprocessor.transform(X_TEST_RAW[selected_cols])
+            if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
+                from scipy import sparse
+                if sparse.issparse(X_test_processed): X_test_processed = X_test_processed.toarray()
+            
+            predictions = tuned_model.predict(X_test_processed)
+            local_score = accuracy_score(Y_TEST, predictions)
+
+            # Logic Branch: Preview vs Submit
+            if is_preview_run:
+                # --- PREVIEW MODE ---
+                # Pass lang here
+                preview_card = _build_kpi_card_html(local_score, 0, 0, 0, -1, is_preview=True, lang=lang)
+                
+                # Append Login Prompt if not logged in
+                if token is None:
+                    preview_card += build_login_prompt_html(lang)
+
+                # Settings for next run (Rank calculation)
+                # Preview doesn't increment submission count, so we pass current count
+                settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str, lang)
+
+                yield {
+                    submission_feedback_display: gr.update(value=preview_card),
+                    submit_button: gr.update(value=t(lang, 'btn_submit'), interactive=True),
+                    login_username: gr.update(visible=True), login_password: gr.update(visible=True),
+                    login_submit: gr.update(visible=True),
+                    rank_message_display: gr.update(value=settings["rank_message"]),
+                    # Update inputs based on rank
+                    model_type_radio: gr.update(choices=settings["model_choices"], interactive=settings["model_interactive"]),
+                    complexity_slider: gr.update(maximum=settings["complexity_max"]),
+                    feature_set_checkbox: gr.update(choices=[f[0] for f in settings["feature_set_choices"]], interactive=settings["feature_set_interactive"]),
+                    data_size_radio: gr.update(choices=settings["data_size_choices"], interactive=settings["data_size_interactive"]),
+                    was_preview_state: True
+                }
+            
+            else:
+                # --- SUBMISSION MODE ---
+                progress(0.8, desc="Submitting...")
+                yield { submission_feedback_display: gr.update(value=status(3, "Submitting", "Sending results to leaderboard...")) }
+                
+                # Submit to Cloud
+                try:
+                    desc = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
+                    playground.submit_model(
+                        model=tuned_model, preprocessor=preprocessor, prediction_submission=predictions,
+                        input_dict={'description': desc}, custom_metadata={'Team': team_name}, token=token
+                    )
+                except Exception as e:
+                    print(f"Submission Warning: {e}") # Non-fatal if local score exists
+
+                # Update Stats
+                new_count = submission_count + 1
+                new_first_score = first_score if first_score is not None else local_score
+                
+                # Generate Result Card (Pass lang)
+                result_card = _build_kpi_card_html(
+                    new_score=local_score, last_score=last_score, 
+                    new_rank=0, last_rank=last_rank, # Rank would be updated by next fetch
+                    submission_count=new_count, is_preview=False, lang=lang
+                )
+                
+                # Check Limits
+                if new_count >= ATTEMPT_LIMIT:
+                    result_card += f"<div style='margin-top:15px; border:2px solid red; padding:10px; border-radius:8px; background:#fee;'><b>{t(lang, 'limit_title')}</b></div>"
+                    btn_state = gr.update(value="🛑 Limit Reached", interactive=False)
+                else:
+                    btn_state = gr.update(value=t(lang, 'btn_submit'), interactive=True)
+
+                settings = compute_rank_settings(new_count, model_name_key, complexity_level, feature_set, data_size_str, lang)
+
+                yield {
+                    submission_feedback_display: gr.update(value=result_card),
+                    submit_button: btn_state,
+                    submission_count_state: new_count,
+                    last_submission_score_state: local_score,
+                    best_score_state: max(best_score, local_score),
+                    first_submission_score_state: new_first_score,
+                    # Update UI Permissions
+                    rank_message_display: gr.update(value=settings["rank_message"]),
+                    model_type_radio: gr.update(choices=settings["model_choices"], interactive=settings["model_interactive"]),
+                    complexity_slider: gr.update(maximum=settings["complexity_max"]),
+                    feature_set_checkbox: gr.update(choices=[f[0] for f in settings["feature_set_choices"]], interactive=settings["feature_set_interactive"]),
+                    data_size_radio: gr.update(choices=settings["data_size_choices"], interactive=settings["data_size_interactive"]),
+                    # Hide login
+                    login_username: gr.update(visible=False), login_password: gr.update(visible=False), login_submit: gr.update(visible=False)
+                }
         # ---------------------------------------------------------------------
         # Navigation Logic (Fixed List Return)
         # ---------------------------------------------------------------------
