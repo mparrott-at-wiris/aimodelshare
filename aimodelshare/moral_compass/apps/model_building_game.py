@@ -670,6 +670,103 @@ def t_team(team_name_english, lang):
   
 T = TypeVar("T")
 
+def on_initial_load(username, token=None, team_name="", lang="en"):
+    """
+    Updated to handle I18n for the Welcome screen, Team Name translation, and Rank settings.
+    """
+    # 1. Compute initial UI settings (Model choices, sliders) based on rank 0 (Trainee)
+    # Pass lang so the "Trainee" rank message is translated
+    initial_ui = compute_rank_settings(
+        0, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE, lang=lang
+    )
+
+    # 2. Translate the Team Name for display
+    # The backend uses English names ("The Moral Champions"), but we want to show 
+    # "Los Campeones Morales" if lang is 'es'.
+    display_team = team_name
+    if team_name and lang in TRANSLATIONS and team_name in TRANSLATIONS[lang]:
+        display_team = TRANSLATIONS[lang][team_name]
+    elif not display_team:
+        display_team = t(lang, "lbl_team") # Fallback to generic "Team" label
+
+    # 3. Prepare the Welcome HTML (Localized)
+    welcome_html = f"""
+    <div style='text-align:center; padding: 30px 20px;'>
+        <div style='font-size: 3rem; margin-bottom: 10px;'>👋</div>
+        <h3 style='margin: 0 0 8px 0; color: #111827; font-size: 1.5rem;'>{t(lang, 'welcome_header').format(team=display_team)}</h3>
+        <p style='font-size: 1.1rem; color: #4b5563; margin: 0 0 20px 0;'>
+            {t(lang, 'welcome_body')}
+        </p>
+        
+        <div style='background:#eff6ff; padding:16px; border-radius:12px; border:2px solid #bfdbfe; display:inline-block;'>
+            <p style='margin:0; color:#1e40af; font-weight:bold; font-size:1.1rem;'>
+                {t(lang, 'welcome_cta')}
+            </p>
+        </div>
+    </div>
+    """
+
+    # 4. Check background data readiness
+    with INIT_LOCK:
+        background_ready = INIT_FLAGS["leaderboard"]
+    
+    should_attempt_fetch = background_ready or (token is not None)
+    full_leaderboard_df = None
+    
+    if should_attempt_fetch:
+        try:
+            if playground:
+                full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
+        except Exception as e:
+            print(f"Error on initial load fetch: {e}")
+            full_leaderboard_df = None
+
+    # 5. Check if THIS user has submitted anything
+    user_has_submitted = False
+    if full_leaderboard_df is not None and not full_leaderboard_df.empty:
+        if "username" in full_leaderboard_df.columns and username:
+            user_has_submitted = username in full_leaderboard_df["username"].values
+
+    # 6. Decision Logic: Which HTML to return?
+    if not user_has_submitted:
+        # CASE 1: New User -> Show Welcome Screen
+        team_html = welcome_html
+        individual_html = f"<p style='text-align:center; color:#6b7280; padding-top:40px;'>{t(lang, 'lb_submit_to_rank')}</p>"
+        
+    elif full_leaderboard_df is None or full_leaderboard_df.empty:
+        # CASE 2: Returning user, but data fetch failed -> Show Skeleton
+        team_html = _build_skeleton_leaderboard(rows=6, is_team=True)
+        individual_html = _build_skeleton_leaderboard(rows=6, is_team=False)
+        
+    else:
+        # CASE 3: Returning user WITH data -> Show Real Tables
+        try:
+            # Generate summaries
+            # CRITICAL: Pass 'lang' here so column headers and rank rows are translated
+            team_html, individual_html, _, _, _, _ = generate_competitive_summary(
+                full_leaderboard_df,
+                team_name,
+                username,
+                0, 0, -1,
+                lang=lang
+            )
+        except Exception as e:
+            print(f"Error generating summary HTML: {e}")
+            team_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
+            individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
+
+    # 7. Return all UI updates
+    return (
+        get_model_card(DEFAULT_MODEL, lang), # Translated Model Card
+        team_html,
+        individual_html,
+        initial_ui["rank_message"], # Translated Rank Message
+        gr.update(choices=initial_ui["model_choices"], value=initial_ui["model_value"], interactive=initial_ui["model_interactive"]),
+        gr.update(minimum=1, maximum=initial_ui["complexity_max"], value=initial_ui["complexity_value"]),
+        gr.update(choices=[f[0] for f in initial_ui["feature_set_choices"]], value=initial_ui["feature_set_value"], interactive=initial_ui["feature_set_interactive"]),
+        gr.update(choices=initial_ui["data_size_choices"], value=initial_ui["data_size_value"], interactive=initial_ui["data_size_interactive"]),
+    )
+  
 def _retry_with_backoff(
     func: Callable[[], T],
     max_attempts: int = 3,
