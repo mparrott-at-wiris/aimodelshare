@@ -354,8 +354,11 @@ def _format_leaderboard_for_display(df: pd.DataFrame, lang: str = "en") -> pd.Da
     Does not mutate the original DataFrame.
     For potential future use when displaying full leaderboard.
     """
-    if df is None or df.empty or "Team" not in df.columns:
-        return df
+    if df is None or df.empty:
+        return df if df is None else df.copy()  # UPDATED: Return copy for empty DataFrame
+    
+    if "Team" not in df.columns:
+        return df.copy()  # UPDATED: Return copy even when Team column missing
     
     df_display = df.copy()
     df_display["Team"] = df_display["Team"].apply(lambda t: translate_team_name_for_display(t, lang))
