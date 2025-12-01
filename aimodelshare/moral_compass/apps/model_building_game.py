@@ -652,6 +652,21 @@ def t(lang, key):
     if lang not in TRANSLATIONS:
         lang = "en"
     return TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(key, key)
+
+def t_team(team_name_english, lang):
+    """
+    Translates an English team name into the target language.
+    If no translation is found, returns the original English name.
+    """
+    if not team_name_english:
+        return ""
+    
+    # Normal lookup
+    if lang in TRANSLATIONS and team_name_english in TRANSLATIONS[lang]:
+        return TRANSLATIONS[lang][team_name_english]
+    
+    # Fallback
+    return team_name_english
   
 T = TypeVar("T")
 
@@ -2008,27 +2023,21 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
     """
   
 
-def _build_team_html(team_summary_df, team_name):
+def _build_team_html(team_summary_df, team_name, lang="en"):
     """
-    Generates the HTML for the team leaderboard.
-    
-    Uses normalized, case-insensitive comparison to highlight the user's team row,
-    ensuring reliable highlighting even with whitespace or casing variations.
+    Generates the HTML for the team leaderboard with TRANSLATED names.
     """
     if team_summary_df is None or team_summary_df.empty:
-        return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>No team submissions yet.</p>"
+        return f"<p style='text-align:center; color:#6b7280; padding-top:20px;'>{t(lang, 'summary_empty')}</p>" # Assuming you have this key, or use hardcoded text
 
-    # Normalize the current user's team name for comparison
+    # Normalize the current user's team name for comparison logic
     normalized_user_team = _normalize_team_name(team_name).lower()
 
-    header = """
+    header = f"""
     <table class='leaderboard-html-table'>
         <thead>
             <tr>
-                <th>Rank</th>
-                <th>Team</th>
-                <th>Best_Score</th>
-                <th>Avg_Score</th>
+                <th>{t(lang, 'lbl_rank')}</th> <th>{t(lang, 'lbl_team')}</th> <th>{t(lang, 'lbl_best_acc')}</th> <th>Avg Score</th> 
                 <th>Submissions</th>
             </tr>
         </thead>
@@ -2037,14 +2046,22 @@ def _build_team_html(team_summary_df, team_name):
 
     body = ""
     for index, row in team_summary_df.iterrows():
-        # Normalize the row's team name and compare case-insensitively
-        normalized_row_team = _normalize_team_name(row["Team"]).lower()
+        # 1. Get English Name from Data
+        raw_team_name = row['Team']
+        
+        # 2. Translate it for Display
+        display_team_name = t_team(raw_team_name, lang)
+
+        # 3. Logic Check (Use RAW English name for comparison)
+        normalized_row_team = _normalize_team_name(raw_team_name).lower()
         is_user_team = normalized_row_team == normalized_user_team
+        
         row_class = "class='user-row-highlight'" if is_user_team else ""
+        
         body += f"""
         <tr {row_class}>
             <td>{index}</td>
-            <td>{row['Team']}</td>
+            <td>{display_team_name}</td>
             <td>{(row['Best_Score'] * 100):.2f}%</td>
             <td>{(row['Avg_Score'] * 100):.2f}%</td>
             <td>{row['Submissions']}</td>
@@ -2053,6 +2070,7 @@ def _build_team_html(team_summary_df, team_name):
 
     footer = "</tbody></table>"
     return header + body + footer
+  
 
 def _build_individual_html(individual_summary_df, username):
     """Generates the HTML for the individual leaderboard."""
@@ -2170,7 +2188,7 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
         _log(f"Latest submission score extraction failed: {e}")
 
     # 5. Generate HTML outputs
-    team_html = _build_team_html(team_summary_df, team_name)
+    team_html = _build_team_html(team_summary_df, team_name, lang=lang)
     individual_html = _build_individual_html(individual_summary_df, username)
     
     # Pass lang to KPI builder
