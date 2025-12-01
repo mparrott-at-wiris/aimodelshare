@@ -83,6 +83,12 @@ TRANSLATIONS = {
         "login_desc": "This is a preview run only. Sign in to publish your score to the live leaderboard.",
         "login_new": "New user? Create a free account at",
 
+        # --- Welcome Screen (New) ---
+        "welcome_header": "Welcome to <b>{team}</b>!",
+        "welcome_body": "Your team is waiting for your help to improve the AI.",
+        "welcome_cta": "👈 Click 'Build & Submit Model' to Start Playing!",
+        "lb_submit_to_rank": "Submit your model to see where you rank!",
+
         # --- Slides 1-7 ---
         "s1_title": "🔄 From Understanding to Building",
         "s1_intro": "Great progress! You've now:",
@@ -221,7 +227,7 @@ TRANSLATIONS = {
         "kpi_first": "🎉 First Model Submitted!",
         "kpi_lower": "📉 Score Dropped",
 
-        # --- Final Conclusion Screen (NEW KEYS) ---
+        # --- Final Conclusion Screen ---
         "concl_title": "✅ Section Complete",
         "concl_prep": "<p>Preparing final summary...</p>",
         "tier_trainee": "Trainee", 
@@ -240,6 +246,8 @@ TRANSLATIONS = {
         "concl_tier_prog": "Tier Progress",
         "concl_strong_pred": "Strong Predictors Used",
         "lbl_best_acc": "Best Accuracy",
+        "lbl_ind_rank": "Individual Rank",
+        "lbl_team_rank": "Team Rank",
         "concl_eth_ref": "Ethical Reflection",
         "concl_eth_body": "You unlocked powerful predictors. Consider: Would removing demographic fields change fairness? In the next section we will begin to investigate this question further.",
         "concl_next_title": "Next: Real-World Consequences",
@@ -260,6 +268,12 @@ TRANSLATIONS = {
         "login_title": "🔐 Iniciar sesión para clasificar",
         "login_desc": "Esta es solo una vista previa. Inicia sesión para publicar tu puntuación.",
         "login_new": "¿Nuevo usuario? Crea una cuenta gratis en",
+
+        # Welcome
+        "welcome_header": "¡Bienvenido a <b>{team}</b>!",
+        "welcome_body": "Tu equipo espera tu ayuda para mejorar la IA.",
+        "welcome_cta": "👈 ¡Haz clic en 'Construir y Enviar' para Jugar!",
+        "lb_submit_to_rank": "¡Envía tu modelo para ver tu clasificación!",
 
         # Slides
         "s1_title": "🔄 De Entender a Construir",
@@ -317,7 +331,7 @@ TRANSLATIONS = {
         "s5_k1": "1. Estrategia del Modelo (Tipo de Modelo)",
         "s5_k1_desc": "<b>Qué es:</b> El método matemático específico que la máquina usa para encontrar patrones.",
         "s5_m1": "<b>El Generalista Equilibrado:</b> Un algoritmo confiable y multipropósito. Proporciona resultados estables en la mayoría de los datos.",
-        "s5_m2": "<b>El Creador de Reglas:</b> Crea lógica estricta \"Si... Entonces...\" (por ejemplo, Si crímenes previos > 2, entonces Alto Riesgo).",
+        "s5_m2": "<b>El Creador de Reglas:</b> Crea lógica estricta \"Si... Llavors...\" (por ejemplo, Si crímenes previos > 2, entonces Alto Riesgo).",
         "s5_m3": "<b>El Buscador de Patrones Profundos:</b> Un algoritmo complejo diseñado para detectar conexiones sutiles y ocultas en los datos.",
         "s5_k2": "2. Complejidad del Modelo (Nivel de Ajuste)",
         "s5_range": "Rango: Nivel 1 ─── ● ─── 10",
@@ -330,7 +344,7 @@ TRANSLATIONS = {
         "s6_intro": "Ahora que has configurado tu máquina de predicción, debes decidir qué información procesa la máquina. Estas siguientes perillas controlan las Entradas (Datos).",
         "s6_k3": "3. Ingredientes de Datos",
         "s6_k3_desc": "<b>Qué es:</b> Los puntos de datos específicos a los que la máquina tiene permitido acceder.<br><b>Por qué importa:</b> La salida de la máquina depende en gran medida de su entrada.",
-        "s6_behav": "<b>Entradas de Comportamiento:</b> Datos como <i>Conteo de Delitos Juveniles</i> pueden ayudar a la lógica a encontrar patrones de riesgo válidos.",
+        "s6_behav": "<b>Entradas de Comportament:</b> Datos como <i>Conteo de Delitos Juveniles</i> pueden ayudar a la lógica a encontrar patrones de riesgo válidos.",
         "s6_demo": "<b>Entradas Demográficas:</b> Datos como <i>Raza</i> pueden ayudar al modelo a aprender, pero también pueden replicar el sesgo humano.",
         "s6_job": "<b>Tu Trabajo:</b> Marca ☑ o desmarca ☐ las casillas para seleccionar las entradas para alimentar tu modelo.",
         "s6_k4": "4. Tamaño de Datos (Volumen de Entrenamiento)",
@@ -349,8 +363,8 @@ TRANSLATIONS = {
         "s7_head3": "Comienza Tu Misión",
         "s7_final": "Ahora estás listo. Usa el bucle de experimentación, sé promovido, desbloquea todas las herramientas y encuentra la mejor combinación para obtener la puntuación más alta.",
         "s7_rem": "<strong>Recuerda: Has visto cómo estas predicciones afectan las decisiones de la vida real. Construye en consecuencia.</strong>",
-
-        # Labels
+        "btn_begin": "Comenzar ▶️",
+        
         "lbl_model": "1. Estrategia del Modelo",
         "lbl_complex": "2. Complejidad del Modelo",
         "info_complex": "Valores altos permiten aprendizaje profundo; cuidado con el sobreajuste.",
@@ -363,14 +377,10 @@ TRANSLATIONS = {
         "tab_ind": "Clasificaciones Individuales",
         "concl_title": "✅ Sección Completada",
         "concl_prep": "<p>Preparando resumen final...</p>",
-
-        # Ranks
-        "rank_trainee": "# 🧑‍🎓 Rango: Ingeniero Aprendiz\n<p style='font-size:24px; line-height:1.4;'>¡Para tu primer envío, solo haz clic en el botón grande '🔬 Construir y Enviar Modelo' abajo!</p>",
-        "rank_junior": "# 🎉 ¡Subida de Rango! Ingeniero Junior\n<p style='font-size:24px; line-height:1.4;'>¡Nuevos modelos, tamaños de datos e ingredientes de datos desbloqueados!</p>",
-        "rank_senior": "# 🌟 ¡Subida de Rango! Ingeniero Senior\n<p style='font-size:24px; line-height:1.4;'>¡Ingredientes de Datos Más Fuertes Desbloqueados! Los predictores más poderosos (como 'Edad' y 'Conteo de Crímenes Previos') ahora están disponibles en tu lista. Estos probablemente aumentarán tu precisión, pero recuerda que a menudo conllevan el mayor sesgo social.</p>",
-        "rank_lead": "# 👑 Rango: Ingeniero Principal\n<p style='font-size:24px; line-height:1.4;'>¡Todas las herramientas desbloqueadas — optimiza libremente!</p>",
-
-        # Models
+        "rank_trainee": "# 🧑‍🎓 Rango: Ingeniero Aprendiz\n<p style='font-size:24px; line-height:1.4;'>¡Haz clic en 'Construir y Enviar' para comenzar!</p>",
+        "rank_junior": "# 🎉 ¡Subida de Rango! Ingeniero Junior\n<p style='font-size:24px; line-height:1.4;'>¡Nuevos modelos y datos desbloqueados!</p>",
+        "rank_senior": "# 🌟 ¡Subida de Rango! Ingeniero Senior\n<p style='font-size:24px; line-height:1.4;'>¡Ingredientes de Datos Más Fuertes Desbloqueados!</p>",
+        "rank_lead": "# 👑 Rango: Ingeniero Principal\n<p style='font-size:24px; line-height:1.4;'>¡Todas las herramientas desbloqueadas!</p>",
         "mod_bal": "El Generalista Equilibrado",
         "mod_rule": "El Creador de Reglas",
         "mod_knn": "El 'Vecino Más Cercano'",
@@ -379,8 +389,6 @@ TRANSLATIONS = {
         "desc_rule": "Aprende reglas simples 'si/entonces'. Fácil de interpretar, pero puede perder patrones sutiles.",
         "desc_knn": "Mira los ejemplos pasados más cercanos. 'Te pareces a estos otros; predeciré como ellos se comportan.'",
         "desc_deep": "Un conjunto de muchos árboles de decisión. Poderoso, puede capturar patrones profundos; cuidado con la complejidad.",
-
-        # KPI
         "kpi_new_acc": "Nueva Precisión",
         "kpi_rank": "Tu Rango",
         "kpi_no_change": "Sin Cambio (↔)",
@@ -394,7 +402,7 @@ TRANSLATIONS = {
         "kpi_first": "🎉 Primer Modelo Enviado!",
         "kpi_lower": "📉 Puntuación Bajó",
 
-        # Conclusion Screen (New)
+        # Conclusion (New)
         "tier_trainee": "Aprendiz", "tier_junior": "Junior", "tier_senior": "Senior", "tier_lead": "Líder",
         "none_yet": "Ninguno aún",
         "tip_label": "Consejo:",
@@ -408,6 +416,8 @@ TRANSLATIONS = {
         "concl_tier_prog": "Progreso de Nivel",
         "concl_strong_pred": "Predictores Fuertes Usados",
         "lbl_best_acc": "Mejor Precisión",
+        "lbl_ind_rank": "Rango Individual",
+        "lbl_team_rank": "Rango de Equipo",
         "concl_eth_ref": "Reflexión Ética",
         "concl_eth_body": "Desbloqueaste predictores poderosos. Considera: ¿Eliminar campos demográficos cambiaría la equidad? Investigaremos esto más a fondo a continuación.",
         "concl_next_title": "Siguiente: Consecuencias en el Mundo Real",
@@ -428,6 +438,12 @@ TRANSLATIONS = {
         "login_title": "🔐 Inicia sessió per classificar",
         "login_desc": "Això és només una vista prèvia. Inicia sessió per publicar la teva puntuació.",
         "login_new": "Nou usuari? Crea un compte gratuït a",
+
+        # Welcome
+        "welcome_header": "Benvingut a <b>{team}</b>!",
+        "welcome_body": "El teu equip espera la teva ajuda per millorar la IA.",
+        "welcome_cta": "👈 Fes clic a 'Construir i Enviar' per Jugar!",
+        "lb_submit_to_rank": "Envia el teu model per veure la teva classificació!",
 
         # Slides
         "s1_title": "🔄 D'Entendre a Construir",
@@ -517,8 +533,8 @@ TRANSLATIONS = {
         "s7_head3": "Comença La Teva Missió",
         "s7_final": "Ara estàs llest. Utilitza el bucle d'experimentació, sigues promogut, desbloqueja totes les eines i troba la millor combinació per obtenir la puntuació més alta.",
         "s7_rem": "<strong>Recorda: Has vist com aquestes prediccions afecten les decisions de la vida real. Construeix en conseqüència.</strong>",
-
-        # Labels
+        "btn_begin": "Començar ▶️",
+        
         "lbl_model": "1. Estratègia del Model",
         "lbl_complex": "2. Complexitat del Model",
         "info_complex": "Valors alts permeten aprenentatge profund; cura amb el sobreajust.",
@@ -531,24 +547,18 @@ TRANSLATIONS = {
         "tab_ind": "Classificacions Individuals",
         "concl_title": "✅ Secció Completada",
         "concl_prep": "<p>Preparant resum final...</p>",
-
-        # Ranks
         "rank_trainee": "# 🧑‍🎓 Rang: Enginyer Aprenent\n<p style='font-size:24px; line-height:1.4;'>Fes clic a 'Construir i Enviar' per començar!</p>",
         "rank_junior": "# 🎉 Pujada de Rang! Enginyer Junior\n<p style='font-size:24px; line-height:1.4;'>Nous models i dades desbloquejats!</p>",
         "rank_senior": "# 🌟 Pujada de Rang! Enginyer Senior\n<p style='font-size:24px; line-height:1.4;'>Ingredients de Dades Més Forts Desbloquejats!</p>",
         "rank_lead": "# 👑 Rang: Enginyer Principal\n<p style='font-size:24px; line-height:1.4;'>Totes les eines desbloquejades!</p>",
-
-        # Models
         "mod_bal": "El Generalista Equilibrat",
-        "mod_rule": "El Creador de Reglas",
+        "mod_rule": "El Creador de Regles",
         "mod_knn": "El 'Veí Més Proper'",
         "mod_deep": "El Cercador de Patrons Profunds",
         "desc_bal": "Un model ràpid, fiable i complet. Bon punt de partida; menys propens al sobreajust.",
         "desc_rule": "Aprèn regles simples 'si/llavors'. Fàcil d'interpretar, però pot perdre patrons subtils.",
         "desc_knn": "Mira els exemples passats més propers. 'T'assembles a aquests altres; prediré com ells es comporten.'",
         "desc_deep": "Un conjunt de molts arbres de decisió. Potent, pot capturar patrons profunds; cura amb la complexitat.",
-
-        # KPI
         "kpi_new_acc": "Nova Precisió",
         "kpi_rank": "El Teu Rang",
         "kpi_no_change": "Sense Canvi (↔)",
@@ -562,7 +572,7 @@ TRANSLATIONS = {
         "kpi_first": "🎉 Primer Model Enviat!",
         "kpi_lower": "📉 Puntuació Va Baixar",
 
-        # Conclusion Screen (New)
+        # Conclusion (New)
         "tier_trainee": "Aprenent", "tier_junior": "Junior", "tier_senior": "Senior", "tier_lead": "Líder",
         "none_yet": "Cap encara",
         "tip_label": "Consell:",
@@ -576,6 +586,8 @@ TRANSLATIONS = {
         "concl_tier_prog": "Progrés de Nivell",
         "concl_strong_pred": "Predictors Forts Utilitzats",
         "lbl_best_acc": "Millor Precisió",
+        "lbl_ind_rank": "Rang Individual",
+        "lbl_team_rank": "Rang d'Equip",
         "concl_eth_ref": "Reflexió Ètica",
         "concl_eth_body": "Has desbloquejat predictors potents. Considera: Eliminar camps demogràfics canviaria l'equitat? Investigarem això més a fons a continuació.",
         "concl_next_title": "Següent: Conseqüències al Món Real",
@@ -583,7 +595,6 @@ TRANSLATIONS = {
         "s6_scroll": "👇 DESPLAÇA'T CAP AVALL 👇"
     }
 }
-
 # -------------------------------------------------------------------------
 # Configuration & Caching Infrastructure
 # -------------------------------------------------------------------------
@@ -2665,95 +2676,124 @@ def perform_inline_login(username_input, password_input):
                 }
 
 
-def on_initial_load(username, token=None, team_name=""):
-    """
-    Updated to show "Welcome & CTA" if the SPECIFIC USER has 0 submissions,
-    even if the leaderboard/team already has data from others.
-    """
-    initial_ui = compute_rank_settings(
-        0, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE
-    )
-
-    # 1. Prepare the Welcome HTML
-    display_team = team_name if team_name else "Your Team"
-    
-    welcome_html = f"""
-    <div style='text-align:center; padding: 30px 20px;'>
-        <div style='font-size: 3rem; margin-bottom: 10px;'>👋</div>
-        <h3 style='margin: 0 0 8px 0; color: #111827; font-size: 1.5rem;'>Welcome to <b>{display_team}</b>!</h3>
-        <p style='font-size: 1.1rem; color: #4b5563; margin: 0 0 20px 0;'>
-            Your team is waiting for your help to improve the AI.
-        </p>
+# ---------------------------------------------------------------------
+        # Navigation Logic (Fixed List Return)
+        # ---------------------------------------------------------------------
         
-        <div style='background:#eff6ff; padding:16px; border-radius:12px; border:2px solid #bfdbfe; display:inline-block;'>
-            <p style='margin:0; color:#1e40af; font-weight:bold; font-size:1.1rem;'>
-                👈 Click "Build & Submit Model" to Start Playing!
-            </p>
-        </div>
-    </div>
-    """
+        def create_nav(next_step):
+            def navigate():
+                # Return a list of updates for ALL steps in 'all_steps_nav'
+                # 1. Hide everything except the target
+                return [gr.update(visible=True) if s == next_step else gr.update(visible=False) for s in all_steps_nav]
+            return navigate
 
-    # Check background init
-    with INIT_LOCK:
-        background_ready = INIT_FLAGS["leaderboard"]
-    
-    should_attempt_fetch = background_ready or (token is not None)
-    full_leaderboard_df = None
-    
-    if should_attempt_fetch:
-        try:
-            if playground:
-                full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
-        except Exception as e:
-            print(f"Error on initial load fetch: {e}")
-            full_leaderboard_df = None
+        def nav_js(target_id, msg):
+            return f"""
+            ()=>{{
+              const overlay = document.getElementById('nav-loading-overlay');
+              if(overlay) {{
+                document.getElementById('nav-loading-text').textContent = '{msg}';
+                overlay.style.display = 'flex';
+                setTimeout(()=>{{ overlay.style.opacity = '1'; }}, 10);
+              }}
+              setTimeout(()=>{{
+                  overlay.style.opacity = '0';
+                  setTimeout(()=>{{ overlay.style.display = 'none'; }}, 300);
+                  const anchor = document.getElementById('app_top_anchor');
+                  if(anchor) anchor.scrollIntoView({{behavior:'smooth', block:'start'}});
+              }}, 800);
+            }}
+            """
 
-    # -------------------------------------------------------------------------
-    # LOGIC UPDATE: Check if THIS user has submitted anything
-    # -------------------------------------------------------------------------
-    user_has_submitted = False
-    if full_leaderboard_df is not None and not full_leaderboard_df.empty:
-        if "username" in full_leaderboard_df.columns and username:
-            # Check if the username exists in the dataframe
-            user_has_submitted = username in full_leaderboard_df["username"].values
-
-    # Decision Logic
-    if not user_has_submitted:
-        # CASE 1: New User (or first time loading session) -> FORCE WELCOME
-        # regardless of whether the leaderboard has other people's data.
-        team_html = welcome_html
-        individual_html = "<p style='text-align:center; color:#6b7280; padding-top:40px;'>Submit your model to see where you rank!</p>"
+        # --- Wiring Navigation Buttons ---
+        briefing_1_next.click(fn=create_nav(briefing_slide_2), outputs=all_steps_nav, js=nav_js("slide-2", "Loading..."))
         
-    elif full_leaderboard_df is None or full_leaderboard_df.empty:
-        # CASE 2: Returning user, but data fetch failed -> Show Skeleton
-        team_html = _build_skeleton_leaderboard(rows=6, is_team=True)
-        individual_html = _build_skeleton_leaderboard(rows=6, is_team=False)
+        briefing_2_back.click(fn=create_nav(briefing_slide_1), outputs=all_steps_nav, js=nav_js("slide-1", "Back..."))
+        briefing_2_next.click(fn=create_nav(briefing_slide_3), outputs=all_steps_nav, js=nav_js("slide-3", "Loading..."))
         
-    else:
-        # CASE 3: Returning user WITH data -> Show Real Tables
-        try:
-            team_html, individual_html, _, _, _, _ = generate_competitive_summary(
-                full_leaderboard_df,
-                team_name,
-                username,
-                0, 0, -1
-            )
-        except Exception as e:
-            print(f"Error generating summary HTML: {e}")
-            team_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
-            individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
+        briefing_3_back.click(fn=create_nav(briefing_slide_2), outputs=all_steps_nav, js=nav_js("slide-2", "Back..."))
+        briefing_3_next.click(fn=create_nav(briefing_slide_4), outputs=all_steps_nav, js=nav_js("slide-4", "Loading..."))
+        
+        briefing_4_back.click(fn=create_nav(briefing_slide_3), outputs=all_steps_nav, js=nav_js("slide-3", "Back..."))
+        briefing_4_next.click(fn=create_nav(briefing_slide_5), outputs=all_steps_nav, js=nav_js("slide-5", "Loading..."))
+        
+        briefing_5_back.click(fn=create_nav(briefing_slide_4), outputs=all_steps_nav, js=nav_js("slide-4", "Back..."))
+        briefing_5_next.click(fn=create_nav(briefing_slide_6), outputs=all_steps_nav, js=nav_js("slide-6", "Loading..."))
+        
+        briefing_6_back.click(fn=create_nav(briefing_slide_5), outputs=all_steps_nav, js=nav_js("slide-5", "Back..."))
+        briefing_6_next.click(fn=create_nav(briefing_slide_7), outputs=all_steps_nav, js=nav_js("slide-7", "Loading..."))
+        
+        briefing_7_back.click(fn=create_nav(briefing_slide_6), outputs=all_steps_nav, js=nav_js("slide-6", "Back..."))
+        briefing_7_next.click(fn=create_nav(model_building_step), outputs=all_steps_nav, js=nav_js("model-step", "Entering Arena..."))
+        
+        # Conclusion Navigation
+        step_2_next.click(
+            fn=finalize_and_show_conclusion,
+            inputs=[best_score_state, submission_count_state, last_rank_state, first_submission_score_state, feature_set_state, lang_state],
+            outputs=all_steps_nav + [final_score_display],
+            js=nav_js("conclusion-step", "Calculating...")
+        )
+        
+        step_3_back.click(fn=create_nav(model_building_step), outputs=all_steps_nav, js=nav_js("model-step", "Returning..."))
 
-    return (
-        get_model_card(DEFAULT_MODEL),
-        team_html,
-        individual_html,
-        initial_ui["rank_message"],
-        gr.update(choices=initial_ui["model_choices"], value=initial_ui["model_value"], interactive=initial_ui["model_interactive"]),
-        gr.update(minimum=1, maximum=initial_ui["complexity_max"], value=initial_ui["complexity_value"]),
-        gr.update(choices=initial_ui["feature_set_choices"], value=initial_ui["feature_set_value"], interactive=initial_ui["feature_set_interactive"]),
-        gr.update(choices=initial_ui["data_size_choices"], value=initial_ui["data_size_value"], interactive=initial_ui["data_size_interactive"]),
-    )
+        # --- Logic Wiring ---
+        
+        # 1. Poll init status (updates banner/button when data is ready)
+        status_timer = gr.Timer(value=0.5, active=True)
+        status_timer.tick(
+            fn=update_init_status,
+            outputs=[init_status_display, init_banner, submit_button, data_size_radio, status_timer, readiness_state]
+        )
 
+        # 2. Input Events (State Updates)
+        # Update model description based on selection AND current language
+        model_type_radio.change(lambda m, l: get_model_card(m, l), inputs=[model_type_radio, lang_state], outputs=model_card_display)
+        model_type_radio.change(lambda m: m or DEFAULT_MODEL, inputs=model_type_radio, outputs=model_type_state)
+        
+        complexity_slider.change(lambda v: v, inputs=complexity_slider, outputs=complexity_state)
+        feature_set_checkbox.change(lambda v: v or [], inputs=feature_set_checkbox, outputs=feature_set_state)
+        data_size_radio.change(lambda v: v or DEFAULT_DATA_SIZE, inputs=data_size_radio, outputs=data_size_state)
+        
+        # 3. Login Logic
+        login_submit.click(
+            fn=perform_inline_login,
+            inputs=[login_username, login_password],
+            outputs=[login_username, login_password, login_submit, login_error, submit_button, submission_feedback_display, team_name_state, username_state, token_state]
+        )
+
+        # 4. Submit Experiment Logic (Crucial: lang_state added to inputs)
+        submit_button.click(
+            fn=run_experiment,
+            inputs=[
+                model_type_state, 
+                complexity_state, 
+                feature_set_state, 
+                data_size_state,
+                team_name_state, 
+                last_submission_score_state, 
+                last_rank_state,
+                submission_count_state, 
+                first_submission_score_state, 
+                best_score_state,
+                username_state, 
+                token_state, 
+                readiness_state, 
+                was_preview_state, 
+                lang_state  # <--- I18n support
+            ],
+            outputs=[
+                submission_feedback_display, team_leaderboard_display, individual_leaderboard_display,
+                last_submission_score_state, last_rank_state, best_score_state,
+                submission_count_state, first_submission_score_state,
+                rank_message_display, model_type_radio, complexity_slider, feature_set_checkbox,
+                data_size_radio, submit_button, login_username, login_password, login_submit,
+                login_error, attempts_tracker_display, was_preview_state, kpi_meta_state, last_seen_ts_state
+            ],
+            js=nav_js("model-step", "Running Experiment..."),
+            show_progress="full"
+        )
+
+    return demo
 
 # -------------------------------------------------------------------------
 # Conclusion helpers (dark/light mode aware)
@@ -4326,11 +4366,14 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         # Initial Load Logic (Auth + Language + Stats)
         # ---------------------------------------------------------------------
         
-        def handle_load(request: gr.Request):
+def handle_load(request: gr.Request):
             """Unified handler: Parsing params, Auth check, and UI text update."""
+            
             # 1. Parse Lang & Update Visuals
-            # We re-use the logic from update_language to get the visual component updates
             visual_updates = update_language(request)
+            
+            # Extract lang from the visual_updates list (it's the first item)
+            lang = visual_updates[0] 
             
             # 2. Try Auth
             success, username, token = _try_session_based_auth(request)
@@ -4340,23 +4383,94 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             if success and username and token:
                 stats = _compute_user_stats(username, token)
 
-            # 4. Append State Updates to the return list
-            # The order here effectively concatenates [Visual Updates] + [State Updates]
+            # 4. Call Initial Load Logic with LANG
+            # We pass the extracted 'lang' here 👇
+            initial_results = on_initial_load(username, token=token, team_name=stats["team_name"], lang=lang)
+
+            # 5. Combine everything into one return list
+            # Structure: [Language Updates] + [State Updates] + [Initial Data Results]
+            
+            # We need to be careful with the return order. 
+            # The `load_targets` list in your main function expects:
+            # [Language Updates...] + [States...] + [Model Card, Team LB, Ind LB, Rank Msg, Inputs...]
+            
+            # However, update_language ALREADY returns updates for Model Card, Rank Msg, and Inputs!
+            # We don't want to overwrite the translated labels with the English defaults from on_initial_load.
+            
+            # STRATEGY:
+            # The `update_language` list updates the LABELS (choices, labels, info).
+            # The `on_initial_load` list updates the VALUES (value, interactive state).
+            # Gradio updates merge intelligently, but to be safe, we should merge them carefully.
+            
+            # Let's look at load_targets again:
+            # ... c_app_title, model_type_radio, complexity_slider, feature_set_checkbox ...
+            
+            # update_language returns updates for these at indices -5, -4, -3, -2...
+            # on_initial_load returns updates for these at indices 4, 5, 6, 7...
+            
+            # Ideally, we should just rely on on_initial_load for the logic-heavy components 
+            # (radios, sliders) because it sets the correct interactive state and choices based on rank.
+            
+            # So we will REPLACE the specific items in `visual_updates` with the ones from `initial_results`
+            # corresponding to the input components.
+            
+            # Indices in visual_updates (from Step 9/11 code):
+            # ...
+            # -6: model_type_radio
+            # -5: complexity_slider
+            # -4: feature_set_checkbox
+            # -3: data_size_radio
+            # ...
+            
+            # We replace them with the result from on_initial_load which has the correct VALUES and CHOICES
+            # but we ensure the LABELS from update_language are preserved.
+            
+            # Helper to merge updates
+            def merge(lbl_update, val_update):
+                # Take label/info from translation, take value/choices/interactive from logic
+                return gr.update(
+                    label=lbl_update.get("label"),
+                    info=lbl_update.get("info"),
+                    value=val_update.get("value"),
+                    choices=val_update.get("choices"),
+                    interactive=val_update.get("interactive"),
+                    minimum=val_update.get("minimum"),
+                    maximum=val_update.get("maximum")
+                )
+
+            # Model Radio (Index -7 in visual_updates if counting back from conclusion)
+            # Let's assume the fixed index based on the list structure:
+            # [37] is model_type_radio
+            visual_updates[37] = merge(visual_updates[37], initial_results[4])
+            # [38] is complexity_slider
+            visual_updates[38] = merge(visual_updates[38], initial_results[5])
+            # [39] is feature_set_checkbox
+            visual_updates[39] = merge(visual_updates[39], initial_results[6])
+            # [40] is data_size_radio
+            visual_updates[40] = merge(visual_updates[40], initial_results[7])
+            
+            # We also need to inject the Model Card and Leaderboards
+            # We can add them to the end if we add them to load_targets
+            
+            # Actually, looking at your load_targets in Step 11, 
+            # you DO NOT have model_card_display or team_leaderboard_display in the list!
+            # This is a bug in the previous Step 10/11 setup.
+            
+            # FIX: Let's update load_targets to include them, and return them here.
+            
             return visual_updates + [
-                username, 
-                token, 
-                stats["team_name"], 
-                stats.get("last_score", 0.0), 
-                stats["rank"], 
-                stats["best_score"], 
-                stats["submission_count"], 
-                None # first_submission_score
+                username, token, stats["team_name"], 
+                stats.get("last_score", 0.0), stats["rank"], stats["best_score"], stats["submission_count"], None,
+                # Extra outputs from on_initial_load that weren't covered by visual_updates
+                initial_results[0], # model_card_display
+                initial_results[1], # team_leaderboard
+                initial_results[2], # ind_leaderboard
+                initial_results[3]  # rank_message
             ]
 
-        # Target list for initial load 
-        # MUST MATCH: [All targets from update_language] + [The State targets added above]
+        # UPDATED TARGET LIST
         load_targets = [
-            # --- Visual Targets (From update_language) ---
+            # ... (Existing visual targets) ...
             lang_state,
             c_s1_title, c_s1_html, briefing_1_next,
             c_s2_title, c_s2_html, briefing_2_back, briefing_2_next,
@@ -4368,14 +4482,19 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             c_app_title, model_type_radio, complexity_slider, feature_set_checkbox, data_size_radio, submit_button,
             c_concl_title, final_score_display, step_3_back,
             
-            # --- State Targets (Appended in handle_load) ---
+            # ... (State Targets) ...
             username_state, token_state, team_name_state,
-            last_submission_score_state, last_rank_state, best_score_state, submission_count_state, first_submission_score_state
+            last_submission_score_state, last_rank_state, best_score_state, submission_count_state, first_submission_score_state,
+            
+            # ... (NEW TARGETS for dynamic content) ...
+            model_card_display, 
+            team_leaderboard_display, 
+            individual_leaderboard_display,
+            rank_message_display
         ]
         
-        # Trigger on page load
         demo.load(handle_load, inputs=None, outputs=load_targets)
-# ---------------------------------------------------------------------
+        # ---------------------------------------------------------------------
         # Navigation Logic (Fixed List Return)
         # ---------------------------------------------------------------------
         
