@@ -62,10 +62,6 @@ except ImportError:
 # TRANSLATION CONFIGURATION
 # -------------------------------------------------------------------------
 
-# -------------------------------------------------------------------------
-# TRANSLATION CONFIGURATION
-# -------------------------------------------------------------------------
-
 TRANSLATIONS = {
     "en": {
         # --- General & Nav ---
@@ -83,7 +79,7 @@ TRANSLATIONS = {
         "login_desc": "This is a preview run only. Sign in to publish your score to the live leaderboard.",
         "login_new": "New user? Create a free account at",
 
-        # --- Welcome Screen (New) ---
+        # --- Welcome Screen ---
         "welcome_header": "Welcome to <b>{team}</b>!",
         "welcome_body": "Your team is waiting for your help to improve the AI.",
         "welcome_cta": "👈 Click 'Build & Submit Model' to Start Playing!",
@@ -226,7 +222,13 @@ TRANSLATIONS = {
         "kpi_success": "✅ Submission Successful",
         "kpi_first": "🎉 First Model Submitted!",
         "kpi_lower": "📉 Score Dropped",
+        "summary_empty": "No team submissions yet.",
 
+        # --- Leaderboard Table Headers (New) ---
+        "lbl_rank": "Rank",
+        "lbl_team": "Team",
+        "lbl_best_acc": "Best Accuracy",
+        
         # --- Final Conclusion Screen ---
         "concl_title": "✅ Section Complete",
         "concl_prep": "<p>Preparing final summary...</p>",
@@ -245,9 +247,6 @@ TRANSLATIONS = {
         "concl_improvement": "Improvement Over First Score",
         "concl_tier_prog": "Tier Progress",
         "concl_strong_pred": "Strong Predictors Used",
-        "lbl_best_acc": "Best Accuracy",
-        "lbl_ind_rank": "Individual Rank",
-        "lbl_team_rank": "Team Rank",
         "concl_eth_ref": "Ethical Reflection",
         "concl_eth_body": "You unlocked powerful predictors. Consider: Would removing demographic fields change fairness? In the next section we will begin to investigate this question further.",
         "concl_next_title": "Next: Real-World Consequences",
@@ -344,7 +343,7 @@ TRANSLATIONS = {
         "s6_intro": "Ahora que has configurado tu máquina de predicción, debes decidir qué información procesa la máquina. Estas siguientes perillas controlan las Entradas (Datos).",
         "s6_k3": "3. Ingredientes de Datos",
         "s6_k3_desc": "<b>Qué es:</b> Los puntos de datos específicos a los que la máquina tiene permitido acceder.<br><b>Por qué importa:</b> La salida de la máquina depende en gran medida de su entrada.",
-        "s6_behav": "<b>Entradas de Comportament:</b> Datos como <i>Conteo de Delitos Juveniles</i> pueden ayudar a la lógica a encontrar patrones de riesgo válidos.",
+        "s6_behav": "<b>Entradas de Comportamiento:</b> Datos como <i>Conteo de Delitos Juveniles</i> pueden ayudar a la lógica a encontrar patrones de riesgo válidos.",
         "s6_demo": "<b>Entradas Demográficas:</b> Datos como <i>Raza</i> pueden ayudar al modelo a aprender, pero también pueden replicar el sesgo humano.",
         "s6_job": "<b>Tu Trabajo:</b> Marca ☑ o desmarca ☐ las casillas para seleccionar las entradas para alimentar tu modelo.",
         "s6_k4": "4. Tamaño de Datos (Volumen de Entrenamiento)",
@@ -377,10 +376,12 @@ TRANSLATIONS = {
         "tab_ind": "Clasificaciones Individuales",
         "concl_title": "✅ Sección Completada",
         "concl_prep": "<p>Preparando resumen final...</p>",
+
         "rank_trainee": "# 🧑‍🎓 Rango: Ingeniero Aprendiz\n<p style='font-size:24px; line-height:1.4;'>¡Haz clic en 'Construir y Enviar' para comenzar!</p>",
         "rank_junior": "# 🎉 ¡Subida de Rango! Ingeniero Junior\n<p style='font-size:24px; line-height:1.4;'>¡Nuevos modelos y datos desbloqueados!</p>",
         "rank_senior": "# 🌟 ¡Subida de Rango! Ingeniero Senior\n<p style='font-size:24px; line-height:1.4;'>¡Ingredientes de Datos Más Fuertes Desbloqueados!</p>",
         "rank_lead": "# 👑 Rango: Ingeniero Principal\n<p style='font-size:24px; line-height:1.4;'>¡Todas las herramientas desbloqueadas!</p>",
+
         "mod_bal": "El Generalista Equilibrado",
         "mod_rule": "El Creador de Reglas",
         "mod_knn": "El 'Vecino Más Cercano'",
@@ -389,6 +390,7 @@ TRANSLATIONS = {
         "desc_rule": "Aprende reglas simples 'si/entonces'. Fácil de interpretar, pero puede perder patrones sutiles.",
         "desc_knn": "Mira los ejemplos pasados más cercanos. 'Te pareces a estos otros; predeciré como ellos se comportan.'",
         "desc_deep": "Un conjunto de muchos árboles de decisión. Poderoso, puede capturar patrones profundos; cuidado con la complejidad.",
+
         "kpi_new_acc": "Nueva Precisión",
         "kpi_rank": "Tu Rango",
         "kpi_no_change": "Sin Cambio (↔)",
@@ -401,8 +403,14 @@ TRANSLATIONS = {
         "kpi_success": "✅ Envío Exitoso",
         "kpi_first": "🎉 Primer Modelo Enviado!",
         "kpi_lower": "📉 Puntuación Bajó",
+        "summary_empty": "Aún no hay envíos de equipo.",
 
-        # Conclusion (New)
+        # --- Leaderboard ---
+        "lbl_rank": "Rango",
+        "lbl_team": "Equipo",
+        "lbl_best_acc": "Mejor Precisión",
+
+        # --- Conclusion ---
         "tier_trainee": "Aprendiz", "tier_junior": "Junior", "tier_senior": "Senior", "tier_lead": "Líder",
         "none_yet": "Ninguno aún",
         "tip_label": "Consejo:",
@@ -415,14 +423,19 @@ TRANSLATIONS = {
         "concl_improvement": "Mejora Sobre la Primera Puntuación",
         "concl_tier_prog": "Progreso de Nivel",
         "concl_strong_pred": "Predictores Fuertes Usados",
-        "lbl_best_acc": "Mejor Precisión",
-        "lbl_ind_rank": "Rango Individual",
-        "lbl_team_rank": "Rango de Equipo",
         "concl_eth_ref": "Reflexión Ética",
         "concl_eth_body": "Desbloqueaste predictores poderosos. Considera: ¿Eliminar campos demográficos cambiaría la equidad? Investigaremos esto más a fondo a continuación.",
         "concl_next_title": "Siguiente: Consecuencias en el Mundo Real",
         "concl_next_body": "Desplázate hacia abajo. Examinarás cómo modelos como el tuyo dan forma a los resultados judiciales.",
-        "s6_scroll": "👇 DESPLÁZATE HACIA ABAJO 👇"
+        "s6_scroll": "👇 DESPLÁZATE HACIA ABAJO 👇",
+
+        # --- Team Names ---
+        "The Moral Champions": "Los Campeones Morales",
+        "The Justice League": "La Liga de la Justicia",
+        "The Data Detectives": "Los Detectives de Datos",
+        "The Ethical Explorers": "Los Exploradores Éticos",
+        "The Fairness Finders": "Los Buscadores de Equidad",
+        "The Accuracy Avengers": "Los Vengadores de la Precisión"
     },
     "ca": {
         "title": "🛠️ Arena de Construcció de Models",
@@ -552,7 +565,7 @@ TRANSLATIONS = {
         "rank_senior": "# 🌟 Pujada de Rang! Enginyer Senior\n<p style='font-size:24px; line-height:1.4;'>Ingredients de Dades Més Forts Desbloquejats!</p>",
         "rank_lead": "# 👑 Rang: Enginyer Principal\n<p style='font-size:24px; line-height:1.4;'>Totes les eines desbloquejades!</p>",
         "mod_bal": "El Generalista Equilibrat",
-        "mod_rule": "El Creador de Regles",
+        "mod_rule": "El Creador de Reglas",
         "mod_knn": "El 'Veí Més Proper'",
         "mod_deep": "El Cercador de Patrons Profunds",
         "desc_bal": "Un model ràpid, fiable i complet. Bon punt de partida; menys propens al sobreajust.",
@@ -571,8 +584,14 @@ TRANSLATIONS = {
         "kpi_success": "✅ Enviament Exitós",
         "kpi_first": "🎉 Primer Model Enviat!",
         "kpi_lower": "📉 Puntuació Va Baixar",
+        "summary_empty": "Encara no hi ha enviaments d'equip.",
 
-        # Conclusion (New)
+        # --- Leaderboard ---
+        "lbl_rank": "Rang",
+        "lbl_team": "Equip",
+        "lbl_best_acc": "Millor Precisió",
+
+        # --- Conclusion ---
         "tier_trainee": "Aprenent", "tier_junior": "Junior", "tier_senior": "Senior", "tier_lead": "Líder",
         "none_yet": "Cap encara",
         "tip_label": "Consell:",
@@ -585,14 +604,19 @@ TRANSLATIONS = {
         "concl_improvement": "Millora Sobre la Primera Puntuació",
         "concl_tier_prog": "Progrés de Nivell",
         "concl_strong_pred": "Predictors Forts Utilitzats",
-        "lbl_best_acc": "Millor Precisió",
-        "lbl_ind_rank": "Rang Individual",
-        "lbl_team_rank": "Rang d'Equip",
         "concl_eth_ref": "Reflexió Ètica",
         "concl_eth_body": "Has desbloquejat predictors potents. Considera: Eliminar camps demogràfics canviaria l'equitat? Investigarem això més a fons a continuació.",
         "concl_next_title": "Següent: Conseqüències al Món Real",
         "concl_next_body": "Desplaça't cap avall. Examinaràs com models com el teu donen forma als resultats judicials.",
-        "s6_scroll": "👇 DESPLAÇA'T CAP AVALL 👇"
+        "s6_scroll": "👇 DESPLAÇA'T CAP AVALL 👇",
+
+        # --- Team Names ---
+        "The Moral Champions": "Els Campions Morals",
+        "The Justice League": "La Lliga de la Justícia",
+        "The Data Detectives": "Els Detectius de Dades",
+        "The Ethical Explorers": "Els Exploradors Ètics",
+        "The Fairness Finders": "Els Cercadors d'Equitat",
+        "The Accuracy Avengers": "Els Venjadors de la Precisió"
     }
 }
 # -------------------------------------------------------------------------
