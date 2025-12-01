@@ -464,6 +464,30 @@ TEAM_NAMES = [
 ]
 CURRENT_TEAM_NAME = random.choice(TEAM_NAMES)
 
+# Team name translations for UI display only (Spanish)
+# Internal logic (ranking, caching, grouping) always uses canonical English names
+TEAM_NAME_TRANSLATIONS = {
+    "en": {
+        "The Justice League": "The Justice League",
+        "The Moral Champions": "The Moral Champions",
+        "The Data Detectives": "The Data Detectives",
+        "The Ethical Explorers": "The Ethical Explorers",
+        "The Fairness Finders": "The Fairness Finders",
+        "The Accuracy Avengers": "The Accuracy Avengers"
+    },
+    "es": {
+        "The Justice League": "La Liga de la Justicia",
+        "The Moral Champions": "Los Campeones Morales",
+        "The Data Detectives": "Los Detectives de Datos",
+        "The Ethical Explorers": "Los Exploradores Éticos",
+        "The Fairness Finders": "Los Buscadores de Equidad",
+        "The Accuracy Avengers": "Los Vengadores de Precisión"
+    }
+}
+
+# UI language for team name display
+UI_TEAM_LANG = "es"
+
 
 # --- Feature groups for scaffolding (Weak -> Medium -> Strong) ---
 FEATURE_SET_ALL_OPTIONS = [
@@ -1109,6 +1133,54 @@ def _normalize_team_name(name: str) -> str:
     return " ".join(str(name).strip().split())
 
 
+# Team name translation helpers for UI display (Spanish)
+def translate_team_name_for_display(team_en: str, lang: str = "es") -> str:
+    """
+    Translate a canonical English team name to the specified language for UI display.
+    Fallback to English if translation not found.
+    
+    Internal logic always uses canonical English names. This is only for UI display.
+    """
+    if lang not in TEAM_NAME_TRANSLATIONS:
+        lang = "en"
+    return TEAM_NAME_TRANSLATIONS[lang].get(team_en, team_en)
+
+
+def translate_team_name_to_english(display_name: str, lang: str = "es") -> str:
+    """
+    Reverse lookup: given a localized team name, return the canonical English name.
+    Returns the original display_name if not found.
+    
+    For future use if user input needs to be normalized back to English.
+    """
+    if lang not in TEAM_NAME_TRANSLATIONS:
+        return display_name  # Already English or unknown
+    
+    translations = TEAM_NAME_TRANSLATIONS[lang]
+    for english_name, localized_name in translations.items():
+        if localized_name == display_name:
+            return english_name
+    return display_name
+
+
+def _format_leaderboard_for_display(df: Optional[pd.DataFrame], lang: str = "es") -> Optional[pd.DataFrame]:
+    """
+    Create a copy of the leaderboard DataFrame with team names translated for display.
+    Does not mutate the original DataFrame.
+    
+    For potential future use when displaying full leaderboard.
+    Internal logic should always use the original DataFrame with English team names.
+    """
+    if df is None:
+        return None
+    
+    if df.empty or "Team" not in df.columns:
+        return df.copy()
+    
+    df_display = df.copy()
+    df_display["Team"] = df_display["Team"].apply(lambda t: translate_team_name_for_display(t, lang))
+    return df_display
+
 
 def _build_skeleton_leaderboard(rows=6, is_team=True, submit_button_label="5. 🔬 Build & Submit Model"):
     context_label = "Team" if is_team else "Individual"
@@ -1252,11 +1324,14 @@ def _build_team_html(team_summary_df, team_name):
     
     Uses normalized, case-insensitive comparison to highlight the user's team row,
     ensuring reliable highlighting even with whitespace or casing variations.
+    
+    Team names are translated to Spanish for display only. Internal comparisons
+    use the unmodified English team names from the DataFrame.
     """
     if team_summary_df is None or team_summary_df.empty:
         return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>No team submissions yet.</p>"
 
-    # Normalize the current user's team name for comparison
+    # Normalize the current user's team name for comparison (using English names)
     normalized_user_team = _normalize_team_name(team_name).lower()
 
     header = """
@@ -1275,14 +1350,18 @@ def _build_team_html(team_summary_df, team_name):
 
     body = ""
     for index, row in team_summary_df.iterrows():
-        # Normalize the row's team name and compare case-insensitively
+        # Normalize the row's team name and compare case-insensitively (using English names)
         normalized_row_team = _normalize_team_name(row["Team"]).lower()
         is_user_team = normalized_row_team == normalized_user_team
         row_class = "class='user-row-highlight'" if is_user_team else ""
+        
+        # Translate team name to Spanish for display only
+        display_team_name = translate_team_name_for_display(row["Team"], UI_TEAM_LANG)
+        
         body += f"""
         <tr {row_class}>
             <td>{index}</td>
-            <td>{row['Team']}</td>
+            <td>{display_team_name}</td>
             <td>{(row['Best_Score'] * 100):.2f}%</td>
             <td>{(row['Avg_Score'] * 100):.2f}%</td>
             <td>{row['Submissions']}</td>
@@ -1688,21 +1767,24 @@ def perform_inline_login(username_input, password_input):
         # Normalize team name before storing (defensive - already normalized by get_or_assign_team)
         team_name = _normalize_team_name(team_name)
         
+        # Translate team name for display only (keep team_name_state in English)
+        display_team_name = translate_team_name_for_display(team_name, UI_TEAM_LANG)
+        
         # Build success message based on whether team is new or existing
         if is_new_team:
-            team_message = f"You have been assigned to a new team: <b>{team_name}</b> 🎉"
+            team_message = f"Has sido asignado a un nuevo equipo: <b>{display_team_name}</b> 🎉"
         else:
-            team_message = f"Welcome back! You remain on team: <b>{team_name}</b> ✅"
+            team_message = f"¡Bienvenido de vuelta! Permaneces en el equipo: <b>{display_team_name}</b> ✅"
         
         # Success: hide login form, show success message with team info, enable submit button
         success_html = f"""
         <div style='background:#f0fdf4; padding:16px; border-radius:8px; border-left:4px solid #16a34a; margin-top:12px;'>
-            <p style='margin:0; color:#15803d; font-weight:600; font-size:1.1rem;'>✓ Signed in successfully!</p>
+            <p style='margin:0; color:#15803d; font-weight:600; font-size:1.1rem;'>✓ ¡Sesión iniciada con éxito!</p>
             <p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>
                 {team_message}
             </p>
             <p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>
-                Click "Build & Submit Model" again to publish your score.
+                Haz clic en "Build & Submit Model" nuevamente para publicar tu puntuación.
             </p>
         </div>
         """
@@ -2395,19 +2477,20 @@ def on_initial_load(username, token=None, team_name=""):
     )
 
     # 1. Prepare the Welcome HTML
-    display_team = team_name if team_name else "Your Team"
+    # Translate team name to Spanish for display only (keep team_name in English for logic)
+    display_team = translate_team_name_for_display(team_name, UI_TEAM_LANG) if team_name else "Tu Equipo"
     
     welcome_html = f"""
     <div style='text-align:center; padding: 30px 20px;'>
         <div style='font-size: 3rem; margin-bottom: 10px;'>👋</div>
-        <h3 style='margin: 0 0 8px 0; color: #111827; font-size: 1.5rem;'>Welcome to <b>{display_team}</b>!</h3>
+        <h3 style='margin: 0 0 8px 0; color: #111827; font-size: 1.5rem;'>¡Bienvenido a <b>{display_team}</b>!</h3>
         <p style='font-size: 1.1rem; color: #4b5563; margin: 0 0 20px 0;'>
-            Your team is waiting for your help to improve the AI.
+            Tu equipo está esperando tu ayuda para mejorar la IA.
         </p>
         
         <div style='background:#eff6ff; padding:16px; border-radius:12px; border:2px solid #bfdbfe; display:inline-block;'>
             <p style='margin:0; color:#1e40af; font-weight:bold; font-size:1.1rem;'>
-                👈 Click "Build & Submit Model" to Start Playing!
+                👈 ¡Haz clic en "Build & Submit Model" para comenzar a jugar!
             </p>
         </div>
     </div>
