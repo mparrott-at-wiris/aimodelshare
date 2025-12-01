@@ -3420,7 +3420,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # Slide 1: From Understanding to Building (Retained as transition)
         with gr.Column(visible=True, elem_id="slide-1") as briefing_slide_1:
-            gr.Markdown("<h1 style='text-align:center;'>🔄 From Understanding to Building</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🔄 D'Entendre a Construir</h1>")
             gr.HTML(
                 """
                 <div class='slide-content'>
