@@ -1553,18 +1553,25 @@ def _get_slide7_html(lang):
     </div>
     """
   
-  # [NEW]
 def build_login_prompt_html(lang="en"):
+    """
+    Generate HTML for the login prompt text *only*.
+    The styled preview card will be prepended to this.
+    """
     return f"""
     <h2 style='color: #111827; margin-top:20px; border-top: 2px solid #e5e7eb; padding-top: 20px;'>{t(lang, 'login_title')}</h2>
     <div style='margin-top:16px; text-align:left; font-size:1rem; line-height:1.6; color:#374151;'>
-        <p style='margin:12px 0;'>{t(lang, 'login_desc')}</p>
+        <p style='margin:12px 0;'>
+            {t(lang, 'login_desc')}
+        </p>
         <p style='margin:12px 0;'>
             <strong>{t(lang, 'login_new')}</strong>
-            <a href='https://www.modelshare.ai/login' target='_blank' style='color:#4f46e5; text-decoration:underline;'>modelshare.ai/login</a>
+            <a href='https://www.modelshare.ai/login' target='_blank' 
+                style='color:#4f46e5; text-decoration:underline;'>modelshare.ai/login</a>
         </p>
     </div>
     """
+  
 def _background_initializer():
     """
     Background thread that performs sequential initialization tasks.
