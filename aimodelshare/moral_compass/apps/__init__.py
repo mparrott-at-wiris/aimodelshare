@@ -1,18 +1,12 @@
 """
 Lazy export layer for Moral Compass Gradio app factories.
 
-Updated to include language-specific model building game variants:
-- model_building_game_en
-- model_building_game_ca
-- model_building_game_es
+Includes language-specific model building game variants:
+- model_building_app_en.py
+- model_building_app_ca.py
+- model_building_app_es.py
 
-Ensure each module defines its own factory & launcher:
-    create_model_building_game_en_app / launch_model_building_game_en_app
-    create_model_building_game_ca_app / launch_model_building_game_ca_app
-    create_model_building_game_es_app / launch_model_building_game_es_app
-
-If the modules still use the old names (create_model_building_game_app), rename them
-or adjust _EXPORT_MAP accordingly.
+If you rename files to model_building_game_<lang>.py, update _EXPORT_MAP accordingly.
 """
 
 import importlib
@@ -20,7 +14,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Map exported attribute -> (module_name, symbol)
 _EXPORT_MAP = {
     "create_tutorial_app": ("tutorial", "create_tutorial_app"),
     "launch_tutorial_app": ("tutorial", "launch_tutorial_app"),
@@ -30,19 +23,20 @@ _EXPORT_MAP = {
     "launch_ai_consequences_app": ("ai_consequences", "launch_ai_consequences_app"),
     "create_what_is_ai_app": ("what_is_ai", "create_what_is_ai_app"),
     "launch_what_is_ai_app": ("what_is_ai", "launch_what_is_ai_app"),
-    # Generic model building game (legacy)
+    # Legacy generic game
     "create_model_building_game_app": ("model_building_game", "create_model_building_game_app"),
     "launch_model_building_game_app": ("model_building_game", "launch_model_building_game_app"),
-    # Language-specific model building game variants
-    "create_model_building_game_en_app": ("model_building_game_en", "create_model_building_game_en_app"),
-    "launch_model_building_game_en_app": ("model_building_game_en", "launch_model_building_game_en_app"),
-    "create_model_building_game_ca_app": ("model_building_game_ca", "create_model_building_game_ca_app"),
-    "launch_model_building_game_ca_app": ("model_building_game_ca", "launch_model_building_game_ca_app"),
-    "create_model_building_game_es_app": ("model_building_game_es", "create_model_building_game_es_app"),
-    "launch_model_building_game_es_app": ("model_building_game_es", "launch_model_building_game_es_app"),
-    # Beginner variant (unchanged)
+    # Beginner variant
     "create_model_building_game_beginner_app": ("model_building_game_beginner", "create_model_building_game_beginner_app"),
     "launch_model_building_game_beginner_app": ("model_building_game_beginner", "launch_model_building_game_beginner_app"),
+    # Language-specific (adjusted to actual filenames model_building_app_<lang>.py)
+    "create_model_building_game_en_app": ("model_building_app_en", "create_model_building_game_en_app"),
+    "launch_model_building_game_en_app": ("model_building_app_en", "launch_model_building_game_en_app"),
+    "create_model_building_game_ca_app": ("model_building_app_ca", "create_model_building_game_ca_app"),
+    "launch_model_building_game_ca_app": ("model_building_app_ca", "launch_model_building_game_ca_app"),
+    "create_model_building_game_es_app": ("model_building_app_es", "create_model_building_game_es_app"),
+    "launch_model_building_game_es_app": ("model_building_app_es", "launch_model_building_game_es_app"),
+    # Other apps
     "create_ethical_revelation_app": ("ethical_revelation", "create_ethical_revelation_app"),
     "launch_ethical_revelation_app": ("ethical_revelation", "launch_ethical_revelation_app"),
     "create_moral_compass_challenge_app": ("moral_compass_challenge", "create_moral_compass_challenge_app"),
@@ -58,10 +52,8 @@ _EXPORT_MAP = {
 __all__ = list(_EXPORT_MAP.keys())
 
 def __getattr__(name: str):
-    """Dynamically import requested factory/launcher."""
     if name not in _EXPORT_MAP:
         raise AttributeError(f"Module '{__name__}' has no attribute '{name}'")
-
     mod_name, symbol = _EXPORT_MAP[name]
     try:
         module = importlib.import_module(f".{mod_name}", __name__)
@@ -75,5 +67,4 @@ def __getattr__(name: str):
         raise
 
 def list_available_apps():
-    """Utility: return list of logical app modules (for diagnostics)."""
     return sorted({m for (m, _) in _EXPORT_MAP.values()})
