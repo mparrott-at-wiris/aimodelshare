@@ -4615,111 +4615,100 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         # Initial Load Logic (Auth + Language + Stats)
         # ---------------------------------------------------------------------
         
+# ---------------------------------------------------------------------
+        # Initial Load Logic (Auth + Language + Stats + Merge)
+        # ---------------------------------------------------------------------
+        
         def handle_load(request: gr.Request):
-            """Unified handler: Parsing params, Auth check, and UI text update."""
+            """
+            Unified handler: 
+            1. Determines Language
+            2. checks Authentication
+            3. Computes User Stats
+            4. Merges Translated Labels with Logic-Driven Values
+            """
             
-            # 1. Parse Lang & Update Visuals
+            # 1. Get visual updates (Labels & Text in correct language)
             visual_updates = update_language(request)
+            lang = visual_updates[0] # Extract detected language
             
-            # Extract lang from the visual_updates list (it's the first item)
-            lang = visual_updates[0] 
-            
-            # 2. Try Auth
+            # 2. Try Authentication
             success, username, token = _try_session_based_auth(request)
             
-            # 3. Get Stats if authenticated
+            # 3. Compute Stats (if logged in)
             stats = {"best_score": 0.0, "rank": 0, "team_name": "", "submission_count": 0}
             if success and username and token:
                 stats = _compute_user_stats(username, token)
+                
+                # OVERWRITE Slide 1 (Index 2) with Personalized Stats HTML
+                # (Index 2 corresponds to c_s1_html in the visual_updates list)
+                visual_updates[2] = gr.update(value=build_standing_html(stats, lang))
 
-            # 4. Call Initial Load Logic with LANG
-            # We pass the extracted 'lang' here 👇
-            initial_results = on_initial_load(username, token=token, team_name=stats["team_name"], lang=lang)
+            # 4. Get Logic Updates (Values, Choices, Interactivity based on Rank)
+            # on_initial_load returns: 
+            # [0]Card, [1]TeamLB, [2]IndLB, [3]RankMsg, [4]ModelRadio, [5]Cplx, [6]Feat, [7]Data
+            logic_results = on_initial_load(username, token, stats["team_name"], lang)
 
-            # 5. Combine everything into one return list
-            # Structure: [Language Updates] + [State Updates] + [Initial Data Results]
+            # 5. MERGE Logic with Translations
+            # We need the Labels from 'visual_updates' AND the Values/Choices from 'logic_results'.
+            # We merge them manually to avoid overwriting one with the other.
             
-            # We need to be careful with the return order. 
-            # The `load_targets` list in your main function expects:
-            # [Language Updates...] + [States...] + [Model Card, Team LB, Ind LB, Rank Msg, Inputs...]
-            
-            # However, update_language ALREADY returns updates for Model Card, Rank Msg, and Inputs!
-            # We don't want to overwrite the translated labels with the English defaults from on_initial_load.
-            
-            # STRATEGY:
-            # The `update_language` list updates the LABELS (choices, labels, info).
-            # The `on_initial_load` list updates the VALUES (value, interactive state).
-            # Gradio updates merge intelligently, but to be safe, we should merge them carefully.
-            
-            # Let's look at load_targets again:
-            # ... c_app_title, model_type_radio, complexity_slider, feature_set_checkbox ...
-            
-            # update_language returns updates for these at indices -5, -4, -3, -2...
-            # on_initial_load returns updates for these at indices 4, 5, 6, 7...
-            
-            # Ideally, we should just rely on on_initial_load for the logic-heavy components 
-            # (radios, sliders) because it sets the correct interactive state and choices based on rank.
-            
-            # So we will REPLACE the specific items in `visual_updates` with the ones from `initial_results`
-            # corresponding to the input components.
-            
-            # Indices in visual_updates (from Step 9/11 code):
-            # ...
-            # -6: model_type_radio
-            # -5: complexity_slider
-            # -4: feature_set_checkbox
-            # -3: data_size_radio
-            # ...
-            
-            # We replace them with the result from on_initial_load which has the correct VALUES and CHOICES
-            # but we ensure the LABELS from update_language are preserved.
-            
-            # Helper to merge updates
-            def merge(lbl_update, val_update):
-                # Take label/info from translation, take value/choices/interactive from logic
-                return gr.update(
-                    label=lbl_update.get("label"),
-                    info=lbl_update.get("info"),
-                    value=val_update.get("value"),
-                    choices=val_update.get("choices"),
-                    interactive=val_update.get("interactive"),
-                    minimum=val_update.get("minimum"),
-                    maximum=val_update.get("maximum")
-                )
+            def merge_updates(lbl_upd, val_upd):
+                """Combine label translation with value/interactive logic."""
+                # Convert both to dicts if they aren't already (gr.update returns dict-like objects)
+                l_dict = lbl_upd if isinstance(lbl_upd, dict) else lbl_upd.__dict__
+                v_dict = val_upd if isinstance(val_upd, dict) else val_upd.__dict__
+                
+                # We want Label/Info from Translation, and everything else from Logic
+                merged = v_dict.copy()
+                merged['label'] = l_dict.get('label')
+                if l_dict.get('info'):
+                    merged['info'] = l_dict.get('info')
+                return gr.update(**merged)
 
-            # Model Radio (Index -7 in visual_updates if counting back from conclusion)
-            # Let's assume the fixed index based on the list structure:
-            # [37] is model_type_radio
-            visual_updates[37] = merge(visual_updates[37], initial_results[4])
-            # [38] is complexity_slider
-            visual_updates[38] = merge(visual_updates[38], initial_results[5])
-            # [39] is feature_set_checkbox
-            visual_updates[39] = merge(visual_updates[39], initial_results[6])
-            # [40] is data_size_radio
-            visual_updates[40] = merge(visual_updates[40], initial_results[7])
+            # Apply merge to the 4 input components
+            # Indices based on update_language return order:
+            # 29: Model Radio
+            # 30: Complexity Slider
+            # 31: Feature Checkbox
+            # 32: Data Radio
             
-            # We also need to inject the Model Card and Leaderboards
-            # We can add them to the end if we add them to load_targets
+            visual_updates[29] = merge_updates(visual_updates[29], logic_results[4])
+            visual_updates[30] = merge_updates(visual_updates[30], logic_results[5])
+            visual_updates[31] = merge_updates(visual_updates[31], logic_results[6])
+            visual_updates[32] = merge_updates(visual_updates[32], logic_results[7])
+
+            # 6. Construct Final Return List
+            # Must match the 'load_targets' list structure exactly:
+            # [Visuals (37 items)] + [States (8 items)] + [Extra Logic (4 items)]
             
-            # Actually, looking at your load_targets in Step 11, 
-            # you DO NOT have model_card_display or team_leaderboard_display in the list!
-            # This is a bug in the previous Step 10/11 setup.
+            state_updates = [
+                username, 
+                token, 
+                stats["team_name"], 
+                stats.get("last_score", 0.0), 
+                stats["rank"], 
+                stats["best_score"], 
+                stats["submission_count"], 
+                None # first_submission_score
+            ]
             
-            # FIX: Let's update load_targets to include them, and return them here.
-            
-            return visual_updates + [
-                username, token, stats["team_name"], 
-                stats.get("last_score", 0.0), stats["rank"], stats["best_score"], stats["submission_count"], None,
-                # Extra outputs from on_initial_load that weren't covered by visual_updates
-                initial_results[0], # model_card_display
-                initial_results[1], # team_leaderboard
-                initial_results[2], # ind_leaderboard
-                initial_results[3]  # rank_message
+            extra_logic_updates = [
+                logic_results[0], # Model Card Display
+                logic_results[1], # Team Leaderboard
+                logic_results[2], # Individual Leaderboard
+                logic_results[3]  # Rank Message
             ]
 
-        # UPDATED TARGET LIST
+            return visual_updates + state_updates + extra_logic_updates
+
+        # ---------------------------------------------------------------------
+        # Load Targets Definition
+        # ---------------------------------------------------------------------
+        
+        # This list maps the output of handle_load to the actual UI components
         load_targets = [
-            # ... (Existing visual targets) ...
+            # --- Visual Targets (Matches update_language order) ---
             lang_state,
             c_s1_title, c_s1_html, briefing_1_next,
             c_s2_title, c_s2_html, briefing_2_back, briefing_2_next,
@@ -4731,17 +4720,18 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             c_app_title, model_type_radio, complexity_slider, feature_set_checkbox, data_size_radio, submit_button,
             c_concl_title, final_score_display, step_3_back,
             
-            # ... (State Targets) ...
+            # --- State Targets ---
             username_state, token_state, team_name_state,
             last_submission_score_state, last_rank_state, best_score_state, submission_count_state, first_submission_score_state,
             
-            # ... (NEW TARGETS for dynamic content) ...
+            # --- Extra Logic Targets ---
             model_card_display, 
             team_leaderboard_display, 
             individual_leaderboard_display,
             rank_message_display
         ]
         
+        # Trigger on Page Load
         demo.load(handle_load, inputs=None, outputs=load_targets)
         # ---------------------------------------------------------------------
         # Navigation Logic (Fixed List Return)
