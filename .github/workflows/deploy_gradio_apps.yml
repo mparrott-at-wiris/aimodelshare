@@ -157,7 +157,8 @@ jobs:
             --timeout=3000
             --set-env-vars=APP_NAME=what-is-ai,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
-  deploy-model-building-game:
+  # Language-specific model building game deployments
+  deploy-model-building-game-en:
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -167,11 +168,11 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
       - uses: google-github-actions/setup-gcloud@v2
-      - name: Deploy model-building-game
+      - name: Deploy model-building-game-en
         id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
         with:
-          service: model-building-game
+          service: model-building-game-en
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
           region: ${{ env.REGION }}
           flags: >-
@@ -183,7 +184,63 @@ jobs:
             --min-instances=0
             --max-instances=50
             --timeout=3000
-            --set-env-vars=APP_NAME=model-building-game,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=model-building-game-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  deploy-model-building-game-ca:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy model-building-game-ca
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: model-building-game-ca
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=80
+            --min-instances=0
+            --max-instances=50
+            --timeout=3000
+            --set-env-vars=APP_NAME=model-building-game-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  deploy-model-building-game-es:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy model-building-game-es
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: model-building-game-es
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=80
+            --min-instances=0
+            --max-instances=50
+            --timeout=3000
+            --set-env-vars=APP_NAME=model-building-game-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-ethical-revelation:
     runs-on: ubuntu-latest
@@ -335,7 +392,9 @@ jobs:
       - deploy-judge
       - deploy-ai-consequences
       - deploy-what-is-ai
-      - deploy-model-building-game
+      - deploy-model-building-game-en
+      - deploy-model-building-game-ca
+      - deploy-model-building-game-es
       - deploy-ethical-revelation
       - deploy-moral-compass-challenge
       - deploy-bias-detective
@@ -350,7 +409,9 @@ jobs:
             "judge": "${{ needs.deploy-judge.outputs.url }}",
             "ai-consequences": "${{ needs.deploy-ai-consequences.outputs.url }}",
             "what-is-ai": "${{ needs.deploy-what-is-ai.outputs.url }}",
-            "model-building-game": "${{ needs.deploy-model-building-game.outputs.url }}",
+            "model-building-game-en": "${{ needs.deploy-model-building-game-en.outputs.url }}",
+            "model-building-game-ca": "${{ needs.deploy-model-building-game-ca.outputs.url }}",
+            "model-building-game-es": "${{ needs.deploy-model-building-game-es.outputs.url }}",
             "ethical-revelation": "${{ needs.deploy-ethical-revelation.outputs.url }}",
             "moral-compass-challenge": "${{ needs.deploy-moral-compass-challenge.outputs.url }}",
             "bias-detective": "${{ needs.deploy-bias-detective.outputs.url }}",
@@ -363,8 +424,8 @@ jobs:
       - name: Upload deployed_urls.json artifact
         uses: actions/upload-artifact@v4
         with:
-            name: deployed-urls
-            path: deployed_urls.json
+          name: deployed-urls
+          path: deployed_urls.json
       - name: Append URLs to summary
         run: |
           {
