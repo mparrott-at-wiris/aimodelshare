@@ -9,6 +9,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse, PlainTextResponse
 import uvicorn
 import gradio as gr  # Ensure gradio is installed in your image
+from urllib.parse import urlencode  # NEW: build query strings robustly
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("launcher")
@@ -67,14 +68,14 @@ def build_model_building_game_router():
     based on a 'lang' query parameter.
 
     Access patterns:
-      /?lang=es  -> redirect to /es
-      /?lang=ca  -> redirect to /ca
-      /?lang=en or missing/invalid -> redirect to /en
+      /?lang=es&sessionid=... -> redirect to /es?sessionid=...
+      /?lang=ca&sessionid=... -> redirect to /ca?sessionid=...
+      /?lang=en or missing/invalid -> redirect to /en (preserving any other query params)
 
     Direct paths:
-      /en  -> English game
-      /es  -> Spanish game
-      /ca  -> Catalan game
+      /en?sessionid=...  -> English game (params forwarded to Gradio)
+      /es?sessionid=...  -> Spanish game
+      /ca?sessionid=...  -> Catalan game
 
     Blocks apps are created lazily on first access to reduce startup time.
     """
@@ -104,19 +105,53 @@ def build_model_building_game_router():
         blocks_cache[lang] = blocks
         return blocks
 
-    # Mount Gradio apps at language-specific paths
+    # Mount Gradio apps at language-specific paths (pre-warm optional)
     for lang in MODEL_GAME_LANGS:
-        blocks = get_blocks(lang)  # Pre-warm; remove this line for pure lazy mount
-        gr.mount_gradio_app(fastapi_app, blocks, path=f"/{lang}")
-        logger.info(f"Mounted Gradio Blocks at '/{lang}' for lang='{lang}'.")
+        # Optional pre-warm; comment out if you want fully lazy mounts
+        # blocks = get_blocks(lang)
+        # gr.mount_gradio_app(fastapi_app, blocks, path=f"/{lang}")
+        # logger.info(f"Mounted Gradio Blocks at '/{lang}' for lang='{lang}'.")
+        pass
+
+    # Lazy mount handler: mounts app on first visit to /{lang}
+    @fastapi_app.get("/{lang_code}")
+    async def lang_root(lang_code: str, request: Request):
+        lang_code = lang_code.lower()
+        if lang_code not in MODEL_GAME_LANGS:
+            # Preserve full query string when redirecting to default
+            qs = urlencode(request.query_params.multi_items())
+            target = "/en" + (f"?{qs}" if qs else "")
+            return RedirectResponse(url=target, status_code=307)
+
+        # Mount on demand if not already mounted
+        path = f"/{lang_code}"
+        # Check if a route exists that serves this path; mount if needed
+        try:
+            blocks = get_blocks(lang_code)
+            # Always re-mount to ensure the path exists (idempotent for Gradio/FastAPI)
+            gr.mount_gradio_app(fastapi_app, blocks, path=path)
+        except Exception as e:
+            logger.error(f"Mount failed for lang='{lang_code}': {e}")
+            return PlainTextResponse(f"Error loading language '{lang_code}'", status_code=500)
+
+        # Preserve query params in redirect to the mounted path
+        qs = urlencode(request.query_params.multi_items())
+        target = path + (f"?{qs}" if qs else "")
+        return RedirectResponse(url=target, status_code=307)
 
     @fastapi_app.get("/")
     async def root(request: Request):
+        # Determine lang, defaulting to 'en'
         lang = request.query_params.get("lang", "en").lower()
         if lang not in MODEL_GAME_LANGS:
-            logger.debug(f"Invalid or missing lang='{lang}' -> defaulting to 'en'.")
             lang = "en"
-        return RedirectResponse(url=f"/{lang}")
+        # Preserve all query parameters (including sessionid and others) on redirect
+        params = dict(request.query_params)
+        params["lang"] = lang  # normalize lang
+        qs = urlencode(list(request.query_params.multi_items()))  # keep order and duplicates
+        # Build target: /{lang}?<full query string>
+        target = f"/{lang}" + (f"?{qs}" if qs else "")
+        return RedirectResponse(url=target, status_code=307)
 
     @fastapi_app.get("/healthz")
     async def health():
@@ -143,14 +178,26 @@ def main():
     logger.info(f"=== BOOTSTRAP === APP_NAME={app_name} PORT={port}")
 
     try:
-        # Any APP_NAME starting with 'model-building-game' (generic or language-specific)
-        # will enable dynamic query-param based language routing.
-        if app_name.startswith("model-building-game"):
+        # For the base router service, enable query-param based language routing.
+        if app_name == "model-building-game":
             logger.info(
-                "Detected model-building-game variant. Enabling query parameter routing (?lang=en|es|ca)."
+                "Detected base model-building-game. Enabling query parameter routing (?lang=en|es|ca), preserving all query params."
             )
             asgi_app = build_model_building_game_router()
             launch_asgi_app(asgi_app, port)
+        elif app_name.startswith("model-building-game-"):
+            # Language-specific services: launch only that language variant (no redirects needed)
+            logger.info(f"Launching single language variant app: {app_name}")
+            demo = build_standard_app(app_name)
+            demo.launch(
+                server_name="0.0.0.0",
+                server_port=port,
+                show_api=False,
+                show_error=True,
+            )
+            logger.info(
+                f"Gradio server started successfully in {time.time() - start_ts:.2f}s (listening on :{port})."
+            )
         else:
             # Standard single-language / single-app launch
             demo = build_standard_app(app_name)
