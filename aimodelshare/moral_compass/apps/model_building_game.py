@@ -2119,7 +2119,117 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
     </div>
     """
   
+def build_standing_html(user_stats, lang="en"):
+    """
+    Generates the HTML for Slide 1 (User Standing/Stats).
+    Includes logic to translate Team Names.
+    """
+    # Helper to translate team names specifically
+    def get_team_name(name):
+        if not name: return "N/A"
+        # Try to find the team name in the current language dictionary
+        # If not found (e.g. custom team or english fallback), return original
+        if lang in TRANSLATIONS and name in TRANSLATIONS[lang]:
+            return TRANSLATIONS[lang][name]
+        return name
 
+    # 1. Authenticated View (User has a score)
+    if user_stats.get("is_signed_in") and user_stats.get("best_score") is not None:
+        best_score_pct = f"{(user_stats['best_score'] * 100):.1f}%"
+        rank_text = f"#{user_stats['rank']}" if user_stats.get("rank") else "N/A"
+        
+        # Translate the team name
+        raw_team = user_stats.get("team_name", "")
+        team_text = get_team_name(raw_team)
+        
+        team_rank_text = f"#{user_stats['team_rank']}" if user_stats.get("team_rank") else "N/A"
+        
+        return f"""
+        <div class='slide-shell slide-shell--info'>
+            <h3 class='slide-shell__title'>
+                {t(lang, 's1_title_auth')}
+            </h3>
+            <div class='content-box'>
+                <p class='slide-shell__subtitle'>
+                    {t(lang, 's1_sub_auth')}
+                </p>
+                <div class='stat-grid'>
+                    <div class='stat-card stat-card--success'>
+                        <p class='stat-card__label'>{t(lang, 'lbl_best_acc')}</p>
+                        <p class='stat-card__value'>{best_score_pct}</p>
+                    </div>
+                    <div class='stat-card stat-card--accent'>
+                        <p class='stat-card__label'>{t(lang, 'lbl_ind_rank')}</p>
+                        <p class='stat-card__value'>{rank_text}</p>
+                    </div>
+                </div>
+                <div class='team-card'>
+                    <p class='team-card__label'>{t(lang, 'lbl_team')}</p>
+                    <p class='team-card__value'>🛡️ {team_text}</p>
+                    <p class='team-card__rank'>{t(lang, 'lbl_team_rank')} {team_rank_text}</p>
+                </div>
+                <ul class='bullet-list'>
+                    <li>{t(lang, 's1_li1')}</li>
+                    <li>{t(lang, 's1_li2')}</li>
+                    <li>{t(lang, 's1_li3')}</li>
+                    <li>{t(lang, 's1_li4')}</li>
+                </ul>
+                <p class='slide-shell__subtitle' style='font-weight:600;'>
+                    {t(lang, 's1_congrats')}
+                </p>
+            </div>
+            <div class='content-box content-box--emphasis'>
+                <p class='content-box__heading'>
+                    {t(lang, 's1_box_title')}
+                </p>
+                <p>
+                    {t(lang, 's1_box_text')}
+                </p>
+            </div>
+        </div>
+        """
+        
+    # 2. Guest/Pre-submission View (Logged in but no score)
+    elif user_stats.get("is_signed_in"):
+        return f"""
+        <div class='slide-shell slide-shell--info'>
+            <h3 class='slide-shell__title'>
+                {t(lang, 's1_title_guest')}
+            </h3>
+            <div class='content-box'>
+                <p class='slide-shell__subtitle'>
+                    {t(lang, 's1_sub_guest')}
+                </p>
+                <ul class='bullet-list'>
+                    <li>{t(lang, 's1_li1_guest')}</li>
+                    <li>{t(lang, 's1_li2_guest')}</li>
+                    <li>{t(lang, 's1_li3_guest')}</li>
+                </ul>
+                <p class='slide-shell__subtitle' style='font-weight:600;'>
+                    {t(lang, 's1_ready')}
+                </p>
+            </div>
+            <div class='content-box content-box--emphasis'>
+                <p class='content-box__heading'>
+                    {t(lang, 's1_box_title')}
+                </p>
+                <p>
+                    {t(lang, 's1_box_text')}
+                </p>
+            </div>
+        </div>
+        """
+        
+    # 3. No Session View (Not logged in)
+    else:
+        return f"""
+        <div class='slide-shell slide-shell--warning' style='text-align:center;'>
+            <h2 class='slide-shell__title'>
+                {t(lang, 'loading_session')}
+            </h2>
+        </div>
+        """
+      
 def _build_team_html(team_summary_df, team_name, lang="en"):
     """
     Generates the HTML for the team leaderboard with TRANSLATED names.
