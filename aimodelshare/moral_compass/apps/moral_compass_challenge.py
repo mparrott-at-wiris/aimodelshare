@@ -32,6 +32,35 @@ TEAM_NAMES = [
     "The Ethical Explorers", "The Fairness Finders", "The Accuracy Avengers"
 ]
 
+# NEW: Team name translations for UI display only
+# Internal logic (ranking, caching, grouping) always uses canonical English names
+TEAM_NAME_TRANSLATIONS = {
+    "en": {
+        "The Justice League": "The Justice League",
+        "The Moral Champions": "The Moral Champions",
+        "The Data Detectives": "The Data Detectives",
+        "The Ethical Explorers": "The Ethical Explorers",
+        "The Fairness Finders": "The Fairness Finders",
+        "The Accuracy Avengers": "The Accuracy Avengers"
+    },
+    "es": {
+        "The Justice League": "La Liga de la Justicia",
+        "The Moral Champions": "Los Campeones Morales",
+        "The Data Detectives": "Los Detectives de Datos",
+        "The Ethical Explorers": "Los Exploradores Éticos",
+        "The Fairness Finders": "Los Buscadores de Equidad",
+        "The Accuracy Avengers": "Los Vengadores de Precisión"
+    },
+    "ca": {
+        "The Justice League": "La Lliga de la Justícia",
+        "The Moral Champions": "Els Campions Morals",
+        "The Data Detectives": "Els Detectives de Dades",
+        "The Ethical Explorers": "Els Exploradors Ètics",
+        "The Fairness Finders": "Els Cercadors d'Equitat",
+        "The Accuracy Avengers": "Els Venjadors de Precisió"
+    }
+}
+
 # ---------------------------------------------------------------------------
 # In-memory caches
 # ---------------------------------------------------------------------------
@@ -263,6 +292,48 @@ def _normalize_team_name(name: str) -> str:
         return ""
     return " ".join(str(name).strip().split())
 
+# NEW: Team name translation helpers for UI display
+def translate_team_name_for_display(team_en: str, lang: str = "en") -> str:
+    """
+    Translate a canonical English team name to the specified language for UI display.
+    Fallback to English if translation not found.
+    """
+    if lang not in TEAM_NAME_TRANSLATIONS:
+        lang = "en"
+    return TEAM_NAME_TRANSLATIONS[lang].get(team_en, team_en)
+
+# NEW: Reverse lookup for future use (e.g., if user input needs to be normalized back to English)
+def translate_team_name_to_english(display_name: str, lang: str = "en") -> str:
+    """
+    Reverse lookup: given a localized team name, return the canonical English name.
+    Returns the original display_name if not found.
+    """
+    if lang not in TEAM_NAME_TRANSLATIONS:
+        return display_name  # Already English or unknown
+    
+    translations = TEAM_NAME_TRANSLATIONS[lang]
+    for english_name, localized_name in translations.items():
+        if localized_name == display_name:
+            return english_name
+    return display_name  # UPDATED: Return display_name instead of None for consistency
+
+# NEW: Format leaderboard DataFrame with localized team names (non-destructive copy)
+def _format_leaderboard_for_display(df: Optional[pd.DataFrame], lang: str = "en") -> Optional[pd.DataFrame]:
+    """
+    Create a copy of the leaderboard DataFrame with team names translated for display.
+    Does not mutate the original DataFrame.
+    For potential future use when displaying full leaderboard.
+    """
+    if df is None:
+        return None  # UPDATED: Handle None explicitly
+    
+    if df.empty or "Team" not in df.columns:
+        return df.copy()  # UPDATED: Return copy for empty or missing Team column
+    
+    df_display = df.copy()
+    df_display["Team"] = df_display["Team"].apply(lambda t: translate_team_name_for_display(t, lang))
+    return df_display
+
 def _fetch_leaderboard(token: str) -> Optional[pd.DataFrame]:
     now = time.time()
     with _cache_lock:
@@ -393,7 +464,8 @@ def build_standing_html(user_stats, lang="en"):
     if user_stats["is_signed_in"] and user_stats["best_score"] is not None:
         best_score_pct = f"{(user_stats['best_score'] * 100):.1f}%"
         rank_text = f"#{user_stats['rank']}" if user_stats["rank"] else "N/A"
-        team_text = user_stats["team_name"] if user_stats["team_name"] else "N/A"
+        # UPDATED: Translate team name for display based on selected language
+        team_text = translate_team_name_for_display(user_stats["team_name"], lang) if user_stats["team_name"] else "N/A"
         team_rank_text = f"#{user_stats['team_rank']}" if user_stats["team_rank"] else "N/A"
         return f"""
         <div class='slide-shell slide-shell--info'>
