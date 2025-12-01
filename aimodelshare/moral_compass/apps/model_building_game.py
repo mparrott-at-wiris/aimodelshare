@@ -930,28 +930,39 @@ def _get_or_assign_team(username: str, leaderboard_df: Optional[pd.DataFrame]) -
 def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str], Optional[str]]:
     """Attempt to authenticate via session token. Returns (success, username, token)."""
     try:
-        session_id = request.query_params.get("sessionid") if request else None
+        # 1. Debug Request
+        if not request:
+            _log("Auth failed: Request object is None")
+            return False, None, None
+            
+        # 2. Try both parameter styles (sessionid and session_id)
+        params = request.query_params
+        session_id = params.get("sessionid") or params.get("session_id")
+        
         if not session_id:
-            _log("No sessionid in request")
+            _log(f"Auth failed: No sessionid found in params: {params}")
             return False, None, None
         
+        _log(f"Attempting auth with session_id: {session_id[:5]}...")
+
+        # 3. Exchange for Token
         from aimodelshare.aws import get_token_from_session, _get_username_from_token
         
         token = get_token_from_session(session_id)
         if not token:
-            _log("Failed to get token from session")
+            _log("Auth failed: get_token_from_session returned None")
             return False, None, None
             
         username = _get_username_from_token(token)
         if not username:
-            _log("Failed to extract username from token")
+            _log("Auth failed: Could not extract username from token")
             return False, None, None
         
         _log(f"Session auth successful for {username}")
         return True, username, token
         
     except Exception as e:
-        _log(f"Session auth failed: {e}")
+        print(f"Session auth exception: {e}")
         return False, None, None
 
 def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
@@ -4354,6 +4365,10 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         # Initial Load Logic (Auth + Language + Stats + Merge)
         # ---------------------------------------------------------------------
         
+        def # ---------------------------------------------------------------------
+        # Initial Load Logic (Auth + Language + Stats + Merge)
+        # ---------------------------------------------------------------------
+        
         def handle_load(request: gr.Request):
             """
             Unified handler: 
@@ -4371,30 +4386,29 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             success, username, token = _try_session_based_auth(request)
             
             # 3. Compute Stats (if logged in)
-            stats = {"best_score": 0.0, "rank": 0, "team_name": "", "submission_count": 0}
+            stats = {"best_score": 0.0, "rank": 0, "team_name": "", "submission_count": 0, "is_signed_in": False}
+            
             if success and username and token:
-                stats = _compute_user_stats(username, token)
+                print(f"User {username} authenticated on load.")
+                computed_stats = _compute_user_stats(username, token)
+                stats.update(computed_stats)
+                stats["is_signed_in"] = True  # <--- CRITICAL FIX FOR SLIDE 1
                 
                 # OVERWRITE Slide 1 (Index 2) with Personalized Stats HTML
                 # (Index 2 corresponds to c_s1_html in the visual_updates list)
                 visual_updates[2] = gr.update(value=build_standing_html(stats, lang))
+            else:
+                print("User not authenticated on load (Guest Mode)")
 
             # 4. Get Logic Updates (Values, Choices, Interactivity based on Rank)
-            # on_initial_load returns: 
-            # [0]Card, [1]TeamLB, [2]IndLB, [3]RankMsg, [4]ModelRadio, [5]Cplx, [6]Feat, [7]Data
             logic_results = on_initial_load(username, token, stats["team_name"], lang)
 
             # 5. MERGE Logic with Translations
-            # We need the Labels from 'visual_updates' AND the Values/Choices from 'logic_results'.
-            # We merge them manually to avoid overwriting one with the other.
-            
             def merge_updates(lbl_upd, val_upd):
                 """Combine label translation with value/interactive logic."""
-                # Convert both to dicts if they aren't already (gr.update returns dict-like objects)
                 l_dict = lbl_upd if isinstance(lbl_upd, dict) else lbl_upd.__dict__
                 v_dict = val_upd if isinstance(val_upd, dict) else val_upd.__dict__
                 
-                # We want Label/Info from Translation, and everything else from Logic
                 merged = v_dict.copy()
                 merged['label'] = l_dict.get('label')
                 if l_dict.get('info'):
@@ -4402,21 +4416,12 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                 return gr.update(**merged)
 
             # Apply merge to the 4 input components
-            # Indices based on update_language return order:
-            # 29: Model Radio
-            # 30: Complexity Slider
-            # 31: Feature Checkbox
-            # 32: Data Radio
-            
             visual_updates[29] = merge_updates(visual_updates[29], logic_results[4])
             visual_updates[30] = merge_updates(visual_updates[30], logic_results[5])
             visual_updates[31] = merge_updates(visual_updates[31], logic_results[6])
             visual_updates[32] = merge_updates(visual_updates[32], logic_results[7])
 
             # 6. Construct Final Return List
-            # Must match the 'load_targets' list structure exactly:
-            # [Visuals (37 items)] + [States (8 items)] + [Extra Logic (4 items)]
-            
             state_updates = [
                 username, 
                 token, 
