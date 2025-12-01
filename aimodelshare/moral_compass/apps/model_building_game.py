@@ -1111,28 +1111,36 @@ LEADERBOARD_POLL_TRIES = 60  # Number of polling attempts (increased to handle b
 LEADERBOARD_POLL_SLEEP = 1.0  # Sleep duration between polls (seconds)
 ENABLE_AUTO_RESUBMIT_AFTER_READY = False  # Future feature flag for auto-resubmit
 
+# -------------------------------------------------------------------------
+# MODEL DEFINITIONS (Updated for I18n)
+# -------------------------------------------------------------------------
+
 MODEL_TYPES = {
     "The Balanced Generalist": {
         "model_builder": lambda: LogisticRegression(
             max_iter=500, random_state=42, class_weight="balanced"
         ),
-        "card": "A fast, reliable, well-rounded model. Good starting point; less prone to overfitting."
+        "key": "mod_bal",
+        "desc_key": "desc_bal"  # <--- This key is required for translations
     },
     "The Rule-Maker": {
         "model_builder": lambda: DecisionTreeClassifier(
             random_state=42, class_weight="balanced"
         ),
-        "card": "Learns simple 'if/then' rules. Easy to interpret, but can miss subtle patterns."
+        "key": "mod_rule",
+        "desc_key": "desc_rule"
     },
     "The 'Nearest Neighbor'": {
         "model_builder": lambda: KNeighborsClassifier(),
-        "card": "Looks at the closest past examples. 'You look like these others; I'll predict like they behave.'"
+        "key": "mod_knn",
+        "desc_key": "desc_knn"
     },
     "The Deep Pattern-Finder": {
         "model_builder": lambda: RandomForestClassifier(
             random_state=42, class_weight="balanced"
         ),
-        "card": "An ensemble of many decision trees. Powerful, can capture deep patterns; watch complexity."
+        "key": "mod_deep",
+        "desc_key": "desc_deep"
     }
 }
 
