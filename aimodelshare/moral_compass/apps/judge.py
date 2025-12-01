@@ -68,7 +68,7 @@ TRANSLATIONS = {
         "label_defendant": "Defendant",
         "label_age": "Age",
         "label_gender": "Gender",
-        "label_race": "Race",
+        "label_race": "Race/Etnicity",
         "label_prior": "Prior Offenses",
         "label_charge": "Current Charge",
         "label_ai_risk": "🤖 AI Risk Assessment:",
@@ -90,35 +90,35 @@ TRANSLATIONS = {
         "Burglary": "Burglary"
     },
     "es": {
-        "title": "⚖️ Tú Eres el Juez",
-        "intro_role": "<b>Tu Rol:</b> Eres un juez que debe decidir si liberar a los acusados de la prisión.<br>Un sistema de IA ha analizado cada caso y ha proporcionado una evaluación de riesgos.<br><br><b>Tu Tarea:</b> Revisa el perfil de cada acusado y la predicción de la IA, luego toma tu decisión.",
+        "title": "⚖️ ¡Ponte en el rol de juez",
+        "intro_role": "<b>Tu Rol:</b> Eres un juez o una jueza que debe decidir si se concede la libertad condicional a una persona presa o si debe continuar en prisión.<br>Un sistema de IA ha analizado cada caso y ha proporcionado una evaluación de riesgos.<br><br><b>Tu tarea:</b> Revisa el perfil de cada acusado y la predicción de la IA, luego toma tu decisión.",
         "loading": "⏳ Cargando...",
-        "scenario_title": "📋 El Escenario",
+        "scenario_title": "📋 El escenario",
         "scenario_box": """
-            Eres juez en un tribunal penal muy concurrido. Debido al hacinamiento en las cárceles, debes decidir 
-            qué acusados pueden ser liberados de manera segura.<br><br>
+            Eres miembro de un tribunal penal con mucho trabajo. Debido al hacinamiento en las prisiones, debes decidir 
+            qué personas presas pueden obtener la libertad condicional de manera segura.<br><br>
             
             Para ayudarte, el tribunal ha implementado un sistema de IA que predice el riesgo de que cada 
-            acusado cometa nuevos delitos si es liberado. La IA clasifica a los acusados como:<br><br>
+            persona presa cometa nuevos delitos si obtiene la libertad condicional. La IA clasifica a las personas presas como:<br><br>
             
             <ul style='font-size:18px;'>
-                <li><span class='ai-risk-label risk-high'>Alto Riesgo</span> - Probable reincidencia</li>
+                <li><span class='ai-risk-label risk-high'>Alto Riesgo</span> - Probable reincidencia (de cometer nuevos delitos)</li>
                 <li><span class='ai-risk-label risk-medium'>Riesgo Medio</span> - Probabilidad moderada de reincidencia</li>
                 <li><span class='ai-risk-label risk-low'>Bajo Riesgo</span> - Improbable reincidencia</li>
             </ul>
             
             <b>Recuerda:</b> Tus decisiones afectan la vida de personas reales y la seguridad pública.
         """,
-        "btn_start": "Comenzar a Tomar Decisiones ▶️",
-        "profiles_title": "👥 Perfiles de Acusados",
-        "hint_box": "Revisa la información de cada acusado y la evaluación de riesgos de la IA, luego toma tu decisión.",
-        "btn_release": "✓ Liberar Prisionero",
-        "btn_keep": "✗ Mantener en Prisión",
-        "btn_show_summary": "📊 Mostrar Resumen de Decisiones",
-        "btn_complete": "Completar esta Sección ▶️",
-        "completion_title": "✅ ¡Decisiones Completadas!",
-        "completion_box_pre": "Has tomado tus decisiones basándote en las recomendaciones de la IA.<br><br>Pero aquí está la pregunta crítica:<br><br>",
-        "completion_question": "¿Y si la IA estuviera equivocada?",
+        "btn_start": "Comenzar a tomar decisiones ▶️",
+        "profiles_title": "👥 Perfiles de las personas presas",
+        "hint_box": "Revisa la información de cada persona presa y la evaluación de riesgos de la IA, luego toma tu decisión.",
+        "btn_release": "✓ Liberar la persona presa",
+        "btn_keep": "✗ Mantener en prisión",
+        "btn_show_summary": "📊 Mostrar resumen de decisiones",
+        "btn_complete": "Completar esta sección ▶️",
+        "completion_title": "✅ ¡Decisiones completadas!",
+        "completion_box_pre": "Ya has tomado tus decisiones basándote en las recomendaciones de la IA.<br><br>Ahora bien, surge una pregunta clave:<br><br>",
+        "completion_question": "¿Y si la IA se equivocó?",
         "completion_box_post": """
             <p style='font-size:1.1rem;'>
             Continúa en la siguiente sección para explorar las consecuencias de 
@@ -126,27 +126,27 @@ TRANSLATIONS = {
             </p>
             <h1 style='margin:20px 0; font-size: 3rem;'>👇 DESPLÁZATE HACIA ABAJO 👇</h1>
             <p style='font-size:1.1rem;'>
-                Encuentra la siguiente sección abajo para continuar tu viaje.
+                Encuentra la siguiente sección para continuar tu viaje.
             </p>
         """,
-        "btn_back": "◀️ Volver a Revisar Decisiones",
+        "btn_back": "◀️ Volver a revisar decisiones",
         "decision_release": "Liberar",
-        "decision_keep": "Mantener en Prisión",
+        "decision_keep": "Mantener en prisión",
         "decision_recorded": "✓ Decisión registrada:",
-        "summary_title": "📊 Resumen de tus Decisiones",
-        "summary_released": "Prisioneros Liberados:",
-        "summary_kept": "Prisioneros Mantenidos en Prisión:",
+        "summary_title": "📊 Resumen de tus decisiones",
+        "summary_released": "Personas presas puestas en libertad:",
+        "summary_kept": "Personas que continúan en prisión:",
         "summary_empty": "Aún no se han tomado decisiones.",
         "nav_loading_profiles": "Cargando perfiles...",
         "nav_reviewing": "Revisando tus decisiones...",
-        "nav_returning": "Volviendo a perfiles...",
-        "label_defendant": "Acusado",
+        "nav_returning": "Volver a perfiles...",
+        "label_defendant": "Persona presa",
         "label_age": "Edad",
         "label_gender": "Género",
-        "label_race": "Raza",
-        "label_prior": "Delitos Previos",
-        "label_charge": "Cargo Actual",
-        "label_ai_risk": "🤖 Evaluación de Riesgo IA:",
+        "label_race": "Raza/Etnicidad",
+        "label_prior": "Delitos previos",
+        "label_charge": "Cargo actual",
+        "label_ai_risk": "🤖 Evaluación de riesgo IA:",
         "label_risk": "Riesgo",
         "label_confidence": "Confianza:",
         "Male": "Masculino",
@@ -161,37 +161,37 @@ TRANSLATIONS = {
         "Theft": "Robo",
         "Assault": "Asalto",
         "Fraud": "Fraude",
-        "Burglary": "Robo con allanamiento"
+        "Burglary": "Robo con allanamiento de morada"
     },
     "ca": {
-        "title": "⚖️ Tu Ets el Jutge",
-        "intro_role": "<b>El teu Rol:</b> Ets un jutge que ha de decidir si alliberar els acusats de la presó.<br>Un sistema d'IA ha analitzat cada cas i ha proporcionat una avaluació de riscos.<br><br><b>La teva Tasca:</b> Revisa el perfil de cada acusat i la predicció de la IA, després pren la teva decisió.",
+        "title": "⚖️ Posa't en el rol de jutge",
+        "intro_role": "<b>El teu rol:</b> Ets un jutge o una jutgessa que ha de decidir si es concedeix la libertat condicional a una persona presa o ha de continuar a la presó.<br>Un sistema d'IA ha analitzat cada cas i ha proporcionat una avaluació de riscos.<br><br><b>La teva tasca:</b> Revisa el perfil de cada persona presa i la predicció de la IA, després pren la teva decisió.",
         "loading": "⏳ Carregant...",
-        "scenario_title": "📋 L'Escenari",
+        "scenario_title": "📋 L'escenari",
         "scenario_box": """
-            Ets jutge en un tribunal penal molt concorregut. A causa de la massificació a les presons, has de decidir 
-            quins acusats poden ser alliberats de manera segura.<br><br>
+            Ets membre d'un tribunal penal amb molta feina. A causa de la massificació a les presons, has de decidir 
+            quines persones preses poden ser posades en llibertat de manera segura.<br><br>
             
             Per ajudar-te, el tribunal ha implementat un sistema d'IA que prediu el risc que cada 
-            acusat cometi nous delictes si és alliberat. La IA classifica els acusats com:<br><br>
+            acusat cometi nous delictes si obté la llibertat condicional. La IA classifica els acusats com:<br><br>
             
             <ul style='font-size:18px;'>
-                <li><span class='ai-risk-label risk-high'>Alt Risc</span> - Probable reincidència</li>
+                <li><span class='ai-risk-label risk-high'>Alt Risc</span> - Probable reincidència (de cometre nous delictes)</li>
                 <li><span class='ai-risk-label risk-medium'>Risc Mitjà</span> - Probabilitat moderada de reincidència</li>
                 <li><span class='ai-risk-label risk-low'>Baix Risc</span> - Improbable reincidència</li>
             </ul>
             
             <b>Recorda:</b> Les teves decisions afecten la vida de persones reals i la seguretat pública.
         """,
-        "btn_start": "Començar a Prendre Decisions ▶️",
-        "profiles_title": "👥 Perfils d'Acusats",
-        "hint_box": "Revisa la informació de cada acusat i l'avaluació de riscos de la IA, després pren la teva decisió.",
-        "btn_release": "✓ Alliberar Presoner",
-        "btn_keep": "✗ Mantenir a la Presó",
-        "btn_show_summary": "📊 Mostrar Resum de Decisions",
-        "btn_complete": "Completar aquesta Secció ▶️",
-        "completion_title": "✅ Decisions Completades!",
-        "completion_box_pre": "Has pres les teves decisions basant-te en les recomanacions de la IA.<br><br>Però aquí està la pregunta crítica:<br><br>",
+        "btn_start": "Començar a prendre decisions ▶️",
+        "profiles_title": "👥 Perfils de les persones preses",
+        "hint_box": "Revisa la informació de cada persona presa i l'avaluació de riscos de la IA, després pren la teva decisió.",
+        "btn_release": "✓ Alliberar la persona presa",
+        "btn_keep": "✗ Mantenir a la presó",
+        "btn_show_summary": "📊 Mostrar resum de decisions",
+        "btn_complete": "Completar aquesta secció ▶️",
+        "completion_title": "✅ Decisions completades!",
+        "completion_box_pre": "Ya has pres les teves decisions basant-te en les recomanacions de la IA.<br><br>Ara bé, sorgeix una pregunta clau:<br><br>",
         "completion_question": "I si la IA s'hagués equivocat?",
         "completion_box_post": """
             <p style='font-size:1.1rem;'>
@@ -203,24 +203,24 @@ TRANSLATIONS = {
                 Troba la següent secció a sota per continuar el teu viatge.
             </p>
         """,
-        "btn_back": "◀️ Tornar a Revisar Decisions",
+        "btn_back": "◀️ Tornar a revisar decisions",
         "decision_release": "Alliberar",
-        "decision_keep": "Mantenir a la Presó",
+        "decision_keep": "Mantenir a la presó",
         "decision_recorded": "✓ Decisió registrada:",
-        "summary_title": "📊 Resum de les teves Decisions",
-        "summary_released": "Presoners Alliberats:",
-        "summary_kept": "Presoners Mantinguts a la Presó:",
+        "summary_title": "📊 Resum de les teves decisions",
+        "summary_released": "Persones preses posades en llibertat:",
+        "summary_kept": "Persones preses que continuen a la presó:",
         "summary_empty": "Encara no s'han pres decisions.",
         "nav_loading_profiles": "Carregant perfils...",
         "nav_reviewing": "Revisant les teves decisions...",
-        "nav_returning": "Tornant a perfils...",
-        "label_defendant": "Acusat",
+        "nav_returning": "Tornar a perfils...",
+        "label_defendant": "Persona presa",
         "label_age": "Edat",
         "label_gender": "Gènere",
-        "label_race": "Raça",
-        "label_prior": "Delictes Previs",
-        "label_charge": "Càrrec Actual",
-        "label_ai_risk": "🤖 Avaluació de Risc IA:",
+        "label_race": "Raça/Etnicitat",
+        "label_prior": "Delictes previs",
+        "label_charge": "Càrrec actual",
+        "label_ai_risk": "🤖 Avaluació de risc de la IA:",
         "label_risk": "Risc",
         "label_confidence": "Confiança:",
         "Male": "Masculí",
@@ -235,7 +235,7 @@ TRANSLATIONS = {
         "Theft": "Robatori",
         "Assault": "Assalt",
         "Fraud": "Frau",
-        "Burglary": "Robatori amb violència"
+        "Burglary": "Robatori amb violació de domicili"
     }
 }
 
