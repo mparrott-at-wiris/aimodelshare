@@ -4361,14 +4361,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         # Initial Load Logic (Auth + Language + Stats)
         # ---------------------------------------------------------------------
         
-# ---------------------------------------------------------------------
-        # Initial Load Logic (Auth + Language + Stats + Merge)
-        # ---------------------------------------------------------------------
-        
-        def # ---------------------------------------------------------------------
-        # Initial Load Logic (Auth + Language + Stats + Merge)
-        # ---------------------------------------------------------------------
-        
+ 
         def handle_load(request: gr.Request):
             """
             Unified handler: 
