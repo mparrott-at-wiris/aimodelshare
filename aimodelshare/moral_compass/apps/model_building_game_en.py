@@ -4375,5 +4375,5 @@ def launch_model_building_game_en_app(height: int = 1200, share: bool = False, d
         X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data()
 
     demo = create_model_building_game_en_app()
-    with contextlib.redirect_stdout(open(os.devnull, "w")), contextlib.redirect_stderr(open(os.devnull, "w")):
-        demo.launch(share=share, inline=True, debug=debug, height=height)
+    port = int(os.environ.get("PORT", 8080))
+    demo.launch(share=share, inline=True, debug=debug, height=height, server_port=port)
