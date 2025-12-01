@@ -3980,7 +3980,34 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
     global attempts_tracker_display, team_name_state
 
     with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css) as demo:
+# -----------------------------------------------------------------
+        # 1. STATE DEFINITIONS (Must be first!)
+        # -----------------------------------------------------------------
         lang_state = gr.State("en")
+        
+        # Authentication & User States
+        username_state = gr.State(None)
+        token_state = gr.State(None)
+        team_name_state = gr.State(None)
+        
+        # Game Logic States
+        last_submission_score_state = gr.State(0.0)
+        last_rank_state = gr.State(0)
+        best_score_state = gr.State(0.0)
+        submission_count_state = gr.State(0)
+        first_submission_score_state = gr.State(None)
+        
+        # Experiment Logic States (The ones causing your error)
+        model_type_state = gr.State(DEFAULT_MODEL)
+        complexity_state = gr.State(2)
+        feature_set_state = gr.State(DEFAULT_FEATURE_SET) # <--- This fixes the NameError
+        data_size_state = gr.State(DEFAULT_DATA_SIZE)
+        
+        # Control Flags
+        readiness_state = gr.State(False)
+        was_preview_state = gr.State(False)
+        kpi_meta_state = gr.State({})
+        last_seen_ts_state = gr.State(None)
         # Persistent top anchor for scroll-to-top navigation
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
         
