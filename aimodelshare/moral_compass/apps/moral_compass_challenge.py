@@ -303,10 +303,10 @@ def translate_team_name_for_display(team_en: str, lang: str = "en") -> str:
     return TEAM_NAME_TRANSLATIONS[lang].get(team_en, team_en)
 
 # NEW: Reverse lookup for future use (e.g., if user input needs to be normalized back to English)
-def translate_team_name_to_english(display_name: str, lang: str = "en") -> Optional[str]:
+def translate_team_name_to_english(display_name: str, lang: str = "en") -> str:
     """
     Reverse lookup: given a localized team name, return the canonical English name.
-    Returns None if not found.
+    Returns the original display_name if not found.
     """
     if lang not in TEAM_NAME_TRANSLATIONS:
         return display_name  # Already English or unknown
@@ -315,7 +315,7 @@ def translate_team_name_to_english(display_name: str, lang: str = "en") -> Optio
     for english_name, localized_name in translations.items():
         if localized_name == display_name:
             return english_name
-    return None
+    return display_name  # UPDATED: Return display_name instead of None for consistency
 
 # NEW: Format leaderboard DataFrame with localized team names (non-destructive copy)
 def _format_leaderboard_for_display(df: pd.DataFrame, lang: str = "en") -> pd.DataFrame:
