@@ -7,13 +7,13 @@ through a 21-slide interactive investigation covering:
 PHASE I: THE SETUP (Slides 1-2) - Onboarding and mission briefing
 PHASE II: THE TOOLKIT (Slides 3-5) - Ethical framework and methodology  
 PHASE III: DATASET FORENSICS (Slides 6-10) - Input analysis for bias
-PHASE IV: FAIRNESS AUDIT (Slides 11-19) - Performance analysis and disparities
-PHASE V: THE VERDICT (Slides 20-21) - Diagnosis and next steps
+PHASE IV: FAIRNESS AUDIT (Slides 11-18) - Performance analysis and disparities
+PHASE V: THE VERDICT (Slides 19-21) - Diagnosis and next steps
 
 Features:
 - 21 Multiple Choice tasks integrated with Moral Compass scoring
 - Lightweight UX with toast notifications, gauge animations, and delta pills
-- Rank refreshes at checkpoints (after slides 10 and 18/19)
+- Rank refreshes at checkpoints (after slides 10 and 18)
 - Team integration via mc_integration_helpers
 - Follows shared_activity_styles.css patterns
 """
@@ -224,7 +224,7 @@ def create_bias_detective_v2_app(theme_primary_hue: str = "indigo") -> "gr.Block
         if is_correct:
             moral_compass_state["tasks_completed"] += 1
             # Calculate the percentage increase per task (100% / max_points)
-            delta_per_task = 100.0 / moral_compass_state["max_points"]
+            delta_per_task = 100.0 / float(moral_compass_state["max_points"])
             
             toast = format_toast_message(f"Progress logged. Ethical % +{delta_per_task:.1f}%")
             score_html = update_moral_compass_score()
@@ -236,8 +236,8 @@ def create_bias_detective_v2_app(theme_primary_hue: str = "indigo") -> "gr.Block
     
     def check_checkpoint_refresh(slide_num: int) -> bool:
         """Check if we should refresh ranks at this slide."""
-        # Checkpoints after slides 10 and 18/19
-        return slide_num in [10, 18, 19]
+        # Checkpoints after slides 10 and 18
+        return slide_num in [10, 18]
     
     # ========================================================================
     # Gradio App Layout
@@ -1318,7 +1318,7 @@ def create_bias_detective_v2_app(theme_primary_hue: str = "indigo") -> "gr.Block
         # PHASE V: THE VERDICT (Slides 20-21)
         # ====================================================================
         
-        with gr.Tab("⚖️ The Final Verdict (Slide 19/20)"):
+        with gr.Tab("⚖️ The Final Verdict (Slide 19)"):
             gr.Markdown("""
             ## ⚖️ THE FINAL JUDGMENT
             
