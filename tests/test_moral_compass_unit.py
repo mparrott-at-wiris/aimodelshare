@@ -46,6 +46,7 @@ class MockApiClient:
         else:
             score = primary_value * ((tc + qc) / denom)
         
+        # Build response with all standard fields
         response = {
             'username': kwargs.get('username'),
             'metrics': metrics,
@@ -60,8 +61,9 @@ class MockApiClient:
         }
         
         # Include team_name if provided (new feature)
-        if kwargs.get('team_name'):
-            response['teamName'] = kwargs.get('team_name')
+        team_name = kwargs.get('team_name')
+        if team_name:
+            response['teamName'] = team_name
         
         return response
 

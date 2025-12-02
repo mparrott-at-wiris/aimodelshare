@@ -131,6 +131,21 @@ def get_principal_from_claims(claims):
     )
 
 
+def validate_and_normalize_team_name(team_name):
+    """
+    Validate and normalize a team name.
+    
+    Args:
+        team_name: Team name string (may be None)
+    
+    Returns:
+        Optional[str]: Normalized team name or None if invalid
+    """
+    if team_name and isinstance(team_name, str) and team_name.strip():
+        return team_name.strip()
+    return None
+
+
 def get_identity_from_event(event):
     """
     Extract identity information from event.
@@ -1120,7 +1135,7 @@ def put_user(event):
         
         submission_count = body.get('submissionCount')
         total_count = body.get('totalCount')
-        team_name = body.get('teamName')
+        team_name = validate_and_normalize_team_name(body.get('teamName'))
         if submission_count is None or total_count is None:
             return create_response(400, {'error': 'submissionCount and totalCount are required'})
         try:
@@ -1139,8 +1154,8 @@ def put_user(event):
         }
         
         # Add team name if provided
-        if team_name and isinstance(team_name, str) and team_name.strip():
-            user_data['teamName'] = team_name.strip()
+        if team_name:
+            user_data['teamName'] = team_name
         
         # Add submitter metadata on first write if auth is enabled
         if AUTH_ENABLED and identity.get('principal'):
@@ -1191,7 +1206,7 @@ def put_user(event):
             'createdNew': created_new
         }
         if team_name:
-            response_body['teamName'] = team_name.strip()
+            response_body['teamName'] = team_name
         return create_response(200, response_body)
     except json.JSONDecodeError:
         return create_response(400, {'error': 'Invalid JSON in request body'})
@@ -1241,7 +1256,7 @@ def put_user_moral_compass(event):
         total_tasks = body.get('totalTasks')
         questions_correct = body.get('questionsCorrect')
         total_questions = body.get('totalQuestions')
-        team_name = body.get('teamName')
+        team_name = validate_and_normalize_team_name(body.get('teamName'))
         
         # Validate metrics
         if not metrics or not isinstance(metrics, dict):
@@ -1315,10 +1330,11 @@ def put_user_moral_compass(event):
         }
         
         # Add team name if provided, or preserve existing
-        if team_name and isinstance(team_name, str) and team_name.strip():
-            user_data['teamName'] = team_name.strip()
-        elif existing_item.get('teamName'):
-            user_data['teamName'] = existing_item.get('teamName')
+        existing_team = existing_item.get('teamName')
+        if team_name:
+            user_data['teamName'] = team_name
+        elif existing_team:
+            user_data['teamName'] = existing_team
         
         # Add submitter metadata on first write if auth is enabled and not already present
         if AUTH_ENABLED and identity.get('principal') and not existing_item.get('submitterSub'):

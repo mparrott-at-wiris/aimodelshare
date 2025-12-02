@@ -223,10 +223,10 @@ def create_bias_detective_v2_app(theme_primary_hue: str = "indigo") -> "gr.Block
         
         if is_correct:
             moral_compass_state["tasks_completed"] += 1
-            ethical_pct = calculate_ethical_progress()
-            delta = ethical_pct / moral_compass_state["max_points"]
+            # Calculate the percentage increase per task (100% / max_points)
+            delta_per_task = 100.0 / moral_compass_state["max_points"]
             
-            toast = format_toast_message(f"Progress logged. Ethical % +{delta:.1f}%")
+            toast = format_toast_message(f"Progress logged. Ethical % +{delta_per_task:.1f}%")
             score_html = update_moral_compass_score()
             
             return toast, score_html
@@ -243,9 +243,18 @@ def create_bias_detective_v2_app(theme_primary_hue: str = "indigo") -> "gr.Block
     # Gradio App Layout
     # ========================================================================
     
+    # Load CSS from shared styles
+    css_path = os.path.join(os.path.dirname(__file__), "shared_activity_styles.css")
+    try:
+        with open(css_path, 'r') as f:
+            css_content = f.read()
+    except FileNotFoundError:
+        logger.warning(f"CSS file not found at {css_path}, using default styles")
+        css_content = ""
+    
     with gr.Blocks(
         theme=gr.themes.Soft(primary_hue=theme_primary_hue),
-        css=open(os.path.join(os.path.dirname(__file__), "shared_activity_styles.css")).read(),
+        css=css_content,
         title="🕵️ Bias Detective V2: The Investigation"
     ) as app:
         

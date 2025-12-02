@@ -550,7 +550,7 @@ class MoralcompassApiClient:
             "totalCount": total_count
         }
         
-        if team_name:
+        if team_name is not None:
             payload["teamName"] = team_name
         
         response = self._request("PUT", f"/tables/{table_id}/users/{username}", json=payload)
