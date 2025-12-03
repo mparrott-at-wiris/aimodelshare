@@ -41,6 +41,8 @@ from .mc_integration_helpers import (
     get_user_ranks,
     _derive_table_id,
 )
+# Add helper module alias for potential direct access
+import aimodelshare.moral_compass.apps.mc_integration_helpers as mc_helpers
 
 # Import playground and AWS utilities
 try:
@@ -146,6 +148,9 @@ DEBUG_LOG = os.environ.get("DEBUG_LOG", "false").lower() == "true"
 
 # Bias Detective specific configuration
 BIAS_DETECTIVE_TOTAL_TASKS = 21  # Total number of tasks in the Bias Detective 21-slide flow
+
+# Normalize server-side max moral points to 21 to avoid "tiny score" scaling issues
+os.environ["MAX_MORAL_POINTS"] = "21"
 
 # ============================================================================
 # In-memory caches
@@ -638,6 +643,15 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                     if sync_result.get("synced"):
                         sync_message = " [Synced to server]"
                         
+                        # Clear local caches to ensure fresh rank data
+                        with _cache_lock:
+                            _leaderboard_cache["data"] = None
+                            _leaderboard_cache["timestamp"] = 0.0
+                            _user_stats_cache.clear()
+                        
+                        if DEBUG_LOG:
+                            _log("Cleared local _leaderboard_cache and _user_stats_cache after successful sync")
+                        
                         # Update ranks dynamically after syncing using moral compass API
                         if moral_compass_state["username"]:
                             try:
@@ -768,11 +782,46 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 moral_compass_state["username"] = username
                 moral_compass_state["token"] = token
                 moral_compass_state["team_name"] = user_stats.get("team_name")
-                moral_compass_state["team_rank"] = user_stats.get("team_rank")
-                moral_compass_state["individual_rank"] = user_stats.get("rank")
                 
                 if user_stats.get("best_score") is not None:
                     moral_compass_state["accuracy"] = user_stats["best_score"]
+                
+                # Prefer Moral Compass API ranks on initialization
+                try:
+                    table_id = _derive_table_id()
+                    rank_info = get_user_ranks(
+                        username=username,
+                        table_id=table_id,
+                        team_name=user_stats.get("team_name")
+                    )
+                    
+                    # Use Moral Compass API ranks if available
+                    if rank_info.get("individual_rank") is not None:
+                        moral_compass_state["individual_rank"] = rank_info["individual_rank"]
+                        if DEBUG_LOG:
+                            _log(f"Initialized individual rank from Moral Compass API: #{rank_info['individual_rank']}")
+                    else:
+                        # Fall back to playground-derived rank
+                        moral_compass_state["individual_rank"] = user_stats.get("rank")
+                        if DEBUG_LOG:
+                            _log(f"Initialized individual rank from playground fallback: #{user_stats.get('rank')}")
+                    
+                    if rank_info.get("team_rank") is not None:
+                        moral_compass_state["team_rank"] = rank_info["team_rank"]
+                        if DEBUG_LOG:
+                            _log(f"Initialized team rank from Moral Compass API: #{rank_info['team_rank']}")
+                    else:
+                        # Fall back to playground-derived rank
+                        moral_compass_state["team_rank"] = user_stats.get("team_rank")
+                        if DEBUG_LOG:
+                            _log(f"Initialized team rank from playground fallback: #{user_stats.get('team_rank')}")
+                except Exception as rank_err:
+                    logger.warning(f"Could not get ranks from Moral Compass API on init: {rank_err}")
+                    # Fall back to playground-derived ranks
+                    moral_compass_state["team_rank"] = user_stats.get("team_rank")
+                    moral_compass_state["individual_rank"] = user_stats.get("rank")
+                    if DEBUG_LOG:
+                        _log(f"Using playground-derived ranks due to API error: individual=#{user_stats.get('rank')}, team=#{user_stats.get('team_rank')}")
                 
                 try:
                     cm = get_challenge_manager(username)
@@ -798,13 +847,13 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 if user_stats.get("best_score") is not None:
                     welcome_msg += f"📊 Your best accuracy: **{user_stats['best_score']*100:.1f}%**\n\n"
                 
-                if user_stats.get("rank"):
-                    welcome_msg += f"🏆 Your individual rank: **#{user_stats['rank']}**\n\n"
+                if moral_compass_state.get("individual_rank"):
+                    welcome_msg += f"🏆 Your individual rank: **#{moral_compass_state['individual_rank']}**\n\n"
                 
-                if user_stats.get("team_name"):
-                    welcome_msg += f"👥 Your team: **{user_stats['team_name']}**\n\n"
-                    if user_stats.get("team_rank"):
-                        welcome_msg += f"🛡️ Team rank: **#{user_stats['team_rank']}**\n\n"
+                if moral_compass_state.get("team_name"):
+                    welcome_msg += f"👥 Your team: **{moral_compass_state['team_name']}**\n\n"
+                    if moral_compass_state.get("team_rank"):
+                        welcome_msg += f"🛡️ Team rank: **#{moral_compass_state['team_rank']}**\n\n"
                 
                 welcome_msg += "Your progress will be synced to the Moral Compass database as you complete tasks."
                 
