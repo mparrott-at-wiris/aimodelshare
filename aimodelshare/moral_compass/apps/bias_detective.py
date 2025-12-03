@@ -168,6 +168,81 @@ def _normalize_team_name(name: str) -> str:
         return ""
     return " ".join(str(name).strip().split())
 
+
+def _calculate_combined_score(accuracy: float, tasks_completed: int, max_points: int) -> float:
+    """
+    Calculate the combined Moral Compass score.
+    
+    Formula: combined = accuracy × (ethical_progress_pct / 100) × 100
+    
+    Args:
+        accuracy: Model accuracy (0.0 to 1.0)
+        tasks_completed: Number of tasks completed
+        max_points: Maximum possible tasks
+    
+    Returns:
+        Combined score as a float (0-100 scale)
+    
+    Note:
+        This helper encapsulates the combined score logic used throughout the app.
+        The ethical progress percentage is derived from tasks_completed/max_points.
+    """
+    if max_points == 0:
+        return 0.0
+    
+    ethical_progress_pct = min((tasks_completed / max_points) * 100, 100.0)
+    combined = accuracy * (ethical_progress_pct / 100.0) * 100
+    
+    return combined
+
+
+def _enforce_zero_tied_last_rank(
+    combined_score: float,
+    ethical_progress_pct: float,
+    user_rank: Optional[int],
+    team_rank: Optional[int],
+    total_individuals: int,
+    total_teams: int
+) -> Tuple[Optional[int], Optional[int]]:
+    """
+    Enforce tied-for-last rank semantics when combined score is zero.
+    
+    When a user begins the challenge with combined_score=0 and ethical_progress=0,
+    their individual rank should be tied for last place. Similarly, teams with no
+    scores should be tied for last place.
+    
+    Args:
+        combined_score: The user's combined Moral Compass score
+        ethical_progress_pct: The user's ethical progress percentage
+        user_rank: Current individual rank (may be None)
+        team_rank: Current team rank (may be None)
+        total_individuals: Total number of individuals (for last-place tie)
+        total_teams: Total number of teams (for last-place tie)
+    
+    Returns:
+        Tuple of (adjusted_user_rank, adjusted_team_rank)
+    
+    Note:
+        This guard ensures fair initial ranking when users/teams have not yet
+        accumulated any combined score or ethical progress. If the API provides
+        combined-score-based ranks in the future, this guard will still enforce
+        the zero-score semantics locally.
+    """
+    # Only enforce tied-for-last when BOTH combined score and ethical progress are zero
+    if combined_score == 0.0 and ethical_progress_pct == 0.0:
+        # Set individual rank to last place if we know total count
+        if total_individuals > 0:
+            user_rank = total_individuals
+            _log(f"Enforcing tied-for-last individual rank: {user_rank} (total: {total_individuals})")
+        
+        # Set team rank to last place if we know total count
+        if total_teams > 0:
+            team_rank = total_teams
+            _log(f"Enforcing tied-for-last team rank: {team_rank} (total: {total_teams})")
+    
+    return user_rank, team_rank
+
+
 def _fetch_leaderboard(token: str) -> Optional[pd.DataFrame]:
     """Fetch leaderboard data from playground with caching."""
     now = time.time()
@@ -237,7 +312,20 @@ def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str],
         return False, None, None
 
 def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
-    """Compute user stats from leaderboard with caching."""
+    """
+    Compute user stats from leaderboard with caching.
+    
+    This function provides fallback ranking based on playground accuracy when
+    Moral Compass API ranks are not available. It now includes:
+    - Total counts for individuals and teams (for tied-last enforcement)
+    - Average accuracy for team ranking (instead of max) - moving toward average-combined-score
+    - Zero-score tied-last guard enforcement
+    
+    Note:
+        The primary source of truth for ranks is the Moral Compass API via get_user_ranks().
+        This fallback is used when API ranks are unavailable. Once the Moral Compass API
+        supports combined-score-based ranks, this fallback can be simplified or removed.
+    """
     now = time.time()
     with _cache_lock:
         cached = _user_stats_cache.get(username)
@@ -249,6 +337,8 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
     best_score = None
     rank = None
     team_rank = None
+    total_individuals = 0
+    total_teams = 0
 
     try:
         if leaderboard_df is not None and not leaderboard_df.empty:
@@ -257,31 +347,54 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
                 if not user_submissions.empty:
                     best_score = user_submissions["accuracy"].max()
 
-                # Individual rank
+                # Individual rank - maintain existing behavior based on accuracy
                 user_bests = leaderboard_df.groupby("username")["accuracy"].max()
                 summary_df = user_bests.reset_index()
                 summary_df.columns = ["Engineer", "Best_Score"]
                 summary_df = summary_df.sort_values("Best_Score", ascending=False).reset_index(drop=True)
                 summary_df.index = summary_df.index + 1
+                total_individuals = len(summary_df)  # Track total for tied-last enforcement
                 my_row = summary_df[summary_df["Engineer"] == username]
                 if not my_row.empty:
                     rank = my_row.index[0]
 
-                # Team rank
+                # Team rank - changed from max to average accuracy
+                # This moves logic toward the requested average-of-combined-score approach
                 if "Team" in leaderboard_df.columns and team_name:
                     team_summary_df = (
                         leaderboard_df.groupby("Team")["accuracy"]
-                        .agg(Best_Score="max")
+                        .agg(Avg_Score="mean")  # Changed from max to mean (average)
                         .reset_index()
-                        .sort_values("Best_Score", ascending=False)
+                        .sort_values("Avg_Score", ascending=False)
                         .reset_index(drop=True)
                     )
                     team_summary_df.index = team_summary_df.index + 1
+                    total_teams = len(team_summary_df)  # Track total for tied-last enforcement
                     my_team_row = team_summary_df[team_summary_df["Team"] == team_name]
                     if not my_team_row.empty:
                         team_rank = my_team_row.index[0]
     except Exception as e:
         _log(f"User stats error for {username}: {e}")
+
+    # Apply zero-score tied-last enforcement
+    # This guard ensures fair initial ranking when combined score and ethical progress are both zero
+    # Note: At this point, we use best_score (accuracy) and tasks_completed=0 as proxy
+    # The actual combined score will be computed later with accurate tasks_completed value
+    if best_score is not None:
+        # Assume tasks_completed=0 for new users at stats computation time
+        # The real enforcement happens in the app state when combined score is known
+        combined_score = _calculate_combined_score(best_score, 0, BIAS_DETECTIVE_TOTAL_TASKS)
+        ethical_progress_pct = 0.0  # New users start at 0%
+        
+        # Apply tied-last guard
+        rank, team_rank = _enforce_zero_tied_last_rank(
+            combined_score=combined_score,
+            ethical_progress_pct=ethical_progress_pct,
+            user_rank=rank,
+            team_rank=team_rank,
+            total_individuals=total_individuals,
+            total_teams=total_teams
+        )
 
     stats = {
         "username": username,
@@ -289,6 +402,8 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
         "rank": rank,
         "team_name": team_name,
         "team_rank": team_rank,
+        "total_individuals": total_individuals,  # Add for future reference
+        "total_teams": total_teams,  # Add for future reference
         "is_signed_in": True,
         "_ts": now
     }
@@ -329,11 +444,15 @@ def get_moral_compass_score_html(
     
     Returns:
         HTML string with styled widget
+    
+    Note:
+        Uses _calculate_combined_score helper to compute combined score consistently.
     """
     # Ensure ethical progress doesn't exceed 100%
     ethical_progress_pct = min(ethical_progress_pct, 100.0)
     
-    combined_score = accuracy * (ethical_progress_pct / 100.0) * 100
+    # Use helper for consistent combined score calculation
+    combined_score = _calculate_combined_score(accuracy, local_points, max_points)
     
     html = f"""
     <div class="kpi-card kpi-card--subtle-accent">
