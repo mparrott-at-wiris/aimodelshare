@@ -2,15 +2,14 @@
 """
 Moral Compass Rank Integration Test
 
-Enhancements:
-- Derive TABLE_ID via PLAYGROUND_URL host (cf3wdpkg0d[-<region>]-mc based on MC_ENFORCE_NAMING)
-- Verify table existence; create it if missing (requires auth when AUTH_ENABLED=true)
-- Proceed with ChallengeManager usage and rank checks
+Updates:
+- After authenticating via SESSION_ID, set JWT_AUTHORIZATION_TOKEN env var
+  to the extracted token so API calls (e.g., create table) are authorized.
 
 Env:
 - SESSION_ID (required)
 - TABLE_ID (optional; if missing, derive via _derive_table_id)
-- PLAYGROUND_URL (required if deriving table id)
+- PLAYGROUND_URL (optional; used when creating table)
 - MORAL_COMPASS_API_BASE_URL (optional)
 - DEBUG_LOG (optional)
 """
@@ -58,8 +57,7 @@ def derive_table_id_if_needed(explicit_table_id: Optional[str]) -> str:
 def ensure_table_exists(table_id: str, playground_url: Optional[str]) -> None:
     """
     Verify table exists; create it if missing.
-
-    If AUTH_ENABLED=true, creation requires JWT in environment; MoralcompassApiClient will auto-attach if present.
+    Requires JWT_AUTHORIZATION_TOKEN in env when AUTH_ENABLED=true.
     """
     api_base = os.environ.get("MORAL_COMPASS_API_BASE_URL")
     client = MoralcompassApiClient(api_base_url=api_base) if api_base else MoralcompassApiClient()
@@ -71,19 +69,10 @@ def ensure_table_exists(table_id: str, playground_url: Optional[str]) -> None:
     except NotFoundError:
         logger.info(f"Table '{table_id}' not found. Attempting creation...")
         try:
-            payload = {
-                "table_id": table_id,
-                "display_name": f"Moral Compass - {table_id}",
-            }
-            # Only include playground_url if provided
-            if playground_url:
-                payload["playground_url"] = playground_url
-
-            # Client uses snake_case args
             resp = client.create_table(
                 table_id=table_id,
-                display_name=payload["display_name"],
-                playground_url=payload.get("playground_url")
+                display_name=f"Moral Compass - {table_id}",
+                playground_url=playground_url
             )
             logger.info(f"Created table '{table_id}': {resp}")
         except ApiClientError as e:
@@ -96,13 +85,22 @@ def ensure_table_exists(table_id: str, playground_url: Optional[str]) -> None:
         logger.error(f"Failed to verify table '{table_id}': {e}")
         raise
 
-def authenticate_via_session(session_id: str) -> Dict[str, str]:
+def authenticate_and_export_token(session_id: str) -> Dict[str, str]:
+    """
+    Authenticate via session ID and set JWT_AUTHORIZATION_TOKEN in env
+    so subsequent API client calls are authorized.
+    """
     logger.info("\n[STEP 1] Authenticating...")
     token = get_token_from_session(session_id)
     logger.info(f"Token obtained: {mask(token)}")
     username = _get_username_from_token(token)
     logger.info(f"Username extracted: {username}")
     logger.info(f"✓ Authenticated as '{username}'")
+
+    # Export the session token as JWT for API client
+    os.environ["JWT_AUTHORIZATION_TOKEN"] = token
+    logger.info("JWT_AUTHORIZATION_TOKEN exported from session token")
+
     return {"token": token, "username": username}
 
 def initialize_challenge_manager(username: str) -> Any:
@@ -174,16 +172,18 @@ def main():
 
     table_id = derive_table_id_if_needed(table_id_input)
 
-    # Ensure table exists or create it
+    # Authenticate and set JWT_AUTHORIZATION_TOKEN from session
+    auth = authenticate_and_export_token(session_id)
+    username = auth["username"]
+
+    # Ensure table exists or create it (now authorized)
     try:
         ensure_table_exists(table_id, playground_url if playground_url else None)
     except Exception:
         logger.error("Table setup failed; cannot proceed with rank test.")
         sys.exit(2)
 
-    # Authenticate and init CM
-    auth = authenticate_via_session(session_id)
-    username = auth["username"]
+    # Initialize CM
     cm = initialize_challenge_manager(username)
 
     # Initial ranks
