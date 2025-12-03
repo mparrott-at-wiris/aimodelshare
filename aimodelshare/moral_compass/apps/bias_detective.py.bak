@@ -115,25 +115,6 @@ TEAM_NAMES = [
     "The Ethical Explorers", "The Fairness Finders", "The Accuracy Avengers"
 ]
 
-
-# ============================================================================
-# Translation Configuration (i18n scaffold)
-# ============================================================================
-TRANSLATIONS = {
-    "en": {
-        "title": "🕵️ Bias Detective: The Investigation",
-        "loading": "⏳ Loading...",
-    }
-    # Future: Add 'es' and 'ca' translations
-}
-
-def t(lang: str, key: str, **kwargs) -> str:
-    """Translation helper function."""
-    translation = TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(key, key)
-    if kwargs:
-        return translation.format(**kwargs)
-    return translation
-
 # ============================================================================
 # Configuration
 # ============================================================================
@@ -566,63 +547,16 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     css_path = os.path.join(os.path.dirname(__file__), "shared_activity_styles.css")
     try:
         with open(css_path, 'r') as f:
-            base_css = f.read()
+            css_content = f.read()
     except FileNotFoundError:
         logger.warning(f"CSS file not found at {css_path}, using default styles")
-        base_css = ""
-    
-    # Add navigation overlay CSS for slide transitions
-    nav_overlay_css = """
-    #nav-loading-overlay {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: color-mix(in srgb, var(--body-background-fill) 95%, transparent);
-        z-index: 9999; display: none; flex-direction: column;
-        align-items: center; justify-content: center;
-        opacity: 0; transition: opacity 0.3s ease;
-    }
-    .nav-spinner {
-        width: 50px; height: 50px;
-        border: 5px solid var(--border-color-primary);
-        border-top: 5px solid var(--color-accent);
-        border-radius: 50%; animation: nav-spin 1s linear infinite;
-        margin-bottom: 20px;
-    }
-    @keyframes nav-spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-    #nav-loading-text {
-        font-size: 1.3rem; font-weight: 600; color: var(--color-accent);
-    }
-    @media (prefers-color-scheme: dark) {
-        #nav-loading-overlay { background: rgba(15, 23, 42, 0.9); }
-        .nav-spinner {
-            border-color: rgba(148, 163, 184, 0.4);
-            border-top-color: var(--color-accent);
-        }
-    }
-    """
-    css_content = base_css + nav_overlay_css
+        css_content = ""
     
     with gr.Blocks(
         theme=gr.themes.Soft(primary_hue=theme_primary_hue),
         css=css_content,
         title="🕵️ Bias Detective V2: The Investigation"
     ) as app:
-        
-        # Language state for i18n
-        lang_state = gr.State(value="en")
-        
-        # Top anchor for scroll navigation
-        gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
-        
-        # Navigation loading overlay
-        gr.HTML("""
-            <div id='nav-loading-overlay'>
-                <div class='nav-spinner'></div>
-                <span id='nav-loading-text'>Loading...</span>
-            </div>
-        """)
         
         # Header
         gr.Markdown("# 🕵️ BIAS DETECTIVE: THE INVESTIGATION")
@@ -651,19 +585,15 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             with gr.Column(scale=1):
                 load_user_data_btn = gr.Button("🔄 Load User Data", variant="primary", size="sm")
         
-        # Initial load: populate user state from request (sessionid) + parse lang
+        # Initial load: populate user state from request (sessionid)
         def initial_load(request: gr.Request):
             msg = _initialize_user_from_request(request)
-            params = request.query_params if request else {}
-            lang = params.get("lang", "en")
-            if lang not in TRANSLATIONS:
-                lang = "en"
-            return [msg, update_moral_compass_score(), lang]
+            return [msg, update_moral_compass_score()]
         
         app.load(
             fn=initial_load,
             inputs=None,
-            outputs=[welcome_message, moral_compass_display, lang_state]
+            outputs=[welcome_message, moral_compass_display]
         )
         
         # Explicit refresh button: also use request
@@ -677,77 +607,11 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             outputs=[welcome_message, moral_compass_display]
         )
         
-
-        gr.HTML("<hr style='margin:24px 0;'>")
-        
-        # ========================================================================
-        # Navigation Helper Functions
-        # ========================================================================
-        
-        def create_nav_generator(current_step, next_step, all_steps, loading_screen):
-            """Generate navigation between slides with loading screen."""
-            def navigate():
-                # Show loading
-                updates = {loading_screen: gr.update(visible=True)}
-                for step in all_steps:
-                    if step != loading_screen:
-                        updates[step] = gr.update(visible=False)
-                yield updates
-                
-                # Show next step
-                updates = {next_step: gr.update(visible=True)}
-                for step in all_steps:
-                    if step != next_step:
-                        updates[step] = gr.update(visible=False)
-                yield updates
-            return navigate
-        
-        def nav_js(target_id: str, message: str = "Loading...") -> str:
-            """JavaScript for overlay animation and scroll."""
-            return f"""
-            ()=>{{
-              try {{
-                const overlay = document.getElementById('nav-loading-overlay');
-                const messageEl = document.getElementById('nav-loading-text');
-                if(overlay && messageEl) {{
-                  messageEl.textContent = '{message}';
-                  overlay.style.display = 'flex';
-                  setTimeout(() => {{ overlay.style.opacity = '1'; }}, 10);
-                }}
-                setTimeout(() => {{
-                  const anchor = document.getElementById('app_top_anchor');
-                  if(anchor) anchor.scrollIntoView({{behavior:'smooth', block:'start'}});
-                }}, 40);
-                const startTime = Date.now();
-                const targetId = '{target_id}';
-                const pollInterval = setInterval(() => {{
-                  const elapsed = Date.now() - startTime;
-                  const target = document.getElementById(targetId);
-                  const isVisible = target && target.offsetParent !== null;
-                  if((isVisible && elapsed >= 1200) || elapsed > 7000) {{
-                    clearInterval(pollInterval);
-                    if(overlay) {{
-                      overlay.style.opacity = '0';
-                      setTimeout(() => {{ overlay.style.display = 'none'; }}, 300);
-                    }}
-                  }}
-                }}, 90);
-              }} catch(e) {{ console.warn('nav error', e); }}
-            }}
-            """
-        
-        # ========================================================================
-        # Loading Screen
-        # ========================================================================
-        
-        with gr.Column(visible=False, elem_id="loading") as loading_screen:
-            gr.HTML("<div style='text-align:center; padding:100px 0;'><h2 style='font-size:2rem;'>⏳ Loading...</h2></div>")
-        
         # ====================================================================
         # PHASE I: THE SETUP (Slides 1-2)
         # ====================================================================
         
-        with gr.Column(visible=True, elem_id="step-1") as step_1:
+        with gr.Tab("📋 Part 0: Score Preview (Slide 1)"):
             gr.Markdown("""
             ## 🧭 Meet the Moral Compass
             
@@ -808,12 +672,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             )
             
             gr.Markdown("**Running MC total: 2**")
-            
-            # Navigation
-            step_1_next = gr.Button("Next: The Setup ▶️", variant="primary", size="lg")
-
         
-        with gr.Column(visible=False, elem_id="step-2") as step_2:
+        with gr.Tab("⚡ The Setup (Slide 2)"):
             gr.Markdown("""
             ## ⚡ TARGET: HIDDEN AI BIAS
             
@@ -864,18 +724,12 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             
             gr.Markdown("**Running MC total: 3**")
             gr.Markdown("▶️ **CTA:** Begin Investigation")
-                
-                # Navigation
-            with gr.Row():
-                step_2_back = gr.Button("◀️ Back", size="lg")
-                step_2_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
         
         # ====================================================================
         # PHASE II: THE TOOLKIT (Slides 3-5)
         # ====================================================================
         
-        with gr.Column(visible=False, elem_id="step-3") as step_3:
+        with gr.Tab("⚖️ The Detective's Code (Slide 3)"):
             gr.Markdown("""
             ## ⚖️ THE DETECTIVE'S CODE
             
@@ -927,14 +781,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             
             gr.Markdown("**Running MC total: 4**")
             gr.Markdown("▶️ **CTA:** Initialize Investigation Protocol")
-                
-                # Navigation
-            with gr.Row():
-                step_3_back = gr.Button("◀️ Back", size="lg")
-                step_3_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
         
-        with gr.Column(visible=False, elem_id="step-4") as step_4:
+        with gr.Tab("⚠️ The Stakes (Slide 4)"):
             gr.Markdown("""
             ## ⚠️ THE RISK OF INVISIBLE BIAS
             
@@ -984,14 +832,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             
             gr.Markdown("**Running MC total: 5**")
             gr.Markdown("▶️ **CTA:** I understand the stakes. Show me how")
-                
-                # Navigation
-            with gr.Row():
-                step_4_back = gr.Button("◀️ Back", size="lg")
-                step_4_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
         
-        with gr.Column(visible=False, elem_id="step-5") as step_5:
+        with gr.Tab("🔎 The Detective's Method (Slide 5)"):
             gr.Markdown("""
             ## 🔎 HOW DO WE CATCH A MACHINE?
             
@@ -1046,18 +888,12 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             
             gr.Markdown("**Running MC total: 6**")
             gr.Markdown("▶️ **CTA:** Protocol confirmed. Start scanning")
-                
-                # Navigation
-            with gr.Row():
-                step_5_back = gr.Button("◀️ Back", size="lg")
-                step_5_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
         
         # ====================================================================
         # PHASE III: DATASET FORENSICS (Slides 6-10)
         # ====================================================================
         
-        with gr.Column(visible=False, elem_id="step-6") as step_6:
+        with gr.Tab("📂 Data Forensics Briefing (Slide 6)"):
             gr.Markdown("""
             ## 📂 THE DATA FORENSICS BRIEFING
             
@@ -1103,14 +939,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             
             gr.Markdown("**Running MC total: 7**")
             gr.Markdown("▶️ **CTA:** I know what to look for. Open scanner")
-                
-                # Navigation
-            with gr.Row():
-                step_6_back = gr.Button("◀️ Back", size="lg")
-                step_6_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
         
-        with gr.Column(visible=False, elem_id="step-7") as step_7:
+        with gr.Tab("🔎 Evidence Scan: Race (Slide 7)"):
             gr.Markdown(f"""
             ## 🔎 FORENSIC ANALYSIS: RACE
             
@@ -1169,14 +999,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             
             gr.Markdown("**Running MC total: 8**")
             gr.Markdown("▶️ **CTA:** Log evidence & continue")
-                
-                # Navigation
-            with gr.Row():
-                step_7_back = gr.Button("◀️ Back", size="lg")
-                step_7_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
         
-        with gr.Column(visible=False, elem_id="step-8") as step_8:
+        with gr.Tab("🔎 Evidence Scan: Gender (Slide 8)"):
             gr.Markdown(f"""
             ## 🔎 FORENSIC ANALYSIS: GENDER
             
@@ -1232,14 +1056,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             
             gr.Markdown("**Running MC total: 9**")
             gr.Markdown("▶️ **CTA:** Log evidence & continue")
-                
-                # Navigation
-            with gr.Row():
-                step_8_back = gr.Button("◀️ Back", size="lg")
-                step_8_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
         
-        with gr.Column(visible=False, elem_id="step-9") as step_9:
+        with gr.Tab("🔎 Evidence Scan: Age (Slide 9)"):
             gr.Markdown(f"""
             ## 🔎 FORENSIC ANALYSIS: AGE
             
@@ -1295,20 +1113,9 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             
             gr.Markdown("**Running MC total: 10**")
             gr.Markdown("▶️ **CTA:** Log evidence & view summary")
-                
-                # Navigation
-            with gr.Row():
-                step_9_back = gr.Button("◀️ Back", size="lg")
-                step_9_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
             gr.Markdown("🔄 **CHECKPOINT: Ranks may refresh after this slide**")
-                
-                # Navigation
-            with gr.Row():
-                step_17_back = gr.Button("◀️ Back", size="lg")
-                step_17_next = gr.Button("Next ▶️", variant="primary", size="lg")
         
-        with gr.Column(visible=False, elem_id="step-10") as step_10:
+        with gr.Tab("📂 Forensics Conclusion (Slide 10)"):
             gr.Markdown("""
             ## 📂 FORENSICS REPORT: SUMMARY
             
@@ -1375,11 +1182,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 inputs=[],
                 outputs=[checkpoint_refresh_msg]
             )
-                
-                # Navigation
-            with gr.Row():
-                step_10_back = gr.Button("◀️ Back", size="lg")
-                step_10_next = gr.Button("Next: Performance Audit ▶️", variant="primary", size="lg")
             
             gr.Markdown("▶️ **CTA:** Initiate Phase 3: Performance Audit")
         
@@ -1387,7 +1189,7 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         # PHASE IV: FAIRNESS AUDIT (Slides 11-19)
         # ====================================================================
         
-        with gr.Column(visible=False, elem_id="step-11") as step_11:
+        with gr.Tab("⚠️ The Audit Briefing (Slide 11)"):
             gr.Markdown("""
             ## ⚠️ THE TRAP OF "AVERAGES"
             
@@ -1439,14 +1241,9 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             )
             
             gr.Markdown("**Running MC total: 12**")
-                
-                # Navigation
-            with gr.Row():
-                step_11_back = gr.Button("◀️ Back", size="lg")
-                step_11_next = gr.Button("Next ▶️", variant="primary", size="lg")
             gr.Markdown("▶️ **CTA:** Identify failure type")
         
-        with gr.Column(visible=False, elem_id="step-12") as step_12:
+        with gr.Tab("⏳ The Truth Serum (Slide 12)"):
             gr.Markdown("""
             ## ⏳ THE POWER OF HINDSIGHT
             
@@ -1500,14 +1297,9 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             )
             
             gr.Markdown("**Running MC total: 13**")
-                
-                # Navigation
-            with gr.Row():
-                step_12_back = gr.Button("◀️ Back", size="lg")
-                step_12_next = gr.Button("Next ▶️", variant="primary", size="lg")
             gr.Markdown("▶️ **CTA:** Analyze High Risk vs. Reality (False Positives)")
         
-        with gr.Column(visible=False, elem_id="step-13") as step_13:
+        with gr.Tab("⚠️ Audit: False Positives (Slide 13)"):
             gr.Markdown(f"""
             ## ⚠️ EVIDENCE FOUND: PUNITIVE BIAS
             
@@ -1561,14 +1353,9 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             )
             
             gr.Markdown("**Running MC total: 14**")
-                
-                # Navigation
-            with gr.Row():
-                step_13_back = gr.Button("◀️ Back", size="lg")
-                step_13_next = gr.Button("Next ▶️", variant="primary", size="lg")
             gr.Markdown("▶️ **CTA:** Log punitive error & check False Negatives")
         
-        with gr.Column(visible=False, elem_id="step-14") as step_14:
+        with gr.Tab("⚠️ Audit: False Negatives (Slide 14)"):
             gr.Markdown(f"""
             ## ⚠️ EVIDENCE FOUND: THE "FREE PASS"
             
@@ -1621,14 +1408,9 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             )
             
             gr.Markdown("**Running MC total: 15**")
-                
-                # Navigation
-            with gr.Row():
-                step_14_back = gr.Button("◀️ Back", size="lg")
-                step_14_next = gr.Button("Next ▶️", variant="primary", size="lg")
             gr.Markdown("▶️ **CTA:** Log omission error & analyze Gender")
         
-        with gr.Column(visible=False, elem_id="step-15") as step_15:
+        with gr.Tab("⚠️ Audit: Gender (Slide 15)"):
             gr.Markdown(f"""
             ## ⚠️ EVIDENCE FOUND: SEVERITY BIAS
             
@@ -1682,14 +1464,9 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             )
             
             gr.Markdown("**Running MC total: 16**")
-                
-                # Navigation
-            with gr.Row():
-                step_15_back = gr.Button("◀️ Back", size="lg")
-                step_15_next = gr.Button("Next ▶️", variant="primary", size="lg")
             gr.Markdown("▶️ **CTA:** Log severity error & analyze Age")
         
-        with gr.Column(visible=False, elem_id="step-16") as step_16:
+        with gr.Tab("⚠️ Audit: Age (Slide 16)"):
             gr.Markdown(f"""
             ## ⚠️ EVIDENCE FOUND: ESTIMATION ERROR
             
@@ -1743,14 +1520,9 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             )
             
             gr.Markdown("**Running MC total: 17**")
-                
-                # Navigation
-            with gr.Row():
-                step_16_back = gr.Button("◀️ Back", size="lg")
-                step_16_next = gr.Button("Next ▶️", variant="primary", size="lg")
             gr.Markdown("▶️ **CTA:** Log estimation error & check Geography")
         
-        with gr.Column(visible=False, elem_id="step-17") as step_17:
+        with gr.Tab("⚠️ Audit: Geography (Slide 17)"):
             gr.Markdown(f"""
             ## ⚠️ THE "PROXY" PROBLEM
             
@@ -1808,7 +1580,7 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             gr.Markdown("▶️ **CTA:** Investigation complete. File final report")
             gr.Markdown("🔄 **CHECKPOINT: Ranks may refresh after this slide**")
         
-        with gr.Column(visible=False, elem_id="step-18") as step_18:
+        with gr.Tab("📂 Audit Conclusion (Slide 18)"):
             gr.Markdown("""
             ## 📂 AUDIT REPORT: SUMMARY
             
@@ -1875,11 +1647,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 inputs=[],
                 outputs=[checkpoint_refresh_msg_18]
             )
-                
-                # Navigation
-            with gr.Row():
-                step_18_back = gr.Button("◀️ Back", size="lg")
-                step_18_next = gr.Button("Next: Final Verdict ▶️", variant="primary", size="lg")
             
             gr.Markdown("▶️ **CTA:** Open Final Case File & Submit Diagnosis")
         
@@ -1887,7 +1654,7 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         # PHASE V: THE VERDICT (Slides 20-21)
         # ====================================================================
         
-        with gr.Column(visible=False, elem_id="step-19") as step_19:
+        with gr.Tab("⚖️ The Final Verdict (Slide 19)"):
             gr.Markdown("""
             ## ⚖️ THE FINAL JUDGMENT
             
@@ -1945,14 +1712,9 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             )
             
             gr.Markdown("**Running MC total: 20**")
-                
-                # Navigation
-            with gr.Row():
-                step_19_back = gr.Button("◀️ Back", size="lg")
-                step_19_next = gr.Button("Next: Mission Debrief ▶️", variant="primary", size="lg")
             gr.Markdown("▶️ **CTA:** Sign & file fairness report")
         
-        with gr.Column(visible=False, elem_id="step-20") as step_20:
+        with gr.Tab("🏆 Mission Debrief (Slide 21)"):
             gr.Markdown("""
             ## 🏆 EXCELLENT WORK, DETECTIVE
             
@@ -2005,20 +1767,11 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             )
             
             gr.Markdown("**Running MC total: 21**")
-                
-                # Navigation
-            with gr.Row():
-                step_20_back = gr.Button("◀️ Back", size="lg")
-                step_20_next = gr.Button("Next: Summary ▶️", variant="primary", size="lg")
             gr.Markdown("---")
             gr.Markdown("### 🎓 Mission Complete")
             gr.Markdown("⬇️ Scroll to begin next activity ⬇️")
-                
-            # Navigation
-            step_21_back = gr.Button("◀️ Back to Review", size="lg")
-
         
-        with gr.Column(visible=False, elem_id="step-21") as step_21:
+        with gr.Tab("📊 Progress Summary"):
             gr.Markdown("## Your Investigation Summary")
             
             summary_button = gr.Button("Generate Summary Report")
@@ -2067,263 +1820,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         
         # Button wiring for rank refresh already defined in slides 10 and 18
         
-
-        # ========================================================================
-        # Navigation Button Wiring
-        # ========================================================================
-        
-        # Collect all step columns for navigation
-        all_steps = [
-            loading_screen, step_1, step_2, step_3, step_4, step_5,
-            step_6, step_7, step_8, step_9, step_10, step_11,
-            step_12, step_13, step_14, step_15, step_16, step_17,
-            step_18, step_19, step_20, step_21
-        ]
-        
-        # Wire Step 1
-        step_1_next.click(
-            fn=create_nav_generator(step_1, step_2, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-2", "Loading...")
-        )
-        
-        # Wire Step 2
-        step_2_back.click(
-            fn=create_nav_generator(step_2, step_1, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-1", "Loading...")
-        )
-        step_2_next.click(
-            fn=create_nav_generator(step_2, step_3, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-3", "Loading...")
-        )
-        
-        # Wire Step 3
-        step_3_back.click(
-            fn=create_nav_generator(step_3, step_2, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-2", "Loading...")
-        )
-        step_3_next.click(
-            fn=create_nav_generator(step_3, step_4, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-4", "Loading...")
-        )
-        
-        # Wire Step 4
-        step_4_back.click(
-            fn=create_nav_generator(step_4, step_3, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-3", "Loading...")
-        )
-        step_4_next.click(
-            fn=create_nav_generator(step_4, step_5, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-5", "Loading...")
-        )
-        
-        # Wire Step 5
-        step_5_back.click(
-            fn=create_nav_generator(step_5, step_4, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-4", "Loading...")
-        )
-        step_5_next.click(
-            fn=create_nav_generator(step_5, step_6, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-6", "Loading...")
-        )
-        
-        # Wire Step 6
-        step_6_back.click(
-            fn=create_nav_generator(step_6, step_5, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-5", "Loading...")
-        )
-        step_6_next.click(
-            fn=create_nav_generator(step_6, step_7, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-7", "Loading...")
-        )
-        
-        # Wire Step 7
-        step_7_back.click(
-            fn=create_nav_generator(step_7, step_6, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-6", "Loading...")
-        )
-        step_7_next.click(
-            fn=create_nav_generator(step_7, step_8, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-8", "Loading...")
-        )
-        
-        # Wire Step 8
-        step_8_back.click(
-            fn=create_nav_generator(step_8, step_7, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-7", "Loading...")
-        )
-        step_8_next.click(
-            fn=create_nav_generator(step_8, step_9, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-9", "Loading...")
-        )
-        
-        # Wire Step 9
-        step_9_back.click(
-            fn=create_nav_generator(step_9, step_8, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-8", "Loading...")
-        )
-        step_9_next.click(
-            fn=create_nav_generator(step_9, step_10, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-10", "Loading...")
-        )
-        
-
-        # Wire Step 10
-        step_10_back.click(
-            fn=create_nav_generator(step_10, step_9, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-9", "Loading...")
-        )
-        step_10_next.click(
-            fn=create_nav_generator(step_10, step_11, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-11", "Loading...")
-        )
-        
-        # Wire Step 11
-        step_11_back.click(
-            fn=create_nav_generator(step_11, step_10, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-10", "Loading...")
-        )
-        step_11_next.click(
-            fn=create_nav_generator(step_11, step_12, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-12", "Loading...")
-        )
-        
-        # Wire Step 12
-        step_12_back.click(
-            fn=create_nav_generator(step_12, step_11, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-11", "Loading...")
-        )
-        step_12_next.click(
-            fn=create_nav_generator(step_12, step_13, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-13", "Loading...")
-        )
-        
-        # Wire Step 13
-        step_13_back.click(
-            fn=create_nav_generator(step_13, step_12, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-12", "Loading...")
-        )
-        step_13_next.click(
-            fn=create_nav_generator(step_13, step_14, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-14", "Loading...")
-        )
-        
-        # Wire Step 14
-        step_14_back.click(
-            fn=create_nav_generator(step_14, step_13, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-13", "Loading...")
-        )
-        step_14_next.click(
-            fn=create_nav_generator(step_14, step_15, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-15", "Loading...")
-        )
-        
-        # Wire Step 15
-        step_15_back.click(
-            fn=create_nav_generator(step_15, step_14, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-14", "Loading...")
-        )
-        step_15_next.click(
-            fn=create_nav_generator(step_15, step_16, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-16", "Loading...")
-        )
-        
-        # Wire Step 16
-        step_16_back.click(
-            fn=create_nav_generator(step_16, step_15, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-15", "Loading...")
-        )
-        step_16_next.click(
-            fn=create_nav_generator(step_16, step_17, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-17", "Loading...")
-        )
-        
-        # Wire Step 17
-        step_17_back.click(
-            fn=create_nav_generator(step_17, step_16, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-16", "Loading...")
-        )
-        step_17_next.click(
-            fn=create_nav_generator(step_17, step_18, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-18", "Loading...")
-        )
-        
-        # Wire Step 18
-        step_18_back.click(
-            fn=create_nav_generator(step_18, step_17, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-17", "Loading...")
-        )
-        step_18_next.click(
-            fn=create_nav_generator(step_18, step_19, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-19", "Loading...")
-        )
-        
-        # Wire Step 19
-        step_19_back.click(
-            fn=create_nav_generator(step_19, step_18, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-18", "Loading...")
-        )
-        step_19_next.click(
-            fn=create_nav_generator(step_19, step_20, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-20", "Loading...")
-        )
-        
-        # Wire Step 20
-        step_20_back.click(
-            fn=create_nav_generator(step_20, step_19, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-19", "Loading...")
-        )
-        step_20_next.click(
-            fn=create_nav_generator(step_20, step_21, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-21", "Loading...")
-        )
-        
-        # Wire Step 21 (final slide)
-        step_21_back.click(
-            fn=create_nav_generator(step_21, step_20, all_steps, loading_screen),
-            outputs=all_steps,
-            js=nav_js("step-20", "Loading...")
-        )
-
-
     return app
 
 
