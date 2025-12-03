@@ -144,6 +144,9 @@ MAX_LEADERBOARD_ENTRIES_STR = os.environ.get("MAX_LEADERBOARD_ENTRIES")
 MAX_LEADERBOARD_ENTRIES = int(MAX_LEADERBOARD_ENTRIES_STR) if MAX_LEADERBOARD_ENTRIES_STR else None
 DEBUG_LOG = os.environ.get("DEBUG_LOG", "false").lower() == "true"
 
+# Bias Detective specific configuration
+BIAS_DETECTIVE_TOTAL_TASKS = 21  # Total number of tasks in the Bias Detective 21-slide flow
+
 # ============================================================================
 # In-memory caches
 # ============================================================================
@@ -402,7 +405,7 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     # Track moral compass points and progress
     moral_compass_state = {
         "points": 0,
-        "max_points": 21,  # 21 MC tasks total
+        "max_points": BIAS_DETECTIVE_TOTAL_TASKS,  # Total tasks in Bias Detective flow
         "accuracy": 0.92,  # Example accuracy from prior model building
         "tasks_completed": 0,
         "checkpoint_reached": [],  # Track which checkpoints hit
@@ -527,28 +530,19 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                                 if rank_info.get("individual_rank") is not None:
                                     moral_compass_state["individual_rank"] = rank_info["individual_rank"]
                                     rank_updated = True
+                                    if DEBUG_LOG:
+                                        _log(f"Updated individual rank from Moral Compass: #{rank_info['individual_rank']}")
                                 
                                 if rank_info.get("team_rank") is not None:
                                     moral_compass_state["team_rank"] = rank_info["team_rank"]
                                     rank_updated = True
+                                    if DEBUG_LOG:
+                                        _log(f"Updated team rank from Moral Compass: #{rank_info['team_rank']}")
                             except Exception as rank_err:
-                                logger.debug(f"Could not update ranks from moral compass: {rank_err}")
-                                
-                                # Fallback to playground leaderboard method
-                                try:
-                                    with _cache_lock:
-                                        _user_stats_cache.pop(moral_compass_state["username"], None)
-                                    
-                                    updated_stats = _compute_user_stats(
-                                        moral_compass_state["username"],
-                                        moral_compass_state["token"]
-                                    )
-                                    
-                                    moral_compass_state["team_rank"] = updated_stats.get("team_rank")
-                                    moral_compass_state["individual_rank"] = updated_stats.get("rank")
-                                    rank_updated = True
-                                except Exception as fallback_err:
-                                    logger.debug(f"Could not update ranks from playground: {fallback_err}")
+                                logger.warning(f"Could not update ranks from Moral Compass API: {rank_err}")
+                                # Keep last-known ranks instead of falling back to playground
+                                if DEBUG_LOG:
+                                    _log(f"Keeping last-known Moral Compass ranks: individual=#{moral_compass_state.get('individual_rank')}, team=#{moral_compass_state.get('team_rank')}")
                         
                         # Update team if applicable
                         if moral_compass_state["team_name"]:
@@ -618,37 +612,24 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 
                 return msg
             except Exception as e:
-                logger.warning(f"Failed to refresh ranks at checkpoint {slide_num}: {e}")
+                logger.warning(f"Failed to refresh ranks from Moral Compass at checkpoint {slide_num}: {e}")
                 
-                # Fallback to playground method if moral compass fails
-                if moral_compass_state.get("token"):
-                    try:
-                        with _cache_lock:
-                            _user_stats_cache.pop(moral_compass_state["username"], None)
-                        
-                        updated_stats = _compute_user_stats(
-                            moral_compass_state["username"],
-                            moral_compass_state["token"]
-                        )
-                        
-                        moral_compass_state["team_rank"] = updated_stats.get("team_rank")
-                        moral_compass_state["individual_rank"] = updated_stats.get("rank")
-                        
-                        msg = f"🔄 **Checkpoint {slide_num}: Ranks Refreshed!**\n\n"
-                        
-                        if updated_stats.get("rank"):
-                            msg += f"🏆 Your individual rank: **#{updated_stats['rank']}**\n\n"
-                        
-                        if updated_stats.get("team_name") and updated_stats.get("team_rank"):
-                            msg += f"👥 Your team '{updated_stats['team_name']}' rank: **#{updated_stats['team_rank']}**\n\n"
-                        
-                        moral_compass_state["checkpoint_reached"].append(slide_num)
-                        
-                        return msg
-                    except Exception as fallback_err:
-                        logger.warning(f"Failed to refresh ranks via fallback at checkpoint {slide_num}: {fallback_err}")
+                # Keep last-known ranks and show message
+                msg = f"🔄 **Checkpoint {slide_num} reached**\n\n"
+                msg += f"⚠️ Rank refresh temporarily unavailable. Showing last-known ranks:\n\n"
                 
-                return f"🔄 Checkpoint {slide_num} reached (refresh pending)"
+                if moral_compass_state.get("individual_rank"):
+                    msg += f"🏆 Your individual rank: **#{moral_compass_state['individual_rank']}**\n\n"
+                
+                if moral_compass_state.get("team_name") and moral_compass_state.get("team_rank"):
+                    msg += f"👥 Your team '{moral_compass_state['team_name']}' rank: **#{moral_compass_state['team_rank']}**\n\n"
+                
+                moral_compass_state["checkpoint_reached"].append(slide_num)
+                
+                if DEBUG_LOG:
+                    _log(f"Checkpoint {slide_num} refresh failed, keeping last-known Moral Compass ranks")
+                
+                return msg
         
         return f"🔄 Checkpoint {slide_num} reached"
     
@@ -673,8 +654,20 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 
                 try:
                     cm = get_challenge_manager(username)
-                    moral_compass_state["challenge_manager"] = cm
-                    _log(f"Initialized ChallengeManager for user {username}")
+                    if cm:
+                        # Configure for Bias Detective flow
+                        cm.set_progress(
+                            tasks_completed=moral_compass_state.get("tasks_completed", 0),
+                            total_tasks=BIAS_DETECTIVE_TOTAL_TASKS,
+                            questions_correct=0,
+                            total_questions=0
+                        )
+                        # Set accuracy as primary metric
+                        cm.set_metric('accuracy', moral_compass_state["accuracy"], primary=True)
+                        moral_compass_state["challenge_manager"] = cm
+                        _log(f"Initialized ChallengeManager for user {username} with 21-task Bias Detective flow, accuracy={moral_compass_state['accuracy']:.4f}")
+                    else:
+                        logger.warning(f"get_challenge_manager returned None for user {username}")
                 except Exception as e:
                     logger.warning(f"Could not initialize ChallengeManager: {e}")
                 

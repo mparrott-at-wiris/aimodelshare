@@ -648,6 +648,7 @@ def fetch_cached_users(table_id: Optional[str] = None, ttl: int = 30) -> List[Di
         - 'moralCompassScore': float
         - 'submissionCount': int (if available)
         - 'totalCount': int (if available)
+        - 'teamName': str (if available)
     """
     if not table_id:
         table_id = _derive_table_id()
@@ -660,22 +661,37 @@ def fetch_cached_users(table_id: Optional[str] = None, ttl: int = 30) -> List[Di
             logger.debug(f"Using cached leaderboard for table {table_id}")
             return cached_data
     
-    # Fetch from API
+    # Fetch from API using raw list_users to get moralCompassScore
     try:
         from aimodelshare.moral_compass.api_client import MoralcompassApiClient
         
         api_client = MoralcompassApiClient()
-        users = list(api_client.iter_users(table_id))
         
-        # Convert to dict format
+        # Use list_users with pagination to get raw data including moralCompassScore
         user_list = []
-        for user in users:
-            user_list.append({
-                'username': user.username,
-                'moralCompassScore': user.total_count,  # Assuming total_count stores combined score
-                'submissionCount': user.submission_count,
-                'totalCount': user.total_count
-            })
+        last_key = None
+        
+        while True:
+            response = api_client.list_users(table_id, limit=100, last_key=last_key)
+            users = response.get("users", [])
+            
+            for user_data in users:
+                # Extract moralCompassScore with fallback to totalCount for backward compatibility
+                moral_compass_score = user_data.get("moralCompassScore")
+                if moral_compass_score is None:
+                    moral_compass_score = user_data.get("totalCount", 0)
+                
+                user_list.append({
+                    'username': user_data.get("username"),
+                    'moralCompassScore': moral_compass_score,
+                    'submissionCount': user_data.get("submissionCount", 0),
+                    'totalCount': user_data.get("totalCount", 0),
+                    'teamName': user_data.get("teamName")
+                })
+            
+            last_key = response.get("lastKey")
+            if not last_key:
+                break
         
         # Update cache
         _leaderboard_cache[cache_key] = (time.time(), user_list)
@@ -709,13 +725,17 @@ def get_user_ranks(username: str, table_id: Optional[str] = None, team_name: Opt
         if not users:
             return {'individual_rank': None, 'team_rank': None, 'moral_compass_score': None}
         
-        # Sort by moralCompassScore descending
-        users_sorted = sorted(users, key=lambda u: u['moralCompassScore'], reverse=True)
+        # Separate individual users from team synthetic users
+        individual_users = [u for u in users if not u['username'].startswith(TEAM_USERNAME_PREFIX)]
+        team_users = [u for u in users if u['username'].startswith(TEAM_USERNAME_PREFIX)]
         
-        # Find individual rank
+        # Sort individual users by moralCompassScore descending for individual ranking
+        individual_users_sorted = sorted(individual_users, key=lambda u: u['moralCompassScore'], reverse=True)
+        
+        # Find individual rank (only among individual users, not teams)
         individual_rank = None
         moral_compass_score = None
-        for rank, user in enumerate(users_sorted, start=1):
+        for rank, user in enumerate(individual_users_sorted, start=1):
             if user['username'] == username:
                 individual_rank = rank
                 moral_compass_score = user['moralCompassScore']
@@ -724,8 +744,9 @@ def get_user_ranks(username: str, table_id: Optional[str] = None, team_name: Opt
         # Find team rank if team_name provided
         team_rank = None
         if team_name:
-            team_users = [u for u in users_sorted if u['username'].startswith(TEAM_USERNAME_PREFIX)]
-            for rank, user in enumerate(team_users, start=1):
+            # Sort team users by moralCompassScore descending for team ranking
+            team_users_sorted = sorted(team_users, key=lambda u: u['moralCompassScore'], reverse=True)
+            for rank, user in enumerate(team_users_sorted, start=1):
                 team_display_name = user['username'][len(TEAM_USERNAME_PREFIX):]  # Remove prefix
                 if team_display_name == team_name:
                     team_rank = rank

@@ -218,21 +218,25 @@ class ChallengeManager:
         if primary:
             self.primary_metric = name
     
-    def set_progress(self, tasks_completed: int = 0, total_tasks: int = 0,
-                    questions_correct: int = 0, total_questions: int = 0) -> None:
+    def set_progress(self, tasks_completed: Optional[int] = None, total_tasks: Optional[int] = None,
+                    questions_correct: Optional[int] = None, total_questions: Optional[int] = None) -> None:
         """
         Set progress counters.
         
         Args:
-            tasks_completed: Number of tasks completed
-            total_tasks: Total number of tasks
-            questions_correct: Number of questions answered correctly
-            total_questions: Total number of questions
+            tasks_completed: Number of tasks completed (None = keep current)
+            total_tasks: Total number of tasks (None = keep current)
+            questions_correct: Number of questions answered correctly (None = keep current)
+            total_questions: Total number of questions (None = keep current)
         """
-        self.tasks_completed = tasks_completed
-        self.total_tasks = total_tasks
-        self.questions_correct = questions_correct
-        self.total_questions = total_questions
+        if tasks_completed is not None:
+            self.tasks_completed = tasks_completed
+        if total_tasks is not None:
+            self.total_tasks = total_tasks
+        if questions_correct is not None:
+            self.questions_correct = questions_correct
+        if total_questions is not None:
+            self.total_questions = total_questions
     
     def is_task_completed(self, task_id: str) -> bool:
         """
