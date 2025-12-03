@@ -6,29 +6,33 @@ Provides helper functions to:
 - Manage ChallengeManager lifecycle
 - Sync user and team state
 - Compute user ranks
+- Build leaderboard and widget HTML for apps
 
-This patch updates _derive_table_id to use host-based derivation:
-- playground_id = first hostname label (e.g., cf3wdpkg0d from cf3wdpkg0d.execute-api.us-east-1.amazonaws.com)
-- region = label immediately after 'execute-api' (e.g., us-east-1)
-- table_id = <playground_id>-mc (default) or <playground_id>-<region>-mc when MC_ENFORCE_NAMING requires region-aware naming.
+This version includes:
+- Host-based table ID derivation (_derive_table_id)
+- ChallengeManager factory using MoralcompassApiClient
+- Cached list_users fetch for ranks (fetch_cached_users)
+- Rank computation (get_user_ranks)
+- Minimal HTML builders: build_moral_leaderboard_html and get_moral_compass_widget_html
 """
 
 import os
 import time
 import logging
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Tuple
 from urllib.parse import urlparse
 
-from aimodelshare.moral_compass.api_client import MoralcompassApiClient
+from aimodelshare.moral_compass import MoralcompassApiClient
 from aimodelshare.moral_compass.challenge import ChallengeManager
 
 logger = logging.getLogger("aimodelshare.moral_compass.apps.helpers")
 
-# Local cache for list_users responses to reduce API load
+# Local caches
 _leaderboard_cache: Dict[str, Dict[str, Any]] = {}
 _LEADERBOARD_TTL_SECONDS = int(os.environ.get("LEADERBOARD_CACHE_SECONDS", "45"))
 
-def _cache_get(key: str) -> Optional[Dict[str, Any]]:
+
+def _cache_get(key: str) -> Optional[List[Dict[str, Any]]]:
     entry = _leaderboard_cache.get(key)
     if not entry:
         return None
@@ -38,10 +42,12 @@ def _cache_get(key: str) -> Optional[Dict[str, Any]]:
         except Exception:
             pass
         return None
-    return entry
+    return entry.get("data")
 
-def _cache_set(key: str, data: Dict[str, Any]) -> None:
+
+def _cache_set(key: str, data: List[Dict[str, Any]]) -> None:
     _leaderboard_cache[key] = {"data": data, "_ts": time.time()}
+
 
 def _derive_table_id() -> str:
     """
@@ -107,16 +113,17 @@ def _derive_table_id() -> str:
         return "m-mc"
 
 
-def get_challenge_manager(username: str) -> Optional[ChallengeManager]:
+def get_challenge_manager(username: str, auth_token: Optional[str] = None) -> Optional[ChallengeManager]:
     """
     Create or retrieve a ChallengeManager for the given user.
 
-    Uses derived table_id and default MoralcompassApiClient unless overridden by env.
+    Uses derived table_id and MoralcompassApiClient. If auth_token is provided,
+    the client will attach it to requests (recommended when AUTH_ENABLED=true).
     """
     try:
         table_id = _derive_table_id()
         api_base_url = os.environ.get("MORAL_COMPASS_API_BASE_URL")
-        client = MoralcompassApiClient(api_base_url=api_base_url) if api_base_url else MoralcompassApiClient()
+        client = MoralcompassApiClient(api_base_url=api_base_url, auth_token=auth_token) if api_base_url else MoralcompassApiClient(auth_token=auth_token)
         manager = ChallengeManager(table_id=table_id, username=username, api_client=client)
         return manager
     except Exception as e:
@@ -132,12 +139,15 @@ def sync_user_moral_state(cm: ChallengeManager, moral_points: int, accuracy: flo
         cm.set_metric('accuracy', accuracy, primary=True if cm.primary_metric is None else False)
         cm.set_progress(tasks_completed=moral_points, total_tasks=cm.total_tasks)
         result = cm.sync()
-        return {
+        merged = {
             "synced": True,
             "status": "ok",
             "local_preview": cm.get_local_score(),
-            **result
         }
+        # Merge server payload keys if present (e.g., moralCompassScore)
+        if isinstance(result, dict):
+            merged.update(result)
+        return merged
     except Exception as e:
         logger.warning(f"User sync failed for {cm.username}: {e}")
         return {
@@ -169,17 +179,16 @@ def fetch_cached_users(table_id: str, ttl: int = _LEADERBOARD_TTL_SECONDS) -> Li
     - totalCount
     - teamName (if present)
     """
-    now = time.time()
-    cached = _leaderboard_cache.get(table_id)
-    if cached and (now - cached.get("_ts", 0) < ttl):
-        return cached["data"]
+    cached = _cache_get(table_id)
+    if cached is not None:
+        return cached
 
     client = MoralcompassApiClient(api_base_url=os.environ.get("MORAL_COMPASS_API_BASE_URL"))
     resp = client.list_users(table_id, limit=100)
     users = resp.get("users", []) if isinstance(resp, dict) else []
 
     # Normalize fields and fallback
-    normalized = []
+    normalized: List[Dict[str, Any]] = []
     for u in users:
         normalized.append({
             "username": u.get("username"),
@@ -189,7 +198,7 @@ def fetch_cached_users(table_id: str, ttl: int = _LEADERBOARD_TTL_SECONDS) -> Li
             "teamName": u.get("teamName")
         })
 
-    _leaderboard_cache[table_id] = {"data": normalized, "_ts": now}
+    _cache_set(table_id, normalized)
     return normalized
 
 
@@ -209,7 +218,7 @@ def get_user_ranks(username: str, table_id: Optional[str] = None, team_name: Opt
     users = fetch_cached_users(table_id)
 
     # Individual ranks sorted by moralCompassScore desc, then submissionCount desc
-    sorted_users = sorted(users, key=lambda x: (float(x.get("moralCompassScore", 0)), x.get("submissionCount", 0)), reverse=True)
+    sorted_users = sorted(users, key=lambda x: (float(x.get("moralCompassScore", 0) or 0.0), x.get("submissionCount", 0)), reverse=True)
 
     individual_rank = None
     moral_score = None
@@ -218,7 +227,10 @@ def get_user_ranks(username: str, table_id: Optional[str] = None, team_name: Opt
     for idx, u in enumerate(sorted_users, start=1):
         if u.get("username") == username:
             individual_rank = idx
-            moral_score = float(u.get("moralCompassScore", 0))
+            try:
+                moral_score = float(u.get("moralCompassScore", 0) or 0.0)
+            except Exception:
+                moral_score = None
             user_team = u.get("teamName")
             break
 
@@ -236,7 +248,10 @@ def get_user_ranks(username: str, table_id: Optional[str] = None, team_name: Opt
                 tname = uname.split("team:", 1)[-1]
             if not tname:
                 continue
-            score = float(u.get("moralCompassScore", 0))
+            try:
+                score = float(u.get("moralCompassScore", 0) or 0.0)
+            except Exception:
+                score = 0.0
             team_scores[tname] = max(team_scores.get(tname, 0.0), score)
 
         sorted_teams = sorted(team_scores.items(), key=lambda kv: kv[1], reverse=True)
@@ -251,3 +266,57 @@ def get_user_ranks(username: str, table_id: Optional[str] = None, team_name: Opt
         "moral_compass_score": moral_score,
         "team_name": user_team
     }
+
+
+def build_moral_leaderboard_html(table_id: Optional[str] = None, max_entries: Optional[int] = 20) -> str:
+    """
+    Build a simple leaderboard HTML from list_users data sorted by moralCompassScore.
+    """
+    table_id = table_id or _derive_table_id()
+    users = fetch_cached_users(table_id)
+    if max_entries is not None:
+        users = users[:max_entries]
+
+    rows = []
+    for idx, u in enumerate(users, start=1):
+        uname = u.get("username") or ""
+        score = u.get("moralCompassScore", 0)
+        try:
+            score_float = float(score or 0.0)
+        except Exception:
+            score_float = 0.0
+        rows.append(f"<tr><td>{idx}</td><td>{uname}</td><td>{score_float:.4f}</td></tr>")
+
+    html = f"""
+    <div class="mc-leaderboard">
+      <h3>Moral Compass Leaderboard</h3>
+      <table>
+        <thead><tr><th>#</th><th>User</th><th>Score</th></tr></thead>
+        <tbody>
+          {''.join(rows) if rows else '<tr><td colspan="3">No users yet</td></tr>'}
+        </tbody>
+      </table>
+    </div>
+    """
+    return html
+
+
+def get_moral_compass_widget_html(username: str, table_id: Optional[str] = None) -> str:
+    """
+    Build a minimal widget HTML showing the user's current moral compass score and rank.
+    """
+    table_id = table_id or _derive_table_id()
+    ranks = get_user_ranks(username=username, table_id=table_id)
+
+    rank_text = f"#{ranks['individual_rank']}" if ranks.get("individual_rank") is not None else "N/A"
+    score = ranks.get("moral_compass_score")
+    score_text = f"{score:.4f}" if isinstance(score, (int, float)) else "N/A"
+
+    html = f"""
+    <div class="mc-widget">
+      <p><strong>User:</strong> {username}</p>
+      <p><strong>Rank:</strong> {rank_text}</p>
+      <p><strong>Moral Compass Score:</strong> {score_text}</p>
+    </div>
+    """
+    return html
