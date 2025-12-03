@@ -681,6 +681,60 @@ def fetch_cached_users(table_id: Optional[str] = None, ttl: int = 30) -> List[Di
         return []
 
 
+def get_user_ranks(username: str, table_id: Optional[str] = None, team_name: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Get user's individual and team ranks from moral compass leaderboard.
+    
+    Args:
+        username: The username
+        table_id: Optional table ID (auto-derived if not provided)
+        team_name: Optional team name to get team rank
+        
+    Returns:
+        Dictionary with:
+        - 'individual_rank': int or None
+        - 'team_rank': int or None
+        - 'moral_compass_score': float or None
+    """
+    try:
+        users = fetch_cached_users(table_id, ttl=5)  # Short TTL for rank queries
+        
+        if not users:
+            return {'individual_rank': None, 'team_rank': None, 'moral_compass_score': None}
+        
+        # Sort by moralCompassScore descending
+        users_sorted = sorted(users, key=lambda u: u['moralCompassScore'], reverse=True)
+        
+        # Find individual rank
+        individual_rank = None
+        moral_compass_score = None
+        for rank, user in enumerate(users_sorted, start=1):
+            if user['username'] == username:
+                individual_rank = rank
+                moral_compass_score = user['moralCompassScore']
+                break
+        
+        # Find team rank if team_name provided
+        team_rank = None
+        if team_name:
+            team_users = [u for u in users_sorted if u['username'].startswith('team:')]
+            for rank, user in enumerate(team_users, start=1):
+                team_display_name = user['username'][5:]  # Remove 'team:' prefix
+                if team_display_name == team_name:
+                    team_rank = rank
+                    break
+        
+        return {
+            'individual_rank': individual_rank,
+            'team_rank': team_rank,
+            'moral_compass_score': moral_compass_score
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get user ranks for {username}: {e}")
+        return {'individual_rank': None, 'team_rank': None, 'moral_compass_score': None}
+
+
 def build_moral_leaderboard_html(
     highlight_username: Optional[str] = None,
     include_teams: bool = True,
