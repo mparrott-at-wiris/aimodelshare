@@ -30,6 +30,13 @@ logger = logging.getLogger("aimodelshare.moral_compass.apps")
 
 
 # ============================================================================
+# Constants
+# ============================================================================
+
+TEAM_USERNAME_PREFIX = "team:"
+
+
+# ============================================================================
 # Environment Configuration
 # ============================================================================
 
@@ -427,7 +434,7 @@ def sync_team_state(team_name: str, table_id: Optional[str] = None) -> Dict[str,
         from aimodelshare.moral_compass.api_client import MoralcompassApiClient
         
         api_client = MoralcompassApiClient()
-        team_username = f"team:{team_name}"
+        team_username = f"{TEAM_USERNAME_PREFIX}{team_name}"
         
         # Update team entry
         response = api_client.update_moral_compass(
@@ -681,6 +688,60 @@ def fetch_cached_users(table_id: Optional[str] = None, ttl: int = 30) -> List[Di
         return []
 
 
+def get_user_ranks(username: str, table_id: Optional[str] = None, team_name: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Get user's individual and team ranks from moral compass leaderboard.
+    
+    Args:
+        username: The username
+        table_id: Optional table ID (auto-derived if not provided)
+        team_name: Optional team name to get team rank
+        
+    Returns:
+        Dictionary with:
+        - 'individual_rank': int or None
+        - 'team_rank': int or None
+        - 'moral_compass_score': float or None
+    """
+    try:
+        users = fetch_cached_users(table_id, ttl=5)  # Short TTL for rank queries
+        
+        if not users:
+            return {'individual_rank': None, 'team_rank': None, 'moral_compass_score': None}
+        
+        # Sort by moralCompassScore descending
+        users_sorted = sorted(users, key=lambda u: u['moralCompassScore'], reverse=True)
+        
+        # Find individual rank
+        individual_rank = None
+        moral_compass_score = None
+        for rank, user in enumerate(users_sorted, start=1):
+            if user['username'] == username:
+                individual_rank = rank
+                moral_compass_score = user['moralCompassScore']
+                break
+        
+        # Find team rank if team_name provided
+        team_rank = None
+        if team_name:
+            team_users = [u for u in users_sorted if u['username'].startswith(TEAM_USERNAME_PREFIX)]
+            for rank, user in enumerate(team_users, start=1):
+                team_display_name = user['username'][len(TEAM_USERNAME_PREFIX):]  # Remove prefix
+                if team_display_name == team_name:
+                    team_rank = rank
+                    break
+        
+        return {
+            'individual_rank': individual_rank,
+            'team_rank': team_rank,
+            'moral_compass_score': moral_compass_score
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get user ranks for {username}: {e}")
+        return {'individual_rank': None, 'team_rank': None, 'moral_compass_score': None}
+
+
 def build_moral_leaderboard_html(
     highlight_username: Optional[str] = None,
     include_teams: bool = True,
@@ -716,7 +777,7 @@ def build_moral_leaderboard_html(
     
     # Filter teams if needed
     if not include_teams:
-        users = [u for u in users if not u['username'].startswith('team:')]
+        users = [u for u in users if not u['username'].startswith(TEAM_USERNAME_PREFIX)]
     
     # Sort by moralCompassScore descending
     users_sorted = sorted(users, key=lambda u: u['moralCompassScore'], reverse=True)
@@ -740,8 +801,8 @@ def build_moral_leaderboard_html(
         username = user['username']
         score = user['moralCompassScore']
         
-        is_team = username.startswith('team:')
-        display_name = username[5:] if is_team else username  # Remove 'team:' prefix
+        is_team = username.startswith(TEAM_USERNAME_PREFIX)
+        display_name = username[len(TEAM_USERNAME_PREFIX):] if is_team else username  # Remove prefix
         entry_type = '👥 Team' if is_team else '👤 User'
         
         # Highlight current user

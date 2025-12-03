@@ -38,6 +38,8 @@ from .mc_integration_helpers import (
     sync_team_state,
     build_moral_leaderboard_html,
     get_moral_compass_widget_html,
+    get_user_ranks,
+    _derive_table_id,
 )
 
 # Import playground and AWS utilities
@@ -305,7 +307,10 @@ def get_moral_compass_score_html(
     local_points: int,
     max_points: int,
     accuracy: float = 0.0,
-    ethical_progress_pct: float = 0.0
+    ethical_progress_pct: float = 0.0,
+    individual_rank: Optional[int] = None,
+    team_rank: Optional[int] = None,
+    team_name: Optional[str] = None
 ) -> str:
     """
     Generate HTML for the Moral Compass Score widget with gauge.
@@ -315,10 +320,16 @@ def get_moral_compass_score_html(
         max_points: Maximum possible points
         accuracy: Current model accuracy (0-1)
         ethical_progress_pct: Ethical progress percentage (0-100)
+        individual_rank: Individual rank (if available)
+        team_rank: Team rank (if available)
+        team_name: Team name (if available)
     
     Returns:
         HTML string with styled widget
     """
+    # Ensure ethical progress doesn't exceed 100%
+    ethical_progress_pct = min(ethical_progress_pct, 100.0)
+    
     combined_score = accuracy * (ethical_progress_pct / 100.0) * 100
     
     html = f"""
@@ -339,6 +350,20 @@ def get_moral_compass_score_html(
             </div>
         </div>
         <p class="kpi-subtext-muted">{local_points}/{max_points} tasks completed</p>
+    """
+    
+    # Add rank information if available
+    if individual_rank is not None:
+        html += f"""
+        <p class="kpi-subtext-muted">🏆 Individual Rank: #{individual_rank}</p>
+        """
+    
+    if team_name and team_rank is not None:
+        html += f"""
+        <p class="kpi-subtext-muted">👥 Team '{team_name}' Rank: #{team_rank}</p>
+        """
+    
+    html += """
     </div>
     """
     return html
@@ -397,8 +422,12 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     # ========================================================================
     
     def calculate_ethical_progress() -> float:
-        """Calculate ethical progress percentage."""
-        return (moral_compass_state["tasks_completed"] / moral_compass_state["max_points"]) * 100
+        """Calculate ethical progress percentage, capped at 100%."""
+        if moral_compass_state["max_points"] == 0:
+            return 0.0
+        progress = (moral_compass_state["tasks_completed"] / moral_compass_state["max_points"]) * 100
+        # Ensure progress doesn't exceed 100%
+        return min(progress, 100.0)
     
     def update_moral_compass_score() -> str:
         """Update and return Moral Compass Score HTML."""
@@ -407,7 +436,10 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             local_points=moral_compass_state["tasks_completed"],
             max_points=moral_compass_state["max_points"],
             accuracy=moral_compass_state["accuracy"],
-            ethical_progress_pct=ethical_pct
+            ethical_progress_pct=ethical_pct,
+            individual_rank=moral_compass_state.get("individual_rank"),
+            team_rank=moral_compass_state.get("team_rank"),
+            team_name=moral_compass_state.get("team_name")
         )
     
     def log_task_completion(task_id: str, is_correct: bool) -> Tuple[str, str]:
@@ -415,21 +447,65 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         Log a task completion and return toast + score update.
         
         Syncs progress to moral compass database and includes team updates.
+        Prevents duplicate submissions and enforces max task limit.
         
         Returns:
             (toast_message, updated_score_html)
         """
-        task_answers[task_id] = is_correct
+        # Check if we've reached the maximum number of tasks
+        if moral_compass_state["tasks_completed"] >= moral_compass_state["max_points"]:
+            return "⚠️ Maximum number of tasks already completed.", update_moral_compass_score()
+        
+        # If using ChallengeManager, check there first for authoritative state
+        if moral_compass_state["challenge_manager"] is not None:
+            cm = moral_compass_state["challenge_manager"]
+            if cm.is_task_completed(task_id):
+                # Task already completed in ChallengeManager - sync local state
+                if task_id not in task_answers:
+                    task_answers[task_id] = True  # Sync local tracking
+                return "⚠️ You've already answered this question.", update_moral_compass_score()
+        
+        # Check local tracking as secondary check
+        if task_id in task_answers:
+            return "⚠️ You've already answered this question.", update_moral_compass_score()
         
         if is_correct:
-            moral_compass_state["tasks_completed"] += 1
-            delta_per_task = 100.0 / float(moral_compass_state["max_points"])
+            # Try to complete task via ChallengeManager first
+            task_newly_completed = False
+            if moral_compass_state["challenge_manager"] is not None:
+                cm = moral_compass_state["challenge_manager"]
+                task_newly_completed = cm.complete_task(task_id)
+                
+                # Only record locally if ChallengeManager accepted it
+                if task_newly_completed:
+                    task_answers[task_id] = is_correct
+                else:
+                    # Task was already completed in ChallengeManager
+                    return "⚠️ Task already recorded. No duplicate credit.", update_moral_compass_score()
+            else:
+                # No ChallengeManager - use local tracking only
+                task_answers[task_id] = is_correct
+                task_newly_completed = True
+            
+            if task_newly_completed:
+                # Increment tasks completed (with safety check)
+                moral_compass_state["tasks_completed"] = min(
+                    moral_compass_state["tasks_completed"] + 1,
+                    moral_compass_state["max_points"]
+                )
+            
+            delta_per_task = 100.0 / float(moral_compass_state["max_points"]) if moral_compass_state["max_points"] > 0 else 0.0
             
             sync_message = ""
+            rank_updated = False
+            
             if moral_compass_state["challenge_manager"] is not None:
                 try:
+                    cm = moral_compass_state["challenge_manager"]
+                    
+                    # Sync to server
                     sync_result = sync_user_moral_state(
-                        cm=moral_compass_state["challenge_manager"],
+                        cm=cm,
                         moral_points=moral_compass_state["tasks_completed"],
                         accuracy=moral_compass_state["accuracy"]
                     )
@@ -437,6 +513,44 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                     if sync_result.get("synced"):
                         sync_message = " [Synced to server]"
                         
+                        # Update ranks dynamically after syncing using moral compass API
+                        if moral_compass_state["username"]:
+                            try:
+                                # Get ranks from moral compass leaderboard
+                                table_id = _derive_table_id()
+                                rank_info = get_user_ranks(
+                                    username=moral_compass_state["username"],
+                                    table_id=table_id,
+                                    team_name=moral_compass_state.get("team_name")
+                                )
+                                
+                                if rank_info.get("individual_rank") is not None:
+                                    moral_compass_state["individual_rank"] = rank_info["individual_rank"]
+                                    rank_updated = True
+                                
+                                if rank_info.get("team_rank") is not None:
+                                    moral_compass_state["team_rank"] = rank_info["team_rank"]
+                                    rank_updated = True
+                            except Exception as rank_err:
+                                logger.debug(f"Could not update ranks from moral compass: {rank_err}")
+                                
+                                # Fallback to playground leaderboard method
+                                try:
+                                    with _cache_lock:
+                                        _user_stats_cache.pop(moral_compass_state["username"], None)
+                                    
+                                    updated_stats = _compute_user_stats(
+                                        moral_compass_state["username"],
+                                        moral_compass_state["token"]
+                                    )
+                                    
+                                    moral_compass_state["team_rank"] = updated_stats.get("team_rank")
+                                    moral_compass_state["individual_rank"] = updated_stats.get("rank")
+                                    rank_updated = True
+                                except Exception as fallback_err:
+                                    logger.debug(f"Could not update ranks from playground: {fallback_err}")
+                        
+                        # Update team if applicable
                         if moral_compass_state["team_name"]:
                             team_sync_result = sync_team_state(
                                 team_name=moral_compass_state["team_name"]
@@ -448,8 +562,12 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             
             toast = format_toast_message(f"Progress logged. Ethical % +{delta_per_task:.1f}%{sync_message}")
             
-            if moral_compass_state["team_name"] and moral_compass_state["team_rank"]:
-                toast += f"\n👥 Your team '{moral_compass_state['team_name']}' is ranked #{moral_compass_state['team_rank']}"
+            # Show rank if available
+            if rank_updated:
+                if moral_compass_state.get("individual_rank"):
+                    toast += f"\n🏆 Your rank: #{moral_compass_state['individual_rank']}"
+                if moral_compass_state["team_name"] and moral_compass_state.get("team_rank"):
+                    toast += f"\n👥 Team '{moral_compass_state['team_name']}' rank: #{moral_compass_state['team_rank']}"
             
             score_html = update_moral_compass_score()
             
@@ -470,34 +588,66 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         if slide_num not in [10, 18]:
             return ""
         
-        if moral_compass_state["username"] and moral_compass_state["token"]:
+        if moral_compass_state["username"]:
             try:
-                with _cache_lock:
-                    _user_stats_cache.pop(moral_compass_state["username"], None)
-                
-                updated_stats = _compute_user_stats(
-                    moral_compass_state["username"],
-                    moral_compass_state["token"]
+                # Try moral compass API first
+                table_id = _derive_table_id()
+                rank_info = get_user_ranks(
+                    username=moral_compass_state["username"],
+                    table_id=table_id,
+                    team_name=moral_compass_state.get("team_name")
                 )
                 
-                moral_compass_state["team_rank"] = updated_stats.get("team_rank")
-                moral_compass_state["individual_rank"] = updated_stats.get("rank")
+                if rank_info.get("individual_rank") is not None:
+                    moral_compass_state["individual_rank"] = rank_info["individual_rank"]
+                
+                if rank_info.get("team_rank") is not None:
+                    moral_compass_state["team_rank"] = rank_info["team_rank"]
                 
                 msg = f"🔄 **Checkpoint {slide_num}: Ranks Refreshed!**\n\n"
                 
-                if updated_stats.get("rank"):
-                    msg += f"🏆 Your individual rank: **#{updated_stats['rank']}**\n\n"
+                if moral_compass_state.get("individual_rank"):
+                    msg += f"🏆 Your individual rank: **#{moral_compass_state['individual_rank']}**\n\n"
                 
-                if updated_stats.get("team_name") and updated_stats.get("team_rank"):
-                    msg += f"👥 Your team '{updated_stats['team_name']}' rank: **#{updated_stats['team_rank']}**\n\n"
+                if moral_compass_state.get("team_name") and moral_compass_state.get("team_rank"):
+                    msg += f"👥 Your team '{moral_compass_state['team_name']}' rank: **#{moral_compass_state['team_rank']}**\n\n"
                 
                 moral_compass_state["checkpoint_reached"].append(slide_num)
                 
-                _log(f"Checkpoint {slide_num} refresh for {moral_compass_state['username']}: rank={updated_stats.get('rank')}, team_rank={updated_stats.get('team_rank')}")
+                _log(f"Checkpoint {slide_num} refresh for {moral_compass_state['username']}: rank={moral_compass_state.get('individual_rank')}, team_rank={moral_compass_state.get('team_rank')}")
                 
                 return msg
             except Exception as e:
                 logger.warning(f"Failed to refresh ranks at checkpoint {slide_num}: {e}")
+                
+                # Fallback to playground method if moral compass fails
+                if moral_compass_state.get("token"):
+                    try:
+                        with _cache_lock:
+                            _user_stats_cache.pop(moral_compass_state["username"], None)
+                        
+                        updated_stats = _compute_user_stats(
+                            moral_compass_state["username"],
+                            moral_compass_state["token"]
+                        )
+                        
+                        moral_compass_state["team_rank"] = updated_stats.get("team_rank")
+                        moral_compass_state["individual_rank"] = updated_stats.get("rank")
+                        
+                        msg = f"🔄 **Checkpoint {slide_num}: Ranks Refreshed!**\n\n"
+                        
+                        if updated_stats.get("rank"):
+                            msg += f"🏆 Your individual rank: **#{updated_stats['rank']}**\n\n"
+                        
+                        if updated_stats.get("team_name") and updated_stats.get("team_rank"):
+                            msg += f"👥 Your team '{updated_stats['team_name']}' rank: **#{updated_stats['team_rank']}**\n\n"
+                        
+                        moral_compass_state["checkpoint_reached"].append(slide_num)
+                        
+                        return msg
+                    except Exception as fallback_err:
+                        logger.warning(f"Failed to refresh ranks via fallback at checkpoint {slide_num}: {fallback_err}")
+                
                 return f"🔄 Checkpoint {slide_num} reached (refresh pending)"
         
         return f"🔄 Checkpoint {slide_num} reached"

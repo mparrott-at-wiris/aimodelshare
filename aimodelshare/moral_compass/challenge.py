@@ -5,7 +5,7 @@ Provides a local state manager for tracking multi-metric progress
 and syncing with the Moral Compass API.
 """
 
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Tuple
 from dataclasses import dataclass
 from .api_client import MoralcompassApiClient
 
@@ -234,18 +234,47 @@ class ChallengeManager:
         self.questions_correct = questions_correct
         self.total_questions = total_questions
     
-    def complete_task(self, task_id: str) -> None:
+    def is_task_completed(self, task_id: str) -> bool:
+        """
+        Check if a task has been completed.
+        
+        Args:
+            task_id: The task identifier (e.g., 'A', 'B', 'C')
+            
+        Returns:
+            True if the task has been completed, False otherwise
+        """
+        return task_id in self._completed_task_ids
+    
+    def complete_task(self, task_id: str) -> bool:
         """
         Mark a task as completed.
         
         Args:
             task_id: The task identifier (e.g., 'A', 'B', 'C')
+            
+        Returns:
+            True if the task was newly completed, False if already completed
         """
         if task_id not in self._completed_task_ids:
             self._completed_task_ids.add(task_id)
             self.tasks_completed = len(self._completed_task_ids)
+            return True
+        return False
     
-    def answer_question(self, task_id: str, question_id: str, selected_index: int) -> bool:
+    def is_question_answered(self, question_id: str) -> bool:
+        """
+        Check if a question has been answered.
+        
+        Args:
+            question_id: The question identifier
+            
+        Returns:
+            True if the question has been answered, False otherwise
+        """
+        return question_id in self._answered_questions
+    
+    def answer_question(self, task_id: str, question_id: str, selected_index: int) -> Tuple[bool, bool]:
         """
         Record an answer to a question.
         
@@ -255,8 +284,16 @@ class ChallengeManager:
             selected_index: The index of the selected answer
             
         Returns:
-            True if the answer is correct, False otherwise
+            Tuple of (is_correct, is_new_answer):
+            - is_correct: True if the answer is correct, False otherwise
+            - is_new_answer: True if this is a new answer, False if already answered
         """
+        # Check if already answered
+        if question_id in self._answered_questions:
+            # Return the previous result and indicate it's not a new answer
+            is_correct = self._is_answer_correct(question_id, self._answered_questions[question_id])
+            return is_correct, False
+        
         # Find the question
         question = None
         for task in self.challenge.tasks:
@@ -282,7 +319,7 @@ class ChallengeManager:
             if self._is_answer_correct(qid, idx)
         )
         
-        return is_correct
+        return is_correct, True
     
     def _is_answer_correct(self, question_id: str, selected_index: int) -> bool:
         """Check if an answer is correct"""
