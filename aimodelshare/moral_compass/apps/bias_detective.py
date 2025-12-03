@@ -1302,11 +1302,11 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 step_9_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
             gr.Markdown("🔄 **CHECKPOINT: Ranks may refresh after this slide**")
-                
-                # Navigation
+            
+            # Navigation
             with gr.Row():
-                step_17_back = gr.Button("◀️ Back", size="lg")
-                step_17_next = gr.Button("Next ▶️", variant="primary", size="lg")
+                step_9_back = gr.Button("◀️ Back", size="lg")
+                step_9_next = gr.Button("Next ▶️", variant="primary", size="lg")
         
         with gr.Column(visible=False, elem_id="step-10") as step_10:
             gr.Markdown("""
@@ -2013,9 +2013,9 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             gr.Markdown("---")
             gr.Markdown("### 🎓 Mission Complete")
             gr.Markdown("⬇️ Scroll to begin next activity ⬇️")
-                
+            
             # Navigation
-            step_21_back = gr.Button("◀️ Back to Review", size="lg")
+            step_20_back = gr.Button("◀️ Back to Review", size="lg")
 
         
         with gr.Column(visible=False, elem_id="step-21") as step_21:
@@ -2064,6 +2064,9 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 inputs=[],
                 outputs=[summary_output]
             )
+            
+            # Navigation
+            step_21_back = gr.Button("◀️ Back to Mission Debrief", size="lg")
         
         # Button wiring for rank refresh already defined in slides 10 and 18
         
