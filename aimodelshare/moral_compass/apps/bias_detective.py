@@ -21,7 +21,15 @@ Features:
 import os
 import logging
 import random
+import time
+import threading
+import pandas as pd
 from typing import Dict, Any, Optional, Tuple
+
+try:
+    import gradio as gr
+except ImportError:
+    gr = None
 
 # Import moral compass integration helpers
 from .mc_integration_helpers import (
@@ -31,6 +39,14 @@ from .mc_integration_helpers import (
     build_moral_leaderboard_html,
     get_moral_compass_widget_html,
 )
+
+# Import playground and AWS utilities
+try:
+    from aimodelshare.playground import Competition
+    from aimodelshare.aws import get_token_from_session, _get_username_from_token
+except ImportError:
+    # Mock/Pass if not available locally
+    pass
 
 # Import session-based authentication
 from .session_auth import (
@@ -97,10 +113,169 @@ FAIRNESS_METRICS = {
     }
 }
 
+# Team names for assignment
+TEAM_NAMES = [
+    "The Justice League", "The Moral Champions", "The Data Detectives",
+    "The Ethical Explorers", "The Fairness Finders", "The Accuracy Avengers"
+]
+
+# ============================================================================
+# Configuration
+# ============================================================================
+LEADERBOARD_CACHE_SECONDS = int(os.environ.get("LEADERBOARD_CACHE_SECONDS", "45"))
+MAX_LEADERBOARD_ENTRIES_STR = os.environ.get("MAX_LEADERBOARD_ENTRIES")
+MAX_LEADERBOARD_ENTRIES = int(MAX_LEADERBOARD_ENTRIES_STR) if MAX_LEADERBOARD_ENTRIES_STR else None
+DEBUG_LOG = os.environ.get("DEBUG_LOG", "false").lower() == "true"
+
+# ============================================================================
+# In-memory caches
+# ============================================================================
+_cache_lock = threading.Lock()
+_leaderboard_cache: Dict[str, Any] = {"data": None, "timestamp": 0.0}
+_user_stats_cache: Dict[str, Dict[str, Any]] = {}
+USER_STATS_TTL = LEADERBOARD_CACHE_SECONDS
+
 
 # ============================================================================
 # Helper Functions
 # ============================================================================
+
+def _log(msg: str):
+    if DEBUG_LOG:
+        print(f"[BiasDetectiveApp] {msg}")
+
+def _normalize_team_name(name: str) -> str:
+    if not name:
+        return ""
+    return " ".join(str(name).strip().split())
+
+def _fetch_leaderboard(token: str) -> Optional[pd.DataFrame]:
+    """Fetch leaderboard data from playground with caching."""
+    now = time.time()
+    with _cache_lock:
+        if (
+            _leaderboard_cache["data"] is not None
+            and now - _leaderboard_cache["timestamp"] < LEADERBOARD_CACHE_SECONDS
+        ):
+            return _leaderboard_cache["data"]
+
+    try:
+        playground_id = os.environ.get(
+            "PLAYGROUND_URL",
+            "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+        )
+        playground = Competition(playground_id)
+        df = playground.get_leaderboard(token=token)
+        if df is not None and not df.empty and MAX_LEADERBOARD_ENTRIES is not None:
+            df = df.head(MAX_LEADERBOARD_ENTRIES)
+    except Exception as e:
+        _log(f"Leaderboard fetch failed: {e}")
+        df = None
+
+    with _cache_lock:
+        _leaderboard_cache["data"] = df
+        _leaderboard_cache["timestamp"] = time.time()
+    return df
+
+def _get_or_assign_team(username: str, leaderboard_df: Optional[pd.DataFrame]) -> Tuple[str, bool]:
+    """Get existing team from leaderboard or assign a new one."""
+    try:
+        if leaderboard_df is not None and not leaderboard_df.empty and "Team" in leaderboard_df.columns:
+            user_submissions = leaderboard_df[leaderboard_df["username"] == username]
+            if not user_submissions.empty:
+                if "timestamp" in user_submissions.columns:
+                    try:
+                        user_submissions = user_submissions.copy()
+                        user_submissions["timestamp"] = pd.to_datetime(
+                            user_submissions["timestamp"], errors="coerce"
+                        )
+                        user_submissions = user_submissions.sort_values("timestamp", ascending=False)
+                    except Exception as ts_err:
+                        _log(f"Timestamp sort error: {ts_err}")
+                existing_team = user_submissions.iloc[0]["Team"]
+                if pd.notna(existing_team) and str(existing_team).strip():
+                    return _normalize_team_name(existing_team), False
+        return _normalize_team_name(random.choice(TEAM_NAMES)), True
+    except Exception as e:
+        _log(f"Team assignment error: {e}")
+        return _normalize_team_name(random.choice(TEAM_NAMES)), True
+
+def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str], Optional[str]]:
+    """Try to authenticate using session-based authentication."""
+    try:
+        session_id = request.query_params.get("sessionid") if request else None
+        if not session_id:
+            return False, None, None
+        token = get_token_from_session(session_id)
+        if not token:
+            return False, None, None
+        username = _get_username_from_token(token)
+        if not username:
+            return False, None, None
+        return True, username, token
+    except Exception as e:
+        _log(f"Session auth failed: {e}")
+        return False, None, None
+
+def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
+    """Compute user stats from leaderboard with caching."""
+    now = time.time()
+    with _cache_lock:
+        cached = _user_stats_cache.get(username)
+        if cached and (now - cached.get("_ts", 0) < USER_STATS_TTL):
+            return cached
+
+    leaderboard_df = _fetch_leaderboard(token)
+    team_name, _ = _get_or_assign_team(username, leaderboard_df)
+    best_score = None
+    rank = None
+    team_rank = None
+
+    try:
+        if leaderboard_df is not None and not leaderboard_df.empty:
+            if "accuracy" in leaderboard_df.columns and "username" in leaderboard_df.columns:
+                user_submissions = leaderboard_df[leaderboard_df["username"] == username]
+                if not user_submissions.empty:
+                    best_score = user_submissions["accuracy"].max()
+
+                # Individual rank
+                user_bests = leaderboard_df.groupby("username")["accuracy"].max()
+                summary_df = user_bests.reset_index()
+                summary_df.columns = ["Engineer", "Best_Score"]
+                summary_df = summary_df.sort_values("Best_Score", ascending=False).reset_index(drop=True)
+                summary_df.index = summary_df.index + 1
+                my_row = summary_df[summary_df["Engineer"] == username]
+                if not my_row.empty:
+                    rank = my_row.index[0]
+
+                # Team rank
+                if "Team" in leaderboard_df.columns and team_name:
+                    team_summary_df = (
+                        leaderboard_df.groupby("Team")["accuracy"]
+                        .agg(Best_Score="max")
+                        .reset_index()
+                        .sort_values("Best_Score", ascending=False)
+                        .reset_index(drop=True)
+                    )
+                    team_summary_df.index = team_summary_df.index + 1
+                    my_team_row = team_summary_df[team_summary_df["Team"] == team_name]
+                    if not my_team_row.empty:
+                        team_rank = my_team_row.index[0]
+    except Exception as e:
+        _log(f"User stats error for {username}: {e}")
+
+    stats = {
+        "username": username,
+        "best_score": best_score,
+        "rank": rank,
+        "team_name": team_name,
+        "team_rank": team_rank,
+        "is_signed_in": True,
+        "_ts": now
+    }
+    with _cache_lock:
+        _user_stats_cache[username] = stats
+    return stats
 
 def format_toast_message(message: str) -> str:
     """Format a toast notification message."""
@@ -170,13 +345,15 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     Returns:
         Gradio Blocks object ready to launch
     """
-    try:
-        import gradio as gr
-        gr.close_all(verbose=False)
-    except ImportError as e:
+    if gr is None:
         raise ImportError(
             "Gradio is required for the bias detective app. Install with `pip install gradio`."
-        ) from e
+        )
+    
+    try:
+        gr.close_all(verbose=False)
+    except Exception:
+        pass  # Ignore close_all errors
     
     # ========================================================================
     # State Management
@@ -188,7 +365,13 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         "max_points": 21,  # 21 MC tasks total
         "accuracy": 0.92,  # Example accuracy from prior model building
         "tasks_completed": 0,
-        "checkpoint_reached": []  # Track which checkpoints hit
+        "checkpoint_reached": [],  # Track which checkpoints hit
+        "username": None,  # Username from session
+        "token": None,  # Token from session
+        "team_name": None,  # Team name from leaderboard
+        "team_rank": None,  # Team rank from leaderboard
+        "individual_rank": None,  # Individual rank from leaderboard
+        "challenge_manager": None  # ChallengeManager instance
     }
     
     # Task answers tracking
@@ -216,6 +399,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         """
         Log a task completion and return toast + score update.
         
+        Syncs progress to moral compass database and includes team updates.
+        
         Returns:
             (toast_message, updated_score_html)
         """
@@ -226,7 +411,37 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             # Calculate the percentage increase per task (100% / max_points)
             delta_per_task = 100.0 / float(moral_compass_state["max_points"])
             
-            toast = format_toast_message(f"Progress logged. Ethical % +{delta_per_task:.1f}%")
+            # Sync to moral compass database if user is authenticated
+            sync_message = ""
+            if moral_compass_state["challenge_manager"] is not None:
+                try:
+                    # Sync user moral state
+                    sync_result = sync_user_moral_state(
+                        cm=moral_compass_state["challenge_manager"],
+                        moral_points=moral_compass_state["tasks_completed"],
+                        accuracy=moral_compass_state["accuracy"]
+                    )
+                    
+                    if sync_result.get("synced"):
+                        sync_message = " [Synced to server]"
+                        
+                        # Also sync team state if team is assigned
+                        if moral_compass_state["team_name"]:
+                            team_sync_result = sync_team_state(
+                                team_name=moral_compass_state["team_name"]
+                            )
+                            if team_sync_result.get("synced"):
+                                sync_message += f" [Team '{moral_compass_state['team_name']}' updated]"
+                except Exception as e:
+                    logger.warning(f"Failed to sync progress: {e}")
+            
+            # Build toast message with team info
+            toast = format_toast_message(f"Progress logged. Ethical % +{delta_per_task:.1f}%{sync_message}")
+            
+            # Add team information to the toast if available
+            if moral_compass_state["team_name"] and moral_compass_state["team_rank"]:
+                toast += f"\n👥 Your team '{moral_compass_state['team_name']}' is ranked #{moral_compass_state['team_rank']}"
+            
             score_html = update_moral_compass_score()
             
             return toast, score_html
@@ -234,10 +449,150 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             # Incorrect answer - no point gained but still log attempt
             return "Try again - review the material above.", update_moral_compass_score()
     
-    def check_checkpoint_refresh(slide_num: int) -> bool:
-        """Check if we should refresh ranks at this slide."""
+    def check_checkpoint_refresh(slide_num: int) -> str:
+        """
+        Check if we should refresh ranks at this slide and return updated stats.
+        
+        Checkpoints after slides 10 and 18 where ranks are refreshed.
+        
+        Returns:
+            Status message about rank refresh
+        """
         # Checkpoints after slides 10 and 18
-        return slide_num in [10, 18]
+        if slide_num not in [10, 18]:
+            return ""
+        
+        # Refresh user stats if authenticated
+        if moral_compass_state["username"] and moral_compass_state["token"]:
+            try:
+                # Clear cache to force refresh
+                with _cache_lock:
+                    _user_stats_cache.pop(moral_compass_state["username"], None)
+                
+                # Fetch updated stats
+                updated_stats = _compute_user_stats(
+                    moral_compass_state["username"],
+                    moral_compass_state["token"]
+                )
+                
+                # Update state
+                moral_compass_state["team_rank"] = updated_stats.get("team_rank")
+                moral_compass_state["individual_rank"] = updated_stats.get("rank")
+                
+                # Build refresh message
+                msg = f"🔄 **Checkpoint {slide_num}: Ranks Refreshed!**\n\n"
+                
+                if updated_stats.get("rank"):
+                    msg += f"🏆 Your individual rank: **#{updated_stats['rank']}**\n\n"
+                
+                if updated_stats.get("team_name") and updated_stats.get("team_rank"):
+                    msg += f"👥 Your team '{updated_stats['team_name']}' rank: **#{updated_stats['team_rank']}**\n\n"
+                
+                moral_compass_state["checkpoint_reached"].append(slide_num)
+                
+                _log(f"Checkpoint {slide_num} refresh for {moral_compass_state['username']}: rank={updated_stats.get('rank')}, team_rank={updated_stats.get('team_rank')}")
+                
+                return msg
+            except Exception as e:
+                logger.warning(f"Failed to refresh ranks at checkpoint {slide_num}: {e}")
+                return f"🔄 Checkpoint {slide_num} reached (refresh pending)"
+        
+        return f"🔄 Checkpoint {slide_num} reached"
+    
+    def initialize_user_data_from_session(session_state_val: Dict[str, Any]) -> str:
+        """
+        Initialize user data from playground leaderboard using session state.
+        
+        This function:
+        1. Uses session state to get username and token
+        2. Fetches their latest accuracy score from playground leaderboard
+        3. Gets their team assignment from the leaderboard
+        4. Initializes ChallengeManager for moral compass database
+        5. Returns welcome message with user stats
+        
+        Args:
+            session_state_val: Session state dictionary with auth info
+            
+        Returns:
+            Welcome message string
+        """
+        try:
+            # Get username and token from session state
+            username = session_state_val.get("username")
+            token = session_state_val.get("token")
+            
+            if username and token and username != "guest":
+                # Compute user stats from leaderboard
+                user_stats = _compute_user_stats(username, token)
+                
+                # Update state with user information
+                moral_compass_state["username"] = username
+                moral_compass_state["token"] = token
+                moral_compass_state["team_name"] = user_stats.get("team_name")
+                moral_compass_state["team_rank"] = user_stats.get("team_rank")
+                moral_compass_state["individual_rank"] = user_stats.get("rank")
+                
+                # Update accuracy from leaderboard if available
+                if user_stats.get("best_score") is not None:
+                    moral_compass_state["accuracy"] = user_stats["best_score"]
+                
+                # Initialize ChallengeManager for moral compass database
+                try:
+                    cm = get_challenge_manager(username)
+                    moral_compass_state["challenge_manager"] = cm
+                    _log(f"Initialized ChallengeManager for user {username}")
+                except Exception as e:
+                    logger.warning(f"Could not initialize ChallengeManager: {e}")
+                
+                # Build welcome message
+                welcome_msg = f"👋 Welcome back, **{username}**!\n\n"
+                
+                if user_stats.get("best_score") is not None:
+                    welcome_msg += f"📊 Your best accuracy: **{user_stats['best_score']*100:.1f}%**\n\n"
+                
+                if user_stats.get("rank"):
+                    welcome_msg += f"🏆 Your individual rank: **#{user_stats['rank']}**\n\n"
+                
+                if user_stats.get("team_name"):
+                    welcome_msg += f"👥 Your team: **{user_stats['team_name']}**\n\n"
+                    if user_stats.get("team_rank"):
+                        welcome_msg += f"🛡️ Team rank: **#{user_stats['team_rank']}**\n\n"
+                
+                welcome_msg += "Your progress will be synced to the Moral Compass database as you complete tasks."
+                
+                _log(f"User initialized: {username}, accuracy={user_stats.get('best_score')}, team={user_stats.get('team_name')}")
+                
+                return welcome_msg
+            else:
+                # Guest mode
+                return "👋 Welcome! You're in guest mode. Sign in to save your progress and join a team."
+                
+        except Exception as e:
+            logger.error(f"Failed to initialize user data: {e}")
+            return "⚠️ Could not load user data. Continuing in guest mode."
+    
+    def load_user_data_from_session(session_state_val: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
+        """
+        Load user data using existing session state.
+        
+        This function is called by a button click and uses the session state
+        to get username/token information (which should be populated via
+        session authentication mechanisms).
+        
+        Args:
+            session_state_val: Current session state with auth info
+            
+        Returns:
+            Tuple of (welcome_message, updated_session_state)
+        """
+        try:
+            # Load user data from session
+            welcome_msg = initialize_user_data_from_session(session_state_val)
+            return welcome_msg, session_state_val
+                
+        except Exception as e:
+            logger.error(f"Failed to load user data: {e}")
+            return "⚠️ Could not load user data. Continuing in guest mode.", session_state_val
     
     # ========================================================================
     # Gradio App Layout
@@ -277,6 +632,17 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             visible=False,
             label="Notification"
         )
+        
+        # Welcome message with user stats
+        with gr.Row():
+            with gr.Column(scale=3):
+                welcome_message = gr.Markdown(
+                    value="👋 Welcome! Click 'Load User Data' below to see your stats, team, and ranking.",
+                    label="User Information"
+                )
+            with gr.Column(scale=1):
+                # Button to trigger user data loading
+                load_user_data_btn = gr.Button("🔄 Load User Data", variant="primary", size="sm")
         
         # ====================================================================
         # PHASE I: THE SETUP (Slides 1-2)
@@ -852,6 +1218,20 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             )
             
             gr.Markdown("**Running MC total: 11**")
+            
+            # Checkpoint refresh component
+            checkpoint_refresh_btn = gr.Button("🔄 Refresh Rankings (Checkpoint 10)", variant="secondary")
+            checkpoint_refresh_msg = gr.Markdown("")
+            
+            def do_checkpoint_refresh():
+                return check_checkpoint_refresh(10)
+            
+            checkpoint_refresh_btn.click(
+                fn=do_checkpoint_refresh,
+                inputs=[],
+                outputs=[checkpoint_refresh_msg]
+            )
+            
             gr.Markdown("▶️ **CTA:** Initiate Phase 3: Performance Audit")
         
         # ====================================================================
@@ -1312,6 +1692,20 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             )
             
             gr.Markdown("**Running MC total: 19**")
+            
+            # Checkpoint refresh component
+            checkpoint_refresh_btn_18 = gr.Button("🔄 Refresh Rankings (Checkpoint 18)", variant="secondary")
+            checkpoint_refresh_msg_18 = gr.Markdown("")
+            
+            def do_checkpoint_refresh_18():
+                return check_checkpoint_refresh(18)
+            
+            checkpoint_refresh_btn_18.click(
+                fn=do_checkpoint_refresh_18,
+                inputs=[],
+                outputs=[checkpoint_refresh_msg_18]
+            )
+            
             gr.Markdown("▶️ **CTA:** Open Final Case File & Submit Diagnosis")
         
         # ====================================================================
@@ -1484,6 +1878,17 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 inputs=[],
                 outputs=[summary_output]
             )
+        
+        # ====================================================================
+        # User Authentication Event Handler
+        # ====================================================================
+        
+        # Button to load user data from session
+        load_user_data_btn.click(
+            fn=load_user_data_from_session,
+            inputs=[session_state],
+            outputs=[welcome_message, session_state]
+        )
     
     return app
 
