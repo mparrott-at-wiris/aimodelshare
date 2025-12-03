@@ -118,8 +118,8 @@ TEAM_NAMES = [
 # Configuration
 # ============================================================================
 LEADERBOARD_CACHE_SECONDS = int(os.environ.get("LEADERBOARD_CACHE_SECONDS", "45"))
-MAX_LEADERBOARD_ENTRIES = os.environ.get("MAX_LEADERBOARD_ENTRIES")
-MAX_LEADERBOARD_ENTRIES = int(MAX_LEADERBOARD_ENTRIES) if MAX_LEADERBOARD_ENTRIES else None
+MAX_LEADERBOARD_ENTRIES_STR = os.environ.get("MAX_LEADERBOARD_ENTRIES")
+MAX_LEADERBOARD_ENTRIES = int(MAX_LEADERBOARD_ENTRIES_STR) if MAX_LEADERBOARD_ENTRIES_STR else None
 DEBUG_LOG = os.environ.get("DEBUG_LOG", "false").lower() == "true"
 
 # ============================================================================
@@ -161,7 +161,7 @@ def _fetch_leaderboard(token: str) -> Optional[pd.DataFrame]:
         )
         playground = Competition(playground_id)
         df = playground.get_leaderboard(token=token)
-        if df is not None and not df.empty and MAX_LEADERBOARD_ENTRIES:
+        if df is not None and not df.empty and MAX_LEADERBOARD_ENTRIES is not None:
             df = df.head(MAX_LEADERBOARD_ENTRIES)
     except Exception as e:
         _log(f"Leaderboard fetch failed: {e}")
@@ -215,9 +215,10 @@ def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str],
 def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
     """Compute user stats from leaderboard with caching."""
     now = time.time()
-    cached = _user_stats_cache.get(username)
-    if cached and (now - cached.get("_ts", 0) < USER_STATS_TTL):
-        return cached
+    with _cache_lock:
+        cached = _user_stats_cache.get(username)
+        if cached and (now - cached.get("_ts", 0) < USER_STATS_TTL):
+            return cached
 
     leaderboard_df = _fetch_leaderboard(token)
     team_name, _ = _get_or_assign_team(username, leaderboard_df)
@@ -267,7 +268,8 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
         "is_signed_in": True,
         "_ts": now
     }
-    _user_stats_cache[username] = stats
+    with _cache_lock:
+        _user_stats_cache[username] = stats
     return stats
 
 def format_toast_message(message: str) -> str:
@@ -457,7 +459,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         if moral_compass_state["username"] and moral_compass_state["token"]:
             try:
                 # Clear cache to force refresh
-                _user_stats_cache.pop(moral_compass_state["username"], None)
+                with _cache_lock:
+                    _user_stats_cache.pop(moral_compass_state["username"], None)
                 
                 # Fetch updated stats
                 updated_stats = _compute_user_stats(
@@ -489,22 +492,29 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         
         return f"🔄 Checkpoint {slide_num} reached"
     
-    def initialize_user_data(request: "gr.Request") -> str:
+    def initialize_user_data_from_session(session_state_val: Dict[str, Any]) -> str:
         """
-        Initialize user data from playground leaderboard and session.
+        Initialize user data from playground leaderboard using session state.
         
         This function:
-        1. Authenticates the user via session
+        1. Uses session state to get username and token
         2. Fetches their latest accuracy score from playground leaderboard
         3. Gets their team assignment from the leaderboard
         4. Initializes ChallengeManager for moral compass database
         5. Returns welcome message with user stats
+        
+        Args:
+            session_state_val: Session state dictionary with auth info
+            
+        Returns:
+            Welcome message string
         """
         try:
-            # Try session-based authentication
-            success, username, token = _try_session_based_auth(request)
+            # Get username and token from session state
+            username = session_state_val.get("username")
+            token = session_state_val.get("token")
             
-            if success and username:
+            if username and token and username != "guest":
                 # Compute user stats from leaderboard
                 user_stats = _compute_user_stats(username, token)
                 
@@ -554,6 +564,39 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             logger.error(f"Failed to initialize user data: {e}")
             return "⚠️ Could not load user data. Continuing in guest mode."
     
+    def authenticate_and_load_user_data(request: "gr.Request", session_state_val: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
+        """
+        Authenticate user from request and update session state, then load user data.
+        
+        Args:
+            request: Gradio request object
+            session_state_val: Current session state
+            
+        Returns:
+            Tuple of (welcome_message, updated_session_state)
+        """
+        try:
+            # Try session-based authentication from request
+            success, username, token = _try_session_based_auth(request)
+            
+            if success and username:
+                # Update session state
+                session_state_val = authenticate_session(
+                    session_state_val,
+                    username=username,
+                    token=token
+                )
+                
+                # Load user data
+                welcome_msg = initialize_user_data_from_session(session_state_val)
+                return welcome_msg, session_state_val
+            else:
+                return "👋 Welcome! You're in guest mode. Sign in to save your progress and join a team.", session_state_val
+                
+        except Exception as e:
+            logger.error(f"Failed to authenticate and load user data: {e}")
+            return "⚠️ Could not authenticate. Continuing in guest mode.", session_state_val
+    
     # ========================================================================
     # Gradio App Layout
     # ========================================================================
@@ -595,9 +638,12 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         
         # Welcome message with user stats
         welcome_message = gr.Markdown(
-            value="Loading user data...",
+            value="👋 Welcome! Click 'Load User Data' to authenticate and see your stats.",
             label="User Information"
         )
+        
+        # Button to trigger user data loading
+        load_user_data_btn = gr.Button("🔄 Load User Data", variant="secondary", size="sm")
         
         # ====================================================================
         # PHASE I: THE SETUP (Slides 1-2)
@@ -1835,14 +1881,14 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             )
         
         # ====================================================================
-        # App Load Event Handler
+        # User Authentication Event Handler
         # ====================================================================
         
-        # Initialize user data when app loads
-        app.load(
-            fn=initialize_user_data,
-            inputs=None,
-            outputs=[welcome_message]
+        # Button to authenticate and load user data
+        load_user_data_btn.click(
+            fn=authenticate_and_load_user_data,
+            inputs=[session_state],
+            outputs=[welcome_message, session_state]
         )
     
     return app
