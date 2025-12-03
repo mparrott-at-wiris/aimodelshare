@@ -131,6 +131,21 @@ def get_principal_from_claims(claims):
     )
 
 
+def validate_and_normalize_team_name(team_name):
+    """
+    Validate and normalize a team name.
+    
+    Args:
+        team_name: Team name string (may be None)
+    
+    Returns:
+        Optional[str]: Normalized team name or None if invalid
+    """
+    if team_name and isinstance(team_name, str) and team_name.strip():
+        return team_name.strip()
+    return None
+
+
 def get_identity_from_event(event):
     """
     Extract identity information from event.
@@ -1021,6 +1036,8 @@ def list_users(event):
                 user_dict['questionsCorrect'] = item['questionsCorrect']
             if 'totalQuestions' in item:
                 user_dict['totalQuestions'] = item['totalQuestions']
+            if 'teamName' in item:
+                user_dict['teamName'] = item['teamName']
             users_to_return.append(user_dict)
         
         # Sort by moralCompassScore if present, otherwise by submissionCount
@@ -1074,12 +1091,15 @@ def get_user(event):
         if 'Item' not in resp:
             return create_response(404, {'error': 'User not found in table'})
         item = resp['Item']
-        return create_response(200, {
+        response_body = {
             'username': item['username'],
             'submissionCount': item.get('submissionCount', 0),
             'totalCount': item.get('totalCount', 0),
             'lastUpdated': item.get('lastUpdated')
-        })
+        }
+        if item.get('teamName'):
+            response_body['teamName'] = item['teamName']
+        return create_response(200, response_body)
     except Exception as e:
         print(f"[ERROR] get_user exception: {e}")
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
@@ -1115,6 +1135,7 @@ def put_user(event):
         
         submission_count = body.get('submissionCount')
         total_count = body.get('totalCount')
+        team_name = validate_and_normalize_team_name(body.get('teamName'))
         if submission_count is None or total_count is None:
             return create_response(400, {'error': 'submissionCount and totalCount are required'})
         try:
@@ -1131,6 +1152,10 @@ def put_user(event):
             'totalCount': total_count,
             'lastUpdated': datetime.utcnow().isoformat()
         }
+        
+        # Add team name if provided
+        if team_name:
+            user_data['teamName'] = team_name
         
         # Add submitter metadata on first write if auth is enabled
         if AUTH_ENABLED and identity.get('principal'):
@@ -1173,13 +1198,16 @@ def put_user(event):
                 ))
             except Exception as e:
                 print(f"[WARN] Failed to increment userCount for new user {username}: {e}")
-        return create_response(200, {
+        response_body = {
             'username': username,
             'submissionCount': submission_count,
             'totalCount': total_count,
             'message': 'User data updated successfully',
             'createdNew': created_new
-        })
+        }
+        if team_name:
+            response_body['teamName'] = team_name
+        return create_response(200, response_body)
     except json.JSONDecodeError:
         return create_response(400, {'error': 'Invalid JSON in request body'})
     except Exception as e:
@@ -1228,6 +1256,7 @@ def put_user_moral_compass(event):
         total_tasks = body.get('totalTasks')
         questions_correct = body.get('questionsCorrect')
         total_questions = body.get('totalQuestions')
+        team_name = validate_and_normalize_team_name(body.get('teamName'))
         
         # Validate metrics
         if not metrics or not isinstance(metrics, dict):
@@ -1300,6 +1329,13 @@ def put_user_moral_compass(event):
             'totalCount': existing_item.get('totalCount', 0)
         }
         
+        # Add team name if provided, or preserve existing
+        existing_team = existing_item.get('teamName')
+        if team_name:
+            user_data['teamName'] = team_name
+        elif existing_team:
+            user_data['teamName'] = existing_team
+        
         # Add submitter metadata on first write if auth is enabled and not already present
         if AUTH_ENABLED and identity.get('principal') and not existing_item.get('submitterSub'):
             user_data['submitterSub'] = identity.get('sub', '')
@@ -1322,7 +1358,7 @@ def put_user_moral_compass(event):
             except Exception as e:
                 print(f"[WARN] Failed to increment userCount for new user {username}: {e}")
         
-        return create_response(200, {
+        response_body = {
             'username': username,
             'metrics': metrics,
             'primaryMetric': primary_metric,
@@ -1333,7 +1369,10 @@ def put_user_moral_compass(event):
             'totalQuestions': total_questions,
             'message': 'Moral compass data updated successfully',
             'createdNew': created_new
-        })
+        }
+        if user_data.get('teamName'):
+            response_body['teamName'] = user_data['teamName']
+        return create_response(200, response_body)
     except json.JSONDecodeError:
         return create_response(400, {'error': 'Invalid JSON in request body'})
     except Exception as e:

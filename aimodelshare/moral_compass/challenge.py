@@ -173,7 +173,7 @@ class ChallengeManager:
     """
     
     def __init__(self, table_id: str, username: str, api_client: Optional[MoralcompassApiClient] = None, 
-                 challenge: Optional[JusticeAndEquityChallenge] = None):
+                 challenge: Optional[JusticeAndEquityChallenge] = None, team_name: Optional[str] = None):
         """
         Initialize a challenge manager.
         
@@ -182,11 +182,13 @@ class ChallengeManager:
             username: The username
             api_client: Optional API client instance (creates new one if None)
             challenge: Optional challenge instance (creates JusticeAndEquityChallenge if None)
+            team_name: Optional team name for the user
         """
         self.table_id = table_id
         self.username = username
         self.api_client = api_client or MoralcompassApiClient()
         self.challenge = challenge or JusticeAndEquityChallenge()
+        self.team_name = team_name
         
         # Metrics state
         self.metrics: Dict[str, float] = {}
@@ -354,7 +356,8 @@ class ChallengeManager:
             total_tasks=self.total_tasks,
             questions_correct=self.questions_correct,
             total_questions=self.total_questions,
-            primary_metric=self.primary_metric
+            primary_metric=self.primary_metric,
+            team_name=self.team_name
         )
     
     def __repr__(self) -> str:

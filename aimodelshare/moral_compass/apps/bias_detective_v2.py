@@ -157,7 +157,7 @@ def get_moral_compass_score_html(
     return html
 
 
-def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
+def create_bias_detective_v2_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """
     Create the Bias Detective V2 Gradio Blocks app.
     
@@ -1488,10 +1488,10 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     return app
 
 
-def launch_bias_detective_app(
+def launch_bias_detective_v2_app(
     share: bool = False,
     server_name: str = "0.0.0.0",
-    server_port: int = 8080,
+    server_port: int = 7860,
     theme_primary_hue: str = "indigo",
     **kwargs
 ) -> None:
@@ -1505,7 +1505,7 @@ def launch_bias_detective_app(
         theme_primary_hue: Primary color hue
         **kwargs: Additional Gradio launch arguments
     """
-    app = create_bias_detective_app(theme_primary_hue=theme_primary_hue)
+    app = create_bias_detective_v2_app(theme_primary_hue=theme_primary_hue)
     app.launch(
         share=share,
         server_name=server_name,
@@ -1519,4 +1519,4 @@ def launch_bias_detective_app(
 # ============================================================================
 
 if __name__ == "__main__":
-    launch_bias_detective_app(share=False)
+    launch_bias_detective_v2_app(share=False)

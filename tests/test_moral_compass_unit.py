@@ -46,7 +46,8 @@ class MockApiClient:
         else:
             score = primary_value * ((tc + qc) / denom)
         
-        return {
+        # Build response with all standard fields
+        response = {
             'username': kwargs.get('username'),
             'metrics': metrics,
             'primaryMetric': primary_metric,
@@ -58,6 +59,13 @@ class MockApiClient:
             'message': 'Moral compass data updated successfully',
             'createdNew': False
         }
+        
+        # Include team_name if provided (new feature)
+        team_name = kwargs.get('team_name')
+        if team_name:
+            response['teamName'] = team_name
+        
+        return response
 
 
 class TestChallengeManagerUnit:
@@ -249,6 +257,64 @@ class TestScoreCalculation:
         expected = Decimal('0.82') * Decimal('13') / Decimal('15')
         
         assert abs(float(score) - float(expected)) < 0.0001
+
+
+class TestTeamSupport:
+    """Unit tests for team name support"""
+    
+    def test_challenge_manager_with_team(self):
+        """Test ChallengeManager with team name"""
+        from aimodelshare.moral_compass.challenge import ChallengeManager
+        
+        manager = ChallengeManager(
+            "test-table", 
+            "test-user", 
+            api_client=MockApiClient(),
+            team_name="The Justice League"
+        )
+        
+        assert manager.team_name == "The Justice League"
+    
+    def test_sync_includes_team_name(self):
+        """Test that sync includes team name when set"""
+        from aimodelshare.moral_compass.challenge import ChallengeManager
+        
+        mock_client = MockApiClient()
+        manager = ChallengeManager(
+            "test-table", 
+            "test-user", 
+            api_client=mock_client,
+            team_name="The Data Detectives"
+        )
+        
+        manager.set_metric("accuracy", 0.85, primary=True)
+        manager.set_progress(tasks_completed=3, total_tasks=6)
+        
+        response = manager.sync()
+        
+        # Check that team name was passed to API
+        assert mock_client.last_call['team_name'] == "The Data Detectives"
+        assert response.get('teamName') == "The Data Detectives"
+    
+    def test_sync_without_team_name(self):
+        """Test that sync works without team name (backward compatibility)"""
+        from aimodelshare.moral_compass.challenge import ChallengeManager
+        
+        mock_client = MockApiClient()
+        manager = ChallengeManager(
+            "test-table", 
+            "test-user", 
+            api_client=mock_client
+        )
+        
+        manager.set_metric("accuracy", 0.85, primary=True)
+        manager.set_progress(tasks_completed=3, total_tasks=6)
+        
+        response = manager.sync()
+        
+        # Should work without team name
+        assert 'moralCompassScore' in response
+        assert mock_client.last_call['team_name'] is None
 
 
 class TestPrimaryMetricSelection:
