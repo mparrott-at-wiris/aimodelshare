@@ -676,9 +676,14 @@ def fetch_cached_users(table_id: Optional[str] = None, ttl: int = 30) -> List[Di
             users = response.get("users", [])
             
             for user_data in users:
+                # Extract moralCompassScore with fallback to totalCount for backward compatibility
+                moral_compass_score = user_data.get("moralCompassScore")
+                if moral_compass_score is None:
+                    moral_compass_score = user_data.get("totalCount", 0)
+                
                 user_list.append({
                     'username': user_data.get("username"),
-                    'moralCompassScore': user_data.get("moralCompassScore", user_data.get("totalCount", 0)),
+                    'moralCompassScore': moral_compass_score,
                     'submissionCount': user_data.get("submissionCount", 0),
                     'totalCount': user_data.get("totalCount", 0),
                     'teamName': user_data.get("teamName")

@@ -144,6 +144,9 @@ MAX_LEADERBOARD_ENTRIES_STR = os.environ.get("MAX_LEADERBOARD_ENTRIES")
 MAX_LEADERBOARD_ENTRIES = int(MAX_LEADERBOARD_ENTRIES_STR) if MAX_LEADERBOARD_ENTRIES_STR else None
 DEBUG_LOG = os.environ.get("DEBUG_LOG", "false").lower() == "true"
 
+# Bias Detective specific configuration
+BIAS_DETECTIVE_TOTAL_TASKS = 21  # Total number of tasks in the Bias Detective 21-slide flow
+
 # ============================================================================
 # In-memory caches
 # ============================================================================
@@ -402,7 +405,7 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     # Track moral compass points and progress
     moral_compass_state = {
         "points": 0,
-        "max_points": 21,  # 21 MC tasks total
+        "max_points": BIAS_DETECTIVE_TOTAL_TASKS,  # Total tasks in Bias Detective flow
         "accuracy": 0.92,  # Example accuracy from prior model building
         "tasks_completed": 0,
         "checkpoint_reached": [],  # Track which checkpoints hit
@@ -652,10 +655,10 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 try:
                     cm = get_challenge_manager(username)
                     if cm:
-                        # Configure for 21-task Bias Detective flow
+                        # Configure for Bias Detective flow
                         cm.set_progress(
                             tasks_completed=moral_compass_state.get("tasks_completed", 0),
-                            total_tasks=21,
+                            total_tasks=BIAS_DETECTIVE_TOTAL_TASKS,
                             questions_correct=0,
                             total_questions=0
                         )
