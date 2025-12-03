@@ -38,8 +38,12 @@ from typing import Dict, Any, Optional, List, Tuple
 
 # Configuration constants
 DEFAULT_PLAYGROUND_URL = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+BIAS_DETECTIVE_TOTAL_TASKS = 21  # Total tasks in Bias Detective flow (matches main module)
 SYNC_WAIT_SECONDS = 2  # Wait time after sync for consistency
 TASK_INTERVAL_SECONDS = 3  # Wait time between task submissions to avoid rate limiting
+TEST_TASK_COUNT = 5  # Number of tasks to submit during integration test
+TEST_ACCURACY_START = 0.92  # Starting accuracy for test tasks
+TEST_ACCURACY_INCREMENT = 0.01  # Accuracy increment per task
 
 # Configure logging
 logging.basicConfig(
@@ -133,10 +137,10 @@ def initialize_challenge_manager(username: str, table_id: Optional[str] = None) 
             logger.error("get_challenge_manager returned None")
             return None
         
-        # Configure for Bias Detective flow (21 tasks)
+        # Configure for Bias Detective flow
         cm.set_progress(
             tasks_completed=0,
-            total_tasks=21,
+            total_tasks=BIAS_DETECTIVE_TOTAL_TASKS,
             questions_correct=0,
             total_questions=0
         )
@@ -363,13 +367,14 @@ def run_test() -> int:
     # Step 4: Submit tasks and track rank changes
     logger.info("\n[STEP 4] Submitting tasks and tracking rank changes...")
     
-    # Submit 5 tasks as a test sequence
+    # Generate test task sequence
     test_tasks = [
-        ('mc_test_1', 1, 0.92),
-        ('mc_test_2', 2, 0.92),
-        ('mc_test_3', 3, 0.93),
-        ('mc_test_4', 4, 0.93),
-        ('mc_test_5', 5, 0.94),
+        (
+            f'mc_test_{i+1}',
+            i + 1,
+            TEST_ACCURACY_START + (i // 2) * TEST_ACCURACY_INCREMENT
+        )
+        for i in range(TEST_TASK_COUNT)
     ]
     
     for task_id, moral_points, accuracy in test_tasks:

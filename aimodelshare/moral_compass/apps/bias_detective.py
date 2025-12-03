@@ -168,6 +168,23 @@ def _log(msg: str):
     if DEBUG_LOG:
         print(f"[BiasDetectiveApp] {msg}")
 
+def _clear_local_caches():
+    """
+    Atomically clear local caches to ensure fresh rank data.
+    
+    This helper ensures all cache operations complete together
+    and handles potential exceptions during cache clearing.
+    """
+    try:
+        with _cache_lock:
+            _leaderboard_cache["data"] = None
+            _leaderboard_cache["timestamp"] = 0.0
+            _user_stats_cache.clear()
+        if DEBUG_LOG:
+            _log("Cleared local _leaderboard_cache and _user_stats_cache")
+    except Exception as e:
+        logger.warning(f"Failed to clear local caches: {e}")
+
 def _normalize_team_name(name: str) -> str:
     if not name:
         return ""
@@ -644,13 +661,7 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                         sync_message = " [Synced to server]"
                         
                         # Clear local caches to ensure fresh rank data
-                        with _cache_lock:
-                            _leaderboard_cache["data"] = None
-                            _leaderboard_cache["timestamp"] = 0.0
-                            _user_stats_cache.clear()
-                        
-                        if DEBUG_LOG:
-                            _log("Cleared local _leaderboard_cache and _user_stats_cache after successful sync")
+                        _clear_local_caches()
                         
                         # Update ranks dynamically after syncing using moral compass API
                         if moral_compass_state["username"]:
