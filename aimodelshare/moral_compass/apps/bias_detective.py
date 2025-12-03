@@ -454,6 +454,7 @@ def get_moral_compass_score_html(
     ethical_progress_pct = min(ethical_progress_pct, 100.0)
     
     # Use helper for consistent combined score calculation
+    # Note: local_points represents tasks_completed in this context
     combined_score = _calculate_combined_score(accuracy, local_points, max_points)
     
     html = f"""

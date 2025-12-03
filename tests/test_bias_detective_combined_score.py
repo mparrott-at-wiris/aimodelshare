@@ -15,11 +15,17 @@ import pytest
 from unittest.mock import MagicMock, patch
 import pandas as pd
 
+# Import functions to test
+from aimodelshare.moral_compass.apps.bias_detective import (
+    _calculate_combined_score,
+    _enforce_zero_tied_last_rank,
+    _compute_user_stats,
+    _user_stats_cache,
+)
+
 
 def test_calculate_combined_score():
     """Test _calculate_combined_score helper function."""
-    from aimodelshare.moral_compass.apps.bias_detective import _calculate_combined_score
-    
     # Test basic calculation
     # combined = accuracy × (ethical_progress_pct / 100) × 100
     # ethical_progress_pct = (tasks_completed / max_points) × 100
@@ -49,8 +55,6 @@ def test_calculate_combined_score():
 
 def test_enforce_zero_tied_last_rank_both_zero():
     """Test _enforce_zero_tied_last_rank when both combined and ethical progress are zero."""
-    from aimodelshare.moral_compass.apps.bias_detective import _enforce_zero_tied_last_rank
-    
     # When combined score and ethical progress are both zero, should enforce tied-last
     user_rank, team_rank = _enforce_zero_tied_last_rank(
         combined_score=0.0,
@@ -67,8 +71,6 @@ def test_enforce_zero_tied_last_rank_both_zero():
 
 def test_enforce_zero_tied_last_rank_non_zero_combined():
     """Test _enforce_zero_tied_last_rank when combined score is non-zero."""
-    from aimodelshare.moral_compass.apps.bias_detective import _enforce_zero_tied_last_rank
-    
     # When combined score is non-zero, should NOT enforce tied-last
     user_rank, team_rank = _enforce_zero_tied_last_rank(
         combined_score=43.81,
@@ -86,8 +88,6 @@ def test_enforce_zero_tied_last_rank_non_zero_combined():
 
 def test_enforce_zero_tied_last_rank_non_zero_ethical():
     """Test _enforce_zero_tied_last_rank when ethical progress is non-zero."""
-    from aimodelshare.moral_compass.apps.bias_detective import _enforce_zero_tied_last_rank
-    
     # When ethical progress is non-zero, should NOT enforce tied-last
     # even if combined score is zero (can happen with zero accuracy)
     user_rank, team_rank = _enforce_zero_tied_last_rank(
@@ -106,8 +106,6 @@ def test_enforce_zero_tied_last_rank_non_zero_ethical():
 
 def test_compute_user_stats_uses_average_for_team_rank():
     """Test that _compute_user_stats uses average accuracy for team ranking."""
-    from aimodelshare.moral_compass.apps.bias_detective import _compute_user_stats
-    
     # Mock leaderboard data with multiple teams
     mock_df = pd.DataFrame([
         {"username": "alice", "accuracy": 0.95, "Team": "Team A"},
@@ -132,8 +130,6 @@ def test_compute_user_stats_uses_average_for_team_rank():
 
 def test_compute_user_stats_applies_zero_score_enforcement():
     """Test that _compute_user_stats applies zero-score tied-last enforcement."""
-    from aimodelshare.moral_compass.apps.bias_detective import _compute_user_stats, _user_stats_cache
-    
     # Clear cache to avoid flakiness
     _user_stats_cache.clear()
     
@@ -162,8 +158,6 @@ def test_compute_user_stats_applies_zero_score_enforcement():
 
 def test_compute_user_stats_counts_total_individuals_and_teams():
     """Test that _compute_user_stats correctly counts total individuals and teams."""
-    from aimodelshare.moral_compass.apps.bias_detective import _compute_user_stats
-    
     # Mock leaderboard with specific counts
     mock_df = pd.DataFrame([
         {"username": "user1", "accuracy": 0.95, "Team": "Team A"},
