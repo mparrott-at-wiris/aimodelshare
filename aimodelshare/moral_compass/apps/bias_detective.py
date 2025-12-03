@@ -787,6 +787,7 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         """
         try:
             success, username, token = _try_session_based_auth(request)
+            os.environ["JWT_AUTHORIZATION_TOKEN"] = token
             if success and username and token and username != "guest":
                 user_stats = _compute_user_stats(username, token)
                 
