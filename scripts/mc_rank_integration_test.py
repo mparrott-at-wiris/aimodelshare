@@ -34,7 +34,7 @@ import sys
 import json
 import time
 import logging
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Tuple
 
 # Configure logging
 logging.basicConfig(
@@ -72,7 +72,7 @@ def check_prerequisites() -> bool:
     return True
 
 
-def authenticate(session_id: str) -> tuple[Optional[str], Optional[str]]:
+def authenticate(session_id: str) -> Tuple[Optional[str], Optional[str]]:
     """
     Authenticate using session ID to get token and username.
     
