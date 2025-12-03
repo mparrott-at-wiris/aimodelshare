@@ -23,7 +23,7 @@ TRANSLATIONS = {
             which defendants can be safely released.<br><br>
             
             To help you, the court has implemented an AI system that predicts the risk of each 
-            defendant committing new crimes if released. The AI categorizes defendants as:<br><br>
+            defendant committing new crimes if released on parole. The AI categorizes defendants as:<br><br>
             
             <ul style='font-size:18px;'>
                 <li><span class='ai-risk-label risk-high'>High Risk</span> - Likely to re-offend</li>
@@ -36,7 +36,7 @@ TRANSLATIONS = {
         "btn_start": "Begin Making Decisions ▶️",
         "profiles_title": "👥 Defendant Profiles",
         "hint_box": "Review each defendant's information and the AI's risk assessment, then make your decision.",
-        "btn_release": "✓ Release Prisoner",
+        "btn_release": "✓ Release",
         "btn_keep": "✗ Keep in Prison",
         "btn_show_summary": "📊 Show My Decisions Summary",
         "btn_complete": "Complete This Section ▶️",
@@ -58,8 +58,8 @@ TRANSLATIONS = {
         "decision_keep": "Keep in Prison",
         "decision_recorded": "✓ Decision recorded:",
         "summary_title": "📊 Your Decisions Summary",
-        "summary_released": "Prisoners Released:",
-        "summary_kept": "Prisoners Kept in Prison:",
+        "summary_released": "Incarcerated Individuals Released:",
+        "summary_kept": "Incarcerated Individuals Kept in Prison:",
         "summary_empty": "No decisions made yet.",
         "nav_loading_profiles": "Loading defendant profiles...",
         "nav_reviewing": "Reviewing your decisions...",
@@ -90,8 +90,8 @@ TRANSLATIONS = {
         "Burglary": "Burglary"
     },
     "es": {
-        "title": "⚖️ ¡Ponte en el rol de juez",
-        "intro_role": "<b>Tu Rol:</b> Eres un juez o una jueza que debe decidir si se concede la libertad condicional a una persona presa o si debe continuar en prisión.<br>Un sistema de IA ha analizado cada caso y ha proporcionado una evaluación de riesgos.<br><br><b>Tu tarea:</b> Revisa el perfil de cada acusado y la predicción de la IA, luego toma tu decisión.",
+        "title": "⚖️ ¡Ponte en el rol de juez!",
+        "intro_role": "<b>Tu rol:</b> Eres un juez o una jueza que debe decidir si se concede la libertad condicional a una persona presa o si debe continuar en prisión.<br>Un sistema de IA ha analizado cada caso y ha proporcionado una evaluación de riesgos.<br><br><b>Tu tarea:</b> Revisa el perfil de cada acusado y la predicción de la IA, luego toma tu decisión.",
         "loading": "⏳ Cargando...",
         "scenario_title": "📋 El escenario",
         "scenario_box": """
@@ -135,7 +135,7 @@ TRANSLATIONS = {
         "decision_recorded": "✓ Decisión registrada:",
         "summary_title": "📊 Resumen de tus decisiones",
         "summary_released": "Personas presas puestas en libertad:",
-        "summary_kept": "Personas que continúan en prisión:",
+        "summary_kept": "Personas presas que continúan en prisión:",
         "summary_empty": "Aún no se han tomado decisiones.",
         "nav_loading_profiles": "Cargando perfiles...",
         "nav_reviewing": "Revisando tus decisiones...",
@@ -164,8 +164,8 @@ TRANSLATIONS = {
         "Burglary": "Robo con allanamiento de morada"
     },
     "ca": {
-        "title": "⚖️ Posa't en el rol de jutge",
-        "intro_role": "<b>El teu rol:</b> Ets un jutge o una jutgessa que ha de decidir si es concedeix la libertat condicional a una persona presa o ha de continuar a la presó.<br>Un sistema d'IA ha analitzat cada cas i ha proporcionat una avaluació de riscos.<br><br><b>La teva tasca:</b> Revisa el perfil de cada persona presa i la predicció de la IA, després pren la teva decisió.",
+        "title": "⚖️ Posa't en el rol de jutge!",
+        "intro_role": "<b>El teu rol:</b> Ets un jutge o una jutgessa que ha de decidir si es concedeix la llibertat condicional a una persona presa o ha de continuar a la presó.<br>Un sistema d'IA ha analitzat cada cas i ha proporcionat una avaluació de riscos.<br><br><b>La teva tasca:</b> Revisa el perfil de cada persona presa i la predicció de la IA, després pren la teva decisió.",
         "loading": "⏳ Carregant...",
         "scenario_title": "📋 L'escenari",
         "scenario_box": """
@@ -173,7 +173,7 @@ TRANSLATIONS = {
             quines persones preses poden ser posades en llibertat de manera segura.<br><br>
             
             Per ajudar-te, el tribunal ha implementat un sistema d'IA que prediu el risc que cada 
-            acusat cometi nous delictes si obté la llibertat condicional. La IA classifica els acusats com:<br><br>
+            persona presa cometi nous delictes si obté la llibertat condicional. La IA classifica les persones preses com:<br><br>
             
             <ul style='font-size:18px;'>
                 <li><span class='ai-risk-label risk-high'>Alt Risc</span> - Probable reincidència (de cometre nous delictes)</li>
@@ -186,7 +186,7 @@ TRANSLATIONS = {
         "btn_start": "Començar a prendre decisions ▶️",
         "profiles_title": "👥 Perfils de les persones preses",
         "hint_box": "Revisa la informació de cada persona presa i l'avaluació de riscos de la IA, després pren la teva decisió.",
-        "btn_release": "✓ Alliberar la persona presa",
+        "btn_release": "✓ Alliberar",
         "btn_keep": "✗ Mantenir a la presó",
         "btn_show_summary": "📊 Mostrar resum de decisions",
         "btn_complete": "Completar aquesta secció ▶️",
