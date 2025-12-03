@@ -211,18 +211,18 @@ TRANSLATIONS = {
         "s4_sub2_li2": "✗ Més falsos negatius (més persones que representen un perill real són posades en llibertat)",
         "s4_eth_title": "La pregunta ètica:",
         "s4_q1": "Quin error és pitjor?",
-        "s4_q2": "• Mantenir persones innocents a la presó?<br>• O alliberar individus perillosos?",
-        "s4_conc": "<b>No hi ha una resposta universalment 'correcta'.</b> Diferents societats, sistemes legals i marcs ètics sospesen aquestes concessions de manera diferent.",
+        "s4_q2": "• Mantenir a la presó persones que no reincidirien?<br>• O posar en llibertat persones que representen un perill real?",
+        "s4_conc": "<b>No hi ha una resposta universalment 'correcta'.</b> Diferents societats, sistemes legals i marcs ètics sospesen aquests dilemes de manera diferent.",
         "s4_final": "<b>Per això és crucial entendre la IA.</b> Necessitem saber com funcionen aquests sistemes per prendre decisions informades sobre quan i com utilitzar-los.",
-        "btn_cont": "Continuar Aprenent Sobre IA ▶️",
+        "btn_cont": "Continuar aprenent sobre la IA ▶️",
         # Step 5
-        "s5_title": "✅ Secció Completada",
+        "s5_title": "✅ Secció completada",
         "s5_p1": "Ara entens les conseqüències dels errors de la IA en decisions d'alt risc.",
         "s5_p2": "<b>A continuació:</b> Aprèn què és realment la IA i com funcionen aquests sistemes de predicció.",
         "s5_p3": "Aquest coneixement t'ajudarà a entendre com construir sistemes d'IA millors i més ètics.",
         "s5_scroll": "👇 DESPLAÇA'T CAP AVALL 👇",
         "s5_find": "Troba la següent secció a sota per continuar el teu viatge.",
-        "btn_review": "◀️ Tornar a Revisar"
+        "btn_review": "◀️ Tornar a revisar"
     }
 }
 
