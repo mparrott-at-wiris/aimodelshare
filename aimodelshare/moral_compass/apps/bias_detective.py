@@ -376,24 +376,26 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
     except Exception as e:
         _log(f"User stats error for {username}: {e}")
 
-    # Apply zero-score tied-last enforcement
+    # Apply zero-score tied-last enforcement for INDIVIDUAL rank only
     # This guard ensures fair initial ranking when combined score and ethical progress are both zero
     # Note: At this point, we use best_score (accuracy) and tasks_completed=0 as proxy
     # The actual combined score will be computed later with accurate tasks_completed value
+    # Team rank is NOT affected here since it's based on team's aggregate score, not individual
     if best_score is not None:
         # Assume tasks_completed=0 for new users at stats computation time
         # The real enforcement happens in the app state when combined score is known
         combined_score = _calculate_combined_score(best_score, 0, BIAS_DETECTIVE_TOTAL_TASKS)
         ethical_progress_pct = 0.0  # New users start at 0%
         
-        # Apply tied-last guard
-        rank, team_rank = _enforce_zero_tied_last_rank(
+        # Apply tied-last guard to individual rank only
+        # Team rank is based on team average and should not be affected by individual zero-score
+        rank, _ = _enforce_zero_tied_last_rank(
             combined_score=combined_score,
             ethical_progress_pct=ethical_progress_pct,
             user_rank=rank,
-            team_rank=team_rank,
+            team_rank=None,  # Don't adjust team rank here
             total_individuals=total_individuals,
-            total_teams=total_teams
+            total_teams=0  # Not needed for individual-only enforcement
         )
 
     stats = {
