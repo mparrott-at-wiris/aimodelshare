@@ -26,6 +26,11 @@ import threading
 import pandas as pd
 from typing import Dict, Any, Optional, Tuple
 
+try:
+    import gradio as gr
+except ImportError:
+    gr = None
+
 # Import moral compass integration helpers
 from .mc_integration_helpers import (
     get_challenge_manager,
@@ -340,13 +345,15 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     Returns:
         Gradio Blocks object ready to launch
     """
-    try:
-        import gradio as gr
-        gr.close_all(verbose=False)
-    except ImportError as e:
+    if gr is None:
         raise ImportError(
             "Gradio is required for the bias detective app. Install with `pip install gradio`."
-        ) from e
+        )
+    
+    try:
+        gr.close_all(verbose=False)
+    except Exception:
+        pass  # Ignore close_all errors
     
     # ========================================================================
     # State Management
@@ -564,38 +571,28 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             logger.error(f"Failed to initialize user data: {e}")
             return "⚠️ Could not load user data. Continuing in guest mode."
     
-    def authenticate_and_load_user_data(request: "gr.Request", session_state_val: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
+    def load_user_data_from_session(session_state_val: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
         """
-        Authenticate user from request and update session state, then load user data.
+        Load user data using existing session state.
+        
+        This function is called by a button click and uses the session state
+        to get username/token information (which should be populated via
+        session authentication mechanisms).
         
         Args:
-            request: Gradio request object
-            session_state_val: Current session state
+            session_state_val: Current session state with auth info
             
         Returns:
             Tuple of (welcome_message, updated_session_state)
         """
         try:
-            # Try session-based authentication from request
-            success, username, token = _try_session_based_auth(request)
-            
-            if success and username:
-                # Update session state
-                session_state_val = authenticate_session(
-                    session_state_val,
-                    username=username,
-                    token=token
-                )
-                
-                # Load user data
-                welcome_msg = initialize_user_data_from_session(session_state_val)
-                return welcome_msg, session_state_val
-            else:
-                return "👋 Welcome! You're in guest mode. Sign in to save your progress and join a team.", session_state_val
+            # Load user data from session
+            welcome_msg = initialize_user_data_from_session(session_state_val)
+            return welcome_msg, session_state_val
                 
         except Exception as e:
-            logger.error(f"Failed to authenticate and load user data: {e}")
-            return "⚠️ Could not authenticate. Continuing in guest mode.", session_state_val
+            logger.error(f"Failed to load user data: {e}")
+            return "⚠️ Could not load user data. Continuing in guest mode.", session_state_val
     
     # ========================================================================
     # Gradio App Layout
@@ -1884,9 +1881,9 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         # User Authentication Event Handler
         # ====================================================================
         
-        # Button to authenticate and load user data
+        # Button to load user data from session
         load_user_data_btn.click(
-            fn=authenticate_and_load_user_data,
+            fn=load_user_data_from_session,
             inputs=[session_state],
             outputs=[welcome_message, session_state]
         )
