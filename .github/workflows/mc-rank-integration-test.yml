@@ -57,7 +57,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install --no-cache-dir -r requirements-apps.txt
           pip install --no-cache-dir aimodelshare --no-dependencies
-          pip install --no-cache-dir pytest pytest-timeout pytest-rerunfailure
+          pip install --no-cache-dir pytest
       
       - name: Mask sensitive inputs
         run: |
