@@ -269,14 +269,6 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
                         .agg(Best_Score="max")
                         .reset_index()
                         .sort_values("Best_Score", ascending=False)
-                        .reset_index(drop_down=False)
-                    )
-                    # reset_index(drop_down=False) is a typo; fix:
-                    team_summary_df = (
-                        leaderboard_df.groupby("Team")["accuracy"]
-                        .agg(Best_Score="max")
-                        .reset_index()
-                        .sort_values("Best_Score", ascending=False)
                         .reset_index(drop=True)
                     )
                     team_summary_df.index = team_summary_df.index + 1
@@ -1295,14 +1287,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             
             gr.Markdown("**Running MC total: 10**")
             gr.Markdown("▶️ **CTA:** Log evidence & view summary")
-                
-                # Navigation
-            with gr.Row():
-                step_9_back = gr.Button("◀️ Back", size="lg")
-                step_9_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
             gr.Markdown("🔄 **CHECKPOINT: Ranks may refresh after this slide**")
-            
+                
             # Navigation
             with gr.Row():
                 step_9_back = gr.Button("◀️ Back", size="lg")
@@ -1807,6 +1793,11 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             gr.Markdown("**Running MC total: 18**")
             gr.Markdown("▶️ **CTA:** Investigation complete. File final report")
             gr.Markdown("🔄 **CHECKPOINT: Ranks may refresh after this slide**")
+            
+            # Navigation
+            with gr.Row():
+                step_17_back = gr.Button("◀️ Back", size="lg")
+                step_17_next = gr.Button("Next ▶️", variant="primary", size="lg")
         
         with gr.Column(visible=False, elem_id="step-18") as step_18:
             gr.Markdown("""
@@ -2006,16 +1997,14 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             
             gr.Markdown("**Running MC total: 21**")
                 
-                # Navigation
+            # Navigation
             with gr.Row():
                 step_20_back = gr.Button("◀️ Back", size="lg")
                 step_20_next = gr.Button("Next: Summary ▶️", variant="primary", size="lg")
+            
             gr.Markdown("---")
             gr.Markdown("### 🎓 Mission Complete")
             gr.Markdown("⬇️ Scroll to begin next activity ⬇️")
-            
-            # Navigation
-            step_20_back = gr.Button("◀️ Back to Review", size="lg")
 
         
         with gr.Column(visible=False, elem_id="step-21") as step_21:
