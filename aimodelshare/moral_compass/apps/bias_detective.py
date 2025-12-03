@@ -634,13 +634,15 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         )
         
         # Welcome message with user stats
-        welcome_message = gr.Markdown(
-            value="👋 Welcome! Click 'Load User Data' to authenticate and see your stats.",
-            label="User Information"
-        )
-        
-        # Button to trigger user data loading
-        load_user_data_btn = gr.Button("🔄 Load User Data", variant="secondary", size="sm")
+        with gr.Row():
+            with gr.Column(scale=3):
+                welcome_message = gr.Markdown(
+                    value="👋 Welcome! Click 'Load User Data' below to see your stats, team, and ranking.",
+                    label="User Information"
+                )
+            with gr.Column(scale=1):
+                # Button to trigger user data loading
+                load_user_data_btn = gr.Button("🔄 Load User Data", variant="primary", size="sm")
         
         # ====================================================================
         # PHASE I: THE SETUP (Slides 1-2)
