@@ -5,7 +5,6 @@ INCLUDES: Support for 'The Drop-off' Auth Pattern (POST /sessions).
 """
 import json
 import os
-
 import boto3
 from decimal import Decimal
 from datetime import datetime
