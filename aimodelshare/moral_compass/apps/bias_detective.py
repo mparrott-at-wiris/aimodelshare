@@ -48,16 +48,16 @@ except ImportError:
     # Mock/Pass if not available locally
     pass
 
-# Import session-based authentication
-from .session_auth import (
-    create_session_state,
-    authenticate_session,
-    get_session_username,
-    get_session_token,
-    is_session_authenticated,
-    get_session_team,
-    set_session_team,
-)
+# Removed session_auth in favor of request-based sessionid extraction (Cloud Run multi-session safe).
+# from .session_auth import (
+#     create_session_state,
+#     authenticate_session,
+#     get_session_username,
+#     get_session_token,
+#     is_session_authenticated,
+#     get_session_team,
+#     set_session_team,
+# )
 
 logger = logging.getLogger("aimodelshare.moral_compass.apps.bias_detective_v2")
 
@@ -65,7 +65,6 @@ logger = logging.getLogger("aimodelshare.moral_compass.apps.bias_detective_v2")
 # Data & Constants
 # ============================================================================
 
-# OEIAC Principles for reference
 OEIAC_PRINCIPLES = [
     "Justice & Fairness",
     "Non-maleficence",
@@ -76,10 +75,9 @@ OEIAC_PRINCIPLES = [
     "Privacy"
 ]
 
-# Simulated demographic data from COMPAS-like dataset
 DEMOGRAPHICS_DATA = {
     "race": {
-        "Group A": 51,  # Over-represented (local ~12%)
+        "Group A": 51,
         "Group B": 32,
         "Other": 17
     },
@@ -94,7 +92,6 @@ DEMOGRAPHICS_DATA = {
     }
 }
 
-# Simulated fairness metrics showing disparities
 FAIRNESS_METRICS = {
     "race": {
         "Group A": {"fp_rate": 45, "fn_rate": 28},
@@ -113,7 +110,6 @@ FAIRNESS_METRICS = {
     }
 }
 
-# Team names for assignment
 TEAM_NAMES = [
     "The Justice League", "The Moral Champions", "The Data Detectives",
     "The Ethical Explorers", "The Fairness Finders", "The Accuracy Avengers"
@@ -134,7 +130,6 @@ _cache_lock = threading.Lock()
 _leaderboard_cache: Dict[str, Any] = {"data": None, "timestamp": 0.0}
 _user_stats_cache: Dict[str, Dict[str, Any]] = {}
 USER_STATS_TTL = LEADERBOARD_CACHE_SECONDS
-
 
 # ============================================================================
 # Helper Functions
@@ -201,7 +196,7 @@ def _get_or_assign_team(username: str, leaderboard_df: Optional[pd.DataFrame]) -
         return _normalize_team_name(random.choice(TEAM_NAMES)), True
 
 def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str], Optional[str]]:
-    """Try to authenticate using session-based authentication."""
+    """Authenticate using sessionid from request query params, returning (success, username, token)."""
     try:
         session_id = request.query_params.get("sessionid") if request else None
         if not session_id:
@@ -255,6 +250,14 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
                         .agg(Best_Score="max")
                         .reset_index()
                         .sort_values("Best_Score", ascending=False)
+                        .reset_index(drop_down=False)
+                    )
+                    # reset_index(drop_down=False) is a typo; fix:
+                    team_summary_df = (
+                        leaderboard_df.groupby("Team")["accuracy"]
+                        .agg(Best_Score="max")
+                        .reset_index()
+                        .sort_values("Best_Score", ascending=False)
                         .reset_index(drop=True)
                     )
                     team_summary_df.index = team_summary_df.index + 1
@@ -281,13 +284,11 @@ def format_toast_message(message: str) -> str:
     """Format a toast notification message."""
     return f"✓ {message}"
 
-
 def format_delta_pill(delta: float) -> str:
     """Format a delta pill showing score change."""
     if delta > 0:
         return f"+{delta:.1f}%"
     return f"{delta:.1f}%"
-
 
 def get_moral_compass_score_html(
     local_points: int,
@@ -331,6 +332,9 @@ def get_moral_compass_score_html(
     """
     return html
 
+# ============================================================================
+# App Factory
+# ============================================================================
 
 def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """
@@ -408,14 +412,11 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         
         if is_correct:
             moral_compass_state["tasks_completed"] += 1
-            # Calculate the percentage increase per task (100% / max_points)
             delta_per_task = 100.0 / float(moral_compass_state["max_points"])
             
-            # Sync to moral compass database if user is authenticated
             sync_message = ""
             if moral_compass_state["challenge_manager"] is not None:
                 try:
-                    # Sync user moral state
                     sync_result = sync_user_moral_state(
                         cm=moral_compass_state["challenge_manager"],
                         moral_points=moral_compass_state["tasks_completed"],
@@ -425,7 +426,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                     if sync_result.get("synced"):
                         sync_message = " [Synced to server]"
                         
-                        # Also sync team state if team is assigned
                         if moral_compass_state["team_name"]:
                             team_sync_result = sync_team_state(
                                 team_name=moral_compass_state["team_name"]
@@ -435,10 +435,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 except Exception as e:
                     logger.warning(f"Failed to sync progress: {e}")
             
-            # Build toast message with team info
             toast = format_toast_message(f"Progress logged. Ethical % +{delta_per_task:.1f}%{sync_message}")
             
-            # Add team information to the toast if available
             if moral_compass_state["team_name"] and moral_compass_state["team_rank"]:
                 toast += f"\n👥 Your team '{moral_compass_state['team_name']}' is ranked #{moral_compass_state['team_rank']}"
             
@@ -458,28 +456,22 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         Returns:
             Status message about rank refresh
         """
-        # Checkpoints after slides 10 and 18
         if slide_num not in [10, 18]:
             return ""
         
-        # Refresh user stats if authenticated
         if moral_compass_state["username"] and moral_compass_state["token"]:
             try:
-                # Clear cache to force refresh
                 with _cache_lock:
                     _user_stats_cache.pop(moral_compass_state["username"], None)
                 
-                # Fetch updated stats
                 updated_stats = _compute_user_stats(
                     moral_compass_state["username"],
                     moral_compass_state["token"]
                 )
                 
-                # Update state
                 moral_compass_state["team_rank"] = updated_stats.get("team_rank")
                 moral_compass_state["individual_rank"] = updated_stats.get("rank")
                 
-                # Build refresh message
                 msg = f"🔄 **Checkpoint {slide_num}: Ranks Refreshed!**\n\n"
                 
                 if updated_stats.get("rank"):
@@ -499,44 +491,25 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         
         return f"🔄 Checkpoint {slide_num} reached"
     
-    def initialize_user_data_from_session(session_state_val: Dict[str, Any]) -> str:
+    def _initialize_user_from_request(request: gr.Request) -> str:
         """
-        Initialize user data from playground leaderboard using session state.
-        
-        This function:
-        1. Uses session state to get username and token
-        2. Fetches their latest accuracy score from playground leaderboard
-        3. Gets their team assignment from the leaderboard
-        4. Initializes ChallengeManager for moral compass database
-        5. Returns welcome message with user stats
-        
-        Args:
-            session_state_val: Session state dictionary with auth info
-            
-        Returns:
-            Welcome message string
+        Initialize user data using sessionid from request (Cloud Run multi-session safe).
+        Mirrors the moral_compass_challenge approach.
         """
         try:
-            # Get username and token from session state
-            username = session_state_val.get("username")
-            token = session_state_val.get("token")
-            
-            if username and token and username != "guest":
-                # Compute user stats from leaderboard
+            success, username, token = _try_session_based_auth(request)
+            if success and username and token and username != "guest":
                 user_stats = _compute_user_stats(username, token)
                 
-                # Update state with user information
                 moral_compass_state["username"] = username
                 moral_compass_state["token"] = token
                 moral_compass_state["team_name"] = user_stats.get("team_name")
                 moral_compass_state["team_rank"] = user_stats.get("team_rank")
                 moral_compass_state["individual_rank"] = user_stats.get("rank")
                 
-                # Update accuracy from leaderboard if available
                 if user_stats.get("best_score") is not None:
                     moral_compass_state["accuracy"] = user_stats["best_score"]
                 
-                # Initialize ChallengeManager for moral compass database
                 try:
                     cm = get_challenge_manager(username)
                     moral_compass_state["challenge_manager"] = cm
@@ -544,7 +517,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 except Exception as e:
                     logger.warning(f"Could not initialize ChallengeManager: {e}")
                 
-                # Build welcome message
                 welcome_msg = f"👋 Welcome back, **{username}**!\n\n"
                 
                 if user_stats.get("best_score") is not None:
@@ -561,44 +533,17 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 welcome_msg += "Your progress will be synced to the Moral Compass database as you complete tasks."
                 
                 _log(f"User initialized: {username}, accuracy={user_stats.get('best_score')}, team={user_stats.get('team_name')}")
-                
                 return welcome_msg
             else:
-                # Guest mode
                 return "👋 Welcome! You're in guest mode. Sign in to save your progress and join a team."
-                
         except Exception as e:
-            logger.error(f"Failed to initialize user data: {e}")
+            logger.error(f"Failed to initialize user data from request: {e}")
             return "⚠️ Could not load user data. Continuing in guest mode."
-    
-    def load_user_data_from_session(session_state_val: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
-        """
-        Load user data using existing session state.
-        
-        This function is called by a button click and uses the session state
-        to get username/token information (which should be populated via
-        session authentication mechanisms).
-        
-        Args:
-            session_state_val: Current session state with auth info
-            
-        Returns:
-            Tuple of (welcome_message, updated_session_state)
-        """
-        try:
-            # Load user data from session
-            welcome_msg = initialize_user_data_from_session(session_state_val)
-            return welcome_msg, session_state_val
-                
-        except Exception as e:
-            logger.error(f"Failed to load user data: {e}")
-            return "⚠️ Could not load user data. Continuing in guest mode.", session_state_val
     
     # ========================================================================
     # Gradio App Layout
     # ========================================================================
     
-    # Load CSS from shared styles
     css_path = os.path.join(os.path.dirname(__file__), "shared_activity_styles.css")
     try:
         with open(css_path, 'r') as f:
@@ -612,9 +557,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         css=css_content,
         title="🕵️ Bias Detective V2: The Investigation"
     ) as app:
-        
-        # Session state
-        session_state = gr.State(create_session_state())
         
         # Header
         gr.Markdown("# 🕵️ BIAS DETECTIVE: THE INVESTIGATION")
@@ -637,12 +579,33 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         with gr.Row():
             with gr.Column(scale=3):
                 welcome_message = gr.Markdown(
-                    value="👋 Welcome! Click 'Load User Data' below to see your stats, team, and ranking.",
+                    value="👋 Welcome! Loading your user data...",
                     label="User Information"
                 )
             with gr.Column(scale=1):
-                # Button to trigger user data loading
                 load_user_data_btn = gr.Button("🔄 Load User Data", variant="primary", size="sm")
+        
+        # Initial load: populate user state from request (sessionid)
+        def initial_load(request: gr.Request):
+            msg = _initialize_user_from_request(request)
+            return [msg, update_moral_compass_score()]
+        
+        app.load(
+            fn=initial_load,
+            inputs=None,
+            outputs=[welcome_message, moral_compass_display]
+        )
+        
+        # Explicit refresh button: also use request
+        def load_user_data_from_request(request: gr.Request):
+            msg = _initialize_user_from_request(request)
+            return [msg, update_moral_compass_score()]
+        
+        load_user_data_btn.click(
+            fn=load_user_data_from_request,
+            inputs=None,
+            outputs=[welcome_message, moral_compass_display]
+        )
         
         # ====================================================================
         # PHASE I: THE SETUP (Slides 1-2)
@@ -668,7 +631,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             Tap "Log my first check" below to see a subtle score bump and a tiny toast notification.
             """)
             
-            # MC Task #1
             gr.Markdown("#### MC Task #1: Understanding the Moral Compass Score")
             mc1_question = gr.Radio(
                 choices=[
@@ -695,7 +657,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 outputs=[mc1_feedback, toast_notification, moral_compass_display]
             )
             
-            # MC Task #2
             gr.Markdown("#### MC Task #2: Test Recording")
             mc2_button = gr.Button("Test Recording")
             mc2_feedback = gr.Markdown("")
@@ -735,7 +696,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             ---
             """)
             
-            # MC Task #3
             gr.Markdown("#### MC Task #3: Investigation Steps")
             mc3_question = gr.Radio(
                 choices=[
@@ -793,7 +753,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             ---
             """)
             
-            # MC Task #4
             gr.Markdown("#### MC Task #4: Justice & Fairness")
             mc4_question = gr.Radio(
                 choices=[
@@ -845,7 +804,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             ---
             """)
             
-            # MC Task #5
             gr.Markdown("#### MC Task #5: Why AI Bias is Harder to See")
             mc5_question = gr.Radio(
                 choices=[
@@ -902,7 +860,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             ---
             """)
             
-            # MC Task #6
             gr.Markdown("#### MC Task #6: Audit Lens")
             mc6_question = gr.Radio(
                 choices=[
@@ -958,7 +915,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             ---
             """)
             
-            # MC Task #7
             gr.Markdown("#### MC Task #7: Baseline Comparison")
             mc7_question = gr.Radio(
                 choices=["True", "False"],
@@ -1015,7 +971,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             ---
             """)
             
-            # MC Task #8
             gr.Markdown("#### MC Task #8: Frequency Bias")
             mc8_question = gr.Radio(
                 choices=[
@@ -1073,7 +1028,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             ---
             """)
             
-            # MC Task #9
             gr.Markdown("#### MC Task #9: Representation Bias")
             mc9_question = gr.Radio(
                 choices=[
@@ -1131,7 +1085,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             ---
             """)
             
-            # MC Task #10
             gr.Markdown("#### MC Task #10: Generalization Error")
             mc10_question = gr.Radio(
                 choices=[
@@ -1187,7 +1140,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             ---
             """)
             
-            # MC Task #11
             gr.Markdown("#### MC Task #11: Summary Check")
             mc11_question = gr.CheckboxGroup(
                 choices=[
@@ -1203,7 +1155,7 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             
             def check_mc11(selected):
                 correct = {"Frequency bias", "Representation bias", "Generalization error"}
-                selected_set = set(selected)
+                selected_set = set(selected or [])
                 
                 if correct.issubset(selected_set) and "Label noise (not covered here)" not in selected_set:
                     toast, score_html = log_task_completion("mc11", True)
@@ -1219,7 +1171,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             
             gr.Markdown("**Running MC total: 11**")
             
-            # Checkpoint refresh component
             checkpoint_refresh_btn = gr.Button("🔄 Refresh Rankings (Checkpoint 10)", variant="secondary")
             checkpoint_refresh_msg = gr.Markdown("")
             
@@ -1263,7 +1214,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             ---
             """)
             
-            # MC Task #12
             gr.Markdown("#### MC Task #12: Average Accuracy")
             mc12_question = gr.Radio(
                 choices=[
@@ -1320,7 +1270,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             ---
             """)
             
-            # MC Task #13
             gr.Markdown("#### MC Task #13: Error Types")
             mc13_question = gr.Radio(
                 choices=[
@@ -1377,7 +1326,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             ---
             """)
             
-            # MC Task #14
             gr.Markdown("#### MC Task #14: Punitive Pattern")
             mc14_question = gr.Radio(
                 choices=[
@@ -1433,7 +1381,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             ---
             """)
             
-            # MC Task #15
             gr.Markdown("#### MC Task #15: Omission Pattern")
             mc15_question = gr.Radio(
                 choices=[
@@ -1490,7 +1437,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             ---
             """)
             
-            # MC Task #16
             gr.Markdown("#### MC Task #16: Severity Bias")
             mc16_question = gr.Radio(
                 choices=[
@@ -1547,7 +1493,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             ---
             """)
             
-            # MC Task #17
             gr.Markdown("#### MC Task #17: Age Estimation Error")
             mc17_question = gr.Radio(
                 choices=[
@@ -1605,7 +1550,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             ---
             """)
             
-            # MC Task #18
             gr.Markdown("#### MC Task #18: Proxy Variables")
             mc18_question = gr.Radio(
                 choices=[
@@ -1664,7 +1608,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             ---
             """)
             
-            # MC Task #19
             gr.Markdown("#### MC Task #19: Fairness vs. Accuracy")
             mc19_question = gr.Radio(
                 choices=[
@@ -1693,7 +1636,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             
             gr.Markdown("**Running MC total: 19**")
             
-            # Checkpoint refresh component
             checkpoint_refresh_btn_18 = gr.Button("🔄 Refresh Rankings (Checkpoint 18)", variant="secondary")
             checkpoint_refresh_msg_18 = gr.Markdown("")
             
@@ -1743,7 +1685,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             ---
             """)
             
-            # MC Task #20
             gr.Markdown("#### MC Task #20: Final Recommendation")
             mc20_question = gr.Radio(
                 choices=[
@@ -1803,7 +1744,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             ---
             """)
             
-            # MC Task #21
             gr.Markdown("#### MC Task #21: Score Continuity")
             mc21_question = gr.Radio(
                 choices=["True", "False"],
@@ -1831,7 +1771,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             gr.Markdown("### 🎓 Mission Complete")
             gr.Markdown("⬇️ Scroll to begin next activity ⬇️")
         
-        # Final summary tab
         with gr.Tab("📊 Progress Summary"):
             gr.Markdown("## Your Investigation Summary")
             
@@ -1879,17 +1818,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 outputs=[summary_output]
             )
         
-        # ====================================================================
-        # User Authentication Event Handler
-        # ====================================================================
+        # Button wiring for rank refresh already defined in slides 10 and 18
         
-        # Button to load user data from session
-        load_user_data_btn.click(
-            fn=load_user_data_from_session,
-            inputs=[session_state],
-            outputs=[welcome_message, session_state]
-        )
-    
     return app
 
 
