@@ -36,6 +36,11 @@ import time
 import logging
 from typing import Dict, Any, Optional, List, Tuple
 
+# Configuration constants
+DEFAULT_PLAYGROUND_URL = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+SYNC_WAIT_SECONDS = 2  # Wait time after sync for consistency
+TASK_INTERVAL_SECONDS = 3  # Wait time between task submissions to avoid rate limiting
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -215,7 +220,7 @@ def submit_task_and_sync(
             logger.warning("Sync did not complete successfully")
         
         # Wait a moment for consistency
-        time.sleep(2)
+        time.sleep(SYNC_WAIT_SECONDS)
         
         # Clear any local caches (simulating what the app does)
         logger.debug("Clearing local caches...")
@@ -336,8 +341,7 @@ def run_test() -> int:
     try:
         # Try to get team from playground leaderboard
         from aimodelshare.playground import Competition
-        playground_url = os.getenv('PLAYGROUND_URL', 
-                                   'https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m')
+        playground_url = os.getenv('PLAYGROUND_URL', DEFAULT_PLAYGROUND_URL)
         playground = Competition(playground_url)
         leaderboard = playground.get_leaderboard(token=token)
         
@@ -389,7 +393,7 @@ def run_test() -> int:
         rank_history.append(result['rank_info'])
         
         # Wait between tasks to avoid rate limiting
-        time.sleep(3)
+        time.sleep(TASK_INTERVAL_SECONDS)
     
     # Step 5: Verify rank changes
     logger.info("\n[STEP 5] Verifying rank changes...")

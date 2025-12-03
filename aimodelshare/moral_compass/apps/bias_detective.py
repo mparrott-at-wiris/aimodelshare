@@ -41,8 +41,8 @@ from .mc_integration_helpers import (
     get_user_ranks,
     _derive_table_id,
 )
-# Add helper module alias for potential direct access
-import aimodelshare.moral_compass.apps.mc_integration_helpers as mc_helpers
+# Add helper module alias for potential direct access (reserved for future debugging/testing)
+import aimodelshare.moral_compass.apps.mc_integration_helpers as mc_helpers  # noqa: F401
 
 # Import playground and AWS utilities
 try:
