@@ -30,6 +30,13 @@ logger = logging.getLogger("aimodelshare.moral_compass.apps")
 
 
 # ============================================================================
+# Constants
+# ============================================================================
+
+TEAM_USERNAME_PREFIX = "team:"
+
+
+# ============================================================================
 # Environment Configuration
 # ============================================================================
 
@@ -427,7 +434,7 @@ def sync_team_state(team_name: str, table_id: Optional[str] = None) -> Dict[str,
         from aimodelshare.moral_compass.api_client import MoralcompassApiClient
         
         api_client = MoralcompassApiClient()
-        team_username = f"team:{team_name}"
+        team_username = f"{TEAM_USERNAME_PREFIX}{team_name}"
         
         # Update team entry
         response = api_client.update_moral_compass(
@@ -717,9 +724,9 @@ def get_user_ranks(username: str, table_id: Optional[str] = None, team_name: Opt
         # Find team rank if team_name provided
         team_rank = None
         if team_name:
-            team_users = [u for u in users_sorted if u['username'].startswith('team:')]
+            team_users = [u for u in users_sorted if u['username'].startswith(TEAM_USERNAME_PREFIX)]
             for rank, user in enumerate(team_users, start=1):
-                team_display_name = user['username'][5:]  # Remove 'team:' prefix
+                team_display_name = user['username'][len(TEAM_USERNAME_PREFIX):]  # Remove prefix
                 if team_display_name == team_name:
                     team_rank = rank
                     break
@@ -770,7 +777,7 @@ def build_moral_leaderboard_html(
     
     # Filter teams if needed
     if not include_teams:
-        users = [u for u in users if not u['username'].startswith('team:')]
+        users = [u for u in users if not u['username'].startswith(TEAM_USERNAME_PREFIX)]
     
     # Sort by moralCompassScore descending
     users_sorted = sorted(users, key=lambda u: u['moralCompassScore'], reverse=True)
@@ -794,8 +801,8 @@ def build_moral_leaderboard_html(
         username = user['username']
         score = user['moralCompassScore']
         
-        is_team = username.startswith('team:')
-        display_name = username[5:] if is_team else username  # Remove 'team:' prefix
+        is_team = username.startswith(TEAM_USERNAME_PREFIX)
+        display_name = username[len(TEAM_USERNAME_PREFIX):] if is_team else username  # Remove prefix
         entry_type = '👥 Team' if is_team else '👤 User'
         
         # Highlight current user

@@ -452,22 +452,22 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         Returns:
             (toast_message, updated_score_html)
         """
-        # Check if task was already answered (local tracking)
-        if task_id in task_answers:
-            return "⚠️ You've already answered this question.", update_moral_compass_score()
-        
-        # If using ChallengeManager, check there too
-        if moral_compass_state["challenge_manager"] is not None:
-            cm = moral_compass_state["challenge_manager"]
-            if cm.is_task_completed(task_id):
-                return "⚠️ You've already answered this question.", update_moral_compass_score()
-        
         # Check if we've reached the maximum number of tasks
         if moral_compass_state["tasks_completed"] >= moral_compass_state["max_points"]:
             return "⚠️ Maximum number of tasks already completed.", update_moral_compass_score()
         
-        # Record the answer
-        task_answers[task_id] = is_correct
+        # If using ChallengeManager, check there first for authoritative state
+        if moral_compass_state["challenge_manager"] is not None:
+            cm = moral_compass_state["challenge_manager"]
+            if cm.is_task_completed(task_id):
+                # Task already completed in ChallengeManager - sync local state
+                if task_id not in task_answers:
+                    task_answers[task_id] = True  # Sync local tracking
+                return "⚠️ You've already answered this question.", update_moral_compass_score()
+        
+        # Check local tracking as secondary check
+        if task_id in task_answers:
+            return "⚠️ You've already answered this question.", update_moral_compass_score()
         
         if is_correct:
             # Try to complete task via ChallengeManager first
@@ -475,16 +475,24 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             if moral_compass_state["challenge_manager"] is not None:
                 cm = moral_compass_state["challenge_manager"]
                 task_newly_completed = cm.complete_task(task_id)
+                
+                # Only record locally if ChallengeManager accepted it
+                if task_newly_completed:
+                    task_answers[task_id] = is_correct
+                else:
+                    # Task was already completed in ChallengeManager
+                    return "⚠️ Task already recorded. No duplicate credit.", update_moral_compass_score()
+            else:
+                # No ChallengeManager - use local tracking only
+                task_answers[task_id] = is_correct
+                task_newly_completed = True
             
-            if task_newly_completed or moral_compass_state["challenge_manager"] is None:
+            if task_newly_completed:
                 # Increment tasks completed (with safety check)
                 moral_compass_state["tasks_completed"] = min(
                     moral_compass_state["tasks_completed"] + 1,
                     moral_compass_state["max_points"]
                 )
-            else:
-                # Task was already completed in ChallengeManager
-                return "⚠️ Task already recorded. No duplicate credit.", update_moral_compass_score()
             
             delta_per_task = 100.0 / float(moral_compass_state["max_points"]) if moral_compass_state["max_points"] > 0 else 0.0
             
