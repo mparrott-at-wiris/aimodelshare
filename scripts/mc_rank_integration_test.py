@@ -2,14 +2,15 @@
 """
 Moral Compass Rank Integration Test
 
-Derives TABLE_ID via PLAYGROUND_URL if not provided.
-Authenticates with SESSION_ID, initializes ChallengeManager, submits tasks,
-syncs, and fetches ranks after each submission.
+Enhancements:
+- Derive TABLE_ID via PLAYGROUND_URL host (cf3wdpkg0d[-<region>]-mc based on MC_ENFORCE_NAMING)
+- Verify table existence; create it if missing (requires auth when AUTH_ENABLED=true)
+- Proceed with ChallengeManager usage and rank checks
 
 Env:
 - SESSION_ID (required)
-- TABLE_ID (optional)
-- PLAYGROUND_URL (required if TABLE_ID is not provided)
+- TABLE_ID (optional; if missing, derive via _derive_table_id)
+- PLAYGROUND_URL (required if deriving table id)
 - MORAL_COMPASS_API_BASE_URL (optional)
 - DEBUG_LOG (optional)
 """
@@ -39,6 +40,7 @@ from aimodelshare.moral_compass.apps.mc_integration_helpers import (
     _derive_table_id,
     sync_team_state,
 )
+from aimodelshare.moral_compass import MoralcompassApiClient, NotFoundError, ApiClientError
 
 def mask(s: str) -> str:
     if not s:
@@ -52,6 +54,47 @@ def derive_table_id_if_needed(explicit_table_id: Optional[str]) -> str:
     derived = _derive_table_id()
     logger.info(f"Derived TABLE_ID via PLAYGROUND_URL: {derived}")
     return derived
+
+def ensure_table_exists(table_id: str, playground_url: Optional[str]) -> None:
+    """
+    Verify table exists; create it if missing.
+
+    If AUTH_ENABLED=true, creation requires JWT in environment; MoralcompassApiClient will auto-attach if present.
+    """
+    api_base = os.environ.get("MORAL_COMPASS_API_BASE_URL")
+    client = MoralcompassApiClient(api_base_url=api_base) if api_base else MoralcompassApiClient()
+
+    try:
+        client.get_table(table_id)
+        logger.info(f"Table '{table_id}' exists.")
+        return
+    except NotFoundError:
+        logger.info(f"Table '{table_id}' not found. Attempting creation...")
+        try:
+            payload = {
+                "table_id": table_id,
+                "display_name": f"Moral Compass - {table_id}",
+            }
+            # Only include playground_url if provided
+            if playground_url:
+                payload["playground_url"] = playground_url
+
+            # Client uses snake_case args
+            resp = client.create_table(
+                table_id=table_id,
+                display_name=payload["display_name"],
+                playground_url=payload.get("playground_url")
+            )
+            logger.info(f"Created table '{table_id}': {resp}")
+        except ApiClientError as e:
+            logger.error(f"Failed to create table '{table_id}': {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error creating table '{table_id}': {e}")
+            raise
+    except Exception as e:
+        logger.error(f"Failed to verify table '{table_id}': {e}")
+        raise
 
 def authenticate_via_session(session_id: str) -> Dict[str, str]:
     logger.info("\n[STEP 1] Authenticating...")
@@ -87,10 +130,7 @@ def fetch_ranks(username: str, table_id: str, team_name: Optional[str]) -> Dict[
         logger.info(f"Current ranks: individual={individual_rank}, team={team_rank}, score={score}")
         return {"individual_rank": individual_rank, "team_rank": team_rank, "score": score}
     except Exception as e:
-        msg = str(e)
-        logger.error(f"Failed to fetch ranks: {msg}")
-        if "Table not found" in msg:
-            logger.error("The specified Moral Compass table does not exist. Create it or provide the correct TABLE_ID.")
+        logger.error(f"Failed to fetch ranks: {e}")
         return {"individual_rank": None, "team_rank": None, "score": None}
 
 def submit_tasks_and_track(cm: Any, username: str, table_id: str, team_name: Optional[str], tasks: List[str]) -> List[Dict[str, Any]]:
@@ -109,7 +149,7 @@ def submit_tasks_and_track(cm: Any, username: str, table_id: str, team_name: Opt
                 except Exception as te:
                     logger.debug(f"Team sync failed: {te}")
 
-            time.sleep(1.0)
+            time.sleep(1.0)  # brief delay for backend visibility
             ranks = fetch_ranks(username, table_id, team_name)
             logger.info(f"After task {i}: individual=#{ranks['individual_rank']}, team=#{ranks['team_rank']}, score={ranks['score']}")
             progression.append(ranks)
@@ -125,6 +165,7 @@ def main():
 
     session_id = os.environ.get("SESSION_ID", "").strip()
     table_id_input = os.environ.get("TABLE_ID", "").strip()
+    playground_url = os.environ.get("PLAYGROUND_URL", "").strip()
 
     if not session_id:
         logger.error("SESSION_ID is required. Provide via workflow input or secret.")
@@ -133,16 +174,24 @@ def main():
 
     table_id = derive_table_id_if_needed(table_id_input)
 
+    # Ensure table exists or create it
+    try:
+        ensure_table_exists(table_id, playground_url if playground_url else None)
+    except Exception:
+        logger.error("Table setup failed; cannot proceed with rank test.")
+        sys.exit(2)
+
+    # Authenticate and init CM
     auth = authenticate_via_session(session_id)
     username = auth["username"]
-
     cm = initialize_challenge_manager(username)
 
+    # Initial ranks
     logger.info("\n[STEP 3] Getting initial ranks...")
-    # Attempt to detect existing team via ranks data (if API returns teamName)
     initial_rank_info = fetch_ranks(username, table_id, team_name=None)
-    team_name = initial_rank_info.get("team_name") or None  # If API returns it
+    team_name = initial_rank_info.get("team_name") or None
 
+    # Submit tasks and verify
     tasks = ["mc1", "mc2", "mc3", "mc4", "mc5", "mc6"]
     progression = submit_tasks_and_track(cm, username, table_id, team_name, tasks)
 
