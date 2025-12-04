@@ -820,7 +820,7 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                             _log(f"Initialized team rank from Moral Compass API: #{rank_info['team_rank']}")
                 except Exception as rank_err:
                     logger.warning(f"Could not get ranks from Moral Compass API on init: {rank_err}")
-                    # Do not fall back to playground leaderboard - keep ranks as None
+                    # Do not fall back to playground leaderboard - keep ranks as None since playground lacks moralCompassScore data
                     if DEBUG_LOG:
                         _log(f"Ranks unavailable from Moral Compass API, keeping as None")
                 

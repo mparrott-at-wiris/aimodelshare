@@ -76,7 +76,7 @@ def _derive_table_id() -> str:
     Returns:
         table_id string
     """
-    # Default to the ethical revelation playground URL for consistent table_id derivation
+    # Default playground URL for consistent table_id derivation across Moral Compass apps
     default_url = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
     url = os.environ.get("PLAYGROUND_URL", default_url).strip()
     enforce = os.environ.get("MC_ENFORCE_NAMING", "false").lower() == "true"
