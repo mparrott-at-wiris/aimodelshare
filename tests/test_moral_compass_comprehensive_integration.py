@@ -3,9 +3,8 @@
 Comprehensive Integration Test for Moral Compass REST API and Lambda (Single-User Mode)
 
 Scoring model note:
-- The API computes moralCompassScore = primaryMetricValue * ((tasksCompleted + questionsCorrect) / (totalTasks + totalQuestions))
-- With tasksCompleted == totalTasks and totalQuestions == 0 (and questionsCorrect == 0),
-  the score equals the primary metric value (e.g., accuracy), not accuracy * tasks.
+- API computes: moralCompassScore = primaryMetricValue * ((tasksCompleted + questionsCorrect) / (totalTasks + totalQuestions))
+- With tasksCompleted == totalTasks and totalQuestions == 0 (questionsCorrect == 0), score equals the primary metric value (e.g., accuracy).
 """
 
 import os
@@ -13,13 +12,31 @@ import sys
 import time
 import uuid
 import logging
+from datetime import datetime
 from typing import Optional
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(message)s'
-)
-logger = logging.getLogger(__name__)
+# Prepare file logger path
+RUN_ID = uuid.uuid4().hex[:8]
+LOG_FILE = f"/tmp/mc_comprehensive_test_{RUN_ID}.log"
+
+# Configure logging to stdout and file
+logger = logging.getLogger("mc_comprehensive_single_user_test")
+logger.setLevel(logging.INFO)
+fmt = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
+
+sh = logging.StreamHandler(sys.stdout)
+sh.setFormatter(fmt)
+logger.addHandler(sh)
+
+fh = logging.FileHandler(LOG_FILE, mode="w", encoding="utf-8")
+fh.setFormatter(fmt)
+logger.addHandler(fh)
+
+def log_kv(title: str, data: dict):
+    logger.info(f"--- {title} ---")
+    for k, v in data.items():
+        logger.info(f"{k}: {v}")
+    logger.info("--- end ---")
 
 try:
     from aimodelshare.moral_compass import MoralcompassApiClient, ApiClientError
@@ -31,6 +48,19 @@ except ImportError as e:
 
 class MoralCompassIntegrationTest:
     def __init__(self, api_base_url: Optional[str] = None, session_id: Optional[str] = None):
+        # Capture environment for transparency
+        env_snapshot = {
+            "MORAL_COMPASS_API_BASE_URL": os.environ.get("MORAL_COMPASS_API_BASE_URL"),
+            "SESSION_ID_present": bool(os.environ.get("SESSION_ID")),
+            "JWT_AUTHORIZATION_TOKEN_present": bool(os.environ.get("JWT_AUTHORIZATION_TOKEN")),
+            "TEST_TABLE_ID": os.environ.get("TEST_TABLE_ID"),
+            "TEST_PLAYGROUND_URL": os.environ.get("TEST_PLAYGROUND_URL"),
+            "PYTHON_VERSION": sys.version.split()[0],
+            "RUN_ID": RUN_ID,
+            "LOG_FILE": LOG_FILE,
+        }
+        log_kv("Environment Snapshot", env_snapshot)
+
         api_base_url = api_base_url or os.environ.get("MORAL_COMPASS_API_BASE_URL")
         if not api_base_url:
             raise ValueError("MORAL_COMPASS_API_BASE_URL must be set")
@@ -39,11 +69,11 @@ class MoralCompassIntegrationTest:
         if not session_id:
             raise ValueError("SESSION_ID must be provided for single-user comprehensive test")
 
-        logger.info("SESSION_ID provided, fetching token from session API...")
+        logger.info("Authenticating via SESSION_ID...")
         self.auth_token = get_token_from_session(session_id)
         os.environ["JWT_AUTHORIZATION_TOKEN"] = self.auth_token
         self.username = _get_username_from_token(self.auth_token)
-        logger.info(f"✓ Authenticated as user: {self.username}")
+        log_kv("Auth Details", {"username": self.username, "token_masked": self.auth_token[:6] + "***"})
 
         self.client = MoralcompassApiClient(api_base_url=api_base_url, auth_token=self.auth_token)
 
@@ -55,21 +85,42 @@ class MoralCompassIntegrationTest:
         self.accuracy = 0.92
         self.tasks = 10
         self.team = "team-a"
+        log_kv("Test Config", {
+            "test_table_id": self.test_table_id,
+            "playground_url": self.playground_url,
+            "initial_accuracy": self.accuracy,
+            "initial_tasks": self.tasks,
+            "team": self.team,
+        })
 
         self.errors = []
         self.passed_tests = 0
         self.total_tests = 0
 
-    def log_test_start(self, name): self.total_tests += 1; logger.info(f"\n{'='*70}\nTEST: {name}\n{'='*70}")
-    def log_pass(self, name, msg=""): self.passed_tests += 1; logger.info(f"✅ PASS: {name}" + (f"\n   {msg}" if msg else ""))
-    def log_fail(self, name, err): self.errors.append(f"{name}: {err}"); logger.error(f"❌ FAIL: {name}\n   {err}")
+    def log_test_start(self, name):
+        self.total_tests += 1
+        logger.info("\n" + "=" * 70)
+        logger.info(f"TEST: {name}")
+        logger.info("=" * 70)
+
+    def log_pass(self, name, msg=""):
+        self.passed_tests += 1
+        logger.info(f"✅ PASS: {name}")
+        if msg:
+            logger.info(f"   {msg}")
+
+    def log_fail(self, name, err):
+        self.errors.append(f"{name}: {err}")
+        logger.error(f"❌ FAIL: {name}")
+        logger.error(f"   {err}")
 
     def cleanup_table(self):
+        logger.info("Cleaning up test table (if exists)...")
         try:
             self.client.delete_table(self.test_table_id)
             logger.info(f"Cleaned up test table: {self.test_table_id}")
-        except Exception:
-            pass
+        except Exception as e:
+            logger.info(f"Cleanup continued (delete may be disabled or table missing): {e}")
 
     def test_1_create_table(self):
         name = "Create Table with Playground URL"
@@ -77,7 +128,14 @@ class MoralCompassIntegrationTest:
         try:
             self.cleanup_table()
             time.sleep(1)
-            res = self.client.create_table(self.test_table_id, f"Moral Compass Integration Test {self.test_id}", self.playground_url)
+            payload = {
+                "tableId": self.test_table_id,
+                "displayName": f"Moral Compass Integration Test {self.test_id}",
+                "playgroundUrl": self.playground_url,
+            }
+            log_kv("CreateTable Request", payload)
+            res = self.client.create_table(**payload)
+            log_kv("CreateTable Response", res)
             if res.get("tableId") == self.test_table_id:
                 self.log_pass(name, f"Created table: {self.test_table_id}")
             else:
@@ -91,11 +149,17 @@ class MoralCompassIntegrationTest:
         try:
             client_no_auth = MoralcompassApiClient(api_base_url=self.client.api_base_url, auth_token=None)
             table = client_no_auth.get_table(self.test_table_id)
+            log_kv("GetTable(NoAuth) Result", {
+                "table_id": table.table_id,
+                "display_name": table.display_name,
+                "user_count": table.user_count,
+            })
             if table.table_id == self.test_table_id:
                 self.log_pass(name, f"Found table without auth: {table.table_id}")
             else:
                 self.log_fail(name, f"Table ID mismatch: expected {self.test_table_id}, got {table.table_id}")
         except ApiClientError as e:
+            self.log_kv_error(name, "ApiClientError", e)
             if "401" in str(e) or "Authentication" in str(e):
                 self.log_pass(name, "Auth is enabled - 401 expected for unauthenticated requests")
             else:
@@ -108,6 +172,11 @@ class MoralCompassIntegrationTest:
         self.log_test_start(name)
         try:
             table = self.client.get_table(self.test_table_id)
+            log_kv("GetTable(WithAuth) Result", {
+                "table_id": table.table_id,
+                "display_name": table.display_name,
+                "user_count": table.user_count,
+            })
             if table.table_id == self.test_table_id:
                 self.log_pass(name, f"Found table with auth: {table.table_id}")
             else:
@@ -119,20 +188,23 @@ class MoralCompassIntegrationTest:
         name = "Create Authenticated User"
         self.log_test_start(name)
         try:
-            res = self.client.update_moral_compass(
-                table_id=self.test_table_id,
-                username=self.username,
-                metrics={"accuracy": self.accuracy},
-                tasks_completed=self.tasks,
-                total_tasks=self.tasks,
-                questions_correct=0,
-                total_questions=0,
-                primary_metric="accuracy",
-                team_name=self.team
-            )
+            request_payload = {
+                "table_id": self.test_table_id,
+                "username": self.username,
+                "metrics": {"accuracy": self.accuracy},
+                "tasks_completed": self.tasks,
+                "total_tasks": self.tasks,
+                "questions_correct": 0,
+                "total_questions": 0,
+                "primary_metric": "accuracy",
+                "team_name": self.team,
+            }
+            log_kv("UpdateMoralCompass Request", request_payload)
+            res = self.client.update_moral_compass(**request_payload)
+            log_kv("UpdateMoralCompass Response", res)
             actual = float(res.get("moralCompassScore", 0))
-            # Expected = accuracy * ((tasksCompleted + questionsCorrect) / (totalTasks + totalQuestions)) = accuracy
-            expected = self.accuracy
+            expected = self.accuracy  # ratio = 1 => expected score = accuracy
+            log_kv("Score Check", {"actual": actual, "expected": expected})
             if abs(actual - expected) < 0.01:
                 self.log_pass(name, f"User created with expected score={actual:.4f}")
             else:
@@ -147,9 +219,13 @@ class MoralCompassIntegrationTest:
             time.sleep(1)
             resp = self.client.list_users(table_id=self.test_table_id, limit=20)
             users = resp.get("users", [])
+            log_kv("ListUsers Response Summary", {
+                "returned_count": len(users),
+            })
+            for u in users:
+                logger.info(f"UserRow: username={u.get('username')} score={u.get('moralCompassScore')} team={u.get('teamName')} tasks={u.get('tasksCompleted')}/{u.get('totalTasks')} q={u.get('questionsCorrect')}/{u.get('totalQuestions')}")
             me = next((u for u in users if u["username"] == self.username), None)
             if me:
-                logger.info(f"   User: {me['username']} score={me.get('moralCompassScore', 'N/A')} team={me.get('teamName', 'N/A')}")
                 self.log_pass(name, "Authenticated user retrieved")
             else:
                 self.log_fail(name, "Authenticated user not found in table")
@@ -167,7 +243,8 @@ class MoralCompassIntegrationTest:
                 self.log_fail(name, "Authenticated user not found")
                 return
             actual = float(me.get("moralCompassScore", 0))
-            expected = self.accuracy  # ratio = 1, expected score = accuracy
+            expected = self.accuracy  # ratio = 1 => expected score = accuracy
+            log_kv("Score Check", {"actual": actual, "expected": expected})
             if abs(actual - expected) < 0.01:
                 self.log_pass(name, "Score matches expected calculation")
             else:
@@ -181,19 +258,23 @@ class MoralCompassIntegrationTest:
         try:
             new_accuracy = 0.80
             new_tasks = self.tasks + 5
-            res = self.client.update_moral_compass(
-                table_id=self.test_table_id,
-                username=self.username,
-                metrics={"accuracy": new_accuracy},
-                tasks_completed=new_tasks,
-                total_tasks=new_tasks,
-                questions_correct=0,
-                total_questions=0,
-                primary_metric="accuracy",
-                team_name=self.team
-            )
+            request_payload = {
+                "table_id": self.test_table_id,
+                "username": self.username,
+                "metrics": {"accuracy": new_accuracy},
+                "tasks_completed": new_tasks,
+                "total_tasks": new_tasks,
+                "questions_correct": 0,
+                "total_questions": 0,
+                "primary_metric": "accuracy",
+                "team_name": self.team,
+            }
+            log_kv("UpdateMoralCompass Request (Update)", request_payload)
+            res = self.client.update_moral_compass(**request_payload)
+            log_kv("UpdateMoralCompass Response (Update)", res)
             actual = float(res.get("moralCompassScore", 0))
-            expected = new_accuracy  # ratio = 1 again -> score equals accuracy
+            expected = new_accuracy  # ratio = 1 => score equals new accuracy
+            log_kv("Score Check (Update)", {"actual": actual, "expected": expected})
             if abs(actual - expected) < 0.01:
                 self.log_pass(name, f"Score updated correctly: {actual:.4f}")
             else:
@@ -201,10 +282,18 @@ class MoralCompassIntegrationTest:
         except Exception as e:
             self.log_fail(name, str(e))
 
+    def log_kv_error(self, name, etype, e):
+        log_kv(f"{name} Error", {"type": etype, "message": str(e)})
+
     def run_all(self):
-        logger.info("\n" + "="*80)
+        logger.info("\n" + "=" * 80)
         logger.info("MORAL COMPASS COMPREHENSIVE INTEGRATION TEST SUITE (Single-User)")
-        logger.info("="*80)
+        logger.info("=" * 80)
+        log_kv("Run Metadata", {
+            "run_id": RUN_ID,
+            "started_at": datetime.utcnow().isoformat() + "Z",
+            "log_file": LOG_FILE,
+        })
 
         self.test_1_create_table()
         self.test_2_get_table_no_auth()
@@ -214,17 +303,24 @@ class MoralCompassIntegrationTest:
         self.test_6_verify_score_calc()
         self.test_7_update_user_new_accuracy()
 
-        logger.info("\n" + "="*80)
+        logger.info("\n" + "=" * 80)
         logger.info("TEST SUMMARY")
-        logger.info("="*80)
-        logger.info(f"Total Tests: {self.total_tests}")
-        logger.info(f"Passed: {self.passed_tests}")
-        logger.info(f"Failed: {len(self.errors)}")
+        logger.info("=" * 80)
+        summary = {
+            "Total Tests": self.total_tests,
+            "Passed": self.passed_tests,
+            "Failed": len(self.errors),
+        }
+        log_kv("Summary", summary)
         if self.errors:
             logger.error("\nFailed Tests:")
-            for e in self.errors: logger.error(f"  • {e}")
+            for e in self.errors:
+                logger.error(f"  • {e}")
+            logger.info("\n" + "=" * 80)
             return False
+
         logger.info("\n✅ ALL TESTS PASSED!")
+        logger.info("=" * 80)
         return True
 
 
@@ -246,8 +342,10 @@ def main():
     finally:
         try:
             suite.cleanup_table()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Cleanup failed: {e}")
+        logger.info(f"Logs written to: {LOG_FILE}")
+
     sys.exit(0 if ok else 1)
 
 
