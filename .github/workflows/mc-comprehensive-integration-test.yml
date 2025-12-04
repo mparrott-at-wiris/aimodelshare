@@ -77,7 +77,6 @@ jobs:
           MORAL_COMPASS_API_BASE_URL: ${{ secrets.MORAL_COMPASS_API_BASE_URL }}
           PLAYGROUND_URL: ${{ secrets.PLAYGROUND_URL }}
         run: |
-          # Require session ID: prefer input over secret
           if [ -n "$INPUT_SESSION_ID" ]; then
             echo "SESSION_ID=$INPUT_SESSION_ID" >> $GITHUB_ENV
           elif [ -n "$SECRET_SESSION_ID" ]; then
@@ -108,10 +107,10 @@ jobs:
         run: |
           python tests/test_moral_compass_comprehensive_integration.py
       
-      - name: Upload test logs (on failure)
-        if: failure()
+      - name: Upload test logs (always)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-logs
           path: /tmp/mc_comprehensive_test_*.log
-          retention-days: 7
+          retention-days: 14
