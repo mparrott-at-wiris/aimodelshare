@@ -335,18 +335,19 @@ def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str],
 
 def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
     """
-    Compute user stats from leaderboard with caching.
+    Compute user stats from playground leaderboard with caching.
     
-    This function provides fallback ranking based on playground accuracy when
-    Moral Compass API ranks are not available. It now includes:
-    - Total counts for individuals and teams (for tied-last enforcement)
-    - Average accuracy for team ranking (instead of max) - moving toward average-combined-score
-    - Zero-score tied-last guard enforcement
+    This function retrieves user's best accuracy and team assignment from the playground
+    leaderboard. It is used for initialization purposes only.
     
     Note:
-        The primary source of truth for ranks is the Moral Compass API via get_user_ranks().
-        This fallback is used when API ranks are unavailable. Once the Moral Compass API
-        supports combined-score-based ranks, this fallback can be simplified or removed.
+        Ranking information from this function should NOT be used. Rankings should always
+        come from the Moral Compass API via get_user_ranks(), which uses moralCompassScore
+        (accuracy × ethical_progress). The playground leaderboard does not contain moral
+        compass scoring information.
+        
+        The rank fields in the returned dict are kept for backward compatibility but should
+        be ignored in favor of Moral Compass API ranks.
     """
     now = time.time()
     with _cache_lock:
@@ -798,7 +799,7 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 if user_stats.get("best_score") is not None:
                     moral_compass_state["accuracy"] = user_stats["best_score"]
                 
-                # Prefer Moral Compass API ranks on initialization
+                # Use Moral Compass API for ranks (no playground fallback)
                 try:
                     table_id = _derive_table_id()
                     rank_info = get_user_ranks(
@@ -807,33 +808,21 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                         team_name=user_stats.get("team_name")
                     )
                     
-                    # Use Moral Compass API ranks if available
+                    # Use Moral Compass API ranks directly (no fallback)
                     if rank_info.get("individual_rank") is not None:
                         moral_compass_state["individual_rank"] = rank_info["individual_rank"]
                         if DEBUG_LOG:
                             _log(f"Initialized individual rank from Moral Compass API: #{rank_info['individual_rank']}")
-                    else:
-                        # Fall back to playground-derived rank
-                        moral_compass_state["individual_rank"] = user_stats.get("rank")
-                        if DEBUG_LOG:
-                            _log(f"Initialized individual rank from playground fallback: #{user_stats.get('rank')}")
                     
                     if rank_info.get("team_rank") is not None:
                         moral_compass_state["team_rank"] = rank_info["team_rank"]
                         if DEBUG_LOG:
                             _log(f"Initialized team rank from Moral Compass API: #{rank_info['team_rank']}")
-                    else:
-                        # Fall back to playground-derived rank
-                        moral_compass_state["team_rank"] = user_stats.get("team_rank")
-                        if DEBUG_LOG:
-                            _log(f"Initialized team rank from playground fallback: #{user_stats.get('team_rank')}")
                 except Exception as rank_err:
                     logger.warning(f"Could not get ranks from Moral Compass API on init: {rank_err}")
-                    # Fall back to playground-derived ranks
-                    moral_compass_state["team_rank"] = user_stats.get("team_rank")
-                    moral_compass_state["individual_rank"] = user_stats.get("rank")
+                    # Do not fall back to playground leaderboard - keep ranks as None
                     if DEBUG_LOG:
-                        _log(f"Using playground-derived ranks due to API error: individual=#{user_stats.get('rank')}, team=#{user_stats.get('team_rank')}")
+                        _log(f"Ranks unavailable from Moral Compass API, keeping as None")
                 
                 try:
                     cm = get_challenge_manager(username)

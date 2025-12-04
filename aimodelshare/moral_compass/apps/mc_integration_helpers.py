@@ -76,12 +76,14 @@ def _derive_table_id() -> str:
     Returns:
         table_id string
     """
-    url = os.environ.get("PLAYGROUND_URL", "").strip()
+    # Default to the ethical revelation playground URL for consistent table_id derivation
+    default_url = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+    url = os.environ.get("PLAYGROUND_URL", default_url).strip()
     enforce = os.environ.get("MC_ENFORCE_NAMING", "false").lower() == "true"
 
     if not url:
-        # Conservative default
-        return "m-mc"
+        # Use default URL if empty
+        url = default_url
 
     try:
         parsed = urlparse(url)
