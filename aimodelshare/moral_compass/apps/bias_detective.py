@@ -825,7 +825,7 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                         _log(f"Ranks unavailable from Moral Compass API, keeping as None")
                 
                 try:
-                    cm = get_challenge_manager(username)
+                    cm = get_challenge_manager(username, auth_token=token)
                     if cm:
                         # Configure for Bias Detective flow
                         cm.set_progress(
