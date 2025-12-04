@@ -78,12 +78,8 @@ def _derive_table_id() -> str:
     """
     # Default playground URL for consistent table_id derivation across Moral Compass apps
     default_url = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
-    url = os.environ.get("PLAYGROUND_URL", default_url).strip()
+    url = os.environ.get("PLAYGROUND_URL", default_url).strip() or default_url
     enforce = os.environ.get("MC_ENFORCE_NAMING", "false").lower() == "true"
-
-    if not url:
-        # Use default URL if empty
-        url = default_url
 
     try:
         parsed = urlparse(url)
