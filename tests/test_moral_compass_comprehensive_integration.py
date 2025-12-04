@@ -5,6 +5,7 @@ import sys
 import time
 import uuid
 import logging
+import random
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 
@@ -38,6 +39,12 @@ except ImportError as e:
 
 
 class MoralCompassIntegrationTest:
+    # Pools to vary run data
+    ACCURACY_CHOICES = [0.72, 0.80, 0.85, 0.90, 0.95]
+    TEAM_CHOICES = ["team-a", "team-b", "team-c"]
+    PARTIAL_RATIO_MIN = 0.30
+    PARTIAL_RATIO_MAX = 0.80
+
     def __init__(self, api_base_url: Optional[str] = None, session_id: Optional[str] = None):
         env_snapshot = {
             "MORAL_COMPASS_API_BASE_URL": os.environ.get("MORAL_COMPASS_API_BASE_URL"),
@@ -71,16 +78,28 @@ class MoralCompassIntegrationTest:
         self.test_table_id = os.environ.get("TEST_TABLE_ID") or f"test-mc-comprehensive-{self.test_id}"
         self.playground_url = os.environ.get("TEST_PLAYGROUND_URL") or f"https://example.com/playground/{self.test_table_id}"
 
-        # Single-user config
-        self.accuracy = 0.92
-        self.tasks = 10
-        self.team = "team-a"
+        # Random selections for this run
+        random.seed()  # system entropy
+        self.accuracy = random.choice(self.ACCURACY_CHOICES)
+        self.tasks = 10  # base total tasks for this challenge
+        self.team = random.choice(self.TEAM_CHOICES)
+
+        # Random partial completion ratio (30–80%), then clamp to [0,1]
+        raw_ratio = random.uniform(self.PARTIAL_RATIO_MIN, self.PARTIAL_RATIO_MAX)
+        self.partial_ratio = max(0.0, min(1.0, raw_ratio))
+        # Compute integer tasks_completed based on ratio (at least 1 if ratio > 0)
+        self.partial_tasks_completed = max(0, min(self.tasks, int(round(self.tasks * self.partial_ratio))))
+
         log_kv("Test Config", {
             "test_table_id": self.test_table_id,
             "playground_url": self.playground_url,
-            "initial_accuracy": self.accuracy,
-            "initial_tasks": self.tasks,
-            "team": self.team,
+            "selected_accuracy": self.accuracy,
+            "accuracy_choices": self.ACCURACY_CHOICES,
+            "total_tasks": self.tasks,
+            "selected_team": self.team,
+            "team_choices": self.TEAM_CHOICES,
+            "partial_ratio": f"{self.partial_ratio:.2f}",
+            "partial_tasks_completed": self.partial_tasks_completed,
         })
 
         self.errors = []
@@ -178,12 +197,11 @@ class MoralCompassIntegrationTest:
         name = "Create/Update Authenticated User (Partial Completion)"
         self.log_test_start(name)
         try:
-            partial_tasks_completed = self.tasks // 2  # e.g., 5 of 10
             request_payload = {
                 "table_id": self.test_table_id,
                 "username": self.username,
                 "metrics": {"accuracy": self.accuracy},
-                "tasks_completed": partial_tasks_completed,
+                "tasks_completed": self.partial_tasks_completed,
                 "total_tasks": self.tasks,
                 "questions_correct": 0,
                 "total_questions": 0,
@@ -194,7 +212,7 @@ class MoralCompassIntegrationTest:
             res = self.client.update_moral_compass(**request_payload)
             log_kv("UpdateMoralCompass Response (Partial)", res)
             actual = float(res.get("moralCompassScore", 0))
-            expected = self.accuracy * (partial_tasks_completed / self.tasks)
+            expected = self.accuracy * (self.partial_tasks_completed / self.tasks)
             log_kv("Score Check (Partial)", {"actual": actual, "expected": expected})
             if abs(actual - expected) < 0.01:
                 self.log_pass(name, f"Score correct for partial completion: {actual:.4f}")
@@ -225,7 +243,7 @@ class MoralCompassIntegrationTest:
             logger.info("Current Individual Rankings:")
             for rank, u in enumerate(ranked, 1):
                 logger.info(f"  #{rank} {u.get('username')} score={float(u.get('moralCompassScore', 0) or 0.0):.4f} team={u.get('teamName')}")
-            # Find current user rank
+
             my_rank = next((i + 1 for i, u in enumerate(ranked) if u.get('username') == self.username), None)
             if my_rank is None:
                 self.log_fail(name, "Authenticated user not found in ranking list")
@@ -240,7 +258,6 @@ class MoralCompassIntegrationTest:
         self.log_test_start(name)
         try:
             users = self.list_all_users()
-            # Aggregate scores per team
             team_scores: Dict[str, float] = {}
             team_counts: Dict[str, int] = {}
             for u in users:
@@ -257,7 +274,6 @@ class MoralCompassIntegrationTest:
             for rank, (team, avg) in enumerate(ranked_teams, 1):
                 logger.info(f"  #{rank} {team} avg={avg:.4f} members={team_counts.get(team, 0)}")
 
-            # User's current team rank
             my_team = self.team
             my_team_rank = next((i + 1 for i, (t, _) in enumerate(ranked_teams) if t == my_team), None)
             if my_team_rank is None:
@@ -282,13 +298,13 @@ class MoralCompassIntegrationTest:
         if not self.ensure_table_exists():
             logger.error("Table setup failed, aborting subsequent tests.")
         else:
-            # Full completion
+            # Full completion with selected accuracy and team
             self.test_create_user_full_completion()
-            # Partial completion
+            # Partial completion using random 30–80% ratio
             self.test_create_user_partial_completion()
-            # Individual rank
+            # Individual rank from current table content
             self.test_individual_ranking()
-            # Team rank
+            # Team rank by average score
             self.test_team_ranking()
 
         logger.info("\n" + "=" * 80)
