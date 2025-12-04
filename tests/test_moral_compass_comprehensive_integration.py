@@ -2,6 +2,7 @@
 """
 Comprehensive Integration Test for Moral Compass REST API and Lambda (Single-User Mode)
 
+
 Scoring model note:
 - API computes: moralCompassScore = primaryMetricValue * ((tasksCompleted + questionsCorrect) / (totalTasks + totalQuestions))
 - With tasksCompleted == totalTasks and totalQuestions == 0 (questionsCorrect == 0), score equals the primary metric value (e.g., accuracy).
