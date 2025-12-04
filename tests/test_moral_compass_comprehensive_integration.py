@@ -9,9 +9,13 @@ import random
 import json
 from datetime import datetime
 from typing import Optional, List, Dict, Any, Tuple
+from urllib.parse import urlparse
 
 RUN_ID = uuid.uuid4().hex[:8]
 LOG_FILE = f"/tmp/mc_comprehensive_test_{RUN_ID}.log"
+
+# Optional flag to preserve the table across runs to accumulate users/rankings
+SKIP_CLEANUP = os.environ.get("MC_SKIP_CLEANUP", "true").lower() == "true"
 
 logger = logging.getLogger("mc_comprehensive_single_user_test")
 logger.setLevel(logging.INFO)
@@ -53,6 +57,7 @@ class MoralCompassIntegrationTest:
             "JWT_AUTHORIZATION_TOKEN_present": bool(os.environ.get("JWT_AUTHORIZATION_TOKEN")),
             "TEST_TABLE_ID": os.environ.get("TEST_TABLE_ID"),
             "TEST_PLAYGROUND_URL": os.environ.get("TEST_PLAYGROUND_URL"),
+            "MC_SKIP_CLEANUP": os.environ.get("MC_SKIP_CLEANUP", "true"),
             "PYTHON_VERSION": sys.version.split()[0],
             "RUN_ID": RUN_ID,
             "LOG_FILE": LOG_FILE,
@@ -75,9 +80,21 @@ class MoralCompassIntegrationTest:
 
         self.client = MoralcompassApiClient(api_base_url=api_base_url, auth_token=self.auth_token)
 
-        self.test_id = uuid.uuid4().hex[:8]
-        self.test_table_id = os.environ.get("TEST_TABLE_ID") or f"test-mc-comprehensive-{self.test_id}"
-        self.playground_url = os.environ.get("TEST_PLAYGROUND_URL") or f"https://example.com/playground/{self.test_table_id}"
+        # Fixed table behavior:
+        # Prefer TEST_TABLE_ID if provided. Otherwise, derive from TEST_PLAYGROUND_URL as <playgroundId>-mc.
+        explicit_table = os.environ.get("TEST_TABLE_ID")
+        pg_url = os.environ.get("TEST_PLAYGROUND_URL")
+
+        if explicit_table and explicit_table.strip():
+            self.test_table_id = explicit_table.strip()
+            # If playground_url not provided, synthesize one tied to table id for metadata
+            self.playground_url = pg_url or f"https://example.com/playground/{self.test_table_id}"
+        else:
+            # Derive stable table id from playground URL or use a shared default
+            self.playground_url = pg_url or "https://example.com/playground/shared-comprehensive"
+            parts = [p for p in urlparse(self.playground_url).path.split('/') if p]
+            playground_id = parts[-1] if parts else "shared-comprehensive"
+            self.test_table_id = f"{playground_id}-mc"
 
         # Random selections for this run
         random.seed()  # system entropy
@@ -101,6 +118,7 @@ class MoralCompassIntegrationTest:
             "team_choices": self.TEAM_CHOICES,
             "partial_ratio": f"{self.partial_ratio:.2f}",
             "partial_tasks_completed": self.partial_tasks_completed,
+            "skip_cleanup": SKIP_CLEANUP,
         })
 
         # Will store full ranking outputs for final summary
@@ -154,7 +172,7 @@ class MoralCompassIntegrationTest:
             # Create table
             create_payload = {
                 "table_id": self.test_table_id,
-                "display_name": f"Moral Compass Integration Test {self.test_id}",
+                "display_name": f"Moral Compass Integration Test - Shared Table",
                 "playground_url": self.playground_url
             }
             log_kv("create_table Request", create_payload)
@@ -318,7 +336,7 @@ class MoralCompassIntegrationTest:
 
     def run_all(self):
         logger.info("\n" + "=" * 80)
-        logger.info("MORAL COMPASS COMPREHENSIVE INTEGRATION TEST SUITE (Single-User)")
+        logger.info("MORAL COMPASS COMPREHENSIVE INTEGRATION TEST SUITE (Single-User, Shared Table)")
         logger.info("=" * 80)
         log_kv("Run Metadata", {
             "run_id": RUN_ID,
@@ -369,10 +387,13 @@ class MoralCompassIntegrationTest:
 
     def cleanup(self):
         logger.info("\nCleaning up test resources...")
-        try:
-            self.cleanup_table()
-        except Exception as e:
-            logger.warning(f"Cleanup failed: {e}")
+        if SKIP_CLEANUP:
+            logger.info("MC_SKIP_CLEANUP=true → skipping table deletion to preserve cumulative rankings.")
+        else:
+            try:
+                self.cleanup_table()
+            except Exception as e:
+                logger.warning(f"Cleanup failed: {e}")
         logger.info(f"Logs written to: {LOG_FILE}")
 
 
