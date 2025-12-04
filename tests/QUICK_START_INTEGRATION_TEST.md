@@ -6,7 +6,9 @@ Run this comprehensive integration test to validate your Moral Compass API:
 
 ```bash
 export MORAL_COMPASS_API_BASE_URL=https://your-api-id.execute-api.us-east-1.amazonaws.com/prod
-export JWT_AUTHORIZATION_TOKEN=your-jwt-token  # Optional
+export SESSION_ID=your-session-id  # Recommended - fetches JWT token automatically
+# OR
+export JWT_AUTHORIZATION_TOKEN=your-jwt-token  # Alternative: use direct JWT token
 python tests/test_moral_compass_comprehensive_integration.py
 ```
 
@@ -57,11 +59,20 @@ Failed: 0
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `MORAL_COMPASS_API_BASE_URL` | **Yes** | API endpoint URL |
-| `JWT_AUTHORIZATION_TOKEN` | No | Auth token (if auth enabled) |
+| `SESSION_ID` | No | Session ID (fetches JWT token automatically) |
+| `JWT_AUTHORIZATION_TOKEN` | No | Direct JWT token (if SESSION_ID not provided) |
 | `TEST_TABLE_ID` | No | Custom table ID |
 | `TEST_PLAYGROUND_URL` | No | Custom playground URL |
 
+**Note**: If both `SESSION_ID` and `JWT_AUTHORIZATION_TOKEN` are provided, `SESSION_ID` takes precedence.
+
 ## Alternative Run Methods
+
+### With Session ID (Recommended)
+```bash
+export SESSION_ID=your-session-id
+python tests/test_moral_compass_comprehensive_integration.py
+```
 
 ### Using Runner Script
 ```bash
@@ -77,6 +88,7 @@ pytest tests/test_moral_compass_comprehensive_integration.py -v -s
 
 ### No Auth
 ```bash
+unset SESSION_ID
 unset JWT_AUTHORIZATION_TOKEN
 python tests/test_moral_compass_comprehensive_integration.py
 ```

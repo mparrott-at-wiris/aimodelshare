@@ -34,9 +34,14 @@ The integration test covers 10 comprehensive test scenarios:
 - `MORAL_COMPASS_API_BASE_URL`: Base URL for the REST API
   - Example: `https://abc123.execute-api.us-east-1.amazonaws.com/prod`
 
-**Optional:**
+**Optional (Authentication - choose one):**
+- `SESSION_ID`: Session ID to fetch JWT token from session API (recommended)
+  - The test will automatically fetch the JWT token using the session API
+  - Takes precedence over JWT_AUTHORIZATION_TOKEN if both are provided
 - `JWT_AUTHORIZATION_TOKEN`: JWT token for authenticated requests
-  - If not provided, tests requiring authentication may be skipped or fail gracefully
+  - Direct JWT token (use if SESSION_ID is not available)
+
+**Optional (Test Configuration):**
 - `TEST_PLAYGROUND_URL`: Playground URL for table derivation
   - Default: Auto-generated based on test table ID
 - `TEST_TABLE_ID`: Explicit table ID for testing
@@ -57,7 +62,17 @@ export MORAL_COMPASS_API_BASE_URL=https://your-api-url.amazonaws.com/prod
 python tests/test_moral_compass_comprehensive_integration.py
 ```
 
-### With Authentication
+### With Authentication (Session ID - Recommended)
+
+```bash
+export MORAL_COMPASS_API_BASE_URL=https://your-api-url.amazonaws.com/prod
+export SESSION_ID=your-session-id
+python tests/test_moral_compass_comprehensive_integration.py
+```
+
+The test will automatically fetch the JWT token from the session API using the provided session ID.
+
+### With Authentication (Direct JWT Token)
 
 ```bash
 export MORAL_COMPASS_API_BASE_URL=https://your-api-url.amazonaws.com/prod

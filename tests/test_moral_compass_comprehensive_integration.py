@@ -12,9 +12,13 @@ This test suite validates the complete functionality needed for the detective bi
 
 Environment Variables:
 - MORAL_COMPASS_API_BASE_URL: Base URL for the API (required)
+- SESSION_ID: Optional session ID (will fetch token from session API)
 - JWT_AUTHORIZATION_TOKEN: Optional auth token for authenticated tests
 - TEST_PLAYGROUND_URL: Optional playground URL for table ID derivation
 - TEST_TABLE_ID: Optional explicit table ID (overrides derivation)
+
+Note: If SESSION_ID is provided, it will be used to fetch the JWT token via the session API.
+      If both SESSION_ID and JWT_AUTHORIZATION_TOKEN are provided, SESSION_ID takes precedence.
 """
 
 import os
@@ -40,27 +44,53 @@ try:
         NotFoundError,
         ApiClientError
     )
-except ImportError:
-    logger.error("Failed to import aimodelshare.moral_compass. Make sure the package is installed.")
+    from aimodelshare.aws import get_token_from_session, _get_username_from_token
+except ImportError as e:
+    logger.error(f"Failed to import required modules: {e}")
+    logger.error("Make sure aimodelshare package is installed.")
     sys.exit(1)
 
 
 class MoralCompassIntegrationTest:
     """Comprehensive integration test suite for Moral Compass API"""
     
-    def __init__(self, api_base_url: Optional[str] = None, auth_token: Optional[str] = None):
+    def __init__(self, api_base_url: Optional[str] = None, auth_token: Optional[str] = None, session_id: Optional[str] = None):
         """
         Initialize the test suite.
         
         Args:
             api_base_url: API base URL (defaults to env var)
             auth_token: JWT auth token (defaults to env var)
+            session_id: Session ID to fetch token from session API (defaults to env var)
         """
         self.api_base_url = api_base_url or os.environ.get("MORAL_COMPASS_API_BASE_URL")
         if not self.api_base_url:
             raise ValueError("MORAL_COMPASS_API_BASE_URL must be set")
         
-        self.auth_token = auth_token or os.environ.get("JWT_AUTHORIZATION_TOKEN")
+        # Handle authentication: session_id takes precedence
+        session_id = session_id or os.environ.get("SESSION_ID")
+        if session_id:
+            logger.info("SESSION_ID provided, fetching token from session API...")
+            try:
+                self.auth_token = get_token_from_session(session_id)
+                # Export to environment for API client auto-discovery
+                os.environ["JWT_AUTHORIZATION_TOKEN"] = self.auth_token
+                logger.info(f"✓ Token obtained from session API: {self._mask_token(self.auth_token)}")
+                
+                # Extract username from token
+                try:
+                    self.username = _get_username_from_token(self.auth_token)
+                    logger.info(f"✓ Authenticated as user: {self.username}")
+                except Exception as e:
+                    logger.warning(f"Could not extract username from token: {e}")
+                    self.username = None
+            except Exception as e:
+                logger.error(f"Failed to get token from session ID: {e}")
+                raise ValueError(f"Failed to authenticate with session ID: {e}")
+        else:
+            self.auth_token = auth_token or os.environ.get("JWT_AUTHORIZATION_TOKEN")
+            self.username = None
+        
         self.client = MoralcompassApiClient(api_base_url=self.api_base_url, auth_token=self.auth_token)
         
         # Test configuration
@@ -79,6 +109,12 @@ class MoralCompassIntegrationTest:
         self.errors = []
         self.passed_tests = 0
         self.total_tests = 0
+    
+    def _mask_token(self, token: str) -> str:
+        """Mask token for logging"""
+        if not token:
+            return ""
+        return token[:6] + "***" if len(token) > 6 else "***"
     
     def log_test_start(self, test_name: str):
         """Log the start of a test"""
