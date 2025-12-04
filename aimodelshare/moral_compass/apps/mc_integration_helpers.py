@@ -1,28 +1,10 @@
-"""
-Integration helpers for Moral Compass apps.
-
-Provides helper functions to:
-- Derive table ID
-- Manage ChallengeManager lifecycle
-- Sync user and team state
-- Compute user ranks
-- Build leaderboard and widget HTML for apps
-
-This version includes:
-- Host-based table ID derivation (_derive_table_id)
-- ChallengeManager factory using MoralcompassApiClient
-- Cached list_users fetch for ranks (fetch_cached_users)
-- Rank computation (get_user_ranks)
-- Minimal HTML builders: build_moral_leaderboard_html and get_moral_compass_widget_html
-"""
-
 import os
 import time
 import logging
 from typing import Dict, Any, Optional, List, Tuple
 from urllib.parse import urlparse
 
-from aimodelshare.moral_compass import MoralcompassApiClient
+from aimodelshare.moral_compass import MoralcompassApiClient, NotFoundError, ApiClientError
 from aimodelshare.moral_compass.challenge import ChallengeManager
 
 logger = logging.getLogger("aimodelshare.moral_compass.apps.helpers")
@@ -51,77 +33,77 @@ def _cache_set(key: str, data: List[Dict[str, Any]]) -> None:
 
 def _derive_table_id() -> str:
     """
-    Derive Moral Compass table ID from PLAYGROUND_URL using host-based rules:
+    Derive Moral Compass table ID in the same way as the comprehensive integration test:
 
-    - playground_id: first label of hostname (before first dot)
-      Example: PLAYGROUND_URL=https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m
-               host=cf3wdpkg0d.execute-api.us-east-1.amazonaws.com
-               playground_id=cf3wdpkg0d
+    Priority:
+    - If TEST_TABLE_ID is provided, use it as-is.
+    - Else derive from TEST_PLAYGROUND_URL or PLAYGROUND_URL:
+      Use the last non-empty path segment and append '-mc'.
 
-    - region: label immediately after 'execute-api' in hostname, if present
-      Example: 'us-east-1'
-
-    Naming:
-    - If MC_ENFORCE_NAMING=true and a region is found: <playground_id>-<region>-mc
-    - Else: <playground_id>-mc
-
-    Fallback:
-    - If PLAYGROUND_URL is missing or host parsing fails, fall back to legacy path-based ID:
-      Use last non-empty path segment when it matches a safe ID pattern; otherwise 'm'.
-      Then append '-mc'.
-
-    Environment flags:
-    - MC_ENFORCE_NAMING controls whether to include region when available.
-
-    Returns:
-        table_id string
+    This matches tests/test_moral_compass_comprehensive_integration.py behavior so the app
+    reads/writes the same shared table.
     """
-    # Default playground URL for consistent table_id derivation across Moral Compass apps
-    default_url = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
-    url = os.environ.get("PLAYGROUND_URL", default_url).strip() or default_url
-    enforce = os.environ.get("MC_ENFORCE_NAMING", "false").lower() == "true"
+    explicit = os.environ.get("TEST_TABLE_ID")
+    if explicit and explicit.strip():
+        return explicit.strip()
 
+    # Prefer TEST_PLAYGROUND_URL for parity with the integration test, fallback to PLAYGROUND_URL
+    pg_url = os.environ.get("TEST_PLAYGROUND_URL") or os.environ.get(
+        "PLAYGROUND_URL",
+        "https://example.com/playground/shared-comprehensive"
+    )
     try:
-        parsed = urlparse(url)
-        host = (parsed.netloc or "").split(":")[0]
-        labels = host.split(".") if host else []
-
-        playground_id = labels[0] if labels else None
-
-        region = None
-        if labels:
-            try:
-                idx = labels.index("execute-api")
-                if idx + 1 < len(labels):
-                    region = labels[idx + 1]
-            except ValueError:
-                region = None
-
-        # Fallback to legacy path-based extraction if host-based failed
-        if not playground_id:
-            path_parts = [p for p in (parsed.path or "").split("/") if p]
-            playground_id = path_parts[-1] if path_parts else "m"
-
-        if enforce and region:
-            return f"{playground_id}-{region}-mc"
+        parts = [p for p in urlparse(pg_url).path.split("/") if p]
+        playground_id = parts[-1] if parts else "shared-comprehensive"
         return f"{playground_id}-mc"
-
     except Exception as e:
-        logger.warning(f"Failed to derive table ID from PLAYGROUND_URL: {e}")
-        return "m-mc"
+        logger.warning(f"Failed to derive table ID from playground URL '{pg_url}': {e}")
+        return "shared-comprehensive-mc"
+
+
+def _ensure_table_exists(client: MoralcompassApiClient, table_id: str, playground_url: Optional[str] = None) -> None:
+    """
+    Ensure the table exists by mirroring the integration test's behavior.
+    If not found, create it with a display name and playground_url metadata.
+    """
+    try:
+        client.get_table(table_id)
+        return
+    except NotFoundError:
+        pass
+    except ApiClientError as e:
+        logger.info(f"get_table error (will attempt create): {e}")
+    except Exception as e:
+        logger.info(f"Unexpected get_table error (will attempt create): {e}")
+
+    payload = {
+        "table_id": table_id,
+        "display_name": "Moral Compass Integration Test - Shared Table",
+        "playground_url": playground_url or os.environ.get("TEST_PLAYGROUND_URL") or os.environ.get("PLAYGROUND_URL"),
+    }
+    try:
+        client.create_table(**payload)
+        # optional brief delay is handled in tests; here we rely on backend immediacy
+        logger.info(f"Created Moral Compass table: {table_id}")
+    except Exception as e:
+        logger.warning(f"Failed to create Moral Compass table '{table_id}': {e}")
 
 
 def get_challenge_manager(username: str, auth_token: Optional[str] = None) -> Optional[ChallengeManager]:
     """
     Create or retrieve a ChallengeManager for the given user.
 
-    Uses derived table_id and MoralcompassApiClient. If auth_token is provided,
-    the client will attach it to requests (recommended when AUTH_ENABLED=true).
+    Uses derived table_id and MoralcompassApiClient. Ensures the table exists first
+    to avoid missing-rank issues.
     """
     try:
         table_id = _derive_table_id()
         api_base_url = os.environ.get("MORAL_COMPASS_API_BASE_URL")
         client = MoralcompassApiClient(api_base_url=api_base_url, auth_token=auth_token) if api_base_url else MoralcompassApiClient(auth_token=auth_token)
+
+        # Ensure table exists (matches integration-test behavior)
+        _ensure_table_exists(client, table_id, playground_url=os.environ.get("TEST_PLAYGROUND_URL") or os.environ.get("PLAYGROUND_URL"))
+
         manager = ChallengeManager(table_id=table_id, username=username, api_client=client)
         return manager
     except Exception as e:
