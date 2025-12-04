@@ -6,8 +6,9 @@ import time
 import uuid
 import logging
 import random
+import json
 from datetime import datetime
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Tuple
 
 RUN_ID = uuid.uuid4().hex[:8]
 LOG_FILE = f"/tmp/mc_comprehensive_test_{RUN_ID}.log"
@@ -87,7 +88,7 @@ class MoralCompassIntegrationTest:
         # Random partial completion ratio (30–80%), then clamp to [0,1]
         raw_ratio = random.uniform(self.PARTIAL_RATIO_MIN, self.PARTIAL_RATIO_MAX)
         self.partial_ratio = max(0.0, min(1.0, raw_ratio))
-        # Compute integer tasks_completed based on ratio (at least 1 if ratio > 0)
+        # Compute integer tasks_completed based on ratio
         self.partial_tasks_completed = max(0, min(self.tasks, int(round(self.tasks * self.partial_ratio))))
 
         log_kv("Test Config", {
@@ -101,6 +102,10 @@ class MoralCompassIntegrationTest:
             "partial_ratio": f"{self.partial_ratio:.2f}",
             "partial_tasks_completed": self.partial_tasks_completed,
         })
+
+        # Will store full ranking outputs for final summary
+        self.last_individual_rankings: List[Dict[str, Any]] = []
+        self.last_team_rankings: List[Dict[str, Any]] = []
 
         self.errors = []
         self.passed_tests = 0
@@ -229,58 +234,85 @@ class MoralCompassIntegrationTest:
             logger.info(f"UserRow: username={u.get('username')} score={u.get('moralCompassScore')} team={u.get('teamName')} tasks={u.get('tasksCompleted')}/{u.get('totalTasks')} q={u.get('questionsCorrect')}/{u.get('totalQuestions')}")
         return users
 
+    def compute_individual_rankings(self, users: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        def sort_key(x):
+            return (float(x.get('moralCompassScore', 0) or 0.0), x.get('submissionCount', 0))
+        ranked = sorted(users, key=sort_key, reverse=True)
+        rankings: List[Dict[str, Any]] = []
+        for idx, u in enumerate(ranked, 1):
+            rankings.append({
+                "rank": idx,
+                "username": u.get("username"),
+                "moralCompassScore": float(u.get("moralCompassScore", 0) or 0.0),
+                "teamName": u.get("teamName"),
+                "tasksCompleted": u.get("tasksCompleted"),
+                "totalTasks": u.get("totalTasks"),
+                "questionsCorrect": u.get("questionsCorrect"),
+                "totalQuestions": u.get("totalQuestions")
+            })
+        return rankings
+
     def test_individual_ranking(self):
         name = "Individual Ranking by Moral Compass Score"
         self.log_test_start(name)
         try:
             time.sleep(0.5)
             users = self.list_all_users()
-            # Sort by score desc, then submissionCount desc as tie-breaker
-            def sort_key(x):
-                return (float(x.get('moralCompassScore', 0) or 0.0), x.get('submissionCount', 0))
-            ranked = sorted(users, key=sort_key, reverse=True)
+            rankings = self.compute_individual_rankings(users)
+            self.last_individual_rankings = rankings
 
-            logger.info("Current Individual Rankings:")
-            for rank, u in enumerate(ranked, 1):
-                logger.info(f"  #{rank} {u.get('username')} score={float(u.get('moralCompassScore', 0) or 0.0):.4f} team={u.get('teamName')}")
+            logger.info("Current Individual Rankings (full list):")
+            logger.info(json.dumps(rankings, indent=2))
 
-            my_rank = next((i + 1 for i, u in enumerate(ranked) if u.get('username') == self.username), None)
-            if my_rank is None:
+            my_rank_entry = next((r for r in rankings if r["username"] == self.username), None)
+            if my_rank_entry is None:
                 self.log_fail(name, "Authenticated user not found in ranking list")
                 return
-            self.log_pass(name, f"Authenticated user's current rank: #{my_rank}")
-            log_kv("Individual Ranking Result", {"my_rank": my_rank, "total_users": len(ranked)})
+            self.log_pass(name, f"Authenticated user's current rank: #{my_rank_entry['rank']}")
+            log_kv("Individual Ranking Result", {"my_rank": my_rank_entry['rank'], "total_users": len(rankings)})
         except Exception as e:
             self.log_fail(name, str(e))
+
+    def compute_team_rankings(self, users: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        team_scores: Dict[str, float] = {}
+        team_counts: Dict[str, int] = {}
+        for u in users:
+            team = u.get('teamName')
+            if not team:
+                continue
+            score = float(u.get('moralCompassScore', 0) or 0.0)
+            team_scores[team] = team_scores.get(team, 0.0) + score
+            team_counts[team] = team_counts.get(team, 0) + 1
+        team_avgs: List[Tuple[str, float]] = [(team, team_scores[team] / team_counts[team]) for team in team_scores]
+        ranked_teams = sorted(team_avgs, key=lambda kv: kv[1], reverse=True)
+        rankings: List[Dict[str, Any]] = []
+        for idx, (team, avg) in enumerate(ranked_teams, 1):
+            rankings.append({
+                "rank": idx,
+                "teamName": team,
+                "averageScore": avg,
+                "members": team_counts.get(team, 0)
+            })
+        return rankings
 
     def test_team_ranking(self):
         name = "Team Ranking by Average Score"
         self.log_test_start(name)
         try:
             users = self.list_all_users()
-            team_scores: Dict[str, float] = {}
-            team_counts: Dict[str, int] = {}
-            for u in users:
-                team = u.get('teamName')
-                if not team:
-                    continue
-                score = float(u.get('moralCompassScore', 0) or 0.0)
-                team_scores[team] = team_scores.get(team, 0.0) + score
-                team_counts[team] = team_counts.get(team, 0) + 1
-            team_avgs = {team: (team_scores[team] / team_counts[team]) for team in team_scores}
+            rankings = self.compute_team_rankings(users)
+            self.last_team_rankings = rankings
 
-            ranked_teams = sorted(team_avgs.items(), key=lambda kv: kv[1], reverse=True)
-            logger.info("Current Team Rankings (by average score):")
-            for rank, (team, avg) in enumerate(ranked_teams, 1):
-                logger.info(f"  #{rank} {team} avg={avg:.4f} members={team_counts.get(team, 0)}")
+            logger.info("Current Team Rankings (full list):")
+            logger.info(json.dumps(rankings, indent=2))
 
             my_team = self.team
-            my_team_rank = next((i + 1 for i, (t, _) in enumerate(ranked_teams) if t == my_team), None)
-            if my_team_rank is None:
+            my_team_entry = next((r for r in rankings if r["teamName"] == my_team), None)
+            if my_team_entry is None:
                 self.log_fail(name, f"User's team '{my_team}' not found in team rankings")
                 return
-            self.log_pass(name, f"User's current team rank: #{my_team_rank}")
-            log_kv("Team Ranking Result", {"my_team": my_team, "my_team_rank": my_team_rank, "total_teams": len(ranked_teams)})
+            self.log_pass(name, f"User's current team rank: #{my_team_entry['rank']}")
+            log_kv("Team Ranking Result", {"my_team": my_team, "my_team_rank": my_team_entry['rank'], "total_teams": len(rankings)})
         except Exception as e:
             self.log_fail(name, str(e))
 
@@ -302,9 +334,9 @@ class MoralCompassIntegrationTest:
             self.test_create_user_full_completion()
             # Partial completion using random 30–80% ratio
             self.test_create_user_partial_completion()
-            # Individual rank from current table content
+            # Individual rank from current table content (full list returned)
             self.test_individual_ranking()
-            # Team rank by average score
+            # Team rank by average score (full list returned)
             self.test_team_ranking()
 
         logger.info("\n" + "=" * 80)
@@ -316,6 +348,15 @@ class MoralCompassIntegrationTest:
             "Failed": len(self.errors),
         }
         log_kv("Summary", summary)
+
+        # Emit full rankings again in summary for easy artifact parsing
+        logger.info("--- Full Individual Rankings (Summary) ---")
+        logger.info(json.dumps(self.last_individual_rankings, indent=2))
+        logger.info("--- end ---")
+        logger.info("--- Full Team Rankings (Summary) ---")
+        logger.info(json.dumps(self.last_team_rankings, indent=2))
+        logger.info("--- end ---")
+
         if self.errors:
             logger.error("\nFailed Tests:")
             for e in self.errors:
