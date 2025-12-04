@@ -6,7 +6,7 @@ import time
 import uuid
 import logging
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List, Dict, Any
 
 RUN_ID = uuid.uuid4().hex[:8]
 LOG_FILE = f"/tmp/mc_comprehensive_test_{RUN_ID}.log"
@@ -113,11 +113,10 @@ class MoralCompassIntegrationTest:
             logger.info(f"Cleanup continued (delete may be disabled or table missing): {e}")
 
     def ensure_table_exists(self):
-        """Ensure the test table exists; create it if missing, then verify."""
         name = "Ensure Table Exists"
         self.log_test_start(name)
         try:
-            # Try get_table first
+            # Check table
             try:
                 table = self.client.get_table(self.test_table_id)
                 log_kv("get_table (pre-check)", {"table_id": table.table_id, "user_count": table.user_count})
@@ -128,7 +127,7 @@ class MoralCompassIntegrationTest:
             except ApiClientError as e:
                 logger.info(f"get_table error (will attempt create): {e}")
 
-            # Create table with correct keyword argument names
+            # Create table
             create_payload = {
                 "table_id": self.test_table_id,
                 "display_name": f"Moral Compass Integration Test {self.test_id}",
@@ -138,7 +137,6 @@ class MoralCompassIntegrationTest:
             res = self.client.create_table(**create_payload)
             log_kv("create_table Response", res)
 
-            # Verify creation with get_table
             time.sleep(0.5)
             table = self.client.get_table(self.test_table_id)
             log_kv("get_table (post-create)", {"table_id": table.table_id, "user_count": table.user_count})
@@ -148,8 +146,8 @@ class MoralCompassIntegrationTest:
             self.log_fail(name, str(e))
             return False
 
-    def test_4_create_authenticated_user(self):
-        name = "Create Authenticated User"
+    def test_create_user_full_completion(self):
+        name = "Create Authenticated User (Full Completion)"
         self.log_test_start(name)
         try:
             request_payload = {
@@ -167,80 +165,106 @@ class MoralCompassIntegrationTest:
             res = self.client.update_moral_compass(**request_payload)
             log_kv("UpdateMoralCompass Response", res)
             actual = float(res.get("moralCompassScore", 0))
-            expected = self.accuracy  # ratio == 1 -> score equals accuracy
+            expected = self.accuracy  # ratio == 1
             log_kv("Score Check", {"actual": actual, "expected": expected})
             if abs(actual - expected) < 0.01:
-                self.log_pass(name, f"User created with expected score={actual:.4f}")
+                self.log_pass(name, f"Score correct for full completion: {actual:.4f}")
             else:
                 self.log_fail(name, f"Score mismatch: {actual:.4f} (expected={expected:.4f})")
         except Exception as e:
             self.log_fail(name, str(e))
 
-    def test_5_retrieve_authenticated_user(self):
-        name = "Retrieve Authenticated User"
+    def test_create_user_partial_completion(self):
+        name = "Create/Update Authenticated User (Partial Completion)"
         self.log_test_start(name)
         try:
-            time.sleep(0.5)
-            resp = self.client.list_users(table_id=self.test_table_id, limit=20)
-            users = resp.get("users", [])
-            log_kv("ListUsers Response Summary", {"returned_count": len(users)})
-            for u in users:
-                logger.info(f"UserRow: username={u.get('username')} score={u.get('moralCompassScore')} team={u.get('teamName')} tasks={u.get('tasksCompleted')}/{u.get('totalTasks')} q={u.get('questionsCorrect')}/{u.get('totalQuestions')}")
-            me = next((u for u in users if u["username"] == self.username), None)
-            if me:
-                self.log_pass(name, "Authenticated user retrieved")
-            else:
-                self.log_fail(name, "Authenticated user not found in table")
-        except Exception as e:
-            self.log_fail(name, str(e))
-
-    def test_6_verify_score_calc(self):
-        name = "Verify Moral Compass Score Calculation"
-        self.log_test_start(name)
-        try:
-            resp = self.client.list_users(table_id=self.test_table_id, limit=20)
-            users = resp.get("users", [])
-            me = next((u for u in users if u["username"] == self.username), None)
-            if not me:
-                self.log_fail(name, "Authenticated user not found")
-                return
-            actual = float(me.get("moralCompassScore", 0))
-            expected = self.accuracy
-            log_kv("Score Check", {"actual": actual, "expected": expected})
-            if abs(actual - expected) < 0.01:
-                self.log_pass(name, "Score matches expected calculation")
-            else:
-                self.log_fail(name, f"Score mismatch: {actual:.4f} (expected={expected:.4f})")
-        except Exception as e:
-            self.log_fail(name, str(e))
-
-    def test_7_update_user_new_accuracy(self):
-        name = "Update User with New Accuracy Score"
-        self.log_test_start(name)
-        try:
-            new_accuracy = 0.80
-            new_tasks = self.tasks + 5
+            partial_tasks_completed = self.tasks // 2  # e.g., 5 of 10
             request_payload = {
                 "table_id": self.test_table_id,
                 "username": self.username,
-                "metrics": {"accuracy": new_accuracy},
-                "tasks_completed": new_tasks,
-                "total_tasks": new_tasks,
+                "metrics": {"accuracy": self.accuracy},
+                "tasks_completed": partial_tasks_completed,
+                "total_tasks": self.tasks,
                 "questions_correct": 0,
                 "total_questions": 0,
                 "primary_metric": "accuracy",
                 "team_name": self.team,
             }
-            log_kv("UpdateMoralCompass Request (Update)", request_payload)
+            log_kv("UpdateMoralCompass Request (Partial)", request_payload)
             res = self.client.update_moral_compass(**request_payload)
-            log_kv("UpdateMoralCompass Response (Update)", res)
+            log_kv("UpdateMoralCompass Response (Partial)", res)
             actual = float(res.get("moralCompassScore", 0))
-            expected = new_accuracy
-            log_kv("Score Check (Update)", {"actual": actual, "expected": expected})
+            expected = self.accuracy * (partial_tasks_completed / self.tasks)
+            log_kv("Score Check (Partial)", {"actual": actual, "expected": expected})
             if abs(actual - expected) < 0.01:
-                self.log_pass(name, f"Score updated correctly: {actual:.4f}")
+                self.log_pass(name, f"Score correct for partial completion: {actual:.4f}")
             else:
-                self.log_fail(name, f"Score mismatch: {actual:.4f} (expected={expected:.4f})")
+                self.log_fail(name, f"Score mismatch (partial): {actual:.4f} (expected={expected:.4f})")
+        except Exception as e:
+            self.log_fail(name, str(e))
+
+    def list_all_users(self) -> List[Dict[str, Any]]:
+        resp = self.client.list_users(table_id=self.test_table_id, limit=500)
+        users = resp.get("users", [])
+        log_kv("ListUsers Summary", {"count": len(users)})
+        for u in users:
+            logger.info(f"UserRow: username={u.get('username')} score={u.get('moralCompassScore')} team={u.get('teamName')} tasks={u.get('tasksCompleted')}/{u.get('totalTasks')} q={u.get('questionsCorrect')}/{u.get('totalQuestions')}")
+        return users
+
+    def test_individual_ranking(self):
+        name = "Individual Ranking by Moral Compass Score"
+        self.log_test_start(name)
+        try:
+            time.sleep(0.5)
+            users = self.list_all_users()
+            # Sort by score desc, then submissionCount desc as tie-breaker
+            def sort_key(x):
+                return (float(x.get('moralCompassScore', 0) or 0.0), x.get('submissionCount', 0))
+            ranked = sorted(users, key=sort_key, reverse=True)
+
+            logger.info("Current Individual Rankings:")
+            for rank, u in enumerate(ranked, 1):
+                logger.info(f"  #{rank} {u.get('username')} score={float(u.get('moralCompassScore', 0) or 0.0):.4f} team={u.get('teamName')}")
+            # Find current user rank
+            my_rank = next((i + 1 for i, u in enumerate(ranked) if u.get('username') == self.username), None)
+            if my_rank is None:
+                self.log_fail(name, "Authenticated user not found in ranking list")
+                return
+            self.log_pass(name, f"Authenticated user's current rank: #{my_rank}")
+            log_kv("Individual Ranking Result", {"my_rank": my_rank, "total_users": len(ranked)})
+        except Exception as e:
+            self.log_fail(name, str(e))
+
+    def test_team_ranking(self):
+        name = "Team Ranking by Average Score"
+        self.log_test_start(name)
+        try:
+            users = self.list_all_users()
+            # Aggregate scores per team
+            team_scores: Dict[str, float] = {}
+            team_counts: Dict[str, int] = {}
+            for u in users:
+                team = u.get('teamName')
+                if not team:
+                    continue
+                score = float(u.get('moralCompassScore', 0) or 0.0)
+                team_scores[team] = team_scores.get(team, 0.0) + score
+                team_counts[team] = team_counts.get(team, 0) + 1
+            team_avgs = {team: (team_scores[team] / team_counts[team]) for team in team_scores}
+
+            ranked_teams = sorted(team_avgs.items(), key=lambda kv: kv[1], reverse=True)
+            logger.info("Current Team Rankings (by average score):")
+            for rank, (team, avg) in enumerate(ranked_teams, 1):
+                logger.info(f"  #{rank} {team} avg={avg:.4f} members={team_counts.get(team, 0)}")
+
+            # User's current team rank
+            my_team = self.team
+            my_team_rank = next((i + 1 for i, (t, _) in enumerate(ranked_teams) if t == my_team), None)
+            if my_team_rank is None:
+                self.log_fail(name, f"User's team '{my_team}' not found in team rankings")
+                return
+            self.log_pass(name, f"User's current team rank: #{my_team_rank}")
+            log_kv("Team Ranking Result", {"my_team": my_team, "my_team_rank": my_team_rank, "total_teams": len(ranked_teams)})
         except Exception as e:
             self.log_fail(name, str(e))
 
@@ -254,14 +278,18 @@ class MoralCompassIntegrationTest:
             "log_file": LOG_FILE,
         })
 
-        # NEW: ensure table exists first
+        # Ensure table exists
         if not self.ensure_table_exists():
             logger.error("Table setup failed, aborting subsequent tests.")
         else:
-            self.test_4_create_authenticated_user()
-            self.test_5_retrieve_authenticated_user()
-            self.test_6_verify_score_calc()
-            self.test_7_update_user_new_accuracy()
+            # Full completion
+            self.test_create_user_full_completion()
+            # Partial completion
+            self.test_create_user_partial_completion()
+            # Individual rank
+            self.test_individual_ranking()
+            # Team rank
+            self.test_team_ranking()
 
         logger.info("\n" + "=" * 80)
         logger.info("TEST SUMMARY")
