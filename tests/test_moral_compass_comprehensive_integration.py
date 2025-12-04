@@ -203,15 +203,15 @@ class MoralCompassIntegrationTest:
             for config in user_configs:
                 try:
                     # Update moral compass with metrics
-                    # Note: moral_compass_score = accuracy * (tasks_completed / (total_tasks + total_questions))
+                    # Formula: moral_compass_score = accuracy * (tasks_completed / (total_tasks + total_questions))
                     # When total_questions = 0, score = accuracy * (tasks_completed / total_tasks)
-                    # To make score = accuracy * tasks, set total_tasks = tasks and questions = 0
+                    # By setting tasks_completed = total_tasks, the ratio = 1, resulting in score = accuracy * tasks
                     result = self.client.update_moral_compass(
                         table_id=self.test_table_id,
                         username=config['username'],
                         metrics={'accuracy': config['accuracy']},
                         tasks_completed=config['tasks'],
-                        total_tasks=config['tasks'],  # Makes the ratio = 1
+                        total_tasks=config['tasks'],  # When tasks_completed = total_tasks, ratio = 1
                         questions_correct=0,
                         total_questions=0,
                         primary_metric='accuracy',
@@ -258,8 +258,8 @@ class MoralCompassIntegrationTest:
             response = self.client.list_users(table_id=self.test_table_id, limit=100)
             users = response.get('users', [])
             
-            # Filter to just our test users
-            test_usernames = [u['username'] for u in self.test_users]
+            # Filter to just our test users (using set for O(1) lookup)
+            test_usernames = {u['username'] for u in self.test_users}
             retrieved_users = [u for u in users if u['username'] in test_usernames]
             
             if len(retrieved_users) == 10:
@@ -287,12 +287,13 @@ class MoralCompassIntegrationTest:
             response = self.client.list_users(table_id=self.test_table_id, limit=100)
             users = response.get('users', [])
             
-            test_usernames = {u['username']: u for u in self.test_users}
+            # Map usernames to expected user data for easy lookup
+            expected_users_by_name = {u['username']: u for u in self.test_users}
             
             all_correct = True
             for user in users:
-                if user['username'] in test_usernames:
-                    expected_data = test_usernames[user['username']]
+                if user['username'] in expected_users_by_name:
+                    expected_data = expected_users_by_name[user['username']]
                     actual_score = float(user.get('moralCompassScore', 0))
                     expected_score = expected_data['expected_score']
                     
@@ -358,12 +359,13 @@ class MoralCompassIntegrationTest:
             response = self.client.list_users(table_id=self.test_table_id, limit=100)
             users = response.get('users', [])
             
-            test_usernames = {u['username']: u for u in self.test_users}
+            # Map usernames to expected user data for easy lookup
+            expected_users_by_name = {u['username']: u for u in self.test_users}
             
             all_teams_correct = True
             for user in users:
-                if user['username'] in test_usernames:
-                    expected_team = test_usernames[user['username']]['team']
+                if user['username'] in expected_users_by_name:
+                    expected_team = expected_users_by_name[user['username']]['team']
                     actual_team = user.get('teamName')
                     
                     if actual_team == expected_team:
@@ -390,8 +392,8 @@ class MoralCompassIntegrationTest:
             response = self.client.list_users(table_id=self.test_table_id, limit=100)
             users = response.get('users', [])
             
-            # Filter to test users
-            test_usernames = [u['username'] for u in self.test_users]
+            # Filter to test users (using set for O(1) lookup)
+            test_usernames = {u['username'] for u in self.test_users}
             test_users_data = [u for u in users if u['username'] in test_usernames]
             
             # Sort by moral compass score (descending)
@@ -427,8 +429,8 @@ class MoralCompassIntegrationTest:
             response = self.client.list_users(table_id=self.test_table_id, limit=100)
             users = response.get('users', [])
             
-            # Filter to test users
-            test_usernames = [u['username'] for u in self.test_users]
+            # Filter to test users (using set for O(1) lookup)
+            test_usernames = {u['username'] for u in self.test_users}
             test_users_data = [u for u in users if u['username'] in test_usernames]
             
             # Compute team averages

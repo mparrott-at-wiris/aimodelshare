@@ -98,9 +98,9 @@ The test creates the following user configuration:
 
 ### Expected Team Rankings
 
-Based on average scores:
-1. **Team B**: Average ~9.87 (4 members)
-2. **Team A**: Average ~11.02 (3 members)
+Based on average scores (descending order):
+1. **Team A**: Average ~11.02 (3 members)
+2. **Team B**: Average ~9.87 (4 members)
 3. **Team C**: Average ~9.82 (3 members)
 
 ## Expected Output
