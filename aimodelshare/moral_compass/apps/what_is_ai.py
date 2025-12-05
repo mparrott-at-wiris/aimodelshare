@@ -319,7 +319,7 @@ TRANSLATIONS = {
         "risk_high": "Alt Risc",
         "risk_med": "Risc Mitjà",
         "risk_low": "Baix Risc",
-        "risk_score": "Puntuació de Risc:"
+        "risk_score": "Puntuació de risc:"
     }
 }
 
