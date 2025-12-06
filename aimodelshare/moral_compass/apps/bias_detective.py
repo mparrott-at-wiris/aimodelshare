@@ -2618,8 +2618,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 3 -> Module 4
         btn_next_3.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=4)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=4)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -2636,8 +2636,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 4 -> Module 5
         btn_next_4.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=5)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=5)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -2654,8 +2654,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 5 -> Module 6
         btn_next_5.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=6)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=6)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -2672,8 +2672,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 6 -> Module 7
         btn_next_6.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=7)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=7)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -2690,8 +2690,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 7 -> Module 8
         btn_next_7.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=8)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=8)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -2708,8 +2708,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 8 -> Module 9
         btn_next_8.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=9)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=9)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -2726,8 +2726,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 9 -> Module 10
         btn_next_9.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=10)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=10)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -2744,8 +2744,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 10 -> Module 11
         btn_next_10.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=11)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=11)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -2762,8 +2762,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 11 -> Module 12
         btn_next_11.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=12)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=12)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -2780,8 +2780,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 12 -> Module 13
         btn_next_12.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=13)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=13)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -2798,8 +2798,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 13 -> Module 14
         btn_next_13.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=14)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=14)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -2816,8 +2816,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 14 -> Module 15
         btn_next_14.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=15)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=15)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -2834,8 +2834,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 15 -> Module 16
         btn_next_15.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=16)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=16)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -2852,8 +2852,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 16 -> Module 17
         btn_next_16.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=17)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=17)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -2870,8 +2870,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 17 -> Module 18
         btn_next_17.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=18)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=18)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -2888,8 +2888,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 18 -> Module 19
         btn_next_18.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=19)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=19)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -2936,8 +2936,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 3 -> Module 4
         btn_next_3.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=4)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=4)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -2954,8 +2954,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 4 -> Module 5
         btn_next_4.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=5)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=5)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -2972,8 +2972,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 5 -> Module 6
         btn_next_5.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=6)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=6)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -2990,8 +2990,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 6 -> Module 7
         btn_next_6.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=7)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=7)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -3008,8 +3008,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 7 -> Module 8
         btn_next_7.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=8)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=8)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -3026,8 +3026,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 8 -> Module 9
         btn_next_8.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=9)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=9)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -3044,8 +3044,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 9 -> Module 10
         btn_next_9.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=10)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=10)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -3062,8 +3062,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 10 -> Module 11
         btn_next_10.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=11)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=11)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -3080,8 +3080,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 11 -> Module 12
         btn_next_11.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=12)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=12)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -3098,8 +3098,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 12 -> Module 13
         btn_next_12.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=13)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=13)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -3116,8 +3116,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 13 -> Module 14
         btn_next_13.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=14)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=14)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -3134,8 +3134,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 14 -> Module 15
         btn_next_14.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=15)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=15)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -3152,8 +3152,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 15 -> Module 16
         btn_next_15.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=16)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=16)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -3170,8 +3170,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 16 -> Module 17
         btn_next_16.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=17)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=17)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -3188,8 +3188,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 17 -> Module 18
         btn_next_17.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=18)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=18)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
@@ -3206,8 +3206,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 18 -> Module 19
         btn_next_18.click(
             fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=19)),
-                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=19)),
+                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
                 gr.update(visible=False), gr.update(visible=True)
             ),
             inputs=[username_state, token_state, team_state],
