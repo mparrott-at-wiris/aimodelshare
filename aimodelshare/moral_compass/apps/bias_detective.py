@@ -986,8 +986,8 @@ css = """
 
 # --- 9. BUILD APP (Bias Detective) ---
 
-def create_bias_detective_app():
-    with gr.Blocks(theme=gr.themes.Soft(), css=css) as demo:
+def create_bias_detective_app(theme_primary_hue: str = "indigo"):
+    with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
         # State - now stores username and token directly
         username_state = gr.State(value=None)
         token_state    = gr.State(value=None)
