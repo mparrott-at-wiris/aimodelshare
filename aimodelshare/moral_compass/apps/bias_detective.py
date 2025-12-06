@@ -2562,11 +2562,13 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Next: Module 0 -> Module 1 (score update for module 1)
         def on_next_from_module_0(username, token, team, answer):
             if answer is None:
+                # Don't navigate if no answer selected - user must select an answer first
+                # The quiz_radio.change handler will show feedback
                 return (
-                    gr.update(),
-                    gr.update(),
-                    "<div class='hint-box'>Please select an answer before continuing.</div>",
-                    gr.update(),
+                    gr.update(),  # out_top
+                    gr.update(),  # leaderboard_html
+                    gr.update(),  # module_visibility_control (no change)
+                    gr.update(),  # current_module (stay on module 0)
                 )
             _, new_data, username = trigger_api_update(username, token, team, module_id=1)
             html_top  = render_top_dashboard(new_data, module_id=1)
