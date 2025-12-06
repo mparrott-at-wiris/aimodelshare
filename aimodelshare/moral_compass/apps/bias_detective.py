@@ -2,6 +2,7 @@ import os
 import sys
 import subprocess
 import time
+from typing import Tuple, Optional
 
 # --- 1. CONFIGURATION ---
 DEFAULT_API_URL = "https://b22q73wp50.execute-api.us-east-1.amazonaws.com/dev"
@@ -26,6 +27,31 @@ except ImportError:
     from aimodelshare.aws import get_token_from_session, _get_username_from_token
 
 # --- 3. AUTH HELPER ---
+
+def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str], Optional[str]]:
+    """
+    Attempt to authenticate via session token from Gradio request.
+    Returns (success, username, token).
+    """
+    try:
+        session_id = request.query_params.get("sessionid") if request else None
+        if not session_id:
+            return False, None, None
+        
+        token = get_token_from_session(session_id)
+        if not token:
+            return False, None, None
+            
+        username = _get_username_from_token(token)
+        if not username:
+            return False, None, None
+        
+        return True, username, token
+        
+    except Exception:
+        # Log generic failure without exposing sensitive details
+        print("Session auth failed: unable to authenticate")
+        return False, None, None
 
 def validate_auth(session_id):
     """
@@ -358,6 +384,26 @@ MODULES = [
 
 # --- 5. LEADERBOARD HELPERS ---
 
+def get_or_assign_team(client, username):
+    """
+    Get user's existing team from leaderboard or assign a default team.
+    Returns team_name string.
+    """
+    try:
+        resp = client.list_users(table_id=TABLE_ID, limit=500)
+        users = resp.get("users", [])
+        
+        # Look for existing team assignment
+        my_user = next((u for u in users if u.get("username") == username), None)
+        if my_user and my_user.get("teamName"):
+            return my_user.get("teamName")
+        
+        # If no team found, return default
+        return "team-a"
+    except Exception:
+        # Fallback to default team
+        return "team-a"
+
 def get_leaderboard_data(client, username, team_name):
     try:
         resp = client.list_users(table_id=TABLE_ID, limit=500)
@@ -401,9 +447,9 @@ def get_leaderboard_data(client, username, team_name):
         print(f"Leaderboard Error: {e}")
         return None
 
-def ensure_table_and_get_data(session_id, team_name):
+def ensure_table_and_get_data(username, token, team_name):
+    """Get leaderboard data using username and token directly."""
     os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
-    token, username = validate_auth(session_id)
     client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
 
     try:
@@ -417,9 +463,9 @@ def ensure_table_and_get_data(session_id, team_name):
     data = get_leaderboard_data(client, username, team_name)
     return data, username
 
-def trigger_api_update(session_id, team_name, module_id):
+def trigger_api_update(username, token, team_name, module_id):
+    """Update moral compass score using username and token directly."""
     os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
-    token, username = validate_auth(session_id)
     
     client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
     
@@ -608,7 +654,7 @@ def render_leaderboard_card(data, username, team_name):
 
 CORRECT_ANSWER_0 = "A) Because simple accuracy ignores potential bias and harm."
 
-def submit_quiz_0(session_id, team_name, module0_done, answer):
+def submit_quiz_0(username, token, team_name, module0_done, answer):
     if answer is None:
         return (
             gr.update(),  # out_top
@@ -626,7 +672,7 @@ def submit_quiz_0(session_id, team_name, module0_done, answer):
         )
 
     if module0_done:
-        data, username = ensure_table_and_get_data(session_id, team_name)
+        data, username = ensure_table_and_get_data(username, token, team_name)
         html_top = render_top_dashboard(data, module_id=0)
         lb_html = render_leaderboard_card(data, username, team_name)
         msg_html = f"""
@@ -648,7 +694,7 @@ def submit_quiz_0(session_id, team_name, module0_done, answer):
             gr.update(value=msg_html),
         )
 
-    prev, curr, username = trigger_api_update(session_id, team_name, module_id=0)
+    prev, curr, username = trigger_api_update(username, token, team_name, module_id=0)
 
     d_score = curr["score"] - (prev["score"] if prev else 0.0)
     prev_rank = prev["rank"] if prev and prev.get("rank") else 999
@@ -961,12 +1007,13 @@ css = """
 
 # --- 9. BUILD APP (Bias Detective) ---
 
-def create_bias_detective_app():
-    with gr.Blocks(theme=gr.themes.Soft(), css=css) as demo:
-        # State
-        session_state    = gr.State(value=None)
-        team_state       = gr.State(value=None)
-        module0_done     = gr.State(value=False)
+def create_bias_detective_app(theme_primary_hue: str = "indigo"):
+    with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
+        # State - now stores username and token directly
+        username_state = gr.State(value=None)
+        token_state    = gr.State(value=None)
+        team_state     = gr.State(value=None)
+        module0_done   = gr.State(value=False)
 
         # Title
         gr.Markdown("# 🕵️‍♀️ Bias Detective: Moral Compass Lab")
@@ -974,24 +1021,8 @@ def create_bias_detective_app():
         # Top dashboard
         out_top = gr.HTML()
 
-        # Login section
-        with gr.Row(visible=True) as login_row:
-            with gr.Column():
-                sess_in = gr.Textbox(
-                    label="Session ID",
-                    value="",
-                    type="password",
-                    placeholder="Paste your Session ID here..."
-                )
-                team_in = gr.Dropdown(
-                    ["team-a", "team-b", "team-c"],
-                    label="Team",
-                    value="team-a"
-                )
-                btn_start = gr.Button("🚀 Start Course", variant="primary", size="lg")
-
         # Module 0
-        with gr.Column(visible=False) as module_0:
+        with gr.Column(visible=True) as module_0:
             mod0_html = gr.HTML(MODULES[0]["html"])
             quiz_q = gr.Markdown(
                 "### 🧠 Quick Knowledge Check\n\n"
@@ -1028,45 +1059,61 @@ def create_bias_detective_app():
         # Quiz scoring for module 0
         quiz_radio.change(
             fn=submit_quiz_0,
-            inputs=[session_state, team_state, module0_done, quiz_radio],
+            inputs=[username_state, token_state, team_state, module0_done, quiz_radio],
             outputs=[out_top, leaderboard_html, module0_done, quiz_feedback],
         )
 
-        # Start
-        def on_start(sess, team):
-            data, username = ensure_table_and_get_data(sess, team)
-            html_top = render_top_dashboard(data, module_id=0)
-            lb_html = render_leaderboard_card(data, username, team)
-            return (
-                sess,
-                team,
-                False,
-                html_top,
-                lb_html,
-                gr.update(visible=False),
-                gr.update(visible=True),
-                gr.update(visible=False),
-                gr.update(visible=False),
-            )
+        # Initial load with session-based auth
+        def handle_initial_load(request: gr.Request):
+            """
+            Authenticate via session token on page load.
+            """
+            success, username, token = _try_session_based_auth(request)
+            
+            if success and username and token:
+                # Get or assign team based on user's leaderboard data
+                os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
+                client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
+                team_name = get_or_assign_team(client, username)
+                
+                data, username = ensure_table_and_get_data(username, token, team_name)
+                html_top = render_top_dashboard(data, module_id=0)
+                lb_html = render_leaderboard_card(data, username, team_name)
+                
+                return (
+                    username,        # username_state
+                    token,           # token_state
+                    team_name,       # team_state
+                    False,           # module0_done
+                    html_top,        # out_top
+                    lb_html,         # leaderboard_html
+                )
+            else:
+                # No valid session - show empty state
+                return (
+                    None,            # username_state
+                    None,            # token_state
+                    None,            # team_state
+                    False,           # module0_done
+                    "<div class='hint-box'>⚠️ Authentication required. Please access this app with a valid session ID.</div>",
+                    "",              # leaderboard_html
+                )
 
-        btn_start.click(
-            fn=on_start,
-            inputs=[sess_in, team_in],
+        demo.load(
+            fn=handle_initial_load,
+            inputs=None,
             outputs=[
-                session_state,
+                username_state,
+                token_state,
                 team_state,
                 module0_done,
                 out_top,
                 leaderboard_html,
-                login_row,
-                module_0,
-                module_1,
-                module_2,
             ],
         )
 
         # Next: Module 0 -> Module 1 (score update for module 1)
-        def on_next_from_module_0(sess, team, answer):
+        def on_next_from_module_0(username, token, team, answer):
             if answer is None:
                 return (
                     gr.update(),
@@ -1075,7 +1122,7 @@ def create_bias_detective_app():
                     gr.update(),
                     "<div class='hint-box'>Please select an answer before continuing.</div>",
                 )
-            _, new_data, username = trigger_api_update(sess, team, module_id=1)
+            _, new_data, username = trigger_api_update(username, token, team, module_id=1)
             html_top  = render_top_dashboard(new_data, module_id=1)
             lb_html   = render_leaderboard_card(new_data, username, team)
             return (
@@ -1088,7 +1135,7 @@ def create_bias_detective_app():
 
         btn_next_0.click(
             fn=on_next_from_module_0,
-            inputs=[session_state, team_state, quiz_radio],
+            inputs=[username_state, token_state, team_state, quiz_radio],
             outputs=[out_top, leaderboard_html, module_0, module_1, module_2],
         )
 
@@ -1106,8 +1153,8 @@ def create_bias_detective_app():
         )
 
         # Next: Module 1 -> Module 2 (progress bump + refresh)
-        def on_next_from_module_1(sess, team):
-            data, username = ensure_table_and_get_data(sess, team)
+        def on_next_from_module_1(username, token, team):
+            data, username = ensure_table_and_get_data(username, token, team)
             html_top = render_top_dashboard(data, module_id=2)
             lb_html  = render_leaderboard_card(data, username, team)
             return (
@@ -1119,7 +1166,7 @@ def create_bias_detective_app():
 
         btn_next_1.click(
             fn=on_next_from_module_1,
-            inputs=[session_state, team_state],
+            inputs=[username_state, token_state, team_state],
             outputs=[out_top, leaderboard_html, module_1, module_2],
         )
 
