@@ -48,8 +48,9 @@ def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str],
         
         return True, username, token
         
-    except Exception as e:
-        print(f"Session auth failed: {e}")
+    except Exception:
+        # Log generic failure without exposing sensitive details
+        print("Session auth failed: unable to authenticate")
         return False, None, None
 
 def validate_auth(session_id):
@@ -382,6 +383,26 @@ MODULES = [
 ]
 
 # --- 5. LEADERBOARD HELPERS ---
+
+def get_or_assign_team(client, username):
+    """
+    Get user's existing team from leaderboard or assign a default team.
+    Returns team_name string.
+    """
+    try:
+        resp = client.list_users(table_id=TABLE_ID, limit=500)
+        users = resp.get("users", [])
+        
+        # Look for existing team assignment
+        my_user = next((u for u in users if u.get("username") == username), None)
+        if my_user and my_user.get("teamName"):
+            return my_user.get("teamName")
+        
+        # If no team found, return default
+        return "team-a"
+    except Exception:
+        # Fallback to default team
+        return "team-a"
 
 def get_leaderboard_data(client, username, team_name):
     try:
@@ -1050,9 +1071,10 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
             success, username, token = _try_session_based_auth(request)
             
             if success and username and token:
-                # Auto-authenticated - assign a default team
-                # In a real app, you'd fetch this from user profile or leaderboard
-                team_name = "team-a"  # Default team
+                # Get or assign team based on user's leaderboard data
+                os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
+                client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
+                team_name = get_or_assign_team(client, username)
                 
                 data, username = ensure_table_and_get_data(username, token, team_name)
                 html_top = render_top_dashboard(data, module_id=0)
