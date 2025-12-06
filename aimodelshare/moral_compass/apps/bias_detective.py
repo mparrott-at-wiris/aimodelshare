@@ -379,6 +379,1294 @@ MODULES = [
                 </div>
             </div>
         """
+    },
+    {
+        "id": 3,
+        "title": "Slide 3: The Stakes",
+        "sim_acc": 0.78,
+        "sim_comp": 55,
+        "html": """
+            <div class="scenario-box">
+                <h2 class="slide-title">⚠️ THE RISK OF INVISIBLE BIAS</h2>
+                <div class="slide-body">
+                    
+                    <!-- Badge -->
+                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                        <div style="
+                            display:inline-flex;
+                            align-items:center;
+                            gap:10px;
+                            padding:10px 18px;
+                            border-radius:999px;
+                            background:var(--background-fill-secondary);
+                            border:1px solid var(--border-color-primary);
+                            font-size:0.95rem;
+                            text-transform:uppercase;
+                            letter-spacing:0.08em;
+                            font-weight:700;
+                        ">
+                            <span style="font-size:1.1rem;">⚖️</span>
+                            <span>PRINCIPLE #1: JUSTICE & FAIRNESS</span>
+                        </div>
+                    </div>
+
+                    <!-- Narrative -->
+                    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
+                        You might ask: "Why is an AI bias investigation so critical?" When a human judge is biased, 
+                        you can often see it in their actions or hear it in their words. However, AI bias can be silent. 
+                        Because the system produces a clean, digital "Risk Score," there is a risk that people assume it 
+                        is neutral and objective. They may trust the machine implicitly. If we don't find the bias hidden 
+                        inside the system, discrimination could become invisible, difficult to challenge, and deeply entrenched.
+                    </p>
+
+                    <!-- Visual Concept: The Ripple Effect -->
+                    <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
+                        <h4 style="margin-top:0; font-size:1.3rem;">The Ripple Effect</h4>
+                        <div style="font-size: 1.6rem; margin: 16px 0; font-weight:bold;">
+                            1 Flawed Algorithm → 10,000 Potential Unfair Sentences
+                        </div>
+                        <p style="font-size:1rem; max-width:600px; margin:0 auto;">
+                            A single biased model, once deployed at scale, doesn't make one mistake—it replicates 
+                            that mistake thousands of times, affecting real lives and communities.
+                        </p>
+                    </div>
+
+                    <!-- CTA -->
+                    <div style="text-align:center; margin-top:24px;">
+                        <p style="margin-bottom:10px; font-size:1.0rem; font-weight:600;">
+                            Ready to learn how to detect and prevent this?
+                        </p>
+                    </div>
+                </div>
+            </div>
+        """
+    },
+    {
+        "id": 4,
+        "title": "Slide 4: The Detective's Method",
+        "sim_acc": 0.80,
+        "sim_comp": 60,
+        "html": """
+            <div class="scenario-box">
+                <h2 class="slide-title">🔎 HOW DO WE CATCH A MACHINE?</h2>
+                <div class="slide-body">
+                    
+                    <!-- Badge -->
+                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                        <div style="
+                            display:inline-flex;
+                            align-items:center;
+                            gap:10px;
+                            padding:10px 18px;
+                            border-radius:999px;
+                            background:var(--background-fill-secondary);
+                            border:1px solid var(--border-color-primary);
+                            font-size:0.95rem;
+                            text-transform:uppercase;
+                            letter-spacing:0.08em;
+                            font-weight:700;
+                        ">
+                            <span style="font-size:1.1rem;">📋</span>
+                            <span>STEP 2: SCAN EVIDENCE</span>
+                        </div>
+                    </div>
+
+                    <!-- Narrative -->
+                    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
+                        You can't interrogate an algorithm. It won't confess. To find bias, we have to look at 
+                        the evidence trail it leaves behind. If you were investigating a suspicious judge, what 
+                        would you look for?
+                    </p>
+
+                    <!-- Interactive Brainstorm -->
+                    <div class="ai-risk-container" style="margin-top:20px;">
+                        <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">
+                            🗂️ The Investigation Checklist
+                        </h4>
+                        
+                        <div style="display:grid; gap:16px; margin-top:16px;">
+                            <div class="hint-box" style="margin-top:0;">
+                                <div style="font-weight:bold; margin-bottom:8px;">📂 Folder 1: "Who is being arrested?"</div>
+                                <div style="padding-left:20px; font-size:0.95rem; color:var(--body-text-color-subdued);">
+                                    → <strong>Reveal:</strong> Check the History
+                                </div>
+                            </div>
+                            
+                            <div class="hint-box" style="margin-top:0;">
+                                <div style="font-weight:bold; margin-bottom:8px;">📂 Folder 2: "Who is being wrongly accused?"</div>
+                                <div style="padding-left:20px; font-size:0.95rem; color:var(--body-text-color-subdued);">
+                                    → <strong>Reveal:</strong> Check the Mistakes
+                                </div>
+                            </div>
+                            
+                            <div class="hint-box" style="margin-top:0;">
+                                <div style="font-weight:bold; margin-bottom:8px;">📂 Folder 3: "Who is getting hurt?"</div>
+                                <div style="padding-left:20px; font-size:0.95rem; color:var(--body-text-color-subdued);">
+                                    → <strong>Reveal:</strong> Check the Punishment
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Expert Validation -->
+                    <div style="text-align:center; margin-top:24px; padding:16px; background:rgba(34, 197, 94, 0.1); border-radius:8px;">
+                        <p style="font-size:1.05rem; margin:0; font-weight:600;">
+                            ✅ Exactly. You just described the <strong>Standard Audit Protocol</strong> used by AI experts 
+                            at the OEIAC (Dataset Forensics & Error Analysis).
+                        </p>
+                    </div>
+                </div>
+            </div>
+        """
+    },
+    {
+        "id": 5,
+        "title": "Slide 5: The Data Forensics Briefing",
+        "sim_acc": 0.82,
+        "sim_comp": 65,
+        "html": """
+            <div class="scenario-box">
+                <h2 class="slide-title">📂 THE DATA FORENSICS BRIEFING</h2>
+                <div class="slide-body">
+                    
+                    <!-- Badge -->
+                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                        <div style="
+                            display:inline-flex;
+                            align-items:center;
+                            gap:10px;
+                            padding:10px 18px;
+                            border-radius:999px;
+                            background:var(--background-fill-secondary);
+                            border:1px solid var(--border-color-primary);
+                            font-size:0.95rem;
+                            text-transform:uppercase;
+                            letter-spacing:0.08em;
+                            font-weight:700;
+                        ">
+                            <span style="font-size:1.1rem;">📋</span>
+                            <span>STEP 2: EVIDENCE BRIEFING</span>
+                        </div>
+                    </div>
+
+                    <!-- Narrative -->
+                    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
+                        You are about to access the raw evidence files. But be warned: The AI thinks this data is 
+                        the truth. If the police historically targeted one neighborhood more than others, the dataset 
+                        will be full of people from that neighborhood. The AI doesn't know this is bias—it just sees 
+                        a pattern.
+                    </p>
+
+                    <!-- Detective's Task -->
+                    <div class="ai-risk-container">
+                        <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">
+                            🔍 The Detective's Task
+                        </h4>
+                        <p style="font-size:1.05rem; text-align:center; margin-bottom:14px;">
+                            We must compare <strong style="color:var(--color-accent);">The Data</strong> against 
+                            <strong style="color:#22c55e;">Reality</strong>.
+                        </p>
+                        <p style="font-size:1.05rem; text-align:center;">
+                            We are looking for <strong style="color:#ef4444;">Distortions</strong> 
+                            (Over-represented or Under-represented groups).
+                        </p>
+                    </div>
+
+                    <!-- CTA -->
+                    <div style="text-align:center; margin-top:24px;">
+                        <p style="margin-bottom:10px; font-size:1.0rem; font-weight:600;">
+                            Ready to begin the forensic analysis?
+                        </p>
+                    </div>
+                </div>
+            </div>
+        """
+    },
+    {
+        "id": 6,
+        "title": "Slide 6: Evidence Scan (Race)",
+        "sim_acc": 0.84,
+        "sim_comp": 70,
+        "html": """
+            <div class="scenario-box">
+                <h2 class="slide-title">🔎 FORENSIC ANALYSIS: RACE</h2>
+                <div class="slide-body">
+                    
+                    <!-- Badge -->
+                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                        <div style="
+                            display:inline-flex;
+                            align-items:center;
+                            gap:10px;
+                            padding:10px 18px;
+                            border-radius:999px;
+                            background:var(--background-fill-secondary);
+                            border:1px solid var(--border-color-primary);
+                            font-size:0.95rem;
+                            text-transform:uppercase;
+                            letter-spacing:0.08em;
+                            font-weight:700;
+                        ">
+                            <span style="font-size:1.1rem;">📡</span>
+                            <span>EVIDENCE SCAN: VARIABLE 1 of 3</span>
+                        </div>
+                    </div>
+
+                    <!-- Narrative -->
+                    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
+                        We know that in this local jurisdiction, African-Americans make up 12% of the total population. 
+                        If the data is unbiased, the "Evidence Files" should roughly match that number.
+                    </p>
+
+                    <!-- Scan Result -->
+                    <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
+                        <h4 style="margin-top:0; font-size:1.3rem;">📡 SCAN DATASET FOR RACE</h4>
+                        <div style="margin: 20px 0;">
+                            <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:8px;">
+                                Population Reality: 12% African-American
+                            </div>
+                            <div style="height:40px; background:linear-gradient(to right, #3b82f6 0%, #3b82f6 12%, #e5e7eb 12%, #e5e7eb 100%); border-radius:8px; position:relative;">
+                                <div style="position:absolute; left:12%; top:50%; transform:translate(-50%, -50%); font-size:0.85rem; font-weight:bold; color:white;">12%</div>
+                            </div>
+                        </div>
+                        <div style="margin: 20px 0;">
+                            <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:8px;">
+                                Dataset Reality: <strong style="color:#ef4444;">51% African-American</strong>
+                            </div>
+                            <div style="height:40px; background:linear-gradient(to right, #ef4444 0%, #ef4444 51%, #e5e7eb 51%, #e5e7eb 100%); border-radius:8px; position:relative;">
+                                <div style="position:absolute; left:51%; top:50%; transform:translate(-50%, -50%); font-size:0.85rem; font-weight:bold; color:white;">51%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analysis -->
+                    <div class="hint-box" style="background:rgba(239, 68, 68, 0.1);">
+                        <h4 style="margin-top:0;">🔍 Detective's Analysis</h4>
+                        <p style="margin-bottom:8px;">
+                            The dataset is 51% African-American. That is <strong>4x higher</strong> than reality.
+                        </p>
+                        <p style="margin:0;">
+                            <strong>✅ This is Frequency Bias.</strong> The AI sees this group so often, it statistically 
+                            learns that being African-American is a predictor of risk.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        """
+    },
+    {
+        "id": 7,
+        "title": "Slide 7: Evidence Scan (Gender)",
+        "sim_acc": 0.85,
+        "sim_comp": 73,
+        "html": """
+            <div class="scenario-box">
+                <h2 class="slide-title">🔎 FORENSIC ANALYSIS: GENDER</h2>
+                <div class="slide-body">
+                    
+                    <!-- Badge -->
+                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                        <div style="
+                            display:inline-flex;
+                            align-items:center;
+                            gap:10px;
+                            padding:10px 18px;
+                            border-radius:999px;
+                            background:var(--background-fill-secondary);
+                            border:1px solid var(--border-color-primary);
+                            font-size:0.95rem;
+                            text-transform:uppercase;
+                            letter-spacing:0.08em;
+                            font-weight:700;
+                        ">
+                            <span style="font-size:1.1rem;">📡</span>
+                            <span>EVIDENCE SCAN: VARIABLE 2 of 3</span>
+                        </div>
+                    </div>
+
+                    <!-- Narrative -->
+                    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
+                        We are now scanning for gender balance. In the real world, the population is roughly 50/50. 
+                        A fair training set should reflect this balance.
+                    </p>
+
+                    <!-- Scan Result -->
+                    <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
+                        <h4 style="margin-top:0; font-size:1.3rem;">📡 SCAN DATASET FOR GENDER</h4>
+                        <div style="margin: 20px 0;">
+                            <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:8px;">
+                                Population Reality: 50% Male / 50% Female
+                            </div>
+                            <div style="display:flex; height:40px; border-radius:8px; overflow:hidden;">
+                                <div style="width:50%; background:#3b82f6; display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:bold; color:white;">50% M</div>
+                                <div style="width:50%; background:#ec4899; display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:bold; color:white;">50% F</div>
+                            </div>
+                        </div>
+                        <div style="margin: 20px 0;">
+                            <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:8px;">
+                                Dataset Reality: <strong style="color:#ef4444;">81% Male / 19% Female</strong>
+                            </div>
+                            <div style="display:flex; height:40px; border-radius:8px; overflow:hidden;">
+                                <div style="width:81%; background:#ef4444; display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:bold; color:white;">81% M</div>
+                                <div style="width:19%; background:#fca5a5; display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:bold; color:white;">19% F</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analysis -->
+                    <div class="hint-box" style="background:rgba(239, 68, 68, 0.1);">
+                        <h4 style="margin-top:0;">🔍 Detective's Analysis</h4>
+                        <p style="margin-bottom:8px;">
+                            The data is 81% Male. How might this affect a female defendant?
+                        </p>
+                        <p style="margin:0;">
+                            <strong>✅ This is Representation Bias.</strong> Because the AI has so few examples of women, 
+                            it hasn't learned their specific risk factors.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        """
+    },
+    {
+        "id": 8,
+        "title": "Slide 8: Evidence Scan (Age)",
+        "sim_acc": 0.86,
+        "sim_comp": 76,
+        "html": """
+            <div class="scenario-box">
+                <h2 class="slide-title">🔎 FORENSIC ANALYSIS: AGE</h2>
+                <div class="slide-body">
+                    
+                    <!-- Badge -->
+                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                        <div style="
+                            display:inline-flex;
+                            align-items:center;
+                            gap:10px;
+                            padding:10px 18px;
+                            border-radius:999px;
+                            background:var(--background-fill-secondary);
+                            border:1px solid var(--border-color-primary);
+                            font-size:0.95rem;
+                            text-transform:uppercase;
+                            letter-spacing:0.08em;
+                            font-weight:700;
+                        ">
+                            <span style="font-size:1.1rem;">📡</span>
+                            <span>EVIDENCE SCAN: VARIABLE 3 of 3</span>
+                        </div>
+                    </div>
+
+                    <!-- Narrative -->
+                    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
+                        Finally, we look at Age. Criminology tells us that risk drops significantly as people get older.
+                    </p>
+
+                    <!-- Scan Result -->
+                    <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
+                        <h4 style="margin-top:0; font-size:1.3rem;">📡 SCAN DATASET FOR AGE</h4>
+                        <div style="margin: 20px 0;">
+                            <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:8px;">
+                                Age Distribution in Dataset: <strong style="color:#ef4444;">Heavily Skewed to Under 35</strong>
+                            </div>
+                            <div style="display:flex; height:60px; border-radius:8px; overflow:hidden; align-items:flex-end;">
+                                <div style="width:20%; background:#ef4444; height:90%; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:8px;">
+                                    <div style="font-size:0.75rem; font-weight:bold; color:white;">18-25</div>
+                                    <div style="font-size:0.65rem; color:white;">45%</div>
+                                </div>
+                                <div style="width:20%; background:#f87171; height:70%; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:8px;">
+                                    <div style="font-size:0.75rem; font-weight:bold; color:white;">26-35</div>
+                                    <div style="font-size:0.65rem; color:white;">30%</div>
+                                </div>
+                                <div style="width:20%; background:#fca5a5; height:40%; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:8px;">
+                                    <div style="font-size:0.75rem; font-weight:bold; color:white;">36-50</div>
+                                    <div style="font-size:0.65rem; color:white;">18%</div>
+                                </div>
+                                <div style="width:20%; background:#fecaca; height:20%; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:8px;">
+                                    <div style="font-size:0.75rem; font-weight:bold; color:#333;">51-65</div>
+                                    <div style="font-size:0.65rem; color:#333;">5%</div>
+                                </div>
+                                <div style="width:20%; background:#fee2e2; height:10%; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:8px;">
+                                    <div style="font-size:0.75rem; font-weight:bold; color:#333;">65+</div>
+                                    <div style="font-size:0.65rem; color:#333;">2%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analysis -->
+                    <div class="hint-box" style="background:rgba(239, 68, 68, 0.1);">
+                        <h4 style="margin-top:0;">🔍 Detective's Analysis</h4>
+                        <p style="margin-bottom:8px;">
+                            Most files come from young defendants. If a 62-year-old is arrested, how will the AI likely judge them?
+                        </p>
+                        <p style="margin:0;">
+                            <strong>✅ This is Generalization Error.</strong> It applies "Youth Logic" to older people blindly.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        """
+    },
+    {
+        "id": 9,
+        "title": "Slide 9: Forensics Conclusion (Summary)",
+        "sim_acc": 0.87,
+        "sim_comp": 78,
+        "html": """
+            <div class="scenario-box">
+                <h2 class="slide-title">📂 FORENSICS REPORT: SUMMARY</h2>
+                <div class="slide-body">
+                    
+                    <!-- Badge -->
+                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                        <div style="
+                            display:inline-flex;
+                            align-items:center;
+                            gap:10px;
+                            padding:10px 18px;
+                            border-radius:999px;
+                            background:rgba(34, 197, 94, 0.15);
+                            border:1px solid #22c55e;
+                            font-size:0.95rem;
+                            text-transform:uppercase;
+                            letter-spacing:0.08em;
+                            font-weight:700;
+                            color:#22c55e;
+                        ">
+                            <span style="font-size:1.1rem;">✅</span>
+                            <span>STATUS: STEP 2 COMPLETE</span>
+                        </div>
+                    </div>
+
+                    <!-- Narrative -->
+                    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
+                        Excellent work. You have analyzed the <strong>Inputs</strong>. We can confirm the data is 
+                        compromised in three ways.
+                    </p>
+
+                    <!-- Evidence Board -->
+                    <div class="ai-risk-container">
+                        <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">
+                            📋 Evidence Board: Key Findings
+                        </h4>
+                        
+                        <div style="display:grid; gap:14px; margin-top:16px;">
+                            <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
+                                <div style="font-weight:bold; color:#ef4444;">Finding #1: Frequency Bias</div>
+                                <div style="font-size:0.95rem; margin-top:4px; color:var(--body-text-color-subdued);">
+                                    Over-representation of African-Americans (51% vs 12% reality)
+                                </div>
+                            </div>
+                            
+                            <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
+                                <div style="font-weight:bold; color:#ef4444;">Finding #2: Representation Bias</div>
+                                <div style="font-size:0.95rem; margin-top:4px; color:var(--body-text-color-subdued);">
+                                    Under-representation of women (19% vs 50% reality)
+                                </div>
+                            </div>
+                            
+                            <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
+                                <div style="font-weight:bold; color:#ef4444;">Finding #3: Generalization Error</div>
+                                <div style="font-size:0.95rem; margin-top:4px; color:var(--body-text-color-subdued);">
+                                    Misapplication of youth-based patterns to older defendants
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Deduction -->
+                    <div style="text-align:center; margin-top:24px; padding:16px; background:rgba(59, 130, 246, 0.1); border-radius:8px;">
+                        <p style="font-size:1.05rem; margin:0; font-weight:600;">
+                            🔍 The <strong>Inputs</strong> are flawed. Now we must test the <strong>Outputs</strong>. 
+                            We must compare predictions against reality.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        """
+    },
+    {
+        "id": 10,
+        "title": "Slide 10: The Audit Briefing",
+        "sim_acc": 0.88,
+        "sim_comp": 80,
+        "html": """
+            <div class="scenario-box">
+                <h2 class="slide-title">⚠️ THE TRAP OF "AVERAGES"</h2>
+                <div class="slide-body">
+                    
+                    <!-- Badge -->
+                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                        <div style="
+                            display:inline-flex;
+                            align-items:center;
+                            gap:10px;
+                            padding:10px 18px;
+                            border-radius:999px;
+                            background:var(--background-fill-secondary);
+                            border:1px solid var(--border-color-primary);
+                            font-size:0.95rem;
+                            text-transform:uppercase;
+                            letter-spacing:0.08em;
+                            font-weight:700;
+                        ">
+                            <span style="font-size:1.1rem;">⚖️</span>
+                            <span>STEP 3: PROVE THE ERROR</span>
+                        </div>
+                    </div>
+
+                    <!-- Narrative -->
+                    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
+                        The AI vendor claims this model is <strong>92% Accurate</strong>. But remember: the data was 
+                        81% Male. If it works for men but fails for women, the "Average" still looks high.
+                    </p>
+
+                    <!-- The Trap Visualization -->
+                    <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
+                        <h4 style="margin-top:0; font-size:1.3rem;">🔨 Break Down by Gender</h4>
+                        <div style="margin: 20px 0;">
+                            <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:12px;">
+                                "Overall Accuracy": 92% (Looks Great!)
+                            </div>
+                            <div style="height:40px; background:#22c55e; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; font-weight:bold; color:white;">
+                                92% Accurate ✓
+                            </div>
+                        </div>
+                        <div style="margin: 30px 0;">
+                            <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:12px;">
+                                But when broken down by gender...
+                            </div>
+                            <div style="display:flex; gap:12px;">
+                                <div style="flex:1;">
+                                    <div style="font-size:0.85rem; margin-bottom:6px; font-weight:600;">Men</div>
+                                    <div style="height:40px; background:#22c55e; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:0.95rem; font-weight:bold; color:white;">
+                                        99% ✓
+                                    </div>
+                                </div>
+                                <div style="flex:1;">
+                                    <div style="font-size:0.85rem; margin-bottom:6px; font-weight:600;">Women</div>
+                                    <div style="height:40px; background:#ef4444; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:0.95rem; font-weight:bold; color:white;">
+                                        60% ✗
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Insight -->
+                    <div class="hint-box" style="background:rgba(239, 68, 68, 0.1);">
+                        <h4 style="margin-top:0;">💡 The Insight</h4>
+                        <p style="margin:0;">
+                            The system is perfect for the majority, hiding the failure for the minority. 
+                            <strong>The high score was hiding the harm.</strong>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        """
+    },
+    {
+        "id": 11,
+        "title": "Slide 11: The Truth Serum",
+        "sim_acc": 0.89,
+        "sim_comp": 82,
+        "html": """
+            <div class="scenario-box">
+                <h2 class="slide-title">⏳ THE POWER OF HINDSIGHT</h2>
+                <div class="slide-body">
+                    
+                    <!-- Badge -->
+                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                        <div style="
+                            display:inline-flex;
+                            align-items:center;
+                            gap:10px;
+                            padding:10px 18px;
+                            border-radius:999px;
+                            background:var(--background-fill-secondary);
+                            border:1px solid var(--border-color-primary);
+                            font-size:0.95rem;
+                            text-transform:uppercase;
+                            letter-spacing:0.08em;
+                            font-weight:700;
+                        ">
+                            <span style="font-size:1.1rem;">🔬</span>
+                            <span>AUDIT PROTOCOL: GROUND TRUTH VERIFICATION</span>
+                        </div>
+                    </div>
+
+                    <!-- Narrative -->
+                    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
+                        How do we know if the AI is wrong? We have the <strong>Answer Key</strong> (historical data). 
+                        We can compare the <strong>Prediction</strong> to <strong>Reality</strong>.
+                    </p>
+
+                    <!-- Definitions -->
+                    <div class="ai-risk-container">
+                        <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">
+                            📚 Key Definitions
+                        </h4>
+                        
+                        <div style="display:grid; gap:14px; margin-top:16px;">
+                            <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
+                                <div style="font-weight:bold; color:#ef4444;">False Positive ("The False Alarm")</div>
+                                <div style="font-size:0.95rem; margin-top:8px;">
+                                    <div>Flagged <strong>High Risk</strong> → Did Not Re-offend</div>
+                                    <div style="margin-top:4px; color:var(--body-text-color-subdued);">
+                                        <strong>Consequence:</strong> Wrongful Detention
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="hint-box" style="margin-top:0; border-left:4px solid #f59e0b;">
+                                <div style="font-weight:bold; color:#f59e0b;">False Negative ("The Missed Target")</div>
+                                <div style="font-size:0.95rem; margin-top:8px;">
+                                    <div>Flagged <strong>Low Risk</strong> → Committed New Crime</div>
+                                    <div style="margin-top:4px; color:var(--body-text-color-subdued);">
+                                        <strong>Consequence:</strong> Public Danger
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CTA -->
+                    <div style="text-align:center; margin-top:24px;">
+                        <p style="margin-bottom:10px; font-size:1.0rem; font-weight:600;">
+                            Let's analyze High Risk Predictions vs. Reality (False Positives)
+                        </p>
+                    </div>
+                </div>
+            </div>
+        """
+    },
+    {
+        "id": 12,
+        "title": "Slide 12: Audit Analysis (False Positives)",
+        "sim_acc": 0.90,
+        "sim_comp": 84,
+        "html": """
+            <div class="scenario-box">
+                <h2 class="slide-title">⚠️ EVIDENCE FOUND: PUNITIVE BIAS</h2>
+                <div class="slide-body">
+                    
+                    <!-- Badge -->
+                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                        <div style="
+                            display:inline-flex;
+                            align-items:center;
+                            gap:10px;
+                            padding:10px 18px;
+                            border-radius:999px;
+                            background:var(--background-fill-secondary);
+                            border:1px solid var(--border-color-primary);
+                            font-size:0.95rem;
+                            text-transform:uppercase;
+                            letter-spacing:0.08em;
+                            font-weight:700;
+                        ">
+                            <span style="font-size:1.1rem;">⚠️</span>
+                            <span>EVIDENCE LOG: RACIAL DISPARITY</span>
+                        </div>
+                    </div>
+
+                    <!-- Narrative -->
+                    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
+                        We analyzed the "False Alarms"—innocent people flagged as High Risk.
+                    </p>
+
+                    <!-- Data Visualization -->
+                    <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
+                        <h4 style="margin-top:0; font-size:1.3rem;">📊 False Positive Rate by Race</h4>
+                        <div style="display:flex; gap:20px; margin-top:20px; justify-content:center;">
+                            <div style="flex:1; max-width:250px;">
+                                <div style="font-size:0.9rem; margin-bottom:8px; font-weight:600;">African-American</div>
+                                <div style="height:200px; background:#ef4444; border-radius:8px; display:flex; align-items:flex-end; justify-content:center; padding-bottom:12px;">
+                                    <div style="font-size:2rem; font-weight:bold; color:white;">45%</div>
+                                </div>
+                                <div style="font-size:0.85rem; margin-top:6px; color:var(--body-text-color-subdued);">
+                                    Error Rate
+                                </div>
+                            </div>
+                            <div style="flex:1; max-width:250px;">
+                                <div style="font-size:0.9rem; margin-bottom:8px; font-weight:600;">Caucasian</div>
+                                <div style="height:200px; background:#3b82f6; border-radius:8px; display:flex; align-items:flex-end; justify-content:center; padding-bottom:12px;">
+                                    <div style="font-size:2rem; font-weight:bold; color:white;">23%</div>
+                                </div>
+                                <div style="font-size:0.85rem; margin-top:6px; color:var(--body-text-color-subdued);">
+                                    Error Rate
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Insight -->
+                    <div class="hint-box" style="background:rgba(239, 68, 68, 0.1);">
+                        <h4 style="margin-top:0;">🔍 The Insight</h4>
+                        <p style="margin:0;">
+                            <strong>This is Punitive Bias.</strong> The AI is punishing one group <strong>twice as harshly</strong> 
+                            for the same level of innocence.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        """
+    },
+    {
+        "id": 13,
+        "title": "Slide 13: Audit Analysis (False Negatives)",
+        "sim_acc": 0.91,
+        "sim_comp": 86,
+        "html": """
+            <div class="scenario-box">
+                <h2 class="slide-title">⚠️ EVIDENCE FOUND: THE "FREE PASS"</h2>
+                <div class="slide-body">
+                    
+                    <!-- Badge -->
+                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                        <div style="
+                            display:inline-flex;
+                            align-items:center;
+                            gap:10px;
+                            padding:10px 18px;
+                            border-radius:999px;
+                            background:var(--background-fill-secondary);
+                            border:1px solid var(--border-color-primary);
+                            font-size:0.95rem;
+                            text-transform:uppercase;
+                            letter-spacing:0.08em;
+                            font-weight:700;
+                        ">
+                            <span style="font-size:1.1rem;">⚠️</span>
+                            <span>EVIDENCE LOG: RACIAL DISPARITY</span>
+                        </div>
+                    </div>
+
+                    <!-- Narrative -->
+                    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
+                        Now we look at dangerous people the AI mistakenly labeled "Low Risk."
+                    </p>
+
+                    <!-- Data Visualization -->
+                    <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
+                        <h4 style="margin-top:0; font-size:1.3rem;">📊 False Negative Rate by Race</h4>
+                        <div style="display:flex; gap:20px; margin-top:20px; justify-content:center;">
+                            <div style="flex:1; max-width:250px;">
+                                <div style="font-size:0.9rem; margin-bottom:8px; font-weight:600;">Caucasian</div>
+                                <div style="height:200px; background:#ef4444; border-radius:8px; display:flex; align-items:flex-end; justify-content:center; padding-bottom:12px;">
+                                    <div style="font-size:2rem; font-weight:bold; color:white;">48%</div>
+                                </div>
+                                <div style="font-size:0.85rem; margin-top:6px; color:var(--body-text-color-subdued);">
+                                    Error Rate
+                                </div>
+                            </div>
+                            <div style="flex:1; max-width:250px;">
+                                <div style="font-size:0.9rem; margin-bottom:8px; font-weight:600;">African-American</div>
+                                <div style="height:200px; background:#3b82f6; border-radius:8px; display:flex; align-items:flex-end; justify-content:center; padding-bottom:12px;">
+                                    <div style="font-size:2rem; font-weight:bold; color:white;">28%</div>
+                                </div>
+                                <div style="font-size:0.85rem; margin-top:6px; color:var(--body-text-color-subdued);">
+                                    Error Rate
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Insight -->
+                    <div class="hint-box" style="background:rgba(239, 68, 68, 0.1);">
+                        <h4 style="margin-top:0;">🔍 The Insight</h4>
+                        <p style="margin:0;">
+                            <strong>This is Omission Bias.</strong> The model gives Caucasian defendants the 
+                            "benefit of the doubt" at <strong>double the rate</strong>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        """
+    },
+    {
+        "id": 14,
+        "title": "Slide 14: Audit Analysis (Gender)",
+        "sim_acc": 0.91,
+        "sim_comp": 88,
+        "html": """
+            <div class="scenario-box">
+                <h2 class="slide-title">⚠️ EVIDENCE FOUND: SEVERITY BIAS</h2>
+                <div class="slide-body">
+                    
+                    <!-- Badge -->
+                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                        <div style="
+                            display:inline-flex;
+                            align-items:center;
+                            gap:10px;
+                            padding:10px 18px;
+                            border-radius:999px;
+                            background:var(--background-fill-secondary);
+                            border:1px solid var(--border-color-primary);
+                            font-size:0.95rem;
+                            text-transform:uppercase;
+                            letter-spacing:0.08em;
+                            font-weight:700;
+                        ">
+                            <span style="font-size:1.1rem;">⚠️</span>
+                            <span>EVIDENCE LOG: GENDER BIAS</span>
+                        </div>
+                    </div>
+
+                    <!-- Narrative -->
+                    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
+                        Remember the 81% Male data? The AI doesn't understand female crime patterns. It panics.
+                    </p>
+
+                    <!-- Data Visualization -->
+                    <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
+                        <h4 style="margin-top:0; font-size:1.3rem;">📊 High Risk Flagging for Minor Crimes</h4>
+                        <div style="margin: 20px auto; max-width:400px;">
+                            <div style="margin: 16px 0;">
+                                <div style="font-size:0.9rem; margin-bottom:8px; font-weight:600; text-align:left;">Men</div>
+                                <div style="height:40px; background:#3b82f6; border-radius:8px; display:flex; align-items:center; padding-left:16px;">
+                                    <div style="font-size:1.1rem; font-weight:bold; color:white;">Baseline Rate</div>
+                                </div>
+                            </div>
+                            <div style="margin: 16px 0;">
+                                <div style="font-size:0.9rem; margin-bottom:8px; font-weight:600; text-align:left;">Women</div>
+                                <div style="position:relative;">
+                                    <div style="height:40px; background:#ef4444; border-radius:8px; display:flex; align-items:center; padding-left:16px;">
+                                        <div style="font-size:1.1rem; font-weight:bold; color:white;">+37% Higher</div>
+                                    </div>
+                                    <div style="position:absolute; right:-60px; top:50%; transform:translateY(-50%); font-size:2rem;">⚠️</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Insight -->
+                    <div class="hint-box" style="background:rgba(239, 68, 68, 0.1);">
+                        <h4 style="margin-top:0;">🔍 The Insight</h4>
+                        <p style="margin:0;">
+                            <strong>This is Severity Bias.</strong> It judges women by male standards, treating minor 
+                            offenses as dangerous felonies.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        """
+    },
+    {
+        "id": 15,
+        "title": "Slide 15: Audit Analysis (Age)",
+        "sim_acc": 0.92,
+        "sim_comp": 90,
+        "html": """
+            <div class="scenario-box">
+                <h2 class="slide-title">⚠️ EVIDENCE FOUND: ESTIMATION ERROR</h2>
+                <div class="slide-body">
+                    
+                    <!-- Badge -->
+                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                        <div style="
+                            display:inline-flex;
+                            align-items:center;
+                            gap:10px;
+                            padding:10px 18px;
+                            border-radius:999px;
+                            background:var(--background-fill-secondary);
+                            border:1px solid var(--border-color-primary);
+                            font-size:0.95rem;
+                            text-transform:uppercase;
+                            letter-spacing:0.08em;
+                            font-weight:700;
+                        ">
+                            <span style="font-size:1.1rem;">⚠️</span>
+                            <span>EVIDENCE LOG: AGE BIAS</span>
+                        </div>
+                    </div>
+
+                    <!-- Narrative -->
+                    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
+                        The AI thinks "Criminal = Young." It fails to recognize risk in older populations.
+                    </p>
+
+                    <!-- Data Visualization -->
+                    <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
+                        <h4 style="margin-top:0; font-size:1.3rem;">📊 Missed Re-offender Detection Rate</h4>
+                        <div style="margin: 30px auto; max-width:500px;">
+                            <div style="background:rgba(239, 68, 68, 0.1); border:2px solid #ef4444; border-radius:12px; padding:24px;">
+                                <div style="font-size:1.1rem; margin-bottom:12px; font-weight:600;">
+                                    Older Defendants (50+)
+                                </div>
+                                <div style="font-size:3rem; font-weight:bold; color:#ef4444; margin:16px 0;">
+                                    55%
+                                </div>
+                                <div style="font-size:0.95rem; color:var(--body-text-color-subdued);">
+                                    of older re-offenders <strong>incorrectly flagged as Low Risk</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Insight -->
+                    <div class="hint-box" style="background:rgba(239, 68, 68, 0.1);">
+                        <h4 style="margin-top:0;">🔍 The Insight</h4>
+                        <p style="margin:0;">
+                            <strong>This is Estimation Error.</strong> The model creates a "safety bubble" around older 
+                            defendants, failing to detect genuine risk.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        """
+    },
+    {
+        "id": 16,
+        "title": "Slide 16: Audit Analysis (Geography)",
+        "sim_acc": 0.92,
+        "sim_comp": 92,
+        "html": """
+            <div class="scenario-box">
+                <h2 class="slide-title">⚠️ THE "PROXY" PROBLEM</h2>
+                <div class="slide-body">
+                    
+                    <!-- Badge -->
+                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                        <div style="
+                            display:inline-flex;
+                            align-items:center;
+                            gap:10px;
+                            padding:10px 18px;
+                            border-radius:999px;
+                            background:var(--background-fill-secondary);
+                            border:1px solid var(--border-color-primary);
+                            font-size:0.95rem;
+                            text-transform:uppercase;
+                            letter-spacing:0.08em;
+                            font-weight:700;
+                        ">
+                            <span style="font-size:1.1rem;">🗺️</span>
+                            <span>AUDIT TARGET: PROXY VARIABLES</span>
+                        </div>
+                    </div>
+
+                    <!-- Narrative -->
+                    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
+                        We often hear: "Just delete the Race column." But look at this map. The AI can see 
+                        <strong>Where You Live</strong>.
+                    </p>
+
+                    <!-- Data Visualization -->
+                    <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
+                        <h4 style="margin-top:0; font-size:1.3rem;">📊 False Positive Rate by Location Type</h4>
+                        <div style="margin: 30px auto; max-width:500px;">
+                            <div style="background:rgba(239, 68, 68, 0.1); border:2px solid #ef4444; border-radius:12px; padding:24px;">
+                                <div style="font-size:1.1rem; margin-bottom:12px; font-weight:600;">
+                                    "High Density Urban" Zip Codes
+                                </div>
+                                <div style="font-size:3rem; font-weight:bold; color:#ef4444; margin:16px 0;">
+                                    58%
+                                </div>
+                                <div style="font-size:0.95rem; color:var(--body-text-color-subdued);">
+                                    False Positive Rate
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top:20px; padding:16px; background:rgba(59, 130, 246, 0.1); border-radius:8px;">
+                            <p style="font-size:0.95rem; margin:0;">
+                                🏘️ The "Neighborhood Risk Score" is just a code for Race.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Insight -->
+                    <div class="hint-box" style="background:rgba(239, 68, 68, 0.1);">
+                        <h4 style="margin-top:0;">🔍 The Insight</h4>
+                        <p style="margin:0;">
+                            <strong>This is a Proxy Variable.</strong> This is "Redlining by Algorithm"—discrimination 
+                            hidden behind geography instead of explicit racial categories.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        """
+    },
+    {
+        "id": 17,
+        "title": "Slide 17: Audit Conclusion (Summary)",
+        "sim_acc": 0.92,
+        "sim_comp": 94,
+        "html": """
+            <div class="scenario-box">
+                <h2 class="slide-title">📂 AUDIT REPORT: SUMMARY</h2>
+                <div class="slide-body">
+                    
+                    <!-- Badge -->
+                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                        <div style="
+                            display:inline-flex;
+                            align-items:center;
+                            gap:10px;
+                            padding:10px 18px;
+                            border-radius:999px;
+                            background:rgba(34, 197, 94, 0.15);
+                            border:1px solid #22c55e;
+                            font-size:0.95rem;
+                            text-transform:uppercase;
+                            letter-spacing:0.08em;
+                            font-weight:700;
+                            color:#22c55e;
+                        ">
+                            <span style="font-size:1.1rem;">✅</span>
+                            <span>STATUS: AUDIT COMPLETE</span>
+                        </div>
+                    </div>
+
+                    <!-- Narrative -->
+                    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
+                        Analysis complete. The system passes the "Average Accuracy" test, but 
+                        <strong style="color:#ef4444;">fails the Fairness Test</strong> on every demographic level.
+                    </p>
+
+                    <!-- Impact Matrix -->
+                    <div class="ai-risk-container">
+                        <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">
+                            📋 Impact Matrix: Proven Harms
+                        </h4>
+                        
+                        <div style="display:grid; gap:14px; margin-top:16px;">
+                            <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
+                                <div style="font-weight:bold; color:#ef4444;">Race: Punitive Harm</div>
+                                <div style="font-size:0.95rem; margin-top:4px; color:var(--body-text-color-subdued);">
+                                    2x False Alarms for African-Americans
+                                </div>
+                            </div>
+                            
+                            <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
+                                <div style="font-weight:bold; color:#ef4444;">Gender: Severity Bias</div>
+                                <div style="font-size:0.95rem; margin-top:4px; color:var(--body-text-color-subdued);">
+                                    37% harsher penalties for women on minor crimes
+                                </div>
+                            </div>
+                            
+                            <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
+                                <div style="font-weight:bold; color:#ef4444;">Age: Estimation Error</div>
+                                <div style="font-size:0.95rem; margin-top:4px; color:var(--body-text-color-subdued);">
+                                    Blind to older risk (55% miss rate)
+                                </div>
+                            </div>
+                            
+                            <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
+                                <div style="font-weight:bold; color:#ef4444;">Geography: Proxy Bias</div>
+                                <div style="font-size:0.95rem; margin-top:4px; color:var(--body-text-color-subdued);">
+                                    Redlining (58% false positive in urban areas)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Deduction -->
+                    <div style="text-align:center; margin-top:24px; padding:16px; background:rgba(59, 130, 246, 0.1); border-radius:8px;">
+                        <p style="font-size:1.05rem; margin:0; font-weight:600;">
+                            🔍 You have the <strong>Evidence</strong> and the <strong>Proof of Harm</strong>. 
+                            You are ready to file your official conclusion.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        """
+    },
+    {
+        "id": 18,
+        "title": "Slide 18: The Final Verdict",
+        "sim_acc": 0.92,
+        "sim_comp": 96,
+        "html": """
+            <div class="scenario-box">
+                <h2 class="slide-title">⚖️ THE FINAL JUDGMENT</h2>
+                <div class="slide-body">
+                    
+                    <!-- Badge -->
+                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                        <div style="
+                            display:inline-flex;
+                            align-items:center;
+                            gap:10px;
+                            padding:10px 18px;
+                            border-radius:999px;
+                            background:var(--background-fill-secondary);
+                            border:1px solid var(--border-color-primary);
+                            font-size:0.95rem;
+                            text-transform:uppercase;
+                            letter-spacing:0.08em;
+                            font-weight:700;
+                        ">
+                            <span style="font-size:1.1rem;">⚖️</span>
+                            <span>STEP 4: DIAGNOSE HARM</span>
+                        </div>
+                    </div>
+
+                    <!-- Narrative -->
+                    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
+                        You have the full picture. The AI Vendor argues that the model is <strong>92% Accurate</strong> 
+                        and highly efficient. They want to deploy it immediately to clear the court backlog.
+                    </p>
+
+                    <!-- The Decision -->
+                    <div class="ai-risk-container">
+                        <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">
+                            🎯 Your Decision
+                        </h4>
+                        <p style="font-size:1.0rem; text-align:center; margin-bottom:20px; color:var(--body-text-color-subdued);">
+                            Based on your investigation, what is your recommendation?
+                        </p>
+                        
+                        <div style="display:grid; gap:12px; margin-top:16px;">
+                            <div class="hint-box" style="margin-top:0; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--color-accent)'" onmouseout="this.style.borderColor='var(--border-color-primary)'">
+                                <div style="font-weight:bold;">Option A: Authorize Deployment</div>
+                                <div style="font-size:0.9rem; margin-top:4px; color:var(--body-text-color-subdued);">
+                                    The 92% accuracy is good enough. Deploy immediately.
+                                </div>
+                            </div>
+                            
+                            <div class="hint-box" style="margin-top:0; border:2px solid #22c55e; background:rgba(34, 197, 94, 0.1);">
+                                <div style="font-weight:bold; color:#22c55e;">Option B: REJECT & OVERHAUL ✅ (Correct)</div>
+                                <div style="font-size:0.9rem; margin-top:4px; color:var(--body-text-color-subdued);">
+                                    The bias is systematic and severe. Reject deployment and require fundamental fixes.
+                                </div>
+                            </div>
+                            
+                            <div class="hint-box" style="margin-top:0; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--color-accent)'" onmouseout="this.style.borderColor='var(--border-color-primary)'">
+                                <div style="font-weight:bold;">Option C: Monitor Only</div>
+                                <div style="font-size:0.9rem; margin-top:4px; color:var(--body-text-color-subdued);">
+                                    Deploy but watch for issues. Adjust later if problems arise.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Feedback -->
+                    <div style="margin-top:24px; padding:20px; background:rgba(34, 197, 94, 0.1); border-radius:8px; border:2px solid #22c55e;">
+                        <h4 style="margin-top:0; color:#22c55e;">✅ Judgment Logged: REJECT</h4>
+                        <p style="font-size:1.0rem; margin:0;">
+                            <strong>High accuracy never excuses a violation of human rights.</strong> A system that is 
+                            "efficiently unfair" is a broken system. The evidence is clear: this model would systematically 
+                            harm marginalized communities while appearing objective.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        """
+    },
+    {
+        "id": 19,
+        "title": "Slide 19: Mission Debrief & Promotion",
+        "sim_acc": 0.92,
+        "sim_comp": 100,
+        "html": """
+            <div class="scenario-box">
+                <h2 class="slide-title">🏆 EXCELLENT WORK, DETECTIVE</h2>
+                <div class="slide-body">
+                    
+                    <!-- Badge -->
+                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                        <div style="
+                            display:inline-flex;
+                            align-items:center;
+                            gap:10px;
+                            padding:10px 18px;
+                            border-radius:999px;
+                            background:rgba(34, 197, 94, 0.15);
+                            border:1px solid #22c55e;
+                            font-size:0.95rem;
+                            text-transform:uppercase;
+                            letter-spacing:0.08em;
+                            font-weight:700;
+                            color:#22c55e;
+                        ">
+                            <span style="font-size:1.1rem;">🎖️</span>
+                            <span>PART 1 COMPLETE: BIAS DETECTED</span>
+                        </div>
+                    </div>
+
+                    <!-- Narrative -->
+                    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
+                        You successfully exposed the "Invisible Enemy." You proved that "92% Accuracy" was a mask 
+                        for <strong style="color:#ef4444;">Punitive Bias</strong> and 
+                        <strong style="color:#ef4444;">Proxy Discrimination</strong>. But a Diagnosis is not a Cure. 
+                        The court still needs a working system.
+                    </p>
+
+                    <!-- Achievement Summary -->
+                    <div class="ai-risk-container" style="margin-top:24px;">
+                        <h4 style="margin-top:0; font-size:1.15rem; text-align:center; color:#22c55e;">
+                            🎯 Mission Accomplished
+                        </h4>
+                        <div style="display:grid; gap:12px; margin-top:16px;">
+                            <div class="hint-box" style="margin-top:0; border-left:4px solid #22c55e;">
+                                <div style="font-weight:bold;">✅ Identified Data Bias</div>
+                                <div style="font-size:0.9rem; margin-top:4px; color:var(--body-text-color-subdued);">
+                                    Frequency, Representation, and Generalization errors
+                                </div>
+                            </div>
+                            <div class="hint-box" style="margin-top:0; border-left:4px solid #22c55e;">
+                                <div style="font-weight:bold;">✅ Exposed Performance Gaps</div>
+                                <div style="font-size:0.9rem; margin-top:4px; color:var(--body-text-color-subdued);">
+                                    Punitive, Omission, Severity, and Estimation biases
+                                </div>
+                            </div>
+                            <div class="hint-box" style="margin-top:0; border-left:4px solid #22c55e;">
+                                <div style="font-weight:bold;">✅ Detected Proxy Variables</div>
+                                <div style="font-size:0.9rem; margin-top:4px; color:var(--body-text-color-subdued);">
+                                    Algorithmic redlining through geographic data
+                                </div>
+                            </div>
+                            <div class="hint-box" style="margin-top:0; border-left:4px solid #22c55e;">
+                                <div style="font-weight:bold;">✅ Made Ethical Judgment</div>
+                                <div style="font-size:0.9rem; margin-top:4px; color:var(--body-text-color-subdued);">
+                                    Rejected deployment based on justice principles
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Promotion -->
+                    <div style="margin-top:28px; padding:24px; background:linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1)); border-radius:12px; border:2px solid var(--color-accent);">
+                        <h3 style="margin-top:0; text-align:center; color:var(--color-accent);">
+                            🎖️ PROMOTION: FAIRNESS ENGINEER
+                        </h3>
+                        <p style="font-size:1.05rem; text-align:center; margin-bottom:16px;">
+                            We don't just need someone to <strong>find</strong> the problems anymore—we need someone to 
+                            <strong>fix</strong> them.
+                        </p>
+                        <div class="hint-box" style="margin-top:12px; background:var(--block-background-fill);">
+                            <div style="font-weight:bold; margin-bottom:8px;">Your New Mission:</div>
+                            <div style="font-size:0.95rem;">
+                                Apply hands-on fairness fixes to repair the broken model.
+                            </div>
+                        </div>
+                        <div class="hint-box" style="margin-top:12px; background:var(--block-background-fill);">
+                            <div style="font-weight:bold; margin-bottom:8px;">The Roadmap:</div>
+                            <div style="font-size:0.9rem; display:grid; gap:6px;">
+                                <div>1️⃣ Remove Demographics</div>
+                                <div>2️⃣ Eliminate Proxies</div>
+                                <div>3️⃣ Develop Guidelines</div>
+                                <div>4️⃣ Continuous Improvement</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Final CTA -->
+                    <div style="text-align:center; margin-top:28px; padding:20px; background:rgba(34, 197, 94, 0.1); border-radius:8px;">
+                        <div style="font-size:1.5rem; margin-bottom:8px;">⬇️</div>
+                        <p style="font-size:1.1rem; font-weight:600; margin:0;">
+                            Mission Complete. Scroll Down to Begin Next Activity
+                        </p>
+                        <div style="font-size:1.5rem; margin-top:8px;">⬇️</div>
+                    </div>
+                </div>
+            </div>
+        """
     }
 ]
 
@@ -1053,6 +2341,125 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
                 btn_prev_2 = gr.Button("⬅️ Back to Mission")
                 btn_next_2 = gr.Button("Initialize Investigation Protocol ▶️", variant="primary")
 
+        # Module 3 – The Stakes
+        with gr.Column(visible=False) as module_3:
+            mod3_html = gr.HTML(MODULES[3]["html"])
+            with gr.Row():
+                btn_prev_3 = gr.Button("⬅️ Previous")
+                btn_next_3 = gr.Button("Protocol Confirmed. Start Scanning ▶️", variant="primary")
+
+        # Module 4 – The Detective's Method
+        with gr.Column(visible=False) as module_4:
+            mod4_html = gr.HTML(MODULES[4]["html"])
+            with gr.Row():
+                btn_prev_4 = gr.Button("⬅️ Previous")
+                btn_next_4 = gr.Button("I Know What to Look For. Open Scanner ▶️", variant="primary")
+
+        # Module 5 – Data Forensics Briefing
+        with gr.Column(visible=False) as module_5:
+            mod5_html = gr.HTML(MODULES[5]["html"])
+            with gr.Row():
+                btn_prev_5 = gr.Button("⬅️ Previous")
+                btn_next_5 = gr.Button("Scan Dataset ▶️", variant="primary")
+
+        # Module 6 – Evidence Scan (Race)
+        with gr.Column(visible=False) as module_6:
+            mod6_html = gr.HTML(MODULES[6]["html"])
+            with gr.Row():
+                btn_prev_6 = gr.Button("⬅️ Previous")
+                btn_next_6 = gr.Button("Log Evidence & Continue to Next Variable ▶️", variant="primary")
+
+        # Module 7 – Evidence Scan (Gender)
+        with gr.Column(visible=False) as module_7:
+            mod7_html = gr.HTML(MODULES[7]["html"])
+            with gr.Row():
+                btn_prev_7 = gr.Button("⬅️ Previous")
+                btn_next_7 = gr.Button("Log Evidence & Continue to Final Variable ▶️", variant="primary")
+
+        # Module 8 – Evidence Scan (Age)
+        with gr.Column(visible=False) as module_8:
+            mod8_html = gr.HTML(MODULES[8]["html"])
+            with gr.Row():
+                btn_prev_8 = gr.Button("⬅️ Previous")
+                btn_next_8 = gr.Button("Log Evidence & View Summary Report ▶️", variant="primary")
+
+        # Module 9 – Forensics Conclusion
+        with gr.Column(visible=False) as module_9:
+            mod9_html = gr.HTML(MODULES[9]["html"])
+            with gr.Row():
+                btn_prev_9 = gr.Button("⬅️ Previous")
+                btn_next_9 = gr.Button("Initiate Phase 3: Performance Audit ▶️", variant="primary")
+
+        # Module 10 – The Audit Briefing
+        with gr.Column(visible=False) as module_10:
+            mod10_html = gr.HTML(MODULES[10]["html"])
+            with gr.Row():
+                btn_prev_10 = gr.Button("⬅️ Previous")
+                btn_next_10 = gr.Button("Identify the Failure Type: Start Analysis ▶️", variant="primary")
+
+        # Module 11 – The Truth Serum
+        with gr.Column(visible=False) as module_11:
+            mod11_html = gr.HTML(MODULES[11]["html"])
+            with gr.Row():
+                btn_prev_11 = gr.Button("⬅️ Previous")
+                btn_next_11 = gr.Button("Analyze High Risk Predictions vs. Reality ▶️", variant="primary")
+
+        # Module 12 – Audit Analysis (False Positives)
+        with gr.Column(visible=False) as module_12:
+            mod12_html = gr.HTML(MODULES[12]["html"])
+            with gr.Row():
+                btn_prev_12 = gr.Button("⬅️ Previous")
+                btn_next_12 = gr.Button("Log Punitive Error & Check False Negatives ▶️", variant="primary")
+
+        # Module 13 – Audit Analysis (False Negatives)
+        with gr.Column(visible=False) as module_13:
+            mod13_html = gr.HTML(MODULES[13]["html"])
+            with gr.Row():
+                btn_prev_13 = gr.Button("⬅️ Previous")
+                btn_next_13 = gr.Button("Log Omission Error & Analyze Gender ▶️", variant="primary")
+
+        # Module 14 – Audit Analysis (Gender)
+        with gr.Column(visible=False) as module_14:
+            mod14_html = gr.HTML(MODULES[14]["html"])
+            with gr.Row():
+                btn_prev_14 = gr.Button("⬅️ Previous")
+                btn_next_14 = gr.Button("Log Severity Error & Analyze Age ▶️", variant="primary")
+
+        # Module 15 – Audit Analysis (Age)
+        with gr.Column(visible=False) as module_15:
+            mod15_html = gr.HTML(MODULES[15]["html"])
+            with gr.Row():
+                btn_prev_15 = gr.Button("⬅️ Previous")
+                btn_next_15 = gr.Button("Log Estimation Error & Check Geography ▶️", variant="primary")
+
+        # Module 16 – Audit Analysis (Geography)
+        with gr.Column(visible=False) as module_16:
+            mod16_html = gr.HTML(MODULES[16]["html"])
+            with gr.Row():
+                btn_prev_16 = gr.Button("⬅️ Previous")
+                btn_next_16 = gr.Button("Investigation Complete. File Final Report ▶️", variant="primary")
+
+        # Module 17 – Audit Conclusion
+        with gr.Column(visible=False) as module_17:
+            mod17_html = gr.HTML(MODULES[17]["html"])
+            with gr.Row():
+                btn_prev_17 = gr.Button("⬅️ Previous")
+                btn_next_17 = gr.Button("Open Final Case File & Submit Diagnosis ▶️", variant="primary")
+
+        # Module 18 – The Final Verdict
+        with gr.Column(visible=False) as module_18:
+            mod18_html = gr.HTML(MODULES[18]["html"])
+            with gr.Row():
+                btn_prev_18 = gr.Button("⬅️ Previous")
+                btn_next_18 = gr.Button("Sign & File Fairness Report ▶️", variant="primary")
+
+        # Module 19 – Mission Debrief & Promotion
+        with gr.Column(visible=False) as module_19:
+            mod19_html = gr.HTML(MODULES[19]["html"])
+            with gr.Row():
+                btn_prev_19 = gr.Button("⬅️ Previous")
+                btn_finish = gr.Button("🎉 Complete Bias Detective Course", variant="primary")
+
         # Leaderboard card at the bottom
         leaderboard_html = gr.HTML()
 
@@ -1183,14 +2590,651 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
             outputs=[module_1, module_2],
         )
 
-        # Finish from Module 2
-        def on_finish_from_module_2():
-            return "<div class='summary-box'><h3>✅ Briefing Complete</h3><p>You’ve completed Phase I: Moral Compass + Intelligence Briefing. Next, you’ll begin scanning the model for signs of bias.</p></div>"
+        # Module 2 -> Module 3
+        def on_next_from_module_2(username, token, team):
+            data, username = ensure_table_and_get_data(username, token, team)
+            html_top = render_top_dashboard(data, module_id=3)
+            lb_html = render_leaderboard_card(data, username, team)
+            return (
+                gr.update(value=html_top),
+                gr.update(value=lb_html),
+                gr.update(visible=False),
+                gr.update(visible=True),
+            )
 
         btn_next_2.click(
-            fn=on_finish_from_module_2,
+            fn=on_next_from_module_2,
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_2, module_3],
+        )
+
+        # Prev: Module 3 -> Module 2
+        btn_prev_3.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
             inputs=None,
-            outputs=[out_top],
+            outputs=[module_2, module_3],
+        )
+
+        # Next: Module 3 -> Module 4
+        btn_next_3.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=4)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_3, module_4],
+        )
+
+        # Prev: Module 4 -> Module 3
+        btn_prev_4.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_3, module_4],
+        )
+
+        # Next: Module 4 -> Module 5
+        btn_next_4.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=5)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_4, module_5],
+        )
+
+        # Prev: Module 5 -> Module 4
+        btn_prev_5.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_4, module_5],
+        )
+
+        # Next: Module 5 -> Module 6
+        btn_next_5.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=6)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_5, module_6],
+        )
+
+        # Prev: Module 6 -> Module 5
+        btn_prev_6.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_5, module_6],
+        )
+
+        # Next: Module 6 -> Module 7
+        btn_next_6.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=7)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_6, module_7],
+        )
+
+        # Prev: Module 7 -> Module 6
+        btn_prev_7.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_6, module_7],
+        )
+
+        # Next: Module 7 -> Module 8
+        btn_next_7.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=8)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_7, module_8],
+        )
+
+        # Prev: Module 8 -> Module 7
+        btn_prev_8.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_7, module_8],
+        )
+
+        # Next: Module 8 -> Module 9
+        btn_next_8.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=9)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_8, module_9],
+        )
+
+        # Prev: Module 9 -> Module 8
+        btn_prev_9.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_8, module_9],
+        )
+
+        # Next: Module 9 -> Module 10
+        btn_next_9.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=10)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_9, module_10],
+        )
+
+        # Prev: Module 10 -> Module 9
+        btn_prev_10.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_9, module_10],
+        )
+
+        # Next: Module 10 -> Module 11
+        btn_next_10.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=11)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_10, module_11],
+        )
+
+        # Prev: Module 11 -> Module 10
+        btn_prev_11.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_10, module_11],
+        )
+
+        # Next: Module 11 -> Module 12
+        btn_next_11.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=12)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_11, module_12],
+        )
+
+        # Prev: Module 12 -> Module 11
+        btn_prev_12.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_11, module_12],
+        )
+
+        # Next: Module 12 -> Module 13
+        btn_next_12.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=13)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_12, module_13],
+        )
+
+        # Prev: Module 13 -> Module 12
+        btn_prev_13.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_12, module_13],
+        )
+
+        # Next: Module 13 -> Module 14
+        btn_next_13.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=14)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_13, module_14],
+        )
+
+        # Prev: Module 14 -> Module 13
+        btn_prev_14.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_13, module_14],
+        )
+
+        # Next: Module 14 -> Module 15
+        btn_next_14.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=15)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_14, module_15],
+        )
+
+        # Prev: Module 15 -> Module 14
+        btn_prev_15.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_14, module_15],
+        )
+
+        # Next: Module 15 -> Module 16
+        btn_next_15.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=16)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_15, module_16],
+        )
+
+        # Prev: Module 16 -> Module 15
+        btn_prev_16.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_15, module_16],
+        )
+
+        # Next: Module 16 -> Module 17
+        btn_next_16.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=17)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_16, module_17],
+        )
+
+        # Prev: Module 17 -> Module 16
+        btn_prev_17.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_16, module_17],
+        )
+
+        # Next: Module 17 -> Module 18
+        btn_next_17.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=18)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_17, module_18],
+        )
+
+        # Prev: Module 18 -> Module 17
+        btn_prev_18.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_17, module_18],
+        )
+
+        # Next: Module 18 -> Module 19
+        btn_next_18.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=19)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_18, module_19],
+        )
+
+        # Prev: Module 19 -> Module 18
+        btn_prev_19.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_18, module_19],
+        )
+
+        # Finish button on Module 19
+        def on_finish_course(username, token, team):
+            data, username = ensure_table_and_get_data(username, token, team)
+            html_top = render_top_dashboard(data, module_id=19)
+            lb_html = render_leaderboard_card(data, username, team)
+            return (
+                gr.update(value=html_top),
+                gr.update(value=lb_html),
+            )
+
+        btn_finish.click(
+            fn=on_finish_course,
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html],
+        )
+
+        btn_next_2.click(
+            fn=on_next_from_module_2,
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_2, module_3],
+        )
+
+        # Navigation for modules 3-19
+        # Prev: Module 3 -> Module 2
+        btn_prev_3.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_2, module_3],
+        )
+
+        # Next: Module 3 -> Module 4
+        btn_next_3.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=4)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_3, module_4],
+        )
+
+        # Prev: Module 4 -> Module 3
+        btn_prev_4.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_3, module_4],
+        )
+
+        # Next: Module 4 -> Module 5
+        btn_next_4.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=5)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_4, module_5],
+        )
+
+        # Prev: Module 5 -> Module 4
+        btn_prev_5.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_4, module_5],
+        )
+
+        # Next: Module 5 -> Module 6
+        btn_next_5.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=6)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_5, module_6],
+        )
+
+        # Prev: Module 6 -> Module 5
+        btn_prev_6.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_5, module_6],
+        )
+
+        # Next: Module 6 -> Module 7
+        btn_next_6.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=7)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_6, module_7],
+        )
+
+        # Prev: Module 7 -> Module 6
+        btn_prev_7.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_6, module_7],
+        )
+
+        # Next: Module 7 -> Module 8
+        btn_next_7.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=8)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_7, module_8],
+        )
+
+        # Prev: Module 8 -> Module 7
+        btn_prev_8.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_7, module_8],
+        )
+
+        # Next: Module 8 -> Module 9
+        btn_next_8.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=9)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_8, module_9],
+        )
+
+        # Prev: Module 9 -> Module 8
+        btn_prev_9.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_8, module_9],
+        )
+
+        # Next: Module 9 -> Module 10
+        btn_next_9.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=10)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_9, module_10],
+        )
+
+        # Prev: Module 10 -> Module 9
+        btn_prev_10.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_9, module_10],
+        )
+
+        # Next: Module 10 -> Module 11
+        btn_next_10.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=11)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_10, module_11],
+        )
+
+        # Prev: Module 11 -> Module 10
+        btn_prev_11.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_10, module_11],
+        )
+
+        # Next: Module 11 -> Module 12
+        btn_next_11.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=12)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_11, module_12],
+        )
+
+        # Prev: Module 12 -> Module 11
+        btn_prev_12.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_11, module_12],
+        )
+
+        # Next: Module 12 -> Module 13
+        btn_next_12.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=13)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_12, module_13],
+        )
+
+        # Prev: Module 13 -> Module 12
+        btn_prev_13.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_12, module_13],
+        )
+
+        # Next: Module 13 -> Module 14
+        btn_next_13.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=14)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_13, module_14],
+        )
+
+        # Prev: Module 14 -> Module 13
+        btn_prev_14.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_13, module_14],
+        )
+
+        # Next: Module 14 -> Module 15
+        btn_next_14.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=15)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_14, module_15],
+        )
+
+        # Prev: Module 15 -> Module 14
+        btn_prev_15.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_14, module_15],
+        )
+
+        # Next: Module 15 -> Module 16
+        btn_next_15.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=16)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_15, module_16],
+        )
+
+        # Prev: Module 16 -> Module 15
+        btn_prev_16.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_15, module_16],
+        )
+
+        # Next: Module 16 -> Module 17
+        btn_next_16.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=17)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_16, module_17],
+        )
+
+        # Prev: Module 17 -> Module 16
+        btn_prev_17.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_16, module_17],
+        )
+
+        # Next: Module 17 -> Module 18
+        btn_next_17.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=18)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_17, module_18],
+        )
+
+        # Prev: Module 18 -> Module 17
+        btn_prev_18.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_17, module_18],
+        )
+
+        # Next: Module 18 -> Module 19
+        btn_next_18.click(
+            fn=lambda u, t, tm: (
+                gr.update(value=render_top_dashboard(*ensure_table_and_get_data(u, t, tm), module_id=19)),
+                gr.update(value=render_leaderboard_card(*ensure_table_and_get_data(u, t, tm), username=u, team_name=tm)),
+                gr.update(visible=False), gr.update(visible=True)
+            ),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_18, module_19],
+        )
+
+        # Prev: Module 19 -> Module 18
+        btn_prev_19.click(
+            fn=lambda: (gr.update(visible=True), gr.update(visible=False)),
+            inputs=None,
+            outputs=[module_18, module_19],
+        )
+
+        # Finish button on Module 19
+        def on_finish_course(username, token, team):
+            data, username = ensure_table_and_get_data(username, token, team)
+            html_top = render_top_dashboard(data, module_id=19)
+            lb_html = render_leaderboard_card(data, username, team)
+            return (
+                gr.update(value=html_top),
+                gr.update(value=lb_html),
+            )
+
+        btn_finish.click(
+            fn=on_finish_course,
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html],
         )
 
     return demo
