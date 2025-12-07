@@ -1461,14 +1461,14 @@ def patch_user_tasks(event):
         
         # Perform operation
         if op == 'add':
-            # Union: add new IDs (dedupe)
-            updated_ids = list(current_ids | set(task_ids))
+            # Union: add new IDs (dedupe) and sort for deterministic ordering
+            updated_ids = sorted(list(current_ids | set(task_ids)), key=lambda x: int(x[1:]))
         elif op == 'remove':
-            # Subtract: remove specified IDs
-            updated_ids = list(current_ids - set(task_ids))
+            # Subtract: remove specified IDs and sort for deterministic ordering
+            updated_ids = sorted(list(current_ids - set(task_ids)), key=lambda x: int(x[1:]))
         elif op == 'reset':
-            # Replace with provided IDs
-            updated_ids = task_ids
+            # Replace with provided IDs, sorted for deterministic ordering
+            updated_ids = sorted(task_ids, key=lambda x: int(x[1:]))
         
         # Update user item with new completedTaskIds
         retry_dynamo(lambda: table.update_item(

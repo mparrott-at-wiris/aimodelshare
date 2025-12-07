@@ -387,17 +387,23 @@ class ChallengeManager:
         - Tasks map to t1..tTotalTasks by their index order in self.challenge.tasks
         - Questions map to tTotalTasks+1..tN by their index order across all tasks
         
+        Note: This mapping is deterministic for a given challenge definition.
+        Tasks and questions are indexed in their fixed order as defined in the
+        challenge structure, ensuring consistent t-numbers for the same items.
+        
         Returns:
-            List of completed task IDs in unified format
+            List of completed task IDs in unified format, sorted
         """
         result = []
         
         # Map completed tasks to t1..tTotalTasks
+        # Uses enumerate to maintain consistent ordering based on challenge definition
         for i, task in enumerate(self.challenge.tasks):
             if task.id in self._completed_task_ids:
                 result.append(f"t{i + 1}")
         
         # Map answered questions to tTotalTasks+1..tN
+        # Maintains consistent ordering across all questions in all tasks
         question_offset = self.total_tasks
         question_index = 0
         for task in self.challenge.tasks:
@@ -406,7 +412,8 @@ class ChallengeManager:
                 if question.id in self._answered_questions:
                     result.append(f"t{question_offset + question_index}")
         
-        return result
+        # Return sorted list for deterministic ordering
+        return sorted(result, key=lambda x: int(x[1:]))
     
     def sync(self) -> Dict:
         """
