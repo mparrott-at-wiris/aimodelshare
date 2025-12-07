@@ -1784,12 +1784,27 @@ def trigger_api_update(username, token, team_name, module_id, append_task_id=Non
     new_task_ids = list(current_task_ids)  # Make a copy
     if append_task_id and append_task_id not in new_task_ids:
         new_task_ids.append(append_task_id)
-        new_task_ids.sort(key=lambda x: int(x[1:]))  # Sort numerically (t1, t2, ...)
+        # Sort numerically (t1, t2, ...) with error handling for invalid formats
+        try:
+            new_task_ids.sort(key=lambda x: int(x[1:]) if x.startswith('t') and x[1:].isdigit() else 0)
+        except (ValueError, IndexError):
+            # If sorting fails, keep original order
+            pass
     
     # Calculate tasks_completed and questions_correct based on task IDs
     # For Module 0, when we append "t1", this means 1 task completed and 1 question correct
-    tasks_completed = len(new_task_ids) if append_task_id else int(10 * (comp_pct / 100))
-    questions_correct = len(new_task_ids) if increment_question else 0
+    # When navigating without appending, use the module's completion percentage
+    if append_task_id:
+        tasks_completed = len(new_task_ids)
+        questions_correct = len(new_task_ids) if increment_question else 0
+    else:
+        # Use module's simulation percentage for non-quiz navigation
+        tasks_completed = int(10 * (comp_pct / 100))
+        questions_correct = 0
+    
+    # Total questions should be a fixed constant (10 for this app) or based on actual quiz count
+    # For now, use 10 as the total since that's the total_tasks value
+    total_questions = 10 if questions_correct > 0 else 0
     
     client.update_moral_compass(
         table_id=TABLE_ID,
@@ -1799,7 +1814,7 @@ def trigger_api_update(username, token, team_name, module_id, append_task_id=Non
         tasks_completed=tasks_completed,
         total_tasks=10,
         questions_correct=questions_correct,
-        total_questions=max(1, questions_correct),  # At least 1 if we have questions
+        total_questions=total_questions,
         primary_metric="accuracy",
         completed_task_ids=new_task_ids if new_task_ids else None
     )

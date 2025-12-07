@@ -121,7 +121,7 @@ def test_trigger_api_update_with_task_id():
         assert call_args[1]["completed_task_ids"] == ["t1"]
         assert call_args[1]["tasks_completed"] == 1
         assert call_args[1]["questions_correct"] == 1
-        assert call_args[1]["total_questions"] == 1
+        assert call_args[1]["total_questions"] == 10  # Fixed total
 
 
 def test_trigger_api_update_appends_to_existing_task_ids():
