@@ -46,6 +46,7 @@ print(f"[BOOT] Region: {AWS_REGION_NAME}")
 
 _TABLE_ID_RE = re.compile(r'^[a-zA-Z0-9_-]{1,64}$')
 _USERNAME_RE = re.compile(r'^[a-zA-Z0-9_-]{1,64}$')
+_TASK_ID_RE = re.compile(r'^t\d+$')
 
 # ============================================================================
 # Authentication & Authorization Helpers
@@ -386,6 +387,12 @@ def validate_table_id(table_id):
 
 def validate_username(username):
     return bool(username and isinstance(username, str) and _USERNAME_RE.match(username))
+
+def validate_task_ids(task_ids):
+    r"""Validate a list of task IDs. Each must match ^t\d+$."""
+    if not isinstance(task_ids, list):
+        return False
+    return all(isinstance(tid, str) and _TASK_ID_RE.match(tid) for tid in task_ids)
 
 def create_response(status_code, body, headers=None):
     default_headers = {
@@ -1098,6 +1105,8 @@ def get_user(event):
         }
         if item.get('teamName'):
             response_body['teamName'] = item['teamName']
+        if item.get('completedTaskIds'):
+            response_body['completedTaskIds'] = item['completedTaskIds']
         return create_response(200, response_body)
     except Exception as e:
         print(f"[ERROR] get_user exception: {e}")
@@ -1256,6 +1265,12 @@ def put_user_moral_compass(event):
         questions_correct = body.get('questionsCorrect')
         total_questions = body.get('totalQuestions')
         team_name = validate_and_normalize_team_name(body.get('teamName'))
+        completed_task_ids = body.get('completedTaskIds')
+        
+        # Validate completedTaskIds if provided
+        if completed_task_ids is not None:
+            if not validate_task_ids(completed_task_ids):
+                return create_response(400, {'error': 'completedTaskIds must be a list of strings matching ^t\\d+$'})
         
         # Validate metrics
         if not metrics or not isinstance(metrics, dict):
@@ -1328,6 +1343,12 @@ def put_user_moral_compass(event):
             'totalCount': existing_item.get('totalCount', 0)
         }
         
+        # Add completedTaskIds if provided, or preserve existing
+        if completed_task_ids is not None:
+            user_data['completedTaskIds'] = completed_task_ids
+        elif existing_item.get('completedTaskIds'):
+            user_data['completedTaskIds'] = existing_item['completedTaskIds']
+        
         # Add team name if provided, or preserve existing
         existing_team = existing_item.get('teamName')
         if team_name:
@@ -1369,6 +1390,8 @@ def put_user_moral_compass(event):
             'message': 'Moral compass data updated successfully',
             'createdNew': created_new
         }
+        if user_data.get('completedTaskIds'):
+            response_body['completedTaskIds'] = user_data['completedTaskIds']
         if user_data.get('teamName'):
             response_body['teamName'] = user_data['teamName']
         return create_response(200, response_body)
@@ -1377,6 +1400,156 @@ def put_user_moral_compass(event):
     except Exception as e:
         print(f"[ERROR] put_user_moral_compass exception: {e}")
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
+
+def patch_user_tasks(event):
+    """
+    Manage completedTaskIds list for a user.
+    Supports: add, remove, reset operations.
+    """
+    try:
+        params = event.get('pathParameters') or {}
+        table_id = params.get('tableId')
+        username = params.get('username')
+        body = json.loads(event.get('body', '{}'))
+        
+        if not validate_table_id(table_id):
+            return create_response(400, {'error': 'Invalid tableId format'})
+        if not validate_username(username):
+            return create_response(400, {'error': 'Invalid username format'})
+        
+        # Verify table exists
+        meta = retry_dynamo(lambda: table.get_item(
+            Key={'tableId': table_id, 'username': '_metadata'},
+            ConsistentRead=READ_CONSISTENT
+        ))
+        if 'Item' not in meta:
+            return create_response(404, {'error': 'Table not found'})
+        
+        # Check authorization if auth is enabled
+        if AUTH_ENABLED:
+            identity = get_identity_from_event(event)
+            if not identity.get('principal'):
+                return create_response(401, {'error': 'Authentication required'})
+            
+            # Allow self or admin to manage tasks
+            if not check_authorization(identity, username=username, require_self=True):
+                return create_response(403, {'error': 'Only the user or admin can update this data'})
+        
+        # Extract operation and task IDs
+        op = body.get('op')
+        task_ids = body.get('taskIds', [])
+        
+        # Validate operation
+        if op not in ['add', 'remove', 'reset']:
+            return create_response(400, {'error': 'op must be one of: add, remove, reset'})
+        
+        # Validate task IDs
+        if not validate_task_ids(task_ids):
+            return create_response(400, {'error': 'taskIds must be a list of strings matching ^t\\d+$'})
+        
+        # Get existing user data
+        existing_resp = retry_dynamo(lambda: table.get_item(
+            Key={'tableId': table_id, 'username': username},
+            ConsistentRead=READ_CONSISTENT
+        ))
+        existing_item = existing_resp.get('Item', {})
+        if not existing_item:
+            return create_response(404, {'error': 'User not found in table'})
+        
+        # Get current completedTaskIds
+        current_ids = set(existing_item.get('completedTaskIds', []))
+        
+        # Perform operation
+        if op == 'add':
+            # Union: add new IDs (dedupe) and sort for deterministic ordering
+            updated_ids = sorted(list(current_ids | set(task_ids)), key=lambda x: int(x[1:]))
+        elif op == 'remove':
+            # Subtract: remove specified IDs and sort for deterministic ordering
+            updated_ids = sorted(list(current_ids - set(task_ids)), key=lambda x: int(x[1:]))
+        elif op == 'reset':
+            # Replace with provided IDs, sorted for deterministic ordering
+            updated_ids = sorted(task_ids, key=lambda x: int(x[1:]))
+        
+        # Update user item with new completedTaskIds
+        retry_dynamo(lambda: table.update_item(
+            Key={'tableId': table_id, 'username': username},
+            UpdateExpression='SET completedTaskIds = :ids, lastUpdated = :timestamp',
+            ExpressionAttributeValues={
+                ':ids': updated_ids,
+                ':timestamp': datetime.utcnow().isoformat()
+            }
+        ))
+        
+        return create_response(200, {
+            'username': username,
+            'completedTaskIds': updated_ids,
+            'message': f'Tasks {op} operation completed successfully'
+        })
+    except json.JSONDecodeError:
+        return create_response(400, {'error': 'Invalid JSON in request body'})
+    except Exception as e:
+        print(f"[ERROR] patch_user_tasks exception: {e}")
+        return create_response(500, {'error': f'Internal server error: {str(e)}'})
+
+def delete_user_tasks(event):
+    """
+    Clear completedTaskIds list for a user.
+    """
+    try:
+        params = event.get('pathParameters') or {}
+        table_id = params.get('tableId')
+        username = params.get('username')
+        
+        if not validate_table_id(table_id):
+            return create_response(400, {'error': 'Invalid tableId format'})
+        if not validate_username(username):
+            return create_response(400, {'error': 'Invalid username format'})
+        
+        # Verify table exists
+        meta = retry_dynamo(lambda: table.get_item(
+            Key={'tableId': table_id, 'username': '_metadata'},
+            ConsistentRead=READ_CONSISTENT
+        ))
+        if 'Item' not in meta:
+            return create_response(404, {'error': 'Table not found'})
+        
+        # Check authorization if auth is enabled
+        if AUTH_ENABLED:
+            identity = get_identity_from_event(event)
+            if not identity.get('principal'):
+                return create_response(401, {'error': 'Authentication required'})
+            
+            # Allow self or admin to clear tasks
+            if not check_authorization(identity, username=username, require_self=True):
+                return create_response(403, {'error': 'Only the user or admin can update this data'})
+        
+        # Get existing user data to verify it exists
+        existing_resp = retry_dynamo(lambda: table.get_item(
+            Key={'tableId': table_id, 'username': username},
+            ConsistentRead=READ_CONSISTENT
+        ))
+        if 'Item' not in existing_resp:
+            return create_response(404, {'error': 'User not found in table'})
+        
+        # Clear completedTaskIds
+        retry_dynamo(lambda: table.update_item(
+            Key={'tableId': table_id, 'username': username},
+            UpdateExpression='SET completedTaskIds = :empty, lastUpdated = :timestamp',
+            ExpressionAttributeValues={
+                ':empty': [],
+                ':timestamp': datetime.utcnow().isoformat()
+            }
+        ))
+        
+        return create_response(200, {
+            'username': username,
+            'completedTaskIds': [],
+            'message': 'Tasks cleared successfully'
+        })
+    except Exception as e:
+        print(f"[ERROR] delete_user_tasks exception: {e}")
+        return create_response(500, {'error': f'Internal server error: {str(e)}'})
+
 
 def health(event):
     status = {
@@ -1423,6 +1596,10 @@ def handler(event, context):
             return put_user_moral_compass(event)
         elif route_key == 'PUT /tables/{tableId}/users/{username}/moralcompass':
             return put_user_moral_compass(event)
+        elif route_key == 'PATCH /tables/{tableId}/users/{username}/tasks':
+            return patch_user_tasks(event)
+        elif route_key == 'DELETE /tables/{tableId}/users/{username}/tasks':
+            return delete_user_tasks(event)
         elif route_key == 'POST /sessions': 
             return create_session(event)
         elif route_key == 'GET /sessions/{sessionId}':  
@@ -1454,6 +1631,10 @@ def handler(event, context):
             return put_user_moral_compass(event)
         elif method == 'PUT' and '/users/' in path and '/moralcompass' in path and path.count('/') == 5:
             return put_user_moral_compass(event)
+        elif method == 'PATCH' and '/users/' in path and '/tasks' in path and path.count('/') == 5:
+            return patch_user_tasks(event)
+        elif method == 'DELETE' and '/users/' in path and '/tasks' in path and path.count('/') == 5:
+            return delete_user_tasks(event)
         elif method == 'PUT' and '/users/' in path and path.count('/') == 4:
             return put_user(event)
         elif method == 'POST' and path == '/sessions': 
