@@ -389,7 +389,7 @@ def validate_username(username):
     return bool(username and isinstance(username, str) and _USERNAME_RE.match(username))
 
 def validate_task_ids(task_ids):
-    """Validate a list of task IDs. Each must match ^t\d+$."""
+    r"""Validate a list of task IDs. Each must match ^t\d+$."""
     if not isinstance(task_ids, list):
         return False
     return all(isinstance(tid, str) and _TASK_ID_RE.match(tid) for tid in task_ids)
