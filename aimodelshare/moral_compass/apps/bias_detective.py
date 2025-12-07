@@ -2347,32 +2347,30 @@ css = """
 
 # --- 9. BUILD APP (Bias Detective) ---
 
-def create_module_visibility_js(show_module_id):
+def js_nav(curr_id, next_id):
     """
-    Generate JavaScript to show only the specified module.
-    This is used to control visibility without using gr.Column.visible in outputs.
+    Generate JavaScript for client-side navigation between modules.
+    This is used as the 'js' parameter in button clicks to avoid DOM removal issues
+    with Gradio 5.x's optimization of invisible gr.HTML components.
     """
     return f"""
-    <script>
-    (function() {{
-        // Hide all modules
-        const modules = document.querySelectorAll('.module-container');
-        modules.forEach(function(module) {{
-            module.classList.remove('active');
-            module.style.display = 'none';
+    function() {{
+        // Hide all modules first
+        document.querySelectorAll('.module-container').forEach(el => {{
+            el.classList.remove('active');
+            el.style.display = 'none';
         }});
         
-        // Show the target module
-        const targetModule = document.getElementById('module-{show_module_id}');
-        if (targetModule) {{
-            targetModule.classList.add('active');
-            targetModule.style.display = 'block';
+        // Show target
+        const target = document.getElementById('module-{next_id}');
+        if (target) {{
+            target.classList.add('active');
+            target.style.display = 'block';
         }}
         
         // Scroll to top
         window.scrollTo(0, 0);
-    }})();
-    </script>
+    }}
     """
 
 def create_bias_detective_app(theme_primary_hue: str = "indigo"):
@@ -2389,9 +2387,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
 
         # Top dashboard
         out_top = gr.HTML()
-        
-        # Module visibility controller (uses JavaScript to show/hide modules)
-        module_visibility_control = gr.HTML(visible=False)
 
         # Module 0
         with gr.Column(elem_id="module-0", elem_classes=["module-container", "active"]) as module_0:
@@ -2611,36 +2606,37 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
                 return (
                     gr.update(),  # out_top
                     gr.update(),  # leaderboard_html
-                    gr.update(),  # module_visibility_control (no change)
                     gr.update(),  # current_module (stay on module 0)
+                    gr.update(visible=True),   # module_0 (Stay visible)
+                    gr.update(visible=False),  # module_1 (Stay hidden)
                 )
             # Just navigate - don't update score (quiz submission already did that)
             data, username = ensure_table_and_get_data(username, token, team)
             html_top  = render_top_dashboard(data, module_id=1)
             lb_html   = render_leaderboard_card(data, username, team)
-            visibility_js = create_module_visibility_js(1)
             return (
                 gr.update(value=html_top),
                 gr.update(value=lb_html),
-                visibility_js,
                 1,  # Update current_module state
+                gr.update(visible=False),  # module_0 (HIDE)
+                gr.update(visible=True),   # module_1 (SHOW)
             )
 
         btn_next_0.click(
             fn=on_next_from_module_0,
             inputs=[username_state, token_state, team_state, quiz_radio],
-            outputs=[out_top, leaderboard_html, module_visibility_control, current_module],
+            outputs=[out_top, leaderboard_html, current_module, module_0, module_1],
         )
 
         # Prev: Module 1 -> Module 0
         def on_prev_from_module_1():
-            visibility_js = create_module_visibility_js(0)
-            return (visibility_js, 0)
+            return 0
 
         btn_prev_1.click(
             fn=on_prev_from_module_1,
             inputs=None,
-            outputs=[module_visibility_control, current_module],
+            outputs=[current_module],
+            js=js_nav(1, 0)
         )
 
         # Next: Module 1 -> Module 2 (progress bump + refresh)
@@ -2648,29 +2644,28 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
             data, username = ensure_table_and_get_data(username, token, team)
             html_top = render_top_dashboard(data, module_id=2)
             lb_html  = render_leaderboard_card(data, username, team)
-            visibility_js = create_module_visibility_js(2)
             return (
                 gr.update(value=html_top),
                 gr.update(value=lb_html),
-                visibility_js,
                 2,
             )
 
         btn_next_1.click(
             fn=on_next_from_module_1,
             inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, module_visibility_control, current_module],
+            outputs=[out_top, leaderboard_html, current_module],
+            js=js_nav(1, 2)
         )
 
         # Prev: Module 2 -> Module 1
         def on_prev_from_module_2():
-            visibility_js = create_module_visibility_js(1)
-            return (visibility_js, 1)
+            return 1
 
         btn_prev_2.click(
             fn=on_prev_from_module_2,
             inputs=None,
-            outputs=[module_visibility_control, current_module],
+            outputs=[current_module],
+            js=js_nav(2, 1)
         )
 
         # Module 2 -> Module 3
@@ -2678,25 +2673,25 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
             data, username = ensure_table_and_get_data(username, token, team)
             html_top = render_top_dashboard(data, module_id=3)
             lb_html = render_leaderboard_card(data, username, team)
-            visibility_js = create_module_visibility_js(3)
             return (
                 gr.update(value=html_top),
                 gr.update(value=lb_html),
-                visibility_js,
                 3,
             )
 
         btn_next_2.click(
             fn=on_next_from_module_2,
             inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, module_visibility_control, current_module],
+            outputs=[out_top, leaderboard_html, current_module],
+            js=js_nav(2, 3)
         )
 
         # Prev: Module 3 -> Module 2
         btn_prev_3.click(
-            fn=lambda: (create_module_visibility_js(2), 2),
+            fn=lambda: 2,
             inputs=None,
-            outputs=[module_visibility_control, current_module],
+            outputs=[current_module],
+            js=js_nav(3, 2)
         )
 
         # Next: Module 3 -> Module 4
@@ -2704,18 +2699,19 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
             fn=lambda u, t, tm: (
                 gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=4)),
                 gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                create_module_visibility_js(4),
                 4
             ),
             inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, module_visibility_control, current_module],
+            outputs=[out_top, leaderboard_html, current_module],
+            js=js_nav(3, 4)
         )
 
         # Prev: Module 4 -> Module 3
         btn_prev_4.click(
-            fn=lambda: (create_module_visibility_js(3), 3),
+            fn=lambda: 3,
             inputs=None,
-            outputs=[module_visibility_control, current_module],
+            outputs=[current_module],
+            js=js_nav(4, 3)
         )
 
         # Next: Module 4 -> Module 5
@@ -2723,18 +2719,19 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
             fn=lambda u, t, tm: (
                 gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=5)),
                 gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                create_module_visibility_js(5),
                 5
             ),
             inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, module_visibility_control, current_module],
+            outputs=[out_top, leaderboard_html, current_module],
+            js=js_nav(4, 5)
         )
 
         # Prev: Module 5 -> Module 4
         btn_prev_5.click(
-            fn=lambda: (create_module_visibility_js(4), 4),
+            fn=lambda: 4,
             inputs=None,
-            outputs=[module_visibility_control, current_module],
+            outputs=[current_module],
+            js=js_nav(5, 4)
         )
 
         # Next: Module 5 -> Module 6
@@ -2742,18 +2739,19 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
             fn=lambda u, t, tm: (
                 gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=6)),
                 gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                create_module_visibility_js(6),
                 6
             ),
             inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, module_visibility_control, current_module],
+            outputs=[out_top, leaderboard_html, current_module],
+            js=js_nav(5, 6)
         )
 
         # Prev: Module 6 -> Module 5
         btn_prev_6.click(
-            fn=lambda: (create_module_visibility_js(5), 5),
+            fn=lambda: 5,
             inputs=None,
-            outputs=[module_visibility_control, current_module],
+            outputs=[current_module],
+            js=js_nav(6, 5)
         )
 
         # Next: Module 6 -> Module 7
@@ -2761,18 +2759,19 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
             fn=lambda u, t, tm: (
                 gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=7)),
                 gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                create_module_visibility_js(7),
                 7
             ),
             inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, module_visibility_control, current_module],
+            outputs=[out_top, leaderboard_html, current_module],
+            js=js_nav(6, 7)
         )
 
         # Prev: Module 7 -> Module 6
         btn_prev_7.click(
-            fn=lambda: (create_module_visibility_js(6), 6),
+            fn=lambda: 6,
             inputs=None,
-            outputs=[module_visibility_control, current_module],
+            outputs=[current_module],
+            js=js_nav(7, 6)
         )
 
         # Next: Module 7 -> Module 8
@@ -2780,18 +2779,19 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
             fn=lambda u, t, tm: (
                 gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=8)),
                 gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                create_module_visibility_js(8),
                 8
             ),
             inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, module_visibility_control, current_module],
+            outputs=[out_top, leaderboard_html, current_module],
+            js=js_nav(7, 8)
         )
 
         # Prev: Module 8 -> Module 7
         btn_prev_8.click(
-            fn=lambda: (create_module_visibility_js(7), 7),
+            fn=lambda: 7,
             inputs=None,
-            outputs=[module_visibility_control, current_module],
+            outputs=[current_module],
+            js=js_nav(8, 7)
         )
 
         # Next: Module 8 -> Module 9
@@ -2799,18 +2799,19 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
             fn=lambda u, t, tm: (
                 gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=9)),
                 gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                create_module_visibility_js(9),
                 9
             ),
             inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, module_visibility_control, current_module],
+            outputs=[out_top, leaderboard_html, current_module],
+            js=js_nav(8, 9)
         )
 
         # Prev: Module 9 -> Module 8
         btn_prev_9.click(
-            fn=lambda: (create_module_visibility_js(8), 8),
+            fn=lambda: 8,
             inputs=None,
-            outputs=[module_visibility_control, current_module],
+            outputs=[current_module],
+            js=js_nav(9, 8)
         )
 
         # Next: Module 9 -> Module 10
@@ -2818,18 +2819,19 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
             fn=lambda u, t, tm: (
                 gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=10)),
                 gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                create_module_visibility_js(10),
                 10
             ),
             inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, module_visibility_control, current_module],
+            outputs=[out_top, leaderboard_html, current_module],
+            js=js_nav(9, 10)
         )
 
         # Prev: Module 10 -> Module 9
         btn_prev_10.click(
-            fn=lambda: (create_module_visibility_js(9), 9),
+            fn=lambda: 9,
             inputs=None,
-            outputs=[module_visibility_control, current_module],
+            outputs=[current_module],
+            js=js_nav(10, 9)
         )
 
         # Next: Module 10 -> Module 11
@@ -2837,18 +2839,19 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
             fn=lambda u, t, tm: (
                 gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=11)),
                 gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                create_module_visibility_js(11),
                 11
             ),
             inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, module_visibility_control, current_module],
+            outputs=[out_top, leaderboard_html, current_module],
+            js=js_nav(10, 11)
         )
 
         # Prev: Module 11 -> Module 10
         btn_prev_11.click(
-            fn=lambda: (create_module_visibility_js(10), 10),
+            fn=lambda: 10,
             inputs=None,
-            outputs=[module_visibility_control, current_module],
+            outputs=[current_module],
+            js=js_nav(11, 10)
         )
 
         # Next: Module 11 -> Module 12
@@ -2856,18 +2859,19 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
             fn=lambda u, t, tm: (
                 gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=12)),
                 gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                create_module_visibility_js(12),
                 12
             ),
             inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, module_visibility_control, current_module],
+            outputs=[out_top, leaderboard_html, current_module],
+            js=js_nav(11, 12)
         )
 
         # Prev: Module 12 -> Module 11
         btn_prev_12.click(
-            fn=lambda: (create_module_visibility_js(11), 11),
+            fn=lambda: 11,
             inputs=None,
-            outputs=[module_visibility_control, current_module],
+            outputs=[current_module],
+            js=js_nav(12, 11)
         )
 
         # Next: Module 12 -> Module 13
@@ -2875,18 +2879,19 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
             fn=lambda u, t, tm: (
                 gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=13)),
                 gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                create_module_visibility_js(13),
                 13
             ),
             inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, module_visibility_control, current_module],
+            outputs=[out_top, leaderboard_html, current_module],
+            js=js_nav(12, 13)
         )
 
         # Prev: Module 13 -> Module 12
         btn_prev_13.click(
-            fn=lambda: (create_module_visibility_js(12), 12),
+            fn=lambda: 12,
             inputs=None,
-            outputs=[module_visibility_control, current_module],
+            outputs=[current_module],
+            js=js_nav(13, 12)
         )
 
         # Next: Module 13 -> Module 14
@@ -2894,18 +2899,19 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
             fn=lambda u, t, tm: (
                 gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=14)),
                 gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                create_module_visibility_js(14),
                 14
             ),
             inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, module_visibility_control, current_module],
+            outputs=[out_top, leaderboard_html, current_module],
+            js=js_nav(13, 14)
         )
 
         # Prev: Module 14 -> Module 13
         btn_prev_14.click(
-            fn=lambda: (create_module_visibility_js(13), 13),
+            fn=lambda: 13,
             inputs=None,
-            outputs=[module_visibility_control, current_module],
+            outputs=[current_module],
+            js=js_nav(14, 13)
         )
 
         # Next: Module 14 -> Module 15
@@ -2913,18 +2919,19 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
             fn=lambda u, t, tm: (
                 gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=15)),
                 gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                create_module_visibility_js(15),
                 15
             ),
             inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, module_visibility_control, current_module],
+            outputs=[out_top, leaderboard_html, current_module],
+            js=js_nav(14, 15)
         )
 
         # Prev: Module 15 -> Module 14
         btn_prev_15.click(
-            fn=lambda: (create_module_visibility_js(14), 14),
+            fn=lambda: 14,
             inputs=None,
-            outputs=[module_visibility_control, current_module],
+            outputs=[current_module],
+            js=js_nav(15, 14)
         )
 
         # Next: Module 15 -> Module 16
@@ -2932,18 +2939,19 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
             fn=lambda u, t, tm: (
                 gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=16)),
                 gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                create_module_visibility_js(16),
                 16
             ),
             inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, module_visibility_control, current_module],
+            outputs=[out_top, leaderboard_html, current_module],
+            js=js_nav(15, 16)
         )
 
         # Prev: Module 16 -> Module 15
         btn_prev_16.click(
-            fn=lambda: (create_module_visibility_js(15), 15),
+            fn=lambda: 15,
             inputs=None,
-            outputs=[module_visibility_control, current_module],
+            outputs=[current_module],
+            js=js_nav(16, 15)
         )
 
         # Next: Module 16 -> Module 17
@@ -2951,18 +2959,19 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
             fn=lambda u, t, tm: (
                 gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=17)),
                 gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                create_module_visibility_js(17),
                 17
             ),
             inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, module_visibility_control, current_module],
+            outputs=[out_top, leaderboard_html, current_module],
+            js=js_nav(16, 17)
         )
 
         # Prev: Module 17 -> Module 16
         btn_prev_17.click(
-            fn=lambda: (create_module_visibility_js(16), 16),
+            fn=lambda: 16,
             inputs=None,
-            outputs=[module_visibility_control, current_module],
+            outputs=[current_module],
+            js=js_nav(17, 16)
         )
 
         # Next: Module 17 -> Module 18
@@ -2970,18 +2979,19 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
             fn=lambda u, t, tm: (
                 gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=18)),
                 gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                create_module_visibility_js(18),
                 18
             ),
             inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, module_visibility_control, current_module],
+            outputs=[out_top, leaderboard_html, current_module],
+            js=js_nav(17, 18)
         )
 
         # Prev: Module 18 -> Module 17
         btn_prev_18.click(
-            fn=lambda: (create_module_visibility_js(17), 17),
+            fn=lambda: 17,
             inputs=None,
-            outputs=[module_visibility_control, current_module],
+            outputs=[current_module],
+            js=js_nav(18, 17)
         )
 
         # Next: Module 18 -> Module 19
@@ -2989,18 +2999,19 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
             fn=lambda u, t, tm: (
                 gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=19)),
                 gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                create_module_visibility_js(19),
                 19
             ),
             inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, module_visibility_control, current_module],
+            outputs=[out_top, leaderboard_html, current_module],
+            js=js_nav(18, 19)
         )
 
         # Prev: Module 19 -> Module 18
         btn_prev_19.click(
-            fn=lambda: (create_module_visibility_js(18), 18),
+            fn=lambda: 18,
             inputs=None,
-            outputs=[module_visibility_control, current_module],
+            outputs=[current_module],
+            js=js_nav(19, 18)
         )
 
         # Finish button on Module 19
