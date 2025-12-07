@@ -379,6 +379,35 @@ class ChallengeManager:
         
         return primary_value * progress_ratio
     
+    def _build_completed_task_ids(self) -> List[str]:
+        """
+        Build unified completedTaskIds list based on local state.
+        
+        Maps completed tasks and answered questions to t1, t2, ..., tn format where:
+        - Tasks map to t1..tTotalTasks by their index order in self.challenge.tasks
+        - Questions map to tTotalTasks+1..tN by their index order across all tasks
+        
+        Returns:
+            List of completed task IDs in unified format
+        """
+        result = []
+        
+        # Map completed tasks to t1..tTotalTasks
+        for i, task in enumerate(self.challenge.tasks):
+            if task.id in self._completed_task_ids:
+                result.append(f"t{i + 1}")
+        
+        # Map answered questions to tTotalTasks+1..tN
+        question_offset = self.total_tasks
+        question_index = 0
+        for task in self.challenge.tasks:
+            for question in task.questions:
+                question_index += 1
+                if question.id in self._answered_questions:
+                    result.append(f"t{question_offset + question_index}")
+        
+        return result
+    
     def sync(self) -> Dict:
         """
         Sync current state to the Moral Compass API.
@@ -398,7 +427,8 @@ class ChallengeManager:
             questions_correct=self.questions_correct,
             total_questions=self.total_questions,
             primary_metric=self.primary_metric,
-            team_name=self.team_name
+            team_name=self.team_name,
+            completed_task_ids=self._build_completed_task_ids()
         )
     
     def __repr__(self) -> str:
