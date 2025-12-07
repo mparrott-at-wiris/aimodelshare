@@ -1706,6 +1706,11 @@ def get_leaderboard_data(client, username, team_name):
         score = float(my_user.get("moralCompassScore", 0) or 0) if my_user else 0.0
         rank = users_sorted.index(my_user) + 1 if my_user else 0
         
+        # Get completedTaskIds from user record
+        completed_task_ids = []
+        if my_user:
+            completed_task_ids = my_user.get("completedTaskIds", []) or []
+        
         team_map = {}
         for u in users:
             t = u.get("teamName")
@@ -1729,7 +1734,8 @@ def get_leaderboard_data(client, username, team_name):
             "rank": rank,
             "team_rank": team_rank,
             "all_users": users_sorted,
-            "all_teams": teams_sorted
+            "all_teams": teams_sorted,
+            "completed_task_ids": completed_task_ids
         }
     except Exception as e:
         print(f"Leaderboard Error: {e}")
@@ -1751,7 +1757,7 @@ def ensure_table_and_get_data(username, token, team_name):
     data = get_leaderboard_data(client, username, team_name)
     return data, username
 
-def trigger_api_update(username, token, team_name, module_id):
+def trigger_api_update(username, token, team_name, module_id, append_task_id=None, increment_question=False):
     """Update moral compass score using username and token directly."""
     os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
     
@@ -1770,17 +1776,32 @@ def trigger_api_update(username, token, team_name, module_id):
     comp_pct = mod["sim_comp"]
     
     prev_data = get_leaderboard_data(client, username, team_name)
-
+    
+    # Get current completedTaskIds from prev_data
+    current_task_ids = prev_data.get('completed_task_ids', []) or [] if prev_data else []
+    
+    # Build the new completedTaskIds list
+    new_task_ids = list(current_task_ids)  # Make a copy
+    if append_task_id and append_task_id not in new_task_ids:
+        new_task_ids.append(append_task_id)
+        new_task_ids.sort(key=lambda x: int(x[1:]))  # Sort numerically (t1, t2, ...)
+    
+    # Calculate tasks_completed and questions_correct based on task IDs
+    # For Module 0, when we append "t1", this means 1 task completed and 1 question correct
+    tasks_completed = len(new_task_ids) if append_task_id else int(10 * (comp_pct / 100))
+    questions_correct = len(new_task_ids) if increment_question else 0
+    
     client.update_moral_compass(
         table_id=TABLE_ID,
         username=username,
         team_name=team_name,
         metrics={"accuracy": acc},
-        tasks_completed=int(10 * (comp_pct / 100)),
+        tasks_completed=tasks_completed,
         total_tasks=10,
-        questions_correct=0,
-        total_questions=0,
-        primary_metric="accuracy"
+        questions_correct=questions_correct,
+        total_questions=max(1, questions_correct),  # At least 1 if we have questions
+        primary_metric="accuracy",
+        completed_task_ids=new_task_ids if new_task_ids else None
     )
     time.sleep(0.5)
     
@@ -1823,13 +1844,17 @@ def render_top_dashboard(data, module_id):
         """
     progress_pct = int(((module_id + 1) / len(MODULES)) * 100)
     
+    # If completedTaskIds is empty, show score as 0 until first task is completed
+    completed_task_ids = data.get('completed_task_ids', []) or []
+    display_score = data['score'] if completed_task_ids else 0.0
+    
     return f"""
     <div class="summary-box">
         <div class="summary-box-inner">
             <div class="summary-metrics">
                 <div style="text-align:center;">
                     <div class="label-text">Moral Compass Score</div>
-                    <div class="score-text-primary">🧭 {data['score']:.3f}</div>
+                    <div class="score-text-primary">🧭 {display_score:.3f}</div>
                 </div>
                 <div class="divider-vertical"></div>
                 <div style="text-align:center;">
@@ -1982,7 +2007,11 @@ def submit_quiz_0(username, token, team_name, module0_done, answer):
             gr.update(value=msg_html),
         )
 
-    prev, curr, username = trigger_api_update(username, token, team_name, module_id=0)
+    # Correct answer - append "t1" to completedTaskIds and increment counters
+    prev, curr, username = trigger_api_update(
+        username, token, team_name, module_id=0, 
+        append_task_id="t1", increment_question=True
+    )
 
     d_score = curr["score"] - (prev["score"] if prev else 0.0)
     prev_rank = prev["rank"] if prev and prev.get("rank") else 999
@@ -2559,7 +2588,7 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
             ],
         )
 
-        # Next: Module 0 -> Module 1 (score update for module 1)
+        # Next: Module 0 -> Module 1 (navigation only, no score update)
         def on_next_from_module_0(username, token, team, answer):
             if answer is None:
                 # Don't navigate if no answer selected - user must select an answer first
@@ -2570,9 +2599,10 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
                     gr.update(),  # module_visibility_control (no change)
                     gr.update(),  # current_module (stay on module 0)
                 )
-            _, new_data, username = trigger_api_update(username, token, team, module_id=1)
-            html_top  = render_top_dashboard(new_data, module_id=1)
-            lb_html   = render_leaderboard_card(new_data, username, team)
+            # Just navigate - don't update score (quiz submission already did that)
+            data, username = ensure_table_and_get_data(username, token, team)
+            html_top  = render_top_dashboard(data, module_id=1)
+            lb_html   = render_leaderboard_card(data, username, team)
             visibility_js = create_module_visibility_js(1)
             return (
                 gr.update(value=html_top),
