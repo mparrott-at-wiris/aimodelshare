@@ -2626,6 +2626,7 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
             fn=on_next_from_module_0,
             inputs=[username_state, token_state, team_state, quiz_radio],
             outputs=[out_top, leaderboard_html, current_module, module_0, module_1],
+            js=js_nav(0, 1)  # <-- Add this so Module 1 becomes active and visible
         )
 
         # Prev: Module 1 -> Module 0
