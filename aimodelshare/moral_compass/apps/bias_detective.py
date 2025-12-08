@@ -2171,33 +2171,85 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
 
         # 1. INITIAL LOAD
         def handle_initial_load(request: gr.Request):
+            """
+            On app load:
+            1. Auth checks.
+            2. Fetch real accuracy/team from Playground history.
+            3. silently syncs this data to the Moral Compass server so the user exists.
+            4. Renders the dashboard.
+            """
             success, username, token = _try_session_based_auth(request)
+            
+            # Defaults
             team_name = "Team-Unassigned"
             real_accuracy = 0.0
             
             if success and username and token:
+                # 1. Fetch REAL history from the original playground
                 real_accuracy, fetched_team = fetch_user_history(username, token)
                 
+                # 2. Initialize connection
                 os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
                 client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
                 
+                # 3. Check if user already has a team in Moral Compass DB
                 existing_team = get_or_assign_team(client, username)
-                if existing_team == "team-a" and fetched_team != "Team-Unassigned":
+                
+                # LOGIC FIX: Prioritize the Playground Team if valid
+                if fetched_team != "Team-Unassigned":
                     team_name = fetched_team
-                else:
+                elif existing_team != "team-a":
                     team_name = existing_team
-
+                else:
+                    team_name = "team-a"
+        
+                # 4. SILENT SYNC: Ensure user exists on server with correct data
+                try:
+                    # Check if user exists to avoid overwriting progress if they do
+                    user_stats = client.get_user(table_id=TABLE_ID, username=username)
+                except Exception:
+                    user_stats = None 
+        
+                # We update if: A) New user, or B) Team name is out of sync
+                current_db_team = user_stats.get('teamName') if user_stats else None
+                
+                if not user_stats or current_db_team != team_name:
+                    print(f"Syncing user {username} to Team: {team_name} (Accuracy: {real_accuracy})...")
+                    client.update_moral_compass(
+                        table_id=TABLE_ID,
+                        username=username,
+                        team_name=team_name, 
+                        metrics={"accuracy": float(real_accuracy)},
+                        # Preserve progress if they existed, else 0
+                        tasks_completed=user_stats.get('tasksCompleted', 0) if user_stats else 0,
+                        total_tasks=10,
+                        primary_metric="accuracy"
+                    )
+                    # Small sleep to let DynamoDB consistency catch up before we read back
+                    time.sleep(1.0)
+        
+                # 5. Get Data & Render
                 data, username = ensure_table_and_get_data(username, token, team_name)
                 html_top = render_top_dashboard(data, module_id=0)
                 lb_html = render_leaderboard_card(data, username, team_name)
                 
                 return (
-                    username, token, team_name, False, 
-                    html_top, lb_html, real_accuracy
+                    username,      # 1. username_state
+                    token,         # 2. token_state
+                    team_name,     # 3. team_state
+                    False,         # 4. module0_done
+                    html_top,      # 5. out_top
+                    lb_html,       # 6. leaderboard_html
+                    real_accuracy  # 7. accuracy_state
                 )
             else:
-                return (None, None, None, False, 
-                        "<div class='hint-box'>⚠️ Authentication required.</div>", "", 0.0)
+                # Failure Case
+                return (
+                    None, None, None, False, 
+                    "<div class='hint-box'>⚠️ Authentication required. Please access this app with a valid session ID.</div>", 
+                    "", 
+                    0.0
+                )
 
         demo.load(
             fn=handle_initial_load,
