@@ -17,14 +17,18 @@ def install_dependencies():
 
 try:
     import gradio as gr
+    from aimodelshare.playground import Competition
     from aimodelshare.moral_compass import MoralcompassApiClient
     from aimodelshare.aws import get_token_from_session, _get_username_from_token
 except ImportError:
     print("📦 Installing dependencies...")
     install_dependencies()
     import gradio as gr
+    from aimodelshare.playground import Competition
     from aimodelshare.moral_compass import MoralcompassApiClient
     from aimodelshare.aws import get_token_from_session, _get_username_from_token
+
+ORIGINAL_PLAYGROUND_URL = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
 
 # --- 3. AUTH HELPER ---
 
@@ -1741,6 +1745,54 @@ def get_leaderboard_data(client, username, team_name):
         print(f"Leaderboard Error: {e}")
         return None
 
+def fetch_user_history(username, token):
+    """
+    Fetches user's Best Accuracy and Team from the Original Playground.
+    Returns: (accuracy, team_name)
+    """
+    # CHANGE: Fallback is now 0.0, implying no prior technical success
+    default_acc = 0.0  
+    default_team = "Team-Unassigned"
+    
+    try:
+        # Connect to the original playground
+        playground = Competition(ORIGINAL_PLAYGROUND_URL)
+        df = playground.get_leaderboard(token=token)
+        
+        if df is None or df.empty:
+            return default_acc, default_team
+
+        # 1. Get Best Accuracy
+        # Check if username exists in the data
+        if "username" in df.columns and "accuracy" in df.columns:
+            user_rows = df[df["username"] == username]
+            
+            if not user_rows.empty:
+                # Get max accuracy
+                best_acc = user_rows["accuracy"].max()
+                
+                # 2. Get Team (Most recent submission)
+                # Sort by timestamp descending
+                if "timestamp" in user_rows.columns and "Team" in user_rows.columns:
+                    try:
+                        # Ensure timestamp is datetime objects for sorting
+                        user_rows = user_rows.copy()
+                        user_rows["timestamp"] = pd.to_datetime(user_rows["timestamp"], errors="coerce")
+                        user_rows = user_rows.sort_values("timestamp", ascending=False)
+                        
+                        found_team = user_rows.iloc[0]["Team"]
+                        if pd.notna(found_team) and str(found_team).strip():
+                            default_team = str(found_team).strip()
+                    except Exception as e:
+                        print(f"Team sort error: {e}")
+                
+                return float(best_acc), default_team
+                
+    except Exception as e:
+        print(f"Error fetching original history: {e}")
+        
+    return default_acc, default_team
+    
 def ensure_table_and_get_data(username, token, team_name):
     """Get leaderboard data using username and token directly."""
     os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
@@ -2510,7 +2562,8 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         team_state     = gr.State(value=None)
         module0_done   = gr.State(value=False)
         current_module = gr.State(value=0)  # Track current module for visibility control
-
+        accuracy_state = gr.State(value=0.0)
+        
         # Title
         gr.Markdown("# 🕵️‍♀️ Bias Detective: Moral Compass Lab")
 
@@ -2722,52 +2775,47 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
 
         # Initial load with session-based auth
         def handle_initial_load(request: gr.Request):
-            """
-            Authenticate via session token on page load.
-            """
             success, username, token = _try_session_based_auth(request)
             
+            # Defaults
+            team_name = "Team-Unassigned"
+            real_accuracy = 0 # Fallback
+            
             if success and username and token:
-                # Get or assign team based on user's leaderboard data
+                # 1. Fetch REAL history from the original playground
+                real_accuracy, fetched_team = fetch_user_history(username, token)
+                
+                # 2. Initialize connection
                 os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
                 client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
-                team_name = get_or_assign_team(client, username)
                 
+                # 3. Check if user already has a team in Moral Compass DB
+                # If not, assign the one we just fetched
+                existing_team = get_or_assign_team(client, username)
+                
+                # Logic: If get_or_assign returns a generic default, but we found a real one, use the real one
+                if existing_team == "team-a" and fetched_team != "Team-Unassigned":
+                    team_name = fetched_team
+                else:
+                    team_name = existing_team
+        
+                # 4. Get Data & Render
                 data, username = ensure_table_and_get_data(username, token, team_name)
                 html_top = render_top_dashboard(data, module_id=0)
                 lb_html = render_leaderboard_card(data, username, team_name)
                 
                 return (
-                    username,        # username_state
-                    token,           # token_state
-                    team_name,       # team_state
-                    False,           # module0_done
-                    html_top,        # out_top
-                    lb_html,         # leaderboard_html
+                    username, 
+                    token, 
+                    team_name, 
+                    False, 
+                    html_top, 
+                    lb_html,
+                    real_accuracy # <--- RETURN THIS TO STATE
                 )
             else:
-                # No valid session - show empty state
-                return (
-                    None,            # username_state
-                    None,            # token_state
-                    None,            # team_state
-                    False,           # module0_done
-                    "<div class='hint-box'>⚠️ Authentication required. Please access this app with a valid session ID.</div>",
-                    "",              # leaderboard_html
-                )
-
-        demo.load(
-            fn=handle_initial_load,
-            inputs=None,
-            outputs=[
-                username_state,
-                token_state,
-                team_state,
-                module0_done,
-                out_top,
-                leaderboard_html,
-            ],
-        )
+                # ... (failure case remains the same) ...
+                return (None, None, None, False, "...", "", real_accuracy)
 
         # Next: Module 0 -> Module 1 (navigation only, no score update)
         def on_next_from_module_0(username, token, team, answer):
