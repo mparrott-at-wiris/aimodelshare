@@ -1864,9 +1864,8 @@ def render_user_table(data, username):
         row_class = "row-highlight-me" if is_me else "row-normal"
         rows += f"<tr class='{row_class}'><td style='padding:12px;text-align:center;'>{idx+1}</td><td style='padding:12px;'>{u.get('username','')}</td><td style='padding:12px;text-align:right;'>{float(u.get('moralCompassScore',0)):.3f}</td></tr>"
     return f"<div class='table-container'><table class='leaderboard-table'><thead><tr><th style='padding:12px;'>Rank</th><th style='padding:12px;text-align:left;'>Agent</th><th style='padding:12px;text-align:right;'>Score 🧭</th></tr></thead><tbody>{rows}</tbody></table></div>"
-```### Part 3: Quiz Logic, CSS, App Layout, and Launch
+### Part 3: Quiz Logic, CSS, App Layout, and Launch
 
-```python
 # --- 7. QUIZ LOGIC (With Wrappers) ---
 
 CORRECT_ANSWER_0 = "A) Because simple accuracy ignores potential bias and harm."
