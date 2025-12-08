@@ -1859,43 +1859,23 @@ def trigger_api_update(username, token, team_name, module_id, append_task_id=Non
 # --- 6. RENDERERS ---
 
 def render_top_dashboard(data, module_id):
-    if not data:
-        return """
-        <div class="summary-box">
-            <div class="summary-box-inner">
-                <div class="summary-metrics">
-                    <div style="text-align:center;">
-                        <div class="label-text">Moral Compass Score</div>
-                        <div class="score-text-primary">🧭 0.000</div>
-                    </div>
-                    <div class="divider-vertical"></div>
-                    <div style="text-align:center;">
-                        <div class="label-text">Team Rank</div>
-                        <div class="score-text-team">–</div>
-                    </div>
-                    <div class="divider-vertical"></div>
-                    <div style="text-align:center;">
-                        <div class="label-text">Global Rank</div>
-                        <div class="score-text-global">–</div>
-                    </div>
-                </div>
-                <div class="summary-progress">
-                    <div class="progress-label">
-                        Course Progress: 0%
-                    </div>
-                    <div class="progress-bar-bg">
-                        <div class="progress-bar-fill" style="width:0%;"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        """
-    progress_pct = int(((module_id + 1) / len(MODULES)) * 100)
+    # ... (previous setup) ...
+
+    # 1. Get total tasks defined in the server/app
+    TOTAL_COURSE_TASKS = 20  # You have 20 modules (0-19), each corresponds to a task step.
     
-    # If completedTaskIds is empty, show score as 0 until first task is completed
-    completed_task_ids = data.get('completed_task_ids', []) or []
+    # 2. Get actual completed tasks from the fresh data
+    # (The polling fix ensures this list is up to date)
+    completed_ids = data.get('completed_task_ids', []) or []
+    count_completed = len(completed_ids)
+    
+    # 3. Calculate percentage based on REAL work
+    # Cap at 100% just in case
+    progress_pct = min(100, int((count_completed / TOTAL_COURSE_TASKS) * 100))
+
+    # TRUST THE SCORE directly (as discussed)
     display_score = data.get('score', 0.0)
-    
+
     return f"""
     <div class="summary-box">
         <div class="summary-box-inner">
@@ -1904,20 +1884,10 @@ def render_top_dashboard(data, module_id):
                     <div class="label-text">Moral Compass Score</div>
                     <div class="score-text-primary">🧭 {display_score:.3f}</div>
                 </div>
-                <div class="divider-vertical"></div>
-                <div style="text-align:center;">
-                    <div class="label-text">Team Rank</div>
-                    <div class="score-text-team">#{data['team_rank']}</div>
                 </div>
-                <div class="divider-vertical"></div>
-                <div style="text-align:center;">
-                    <div class="label-text">Global Rank</div>
-                    <div class="score-text-global">#{data['rank']}</div>
-                </div>
-            </div>
             <div class="summary-progress">
                 <div class="progress-label">
-                    Course Progress: {progress_pct}%
+                    Mission Progress: {progress_pct}% ({count_completed}/{TOTAL_COURSE_TASKS})
                 </div>
                 <div class="progress-bar-bg">
                     <div class="progress-bar-fill" style="width:{progress_pct}%;"></div>
