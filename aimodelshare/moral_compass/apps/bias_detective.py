@@ -1758,8 +1758,14 @@ def ensure_table_and_get_data(username, token, team_name):
     return data, username
 
 def trigger_api_update(username, token, team_name, module_id, append_task_id=None, increment_question=False):
-    """Update moral compass score using username and token directly."""
+    """
+    Update moral compass score with retry logic to handle API latency.
+    Fixes the issue where score appears as 0.0 immediately after update.
+    """
     os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
+    
+    # --- FIX 1: Use a valid-looking dummy URL instead of "x" to satisfy server validation ---
+    DUMMY_PLAYGROUND_URL = "https://example.com/playground/m-mc"
     
     client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
     
@@ -1767,45 +1773,39 @@ def trigger_api_update(username, token, team_name, module_id, append_task_id=Non
         client.get_table(TABLE_ID)
     except Exception:
         try:
-            client.create_table(table_id=TABLE_ID, display_name="LMS", playground_url="x")
+            client.create_table(table_id=TABLE_ID, display_name="LMS", playground_url=DUMMY_PLAYGROUND_URL)
         except Exception:
             pass
     
+    # 1. Get Module Data
     mod = next(m for m in MODULES if m["id"] == module_id)
     acc = mod["sim_acc"]
     comp_pct = mod["sim_comp"]
     
+    # 2. Get Previous State
     prev_data = get_leaderboard_data(client, username, team_name)
-    
-    # Get current completedTaskIds from prev_data (before this update)
     prev_task_ids = prev_data.get('completed_task_ids', []) or [] if prev_data else []
     
-    # Build the new completedTaskIds list
-    new_task_ids = list(prev_task_ids)  # Make a copy
+    # 3. Calculate New State locally
+    new_task_ids = list(prev_task_ids)
     if append_task_id and append_task_id not in new_task_ids:
         new_task_ids.append(append_task_id)
-        # Sort numerically (t1, t2, ...) with error handling for invalid formats
+        # Sort numerically (t1, t2...)
         try:
             new_task_ids.sort(key=lambda x: int(x[1:]) if x.startswith('t') and x[1:].isdigit() else 0)
         except (ValueError, IndexError):
-            # If sorting fails, keep original order
             pass
     
-    # Calculate tasks_completed and questions_correct based on task IDs
-    # For Module 0, when we append "t1", this means 1 task completed and 1 question correct
-    # When navigating without appending, use the module's completion percentage
     if append_task_id:
         tasks_completed = len(new_task_ids)
         questions_correct = len(new_task_ids) if increment_question else 0
     else:
-        # Use module's simulation percentage for non-quiz navigation
         tasks_completed = int(10 * (comp_pct / 100))
         questions_correct = 0
     
-    # Total questions should be a fixed constant (10 for this app) or based on actual quiz count
-    # For now, use 10 as the total since that's the total_tasks value
     total_questions = 10 if questions_correct > 0 else 0
     
+    # 4. WRITE to API
     client.update_moral_compass(
         table_id=TABLE_ID,
         username=username,
@@ -1818,9 +1818,42 @@ def trigger_api_update(username, token, team_name, module_id, append_task_id=Non
         primary_metric="accuracy",
         completed_task_ids=new_task_ids if new_task_ids else None
     )
-    time.sleep(0.5)
+
+    # 5. POLLING RETRY: Wait for the API to actually update
+    # We attempt to read up to 3 times, waiting 1.5s between tries.
+    new_data = prev_data 
     
-    new_data = get_leaderboard_data(client, username, team_name)
+    print(f"🔄 Polling API for update... (Target Task ID: {append_task_id})")
+    
+    for attempt in range(3):
+        time.sleep(1.5) # Wait for DynamoDB consistency
+        
+        current_read = get_leaderboard_data(client, username, team_name)
+        current_ids = current_read.get('completed_task_ids', []) or []
+        
+        # If we added a task, check if it exists in the response
+        if append_task_id and append_task_id in current_ids:
+            new_data = current_read
+            print("✅ API update confirmed.")
+            break
+        # If we didn't add a task (just nav), assume 1.5s is enough
+        elif not append_task_id:
+            new_data = current_read
+            break
+            
+        print(f"⚠️ API Latency detected. Retrying read... (Attempt {attempt+1}/3)")
+
+    # 6. Safety Patch (Optimistic UI Update)
+    # If API is still stale after 3 retries, force local update so UI doesn't show 0.0
+    if new_data:
+        if append_task_id:
+             fetched_ids = new_data.get('completed_task_ids', []) or []
+             if append_task_id not in fetched_ids:
+                 print("⚠️ Force-patching local data due to API latency")
+                 new_data['completed_task_ids'] = new_task_ids
+                 # We cannot easily patch the 'score' math here without replicating server logic,
+                 # but ensuring 'completed_task_ids' is populated prevents the "0.0" reset bug.
+
     return prev_data, new_data, username, prev_task_ids, new_task_ids
 
 # --- 6. RENDERERS ---
