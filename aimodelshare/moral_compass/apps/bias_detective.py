@@ -277,7 +277,7 @@ MODULES = [
                     </p>
 
                     <!-- Principles Grid -->
-                    <div class="ai-risk-container" style="margin-top:10px;">
+                    <div class="ai-risk-container" style="margin-top:10px; border-width:2px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                         <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">
                             🧩 Key Ethical Principles (OEIAC Framework)
                         </h4>
@@ -1816,7 +1816,7 @@ def trigger_api_update(username, token, team_name, module_id, append_task_id=Non
         questions_correct=questions_correct,
         total_questions=total_questions,
         primary_metric="accuracy",
-        completed_task_ids=new_task_ids if new_task_ids else None
+        completedTaskIds=new_task_ids if new_task_ids else None
     )
     time.sleep(0.5)
     
@@ -2077,6 +2077,170 @@ def submit_quiz_0(username, token, team_name, module0_done, answer):
         gr.update(value=html_top),
         gr.update(value=lb_html),
         True,
+        gr.update(value=msg_html),
+    )
+
+# --- 7B. QUIZ LOGIC FOR MODULE 1 ---
+
+CORRECT_ANSWER_1 = "Step 3: Prove the Error"
+
+def submit_quiz_1(username, token, team_name, answer):
+    """
+    Quiz submission for Module 1 - Investigation Roadmap Check.
+    Correct answer: Step 3: Prove the Error
+    """
+    if answer is None:
+        return (
+            gr.update(),  # out_top
+            gr.update(),  # leaderboard_html
+            "<div class='hint-box'>Please select an answer before moving on.</div>",
+        )
+
+    if answer != CORRECT_ANSWER_1:
+        return (
+            gr.update(),
+            gr.update(),
+            "<div class='hint-box'>❌ Not quite. Think about which step requires gathering evidence that model errors are systematically skewed rather than random.</div>",
+        )
+
+    # Correct answer - append "t2" to completedTaskIds and increment counters
+    prev, curr, username = trigger_api_update(
+        username, token, team_name, module_id=1, 
+        append_task_id="t2", increment_question=True
+    )
+
+    d_score = curr["score"] - (prev["score"] if prev else 0.0)
+    prev_rank = prev["rank"] if prev and prev.get("rank") else 999
+    curr_rank = curr["rank"]
+    rank_diff = prev_rank - curr_rank
+
+    if rank_diff > 0:
+        rank_msg = f"Up {rank_diff} spots!"
+        rank_color = "#22c55e"
+    elif rank_diff < 0:
+        rank_msg = f"Down {abs(rank_diff)} spots"
+        rank_color = "#ef4444"
+    else:
+        rank_msg = "No change"
+        rank_color = "var(--secondary-text-color)"
+
+    msg_html = f"""
+    <div class="profile-card risk-low" style="text-align:center;">
+        <h2 style="color:#22c55e; margin:0 0 10px 0;">🎯 Excellent! You're Ready to Begin.</h2>
+        <div style="display:flex; justify-content:space-around; align-items:center; margin:15px 0;">
+            <div>
+                <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:4px;">
+                    Score Change
+                </div>
+                <div style="font-size:1.5rem; font-weight:700; color:#22c55e;">
+                    +{d_score:.3f}
+                </div>
+            </div>
+            <div style="width:1px; height:40px; background:var(--border-color-primary);"></div>
+            <div>
+                <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:4px;">
+                    Rank Movement
+                </div>
+                <div style="font-size:1.1rem; font-weight:700; color:{rank_color};">
+                    {rank_msg}
+                </div>
+            </div>
+        </div>
+        <p style="font-size:1.05rem; margin-top:10px; margin-bottom:6px;">
+            You understand the roadmap. Check the
+            <span style="color:var(--color-accent)">standings below</span> to see your new status.
+        </p>
+    </div>
+    """
+
+    html_top = render_top_dashboard(curr, module_id=1)
+    lb_html = render_leaderboard_card(curr, username, team_name)
+
+    return (
+        gr.update(value=html_top),
+        gr.update(value=lb_html),
+        gr.update(value=msg_html),
+    )
+
+# --- 7C. QUIZ LOGIC FOR MODULE 2 ---
+
+CORRECT_ANSWER_2 = "Check subgroup errors to prevent systematic harm"
+
+def submit_quiz_justice(username, token, team_name, answer):
+    """
+    Quiz submission for Module 2 - Justice & Equity Principle Check.
+    Correct answer: Check subgroup errors to prevent systematic harm
+    """
+    if answer is None:
+        return (
+            gr.update(),  # out_top
+            gr.update(),  # leaderboard_html
+            "<div class='hint-box'>Please select an answer before moving on.</div>",
+        )
+
+    if answer != CORRECT_ANSWER_2:
+        return (
+            gr.update(),
+            gr.update(),
+            "<div class='hint-box'>❌ Not quite. Justice & Equity specifically focuses on checking for fairness across different subgroups to prevent systematic harm.</div>",
+        )
+
+    # Correct answer - append "t3" to completedTaskIds and increment counters
+    prev, curr, username = trigger_api_update(
+        username, token, team_name, module_id=2, 
+        append_task_id="t3", increment_question=True
+    )
+
+    d_score = curr["score"] - (prev["score"] if prev else 0.0)
+    prev_rank = prev["rank"] if prev and prev.get("rank") else 999
+    curr_rank = curr["rank"]
+    rank_diff = prev_rank - curr_rank
+
+    if rank_diff > 0:
+        rank_msg = f"Up {rank_diff} spots!"
+        rank_color = "#22c55e"
+    elif rank_diff < 0:
+        rank_msg = f"Down {abs(rank_diff)} spots"
+        rank_color = "#ef4444"
+    else:
+        rank_msg = "No change"
+        rank_color = "var(--secondary-text-color)"
+
+    msg_html = f"""
+    <div class="profile-card risk-low" style="text-align:center;">
+        <h2 style="color:#22c55e; margin:0 0 10px 0;">✅ Cleared! Begin Scanning for Evidence.</h2>
+        <div style="display:flex; justify-content:space-around; align-items:center; margin:15px 0;">
+            <div>
+                <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:4px;">
+                    Score Change
+                </div>
+                <div style="font-size:1.5rem; font-weight:700; color:#22c55e;">
+                    +{d_score:.3f}
+                </div>
+            </div>
+            <div style="width:1px; height:40px; background:var(--border-color-primary);"></div>
+            <div>
+                <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:4px;">
+                    Rank Movement
+                </div>
+                <div style="font-size:1.1rem; font-weight:700; color:{rank_color};">
+                    {rank_msg}
+                </div>
+            </div>
+        </div>
+        <p style="font-size:1.05rem; margin-top:10px; margin-bottom:6px;">
+            You know the principles. Check the
+            <span style="color:var(--color-accent)">standings below</span> to see your updated rank.
+        </p>
+    </div>
+    """
+
+    html_top = render_top_dashboard(curr, module_id=2)
+    lb_html = render_leaderboard_card(curr, username, team_name)
+
+    return (
+        gr.update(value=html_top),
+        gr.update(value=lb_html),
         gr.update(value=msg_html),
     )
 
@@ -2372,11 +2536,25 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
                 ]
             )
             quiz_feedback = gr.HTML("")
-            btn_next_0 = gr.Button("Complete Module & Next ➡️", variant="primary")
+            btn_next_0 = gr.Button("Begin AI Bias Mission", variant="primary")
 
         # Module 1 – Mission
         with gr.Column(elem_id="module-1", elem_classes=["module-container"], visible=False) as module_1:
             mod1_html = gr.HTML(MODULES[1]["html"])
+            mod1_quiz_q = gr.Markdown(
+                "### 🧠 Investigation Roadmap Check\n\n"
+                "**Which step requires you to gather evidence that the model's errors are systematically skewed, not random?**"
+            )
+            mod1_quiz_radio = gr.Radio(
+                label="Select your answer:",
+                choices=[
+                    "Step 1: Learn the Rules",
+                    "Step 2: Scan the Data",
+                    "Step 3: Prove the Error",
+                    "Step 4: Diagnose Harm",
+                ]
+            )
+            mod1_quiz_feedback = gr.HTML("")
             with gr.Row():
                 btn_prev_1 = gr.Button("⬅️ Previous")
                 btn_next_1 = gr.Button("Begin Intelligence Briefing ▶️", variant="primary")
@@ -2384,6 +2562,20 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         # Module 2 – Detective’s Code (OEIAC principles)
         with gr.Column(elem_id="module-2", elem_classes=["module-container"], visible=False) as module_2:
             mod2_html = gr.HTML(MODULES[2]["html"])
+            mod2_quiz_q = gr.Markdown(
+                "### 🧠 Justice & Equity Principle Check\n\n"
+                "**What does the Justice & Equity principle specifically require us to do?**"
+            )
+            mod2_quiz_radio = gr.Radio(
+                label="Select your answer:",
+                choices=[
+                    "Explain model decisions to all stakeholders",
+                    "Check subgroup errors to prevent systematic harm",
+                    "Minimize overall model error rate",
+                    "Ensure the model runs efficiently",
+                ]
+            )
+            mod2_quiz_feedback = gr.HTML("")
             with gr.Row():
                 btn_prev_2 = gr.Button("⬅️ Back to Mission")
                 btn_next_2 = gr.Button("Initialize Investigation Protocol ▶️", variant="primary")
@@ -2517,6 +2709,20 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
             outputs=[out_top, leaderboard_html, module0_done, quiz_feedback],
         )
 
+        # Quiz scoring for module 1
+        mod1_quiz_radio.change(
+            fn=submit_quiz_1,
+            inputs=[username_state, token_state, team_state, mod1_quiz_radio],
+            outputs=[out_top, leaderboard_html, mod1_quiz_feedback],
+        )
+
+        # Quiz scoring for module 2
+        mod2_quiz_radio.change(
+            fn=submit_quiz_justice,
+            inputs=[username_state, token_state, team_state, mod2_quiz_radio],
+            outputs=[out_top, leaderboard_html, mod2_quiz_feedback],
+        )
+
         # Initial load with session-based auth
         def handle_initial_load(request: gr.Request):
             """
@@ -2611,7 +2817,17 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         )
 
         # Next: Module 1 -> Module 2 (progress bump + refresh)
-        def on_next_from_module_1(username, token, team):
+        def on_next_from_module_1(username, token, team, answer):
+            if answer is None:
+                # Don't navigate if no answer selected - user must select an answer first
+                return (
+                    gr.update(),  # out_top
+                    gr.update(),  # leaderboard_html
+                    gr.update(),  # current_module (stay on module 1)
+                    gr.update(visible=True),   # module_1 (Stay visible)
+                    gr.update(visible=False),  # module_2 (Stay hidden)
+                )
+            # Just navigate - don't update score (quiz submission already did that)
             data, username = ensure_table_and_get_data(username, token, team)
             html_top = render_top_dashboard(data, module_id=2)
             lb_html  = render_leaderboard_card(data, username, team)
@@ -2625,7 +2841,7 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
 
         btn_next_1.click(
             fn=on_next_from_module_1,
-            inputs=[username_state, token_state, team_state],
+            inputs=[username_state, token_state, team_state, mod1_quiz_radio],
             outputs=[out_top, leaderboard_html, current_module, module_1, module_2],
         )
 
@@ -2644,7 +2860,17 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         )
 
         # Module 2 -> Module 3
-        def on_next_from_module_2(username, token, team):
+        def on_next_from_module_2(username, token, team, answer):
+            if answer is None:
+                # Don't navigate if no answer selected - user must select an answer first
+                return (
+                    gr.update(),  # out_top
+                    gr.update(),  # leaderboard_html
+                    gr.update(),  # current_module (stay on module 2)
+                    gr.update(visible=True),   # module_2 (Stay visible)
+                    gr.update(visible=False),  # module_3 (Stay hidden)
+                )
+            # Just navigate - don't update score (quiz submission already did that)
             data, username = ensure_table_and_get_data(username, token, team)
             html_top = render_top_dashboard(data, module_id=3)
             lb_html = render_leaderboard_card(data, username, team)
@@ -2658,7 +2884,7 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
 
         btn_next_2.click(
             fn=on_next_from_module_2,
-            inputs=[username_state, token_state, team_state],
+            inputs=[username_state, token_state, team_state, mod2_quiz_radio],
             outputs=[out_top, leaderboard_html, current_module, module_2, module_3],
         )
 
