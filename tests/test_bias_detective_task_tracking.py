@@ -118,7 +118,7 @@ def test_trigger_api_update_with_task_id():
         mock_client_instance.update_moral_compass.assert_called_once()
         call_args = mock_client_instance.update_moral_compass.call_args
         
-        assert call_args[1]["completedTaskIds"] == ["t1"]
+        assert call_args[1]["completed_task_ids"] == ["t1"]
         assert call_args[1]["tasks_completed"] == 1
         assert call_args[1]["questions_correct"] == 1
         assert call_args[1]["total_questions"] == 10  # Fixed total
@@ -148,7 +148,7 @@ def test_trigger_api_update_appends_to_existing_task_ids():
         # Verify update_moral_compass was called with correct parameters
         call_args = mock_client_instance.update_moral_compass.call_args
         
-        assert call_args[1]["completedTaskIds"] == ["t1", "t2"]
+        assert call_args[1]["completed_task_ids"] == ["t1", "t2"]
         assert call_args[1]["tasks_completed"] == 2
         assert call_args[1]["questions_correct"] == 2
 

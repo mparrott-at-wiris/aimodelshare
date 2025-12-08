@@ -1816,7 +1816,7 @@ def trigger_api_update(username, token, team_name, module_id, append_task_id=Non
         questions_correct=questions_correct,
         total_questions=total_questions,
         primary_metric="accuracy",
-        completedTaskIds=new_task_ids if new_task_ids else None
+        completed_task_ids=new_task_ids if new_task_ids else None
     )
     time.sleep(0.5)
     
