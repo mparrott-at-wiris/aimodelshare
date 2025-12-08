@@ -1774,9 +1774,9 @@ def trigger_api_update(username, token, team_name, module_id, append_task_id=Non
         except Exception:
             pass
     
-    mod = next(m for m in MODULES if m["id"] == module_id)
-    acc = mod["sim_acc"]
-    comp_pct = mod["sim_comp"]
+    #mod = next(m for m in MODULES if m["id"] == module_id)
+    #acc = mod["sim_acc"]
+    #comp_pct = mod["sim_comp"]
     
     prev_data = get_leaderboard_data(client, username, team_name)
     
@@ -1792,12 +1792,17 @@ def trigger_api_update(username, token, team_name, module_id, append_task_id=Non
         except (ValueError, IndexError):
             pass
     
-    if append_task_id:
-        tasks_completed = len(new_task_ids)
-        questions_correct = len(new_task_ids) if increment_question else 0
+    # NEW CODE (Always uses actual server data)
+    # 1. Determine task count based on REAL completed IDs
+    tasks_completed = len(new_task_ids)
+
+    # 2. Determine questions correct based on REAL completed IDs
+    # (In this app design, every task completed = 1 question correct)
+    if increment_question:
+        questions_correct = len(new_task_ids)
     else:
-        tasks_completed = int(10 * (comp_pct / 100))
-        questions_correct = 0
+        # If we aren't adding a new answer right now, just read the existing count
+        questions_correct = len(new_task_ids)
     
     total_questions = 10 if questions_correct > 0 else 0
     
