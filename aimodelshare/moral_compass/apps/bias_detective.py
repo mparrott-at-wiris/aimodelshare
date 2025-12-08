@@ -1821,7 +1821,7 @@ def trigger_api_update(username, token, team_name, module_id, append_task_id=Non
     time.sleep(0.5)
     
     new_data = get_leaderboard_data(client, username, team_name)
-    return prev_data, new_data, username
+    return prev_data, new_data, username, current_task_ids, new_task_ids
 
 # --- 6. RENDERERS ---
 
@@ -1891,6 +1891,43 @@ def render_top_dashboard(data, module_id):
                 </div>
             </div>
         </div>
+    </div>
+    """
+
+def render_debug(context_label, **kwargs):
+    """
+    Render a debug panel showing key/value pairs for test mode.
+    
+    Args:
+        context_label: Label for the context (e.g., "Initial Load", "Module 0 Quiz Submission")
+        **kwargs: Key-value pairs to display in the debug panel
+    
+    Returns:
+        HTML string with formatted debug information
+    """
+    rows = ""
+    for key, value in kwargs.items():
+        # Format the value for display
+        if isinstance(value, list):
+            value_str = str(value)
+        elif isinstance(value, (int, float)):
+            value_str = str(value)
+        else:
+            value_str = str(value)
+        
+        rows += f"""
+        <tr>
+            <td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">{key}</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">{value_str}</td>
+        </tr>
+        """
+    
+    return f"""
+    <div style="background: #f0f0f0; border: 2px solid #333; padding: 16px; margin: 20px 0; border-radius: 8px;">
+        <h3 style="margin-top: 0; color: #d00;">🐛 DEBUG: {context_label}</h3>
+        <table style="width: 100%; border-collapse: collapse; background: white;">
+            {rows}
+        </table>
     </div>
     """
 
@@ -1982,13 +2019,14 @@ def render_leaderboard_card(data, username, team_name):
 
 CORRECT_ANSWER_0 = "A) Because simple accuracy ignores potential bias and harm."
 
-def submit_quiz_0(username, token, team_name, module0_done, answer):
+def submit_quiz_0(username, token, team_name, module0_done, answer, test_mode=False):
     if answer is None:
         return (
             gr.update(),  # out_top
             gr.update(),  # leaderboard_html
             module0_done,
             "<div class='hint-box'>Please select an answer before moving on.</div>",
+            "" if test_mode else gr.update(),  # debug_html
         )
 
     if answer != CORRECT_ANSWER_0:
@@ -1997,6 +2035,7 @@ def submit_quiz_0(username, token, team_name, module0_done, answer):
             gr.update(),
             module0_done,
             "<div class='hint-box'>❌ Not quite. Think about what accuracy leaves out. A model can be accurate on average yet still cause harm for certain groups.</div>",
+            "" if test_mode else gr.update(),  # debug_html
         )
 
     if module0_done:
@@ -2015,15 +2054,26 @@ def submit_quiz_0(username, token, team_name, module0_done, answer):
             </p>
         </div>
         """
+        debug_output = ""
+        if test_mode:
+            debug_output = render_debug(
+                "Module 0 Quiz - Already Completed",
+                Score=data.get('score', 0),
+                Global_Rank=data.get('rank', 0),
+                Team_Rank=data.get('team_rank', 0),
+                Completed_Task_IDs=data.get('completed_task_ids', [])
+            )
+        
         return (
             gr.update(value=html_top),
             gr.update(value=lb_html),
             module0_done,
             gr.update(value=msg_html),
+            debug_output if test_mode else gr.update(),  # debug_html
         )
 
     # Correct answer - append "t1" to completedTaskIds and increment counters
-    prev, curr, username = trigger_api_update(
+    prev, curr, username, prev_task_ids, new_task_ids = trigger_api_update(
         username, token, team_name, module_id=0, 
         append_task_id="t1", increment_question=True
     )
@@ -2042,6 +2092,30 @@ def submit_quiz_0(username, token, team_name, module0_done, answer):
     else:
         rank_msg = "No change"
         rank_color = "var(--secondary-text-color)"
+
+    # Debug output for test mode
+    debug_output = ""
+    if test_mode:
+        print("=" * 80)
+        print("DEBUG: Module 0 Quiz Submission")
+        print(f"Previous data: {prev}")
+        print(f"Current data: {curr}")
+        print(f"Previous task IDs: {prev_task_ids}")
+        print(f"New task IDs: {new_task_ids}")
+        print("=" * 80)
+        
+        debug_output = render_debug(
+            "Module 0 Quiz Submission",
+            Prev_Task_IDs=prev_task_ids,
+            New_Task_IDs=new_task_ids,
+            Delta_Score=f"+{d_score:.3f}",
+            Prev_Rank=prev_rank,
+            Curr_Rank=curr_rank,
+            Rank_Diff=rank_msg,
+            Score=curr.get('score', 0),
+            Global_Rank=curr.get('rank', 0),
+            Team_Rank=curr.get('team_rank', 0)
+        )
 
     msg_html = f"""
     <div class="profile-card risk-low" style="text-align:center;">
@@ -2078,13 +2152,14 @@ def submit_quiz_0(username, token, team_name, module0_done, answer):
         gr.update(value=lb_html),
         True,
         gr.update(value=msg_html),
+        debug_output if test_mode else gr.update(),  # debug_html
     )
 
 # --- 7B. QUIZ LOGIC FOR MODULE 1 ---
 
 CORRECT_ANSWER_1 = "Step 3: Prove the Error"
 
-def submit_quiz_1(username, token, team_name, answer):
+def submit_quiz_1(username, token, team_name, answer, test_mode=False):
     """
     Quiz submission for Module 1 - Investigation Roadmap Check.
     Correct answer: Step 3: Prove the Error
@@ -2094,6 +2169,7 @@ def submit_quiz_1(username, token, team_name, answer):
             gr.update(),  # out_top
             gr.update(),  # leaderboard_html
             "<div class='hint-box'>Please select an answer before moving on.</div>",
+            "" if test_mode else gr.update(),  # debug_html
         )
 
     if answer != CORRECT_ANSWER_1:
@@ -2101,10 +2177,11 @@ def submit_quiz_1(username, token, team_name, answer):
             gr.update(),
             gr.update(),
             "<div class='hint-box'>❌ Not quite. Think about which step requires gathering evidence that model errors are systematically skewed rather than random.</div>",
+            "" if test_mode else gr.update(),  # debug_html
         )
 
     # Correct answer - append "t2" to completedTaskIds and increment counters
-    prev, curr, username = trigger_api_update(
+    prev, curr, username, prev_task_ids, new_task_ids = trigger_api_update(
         username, token, team_name, module_id=1, 
         append_task_id="t2", increment_question=True
     )
@@ -2123,6 +2200,30 @@ def submit_quiz_1(username, token, team_name, answer):
     else:
         rank_msg = "No change"
         rank_color = "var(--secondary-text-color)"
+
+    # Debug output for test mode
+    debug_output = ""
+    if test_mode:
+        print("=" * 80)
+        print("DEBUG: Module 1 Quiz Submission")
+        print(f"Previous data: {prev}")
+        print(f"Current data: {curr}")
+        print(f"Previous task IDs: {prev_task_ids}")
+        print(f"New task IDs: {new_task_ids}")
+        print("=" * 80)
+        
+        debug_output = render_debug(
+            "Module 1 Quiz Submission",
+            Prev_Task_IDs=prev_task_ids,
+            New_Task_IDs=new_task_ids,
+            Delta_Score=f"+{d_score:.3f}",
+            Prev_Rank=prev_rank,
+            Curr_Rank=curr_rank,
+            Rank_Diff=rank_msg,
+            Score=curr.get('score', 0),
+            Global_Rank=curr.get('rank', 0),
+            Team_Rank=curr.get('team_rank', 0)
+        )
 
     msg_html = f"""
     <div class="profile-card risk-low" style="text-align:center;">
@@ -2160,13 +2261,14 @@ def submit_quiz_1(username, token, team_name, answer):
         gr.update(value=html_top),
         gr.update(value=lb_html),
         gr.update(value=msg_html),
+        debug_output if test_mode else gr.update(),  # debug_html
     )
 
 # --- 7C. QUIZ LOGIC FOR MODULE 2 ---
 
 CORRECT_ANSWER_2 = "Check subgroup errors to prevent systematic harm"
 
-def submit_quiz_justice(username, token, team_name, answer):
+def submit_quiz_justice(username, token, team_name, answer, test_mode=False):
     """
     Quiz submission for Module 2 - Justice & Equity Principle Check.
     Correct answer: Check subgroup errors to prevent systematic harm
@@ -2176,6 +2278,7 @@ def submit_quiz_justice(username, token, team_name, answer):
             gr.update(),  # out_top
             gr.update(),  # leaderboard_html
             "<div class='hint-box'>Please select an answer before moving on.</div>",
+            "" if test_mode else gr.update(),  # debug_html
         )
 
     if answer != CORRECT_ANSWER_2:
@@ -2183,10 +2286,11 @@ def submit_quiz_justice(username, token, team_name, answer):
             gr.update(),
             gr.update(),
             "<div class='hint-box'>❌ Not quite. Justice & Equity specifically focuses on checking for fairness across different subgroups to prevent systematic harm.</div>",
+            "" if test_mode else gr.update(),  # debug_html
         )
 
     # Correct answer - append "t3" to completedTaskIds and increment counters
-    prev, curr, username = trigger_api_update(
+    prev, curr, username, prev_task_ids, new_task_ids = trigger_api_update(
         username, token, team_name, module_id=2, 
         append_task_id="t3", increment_question=True
     )
@@ -2205,6 +2309,30 @@ def submit_quiz_justice(username, token, team_name, answer):
     else:
         rank_msg = "No change"
         rank_color = "var(--secondary-text-color)"
+
+    # Debug output for test mode
+    debug_output = ""
+    if test_mode:
+        print("=" * 80)
+        print("DEBUG: Module 2 Quiz Submission")
+        print(f"Previous data: {prev}")
+        print(f"Current data: {curr}")
+        print(f"Previous task IDs: {prev_task_ids}")
+        print(f"New task IDs: {new_task_ids}")
+        print("=" * 80)
+        
+        debug_output = render_debug(
+            "Module 2 Quiz Submission",
+            Prev_Task_IDs=prev_task_ids,
+            New_Task_IDs=new_task_ids,
+            Delta_Score=f"+{d_score:.3f}",
+            Prev_Rank=prev_rank,
+            Curr_Rank=curr_rank,
+            Rank_Diff=rank_msg,
+            Score=curr.get('score', 0),
+            Global_Rank=curr.get('rank', 0),
+            Team_Rank=curr.get('team_rank', 0)
+        )
 
     msg_html = f"""
     <div class="profile-card risk-low" style="text-align:center;">
@@ -2242,6 +2370,7 @@ def submit_quiz_justice(username, token, team_name, answer):
         gr.update(value=html_top),
         gr.update(value=lb_html),
         gr.update(value=msg_html),
+        debug_output if test_mode else gr.update(),  # debug_html
     )
 
 # --- 8. CSS ---
@@ -2505,7 +2634,7 @@ css = """
 
 # --- 9. BUILD APP (Bias Detective) ---
 
-def create_bias_detective_app(theme_primary_hue: str = "indigo"):
+def create_bias_detective_app(theme_primary_hue: str = "indigo", test_mode: bool = False):
     with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
         # State - now stores username and token directly
         username_state = gr.State(value=None)
@@ -2701,26 +2830,54 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
 
         # Leaderboard card at the bottom
         leaderboard_html = gr.HTML()
+        
+        # Debug panel (only visible in test mode)
+        if test_mode:
+            debug_html = gr.HTML(visible=True)
+        else:
+            debug_html = gr.HTML(visible=False)
+
+        # Create wrapper functions that capture test_mode
+        def submit_quiz_0_wrapper(username, token, team_name, module0_done, answer):
+            return submit_quiz_0(username, token, team_name, module0_done, answer, test_mode=test_mode)
+        
+        def submit_quiz_1_wrapper(username, token, team_name, answer):
+            return submit_quiz_1(username, token, team_name, answer, test_mode=test_mode)
+        
+        def submit_quiz_justice_wrapper(username, token, team_name, answer):
+            return submit_quiz_justice(username, token, team_name, answer, test_mode=test_mode)
 
         # Quiz scoring for module 0
+        quiz_outputs = [out_top, leaderboard_html, module0_done, quiz_feedback]
+        if test_mode:
+            quiz_outputs.append(debug_html)
+        
         quiz_radio.change(
-            fn=submit_quiz_0,
+            fn=submit_quiz_0_wrapper,
             inputs=[username_state, token_state, team_state, module0_done, quiz_radio],
-            outputs=[out_top, leaderboard_html, module0_done, quiz_feedback],
+            outputs=quiz_outputs,
         )
 
         # Quiz scoring for module 1
+        quiz1_outputs = [out_top, leaderboard_html, mod1_quiz_feedback]
+        if test_mode:
+            quiz1_outputs.append(debug_html)
+        
         mod1_quiz_radio.change(
-            fn=submit_quiz_1,
+            fn=submit_quiz_1_wrapper,
             inputs=[username_state, token_state, team_state, mod1_quiz_radio],
-            outputs=[out_top, leaderboard_html, mod1_quiz_feedback],
+            outputs=quiz1_outputs,
         )
 
         # Quiz scoring for module 2
+        quiz2_outputs = [out_top, leaderboard_html, mod2_quiz_feedback]
+        if test_mode:
+            quiz2_outputs.append(debug_html)
+        
         mod2_quiz_radio.change(
-            fn=submit_quiz_justice,
+            fn=submit_quiz_justice_wrapper,
             inputs=[username_state, token_state, team_state, mod2_quiz_radio],
-            outputs=[out_top, leaderboard_html, mod2_quiz_feedback],
+            outputs=quiz2_outputs,
         )
 
         # Initial load with session-based auth
@@ -2740,6 +2897,24 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
                 html_top = render_top_dashboard(data, module_id=0)
                 lb_html = render_leaderboard_card(data, username, team_name)
                 
+                # Debug output for test mode
+                debug_output = ""
+                if test_mode:
+                    print("=" * 80)
+                    print("DEBUG: Initial Load")
+                    print(f"Username: {username}")
+                    print(f"Team: {team_name}")
+                    print(f"Data: {data}")
+                    print("=" * 80)
+                    
+                    debug_output = render_debug(
+                        "Initial Load",
+                        Score=data.get('score', 0),
+                        Global_Rank=data.get('rank', 0),
+                        Team_Rank=data.get('team_rank', 0),
+                        Completed_Task_IDs=data.get('completed_task_ids', [])
+                    )
+                
                 return (
                     username,        # username_state
                     token,           # token_state
@@ -2747,6 +2922,7 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
                     False,           # module0_done
                     html_top,        # out_top
                     lb_html,         # leaderboard_html
+                    debug_output,    # debug_html
                 )
             else:
                 # No valid session - show empty state
@@ -2757,6 +2933,7 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
                     False,           # module0_done
                     "<div class='hint-box'>⚠️ Authentication required. Please access this app with a valid session ID.</div>",
                     "",              # leaderboard_html
+                    "",              # debug_html
                 )
 
         demo.load(
@@ -2769,37 +2946,68 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
                 module0_done,
                 out_top,
                 leaderboard_html,
+                debug_html,
             ],
         )
 
         # Next: Module 0 -> Module 1 (navigation only, no score update)
         def on_next_from_module_0(username, token, team, answer):
+            nav_outputs_base = 5
+            nav_outputs_with_debug = nav_outputs_base + 1 if test_mode else nav_outputs_base
+            
             if answer is None:
                 # Don't navigate if no answer selected - user must select an answer first
                 # The quiz_radio.change handler will show feedback
-                return (
+                base_return = (
                     gr.update(),  # out_top
                     gr.update(),  # leaderboard_html
                     gr.update(),  # current_module (stay on module 0)
                     gr.update(visible=True),   # module_0 (Stay visible)
                     gr.update(visible=False),  # module_1 (Stay hidden)
                 )
+                if test_mode:
+                    return base_return + (gr.update(),)  # debug_html
+                return base_return
+            
             # Just navigate - don't update score (quiz submission already did that)
             data, username = ensure_table_and_get_data(username, token, team)
             html_top  = render_top_dashboard(data, module_id=1)
             lb_html   = render_leaderboard_card(data, username, team)
-            return (
+            
+            debug_output = ""
+            if test_mode:
+                print("=" * 80)
+                print("DEBUG: Navigation to Module 1")
+                print(f"Data: {data}")
+                print("=" * 80)
+                
+                debug_output = render_debug(
+                    "Navigation to Module 1",
+                    Score=data.get('score', 0),
+                    Global_Rank=data.get('rank', 0),
+                    Team_Rank=data.get('team_rank', 0),
+                    Completed_Task_IDs=data.get('completed_task_ids', [])
+                )
+            
+            base_return = (
                 gr.update(value=html_top),
                 gr.update(value=lb_html),
                 1,  # Update current_module state
                 gr.update(visible=False),  # module_0 (HIDE)
                 gr.update(visible=True),   # module_1 (SHOW)
             )
+            if test_mode:
+                return base_return + (debug_output,)  # debug_html
+            return base_return
 
+        nav_outputs_0 = [out_top, leaderboard_html, current_module, module_0, module_1]
+        if test_mode:
+            nav_outputs_0.append(debug_html)
+        
         btn_next_0.click(
             fn=on_next_from_module_0,
             inputs=[username_state, token_state, team_state, quiz_radio],
-            outputs=[out_top, leaderboard_html, current_module, module_0, module_1],
+            outputs=nav_outputs_0,
         )
 
         # Prev: Module 1 -> Module 0
@@ -2820,29 +3028,56 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         def on_next_from_module_1(username, token, team, answer):
             if answer is None:
                 # Don't navigate if no answer selected - user must select an answer first
-                return (
+                base_return = (
                     gr.update(),  # out_top
                     gr.update(),  # leaderboard_html
                     gr.update(),  # current_module (stay on module 1)
                     gr.update(visible=True),   # module_1 (Stay visible)
                     gr.update(visible=False),  # module_2 (Stay hidden)
                 )
+                if test_mode:
+                    return base_return + (gr.update(),)  # debug_html
+                return base_return
+            
             # Just navigate - don't update score (quiz submission already did that)
             data, username = ensure_table_and_get_data(username, token, team)
             html_top = render_top_dashboard(data, module_id=2)
             lb_html  = render_leaderboard_card(data, username, team)
-            return (
+            
+            debug_output = ""
+            if test_mode:
+                print("=" * 80)
+                print("DEBUG: Navigation to Module 2")
+                print(f"Data: {data}")
+                print("=" * 80)
+                
+                debug_output = render_debug(
+                    "Navigation to Module 2",
+                    Score=data.get('score', 0),
+                    Global_Rank=data.get('rank', 0),
+                    Team_Rank=data.get('team_rank', 0),
+                    Completed_Task_IDs=data.get('completed_task_ids', [])
+                )
+            
+            base_return = (
                 gr.update(value=html_top),
                 gr.update(value=lb_html),
                 2,
                 gr.update(visible=False),  # module_1
                 gr.update(visible=True),   # module_2
             )
+            if test_mode:
+                return base_return + (debug_output,)  # debug_html
+            return base_return
 
+        nav_outputs_1 = [out_top, leaderboard_html, current_module, module_1, module_2]
+        if test_mode:
+            nav_outputs_1.append(debug_html)
+        
         btn_next_1.click(
             fn=on_next_from_module_1,
             inputs=[username_state, token_state, team_state, mod1_quiz_radio],
-            outputs=[out_top, leaderboard_html, current_module, module_1, module_2],
+            outputs=nav_outputs_1,
         )
 
         # Prev: Module 2 -> Module 1
@@ -2863,29 +3098,56 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
         def on_next_from_module_2(username, token, team, answer):
             if answer is None:
                 # Don't navigate if no answer selected - user must select an answer first
-                return (
+                base_return = (
                     gr.update(),  # out_top
                     gr.update(),  # leaderboard_html
                     gr.update(),  # current_module (stay on module 2)
                     gr.update(visible=True),   # module_2 (Stay visible)
                     gr.update(visible=False),  # module_3 (Stay hidden)
                 )
+                if test_mode:
+                    return base_return + (gr.update(),)  # debug_html
+                return base_return
+            
             # Just navigate - don't update score (quiz submission already did that)
             data, username = ensure_table_and_get_data(username, token, team)
             html_top = render_top_dashboard(data, module_id=3)
             lb_html = render_leaderboard_card(data, username, team)
-            return (
+            
+            debug_output = ""
+            if test_mode:
+                print("=" * 80)
+                print("DEBUG: Navigation to Module 3")
+                print(f"Data: {data}")
+                print("=" * 80)
+                
+                debug_output = render_debug(
+                    "Navigation to Module 3",
+                    Score=data.get('score', 0),
+                    Global_Rank=data.get('rank', 0),
+                    Team_Rank=data.get('team_rank', 0),
+                    Completed_Task_IDs=data.get('completed_task_ids', [])
+                )
+            
+            base_return = (
                 gr.update(value=html_top),
                 gr.update(value=lb_html),
                 3,
                 gr.update(visible=False),  # module_2
                 gr.update(visible=True),   # module_3
             )
+            if test_mode:
+                return base_return + (debug_output,)  # debug_html
+            return base_return
 
+        nav_outputs_2 = [out_top, leaderboard_html, current_module, module_2, module_3]
+        if test_mode:
+            nav_outputs_2.append(debug_html)
+        
         btn_next_2.click(
             fn=on_next_from_module_2,
             inputs=[username_state, token_state, team_state, mod2_quiz_radio],
-            outputs=[out_top, leaderboard_html, current_module, module_2, module_3],
+            outputs=nav_outputs_2,
         )
 
         # Prev: Module 3 -> Module 2
@@ -3240,6 +3502,7 @@ def launch_bias_detective_app(
     server_name: str = "0.0.0.0",
     server_port: int = 8080,
     theme_primary_hue: str = "indigo",
+    test_mode: bool = False,
     **kwargs
 ) -> None:
     """
@@ -3250,9 +3513,10 @@ def launch_bias_detective_app(
         server_name: Server hostname
         server_port: Server port
         theme_primary_hue: Primary color hue
+        test_mode: Enable test mode with debug panel and server logging
         **kwargs: Additional Gradio launch arguments
     """
-    app = create_bias_detective_app(theme_primary_hue=theme_primary_hue)
+    app = create_bias_detective_app(theme_primary_hue=theme_primary_hue, test_mode=test_mode)
     app.launch(
         share=share,
         server_name=server_name,
