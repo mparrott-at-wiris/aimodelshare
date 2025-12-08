@@ -1894,7 +1894,7 @@ def render_top_dashboard(data, module_id):
     
     # If completedTaskIds is empty, show score as 0 until first task is completed
     completed_task_ids = data.get('completed_task_ids', []) or []
-    display_score = data['score'] if completed_task_ids else 0.0
+    display_score = data.get('score', 0.0)
     
     return f"""
     <div class="summary-box">
