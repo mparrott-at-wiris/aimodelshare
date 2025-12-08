@@ -1698,10 +1698,7 @@ def ensure_table_and_get_data(username, token, team_name):
 def trigger_api_update(username, token, team_name, module_id, user_real_accuracy, append_task_id=None, increment_question=False):
     """
     Update moral compass score using real user accuracy and retry logic.
-    KEY UPDATES:
-    1. Uses `user_real_accuracy` from History, not module list.
-    2. Simplifies progress to 1 Task = 10%.
-    3. Polls for consistency.
+    FIXED: Uses client.get_user() for reliable Read-Modify-Write cycle.
     """
     os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
     DUMMY_PLAYGROUND_URL = "https://example.com/playground/m-mc"
@@ -1719,10 +1716,23 @@ def trigger_api_update(username, token, team_name, module_id, user_real_accuracy
     # 1. Force Real Accuracy
     acc = float(user_real_accuracy) if user_real_accuracy is not None else 0.0
     
-    prev_data = get_leaderboard_data(client, username, team_name)
-    prev_task_ids = prev_data.get('completed_task_ids', []) or [] if prev_data else []
-    
-    # 2. Calculate New Task List
+    # 2. Get Previous State (FIXED: Direct Lookup)
+    prev_task_ids = []
+    try:
+        # Fetch directly from DB to ensure we don't miss existing data
+        user_stats = client.get_user(table_id=TABLE_ID, username=username)
+        
+        # Handle response (Support both Dataclass and Dict return types)
+        if hasattr(user_stats, "completed_task_ids"):
+             prev_task_ids = user_stats.completed_task_ids or []
+        elif isinstance(user_stats, dict):
+             prev_task_ids = user_stats.get("completed_task_ids", []) or []
+             
+    except Exception:
+        # 404 Not Found (First time user) or network error
+        prev_task_ids = []
+
+    # 3. Calculate New Task List
     new_task_ids = list(prev_task_ids)
     if append_task_id and append_task_id not in new_task_ids:
         new_task_ids.append(append_task_id)
@@ -1731,7 +1741,7 @@ def trigger_api_update(username, token, team_name, module_id, user_real_accuracy
         except (ValueError, IndexError):
             pass
     
-    # 3. SIMPLIFIED MATH: Only count Tasks
+    # 4. SIMPLIFIED MATH: Only count Tasks
     tasks_completed = len(new_task_ids)
     
     # Write to API
@@ -1748,15 +1758,22 @@ def trigger_api_update(username, token, team_name, module_id, user_real_accuracy
         completed_task_ids=new_task_ids if new_task_ids else None
     )
 
-    # 4. Polling Retry
-    new_data = prev_data 
+    # 5. Polling Retry
+    # We still use get_leaderboard_data here for the *return* value (visuals), 
+    # but the logic above ensures the *write* was correct.
+    prev_data = None
+    new_data = None
+    
     print(f"🔄 Polling API... Target Task Count: {tasks_completed}")
     
     for attempt in range(3):
         time.sleep(1.5)
         current_read = get_leaderboard_data(client, username, team_name)
+        if not current_read: continue
+            
         current_ids = current_read.get('completed_task_ids', []) or []
         
+        # Check if DB matches local expectation
         if len(current_ids) == tasks_completed:
             new_data = current_read
             print("✅ API update confirmed.")
@@ -1764,13 +1781,23 @@ def trigger_api_update(username, token, team_name, module_id, user_real_accuracy
         
         print(f"⚠️ API Latency detected. Retrying... ({attempt+1}/3)")
 
-    # 5. Safety Patch
-    if new_data and append_task_id:
-         fetched_ids = new_data.get('completed_task_ids', []) or []
-         if append_task_id not in fetched_ids:
-             new_data['completed_task_ids'] = new_task_ids
+    # 6. Safety Patch (If polling failed to catch up, manually patch local view)
+    if new_data is None and prev_data is None:
+         # Fallback if everything fails
+         new_data = get_leaderboard_data(client, username, team_name)
 
-    return prev_data, new_data, username
+    if new_data:
+         fetched_ids = new_data.get('completed_task_ids', []) or []
+         # If the UI data is stale, force it to match our calculation
+         if len(fetched_ids) < len(new_task_ids):
+             new_data['completed_task_ids'] = new_task_ids
+             # Recalculate score locally for display
+             # Score = Acc * (Tasks/10)
+             new_data['score'] = acc * (len(new_task_ids) / 10.0)
+
+    # Note: If this is the very first write, prev_data might be None. 
+    # We return new_data twice in that case to avoid crashes.
+    return (prev_data or new_data), new_data, username
 
 # --- 6. RENDERERS ---
 
