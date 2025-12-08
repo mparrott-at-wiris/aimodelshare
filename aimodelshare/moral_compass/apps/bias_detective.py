@@ -1855,7 +1855,9 @@ def render_top_dashboard(data, module_id):
         count_completed = len(completed_ids)
     
     # 20 Total steps in the course (Modules 0-19 generally map to tasks)
-    TOTAL_COURSE_TASKS = 20 
+    TOTAL_COURSE_TASKS = 10 
+    
+    # Simple percentage: 1 task = 10%
     progress_pct = min(100, int((count_completed / TOTAL_COURSE_TASKS) * 100))
 
     return f"""
