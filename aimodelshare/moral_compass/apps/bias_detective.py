@@ -3529,4 +3529,4 @@ def launch_bias_detective_app(
 # ============================================================================
 
 if __name__ == "__main__":
-    launch_bias_detective_app(share=False)
+    launch_bias_detective_app(share=False,  test_mode=True)
