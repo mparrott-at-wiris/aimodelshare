@@ -1777,11 +1777,11 @@ def trigger_api_update(username, token, team_name, module_id, append_task_id=Non
     
     prev_data = get_leaderboard_data(client, username, team_name)
     
-    # Get current completedTaskIds from prev_data
-    current_task_ids = prev_data.get('completed_task_ids', []) or [] if prev_data else []
+    # Get current completedTaskIds from prev_data (before this update)
+    prev_task_ids = prev_data.get('completed_task_ids', []) or [] if prev_data else []
     
     # Build the new completedTaskIds list
-    new_task_ids = list(current_task_ids)  # Make a copy
+    new_task_ids = list(prev_task_ids)  # Make a copy
     if append_task_id and append_task_id not in new_task_ids:
         new_task_ids.append(append_task_id)
         # Sort numerically (t1, t2, ...) with error handling for invalid formats
@@ -1821,7 +1821,7 @@ def trigger_api_update(username, token, team_name, module_id, append_task_id=Non
     time.sleep(0.5)
     
     new_data = get_leaderboard_data(client, username, team_name)
-    return prev_data, new_data, username, current_task_ids, new_task_ids
+    return prev_data, new_data, username, prev_task_ids, new_task_ids
 
 # --- 6. RENDERERS ---
 
@@ -2094,6 +2094,8 @@ def submit_quiz_0(username, token, team_name, module0_done, answer, test_mode=Fa
         rank_color = "var(--secondary-text-color)"
 
     # Debug output for test mode
+    # NOTE: Using print() instead of logging module intentionally for test mode
+    # to provide immediate, unfiltered console output for debugging
     debug_output = ""
     if test_mode:
         print("=" * 80)
@@ -2952,9 +2954,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo", test_mode: bool
 
         # Next: Module 0 -> Module 1 (navigation only, no score update)
         def on_next_from_module_0(username, token, team, answer):
-            nav_outputs_base = 5
-            nav_outputs_with_debug = nav_outputs_base + 1 if test_mode else nav_outputs_base
-            
             if answer is None:
                 # Don't navigate if no answer selected - user must select an answer first
                 # The quiz_radio.change handler will show feedback
