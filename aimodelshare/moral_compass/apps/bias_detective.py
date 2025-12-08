@@ -6,6 +6,7 @@ from typing import Tuple, Optional
 
 # --- 1. CONFIGURATION ---
 DEFAULT_API_URL = "https://b22q73wp50.execute-api.us-east-1.amazonaws.com/dev"
+ORIGINAL_PLAYGROUND_URL = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
 TABLE_ID = "m-mc"
 
 # --- 2. SETUP & DEPENDENCIES ---
@@ -17,6 +18,7 @@ def install_dependencies():
 
 try:
     import gradio as gr
+    import pandas as pd
     from aimodelshare.playground import Competition
     from aimodelshare.moral_compass import MoralcompassApiClient
     from aimodelshare.aws import get_token_from_session, _get_username_from_token
@@ -24,19 +26,15 @@ except ImportError:
     print("📦 Installing dependencies...")
     install_dependencies()
     import gradio as gr
+    import pandas as pd
     from aimodelshare.playground import Competition
     from aimodelshare.moral_compass import MoralcompassApiClient
     from aimodelshare.aws import get_token_from_session, _get_username_from_token
 
-ORIGINAL_PLAYGROUND_URL = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
-
-# --- 3. AUTH HELPER ---
+# --- 3. AUTH & HISTORY HELPERS ---
 
 def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str], Optional[str]]:
-    """
-    Attempt to authenticate via session token from Gradio request.
-    Returns (success, username, token).
-    """
+    """Attempt to authenticate via session token from Gradio request."""
     try:
         session_id = request.query_params.get("sessionid") if request else None
         if not session_id:
@@ -53,25 +51,52 @@ def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str],
         return True, username, token
         
     except Exception:
-        # Log generic failure without exposing sensitive details
         print("Session auth failed: unable to authenticate")
         return False, None, None
 
-def validate_auth(session_id):
+def fetch_user_history(username, token):
     """
-    Attempts to get a token. Returns (token, username) or raises Error.
+    Fetches user's Best Accuracy and Team from the Original Playground.
+    Fallback Accuracy: 0.0 (User must have built a model to get points)
+    Fallback Team: 'Team-Unassigned'
     """
-    if not session_id or str(session_id).strip() == "":
-        raise gr.Error("⚠️ Session ID is missing. Please paste your ID.")
+    default_acc = 0.0  
+    default_team = "Team-Unassigned"
     
     try:
-        token = get_token_from_session(session_id)
-        if not token:
-            raise ValueError("Empty token returned")
-        username = _get_username_from_token(token)
-        return token, username
+        # Connect to the original playground
+        playground = Competition(ORIGINAL_PLAYGROUND_URL)
+        df = playground.get_leaderboard(token=token)
+        
+        if df is None or df.empty:
+            return default_acc, default_team
+
+        if "username" in df.columns and "accuracy" in df.columns:
+            user_rows = df[df["username"] == username]
+            
+            if not user_rows.empty:
+                # 1. Get max accuracy
+                best_acc = user_rows["accuracy"].max()
+                
+                # 2. Get Team (Most recent submission)
+                if "timestamp" in user_rows.columns and "Team" in user_rows.columns:
+                    try:
+                        user_rows = user_rows.copy()
+                        user_rows["timestamp"] = pd.to_datetime(user_rows["timestamp"], errors="coerce")
+                        user_rows = user_rows.sort_values("timestamp", ascending=False)
+                        
+                        found_team = user_rows.iloc[0]["Team"]
+                        if pd.notna(found_team) and str(found_team).strip():
+                            default_team = str(found_team).strip()
+                    except Exception as e:
+                        print(f"Team sort error: {e}")
+                
+                return float(best_acc), default_team
+                
     except Exception as e:
-        raise gr.Error(f"❌ Authentication Failed: Session Invalid or Expired. ({str(e)})")
+        print(f"Error fetching original history: {e}")
+        
+    return default_acc, default_team
 
 # --- 4. MODULE DEFINITIONS ---
 
@@ -146,7 +171,6 @@ MODULES = [
                 <h2 class="slide-title">🕵️‍♀️ Your Next Mission: Investigate AI Bias</h2>
                 <div class="slide-body">
                     
-                    <!-- Role Badge -->
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
                         <div style="
                             display:inline-flex;
@@ -166,12 +190,10 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Target Header -->
                     <h3 style="font-size:1.3rem; margin-top:0; text-align:center;">
                         ⚡ Your Target: <span style="color:var(--color-accent);">Find Hidden AI Bias</span>
                     </h3>
 
-                    <!-- Narrative Hook -->
                     <p style="font-size:1.05rem; max-width:780px; margin:14px auto 22px auto; text-align:center;">
                         This AI model claims to be neutral, but we suspect it is unfair.
                         Your mission is simple: <strong>uncover the bias hiding inside the training data</strong>
@@ -180,7 +202,6 @@ MODULES = [
                         If you can't find it, we can't fix it.
                     </p>
 
-                    <!-- Investigation Roadmap -->
                     <div class="ai-risk-container" style="margin-top:10px;">
                         <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">
                             🔍 Investigation Roadmap
@@ -229,7 +250,6 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- CTA copy (button is wired in Python) -->
                     <div style="text-align:center; margin-top:24px;">
                         <p style="margin-bottom:10px; font-size:1.0rem;">
                             When you’re ready, lock in your role and continue to your first intelligence briefing.
@@ -249,7 +269,6 @@ MODULES = [
                 <h2 class="slide-title">⚖️ The Detective's Code</h2>
                 <div class="slide-body">
                     
-                    <!-- Badge -->
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
                         <div style="
                             display:inline-flex;
@@ -269,18 +288,16 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Narrative / Authority -->
                     <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
                         We don't guess. We investigate based on the standards set by the experts at the
                         <strong>Catalan Observatory for Ethics in AI (OEIAC)</strong>.
                         <br><br>
                         While they established <strong>7 core principles</strong> to keep AI safe, our intel suggests
                         this specific case involves a violation of what we will treat as
-                        <strong>Principle #1 in this investigation: Justice &amp; Fairness</strong>
+                        <strong>Principle #1 in this investigation: Justice & Fairness</strong>
                         — formally captured in their principle of <strong>Justice and Equity</strong>.
                     </p>
 
-                    <!-- Principles Grid -->
                     <div class="ai-risk-container" style="margin-top:10px; border-width:2px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                         <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">
                             🧩 Key Ethical Principles (OEIAC Framework)
@@ -291,14 +308,12 @@ MODULES = [
                         </p>
 
                         <div style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; margin-top:10px;">
-                            <!-- 1: Transparency and Explainability -->
                             <div class="hint-box" style="margin-top:0; font-size:0.9rem;">
                                 <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--body-text-color-subdued);">
                                     1 · Transparency and Explainability
                                 </div>
                             </div>
 
-                            <!-- 2: Justice and Equity (CASE PRIORITY) -->
                             <div class="hint-box" style="
                                 margin-top:0;
                                 font-size:0.9rem;
@@ -335,35 +350,30 @@ MODULES = [
                                 </div>
                             </div>
 
-                            <!-- 3: Safety and Non-Maleficence -->
                             <div class="hint-box" style="margin-top:0; font-size:0.9rem;">
                                 <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--body-text-color-subdued);">
                                     3 · Safety and Non-Maleficence
                                 </div>
                             </div>
 
-                            <!-- 4: Responsibility and Accountability -->
                             <div class="hint-box" style="margin-top:0; font-size:0.9rem;">
                                 <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--body-text-color-subdued);">
                                     4 · Responsibility and Accountability
                                 </div>
                             </div>
 
-                            <!-- 5: Privacy -->
                             <div class="hint-box" style="margin-top:0; font-size:0.9rem;">
                                 <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--body-text-color-subdued);">
                                     5 · Privacy
                                 </div>
                             </div>
 
-                            <!-- 6: Autonomy -->
                             <div class="hint-box" style="margin-top:0; font-size:0.9rem;">
                                 <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--body-text-color-subdued);">
                                     6 · Autonomy
                                 </div>
                             </div>
 
-                            <!-- 7: Sustainability -->
                             <div class="hint-box" style="margin-top:0; font-size:0.9rem;">
                                 <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--body-text-color-subdued);">
                                     7 · Sustainability
@@ -372,7 +382,6 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- CTA copy (button is wired in Python) -->
                     <div style="text-align:center; margin-top:24px;">
                         <p style="margin-bottom:10px; font-size:1.0rem;">
                             You now have your ethical playbook. Next, we initialize the
@@ -394,7 +403,6 @@ MODULES = [
                 <h2 class="slide-title">⚠️ THE RISK OF INVISIBLE BIAS</h2>
                 <div class="slide-body">
                     
-                    <!-- Badge -->
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
                         <div style="
                             display:inline-flex;
@@ -414,7 +422,6 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Narrative -->
                     <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
                         You might ask: "Why is an AI bias investigation so critical?" When a human judge is biased, 
                         you can often see it in their actions or hear it in their words. However, AI bias can be silent. 
@@ -423,7 +430,6 @@ MODULES = [
                         inside the system, discrimination could become invisible, difficult to challenge, and deeply entrenched.
                     </p>
 
-                    <!-- Visual Concept: The Ripple Effect -->
                     <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
                         <h4 style="margin-top:0; font-size:1.3rem;">The Ripple Effect</h4>
                         <div style="font-size: 1.6rem; margin: 16px 0; font-weight:bold;">
@@ -435,7 +441,6 @@ MODULES = [
                         </p>
                     </div>
 
-                    <!-- CTA -->
                     <div style="text-align:center; margin-top:24px;">
                         <p style="margin-bottom:10px; font-size:1.0rem; font-weight:600;">
                             Ready to learn how to detect and prevent this?
@@ -455,7 +460,6 @@ MODULES = [
                 <h2 class="slide-title">🔎 HOW DO WE CATCH A MACHINE?</h2>
                 <div class="slide-body">
                     
-                    <!-- Badge -->
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
                         <div style="
                             display:inline-flex;
@@ -475,14 +479,12 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Narrative -->
                     <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
                         You can't interrogate an algorithm. It won't confess. To find bias, we have to look at 
                         the evidence trail it leaves behind. If you were investigating a suspicious judge, what 
                         would you look for?
                     </p>
 
-                    <!-- Interactive Brainstorm -->
                     <div class="ai-risk-container" style="margin-top:20px;">
                         <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">
                             🗂️ The Investigation Checklist
@@ -512,7 +514,6 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Expert Validation -->
                     <div style="text-align:center; margin-top:24px; padding:16px; background:rgba(34, 197, 94, 0.1); border-radius:8px;">
                         <p style="font-size:1.05rem; margin:0; font-weight:600;">
                             ✅ Exactly. You just described the <strong>Standard Audit Protocol</strong> used by AI experts 
@@ -533,7 +534,6 @@ MODULES = [
                 <h2 class="slide-title">📂 THE DATA FORENSICS BRIEFING</h2>
                 <div class="slide-body">
                     
-                    <!-- Badge -->
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
                         <div style="
                             display:inline-flex;
@@ -553,7 +553,6 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Narrative -->
                     <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
                         You are about to access the raw evidence files. But be warned: The AI thinks this data is 
                         the truth. If the police historically targeted one neighborhood more than others, the dataset 
@@ -561,7 +560,6 @@ MODULES = [
                         a pattern.
                     </p>
 
-                    <!-- Detective's Task -->
                     <div class="ai-risk-container">
                         <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">
                             🔍 The Detective's Task
@@ -576,7 +574,6 @@ MODULES = [
                         </p>
                     </div>
 
-                    <!-- CTA -->
                     <div style="text-align:center; margin-top:24px;">
                         <p style="margin-bottom:10px; font-size:1.0rem; font-weight:600;">
                             Ready to begin the forensic analysis?
@@ -596,7 +593,6 @@ MODULES = [
                 <h2 class="slide-title">🔎 FORENSIC ANALYSIS: RACE</h2>
                 <div class="slide-body">
                     
-                    <!-- Badge -->
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
                         <div style="
                             display:inline-flex;
@@ -616,13 +612,11 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Narrative -->
                     <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
                         We know that in this local jurisdiction, African-Americans make up 12% of the total population. 
                         If the data is unbiased, the "Evidence Files" should roughly match that number.
                     </p>
 
-                    <!-- Scan Result -->
                     <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
                         <h4 style="margin-top:0; font-size:1.3rem;">📡 SCAN DATASET FOR RACE</h4>
                         <div style="margin: 20px 0;">
@@ -643,7 +637,6 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Analysis -->
                     <div class="hint-box" style="background:rgba(239, 68, 68, 0.1);">
                         <h4 style="margin-top:0;">🔍 Detective's Analysis</h4>
                         <p style="margin-bottom:8px;">
@@ -668,7 +661,6 @@ MODULES = [
                 <h2 class="slide-title">🔎 FORENSIC ANALYSIS: GENDER</h2>
                 <div class="slide-body">
                     
-                    <!-- Badge -->
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
                         <div style="
                             display:inline-flex;
@@ -688,13 +680,11 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Narrative -->
                     <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
                         We are now scanning for gender balance. In the real world, the population is roughly 50/50. 
                         A fair training set should reflect this balance.
                     </p>
 
-                    <!-- Scan Result -->
                     <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
                         <h4 style="margin-top:0; font-size:1.3rem;">📡 SCAN DATASET FOR GENDER</h4>
                         <div style="margin: 20px 0;">
@@ -717,7 +707,6 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Analysis -->
                     <div class="hint-box" style="background:rgba(239, 68, 68, 0.1);">
                         <h4 style="margin-top:0;">🔍 Detective's Analysis</h4>
                         <p style="margin-bottom:8px;">
@@ -742,7 +731,6 @@ MODULES = [
                 <h2 class="slide-title">🔎 FORENSIC ANALYSIS: AGE</h2>
                 <div class="slide-body">
                     
-                    <!-- Badge -->
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
                         <div style="
                             display:inline-flex;
@@ -762,12 +750,10 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Narrative -->
                     <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
                         Finally, we look at Age. Criminology tells us that risk drops significantly as people get older.
                     </p>
 
-                    <!-- Scan Result -->
                     <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
                         <h4 style="margin-top:0; font-size:1.3rem;">📡 SCAN DATASET FOR AGE</h4>
                         <div style="margin: 20px 0;">
@@ -799,7 +785,6 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Analysis -->
                     <div class="hint-box" style="background:rgba(239, 68, 68, 0.1);">
                         <h4 style="margin-top:0;">🔍 Detective's Analysis</h4>
                         <p style="margin-bottom:8px;">
@@ -823,7 +808,6 @@ MODULES = [
                 <h2 class="slide-title">📂 FORENSICS REPORT: SUMMARY</h2>
                 <div class="slide-body">
                     
-                    <!-- Badge -->
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
                         <div style="
                             display:inline-flex;
@@ -844,13 +828,11 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Narrative -->
                     <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
                         Excellent work. You have analyzed the <strong>Inputs</strong>. We can confirm the data is 
                         compromised in three ways.
                     </p>
 
-                    <!-- Evidence Board -->
                     <div class="ai-risk-container">
                         <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">
                             📋 Evidence Board: Key Findings
@@ -880,7 +862,6 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Deduction -->
                     <div style="text-align:center; margin-top:24px; padding:16px; background:rgba(59, 130, 246, 0.1); border-radius:8px;">
                         <p style="font-size:1.05rem; margin:0; font-weight:600;">
                             🔍 The <strong>Inputs</strong> are flawed. Now we must test the <strong>Outputs</strong>. 
@@ -901,7 +882,6 @@ MODULES = [
                 <h2 class="slide-title">⚠️ THE TRAP OF "AVERAGES"</h2>
                 <div class="slide-body">
                     
-                    <!-- Badge -->
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
                         <div style="
                             display:inline-flex;
@@ -921,13 +901,11 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Narrative -->
                     <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
                         The AI vendor claims this model is <strong>92% Accurate</strong>. But remember: the data was 
                         81% Male. If it works for men but fails for women, the "Average" still looks high.
                     </p>
 
-                    <!-- The Trap Visualization -->
                     <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
                         <h4 style="margin-top:0; font-size:1.3rem;">🔨 Break Down by Gender</h4>
                         <div style="margin: 20px 0;">
@@ -959,7 +937,6 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Insight -->
                     <div class="hint-box" style="background:rgba(239, 68, 68, 0.1);">
                         <h4 style="margin-top:0;">💡 The Insight</h4>
                         <p style="margin:0;">
@@ -981,7 +958,6 @@ MODULES = [
                 <h2 class="slide-title">⏳ THE POWER OF HINDSIGHT</h2>
                 <div class="slide-body">
                     
-                    <!-- Badge -->
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
                         <div style="
                             display:inline-flex;
@@ -1001,13 +977,11 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Narrative -->
                     <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
                         How do we know if the AI is wrong? We have the <strong>Answer Key</strong> (historical data). 
                         We can compare the <strong>Prediction</strong> to <strong>Reality</strong>.
                     </p>
 
-                    <!-- Definitions -->
                     <div class="ai-risk-container">
                         <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">
                             📚 Key Definitions
@@ -1036,7 +1010,6 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- CTA -->
                     <div style="text-align:center; margin-top:24px;">
                         <p style="margin-bottom:10px; font-size:1.0rem; font-weight:600;">
                             Let's analyze High Risk Predictions vs. Reality (False Positives)
@@ -1056,7 +1029,6 @@ MODULES = [
                 <h2 class="slide-title">⚠️ EVIDENCE FOUND: PUNITIVE BIAS</h2>
                 <div class="slide-body">
                     
-                    <!-- Badge -->
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
                         <div style="
                             display:inline-flex;
@@ -1076,12 +1048,10 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Narrative -->
                     <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
                         We analyzed the "False Alarms"—innocent people flagged as High Risk.
                     </p>
 
-                    <!-- Data Visualization -->
                     <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
                         <h4 style="margin-top:0; font-size:1.3rem;">📊 False Positive Rate by Race</h4>
                         <div style="display:flex; gap:20px; margin-top:20px; justify-content:center;">
@@ -1106,7 +1076,6 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Insight -->
                     <div class="hint-box" style="background:rgba(239, 68, 68, 0.1);">
                         <h4 style="margin-top:0;">🔍 The Insight</h4>
                         <p style="margin:0;">
@@ -1128,7 +1097,6 @@ MODULES = [
                 <h2 class="slide-title">⚠️ EVIDENCE FOUND: THE "FREE PASS"</h2>
                 <div class="slide-body">
                     
-                    <!-- Badge -->
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
                         <div style="
                             display:inline-flex;
@@ -1148,12 +1116,10 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Narrative -->
                     <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
                         Now we look at dangerous people the AI mistakenly labeled "Low Risk."
                     </p>
 
-                    <!-- Data Visualization -->
                     <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
                         <h4 style="margin-top:0; font-size:1.3rem;">📊 False Negative Rate by Race</h4>
                         <div style="display:flex; gap:20px; margin-top:20px; justify-content:center;">
@@ -1178,7 +1144,6 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Insight -->
                     <div class="hint-box" style="background:rgba(239, 68, 68, 0.1);">
                         <h4 style="margin-top:0;">🔍 The Insight</h4>
                         <p style="margin:0;">
@@ -1200,7 +1165,6 @@ MODULES = [
                 <h2 class="slide-title">⚠️ EVIDENCE FOUND: SEVERITY BIAS</h2>
                 <div class="slide-body">
                     
-                    <!-- Badge -->
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
                         <div style="
                             display:inline-flex;
@@ -1220,12 +1184,10 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Narrative -->
                     <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
                         Remember the 81% Male data? The AI doesn't understand female crime patterns. It panics.
                     </p>
 
-                    <!-- Data Visualization -->
                     <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
                         <h4 style="margin-top:0; font-size:1.3rem;">📊 High Risk Flagging for Minor Crimes</h4>
                         <div style="margin: 20px auto; max-width:400px;">
@@ -1247,7 +1209,6 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Insight -->
                     <div class="hint-box" style="background:rgba(239, 68, 68, 0.1);">
                         <h4 style="margin-top:0;">🔍 The Insight</h4>
                         <p style="margin:0;">
@@ -1269,7 +1230,6 @@ MODULES = [
                 <h2 class="slide-title">⚠️ EVIDENCE FOUND: ESTIMATION ERROR</h2>
                 <div class="slide-body">
                     
-                    <!-- Badge -->
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
                         <div style="
                             display:inline-flex;
@@ -1289,12 +1249,10 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Narrative -->
                     <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
                         The AI thinks "Criminal = Young." It fails to recognize risk in older populations.
                     </p>
 
-                    <!-- Data Visualization -->
                     <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
                         <h4 style="margin-top:0; font-size:1.3rem;">📊 Missed Re-offender Detection Rate</h4>
                         <div style="margin: 30px auto; max-width:500px;">
@@ -1312,7 +1270,6 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Insight -->
                     <div class="hint-box" style="background:rgba(239, 68, 68, 0.1);">
                         <h4 style="margin-top:0;">🔍 The Insight</h4>
                         <p style="margin:0;">
@@ -1334,7 +1291,6 @@ MODULES = [
                 <h2 class="slide-title">⚠️ THE "PROXY" PROBLEM</h2>
                 <div class="slide-body">
                     
-                    <!-- Badge -->
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
                         <div style="
                             display:inline-flex;
@@ -1354,13 +1310,11 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Narrative -->
                     <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
                         We often hear: "Just delete the Race column." But look at this map. The AI can see 
                         <strong>Where You Live</strong>.
                     </p>
 
-                    <!-- Data Visualization -->
                     <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
                         <h4 style="margin-top:0; font-size:1.3rem;">📊 False Positive Rate by Location Type</h4>
                         <div style="margin: 30px auto; max-width:500px;">
@@ -1383,7 +1337,6 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Insight -->
                     <div class="hint-box" style="background:rgba(239, 68, 68, 0.1);">
                         <h4 style="margin-top:0;">🔍 The Insight</h4>
                         <p style="margin:0;">
@@ -1405,7 +1358,6 @@ MODULES = [
                 <h2 class="slide-title">📂 AUDIT REPORT: SUMMARY</h2>
                 <div class="slide-body">
                     
-                    <!-- Badge -->
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
                         <div style="
                             display:inline-flex;
@@ -1426,13 +1378,11 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Narrative -->
                     <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
                         Analysis complete. The system passes the "Average Accuracy" test, but 
                         <strong style="color:#ef4444;">fails the Fairness Test</strong> on every demographic level.
                     </p>
 
-                    <!-- Impact Matrix -->
                     <div class="ai-risk-container">
                         <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">
                             📋 Impact Matrix: Proven Harms
@@ -1469,7 +1419,6 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Deduction -->
                     <div style="text-align:center; margin-top:24px; padding:16px; background:rgba(59, 130, 246, 0.1); border-radius:8px;">
                         <p style="font-size:1.05rem; margin:0; font-weight:600;">
                             🔍 You have the <strong>Evidence</strong> and the <strong>Proof of Harm</strong>. 
@@ -1490,7 +1439,6 @@ MODULES = [
                 <h2 class="slide-title">⚖️ THE FINAL JUDGMENT</h2>
                 <div class="slide-body">
                     
-                    <!-- Badge -->
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
                         <div style="
                             display:inline-flex;
@@ -1510,13 +1458,11 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Narrative -->
                     <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
                         You have the full picture. The AI Vendor argues that the model is <strong>92% Accurate</strong> 
                         and highly efficient. They want to deploy it immediately to clear the court backlog.
                     </p>
 
-                    <!-- The Decision -->
                     <div class="ai-risk-container">
                         <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">
                             🎯 Your Decision
@@ -1549,7 +1495,6 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Feedback -->
                     <div style="margin-top:24px; padding:20px; background:rgba(34, 197, 94, 0.1); border-radius:8px; border:2px solid #22c55e;">
                         <h4 style="margin-top:0; color:#22c55e;">✅ Judgment Logged: REJECT</h4>
                         <p style="font-size:1.0rem; margin:0;">
@@ -1572,7 +1517,6 @@ MODULES = [
                 <h2 class="slide-title">🏆 EXCELLENT WORK, DETECTIVE</h2>
                 <div class="slide-body">
                     
-                    <!-- Badge -->
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
                         <div style="
                             display:inline-flex;
@@ -1593,7 +1537,6 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Narrative -->
                     <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
                         You successfully exposed the "Invisible Enemy." You proved that "92% Accuracy" was a mask 
                         for <strong style="color:#ef4444;">Punitive Bias</strong> and 
@@ -1601,7 +1544,6 @@ MODULES = [
                         The court still needs a working system.
                     </p>
 
-                    <!-- Achievement Summary -->
                     <div class="ai-risk-container" style="margin-top:24px;">
                         <h4 style="margin-top:0; font-size:1.15rem; text-align:center; color:#22c55e;">
                             🎯 Mission Accomplished
@@ -1634,7 +1576,6 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Promotion -->
                     <div style="margin-top:28px; padding:24px; background:linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <h3 style="margin-top:0; text-align:center; color:var(--color-accent);">
                             🎖️ PROMOTION: FAIRNESS ENGINEER
@@ -1660,7 +1601,6 @@ MODULES = [
                         </div>
                     </div>
 
-                    <!-- Final CTA -->
                     <div style="text-align:center; margin-top:28px; padding:20px; background:rgba(34, 197, 94, 0.1); border-radius:8px;">
                         <div style="font-size:1.5rem; margin-bottom:8px;">⬇️</div>
                         <p style="font-size:1.1rem; font-weight:600; margin:0;">
@@ -1677,23 +1617,15 @@ MODULES = [
 # --- 5. LEADERBOARD HELPERS ---
 
 def get_or_assign_team(client, username):
-    """
-    Get user's existing team from leaderboard or assign a default team.
-    Returns team_name string.
-    """
+    """Get user's existing team from leaderboard or assign a default team."""
     try:
         resp = client.list_users(table_id=TABLE_ID, limit=500)
         users = resp.get("users", [])
-        
-        # Look for existing team assignment
         my_user = next((u for u in users if u.get("username") == username), None)
         if my_user and my_user.get("teamName"):
             return my_user.get("teamName")
-        
-        # If no team found, return default
         return "team-a"
     except Exception:
-        # Fallback to default team
         return "team-a"
 
 def get_leaderboard_data(client, username, team_name):
@@ -1710,7 +1642,6 @@ def get_leaderboard_data(client, username, team_name):
         score = float(my_user.get("moralCompassScore", 0) or 0) if my_user else 0.0
         rank = users_sorted.index(my_user) + 1 if my_user else 0
         
-        # Get completedTaskIds from user record
         completed_task_ids = []
         if my_user:
             completed_task_ids = my_user.get("completedTaskIds", []) or []
@@ -1745,80 +1676,38 @@ def get_leaderboard_data(client, username, team_name):
         print(f"Leaderboard Error: {e}")
         return None
 
-def fetch_user_history(username, token):
-    """
-    Fetches user's Best Accuracy and Team from the Original Playground.
-    Returns: (accuracy, team_name)
-    """
-    # CHANGE: Fallback is now 0.0, implying no prior technical success
-    default_acc = 0.0  
-    default_team = "Team-Unassigned"
-    
-    try:
-        # Connect to the original playground
-        playground = Competition(ORIGINAL_PLAYGROUND_URL)
-        df = playground.get_leaderboard(token=token)
-        
-        if df is None or df.empty:
-            return default_acc, default_team
-
-        # 1. Get Best Accuracy
-        # Check if username exists in the data
-        if "username" in df.columns and "accuracy" in df.columns:
-            user_rows = df[df["username"] == username]
-            
-            if not user_rows.empty:
-                # Get max accuracy
-                best_acc = user_rows["accuracy"].max()
-                
-                # 2. Get Team (Most recent submission)
-                # Sort by timestamp descending
-                if "timestamp" in user_rows.columns and "Team" in user_rows.columns:
-                    try:
-                        # Ensure timestamp is datetime objects for sorting
-                        user_rows = user_rows.copy()
-                        user_rows["timestamp"] = pd.to_datetime(user_rows["timestamp"], errors="coerce")
-                        user_rows = user_rows.sort_values("timestamp", ascending=False)
-                        
-                        found_team = user_rows.iloc[0]["Team"]
-                        if pd.notna(found_team) and str(found_team).strip():
-                            default_team = str(found_team).strip()
-                    except Exception as e:
-                        print(f"Team sort error: {e}")
-                
-                return float(best_acc), default_team
-                
-    except Exception as e:
-        print(f"Error fetching original history: {e}")
-        
-    return default_acc, default_team
-    
 def ensure_table_and_get_data(username, token, team_name):
     """Get leaderboard data using username and token directly."""
     os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
     client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
 
+    # FIX: Use a valid structure so extract_playground_id doesn't return None
+    DUMMY_PLAYGROUND_URL = "https://example.com/playground/m-mc"
+
     try:
         client.get_table(TABLE_ID)
     except Exception:
         try:
-            client.create_table(table_id=TABLE_ID, display_name="LMS", playground_url="x")
+            client.create_table(table_id=TABLE_ID, display_name="LMS", playground_url=DUMMY_PLAYGROUND_URL)
         except Exception:
             pass
 
     data = get_leaderboard_data(client, username, team_name)
     return data, username
 
-def trigger_api_update(username, token, team_name, module_id, append_task_id=None, increment_question=False):
+def trigger_api_update(username, token, team_name, module_id, user_real_accuracy, append_task_id=None, increment_question=False):
     """
-    Simplified Update: Only tracks Tasks (1 Quiz = 1 Task).
+    Update moral compass score using real user accuracy and retry logic.
+    KEY UPDATES:
+    1. Uses `user_real_accuracy` from History, not module list.
+    2. Simplifies progress to 1 Task = 10%.
+    3. Polls for consistency.
     """
     os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
     DUMMY_PLAYGROUND_URL = "https://example.com/playground/m-mc"
     
     client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
     
-    # Ensure table exists
     try:
         client.get_table(TABLE_ID)
     except Exception:
@@ -1828,58 +1717,54 @@ def trigger_api_update(username, token, team_name, module_id, append_task_id=Non
             pass
     
     # 1. Force Real Accuracy
-    REAL_MODEL_ACCURACY = 0.672
-    acc = REAL_MODEL_ACCURACY
+    acc = float(user_real_accuracy) if user_real_accuracy is not None else 0.0
     
-    # 2. Get Previous Data
     prev_data = get_leaderboard_data(client, username, team_name)
     prev_task_ids = prev_data.get('completed_task_ids', []) or [] if prev_data else []
     
-    # 3. Calculate New Task List
+    # 2. Calculate New Task List
     new_task_ids = list(prev_task_ids)
     if append_task_id and append_task_id not in new_task_ids:
         new_task_ids.append(append_task_id)
-        # Sort numerically (t1, t2...)
         try:
             new_task_ids.sort(key=lambda x: int(x[1:]) if x.startswith('t') and x[1:].isdigit() else 0)
         except (ValueError, IndexError):
             pass
     
-    # 4. SIMPLIFIED MATH: Only count Tasks
+    # 3. SIMPLIFIED MATH: Only count Tasks
     tasks_completed = len(new_task_ids)
     
-    # Write to API - Note we set questions to 0 and total_tasks to 10
+    # Write to API
     client.update_moral_compass(
         table_id=TABLE_ID,
         username=username,
         team_name=team_name,
         metrics={"accuracy": acc},
         tasks_completed=tasks_completed,
-        total_tasks=10,       # Denominator is now just 10
+        total_tasks=10,       # Denominator is 10
         questions_correct=0,  # Ignored
         total_questions=0,    # Ignored
         primary_metric="accuracy",
         completed_task_ids=new_task_ids if new_task_ids else None
     )
 
-    # 5. Polling Retry (Kept for reliability)
+    # 4. Polling Retry
     new_data = prev_data 
-    print(f"🔄 Polling API for update... (Target Task Count: {tasks_completed})")
+    print(f"🔄 Polling API... Target Task Count: {tasks_completed}")
     
     for attempt in range(3):
         time.sleep(1.5)
         current_read = get_leaderboard_data(client, username, team_name)
         current_ids = current_read.get('completed_task_ids', []) or []
         
-        # Check if the list length matches our expectation
         if len(current_ids) == tasks_completed:
             new_data = current_read
             print("✅ API update confirmed.")
             break
         
-        print(f"⚠️ API Latency detected. Retrying... (Attempt {attempt+1}/3)")
+        print(f"⚠️ API Latency detected. Retrying... ({attempt+1}/3)")
 
-    # 6. Safety Patch
+    # 5. Safety Patch
     if new_data and append_task_id:
          fetched_ids = new_data.get('completed_task_ids', []) or []
          if append_task_id not in fetched_ids:
@@ -1890,26 +1775,21 @@ def trigger_api_update(username, token, team_name, module_id, append_task_id=Non
 # --- 6. RENDERERS ---
 
 def render_top_dashboard(data, module_id):
-    # Initialize defaults if data is missing
+    # Defaults
     display_score = 0.0
     count_completed = 0
     rank_display = "–"
     team_rank_display = "–"
     
     if data:
-        # Trust the score directly from the data (polling ensures it's fresh)
         display_score = float(data.get('score', 0.0))
         rank_display = f"#{data.get('rank', '–')}"
         team_rank_display = f"#{data.get('team_rank', '–')}"
-        
-        # Calculate progress based on ACTUAL tasks completed
         completed_ids = data.get('completed_task_ids', []) or []
         count_completed = len(completed_ids)
     
-    # 20 Total steps in the course (Modules 0-19 generally map to tasks)
+    # PROGRESS CALCULATION: 10 Total Tasks (1 Task = 10%)
     TOTAL_COURSE_TASKS = 10 
-    
-    # Simple percentage: 1 task = 10%
     progress_pct = min(100, int((count_completed / TOTAL_COURSE_TASKS) * 100))
 
     return f"""
@@ -1943,64 +1823,6 @@ def render_top_dashboard(data, module_id):
     </div>
     """
 
-def render_team_table(data, team_name):
-    if not data or not data.get("all_teams"):
-        return "<p>No team standings yet. Complete a module to activate your Moral Compass.</p>"
-    rows = ""
-    for idx, t in enumerate(data["all_teams"]):
-        is_mine = (t["team"] == team_name)
-        row_class = "row-highlight-team" if is_mine else "row-normal"
-        rows += f"""
-        <tr class="{row_class}">
-            <td style="padding:12px; text-align:center;">{idx+1}</td>
-            <td style="padding:12px;">{t['team']}</td>
-            <td style="padding:12px; text-align:right;">{t['avg']:.3f}</td>
-        </tr>
-        """
-    return f"""
-    <div class="table-container">
-        <table class="leaderboard-table">
-            <thead>
-                <tr>
-                    <th style="padding:12px;">Rank</th>
-                    <th style="padding:12px; text-align:left;">Team</th>
-                    <th style="padding:12px; text-align:right;">Avg Moral Compass Score 🧭</th>
-                </tr>
-            </thead>
-            <tbody>{rows}</tbody>
-        </table>
-    </div>
-    """
-
-def render_user_table(data, username):
-    if not data or not data.get("all_users"):
-        return "<p>No individual scores yet. Complete a module to activate your Moral Compass.</p>"
-    rows = ""
-    for idx, u in enumerate(data["all_users"]):
-        is_me = (u.get("username") == username)
-        row_class = "row-highlight-me" if is_me else "row-normal"
-        rows += f"""
-        <tr class="{row_class}">
-            <td style="padding:12px; text-align:center;">{idx+1}</td>
-            <td style="padding:12px;">{u.get('username','')}</td>
-            <td style="padding:12px; text-align:right;">{float(u.get('moralCompassScore',0)):.3f}</td>
-        </tr>
-        """
-    return f"""
-    <div class="table-container">
-        <table class="leaderboard-table">
-            <thead>
-                <tr>
-                    <th style="padding:12px;">Rank</th>
-                    <th style="padding:12px; text-align:left;">Agent</th>
-                    <th style="padding:12px; text-align:right;">Moral Compass Score 🧭</th>
-                </tr>
-            </thead>
-            <tbody>{rows}</tbody>
-        </table>
-    </div>
-    """
-
 def render_leaderboard_card(data, username, team_name):
     team_html = render_team_table(data, team_name)
     user_html = render_user_table(data, username)
@@ -2016,285 +1838,42 @@ def render_leaderboard_card(data, username, team_name):
             <label for="lb-tab-user" class="lb-tab-label">👤 Individual Leaderboard</label>
 
             <div class="lb-tab-panels">
-                <div class="lb-panel panel-team">
-                    {team_html}
-                </div>
-                <div class="lb-panel panel-user">
-                    {user_html}
-                </div>
+                <div class="lb-panel panel-team">{team_html}</div>
+                <div class="lb-panel panel-user">{user_html}</div>
             </div>
         </div>
     </div>
     """
 
-# --- 7. QUIZ LOGIC FOR MODULE 0 ---
+def render_team_table(data, team_name):
+    if not data or not data.get("all_teams"):
+        return "<p>No team standings yet.</p>"
+    rows = ""
+    for idx, t in enumerate(data["all_teams"]):
+        is_mine = (t["team"] == team_name)
+        row_class = "row-highlight-team" if is_mine else "row-normal"
+        rows += f"<tr class='{row_class}'><td style='padding:12px;text-align:center;'>{idx+1}</td><td style='padding:12px;'>{t['team']}</td><td style='padding:12px;text-align:right;'>{t['avg']:.3f}</td></tr>"
+    return f"<div class='table-container'><table class='leaderboard-table'><thead><tr><th style='padding:12px;'>Rank</th><th style='padding:12px;text-align:left;'>Team</th><th style='padding:12px;text-align:right;'>Avg Score 🧭</th></tr></thead><tbody>{rows}</tbody></table></div>"
+
+def render_user_table(data, username):
+    if not data or not data.get("all_users"):
+        return "<p>No individual scores yet.</p>"
+    rows = ""
+    for idx, u in enumerate(data["all_users"]):
+        is_me = (u.get("username") == username)
+        row_class = "row-highlight-me" if is_me else "row-normal"
+        rows += f"<tr class='{row_class}'><td style='padding:12px;text-align:center;'>{idx+1}</td><td style='padding:12px;'>{u.get('username','')}</td><td style='padding:12px;text-align:right;'>{float(u.get('moralCompassScore',0)):.3f}</td></tr>"
+    return f"<div class='table-container'><table class='leaderboard-table'><thead><tr><th style='padding:12px;'>Rank</th><th style='padding:12px;text-align:left;'>Agent</th><th style='padding:12px;text-align:right;'>Score 🧭</th></tr></thead><tbody>{rows}</tbody></table></div>"
+```### Part 3: Quiz Logic, CSS, App Layout, and Launch
+
+```python
+# --- 7. QUIZ LOGIC (With Wrappers) ---
 
 CORRECT_ANSWER_0 = "A) Because simple accuracy ignores potential bias and harm."
-
-def submit_quiz_0(username, token, team_name, module0_done, answer):
-    if answer is None:
-        return (
-            gr.update(),  # out_top
-            gr.update(),  # leaderboard_html
-            module0_done,
-            "<div class='hint-box'>Please select an answer before moving on.</div>",
-        )
-
-    if answer != CORRECT_ANSWER_0:
-        return (
-            gr.update(),
-            gr.update(),
-            module0_done,
-            "<div class='hint-box'>❌ Not quite. Think about what accuracy leaves out. A model can be accurate on average yet still cause harm for certain groups.</div>",
-        )
-
-    if module0_done:
-        data, username = ensure_table_and_get_data(username, token, team_name)
-        html_top = render_top_dashboard(data, module_id=0)
-        lb_html = render_leaderboard_card(data, username, team_name)
-        msg_html = f"""
-        <div class="profile-card risk-low" style="text-align:center;">
-            <h2 style="color:#22c55e; margin:0 0 10px 0;">✅ Already Unlocked</h2>
-            <p style="font-size:1.05rem; margin-bottom:6px;">
-                You've already activated your <strong>Module 0 Moral Compass</strong>.
-            </p>
-            <p style="font-size:0.95rem;">
-                Your current score is <strong>{data['score']:.3f}</strong> with a global rank of
-                <strong>#{data['rank']}</strong>. You can move on to the next module at any time.
-            </p>
-        </div>
-        """
-        return (
-            gr.update(value=html_top),
-            gr.update(value=lb_html),
-            module0_done,
-            gr.update(value=msg_html),
-        )
-
-    # Correct answer - append "t1" to completedTaskIds and increment counters
-    prev, curr, username = trigger_api_update(
-        username, token, team_name, module_id=0, 
-        append_task_id="t1", increment_question=True
-    )
-
-    d_score = curr["score"] - (prev["score"] if prev else 0.0)
-    prev_rank = prev["rank"] if prev and prev.get("rank") else 999
-    curr_rank = curr["rank"]
-    rank_diff = prev_rank - curr_rank
-
-    if rank_diff > 0:
-        rank_msg = f"Up {rank_diff} spots!"
-        rank_color = "#22c55e"
-    elif rank_diff < 0:
-        rank_msg = f"Down {abs(rank_diff)} spots"
-        rank_color = "#ef4444"
-    else:
-        rank_msg = "No change"
-        rank_color = "var(--secondary-text-color)"
-
-    msg_html = f"""
-    <div class="profile-card risk-low" style="text-align:center;">
-        <h2 style="color:#22c55e; margin:0 0 10px 0;">🚀 Correct! Baseline Established.</h2>
-        <div style="display:flex; justify-content:space-around; align-items:center; margin:15px 0;">
-            <div>
-                <div class="label-text">Score Increase</div>
-                <div style="font-size:1.8rem; font-weight:bold; color:var(--color-accent);">
-                    +{d_score:.3f}
-                </div>
-            </div>
-            <div>
-                <div class="label-text">Rank Change</div>
-                <div style="font-size:1.8rem; font-weight:bold; color:{rank_color};">
-                    {rank_msg}
-                </div>
-            </div>
-        </div>
-        <p style="font-size:1.05rem; margin-bottom:6px;">
-            Your <strong>Ethical Progress</strong> multiplier just activated for this module.
-        </p>
-        <p style="font-size:0.95rem; font-weight:bold; color:var(--body-text-color);">
-            👀 Check the <span style="color:var(--color-accent)">dashboard above</span> and 
-            <span style="color:var(--color-accent)">standings below</span> to see your new status.
-        </p>
-    </div>
-    """
-
-    html_top = render_top_dashboard(curr, module_id=0)
-    lb_html = render_leaderboard_card(curr, username, team_name)
-
-    return (
-        gr.update(value=html_top),
-        gr.update(value=lb_html),
-        True,
-        gr.update(value=msg_html),
-    )
-
-# --- 7B. QUIZ LOGIC FOR MODULE 1 ---
-
 CORRECT_ANSWER_1 = "Step 3: Prove the Error"
-
-def submit_quiz_1(username, token, team_name, answer):
-    """
-    Quiz submission for Module 1 - Investigation Roadmap Check.
-    Correct answer: Step 3: Prove the Error
-    """
-    if answer is None:
-        return (
-            gr.update(),  # out_top
-            gr.update(),  # leaderboard_html
-            "<div class='hint-box'>Please select an answer before moving on.</div>",
-        )
-
-    if answer != CORRECT_ANSWER_1:
-        return (
-            gr.update(),
-            gr.update(),
-            "<div class='hint-box'>❌ Not quite. Think about which step requires gathering evidence that model errors are systematically skewed rather than random.</div>",
-        )
-
-    # Correct answer - append "t2" to completedTaskIds and increment counters
-    prev, curr, username = trigger_api_update(
-        username, token, team_name, module_id=1, 
-        append_task_id="t2", increment_question=True
-    )
-
-    d_score = curr["score"] - (prev["score"] if prev else 0.0)
-    prev_rank = prev["rank"] if prev and prev.get("rank") else 999
-    curr_rank = curr["rank"]
-    rank_diff = prev_rank - curr_rank
-
-    if rank_diff > 0:
-        rank_msg = f"Up {rank_diff} spots!"
-        rank_color = "#22c55e"
-    elif rank_diff < 0:
-        rank_msg = f"Down {abs(rank_diff)} spots"
-        rank_color = "#ef4444"
-    else:
-        rank_msg = "No change"
-        rank_color = "var(--secondary-text-color)"
-
-    msg_html = f"""
-    <div class="profile-card risk-low" style="text-align:center;">
-        <h2 style="color:#22c55e; margin:0 0 10px 0;">🎯 Excellent! You're Ready to Begin.</h2>
-        <div style="display:flex; justify-content:space-around; align-items:center; margin:15px 0;">
-            <div>
-                <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:4px;">
-                    Score Change
-                </div>
-                <div style="font-size:1.5rem; font-weight:700; color:#22c55e;">
-                    +{d_score:.3f}
-                </div>
-            </div>
-            <div style="width:1px; height:40px; background:var(--border-color-primary);"></div>
-            <div>
-                <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:4px;">
-                    Rank Movement
-                </div>
-                <div style="font-size:1.1rem; font-weight:700; color:{rank_color};">
-                    {rank_msg}
-                </div>
-            </div>
-        </div>
-        <p style="font-size:1.05rem; margin-top:10px; margin-bottom:6px;">
-            You understand the roadmap. Check the
-            <span style="color:var(--color-accent)">standings below</span> to see your new status.
-        </p>
-    </div>
-    """
-
-    html_top = render_top_dashboard(curr, module_id=1)
-    lb_html = render_leaderboard_card(curr, username, team_name)
-
-    return (
-        gr.update(value=html_top),
-        gr.update(value=lb_html),
-        gr.update(value=msg_html),
-    )
-
-# --- 7C. QUIZ LOGIC FOR MODULE 2 ---
-
 CORRECT_ANSWER_2 = "Check subgroup errors to prevent systematic harm"
 
-def submit_quiz_justice(username, token, team_name, answer):
-    """
-    Quiz submission for Module 2 - Justice & Equity Principle Check.
-    Correct answer: Check subgroup errors to prevent systematic harm
-    """
-    if answer is None:
-        return (
-            gr.update(),  # out_top
-            gr.update(),  # leaderboard_html
-            "<div class='hint-box'>Please select an answer before moving on.</div>",
-        )
-
-    if answer != CORRECT_ANSWER_2:
-        return (
-            gr.update(),
-            gr.update(),
-            "<div class='hint-box'>❌ Not quite. Justice & Equity specifically focuses on checking for fairness across different subgroups to prevent systematic harm.</div>",
-        )
-
-    # Correct answer - append "t3" to completedTaskIds and increment counters
-    prev, curr, username = trigger_api_update(
-        username, token, team_name, module_id=2, 
-        append_task_id="t3", increment_question=True
-    )
-
-    d_score = curr["score"] - (prev["score"] if prev else 0.0)
-    prev_rank = prev["rank"] if prev and prev.get("rank") else 999
-    curr_rank = curr["rank"]
-    rank_diff = prev_rank - curr_rank
-
-    if rank_diff > 0:
-        rank_msg = f"Up {rank_diff} spots!"
-        rank_color = "#22c55e"
-    elif rank_diff < 0:
-        rank_msg = f"Down {abs(rank_diff)} spots"
-        rank_color = "#ef4444"
-    else:
-        rank_msg = "No change"
-        rank_color = "var(--secondary-text-color)"
-
-    msg_html = f"""
-    <div class="profile-card risk-low" style="text-align:center;">
-        <h2 style="color:#22c55e; margin:0 0 10px 0;">✅ Cleared! Begin Scanning for Evidence.</h2>
-        <div style="display:flex; justify-content:space-around; align-items:center; margin:15px 0;">
-            <div>
-                <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:4px;">
-                    Score Change
-                </div>
-                <div style="font-size:1.5rem; font-weight:700; color:#22c55e;">
-                    +{d_score:.3f}
-                </div>
-            </div>
-            <div style="width:1px; height:40px; background:var(--border-color-primary);"></div>
-            <div>
-                <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:4px;">
-                    Rank Movement
-                </div>
-                <div style="font-size:1.1rem; font-weight:700; color:{rank_color};">
-                    {rank_msg}
-                </div>
-            </div>
-        </div>
-        <p style="font-size:1.05rem; margin-top:10px; margin-bottom:6px;">
-            You know the principles. Check the
-            <span style="color:var(--color-accent)">standings below</span> to see your updated rank.
-        </p>
-    </div>
-    """
-
-    html_top = render_top_dashboard(curr, module_id=2)
-    lb_html = render_leaderboard_card(curr, username, team_name)
-
-    return (
-        gr.update(value=html_top),
-        gr.update(value=lb_html),
-        gr.update(value=msg_html),
-    )
-
 # --- 8. CSS ---
-
 css = """
 /* Top summary bar layout */
 .summary-box {
@@ -2306,24 +1885,20 @@ css = """
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     margin-bottom: 20px;
 }
-
 .summary-box-inner {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 30px;
 }
-
 .summary-metrics {
     display: flex;
     align-items: center;
     gap: 30px;
 }
-
 .summary-progress {
     width: 520px;
 }
-
 .progress-label {
     text-align: left;
     margin-bottom: 6px;
@@ -2331,7 +1906,6 @@ css = """
     font-weight: 600;
     font-size: 0.85rem;
 }
-
 /* Scenario / content cards */
 .scenario-box {
     font-size: 1.2rem;
@@ -2343,18 +1917,15 @@ css = """
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
     margin-bottom: 20px;
 }
-
 .slide-title {
     margin-top: 0;
     font-size: 1.8rem;
     text-align: left;
 }
-
 .slide-body {
     font-size: 1.1rem;
     line-height: 1.7;
 }
-
 /* Hint / quiz feedback */
 .hint-box {
     font-size: 0.95rem;
@@ -2365,7 +1936,6 @@ css = """
     border: 1px solid var(--border-color-primary);
     margin-top: 12px;
 }
-
 /* Profile-style card (for dynamic quiz result) */
 .profile-card {
     background-color: var(--block-background-fill);
@@ -2377,7 +1947,6 @@ css = """
     margin-top: 16px;
 }
 .risk-low { border-left-color: #22c55e; }
-
 /* Progress bar visuals */
 .label-text {
     font-size: 0.8rem;
@@ -2386,17 +1955,14 @@ css = """
     color: var(--body-text-color-subdued);
     letter-spacing: 0.5px;
 }
-
 .score-text-primary { font-size: 2.0rem; font-weight: 800; color: var(--color-accent); }
 .score-text-team    { font-size: 2.0rem; font-weight: 800; color: #60a5fa; }
 .score-text-global  { font-size: 2.0rem; font-weight: 800; color: var(--body-text-color); }
-
 .divider-vertical {
     width: 1px;
     height: 40px;
     background: var(--border-color-primary);
 }
-
 .progress-bar-bg {
     width: 100%;
     height: 8px;
@@ -2405,30 +1971,20 @@ css = """
     overflow: hidden;
     margin-top: 5px;
 }
-
-
-
 .progress-bar-fill {
     height: 100%;
     background: var(--color-accent);
 }
-
 /* Leaderboard card */
 .leaderboard-card {
     margin-top: 24px;
 }
-
-/* CSS-only tabs inside leaderboard card */
 .leaderboard-card .lb-tabs {
     margin-top: 8px;
 }
-
-/* Hide the radio controls */
 .leaderboard-card input[type="radio"] {
     display: none;
 }
-
-/* Tab labels */
 .leaderboard-card .lb-tab-label {
     display: inline-block;
     padding: 6px 14px;
@@ -2440,8 +1996,6 @@ css = """
     background-color: var(--background-fill-primary);
     color: var(--body-text-color);
 }
-
-/* Active tab styling */
 .leaderboard-card #lb-tab-team:checked + label {
     background-color: var(--color-accent);
     color: #ffffff;
@@ -2452,32 +2006,24 @@ css = """
     color: #ffffff;
     border-color: var(--color-accent);
 }
-
-/* Tab panels */
 .leaderboard-card .lb-tab-panels {
     margin-top: 10px;
 }
-
 .leaderboard-card .lb-panel {
     display: none;
 }
-
 .leaderboard-card #lb-tab-team:checked ~ .lb-tab-panels .panel-team {
     display: block;
 }
-
 .leaderboard-card #lb-tab-team:checked ~ .lb-tab-panels .panel-user {
     display: none;
 }
-
 .leaderboard-card #lb-tab-user:checked ~ .lb-tab-panels .panel-team {
     display: none;
 }
-
 .leaderboard-card #lb-tab-user:checked ~ .lb-tab-panels .panel-user {
     display: block;
 }
-
 /* Tables */
 .table-container {
     height: 300px;
@@ -2487,13 +2033,11 @@ css = """
     border-radius: 8px;
     background-color: var(--block-background-fill);
 }
-
 .leaderboard-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.9rem;
 }
-
 .leaderboard-table th {
     background-color: var(--background-fill-secondary);
     position: sticky;
@@ -2503,20 +2047,15 @@ css = """
     font-weight: 600;
     border-bottom: 2px solid var(--border-color-primary);
 }
-
 .row-normal {
     border-bottom: 1px solid var(--border-color-primary);
 }
-
-/* Highlight rows using the same blue hue as Team Rank (#60a5fa) */
 .row-highlight-me,
 .row-highlight-team {
     background-color: rgba(96, 165, 250, 0.18);
     border-bottom: 1px solid var(--border-color-primary);
     font-weight: 600;
 }
-
-/* AI risk container */
 .ai-risk-container {
     margin-top: 16px;
     padding: 12px;
@@ -2524,757 +2063,225 @@ css = """
     border-radius: 8px;
     border: 1px solid var(--border-color-primary);
 }
-
-/* Dark mode tweaks */
 @media (prefers-color-scheme: dark) {
-    .scenario-box,
-    .summary-box,
-    .hint-box,
-    .table-container,
-    .leaderboard-card,
-    .profile-card {
-        background-color: #2D323E;
-        color: white;
-        border-color: #555555;
-        box-shadow: none;
+    .scenario-box, .summary-box, .hint-box, .table-container, .leaderboard-card, .profile-card {
+        background-color: #2D323E; color: white; border-color: #555555; box-shadow: none;
     }
-
-    .ai-risk-container {
-        background-color: #181B22;
-        border-color: #555555;
-    }
-
-    .leaderboard-table th {
-        background-color: #1f2937;
-        color: white;
-        border-bottom-color: #555555;
-    }
+    .ai-risk-container { background-color: #181B22; border-color: #555555; }
+    .leaderboard-table th { background-color: #1f2937; color: white; border-bottom-color: #555555; }
 }
 """
 
-# --- 9. BUILD APP (Bias Detective) ---
+# --- 9. BUILD APP ---
 
 def create_bias_detective_app(theme_primary_hue: str = "indigo"):
     with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
-        # State - now stores username and token directly
+        # --- STATE ---
         username_state = gr.State(value=None)
         token_state    = gr.State(value=None)
         team_state     = gr.State(value=None)
         module0_done   = gr.State(value=False)
-        current_module = gr.State(value=0)  # Track current module for visibility control
-        accuracy_state = gr.State(value=0.0)
+        current_module = gr.State(value=0)
         
-        # Title
-        gr.Markdown("# 🕵️‍♀️ Bias Detective: Moral Compass Lab")
+        # NEW: Accuracy State (Defaults to 0.0)
+        accuracy_state = gr.State(value=0.0) 
 
-        # Top dashboard
+        # --- UI LAYOUT ---
+        gr.Markdown("# 🕵️‍♀️ Bias Detective: Moral Compass Lab")
         out_top = gr.HTML()
 
         # Module 0
         with gr.Column(elem_id="module-0", elem_classes=["module-container"], visible=True) as module_0:
-            mod0_html = gr.HTML(MODULES[0]["html"])
-            quiz_q = gr.Markdown(
-                "### 🧠 Quick Knowledge Check\n\n"
-                "**Why do we multiply your Accuracy by Ethical Progress?**"
-            )
-            quiz_radio = gr.Radio(
-                label="Select your answer:",
-                choices=[
-                    "A) Because simple accuracy ignores potential bias and harm.",
-                    "B) To make the leaderboard math more complicated.",
-                    "C) Accuracy is the only metric that actually matters.",
-                ]
-            )
+            gr.HTML(MODULES[0]["html"]) 
+            quiz_q = gr.Markdown("### 🧠 Quick Knowledge Check\n\n**Why do we multiply your Accuracy by Ethical Progress?**")
+            quiz_radio = gr.Radio(label="Select your answer:", choices=[
+                "A) Because simple accuracy ignores potential bias and harm.",
+                "B) To make the leaderboard math more complicated.",
+                "C) Accuracy is the only metric that actually matters."
+            ])
             quiz_feedback = gr.HTML("")
             btn_next_0 = gr.Button("Begin AI Bias Mission", variant="primary")
 
-        # Module 1 – Mission
+        # Module 1
         with gr.Column(elem_id="module-1", elem_classes=["module-container"], visible=False) as module_1:
-            mod1_html = gr.HTML(MODULES[1]["html"])
-            mod1_quiz_q = gr.Markdown(
-                "### 🧠 Investigation Roadmap Check\n\n"
-                "**Which step requires you to gather evidence that the model's errors are systematically skewed, not random?**"
-            )
-            mod1_quiz_radio = gr.Radio(
-                label="Select your answer:",
-                choices=[
-                    "Step 1: Learn the Rules",
-                    "Step 2: Scan the Data",
-                    "Step 3: Prove the Error",
-                    "Step 4: Diagnose Harm",
-                ]
-            )
+            gr.HTML(MODULES[1]["html"]) 
+            mod1_quiz_q = gr.Markdown("### 🧠 Investigation Roadmap Check\n\n**Which step requires you to gather evidence?**")
+            mod1_quiz_radio = gr.Radio(label="Select your answer:", choices=[
+                "Step 1: Learn the Rules", "Step 2: Scan the Data", "Step 3: Prove the Error", "Step 4: Diagnose Harm"
+            ])
             mod1_quiz_feedback = gr.HTML("")
             with gr.Row():
                 btn_prev_1 = gr.Button("⬅️ Previous")
                 btn_next_1 = gr.Button("Begin Intelligence Briefing ▶️", variant="primary")
 
-        # Module 2 – Detective’s Code (OEIAC principles)
+        # Module 2
         with gr.Column(elem_id="module-2", elem_classes=["module-container"], visible=False) as module_2:
-            mod2_html = gr.HTML(MODULES[2]["html"])
-            mod2_quiz_q = gr.Markdown(
-                "### 🧠 Justice & Equity Principle Check\n\n"
-                "**What does the Justice & Equity principle specifically require us to do?**"
-            )
-            mod2_quiz_radio = gr.Radio(
-                label="Select your answer:",
-                choices=[
-                    "Explain model decisions to all stakeholders",
-                    "Check subgroup errors to prevent systematic harm",
-                    "Minimize overall model error rate",
-                    "Ensure the model runs efficiently",
-                ]
-            )
+            gr.HTML(MODULES[2]["html"])
+            mod2_quiz_q = gr.Markdown("### 🧠 Justice & Equity Check\n\n**What does Justice & Equity require?**")
+            mod2_quiz_radio = gr.Radio(label="Select your answer:", choices=[
+                "Explain model decisions", "Check subgroup errors to prevent systematic harm", "Minimize error rate", "Ensure efficiency"
+            ])
             mod2_quiz_feedback = gr.HTML("")
             with gr.Row():
-                btn_prev_2 = gr.Button("⬅️ Back to Mission")
-                btn_next_2 = gr.Button("Initialize Investigation Protocol ▶️", variant="primary")
+                btn_prev_2 = gr.Button("⬅️ Back")
+                btn_next_2 = gr.Button("Initialize Protocol ▶️", variant="primary")
 
-        # Module 3 – The Stakes
-        with gr.Column(elem_id="module-3", elem_classes=["module-container"], visible=False) as module_3:
-            mod3_html = gr.HTML(MODULES[3]["html"])
-            with gr.Row():
-                btn_prev_3 = gr.Button("⬅️ Previous")
-                btn_next_3 = gr.Button("Protocol Confirmed. Start Scanning ▶️", variant="primary")
+        # Modules 3-19
+        module_cols = {}
+        for i in range(3, 20):
+            with gr.Column(elem_id=f"module-{i}", elem_classes=["module-container"], visible=False) as mod_col:
+                gr.HTML(MODULES[i]["html"])
+                with gr.Row():
+                    btn_prev = gr.Button("⬅️ Previous")
+                    if i < 19:
+                        btn_next = gr.Button("Next ▶️", variant="primary")
+                    else:
+                        btn_next = gr.Button("🎉 Complete Bias Detective Course", variant="primary")
+                module_cols[i] = (mod_col, btn_prev, btn_next)
 
-        # Module 4 – The Detective's Method
-        with gr.Column(elem_id="module-4", elem_classes=["module-container"], visible=False) as module_4:
-            mod4_html = gr.HTML(MODULES[4]["html"])
-            with gr.Row():
-                btn_prev_4 = gr.Button("⬅️ Previous")
-                btn_next_4 = gr.Button("I Know What to Look For. Open Scanner ▶️", variant="primary")
-
-        # Module 5 – Data Forensics Briefing
-        with gr.Column(elem_id="module-5", elem_classes=["module-container"], visible=False) as module_5:
-            mod5_html = gr.HTML(MODULES[5]["html"])
-            with gr.Row():
-                btn_prev_5 = gr.Button("⬅️ Previous")
-                btn_next_5 = gr.Button("Scan Dataset ▶️", variant="primary")
-
-        # Module 6 – Evidence Scan (Race)
-        with gr.Column(elem_id="module-6", elem_classes=["module-container"], visible=False) as module_6:
-            mod6_html = gr.HTML(MODULES[6]["html"])
-            with gr.Row():
-                btn_prev_6 = gr.Button("⬅️ Previous")
-                btn_next_6 = gr.Button("Log Evidence & Continue to Next Variable ▶️", variant="primary")
-
-        # Module 7 – Evidence Scan (Gender)
-        with gr.Column(elem_id="module-7", elem_classes=["module-container"], visible=False) as module_7:
-            mod7_html = gr.HTML(MODULES[7]["html"])
-            with gr.Row():
-                btn_prev_7 = gr.Button("⬅️ Previous")
-                btn_next_7 = gr.Button("Log Evidence & Continue to Final Variable ▶️", variant="primary")
-
-        # Module 8 – Evidence Scan (Age)
-        with gr.Column(elem_id="module-8", elem_classes=["module-container"], visible=False) as module_8:
-            mod8_html = gr.HTML(MODULES[8]["html"])
-            with gr.Row():
-                btn_prev_8 = gr.Button("⬅️ Previous")
-                btn_next_8 = gr.Button("Log Evidence & View Summary Report ▶️", variant="primary")
-
-        # Module 9 – Forensics Conclusion
-        with gr.Column(elem_id="module-9", elem_classes=["module-container"], visible=False) as module_9:
-            mod9_html = gr.HTML(MODULES[9]["html"])
-            with gr.Row():
-                btn_prev_9 = gr.Button("⬅️ Previous")
-                btn_next_9 = gr.Button("Initiate Phase 3: Performance Audit ▶️", variant="primary")
-
-        # Module 10 – The Audit Briefing
-        with gr.Column(elem_id="module-10", elem_classes=["module-container"], visible=False) as module_10:
-            mod10_html = gr.HTML(MODULES[10]["html"])
-            with gr.Row():
-                btn_prev_10 = gr.Button("⬅️ Previous")
-                btn_next_10 = gr.Button("Identify the Failure Type: Start Analysis ▶️", variant="primary")
-
-        # Module 11 – The Truth Serum
-        with gr.Column(elem_id="module-11", elem_classes=["module-container"], visible=False) as module_11:
-            mod11_html = gr.HTML(MODULES[11]["html"])
-            with gr.Row():
-                btn_prev_11 = gr.Button("⬅️ Previous")
-                btn_next_11 = gr.Button("Analyze High Risk Predictions vs. Reality ▶️", variant="primary")
-
-        # Module 12 – Audit Analysis (False Positives)
-        with gr.Column(elem_id="module-12", elem_classes=["module-container"], visible=False) as module_12:
-            mod12_html = gr.HTML(MODULES[12]["html"])
-            with gr.Row():
-                btn_prev_12 = gr.Button("⬅️ Previous")
-                btn_next_12 = gr.Button("Log Punitive Error & Check False Negatives ▶️", variant="primary")
-
-        # Module 13 – Audit Analysis (False Negatives)
-        with gr.Column(elem_id="module-13", elem_classes=["module-container"], visible=False) as module_13:
-            mod13_html = gr.HTML(MODULES[13]["html"])
-            with gr.Row():
-                btn_prev_13 = gr.Button("⬅️ Previous")
-                btn_next_13 = gr.Button("Log Omission Error & Analyze Gender ▶️", variant="primary")
-
-        # Module 14 – Audit Analysis (Gender)
-        with gr.Column(elem_id="module-14", elem_classes=["module-container"], visible=False) as module_14:
-            mod14_html = gr.HTML(MODULES[14]["html"])
-            with gr.Row():
-                btn_prev_14 = gr.Button("⬅️ Previous")
-                btn_next_14 = gr.Button("Log Severity Error & Analyze Age ▶️", variant="primary")
-
-        # Module 15 – Audit Analysis (Age)
-        with gr.Column(elem_id="module-15", elem_classes=["module-container"], visible=False) as module_15:
-            mod15_html = gr.HTML(MODULES[15]["html"])
-            with gr.Row():
-                btn_prev_15 = gr.Button("⬅️ Previous")
-                btn_next_15 = gr.Button("Log Estimation Error & Check Geography ▶️", variant="primary")
-
-        # Module 16 – Audit Analysis (Geography)
-        with gr.Column(elem_id="module-16", elem_classes=["module-container"], visible=False) as module_16:
-            mod16_html = gr.HTML(MODULES[16]["html"])
-            with gr.Row():
-                btn_prev_16 = gr.Button("⬅️ Previous")
-                btn_next_16 = gr.Button("Investigation Complete. File Final Report ▶️", variant="primary")
-
-        # Module 17 – Audit Conclusion
-        with gr.Column(elem_id="module-17", elem_classes=["module-container"], visible=False) as module_17:
-            mod17_html = gr.HTML(MODULES[17]["html"])
-            with gr.Row():
-                btn_prev_17 = gr.Button("⬅️ Previous")
-                btn_next_17 = gr.Button("Open Final Case File & Submit Diagnosis ▶️", variant="primary")
-
-        # Module 18 – The Final Verdict
-        with gr.Column(elem_id="module-18", elem_classes=["module-container"], visible=False) as module_18:
-            mod18_html = gr.HTML(MODULES[18]["html"])
-            with gr.Row():
-                btn_prev_18 = gr.Button("⬅️ Previous")
-                btn_next_18 = gr.Button("Sign & File Fairness Report ▶️", variant="primary")
-
-        # Module 19 – Mission Debrief & Promotion
-        with gr.Column(elem_id="module-19", elem_classes=["module-container"], visible=False) as module_19:
-            mod19_html = gr.HTML(MODULES[19]["html"])
-            with gr.Row():
-                btn_prev_19 = gr.Button("⬅️ Previous")
-                btn_finish = gr.Button("🎉 Complete Bias Detective Course", variant="primary")
-
-        # Leaderboard card at the bottom
         leaderboard_html = gr.HTML()
 
-        # Quiz scoring for module 0
-        quiz_radio.change(
-            fn=submit_quiz_0,
-            inputs=[username_state, token_state, team_state, module0_done, quiz_radio],
-            outputs=[out_top, leaderboard_html, module0_done, quiz_feedback],
-        )
+        # --- LOGIC & WIRING ---
 
-        # Quiz scoring for module 1
-        mod1_quiz_radio.change(
-            fn=submit_quiz_1,
-            inputs=[username_state, token_state, team_state, mod1_quiz_radio],
-            outputs=[out_top, leaderboard_html, mod1_quiz_feedback],
-        )
-
-        # Quiz scoring for module 2
-        mod2_quiz_radio.change(
-            fn=submit_quiz_justice,
-            inputs=[username_state, token_state, team_state, mod2_quiz_radio],
-            outputs=[out_top, leaderboard_html, mod2_quiz_feedback],
-        )
-
-        # Initial load with session-based auth
+        # 1. INITIAL LOAD
         def handle_initial_load(request: gr.Request):
             success, username, token = _try_session_based_auth(request)
-            
-            # Defaults
             team_name = "Team-Unassigned"
-            real_accuracy = 0 # Fallback
+            real_accuracy = 0.0
             
             if success and username and token:
-                # 1. Fetch REAL history from the original playground
                 real_accuracy, fetched_team = fetch_user_history(username, token)
                 
-                # 2. Initialize connection
                 os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
                 client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
                 
-                # 3. Check if user already has a team in Moral Compass DB
-                # If not, assign the one we just fetched
                 existing_team = get_or_assign_team(client, username)
-                
-                # Logic: If get_or_assign returns a generic default, but we found a real one, use the real one
                 if existing_team == "team-a" and fetched_team != "Team-Unassigned":
                     team_name = fetched_team
                 else:
                     team_name = existing_team
-        
-                # 4. Get Data & Render
+
                 data, username = ensure_table_and_get_data(username, token, team_name)
                 html_top = render_top_dashboard(data, module_id=0)
                 lb_html = render_leaderboard_card(data, username, team_name)
                 
                 return (
-                    username, 
-                    token, 
-                    team_name, 
-                    False, 
-                    html_top, 
-                    lb_html,
-                    real_accuracy # <--- RETURN THIS TO STATE
+                    username, token, team_name, False, 
+                    html_top, lb_html, real_accuracy
                 )
             else:
-                # ... (failure case remains the same) ...
-                return (None, None, None, False, "...", "", real_accuracy)
+                return (None, None, None, False, 
+                        "<div class='hint-box'>⚠️ Authentication required.</div>", "", 0.0)
 
-        # Next: Module 0 -> Module 1 (navigation only, no score update)
-        def on_next_from_module_0(username, token, team, answer):
-            if answer is None:
-                # Don't navigate if no answer selected - user must select an answer first
-                # The quiz_radio.change handler will show feedback
-                return (
-                    gr.update(),  # out_top
-                    gr.update(),  # leaderboard_html
-                    gr.update(),  # current_module (stay on module 0)
-                    gr.update(visible=True),   # module_0 (Stay visible)
-                    gr.update(visible=False),  # module_1 (Stay hidden)
+        demo.load(
+            fn=handle_initial_load,
+            inputs=None,
+            outputs=[username_state, token_state, team_state, module0_done, out_top, leaderboard_html, accuracy_state]
+        )
+
+        # 2. QUIZ WRAPPERS (With Accuracy State)
+        
+        def wrapper_quiz_0(user, tok, team, done, ans, acc_val):
+            if ans is None: 
+                return (gr.update(), gr.update(), done, "<div class='hint-box'>Please select.</div>")
+            if ans != CORRECT_ANSWER_0:
+                return (gr.update(), gr.update(), done, "<div class='hint-box'>❌ Not quite.</div>")
+            if done:
+                data, _ = ensure_table_and_get_data(user, tok, team)
+                return (render_top_dashboard(data, 0), render_leaderboard_card(data, user, team), done, gr.update())
+            
+            prev, curr, _ = trigger_api_update(user, tok, team, 0, acc_val, "t1", True)
+            d_score = curr["score"] - (prev["score"] if prev else 0.0)
+            msg = f"<div class='profile-card risk-low'><h2>🚀 Correct!</h2><p>Score +{d_score:.3f}</p></div>"
+            return (render_top_dashboard(curr, 0), render_leaderboard_card(curr, user, team), True, msg)
+
+        def wrapper_quiz_1(user, tok, team, ans, acc_val):
+            if ans != CORRECT_ANSWER_1: return (gr.update(), gr.update(), "<div class='hint-box'>❌ Try again.</div>")
+            prev, curr, _ = trigger_api_update(user, tok, team, 1, acc_val, "t2", True)
+            d_score = curr["score"] - (prev["score"] if prev else 0.0)
+            msg = f"<div class='profile-card risk-low'><h2>🎯 Excellent!</h2><p>Score +{d_score:.3f}</p></div>"
+            return (render_top_dashboard(curr, 1), render_leaderboard_card(curr, user, team), msg)
+
+        def wrapper_quiz_2(user, tok, team, ans, acc_val):
+            if ans != CORRECT_ANSWER_2: return (gr.update(), gr.update(), "<div class='hint-box'>❌ Try again.</div>")
+            prev, curr, _ = trigger_api_update(user, tok, team, 2, acc_val, "t3", True)
+            d_score = curr["score"] - (prev["score"] if prev else 0.0)
+            msg = f"<div class='profile-card risk-low'><h2>✅ Cleared!</h2><p>Score +{d_score:.3f}</p></div>"
+            return (render_top_dashboard(curr, 2), render_leaderboard_card(curr, user, team), msg)
+
+        # 3. EVENTS (Wiring)
+        quiz_radio.change(
+            fn=wrapper_quiz_0,
+            inputs=[username_state, token_state, team_state, module0_done, quiz_radio, accuracy_state],
+            outputs=[out_top, leaderboard_html, module0_done, quiz_feedback]
+        )
+        mod1_quiz_radio.change(
+            fn=wrapper_quiz_1,
+            inputs=[username_state, token_state, team_state, mod1_quiz_radio, accuracy_state],
+            outputs=[out_top, leaderboard_html, mod1_quiz_feedback]
+        )
+        mod2_quiz_radio.change(
+            fn=wrapper_quiz_2,
+            inputs=[username_state, token_state, team_state, mod2_quiz_radio, accuracy_state],
+            outputs=[out_top, leaderboard_html, mod2_quiz_feedback]
+        )
+
+        # Navigation 0->1
+        def nav_0_to_1(ans): return (gr.update(visible=False), gr.update(visible=True))
+        btn_next_0.click(fn=nav_0_to_1, inputs=None, outputs=[module_0, module_1])
+
+        # Navigation 1<->2
+        def nav_1_back(): return (gr.update(visible=True), gr.update(visible=False))
+        def nav_1_next(ans): return (gr.update(visible=False), gr.update(visible=True))
+        btn_prev_1.click(fn=nav_1_back, outputs=[module_0, module_1])
+        btn_next_1.click(fn=nav_1_next, inputs=None, outputs=[module_1, module_2])
+
+        # Navigation 2<->3
+        def nav_2_back(): return (gr.update(visible=True), gr.update(visible=False))
+        def nav_2_next(ans): return (gr.update(visible=False), gr.update(visible=True))
+        btn_prev_2.click(fn=nav_2_back, outputs=[module_1, module_2])
+        btn_next_2.click(fn=nav_2_next, inputs=None, outputs=[module_2, module_cols[3][0]])
+
+        # Navigation Loop for 3-19
+        # Helper to create render update closure
+        def make_render_fn(target_mod_id):
+            def render_fn(user, tok, team):
+                data, _ = ensure_table_and_get_data(user, tok, team)
+                return (render_top_dashboard(data, target_mod_id), render_leaderboard_card(data, user, team))
+            return render_fn
+
+        # 3 -> 2 (Prev)
+        module_cols[3][1].click(lambda: (gr.update(visible=True), gr.update(visible=False)), outputs=[module_2, module_cols[3][0]])
+        # 3 -> 4 (Next)
+        module_cols[3][2].click(
+            fn=lambda u,t,tm: make_render_fn(4)(u,t,tm) + (gr.update(visible=False), gr.update(visible=True)),
+            inputs=[username_state, token_state, team_state],
+            outputs=[out_top, leaderboard_html, module_cols[3][0], module_cols[4][0]]
+        )
+
+        # Loop for remaining
+        for i in range(4, 20):
+            curr_col, prev_btn, next_btn = module_cols[i]
+            prev_col_ref = module_cols[i-1][0]
+            
+            # Previous
+            prev_btn.click(
+                lambda: (gr.update(visible=True), gr.update(visible=False)),
+                outputs=[prev_col_ref, curr_col]
+            )
+            
+            # Next (if not last)
+            if i < 19:
+                next_col_ref = module_cols[i+1][0]
+                next_btn.click(
+                    fn=lambda u,t,tm, idx=i+1: make_render_fn(idx)(u,t,tm) + (gr.update(visible=False), gr.update(visible=True)),
+                    inputs=[username_state, token_state, team_state],
+                    outputs=[out_top, leaderboard_html, curr_col, next_col_ref]
                 )
-            # Just navigate - don't update score (quiz submission already did that)
-            data, username = ensure_table_and_get_data(username, token, team)
-            html_top  = render_top_dashboard(data, module_id=1)
-            lb_html   = render_leaderboard_card(data, username, team)
-            return (
-                gr.update(value=html_top),
-                gr.update(value=lb_html),
-                1,  # Update current_module state
-                gr.update(visible=False),  # module_0 (HIDE)
-                gr.update(visible=True),   # module_1 (SHOW)
-            )
+            else:
+                # Finish button (Module 19)
+                next_btn.click(fn=make_render_fn(19), inputs=[username_state, token_state, team_state], outputs=[out_top, leaderboard_html])
 
-        btn_next_0.click(
-            fn=on_next_from_module_0,
-            inputs=[username_state, token_state, team_state, quiz_radio],
-            outputs=[out_top, leaderboard_html, current_module, module_0, module_1],
-        )
-
-        # Prev: Module 1 -> Module 0
-        def on_prev_from_module_1():
-            return (
-                0,  # current_module
-                gr.update(visible=True),   # module_0
-                gr.update(visible=False),  # module_1
-            )
-
-        btn_prev_1.click(
-            fn=on_prev_from_module_1,
-            inputs=None,
-            outputs=[current_module, module_0, module_1],
-        )
-
-        # Next: Module 1 -> Module 2 (progress bump + refresh)
-        def on_next_from_module_1(username, token, team, answer):
-            if answer is None:
-                # Don't navigate if no answer selected - user must select an answer first
-                return (
-                    gr.update(),  # out_top
-                    gr.update(),  # leaderboard_html
-                    gr.update(),  # current_module (stay on module 1)
-                    gr.update(visible=True),   # module_1 (Stay visible)
-                    gr.update(visible=False),  # module_2 (Stay hidden)
-                )
-            # Just navigate - don't update score (quiz submission already did that)
-            data, username = ensure_table_and_get_data(username, token, team)
-            html_top = render_top_dashboard(data, module_id=2)
-            lb_html  = render_leaderboard_card(data, username, team)
-            return (
-                gr.update(value=html_top),
-                gr.update(value=lb_html),
-                2,
-                gr.update(visible=False),  # module_1
-                gr.update(visible=True),   # module_2
-            )
-
-        btn_next_1.click(
-            fn=on_next_from_module_1,
-            inputs=[username_state, token_state, team_state, mod1_quiz_radio],
-            outputs=[out_top, leaderboard_html, current_module, module_1, module_2],
-        )
-
-        # Prev: Module 2 -> Module 1
-        def on_prev_from_module_2():
-            return (
-                1,  # current_module
-                gr.update(visible=False),  # module_2
-                gr.update(visible=True),   # module_1
-            )
-
-        btn_prev_2.click(
-            fn=on_prev_from_module_2,
-            inputs=None,
-            outputs=[current_module, module_2, module_1],
-        )
-
-        # Module 2 -> Module 3
-        def on_next_from_module_2(username, token, team, answer):
-            if answer is None:
-                # Don't navigate if no answer selected - user must select an answer first
-                return (
-                    gr.update(),  # out_top
-                    gr.update(),  # leaderboard_html
-                    gr.update(),  # current_module (stay on module 2)
-                    gr.update(visible=True),   # module_2 (Stay visible)
-                    gr.update(visible=False),  # module_3 (Stay hidden)
-                )
-            # Just navigate - don't update score (quiz submission already did that)
-            data, username = ensure_table_and_get_data(username, token, team)
-            html_top = render_top_dashboard(data, module_id=3)
-            lb_html = render_leaderboard_card(data, username, team)
-            return (
-                gr.update(value=html_top),
-                gr.update(value=lb_html),
-                3,
-                gr.update(visible=False),  # module_2
-                gr.update(visible=True),   # module_3
-            )
-
-        btn_next_2.click(
-            fn=on_next_from_module_2,
-            inputs=[username_state, token_state, team_state, mod2_quiz_radio],
-            outputs=[out_top, leaderboard_html, current_module, module_2, module_3],
-        )
-
-        # Prev: Module 3 -> Module 2
-        btn_prev_3.click(
-            fn=lambda: (2, gr.update(visible=False), gr.update(visible=True)),
-            inputs=None,
-            outputs=[current_module, module_3, module_2],
-        )
-
-        # Next: Module 3 -> Module 4
-        btn_next_3.click(
-            fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=4)),
-                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                4,
-                gr.update(visible=False),  # module_3
-                gr.update(visible=True),   # module_4
-            ),
-            inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, current_module, module_3, module_4],
-        )
-
-        # Prev: Module 4 -> Module 3
-        btn_prev_4.click(
-            fn=lambda: (3, gr.update(visible=False), gr.update(visible=True)),
-            inputs=None,
-            outputs=[current_module, module_4, module_3],
-        )
-
-        # Next: Module 4 -> Module 5
-        btn_next_4.click(
-            fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=5)),
-                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                5,
-                gr.update(visible=False),  # module_4
-                gr.update(visible=True),   # module_5
-            ),
-            inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, current_module, module_4, module_5],
-        )
-
-        # Prev: Module 5 -> Module 4
-        btn_prev_5.click(
-            fn=lambda: (4, gr.update(visible=False), gr.update(visible=True)),
-            inputs=None,
-            outputs=[current_module, module_5, module_4],
-        )
-
-        # Next: Module 5 -> Module 6
-        btn_next_5.click(
-            fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=6)),
-                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                6,
-                gr.update(visible=False),  # module_5
-                gr.update(visible=True),   # module_6
-            ),
-            inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, current_module, module_5, module_6],
-        )
-
-        # Prev: Module 6 -> Module 5
-        btn_prev_6.click(
-            fn=lambda: (5, gr.update(visible=False), gr.update(visible=True)),
-            inputs=None,
-            outputs=[current_module, module_6, module_5],
-        )
-
-        # Next: Module 6 -> Module 7
-        btn_next_6.click(
-            fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=7)),
-                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                7,
-                gr.update(visible=False),  # module_6
-                gr.update(visible=True),   # module_7
-            ),
-            inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, current_module, module_6, module_7],
-        )
-
-        # Prev: Module 7 -> Module 6
-        btn_prev_7.click(
-            fn=lambda: (6, gr.update(visible=False), gr.update(visible=True)),
-            inputs=None,
-            outputs=[current_module, module_7, module_6],
-        )
-
-        # Next: Module 7 -> Module 8
-        btn_next_7.click(
-            fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=8)),
-                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                8,
-                gr.update(visible=False),  # module_7
-                gr.update(visible=True),   # module_8
-            ),
-            inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, current_module, module_7, module_8],
-        )
-
-        # Prev: Module 8 -> Module 7
-        btn_prev_8.click(
-            fn=lambda: (7, gr.update(visible=False), gr.update(visible=True)),
-            inputs=None,
-            outputs=[current_module, module_8, module_7],
-        )
-
-        # Next: Module 8 -> Module 9
-        btn_next_8.click(
-            fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=9)),
-                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                9,
-                gr.update(visible=False),  # module_8
-                gr.update(visible=True),   # module_9
-            ),
-            inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, current_module, module_8, module_9],
-        )
-
-        # Prev: Module 9 -> Module 8
-        btn_prev_9.click(
-            fn=lambda: (8, gr.update(visible=False), gr.update(visible=True)),
-            inputs=None,
-            outputs=[current_module, module_9, module_8],
-        )
-
-        # Next: Module 9 -> Module 10
-        btn_next_9.click(
-            fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=10)),
-                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                10,
-                gr.update(visible=False),  # module_9
-                gr.update(visible=True),   # module_10
-            ),
-            inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, current_module, module_9, module_10],
-        )
-
-        # Prev: Module 10 -> Module 9
-        btn_prev_10.click(
-            fn=lambda: (9, gr.update(visible=False), gr.update(visible=True)),
-            inputs=None,
-            outputs=[current_module, module_10, module_9],
-        )
-
-        # Next: Module 10 -> Module 11
-        btn_next_10.click(
-            fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=11)),
-                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                11,
-                gr.update(visible=False),  # module_10
-                gr.update(visible=True),   # module_11
-            ),
-            inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, current_module, module_10, module_11],
-        )
-
-        # Prev: Module 11 -> Module 10
-        btn_prev_11.click(
-            fn=lambda: (10, gr.update(visible=False), gr.update(visible=True)),
-            inputs=None,
-            outputs=[current_module, module_11, module_10],
-        )
-
-        # Next: Module 11 -> Module 12
-        btn_next_11.click(
-            fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=12)),
-                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                12,
-                gr.update(visible=False),  # module_11
-                gr.update(visible=True),   # module_12
-            ),
-            inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, current_module, module_11, module_12],
-        )
-
-        # Prev: Module 12 -> Module 11
-        btn_prev_12.click(
-            fn=lambda: (11, gr.update(visible=False), gr.update(visible=True)),
-            inputs=None,
-            outputs=[current_module, module_12, module_11],
-        )
-
-        # Next: Module 12 -> Module 13
-        btn_next_12.click(
-            fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=13)),
-                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                13,
-                gr.update(visible=False),  # module_12
-                gr.update(visible=True),   # module_13
-            ),
-            inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, current_module, module_12, module_13],
-        )
-
-        # Prev: Module 13 -> Module 12
-        btn_prev_13.click(
-            fn=lambda: (12, gr.update(visible=False), gr.update(visible=True)),
-            inputs=None,
-            outputs=[current_module, module_13, module_12],
-        )
-
-        # Next: Module 13 -> Module 14
-        btn_next_13.click(
-            fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=14)),
-                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                14,
-                gr.update(visible=False),  # module_13
-                gr.update(visible=True),   # module_14
-            ),
-            inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, current_module, module_13, module_14],
-        )
-
-        # Prev: Module 14 -> Module 13
-        btn_prev_14.click(
-            fn=lambda: (13, gr.update(visible=False), gr.update(visible=True)),
-            inputs=None,
-            outputs=[current_module, module_14, module_13],
-        )
-
-        # Next: Module 14 -> Module 15
-        btn_next_14.click(
-            fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=15)),
-                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                15,
-                gr.update(visible=False),  # module_14
-                gr.update(visible=True),   # module_15
-            ),
-            inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, current_module, module_14, module_15],
-        )
-
-        # Prev: Module 15 -> Module 14
-        btn_prev_15.click(
-            fn=lambda: (14, gr.update(visible=False), gr.update(visible=True)),
-            inputs=None,
-            outputs=[current_module, module_15, module_14],
-        )
-
-        # Next: Module 15 -> Module 16
-        btn_next_15.click(
-            fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=16)),
-                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                16,
-                gr.update(visible=False),  # module_15
-                gr.update(visible=True),   # module_16
-            ),
-            inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, current_module, module_15, module_16],
-        )
-
-        # Prev: Module 16 -> Module 15
-        btn_prev_16.click(
-            fn=lambda: (15, gr.update(visible=False), gr.update(visible=True)),
-            inputs=None,
-            outputs=[current_module, module_16, module_15],
-        )
-
-        # Next: Module 16 -> Module 17
-        btn_next_16.click(
-            fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=17)),
-                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                17,
-                gr.update(visible=False),  # module_16
-                gr.update(visible=True),   # module_17
-            ),
-            inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, current_module, module_16, module_17],
-        )
-
-        # Prev: Module 17 -> Module 16
-        btn_prev_17.click(
-            fn=lambda: (16, gr.update(visible=False), gr.update(visible=True)),
-            inputs=None,
-            outputs=[current_module, module_17, module_16],
-        )
-
-        # Next: Module 17 -> Module 18
-        btn_next_17.click(
-            fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=18)),
-                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                18,
-                gr.update(visible=False),  # module_17
-                gr.update(visible=True),   # module_18
-            ),
-            inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, current_module, module_17, module_18],
-        )
-
-        # Prev: Module 18 -> Module 17
-        btn_prev_18.click(
-            fn=lambda: (17, gr.update(visible=False), gr.update(visible=True)),
-            inputs=None,
-            outputs=[current_module, module_18, module_17],
-        )
-
-        # Next: Module 18 -> Module 19
-        btn_next_18.click(
-            fn=lambda u, t, tm: (
-                gr.update(value=render_top_dashboard(ensure_table_and_get_data(u, t, tm)[0], module_id=19)),
-                gr.update(value=render_leaderboard_card(ensure_table_and_get_data(u, t, tm)[0], username=u, team_name=tm)),
-                19,
-                gr.update(visible=False),  # module_18
-                gr.update(visible=True),   # module_19
-            ),
-            inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html, current_module, module_18, module_19],
-        )
-
-        # Prev: Module 19 -> Module 18
-        btn_prev_19.click(
-            fn=lambda: (18, gr.update(visible=False), gr.update(visible=True)),
-            inputs=None,
-            outputs=[current_module, module_19, module_18],
-        )
-
-        # Finish button on Module 19
-        def on_finish_course(username, token, team):
-            data, username = ensure_table_and_get_data(username, token, team)
-            html_top = render_top_dashboard(data, module_id=19)
-            lb_html = render_leaderboard_card(data, username, team)
-            return (
-                gr.update(value=html_top),
-                gr.update(value=lb_html),
-            )
-
-        btn_finish.click(
-            fn=on_finish_course,
-            inputs=[username_state, token_state, team_state],
-            outputs=[out_top, leaderboard_html],
-        )
     return demo
 
 
