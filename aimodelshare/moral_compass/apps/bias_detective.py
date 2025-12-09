@@ -222,52 +222,123 @@ MODULES = [
         "id": 2,
         "title": "Step 1: Intelligence Briefing",
         "html": """
-            <div class="scenario-box">
-                <h2 class="slide-title">⚖️ The Detective's Code</h2>
-                <div class="slide-body">
-                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
-                        <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--borde[...]
-                            <span style="font-size:1.1rem;">📜</span><span>STEP 1: INTELLIGENCE BRIEFING</span>
-                        </div>
-                    </div>
-                    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
-                        We don't guess. We investigate based on the standards set by the experts at the
-                        <strong>Catalan Observatory for Ethics in AI (OEIAC)</strong>.
-                    </p>
-                    <div class="ai-risk-container" style="margin-top:10px; border-width:2px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                        <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">🧩 Key Ethical Principles (OEIAC Framework)</h4>
-                        <div style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; margin-top:10px;">
-                            <div class="hint-box" style="margin-top:0; font-size:0.9rem;">
-                                <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--body-text-color-subdued);">1 · Transparency</div>
-                            </div>
-                            <div class="hint-box" style="margin-top:0; font-size:0.9rem; border-width:2px; border-color:#ef4444; box-shadow:0 0 0 1px rgba(239,68,68,0.12); background:linear-gradient(1[...]
-                                <div style="display:flex; justify-content:space-between; align-items:center;">
-                                    <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--body-text-color-subdued);">2 · Justice and Equity</div>
-                                    <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.12em; font-weight:800; padding:2px 8px; border-radius:999px; border:1px solid #ef4444; colo[...]
-                                </div>
-                                <div style="font-size:0.8rem; margin-top:4px; color:var(--body-text-color-subdued);">
-                                    Also referred to here as <strong>Justice &amp; Fairness</strong>. Who pays the price?
-                                </div>
-                            </div>
-                            <div class="hint-box" style="margin-top:0; font-size:0.9rem;">
-                                <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--body-text-color-subdued);">3 · Safety</div>
-                            </div>
-                            <div class="hint-box" style="margin-top:0; font-size:0.9rem;">
-                                <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--body-text-color-subdued);">4 · Responsibility</div>
-                            </div>
-                            <div class="hint-box" style="margin-top:0; font-size:0.9rem;">
-                                <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--body-text-color-subdued);">5 · Privacy</div>
-                            </div>
-                            <div class="hint-box" style="margin-top:0; font-size:0.9rem;">
-                                <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--body-text-color-subdued);">6 · Autonomy</div>
-                            </div>
-                            <div class="hint-box" style="margin-top:0; font-size:0.9rem;">
-                                <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--body-text-color-subdued);">7 · Sustainability</div>
-                            </div>
-                        </div>
-                    </div>
+          <div class="scenario-box">
+            <h2 class="slide-title">⚖️ Justice & Equity: Your Primary Rule</h2>
+            <div class="slide-body">
+
+              <!-- Step badge -->
+              <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-weight:800;">
+                  <span style="font-size:1.1rem;">📜</span><span>STEP 1: LEARN THE RULES — Understand what actually counts as bias.</span>
                 </div>
+              </div>
+
+              <!-- Framing & intel -->
+              <p style="font-size:1.05rem; max-width:780px; margin:0 auto 12px auto; text-align:center;">
+                Before we scan the evidence, we need the <strong>rules of the investigation</strong>. Ethics isn’t abstract here — it’s our field guide.
+              </p>
+              <p style="font-size:1.05rem; max-width:820px; margin:0 auto 12px auto; text-align:center;">
+                We use standards from the experts at the <strong>Catalan Observatory for Ethics in AI (OEIAC)</strong>.
+                <br>
+                <em>While they established 7 core principles to keep AI safe, our intel suggests this specific case involves a violation of the <strong>Justice and Equity</strong> principle.</em>
+              </p>
+
+              <!-- Where principles fit -->
+              <div class="ai-risk-container" style="margin-top:10px; border-width:2px;">
+                <h4 style="margin-top:0; font-size:1.12rem; text-align:center;">🗺️ Where Principles Fit</h4>
+                <div style="display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; font-weight:800;">
+                  <span>Principles</span>
+                  <span style="opacity:0.6;">→</span>
+                  <span>Tests</span>
+                  <span style="opacity:0.6;">→</span>
+                  <span>Evidence</span>
+                  <span style="opacity:0.6;">→</span>
+                  <span>Judgment</span>
+                  <span style="opacity:0.6;">→</span>
+                  <span>Fixes</span>
+                </div>
+                <p style="font-size:0.98rem; text-align:center; margin:8px 0 0 0;">
+                  <strong>Principles define the tests you’ll run.</strong> Tests tell you <em>what counts as bias</em> when you investigate real data and outputs.
+                </p>
+              </div>
+
+              <!-- Primary principle focus: Justice & Equity -->
+              <div class="ai-risk-container" style="margin-top:14px; border-width:2px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <h4 style="margin:0; font-size:1.18rem; color:#ef4444;">🧩 Justice & Equity — What Counts as Bias</h4>
+                  <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.12em; font-weight:800; padding:2px 8px; border-radius:999px; border:1px solid #ef4444; color:#ef4444;">Priority in this case</div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; margin-top:10px;">
+                  <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
+                    <div style="font-weight:800;">Frequency Bias</div>
+                    <div style="font-size:0.95rem;">Compare dataset distribution to reality (e.g., 10% group representation vs 71%).</div>
+                    <div style="font-size:0.95rem; color:var(--body-text-color-subdued);">If one group appears far more than reality, the model may learn these group patterns in a biased manner.</div>
+                  </div>
+                  <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
+                    <div style="font-weight:800;">Error Gaps</div>
+                    <div style="font-size:0.95rem;">Check for AI prediction mistakes by subgroup.</div>
+                    <div style="font-size:0.95rem; color:var(--body-text-color-subdued);">Higher error for a group can mean unfair treatment; that <em>can mean increased bias</em>.</div>
+                  </div>
+                  <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
+                    <div style="font-weight:800;">Outcome Disparities</div>
+                    <div style="font-size:0.95rem;">Look for worse outcomes related to AI predictions for specific groups (early release, bail, sentencing).</div>
+                    <div style="font-size:0.95rem; color:var(--body-text-color-subdued);">Bias isn’t just numbers — it changes real‑world outcomes.</div>
+                  </div>
+                </div>
+
+                <div class="hint-box" style="margin-top:12px;">
+                  <div style="font-weight:800;">Plain Rule</div>
+                  <div style="font-size:0.95rem;">If one group is <strong>systematically misclassified more</strong>, that’s a likely signal for a Justice & Equity violation.</div>
+                </div>
+              </div>
+
+              <!-- Other principles: visible but secondary -->
+              <div class="ai-risk-container" style="margin-top:14px; border-width:2px;">
+                <h4 style="margin-top:0; font-size:1.12rem; text-align:center;">🧭 Examples of other AI Ethics Principles (Could also be used to help investigate AI.)</h4>
+                <div style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px; opacity:0.9;">
+                  <div class="hint-box" style="margin-top:0;">
+                    <div style="font-weight:800;">Transparency</div>
+                    <div style="font-size:0.95rem;">Explainable scores enable audits and appeals.</div>
+                  </div>
+                  <div class="hint-box" style="margin-top:0;">
+                    <div style="font-weight:800;">Safety</div>
+                    <div style="font-size:0.95rem;">Minimize harmful mistakes; plan for failure.</div>
+                  </div>
+                  <div class="hint-box" style="margin-top:0;">
+                    <div style="font-weight:800;">Responsibility</div>
+                    <div style="font-size:0.95rem;">Assign owners; keep an audit trail.</div>
+                  </div>
+                  <div class="hint-box" style="margin-top:0;">
+                    <div style="font-weight:800;">Privacy</div>
+                    <div style="font-size:0.95rem;">Use only necessary data; justify sensitive attributes.</div>
+                  </div>
+                  <div class="hint-box" style="margin-top:0;">
+                    <div style="font-weight:800;">Autonomy</div>
+                    <div style="font-size:0.95rem;">Provide appeals and alternatives.</div>
+                  </div>
+                  <div class="hint-box" style="margin-top:0;">
+                    <div style="font-weight:800;">Sustainability</div>
+                    <div style="font-size:0.95rem;">Avoid long‑term social or environmental harm.</div>
+                  </div>
+                </div>
+
+                <div class="hint-box" style="margin-top:12px;">
+                  <div style="font-weight:800;">Why do we need Principles that clearly define the rules of ethical AI?</div>
+                  <div style="font-size:0.95rem;">
+                    Principles turn “be fair” into <strong>tests</strong> you can run. They create shared standards for consistent evaluation and make findings <strong>explainable</strong> to teams, courts, and the public.
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bridge to next step -->
+              <div class="hint-box" style="margin-top:16px;">
+                <div style="font-weight:800;">✅ You’ve established the rules.</div>
+                <div style="font-size:0.98rem;">Next, you will rely on them for your investigation.</div>
+              </div>
+
             </div>
+          </div>
         """,
     },
     {
