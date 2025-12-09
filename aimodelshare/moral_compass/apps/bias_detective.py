@@ -226,7 +226,7 @@ MODULES = [
                 <h2 class="slide-title">⚖️ The Detective's Code</h2>
                 <div class="slide-body">
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
-                        <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700;">
+                        <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--borde[...]
                             <span style="font-size:1.1rem;">📜</span><span>STEP 1: INTELLIGENCE BRIEFING</span>
                         </div>
                     </div>
@@ -240,10 +240,10 @@ MODULES = [
                             <div class="hint-box" style="margin-top:0; font-size:0.9rem;">
                                 <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--body-text-color-subdued);">1 · Transparency</div>
                             </div>
-                            <div class="hint-box" style="margin-top:0; font-size:0.9rem; border-width:2px; border-color:#ef4444; box-shadow:0 0 0 1px rgba(239,68,68,0.12); background:linear-gradient(135deg, rgba(239,68,68,0.06), var(--block-background-fill));">
+                            <div class="hint-box" style="margin-top:0; font-size:0.9rem; border-width:2px; border-color:#ef4444; box-shadow:0 0 0 1px rgba(239,68,68,0.12); background:linear-gradient(1[...]
                                 <div style="display:flex; justify-content:space-between; align-items:center;">
                                     <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--body-text-color-subdued);">2 · Justice and Equity</div>
-                                    <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.12em; font-weight:800; padding:2px 8px; border-radius:999px; border:1px solid #ef4444; color:#ef4444; background-color:rgba(239,68,68,0.08);">⚠️ PRIORITY</div>
+                                    <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.12em; font-weight:800; padding:2px 8px; border-radius:999px; border:1px solid #ef4444; colo[...]
                                 </div>
                                 <div style="font-size:0.8rem; margin-top:4px; color:var(--body-text-color-subdued);">
                                     Also referred to here as <strong>Justice &amp; Fairness</strong>. Who pays the price?
@@ -328,7 +328,7 @@ MODULES = [
                 <h2 class="slide-title">🔎 HOW DO WE CATCH A MACHINE?</h2>
                 <div class="slide-body">
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
-                        <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700;">
+                        <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--borde[...]
                             <span style="font-size:1.1rem;">📋</span><span>STEP 2: SCAN EVIDENCE</span>
                         </div>
                     </div>
@@ -366,7 +366,7 @@ MODULES = [
                 <h2 class="slide-title">📂 THE DATA FORENSICS BRIEFING</h2>
                 <div class="slide-body">
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
-                        <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700;">
+                        <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--borde[...]
                             <span style="font-size:1.1rem;">📋</span><span>STEP 2: EVIDENCE BRIEFING</span>
                         </div>
                     </div>
@@ -396,7 +396,7 @@ MODULES = [
                 <h2 class="slide-title">🔎 FORENSIC ANALYSIS: RACE</h2>
                 <div class="slide-body">
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
-                        <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700;">
+                        <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--borde[...]
                             <span style="font-size:1.1rem;">📡</span><span>EVIDENCE SCAN: VARIABLE 1 of 3</span>
                         </div>
                     </div>
@@ -437,7 +437,7 @@ MODULES = [
                 <h2 class="slide-title">🔎 FORENSIC ANALYSIS: GENDER</h2>
                 <div class="slide-body">
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
-                        <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700;">
+                        <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--borde[...]
                             <span style="font-size:1.1rem;">📡</span><span>EVIDENCE SCAN: VARIABLE 2 of 3</span>
                         </div>
                     </div>
@@ -480,7 +480,7 @@ MODULES = [
                 <h2 class="slide-title">🔎 FORENSIC ANALYSIS: AGE</h2>
                 <div class="slide-body">
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
-                        <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700;">
+                        <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--borde[...]
                             <span style="font-size:1.1rem;">📡</span><span>EVIDENCE SCAN: VARIABLE 3 of 3</span>
                         </div>
                     </div>
@@ -533,7 +533,7 @@ MODULES = [
                 <h2 class="slide-title">📂 FORENSICS REPORT: SUMMARY</h2>
                 <div class="slide-body">
                     <div style="display:flex; justify-content:center; margin-bottom:18px;">
-                        <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:rgba(34, 197, 94, 0.15); border:1px solid #22c55e; font-size:0.95rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; color:#22c55e;">
+                        <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:rgba(34, 197, 94, 0.15); border:1px solid #22c55e; font-size:0[...]
                             <span style="font-size:1.1rem;">✅</span><span>STATUS: STEP 2 COMPLETE</span>
                         </div>
                     </div>
@@ -713,46 +713,31 @@ QUIZ_CONFIG = {
 SCENARIO_CONFIG = {
     "Criminal risk prediction": {
         "q": (
-            "In a criminal risk prediction system, the model predicts the chance that someone will reoffend.\n"
-            "Why is it dangerous to rely on accuracy alone in this scenario?"
+            "A system predicts who might reoffend.\n"
+            "Why isn’t accuracy alone enough?"
         ),
-        "o": [
-            "Because even a small bias can affect thousands of people in bail and sentencing decisions.",
-            "Because accuracy always guarantees fairness for every group.",
-            "Because risk scores are only used for practice and never affect real cases.",
-        ],
-        "a": "Because even a small bias can affect thousands of people in bail and sentencing decisions.",
-        "f_correct": "Exactly. In a criminal risk model, even a small bias can quietly shape decisions for thousands of people.",
-        "f_incorrect": "Not quite. The main danger is that a biased model can affect thousands of real cases, not just its overall accuracy number.",
+        "summary": "Even tiny bias can repeat across thousands of bail/sentencing calls — real lives, real impact.",
+        "a": "Accuracy can look good overall while still being unfair to specific groups affected by the model.",
+        "rationale": "Bias at scale means one pattern can hurt many people quickly. We must check subgroup fairness, not just the top-line score."
     },
     "Loan approval system": {
         "q": (
-            "In a loan approval system, the model predicts who should be offered credit.\n"
-            "What is the biggest risk if the system is trained on biased historical data?"
+            "A model decides who gets a loan.\n"
+            "What’s the biggest risk if it learns from biased history?"
         ),
-        "o": [
-            "Some groups might be unfairly denied loans over and over again.",
-            "Everyone automatically gets approved for every loan.",
-            "Banks will stop using any data at all.",
-        ],
-        "a": "Some groups might be unfairly denied loans over and over again.",
-        "f_correct": "Right. A biased loan model can quietly lock entire groups out of opportunities over time.",
-        "f_incorrect": "Close, but think about who gets left out: the danger is that some groups are repeatedly denied access to credit.",
+        "summary": "Some groups get blocked over and over, shutting down chances for housing, school, and stability.",
+        "a": "It can repeatedly deny the same groups, copying old patterns and locking out opportunity.",
+        "rationale": "If past approvals were unfair, the model can mirror that and keep doors closed — not just once, but repeatedly."
     },
     "College admissions screening": {
         "q": (
-            "In a college admissions screening tool, the model ranks applicants based on past admissions patterns.\n"
-            "What is the main fairness risk here?"
+            "A tool ranks college applicants using past admissions data.\n"
+            "What’s the main fairness risk?"
         ),
-        "o": [
-            "The model might learn to favor the same types of students who were admitted in the past, excluding others.",
-            "It will randomly accept or reject everyone.",
-            "It will only look at the final exam scores and ignore everything else.",
-        ],
-        "a": "The model might learn to favor the same types of students who were admitted in the past, excluding others.",
-        "f_correct": "Exactly. If past admissions were biased, the model can copy and lock in those patterns.",
-        "f_incorrect": "Think about who gets in and who gets left out. The risk is that the model repeats old patterns and leaves some groups behind.",
-    },
+        "summary": "It can favor the same profiles as before, overlooking great candidates who don’t ‘match’ history.",
+        "a": "It can amplify past preferences and exclude talented students who don’t fit the old mold.",
+        "rationale": "Models trained on biased patterns can miss potential. We need checks to ensure diverse, fair selection."
+    }
 }
 
 # --- 7. SLIDE 3 RIPPLE EFFECT SLIDER HELPER ---
@@ -793,6 +778,51 @@ def simulate_ripple_effect_cases(cases_per_year):
         </p>
     </div>
     """
+
+# --- 7b. STATIC SCENARIOS RENDERER (Module 0) ---
+def render_static_scenarios():
+    cards = []
+    for name, cfg in SCENARIO_CONFIG.items():
+        q_html = cfg["q"].replace("\\n", "<br>")
+        cards.append(f"""
+            <div class="hint-box" style="margin-top:12px;">
+                <div style="font-weight:700; font-size:1.05rem;">📘 {name}</div>
+                <p style="margin:8px 0 6px 0;">{q_html}</p>
+                <p style="margin:0;"><strong>Key takeaway:</strong> {cfg["a"]}</p>
+                <p style="margin:6px 0 0 0; color:var(--body-text-color-subdued);">{cfg["f_correct"]}</p>
+            </div>
+        """)
+    return "<div class='interactive-block'>" + "".join(cards) + "</div>"
+
+def render_scenario_card(name: str):
+    cfg = SCENARIO_CONFIG.get(name)
+    if not cfg:
+        return "<div class='hint-box'>Select a scenario to view details.</div>"
+    q_html = cfg["q"].replace("\n", "<br>")
+    return f"""
+    <div class="scenario-box">
+        <h3 class="slide-title" style="font-size:1.4rem; margin-bottom:8px;">📘 {name}</h3>
+        <div class="slide-body">
+            <div class="hint-box">
+                <p style="margin:0 0 6px 0; font-size:1.05rem;">{q_html}</p>
+                <p style="margin:0 0 6px 0;"><strong>Key takeaway:</strong> {cfg['a']}</p>
+                <p style="margin:0; color:var(--body-text-color-subdued);">{cfg['rationale']}</p>
+            </div>
+        </div>
+    </div>
+    """
+
+def render_scenario_buttons():
+    # Stylized, high-contrast buttons optimized for 17–20 age group
+    btns = []
+    for name in SCENARIO_CONFIG.keys():
+        btns.append(gr.Button(
+            value=f"🎯 {name}",
+            variant="primary",
+            elem_classes=["scenario-choice-btn"]
+        ))
+    return btns
+
 # --- 8. LEADERBOARD & API LOGIC ---
 def get_leaderboard_data(client, username, team_name, local_task_list=None, override_score=None):
     try:
@@ -1146,122 +1176,113 @@ def render_leaderboard_card(data, username, team_name):
 
 # --- 11. CSS ---
 css = """
-.summary-box { background: var(--block-background-fill); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color-primary); margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+/* Layout + containers */
+.summary-box {
+  background: var(--block-background-fill);
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color-primary);
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
 .summary-box-inner { display: flex; align-items: center; justify-content: space-between; gap: 30px; }
-.summary-metrics { display: flex; gap: 30px; }
-.summary-progress { width: 500px; }
+.summary-metrics { display: flex; gap: 30px; align-items: center; }
+.summary-progress { width: 560px; max-width: 100%; }
 
-.scenario-box { padding: 24px; border-radius: 12px; background: var(--block-background-fill); border: 1px solid var(--border-color-primary); margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
-.slide-title { margin-top: 0; font-size: 1.8rem; }
-.slide-body { font-size: 1.15rem; line-height: 1.6; }
+/* Scenario cards */
+.scenario-box {
+  padding: 24px;
+  border-radius: 14px;
+  background: var(--block-background-fill);
+  border: 1px solid var(--border-color-primary);
+  margin-bottom: 22px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+.slide-title { margin-top: 0; font-size: 1.9rem; font-weight: 800; }
+.slide-body { font-size: 1.12rem; line-height: 1.65; }
 
-.hint-box { padding: 12px; border-radius: 8px; background: var(--block-background-fill); border: 1px solid var(--border-color-primary); margin-top: 10px; font-size: 0.95rem; }
+/* Hint boxes */
+.hint-box {
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--background-fill-secondary);
+  border: 1px solid var(--border-color-primary);
+  margin-top: 10px;
+  font-size: 0.98rem;
+}
 
 /* Success / profile card */
 .profile-card.success-card {
-    padding: 20px;
-    border-radius: 14px;
-    border-left: 6px solid #22c55e;
-    background: linear-gradient(135deg, rgba(34,197,94,0.06), var(--block-background-fill));
-    margin-top: 16px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-    font-size: 1.02rem;
-    line-height: 1.5;
+  padding: 20px;
+  border-radius: 14px;
+  border-left: 6px solid #22c55e;
+  background: linear-gradient(135deg, rgba(34,197,94,0.08), var(--block-background-fill));
+  margin-top: 16px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+  font-size: 1.04rem;
+  line-height: 1.55;
 }
-
 .profile-card.first-score {
-    border-left-color: #facc15; /* gold */
-    background: linear-gradient(
-        135deg,
-        rgba(250, 204, 21, 0.15),
-        var(--block-background-fill)
-    );
+  border-left-color: #facc15;
+  background: linear-gradient(135deg, rgba(250,204,21,0.18), var(--block-background-fill));
 }
+.success-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 8px; }
+.success-title { font-size: 1.26rem; font-weight: 900; color: #16a34a; }
+.success-summary { font-size: 1.06rem; color: var(--body-text-color-subdued); margin-top: 4px; }
+.success-delta { font-size: 1.5rem; font-weight: 800; color: #16a34a; }
+.success-metrics { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: var(--background-fill-secondary); font-size: 1.06rem; }
+.success-metric-line { margin-bottom: 4px; }
+.success-body { margin-top: 10px; font-size: 1.06rem; }
+.success-body-text { margin: 0 0 6px 0; }
+.success-cta { margin: 4px 0 0 0; font-weight: 700; font-size: 1.06rem; }
 
-.success-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 16px;
-    margin-bottom: 8px;
-}
+/* Numbers + labels */
+.score-text-primary { font-size: 2.05rem; font-weight: 900; color: var(--color-accent); }
+.score-text-team { font-size: 2.05rem; font-weight: 900; color: #60a5fa; }
+.score-text-global { font-size: 2.05rem; font-weight: 900; }
+.label-text { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #6b7280; }
 
-.success-title {
-    font-size: 1.25rem;
-    font-weight: 800;
-    color: #16a34a;
-}
+/* Progress bar */
+.progress-bar-bg { width: 100%; height: 10px; background: #e5e7eb; border-radius: 6px; overflow: hidden; margin-top: 8px; }
+.progress-bar-fill { height: 100%; background: var(--color-accent); transition: width 280ms ease; }
 
-.success-summary {
-    font-size: 1.05rem;
-    color: var(--body-text-color-subdued);
-    margin-top: 4px;
-}
-
-.success-delta {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #16a34a;
-}
-
-.success-metrics {
-    margin-top: 10px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    background: var(--background-fill-secondary);
-    font-size: 1.05rem;
-}
-
-.success-metric-line {
-    margin-bottom: 4px;
-}
-
-.success-body {
-    margin-top: 10px;
-    font-size: 1.05rem;
-}
-
-.success-body-text {
-    margin: 0 0 6px 0;
-}
-
-.success-cta {
-    margin: 4px 0 0 0;
-    font-weight: 600;
-    font-size: 1.06rem;
-}
-
-/* General text scaling */
-.score-text-primary { font-size: 2rem; font-weight: 800; color: var(--color-accent); }
-.score-text-team { font-size: 2rem; font-weight: 800; color: #60a5fa; }
-.score-text-global { font-size: 2rem; font-weight: 800; }
-.label-text { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; color: gray; }
-
-.progress-bar-bg { width: 100%; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin-top: 6px; }
-.progress-bar-fill { height: 100%; background: var(--color-accent); }
-
+/* Leaderboard tabs + tables */
 .leaderboard-card input[type="radio"] { display: none; }
-.lb-tab-label { display: inline-block; padding: 6px 14px; margin-right: 8px; border-radius: 20px; cursor: pointer; border: 1px solid var(--border-color-primary); font-weight: 600; font-size: 0.9rem; }
-#lb-tab-team:checked + label, #lb-tab-user:checked + label { background: var(--color-accent); color: white; border-color: var(--color-accent); }
+.lb-tab-label {
+  display: inline-block; padding: 8px 16px; margin-right: 8px; border-radius: 20px;
+  cursor: pointer; border: 1px solid var(--border-color-primary); font-weight: 700; font-size: 0.94rem;
+}
+#lb-tab-team:checked + label, #lb-tab-user:checked + label {
+  background: var(--color-accent); color: white; border-color: var(--color-accent);
+  box-shadow: 0 3px 8px rgba(99,102,241,0.25);
+}
 .lb-panel { display: none; margin-top: 10px; }
 #lb-tab-team:checked ~ .lb-tab-panels .panel-team { display: block; }
 #lb-tab-user:checked ~ .lb-tab-panels .panel-user { display: block; }
-.table-container { height: 300px; overflow-y: auto; border: 1px solid var(--border-color-primary); border-radius: 8px; }
+.table-container { height: 320px; overflow-y: auto; border: 1px solid var(--border-color-primary); border-radius: 10px; }
 .leaderboard-table { width: 100%; border-collapse: collapse; }
-.leaderboard-table th { position: sticky; top: 0; background: var(--background-fill-secondary); padding: 10px; text-align: left; border-bottom: 2px solid var(--border-color-primary); }
+.leaderboard-table th {
+  position: sticky; top: 0; background: var(--background-fill-secondary);
+  padding: 10px; text-align: left; border-bottom: 2px solid var(--border-color-primary);
+  font-weight: 800;
+}
 .leaderboard-table td { padding: 10px; border-bottom: 1px solid var(--border-color-primary); }
-.row-highlight-me, .row-highlight-team { background: rgba(96, 165, 250, 0.15); font-weight: 600; }
+.row-highlight-me, .row-highlight-team { background: rgba(96,165,250,0.18); font-weight: 700; }
 
-.ai-risk-container { margin-top: 16px; padding: 16px; background: var(--body-background-fill); border-radius: 8px; border: 1px solid var(--border-color-primary); }
+/* Containers */
+.ai-risk-container { margin-top: 16px; padding: 16px; background: var(--body-background-fill); border-radius: 10px; border: 1px solid var(--border-color-primary); }
 
-/* Slightly larger text for interactive blocks on Slide 0 */
-.interactive-block { font-size: 1.05rem; }
-.interactive-block .hint-box { font-size: 1.0rem; }
-.interactive-text { font-size: 1.05rem; }
+/* Interactive blocks (text size tuned for 17–20 age group) */
+.interactive-block { font-size: 1.06rem; }
+.interactive-block .hint-box { font-size: 1.02rem; }
+.interactive-text { font-size: 1.06rem; }
 
-/* Larger text for scenario and quiz radio options */
+/* Radio sizes */
 .scenario-radio-large label { font-size: 1.06rem; }
 .quiz-radio-large label { font-size: 1.06rem; }
+
+/* Small utility */
+.divider-vertical { width: 1px; height: 48px; background: var(--border-color-primary); opacity: 0.6; }
 """
 
 # --- 12. HELPER: SLIDER FOR MORAL COMPASS SCORE (MODULE 0) ---
@@ -1323,14 +1344,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
             module_ui_elements = {}
             quiz_wiring_queue = []
 
-            # References for Module 0 & 3 interactive content
-            scenario_dropdown = None
-            scenario_question_html = None
-            scenario_radio = None
-            scenario_feedback = None
-            slider_comp = None
-            slider_result_html = None
-
             # --- DYNAMIC MODULE GENERATION ---
             for i, mod in enumerate(MODULES):
                 with gr.Column(
@@ -1341,7 +1354,7 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
                     # Core slide HTML
                     gr.HTML(mod["html"])
 
-                    # --- MODULE 0: INTERACTIVE CALCULATOR + SCENARIO QUESTION ---
+                    # --- MODULE 0: INTERACTIVE CALCULATOR + STATIC SCENARIO CARDS ---
                     if i == 0:
                         gr.Markdown(
                             "### 🧮 Try the Moral Compass Score Slider",
@@ -1386,32 +1399,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
                             outputs=[slider_result_html],
                         )
 
-                        # Scenario-based interaction
-                        gr.Markdown(
-                            "### 🎯 Scenario: Why Accuracy Alone Isn't Enough",
-                            elem_classes=["interactive-text"],
-                        )
-
-                        scenario_dropdown = gr.Dropdown(
-                            choices=list(SCENARIO_CONFIG.keys()),
-                            value="Criminal risk prediction",
-                            label="Choose a scenario to explore",
-                            interactive=True,
-                        )
-
-                        scenario_question_html = gr.HTML(
-                            "", elem_classes=["interactive-text"]
-                        )
-
-                        scenario_radio = gr.Radio(
-                            choices=[],
-                            label="What is the biggest risk in this scenario?",
-                            elem_classes=["scenario-radio-large"],
-                        )
-
-                        scenario_feedback = gr.HTML(
-                            "", elem_classes=["interactive-text"]
-                        )
 
                     # --- MODULE 3: RIPPLE EFFECT SLIDER ---
                     if i == 3:
@@ -1481,49 +1468,6 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
 
             # Leaderboard card appears AFTER content & interactions
             leaderboard_html = gr.HTML()
-
-            # --- WIRING: SCENARIO LOGIC (MODULE 0) ---
-            def load_scenario(scenario_name):
-                cfg = SCENARIO_CONFIG.get(scenario_name)
-                if not cfg:
-                    return gr.update(value=""), gr.update(choices=[], value=None)
-                q_html = (
-                    "<div class='hint-box'>"
-                    f"<p style='font-size:1.05rem; margin-bottom:0;'>{cfg['q'].replace(chr(10), '<br>')}</p>"
-                    "</div>"
-                )
-                return q_html, gr.update(choices=cfg["o"], value=None)
-
-            if scenario_dropdown is not None and scenario_radio is not None:
-                scenario_dropdown.change(
-                    fn=load_scenario,
-                    inputs=[scenario_dropdown],
-                    outputs=[scenario_question_html, scenario_radio],
-                )
-
-                def scenario_check(scenario_name, choice):
-                    cfg = SCENARIO_CONFIG.get(scenario_name)
-                    if not cfg or not choice:
-                        return ""
-                    if choice == cfg["a"]:
-                        text = cfg["f_correct"]
-                        prefix = "✅"
-                        border = "#22c55e"
-                    else:
-                        text = cfg["f_incorrect"]
-                        prefix = "❌"
-                        border = "#ef4444"
-                    return (
-                        f"<div class='hint-box' style='border-color:{border};'>"
-                        f"<p style='margin:0; font-size:1.05rem;'>{prefix} {text}</p>"
-                        "</div>"
-                    )
-
-                scenario_radio.change(
-                    fn=scenario_check,
-                    inputs=[scenario_dropdown, scenario_radio],
-                    outputs=[scenario_feedback],
-                )
 
             # --- WIRING: QUIZ LOGIC ---
             for mod_id, radio_comp, feedback_comp in quiz_wiring_queue:
