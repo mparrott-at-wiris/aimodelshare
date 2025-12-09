@@ -249,16 +249,16 @@ MODULES = [
                 <div style="display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; font-weight:800;">
                   <span>Principles</span>
                   <span style="opacity:0.6;">→</span>
-                  <span>Tests</span>
-                  <span style="opacity:0.6;">→</span>
                   <span>Evidence</span>
+                  <span style="opacity:0.6;">→</span>
+                  <span>Tests</span>
                   <span style="opacity:0.6;">→</span>
                   <span>Judgment</span>
                   <span style="opacity:0.6;">→</span>
                   <span>Fixes</span>
                 </div>
                 <p style="font-size:0.98rem; text-align:center; margin:8px 0 0 0;">
-                  <strong>Principles define the tests you’ll run.</strong> Tests tell you <em>what counts as bias</em> when you investigate real data and outputs.
+                  <strong>Principles help define the evidence you should collect and the tests you should run.</strong> Evidence and tests tell you <em>what counts as bias</em> when you investigate real data and outputs.
                 </p>
               </div>
 
@@ -398,33 +398,75 @@ MODULES = [
             <div class="scenario-box">
                 <h2 class="slide-title">🔎 HOW DO WE CATCH A MACHINE?</h2>
                 <div class="slide-body">
-                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
-                        <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--borde[...]
-                            <span style="font-size:1.1rem;">📋</span><span>STEP 2: SCAN EVIDENCE</span>
+
+                    <!-- Transition from rules (Justice & Equity) to action -->
+                    <div class="hint-box" style="margin-bottom:16px;">
+                        <div style="font-weight:800;">From Rules to Evidence</div>
+                        <div style="font-size:0.98rem;">
+                            You’ve learned the primary principle — <strong>Justice & Equity</strong> - that sets the rules for your investigation. Now we apply it.
+                            Gather any evidence of (<strong>different categories of bias</strong>, <strong>prediction error gaps</strong>, <strong>outcome disparities</strong>)
+                            to examine the training data. This is the start of <em>evidence collection</em> — finding patterns that signal unfair treatment.
                         </div>
                     </div>
+
+                    <!-- Step badge -->
+                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                        <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; font-weight:800;">
+                            <span style="font-size:1.1rem;">📋</span><span>STEP 2: COLLECT EVIDENCE</span>
+                        </div>
+                    </div>
+
+                    <!-- Core framing -->
                     <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
-                        You can't interrogate an algorithm. It won't confess. To find bias, we have to look at 
+                        But where should you begin your investigation? You can't interrogate an algorithm. It won't confess. To find bias, we have to look at 
                         the evidence trail it leaves behind. If you were investigating a suspicious judge, what 
                         would you look for?
                     </p>
+
+                    <!-- Investigation checklist -->
                     <div class="ai-risk-container" style="margin-top:20px;">
                         <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">🗂️ The Investigation Checklist</h4>
                         <div style="display:grid; gap:16px; margin-top:16px;">
                             <div class="hint-box" style="margin-top:0;">
                                 <div style="font-weight:bold; margin-bottom:8px;">📂 Folder 1: "Who is being arrested?"</div>
-                                <div style="padding-left:20px; font-size:0.95rem; color:var(--body-text-color-subdued);">→ <strong>Reveal:</strong> Check the History</div>
+                                <div style="padding-left:20px; font-size:0.95rem; color:var(--body-text-color-subdued);">
+                                    → <strong>Reveal:</strong> Check the History (Is one group over‑represented vs reality?)
+                                </div>
                             </div>
                             <div class="hint-box" style="margin-top:0;">
                                 <div style="font-weight:bold; margin-bottom:8px;">📂 Folder 2: "Who is being wrongly accused?"</div>
-                                <div style="padding-left:20px; font-size:0.95rem; color:var(--body-text-color-subdued);">→ <strong>Reveal:</strong> Check the Mistakes</div>
+                                <div style="padding-left:20px; font-size:0.95rem; color:var(--body-text-color-subdued);">
+                                    → <strong>Reveal:</strong> Check the Mistakes (Are prediction errors higher for a group?)
+                                </div>
                             </div>
                             <div class="hint-box" style="margin-top:0;">
                                 <div style="font-weight:bold; margin-bottom:8px;">📂 Folder 3: "Who is getting hurt?"</div>
-                                <div style="padding-left:20px; font-size:0.95rem; color:var(--body-text-color-subdued);">→ <strong>Reveal:</strong> Check the Punishment</div>
+                                <div style="padding-left:20px; font-size:0.95rem; color:var(--body-text-color-subdued);">
+                                    → <strong>Reveal:</strong> Check the Punishment (Do model outputs lead to worse outcomes for a group?)
+                                </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Expert validation -->
+                    <div class="hint-box" style="margin-top:16px; border-left:4px solid #22c55e;">
+                        <div style="font-weight:800;">🧠 Expert Validation</div>
+                        <div style="font-size:0.98rem;">
+                            <em>Exactly.</em> You just described parts of a <strong>Standard AI Audit Protocol</strong> defined by AI experts like those at the <strong>OEIAC</strong> —
+                            <strong>Dataset Forensics</strong> & <strong>Error Analysis</strong> — to build evidence for or against
+                            <strong>Justice & Equity</strong> in a specific AI system.
+                        </div>
+                    </div>
+
+                    <!-- Action bridge -->
+                    <div class="hint-box" style="margin-top:16px;">
+                        <div style="font-weight:800;">✅ Next move</div>
+                        <div style="font-size:0.98rem;">
+                            Apply the Justice & Equity principle to real evidence: Analyze <strong>Race</strong> → <strong>Gender</strong> → <strong>Age</strong>.
+                            You’re building a real case based on data, not guesses.
+                        </div>
+                    </div>
+
                 </div>
             </div>
         """,
@@ -434,28 +476,153 @@ MODULES = [
         "title": "Slide 5: The Data Forensics Briefing",
         "html": """
             <div class="scenario-box">
-                <h2 class="slide-title">📂 THE DATA FORENSICS BRIEFING</h2>
-                <div class="slide-body">
-                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
-                        <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--borde[...]
-                            <span style="font-size:1.1rem;">📋</span><span>STEP 2: EVIDENCE BRIEFING</span>
-                        </div>
-                    </div>
-                    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
-                        You are about to access the raw evidence files. But be warned: The AI thinks this data is 
-                        the truth. If the police historically targeted one neighborhood more than others, the dataset 
-                        will be full of people from that neighborhood. The AI doesn't know this is bias—it just sees a pattern.
-                    </p>
-                    <div class="ai-risk-container">
-                        <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">🔍 The Detective's Task</h4>
-                        <p style="font-size:1.05rem; text-align:center; margin-bottom:14px;">
-                            We must compare <strong style="color:var(--color-accent);">The Data</strong> against <strong style="color:#22c55e;">Reality</strong>.
-                        </p>
-                        <p style="font-size:1.05rem; text-align:center;">
-                            We are looking for <strong style="color:#ef4444;">Distortions</strong> (Over-represented or Under-represented groups).
-                        </p>
-                    </div>
+              <h2 class="slide-title">📂 THE DATA FORENSICS BRIEFING</h2>
+              <div class="slide-body">
+                <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                  <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; font-weight:800;">
+                    <span style="font-size:1.1rem;">📋</span><span>STEP 2 CONTINUED: YOUR EVIDENCE BRIEFING</span>
+                  </div>
                 </div>
+
+                <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
+                  You are about to access the raw evidence files. But be warned: The AI thinks this data is the truth.
+                  If the police historically targeted one neighborhood more than others, the dataset will be full of people from that neighborhood.
+                  The AI doesn't know this is bias — it just sees a pattern.
+                </p>
+
+                <div class="ai-risk-container">
+                  <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">🔍 The Detective's Task</h4>
+                  <p style="font-size:1.05rem; text-align:center; margin-bottom:14px;">
+                    We must compare <strong style="color:var(--color-accent);">The Data</strong> against <strong style="color:#22c55e;">Reality</strong>.
+                  </p>
+                  <p style="font-size:1.05rem; text-align:center;">
+                    We are looking for <strong style="color:#ef4444;">Distortions</strong> (Over‑represented, Under‑represented, or Missing groups).
+                  </p>
+                </div>
+
+                <!-- Click-to-reveal bias concepts (updated categories) -->
+                <div class="ai-risk-container" style="margin-top:18px;">
+                  <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">🧠 Three Common Data Distortions</h4>
+                  <p style="font-size:0.95rem; text-align:center; margin:6px 0 14px 0; color:var(--body-text-color-subdued);">
+                    Click or tap each card to reveal what it means and the evidence to look for.
+                  </p>
+
+                  <div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:14px;">
+                    <!-- Historical Bias -->
+                    <details class="hint-box" style="margin-top:0;">
+                      <summary style="display:flex; align-items:center; justify-content:space-between; font-weight:800; cursor:pointer;">
+                        <span>1) Historical Bias</span>
+                        <span style="font-size:0.85rem; font-weight:700; opacity:0.8;">Click to reveal</span>
+                      </summary>
+                      <div style="font-size:0.96rem; margin-top:10px;">
+                        Bias baked into past decisions carries into the dataset (e.g., over‑policing of certain neighborhoods or groups).
+                      </div>
+                      <div style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:6px;">
+                        Why it matters: The model learns past unfair patterns as if they were “normal,” repeating them at scale.
+                      </div>
+                      <div style="margin-top:10px; font-size:0.95rem;">
+                        Evidence to look for:
+                        <ul style="margin:8px 0 0 18px; padding:0;">
+                          <li>Long‑term over‑representation of a group in arrests vs real population share.</li>
+                          <li>Data concentrated in a few precincts or zip codes with known targeting history.</li>
+                          <li>Labels reflecting past policy (e.g., harsher charges) more for specific groups.</li>
+                        </ul>
+                      </div>
+                    </details>
+
+                    <!-- Sampling Bias -->
+                    <details class="hint-box" style="margin-top:0;">
+                      <summary style="display:flex; align-items:center; justify-content:space-between; font-weight:800; cursor:pointer;">
+                        <span>2) Sampling Bias</span>
+                        <span style="font-size:0.85rem; font-weight:700; opacity:0.8;">Click to reveal</span>
+                      </summary>
+                      <div style="font-size:0.96rem; margin-top:10px;">
+                        The way data was collected over‑samples some groups or places and under‑samples others (the “sample” doesn’t match reality).
+                      </div>
+                      <div style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:6px;">
+                        Why it matters: The model sees more examples from certain groups, becoming over‑confident or “trigger‑happy” for them.
+                      </div>
+                      <div style="margin-top:10px; font-size:0.95rem;">
+                        Evidence to look for:
+                        <ul style="margin:8px 0 0 18px; padding:0;">
+                          <li>One precinct/time window dominates incidents (data collection bias).</li>
+                          <li>Label imbalance: many “positive” outcomes for one group vs others.</li>
+                          <li>Duplicate or repeat entries inflating counts for certain neighborhoods or individuals.</li>
+                        </ul>
+                      </div>
+                    </details>
+
+                    <!-- Exclusion Bias -->
+                    <details class="hint-box" style="margin-top:0;">
+                      <summary style="display:flex; align-items:center; justify-content:space-between; font-weight:800; cursor:pointer;">
+                        <span>3) Exclusion Bias</span>
+                        <span style="font-size:0.85rem; font-weight:700; opacity:0.8;">Click to reveal</span>
+                      </summary>
+                      <div style="font-size:0.96rem; margin-top:10px;">
+                        Important people or features are missing or under‑recorded, so the model can’t see the full picture.
+                      </div>
+                      <div style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:6px;">
+                        Why it matters: Decisions ignore protective context, making some groups look riskier or less understood.
+                      </div>
+                      <div style="margin-top:10px; font-size:0.95rem;">
+                        Evidence to look for:
+                        <ul style="margin:8px 0 0 18px; padding:0;">
+                          <li>“Unknown” or missing values clustered for specific groups (e.g., age, employment).</li>
+                          <li>No data on protective factors (community ties, stability) → inflated risk scores.</li>
+                          <li>Whole regions or language communities absent or barely represented.</li>
+                        </ul>
+                      </div>
+                    </details>
+                  </div>
+                </div>
+
+                <!-- How distortions show up in model behavior -->
+                <div class="ai-risk-container" style="margin-top:16px;">
+                  <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">🔁 What These Distortions Do to the Model</h4>
+                  <div style="display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px;">
+                    <div class="hint-box" style="margin-top:0;">
+                      <div style="font-weight:800;">Flagging Bias</div>
+                      <div style="font-size:0.95rem;">The model learns to flag one group more often (higher “risk” scores) because the data over‑exposed it.</div>
+                    </div>
+                    <div class="hint-box" style="margin-top:0;">
+                      <div style="font-weight:800;">Error Gaps</div>
+                      <div style="font-size:0.95rem;">False‑positive/negative rates differ by group, especially with skewed sampling or missing context.</div>
+                    </div>
+                  </div>
+                  <p style="font-size:0.95rem; text-align:center; margin-top:10px; color:var(--body-text-color-subdued);">
+                    These are core signals for Justice & Equity issues: who gets mislabeled more, and why.
+                  </p>
+                </div>
+
+                <!-- Quick student-friendly examples -->
+                <div class="ai-risk-container" style="margin-top:16px;">
+                  <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">📎 Quick Examples</h4>
+                  <div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px;">
+                    <div class="hint-box" style="margin-top:0;">
+                      <div style="font-weight:800;">Historical</div>
+                      <div style="font-size:0.95rem;">Years of over‑policing one group → dataset shows them far more than reality.</div>
+                    </div>
+                    <div class="hint-box" style="margin-top:0;">
+                      <div style="font-weight:800;">Sampling</div>
+                      <div style="font-size:0.95rem;">One precinct supplies 70% of arrests → model predicts more risk there by default.</div>
+                    </div>
+                    <div class="hint-box" style="margin-top:0;">
+                      <div style="font-weight:800;">Exclusion</div>
+                      <div style="font-size:0.95rem;">Missing “community support” fields → risk looks higher for those records.</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action bridge -->
+                <div class="hint-box" style="margin-top:16px;">
+                  <div style="font-weight:800;">✅ What You’ll Do Next</div>
+                  <div style="font-size:0.98rem;">
+                    Capture distribution snapshots (who shows up), check sampling patterns (how data was collected), and mark missing fields (what’s excluded).
+                    These are the first proof points for or against <strong>Justice & Equity</strong> in the training data.
+                  </div>
+                </div>
+
+              </div>
             </div>
         """,
     },
@@ -463,137 +630,290 @@ MODULES = [
         "id": 6,
         "title": "Slide 6: Evidence Scan (Race)",
         "html": """
-            <div class="scenario-box">
-                <h2 class="slide-title">🔎 FORENSIC ANALYSIS: RACE</h2>
-                <div class="slide-body">
-                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
-                        <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--borde[...]
-                            <span style="font-size:1.1rem;">📡</span><span>EVIDENCE SCAN: VARIABLE 1 of 3</span>
-                        </div>
-                    </div>
-                    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
-                        We know that in this local jurisdiction, African-Americans make up 12% of the total population. 
-                        If the data is unbiased, the "Evidence Files" should roughly match that number.
-                    </p>
-                    <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
-                        <h4 style="margin-top:0; font-size:1.3rem;">📡 SCAN DATASET FOR RACE</h4>
-                        <div style="margin: 20px 0;">
-                            <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:8px;">Population Reality: 12% African-American</div>
-                            <div style="height:40px; background:linear-gradient(to right, #3b82f6 0%, #3b82f6 12%, #e5e7eb 12%, #e5e7eb 100%); border-radius:8px; position:relative;">
-                                <div style="position:absolute; left:12%; top:50%; transform:translate(-50%, -50%); font-size:0.85rem; font-weight:bold; color:white;">12%</div>
-                            </div>
-                        </div>
-                        <div style="margin: 20px 0;">
-                            <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:8px;">
-                                Dataset Reality: <strong style="color:#ef4444;">51% African-American</strong>
-                            </div>
-                            <div style="height:40px; background:linear-gradient(to right, #ef4444 0%, #ef4444 51%, #e5e7eb 51%, #e5e7eb 100%); border-radius:8px; position:relative;">
-                                <div style="position:absolute; left:51%; top:50%; transform:translate(-50%, -50%); font-size:0.85rem; font-weight:bold; color:white;">51%</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="hint-box" style="background:rgba(239, 68, 68, 0.1);">
-                        <h4 style="margin-top:0;">🔍 Detective's Analysis</h4>
-                        <p style="margin-bottom:8px;">The dataset is 51% African-American. That is <strong>4x higher</strong> than reality.</p>
-                    </div>
+          <div class="scenario-box">
+            <h2 class="slide-title">🔎 FORENSIC ANALYSIS: RACE</h2>
+            <div class="slide-body">
+              <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; font-weight:800;">
+                  <span style="font-size:1.1rem;">📡</span><span>EVIDENCE SCAN: VARIABLE 1 of 3</span>
                 </div>
+              </div>
+
+              <!-- Overview: What data are we scanning -->
+              <div class="ai-risk-container" style="margin-bottom:12px;">
+                <h4 style="margin-top:0; font-size:1.2rem; text-align:center;">🗃️ What Are We Scanning?</h4>
+                <p style="font-size:1.02rem; max-width:820px; margin:0 auto 10px auto; text-align:center;">
+                  We’re examining the <strong>COMPAS dataset</strong>, collected and analyzed by <strong>ProPublica</strong>. It contains real records used to
+                  score a person’s “risk of reoffending,” including demographics (race, age, gender), charges, prior history, and risk scores.
+                </p>
+                <p style="font-size:1.02rem; max-width:820px; margin:0 auto; text-align:center; color:var(--body-text-color-subdued);">
+                  If the <em>data itself</em> is skewed (who shows up, how often, or what gets recorded), the model can learn those
+                  patterns as “truth.” Scanning helps us spot distortions that may violate <strong>Justice & Equity</strong>.
+                </p>
+              </div>
+
+              <!-- Explanation: What the scan button will do -->
+              <div class="ai-risk-container" style="margin-bottom:16px;">
+                <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">🛠️ How the SCAN Works</h4>
+                <p style="font-size:1.02rem; max-width:780px; margin:0 auto; text-align:center;">
+                  Click <strong>SCAN</strong> to run a quick analysis for the selected demographic group. The scan will:
+                </p>
+                <ul style="max-width:780px; margin:8px auto 0 auto; font-size:0.98rem;">
+                  <li>Compare the group’s share in the <strong>local population</strong> vs the <strong>training dataset</strong>.</li>
+                  <li>Reveal <strong>visual bars</strong> showing the gap (population vs dataset).</li>
+                  <li>Uncover a <strong>Detective’s Analysis</strong> explaining what the gap means for <strong>Justice & Equity</strong> and what to check next.</li>
+                </ul>
+              </div>
+
+              <!-- SINGLE TOGGLE: Scan button that reveals ALL hidden learning content (charts + findings) -->
+              <details style="border:1px solid var(--border-color-primary); border-radius:12px; overflow:hidden;">
+                <summary style="list-style:none; cursor:pointer; padding:14px 18px; font-weight:800; text-align:center; background:var(--background-fill-secondary);">
+                  📡 SCAN: Race (African-American) — Click to reveal analysis
+                </summary>
+
+                <!-- Explanation for what the scan checks -->
+                <div class="hint-box" style="margin:14px; border-left:4px solid var(--color-accent);">
+                  <div style="font-weight:800;">What this scan checks</div>
+                  <div style="font-size:0.95rem;">
+                    We compare the share of African‑Americans in the <strong>local population</strong> vs their share in the
+                    <strong>COMPAS training dataset</strong>. Large gaps point to <em>historical or sampling bias</em> and may lead to unfair flagging.
+                  </div>
+                </div>
+
+                <!-- Context text -->
+                <p style="font-size:1.05rem; max-width:780px; margin:0 auto 12px auto; text-align:center;">
+                  We know that in this local jurisdiction, African-Americans make up 12% of the total population.
+                  If the data is unbiased, the "Evidence Files" should roughly match that number.
+                </p>
+
+                <!-- Charts: revealed together with the scan -->
+                <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 16px 0;">
+                  <h4 style="margin-top:0; font-size:1.2rem;">📊 Comparison Bars</h4>
+                  <div style="margin: 16px 0;">
+                    <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:8px;">Population Reality: 12% African-American</div>
+                    <div style="height:40px; background:linear-gradient(to right, #3b82f6 0%, #3b82f6 12%, #e5e7eb 12%, #e5e7eb 100%); border-radius:8px; position:relative;">
+                      <div style="position:absolute; left:12%; top:50%; transform:translate(-50%, -50%); font-size:0.85rem; font-weight:bold; color:white;">12%</div>
+                    </div>
+                  </div>
+                  <div style="margin: 16px 0;">
+                    <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:8px;">
+                      Dataset Reality: <strong style="color:#ef4444;">51% African-American</strong>
+                    </div>
+                    <div style="height:40px; background:linear-gradient(to right, #ef4444 0%, #ef4444 51%, #e5e7eb 51%, #e5e7eb 100%); border-radius:8px; position:relative;">
+                      <div style="position:absolute; left:51%; top:50%; transform:translate(-50%, -50%); font-size:0.85rem; font-weight:bold; color:white;">51%</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Detective findings: revealed together -->
+                <div class="hint-box" style="background:rgba(239, 68, 68, 0.08); margin-top:8px;">
+                  <h4 style="margin-top:0;">🔍 Detective's Analysis</h4>
+                  <p style="margin-bottom:8px;">The dataset is 51% African-American. That is <strong>~4× higher</strong> than reality.</p>
+                  <ul style="margin:0 0 10px 18px; padding:0; font-size:0.95rem;">
+                    <li><strong>What it likely means:</strong> historical over‑policing or sampling bias concentrated in certain neighborhoods.</li>
+                    <li><strong>Why it matters:</strong> the model may learn to flag African‑Americans more often simply because it saw more cases.</li>
+                    <li><strong>Next check:</strong> compare false‑positive/negative rates by race to see if error gaps confirm Justice & Equity risks.</li>
+                  </ul>
+                  <p style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-top:8px;">
+                    Source context: ProPublica’s COMPAS dataset is widely used to study fairness in criminal risk scoring. It helps us see how
+                    data patterns can shape model behavior — for better or worse.
+                  </p>
+                </div>
+              </details>
             </div>
+          </div>
         """,
     },
     {
         "id": 7,
         "title": "Slide 7: Evidence Scan (Gender)",
         "html": """
-            <div class="scenario-box">
-                <h2 class="slide-title">🔎 FORENSIC ANALYSIS: GENDER</h2>
-                <div class="slide-body">
-                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
-                        <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--borde[...]
-                            <span style="font-size:1.1rem;">📡</span><span>EVIDENCE SCAN: VARIABLE 2 of 3</span>
-                        </div>
-                    </div>
-                    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
-                        We are now scanning for gender balance. In the real world, the population is roughly 50/50. 
-                        A fair training set should reflect this balance.
-                    </p>
-                    <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
-                        <h4 style="margin-top:0; font-size:1.3rem;">📡 SCAN DATASET FOR GENDER</h4>
-                        <div style="margin: 20px 0;">
-                            <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:8px;">Population Reality: 50% Male / 50% Female</div>
-                            <div style="display:flex; height:40px; border-radius:8px; overflow:hidden;">
-                                <div style="width:50%; background:#3b82f6; display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:bold; color:white;">50% M</div>
-                                <div style="width:50%; background:#ec4899; display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:bold; color:white;">50% F</div>
-                            </div>
-                        </div>
-                        <div style="margin: 20px 0;">
-                            <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:8px;">
-                                Dataset Reality: <strong style="color:#ef4444;">81% Male / 19% Female</strong>
-                            </div>
-                            <div style="display:flex; height:40px; border-radius:8px; overflow:hidden;">
-                                <div style="width:81%; background:#ef4444; display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:bold; color:white;">81% M</div>
-                                <div style="width:19%; background:#fca5a5; display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:bold; color:white;">19% F</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="hint-box" style="background:rgba(239, 68, 68, 0.1);">
-                        <h4 style="margin-top:0;">🔍 Detective's Analysis</h4>
-                        <p style="margin-bottom:8px;">The data is 81% Male. How might this affect a female defendant?</p>
-                    </div>
+          <div class="scenario-box">
+            <h2 class="slide-title">🔎 FORENSIC ANALYSIS: GENDER</h2>
+            <div class="slide-body">
+              <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; font-weight:800;">
+                  <span style="font-size:1.1rem;">📡</span><span>EVIDENCE SCAN: VARIABLE 2 of 3</span>
                 </div>
+              </div>
+
+              <!-- Overview: What data are we scanning -->
+              <div class="ai-risk-container" style="margin-bottom:12px;">
+                <h4 style="margin-top:0; font-size:1.2rem; text-align:center;">🗃️ What Are We Scanning?</h4>
+                <p style="font-size:1.02rem; max-width:820px; margin:0 auto 10px auto; text-align:center;">
+                  We’re examining gender representation in the <strong>COMPAS dataset</strong> (ProPublica). It includes real case records
+                  with demographics (gender, race, age), charges, prior history, and risk scores used in criminal justice decisions.
+                </p>
+                <p style="font-size:1.02rem; max-width:820px; margin:0 auto; text-align:center; color:var(--body-text-color-subdued);">
+                  If the dataset is skewed toward one gender, the model may learn that skew as “normal,” which can affect scoring fairness.
+                </p>
+              </div>
+
+              <!-- Explanation: What the scan button will do -->
+              <div class="ai-risk-container" style="margin-bottom:16px;">
+                <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">🛠️ How the SCAN Works</h4>
+                <p style="font-size:1.02rem; max-width:780px; margin:0 auto; text-align:center;">
+                  Click <strong>SCAN</strong> to run a quick analysis for the selected demographic group. The scan will:
+                </p>
+                <ul style="max-width:780px; margin:8px auto 0 auto; font-size:0.98rem;">
+                  <li>Compare <strong>population reality</strong> (roughly 50% male / 50% female) to the <strong>training dataset</strong>.</li>
+                  <li>Reveal <strong>visual bars</strong> showing the gap (population vs dataset).</li>
+                  <li>Uncover a <strong>Detective’s Analysis</strong> explaining fairness implications and next checks.</li>
+                </ul>
+              </div>
+
+              <!-- SINGLE TOGGLE: Scan button that reveals ALL hidden learning content (charts + findings) -->
+              <details style="border:1px solid var(--border-color-primary); border-radius:12px; overflow:hidden;">
+                <summary style="list-style:none; cursor:pointer; padding:14px 18px; font-weight:800; text-align:center; background:var(--background-fill-secondary);">
+                  📡 SCAN: Gender — Click to reveal analysis
+                </summary>
+
+                <!-- Explanation for what the scan checks -->
+                <div class="hint-box" style="margin:14px; border-left:4px solid var(--color-accent);">
+                  <div style="font-weight:800;">What this scan checks</div>
+                  <div style="font-size:0.95rem;">
+                    We compare the gender split in the <strong>local population</strong> (≈50/50) vs the <strong>COMPAS dataset</strong>.
+                    Large gaps signal <em>sampling or historical bias</em> that can influence how the model treats men vs women.
+                  </div>
+                </div>
+
+                <!-- Context text -->
+                <p style="font-size:1.05rem; max-width:780px; margin:0 auto 12px auto; text-align:center;">
+                  We are now scanning for gender balance. In the real world, the population is roughly 50/50.
+                  A fair training set should reflect this balance.
+                </p>
+
+                <!-- Charts: revealed with the scan -->
+                <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 16px 0;">
+                  <h4 style="margin-top:0; font-size:1.2rem;">📊 Comparison Bars</h4>
+                  <div style="margin: 16px 0;">
+                    <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:8px;">Population Reality: 50% Male / 50% Female</div>
+                    <div style="display:flex; height:40px; border-radius:8px; overflow:hidden;">
+                      <div style="width:50%; background:#3b82f6; display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:bold; color:white;">50% M</div>
+                      <div style="width:50%; background:#ec4899; display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:bold; color:white;">50% F</div>
+                    </div>
+                  </div>
+                  <div style="margin: 16px 0;">
+                    <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:8px;">
+                      Dataset Reality: <strong style="color:#ef4444;">81% Male / 19% Female</strong>
+                    </div>
+                    <div style="display:flex; height:40px; border-radius:8px; overflow:hidden;">
+                      <div style="width:81%; background:#ef4444; display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:bold; color:white;">81% M</div>
+                      <div style="width:19%; background:#fca5a5; display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:bold; color:white;">19% F</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Detective findings: revealed together -->
+                <div class="hint-box" style="background:rgba(239, 68, 68, 0.08); margin-top:8px;">
+                  <h4 style="margin-top:0;">🔍 Detective's Analysis</h4>
+                  <p style="margin-bottom:8px;">The dataset is 81% male and 19% female — a strong imbalance vs reality.</p>
+                  <ul style="margin:0 0 10px 18px; padding:0; font-size:0.95rem;">
+                    <li><strong>What it likely means:</strong> sampling bias (more male cases recorded), or historical factors making male cases more visible.</li>
+                    <li><strong>Why it matters:</strong> the model may generalize poorly for women, raising error risk or underestimating protective context.</li>
+                    <li><strong>Next check:</strong> compare false‑positive/negative rates by gender; inspect missing fields by gender (exclusion bias).</li>
+                  </ul>
+                  <p style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-top:8px;">
+                    Source context: ProPublica’s COMPAS dataset is widely used to study fairness in criminal risk scoring. Gender imbalance can
+                    affect how a model evaluates individuals across different groups.
+                  </p>
+                </div>
+              </details>
             </div>
+          </div>
         """,
     },
     {
         "id": 8,
         "title": "Slide 8: Evidence Scan (Age)",
         "html": """
-            <div class="scenario-box">
-                <h2 class="slide-title">🔎 FORENSIC ANALYSIS: AGE</h2>
-                <div class="slide-body">
-                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
-                        <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--borde[...]
-                            <span style="font-size:1.1rem;">📡</span><span>EVIDENCE SCAN: VARIABLE 3 of 3</span>
-                        </div>
-                    </div>
-                    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
-                        Finally, we look at Age. Criminology tells us that risk drops significantly as people get older.
-                    </p>
-                    <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
-                        <h4 style="margin-top:0; font-size:1.3rem;">📡 SCAN DATASET FOR AGE</h4>
-                        <div style="margin: 20px 0;">
-                            <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:8px;">
-                                Age Distribution in Dataset: <strong style="color:#ef4444;">Heavily Skewed to Under 35</strong>
-                            </div>
-                            <div style="display:flex; height:60px; border-radius:8px; overflow:hidden; align-items:flex-end;">
-                                <div style="width:20%; background:#ef4444; height:90%; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:8px;">
-                                    <div style="font-size:0.75rem; font-weight:bold; color:white;">18-25</div>
-                                    <div style="font-size:0.65rem; color:white;">45%</div>
-                                </div>
-                                <div style="width:20%; background:#f87171; height:70%; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:8px;">
-                                    <div style="font-size:0.75rem; font-weight:bold; color:white;">26-35</div>
-                                    <div style="font-size:0.65rem; color:white;">30%</div>
-                                </div>
-                                <div style="width:20%; background:#fca5a5; height:40%; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:8px;">
-                                    <div style="font-size:0.75rem; font-weight:bold; color:white;">36-50</div>
-                                    <div style="font-size:0.65rem; color:white;">18%</div>
-                                </div>
-                                <div style="width:20%; background:#fecaca; height:20%; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:8px;">
-                                    <div style="font-size:0.75rem; font-weight:bold; color:#333;">51-65</div>
-                                    <div style="font-size:0.65rem; color:#333;">5%</div>
-                                </div>
-                                <div style="width:20%; background:#fee2e2; height:10%; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:8px;">
-                                    <div style="font-size:0.75rem; font-weight:bold; color:#333;">65+</div>
-                                    <div style="font-size:0.65rem; color:#333;">2%</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="hint-box" style="background:rgba(239, 68, 68, 0.1);">
-                        <h4 style="margin-top:0;">🔍 Detective's Analysis</h4>
-                        <p style="margin-bottom:8px;">Most files come from young defendants. If a 62-year-old is arrested, how will the AI likely judge them?</p>
-                    </div>
+          <div class="scenario-box">
+            <h2 class="slide-title">🔎 FORENSIC ANALYSIS: AGE</h2>
+            <div class="slide-body">
+              <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; font-weight:800;">
+                  <span style="font-size:1.1rem;">📡</span><span>EVIDENCE SCAN: VARIABLE 3 of 3</span>
                 </div>
+              </div>
+
+              <!-- Overview: What we're checking for Age -->
+              <div class="ai-risk-container" style="margin-bottom:12px;">
+                <h4 style="margin-top:0; font-size:1.2rem; text-align:center;">🗃️ What Are We Scanning (Age)?</h4>
+                <p style="font-size:1.02rem; max-width:820px; margin:0 auto 10px auto; text-align:center;">
+                  We’re examining how <strong>age</strong> is represented in the training data. Criminology shows that risk drops as people get older,
+                  so a dataset <em>heavily skewed to younger ages</em> can teach the model to overestimate risk for everyone.
+                </p>
+                <p style="font-size:1.02rem; max-width:820px; margin:0 auto; text-align:center; color:var(--body-text-color-subdued);">
+                  If the sample mostly contains people under 35, the model may become “age‑biased,” underestimating how age reduces risk.
+                </p>
+              </div>
+
+              <!-- Explanation: What the scan button will do -->
+              <div class="ai-risk-container" style="margin-bottom:16px;">
+                <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">🛠️ How the SCAN Works</h4>
+                <p style="font-size:1.02rem; max-width:780px; margin:0 auto; text-align:center;">
+                  Click <strong>SCAN</strong> to analyze the dataset’s <em>age distribution</em>. The scan will:
+                </p>
+                <ul style="max-width:780px; margin:8px auto 0 auto; font-size:0.98rem;">
+                  <li>Show the share of cases by age bands (18–25, 26–35, 36–50, 51–65, 65+).</li>
+                  <li>Reveal <strong>visual bars</strong> indicating where the dataset is concentrated.</li>
+                  <li>Uncover a <strong>Detective’s Analysis</strong> explaining how skewed ages can distort risk predictions.</li>
+                </ul>
+              </div>
+
+              <!-- SINGLE TOGGLE: Scan button that reveals ALL hidden learning content (bars + findings) -->
+              <details style="border:1px solid var(--border-color-primary); border-radius:12px; overflow:hidden;">
+                <summary style="list-style:none; cursor:pointer; padding:14px 18px; font-weight:800; text-align:center; background:var(--background-fill-secondary);">
+                  📡 SCAN: Age Distribution — Click to reveal analysis
+                </summary>
+
+                <!-- Charts: age distribution bars -->
+                <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 16px 0;">
+                  <h4 style="margin-top:0; font-size:1.2rem;">📊 Age Distribution in Dataset</h4>
+                  <div style="margin: 10px 0;">
+                    <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:8px;">
+                      Summary: <strong style="color:#ef4444;">Heavily Skewed to Under 35</strong>
+                    </div>
+                    <div style="display:flex; height:60px; border-radius:8px; overflow:hidden; align-items:flex-end;">
+                      <div style="width:20%; background:#ef4444; height:90%; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:8px;">
+                        <div style="font-size:0.75rem; font-weight:bold; color:white;">18-25</div>
+                        <div style="font-size:0.65rem; color:white;">45%</div>
+                      </div>
+                      <div style="width:20%; background:#f87171; height:70%; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:8px;">
+                        <div style="font-size:0.75rem; font-weight:bold; color:white;">26-35</div>
+                        <div style="font-size:0.65rem; color:white;">30%</div>
+                      </div>
+                      <div style="width:20%; background:#fca5a5; height:40%; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:8px;">
+                        <div style="font-size:0.75rem; font-weight:bold; color:white;">36-50</div>
+                        <div style="font-size:0.65rem; color:white;">18%</div>
+                      </div>
+                      <div style="width:20%; background:#fecaca; height:20%; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:8px;">
+                        <div style="font-size:0.75rem; font-weight:bold; color:#333;">51-65</div>
+                        <div style="font-size:0.65rem; color:#333;">5%</div>
+                      </div>
+                      <div style="width:20%; background:#fee2e2; height:10%; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:8px;">
+                        <div style="font-size:0.75rem; font-weight:bold; color:#333;">65+</div>
+                        <div style="font-size:0.65rem; color:#333;">2%</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Detective findings: implications of skewed age -->
+                <div class="hint-box" style="background:rgba(239, 68, 68, 0.08); margin-top:8px;">
+                  <h4 style="margin-top:0;">🔍 Detective's Analysis</h4>
+                  <p style="margin-bottom:8px;">
+                    The dataset is concentrated in younger ages. If a 62‑year‑old is arrested, how will the AI likely judge them?
+                  </p>
+                  <ul style="margin:0 0 10px 18px; padding:0; font-size:0.95rem;">
+                    <li><strong>Risk of distortion:</strong> With few examples of older adults, the model may <em>overestimate</em> risk for them.</li>
+                    <li><strong>Justice & Equity check:</strong> Compare <em>error rates</em> by age band (false positives for 51–65 and 65+).</li>
+                    <li><strong>Context to add:</strong> Include features that capture stability (employment, community ties) which often increase with age.</li>
+                  </ul>
+                </div>
+              </details>
             </div>
+          </div> 
         """,
     },
     {
@@ -601,67 +921,140 @@ MODULES = [
         "title": "Slide 9: Forensics Conclusion (Summary)",
         "html": """
             <div class="scenario-box">
-                <h2 class="slide-title">📂 FORENSICS REPORT: SUMMARY</h2>
-                <div class="slide-body">
-                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
-                        <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:rgba(34, 197, 94, 0.15); border:1px solid #22c55e; font-size:0[...]
-                            <span style="font-size:1.1rem;">✅</span><span>STATUS: STEP 2 COMPLETE</span>
-                        </div>
-                    </div>
-                    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
-                        Excellent work. You have analyzed the <strong>Inputs</strong>. We can confirm the data is 
-                        compromised in three ways.
-                    </p>
-                    <div class="ai-risk-container">
-                        <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">📋 Evidence Board: Key Findings</h4>
-                        <div style="display:grid; gap:14px; margin-top:16px;">
-                            <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
-                                <div style="font-weight:bold; color:#ef4444;">Finding #1: Frequency Bias</div>
-                                <div style="font-size:0.95rem; margin-top:4px; color:var(--body-text-color-subdued);">
-                                    Over-representation of African-Americans (51% vs 12% reality)
-                                </div>
-                            </div>
-                            <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
-                                <div style="font-weight:bold; color:#ef4444;">Finding #2: Representation Bias</div>
-                                <div style="font-size:0.95rem; margin-top:4px; color:var(--body-text-color-subdued);">
-                                    Under-representation of women (19% vs 50% reality)
-                                </div>
-                            </div>
-                            <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
-                                <div style="font-weight:bold; color:#ef4444;">Finding #3: Generalization Error</div>
-                                <div style="font-size:0.95rem; margin-top:4px; color:var(--body-text-color-subdued);">
-                                    Misapplication of youth-based patterns to older defendants
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div style="text-align:center; margin-top:24px; padding:16px; background:rgba(59, 130, 246, 0.1); border-radius:8px;">
-                        <p style="font-size:1.05rem; margin:0; font-weight:600;">
-                            🔍 The <strong>Inputs</strong> are flawed. Now we must test the <strong>Outputs</strong>. 
-                            We must compare predictions against reality.
-                        </p>
-                    </div>
+              <h2 class="slide-title">📂 DATA FORENSICS REPORT: SUMMARY</h2>
+              <div class="slide-body">
+                <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                  <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:rgba(34, 197, 94, 0.15); border:1px solid #22c55e; font-size:0.95rem; font-weight:800;">
+                    <span style="font-size:1.1rem;">✅</span><span>STATUS: STEP 2 INITIAL DATA EVIDENCE COLLECTION COMPLETE</span>
+                  </div>
                 </div>
+
+                <p style="font-size:1.05rem; max-width:820px; margin:0 auto 22px auto; text-align:center;">
+                  Excellent work. You analyzed the data <strong>Inputs</strong> to the Compas crime risk model and ran scans across <strong>Race</strong>, <strong>Gender</strong>, and <strong>Age</strong>.
+                  We found three core distortions that compromise the dataset and can affect AI <strong>Justice & Equity</strong>.
+                </p>
+
+                <div class="ai-risk-container">
+                  <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">📋 Evidence Board: Key Findings</h4>
+                  <div style="display:grid; gap:14px; margin-top:16px;">
+
+                    <!-- Race finding -->
+                    <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
+                      <div style="font-weight:bold; color:#ef4444;">Finding #1: Historical & Sampling Bias (Race)</div>
+                      <div style="font-size:0.95rem; margin-top:4px; color:var(--body-text-color-subdued);">
+                        African-Americans are <strong>over‑represented</strong> in the dataset: <strong>51%</strong> vs <strong>12%</strong> in local reality (≈4×).
+                      </div>
+                      <div style="font-size:0.92rem; margin-top:6px;">
+                        Why it matters: The model may learn to flag this group more often because it saw more cases in the training data.
+                      </div>
+                    </div>
+
+                    <!-- Gender finding -->
+                    <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
+                      <div style="font-weight:bold; color:#ef4444;">Finding #2: Representation Bias (Gender)</div>
+                      <div style="font-size:0.95rem; margin-top:4px; color:var(--body-text-color-subdued);">
+                        Women are <strong>under‑represented</strong>: <strong>19%</strong> in the dataset vs roughly <strong>50%</strong> in reality.
+                      </div>
+                      <div style="font-size:0.92rem; margin-top:6px;">
+                        Why it matters: With fewer examples, the model may mislearn patterns for women or generalize male‑dominant patterns to them.
+                      </div>
+                    </div>
+
+                    <!-- Age finding -->
+                    <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
+                      <div style="font-weight:bold; color:#ef4444;">Finding #3: Exclusion/Sampling Skew (Age)</div>
+                      <div style="font-size:0.95rem; margin-top:4px; color:var(--body-text-color-subdued);">
+                        Dataset is <strong>heavily skewed</strong> to younger defendants (18–35 ≈ 75%). Older age bands (51–65, 65+) are sparse.
+                      </div>
+                      <div style="font-size:0.92rem; margin-top:6px;">
+                        Why it matters: The model may <strong>overestimate risk</strong> for older adults or fail to capture protective factors that increase with age.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Optional quick visual recap -->
+                <div class="ai-risk-container" style="margin-top:18px;">
+                  <h4 style="margin-top:0; font-size:1.05rem; text-align:center;">🔎 Quick Recap (What the scans showed)</h4>
+                  <div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px;">
+                    <div class="hint-box" style="margin-top:0;">
+                      <div style="font-weight:700;">Race</div>
+                      <div style="font-size:0.92rem;">Population: 12% African‑American → Dataset: 51% (≈4× higher)</div>
+                    </div>
+                    <div class="hint-box" style="margin-top:0;">
+                      <div style="font-weight:700;">Gender</div>
+                      <div style="font-size:0.92rem;">Reality ≈ 50% women → Dataset: 19% women (under‑representation)</div>
+                    </div>
+                    <div class="hint-box" style="margin-top:0;">
+                      <div style="font-weight:700;">Age</div>
+                      <div style="font-size:0.92rem;">18–35 dominates (~75%); 51–65 and 65+ sparse (risk may be misestimated)</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="text-align:center; margin-top:24px; padding:16px; background:rgba(59, 130, 246, 0.1); border-radius:8px;">
+                  <p style="font-size:1.05rem; margin:0; font-weight:600;">
+                    🔍 The <strong>Inputs</strong> are flawed. Next, we must test the <strong>Outputs</strong>:
+                    compare predictions against reality and check <strong>error gaps</strong> by group (false positives/negatives).
+                  </p>
+                </div>
+              </div>
             </div>
         """,
     },
     {
         "id": 10,
-        "title": "Part 1 Complete",
+        "title": "Mission Progress: Initial Data Investigation COMPLETE",
         "html": """
             <div class="scenario-box">
-                <h2 class="slide-title">✅ PART 1 COMPLETE: DATA SECURED</h2>
-                <div class="slide-body">
-                    <p style="font-size:1.1rem; text-align:center;">
-                        Excellent work, Detective. You have successfully analyzed the <strong>Inputs</strong> and identified the bias in the training data.
-                    </p>
-                    <p style="font-size:1.1rem; text-align:center;">
-                        However, finding the bad data is only half the battle. We must now interrogate the <strong>Outputs</strong>.
-                    </p>
-                    <div class="ai-risk-container" style="text-align:center; padding:30px;">
-                        <h3 style="margin-top:0; color:var(--color-accent);">⬇️ Scroll Down to Launch Part 2: Algorithmic Audit ⬇️</h3>
+              <h2 class="slide-title">✅ Initial Data Investigation COMPLETE</h2>
+              <div class="slide-body">
+
+                <!-- Roadmap from Mission: show current position -->
+                <div class="ai-risk-container" style="margin-bottom:14px;">
+                  <h4 style="margin-top:0; font-size:1.05rem; text-align:center;">🗺️ Investigation Roadmap</h4>
+                  <div style="display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:10px;">
+                    <div class="hint-box" style="margin-top:0;">
+                      <div style="font-weight:700;">Step 1: Learn the Rules</div>
+                      <div style="font-size:0.92rem; color:var(--body-text-color-subdued);">Understand what counts as bias.</div>
                     </div>
+                    <div class="hint-box" style="margin-top:0; border-left:4px solid #22c55e; background:rgba(34,197,94,0.10);">
+                      <div style="font-weight:700; color:#166534;">Step 2: Collect Evidence ✅</div>
+                      <div style="font-size:0.92rem; color:var(--body-text-color-subdued);">Dataset forensics complete (Race, Gender, Age).</div>
+                    </div>
+                    <div class="hint-box" style="margin-top:0; border-left:4px solid #3b82f6; background:rgba(59,130,246,0.10);">
+                      <div style="font-weight:700; color:#1d4ed8;">Step 3: Prove the Error ▶️</div>
+                      <div style="font-size:0.92rem; color:var(--body-text-color-subdued);">Test predictions for fairness by group.</div>
+                    </div>
+                    <div class="hint-box" style="margin-top:0;">
+                      <div style="font-weight:700;">Step 4: Diagnose Harm</div>
+                      <div style="font-size:0.92rem; color:var(--body-text-color-subdued);">Explain real‑world impacts and fixes.</div>
+                    </div>
+                  </div>
+                  <br>
+                  <h4 style="margin-top:0; font-size:1.05rem; text-align:center;">
+                    Step 2 complete! Next = Step 3 — Prove the Error.
+                  </h4>
                 </div>
+
+                <!-- Why the next step matters (concise) -->
+                <div class="ai-risk-container" style="margin-top:6px;">
+                  <h4 style="margin-top:0; font-size:1.05rem; text-align:center;">🎯 Why Group‑by‑Group Prediction Analysis Matters</h4>
+                  <ul style="max-width:800px; margin:8px auto 0 auto; font-size:0.98rem;">
+                    <li>Reveal <strong>false positive/negative gaps</strong> by Race, Gender, and Age.</li>
+                    <li>See <strong>who gets flagged</strong> at current thresholds — and whether it’s fair.</li>
+                    <li>Convert your evidence into <strong>proof of unequal errors</strong> (or clear the model).</li>
+                  </ul>
+                </div>
+
+                <!-- Short CTA -->
+                <div style="text-align:center; margin-top:16px; padding:14px; background:rgba(59,130,246,0.1); border-radius:8px;">
+                  <p style="font-size:1.04rem; margin:0; font-weight:600;">
+                    ⬇️ Scroll down to launch Step 3: Algorithmic Audit — compare predictions vs reality by group ⬇️
+                  </p>
+                </div>
+
+              </div>
             </div>
         """,
     },
