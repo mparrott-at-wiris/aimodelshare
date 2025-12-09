@@ -77,7 +77,7 @@ TRANSLATIONS = {
         "s3_box_title": "Their Shocking Findings:",
         "s3_alert": "⚠️ Black defendants were labeled \"high-risk\" at nearly <u>TWICE</u> the rate of white defendants.",
         "s3_spec": "<strong>Specifically:</strong>",
-        "s3_li1_pre": "<strong>White defendants</strong> who <em>did NOT re-offend</em>, were incorrectly labeled as <strong>\"high-risk\"</strong> at a rate of about <strong>45%</strong>",
+        "s3_li1_pre": "<strong>Black defendants</strong> who <em>did NOT re-offend</em>, were incorrectly labeled as <strong>\"high-risk\"</strong> at a rate of about <strong>45%</strong>",
         "s3_li2_pre": "<strong>White defendants</strong> who <em>did NOT re-offend</em> were incorrectly labeled as <strong>\"high-risk\"</strong> at a rate of only <strong>24%</strong>",
         "s3_li3": "Meanwhile, <strong>white defendants</strong> who <em>DID re-offend</em> were <strong>more likely to be labeled \"low-risk\"</strong> compared to Black defendants",
         "s3_box2_title": "What Does This Mean?",
