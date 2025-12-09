@@ -165,7 +165,7 @@ TRANSLATIONS = {
         "flow_5": "MODELO<br>APRENDIDO",
         "s3_p4": "Durante el paso de <b>\"Ajustar\"</b>, el modelo cambia sus reglas internas (llamadas <b>\"pesos\"</b>) para acercarse a la respuesta correcta. Por ejemplo, aprende <b>cuánto</b> deben importar más los \"delitos previos\" que la \"edad\".",
         "s3_eth_title": "⚠️ El desafío ético",
-        "s3_eth_p": "<b>Aquí nos econtramos con un problema crítico:</b> El modelo *solo* aprende de los datos. Si los datos históricos están sesgados (por ejemplo, ciertos grupos de personas fueron arrestados con más frecuencia), el modelo aprenderá esos patrones sesgados.<br><br><b>El modelo no conoce de \"equidad\" o de \"justicia\", solo conoce patrones.</b>",
+        "s3_eth_p": "<b>Aquí nos encontramos con un problema crítico:</b> El modelo *solo* aprende de los datos. Si los datos históricos están sesgados (por ejemplo, ciertos grupos de personas fueron arrestados con más frecuencia), el modelo aprenderá esos patrones sesgados.<br><br><b>El modelo no conoce de \"equidad\" o de \"justicia\", solo conoce patrones.</b>",
         "btn_next_try": "Siguiente: Pruébalo tú mismo ▶️",
         # Step 4
         "s4_title": "🎮 ¡Pruébalo tú mismo!",
