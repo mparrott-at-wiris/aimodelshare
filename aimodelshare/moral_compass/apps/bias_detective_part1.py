@@ -1785,7 +1785,7 @@ def simulate_moral_compass_score(acc, progress_pct):
 
 
 # --- 13. APP FACTORY (APP 1) ---
-def create_bias_detective_app(theme_primary_hue: str = "indigo"):
+def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
     with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
         # States
         username_state = gr.State(value=None)
