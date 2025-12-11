@@ -3523,7 +3523,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # Slide 3: Card 2 (What is a "Model"?)
         with gr.Column(visible=False, elem_id="slide-3") as briefing_slide_3:
-            gr.Markdown("<h1 style='text-align:center;'>🧠 What is a \"Model\"?</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🧠 ¿Qué es un \"Modelo\"?</h1>")
             
             # --- FIX FOR SLIDE 3 ---
             # Combined all content into single gr.HTML()
@@ -3531,34 +3531,34 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <p>Before we start competing, let's break down exactly what you are building.</p>
-                        <h3>Think of a Model as a "Prediction Machine."</h3>
-                        <p>You already know the flow:</p>
+                        <p>Antes de empezar a competir, veamos con claridad qué es exactamente lo que vas a construir.</p>
+                        <h3>Piensa en un modelo como una "Máquina de Predicción".</h3>
+                        <p>Ya conoces el flujo:</p>
                         
                         <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
                             <div style='display:inline-block; background:#dbeafe; padding:12px 16px; border-radius:8px; margin:4px;'>
-                                <h3 style='margin:0; color:#0369a1;'>INPUT</h3>
+                                <h3 style='margin:0; color:#0369a1;'>ENTRADA</h3>
                             </div>
                             <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
                             <div style='display:inline-block; background:#fef3c7; padding:12px 16px; border-radius:8px; margin:4px;'>
-                                <h3 style='margin:0; color:#92400e;'>MODEL</h3>
+                                <h3 style='margin:0; color:#92400e;'>MODELO</h3>
                             </div>
                             <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
                             <div style='display:inline-block; background:#f0fdf4; padding:12px 16px; border-radius:8px; margin:4px;'>
-                                <h3 style='margin:0; color:#15803d;'>OUTPUT</h3>
+                                <h3 style='margin:0; color:#15803d;'>SALIDA</h3>
                             </div>
                         </div>
                         
-                        <p>As an engineer, you don't need to write complex code from scratch. Instead, you assemble this machine using three main components.</p>
+                        <p>Como persona ingeniera, no necesitas escribir código complejo desde cero. En lugar de eso, construyes esta máquina combinando los tres siguientes componentes principales.</p>
                     </div>
 
                     <div class='mock-ui-box'>
-                        <h3>The 3 Components:</h3>
-                        <p><strong>1. The Inputs (Data)</strong><br>
-                        The information you feed the machine.<br>
-                        <em>* Examples: Age, Prior Crimes, Charge Details.</em></p>
+                        <h3>Los tres componentes:</h3>
+                        <p><strong>1. Las entradas (Datos)</strong><br>
+                        La información que le das a la máquina.<br>
+                        <em>* Ejemplos: edad, número de antecedentes penales, detalles del cargo penal.</em></p>
 
-                        <p><strong>2. The Model (Prediction Machine)</strong><br>
+                        <p><strong>2. El modelo (La máquina de predicción)</strong><br>
                         The mathematical "brain" that looks for patterns in the inputs.<br>
                         <em>* Examples: You will choose different "brains" that learn in different ways (e.g., simple rules vs. deep patterns).</em></p>
 
