@@ -3420,50 +3420,50 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # Slide 1: From Understanding to Building (Retained as transition)
         with gr.Column(visible=True, elem_id="slide-1") as briefing_slide_1:
-            gr.Markdown("<h1 style='text-align:center;'>🔄 From Understanding to Building</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🔄 De la teoria a la práctica</h1>")
             gr.HTML(
                 """
                 <div class='slide-content'>
                 <div class='panel-box'>
-                <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>Great progress! You've now:</h3>
+                <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>¡Buen trabajo! Ahora ya has conseguido:</h3>
 
                 <ul style='list-style: none; padding-left: 0; margin-top: 24px; margin-bottom: 24px;'>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
                         <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Made tough decisions as a judge using AI predictions
+                        Tomar decisiones difíciles como juez o jueza utilizando predicciones de IA
                     </li>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
                         <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Learned about false positives and false negatives
+                        Aprender qué son los falsos positivos y los falsos negativos
                     </li>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
                         <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Understood how AI works:
+                        Entender cómo funciona la IA:
                     </li>
                 </ul>
 
                 <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
                     <div style='display:inline-block; background:#dbeafe; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#0369a1;'>INPUT</h3>
+                        <h3 style='margin:0; color:#0369a1;'>ENTRADA</h3>
                     </div>
                     <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
                     <div style='display:inline-block; background:#fef3c7; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#92400e;'>MODEL</h3>
+                        <h3 style='margin:0; color:#92400e;'>MODELO</h3>
                     </div>
                     <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
                     <div style='display:inline-block; background:#f0fdf4; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#15803d;'>OUTPUT</h3>
+                        <h3 style='margin:0; color:#15803d;'>RESULTADO</h3>
                     </div>
                 </div>
 
                 <hr style='margin: 24px 0; border-top: 2px solid #c7d2fe;'>
 
-                <h3 style='font-size: 1.5rem; text-align:center;'>Now it's time to step into the shoes of an AI Engineer.</h3>
+                <h3 style='font-size: 1.5rem; text-align:center;'>Ahora ha llegado el momento de ponerte en la piel de una persona ingeniera de IA.</h3>
                 <p style='font-size: 1.1rem; text-align:center; margin-top: 12px;'>
-                    <strong>Your New Challenge:</strong> Build AI models that are more accurate than the one you used as a judge.
+                    <strong>Tu nuevo reto:</strong> Crear modelos de IA que sean más precisos que el que utilizaste en el rol de juzgar casos.
                 </p>
                 <p style='font-size: 1.1rem; text-align:center; margin-top: 12px;'>
-                    Remember: You experienced firsthand how AI predictions affect real people's lives. Use that knowledge to build something better.
+                    Recuerda: has vivido en primera persona cómo las predicciones de la IA afectan la vida real de las personas. Usa ese conocimiento para construir algo mejor.
                 </p>
                 </div>
                 </div>
