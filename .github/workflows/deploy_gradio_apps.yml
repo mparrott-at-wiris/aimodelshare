@@ -298,7 +298,8 @@ jobs:
             --timeout=3000
             --set-env-vars=APP_NAME=moral-compass-challenge,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
-  deploy-bias-detective:
+  # Renamed existing bias-detective deploy job to explicitly deploy part1
+  deploy-bias-detective-part1:
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -308,11 +309,11 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
       - uses: google-github-actions/setup-gcloud@v2
-      - name: Deploy bias-detective
+      - name: Deploy bias-detective (part1)
         id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
         with:
-          service: bias-detective
+          service: bias-detective-part1
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
           region: ${{ env.REGION }}
           flags: >-
@@ -324,7 +325,36 @@ jobs:
             --min-instances=0
             --max-instances=50
             --timeout=3000
-            --set-env-vars=APP_NAME=bias-detective,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=bias-detective-part1,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  # New deploy job for bias-detective part2 (temporary placeholder app)
+  deploy-bias-detective-part2:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy bias-detective (part2)
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: bias-detective-part2
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=80
+            --min-instances=0
+            --max-instances=50
+            --timeout=3000
+            --set-env-vars=APP_NAME=bias-detective-part2,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-fairness-fixer:
     runs-on: ubuntu-latest
@@ -397,7 +427,8 @@ jobs:
       - deploy-model-building-game-es
       - deploy-ethical-revelation
       - deploy-moral-compass-challenge
-      - deploy-bias-detective
+      - deploy-bias-detective-part1
+      - deploy-bias-detective-part2
       - deploy-fairness-fixer
       - deploy-justice-equity-upgrade
     steps:
@@ -414,7 +445,8 @@ jobs:
             "model-building-game-es": "${{ needs.deploy-model-building-game-es.outputs.url }}",
             "ethical-revelation": "${{ needs.deploy-ethical-revelation.outputs.url }}",
             "moral-compass-challenge": "${{ needs.deploy-moral-compass-challenge.outputs.url }}",
-            "bias-detective": "${{ needs.deploy-bias-detective.outputs.url }}",
+            "bias-detective-part1": "${{ needs.deploy-bias-detective-part1.outputs.url }}",
+            "bias-detective-part2": "${{ needs.deploy-bias-detective-part2.outputs.url }}",
             "fairness-fixer": "${{ needs.deploy-fairness-fixer.outputs.url }}",
             "justice-equity-upgrade": "${{ needs.deploy-justice-equity-upgrade.outputs.url }}"
           }
