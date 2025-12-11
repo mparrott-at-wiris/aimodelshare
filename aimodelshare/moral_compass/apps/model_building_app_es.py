@@ -3469,57 +3469,57 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                 </div>
                 """
             )
-            briefing_1_next = gr.Button("Next ▶️", variant="primary", size="lg")
+            briefing_1_next = gr.Button("Siguiente ▶️", variant="primary", size="lg")
 
         # Slide 2: Card 1 (Your Engineering Mission)
         with gr.Column(visible=False, elem_id="slide-2") as briefing_slide_2:
-            gr.Markdown("<h1 style='text-align:center;'>📋 Your Mission - Build Better AI</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>📋 Tu misión - Construir una IA mejor</h1>")
             
             gr.HTML(
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <h3>The Mission</h3>
-                        <p>Build an AI model that helps judges make better decisions. The model you used previously gave you imperfect advice. Your job now is to build a new model that predicts risk more accurately, providing judges with the reliable insights they need to be fair.</p>
+                        <h3>La misión</h3>
+                        <p>Crea un modelo de IA que ayude a los tribunales a tomar decisiones más acertadas. El modelo que utilizaste antes te daba recomendaciones imperfectas. Ahora tu tarea es construir un modelo nuevo que prediga el riesgo con mayor precisión y ofrezca a quienes juzgan información fiable para poder ser justos y justas.</p>
                         
-                        <h3>The Competition</h3>
-                        <p>To do this, you will compete against other engineers! To help you in your mission, you will join an engineering team. Your results will be tracked both individually and as a group in the Live Standings Leaderboards.</p>
+                        <h3>La competició</h3>
+                        <p>Para lograrlo, competirás con otras personas ingenieras. Formarás parte de un equipo de ingeniería que te ayudará en tu misión. Tus resultados se registrarán tanto de forma individual como colectiva en las clasificaciones en tiempo real.</p>
                     </div>
 
                     <div class='leaderboard-box' style='max-width: 600px; margin: 16px auto; text-align: center; padding: 16px;'>
-                        <p style='font-size: 1.1rem; margin:0;'>You will join a team like...</p>
+                        <p style='font-size: 1.1rem; margin:0;'>Te unirás a un equipo como...</p>
                         <h3 style='font-size: 1.75rem; color: #6b7280; margin: 8px 0;'>
-                            🛡️ The Ethical Explorers
+                            🛡️ Los Exploradores Éticos
                         </h3>
                     </div>
 
                     <div class='mock-ui-box'>
-                        <h3>The Data Challenge</h3>
-                        <p>To compete, you have access to thousands of old case files. You have two distinct types of information:</p>
+                        <h3>El reto de los datos</h3>
+                        <p>Para competir, tendrás acceso a miles de expedientes de casos antiguos. Dispones de dos tipos de información:</p>
                         <ol style='list-style-position: inside; padding-left: 20px;'>
-                            <li><strong>Defendant Profiles:</strong> This is like what the judge saw at the time of arrest.
+                            <li><strong>Perfiles de personas presas:</strong> Es la información que tenía el tribunal en el momento de la detención.
                                 <ul style='margin-left: 20px; list-style-type: disc;'>
-                                    <li><em>Age, Number of Prior Offenses, Type of Charge.</em></li>
+                                    <li><em>Edad, número de antecedentes penales, tipo de cargo penal.</em></li>
                                 </ul>
                             </li>
-                            <li><strong>Historical Outcomes:</strong> This is what actually happened to those people later.
+                            <li><strong>Resultados históricos:</strong> Esto es lo que ocurrió con esas personas pasado un tiempo.
                                 <ul style='margin-left: 20px; list-style-type: disc;'>
-                                    <li><em>Did they re-offend within 2 years? (Yes/No)</em></li>
+                                    <li><em>¿Volvieron a cometer un delito en dos años? (Sí/No)</em></li>
                                 </ul>
                             </li>
                         </ol>
                         
-                        <h3>The Core Task</h3>
-                        <p>You need to teach your AI to look at the "Profiles" and accurately predict the "Outcome."</p>
-                        <p><strong>Ready to build something that could change how justice works?</strong></p>
+                        <h3>La tarea principal</h3>
+                        <p>Debes enseñar a tu modelo de IA a analizar los "perfiles" y predecir con precisión el "resultado".</p>
+                        <p><strong>¿Te animas a construir algo que podría cambiar la manera en que funciona la justicia?</strong></p>
                     </div>
                 </div>
                 """
             )
             
             with gr.Row():
-                briefing_2_back = gr.Button("◀️ Back", size="lg")
-                briefing_2_next = gr.Button("Next ▶️", variant="primary", size="lg")
+                briefing_2_back = gr.Button("◀️ Atrás", size="lg")
+                briefing_2_next = gr.Button("Siguiente ▶️", variant="primary", size="lg")
 
         # Slide 3: Card 2 (What is a "Model"?)
         with gr.Column(visible=False, elem_id="slide-3") as briefing_slide_3:
