@@ -9,7 +9,7 @@ DEFAULT_API_URL = "https://b22q73wp50.execute-api.us-east-1.amazonaws.com/dev"
 ORIGINAL_PLAYGROUND_URL = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
 TABLE_ID = "m-mc"
 TOTAL_COURSE_TASKS = 19
-LOCAL_TEST_SESSION_ID = "83b71f76-521e-4bc3-8d54-384f8fb782bd"
+LOCAL_TEST_SESSION_ID = None
 
 # --- 2. SETUP & DEPENDENCIES ---
 def install_dependencies():
