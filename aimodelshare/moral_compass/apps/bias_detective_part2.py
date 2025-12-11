@@ -724,7 +724,7 @@ def create_bias_detective_part2_app(theme_primary_hue: str = "indigo"):
 def launch_bias_detective_part2_app(
     share: bool = False,
     server_name: str = "0.0.0.0",
-    #server_port: int = 8080,
+    server_port: int = 8080,
     theme_primary_hue: str = "indigo",
     **kwargs
 ) -> None:
@@ -742,7 +742,7 @@ def launch_bias_detective_part2_app(
     app.launch(
         share=share,
         server_name=server_name,
-        #server_port=server_port,
+        server_port=server_port,
         **kwargs
     )
 
