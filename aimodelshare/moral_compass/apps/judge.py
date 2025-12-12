@@ -665,17 +665,6 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                         "btn_keep": p_keep_btn
                     })
 
-                    # Wire up buttons (passing lang_state)
-                    p_rel_btn.click(
-                        lambda l, p_id=profile["id"]: make_decision(p_id, "Release", l),
-                        inputs=[lang_state],
-                        outputs=decision_status,
-                    )
-                    p_keep_btn.click(
-                        lambda l, p_id=profile["id"]: make_decision(p_id, "Keep in Prison", l),
-                        inputs=[lang_state],
-                        outputs=decision_status,
-                    )
 
                     gr.HTML("<hr style='margin:24px 0;'>")
 
