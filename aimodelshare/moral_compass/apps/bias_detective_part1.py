@@ -113,7 +113,12 @@ def fetch_user_history(username, token):
     return default_acc, default_team
 
 # --- 4. MODULE DEFINITIONS (APP 1: 0-10) ---
-MODULES = [
+def get_modules(lang="en"):
+    """
+    Generate modules with translated content based on language.
+    For content not yet translated, falls back to English.
+    """
+    return [
     {
         "id": 0,
         "title": "Module 0: Moral Compass Intro",
@@ -1096,6 +1101,10 @@ MODULES = [
         """,
     },
 ]
+
+# Create default MODULES for backward compatibility
+MODULES = get_modules("en")
+
 # --- 5. INTERACTIVE CONTENT CONFIGURATION (APP 1) ---
 QUIZ_CONFIG = {
     0: {

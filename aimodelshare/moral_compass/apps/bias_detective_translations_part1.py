@@ -138,6 +138,9 @@ TRANSLATIONS = {
         # Navigation buttons
         "btn_next": "Next",
         "btn_prev": "Previous",
+        "btn_previous": "⬅️ Previous",
+        "btn_next_arrow": "Next ▶️",
+        "btn_complete_part1": "🎉 Complete Part 1 (Please Scroll Down)",
         "btn_back_top": "Back to Top",
         
         # Leaderboard
@@ -281,6 +284,9 @@ TRANSLATIONS = {
         # Navigation buttons
         "btn_next": "Siguiente",
         "btn_prev": "Anterior",
+        "btn_previous": "⬅️ Anterior",
+        "btn_next_arrow": "Siguiente ▶️",
+        "btn_complete_part1": "🎉 Completar Parte 1 (Por favor desplázate hacia abajo)",
         "btn_back_top": "Volver Arriba",
         
         # Leaderboard
@@ -424,6 +430,9 @@ TRANSLATIONS = {
         # Navigation buttons
         "btn_next": "Següent",
         "btn_prev": "Anterior",
+        "btn_previous": "⬅️ Anterior",
+        "btn_next_arrow": "Següent ▶️",
+        "btn_complete_part1": "🎉 Completar Part 1 (Si us plau desplaça't cap avall)",
         "btn_back_top": "Tornar a Dalt",
         
         # Leaderboard
