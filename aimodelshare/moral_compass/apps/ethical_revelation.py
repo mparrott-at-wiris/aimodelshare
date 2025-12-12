@@ -608,7 +608,6 @@ def _get_step3_html(lang):
             <ul style='font-size:1.05rem; line-height:1.8;'>
                 <li>
                     {t(lang, 's3_li1_pre')}
-                    <span class='emph-danger'> 45%</span>
                 </li>
                 <li>
                     {t(lang, 's3_li2_pre')}
