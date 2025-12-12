@@ -11,6 +11,34 @@ TABLE_ID = "m-mc"
 TOTAL_COURSE_TASKS = 19  # Score calculated against full course
 LOCAL_TEST_SESSION_ID = None
 
+# --- 1.5. TRANSLATION CONFIGURATION ---
+# Import translations from separate file for maintainability
+try:
+    from .bias_detective_translations_part1 import TRANSLATIONS
+except ImportError:
+    # Fallback minimal translations if file doesn't exist
+    TRANSLATIONS = {
+        "en": {
+            "loading_auth": "🕵️‍♀️ Authenticating...",
+            "loading_sync": "Syncing Moral Compass Data...",
+            "loading": "Loading...",
+        },
+        "es": {
+            "loading_auth": "🕵️‍♀️ Autenticando...",
+            "loading_sync": "Sincronizando Datos de la Brújula Moral...",
+            "loading": "Cargando...",
+        },
+        "ca": {
+            "loading_auth": "🕵️‍♀️ Autenticant...",
+            "loading_sync": "Sincronitzant Dades de la Brúixola Moral...",
+            "loading": "Carregant...",
+        },
+    }
+
+def t(lang, key, default=""):
+    """Helper function to get translated string."""
+    return TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(key, default or key)
+
 # --- 2. SETUP & DEPENDENCIES ---
 def install_dependencies():
     packages = ["gradio>=5.0.0", "aimodelshare", "pandas"]
@@ -1818,6 +1846,7 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
         module0_done = gr.State(value=False)
         accuracy_state = gr.State(value=0.0)
         task_list_state = gr.State(value=[])
+        lang_state = gr.State(value="en")  # Language state
 
         # --- TOP ANCHOR & LOADING OVERLAY FOR NAVIGATION ---
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
@@ -1825,12 +1854,7 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
 
         # --- LOADING VIEW ---
         with gr.Column(visible=True, elem_id="app-loader") as loader_col:
-            gr.HTML(
-                "<div style='text-align:center; padding:100px;'>"
-                "<h2>🕵️‍♀️ Authenticating...</h2>"
-                "<p>Syncing Moral Compass Data...</p>"
-                "</div>"
-            )
+            loading_html = gr.HTML("")
 
         # --- MAIN APP VIEW ---
         with gr.Column(visible=False) as main_app_col:
@@ -2017,6 +2041,19 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
 
         # --- GLOBAL LOAD HANDLER ---
         def handle_load(req: gr.Request):
+            # Detect language from query parameter
+            lang = req.query_params.get("lang", "en") if req else "en"
+            if lang not in TRANSLATIONS:
+                lang = "en"
+            
+            # Update loading HTML with translated text
+            loading_text = f"""
+                <div style='text-align:center; padding:100px;'>
+                <h2>{t(lang, 'loading_auth', '🕵️‍♀️ Authenticating...')}</h2>
+                <p>{t(lang, 'loading_sync', 'Syncing Moral Compass Data...')}</p>
+                </div>
+            """
+            
             success, user, token = _try_session_based_auth(req)
             team = "Team-Unassigned"
             acc = 0.0
@@ -2091,6 +2128,8 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                     render_leaderboard_card(data, user, team),
                     acc,
                     fetched_tasks,
+                    lang,  # Return language state
+                    loading_text,  # Return translated loading text
                     gr.update(visible=False),
                     gr.update(visible=True),
                 )
@@ -2105,6 +2144,8 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                 "",
                 0.0,
                 [],
+                lang,  # Return language state
+                loading_text,  # Return translated loading text
                 gr.update(visible=False),
                 gr.update(visible=True),
             )
@@ -2122,6 +2163,8 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                 leaderboard_html,
                 accuracy_state,
                 task_list_state,
+                lang_state,  # Add language state
+                loading_html,  # Add loading HTML
                 loader_col,
                 main_app_col,
             ],

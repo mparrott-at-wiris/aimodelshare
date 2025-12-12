@@ -11,6 +11,34 @@ TABLE_ID = "m-mc"
 TOTAL_COURSE_TASKS = 19
 LOCAL_TEST_SESSION_ID = None
 
+# --- 1.5. TRANSLATION CONFIGURATION ---
+# Import translations from separate file for maintainability
+try:
+    from .bias_detective_translations_part2 import TRANSLATIONS
+except ImportError:
+    # Fallback minimal translations if file doesn't exist
+    TRANSLATIONS = {
+        "en": {
+            "loading_auth": "🕵️‍♀️ Authenticating...",
+            "loading_sync": "Syncing Moral Compass Data...",
+            "loading": "Loading...",
+        },
+        "es": {
+            "loading_auth": "🕵️‍♀️ Autenticando...",
+            "loading_sync": "Sincronizando Datos de la Brújula Moral...",
+            "loading": "Cargando...",
+        },
+        "ca": {
+            "loading_auth": "🕵️‍♀️ Autenticant...",
+            "loading_sync": "Sincronitzant Dades de la Brúixola Moral...",
+            "loading": "Carregant...",
+        },
+    }
+
+def t(lang, key, default=""):
+    """Helper function to get translated string."""
+    return TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(key, default or key)
+
 # --- 2. SETUP & DEPENDENCIES ---
 def install_dependencies():
     packages = ["gradio>=5.0.0", "aimodelshare", "pandas"]
@@ -2202,13 +2230,14 @@ def create_bias_detective_part2_app(theme_primary_hue: str = "indigo"):
         module0_done = gr.State(False)
         accuracy_state = gr.State(0.0)
         task_list_state = gr.State([])
+        lang_state = gr.State("en")  # Language state
 
         # --- TOP ANCHOR & LOADING OVERLAY FOR NAVIGATION ---
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
         gr.HTML("<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>Loading...</span></div>")
 
         with gr.Column(visible=True, elem_id="app-loader") as loader_col:
-            gr.HTML("<div style='text-align:center; padding:100px;'><h2>🕵️‍♀️ Authenticating...</h2><p>Syncing Moral Compass Data...</p></div>")
+            loading_html = gr.HTML("")
 
         with gr.Column(visible=False) as main_app_col:
             gr.Markdown("# 🕵️‍♀️ Bias Detective: Part 2 - Algorithmic Audit")
@@ -2311,6 +2340,19 @@ def create_bias_detective_part2_app(theme_primary_hue: str = "indigo"):
 
         # --- LOGIC WIRING (Global) ---
         def handle_load(req: gr.Request):
+            # Detect language from query parameter
+            lang = req.query_params.get("lang", "en") if req else "en"
+            if lang not in TRANSLATIONS:
+                lang = "en"
+            
+            # Update loading HTML with translated text
+            loading_text = f"""
+                <div style='text-align:center; padding:100px;'>
+                <h2>{t(lang, 'loading_auth', '🕵️‍♀️ Authenticating...')}</h2>
+                <p>{t(lang, 'loading_sync', 'Syncing Moral Compass Data...')}</p>
+                </div>
+            """
+            
             success, user, token = _try_session_based_auth(req)
             team, acc = "Team-Unassigned", 0.0
             fetched_tasks = []
@@ -2337,11 +2379,11 @@ def create_bias_detective_part2_app(theme_primary_hue: str = "indigo"):
                     time.sleep(1.0)
 
                 data, _ = ensure_table_and_get_data(user, token, team, fetched_tasks)
-                return (user, token, team, False, render_top_dashboard(data, 0), render_leaderboard_card(data, user, team), acc, fetched_tasks, gr.update(visible=False), gr.update(visible=True))
+                return (user, token, team, False, render_top_dashboard(data, 0), render_leaderboard_card(data, user, team), acc, fetched_tasks, lang, loading_text, gr.update(visible=False), gr.update(visible=True))
 
-            return (None, None, None, False, "<div class='hint-box'>⚠️ Auth Failed</div>", "", 0.0, [], gr.update(visible=False), gr.update(visible=True))
+            return (None, None, None, False, "<div class='hint-box'>⚠️ Auth Failed</div>", "", 0.0, [], lang, loading_text, gr.update(visible=False), gr.update(visible=True))
 
-        demo.load(handle_load, None, [username_state, token_state, team_state, module0_done, out_top, leaderboard_html, accuracy_state, task_list_state, loader_col, main_app_col])
+        demo.load(handle_load, None, [username_state, token_state, team_state, module0_done, out_top, leaderboard_html, accuracy_state, task_list_state, lang_state, loading_html, loader_col, main_app_col])
 
         # --- JAVASCRIPT HELPER FOR NAVIGATION ---
         def nav_js(target_id: str, message: str) -> str:
