@@ -240,7 +240,7 @@ MODULES = [
               <p style="font-size:1.05rem; max-width:820px; margin:0 auto 12px auto; text-align:center;">
                 We do not guess what is right or wrong - we rely on <strong>expert advice</strong>.
                 <br>
-                We will use guidance from the experts at the <strongCatalan Observatory for Ethics in AI (OEIAC)</strong>, who help ensure AI systems are fair and responsible.
+                We will use guidance from the experts at the <strong>Catalan Observatory for Ethics in AI (OEIAC)</strong>, who help ensure AI systems are fair and responsible.
                 <br>
                 <em>While they established 7 core principles to keep AI safe, our intel suggests this specific case involves a violation of the <strong>Justice and Equity</strong> principle.</em>
               </p>
