@@ -2386,16 +2386,16 @@ def create_bias_detective_part2_app(theme_primary_hue: str = "indigo"):
                 prev_col = module_ui_elements[i-1][0]
                 prev_target_id = f"module-{i-1}"
 
-                def create_prev_nav(prev_col=prev_col, curr_col=curr_col):
+                def make_prev_handler(p_col, c_col, target_id):
                     def navigate_prev():
                         # First yield: hide current, show nothing (transition state)
                         yield gr.update(visible=False), gr.update(visible=False)
                         # Second yield: show previous, hide current
                         yield gr.update(visible=True), gr.update(visible=False)
                     return navigate_prev
-
+                
                 prev_btn.click(
-                    fn=create_prev_nav(),
+                    fn=make_prev_handler(prev_col, curr_col, prev_target_id),
                     outputs=[prev_col, curr_col],
                     js=nav_js(prev_target_id, "Loading..."),
                 )
@@ -2404,23 +2404,27 @@ def create_bias_detective_part2_app(theme_primary_hue: str = "indigo"):
                 next_col = module_ui_elements[i+1][0]
                 next_target_id = f"module-{i+1}"
 
-                def wrapper_next(user, tok, team, tasks, next_idx=i+1):
-                    data, _ = ensure_table_and_get_data(user, tok, team, tasks)
-                    dash_html = render_top_dashboard(data, next_idx)
-                    return dash_html
-
-                def navigate_generator(curr=curr_col, nxt=next_col):
-                    # First yield: hide current, show nothing (transition state)
-                    yield gr.update(visible=False), gr.update(visible=False)
-                    # Second yield: hide current, show next
-                    yield gr.update(visible=False), gr.update(visible=True)
+                def make_next_handler(c_col, n_col, next_idx):
+                    def wrapper_next(user, tok, team, tasks):
+                        data, _ = ensure_table_and_get_data(user, tok, team, tasks)
+                        dash_html = render_top_dashboard(data, next_idx)
+                        return dash_html
+                    return wrapper_next
+                
+                def make_nav_generator(c_col, n_col):
+                    def navigate_next():
+                        # First yield: hide current, show nothing (transition state)
+                        yield gr.update(visible=False), gr.update(visible=False)
+                        # Second yield: hide current, show next
+                        yield gr.update(visible=False), gr.update(visible=True)
+                    return navigate_next
 
                 next_btn.click(
-                    fn=wrapper_next,
+                    fn=make_next_handler(curr_col, next_col, i + 1),
                     inputs=[username_state, token_state, team_state, task_list_state],
                     outputs=[out_top]
                 ).then(
-                    fn=navigate_generator,
+                    fn=make_nav_generator(curr_col, next_col),
                     outputs=[curr_col, next_col],
                     js=nav_js(next_target_id, "Loading..."),
                 )
