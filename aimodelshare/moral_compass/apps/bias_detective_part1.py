@@ -238,7 +238,7 @@ MODULES = [
                 Before we examine the evidence, we need the <strong>rules of the investigation</strong>. Ethics isn’t abstract here — it’s our field guide.
               </p>
               <p style="font-size:1.05rem; max-width:820px; margin:0 auto 12px auto; text-align:center;">
-                We do not guess what is right or wrong - we rely on <strong>expert guidance</strong>.
+                We do not guess what is right or wrong - we rely on <strong>expert advice</strong>.
                 <br>
                 We will use guidance from the experts at the <strongCatalan Observatory for Ethics in AI (OEIAC)</strong>, who help ensure AI systems are fair and responsible.
                 <br>
@@ -481,7 +481,7 @@ MODULES = [
               <div class="slide-body">
                 <div style="display:flex; justify-content:center; margin-bottom:18px;">
                   <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; font-weight:800;">
-                    <span style="font-size:1.1rem;">📋</span><span>STEP 2 CONTINUED: YOUR COLLECTION EVIDENCE BRIEFING</span>
+                    <span style="font-size:1.1rem;">📋</span><span>STEP 2 CONTINUED: YOUR EVIDENCE COLLECTION BRIEFING</span>
                   </div>
                 </div>
 
@@ -609,7 +609,7 @@ MODULES = [
                     </div>
                     <div class="hint-box" style="margin-top:0;">
                       <div style="font-weight:800;">Exclusion</div>
-                      <div style="font-size:0.95rem;">Missing positive “neighborhood related” data→ risk looks higher for those records.</div>
+                      <div style="font-size:0.95rem;">Missing data for specific demographic groups → risk looks higher for those records.</div>
                     </div>
                   </div>
                 </div>
@@ -1113,13 +1113,13 @@ QUIZ_CONFIG = {
     },
     4: {
         "t": "t5",
-        "q": "Detective, since the model won't confess, what is the only way to prove it is lying?",
+        "q": "Detective, since the model won't confess, what is one key way to investigate bias?",
         "o": [
             "A) Ask the developers what they intended.",
             "B) Compare the model's predictions against the real outcomes.",
             "C) Run the model faster.",
         ],
-        "a": "B) Compare the model's predictions against real outcomes.",
+        "a": "B) Compare the model's predictions against the real outcomes.",
         "success": "Methodology Confirmed. We will judge the model by its results, not its code.",
     },
     5: {
@@ -1135,7 +1135,7 @@ QUIZ_CONFIG = {
     },
      6: {
         "t": "t7",
-        "q": "The dataset has 4x more of this group than reality. What technical term best describes this mismatch between the dataset and the population?",
+        "q": "The dataset has about 2x more of this group than reality. What technical term best describes this mismatch between the dataset and the population?",
         "o": [
             "A) Sampling or Historical Bias",
             "B) Overfitting",
@@ -1932,7 +1932,7 @@ def create_bias_detective_app(theme_primary_hue: str = "indigo"):
                         next_label = (
                             "Next ▶️"
                             if i < len(MODULES) - 1
-                            else "🎉 Complete Part 1"
+                            else "🎉 Complete Part 1 (Please Scroll Down)"
                         )
                         btn_next = gr.Button(next_label, variant="primary")
 
