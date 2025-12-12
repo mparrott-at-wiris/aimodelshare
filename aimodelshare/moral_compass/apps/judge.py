@@ -5,6 +5,7 @@ Updated with i18n support and visual fixes (gr.HTML implementation).
 import contextlib
 import os
 import gradio as gr
+from functools import lru_cache
 
 os.environ.setdefault("APP_NAME", "judge")
 
@@ -640,17 +641,17 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                         p_html = gr.HTML(format_profile(profile, "en"))
                         
                         with gr.Row():
-                        # Wire up buttons (Pass state in, get state out)
-                        p_rel_btn.click(
-                            fn=make_decision,
-                            inputs=[gr.Number(value=profile["id"], visible=False), gr.State(value="Release"), lang_state, decisions_state],
-                            outputs=[decision_status, decisions_state], # Updates the state!
-                        )
-                        p_keep_btn.click(
-                            fn=make_decision,
-                            inputs=[gr.Number(value=profile["id"], visible=False), gr.State(value="Keep in Prison"), lang_state, decisions_state],
-                            outputs=[decision_status, decisions_state], # Updates the state!
-                        )
+                            # Wire up buttons (Pass state in, get state out)
+                            p_rel_btn.click(
+                                fn=make_decision,
+                                inputs=[gr.Number(value=profile["id"], visible=False), gr.State(value="Release"), lang_state, decisions_state],
+                                outputs=[decision_status, decisions_state], # Updates the state!
+                            )
+                            p_keep_btn.click(
+                                fn=make_decision,
+                                inputs=[gr.Number(value=profile["id"], visible=False), gr.State(value="Keep in Prison"), lang_state, decisions_state],
+                                outputs=[decision_status, decisions_state], # Updates the state!
+                            )
 
                     decision_status = gr.Markdown("")
 
@@ -697,11 +698,10 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             back_to_profiles_btn = gr.Button(t('en', 'btn_back'))
 
         # -------------------------------------------------------------------------
-        # I18N UPDATE LOGIC
+        # I18N UPDATE LOGIC (CACHED)
         # -------------------------------------------------------------------------
         
-        # List of all components that need text updates
-        # Order matters! Must match the return of update_language
+        # 1. Define targets (This remains the same)
         update_targets = [
             lang_state,          # 0
             c_main_title,        # 1
@@ -718,56 +718,34 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             back_to_profiles_btn # 12
         ]
         
-        # Add dynamic profile components
+        # Add dynamic profile components to targets
         for p_ui in profile_ui_elements:
             update_targets.append(p_ui["html"])
             update_targets.append(p_ui["btn_rel"])
             update_targets.append(p_ui["btn_keep"])
 
-        def update_language(request: gr.Request):
-            """Parse URL params and return updated content for all components."""
-            params = request.query_params
-            lang = params.get("lang", "en")
-            if lang not in TRANSLATIONS:
-                lang = "en"
-            
-            # Prepare updates
+        # 2. Define the Cached Generator
+        @lru_cache(maxsize=16)
+        def get_cached_ui_updates(lang):
+            """
+            Calculates the massive list of HTML strings and Labels ONCE per language.
+            """
             updates = []
             
             # 0. State
             updates.append(lang)
             
-            # 1. Main Title
+            # Static Elements
             updates.append(f"<h1 style='text-align:center;'>{t(lang, 'title')}</h1>")
-            
-            # 2. Intro
             updates.append(f"""<div class="judge-intro-box">{t(lang, 'intro_role')}</div>""")
-            
-            # 3. Loading
             updates.append(f"""<div style='text-align:center; padding: 100px 0;'><h2 class='loading-title'>{t(lang, 'loading')}</h2></div>""")
-            
-            # 4. Scenario Title
             updates.append(f"<h2 style='text-align:center;'>{t(lang, 'scenario_title')}</h2>")
-            
-            # 5. Scenario Box
             updates.append(f"""<div class="scenario-box">{t(lang, 'scenario_box')}</div>""")
-            
-            # 6. Start Button
             updates.append(gr.Button(value=t(lang, 'btn_start')))
-            
-            # 7. Profiles Title
             updates.append(f"<h2 style='text-align:center;'>{t(lang, 'profiles_title')}</h2>")
-            
-            # 8. Hint Box
             updates.append(f"""<div class="hint-box">{t(lang, 'hint_box')}</div>""")
-            
-            # 9. Summary Button
             updates.append(gr.Button(value=t(lang, 'btn_show_summary')))
-            
-            # 10. Complete Button
             updates.append(gr.Button(value=t(lang, 'btn_complete')))
-            
-            # 11. Completion HTML
             updates.append(f"""
                 <div style='text-align:center;'>
                     <h2 style='font-size: 2.5rem;'>{t(lang, 'completion_title')}</h2>
@@ -778,19 +756,26 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                     </div>
                 </div>
                 """)
-            
-            # 12. Back Button
             updates.append(gr.Button(value=t(lang, 'btn_back')))
             
-            # Dynamic Profiles
-            for p_ui in profile_ui_elements:
-                # Update HTML card
-                updates.append(format_profile(p_ui["profile_data"], lang))
-                # Update Buttons
+            # Dynamic Profiles (Loop through the data, not the UI elements, to be safe)
+            # Note: We rely on 'profiles' being available in this scope.
+            for profile in profiles:
+                updates.append(format_profile(profile, lang))
                 updates.append(gr.Button(value=t(lang, 'btn_release')))
                 updates.append(gr.Button(value=t(lang, 'btn_keep')))
                 
             return updates
+
+        # 3. Define the Request Handler
+        def update_language(request: gr.Request):
+            params = request.query_params
+            lang = params.get("lang", "en")
+            if lang not in TRANSLATIONS:
+                lang = "en"
+            
+            # Instant return from cache
+            return get_cached_ui_updates(lang)
 
         # Trigger update on page load
         demo.load(update_language, inputs=None, outputs=update_targets)
