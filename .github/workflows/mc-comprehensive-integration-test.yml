@@ -1,0 +1,116 @@
+name: Moral Compass Comprehensive Integration Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      sessionid:
+        description: 'Session ID for test user (from login URL)'
+        required: true
+        type: string
+      table_id:
+        description: 'Optional Moral Compass table ID override'
+        required: false
+        type: string
+      debug_log:
+        description: 'Enable debug logging'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mc-comprehensive-integration-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  comprehensive-integration-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TF_CPP_MIN_LOG_LEVEL: "2"
+      AIMODELSHARE_SUPPRESS_OPTIONAL_WARNINGS: "1"
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libatlas-base-dev gfortran
+          sudo apt-get install -y --no-install-recommends \
+            libgl1 \
+            libglib2.0-0 \
+            gcc \
+            python3-dev
+          sudo rm -rf /var/lib/apt/lists/*
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --no-cache-dir -r requirements-apps.txt
+          pip install --no-cache-dir aimodelshare --no-dependencies
+          pip install --no-cache-dir pytest
+      
+      - name: Mask sensitive inputs
+        run: |
+          if [ -n "${{ inputs.sessionid }}" ]; then
+            echo "::add-mask::${{ inputs.sessionid }}"
+          fi
+          if [ -n "${{ secrets.TEST_SESSION_ID }}" ]; then
+            echo "::add-mask::${{ secrets.TEST_SESSION_ID }}"
+          fi
+      
+      - name: Set up test environment
+        env:
+          INPUT_SESSION_ID: ${{ inputs.sessionid }}
+          SECRET_SESSION_ID: ${{ secrets.TEST_SESSION_ID }}
+          TABLE_ID: ${{ inputs.table_id }}
+          DEBUG_LOG: ${{ inputs.debug_log }}
+          MORAL_COMPASS_API_BASE_URL: ${{ secrets.MORAL_COMPASS_API_BASE_URL }}
+          PLAYGROUND_URL: ${{ secrets.PLAYGROUND_URL }}
+        run: |
+          if [ -n "$INPUT_SESSION_ID" ]; then
+            echo "SESSION_ID=$INPUT_SESSION_ID" >> $GITHUB_ENV
+          elif [ -n "$SECRET_SESSION_ID" ]; then
+            echo "SESSION_ID=$SECRET_SESSION_ID" >> $GITHUB_ENV
+          else
+            echo "SESSION_ID=" >> $GITHUB_ENV
+          fi
+          
+          if [ -n "$TABLE_ID" ]; then
+            echo "TEST_TABLE_ID=$TABLE_ID" >> $GITHUB_ENV
+          fi
+          
+          if [ "$DEBUG_LOG" = "true" ]; then
+            echo "DEBUG_LOG=true" >> $GITHUB_ENV
+          else
+            echo "DEBUG_LOG=false" >> $GITHUB_ENV
+          fi
+          
+          if [ -n "$MORAL_COMPASS_API_BASE_URL" ]; then
+            echo "MORAL_COMPASS_API_BASE_URL=$MORAL_COMPASS_API_BASE_URL" >> $GITHUB_ENV
+          fi
+          
+          if [ -n "$PLAYGROUND_URL" ]; then
+            echo "TEST_PLAYGROUND_URL=$PLAYGROUND_URL" >> $GITHUB_ENV
+          fi
+      
+      - name: Run Moral Compass comprehensive integration test (single-user)
+        run: |
+          python tests/test_moral_compass_comprehensive_integration.py
+      
+      - name: Upload test logs (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: /tmp/mc_comprehensive_test_*.log
+          retention-days: 14

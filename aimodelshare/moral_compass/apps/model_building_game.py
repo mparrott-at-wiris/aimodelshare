@@ -464,30 +464,6 @@ TEAM_NAMES = [
 ]
 CURRENT_TEAM_NAME = random.choice(TEAM_NAMES)
 
-# Team name translations for UI display only (Catalan)
-# Internal logic (ranking, caching, grouping) always uses canonical English names
-TEAM_NAME_TRANSLATIONS = {
-    "en": {
-        "The Justice League": "The Justice League",
-        "The Moral Champions": "The Moral Champions",
-        "The Data Detectives": "The Data Detectives",
-        "The Ethical Explorers": "The Ethical Explorers",
-        "The Fairness Finders": "The Fairness Finders",
-        "The Accuracy Avengers": "The Accuracy Avengers"
-    },
-    "ca": {
-        "The Justice League": "La Lliga de la Justícia",
-        "The Moral Champions": "Els Campions Morals",
-        "The Data Detectives": "Els Detectives de Dades",
-        "The Ethical Explorers": "Els Exploradors Ètics",
-        "The Fairness Finders": "Els Cercadors d'Equitat",
-        "The Accuracy Avengers": "Els Venjadors de Precisió"
-    }
-}
-
-# UI language for team name display
-UI_TEAM_LANG = "ca"
-
 
 # --- Feature groups for scaffolding (Weak -> Medium -> Strong) ---
 FEATURE_SET_ALL_OPTIONS = [
@@ -1133,54 +1109,6 @@ def _normalize_team_name(name: str) -> str:
     return " ".join(str(name).strip().split())
 
 
-# Team name translation helpers for UI display (Catalan)
-def translate_team_name_for_display(team_en: str, lang: str = "ca") -> str:
-    """
-    Translate a canonical English team name to the specified language for UI display.
-    Fallback to English if translation not found.
-    
-    Internal logic always uses canonical English names. This is only for UI display.
-    """
-    if lang not in TEAM_NAME_TRANSLATIONS:
-        lang = "en"
-    return TEAM_NAME_TRANSLATIONS[lang].get(team_en, team_en)
-
-
-def translate_team_name_to_english(display_name: str, lang: str = "ca") -> str:
-    """
-    Reverse lookup: given a localized team name, return the canonical English name.
-    Returns the original display_name if not found.
-    
-    For future use if user input needs to be normalized back to English.
-    """
-    if lang not in TEAM_NAME_TRANSLATIONS:
-        return display_name  # Already English or unknown
-    
-    translations = TEAM_NAME_TRANSLATIONS[lang]
-    for english_name, localized_name in translations.items():
-        if localized_name == display_name:
-            return english_name
-    return display_name
-
-
-def _format_leaderboard_for_display(df: Optional[pd.DataFrame], lang: str = "ca") -> Optional[pd.DataFrame]:
-    """
-    Create a copy of the leaderboard DataFrame with team names translated for display.
-    Does not mutate the original DataFrame.
-    
-    For potential future use when displaying full leaderboard.
-    Internal logic should always use the original DataFrame with English team names.
-    """
-    if df is None:
-        return None
-    
-    if df.empty or "Team" not in df.columns:
-        return df.copy()
-    
-    df_display = df.copy()
-    df_display["Team"] = df_display["Team"].apply(lambda t: translate_team_name_for_display(t, lang))
-    return df_display
-
 
 def _build_skeleton_leaderboard(rows=6, is_team=True, submit_button_label="5. 🔬 Build & Submit Model"):
     context_label = "Team" if is_team else "Individual"
@@ -1324,14 +1252,11 @@ def _build_team_html(team_summary_df, team_name):
     
     Uses normalized, case-insensitive comparison to highlight the user's team row,
     ensuring reliable highlighting even with whitespace or casing variations.
-    
-    Team names are translated to Catalan for display only. Internal comparisons
-    use the unmodified English team names from the DataFrame.
     """
     if team_summary_df is None or team_summary_df.empty:
         return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>No team submissions yet.</p>"
 
-    # Normalize the current user's team name for comparison (using English names)
+    # Normalize the current user's team name for comparison
     normalized_user_team = _normalize_team_name(team_name).lower()
 
     header = """
@@ -1350,18 +1275,14 @@ def _build_team_html(team_summary_df, team_name):
 
     body = ""
     for index, row in team_summary_df.iterrows():
-        # Normalize the row's team name and compare case-insensitively (using English names)
+        # Normalize the row's team name and compare case-insensitively
         normalized_row_team = _normalize_team_name(row["Team"]).lower()
         is_user_team = normalized_row_team == normalized_user_team
         row_class = "class='user-row-highlight'" if is_user_team else ""
-        
-        # Translate team name to Catalan for display only
-        display_team_name = translate_team_name_for_display(row["Team"], UI_TEAM_LANG)
-        
         body += f"""
         <tr {row_class}>
             <td>{index}</td>
-            <td>{display_team_name}</td>
+            <td>{row['Team']}</td>
             <td>{(row['Best_Score'] * 100):.2f}%</td>
             <td>{(row['Avg_Score'] * 100):.2f}%</td>
             <td>{row['Submissions']}</td>
@@ -1767,14 +1688,11 @@ def perform_inline_login(username_input, password_input):
         # Normalize team name before storing (defensive - already normalized by get_or_assign_team)
         team_name = _normalize_team_name(team_name)
         
-        # Translate team name for display only (keep team_name_state in English)
-        display_team_name = translate_team_name_for_display(team_name, UI_TEAM_LANG)
-        
         # Build success message based on whether team is new or existing
         if is_new_team:
-            team_message = f"You have been assigned to a new team: <b>{display_team_name}</b> 🎉"
+            team_message = f"You have been assigned to a new team: <b>{team_name}</b> 🎉"
         else:
-            team_message = f"Welcome back! You remain on team: <b>{display_team_name}</b> ✅"
+            team_message = f"Welcome back! You remain on team: <b>{team_name}</b> ✅"
         
         # Success: hide login form, show success message with team info, enable submit button
         success_html = f"""
@@ -2477,20 +2395,19 @@ def on_initial_load(username, token=None, team_name=""):
     )
 
     # 1. Prepare the Welcome HTML
-    # Translate team name to Catalan for display only (keep team_name in English for logic)
-    display_team = translate_team_name_for_display(team_name, UI_TEAM_LANG) if team_name else "El Teu Equip"
+    display_team = team_name if team_name else "Your Team"
     
     welcome_html = f"""
     <div style='text-align:center; padding: 30px 20px;'>
         <div style='font-size: 3rem; margin-bottom: 10px;'>👋</div>
-        <h3 style='margin: 0 0 8px 0; color: #111827; font-size: 1.5rem;'>Benvingut a <b>{display_team}</b>!</h3>
+        <h3 style='margin: 0 0 8px 0; color: #111827; font-size: 1.5rem;'>Welcome to <b>{display_team}</b>!</h3>
         <p style='font-size: 1.1rem; color: #4b5563; margin: 0 0 20px 0;'>
-            El teu equip espera la teva ajuda per millorar la IA.
+            Your team is waiting for your help to improve the AI.
         </p>
         
         <div style='background:#eff6ff; padding:16px; border-radius:12px; border:2px solid #bfdbfe; display:inline-block;'>
             <p style='margin:0; color:#1e40af; font-weight:bold; font-size:1.1rem;'>
-                👈 Fes clic a "Build & Submit Model" per començar a jugar!
+                👈 Click "Build & Submit Model" to Start Playing!
             </p>
         </div>
     </div>
@@ -2638,7 +2555,8 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
 
 def build_conclusion_from_state(best_score, submissions, rank, first_score, feature_set):
     return build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set)
-def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
+              
+def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """
     Create (but do not launch) the model building game app.
     """
@@ -3503,31 +3421,31 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # Slide 1: From Understanding to Building (Retained as transition)
         with gr.Column(visible=True, elem_id="slide-1") as briefing_slide_1:
-            gr.Markdown("<h1 style='text-align:center;'>🔄 De la teoria a la práctica</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🔄 From Understanding to Building</h1>")
             gr.HTML(
                 """
                 <div class='slide-content'>
                 <div class='panel-box'>
-                <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>Bona feina! Ara ja has aconseguit:</h3>
+                <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>Great progress! You've now:</h3>
 
                 <ul style='list-style: none; padding-left: 0; margin-top: 24px; margin-bottom: 24px;'>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
                         <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Prendre decisions difícils com a jutge o jutgessa utilitzant prediccions d’IA
+                        Made tough decisions as a judge using AI predictions
                     </li>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
                         <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Aprendre què són els falsos positius i els falsos negatius
+                        Learned about false positives and false negatives
                     </li>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
                         <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Entendre com funciona la IA:
+                        Understood how AI works:
                     </li>
                 </ul>
 
                 <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
                     <div style='display:inline-block; background:#dbeafe; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#0369a1;'>ENTRADA</h3>
+                        <h3 style='margin:0; color:#0369a1;'>INPUT</h3>
                     </div>
                     <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
                     <div style='display:inline-block; background:#fef3c7; padding:12px 16px; border-radius:8px; margin:4px;'>
@@ -3535,74 +3453,74 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                     </div>
                     <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
                     <div style='display:inline-block; background:#f0fdf4; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#15803d;'>SORTIDA</h3>
+                        <h3 style='margin:0; color:#15803d;'>OUTPUT</h3>
                     </div>
                 </div>
 
                 <hr style='margin: 24px 0; border-top: 2px solid #c7d2fe;'>
 
-                <h3 style='font-size: 1.5rem; text-align:center;'>Ara és el moment de posar-te a la pell d’una persona enginyera d’IA.</h3>
+                <h3 style='font-size: 1.5rem; text-align:center;'>Now it's time to step into the shoes of an AI Engineer.</h3>
                 <p style='font-size: 1.1rem; text-align:center; margin-top: 12px;'>
-                    <strong>El teu nou repte:</strong> Crear models d’IA que siguin més precisos que el que has utilitzat en el rol de jutjar casos.
+                    <strong>Your New Challenge:</strong> Build AI models that are more accurate than the one you used as a judge.
                 </p>
                 <p style='font-size: 1.1rem; text-align:center; margin-top: 12px;'>
-                    Recorda: has viscut en primera persona com les prediccions de la IA afecten la vida real de les persones. Fes servir aquest coneixement per construir un millor.
+                    Remember: You experienced firsthand how AI predictions affect real people's lives. Use that knowledge to build something better.
                 </p>
                 </div>
                 </div>
                 """
             )
-            briefing_1_next = gr.Button("Següent ▶️", variant="primary", size="lg")
+            briefing_1_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
         # Slide 2: Card 1 (Your Engineering Mission)
         with gr.Column(visible=False, elem_id="slide-2") as briefing_slide_2:
-            gr.Markdown("<h1 style='text-align:center;'>📋 La teva missió - Construir una IA millor</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>📋 Your Mission - Build Better AI</h1>")
             
             gr.HTML(
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <h3>La missió</h3>
-                        <p>Crea un model d’IA que ajudi als tribunals a prendre decisions més encertades. El model que has utilitzat abans et donava recomanacions imperfectes. Ara la teva feina és construir un model nou que predigui el risc amb més precisió i ofereixi a qui jutja informació fiable per poder ser justos i justes.</p>
+                        <h3>The Mission</h3>
+                        <p>Build an AI model that helps judges make better decisions. The model you used previously gave you imperfect advice. Your job now is to build a new model that predicts risk more accurately, providing judges with the reliable insights they need to be fair.</p>
                         
-                        <h3>La competició</h3>
-                        <p>Per fer-ho, competiràs amb altres persones enginyeres! Per ajudar-te en la missió, formaràs part d’un equip d’enginyeria. Els teus resultats es registraran tant de manera individual com col·lectiva a les classificacions en directe.</p>
+                        <h3>The Competition</h3>
+                        <p>To do this, you will compete against other engineers! To help you in your mission, you will join an engineering team. Your results will be tracked both individually and as a group in the Live Standings Leaderboards.</p>
                     </div>
 
                     <div class='leaderboard-box' style='max-width: 600px; margin: 16px auto; text-align: center; padding: 16px;'>
-                        <p style='font-size: 1.1rem; margin:0;'>T’uniràs a un equip com ara...</p>
+                        <p style='font-size: 1.1rem; margin:0;'>You will join a team like...</p>
                         <h3 style='font-size: 1.75rem; color: #6b7280; margin: 8px 0;'>
-                            🛡️ Els Exploradors Ètics
+                            🛡️ The Ethical Explorers
                         </h3>
                     </div>
 
                     <div class='mock-ui-box'>
-                        <h3>El repte de les dades</h3>
-                        <p>Per competir, tindràs accés a milers d’expedients de casos antics. Disposes de dos tipus d’informació:</p>
+                        <h3>The Data Challenge</h3>
+                        <p>To compete, you have access to thousands of old case files. You have two distinct types of information:</p>
                         <ol style='list-style-position: inside; padding-left: 20px;'>
-                            <li><strong>Perfils persones preses:</strong> És la informació que tenia el tribunal en el moment de la detenció.
+                            <li><strong>Defendant Profiles:</strong> This is like what the judge saw at the time of arrest.
                                 <ul style='margin-left: 20px; list-style-type: disc;'>
-                                    <li><em>Edat, nombre d'antecedents penals, tipus de càrrec penal.</em></li>
+                                    <li><em>Age, Number of Prior Offenses, Type of Charge.</em></li>
                                 </ul>
                             </li>
-                            <li><strong>Resultats històrics:</strong> Això és el que va passar amb aquestes persones al cap d’un temps.
+                            <li><strong>Historical Outcomes:</strong> This is what actually happened to those people later.
                                 <ul style='margin-left: 20px; list-style-type: disc;'>
-                                    <li><em>Van tornar a cometre un delicte en dos anys? (Sí/No)</em></li>
+                                    <li><em>Did they re-offend within 2 years? (Yes/No)</em></li>
                                 </ul>
                             </li>
                         </ol>
                         
-                        <h3>La tasca principal</h3>
-                        <p>Has d’ensenyar el teu model d'IA a analitzar els "perfils" i predir amb precisió el "resultat".</p>
-                        <p><strong>A punt per construir alguna cosa que podria canviar la manera com funciona la justícia?</strong></p>
+                        <h3>The Core Task</h3>
+                        <p>You need to teach your AI to look at the "Profiles" and accurately predict the "Outcome."</p>
+                        <p><strong>Ready to build something that could change how justice works?</strong></p>
                     </div>
                 </div>
                 """
             )
             
             with gr.Row():
-                briefing_2_back = gr.Button("◀️ Enrere", size="lg")
-                briefing_2_next = gr.Button("Següent ▶️", variant="primary", size="lg")
+                briefing_2_back = gr.Button("◀️ Back", size="lg")
+                briefing_2_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
         # Slide 3: Card 2 (What is a "Model"?)
         with gr.Column(visible=False, elem_id="slide-3") as briefing_slide_3:
@@ -4442,7 +4360,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
 # 4. Convenience Launcher
 # -------------------------------------------------------------------------
 
-def launch_model_building_game_ca_app(height: int = 1200, share: bool = False, debug: bool = False) -> None:
+def launch_model_building_game_app(height: int = 1200, share: bool = False, debug: bool = False) -> None:
     """
     Create and directly launch the Model Building Game app inline (e.g., in notebooks).
     """
@@ -4457,6 +4375,6 @@ def launch_model_building_game_ca_app(height: int = 1200, share: bool = False, d
     if X_TRAIN_RAW is None:
         X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data()
 
-    demo = create_model_building_game_ca_app()
+    demo = create_model_building_game_app()
     port = int(os.environ.get("PORT", 8080))
     demo.launch(share=share, inline=True, debug=debug, height=height, server_port=port)

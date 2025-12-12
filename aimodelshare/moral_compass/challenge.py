@@ -5,7 +5,7 @@ Provides a local state manager for tracking multi-metric progress
 and syncing with the Moral Compass API.
 """
 
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Tuple
 from dataclasses import dataclass
 from .api_client import MoralcompassApiClient
 
@@ -173,7 +173,7 @@ class ChallengeManager:
     """
     
     def __init__(self, table_id: str, username: str, api_client: Optional[MoralcompassApiClient] = None, 
-                 challenge: Optional[JusticeAndEquityChallenge] = None):
+                 challenge: Optional[JusticeAndEquityChallenge] = None, team_name: Optional[str] = None):
         """
         Initialize a challenge manager.
         
@@ -182,11 +182,13 @@ class ChallengeManager:
             username: The username
             api_client: Optional API client instance (creates new one if None)
             challenge: Optional challenge instance (creates JusticeAndEquityChallenge if None)
+            team_name: Optional team name for the user
         """
         self.table_id = table_id
         self.username = username
         self.api_client = api_client or MoralcompassApiClient()
         self.challenge = challenge or JusticeAndEquityChallenge()
+        self.team_name = team_name
         
         # Metrics state
         self.metrics: Dict[str, float] = {}
@@ -216,34 +218,67 @@ class ChallengeManager:
         if primary:
             self.primary_metric = name
     
-    def set_progress(self, tasks_completed: int = 0, total_tasks: int = 0,
-                    questions_correct: int = 0, total_questions: int = 0) -> None:
+    def set_progress(self, tasks_completed: Optional[int] = None, total_tasks: Optional[int] = None,
+                    questions_correct: Optional[int] = None, total_questions: Optional[int] = None) -> None:
         """
         Set progress counters.
         
         Args:
-            tasks_completed: Number of tasks completed
-            total_tasks: Total number of tasks
-            questions_correct: Number of questions answered correctly
-            total_questions: Total number of questions
+            tasks_completed: Number of tasks completed (None = keep current)
+            total_tasks: Total number of tasks (None = keep current)
+            questions_correct: Number of questions answered correctly (None = keep current)
+            total_questions: Total number of questions (None = keep current)
         """
-        self.tasks_completed = tasks_completed
-        self.total_tasks = total_tasks
-        self.questions_correct = questions_correct
-        self.total_questions = total_questions
+        if tasks_completed is not None:
+            self.tasks_completed = tasks_completed
+        if total_tasks is not None:
+            self.total_tasks = total_tasks
+        if questions_correct is not None:
+            self.questions_correct = questions_correct
+        if total_questions is not None:
+            self.total_questions = total_questions
     
-    def complete_task(self, task_id: str) -> None:
+    def is_task_completed(self, task_id: str) -> bool:
+        """
+        Check if a task has been completed.
+        
+        Args:
+            task_id: The task identifier (e.g., 'A', 'B', 'C')
+            
+        Returns:
+            True if the task has been completed, False otherwise
+        """
+        return task_id in self._completed_task_ids
+    
+    def complete_task(self, task_id: str) -> bool:
         """
         Mark a task as completed.
         
         Args:
             task_id: The task identifier (e.g., 'A', 'B', 'C')
+            
+        Returns:
+            True if the task was newly completed, False if already completed
         """
         if task_id not in self._completed_task_ids:
             self._completed_task_ids.add(task_id)
             self.tasks_completed = len(self._completed_task_ids)
+            return True
+        return False
     
-    def answer_question(self, task_id: str, question_id: str, selected_index: int) -> bool:
+    def is_question_answered(self, question_id: str) -> bool:
+        """
+        Check if a question has been answered.
+        
+        Args:
+            question_id: The question identifier
+            
+        Returns:
+            True if the question has been answered, False otherwise
+        """
+        return question_id in self._answered_questions
+    
+    def answer_question(self, task_id: str, question_id: str, selected_index: int) -> Tuple[bool, bool]:
         """
         Record an answer to a question.
         
@@ -253,8 +288,16 @@ class ChallengeManager:
             selected_index: The index of the selected answer
             
         Returns:
-            True if the answer is correct, False otherwise
+            Tuple of (is_correct, is_new_answer):
+            - is_correct: True if the answer is correct, False otherwise
+            - is_new_answer: True if this is a new answer, False if already answered
         """
+        # Check if already answered
+        if question_id in self._answered_questions:
+            # Return the previous result and indicate it's not a new answer
+            is_correct = self._is_answer_correct(question_id, self._answered_questions[question_id])
+            return is_correct, False
+        
         # Find the question
         question = None
         for task in self.challenge.tasks:
@@ -280,7 +323,7 @@ class ChallengeManager:
             if self._is_answer_correct(qid, idx)
         )
         
-        return is_correct
+        return is_correct, True
     
     def _is_answer_correct(self, question_id: str, selected_index: int) -> bool:
         """Check if an answer is correct"""
@@ -336,6 +379,42 @@ class ChallengeManager:
         
         return primary_value * progress_ratio
     
+    def _build_completed_task_ids(self) -> List[str]:
+        """
+        Build unified completedTaskIds list based on local state.
+        
+        Maps completed tasks and answered questions to t1, t2, ..., tn format where:
+        - Tasks map to t1..tTotalTasks by their index order in self.challenge.tasks
+        - Questions map to tTotalTasks+1..tN by their index order across all tasks
+        
+        Note: This mapping is deterministic for a given challenge definition.
+        Tasks and questions are indexed in their fixed order as defined in the
+        challenge structure, ensuring consistent t-numbers for the same items.
+        
+        Returns:
+            List of completed task IDs in unified format, sorted
+        """
+        result = []
+        
+        # Map completed tasks to t1..tTotalTasks
+        # Uses enumerate to maintain consistent ordering based on challenge definition
+        for i, task in enumerate(self.challenge.tasks):
+            if task.id in self._completed_task_ids:
+                result.append(f"t{i + 1}")
+        
+        # Map answered questions to tTotalTasks+1..tN
+        # Maintains consistent ordering across all questions in all tasks
+        question_offset = self.total_tasks
+        question_index = 0
+        for task in self.challenge.tasks:
+            for question in task.questions:
+                question_index += 1
+                if question.id in self._answered_questions:
+                    result.append(f"t{question_offset + question_index}")
+        
+        # Return sorted list for deterministic ordering
+        return sorted(result, key=lambda x: int(x[1:]))
+    
     def sync(self) -> Dict:
         """
         Sync current state to the Moral Compass API.
@@ -354,7 +433,9 @@ class ChallengeManager:
             total_tasks=self.total_tasks,
             questions_correct=self.questions_correct,
             total_questions=self.total_questions,
-            primary_metric=self.primary_metric
+            primary_metric=self.primary_metric,
+            team_name=self.team_name,
+            completed_task_ids=self._build_completed_task_ids()
         )
     
     def __repr__(self) -> str:

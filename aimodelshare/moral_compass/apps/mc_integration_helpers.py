@@ -1,820 +1,302 @@
-"""
-Moral Compass Integration Helpers for Activities 7, 8, and 9.
-
-This module provides helper functions for integrating the Moral Compass scoring system
-into Ethics/Game apps, including:
-- ChallengeManager initialization and management
-- Debounced server synchronization
-- Team aggregation logic
-- Leaderboard generation with caching
-
-Design Rationale:
-- Client-side only scoring combination logic (server stores single moralCompassScore)
-- Debounce prevents excessive API calls while providing responsive UI
-- Team synthetic users (prefix: team:) enable team leaderboards
-- Local preview fallback ensures graceful degradation when debounced or offline
-
-Server Constraints:
-- Only existing API endpoints available (no custom metadata fields)
-- All combination logic handled client-side
-- Primary metric stored as moralCompassScore in server
-"""
-
 import os
 import time
 import logging
-from typing import Optional, Dict, Any, List, Tuple
-from datetime import datetime, timedelta
+from typing import Dict, Any, Optional, List, Tuple
+from urllib.parse import urlparse
 
-logger = logging.getLogger("aimodelshare.moral_compass.apps")
+from aimodelshare.moral_compass import MoralcompassApiClient, NotFoundError, ApiClientError
+from aimodelshare.moral_compass.challenge import ChallengeManager
 
+logger = logging.getLogger("aimodelshare.moral_compass.apps.helpers")
 
-# ============================================================================
-# Environment Configuration
-# ============================================================================
-
-def get_env_config() -> Dict[str, Any]:
-    """
-    Get environment configuration for Moral Compass integration.
-    
-    Returns:
-        Dictionary with configuration values
-    """
-    return {
-        # Debounce settings
-        'DEBOUNCE_SECONDS': int(os.getenv('MC_DEBOUNCE_SECONDS', '5')),
-        
-        # Scoring mode: 'product' or 'sum'
-        'SCORING_MODE': os.getenv('MC_SCORING_MODE', 'product'),
-        
-        # Weights for sum mode
-        'WEIGHT_ACCURACY': float(os.getenv('MC_WEIGHT_ACC', '0.6')),
-        'WEIGHT_MORAL': float(os.getenv('MC_WEIGHT_MORAL', '0.4')),
-        
-        # Normalization settings
-        'ACCURACY_FLOOR': float(os.getenv('MC_ACCURACY_FLOOR', '0.0')),
-        'MAX_MORAL_POINTS': int(os.getenv('MAX_MORAL_POINTS', '1000')),
-        
-        # Cache TTL for leaderboard
-        'CACHE_TTL_SECONDS': int(os.getenv('MC_CACHE_TTL', '30')),
-    }
+# Local caches
+_leaderboard_cache: Dict[str, Dict[str, Any]] = {}
+_LEADERBOARD_TTL_SECONDS = int(os.environ.get("LEADERBOARD_CACHE_SECONDS", "45"))
 
 
-# ============================================================================
-# Debounce State Management
-# ============================================================================
-
-# Global state for debounce tracking
-_last_sync_times: Dict[str, float] = {}
-
-
-def should_sync(username: str, override: bool = False) -> bool:
-    """
-    Check if sync should proceed based on debounce logic.
-    
-    Args:
-        username: The username to check
-        override: If True, bypass debounce check (for Force Sync)
-        
-    Returns:
-        True if sync should proceed, False if debounced
-    """
-    if override:
-        return True
-    
-    config = get_env_config()
-    debounce_seconds = config['DEBOUNCE_SECONDS']
-    
-    last_sync = _last_sync_times.get(username, 0)
-    current_time = time.time()
-    
-    return (current_time - last_sync) >= debounce_seconds
-
-
-def mark_synced(username: str) -> None:
-    """
-    Mark a username as having been synced.
-    
-    Args:
-        username: The username that was synced
-    """
-    _last_sync_times[username] = time.time()
-
-
-# ============================================================================
-# ChallengeManager Initialization
-# ============================================================================
-
-def get_challenge_manager(username: str, table_id: Optional[str] = None) -> Optional['ChallengeManager']:
-    """
-    Get or create a ChallengeManager for a user.
-    
-    Args:
-        username: The username
-        table_id: Optional table ID (auto-derived if not provided)
-        
-    Returns:
-        ChallengeManager instance, or None if user not signed in
-        
-    Note:
-        Requires aimodelshare.moral_compass.challenge.ChallengeManager
-    """
-    if not username or username.lower() == 'guest':
-        logger.debug("Cannot create ChallengeManager for guest user")
+def _cache_get(key: str) -> Optional[List[Dict[str, Any]]]:
+    entry = _leaderboard_cache.get(key)
+    if not entry:
         return None
-    
-    try:
-        from aimodelshare.moral_compass.challenge import ChallengeManager
-        from aimodelshare.moral_compass.api_client import MoralcompassApiClient
-        
-        # Auto-derive table_id if not provided
-        if not table_id:
-            table_id = _derive_table_id()
-        
-        # Create API client and ChallengeManager
-        api_client = MoralcompassApiClient()
-        cm = ChallengeManager(
-            table_id=table_id,
-            username=username,
-            api_client=api_client
-        )
-        
-        logger.info(f"Created ChallengeManager for user={username}, table={table_id}")
-        return cm
-        
-    except Exception as e:
-        logger.error(f"Failed to create ChallengeManager: {e}")
+    if (time.time() - entry.get("_ts", 0)) > _LEADERBOARD_TTL_SECONDS:
+        try:
+            del _leaderboard_cache[key]
+        except Exception:
+            pass
         return None
+    return entry.get("data")
+
+
+def _cache_set(key: str, data: List[Dict[str, Any]]) -> None:
+    _leaderboard_cache[key] = {"data": data, "_ts": time.time()}
 
 
 def _derive_table_id() -> str:
     """
-    Auto-derive table ID from environment or use default.
-    
-    Returns:
-        Table ID string
-    """
-    # Check for explicit table ID
-    table_id = os.getenv('MORAL_COMPASS_TABLE_ID')
-    if table_id:
-        return table_id
-    
-    # Try to derive from playground URL
-    playground_url = os.getenv('PLAYGROUND_URL')
-    if playground_url:
-        # Extract playground ID and append -mc suffix
-        from urllib.parse import urlparse
-        parsed = urlparse(playground_url)
-        path_parts = [p for p in parsed.path.split('/') if p]
-        
-        for i, part in enumerate(path_parts):
-            if part.lower() in ['playground', 'playgrounds']:
-                if i + 1 < len(path_parts):
-                    playground_id = path_parts[i + 1]
-                    return f"{playground_id}-mc"
-        
-        # Fallback to last path component
-        if path_parts:
-            return f"{path_parts[-1]}-mc"
-    
-    # Default fallback
-    return "justice-equity-challenge-mc"
+    Derive Moral Compass table ID in the same way as the comprehensive integration test:
 
+    Priority:
+    - If TEST_TABLE_ID is provided, use it as-is.
+    - Else derive from TEST_PLAYGROUND_URL or PLAYGROUND_URL:
+      Use the last non-empty path segment and append '-mc'.
 
-# ============================================================================
-# Scoring Logic
-# ============================================================================
+    This matches tests/test_moral_compass_comprehensive_integration.py behavior so the app
+    reads/writes the same shared table.
+    """
+    explicit = os.environ.get("TEST_TABLE_ID")
+    if explicit and explicit.strip():
+        return explicit.strip()
 
-def compute_combined_score(accuracy: float, moral_points: int, 
-                           config: Optional[Dict[str, Any]] = None) -> float:
-    """
-    Compute combined ethical + accuracy score.
-    
-    Args:
-        accuracy: Accuracy value (0.0 to 1.0)
-        moral_points: Raw moral compass points
-        config: Optional config dict (uses env defaults if None)
-        
-    Returns:
-        Combined score as float
-        
-    Note:
-        All combination logic is client-side. Server receives only the
-        final combined score as the primary metric (moralCompassScore).
-    """
-    if config is None:
-        config = get_env_config()
-    
-    # Apply accuracy floor
-    accuracy_floor = config['ACCURACY_FLOOR']
-    accuracy = max(accuracy, accuracy_floor)
-    
-    # Normalize moral points (0 to 1)
-    max_moral = config['MAX_MORAL_POINTS']
-    moral_normalized = min(moral_points / max_moral, 1.0) if max_moral > 0 else 0.0
-    
-    # Compute combined score based on mode
-    scoring_mode = config['SCORING_MODE']
-    
-    if scoring_mode == 'product':
-        # Product mode: accuracy * moral_normalized
-        combined = accuracy * moral_normalized
-    elif scoring_mode == 'sum':
-        # Weighted sum mode
-        weight_acc = config['WEIGHT_ACCURACY']
-        weight_moral = config['WEIGHT_MORAL']
-        combined = (weight_acc * accuracy) + (weight_moral * moral_normalized)
-    else:
-        logger.warning(f"Unknown scoring mode '{scoring_mode}', defaulting to product")
-        combined = accuracy * moral_normalized
-    
-    logger.debug(
-        f"Combined score: accuracy={accuracy:.4f}, moral_points={moral_points}, "
-        f"moral_norm={moral_normalized:.4f}, mode={scoring_mode}, result={combined:.4f}"
+    # Prefer TEST_PLAYGROUND_URL for parity with the integration test, fallback to PLAYGROUND_URL
+    pg_url = os.environ.get("TEST_PLAYGROUND_URL") or os.environ.get(
+        "PLAYGROUND_URL",
+        "https://example.com/playground/shared-comprehensive"
     )
-    
-    return combined
-
-
-# ============================================================================
-# User Sync
-# ============================================================================
-
-def sync_user_moral_state(
-    cm: 'ChallengeManager',
-    moral_points: int,
-    accuracy: Optional[float] = None,
-    override: bool = False
-) -> Dict[str, Any]:
-    """
-    Sync user's moral state to server with debounce.
-    
-    Args:
-        cm: ChallengeManager instance
-        moral_points: Current moral compass points for this activity
-        accuracy: Optional accuracy value (fetched from playground if None)
-        override: If True, bypass debounce (for Force Sync button)
-        
-    Returns:
-        Dictionary with sync result:
-        - 'synced': bool (True if actually synced, False if debounced)
-        - 'status': str ('synced', 'debounced', 'error')
-        - 'server_score': float (if synced)
-        - 'local_preview': float (always present)
-        - 'message': str (user-facing message)
-        
-    Design Note:
-        - Seeds ChallengeManager with playground accuracy if not provided
-        - Computes combined score (accuracy * moral_normalized) client-side
-        - Stores combined score as primary metric on server
-        - Respects debounce unless override=True
-    """
-    username = cm.username
-    
-    # Check debounce
-    if not should_sync(username, override=override):
-        local_preview = compute_combined_score(
-            accuracy or 0.7,  # Default accuracy for preview
-            moral_points
-        )
-        return {
-            'synced': False,
-            'status': 'debounced',
-            'local_preview': local_preview,
-            'message': f'Sync pending (debounced). Local preview: {local_preview:.4f}'
-        }
-    
     try:
-        # Fetch accuracy from playground if not provided
-        if accuracy is None:
-            accuracy = _fetch_playground_accuracy(username)
-        
-        # Compute combined score
-        combined_score = compute_combined_score(accuracy, moral_points)
-        
-        # Update ChallengeManager metrics
-        cm.set_metric('accuracy', accuracy, primary=False)
-        cm.set_metric('moral_points', moral_points, primary=False)
-        cm.set_metric('combined_score', combined_score, primary=True)
-        
-        # Sync to server
-        response = cm.sync()
-        
-        # Mark as synced
-        mark_synced(username)
-        
-        server_score = response.get('moralCompassScore', combined_score)
-        
-        logger.info(
-            f"User sync successful: username={username}, moral_points={moral_points}, "
-            f"accuracy={accuracy:.4f}, combined={combined_score:.4f}, "
-            f"server_score={server_score:.4f}"
-        )
-        
-        return {
-            'synced': True,
-            'status': 'synced',
-            'server_score': server_score,
-            'local_preview': combined_score,
-            'message': f'✓ Synced! Server score: {server_score:.4f}'
-        }
-        
+        parts = [p for p in urlparse(pg_url).path.split("/") if p]
+        playground_id = parts[-1] if parts else "shared-comprehensive"
+        return f"{playground_id}-mc"
     except Exception as e:
-        logger.error(f"User sync failed for {username}: {e}")
-        local_preview = compute_combined_score(accuracy or 0.7, moral_points)
-        return {
-            'synced': False,
-            'status': 'error',
-            'local_preview': local_preview,
-            'error': str(e),
-            'message': f'⚠️ Sync error. Local preview: {local_preview:.4f}'
-        }
+        logger.warning(f"Failed to derive table ID from playground URL '{pg_url}': {e}")
+        return "shared-comprehensive-mc"
 
 
-def _fetch_playground_accuracy(username: str) -> float:
+def _ensure_table_exists(client: MoralcompassApiClient, table_id: str, playground_url: Optional[str] = None) -> None:
     """
-    Fetch user's accuracy from playground leaderboard.
-    
-    Args:
-        username: The username
-        
-    Returns:
-        Accuracy value (0.0 to 1.0), defaults to 0.7 if not found
-        
-    Note:
-        Uses playground.get_leaderboard() to fetch accuracy data
+    Ensure the table exists by mirroring the integration test's behavior.
+    If not found, create it with a display name and playground_url metadata.
     """
     try:
-        from aimodelshare.playground import Competition
-        
-        playground_url = os.getenv('PLAYGROUND_URL', 
-                                   'https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m')
-        
-        playground = Competition(playground_url)
-        leaderboard = playground.get_leaderboard()
-        
-        # Find user's entry
-        for entry in leaderboard:
-            if entry.get('username') == username or entry.get('user') == username:
-                # Get accuracy (might be stored as 'accuracy', 'score', or 'test_accuracy')
-                accuracy = (
-                    entry.get('accuracy') or 
-                    entry.get('test_accuracy') or 
-                    entry.get('score', 0.7)
-                )
-                logger.debug(f"Fetched accuracy for {username}: {accuracy}")
-                return float(accuracy)
-        
-        logger.warning(f"User {username} not found in leaderboard, using default 0.7")
-        return 0.7
-        
+        client.get_table(table_id)
+        return
+    except NotFoundError:
+        pass
+    except ApiClientError as e:
+        logger.info(f"get_table error (will attempt create): {e}")
     except Exception as e:
-        logger.error(f"Failed to fetch playground accuracy: {e}")
-        return 0.7
+        logger.info(f"Unexpected get_table error (will attempt create): {e}")
 
-
-# ============================================================================
-# Team Sync
-# ============================================================================
-
-def sync_team_state(team_name: str, table_id: Optional[str] = None) -> Dict[str, Any]:
-    """
-    Sync team aggregated state to server.
-    
-    Args:
-        team_name: The team name
-        table_id: Optional table ID (auto-derived if not provided)
-        
-    Returns:
-        Dictionary with sync result (same structure as sync_user_moral_state)
-        
-    Design Note:
-        - Aggregates member accuracy from playground.get_leaderboard()
-        - Aggregates member moral scores from moral_compass.list_users()
-        - Computes team combined score (avg_accuracy * avg_moral_norm)
-        - Persists as synthetic user with username = 'team:<TeamName>'
-    """
-    if not team_name:
-        return {
-            'synced': False,
-            'status': 'error',
-            'message': 'No team name provided'
-        }
-    
+    payload = {
+        "table_id": table_id,
+        "display_name": "Moral Compass Integration Test - Shared Table",
+        "playground_url": playground_url or os.environ.get("TEST_PLAYGROUND_URL") or os.environ.get("PLAYGROUND_URL"),
+    }
     try:
-        # Auto-derive table_id if not provided
-        if not table_id:
-            table_id = _derive_table_id()
-        
-        # Get team members and their data
-        team_data = _aggregate_team_data(team_name, table_id)
-        
-        if not team_data['members']:
-            logger.warning(f"No team members found for team '{team_name}'")
-            return {
-                'synced': False,
-                'status': 'error',
-                'message': f'No members found for team {team_name}'
-            }
-        
-        # Compute team combined score
-        avg_accuracy = team_data['avg_accuracy']
-        avg_moral_points = team_data['avg_moral_points']
-        
-        combined_score = compute_combined_score(avg_accuracy, int(avg_moral_points))
-        
-        # Create synthetic team user
-        from aimodelshare.moral_compass.api_client import MoralcompassApiClient
-        
-        api_client = MoralcompassApiClient()
-        team_username = f"team:{team_name}"
-        
-        # Update team entry
-        response = api_client.update_moral_compass(
-            table_id=table_id,
-            username=team_username,
-            metrics={
-                'accuracy': avg_accuracy,
-                'moral_points': avg_moral_points,
-                'combined_score': combined_score,
-                'member_count': len(team_data['members'])
-            },
-            tasks_completed=0,
-            total_tasks=0,
-            questions_correct=0,
-            total_questions=0,
-            primary_metric='combined_score'
-        )
-        
-        server_score = response.get('moralCompassScore', combined_score)
-        
-        logger.info(
-            f"Team sync successful: team={team_name}, members={len(team_data['members'])}, "
-            f"avg_accuracy={avg_accuracy:.4f}, avg_moral={avg_moral_points:.1f}, "
-            f"combined={combined_score:.4f}, server_score={server_score:.4f}"
-        )
-        
-        return {
-            'synced': True,
-            'status': 'synced',
-            'server_score': server_score,
-            'local_preview': combined_score,
-            'message': f'✓ Team synced! Score: {server_score:.4f}'
-        }
-        
+        client.create_table(**payload)
+        # optional brief delay is handled in tests; here we rely on backend immediacy
+        logger.info(f"Created Moral Compass table: {table_id}")
     except Exception as e:
-        logger.error(f"Team sync failed for '{team_name}': {e}")
-        return {
-            'synced': False,
-            'status': 'error',
-            'error': str(e),
-            'message': f'⚠️ Team sync error: {str(e)}'
-        }
+        logger.warning(f"Failed to create Moral Compass table '{table_id}': {e}")
 
 
-def _aggregate_team_data(team_name: str, table_id: str) -> Dict[str, Any]:
+def get_challenge_manager(username: str, auth_token: Optional[str] = None) -> Optional[ChallengeManager]:
     """
-    Aggregate data for all team members.
-    
-    Args:
-        team_name: The team name
-        table_id: The table ID
-        
-    Returns:
-        Dictionary with:
-        - 'members': List of member usernames
-        - 'avg_accuracy': Average accuracy across members
-        - 'avg_moral_points': Average moral points across members
+    Create or retrieve a ChallengeManager for the given user.
+
+    Uses derived table_id and MoralcompassApiClient. Ensures the table exists first
+    to avoid missing-rank issues.
     """
     try:
-        # Get team members from environment or use heuristic
-        team_members = _get_team_members(team_name)
-        
-        if not team_members:
-            logger.warning(f"No team members configured for team '{team_name}'")
-            return {'members': [], 'avg_accuracy': 0.0, 'avg_moral_points': 0.0}
-        
-        # Fetch accuracy data from playground
-        accuracy_data = _fetch_team_accuracy_data(team_members)
-        
-        # Fetch moral compass data
-        moral_data = _fetch_team_moral_data(team_members, table_id)
-        
-        # Compute averages
-        valid_members = set(accuracy_data.keys()) & set(moral_data.keys())
-        
-        if not valid_members:
-            return {'members': [], 'avg_accuracy': 0.0, 'avg_moral_points': 0.0}
-        
-        avg_accuracy = sum(accuracy_data[m] for m in valid_members) / len(valid_members)
-        avg_moral = sum(moral_data[m] for m in valid_members) / len(valid_members)
-        
-        return {
-            'members': list(valid_members),
-            'avg_accuracy': avg_accuracy,
-            'avg_moral_points': avg_moral
-        }
-        
-    except Exception as e:
-        logger.error(f"Failed to aggregate team data: {e}")
-        return {'members': [], 'avg_accuracy': 0.0, 'avg_moral_points': 0.0}
-
-
-def _get_team_members(team_name: str) -> List[str]:
-    """
-    Get list of team members.
-    
-    Args:
-        team_name: The team name
-        
-    Returns:
-        List of member usernames
-        
-    Note:
-        Currently reads from TEAM_MEMBERS environment variable (comma-separated).
-        Future enhancement: read from team registry or user profiles.
-    """
-    # Check environment variable
-    members_str = os.getenv('TEAM_MEMBERS', '')
-    if members_str:
-        return [m.strip() for m in members_str.split(',') if m.strip()]
-    
-    # Fallback: try to infer from current user
-    username = os.getenv('username')
-    if username:
-        return [username]
-    
-    return []
-
-
-def _fetch_team_accuracy_data(members: List[str]) -> Dict[str, float]:
-    """
-    Fetch accuracy data for team members from playground.
-    
-    Args:
-        members: List of member usernames
-        
-    Returns:
-        Dictionary mapping username -> accuracy
-    """
-    try:
-        from aimodelshare.playground import Competition
-        
-        playground_url = os.getenv('PLAYGROUND_URL',
-                                   'https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m')
-        
-        playground = Competition(playground_url)
-        leaderboard = playground.get_leaderboard()
-        
-        accuracy_data = {}
-        for entry in leaderboard:
-            username = entry.get('username') or entry.get('user')
-            if username in members:
-                accuracy = (
-                    entry.get('accuracy') or
-                    entry.get('test_accuracy') or
-                    entry.get('score', 0.7)
-                )
-                accuracy_data[username] = float(accuracy)
-        
-        return accuracy_data
-        
-    except Exception as e:
-        logger.error(f"Failed to fetch team accuracy data: {e}")
-        return {}
-
-
-def _fetch_team_moral_data(members: List[str], table_id: str) -> Dict[str, float]:
-    """
-    Fetch moral compass data for team members.
-    
-    Args:
-        members: List of member usernames
-        table_id: The table ID
-        
-    Returns:
-        Dictionary mapping username -> moral_points
-    """
-    try:
-        from aimodelshare.moral_compass.api_client import MoralcompassApiClient
-        
-        api_client = MoralcompassApiClient()
-        
-        moral_data = {}
-        for username in members:
-            try:
-                user_stats = api_client.get_user(table_id, username)
-                # Extract moral points from moralCompassScore (reverse normalization estimate)
-                # This is an approximation; ideally we'd store raw points separately
-                moral_score = user_stats.total_count if hasattr(user_stats, 'total_count') else 0
-                moral_data[username] = float(moral_score)
-            except Exception as e:
-                logger.debug(f"Could not fetch moral data for {username}: {e}")
-                continue
-        
-        return moral_data
-        
-    except Exception as e:
-        logger.error(f"Failed to fetch team moral data: {e}")
-        return {}
-
-
-# ============================================================================
-# Leaderboard Cache & Generation
-# ============================================================================
-
-# Global cache for leaderboard data
-_leaderboard_cache: Dict[str, Tuple[float, List[Dict[str, Any]]]] = {}
-
-
-def fetch_cached_users(table_id: Optional[str] = None, ttl: int = 30) -> List[Dict[str, Any]]:
-    """
-    Fetch users from moral compass table with caching.
-    
-    Args:
-        table_id: Optional table ID (auto-derived if not provided)
-        ttl: Cache TTL in seconds (default: 30)
-        
-    Returns:
-        List of user dictionaries with fields:
-        - 'username': str
-        - 'moralCompassScore': float
-        - 'submissionCount': int (if available)
-        - 'totalCount': int (if available)
-    """
-    if not table_id:
         table_id = _derive_table_id()
-    
-    # Check cache
-    cache_key = table_id
-    if cache_key in _leaderboard_cache:
-        cache_time, cached_data = _leaderboard_cache[cache_key]
-        if (time.time() - cache_time) < ttl:
-            logger.debug(f"Using cached leaderboard for table {table_id}")
-            return cached_data
-    
-    # Fetch from API
-    try:
-        from aimodelshare.moral_compass.api_client import MoralcompassApiClient
-        
-        api_client = MoralcompassApiClient()
-        users = list(api_client.iter_users(table_id))
-        
-        # Convert to dict format
-        user_list = []
-        for user in users:
-            user_list.append({
-                'username': user.username,
-                'moralCompassScore': user.total_count,  # Assuming total_count stores combined score
-                'submissionCount': user.submission_count,
-                'totalCount': user.total_count
-            })
-        
-        # Update cache
-        _leaderboard_cache[cache_key] = (time.time(), user_list)
-        
-        logger.info(f"Fetched {len(user_list)} users for table {table_id}")
-        return user_list
-        
+        api_base_url = os.environ.get("MORAL_COMPASS_API_BASE_URL")
+        client = MoralcompassApiClient(api_base_url=api_base_url, auth_token=auth_token) if api_base_url else MoralcompassApiClient(auth_token=auth_token)
+
+        # Ensure table exists (matches integration-test behavior)
+        _ensure_table_exists(client, table_id, playground_url=os.environ.get("TEST_PLAYGROUND_URL") or os.environ.get("PLAYGROUND_URL"))
+
+        manager = ChallengeManager(table_id=table_id, username=username, api_client=client)
+        return manager
     except Exception as e:
-        logger.error(f"Failed to fetch users for leaderboard: {e}")
-        return []
+        logger.error(f"Failed to initialize ChallengeManager for {username}: {e}")
+        return None
 
 
-def build_moral_leaderboard_html(
-    highlight_username: Optional[str] = None,
-    include_teams: bool = True,
-    table_id: Optional[str] = None,
-    max_entries: int = 20
-) -> str:
+def sync_user_moral_state(cm: ChallengeManager, moral_points: int, accuracy: float) -> Dict[str, Any]:
     """
-    Build HTML for moral compass leaderboard.
-    
-    Args:
-        highlight_username: Username to highlight (current user)
-        include_teams: If True, include team entries
-        table_id: Optional table ID (auto-derived if not provided)
-        max_entries: Maximum number of entries to display
-        
+    Sync user's moral compass metrics using ChallengeManager.
+    """
+    try:
+        cm.set_metric('accuracy', accuracy, primary=True if cm.primary_metric is None else False)
+        cm.set_progress(tasks_completed=moral_points, total_tasks=cm.total_tasks)
+        result = cm.sync()
+        merged = {
+            "synced": True,
+            "status": "ok",
+            "local_preview": cm.get_local_score(),
+        }
+        # Merge server payload keys if present (e.g., moralCompassScore)
+        if isinstance(result, dict):
+            merged.update(result)
+        return merged
+    except Exception as e:
+        logger.warning(f"User sync failed for {cm.username}: {e}")
+        return {
+            "synced": False,
+            "status": "error",
+            "local_preview": cm.get_local_score(),
+            "error": str(e),
+            "message": "⚠️ Sync error. Local preview: {:.4f}".format(cm.get_local_score())
+        }
+
+
+def sync_team_state(team_name: str) -> Dict[str, Any]:
+    """
+    Placeholder for team sync. Implement as needed when team endpoints are available.
+    """
+    # In current backend, teams are inferred from user rows (teamName field).
+    # This function is kept for API parity and future expansion.
+    return {"synced": False, "status": "error", "message": f"No members found for team {team_name}"}
+
+
+def fetch_cached_users(table_id: str, ttl: int = _LEADERBOARD_TTL_SECONDS) -> List[Dict[str, Any]]:
+    """
+    Fetch and cache users for a table, exposing moralCompassScore for ranking computations.
+
+    Returns a list of dicts with keys:
+    - username
+    - moralCompassScore (fallback to totalCount if missing)
+    - submissionCount
+    - totalCount
+    - teamName (if present)
+    """
+    cached = _cache_get(table_id)
+    if cached is not None:
+        return cached
+
+    client = MoralcompassApiClient(api_base_url=os.environ.get("MORAL_COMPASS_API_BASE_URL"))
+    resp = client.list_users(table_id, limit=100)
+    users = resp.get("users", []) if isinstance(resp, dict) else []
+
+    # Normalize fields and fallback
+    normalized: List[Dict[str, Any]] = []
+    for u in users:
+        normalized.append({
+            "username": u.get("username"),
+            "moralCompassScore": u.get("moralCompassScore", u.get("totalCount", 0)),
+            "submissionCount": u.get("submissionCount", 0),
+            "totalCount": u.get("totalCount", 0),
+            "teamName": u.get("teamName")
+        })
+
+    _cache_set(table_id, normalized)
+    return normalized
+
+
+def get_user_ranks(username: str, table_id: Optional[str] = None, team_name: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Compute ranks for a user based on moralCompassScore from list_users.
+
     Returns:
-        HTML string with leaderboard table
-        
-    Note:
-        Uses same styling classes as model_building_game:
-        - leaderboard-html-table
-        - user-row-highlight
+        {
+            "individual_rank": Optional[int],
+            "team_rank": Optional[int],
+            "moral_compass_score": Optional[float],
+            "team_name": Optional[str]
+        }
     """
+    table_id = table_id or _derive_table_id()
     users = fetch_cached_users(table_id)
-    
-    if not users:
-        return """
-        <div style='text-align: center; padding: 40px; color: var(--text-muted);'>
-            <p>No leaderboard data available yet.</p>
-            <p>Complete activities and sync to appear on the leaderboard!</p>
-        </div>
-        """
-    
-    # Filter teams if needed
-    if not include_teams:
-        users = [u for u in users if not u['username'].startswith('team:')]
-    
-    # Sort by moralCompassScore descending
-    users_sorted = sorted(users, key=lambda u: u['moralCompassScore'], reverse=True)
-    users_sorted = users_sorted[:max_entries]
-    
-    # Build HTML
-    html = """
-    <table class='leaderboard-html-table'>
-        <thead>
-            <tr>
-                <th>Rank</th>
-                <th>Name</th>
-                <th>Moral Compass Score</th>
-                <th>Type</th>
-            </tr>
-        </thead>
+
+    # Individual ranks sorted by moralCompassScore desc, then submissionCount desc
+    sorted_users = sorted(users, key=lambda x: (float(x.get("moralCompassScore", 0) or 0.0), x.get("submissionCount", 0)), reverse=True)
+
+    individual_rank = None
+    moral_score = None
+    user_team = None
+
+    for idx, u in enumerate(sorted_users, start=1):
+        if u.get("username") == username:
+            individual_rank = idx
+            try:
+                moral_score = float(u.get("moralCompassScore", 0) or 0.0)
+            except Exception:
+                moral_score = None
+            user_team = u.get("teamName")
+            break
+
+    team_rank = None
+    # Compute team rank if provided
+    if team_name:
+        # Aggregate team entries where username starts with 'team:' or matches teamName
+        team_users = [u for u in sorted_users if u.get("username", "").startswith("team:") or u.get("teamName")]
+        # Create team scores grouped by teamName or 'team:<name>' entries
+        team_scores: Dict[str, float] = {}
+        for u in team_users:
+            tname = u.get("teamName")
+            uname = u.get("username", "")
+            if uname.startswith("team:"):
+                tname = uname.split("team:", 1)[-1]
+            if not tname:
+                continue
+            try:
+                score = float(u.get("moralCompassScore", 0) or 0.0)
+            except Exception:
+                score = 0.0
+            team_scores[tname] = max(team_scores.get(tname, 0.0), score)
+
+        sorted_teams = sorted(team_scores.items(), key=lambda kv: kv[1], reverse=True)
+        for idx, (tname, _) in enumerate(sorted_teams, start=1):
+            if tname == team_name:
+                team_rank = idx
+                break
+
+    return {
+        "individual_rank": individual_rank,
+        "team_rank": team_rank,
+        "moral_compass_score": moral_score,
+        "team_name": user_team
+    }
+
+
+def build_moral_leaderboard_html(table_id: Optional[str] = None, max_entries: Optional[int] = 20) -> str:
+    """
+    Build a simple leaderboard HTML from list_users data sorted by moralCompassScore.
+    """
+    table_id = table_id or _derive_table_id()
+    users = fetch_cached_users(table_id)
+    if max_entries is not None:
+        users = users[:max_entries]
+
+    rows = []
+    for idx, u in enumerate(users, start=1):
+        uname = u.get("username") or ""
+        score = u.get("moralCompassScore", 0)
+        try:
+            score_float = float(score or 0.0)
+        except Exception:
+            score_float = 0.0
+        rows.append(f"<tr><td>{idx}</td><td>{uname}</td><td>{score_float:.4f}</td></tr>")
+
+    html = f"""
+    <div class="mc-leaderboard">
+      <h3>Moral Compass Leaderboard</h3>
+      <table>
+        <thead><tr><th>#</th><th>User</th><th>Score</th></tr></thead>
         <tbody>
-    """
-    
-    for rank, user in enumerate(users_sorted, start=1):
-        username = user['username']
-        score = user['moralCompassScore']
-        
-        is_team = username.startswith('team:')
-        display_name = username[5:] if is_team else username  # Remove 'team:' prefix
-        entry_type = '👥 Team' if is_team else '👤 User'
-        
-        # Highlight current user
-        highlight = username == highlight_username
-        row_class = "class='user-row-highlight'" if highlight else ""
-        
-        html += f"""
-            <tr {row_class}>
-                <td>{rank}</td>
-                <td>{display_name}</td>
-                <td>{score:.4f}</td>
-                <td>{entry_type}</td>
-            </tr>
-        """
-    
-    html += """
+          {''.join(rows) if rows else '<tr><td colspan="3">No users yet</td></tr>'}
         </tbody>
-    </table>
+      </table>
+    </div>
     """
-    
     return html
 
 
-# ============================================================================
-# Convenience Functions
-# ============================================================================
+def get_moral_compass_widget_html(username: str, table_id: Optional[str] = None) -> str:
+    """
+    Build a minimal widget HTML showing the user's current moral compass score and rank.
+    """
+    table_id = table_id or _derive_table_id()
+    ranks = get_user_ranks(username=username, table_id=table_id)
 
-def get_moral_compass_widget_html(
-    local_points: int,
-    server_score: Optional[float] = None,
-    is_synced: bool = False
-) -> str:
-    """
-    Generate HTML for Moral Compass widget.
-    
-    Args:
-        local_points: Local moral points accumulated
-        server_score: Server moral compass score (if synced)
-        is_synced: Whether currently synced
-        
-    Returns:
-        HTML string for widget display
-    """
-    status_icon = "✓" if is_synced else "⏳"
-    status_text = "(synced)" if is_synced else "(pending)"
-    
+    rank_text = f"#{ranks['individual_rank']}" if ranks.get("individual_rank") is not None else "N/A"
+    score = ranks.get("moral_compass_score")
+    score_text = f"{score:.4f}" if isinstance(score, (int, float)) else "N/A"
+
     html = f"""
-    <div style='background: var(--block-background-fill); padding: 16px; border-radius: 8px; 
-                border: 2px solid var(--accent-strong); margin: 16px 0;'>
-        <h3 style='margin-top: 0;'>🧭 Moral Compass Score</h3>
-        <div style='display: flex; justify-content: space-around; flex-wrap: wrap;'>
-            <div style='text-align: center; margin: 10px;'>
-                <div style='font-size: 0.9rem; color: var(--text-muted);'>Local Points</div>
-                <div style='font-size: 2rem; font-weight: bold; color: var(--accent-strong);'>
-                    {local_points}
-                </div>
-            </div>
-    """
-    
-    if server_score is not None:
-        html += f"""
-            <div style='text-align: center; margin: 10px;'>
-                <div style='font-size: 0.9rem; color: var(--text-muted);'>Server Score {status_icon}</div>
-                <div style='font-size: 2rem; font-weight: bold; color: var(--accent-strong);'>
-                    {server_score:.4f}
-                </div>
-                <div style='font-size: 0.8rem; color: var(--text-muted);'>{status_text}</div>
-            </div>
-        """
-    
-    html += """
-        </div>
+    <div class="mc-widget">
+      <p><strong>User:</strong> {username}</p>
+      <p><strong>Rank:</strong> {rank_text}</p>
+      <p><strong>Moral Compass Score:</strong> {score_text}</p>
     </div>
     """
-    
     return html

@@ -41,8 +41,15 @@ _EXPORT_MAP = {
     "launch_ethical_revelation_app": ("ethical_revelation", "launch_ethical_revelation_app"),
     "create_moral_compass_challenge_app": ("moral_compass_challenge", "create_moral_compass_challenge_app"),
     "launch_moral_compass_challenge_app": ("moral_compass_challenge", "launch_moral_compass_challenge_app"),
-    "create_bias_detective_app": ("bias_detective", "create_bias_detective_app"),
-    "launch_bias_detective_app": ("bias_detective", "launch_bias_detective_app"),
+
+    # NEW: split Bias Detective into two explicit modules (part1 uses current code;
+    # part2 is the temporary placeholder module). Ensure files bias_detective_part1.py
+    # and bias_detective_part2.py exist under this package.
+    "create_bias_detective_part1_app": ("bias_detective_part1", "create_bias_detective_part1_app"),
+    "launch_bias_detective_part1_app": ("bias_detective_part1", "launch_bias_detective_part1_app"),
+    "create_bias_detective_part2_app": ("bias_detective_part2", "create_bias_detective_part2_app"),
+    "launch_bias_detective_part2_app": ("bias_detective_part2", "launch_bias_detective_part2_app"),
+
     "create_fairness_fixer_app": ("fairness_fixer", "create_fairness_fixer_app"),
     "launch_fairness_fixer_app": ("fairness_fixer", "launch_fairness_fixer_app"),
     "create_justice_equity_upgrade_app": ("justice_equity_upgrade", "create_justice_equity_upgrade_app"),

@@ -21,7 +21,9 @@ try:
         create_ai_consequences_app, launch_ai_consequences_app,
         create_what_is_ai_app, launch_what_is_ai_app,
         create_model_building_game_app, launch_model_building_game_app,
-        create_model_building_game_beginner_app, launch_model_building_game_beginner_app
+        create_model_building_game_beginner_app, launch_model_building_game_beginner_app,
+        create_bias_detective_part1_app, launch_bias_detective_part1_app,
+        create_bias_detective_part2_app, launch_bias_detective_part2_app,
     )
 except Exception:  # noqa: BLE001
     # Fallback if Gradio apps have an issue (e.g., Gradio not installed)
@@ -37,6 +39,10 @@ except Exception:  # noqa: BLE001
     launch_model_building_game_app = None
     create_model_building_game_beginner_app = None
     launch_model_building_game_beginner_app = None
+    create_bias_detective_part1_app = None
+    launch_bias_detective_part1_app = None
+    create_bias_detective_part2_app = None
+    launch_bias_detective_part2_app = None
 
 __all__ = [
     "__version__",
@@ -61,5 +67,9 @@ __all__ = [
     "create_model_building_game_app",
     "launch_model_building_game_app",
     "create_model_building_game_beginner_app",
-    "launch_model_building_game_beginner_app"
+    "launch_model_building_game_beginner_app",
+    "create_bias_detective_part1_app",
+    "launch_bias_detective_part1_app",
+    "create_bias_detective_part2_app",
+    "launch_bias_detective_part2_app",
 ]

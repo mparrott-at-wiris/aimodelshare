@@ -66,6 +66,15 @@ def test_moral_compass_challenge_app_can_be_created():
     assert hasattr(app, 'launch')
 
 
+def test_bias_detective_app_can_be_created():
+    """Test that Bias Detective app can be instantiated."""
+    from aimodelshare.moral_compass.apps import create_bias_detective_app
+    
+    app = create_bias_detective_app()
+    assert app is not None
+    assert hasattr(app, 'launch')
+
+
 def test_all_apps_exported_from_init():
     """Test that all apps are properly exported from __init__.py"""
     from aimodelshare.moral_compass import apps

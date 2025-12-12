@@ -66,6 +66,7 @@ class MoralcompassUserStats:
     submission_count: int = 0
     total_count: int = 0
     last_updated: Optional[str] = None
+    completed_task_ids: Optional[List[str]] = None
 
 
 # ============================================================================
@@ -499,7 +500,8 @@ class MoralcompassApiClient:
                     username=user_data["username"],
                     submission_count=user_data.get("submissionCount", 0),
                     total_count=user_data.get("totalCount", 0),
-                    last_updated=user_data.get("lastUpdated")
+                    last_updated=user_data.get("lastUpdated"),
+                    completed_task_ids=user_data.get("completedTaskIds")
                 )
             
             last_key = response.get("lastKey")
@@ -527,11 +529,12 @@ class MoralcompassApiClient:
             username=data["username"],
             submission_count=data.get("submissionCount", 0),
             total_count=data.get("totalCount", 0),
-            last_updated=data.get("lastUpdated")
+            last_updated=data.get("lastUpdated"),
+            completed_task_ids=data.get("completedTaskIds")
         )
     
     def put_user(self, table_id: str, username: str, 
-                 submission_count: int, total_count: int) -> Dict[str, Any]:
+                 submission_count: int, total_count: int, team_name: Optional[str] = None) -> Dict[str, Any]:
         """
         Create or update a user's stats in a table.
         
@@ -540,6 +543,7 @@ class MoralcompassApiClient:
             username: The username
             submission_count: Number of submissions
             total_count: Total count
+            team_name: Optional team name for the user
             
         Returns:
             Dict containing update response
@@ -548,6 +552,9 @@ class MoralcompassApiClient:
             "submissionCount": submission_count,
             "totalCount": total_count
         }
+        
+        if team_name is not None:
+            payload["teamName"] = team_name
         
         response = self._request("PUT", f"/tables/{table_id}/users/{username}", json=payload)
         return response.json()
@@ -558,7 +565,9 @@ class MoralcompassApiClient:
                            total_tasks: int = 0,
                            questions_correct: int = 0,
                            total_questions: int = 0,
-                           primary_metric: Optional[str] = None) -> Dict[str, Any]:
+                           primary_metric: Optional[str] = None,
+                           team_name: Optional[str] = None,
+                           completed_task_ids: Optional[List[str]] = None) -> Dict[str, Any]:
         """
         Update a user's moral compass score with dynamic metrics.
         
@@ -571,6 +580,8 @@ class MoralcompassApiClient:
             questions_correct: Number of questions answered correctly (default: 0)
             total_questions: Total number of questions (default: 0)
             primary_metric: Optional primary metric name (defaults to 'accuracy' or first sorted key)
+            team_name: Optional team name for the user
+            completed_task_ids: Optional list of completed task IDs (e.g., ['t1', 't2'])
             
         Returns:
             Dict containing moralCompassScore and other fields
@@ -586,6 +597,12 @@ class MoralcompassApiClient:
         if primary_metric is not None:
             payload["primaryMetric"] = primary_metric
         
+        if team_name is not None:
+            payload["teamName"] = team_name
+        
+        if completed_task_ids is not None:
+            payload["completedTaskIds"] = completed_task_ids
+        
         # Try hyphenated path first
         try:
             response = self._request("PUT", f"/tables/{table_id}/users/{username}/moral-compass", json=payload)
@@ -599,3 +616,74 @@ class MoralcompassApiClient:
             else:
                 # Resource-level 404 (e.g., table or user not found), don't retry
                 raise
+    
+    def add_tasks(self, table_id: str, username: str, task_ids: List[str]) -> Dict[str, Any]:
+        """
+        Add task IDs to user's completedTaskIds list.
+        
+        Args:
+            table_id: The table identifier
+            username: The username
+            task_ids: List of task IDs to add (e.g., ['t1', 't2'])
+            
+        Returns:
+            Dict containing updated completedTaskIds
+        """
+        payload = {
+            "op": "add",
+            "taskIds": task_ids
+        }
+        response = self._request("PATCH", f"/tables/{table_id}/users/{username}/tasks", json=payload)
+        return response.json()
+    
+    def remove_tasks(self, table_id: str, username: str, task_ids: List[str]) -> Dict[str, Any]:
+        """
+        Remove task IDs from user's completedTaskIds list.
+        
+        Args:
+            table_id: The table identifier
+            username: The username
+            task_ids: List of task IDs to remove (e.g., ['t1', 't2'])
+            
+        Returns:
+            Dict containing updated completedTaskIds
+        """
+        payload = {
+            "op": "remove",
+            "taskIds": task_ids
+        }
+        response = self._request("PATCH", f"/tables/{table_id}/users/{username}/tasks", json=payload)
+        return response.json()
+    
+    def reset_tasks(self, table_id: str, username: str, task_ids: Optional[List[str]] = None) -> Dict[str, Any]:
+        """
+        Reset user's completedTaskIds list to the provided IDs.
+        
+        Args:
+            table_id: The table identifier
+            username: The username
+            task_ids: List of task IDs to set (default: empty list)
+            
+        Returns:
+            Dict containing updated completedTaskIds
+        """
+        payload = {
+            "op": "reset",
+            "taskIds": task_ids or []
+        }
+        response = self._request("PATCH", f"/tables/{table_id}/users/{username}/tasks", json=payload)
+        return response.json()
+    
+    def clear_tasks(self, table_id: str, username: str) -> Dict[str, Any]:
+        """
+        Clear all task IDs from user's completedTaskIds list.
+        
+        Args:
+            table_id: The table identifier
+            username: The username
+            
+        Returns:
+            Dict containing empty completedTaskIds
+        """
+        response = self._request("DELETE", f"/tables/{table_id}/users/{username}/tasks")
+        return response.json()

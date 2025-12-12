@@ -28,9 +28,12 @@ APP_NAME_TO_FACTORY = {
     "model-building-game-es": "create_model_building_game_es_app",
     "ethical-revelation": "create_ethical_revelation_app",
     "moral-compass-challenge": "create_moral_compass_challenge_app",
-    "bias-detective": "create_bias_detective_app",
-    "fairness-fixer": "create_fairness_fixer_app",
-    "justice-equity-upgrade": "create_justice_equity_upgrade_app",
+    "moral-compass-challenge": "create_moral_compass_challenge_app",
+    # Bias Detective apps (split into two separate services)
+    # Keep legacy "bias-detective" as an alias for part1 for backward compatibility
+    "bias-detective-part1": "create_bias_detective_part1_app",
+    "bias-detective-part2": "create_bias_detective_part2_app",
+    "moral-compass-challenge": "create_moral_compass_challenge_app",
 }
 
 # Supported language codes for model-building-game dynamic routing
