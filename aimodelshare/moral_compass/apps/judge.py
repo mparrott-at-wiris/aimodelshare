@@ -312,8 +312,6 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     
     profiles = _generate_defendant_profiles()
     
-    # Track decisions globally for simplicity in this factory context
-    decisions = {}
 
     # Helpers
     def t(lang, key):
