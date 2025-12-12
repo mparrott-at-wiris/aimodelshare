@@ -637,25 +637,31 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             # Create UI for each defendant
             for profile in profiles:
                 with gr.Column():
-                        # Profile Card HTML
-                        p_html = gr.HTML(format_profile(profile, "en"))
-                        
-                        with gr.Row():
-                            # Wire up buttons (Pass state in, get state out)
-                            p_rel_btn.click(
-                                fn=make_decision,
-                                inputs=[gr.Number(value=profile["id"], visible=False), gr.State(value="Release"), lang_state, decisions_state],
-                                outputs=[decision_status, decisions_state], # Updates the state!
-                            )
-                            p_keep_btn.click(
-                                fn=make_decision,
-                                inputs=[gr.Number(value=profile["id"], visible=False), gr.State(value="Keep in Prison"), lang_state, decisions_state],
-                                outputs=[decision_status, decisions_state], # Updates the state!
-                            )
-
+                    # 1. Profile Card HTML
+                    p_html = gr.HTML(format_profile(profile, "en"))
+                    
+                    # 2. Define the status text component FIRST (so buttons can reference it)
                     decision_status = gr.Markdown("")
 
-                    # Store for language updates
+                    # 3. Create Row with Buttons
+                    with gr.Row():
+                        # Define the buttons
+                        p_rel_btn = gr.Button(t("en", "btn_release"), variant="secondary")
+                        p_keep_btn = gr.Button(t("en", "btn_keep"), variant="stop")
+                        
+                        # Wire up buttons
+                        p_rel_btn.click(
+                            fn=make_decision,
+                            inputs=[gr.Number(value=profile["id"], visible=False), gr.State(value="Release"), lang_state, decisions_state],
+                            outputs=[decision_status, decisions_state], 
+                        )
+                        p_keep_btn.click(
+                            fn=make_decision,
+                            inputs=[gr.Number(value=profile["id"], visible=False), gr.State(value="Keep in Prison"), lang_state, decisions_state],
+                            outputs=[decision_status, decisions_state], 
+                        )
+
+                    # 4. Store elements for language updates
                     profile_ui_elements.append({
                         "id": profile["id"],
                         "profile_data": profile,
@@ -663,7 +669,6 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                         "btn_rel": p_rel_btn,
                         "btn_keep": p_keep_btn
                     })
-
 
                     gr.HTML("<hr style='margin:24px 0;'>")
 
@@ -866,4 +871,5 @@ def launch_judge_app(height: int = 1200, share: bool = False, debug: bool = Fals
 
 if __name__ == "__main__":
     launch_judge_app()
+
 
