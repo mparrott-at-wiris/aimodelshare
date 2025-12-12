@@ -2210,10 +2210,10 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                     fn=make_next_handler(curr_col, next_col, i + 1),
                     inputs=[username_state, token_state, team_state, task_list_state],
                     outputs=[out_top],
+                    js=nav_js(next_target_id, "Loading..."),
                 ).then(
                     fn=make_nav_generator(curr_col, next_col),
                     outputs=[curr_col, next_col],
-                    js=nav_js(next_target_id, "Loading..."),
                 )
 
         return demo
