@@ -3503,110 +3503,110 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # Slide 1: From Understanding to Building (Retained as transition)
         with gr.Column(visible=True, elem_id="slide-1") as briefing_slide_1:
-            gr.Markdown("<h1 style='text-align:center;'>🔄 From Understanding to Building</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🔄 De la teoria a la práctica</h1>")
             gr.HTML(
                 """
                 <div class='slide-content'>
                 <div class='panel-box'>
-                <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>Great progress! You've now:</h3>
+                <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>¡Buen trabajo! Ahora ya has conseguido:</h3>
 
                 <ul style='list-style: none; padding-left: 0; margin-top: 24px; margin-bottom: 24px;'>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
                         <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Made tough decisions as a judge using AI predictions
+                        Tomar decisiones difíciles como juez o jueza utilizando predicciones de IA
                     </li>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
                         <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Learned about false positives and false negatives
+                        Aprender qué son los falsos positivos y los falsos negativos
                     </li>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
                         <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Understood how AI works:
+                        Entender cómo funciona la IA:
                     </li>
                 </ul>
 
                 <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
                     <div style='display:inline-block; background:#dbeafe; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#0369a1;'>INPUT</h3>
+                        <h3 style='margin:0; color:#0369a1;'>ENTRADA</h3>
                     </div>
                     <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
                     <div style='display:inline-block; background:#fef3c7; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#92400e;'>MODEL</h3>
+                        <h3 style='margin:0; color:#92400e;'>MODELO</h3>
                     </div>
                     <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
                     <div style='display:inline-block; background:#f0fdf4; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#15803d;'>OUTPUT</h3>
+                        <h3 style='margin:0; color:#15803d;'>RESULTADO</h3>
                     </div>
                 </div>
 
                 <hr style='margin: 24px 0; border-top: 2px solid #c7d2fe;'>
 
-                <h3 style='font-size: 1.5rem; text-align:center;'>Now it's time to step into the shoes of an AI Engineer.</h3>
+                <h3 style='font-size: 1.5rem; text-align:center;'>Ahora ha llegado el momento de ponerte en la piel de una persona ingeniera de IA.</h3>
                 <p style='font-size: 1.1rem; text-align:center; margin-top: 12px;'>
-                    <strong>Your New Challenge:</strong> Build AI models that are more accurate than the one you used as a judge.
+                    <strong>Tu nuevo reto:</strong> Crear modelos de IA que sean más precisos que el que utilizaste en el rol de juzgar casos.
                 </p>
                 <p style='font-size: 1.1rem; text-align:center; margin-top: 12px;'>
-                    Remember: You experienced firsthand how AI predictions affect real people's lives. Use that knowledge to build something better.
+                    Recuerda: has vivido en primera persona cómo las predicciones de la IA afectan la vida real de las personas. Usa ese conocimiento para construir algo mejor.
                 </p>
                 </div>
                 </div>
                 """
             )
-            briefing_1_next = gr.Button("Next ▶️", variant="primary", size="lg")
+            briefing_1_next = gr.Button("Siguiente ▶️", variant="primary", size="lg")
 
         # Slide 2: Card 1 (Your Engineering Mission)
         with gr.Column(visible=False, elem_id="slide-2") as briefing_slide_2:
-            gr.Markdown("<h1 style='text-align:center;'>📋 Your Mission - Build Better AI</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>📋 Tu misión - Construir una IA mejor</h1>")
             
             gr.HTML(
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <h3>The Mission</h3>
-                        <p>Build an AI model that helps judges make better decisions. The model you used previously gave you imperfect advice. Your job now is to build a new model that predicts risk more accurately, providing judges with the reliable insights they need to be fair.</p>
+                        <h3>La misión</h3>
+                        <p>Crea un modelo de IA que ayude a los tribunales a tomar decisiones más acertadas. El modelo que utilizaste antes te daba recomendaciones imperfectas. Ahora tu tarea es construir un modelo nuevo que prediga el riesgo con mayor precisión y ofrezca a quienes juzgan información fiable para poder ser justos y justas.</p>
                         
-                        <h3>The Competition</h3>
-                        <p>To do this, you will compete against other engineers! To help you in your mission, you will join an engineering team. Your results will be tracked both individually and as a group in the Live Standings Leaderboards.</p>
+                        <h3>La competició</h3>
+                        <p>Para lograrlo, competirás con otras personas ingenieras. Formarás parte de un equipo de ingeniería que te ayudará en tu misión. Tus resultados se registrarán tanto de forma individual como colectiva en las clasificaciones en tiempo real.</p>
                     </div>
 
                     <div class='leaderboard-box' style='max-width: 600px; margin: 16px auto; text-align: center; padding: 16px;'>
-                        <p style='font-size: 1.1rem; margin:0;'>You will join a team like...</p>
+                        <p style='font-size: 1.1rem; margin:0;'>Te unirás a un equipo como...</p>
                         <h3 style='font-size: 1.75rem; color: #6b7280; margin: 8px 0;'>
-                            🛡️ The Ethical Explorers
+                            🛡️ Los Exploradores Éticos
                         </h3>
                     </div>
 
                     <div class='mock-ui-box'>
-                        <h3>The Data Challenge</h3>
-                        <p>To compete, you have access to thousands of old case files. You have two distinct types of information:</p>
+                        <h3>El reto de los datos</h3>
+                        <p>Para competir, tendrás acceso a miles de expedientes de casos antiguos. Dispones de dos tipos de información:</p>
                         <ol style='list-style-position: inside; padding-left: 20px;'>
-                            <li><strong>Defendant Profiles:</strong> This is like what the judge saw at the time of arrest.
+                            <li><strong>Perfiles de personas presas:</strong> Es la información que tenía el tribunal en el momento de la detención.
                                 <ul style='margin-left: 20px; list-style-type: disc;'>
-                                    <li><em>Age, Number of Prior Offenses, Type of Charge.</em></li>
+                                    <li><em>Edad, número de antecedentes penales, tipo de cargo penal.</em></li>
                                 </ul>
                             </li>
-                            <li><strong>Historical Outcomes:</strong> This is what actually happened to those people later.
+                            <li><strong>Resultados históricos:</strong> Esto es lo que ocurrió con esas personas pasado un tiempo.
                                 <ul style='margin-left: 20px; list-style-type: disc;'>
-                                    <li><em>Did they re-offend within 2 years? (Yes/No)</em></li>
+                                    <li><em>¿Volvieron a cometer un delito en dos años? (Sí/No)</em></li>
                                 </ul>
                             </li>
                         </ol>
                         
-                        <h3>The Core Task</h3>
-                        <p>You need to teach your AI to look at the "Profiles" and accurately predict the "Outcome."</p>
-                        <p><strong>Ready to build something that could change how justice works?</strong></p>
+                        <h3>La tarea principal</h3>
+                        <p>Debes enseñar a tu modelo de IA a analizar los "perfiles" y predecir con precisión el "resultado".</p>
+                        <p><strong>¿Te animas a construir algo que podría cambiar la manera en que funciona la justicia?</strong></p>
                     </div>
                 </div>
                 """
             )
             
             with gr.Row():
-                briefing_2_back = gr.Button("◀️ Back", size="lg")
-                briefing_2_next = gr.Button("Next ▶️", variant="primary", size="lg")
+                briefing_2_back = gr.Button("◀️ Atrás", size="lg")
+                briefing_2_next = gr.Button("Siguiente ▶️", variant="primary", size="lg")
 
         # Slide 3: Card 2 (What is a "Model"?)
         with gr.Column(visible=False, elem_id="slide-3") as briefing_slide_3:
-            gr.Markdown("<h1 style='text-align:center;'>🧠 What is a \"Model\"?</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🧠 ¿Qué es un \"Modelo\"?</h1>")
             
             # --- FIX FOR SLIDE 3 ---
             # Combined all content into single gr.HTML()
@@ -3614,34 +3614,34 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <p>Before we start competing, let's break down exactly what you are building.</p>
-                        <h3>Think of a Model as a "Prediction Machine."</h3>
-                        <p>You already know the flow:</p>
+                        <p>Antes de empezar a competir, veamos con claridad qué es exactamente lo que vas a construir.</p>
+                        <h3>Piensa en un modelo como una "Máquina de Predicción".</h3>
+                        <p>Ya conoces el flujo:</p>
                         
                         <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
                             <div style='display:inline-block; background:#dbeafe; padding:12px 16px; border-radius:8px; margin:4px;'>
-                                <h3 style='margin:0; color:#0369a1;'>INPUT</h3>
+                                <h3 style='margin:0; color:#0369a1;'>ENTRADA</h3>
                             </div>
                             <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
                             <div style='display:inline-block; background:#fef3c7; padding:12px 16px; border-radius:8px; margin:4px;'>
-                                <h3 style='margin:0; color:#92400e;'>MODEL</h3>
+                                <h3 style='margin:0; color:#92400e;'>MODELO</h3>
                             </div>
                             <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
                             <div style='display:inline-block; background:#f0fdf4; padding:12px 16px; border-radius:8px; margin:4px;'>
-                                <h3 style='margin:0; color:#15803d;'>OUTPUT</h3>
+                                <h3 style='margin:0; color:#15803d;'>SALIDA</h3>
                             </div>
                         </div>
                         
-                        <p>As an engineer, you don't need to write complex code from scratch. Instead, you assemble this machine using three main components.</p>
+                        <p>Como persona ingeniera, no necesitas escribir código complejo desde cero. En lugar de eso, construyes esta máquina combinando los tres siguientes componentes principales.</p>
                     </div>
 
                     <div class='mock-ui-box'>
-                        <h3>The 3 Components:</h3>
-                        <p><strong>1. The Inputs (Data)</strong><br>
-                        The information you feed the machine.<br>
-                        <em>* Examples: Age, Prior Crimes, Charge Details.</em></p>
+                        <h3>Los tres componentes:</h3>
+                        <p><strong>1. Las entradas (Datos)</strong><br>
+                        La información que le das a la máquina.<br>
+                        <em>* Ejemplos: edad, número de antecedentes penales, detalles del cargo penal.</em></p>
 
-                        <p><strong>2. The Model (Prediction Machine)</strong><br>
+                        <p><strong>2. El modelo (La máquina de predicción)</strong><br>
                         The mathematical "brain" that looks for patterns in the inputs.<br>
                         <em>* Examples: You will choose different "brains" that learn in different ways (e.g., simple rules vs. deep patterns).</em></p>
 
