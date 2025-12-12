@@ -8,7 +8,7 @@ import random
 import time
 import threading
 from typing import Optional, Dict, Any, Tuple
-
+from functools import lru_cache
 import gradio as gr
 import pandas as pd
 
@@ -834,21 +834,65 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
         loading_screen = gr.Column(visible=False)
         all_steps = [step_1, step_2, step_3, step_4, step_6, loading_screen, initial_loading]
 
-        # --- Initial Load Handler ---
+        # -------------------------------------------------------------------------
+        # HYBRID CACHING LOGIC (OPTIMIZED)
+        # -------------------------------------------------------------------------
+
+        # 1. Define update targets (Order must match the return list below)
+        update_targets = [
+            initial_loading, step_1,
+            c_title, c_loading,
+            stats_display, step_2_html_comp, step_6_html_comp, # Dynamic HTML
+            step_3_html_comp, step_4_html_comp,                # Static HTML
+            step_1_next, step_2_back, step_2_next, step_3_back, step_3_next, step_4_back, step_4_next, step_6_back
+        ]
+
+        # 2. Cached Generator for Static Content (Steps 3 & 4 + Buttons)
+        @lru_cache(maxsize=16)
+        def get_cached_static_content(lang):
+            """
+            Generates the heavy static HTML for Steps 3 & 4 and all buttons once per language.
+            """
+            return [
+                # Static HTML Steps
+                _get_step3_html(lang),
+                _get_step4_html(lang),
+                
+                # All Buttons
+                gr.Button(value=t(lang, 'btn_new_std')), # step_1_next
+                gr.Button(value=t(lang, 'btn_back')),    # step_2_back
+                gr.Button(value=t(lang, 'btn_reset')),   # step_2_next
+                gr.Button(value=t(lang, 'btn_back')),    # step_3_back
+                gr.Button(value=t(lang, 'btn_intro_mc')),# step_3_next
+                gr.Button(value=t(lang, 'btn_back')),    # step_4_back
+                gr.Button(value=t(lang, 'btn_see_chal')),# step_4_next
+                gr.Button(value=t(lang, 'btn_back'))     # step_6_back
+            ]
+
+        # 3. Hybrid Load Function
         def initial_load(request: gr.Request):
             # 1. Language
             params = request.query_params
             lang = params.get("lang", "en")
             if lang not in TRANSLATIONS: lang = "en"
             
-            # 2. Auth
+            # 2. Auth (Dynamic)
             success, username, token = _try_session_based_auth(request)
             
-            # 3. Stats
+            # 3. Stats (Dynamic)
             stats = {"is_signed_in": False, "best_score": None}
             if success and username:
                 stats = _compute_user_stats(username, token)
             
+            # 4. Build Dynamic HTML
+            html_standing = build_standing_html(stats, lang)
+            html_step2 = build_step2_html(stats, lang)
+            html_step6 = build_step6_html(stats, lang)
+            
+            # 5. Fetch Static Content from Cache
+            static_content = get_cached_static_content(lang)
+            
+            # 6. Combine
             return [
                 gr.update(visible=False), # initial_loading
                 gr.update(visible=True),  # step_1
@@ -857,31 +901,15 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
                 f"<h1 style='text-align:center;'>{t(lang, 'title')}</h1>",
                 f"<div style='text-align:center; padding:80px 0;'><h2>{t(lang, 'loading')}</h2></div>",
                 
-                # HTML Components
-                build_standing_html(stats, lang),
-                build_step2_html(stats, lang),
-                _get_step3_html(lang),
-                _get_step4_html(lang),
-                build_step6_html(stats, lang),
+                # Dynamic HTML
+                html_standing,
+                html_step2,
+                html_step6,
                 
-                # Buttons
-                gr.Button(value=t(lang, 'btn_new_std')), # s1 next
-                gr.Button(value=t(lang, 'btn_back')),    # s2 back
-                gr.Button(value=t(lang, 'btn_reset')),   # s2 next
-                gr.Button(value=t(lang, 'btn_back')),    # s3 back
-                gr.Button(value=t(lang, 'btn_intro_mc')), # s3 next
-                gr.Button(value=t(lang, 'btn_back')),    # s4 back
-                gr.Button(value=t(lang, 'btn_see_chal')), # s4 next
-                gr.Button(value=t(lang, 'btn_back')),    # s6 back
+                # Static HTML & Buttons (Unpacked from cache)
+                *static_content
             ]
 
-        update_targets = [
-            initial_loading, step_1,
-            c_title, c_loading,
-            stats_display, step_2_html_comp, step_3_html_comp, step_4_html_comp, step_6_html_comp,
-            step_1_next, step_2_back, step_2_next, step_3_back, step_3_next, step_4_back, step_4_next, step_6_back
-        ]
-        
         demo.load(fn=initial_load, inputs=None, outputs=update_targets)
 
         # --- Navigation ---
