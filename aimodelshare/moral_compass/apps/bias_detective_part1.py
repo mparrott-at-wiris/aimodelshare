@@ -121,71 +121,57 @@ def get_modules(lang="en"):
     return [
     {
         "id": 0,
-        "title": "Module 0: Moral Compass Intro",
-        "html": """
+        "title": t(lang, "mod0_title", "Module 0: Moral Compass Intro"),
+        "html": f"""
             <div class="scenario-box">
-                <h2 class="slide-title">🧭 Introducing Your New Moral Compass Score</h2>
+                <h2 class="slide-title">{t(lang, "mod0_heading", "🧭 Introducing Your New Moral Compass Score")}</h2>
                 <div class="slide-body">
                     <p>
-                        Right now, your model is judged mostly on <strong>accuracy</strong>. That sounds fair,
-                        but accuracy alone can hide important risks—especially when a model is used to make decisions
-                        about real people.
+                        {t(lang, "mod0_p1", "Right now, your model is judged mostly on <strong>accuracy</strong>. That sounds fair, but accuracy alone can hide important risks—especially when a model is used to make decisions about real people.")}
                     </p>
                     <p>
-                        To make that risk visible, this challenge uses a new metric: your
-                        <strong>Moral Compass Score</strong>.
+                        {t(lang, "mod0_p2", "To make that risk visible, this challenge uses a new metric: your <strong>Moral Compass Score</strong>.")}
                     </p>
 
                     <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
-                        <h4 style="margin-top:0; font-size:1.3rem;">1. How Your Moral Compass Score Works</h4>
+                        <h4 style="margin-top:0; font-size:1.3rem;">{t(lang, "mod0_section1_title", "1. How Your Moral Compass Score Works")}</h4>
                         <div style="font-size: 1.4rem; margin: 16px 0;">
-                            <strong>Moral Compass Score</strong> =<br><br>
-                            <span style="color:var(--color-accent); font-weight:bold;">[ Model Accuracy ]</span>
-                            ×
-                            <span style="color:#22c55e; font-weight:bold;">[ Ethical Progress % ]</span>
+                            {t(lang, "mod0_formula", '<strong>Moral Compass Score</strong> =<br><br><span style="color:var(--color-accent); font-weight:bold;">[ Model Accuracy ]</span> × <span style="color:#22c55e; font-weight:bold;">[ Ethical Progress % ]</span>')}
                         </div>
                         <p style="font-size:1rem; max-width:650px; margin:0 auto;">
-                            Your accuracy is the starting point. Your <strong>Ethical Progress %</strong> reflects
-                            how far you’ve gone in understanding and reducing AI bias and harm. The more you progress
-                            through this challenge, the more of your accuracy “counts” toward your Moral Compass Score.
+                            {t(lang, "mod0_formula_desc", 'Your accuracy is the starting point. Your <strong>Ethical Progress %</strong> reflects how far you\'ve gone in understanding and reducing AI bias and harm. The more you progress through this challenge, the more of your accuracy "counts" toward your Moral Compass Score.')}
                         </p>
                     </div>
 
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px; margin-top:24px;">
                         <div class="hint-box" style="text-align:left;">
-                            <h4 style="margin-top:0; font-size:1.1rem;">2. A Score That Grows With You</h4>
+                            <h4 style="margin-top:0; font-size:1.1rem;">{t(lang, "mod0_section2_title", "2. A Score That Grows With You")}</h4>
                             <p style="font-size:0.98rem;">
-                                Your score is <strong>dynamic</strong>. As you complete more modules and demonstrate
-                                better judgment about fairness, your <strong>Ethical Progress %</strong> rises.
-                                That unlocks more of your model’s base accuracy in the Moral Compass Score.
+                                {t(lang, "mod0_section2_desc", "Your score is <strong>dynamic</strong>. As you complete more modules and demonstrate better judgment about fairness, your <strong>Ethical Progress %</strong> rises. That unlocks more of your model\'s base accuracy in the Moral Compass Score.")}
                             </p>
                         </div>
                         <div class="hint-box" style="text-align:left;">
-                            <h4 style="margin-top:0; font-size:1.1rem;">3. Look Up. Look Down.</h4>
+                            <h4 style="margin-top:0; font-size:1.1rem;">{t(lang, "mod0_section3_title", "3. Look Up. Look Down.")}</h4>
                             <p style="font-size:0.98rem; margin-bottom:6px;">
-                                <strong>Look up:</strong> The top bar shows your live Moral Compass Score and rank.
-                                As your Ethical Progress increases, you’ll see your score move in real time.
+                                {t(lang, "mod0_section3_up", "<strong>Look up:</strong> The top bar shows your live Moral Compass Score and rank. As your Ethical Progress increases, you\'ll see your score move in real time.")}
                             </p>
                             <p style="font-size:0.98rem; margin-bottom:0;">
-                                <strong>Look down:</strong> The leaderboards below re-rank teams and individuals
-                                as people advance. When you improve your ethical progress, you don’t just change
-                                your score—you change your position.
+                                {t(lang, "mod0_section3_down", "<strong>Look down:</strong> The leaderboards below re-rank teams and individuals as people advance. When you improve your ethical progress, you don\'t just change your score—you change your position.")}
                             </p>
                         </div>
                     </div>
 
                     <div class="ai-risk-container" style="margin-top:26px;">
-                        <h4 style="margin-top:0; font-size:1.2rem;">4. Try It Out: See How Progress Changes Your Score</h4>
+                        <h4 style="margin-top:0; font-size:1.2rem;">{t(lang, "mod0_section4_title", "4. Try It Out: See How Progress Changes Your Score")}</h4>
                         <p style="font-size:1.02rem; max-width:720px; margin:0 auto;">
-                            Below, you can move a slider to <strong>simulate</strong> how your Moral Compass Score
-                            would change as your <strong>Ethical Progress %</strong> increases. This gives you a preview
-                            of how much impact each step of your progress can have on your final score.
+                            {t(lang, "mod0_section4_desc", "Below, you can move a slider to <strong>simulate</strong> how your Moral Compass Score would change as your <strong>Ethical Progress %</strong> increases. This gives you a preview of how much impact each step of your progress can have on your final score.")}
                         </p>
                     </div>
                 </div>
             </div>
         """,
     },
+
     {
         "id": 1,
         "title": "Phase I: The Setup — Your Mission",
@@ -1103,7 +1089,9 @@ def get_modules(lang="en"):
 ]
 
 # Create default MODULES for backward compatibility
-MODULES = get_modules("en")
+# Default language for app - can be changed to "es" or "ca"
+DEFAULT_LANG = "en"
+MODULES = get_modules(DEFAULT_LANG)
 
 # --- 5. INTERACTIVE CONTENT CONFIGURATION (APP 1) ---
 QUIZ_CONFIG = {
