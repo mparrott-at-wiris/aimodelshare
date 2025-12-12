@@ -356,27 +356,30 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         </div>
         """
 
-    def make_decision(defendant_id, decision_type, lang):
-        """Record a decision for a defendant."""
-        # Map generic decision type to display text
-        dec_text = t(lang, "decision_release" if decision_type == "Release" else "decision_keep")
-        decisions[defendant_id] = decision_type # Store raw type
-        return f"{t(lang, 'decision_recorded')} {dec_text}"
+    def make_decision(defendant_id, decision_type, lang, current_decisions):
+            """Record a decision for a defendant safely per user."""
+            # Create a copy so we don't affect other users
+            new_decisions = current_decisions.copy()
+            new_decisions[defendant_id] = decision_type 
+            
+            dec_text = t(lang, "decision_release" if decision_type == "Release" else "decision_keep")
+            # Return the notification text AND the updated dictionary
+            return f"{t(lang, 'decision_recorded')} {dec_text}", new_decisions
 
-    def get_summary(lang):
-        """Get summary of all decisions made."""
-        if not decisions:
+    def get_summary(lang, current_decisions):
+        """Get summary based on the specific user's decisions."""
+        if not current_decisions:
             return t(lang, "summary_empty")
 
-        released = sum(1 for d in decisions.values() if d == "Release")
-        kept = sum(1 for d in decisions.values() if d == "Keep in Prison")
+        released = sum(1 for d in current_decisions.values() if d == "Release")
+        kept = sum(1 for d in current_decisions.values() if d == "Keep in Prison")
 
         summary = f"""
         <div class="summary-box">
             <h3 class="summary-title">{t(lang, 'summary_title')}</h3>
             <div class="summary-body">
-                <p><b>{t(lang, 'summary_released')}</b> {released} of {len(decisions)}</p>
-                <p><b>{t(lang, 'summary_kept')}</b> {kept} of {len(decisions)}</p>
+                <p><b>{t(lang, 'summary_released')}</b> {released} of {len(current_decisions)}</p>
+                <p><b>{t(lang, 'summary_kept')}</b> {kept} of {len(current_decisions)}</p>
             </div>
         </div>
         """
@@ -586,6 +589,7 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
         # State to hold current language (defaults to 'en')
         lang_state = gr.State(value="en")
+        decisions_state = gr.State(value={})
         
         # --- UI COMPONENTS (Stored in variables for update) ---
         
@@ -634,19 +638,20 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             # Create UI for each defendant
             for profile in profiles:
                 with gr.Column():
-                    # Profile Card HTML
-                    p_html = gr.HTML(format_profile(profile, "en"))
-                    
-                    with gr.Row():
-                        p_rel_btn = gr.Button(
-                            t('en', 'btn_release'),
-                            variant="primary",
-                            elem_classes=["decision-button"],
+                        # Profile Card HTML
+                        p_html = gr.HTML(format_profile(profile, "en"))
+                        
+                        with gr.Row():
+                        # Wire up buttons (Pass state in, get state out)
+                        p_rel_btn.click(
+                            fn=make_decision,
+                            inputs=[gr.Number(value=profile["id"], visible=False), gr.State(value="Release"), lang_state, decisions_state],
+                            outputs=[decision_status, decisions_state], # Updates the state!
                         )
-                        p_keep_btn = gr.Button(
-                            t('en', 'btn_keep'),
-                            variant="secondary",
-                            elem_classes=["decision-button"],
+                        p_keep_btn.click(
+                            fn=make_decision,
+                            inputs=[gr.Number(value=profile["id"], visible=False), gr.State(value="Keep in Prison"), lang_state, decisions_state],
+                            outputs=[decision_status, decisions_state], # Updates the state!
                         )
 
                     decision_status = gr.Markdown("")
@@ -678,7 +683,11 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             summary_display = gr.HTML("")
             show_summary_btn = gr.Button(t('en', 'btn_show_summary'), variant="primary", size="lg")
             
-            show_summary_btn.click(get_summary, inputs=[lang_state], outputs=summary_display)
+            show_summary_btn.click(
+                get_summary, 
+                inputs=[lang_state, decisions_state], # Pass the state
+                outputs=summary_display
+            )
 
             gr.HTML("<br>")
             complete_btn = gr.Button(t('en', 'btn_complete'), variant="primary", size="lg")
