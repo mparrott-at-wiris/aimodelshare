@@ -5,6 +5,7 @@ Updated with i18n support for English (en), Spanish (es), and Catalan (ca).
 import contextlib
 import os
 import gradio as gr
+from functools import lru_cache
 
 # -------------------------------------------------------------------------
 # TRANSLATION CONFIGURATION
@@ -688,12 +689,32 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
 
         # --- Update Logic ---
         
-        def update_language(request: gr.Request):
-            params = request.query_params
-            lang = params.get("lang", "en")
-            if lang not in TRANSLATIONS: lang = "en"
+        # --- CACHED UPDATE LOGIC ---
+
+        # List of outputs must match the return order exactly
+        update_targets = [
+            lang_state,
+            c_title, c_intro, c_load,
+            # S1
+            c_s1_title, c_s1_html, step_1_next,
+            # S2
+            c_s2_title, c_s2_html, step_2_back, step_2_next,
+            # S3
+            c_s3_title, c_s3_html, step_3_back, step_3_next,
+            # S4
+            c_s4_title, c_s4_intro, c_s4_sect1, age_slider, priors_slider, severity_dropdown,
+            c_s4_sect2, predict_btn, c_s4_sect3, prediction_output, c_s4_highlight, step_4_back, step_4_next,
+            # S5
+            c_s5_title, c_s5_html, step_5_back, step_5_next,
+            # S6
+            c_s6_html, back_to_connection_btn
+        ]
+
+        @lru_cache(maxsize=16)
+        def get_cached_ui_updates(lang):
+            """Cache the heavy UI generation."""
             
-            # Helper to access options for Dropdown updates
+            # Helper must be defined here or available in scope
             def get_opt(k): return t(lang, k)
             
             return [
@@ -734,7 +755,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 f"<h3 style='text-align:center; color:#92400e;'>{t(lang, 's4_sect2')}</h3>",
                 gr.Button(value=t(lang, 'btn_run')),
                 f"<h3 style='text-align:center; color:#15803d;'>{t(lang, 's4_sect3')}</h3>",
-                f"<div class='prediction-placeholder'><p style='font-size:18px; margin:0;'>{t(lang, 'res_placeholder')}</p></div>", # Reset output on lang change
+                f"<div class='prediction-placeholder'><p style='font-size:18px; margin:0;'>{t(lang, 'res_placeholder')}</p></div>", 
                 _get_step4_highlight_html(lang),
                 gr.Button(value=t(lang, 'btn_back')),
                 gr.Button(value=t(lang, 'btn_next_conn')),
@@ -750,24 +771,12 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 gr.Button(value=t(lang, 'btn_review'))
             ]
 
-        # List of outputs must match the return order exactly
-        update_targets = [
-            lang_state,
-            c_title, c_intro, c_load,
-            # S1
-            c_s1_title, c_s1_html, step_1_next,
-            # S2
-            c_s2_title, c_s2_html, step_2_back, step_2_next,
-            # S3
-            c_s3_title, c_s3_html, step_3_back, step_3_next,
-            # S4
-            c_s4_title, c_s4_intro, c_s4_sect1, age_slider, priors_slider, severity_dropdown,
-            c_s4_sect2, predict_btn, c_s4_sect3, prediction_output, c_s4_highlight, step_4_back, step_4_next,
-            # S5
-            c_s5_title, c_s5_html, step_5_back, step_5_next,
-            # S6
-            c_s6_html, back_to_connection_btn
-        ]
+        def update_language(request: gr.Request):
+            params = request.query_params
+            lang = params.get("lang", "en")
+            if lang not in TRANSLATIONS: lang = "en"
+            
+            return get_cached_ui_updates(lang)
         
         demo.load(update_language, inputs=None, outputs=update_targets)
 
