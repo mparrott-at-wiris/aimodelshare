@@ -5,6 +5,7 @@ Updated with i18n support for English (en), Spanish (es), and Catalan (ca).
 import contextlib
 import os
 import gradio as gr
+from functools import lru_cache
 
 # -------------------------------------------------------------------------
 # TRANSLATION CONFIGURATION
@@ -421,7 +422,7 @@ def create_ai_consequences_app(theme_primary_hue: str = "indigo") -> "gr.Blocks"
             c_s5_html = gr.HTML(_get_step5_html("en"))
             back_to_dilemma_btn = gr.Button(t('en', 'btn_review'))
 
-        # --- I18N UPDATE LOGIC ---
+        # --- I18N UPDATE LOGIC (CACHED) ---
         
         update_targets = [
             c_main_title, c_intro_box, c_loading_title,
@@ -432,12 +433,12 @@ def create_ai_consequences_app(theme_primary_hue: str = "indigo") -> "gr.Blocks"
             c_s5_html, back_to_dilemma_btn
         ]
 
-        def update_language(request: gr.Request):
-            params = request.query_params
-            lang = params.get("lang", "en")
-            if lang not in TRANSLATIONS:
-                lang = "en"
-            
+        @lru_cache(maxsize=16) 
+        def get_cached_ui_updates(lang):
+            """
+            Generates the UI updates once per language. 
+            Subsequent calls return the pre-calculated list instantly.
+            """
             return [
                 f"<h1 style='text-align:center;'>{t(lang, 'title')}</h1>",
                 f"<div class='consequences-intro-box'>{t(lang, 'intro_box')}</div>",
@@ -465,6 +466,15 @@ def create_ai_consequences_app(theme_primary_hue: str = "indigo") -> "gr.Blocks"
                 _get_step5_html(lang),
                 gr.Button(value=t(lang, 'btn_review')),
             ]
+
+        def update_language(request: gr.Request):
+            params = request.query_params
+            lang = params.get("lang", "en")
+            if lang not in TRANSLATIONS:
+                lang = "en"
+            
+            # This call is now instant for repeat visitors
+            return get_cached_ui_updates(lang)
 
         demo.load(update_language, inputs=None, outputs=update_targets)
 
