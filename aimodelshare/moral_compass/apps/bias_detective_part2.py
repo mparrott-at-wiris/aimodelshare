@@ -2093,6 +2093,30 @@ css = """
 
 /* Small utility */
 .divider-vertical { width: 1px; height: 48px; background: var(--border-color-primary); opacity: 0.6; }
+
+/* Navigation loading overlay */
+#nav-loading-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: color-mix(in srgb, var(--body-background-fill) 95%, transparent);
+  z-index: 9999; display: none; flex-direction: column; align-items: center;
+  justify-content: center; opacity: 0; transition: opacity 0.3s ease;
+}
+.nav-spinner {
+  width: 50px; height: 50px; border: 5px solid var(--border-color-primary);
+  border-top: 5px solid var(--color-accent); border-radius: 50%;
+  animation: nav-spin 1s linear infinite; margin-bottom: 20px;
+}
+@keyframes nav-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+#nav-loading-text {
+  font-size: 1.3rem; font-weight: 600; color: var(--color-accent);
+}
+@media (prefers-color-scheme: dark) {
+  #nav-loading-overlay { background: rgba(15, 23, 42, 0.9); }
+  .nav-spinner { border-color: rgba(148, 163, 184, 0.4); border-top-color: var(--color-accent); }
+}
 """
 
 def build_audit_report(selected_biases):
@@ -2178,6 +2202,10 @@ def create_bias_detective_part2_app(theme_primary_hue: str = "indigo"):
         module0_done = gr.State(False)
         accuracy_state = gr.State(0.0)
         task_list_state = gr.State([])
+
+        # --- TOP ANCHOR & LOADING OVERLAY FOR NAVIGATION ---
+        gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
+        gr.HTML("<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>Loading...</span></div>")
 
         with gr.Column(visible=True, elem_id="app-loader") as loader_col:
             gr.HTML("<div style='text-align:center; padding:100px;'><h2>🕵️‍♀️ Authenticating...</h2><p>Syncing Moral Compass Data...</p></div>")
@@ -2315,26 +2343,90 @@ def create_bias_detective_part2_app(theme_primary_hue: str = "indigo"):
 
         demo.load(handle_load, None, [username_state, token_state, team_state, module0_done, out_top, leaderboard_html, accuracy_state, task_list_state, loader_col, main_app_col])
 
+        # --- JAVASCRIPT HELPER FOR NAVIGATION ---
+        def nav_js(target_id: str, message: str) -> str:
+            """Generate JavaScript for smooth navigation with loading overlay."""
+            return f"""
+            ()=>{{
+              try {{
+                const overlay = document.getElementById('nav-loading-overlay');
+                const messageEl = document.getElementById('nav-loading-text');
+                if(overlay && messageEl) {{
+                  messageEl.textContent = '{message}';
+                  overlay.style.display = 'flex';
+                  setTimeout(() => {{ overlay.style.opacity = '1'; }}, 10);
+                }}
+                const startTime = Date.now();
+                setTimeout(() => {{
+                  const anchor = document.getElementById('app_top_anchor');
+                  if(anchor) anchor.scrollIntoView({{behavior:'smooth', block:'start'}});
+                }}, 40);
+                const targetId = '{target_id}';
+                const pollInterval = setInterval(() => {{
+                  const elapsed = Date.now() - startTime;
+                  const target = document.getElementById(targetId);
+                  const isVisible = target && target.offsetParent !== null && 
+                                   window.getComputedStyle(target).display !== 'none';
+                  if((isVisible && elapsed >= 1200) || elapsed > 7000) {{
+                    clearInterval(pollInterval);
+                    if(overlay) {{
+                      overlay.style.opacity = '0';
+                      setTimeout(() => {{ overlay.style.display = 'none'; }}, 300);
+                    }}
+                  }}
+                }}, 90);
+              }} catch(e) {{ console.warn('nav-js error', e); }}
+            }}
+            """
+
         # 2. NAVIGATION WIRING
         for i in range(len(MODULES)):
             curr_col, prev_btn, next_btn = module_ui_elements[i]
             if i > 0:
                 prev_col = module_ui_elements[i-1][0]
-                prev_btn.click(lambda: (gr.update(visible=True), gr.update(visible=False)), outputs=[prev_col, curr_col])
+                prev_target_id = f"module-{i-1}"
+
+                def make_prev_handler(p_col, c_col, target_id):
+                    def navigate_prev():
+                        # First yield: hide current, show nothing (transition state)
+                        yield gr.update(visible=False), gr.update(visible=False)
+                        # Second yield: show previous, hide current
+                        yield gr.update(visible=True), gr.update(visible=False)
+                    return navigate_prev
+                
+                prev_btn.click(
+                    fn=make_prev_handler(prev_col, curr_col, prev_target_id),
+                    outputs=[prev_col, curr_col],
+                    js=nav_js(prev_target_id, "Loading..."),
+                )
 
             if i < len(MODULES) - 1:
                 next_col = module_ui_elements[i+1][0]
-                def update_dash_next(user, tok, team, tasks, next_idx=i+1):
-                    data, _ = ensure_table_and_get_data(user, tok, team, tasks)
-                    return render_top_dashboard(data, next_idx)
+                next_target_id = f"module-{i+1}"
+
+                def make_next_handler(c_col, n_col, next_idx):
+                    def wrapper_next(user, tok, team, tasks):
+                        data, _ = ensure_table_and_get_data(user, tok, team, tasks)
+                        dash_html = render_top_dashboard(data, next_idx)
+                        return dash_html
+                    return wrapper_next
+                
+                def make_nav_generator(c_col, n_col):
+                    def navigate_next():
+                        # First yield: hide current, show nothing (transition state)
+                        yield gr.update(visible=False), gr.update(visible=False)
+                        # Second yield: hide current, show next
+                        yield gr.update(visible=False), gr.update(visible=True)
+                    return navigate_next
 
                 next_btn.click(
-                    fn=update_dash_next,
+                    fn=make_next_handler(curr_col, next_col, i + 1),
                     inputs=[username_state, token_state, team_state, task_list_state],
-                    outputs=[out_top]
+                    outputs=[out_top],
+                    js=nav_js(next_target_id, "Loading..."),
                 ).then(
-                    fn=lambda: (gr.update(visible=False), gr.update(visible=True)),
-                    outputs=[curr_col, next_col]
+                    fn=make_nav_generator(curr_col, next_col),
+                    outputs=[curr_col, next_col],
                 )
 
     return demo
