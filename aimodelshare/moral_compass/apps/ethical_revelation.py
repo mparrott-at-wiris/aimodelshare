@@ -8,7 +8,7 @@ import random
 import time
 import threading
 from typing import Optional, Dict, Any, Tuple
-
+from functools import lru_cache
 import pandas as pd
 import gradio as gr
 
@@ -844,16 +844,70 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
         loading_screen = gr.Column(visible=False)
         all_steps = [step_1, step_2, step_3, step_4_eu, step_4, step_5, loading_screen, initial_loading]
 
-        # --- Initial Load with Language & Auth ---
+        # -------------------------------------------------------------------------
+        # HYBRID CACHING LOGIC
+        # -------------------------------------------------------------------------
+
+        # 1. Define all targets that need updating
+        update_targets = [
+            initial_loading, step_1, stats_display, c_title, c_loading_text,
+            deploy_button,
+            c_s2_title, c_s2_html, step_2_back, step_2_next,
+            c_s3_title, c_s3_html, step_3_back, step_3_next,
+            c_s4eu_title, c_s4eu_html, step_4_eu_back, step_4_eu_next,
+            c_s4_title, c_s4_html, step_4_back, step_4_next,
+            c_s5_title, c_s5_html, back_to_lesson_btn
+        ]
+
+        # 2. Cached Generator for Static Content (Steps 2-5)
+        @lru_cache(maxsize=16)
+        def get_cached_static_content(lang):
+            """
+            Generates the heavy HTML for Steps 2, 3, 4, and 5 once per language.
+            """
+            return [
+                # Step 1 Button (Static Text)
+                gr.Button(value=t(lang, 'btn_deploy')),
+                
+                # Step 2
+                f"<h2 style='text-align:center;'>{t(lang, 's2_title')}</h2>",
+                _get_step2_html(lang),
+                gr.Button(value=t(lang, 'btn_back')),
+                gr.Button(value=t(lang, 'btn_reveal')),
+                
+                # Step 3
+                f"<h2 style='text-align:center;'>{t(lang, 's3_title')}</h2>",
+                _get_step3_html(lang),
+                gr.Button(value=t(lang, 'btn_back')),
+                gr.Button(value=t(lang, 'btn_eu')),
+                
+                # Step 4 EU
+                f"<h2 style='text-align:center;'>{t(lang, 's4eu_title')}</h2>",
+                _get_step4_eu_html(lang),
+                gr.Button(value=t(lang, 'btn_back_invest')),
+                gr.Button(value=t(lang, 'btn_zoom')),
+                
+                # Step 4 Lesson
+                f"<h2 style='text-align:center;'>{t(lang, 's4_title')}</h2>",
+                _get_step4_lesson_html(lang),
+                gr.Button(value=t(lang, 'btn_back_eu')),
+                gr.Button(value=t(lang, 'btn_what_do')),
+                
+                # Step 5
+                f"<h2 style='text-align:center;'>{t(lang, 's5_title')}</h2>",
+                _get_step5_html(lang),
+                gr.Button(value=t(lang, 'btn_review'))
+            ]
+
+        # 3. Hybrid Load Function
         def initial_load(request: gr.Request):
             params = request.query_params
             lang = params.get("lang", "en")
             if lang not in TRANSLATIONS: lang = "en"
             
-            # Try auth
+            # --- DYNAMIC PART (Runs every time) ---
             success, username, token = _try_session_based_auth(request)
             
-            # Build Stats HTML (Translating inside)
             stats_html = ""
             if success and username:
                 stats = _compute_user_stats(username, token)
@@ -865,53 +919,18 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
                 </div>
                 """
             
-            # Return all UI updates
-            return [
-                gr.update(visible=False), # initial_loading
-                gr.update(visible=True),  # step_1
-                gr.update(value=stats_html), # stats_display
-                # Title
-                f"<h1 style='text-align:center;'>{t(lang, 'title')}</h1>",
-                # Loading Text
-                f"<div style='text-align:center; padding:80px 0;'><h2>{t(lang, 'loading_personal')}</h2></div>",
-                # Step 1 Button
-                gr.Button(value=t(lang, 'btn_deploy')),
-                # Step 2
-                f"<h2 style='text-align:center;'>{t(lang, 's2_title')}</h2>",
-                _get_step2_html(lang),
-                gr.Button(value=t(lang, 'btn_back')),
-                gr.Button(value=t(lang, 'btn_reveal')),
-                # Step 3
-                f"<h2 style='text-align:center;'>{t(lang, 's3_title')}</h2>",
-                _get_step3_html(lang),
-                gr.Button(value=t(lang, 'btn_back')),
-                gr.Button(value=t(lang, 'btn_eu')),
-                # Step 4 EU
-                f"<h2 style='text-align:center;'>{t(lang, 's4eu_title')}</h2>",
-                _get_step4_eu_html(lang),
-                gr.Button(value=t(lang, 'btn_back_invest')),
-                gr.Button(value=t(lang, 'btn_zoom')),
-                # Step 4 Lesson
-                f"<h2 style='text-align:center;'>{t(lang, 's4_title')}</h2>",
-                _get_step4_lesson_html(lang),
-                gr.Button(value=t(lang, 'btn_back_eu')),
-                gr.Button(value=t(lang, 'btn_what_do')),
-                # Step 5
-                f"<h2 style='text-align:center;'>{t(lang, 's5_title')}</h2>",
-                _get_step5_html(lang),
-                gr.Button(value=t(lang, 'btn_review'))
-            ]
+            # --- STATIC PART (Fetched from Cache) ---
+            static_updates = get_cached_static_content(lang)
 
-        # Load trigger
-        update_targets = [
-            initial_loading, step_1, stats_display, c_title, c_loading_text,
-            deploy_button,
-            c_s2_title, c_s2_html, step_2_back, step_2_next,
-            c_s3_title, c_s3_html, step_3_back, step_3_next,
-            c_s4eu_title, c_s4eu_html, step_4_eu_back, step_4_eu_next,
-            c_s4_title, c_s4_html, step_4_back, step_4_next,
-            c_s5_title, c_s5_html, back_to_lesson_btn
-        ]
+            # Combine: Dynamic + Static
+            return [
+                gr.update(visible=False),    # initial_loading
+                gr.update(visible=True),     # step_1
+                gr.update(value=stats_html), # stats_display (DYNAMIC)
+                f"<h1 style='text-align:center;'>{t(lang, 'title')}</h1>", # Title
+                f"<div style='text-align:center; padding:80px 0;'><h2>{t(lang, 'loading_personal')}</h2></div>", # Loading Text
+            ] + static_updates
+
         demo.load(fn=initial_load, inputs=None, outputs=update_targets)
 
         # --- Navigation Logic ---
