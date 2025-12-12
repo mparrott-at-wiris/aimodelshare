@@ -67,7 +67,7 @@ jobs:
             --memory=2Gi
             --cpu=2
             --session-affinity
-            --concurrency=20
+            --concurrency=40
             --min-instances=0
             --max-instances=50
             --timeout=3000
@@ -95,7 +95,7 @@ jobs:
             --memory=2Gi
             --cpu=2
             --session-affinity
-            --concurrency=20
+            --concurrency=40
             --min-instances=0
             --max-instances=50
             --timeout=3000
@@ -123,7 +123,7 @@ jobs:
             --memory=2Gi
             --cpu=2
             --session-affinity
-            --concurrency=20
+            --concurrency=40
             --min-instances=0
             --max-instances=50
             --timeout=3000
@@ -151,7 +151,7 @@ jobs:
             --memory=2Gi
             --cpu=2
             --session-affinity
-            --concurrency=20
+            --concurrency=40
             --min-instances=0
             --max-instances=50
             --timeout=3000
@@ -264,7 +264,7 @@ jobs:
             --memory=2Gi
             --cpu=2
             --session-affinity
-            --concurrency=20
+            --concurrency=40
             --min-instances=0
             --max-instances=50
             --timeout=3000
@@ -292,7 +292,7 @@ jobs:
             --memory=2Gi
             --cpu=2
             --session-affinity
-            --concurrency=20
+            --concurrency=40
             --min-instances=0
             --max-instances=50
             --timeout=3000
