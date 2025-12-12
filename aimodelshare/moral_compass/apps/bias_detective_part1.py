@@ -37,7 +37,10 @@ except ImportError:
 
 def t(lang, key, default=""):
     """Helper function to get translated string."""
-    return TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(key, default or key)
+    trans = TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(key)
+    if trans:
+        return trans
+    return default if default else key
 
 # --- 2. SETUP & DEPENDENCIES ---
 def install_dependencies():
@@ -2140,7 +2143,7 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                 None,
                 None,
                 False,
-                "<div class='hint-box'>⚠️ Auth Failed. Please launch from the course link.</div>",
+                f"<div class='hint-box'>{t(lang, 'auth_failed', '⚠️ Auth Failed. Please launch from the course link.')}</div>",
                 "",
                 0.0,
                 [],

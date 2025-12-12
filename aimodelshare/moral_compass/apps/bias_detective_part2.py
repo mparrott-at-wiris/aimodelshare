@@ -37,7 +37,10 @@ except ImportError:
 
 def t(lang, key, default=""):
     """Helper function to get translated string."""
-    return TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(key, default or key)
+    trans = TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(key)
+    if trans:
+        return trans
+    return default if default else key
 
 # --- 2. SETUP & DEPENDENCIES ---
 def install_dependencies():
@@ -2381,7 +2384,7 @@ def create_bias_detective_part2_app(theme_primary_hue: str = "indigo"):
                 data, _ = ensure_table_and_get_data(user, token, team, fetched_tasks)
                 return (user, token, team, False, render_top_dashboard(data, 0), render_leaderboard_card(data, user, team), acc, fetched_tasks, lang, loading_text, gr.update(visible=False), gr.update(visible=True))
 
-            return (None, None, None, False, "<div class='hint-box'>⚠️ Auth Failed</div>", "", 0.0, [], lang, loading_text, gr.update(visible=False), gr.update(visible=True))
+            return (None, None, None, False, f"<div class='hint-box'>{t(lang, 'auth_failed', '⚠️ Auth Failed. Please launch from the course link.')}</div>", "", 0.0, [], lang, loading_text, gr.update(visible=False), gr.update(visible=True))
 
         demo.load(handle_load, None, [username_state, token_state, team_state, module0_done, out_top, leaderboard_html, accuracy_state, task_list_state, lang_state, loading_html, loader_col, main_app_col])
 

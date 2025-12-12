@@ -10,6 +10,7 @@ TRANSLATIONS = {
         "loading_auth": "🕵️‍♀️ Authenticating...",
         "loading_sync": "Syncing Moral Compass Data...",
         "loading": "Loading...",
+        "auth_failed": "⚠️ Auth Failed. Please launch from the course link.",
         
         # Module titles
         "mod0_title": "Part 2 Intro",
@@ -63,6 +64,7 @@ TRANSLATIONS = {
         "loading_auth": "🕵️‍♀️ Autenticando...",
         "loading_sync": "Sincronizando Datos de la Brújula Moral...",
         "loading": "Cargando...",
+        "auth_failed": "⚠️ Autenticación Fallida. Por favor, inicia desde el enlace del curso.",
         
         # Module titles
         "mod0_title": "Introducción Parte 2",
@@ -116,6 +118,7 @@ TRANSLATIONS = {
         "loading_auth": "🕵️‍♀️ Autenticant...",
         "loading_sync": "Sincronitzant Dades de la Brúixola Moral...",
         "loading": "Carregant...",
+        "auth_failed": "⚠️ Autenticació Fallida. Si us plau, inicia des de l'enllaç del curs.",
         
         # Module titles
         "mod0_title": "Introducció Part 2",
