@@ -641,17 +641,17 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                         p_html = gr.HTML(format_profile(profile, "en"))
                         
                         with gr.Row():
-                        # Wire up buttons (Pass state in, get state out)
-                        p_rel_btn.click(
-                            fn=make_decision,
-                            inputs=[gr.Number(value=profile["id"], visible=False), gr.State(value="Release"), lang_state, decisions_state],
-                            outputs=[decision_status, decisions_state], # Updates the state!
-                        )
-                        p_keep_btn.click(
-                            fn=make_decision,
-                            inputs=[gr.Number(value=profile["id"], visible=False), gr.State(value="Keep in Prison"), lang_state, decisions_state],
-                            outputs=[decision_status, decisions_state], # Updates the state!
-                        )
+                            # Wire up buttons (Pass state in, get state out)
+                            p_rel_btn.click(
+                                fn=make_decision,
+                                inputs=[gr.Number(value=profile["id"], visible=False), gr.State(value="Release"), lang_state, decisions_state],
+                                outputs=[decision_status, decisions_state], # Updates the state!
+                            )
+                            p_keep_btn.click(
+                                fn=make_decision,
+                                inputs=[gr.Number(value=profile["id"], visible=False), gr.State(value="Keep in Prison"), lang_state, decisions_state],
+                                outputs=[decision_status, decisions_state], # Updates the state!
+                            )
 
                     decision_status = gr.Markdown("")
 
