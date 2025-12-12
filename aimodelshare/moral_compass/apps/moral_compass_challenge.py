@@ -232,7 +232,7 @@ TRANSLATIONS = {
         "s1_sub_guest": "Ja saps com es construeix un model d’IA i estàs preparat/ada per afrontar el repte:",
         "s1_li1_guest": "✅ Has entès el procés de construcció de models d'IA",
         "s1_li2_guest": "✅ Has après sobre precisió i rendiment",
-        "s1_li3_guest": "✅ Has descobert com apareix el biaix en sistemes reals,
+        "s1_li3_guest": "✅ Has descobert com apareix el biaix en sistemes reals",
         "s1_ready": "🎯 A punt per aprendre sobre IA ètica!",
         "btn_new_std": "Introduir el nou estàndard ▶️",
         "s2_title": "Necessitem un estàndard més alt",
