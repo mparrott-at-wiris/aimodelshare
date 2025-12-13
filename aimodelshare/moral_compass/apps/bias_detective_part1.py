@@ -11,6 +11,11 @@ TABLE_ID = "m-mc"
 TOTAL_COURSE_TASKS = 19  # Score calculated against full course
 LOCAL_TEST_SESSION_ID = None
 
+# --- 1b. I18N TRANSLATION HELPER ---
+def t(lang: str, key: str) -> str:
+    """Get translated text for given language and key."""
+    return TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(key, key)
+
 # --- 2. SETUP & DEPENDENCIES ---
 def install_dependencies():
     packages = ["gradio>=5.0.0", "aimodelshare", "pandas"]
@@ -80,6 +85,100 @@ def fetch_user_history(username, token):
     except Exception:
         pass
     return default_acc, default_team
+
+# --- 3b. I18N TRANSLATIONS ---
+TRANSLATIONS = {
+    "en": {
+        # Loading and auth messages
+        "loading_auth": "🕵️‍♀️ Authenticating...",
+        "loading_sync": "Syncing Moral Compass Data...",
+        "auth_failed": "⚠️ Auth Failed. Please launch from the course link.",
+        "loading_text": "Loading...",
+        
+        # Navigation buttons
+        "btn_previous": "⬅️ Previous",
+        "btn_next": "Next ▶️",
+        "btn_completed_part1": "🎉 You Have Completed Part 1!! (Please Proceed to the Next Activity)",
+        
+        # Quiz labels
+        "quiz_select_answer": "Select Answer:",
+        "quiz_incorrect": "❌ Incorrect. Review the evidence above.",
+        
+        # Dashboard labels
+        "lbl_score": "Score",
+        "lbl_rank": "Rank",
+        "lbl_team_rank": "Team Rank",
+        "lbl_progress": "Progress",
+        "lbl_teams": "Teams",
+        "lbl_users": "Users",
+        
+        # Slider labels
+        "slider_label": "Simulated Ethical Progress %",
+        "slider_accuracy": "Your current accuracy (from the leaderboard):",
+        "slider_progress": "Simulated Ethical Progress %:",
+        "slider_score": "Simulated Moral Compass Score:",
+    },
+    "es": {
+        # Loading and auth messages
+        "loading_auth": "🕵️‍♀️ Autenticando...",
+        "loading_sync": "Sincronizando datos de la Brújula Moral...",
+        "auth_failed": "⚠️ Autenticación fallida. Inicia desde el enlace del curso.",
+        "loading_text": "Cargando...",
+        
+        # Navigation buttons  
+        "btn_previous": "⬅️ Anterior",
+        "btn_next": "Siguiente ▶️",
+        "btn_completed_part1": "🎉 ¡Has completado la Parte 1! (Continúa a la Siguiente Actividad)",
+        
+        # Quiz labels
+        "quiz_select_answer": "Selecciona la respuesta:",
+        "quiz_incorrect": "❌ Incorrecta. Revisa la evidencia de arriba.",
+        
+        # Dashboard labels
+        "lbl_score": "Puntuación",
+        "lbl_rank": "Rango",
+        "lbl_team_rank": "Rango del Equipo",
+        "lbl_progress": "Progreso",
+        "lbl_teams": "Equipos",
+        "lbl_users": "Usuarios",
+        
+        # Slider labels
+        "slider_label": "Progreso Ético Simulado %",
+        "slider_accuracy": "Tu precisión actual (de la tabla de clasificación):",
+        "slider_progress": "Progreso Ético Simulado %:",
+        "slider_score": "Puntuación de Brújula Moral Simulada:",
+    },
+    "ca": {
+        # Loading and auth messages
+        "loading_auth": "🕵️‍♀️ Autenticant...",
+        "loading_sync": "Sincronitzant dades de la Brúixola Moral...",
+        "auth_failed": "⚠️ Autenticació fallida. Inicia des de l'enllaç del curs.",
+        "loading_text": "Carregant...",
+        
+        # Navigation buttons
+        "btn_previous": "⬅️ Anterior",
+        "btn_next": "Següent ▶️",
+        "btn_completed_part1": "🎉 Has completat la Part 1! (Continua a la Següent Activitat)",
+        
+        # Quiz labels
+        "quiz_select_answer": "Selecciona la resposta:",
+        "quiz_incorrect": "❌ Incorrecta. Revisa l'evidència de dalt.",
+        
+        # Dashboard labels
+        "lbl_score": "Puntuació",
+        "lbl_rank": "Rang",
+        "lbl_team_rank": "Rang de l'Equip",
+        "lbl_progress": "Progrés",
+        "lbl_teams": "Equips",
+        "lbl_users": "Usuaris",
+        
+        # Slider labels
+        "slider_label": "Progrés Ètic Simulat %",
+        "slider_accuracy": "La teva precisió actual (de la taula de classificació):",
+        "slider_progress": "Progrés Ètic Simulat %:",
+        "slider_score": "Puntuació de Brúixola Moral Simulada:",
+    }
+}
 
 # --- 4. MODULE DEFINITIONS (APP 1: 0-10) ---
 MODULES = [
@@ -1812,6 +1911,7 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
         module0_done = gr.State(value=False)
         accuracy_state = gr.State(value=0.0)
         task_list_state = gr.State(value=[])
+        lang_state = gr.State(value="en")  # Language state for i18n
 
         # --- TOP ANCHOR & LOADING OVERLAY FOR NAVIGATION ---
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
@@ -1970,6 +2070,12 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
 
         # --- GLOBAL LOAD HANDLER ---
         def handle_load(req: gr.Request):
+            # Get language from query params
+            params = req.query_params if req else {}
+            lang = params.get("lang", "en")
+            if lang not in TRANSLATIONS:
+                lang = "en"
+            
             success, user, token = _try_session_based_auth(req)
             team = "Team-Unassigned"
             acc = 0.0
@@ -2044,6 +2150,7 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                     render_leaderboard_card(data, user, team),
                     acc,
                     fetched_tasks,
+                    lang,  # Return detected language
                     gr.update(visible=False),
                     gr.update(visible=True),
                 )
@@ -2054,10 +2161,11 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                 None,
                 None,
                 False,
-                "<div class='hint-box'>⚠️ Auth Failed. Please launch from the course link.</div>",
+                f"<div class='hint-box'>{t(lang, 'auth_failed')}</div>",
                 "",
                 0.0,
                 [],
+                lang,  # Return detected language
                 gr.update(visible=False),
                 gr.update(visible=True),
             )
@@ -2075,6 +2183,7 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                 leaderboard_html,
                 accuracy_state,
                 task_list_state,
+                lang_state,  # Add lang to outputs
                 loader_col,
                 main_app_col,
             ],
