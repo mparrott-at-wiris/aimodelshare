@@ -431,7 +431,7 @@ MODULES = [
 
     <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
       <strong>But where should you begin your investigation?</strong> You can't interrogate the AI system. It won't confess. To find bias, we have to look at
-      the evidence trail it leaves behind.
+      the evidence trail it leaves behind.<br><br>
       
       If you were investigating a suspicious <strong>Judge</strong>, you would look for: <strong>who they charge most often, who
       they make the most mistakes with, and whether their decisions harm some people more than others?</strong>
@@ -486,23 +486,23 @@ MODULES = [
         "title": "Slide 5: The Data Forensics Briefing",
         "html": """
             <div class="scenario-box">
-              <h2 class="slide-title">📂 THE DATA FORENSICS BRIEFING</h2>
-              <div class="slide-body">
                 <div style="display:flex; justify-content:center; margin-bottom:18px;">
-                  <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; font-weight:800;">
-                    <span style="font-size:1.1rem;">📋</span><span>STEP 2 CONTINUED: YOUR EVIDENCE COLLECTION BRIEFING</span>
-                  </div>
+                <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; font-weight:800;">
+                  <span style="font-size:1.1rem;">📋</span><span>STEP 2: COLLECT EVIDENCE — Look for Unfair Patterns in the Data</span>
                 </div>
-
+              </div>
+              <h2 class="slide-title">The Data Forensics Briefing</h2>
+              <div class="slide-body">
                 <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
-                  You are about to access the raw evidence files. But be warned: The AI thinks this data is the truth.
-                  If the police historically targeted one neighborhood more than others, the dataset will be full of people from that neighborhood.
-                  The AI doesn't know this is potential bias — it just sees a pattern.
+                  You are about to access the raw evidence files. But be warned: The AI thinks this data is the truth. 
+                  If the police historically targeted one neighborhood more than others, the dataset will be full of people from that neighborhood. 
+                  The AI doesn't know this is potential bias—it just sees a pattern.
                 </p>
 
                 <div class="ai-risk-container">
                   <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">🔍 The Detective's Task</h4>
                   <p style="font-size:1.05rem; text-align:center; margin-bottom:14px;">
+                  
                     We must compare <strong style="color:var(--color-accent);">The Data</strong> against <strong style="color:#22c55e;">Reality</strong>.
                   </p>
                   <p style="font-size:1.05rem; text-align:center;">
@@ -525,9 +525,9 @@ MODULES = [
                         <span style="font-size:0.85rem; font-weight:700; opacity:0.8;">Click to reveal</span>
                       </summary>
                       <div style="font-size:0.96rem; margin-top:10px;">
-                        Bias baked into past decisions carries into the dataset (e.g., over‑policing of certain neighborhoods or groups).
+                        Bias from unfair past decisions carries into the dataset (e.g., over-policing of certain neighborhoods or groups). 
                       </div>
-                      <div style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:6px;">
+                      <div style="font-size:0.95rem; color:#ef4444; margin-top:6px;">
                         Why it matters: The model learns past unfair patterns as if they were “normal,” repeating them at scale.
                       </div>
                       <div style="margin-top:10px; font-size:0.95rem;">
@@ -547,10 +547,10 @@ MODULES = [
                         <span style="font-size:0.85rem; font-weight:700; opacity:0.8;">Click to reveal</span>
                       </summary>
                       <div style="font-size:0.96rem; margin-top:10px;">
-                        The way data was collected over‑collects information some groups or places and under‑samples others (the “sample” doesn’t match reality).
+                        The way data was collected focuses too much on some groups or places and ignores others (the “sample” doesn’t match reality). 
                       </div>
-                      <div style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:6px;">
-                        Why it matters: The model sees more examples from certain groups, becoming over‑confident or “trigger‑happy” for them.
+                      <div style="font-size:0.95rem; color:#ef4444; margin-top:6px;">
+                        Why it matters: The model sees more examples from certain groups, becoming over‑confident or "quick to judge" for them.
                       </div>
                       <div style="margin-top:10px; font-size:0.95rem;">
                         Evidence to look for:
@@ -571,7 +571,7 @@ MODULES = [
                       <div style="font-size:0.96rem; margin-top:10px;">
                         Important people or features are missing or under‑recorded, so the model can’t see the full picture.
                       </div>
-                      <div style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:6px;">
+                      <div style="font-size:0.95rem; color:#ef4444; margin-top:6px;">
                         Why it matters: Decisions ignore protective context, making some groups look riskier or less understood.
                       </div>
                       <div style="margin-top:10px; font-size:0.95rem;">
@@ -627,8 +627,8 @@ MODULES = [
                 <div class="hint-box" style="margin-top:16px;">
                   <div style="font-weight:800;">✅ What You’ll Do Next</div>
                   <div style="font-size:0.98rem;">
-                    Capture distribution snapshots (who shows up), check sampling patterns (how data was collected), and mark missing fields (what’s excluded).
-                    These are the first proof points for or against <strong>Justice & Equity</strong> conclusions about this model's data and predictive performance.
+                    Guided by the Justice & Equity principle, apply your forensic skills to examine the COMPAS repeat offender dataset. Focus on Race, 
+                    Gender, and Age to uncover hidden distortions and possible bias.
                   </div>
                 </div>
 
