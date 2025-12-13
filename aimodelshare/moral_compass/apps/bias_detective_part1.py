@@ -625,7 +625,7 @@ MODULES = [
 
                 <!-- Action bridge -->
                 <div class="hint-box" style="margin-top:16px;">
-                  <div style="font-weight:800;">✅ What You’ll Do Next</div>
+                  <div style="font-weight:800;">✅ Next Move</div>
                   <div style="font-size:0.98rem;">
                     Guided by the Justice & Equity principle, apply your forensic skills to examine the COMPAS repeat offender dataset. Focus on Race, 
                     Gender, and Age to uncover hidden distortions and possible bias.
@@ -641,6 +641,11 @@ MODULES = [
         "title": "Slide 6: Evidence Scan (Race)",
         "html": """
           <div class="scenario-box">
+                <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; font-weight:800;">
+                  <span style="font-size:1.1rem;">📋</span><span>STEP 2: COLLECT EVIDENCE — Look for Unfair Patterns in the Data</span>
+                </div>
+              </div>
             <h2 class="slide-title">🔎 DATA FORENSIC ANALYSIS: RACE</h2>
             <div class="slide-body">
               <div style="display:flex; justify-content:center; margin-bottom:18px;">
