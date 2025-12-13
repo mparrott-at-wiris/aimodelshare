@@ -92,6 +92,21 @@ TRANSLATIONS = {
         "lbl_progress": "Progress",
         "lbl_teams": "Teams",
         "lbl_users": "Users",
+        
+        # Module 0 - Part 2 Intro
+        "mod0_p2_title": "🕵️‍♀️ PART 2: THE ALGORITHMIC AUDIT",
+        "mod0_p2_status": "STATUS: DATA FORENSICS COMPLETE",
+        "mod0_p2_roadmap": "🗺️ Your Investigation Roadmap",
+        "mod0_p2_step1": "1. Learn the Rules",
+        "mod0_p2_step2": "2. Collect Evidence",
+        "mod0_p2_step3": "3. Prove the Prediction Error",
+        "mod0_p2_step4": "4. Diagnose Harm",
+        "mod0_p2_completed": "✔ Completed",
+        "mod0_p2_here": "⬅ You are here",
+        "mod0_p2_soon": "Coming Soon",
+        "mod0_p2_welcome": "Welcome back, Detective. In Part 1, you uncovered powerful evidence: the <strong>input data</strong> feeding this model was distorted by history and unequal sampling.",
+        "mod0_p2_half": "But corrupted data is only <em>half</em> the case. Now comes the decisive moment in any AI audit: testing whether these distorted inputs have produced <strong>unfair outputs</strong> — unequal predictions that change real lives.",
+        "mod0_p2_compare": "In Part 2, you will compare the model's predictions against reality, group by group. This is where you expose <strong>false positives</strong>, <strong>false negatives</strong>, and the hidden <strong>error gaps</strong> that reveal whether the system is treating people unfairly.",
     },
     "es": {
         # Loading and auth messages
@@ -116,6 +131,21 @@ TRANSLATIONS = {
         "lbl_progress": "Progreso",
         "lbl_teams": "Equipos",
         "lbl_users": "Usuarios",
+        
+        # Module 0 - Part 2 Intro
+        "mod0_p2_title": "🕵️‍♀️ PARTE 2: LA AUDITORÍA ALGORÍTMICA",
+        "mod0_p2_status": "ESTADO: FORENSIA DE DATOS COMPLETA",
+        "mod0_p2_roadmap": "🗺️ Tu Hoja de Ruta de Investigación",
+        "mod0_p2_step1": "1. Aprender las Reglas",
+        "mod0_p2_step2": "2. Recopilar Evidencia",
+        "mod0_p2_step3": "3. Probar el Error de Predicción",
+        "mod0_p2_step4": "4. Diagnosticar el Daño",
+        "mod0_p2_completed": "✔ Completado",
+        "mod0_p2_here": "⬅ Estás aquí",
+        "mod0_p2_soon": "Próximamente",
+        "mod0_p2_welcome": "Bienvenido de nuevo, Detective. En la Parte 1, descubriste evidencia poderosa: los <strong>datos de entrada</strong> que alimentan este modelo estaban distorsionados por la historia y el muestreo desigual.",
+        "mod0_p2_half": "Pero los datos corruptos son solo la <em>mitad</em> del caso. Ahora llega el momento decisivo en cualquier auditoría de IA: probar si estas entradas distorsionadas han producido <strong>salidas injustas</strong> — predicciones desiguales que cambian vidas reales.",
+        "mod0_p2_compare": "En la Parte 2, compararás las predicciones del modelo con la realidad, grupo por grupo. Aquí es donde expones <strong>falsos positivos</strong>, <strong>falsos negativos</strong> y las <strong>brechas de error</strong> ocultas que revelan si el sistema está tratando a las personas injustamente.",
     },
     "ca": {
         # Loading and auth messages
@@ -140,6 +170,21 @@ TRANSLATIONS = {
         "lbl_progress": "Progrés",
         "lbl_teams": "Equips",
         "lbl_users": "Usuaris",
+        
+        # Module 0 - Part 2 Intro
+        "mod0_p2_title": "🕵️‍♀️ PART 2: L'AUDITORIA ALGORÍTMICA",
+        "mod0_p2_status": "ESTAT: FORENSE DE DADES COMPLETA",
+        "mod0_p2_roadmap": "🗺️ La teva Fulla de Ruta d'Investigació",
+        "mod0_p2_step1": "1. Aprendre les Regles",
+        "mod0_p2_step2": "2. Recopilar Evidència",
+        "mod0_p2_step3": "3. Provar l'Error de Predicció",
+        "mod0_p2_step4": "4. Diagnosticar el Dany",
+        "mod0_p2_completed": "✔ Completat",
+        "mod0_p2_here": "⬅ Ets aquí",
+        "mod0_p2_soon": "Pròximament",
+        "mod0_p2_welcome": "Benvingut de nou, Detective. A la Part 1, vas descobrir evidència poderosa: les <strong>dades d'entrada</strong> que alimenten aquest model estaven distorsionades per la història i el mostreig desigual.",
+        "mod0_p2_half": "Però les dades corruptes són només la <em>meitat</em> del cas. Ara arriba el moment decisiu en qualsevol auditoria d'IA: provar si aquestes entrades distorsionades han produït <strong>sortides injustes</strong> — prediccions desiguals que canvien vides reals.",
+        "mod0_p2_compare": "A la Part 2, compararàs les prediccions del model amb la realitat, grup per grup. Aquí és on exposes <strong>falsos positius</strong>, <strong>falsos negatius</strong> i les <strong>bretxes d'error</strong> ocultes que revelen si el sistema està tractant les persones injustament.",
     }
 }
 
@@ -171,17 +216,77 @@ def get_button_label(lang: str, button_type: str, is_last: bool = False) -> str:
         return t(lang, 'btn_next')
     return ""
 
+def get_module_0_html(lang: str = "en") -> str:
+    """Generate Module 0 HTML with translations for Part 2."""
+    return f"""
+        <div class="scenario-box">
+            <h2 class="slide-title">{t(lang, 'mod0_p2_title')}</h2>
+            <div class="slide-body">
+
+                <!-- STATUS BADGE -->
+                <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                    <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700;">
+                        <span style="font-size:1.1rem;">⚡</span>
+                        <span>{t(lang, 'mod0_p2_status')}</span>
+                    </div>
+                </div>
+
+                <!-- ROADMAP RECAP -->
+                <div class="ai-risk-container" style="margin:0 auto 22px auto; max-width:780px; padding:16px; border:1px solid var(--border-color-primary); border-radius:10px;">
+                    <h4 style="margin-top:0; font-size:1.05rem; text-align:center;">{t(lang, 'mod0_p2_roadmap')}</h4>
+                    <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-top:12px;">
+
+                        <div class="hint-box" style="margin-top:0;">
+                            <div style="font-weight:700;">{t(lang, 'mod0_p2_step1')}</div>
+                            <div style="font-size:0.85rem; color:var(--body-text-color-subdued);">{t(lang, 'mod0_p2_completed')}</div>
+                        </div>
+
+                        <div class="hint-box" style="margin-top:0;">
+                            <div style="font-weight:700;">{t(lang, 'mod0_p2_step2')}</div>
+                            <div style="font-size:0.85rem; color:var(--body-text-color-subdued);">{t(lang, 'mod0_p2_completed')}</div>
+                        </div>
+
+                        <div class="hint-box" style="margin-top:0; border-left:4px solid #3b82f6; background:rgba(59,130,246,0.08);">
+                            <div style="font-weight:700; color:#1d4ed8;">{t(lang, 'mod0_p2_step3')}</div>
+                            <div style="font-size:0.85rem; color:var(--body-text-color-subdued);">{t(lang, 'mod0_p2_here')}</div>
+                        </div>
+
+                        <div class="hint-box" style="margin-top:0;">
+                            <div style="font-weight:700;">{t(lang, 'mod0_p2_step4')}</div>
+                            <div style="font-size:0.85rem; color:var(--body-text-color-subdued);">{t(lang, 'mod0_p2_soon')}</div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- TRANSITION NARRATIVE -->
+                <p style="font-size:1.05rem; max-width:780px; margin:0 auto 14px auto; text-align:center;">
+                    {t(lang, 'mod0_p2_welcome')}
+                </p>
+
+                <p style="font-size:1.05rem; max-width:780px; margin:0 auto 18px auto; text-align:center;">
+                    {t(lang, 'mod0_p2_half')}
+                </p>
+
+                <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
+                    {t(lang, 'mod0_p2_compare')}
+                </p>
+
+            </div>
+        </div>
+    """
+
 def get_module_html(module_id: int, lang: str = "en") -> str:
     """
     Get module HTML content with translations.
-    For now, returns English HTML for all modules except those with translations.
-    To translate a module, add its translated HTML to this function.
-    
-    Example for Module 0:
+    Translated modules return language-specific HTML.
+    Untranslated modules return original English HTML.
+    """
+    # Module 0 has full translation support
     if module_id == 0:
         return get_module_0_html(lang)
-    """
-    # Return original English HTML from MODULES
+    
+    # For other modules, return original English HTML from MODULES
     for mod in MODULES:
         if mod["id"] == module_id:
             return mod["html"]
@@ -2557,7 +2662,11 @@ def create_bias_detective_part2_app(theme_primary_hue: str = "indigo"):
 
             for i, mod in enumerate(MODULES):
                 with gr.Column(elem_id=f"module-{i}", elem_classes=["module-container"], visible=(i==0)) as mod_col:
-                    gr.HTML(mod['html'])
+                    module_html_comp = gr.HTML(mod['html'])
+                    
+                    # Store HTML component reference for Module 0 translation updates
+                    if i == 0:
+                        module_0_html = module_html_comp
 
                     # --- Final Audit interactive builder on module index 8 ---
                     if i == 8:
@@ -2703,12 +2812,12 @@ def create_bias_detective_part2_app(theme_primary_hue: str = "indigo"):
 
                 data, _ = ensure_table_and_get_data(user, token, team, fetched_tasks)
                 button_updates = get_button_updates(lang)
-                return (user, token, team, False, render_top_dashboard(data, 0), render_leaderboard_card(data, user, team), acc, fetched_tasks, lang, get_loading_screen_html(lang), get_nav_loading_html(lang), gr.update(visible=False), gr.update(visible=True), *button_updates)
+                return (user, token, team, False, render_top_dashboard(data, 0), render_leaderboard_card(data, user, team), acc, fetched_tasks, lang, get_loading_screen_html(lang), get_nav_loading_html(lang), get_module_0_html(lang), gr.update(visible=False), gr.update(visible=True), *button_updates)
 
             button_updates = get_button_updates(lang)
-            return (None, None, None, False, f"<div class='hint-box'>{t(lang, 'auth_failed')}</div>", "", 0.0, [], lang, get_loading_screen_html(lang), get_nav_loading_html(lang), gr.update(visible=False), gr.update(visible=True), *button_updates)
+            return (None, None, None, False, f"<div class='hint-box'>{t(lang, 'auth_failed')}</div>", "", 0.0, [], lang, get_loading_screen_html(lang), get_nav_loading_html(lang), get_module_0_html(lang), gr.update(visible=False), gr.update(visible=True), *button_updates)
 
-        demo.load(handle_load, None, [username_state, token_state, team_state, module0_done, out_top, leaderboard_html, accuracy_state, task_list_state, lang_state, loading_screen_html, nav_loading_overlay, loader_col, main_app_col, *all_prev_buttons, *all_next_buttons])
+        demo.load(handle_load, None, [username_state, token_state, team_state, module0_done, out_top, leaderboard_html, accuracy_state, task_list_state, lang_state, loading_screen_html, nav_loading_overlay, module_0_html, loader_col, main_app_col, *all_prev_buttons, *all_next_buttons])
 
         # --- JAVASCRIPT HELPER FOR NAVIGATION ---
         def nav_js(target_id: str, message: str) -> str:
