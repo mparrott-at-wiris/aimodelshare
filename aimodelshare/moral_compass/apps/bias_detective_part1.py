@@ -228,7 +228,7 @@ MODULES = [
                 <div style="display:flex; justify-content:center; margin-bottom:14px;">
                   <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-weight:800;">
                     <span style="font-size:1.1rem;">📜</span>
-                    <span>STEP 1: LEARN THE RULES — Know what actually counts as bias</span>
+                    <span>STEP 1: LEARN THE RULES — Understand what actually counts as bias</span>
                   </div>
                 </div>
             
@@ -352,7 +352,7 @@ MODULES = [
                 <div style="display:flex; justify-content:center; margin-bottom:14px;">
                   <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-weight:800;">
                     <span style="font-size:1.1rem;">📜</span>
-                    <span>STEP 1: LEARN THE RULES — Know what actually counts as bias</span>
+                    <span>STEP 1: LEARN THE RULES — Understand what actually counts as bias</span>
                   </div>
                 </div>
                 <h2 class="slide-title">⚠️ The Risk of Invisible Bias</h2>
@@ -404,79 +404,75 @@ MODULES = [
         "id": 4,
         "title": "Slide 4: The Detective's Method",
         "html": """
-            <div class="scenario-box">
-                <h2 class="slide-title">🔎 HOW DO WE CATCH A MACHINE?</h2>
-                <div class="slide-body">
+<div class="scenario-box">
+  <div style="display:flex; justify-content:center; margin-bottom:18px;">
+    <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; font-weight:800;">
+      <span style="font-size:1.1rem;">📋</span><span>STEP 2: COLLECT EVIDENCE — Look for Unfair Patterns in the Data</span>
+    </div>
+  </div>
 
-                    <!-- Transition from rules (Justice & Equity) to action -->
-                    <div class="hint-box" style="margin-bottom:16px;">
-                        <div style="font-weight:800;">From Rules to Evidence</div>
-                        <div style="font-size:0.98rem;">
-                            You’ve learned the primary principle — <strong>Justice & Equity</strong> - that helps set the rules for your investigation. Now we apply it.
-                            Gather any evidence of (<strong>different categories of bias</strong>, <strong>prediction error gaps</strong>, <strong>outcome disparities</strong>)
-                            to examine the model's data. This is the start of <em>evidence collection</em> — finding patterns that signal unfair treatment.
-                        </div>
-                    </div>
+  <h2 class="slide-title">🔎 From Rules to Evidence</h2>
+  <div class="slide-body">
 
-                    <!-- Step badge -->
-                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
-                        <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; font-weight:800;">
-                            <span style="font-size:1.1rem;">📋</span><span>STEP 2: COLLECT EVIDENCE</span>
-                        </div>
-                    </div>
+    <div class="hint-box" style="margin-bottom:16px;">
+      <div style="font-weight:800;">From Rules to Evidence</div>
+      <div style="font-size:0.98rem;">
+        You’ve learned the primary principle—<strong>Justice & Equity</strong>—that sets the rules for your investigation. Now we apply those rules to the facts.
+        Gathering evidence of the three categories of bias (Representation, Error Gaps, and Outcome Disparities) is the start of finding patterns
+        that signal unfair treatment.
+      </div>
+    </div>
 
-                    <!-- Core framing -->
-                    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
-                        But where should you begin your investigation? You can't interrogate an algorithm. It won't confess. To find bias, we have to look at
-                        the evidence trail it leaves behind. If you were investigating a suspicious judge, what would you look for — who they charge most often,
-                        who they make the most mistakes with, and whether their decisions harm some people more than others?
-                    </p>
+    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
+      <strong>But where should you begin your investigation?</strong> You can't interrogate the AI system. It won't confess. To find bias, we have to look at
+      the evidence trail it leaves behind.
+      
+      If you were investigating a suspicious <strong>Judge</strong>, you would look for: <strong>who they charge most often, who
+      they make the most mistakes with, and whether their decisions harm some people more than others?</strong>
+    </p>
 
-                    <!-- Investigation checklist -->
-                    <div class="ai-risk-container" style="margin-top:20px;">
-                        <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">🗂️ The Investigation Checklist</h4>
-                        <div style="display:grid; gap:16px; margin-top:16px;">
-                            <div class="hint-box" style="margin-top:0;">
-                                <div style="font-weight:bold; margin-bottom:8px;">📂 Folder 1: "Who is being charged?"</div>
-                                <div style="padding-left:20px; font-size:0.95rem; color:var(--body-text-color-subdued);">
-                                    → <strong>Reveal:</strong> Check the History (Is one group over‑represented vs reality?)
-                                </div>
-                            </div>
-                            <div class="hint-box" style="margin-top:0;">
-                                <div style="font-weight:bold; margin-bottom:8px;">📂 Folder 2: "Who is being wrongly accused?"</div>
-                                <div style="padding-left:20px; font-size:0.95rem; color:var(--body-text-color-subdued);">
-                                    → <strong>Reveal:</strong> Check the Mistakes (Are prediction errors higher for a group?)
-                                </div>
-                            </div>
-                            <div class="hint-box" style="margin-top:0;">
-                                <div style="font-weight:bold; margin-bottom:8px;">📂 Folder 3: "Who is getting hurt?"</div>
-                                <div style="padding-left:20px; font-size:0.95rem; color:var(--body-text-color-subdued);">
-                                    → <strong>Reveal:</strong> Check the Punishment (Do model outputs lead to worse real outcomes for a group?)
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <div class="ai-risk-container" style="margin-top:20px;">
+      <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">🗂️ The Investigation Checklist</h4>
+      <div style="display:grid; gap:16px; margin-top:16px;">
+        
+        <div class="hint-box" style="margin-top:0;">
+          <div style="font-weight:bold; margin-bottom:8px;">📂 Folder 1: "Who is being charged?"</div>
+          <div style="padding-left:20px; font-size:0.95rem; color:var(--body-text-color-subdued);">
+            → <strong>Action:</strong> Check the History (Is one group over‑represented vs reality?)<br>
+            → <strong>Reveal:</strong> <strong>Representation Bias</strong>—if group percentages in the data used to train the model do not match the real world.
+          </div>
+        </div>
 
-                    <!-- Expert validation -->
-                    <div class="hint-box" style="margin-top:16px; border-left:4px solid #22c55e;">
-                        <div style="font-weight:800;">🧠 Expert Validation</div>
-                        <div style="font-size:0.98rem;">
-                            <em>Exactly.</em> You’ve just described steps that AI ethics experts — including our partners at OEIAC — look for when checking whether an AI system treats people fairly. 
-                            They focus on the same ideas you’re using here: who appears in the data, where mistakes happen, and how those mistakes affect people.
-                        </div>
-                    </div>
+        <div class="hint-box" style="margin-top:0;">
+          <div style="font-weight:bold; margin-bottom:8px;">📂 Folder 2: "Who is being wrongly accused?"</div>
+          <div style="padding-left:20px; font-size:0.95rem; color:var(--body-text-color-subdued);">
+            → <strong>Action:</strong> Check the Mistakes (Are prediction errors higher for a group?)<br>
+            → <strong>Reveal:</strong> <strong>Error Gaps</strong> —if the error rate is significantly higher for one group.
+          </div>
+        </div>
 
-                    <!-- Action bridge -->
-                    <div class="hint-box" style="margin-top:16px;">
-                        <div style="font-weight:800;">✅ Next move</div>
-                        <div style="font-size:0.98rem;">
-                            Apply the Justice & Equity principle to real evidence: Analyze <strong>Race</strong> → <strong>Gender</strong> → <strong>Age</strong>.
-                            You’re building a real case based on data, not guesses.
-                        </div>
-                    </div>
+        <div class="hint-box" style="margin-top:0;">
+          <div style="font-weight:bold; margin-bottom:8px;">📂 Folder 3: "Who is getting hurt?"</div>
+          <div style="padding-left:20px; font-size:0.95rem; color:var(--body-text-color-subdued);">
+            → <strong>Action:</strong> Check the Punishment (Do model outputs lead to worse real outcomes for a group?)<br>
+            → <strong>Reveal:</strong> <strong>Outcome Disparities</strong>—if one group receives significantly worse real-world
+            outcomes (e.g., harsher sentencing or loan rejections).
+          </div>
+        </div>
 
-                </div>
-            </div>
+      </div>
+    </div>
+
+    <div class="hint-box" style="margin-top:16px;">
+      <div style="font-weight:800;">✅ Next move</div>
+      <div style="font-size:0.98rem;">
+        You’ve identified the three types of evidence needed. Now, it's time to put your gloves on. The <strong>Data Forensics Briefing</strong> will guide you
+        through the process of examining the raw data to spot the most common initial forms of unfairness: <strong>data distortions</strong> that lead to <strong>Representation Bias.</strong>
+      </div>
+    </div>
+
+  </div>
+</div>
         """,
     },
     {
