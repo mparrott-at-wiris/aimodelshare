@@ -148,6 +148,19 @@ def t(lang: str, key: str) -> str:
     """Get translated text for given language and key."""
     return TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(key, key)
 
+def get_loading_screen_html(lang: str = "en") -> str:
+    """Generate loading screen HTML with translated text."""
+    return f"""
+    <div style='text-align:center; padding:100px;'>
+        <h2>{t(lang, 'loading_auth')}</h2>
+        <p>{t(lang, 'loading_sync')}</p>
+    </div>
+    """
+
+def get_nav_loading_html(lang: str = "en") -> str:
+    """Generate navigation loading overlay HTML with translated text."""
+    return f"""<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>{t(lang, 'loading_text')}</span></div>"""
+
 # --- 4. API & LEADERBOARD LOGIC ---
 def get_or_assign_team(client, username):
     try:
@@ -2501,10 +2514,11 @@ def create_bias_detective_part2_app(theme_primary_hue: str = "indigo"):
 
         # --- TOP ANCHOR & LOADING OVERLAY FOR NAVIGATION ---
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
-        gr.HTML("<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>Loading...</span></div>")
+        nav_loading_overlay = gr.HTML("<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>Loading...</span></div>")
 
+        # --- LOADING VIEW (will be updated with translated text on load) ---
         with gr.Column(visible=True, elem_id="app-loader") as loader_col:
-            gr.HTML("<div style='text-align:center; padding:100px;'><h2>🕵️‍♀️ Authenticating...</h2><p>Syncing Moral Compass Data...</p></div>")
+            loading_screen_html = gr.HTML("<div style='text-align:center; padding:100px;'><h2>🕵️‍♀️ Authenticating...</h2><p>Syncing Moral Compass Data...</p></div>")
 
         with gr.Column(visible=False) as main_app_col:
             gr.Markdown("# 🕵️‍♀️ Bias Detective: Part 2 - Algorithmic Audit")
@@ -2640,11 +2654,11 @@ def create_bias_detective_part2_app(theme_primary_hue: str = "indigo"):
                     time.sleep(1.0)
 
                 data, _ = ensure_table_and_get_data(user, token, team, fetched_tasks)
-                return (user, token, team, False, render_top_dashboard(data, 0), render_leaderboard_card(data, user, team), acc, fetched_tasks, lang, gr.update(visible=False), gr.update(visible=True))
+                return (user, token, team, False, render_top_dashboard(data, 0), render_leaderboard_card(data, user, team), acc, fetched_tasks, lang, get_loading_screen_html(lang), get_nav_loading_html(lang), gr.update(visible=False), gr.update(visible=True))
 
-            return (None, None, None, False, f"<div class='hint-box'>{t(lang, 'auth_failed')}</div>", "", 0.0, [], lang, gr.update(visible=False), gr.update(visible=True))
+            return (None, None, None, False, f"<div class='hint-box'>{t(lang, 'auth_failed')}</div>", "", 0.0, [], lang, get_loading_screen_html(lang), get_nav_loading_html(lang), gr.update(visible=False), gr.update(visible=True))
 
-        demo.load(handle_load, None, [username_state, token_state, team_state, module0_done, out_top, leaderboard_html, accuracy_state, task_list_state, lang_state, loader_col, main_app_col])
+        demo.load(handle_load, None, [username_state, token_state, team_state, module0_done, out_top, leaderboard_html, accuracy_state, task_list_state, lang_state, loading_screen_html, nav_loading_overlay, loader_col, main_app_col])
 
         # --- JAVASCRIPT HELPER FOR NAVIGATION ---
         def nav_js(target_id: str, message: str) -> str:

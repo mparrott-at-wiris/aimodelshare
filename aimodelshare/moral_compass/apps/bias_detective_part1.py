@@ -180,6 +180,19 @@ def t(lang: str, key: str) -> str:
     """Get translated text for given language and key."""
     return TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(key, key)
 
+def get_loading_screen_html(lang: str = "en") -> str:
+    """Generate loading screen HTML with translated text."""
+    return f"""
+    <div style='text-align:center; padding:100px;'>
+        <h2>{t(lang, 'loading_auth')}</h2>
+        <p>{t(lang, 'loading_sync')}</p>
+    </div>
+    """
+
+def get_nav_loading_html(lang: str = "en") -> str:
+    """Generate navigation loading overlay HTML with translated text."""
+    return f"""<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>{t(lang, 'loading_text')}</span></div>"""
+
 # --- 4. MODULE DEFINITIONS (APP 1: 0-10) ---
 MODULES = [
     {
@@ -2155,11 +2168,11 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
 
         # --- TOP ANCHOR & LOADING OVERLAY FOR NAVIGATION ---
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
-        gr.HTML("<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>Loading...</span></div>")
+        nav_loading_overlay = gr.HTML("<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>Loading...</span></div>")
 
-        # --- LOADING VIEW ---
+        # --- LOADING VIEW (will be updated with translated text on load) ---
         with gr.Column(visible=True, elem_id="app-loader") as loader_col:
-            gr.HTML(
+            loading_screen_html = gr.HTML(
                 "<div style='text-align:center; padding:100px;'>"
                 "<h2>🕵️‍♀️ Authenticating...</h2>"
                 "<p>Syncing Moral Compass Data...</p>"
@@ -2393,6 +2406,8 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                     acc,
                     fetched_tasks,
                     lang,  # Return detected language
+                    get_loading_screen_html(lang),  # Update loading screen with translated text
+                    get_nav_loading_html(lang),  # Update nav loading with translated text
                     gr.update(visible=False),
                     gr.update(visible=True),
                 )
@@ -2408,6 +2423,8 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                 0.0,
                 [],
                 lang,  # Return detected language
+                get_loading_screen_html(lang),  # Update loading screen with translated text
+                get_nav_loading_html(lang),  # Update nav loading with translated text
                 gr.update(visible=False),
                 gr.update(visible=True),
             )
@@ -2426,6 +2443,8 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                 accuracy_state,
                 task_list_state,
                 lang_state,  # Add lang to outputs
+                loading_screen_html,  # Update loading screen
+                nav_loading_overlay,  # Update nav loading
                 loader_col,
                 main_app_col,
             ],
