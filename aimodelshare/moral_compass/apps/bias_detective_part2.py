@@ -171,6 +171,22 @@ def get_button_label(lang: str, button_type: str, is_last: bool = False) -> str:
         return t(lang, 'btn_next')
     return ""
 
+def get_module_html(module_id: int, lang: str = "en") -> str:
+    """
+    Get module HTML content with translations.
+    For now, returns English HTML for all modules except those with translations.
+    To translate a module, add its translated HTML to this function.
+    
+    Example for Module 0:
+    if module_id == 0:
+        return get_module_0_html(lang)
+    """
+    # Return original English HTML from MODULES
+    for mod in MODULES:
+        if mod["id"] == module_id:
+            return mod["html"]
+    return ""
+
 # --- 4. API & LEADERBOARD LOGIC ---
 def get_or_assign_team(client, username):
     try:
