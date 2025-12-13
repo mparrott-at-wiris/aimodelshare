@@ -127,6 +127,24 @@ TRANSLATIONS = {
         "mod0_look_down": "<strong>Look down:</strong> The leaderboards below re-rank teams and individuals as people advance. When you improve your ethical progress, you don't just change your score—you change your position.",
         "mod0_try_title": "4. Try It Out: See How Progress Changes Your Score",
         "mod0_try_text": "Below, you can move a slider to <strong>simulate</strong> how your Moral Compass Score would change as your <strong>Ethical Progress %</strong> increases. This gives you a preview of how much impact each step of your progress can have on your final score.",
+        
+        # Module 1 - Your Mission
+        "mod1_title": "🕵️ Your New Mission: Investigate Hidden AI Bias",
+        "mod1_intro": "You've been granted access to an AI model that <em>appears</em> safe — but the historical information it learned from may include unfair patterns. Your job is to <strong>collect evidence</strong>, <strong>spot hidden patterns</strong>, and <strong>show where the system could be unfair</strong> before anyone relies on its predictions.",
+        "mod1_detective": "🔎 You Are Now a <span style='color:#1d4ed8;'>Bias Detective</span>",
+        "mod1_job": "Your job is to uncover hidden bias inside AI systems — spotting unfair patterns that others might miss and protecting people from harmful predictions.",
+        "mod1_roadmap": "🔍 Your Investigation Roadmap",
+        "mod1_step1": "Step 1: Learn the Rules",
+        "mod1_step1_desc": "Understand what actually counts as bias.",
+        "mod1_step2": "Step 2: Collect Evidence",
+        "mod1_step2_desc": "Look inside the data the model learned from to find suspicious patterns.",
+        "mod1_step3": "Step 3: Prove the Prediction Error",
+        "mod1_step3_desc": "Use the evidence to show whether the model treats groups unfairly.",
+        "mod1_step4": "Step 4: Diagnose Harm",
+        "mod1_step4_desc": "Explain how those patterns could impact real people.",
+        "mod1_why": "⭐ Why This Matters",
+        "mod1_why_text": "AI systems learn from history. If past data contains unfair patterns, the model may copy them unless someone catches the problem. <strong>That someone is you — the Bias Detective.</strong> Your ability to recognize bias will help unlock your Moral Compass Score and shape how the model behaves.",
+        "mod1_next": "<strong>Your Next Move:</strong> Before you start examining the data, you need to understand the rules of the investigation. Scroll down to choose your first step.",
     },
     "es": {
         # Loading and auth messages
@@ -157,6 +175,24 @@ TRANSLATIONS = {
         "slider_accuracy": "Tu precisión actual (de la tabla de clasificación):",
         "slider_progress": "Progreso Ético Simulado %:",
         "slider_score": "Puntuación de Brújula Moral Simulada:",
+        
+        # Module 1 - Your Mission
+        "mod1_title": "🕵️ Tu Nueva Misión: Investigar el Sesgo Oculto de la IA",
+        "mod1_intro": "Se te ha concedido acceso a un modelo de IA que <em>parece</em> seguro, pero la información histórica de la que aprendió puede incluir patrones injustos. Tu trabajo es <strong>recopilar evidencia</strong>, <strong>detectar patrones ocultos</strong> y <strong>mostrar dónde el sistema podría ser injusto</strong> antes de que alguien confíe en sus predicciones.",
+        "mod1_detective": "🔎 Ahora Eres un <span style='color:#1d4ed8;'>Detective de Sesgos</span>",
+        "mod1_job": "Tu trabajo es descubrir sesgos ocultos dentro de los sistemas de IA, detectando patrones injustos que otros podrían pasar por alto y protegiendo a las personas de predicciones dañinas.",
+        "mod1_roadmap": "🔍 Tu Hoja de Ruta de Investigación",
+        "mod1_step1": "Paso 1: Aprender las Reglas",
+        "mod1_step1_desc": "Comprender qué cuenta realmente como sesgo.",
+        "mod1_step2": "Paso 2: Recopilar Evidencia",
+        "mod1_step2_desc": "Mirar dentro de los datos de los que aprendió el modelo para encontrar patrones sospechosos.",
+        "mod1_step3": "Paso 3: Probar el Error de Predicción",
+        "mod1_step3_desc": "Usar la evidencia para mostrar si el modelo trata a los grupos injustamente.",
+        "mod1_step4": "Paso 4: Diagnosticar el Daño",
+        "mod1_step4_desc": "Explicar cómo esos patrones podrían impactar a personas reales.",
+        "mod1_why": "⭐ Por Qué Esto Importa",
+        "mod1_why_text": "Los sistemas de IA aprenden de la historia. Si los datos pasados contienen patrones injustos, el modelo puede copiarlos a menos que alguien detecte el problema. <strong>Ese alguien eres tú: el Detective de Sesgos.</strong> Tu capacidad para reconocer sesgos ayudará a desbloquear tu Puntuación de Brújula Moral y dar forma al comportamiento del modelo.",
+        "mod1_next": "<strong>Tu Próximo Movimiento:</strong> Antes de comenzar a examinar los datos, necesitas comprender las reglas de la investigación. Desplázate hacia abajo para elegir tu primer paso.",
         
         # Module 0 - Moral Compass Intro
         "mod0_title": "🧭 Presentamos tu Nueva Puntuación de Brújula Moral",
@@ -202,6 +238,24 @@ TRANSLATIONS = {
         "slider_accuracy": "La teva precisió actual (de la taula de classificació):",
         "slider_progress": "Progrés Ètic Simulat %:",
         "slider_score": "Puntuació de Brúixola Moral Simulada:",
+        
+        # Module 1 - Your Mission
+        "mod1_title": "🕵️ La Teva Nova Missió: Investigar el Biaix Ocult de la IA",
+        "mod1_intro": "Se t'ha concedit accés a un model d'IA que <em>sembla</em> segur, però la informació històrica de la qual va aprendre pot incloure patrons injustos. La teva feina és <strong>recopilar evidència</strong>, <strong>detectar patrons ocults</strong> i <strong>mostrar on el sistema podria ser injust</strong> abans que algú confiï en les seves prediccions.",
+        "mod1_detective": "🔎 Ara Ets un <span style='color:#1d4ed8;'>Detective de Biaixos</span>",
+        "mod1_job": "La teva feina és descobrir biaixos ocults dins dels sistemes d'IA, detectant patrons injustos que altres podrien passar per alt i protegint les persones de prediccions perjudicials.",
+        "mod1_roadmap": "🔍 La Teva Fulla de Ruta d'Investigació",
+        "mod1_step1": "Pas 1: Aprendre les Regles",
+        "mod1_step1_desc": "Comprendre què compta realment com a biaix.",
+        "mod1_step2": "Pas 2: Recopilar Evidència",
+        "mod1_step2_desc": "Mirar dins de les dades de les quals va aprendre el model per trobar patrons sospitosos.",
+        "mod1_step3": "Pas 3: Provar l'Error de Predicció",
+        "mod1_step3_desc": "Utilitzar l'evidència per mostrar si el model tracta els grups injustament.",
+        "mod1_step4": "Pas 4: Diagnosticar el Dany",
+        "mod1_step4_desc": "Explicar com aquests patrons podrien impactar persones reals.",
+        "mod1_why": "⭐ Per Què Això Importa",
+        "mod1_why_text": "Els sistemes d'IA aprenen de la història. Si les dades passades contenen patrons injustos, el model pot copiar-los tret que algú detecti el problema. <strong>Aquesta persona ets tu: el Detective de Biaixos.</strong> La teva capacitat per reconèixer biaixos ajudarà a desbloquejar la teva Puntuació de Brúixola Moral i donar forma al comportament del model.",
+        "mod1_next": "<strong>El Teu Proper Moviment:</strong> Abans de començar a examinar les dades, necessites comprendre les regles de la investigació. Desplaça't cap avall per triar el teu primer pas.",
         
         # Module 0 - Moral Compass Intro
         "mod0_title": "🧭 Presentem la teva Nova Puntuació de Brúixola Moral",
@@ -289,6 +343,67 @@ def get_module_0_html(lang: str = "en") -> str:
         </div>
     """
 
+def get_module_1_html(lang: str = "en") -> str:
+    """Generate Module 1 HTML with translations."""
+    return f"""
+        <div class="scenario-box">
+            <h2 class="slide-title">{t(lang, 'mod1_title')}</h2>
+            <div class="slide-body">
+
+                <p style="font-size:1.05rem; max-width:800px; margin:0 auto 18px auto;">
+                    {t(lang, 'mod1_intro')}
+                </p>
+
+                <div style="text-align:center; margin:20px 0; padding:16px;
+                            background:rgba(59,130,246,0.10); border-radius:12px;
+                            border:1px solid rgba(59,130,246,0.25);">
+                    <h3 style="margin:0; font-size:1.45rem; font-weight:800; color:#2563eb;">
+                        {t(lang, 'mod1_detective')}
+                    </h3>
+                    <p style="margin-top:10px; font-size:1.1rem;">
+                        {t(lang, 'mod1_job')}
+                    </p>
+                </div>
+
+                <div class="ai-risk-container" style="margin-top:10px;">
+                    <h4 style="margin-top:0; font-size:1.2rem; text-align:center;">{t(lang, 'mod1_roadmap')}</h4>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:12px;">
+                        <div class="hint-box" style="margin-top:0;">
+                            <div style="font-weight:700;">{t(lang, 'mod1_step1')}</div>
+                            <div style="font-size:0.95rem;">{t(lang, 'mod1_step1_desc')}</div>
+                        </div>
+                        <div class="hint-box" style="margin-top:0;">
+                            <div style="font-weight:700;">{t(lang, 'mod1_step2')}</div>
+                            <div style="font-size:0.95rem;">{t(lang, 'mod1_step2_desc')}</div>
+                        </div>
+                        <div class="hint-box" style="margin-top:0;">
+                            <div style="font-weight:700;">{t(lang, 'mod1_step3')}</div>
+                            <div style="font-size:0.95rem;">{t(lang, 'mod1_step3_desc')}</div>
+                        </div>
+                        <div class="hint-box" style="margin-top:0;">
+                            <div style="font-weight:700;">{t(lang, 'mod1_step4')}</div>
+                            <div style="font-size:0.95rem;">{t(lang, 'mod1_step4_desc')}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ai-risk-container" style="margin-top:18px;">
+                    <h4 style="margin-top:0; font-size:1.1rem;">{t(lang, 'mod1_why')}</h4>
+                    <p style="font-size:1.0rem; max-width:760px; margin:0 auto;">
+                        {t(lang, 'mod1_why_text')}
+                    </p>
+                </div>
+
+                <div style="text-align:center; margin-top:22px; padding:14px; background:rgba(59,130,246,0.08); border-radius:10px;">
+                    <p style="font-size:1.05rem; margin:0;">
+                        {t(lang, 'mod1_next')}
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    """
+
 def get_module_html(module_id: int, lang: str = "en") -> str:
     """
     Get module HTML content with translations.
@@ -298,6 +413,9 @@ def get_module_html(module_id: int, lang: str = "en") -> str:
     # Module 0 has full translation support
     if module_id == 0:
         return get_module_0_html(lang)
+    # Module 1 has full translation support
+    elif module_id == 1:
+        return get_module_1_html(lang)
     
     # For other modules, return original English HTML from MODULES
     for mod in MODULES:
@@ -2313,9 +2431,11 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                     # Core slide HTML - store reference for translation updates
                     module_html_comp = gr.HTML(mod["html"])
                     
-                    # Store HTML component reference for later updates
+                    # Store HTML component references for translation updates
                     if i == 0:
                         module_0_html = module_html_comp
+                    elif i == 1:
+                        module_1_html = module_html_comp
 
                     # --- MODULE 0: INTERACTIVE CALCULATOR + STATIC SCENARIO CARDS ---
                     if i == 0:
@@ -2549,6 +2669,7 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                     get_loading_screen_html(lang),  # Update loading screen with translated text
                     get_nav_loading_html(lang),  # Update nav loading with translated text
                     get_module_0_html(lang),  # Update Module 0 with translated content
+                    get_module_1_html(lang),  # Update Module 1 with translated content
                     gr.update(visible=False),
                     gr.update(visible=True),
                     *button_updates,  # Update all button labels
@@ -2569,6 +2690,7 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                 get_loading_screen_html(lang),  # Update loading screen with translated text
                 get_nav_loading_html(lang),  # Update nav loading with translated text
                 get_module_0_html(lang),  # Update Module 0 with translated content
+                get_module_1_html(lang),  # Update Module 1 with translated content
                 gr.update(visible=False),
                 gr.update(visible=True),
                 *button_updates,  # Update all button labels
@@ -2591,6 +2713,7 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                 loading_screen_html,  # Update loading screen
                 nav_loading_overlay,  # Update nav loading
                 module_0_html,  # Update Module 0 content
+                module_1_html,  # Update Module 1 content
                 loader_col,
                 main_app_col,
                 *all_prev_buttons,  # Update all previous buttons
