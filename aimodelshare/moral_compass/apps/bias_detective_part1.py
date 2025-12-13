@@ -491,7 +491,10 @@ MODULES = [
                   <span style="font-size:1.1rem;">📋</span><span>STEP 2: COLLECT EVIDENCE — Look for Unfair Patterns in the Data</span>
                 </div>
               </div>
-              <h2 class="slide-title">The Data Forensics Briefing</h2>
+              <br>
+              <h2 class="slide-title" style="font-size:1.6rem; text-align:center;">The Data Forensics Briefing</h2>
+              <br>
+
               <div class="slide-body">
                 <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
                   You are about to access the raw evidence files. But be warned: The AI thinks this data is the truth. 
@@ -648,9 +651,10 @@ MODULES = [
                   <span>STEP 2: COLLECT EVIDENCE — Look for Unfair Patterns in the Data</span>
                 </div>
               </div>
-            
-              <h2 class="slide-title">The Data Forensics Analysis:</h2>
-            
+              <br>
+              <h2 class="slide-title" style="font-size:1.6rem; text-align:center;">The Data Forensics Analysis:</h2>
+              <br>
+
               <div class="slide-body">
             
                 <div class="ai-risk-container" style="margin-bottom:12px;">
@@ -703,7 +707,9 @@ MODULES = [
                   <span style="font-size:1.1rem;">📋</span><span>STEP 2: COLLECT EVIDENCE — Look for Unfair Patterns in the Data</span>
                 </div>
               </div>
-            <h2 class="slide-title">The Data Forensics Analysis: Race</h2>
+              <br>
+              <h2 class="slide-title" style="font-size:1.6rem; text-align:center;">The Data Forensics Analysis: Race</h2>
+              <br>
             <div class="slide-body">
                 <!-- Context text -->
                 <p style="font-size:1.05rem; max-width:780px; margin:0 auto 12px auto; text-align:center;">
@@ -781,7 +787,9 @@ MODULES = [
                   <span style="font-size:1.1rem;">📋</span><span>STEP 2: COLLECT EVIDENCE — Look for Unfair Patterns in the Data</span>
                 </div>
               </div>
-            <h2 class="slide-title">The Data Forensics Analysis: Gender</h2>
+              <br>
+              <h2 class="slide-title" style="font-size:1.6rem; text-align:center;">The Data Forensics Analysis: Gender</h2>
+              <br>
             <div class="slide-body">
                 <!-- Context text -->
                 <p style="font-size:1.05rem; max-width:780px; margin:0 auto 12px auto; text-align:center;">
@@ -863,8 +871,9 @@ MODULES = [
                 </div>
               </div>
             
-              <h2 class="slide-title">The Data Forensics Analysis: Age</h2>
-              
+              <br>
+              <h2 class="slide-title" style="font-size:1.6rem; text-align:center;">The Data Forensics Analysis: Age</h2>
+              <br>
               <div class="slide-body">
                 
                 <p style="font-size:1.05rem; max-width:780px; margin:0 auto 12px auto; text-align:center;">
@@ -935,7 +944,9 @@ MODULES = [
                     <span style="font-size:1.1rem;">✅</span><span>STATUS: STEP 2 COLLECT EVIDENCE- COMPLETE</span>
                   </div>
                 </div>
-              <h2 class="slide-title">The Data Forensics Report: Summary</h2>
+              <br>
+              <h2 class="slide-title" style="font-size:1.6rem; text-align:center;">The Data Forensics Report: Summary</h2>
+              <br>
                 <p style="font-size:1.05rem; max-width:820px; margin:0 auto 22px auto; text-align:center;">
                   Excellent work. You analyzed the data <strong>inputs</strong> to the Compas crime risk model and ran scans across <strong>Race</strong>, <strong>Gender</strong>, and <strong>Age</strong>.
                   We found three core distortions that compromise the dataset and can affect AI <strong>Justice & Equity</strong>.
@@ -1902,7 +1913,7 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                         next_label = (
                             "Next ▶️"
                             if i < len(MODULES) - 1
-                            else "🎉 Complete Part 1 (Please Scroll Down)"
+                            else "🎉 You Have Completed Part 1!! (Please Proceed to the Next Activity)"
                         )
                         btn_next = gr.Button(next_label, variant="primary")
 
