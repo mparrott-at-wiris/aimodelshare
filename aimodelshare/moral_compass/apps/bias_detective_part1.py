@@ -416,8 +416,10 @@ MODULES = [
       <span style="font-size:1.1rem;">📋</span><span>STEP 2: COLLECT EVIDENCE — Look for Unfair Patterns in the Data</span>
     </div>
   </div>
+                <br>
+                <h2 class="slide-title" style="font-size:1.6rem; text-align:center;">From Rules to Evidence</h2>
+                <br>
 
-  <h2 class="slide-title">🔎 From Rules to Evidence</h2>
   <div class="slide-body">
 
     <div class="hint-box" style="margin-bottom:16px;">
