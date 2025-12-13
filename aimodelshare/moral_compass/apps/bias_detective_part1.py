@@ -172,6 +172,18 @@ TRANSLATIONS = {
         "mod2_bias3_title": "Harm Patterns",
         "mod2_bias3_desc": "Identifies when bias leads to real damage.",
         "mod2_bias3_example": "Not all errors create equal harm. If false positives cause arrest or job denial, you must measure who gets hurt most and whether the harm falls unequally across groups.",
+        
+        # Module 3 - The Stakes
+        "mod3_badge": "STEP 1: LEARN THE RULES — Understand what actually counts as bias",
+        "mod3_title": "⚠️ The Risk of Invisible Bias",
+        "mod3_intro1": "You might ask: <strong>\"Why is an AI bias investigation such a big deal?\"</strong>",
+        "mod3_intro2": "When a human judge is biased, you can sometimes see it in their words or actions. But with AI, the bias is hidden behind clean numbers. The model produces a neat-looking <strong>\"risk of reoffending\" score</strong>, and people often assume it is neutral and objective — even when the data beneath it is biased.",
+        "mod3_ripple_title": "🌊 The Ripple Effect",
+        "mod3_ripple_formula": "1 Flawed Algorithm → 10,000 Potential Unfair Sentences",
+        "mod3_ripple_text": "Once a biased criminal risk model is deployed, it doesn't just make one bad call. It can quietly repeat the same unfair pattern across <strong>thousands of cases</strong>, shaping bail, sentencing, and future freedom for real people.",
+        "mod3_detective_title": "🔎 Why the World Needs Bias Detectives",
+        "mod3_detective_text": "Because AI bias is silent and scaled, most people never see it happening. That's where <strong>you</strong>, as a <strong>Bias Detective</strong>, come in. Your role is to look past the polished risk score, trace how the model is using biased data, and show where it might be treating groups unfairly.",
+        "mod3_next": "Next, you'll start scanning the <strong>evidence</strong> inside the data: who shows up in the dataset, how often, and what that means for the risk scores people receive. You're not just learning about bias — you're learning how to <strong>catch it</strong>.",
     },
     "es": {
         # Loading and auth messages
@@ -247,6 +259,18 @@ TRANSLATIONS = {
         "mod2_bias3_title": "Patrones de Daño",
         "mod2_bias3_desc": "Identifica cuándo el sesgo conduce a un daño real.",
         "mod2_bias3_example": "No todos los errores crean el mismo daño. Si los falsos positivos causan arrestos o negación de empleo, debes medir quién resulta más perjudicado y si el daño recae desigualmente en los grupos.",
+        
+        # Module 3 - The Stakes
+        "mod3_badge": "PASO 1: APRENDER LAS REGLAS — Comprender qué cuenta realmente como sesgo",
+        "mod3_title": "⚠️ El Riesgo del Sesgo Invisible",
+        "mod3_intro1": "Podrías preguntar: <strong>\"¿Por qué es tan importante una investigación de sesgo de IA?\"</strong>",
+        "mod3_intro2": "Cuando un juez humano tiene sesgos, a veces puedes verlo en sus palabras o acciones. Pero con la IA, el sesgo está oculto detrás de números limpios. El modelo produce una <strong>\"puntuación de riesgo de reincidencia\"</strong> de aspecto ordenado, y la gente a menudo asume que es neutral y objetiva, incluso cuando los datos debajo están sesgados.",
+        "mod3_ripple_title": "🌊 El Efecto Dominó",
+        "mod3_ripple_formula": "1 Algoritmo Defectuoso → 10,000 Sentencias Potencialmente Injustas",
+        "mod3_ripple_text": "Una vez que se implementa un modelo de riesgo criminal sesgado, no solo toma una mala decisión. Puede repetir silenciosamente el mismo patrón injusto en <strong>miles de casos</strong>, dando forma a la libertad bajo fianza, las sentencias y la libertad futura de personas reales.",
+        "mod3_detective_title": "🔎 Por Qué el Mundo Necesita Detectives de Sesgos",
+        "mod3_detective_text": "Porque el sesgo de IA es silencioso y escalado, la mayoría de las personas nunca lo ven sucediendo. Ahí es donde entras <strong>tú</strong>, como <strong>Detective de Sesgos</strong>. Tu función es mirar más allá de la puntuación de riesgo pulida, rastrear cómo el modelo está usando datos sesgados y mostrar dónde podría estar tratando a los grupos injustamente.",
+        "mod3_next": "A continuación, comenzarás a escanear la <strong>evidencia</strong> dentro de los datos: quién aparece en el conjunto de datos, con qué frecuencia y qué significa eso para las puntuaciones de riesgo que reciben las personas. No solo estás aprendiendo sobre el sesgo, estás aprendiendo cómo <strong>detectarlo</strong>.",
         
         # Module 0 - Moral Compass Intro
         "mod0_title": "🧭 Presentamos tu Nueva Puntuación de Brújula Moral",
@@ -335,6 +359,22 @@ TRANSLATIONS = {
         "mod2_bias2_desc": "Verifica els errors de predicció d'IA per subgrup.",
         "mod2_bias2_example": "Compara la taxa de falsos positius per al Grup A vs. el Grup B. Un error major per a un grup pot significar un tracte injust, cosa que mostra que el model és menys fiable o precís per a aquest grup específic.",
         "mod2_bias3_title": "Patrons de Dany",
+        "mod2_bias3_desc": "Identifica quan el biaix condueix a un dany real.",
+        "mod2_bias3_example": "No tots els errors creen el mateix dany. Si els falsos positius causen arrest o denegació de feina, has de mesurar qui resulta més perjudicat i si el dany recau desigualment en els grups.",
+        
+        # Module 3 - The Stakes
+        "mod3_badge": "PAS 1: APRENDRE LES REGLES — Comprendre què compta realment com a biaix",
+        "mod3_title": "⚠️ El Risc del Biaix Invisible",
+        "mod3_intro1": "Podries preguntar: <strong>\"Per què és tan important una investigació de biaix d'IA?\"</strong>",
+        "mod3_intro2": "Quan un jutge humà té biaixos, de vegades pots veure-ho en les seves paraules o accions. Però amb la IA, el biaix està ocult darrere de nombres nets. El model produeix una <strong>\"puntuació de risc de reincidència\"</strong> d'aspecte ordenat, i la gent sovint assumeix que és neutral i objectiva, fins i tot quan les dades a sota estan esbiaixades.",
+        "mod3_ripple_title": "🌊 L'Efecte Dòmino",
+        "mod3_ripple_formula": "1 Algoritme Defectuós → 10,000 Sentències Potencialment Injustes",
+        "mod3_ripple_text": "Una vegada que s'implementa un model de risc criminal esbiaixat, no només pren una mala decisió. Pot repetir silenciosament el mateix patró injust en <strong>milers de casos</strong>, donant forma a la llibertat sota fiança, les sentències i la llibertat futura de persones reals.",
+        "mod3_detective_title": "🔎 Per Què el Món Necessita Detectives de Biaixos",
+        "mod3_detective_text": "Perquè el biaix d'IA és silenciós i escalat, la majoria de les persones mai el veuen succeir. Aquí és on entres <strong>tu</strong>, com a <strong>Detective de Biaixos</strong>. La teva funció és mirar més enllà de la puntuació de risc polida, rastrejar com el model està usant dades esbiaixades i mostrar on podria estar tractant els grups injustament.",
+        "mod3_next": "A continuació, començaràs a escanejar l'<strong>evidència</strong> dins de les dades: qui apareix al conjunt de dades, amb quina freqüència i què significa això per a les puntuacions de risc que reben les persones. No només estàs aprenent sobre el biaix, estàs aprenent com <strong>detectar-lo</strong>.",
+        
+        # Module 0 - Moral Compass Intro
         "mod2_bias3_desc": "Identifica quan el biaix condueix a un dany real.",
         "mod2_bias3_example": "No tots els errors creen el mateix dany. Si els falsos positius causen arrest o denegació de feina, has de mesurar qui resulta més perjudicat i si el dany recau desigualment en els grups.",
         
@@ -590,6 +630,55 @@ def get_module_2_html(lang: str = "en") -> str:
         </div>
     """
 
+def get_module_3_html(lang: str = "en") -> str:
+    """Generate Module 3 HTML with translations."""
+    return f"""
+        <div class="scenario-box">                         
+            <div style="display:flex; justify-content:center; margin-bottom:14px;">
+              <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-weight:800;">
+                <span style="font-size:1.1rem;">📜</span>
+                <span>{t(lang, 'mod3_badge')}</span>
+              </div>
+            </div>
+                            
+            <br>
+            <h2 class="slide-title" style="font-size:1.6rem; text-align:center;">{t(lang, 'mod3_title')}</h2>
+            <br>
+            
+            <div class="slide-body">
+                <p style="font-size:1.05rem; max-width:800px; margin:0 auto 18px auto;">
+                    {t(lang, 'mod3_intro1')}
+                </p>
+                <p style="font-size:1.05rem; max-width:800px; margin:0 auto 14px auto;">
+                    {t(lang, 'mod3_intro2')}
+                </p>
+
+                <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
+                    <h4 style="margin-top:0; font-size:1.3rem;">{t(lang, 'mod3_ripple_title')}</h4>
+                    <div style="font-size: 1.6rem; margin: 16px 0; font-weight:bold;">
+                        {t(lang, 'mod3_ripple_formula')}
+                    </div>
+                    <p style="font-size:1rem; max-width:650px; margin:0 auto;">
+                        {t(lang, 'mod3_ripple_text')}
+                    </p>
+                </div>
+
+                <div class="ai-risk-container" style="margin-top:18px;">
+                    <h4 style="margin-top:0; font-size:1.15rem;">{t(lang, 'mod3_detective_title')}</h4>
+                    <p style="font-size:1.02rem; max-width:760px; margin:0 auto;">
+                        {t(lang, 'mod3_detective_text')}
+                    </p>
+                </div>
+
+                <div style="text-align:center; margin-top:22px; padding:14px; background:rgba(59,130,246,0.08); border-radius:10px;">
+                    <p style="font-size:1.05rem; margin:0;">
+                        {t(lang, 'mod3_next')}
+                    </p>
+                </div>
+            </div>
+        </div>
+    """
+
 def get_module_html(module_id: int, lang: str = "en") -> str:
     """
     Get module HTML content with translations.
@@ -603,6 +692,8 @@ def get_module_html(module_id: int, lang: str = "en") -> str:
         return get_module_1_html(lang)
     elif module_id == 2:
         return get_module_2_html(lang)
+    elif module_id == 3:
+        return get_module_3_html(lang)
     
     # For other modules, return original English HTML from MODULES
     for mod in MODULES:
@@ -2625,6 +2716,8 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                         module_1_html = module_html_comp
                     elif i == 2:
                         module_2_html = module_html_comp
+                    elif i == 3:
+                        module_3_html = module_html_comp
 
                     # --- MODULE 0: INTERACTIVE CALCULATOR + STATIC SCENARIO CARDS ---
                     if i == 0:
@@ -2860,6 +2953,7 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                     get_module_0_html(lang),  # Update Module 0 with translated content
                     get_module_1_html(lang),  # Update Module 1 with translated content
                     get_module_2_html(lang),  # Update Module 2 with translated content
+                    get_module_3_html(lang),  # Update Module 3 with translated content
                     gr.update(visible=False),
                     gr.update(visible=True),
                     *button_updates,  # Update all button labels
@@ -2882,6 +2976,7 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                 get_module_0_html(lang),  # Update Module 0 with translated content
                 get_module_1_html(lang),  # Update Module 1 with translated content
                 get_module_2_html(lang),  # Update Module 2 with translated content
+                get_module_3_html(lang),  # Update Module 3 with translated content
                 gr.update(visible=False),
                 gr.update(visible=True),
                 *button_updates,  # Update all button labels
@@ -2906,6 +3001,7 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                 module_0_html,  # Update Module 0 content
                 module_1_html,  # Update Module 1 content
                 module_2_html,  # Update Module 2 content
+                module_3_html,  # Update Module 3 content
                 loader_col,
                 main_app_col,
                 *all_prev_buttons,  # Update all previous buttons
