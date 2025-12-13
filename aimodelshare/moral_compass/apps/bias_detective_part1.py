@@ -231,9 +231,11 @@ MODULES = [
                     <span>STEP 1: LEARN THE RULES — Understand what actually counts as bias</span>
                   </div>
                 </div>
-            
-                <h2 class="slide-title" style="font-size:1.6rem;">⚖️ Justice &amp; Equity: Your Primary Rule</h2>
-            
+                
+                <br>
+                <h2 class="slide-title" style="font-size:1.6rem; text-align:center;">⚖️ Justice &amp; Equity: Your Primary Rule</h2>
+                <br>
+
                 <p style="font-size:1.05rem; max-width:820px; margin:0 auto 12px auto; text-align:center;">
                   Before we start our investigation, we need to know the rules.
                   Ethics isn’t abstract here—it’s our <strong>field guide for action</strong>.
@@ -293,7 +295,7 @@ MODULES = [
                         Compares the dataset distribution to the <strong>actual real-world population.</strong>
                       </div>
                       <div style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:4px;">
-                        If one group appears far less or far more than reality (e.g., only <strong>10%</strong> of cases are from Group A, but the group is <strong>71%</strong> of the population) or far more than what is real, the AI has too little data to learn accurately, which can result in it learning to generate predictions based on biased patterns.
+                        If one group appears far less or far more than reality (e.g., only <strong>10%</strong> of cases are from Group A, but the group is <strong>71%</strong> of the population), the AI may not have enough data to learn how to make accurate unbiased predictions.
                       </div>
                     </div>
             
