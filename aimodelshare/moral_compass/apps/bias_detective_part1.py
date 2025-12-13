@@ -1274,6 +1274,246 @@ QUIZ_CONFIG = {
     },
 }
 
+# --- 5b. QUIZ TRANSLATIONS (ES, CA) ---
+QUIZ_CONFIG_ES = {
+    0: {
+        "t": "t1",
+        "q": "¿Por qué multiplicamos tu Precisión por el Progreso Ético?",
+        "o": [
+            "A) Porque la simple precisión ignora el sesgo potencial y el daño.",
+            "B) Para hacer más complicadas las matemáticas de la tabla de clasificación.",
+            "C) La precisión es la única métrica que realmente importa.",
+        ],
+        "a": "A) Porque la simple precisión ignora el sesgo potencial y el daño.",
+        "success": "Calibración inicializada. Ahora estás cuantificando el riesgo ético.",
+    },
+    1: {
+        "t": "t2",
+        "q": "¿Cuál es el mejor primer paso antes de empezar a examinar los datos del modelo?",
+        "o": [
+            "Ir directamente a los datos y buscar patrones.",
+            "Aprender las reglas que definen qué cuenta como sesgo.",
+            "Dejar que el modelo explique sus propias decisiones.",
+        ],
+        "a": "Aprender las reglas que definen qué cuenta como sesgo.",
+        "success": "Informe completo. Estás comenzando tu investigación con las reglas correctas en mente.",
+    },
+    2: {
+        "t": "t3",
+        "q": "¿Qué requiere Justicia y Equidad?",
+        "o": [
+            "Explicar las decisiones del modelo",
+            "Verificar errores de predicción a nivel de grupo para prevenir daños sistemáticos",
+            "Minimizar la tasa de error",
+        ],
+        "a": "Verificar errores de predicción a nivel de grupo para prevenir daños sistemáticos",
+        "success": "Protocolo Activo. Ahora estás auditando por Justicia y Equidad.",
+    },
+    3: {
+        "t": "t4",
+        "q": "Detective, basándote en el Efecto Dominó, ¿por qué este sesgo algorítmico se clasifica como Amenaza de Alta Prioridad?",
+        "o": [
+            "A) Porque las computadoras tienen intenciones maliciosas.",
+            "B) Porque el error se automatiza a escala, replicándose potencialmente miles de veces en muchos casos.",
+            "C) Porque cuesta más dinero ejecutar el software.",
+        ],
+        "a": "B) Porque el error se automatiza a escala, replicándose potencialmente miles de veces en muchos casos.",
+        "success": "Amenaza Evaluada. Has identificado el peligro único de la escala de automatización.",
+    },
+    4: {
+        "t": "t5",
+        "q": "Detective, dado que el modelo no confesará, ¿cuál es una forma clave de investigar el sesgo?",
+        "o": [
+            "A) Preguntar a los desarrolladores qué pretendían.",
+            "B) Comparar las predicciones del modelo con los resultados reales.",
+            "C) Ejecutar el modelo más rápido.",
+        ],
+        "a": "B) Comparar las predicciones del modelo con los resultados reales.",
+        "success": "Metodología Confirmada. Juzgaremos el modelo por sus resultados, no por su código.",
+    },
+    5: {
+        "t": "t6",
+        "q": "¿Cómo debes ver el conjunto de datos al comenzar tu investigación?",
+        "o": [
+            "A) Como verdad neutral.",
+            "B) Como una 'Escena del Crimen' que potencialmente contiene patrones históricos de discriminación entre otras formas de sesgo.",
+            "C) Como ruido aleatorio.",
+        ],
+        "a": "B) Como una 'Escena del Crimen' que potencialmente contiene patrones históricos de discriminación entre otras formas de sesgo.",
+        "success": "Mentalidad Cambiada. Estás tratando los datos como evidencia de la historia, no como verdad absoluta.",
+    },
+    7: {
+        "t": "t7",
+        "q": "El conjunto de datos tiene aproximadamente 2x más de este grupo que la realidad. ¿Qué término técnico describe mejor esta discrepancia entre el conjunto de datos y la población?",
+        "o": [
+            "A) Sesgo de Muestreo o Histórico",
+            "B) Sobreajuste",
+            "C) Fuga de Datos",
+            "D) Desplazamiento del Concepto",
+        ],
+        "a": "A) Sesgo de Muestreo o Histórico",
+        "success": "Sesgo detectado: Sesgo de Muestreo o Histórico. El conjunto de datos sobremuestrea este grupo en relación a la realidad, lo que puede llevar al modelo a sobre-señalar. Siguiente: comparar tasas de error por raza para confirmar impactos de equidad.",
+    },
+    8: {
+        "t": "t8",
+        "q": "La IA tiene muy pocos ejemplos de mujeres. ¿Cómo llamamos cuando un grupo específico no está adecuadamente incluido?",
+        "o": [
+            "A) Sobreajuste",
+            "B) Fuga de Datos",
+            "C) Desplazamiento del Concepto",
+            "D) Sesgo de Representación",
+        ],
+        "a": "D) Sesgo de Representación",
+        "success": "Sesgo detectado: Sesgo de Representación. La subrepresentación puede hacer que el modelo generalice mal para las mujeres. Siguiente: comparar tasas de error por género e inspeccionar campos faltantes para sesgo de exclusión.",
+    },
+    9: {
+        "t": "t9",
+        "q": "La mayoría de los datos de COMPAS están entre 25–45 años, con menos personas mayores de 45. ¿Cuál es el riesgo principal para una persona de 62 años?",
+        "o": [
+            "A) Error de Generalización: La IA puede juzgar mal el riesgo porque tiene pocos ejemplos de adultos mayores.",
+            "B) El modelo se niega a hacer una predicción.",
+            "C) Los adultos mayores automáticamente reciben predicciones más precisas.",
+        ],
+        "a": "A) Error de Generalización: La IA puede juzgar mal el riesgo porque tiene pocos ejemplos de adultos mayores.",
+        "success": "Riesgo Registrado: Error de Generalización. El modelo tiene 'visibilidad' limitada sobre acusados mayores.",
+    },
+    10: {
+        "t": "t10",
+        "q": "Detective, has construido evidencia de que los Datos de Entrada podrían estar sesgados. ¿Es esto suficiente para condenar el modelo?",
+        "o": [
+            "A) Sí, si los datos están sesgados, es ilegal.",
+            "B) No. Ahora debemos analizar los errores de predicción del Modelo para grupos específicos para estudiar el daño real a personas reales.",
+            "C) Sí, asume daño.",
+        ],
+        "a": "B) No. Ahora debemos analizar los errores de predicción del Modelo para grupos específicos para estudiar el daño real a personas reales.",
+        "success": "Pivote de Investigación. Fase 1 (Entradas) Completa. Comenzando Fase 2 (Salidas).",
+    },
+}
+
+QUIZ_CONFIG_CA = {
+    0: {
+        "t": "t1",
+        "q": "Per què multipliquem la teva Precisió pel Progrés Ètic?",
+        "o": [
+            "A) Perquè la simple precisió ignora el biaix potencial i el dany.",
+            "B) Per fer més complicades les matemàtiques de la taula de classificació.",
+            "C) La precisió és l'única mètrica que realment importa.",
+        ],
+        "a": "A) Perquè la simple precisió ignora el biaix potencial i el dany.",
+        "success": "Calibratge inicialitzat. Ara estàs quantificant el risc ètic.",
+    },
+    1: {
+        "t": "t2",
+        "q": "Quin és el millor primer pas abans de començar a examinar les dades del model?",
+        "o": [
+            "Anar directament a les dades i buscar patrons.",
+            "Aprendre les regles que defineixen què compta com a biaix.",
+            "Deixar que el model expliqui les seves pròpies decisions.",
+        ],
+        "a": "Aprendre les regles que defineixen què compta com a biaix.",
+        "success": "Informe complet. Estàs començant la teva investigació amb les regles correctes en ment.",
+    },
+    2: {
+        "t": "t3",
+        "q": "Què requereix Justícia i Equitat?",
+        "o": [
+            "Explicar les decisions del model",
+            "Verificar errors de predicció a nivell de grup per prevenir danys sistemàtics",
+            "Minimitzar la taxa d'error",
+        ],
+        "a": "Verificar errors de predicció a nivell de grup per prevenir danys sistemàtics",
+        "success": "Protocol Actiu. Ara estàs auditant per Justícia i Equitat.",
+    },
+    3: {
+        "t": "t4",
+        "q": "Detective, basant-te en l'Efecte Dominó, per què aquest biaix algorítmic es classifica com a Amenaça d'Alta Prioritat?",
+        "o": [
+            "A) Perquè els ordinadors tenen intencions malicioses.",
+            "B) Perquè l'error s'automatitza a escala, replicant-se potencialment milers de vegades en molts casos.",
+            "C) Perquè costa més diners executar el programari.",
+        ],
+        "a": "B) Perquè l'error s'automatitza a escala, replicant-se potencialment milers de vegades en molts casos.",
+        "success": "Amenaça Avaluada. Has identificat el perill únic de l'escala d'automatització.",
+    },
+    4: {
+        "t": "t5",
+        "q": "Detective, atès que el model no confessarà, quina és una manera clau d'investigar el biaix?",
+        "o": [
+            "A) Preguntar als desenvolupadors què pretenien.",
+            "B) Comparar les prediccions del model amb els resultats reals.",
+            "C) Executar el model més ràpid.",
+        ],
+        "a": "B) Comparar les prediccions del model amb els resultats reals.",
+        "success": "Metodologia Confirmada. Jutjarem el model pels seus resultats, no pel seu codi.",
+    },
+    5: {
+        "t": "t6",
+        "q": "Com has de veure el conjunt de dades en començar la teva investigació?",
+        "o": [
+            "A) Com a veritat neutral.",
+            "B) Com a una 'Escena del Crim' que potencialment conté patrons històrics de discriminació entre altres formes de biaix.",
+            "C) Com a soroll aleatori.",
+        ],
+        "a": "B) Com a una 'Escena del Crim' que potencialment conté patrons històrics de discriminació entre altres formes de biaix.",
+        "success": "Mentalitat Canviada. Estàs tractant les dades com a evidència de la història, no com a veritat absoluta.",
+    },
+    7: {
+        "t": "t7",
+        "q": "El conjunt de dades té aproximadament 2x més d'aquest grup que la realitat. Quin terme tècnic descriu millor aquesta discrepància entre el conjunt de dades i la població?",
+        "o": [
+            "A) Biaix de Mostreig o Històric",
+            "B) Sobreajust",
+            "C) Fugida de Dades",
+            "D) Desplaçament del Concepte",
+        ],
+        "a": "A) Biaix de Mostreig o Històric",
+        "success": "Biaix detectat: Biaix de Mostreig o Històric. El conjunt de dades sobremostra aquest grup en relació a la realitat, la qual cosa pot portar el model a sobre-assenyalar. Següent: comparar taxes d'error per raça per confirmar impactes d'equitat.",
+    },
+    8: {
+        "t": "t8",
+        "q": "La IA té molt pocs exemples de dones. Com anomenem quan un grup específic no està adequadament inclòs?",
+        "o": [
+            "A) Sobreajust",
+            "B) Fugida de Dades",
+            "C) Desplaçament del Concepte",
+            "D) Biaix de Representació",
+        ],
+        "a": "D) Biaix de Representació",
+        "success": "Biaix detectat: Biaix de Representació. La subrepresentació pot fer que el model generalitzi malament per a les dones. Següent: comparar taxes d'error per gènere i inspeccionar camps faltants per biaix d'exclusió.",
+    },
+    9: {
+        "t": "t9",
+        "q": "La majoria de les dades de COMPAS estan entre 25–45 anys, amb menys persones majors de 45. Quin és el risc principal per a una persona de 62 anys?",
+        "o": [
+            "A) Error de Generalització: La IA pot jutjar malament el risc perquè té pocs exemples d'adults grans.",
+            "B) El model es nega a fer una predicció.",
+            "C) Els adults grans automàticament reben prediccions més precises.",
+        ],
+        "a": "A) Error de Generalització: La IA pot jutjar malament el risc perquè té pocs exemples d'adults grans.",
+        "success": "Risc Registrat: Error de Generalització. El model té 'visibilitat' limitada sobre acusats grans.",
+    },
+    10: {
+        "t": "t10",
+        "q": "Detective, has construït evidència que les Dades d'Entrada podrien estar esbiaixades. És això suficient per condemnar el model?",
+        "o": [
+            "A) Sí, si les dades estan esbiaixades, és il·legal.",
+            "B) No. Ara hem d'analitzar els errors de predicció del Model per a grups específics per estudiar el dany real a persones reals.",
+            "C) Sí, assumeix dany.",
+        ],
+        "a": "B) No. Ara hem d'analitzar els errors de predicció del Model per a grups específics per estudiar el dany real a persones reals.",
+        "success": "Pivot d'Investigació. Fase 1 (Entrades) Completa. Començant Fase 2 (Sortides).",
+    },
+}
+
+def get_quiz_config(lang="en"):
+    """Get quiz configuration for the specified language."""
+    if lang == "es":
+        return QUIZ_CONFIG_ES
+    elif lang == "ca":
+        return QUIZ_CONFIG_CA
+    else:
+        return QUIZ_CONFIG
+
 # --- 6. SCENARIO CONFIG (for Module 0) ---
 SCENARIO_CONFIG = {
     "Criminal risk prediction": {
@@ -2032,9 +2272,11 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                     acc_val,
                     task_list,
                     ans,
+                    lang,
                     mid=mod_id,
                 ):
-                    cfg = QUIZ_CONFIG[mid]
+                    quiz_cfg = get_quiz_config(lang)
+                    cfg = quiz_cfg[mid]
                     if ans == cfg["a"]:
                         prev, curr, _, new_tasks = trigger_api_update(
                             user, tok, team, mid, acc_val, task_list, cfg["t"]
@@ -2050,8 +2292,7 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                         return (
                             gr.update(),
                             gr.update(),
-                            "<div class='hint-box' style='border-color:red;'>"
-                            "❌ Incorrect. Review the evidence above.</div>",
+                            f"<div class='hint-box' style='border-color:red;'>{t(lang, 'quiz_incorrect')}</div>",
                             task_list,
                         )
 
@@ -2064,6 +2305,7 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                         accuracy_state,
                         task_list_state,
                         radio_comp,
+                        lang_state,  # Add lang_state as input
                     ],
                     outputs=[out_top, leaderboard_html, feedback_comp, task_list_state],
                 )
