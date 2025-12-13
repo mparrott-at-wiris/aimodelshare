@@ -638,7 +638,64 @@ MODULES = [
     },
     {
         "id": 6,
-        "title": "Slide 6: Evidence Scan (Race)",
+        "title": "Slide 6: Evidence Scan Explanation",
+        "html": """
+            <div class="scenario-box">
+            
+              <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; font-weight:800;">
+                  <span style="font-size:1.1rem;">📋</span>
+                  <span>STEP 2: COLLECT EVIDENCE — Look for Unfair Patterns in the Data</span>
+                </div>
+              </div>
+            
+              <h2 class="slide-title">The Data Forensics Analysis:</h2>
+            
+              <div class="slide-body">
+            
+                <div class="ai-risk-container" style="margin-bottom:12px;">
+                  <h4 style="margin-top:0; font-size:1.2rem; text-align:center;">🗃️ What Are We Scanning?</h4>
+                  <p style="font-size:1.02rem; max-width:820px; margin:0 auto 10px auto; text-align:center;">
+                    We’re examining the <strong>COMPAS dataset</strong>, collected and analyzed by investigative journalists at <strong>ProPublica</strong>. It contains real records used to
+                    score a person’s “risk of reoffending,” including demographics (race, age, gender), charges, prior history, and risk scores.
+                  </p>
+                  <p style="font-size:1.02rem; max-width:820px; margin:0 auto; text-align:center; color:var(--body-text-color-subdued);">
+                    If the <em>data itself</em> is skewed (who shows up, how often, or what gets recorded), the model can learn those
+                    patterns as “truth.” Scanning helps us spot distortions that may violate <strong>Justice & Equity</strong>.
+                  </p>
+                </div>
+            
+                <div class="ai-risk-container" style="margin-bottom:16px;">
+                  <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">🛠️ How the SCAN Works</h4>
+                  <p style="font-size:1.02rem; max-width:780px; margin:0 auto; text-align:center;">
+                    Click <strong>SCAN</strong> to run a quick analysis for the selected demographic group. The scan will:
+                  </p>
+                  <ul style="max-width:780px; margin:8px auto 0 auto; font-size:0.98rem;">
+                    <li>Compare the group’s share in the <strong>local population</strong> (Broward County, Florida, USA) vs the <strong>dataset</strong>.</li>
+                    <li>Reveal <strong>visual bars</strong> showing the gap (population vs dataset).</li>
+                    <li>Uncover a <strong>Detective’s Analysis</strong> explaining what the gap means for <strong>Justice & Equity</strong> and what to check next.</li>
+                  </ul>
+                </div>
+            
+                <div class="ai-risk-container" style="margin-bottom:16px;">
+                  <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">What you are going to SCAN</h4>
+                  <p style="font-size:1.02rem; max-width:780px; margin:0 auto; text-align:center;">
+                    Your first task is to look at racial patterns in the COMPAS dataset. Each data point is a clue —
+                    find distortions and see what they tell us about fairness. Later, you’ll do the same for Gender and
+                    Age to check for bias across all groups.
+                    <br><br>
+                    We focus on these three variables because they are commonly protected groups, and unfair treatment of
+                    any of them can lead to serious bias and unfair outcomes in AI decisions.
+                  </p>
+                </div>
+            
+              </div>
+            </div>
+        """,
+    },
+    {
+        "id": 7,
+        "title": "Slide 7: Evidence Scan (Race)",
         "html": """
           <div class="scenario-box">
                 <div style="display:flex; justify-content:center; margin-bottom:18px;">
@@ -646,40 +703,15 @@ MODULES = [
                   <span style="font-size:1.1rem;">📋</span><span>STEP 2: COLLECT EVIDENCE — Look for Unfair Patterns in the Data</span>
                 </div>
               </div>
-            <h2 class="slide-title">🔎 DATA FORENSIC ANALYSIS: RACE</h2>
+            <h2 class="slide-title">The Data Forensics Analysis: Race</h2>
             <div class="slide-body">
-              <div style="display:flex; justify-content:center; margin-bottom:18px;">
-                <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; font-weight:800;">
-                  <span style="font-size:1.1rem;">📡</span><span>EVIDENCE SCAN: VARIABLE 1 of 3</span>
-                </div>
-              </div>
+                <!-- Context text -->
+                <p style="font-size:1.05rem; max-width:780px; margin:0 auto 12px auto; text-align:center;">
+                  Start by checking racial patterns. Compare how African-Americans appear in the dataset versus the real population. 
+                  Big gaps may show bias that could affect AI predictions.
 
-              <!-- Overview: What data are we scanning -->
-              <div class="ai-risk-container" style="margin-bottom:12px;">
-                <h4 style="margin-top:0; font-size:1.2rem; text-align:center;">🗃️ What Are We Scanning?</h4>
-                <p style="font-size:1.02rem; max-width:820px; margin:0 auto 10px auto; text-align:center;">
-                  We’re examining the <strong>COMPAS dataset</strong>, collected and analyzed by investigative journalists at <strong>ProPublica</strong>. It contains real records used to
-                  score a person’s “risk of reoffending,” including demographics (race, age, gender), charges, prior history, and risk scores.
-                </p>
-                <p style="font-size:1.02rem; max-width:820px; margin:0 auto; text-align:center; color:var(--body-text-color-subdued);">
-                  If the <em>data itself</em> is skewed (who shows up, how often, or what gets recorded), the model can learn those
-                  patterns as “truth.” Scanning helps us spot distortions that may violate <strong>Justice & Equity</strong>.
-                </p>
-              </div>
 
-              <!-- Explanation: What the scan button will do -->
-              <div class="ai-risk-container" style="margin-bottom:16px;">
-                <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">🛠️ How the SCAN Works</h4>
-                <p style="font-size:1.02rem; max-width:780px; margin:0 auto; text-align:center;">
-                  Click <strong>SCAN</strong> to run a quick analysis for the selected demographic group. The scan will:
                 </p>
-                <ul style="max-width:780px; margin:8px auto 0 auto; font-size:0.98rem;">
-                  <li>Compare the group’s share in the <strong>local population</strong> (Broward County, Florida, USA) vs the <strong>dataset</strong>.</li>
-                  <li>Reveal <strong>visual bars</strong> showing the gap (population vs dataset).</li>
-                  <li>Uncover a <strong>Detective’s Analysis</strong> explaining what the gap means for <strong>Justice & Equity</strong> and what to check next.</li>
-                </ul>
-              </div>
-
               <!-- SINGLE TOGGLE: Scan button that reveals ALL hidden learning content (charts + findings) -->
               <details style="border:1px solid var(--border-color-primary); border-radius:12px; overflow:hidden;">
                 <summary style="list-style:none; cursor:pointer; padding:14px 18px; font-weight:800; text-align:center; background:var(--background-fill-secondary);">
@@ -740,42 +772,23 @@ MODULES = [
         """,
     },
     {
-        "id": 7,
-        "title": "Slide 7: Evidence Scan (Gender)",
+        "id": 8,
+        "title": "Slide 8: Evidence Scan (Gender)",
         "html": """
           <div class="scenario-box">
-            <h2 class="slide-title">🔎 DATA FORENSIC ANALYSIS: GENDER</h2>
-            <div class="slide-body">
-              <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                <div style="display:flex; justify-content:center; margin-bottom:18px;">
                 <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; font-weight:800;">
-                  <span style="font-size:1.1rem;">📡</span><span>EVIDENCE SCAN: VARIABLE 2 of 3</span>
+                  <span style="font-size:1.1rem;">📋</span><span>STEP 2: COLLECT EVIDENCE — Look for Unfair Patterns in the Data</span>
                 </div>
               </div>
+            <h2 class="slide-title">The Data Forensics Analysis: Gender</h2>
+            <div class="slide-body">
+                <!-- Context text -->
+                <p style="font-size:1.05rem; max-width:780px; margin:0 auto 12px auto; text-align:center;">
+                  Next, look at gender. Compare the number of males and females in the dataset to the real population. 
+                  Large differences may indicate the AI could treat one gender less fairly.
 
-              <!-- Overview: What data are we scanning -->
-              <div class="ai-risk-container" style="margin-bottom:12px;">
-                <h4 style="margin-top:0; font-size:1.2rem; text-align:center;">🗃️ What Are We Scanning?</h4>
-                <p style="font-size:1.02rem; max-width:820px; margin:0 auto 10px auto; text-align:center;">
-                  We’re examining gender representation in the <strong>COMPAS dataset</strong> (ProPublica). It includes real case records
-                  with demographics (gender, race, age), charges, prior history, and risk scores used in criminal justice decisions.
                 </p>
-                <p style="font-size:1.02rem; max-width:820px; margin:0 auto; text-align:center; color:var(--body-text-color-subdued);">
-                  If the dataset is skewed toward one gender, the model may learn that skew as “normal,” which can affect scoring fairness.
-                </p>
-              </div>
-
-              <!-- Explanation: What the scan button will do -->
-              <div class="ai-risk-container" style="margin-bottom:16px;">
-                <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">🛠️ How the SCAN Works</h4>
-                <p style="font-size:1.02rem; max-width:780px; margin:0 auto; text-align:center;">
-                  Click <strong>SCAN</strong> to run a quick analysis for the selected demographic group. The scan will:
-                </p>
-                <ul style="max-width:780px; margin:8px auto 0 auto; font-size:0.98rem;">
-                  <li>Compare <strong>population reality</strong> (roughly 50% male / 50% female) to the <strong>training dataset</strong>.</li>
-                  <li>Reveal <strong>visual bars</strong> showing the gap (population vs dataset).</li>
-                  <li>Uncover a <strong>Detective’s Analysis</strong> explaining fairness implications and next checks.</li>
-                </ul>
-              </div>
 
               <!-- SINGLE TOGGLE: Scan button that reveals ALL hidden learning content (charts + findings) -->
               <details style="border:1px solid var(--border-color-primary); border-radius:12px; overflow:hidden;">
@@ -839,42 +852,23 @@ MODULES = [
         """,
     },
     {
-        "id": 8,
-        "title": "Slide 8: Evidence Scan (Age)",
+        "id": 9,
+        "title": "Slide 9: Evidence Scan (Age)",
         "html": """
           <div class="scenario-box">
-            <h2 class="slide-title">🔎 DATA FORENSIC ANALYSIS: AGE</h2>
-            <div class="slide-body">
-              <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                <div style="display:flex; justify-content:center; margin-bottom:18px;">
                 <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; font-weight:800;">
-                  <span style="font-size:1.1rem;">📡</span><span>EVIDENCE SCAN: VARIABLE 3 of 3</span>
+                  <span style="font-size:1.1rem;">📋</span><span>STEP 2: COLLECT EVIDENCE — Look for Unfair Patterns in the Data</span>
                 </div>
               </div>
+            <h2 class="slide-title">The Data Forensics Analysis: Age</h2>
+            <div class="slide-body">
+                <!-- Context text -->
+                <p style="font-size:1.05rem; max-width:780px; margin:0 auto 12px auto; text-align:center;">
+                  Finally, examine age. Compare younger, middle-aged, and older adults in the dataset with the real population. 
+                  Skewed or missing groups may lead to unfair predictions for some ages.
 
-              <!-- Overview: What we're checking for Age -->
-              <div class="ai-risk-container" style="margin-bottom:12px;">
-                <h4 style="margin-top:0; font-size:1.2rem; text-align:center;">🗃️ What Are We Scanning (Age)?</h4>
-                <p style="font-size:1.02rem; max-width:820px; margin:0 auto 10px auto; text-align:center;">
-                  We’re examining how <strong>age</strong> is represented in the data. Criminology shows that risk can drop as people get older,
-                  so a dataset <em>heavily skewed to younger ages</em> could teach the model to overestimate risk for everyone.
                 </p>
-                <p style="font-size:1.02rem; max-width:820px; margin:0 auto; text-align:center; color:var(--body-text-color-subdued);">
-                  If the sample mostly contains people under 45, the model may become “age‑biased,” underestimating how age reduces risk.
-                </p>
-              </div>
-
-              <!-- Explanation: What the scan button will do -->
-              <div class="ai-risk-container" style="margin-bottom:16px;">
-                <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">🛠️ How the SCAN Works</h4>
-                <p style="font-size:1.02rem; max-width:780px; margin:0 auto; text-align:center;">
-                  Click <strong>SCAN</strong> to analyze the dataset’s <em>age distribution</em>. The scan will:
-                </p>
-                <ul style="max-width:780px; margin:8px auto 0 auto; font-size:0.98rem;">
-                  <li>Show the share of cases across three age groups (&lt;25, 25–45, &gt;45) used in the COMPAS dataset.</li>
-                  <li>Reveal <strong>visual bars</strong> indicating where the dataset is concentrated.</li>
-                  <li>Uncover a <strong>Detective’s Analysis</strong> explaining how skewed ages can distort risk predictions.</li>
-                </ul>
-              </div>
 
               <!-- SINGLE TOGGLE: Scan button that reveals ALL hidden learning content (bars + findings) -->
               <details style="border:1px solid var(--border-color-primary); border-radius:12px; overflow:hidden;">
@@ -937,8 +931,8 @@ MODULES = [
         """,
     },
     {
-        "id": 9,
-        "title": "Slide 9: Data Forensics Conclusion (Summary)",
+        "id": 10,
+        "title": "Slide 10: Data Forensics Conclusion (Summary)",
         "html": """
             <div class="scenario-box">
               <h2 class="slide-title">📂 DATA FORENSICS REPORT: SUMMARY</h2>
@@ -1023,7 +1017,7 @@ MODULES = [
         """,
     },
     {
-        "id": 10,
+        "id": 11,
         "title": "Mission Progress: Initial Data Investigation COMPLETE",
         "html": """
             <div class="scenario-box">
@@ -1147,7 +1141,7 @@ QUIZ_CONFIG = {
         "a": "B) As a 'Crime Scene' that potentially contains historical patterns of discrimination among other forms of bias.",
         "success": "Mindset Shifted. You are treating data as evidence of history, not absolute truth.",
     },
-     6: {
+     7: {
         "t": "t7",
         "q": "The dataset has about 2x more of this group than reality. What technical term best describes this mismatch between the dataset and the population?",
         "o": [
@@ -1159,7 +1153,7 @@ QUIZ_CONFIG = {
         "a": "A) Sampling or Historical Bias",
         "success": "Bias detected: Sampling or Historical Bias. The dataset over‑samples this group relative to reality, which can lead the model to over‑flag. Next: compare error rates by race to confirm fairness impacts.",
     },
-    7: {
+    8: {
         "t": "t8",
         "q": "The AI has very few examples of women. What do we call it when a specific group is not adequately included?",
         "o": [
@@ -1171,7 +1165,7 @@ QUIZ_CONFIG = {
         "a": "D) Representation Bias",
         "success": "Bias detected: Representation Bias. Under‑representation can cause the model to generalize poorly for women. Next: compare error rates by gender and inspect missing fields for exclusion bias.",
     },
-    8: {
+    9: {
         "t": "t9",
         "q": "Most COMPAS data falls between ages 25–45, with fewer people over 45. What is the primary risk for a 62-year-old?",
         "o": [
@@ -1182,7 +1176,7 @@ QUIZ_CONFIG = {
         "a": "A) Generalization Error: The AI may misjudge risk because it has few examples of older adults.",
         "success": "Risk Logged: Generalization Error. The model has limited 'visibility' into older defendants.",
     },
-    9: {
+    10: {
         "t": "t10",
         "q": "Detective, you have built evidence that the Input Data could be biased. Is this enough to convict the model?",
         "o": [
