@@ -855,79 +855,74 @@ MODULES = [
         "id": 9,
         "title": "Slide 9: Evidence Scan (Age)",
         "html": """
-          <div class="scenario-box">
-                <div style="display:flex; justify-content:center; margin-bottom:18px;">
+            <div class="scenario-box">
+              
+              <div style="display:flex; justify-content:center; margin-bottom:18px;">
                 <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; font-weight:800;">
                   <span style="font-size:1.1rem;">📋</span><span>STEP 2: COLLECT EVIDENCE — Look for Unfair Patterns in the Data</span>
                 </div>
               </div>
-            <h2 class="slide-title">The Data Forensics Analysis: Age</h2>
-            <div class="slide-body">
-                <!-- Context text -->
+            
+              <h2 class="slide-title">The Data Forensics Analysis: Age</h2>
+              
+              <div class="slide-body">
+                
                 <p style="font-size:1.05rem; max-width:780px; margin:0 auto 12px auto; text-align:center;">
-                  Finally, examine age. Compare younger, middle-aged, and older adults in the dataset with the real population. 
+                  Finally, examine age. Compare younger, middle-aged, and older adults in the dataset with the real population.
                   Skewed or missing groups may lead to unfair predictions for some ages.
-
                 </p>
-
-              <!-- SINGLE TOGGLE: Scan button that reveals ALL hidden learning content (bars + findings) -->
-              <details style="border:1px solid var(--border-color-primary); border-radius:12px; overflow:hidden;">
-                <summary style="list-style:none; cursor:pointer; padding:14px 18px; font-weight:800; text-align:center; background:var(--background-fill-secondary);">
-                  📡 SCAN: Age Distribution — Click to reveal analysis
-                </summary>
-
-                <!-- Charts: age distribution bars -->
-                <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 16px 0;">
-                  <h4 style="margin-top:0; font-size:1.2rem;">📊 Age Distribution in Dataset (COMPAS)</h4>
-                  <div style="margin: 10px 0;">
-                    <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:8px;">
-                      Summary: <strong>Majority between 25–45, fewer very young or older adults</strong>
-                    </div>
-
-                    <!-- Bar container -->
-                    <div style="display:flex; height:60px; border-radius:8px; overflow:hidden; align-items:flex-end;">
-                      <!-- Less than 25 -->
-                      <div style="width:33.3%; background:#fca5a5; height:40%; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:8px;">
-                        <div style="font-size:0.75rem; font-weight:bold; color:#333;">&lt; 25</div>
-                        <div style="font-size:0.65rem; color:#333;">22%</div>
+            
+                <details style="border:1px solid var(--border-color-primary); border-radius:12px; overflow:hidden;">
+                  <summary style="list-style:none; cursor:pointer; padding:14px 18px; font-weight:800; text-align:center; background:var(--background-fill-secondary);">
+                    📡 SCAN: Age Distribution — Click to reveal analysis
+                  </summary>
+            
+                  <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 16px 0;">
+                    <h4 style="margin-top:0; font-size:1.2rem;">📊 Age Distribution in Dataset (COMPAS)</h4>
+                    
+                    <div style="margin: 10px 0;">
+                      <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:8px;">
+                        Summary: <strong>Majority between 25–45, fewer very young or older adults</strong>
                       </div>
-
-                      <!-- 25–45 -->
-                      <div style="width:33.3%; background:#ef4444; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:8px;">
-                        <div style="font-size:0.75rem; font-weight:bold; color:white;">25–45</div>
-                        <div style="font-size:0.65rem; color:white;">57%</div>
-                      </div>
-
-                      <!-- > 45 -->
-                      <div style="width:33.3%; background:#fecaca; height:37%; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:8px;">
-                        <div style="font-size:0.75rem; font-weight:bold; color:#333;">&gt; 45</div>
-                        <div style="font-size:0.65rem; color:#333;">21%</div>
+            
+                      <div style="display:flex; height:60px; border-radius:8px; overflow:hidden; align-items:flex-end;">
+                        <div style="width:33.3%; background:#fca5a5; height:40%; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:8px;">
+                          <div style="font-size:0.75rem; font-weight:bold; color:#333;">&lt; 25</div>
+                          <div style="font-size:0.65rem; color:#333;">22%</div>
+                        </div>
+            
+                        <div style="width:33.3%; background:#ef4444; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:8px;">
+                          <div style="font-size:0.75rem; font-weight:bold; color:white;">25–45</div>
+                          <div style="font-size:0.65rem; color:white;">57%</div>
+                        </div>
+            
+                        <div style="width:33.3%; background:#fecaca; height:37%; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:8px;">
+                          <div style="font-size:0.75rem; font-weight:bold; color:#333;">&gt; 45</div>
+                          <div style="font-size:0.65rem; color:#333;">21%</div>
+                        </div>
                       </div>
                     </div>
+            
+                    <p style="font-size:0.85rem; max-width:580px; margin:10px auto 0 auto; color:var(--body-text-color-subdued);">
+                      Based on the cleaned COMPAS two-year recidivism dataset (6,172 people). Age is grouped into the standard bins:
+                      “Less than 25”, “25–45”, and “Greater than 45”.
+                    </p>
                   </div>
-
-                  <p style="font-size:0.85rem; max-width:580px; margin:10px auto 0 auto; color:var(--body-text-color-subdued);">
-                    Based on the cleaned COMPAS two-year recidivism dataset (6,172 people). Age is grouped into the standard bins: 
-                    “Less than 25”, “25–45”, and “Greater than 45”.
-                  </p>
-                </div>
-
-                </div>
-
-                <!-- Detective findings: implications of skewed age -->
-                <div class="hint-box" style="background:rgba(239, 68, 68, 0.08); margin-top:8px;">
-                  <h4 style="margin-top:0;">🔍 Detective's Analysis</h4>
-                  <p style="margin-bottom:8px;">
-                    The dataset contains far fewer older adults than people in the 25–45 range. So if a 62-year-old is arrested, how will the AI interpret their risk?
-                  </p>
-                  <ul style="margin:0 0 10px 18px; padding:0; font-size:0.95rem;">
-                    <li><strong>Risk of distortion:</strong> With few examples of older adults, the model may incorrectly <em>estimate</em> risk for them.</li>
-                    <li><strong>Justice & Equity check:</strong> Compare <em>error rates</em> across age groups to see whether the system <em>over-predicts or under-predicts</em> risk for older individuals.</li>
-                  </ul>
-                </div>
-              </details>
+            
+                  <div class="hint-box" style="background:rgba(239, 68, 68, 0.08); margin-top:8px;">
+                    <h4 style="margin-top:0;">🔍 Detective's Analysis</h4>
+                    <p style="margin-bottom:8px;">
+                      The dataset contains far fewer older adults than people in the 25–45 range. So if a 62-year-old is arrested, how will the AI interpret their risk?
+                    </p>
+                    <ul style="margin:0 0 10px 18px; padding:0; font-size:0.95rem;">
+                      <li><strong>Risk of distortion:</strong> With few examples of older adults, the model may incorrectly <em>estimate</em> risk for them.</li>
+                      <li><strong>Justice & Equity check:</strong> Compare <em>error rates</em> across age groups to see whether the system <em>over-predicts or under-predicts</em> risk for older individuals.</li>
+                    </ul>
+                  </div>
+            
+                </details>
+              </div>
             </div>
-          </div>
         """,
     },
     {
@@ -935,16 +930,14 @@ MODULES = [
         "title": "Slide 10: Data Forensics Conclusion (Summary)",
         "html": """
             <div class="scenario-box">
-              <h2 class="slide-title">📂 DATA FORENSICS REPORT: SUMMARY</h2>
-              <div class="slide-body">
                 <div style="display:flex; justify-content:center; margin-bottom:18px;">
                   <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:rgba(34, 197, 94, 0.15); border:1px solid #22c55e; font-size:0.95rem; font-weight:800;">
-                    <span style="font-size:1.1rem;">✅</span><span>STATUS: STEP 2 INITIAL DATA EVIDENCE COLLECTION COMPLETE</span>
+                    <span style="font-size:1.1rem;">✅</span><span>STATUS: STEP 2 COLLECT EVIDENCE- COMPLETE</span>
                   </div>
                 </div>
-
+              <h2 class="slide-title">The Data Forensics Report: Summary</h2>
                 <p style="font-size:1.05rem; max-width:820px; margin:0 auto 22px auto; text-align:center;">
-                  Excellent work. You analyzed the data <strong>Inputs</strong> to the Compas crime risk model and ran scans across <strong>Race</strong>, <strong>Gender</strong>, and <strong>Age</strong>.
+                  Excellent work. You analyzed the data <strong>inputs</strong> to the Compas crime risk model and ran scans across <strong>Race</strong>, <strong>Gender</strong>, and <strong>Age</strong>.
                   We found three core distortions that compromise the dataset and can affect AI <strong>Justice & Equity</strong>.
                 </p>
 
@@ -985,32 +978,14 @@ MODULES = [
                   </div>
                 </div>
 
-                <!-- Optional quick visual recap -->
-                <div class="ai-risk-container" style="margin-top:18px;">
-                  <h4 style="margin-top:0; font-size:1.05rem; text-align:center;">🔎 Quick Recap (What the scans showed)</h4>
-                  <div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px;">
-                    <div class="hint-box" style="margin-top:0;">
-                      <div style="font-weight:700;">Race</div>
-                      <div style="font-size:0.92rem;">Population: ~28% African-American → Dataset: 51% (almost 2× higher)</div>
-                    </div>
-                    <div class="hint-box" style="margin-top:0;">
-                      <div style="font-weight:700;">Gender</div>
-                      <div style="font-size:0.92rem;">Reality ≈ 50% women → Dataset: 19% women (under‑representation)</div>
-                    </div>
-                    <div class="hint-box" style="margin-top:0;">
-                      <div style="font-weight:700;">Age</div>
-                      <div style="font-size:0.92rem;">
-                        Ages 25–45 dominate (~57%); people under 25 and over 45 each make up only about one-fifth of the dataset.
-                      </div>
-                    </div>
-                  </div>
-                </div>
 
-                <div style="text-align:center; margin-top:24px; padding:16px; background:rgba(59, 130, 246, 0.1); border-radius:8px;">
-                  <p style="font-size:1.05rem; margin:0; font-weight:600;">
-                    🔍 The <strong>Inputs</strong> are flawed. Next, we must test the <strong>Outputs</strong>:
-                    compare predictions against reality and check <strong>error gaps</strong> by group (false positives/negatives).
-                  </p>
+                <!-- Action bridge -->
+                <div class="hint-box" style="margin-top:16px;">
+                  <div style="font-weight:800;">✅ Next Move</div>
+                  <div style="font-size:0.98rem;">
+                    The inputs (the data) are flawed. Next, we’ll test the outputs (the AI predictions) to see how well they match reality and check 
+                    for error gaps by group (false positives and false negatives).
+                  </div>
                 </div>
               </div>
             </div>
