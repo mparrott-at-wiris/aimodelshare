@@ -184,6 +184,36 @@ TRANSLATIONS = {
         "mod3_detective_title": "🔎 Why the World Needs Bias Detectives",
         "mod3_detective_text": "Because AI bias is silent and scaled, most people never see it happening. That's where <strong>you</strong>, as a <strong>Bias Detective</strong>, come in. Your role is to look past the polished risk score, trace how the model is using biased data, and show where it might be treating groups unfairly.",
         "mod3_next": "Next, you'll start scanning the <strong>evidence</strong> inside the data: who shows up in the dataset, how often, and what that means for the risk scores people receive. You're not just learning about bias — you're learning how to <strong>catch it</strong>.",
+        
+        # Module 4 - Detective's Method
+        "mod4_badge": "STEP 2: COLLECT EVIDENCE — Look for Unfair Patterns in the Data",
+        "mod4_title": "🔎 From Rules to Evidence",
+        "mod4_intro_title": "From Rules to Evidence",
+        "mod4_intro_text": "You've learned the primary principle—<strong>Justice & Equity</strong>—that sets the rules for your investigation. Now we apply those rules to the facts. Gathering evidence of the three categories of bias (Representation, Error Gaps, and Outcome Disparities) is the start of finding patterns that signal unfair treatment.",
+        "mod4_begin": "<strong>But where should you begin your investigation?</strong> You can't interrogate the AI system. It won't confess. To find bias, we have to look at the evidence trail it leaves behind.<br><br>If you were investigating a suspicious <strong>Judge</strong>, you would look for: <strong>who they charge most often, who they make the most mistakes with, and whether their decisions harm some people more than others?</strong>",
+        "mod4_checklist_title": "🗂️ The Investigation Checklist",
+        "mod4_folder1_title": "📂 Folder 1: \"Who is being charged?\"",
+        "mod4_folder1_action": "→ <strong>Action:</strong> Check the History (Is one group over‑represented vs reality?)<br>→ <strong>Reveal:</strong> <strong>Representation Bias</strong>—if group percentages in the data used to train the model do not match the real world.",
+        "mod4_folder2_title": "📂 Folder 2: \"Who is being wrongly accused?\"",
+        "mod4_folder2_action": "→ <strong>Action:</strong> Check the Mistakes (Are prediction errors higher for a group?)<br>→ <strong>Reveal:</strong> <strong>Error Gaps</strong> —if the error rate is significantly higher for one group.",
+        "mod4_folder3_title": "📂 Folder 3: \"Who is getting hurt?\"",
+        "mod4_folder3_action": "→ <strong>Action:</strong> Check the Punishment (Do model outputs lead to worse real outcomes for a group?)<br>→ <strong>Reveal:</strong> <strong>Outcome Disparities</strong>—if one group receives significantly worse real-world outcomes (e.g., harsher sentencing or loan rejections).",
+        "mod4_next_title": "✅ Next move",
+        "mod4_next_text": "You've identified the three types of evidence needed. Now, it's time to put your gloves on. The <strong>Data Forensics Briefing</strong> will guide you through the process of examining the raw data to spot the most common initial forms of unfairness: <strong>data distortions</strong> that lead to <strong>Representation Bias.</strong>",
+        
+        # Module 5 - Data Forensics Briefing
+        "mod5_badge": "STEP 2: COLLECT EVIDENCE — Look for Unfair Patterns in the Data",
+        "mod5_title": "The Data Forensics Briefing",
+        "mod5_intro": "You are about to access the raw evidence files. But be warned: The AI thinks this data is the truth.",
+        "mod5_warning": "If the dataset has built‑in biases, the AI will learn to treat those biases as facts. Your job is to scan the dataset before the model learns from it, so we can spot data issues <em>before</em> they become prediction patterns.",
+        "mod5_framework_title": "🧩 Your Three‑Question Framework",
+        "mod5_framework_intro": "When looking at any dataset, always ask three critical questions:",
+        "mod5_q1": "<strong>Who shows up in the data?</strong> (Are some groups over‑ or under‑represented?)",
+        "mod5_q2": "<strong>How are they described?</strong> (Does the dataset carry historical bias, like old stereotypes or unequal error patterns?)",
+        "mod5_q3": "<strong>What is missing?</strong> (Are there major gaps or important groups excluded entirely?)",
+        "mod5_raw_data": "If you find skewed numbers, missing groups, or distorted patterns, you're looking at the seed of a biased model—one that might produce unfair outcomes no matter how well it is trained.",
+        "mod5_proceed_title": "↓ Proceed to Evidence Scans ↓",
+        "mod5_proceed_text": "You now have the framework. The data is in front of you. Scroll down to start your forensic scan. We'll examine <strong>Race</strong>, <strong>Gender</strong>, and <strong>Age</strong>—and see if any group is being misrepresented.",
     },
     "es": {
         # Loading and auth messages
@@ -271,6 +301,36 @@ TRANSLATIONS = {
         "mod3_detective_title": "🔎 Por Qué el Mundo Necesita Detectives de Sesgos",
         "mod3_detective_text": "Porque el sesgo de IA es silencioso y escalado, la mayoría de las personas nunca lo ven sucediendo. Ahí es donde entras <strong>tú</strong>, como <strong>Detective de Sesgos</strong>. Tu función es mirar más allá de la puntuación de riesgo pulida, rastrear cómo el modelo está usando datos sesgados y mostrar dónde podría estar tratando a los grupos injustamente.",
         "mod3_next": "A continuación, comenzarás a escanear la <strong>evidencia</strong> dentro de los datos: quién aparece en el conjunto de datos, con qué frecuencia y qué significa eso para las puntuaciones de riesgo que reciben las personas. No solo estás aprendiendo sobre el sesgo, estás aprendiendo cómo <strong>detectarlo</strong>.",
+        
+        # Module 4 - Detective's Method
+        "mod4_badge": "PASO 2: RECOPILAR EVIDENCIA — Buscar Patrones Injustos en los Datos",
+        "mod4_title": "🔎 De las Reglas a la Evidencia",
+        "mod4_intro_title": "De las Reglas a la Evidencia",
+        "mod4_intro_text": "Has aprendido el principio principal—<strong>Justicia y Equidad</strong>—que establece las reglas para tu investigación. Ahora aplicamos esas reglas a los hechos. Recopilar evidencia de las tres categorías de sesgo (Representación, Brechas de Error y Disparidades de Resultados) es el comienzo para encontrar patrones que señalan trato injusto.",
+        "mod4_begin": "<strong>¿Pero por dónde deberías comenzar tu investigación?</strong> No puedes interrogar al sistema de IA. No confesará. Para encontrar sesgos, tenemos que buscar el rastro de evidencia que deja atrás.<br><br>Si estuvieras investigando a un <strong>Juez</strong> sospechoso, buscarías: <strong>¿a quién acusan con más frecuencia, con quién cometen más errores y si sus decisiones perjudican más a algunas personas que a otras?</strong>",
+        "mod4_checklist_title": "🗂️ La Lista de Verificación de la Investigación",
+        "mod4_folder1_title": "📂 Carpeta 1: \"¿Quién está siendo acusado?\"",
+        "mod4_folder1_action": "→ <strong>Acción:</strong> Revisar el Historial (¿Está un grupo sobre-representado vs la realidad?)<br>→ <strong>Revelar:</strong> <strong>Sesgo de Representación</strong>—si los porcentajes de grupo en los datos usados para entrenar el modelo no coinciden con el mundo real.",
+        "mod4_folder2_title": "📂 Carpeta 2: \"¿Quién está siendo acusado injustamente?\"",
+        "mod4_folder2_action": "→ <strong>Acción:</strong> Revisar los Errores (¿Son mayores los errores de predicción para un grupo?)<br>→ <strong>Revelar:</strong> <strong>Brechas de Error</strong> —si la tasa de error es significativamente mayor para un grupo.",
+        "mod4_folder3_title": "📂 Carpeta 3: \"¿Quién está siendo perjudicado?\"",
+        "mod4_folder3_action": "→ <strong>Acción:</strong> Revisar el Castigo (¿Las salidas del modelo conducen a peores resultados reales para un grupo?)<br>→ <strong>Revelar:</strong> <strong>Disparidades de Resultados</strong>—si un grupo recibe resultados del mundo real significativamente peores (p. ej., sentencias más duras o rechazos de préstamos).",
+        "mod4_next_title": "✅ Próximo movimiento",
+        "mod4_next_text": "Has identificado los tres tipos de evidencia necesarios. Ahora, es hora de ponerte los guantes. El <strong>Informe de Análisis de Datos</strong> te guiará a través del proceso de examinar los datos sin procesar para detectar las formas iniciales más comunes de injusticia: <strong>distorsiones de datos</strong> que conducen a <strong>Sesgo de Representación.</strong>",
+        
+        # Module 5 - Data Forensics Briefing
+        "mod5_badge": "PASO 2: RECOPILAR EVIDENCIA — Buscar Patrones Injustos en los Datos",
+        "mod5_title": "El Informe de Análisis de Datos",
+        "mod5_intro": "Estás a punto de acceder a los archivos de evidencia sin procesar. Pero ten cuidado: La IA piensa que estos datos son la verdad.",
+        "mod5_warning": "Si el conjunto de datos tiene sesgos incorporados, la IA aprenderá a tratar esos sesgos como hechos. Tu trabajo es escanear el conjunto de datos antes de que el modelo aprenda de él, para que podamos detectar problemas de datos <em>antes</em> de que se conviertan en patrones de predicción.",
+        "mod5_framework_title": "🧩 Tu Marco de Tres Preguntas",
+        "mod5_framework_intro": "Al mirar cualquier conjunto de datos, siempre haz tres preguntas críticas:",
+        "mod5_q1": "<strong>¿Quién aparece en los datos?</strong> (¿Están algunos grupos sobre o sub-representados?)",
+        "mod5_q2": "<strong>¿Cómo se describen?</strong> (¿El conjunto de datos lleva sesgo histórico, como estereotipos antiguos o patrones de error desiguales?)",
+        "mod5_q3": "<strong>¿Qué falta?</strong> (¿Hay brechas importantes o grupos importantes excluidos por completo?)",
+        "mod5_raw_data": "Si encuentras números sesgados, grupos faltantes o patrones distorsionados, estás viendo la semilla de un modelo sesgado—uno que podría producir resultados injustos sin importar qué tan bien se entrene.",
+        "mod5_proceed_title": "↓ Proceder a los Escaneos de Evidencia ↓",
+        "mod5_proceed_text": "Ahora tienes el marco. Los datos están frente a ti. Desplázate hacia abajo para comenzar tu escaneo forense. Examinaremos <strong>Raza</strong>, <strong>Género</strong> y <strong>Edad</strong>—y veremos si algún grupo está siendo mal representado.",
         
         # Module 0 - Moral Compass Intro
         "mod0_title": "🧭 Presentamos tu Nueva Puntuación de Brújula Moral",
@@ -373,6 +433,36 @@ TRANSLATIONS = {
         "mod3_detective_title": "🔎 Per Què el Món Necessita Detectives de Biaixos",
         "mod3_detective_text": "Perquè el biaix d'IA és silenciós i escalat, la majoria de les persones mai el veuen succeir. Aquí és on entres <strong>tu</strong>, com a <strong>Detective de Biaixos</strong>. La teva funció és mirar més enllà de la puntuació de risc polida, rastrejar com el model està usant dades esbiaixades i mostrar on podria estar tractant els grups injustament.",
         "mod3_next": "A continuació, començaràs a escanejar l'<strong>evidència</strong> dins de les dades: qui apareix al conjunt de dades, amb quina freqüència i què significa això per a les puntuacions de risc que reben les persones. No només estàs aprenent sobre el biaix, estàs aprenent com <strong>detectar-lo</strong>.",
+        
+        # Module 4 - Detective's Method
+        "mod4_badge": "PAS 2: RECOPILAR EVIDÈNCIA — Buscar Patrons Injustos a les Dades",
+        "mod4_title": "🔎 De les Regles a l'Evidència",
+        "mod4_intro_title": "De les Regles a l'Evidència",
+        "mod4_intro_text": "Has après el principi principal—<strong>Justícia i Equitat</strong>—que estableix les regles per a la teva investigació. Ara apliquem aquestes regles als fets. Recopilar evidència de les tres categories de biaix (Representació, Bretxes d'Error i Disparitats de Resultats) és el començament per trobar patrons que assenyalen tracte injust.",
+        "mod4_begin": "<strong>Però per on hauries de començar la teva investigació?</strong> No pots interrogar el sistema d'IA. No confessarà. Per trobar biaixos, hem de buscar el rastre d'evidència que deixa enrere.<br><br>Si estiguéss is investigating a suspicious <strong>Jutge</strong>, buscaríes: <strong>a qui acusen amb més freqüència, amb qui cometen més errors i si les seves decisions perjudiquen més a algunes persones que a altres?</strong>",
+        "mod4_checklist_title": "🗂️ La Llista de Verificació de la Investigació",
+        "mod4_folder1_title": "📂 Carpeta 1: \"Qui està sent acusat?\"",
+        "mod4_folder1_action": "→ <strong>Acció:</strong> Revisar l'Historial (Està un grup sobre-representat vs la realitat?)<br>→ <strong>Revelar:</strong> <strong>Biaix de Representació</strong>—si els percentatges de grup a les dades usades per entrenar el model no coincideixen amb el món real.",
+        "mod4_folder2_title": "📂 Carpeta 2: \"Qui està sent acusat injustament?\"",
+        "mod4_folder2_action": "→ <strong>Acció:</strong> Revisar els Errors (Són majors els errors de predicció per a un grup?)<br>→ <strong>Revelar:</strong> <strong>Bretxes d'Error</strong> —si la taxa d'error és significativament major per a un grup.",
+        "mod4_folder3_title": "📂 Carpeta 3: \"Qui està sent perjudicat?\"",
+        "mod4_folder3_action": "→ <strong>Acció:</strong> Revisar el Càstig (Les sortides del model condueixen a pitjors resultats reals per a un grup?)<br>→ <strong>Revelar:</strong> <strong>Disparitats de Resultats</strong>—si un grup rep resultats del món real significativament pitjors (p. ex., sentències més dures o rebutjos de préstecs).",
+        "mod4_next_title": "✅ Proper moviment",
+        "mod4_next_text": "Has identificat els tres tipus d'evidència necessaris. Ara, és hora de posar-te els guants. L'<strong>Informe d'Anàlisi de Dades</strong> et guiarà a través del procés d'examinar les dades sense processar per detectar les formes inicials més comunes d'injustícia: <strong>distorsions de dades</strong> que condueixen a <strong>Biaix de Representació.</strong>",
+        
+        # Module 5 - Data Forensics Briefing
+        "mod5_badge": "PAS 2: RECOPILAR EVIDÈNCIA — Buscar Patrons Injustos a les Dades",
+        "mod5_title": "L'Informe d'Anàlisi de Dades",
+        "mod5_intro": "Estàs a punt d'accedir als arxius d'evidència sense processar. Però tingues cura: La IA pensa que aquestes dades són la veritat.",
+        "mod5_warning": "Si el conjunt de dades té biaixos incorporats, la IA aprendrà a tractar aquests biaixos com a fets. La teva feina és escanejar el conjunt de dades abans que el model aprengui d'ell, perquè puguem detectar problemes de dades <em>abans</em> que es converteixin en patrons de predicció.",
+        "mod5_framework_title": "🧩 El Teu Marc de Tres Preguntes",
+        "mod5_framework_intro": "En mirar qualsevol conjunt de dades, sempre fes tres preguntes crítiques:",
+        "mod5_q1": "<strong>Qui apareix a les dades?</strong> (Estan alguns grups sobre o sub-representats?)",
+        "mod5_q2": "<strong>Com es descriuen?</strong> (El conjunt de dades porta biaix històric, com estereotips antics o patrons d'error desiguals?)",
+        "mod5_q3": "<strong>Què falta?</strong> (Hi ha bretxes importants o grups importants exclosos completament?)",
+        "mod5_raw_data": "Si trobes nombres esbiaixats, grups que falten o patrons distorsionats, estàs veient la llavor d'un model esbiaixat—un que podria produir resultats injustos sense importar com de bé s'entreni.",
+        "mod5_proceed_title": "↓ Procedir als Escanejos d'Evidència ↓",
+        "mod5_proceed_text": "Ara tens el marc. Les dades estan davant teu. Desplaça't cap avall per començar el teu escaneig forense. Examinarem <strong>Raça</strong>, <strong>Gènere</strong> i <strong>Edat</strong>—i veurem si algun grup està sent mal representat.",
         
         # Module 0 - Moral Compass Intro
         "mod2_bias3_desc": "Identifica quan el biaix condueix a un dany real.",
@@ -679,6 +769,119 @@ def get_module_3_html(lang: str = "en") -> str:
         </div>
     """
 
+def get_module_4_html(lang: str = "en") -> str:
+    """Generate Module 4 HTML with translations."""
+    return f"""
+<div class="scenario-box">
+  <div style="display:flex; justify-content:center; margin-bottom:18px;">
+    <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; font-weight:800;">
+      <span style="font-size:1.1rem;">📋</span><span>{t(lang, 'mod4_badge')}</span>
+    </div>
+  </div>
+
+  <h2 class="slide-title">{t(lang, 'mod4_title')}</h2>
+  <div class="slide-body">
+
+    <div class="hint-box" style="margin-bottom:16px;">
+      <div style="font-weight:800;">{t(lang, 'mod4_intro_title')}</div>
+      <div style="font-size:0.98rem;">
+        {t(lang, 'mod4_intro_text')}
+      </div>
+    </div>
+
+    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
+      {t(lang, 'mod4_begin')}
+    </p>
+
+    <div class="ai-risk-container" style="margin-top:20px;">
+      <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">{t(lang, 'mod4_checklist_title')}</h4>
+      <div style="display:grid; gap:16px; margin-top:16px;">
+        
+        <div class="hint-box" style="margin-top:0;">
+          <div style="font-weight:bold; margin-bottom:8px;">{t(lang, 'mod4_folder1_title')}</div>
+          <div style="padding-left:20px; font-size:0.95rem; color:var(--body-text-color-subdued);">
+            {t(lang, 'mod4_folder1_action')}
+          </div>
+        </div>
+
+        <div class="hint-box" style="margin-top:0;">
+          <div style="font-weight:bold; margin-bottom:8px;">{t(lang, 'mod4_folder2_title')}</div>
+          <div style="padding-left:20px; font-size:0.95rem; color:var(--body-text-color-subdued);">
+            {t(lang, 'mod4_folder2_action')}
+          </div>
+        </div>
+
+        <div class="hint-box" style="margin-top:0;">
+          <div style="font-weight:bold; margin-bottom:8px;">{t(lang, 'mod4_folder3_title')}</div>
+          <div style="padding-left:20px; font-size:0.95rem; color:var(--body-text-color-subdued);">
+            {t(lang, 'mod4_folder3_action')}
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="hint-box" style="margin-top:16px;">
+      <div style="font-weight:800;">{t(lang, 'mod4_next_title')}</div>
+      <div style="font-size:0.98rem;">
+        {t(lang, 'mod4_next_text')}
+      </div>
+    </div>
+
+  </div>
+</div>
+    """
+
+def get_module_5_html(lang: str = "en") -> str:
+    """Generate Module 5 HTML with translations."""
+    return f"""
+        <div class="scenario-box">
+            <div style="display:flex; justify-content:center; margin-bottom:18px;">
+            <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; font-weight:800;">
+              <span style="font-size:1.1rem;">📋</span><span>{t(lang, 'mod5_badge')}</span>
+            </div>
+          </div>
+          <br>
+          <h2 class="slide-title" style="font-size:1.6rem; text-align:center;">{t(lang, 'mod5_title')}</h2>
+          <br>
+
+          <div class="slide-body">
+            <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
+              {t(lang, 'mod5_intro')}
+            </p>
+
+            <p style="font-size:1.05rem; max-width:780px; margin:0 auto 18px auto; text-align:center;">
+              {t(lang, 'mod5_warning')}
+            </p>
+
+            <div class="ai-risk-container" style="margin-top:20px;">
+              <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">{t(lang, 'mod5_framework_title')}</h4>
+              <p style="font-size:0.98rem; text-align:center; margin-top:8px;">
+                {t(lang, 'mod5_framework_intro')}
+              </p>
+              <ul style="max-width:680px; margin:12px auto 0 auto; font-size:0.98rem;">
+                <li>{t(lang, 'mod5_q1')}</li>
+                <li>{t(lang, 'mod5_q2')}</li>
+                <li>{t(lang, 'mod5_q3')}</li>
+              </ul>
+            </div>
+
+            <p style="font-size:1rem; max-width:780px; margin:22px auto 18px auto; text-align:center;">
+              {t(lang, 'mod5_raw_data')}
+            </p>
+
+            <div style="text-align:center; margin-top:22px; padding:16px; background:rgba(59,130,246,0.10); border-radius:10px;">
+              <p style="font-size:1.08rem; margin:0; font-weight:600;">
+                {t(lang, 'mod5_proceed_title')}
+              </p>
+              <p style="font-size:1rem; margin:8px auto 0 auto; max-width:640px;">
+                {t(lang, 'mod5_proceed_text')}
+              </p>
+            </div>
+          </div>
+        </div>
+    """
+
 def get_module_html(module_id: int, lang: str = "en") -> str:
     """
     Get module HTML content with translations.
@@ -694,6 +897,10 @@ def get_module_html(module_id: int, lang: str = "en") -> str:
         return get_module_2_html(lang)
     elif module_id == 3:
         return get_module_3_html(lang)
+    elif module_id == 4:
+        return get_module_4_html(lang)
+    elif module_id == 5:
+        return get_module_5_html(lang)
     
     # For other modules, return original English HTML from MODULES
     for mod in MODULES:
@@ -2718,6 +2925,10 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                         module_2_html = module_html_comp
                     elif i == 3:
                         module_3_html = module_html_comp
+                    elif i == 4:
+                        module_4_html = module_html_comp
+                    elif i == 5:
+                        module_5_html = module_html_comp
 
                     # --- MODULE 0: INTERACTIVE CALCULATOR + STATIC SCENARIO CARDS ---
                     if i == 0:
@@ -2954,6 +3165,8 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                     get_module_1_html(lang),  # Update Module 1 with translated content
                     get_module_2_html(lang),  # Update Module 2 with translated content
                     get_module_3_html(lang),  # Update Module 3 with translated content
+                    get_module_4_html(lang),  # Update Module 4 with translated content
+                    get_module_5_html(lang),  # Update Module 5 with translated content
                     gr.update(visible=False),
                     gr.update(visible=True),
                     *button_updates,  # Update all button labels
@@ -2977,6 +3190,8 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                 get_module_1_html(lang),  # Update Module 1 with translated content
                 get_module_2_html(lang),  # Update Module 2 with translated content
                 get_module_3_html(lang),  # Update Module 3 with translated content
+                get_module_4_html(lang),  # Update Module 4 with translated content
+                get_module_5_html(lang),  # Update Module 5 with translated content
                 gr.update(visible=False),
                 gr.update(visible=True),
                 *button_updates,  # Update all button labels
@@ -3002,6 +3217,8 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                 module_1_html,  # Update Module 1 content
                 module_2_html,  # Update Module 2 content
                 module_3_html,  # Update Module 3 content
+                module_4_html,  # Update Module 4 content
+                module_5_html,  # Update Module 5 content
                 loader_col,
                 main_app_col,
                 *all_prev_buttons,  # Update all previous buttons
