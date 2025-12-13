@@ -222,133 +222,140 @@ MODULES = [
         "id": 2,
         "title": "Step 1: Intelligence Briefing",
         "html": """
-          <div class="scenario-box">
-            <h2 class="slide-title">⚖️ Justice & Equity: Your Primary Rule</h2>
-            <div class="slide-body">
-
-              <!-- Step badge -->
-              <div style="display:flex; justify-content:center; margin-bottom:18px;">
-                <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-weight:800;">
-                  <span style="font-size:1.1rem;">📜</span><span>STEP 1: LEARN THE RULES — Understand what actually counts as bias.</span>
+            <div class="scenario-box">
+              <div class="slide-body">
+            
+                <div style="display:flex; justify-content:center; margin-bottom:14px;">
+                  <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-weight:800;">
+                    <span style="font-size:1.1rem;">📜</span>
+                    <span>STEP 1: LEARN THE RULES — Know what actually counts as bias</span>
+                  </div>
                 </div>
-              </div>
-
-              <!-- Framing & intel -->
-              <p style="font-size:1.05rem; max-width:780px; margin:0 auto 12px auto; text-align:center;">
-                Before we examine the evidence, we need the <strong>rules of the investigation</strong>. Ethics isn’t abstract here — it’s our field guide.
-              </p>
-              <p style="font-size:1.05rem; max-width:820px; margin:0 auto 12px auto; text-align:center;">
-                We do not guess what is right or wrong - we rely on <strong>expert advice</strong>.
-                <br>
-                We will use guidance from the experts at the <strong>Catalan Observatory for Ethics in AI (OEIAC)</strong>, who help ensure AI systems are fair and responsible.
-                <br>
-                <em>While they established 7 core principles to keep AI safe, our intel suggests this specific case involves a violation of the <strong>Justice and Equity</strong> principle.</em>
-              </p>
-
-              <!-- Where principles fit -->
-              <div class="ai-risk-container" style="margin-top:10px; border-width:2px;">
-                <h4 style="margin-top:0; font-size:1.12rem; text-align:center;">🗺️ Where Principles Fit</h4>
-                <div style="display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; font-weight:800;">
-                  <span>Principles</span>
-                  <span style="opacity:0.6;">→</span>
-                  <span>Evidence</span>
-                  <span style="opacity:0.6;">→</span>
-                  <span>Tests</span>
-                  <span style="opacity:0.6;">→</span>
-                  <span>Judgment</span>
-                  <span style="opacity:0.6;">→</span>
-                  <span>Fixes</span>
-                </div>
-                <p style="font-size:0.98rem; text-align:center; margin:8px 0 0 0;">
-                  <strong>Principles help define the evidence you should collect and the tests you should run.</strong> Evidence and tests tell you <em>what counts as bias</em> when you investigate real data and outputs.
+            
+                <h2 class="slide-title" style="font-size:1.6rem;">⚖️ Justice &amp; Equity: Your Primary Rule</h2>
+            
+                <p style="font-size:1.05rem; max-width:820px; margin:0 auto 12px auto; text-align:center;">
+                  Before we start our investigation, we need to know the rules.
+                  Ethics isn’t abstract here—it’s our <strong>field guide for action</strong>.
                 </p>
+            
+                <p style="font-size:1.05rem; max-width:860px; margin:0 auto 12px auto; text-align:center;">
+                  We do not guess what is right or wrong; we rely on <strong>expert advice</strong>.
+                  We will use guidance from the experts at the Catalan Observatory for Ethics in AI <strong>OEIAC (UdG)</strong>, who help ensure AI systems are fair and responsible.
+                </p>
+            
+                <p style="font-size:1.02rem; max-width:860px; margin:0 auto 18px auto; text-align:center; color:var(--body-text-color-subdued);">
+                  While they have established seven core principles to keep AI safe, our intel suggests this specific case involves a violation of the <strong>Justice &amp; Equity</strong> principle.
+                </p>
+            
+                <div class="ai-risk-container" style="margin-top:10px; border-width:2px;">
+                  <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">🗺️ Principles in Action</h4>
+                  <p style="font-size:0.98rem; text-align:center; margin:10px auto 0 auto; max-width:860px;">
+                    The ethical principles are the <strong>first step</strong> in your roadmap. They translate the abstract concept of "fairness" into concrete steps for a detective:
+                  </p>
+            
+                  <div style="display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; font-weight:800; margin-top:6px;">
+                    <span>Principles</span>
+                    <span style="opacity:0.6;">→</span>
+                    <span>Evidence</span>
+                    <span style="opacity:0.6;">→</span>
+                    <span>Tests</span>
+                    <span style="opacity:0.6;">→</span>
+                    <span>Judgment</span>
+                    <span style="opacity:0.6;">→</span>
+                    <span>Fixes</span>
+                  </div>
+            
+                  <p style="font-size:0.98rem; text-align:center; margin:10px auto 0 auto; max-width:860px;">
+                    Principles define the <strong>evidence you must collect</strong> and the <strong>tests you must run</strong>. They are crucial because they <strong>create clear, shared standards for evaluation and make findings easy to explain</strong> to everyone. In this case, your evidence and tests will clearly show what counts as bias when you look at the model's data and final results.
+                  </p>
+                </div>
+            
+                <div class="ai-risk-container" style="margin-top:16px; border-width:2px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h4 style="margin:0; font-size:1.2rem; color:#ef4444;">
+                      🧩 Justice &amp; Equity — What Counts as Bias
+                    </h4>
+                    <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.12em; font-weight:800; padding:2px 8px; border-radius:999px; border:1px solid #ef4444; color:#ef4444;">
+                      Priority in this case
+                    </div>
+                  </div>
+            
+                  <p style="font-size:0.98rem; margin:10px 0 12px 0; max-width:860px;">
+                    To ensure fairness, we focus on three <strong>measurable</strong> types of bias:
+                  </p>
+            
+                  <div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px; margin-top:6px;">
+            
+                    <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
+                      <div style="font-weight:800;">Representation Bias</div>
+                      <div style="font-size:0.95rem; margin-top:4px;">
+                        Compares the dataset distribution to the <strong>actual real-world population.</strong>
+                      </div>
+                      <div style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:4px;">
+                        If one group appears far less or far more than reality (e.g., only <strong>10%</strong> of cases are from Group A, but the group is <strong>71%</strong> of the population) or far more than what is real, the AI has too little data to learn accurately, which can result in it learning to generate predictions based on biased patterns.
+                      </div>
+                    </div>
+            
+                    <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
+                      <div style="font-weight:800;">Error Gaps</div>
+                      <div style="font-size:0.95rem; margin-top:4px;">
+                        Checks for AI prediction mistakes by subgroup.
+                      </div>
+                      <div style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:4px;">
+                        Checks for AI prediction mistakes by subgroup (e.g., comparing the false positive rate for Group A vs. Group B). Higher error for a group can mean unfair treatment, which shows the model is less trustworthy or accurate for that specific group.
+                      </div>
+                    </div>
+            
+                    <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
+                      <div style="font-weight:800;">Outcome Disparities</div>
+                      <div style="font-size:0.95rem; margin-top:4px;">
+                        Looks for worse real-world results after AI predictions (e.g., higher rates of delayed bail or harsh sentencing for specific groups).
+                      </div>
+                      <div style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:4px;">
+                        Bias isn’t just numbers——it changes real-world outcomes for people.
+                      </div>
+                    </div>
+            
+                  </div>
+                </div>
+            
+                <div class="ai-risk-container" style="margin-top:16px; border-width:2px;">
+                  <h4 style="margin-top:0; font-size:1.12rem; text-align:center;">
+                    🧭 Other AI Ethics Principles
+                  </h4>
+            
+                  <p style="font-size:0.96rem; text-align:center; max-width:860px; margin:6px auto 14px auto;">
+                    While the current mission focuses on Justice &amp; Equity, these other core principles complete
+                    the full ethical rulebook. They define how a safe, fair AI system should be built and inspected:
+                  </p>
+            
+                  <div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px;">
+                    <div class="hint-box"><strong>Transparency &amp; Explainability</strong><br>Ensure the AI's reasoning and final judgment are clear so decisions can be inspected and people can appeal.</div>
+                    <div class="hint-box"><strong>Security &amp; Non-maleficence</strong><br>Minimize harmful mistakes and always have a solid plan for system failure.</div>
+                    <div class="hint-box"><strong>Responsibility &amp; Accountability</strong><br>Assign clear owners for the AI and maintain a detailed record of decisions (audit trail).</div>
+                    <div class="hint-box"><strong>Privacy</strong><br>Use only necessary data and always justify any need to use sensitive attributes.</div>
+                    <div class="hint-box"><strong>Autonomy</strong><br>Provide individuals with clear appeals processes and alternatives to the AI's decision.</div>
+                    <div class="hint-box"><strong>Sustainability</strong><br>Avoid long-term harm to society or the environment (e.g., massive energy use or market destabilization).</div>
+                  </div>
+                </div>
+            
               </div>
-
-              <!-- Primary principle focus: Justice & Equity -->
-              <div class="ai-risk-container" style="margin-top:14px; border-width:2px;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <h4 style="margin:0; font-size:1.18rem; color:#ef4444;">🧩 Justice & Equity — What Counts as Bias</h4>
-                  <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.12em; font-weight:800; padding:2px 8px; border-radius:999px; border:1px solid #ef4444; color:#ef4444;">Priority in this case</div>
-                </div>
-
-                <div style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; margin-top:10px;">
-                  <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
-                    <div style="font-weight:800;">Representation Bias</div>
-                    <div style="font-size:0.95rem;">Compare dataset distribution to reality (e.g., 10% group representation vs 71%).</div>
-                    <div style="font-size:0.95rem; color:var(--body-text-color-subdued);">If one group appears far more than reality, the model may learn these group patterns in a biased manner.</div>
-                  </div>
-                  <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
-                    <div style="font-weight:800;">Error Gaps</div>
-                    <div style="font-size:0.95rem;">Check for AI prediction mistakes by subgroup.</div>
-                    <div style="font-size:0.95rem; color:var(--body-text-color-subdued);">Higher error for a group can mean unfair treatment; that <em>can mean increased bias</em>.</div>
-                  </div>
-                  <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
-                    <div style="font-weight:800;">Outcome Disparities</div>
-                    <div style="font-size:0.95rem;">Look for worse outcomes related to AI predictions for specific groups (early release, bail, sentencing).</div>
-                    <div style="font-size:0.95rem; color:var(--body-text-color-subdued);">Bias isn’t just numbers — it changes real‑world outcomes.</div>
-                  </div>
-                </div>
-
-                <div class="hint-box" style="margin-top:12px;">
-                  <div style="font-weight:800;">Plain Rule</div>
-                  <div style="font-size:0.95rem;">If one group is <strong>systematically misclassified more</strong>, that’s a likely signal for a Justice & Equity violation.</div>
-                </div>
-              </div>
-
-              <!-- Other principles: visible but secondary -->
-              <div class="ai-risk-container" style="margin-top:14px; border-width:2px;">
-                <h4 style="margin-top:0; font-size:1.12rem; text-align:center;">🧭 Examples of Other AI Ethics Principles (Could also be used to help investigate AI.)</h4>
-                <div style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px; opacity:0.9;">
-                  <div class="hint-box" style="margin-top:0;">
-                    <div style="font-weight:800;">Transparency & Explainability</div>
-                    <div style="font-size:0.95rem;">Explainable scores enable audits and appeals.</div>
-                  </div>
-                  <div class="hint-box" style="margin-top:0;">
-                    <div style="font-weight:800;">Security & Non-maleficence</div>
-                    <div style="font-size:0.95rem;">Minimize harmful mistakes; plan for failure.</div>
-                  </div>
-                  <div class="hint-box" style="margin-top:0;">
-                    <div style="font-weight:800;">Responsibility & Accountability</div>
-                    <div style="font-size:0.95rem;">Assign owners; keep an audit trail.</div>
-                  </div>
-                  <div class="hint-box" style="margin-top:0;">
-                    <div style="font-weight:800;">Privacy</div>
-                    <div style="font-size:0.95rem;">Use only necessary data; justify sensitive attributes.</div>
-                  </div>
-                  <div class="hint-box" style="margin-top:0;">
-                    <div style="font-weight:800;">Autonomy</div>
-                    <div style="font-size:0.95rem;">Provide appeals and alternatives.</div>
-                  </div>
-                  <div class="hint-box" style="margin-top:0;">
-                    <div style="font-weight:800;">Sustainability</div>
-                    <div style="font-size:0.95rem;">Avoid long‑term social or environmental harm.</div>
-                  </div>
-                </div>
-
-                <div class="hint-box" style="margin-top:12px;">
-                  <div style="font-weight:800;">Why do we need Principles that clearly define the rules of ethical AI?</div>
-                  <div style="font-size:0.95rem;">
-                    Without a clear plan, what <strong>standards</strong> do we use to make AI more <strong>just</strong>?  AI ethics experts carve out meaningful AI principles and well defined AI safetey action plans that create these shared standards for consistent evaluation and make findings <strong>explainable</strong> to teams, courts, and the public.
-                  </div>
-                </div>
-              </div>
-
-              <!-- Bridge to next step -->
-              <div class="hint-box" style="margin-top:16px;">
-                <div style="font-weight:800;">✅ You’ve established the rules.</div>
-                <div style="font-size:0.98rem;">Next, you will rely on them for your investigation.</div>
-              </div>
-
             </div>
-          </div>
         """,
     },
     {
         "id": 3,
         "title": "Slide 3: The Stakes",
         "html": """
-            <div class="scenario-box">
-                <h2 class="slide-title">⚠️ THE RISK OF INVISIBLE BIAS</h2>
+            <div class="scenario-box">                         
+                <div style="display:flex; justify-content:center; margin-bottom:14px;">
+                  <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-weight:800;">
+                    <span style="font-size:1.1rem;">📜</span>
+                    <span>STEP 1: LEARN THE RULES — Know what actually counts as bias</span>
+                  </div>
+                </div>
+                <h2 class="slide-title">⚠️ The Risk of Invisible Bias</h2>
                 <div class="slide-body">
                     <p style="font-size:1.05rem; max-width:800px; margin:0 auto 18px auto;">
                         You might ask: <strong>“Why is an AI bias investigation such a big deal?”</strong>
@@ -1900,47 +1907,6 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                         )
 
 
-                    # --- MODULE 3: RIPPLE EFFECT SLIDER ---
-                    if i == 3:
-                        gr.Markdown(
-                            "### 🔄 How Many People Could Be Affected?",
-                            elem_classes=["interactive-text"],
-                        )
-                        gr.HTML(
-                            """
-                            <div class="interactive-block">
-                                <p style="margin-bottom:8px;">
-                                    Bias becomes especially dangerous when a decision is repeated automatically.
-                                    This slider lets you explore how many people could be touched by a biased
-                                    criminal risk model each year.
-                                </p>
-                                <p style="margin-bottom:0;">
-                                    Move the slider to estimate how many cases the model is used on in a year,
-                                    and notice how quickly bias can scale.
-                                </p>
-                            </div>
-                            """,
-                            elem_classes=["interactive-text"],
-                        )
-
-                        ripple_slider = gr.Slider(
-                            minimum=0,
-                            maximum=20000,
-                            value=10000,
-                            step=500,
-                            label="Estimated number of cases this model is used on per year",
-                            interactive=True,
-                        )
-
-                        ripple_result_html = gr.HTML(
-                            "", elem_classes=["interactive-text"]
-                        )
-
-                        ripple_slider.change(
-                            fn=simulate_ripple_effect_cases,
-                            inputs=[ripple_slider],
-                            outputs=[ripple_result_html],
-                        )
 
                     # --- QUIZ CONTENT FOR MODULES WITH QUIZ_CONFIG ---
                     if i in QUIZ_CONFIG:
