@@ -2219,4 +2219,4 @@ def launch_bias_detective_part1_app(
 # ============================================================================
 
 if __name__ == "__main__":
-    launch_bias_detective_app(share=False, debug=True, height=1000)
+    launch_bias_detective_part1_app(share=False, debug=True, height=1000)
