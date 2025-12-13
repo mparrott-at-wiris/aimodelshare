@@ -11,11 +11,6 @@ TABLE_ID = "m-mc"
 TOTAL_COURSE_TASKS = 19
 LOCAL_TEST_SESSION_ID = None
 
-# --- 1b. I18N TRANSLATION HELPER ---
-def t(lang: str, key: str) -> str:
-    """Get translated text for given language and key."""
-    return TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(key, key)
-
 # --- 2. SETUP & DEPENDENCIES ---
 def install_dependencies():
     packages = ["gradio>=5.0.0", "aimodelshare", "pandas"]
@@ -147,6 +142,11 @@ TRANSLATIONS = {
         "lbl_users": "Usuaris",
     }
 }
+
+# --- 3c. I18N TRANSLATION HELPER ---
+def t(lang: str, key: str) -> str:
+    """Get translated text for given language and key."""
+    return TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(key, key)
 
 # --- 4. API & LEADERBOARD LOGIC ---
 def get_or_assign_team(client, username):

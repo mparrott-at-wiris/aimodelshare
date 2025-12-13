@@ -11,11 +11,6 @@ TABLE_ID = "m-mc"
 TOTAL_COURSE_TASKS = 19  # Score calculated against full course
 LOCAL_TEST_SESSION_ID = None
 
-# --- 1b. I18N TRANSLATION HELPER ---
-def t(lang: str, key: str) -> str:
-    """Get translated text for given language and key."""
-    return TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(key, key)
-
 # --- 2. SETUP & DEPENDENCIES ---
 def install_dependencies():
     packages = ["gradio>=5.0.0", "aimodelshare", "pandas"]
@@ -179,6 +174,11 @@ TRANSLATIONS = {
         "slider_score": "Puntuació de Brúixola Moral Simulada:",
     }
 }
+
+# --- 3c. I18N TRANSLATION HELPER ---
+def t(lang: str, key: str) -> str:
+    """Get translated text for given language and key."""
+    return TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(key, key)
 
 # --- 4. MODULE DEFINITIONS (APP 1: 0-10) ---
 MODULES = [
