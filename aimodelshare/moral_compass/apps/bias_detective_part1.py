@@ -359,7 +359,7 @@ MODULES = [
                 </div>
                                 
                 <br>
-                <h2 class="slide-title">⚠️ The Risk of Invisible Bias</h2>
+                <h2 class="slide-title" style="font-size:1.6rem; text-align:center;">⚠️ The Risk of Invisible Bias</h2>
                 <br>
                 
                 <div class="slide-body">
