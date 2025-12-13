@@ -357,7 +357,11 @@ MODULES = [
                     <span>STEP 1: LEARN THE RULES — Understand what actually counts as bias</span>
                   </div>
                 </div>
+                                
+                <br>
                 <h2 class="slide-title">⚠️ The Risk of Invisible Bias</h2>
+                <br>
+                
                 <div class="slide-body">
                     <p style="font-size:1.05rem; max-width:800px; margin:0 auto 18px auto;">
                         You might ask: <strong>“Why is an AI bias investigation such a big deal?”</strong>
