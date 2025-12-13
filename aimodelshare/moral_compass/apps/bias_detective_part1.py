@@ -112,6 +112,21 @@ TRANSLATIONS = {
         "slider_accuracy": "Your current accuracy (from the leaderboard):",
         "slider_progress": "Simulated Ethical Progress %:",
         "slider_score": "Simulated Moral Compass Score:",
+        
+        # Module 0 - Moral Compass Intro
+        "mod0_title": "🧭 Introducing Your New Moral Compass Score",
+        "mod0_p1": "Right now, your model is judged mostly on <strong>accuracy</strong>. That sounds fair, but accuracy alone can hide important risks—especially when a model is used to make decisions about real people.",
+        "mod0_p2": "To make that risk visible, this challenge uses a new metric: your <strong>Moral Compass Score</strong>.",
+        "mod0_how_title": "1. How Your Moral Compass Score Works",
+        "mod0_formula": "<strong>Moral Compass Score</strong> =<br><br><span style='color:var(--color-accent); font-weight:bold;'>[ Model Accuracy ]</span> × <span style='color:#22c55e; font-weight:bold;'>[ Ethical Progress % ]</span>",
+        "mod0_formula_exp": "Your accuracy is the starting point. Your <strong>Ethical Progress %</strong> reflects how far you've gone in understanding and reducing AI bias and harm. The more you progress through this challenge, the more of your accuracy \"counts\" toward your Moral Compass Score.",
+        "mod0_grows_title": "2. A Score That Grows With You",
+        "mod0_grows_text": "Your score is <strong>dynamic</strong>. As you complete more modules and demonstrate better judgment about fairness, your <strong>Ethical Progress %</strong> rises. That unlocks more of your model's base accuracy in the Moral Compass Score.",
+        "mod0_look_title": "3. Look Up. Look Down.",
+        "mod0_look_up": "<strong>Look up:</strong> The top bar shows your live Moral Compass Score and rank. As your Ethical Progress increases, you'll see your score move in real time.",
+        "mod0_look_down": "<strong>Look down:</strong> The leaderboards below re-rank teams and individuals as people advance. When you improve your ethical progress, you don't just change your score—you change your position.",
+        "mod0_try_title": "4. Try It Out: See How Progress Changes Your Score",
+        "mod0_try_text": "Below, you can move a slider to <strong>simulate</strong> how your Moral Compass Score would change as your <strong>Ethical Progress %</strong> increases. This gives you a preview of how much impact each step of your progress can have on your final score.",
     },
     "es": {
         # Loading and auth messages
@@ -142,6 +157,21 @@ TRANSLATIONS = {
         "slider_accuracy": "Tu precisión actual (de la tabla de clasificación):",
         "slider_progress": "Progreso Ético Simulado %:",
         "slider_score": "Puntuación de Brújula Moral Simulada:",
+        
+        # Module 0 - Moral Compass Intro
+        "mod0_title": "🧭 Presentamos tu Nueva Puntuación de Brújula Moral",
+        "mod0_p1": "Ahora mismo, tu modelo se juzga principalmente por su <strong>precisión</strong>. Eso suena justo, pero la precisión por sí sola puede ocultar riesgos importantes, especialmente cuando un modelo se usa para tomar decisiones sobre personas reales.",
+        "mod0_p2": "Para hacer ese riesgo visible, este desafío usa una nueva métrica: tu <strong>Puntuación de Brújula Moral</strong>.",
+        "mod0_how_title": "1. Cómo Funciona tu Puntuación de Brújula Moral",
+        "mod0_formula": "<strong>Puntuación de Brújula Moral</strong> =<br><br><span style='color:var(--color-accent); font-weight:bold;'>[ Precisión del Modelo ]</span> × <span style='color:#22c55e; font-weight:bold;'>[ Progreso Ético % ]</span>",
+        "mod0_formula_exp": "Tu precisión es el punto de partida. Tu <strong>Progreso Ético %</strong> refleja qué tan lejos has llegado en comprender y reducir el sesgo y el daño de la IA. Cuanto más avances en este desafío, más de tu precisión \"cuenta\" para tu Puntuación de Brújula Moral.",
+        "mod0_grows_title": "2. Una Puntuación que Crece Contigo",
+        "mod0_grows_text": "Tu puntuación es <strong>dinámica</strong>. A medida que completas más módulos y demuestras mejor juicio sobre equidad, tu <strong>Progreso Ético %</strong> aumenta. Eso desbloquea más de la precisión base de tu modelo en la Puntuación de Brújula Moral.",
+        "mod0_look_title": "3. Mira Arriba. Mira Abajo.",
+        "mod0_look_up": "<strong>Mira arriba:</strong> La barra superior muestra tu Puntuación de Brújula Moral y rango en vivo. A medida que tu Progreso Ético aumenta, verás tu puntuación moverse en tiempo real.",
+        "mod0_look_down": "<strong>Mira abajo:</strong> Las tablas de clasificación a continuación reclasifican a equipos e individuos a medida que las personas avanzan. Cuando mejoras tu progreso ético, no solo cambias tu puntuación, cambias tu posición.",
+        "mod0_try_title": "4. Pruébalo: Ve Cómo el Progreso Cambia tu Puntuación",
+        "mod0_try_text": "A continuación, puedes mover un control deslizante para <strong>simular</strong> cómo cambiaría tu Puntuación de Brújula Moral a medida que tu <strong>Progreso Ético %</strong> aumenta. Esto te da una vista previa de cuánto impacto puede tener cada paso de tu progreso en tu puntuación final.",
     },
     "ca": {
         # Loading and auth messages
@@ -172,6 +202,21 @@ TRANSLATIONS = {
         "slider_accuracy": "La teva precisió actual (de la taula de classificació):",
         "slider_progress": "Progrés Ètic Simulat %:",
         "slider_score": "Puntuació de Brúixola Moral Simulada:",
+        
+        # Module 0 - Moral Compass Intro
+        "mod0_title": "🧭 Presentem la teva Nova Puntuació de Brúixola Moral",
+        "mod0_p1": "Ara mateix, el teu model es jutja principalment per la seva <strong>precisió</strong>. Això sembla just, però la precisió per si sola pot ocultar riscos importants, especialment quan un model s'utilitza per prendre decisions sobre persones reals.",
+        "mod0_p2": "Per fer aquest risc visible, aquest desafiament utilitza una nova mètrica: la teva <strong>Puntuació de Brúixola Moral</strong>.",
+        "mod0_how_title": "1. Com Funciona la teva Puntuació de Brúixola Moral",
+        "mod0_formula": "<strong>Puntuació de Brúixola Moral</strong> =<br><br><span style='color:var(--color-accent); font-weight:bold;'>[ Precisió del Model ]</span> × <span style='color:#22c55e; font-weight:bold;'>[ Progrés Ètic % ]</span>",
+        "mod0_formula_exp": "La teva precisió és el punt de partida. El teu <strong>Progrés Ètic %</strong> reflecteix fins on has arribat en comprendre i reduir el biaix i el dany de la IA. Com més avances en aquest desafiament, més de la teva precisió \"compta\" per a la teva Puntuació de Brúixola Moral.",
+        "mod0_grows_title": "2. Una Puntuació que Creix amb Tu",
+        "mod0_grows_text": "La teva puntuació és <strong>dinàmica</strong>. A mesura que completes més mòduls i demostres millor judici sobre equitat, el teu <strong>Progrés Ètic %</strong> augmenta. Això desbloqueja més de la precisió base del teu model en la Puntuació de Brúixola Moral.",
+        "mod0_look_title": "3. Mira Amunt. Mira Avall.",
+        "mod0_look_up": "<strong>Mira amunt:</strong> La barra superior mostra la teva Puntuació de Brúixola Moral i rang en viu. A mesura que el teu Progrés Ètic augmenta, veuràs la teva puntuació moure's en temps real.",
+        "mod0_look_down": "<strong>Mira avall:</strong> Les taules de classificació a continuació reclassifiquen equips i individus a mesura que les persones avancen. Quan millores el teu progrés ètic, no només canvies la teva puntuació, canvies la teva posició.",
+        "mod0_try_title": "4. Prova-ho: Mira Com el Progrés Canvia la teva Puntuació",
+        "mod0_try_text": "A continuació, pots moure un control lliscant per <strong>simular</strong> com canviaria la teva Puntuació de Brúixola Moral a mesura que el teu <strong>Progrés Ètic %</strong> augmenta. Això et dona una vista prèvia de quant impacte pot tenir cada pas del teu progrés en la teva puntuació final.",
     }
 }
 
@@ -203,17 +248,58 @@ def get_button_label(lang: str, button_type: str, is_last: bool = False) -> str:
         return t(lang, 'btn_next')
     return ""
 
+def get_module_0_html(lang: str = "en") -> str:
+    """Generate Module 0 HTML with translations."""
+    return f"""
+        <div class="scenario-box">
+            <h2 class="slide-title">{t(lang, 'mod0_title')}</h2>
+            <div class="slide-body">
+                <p>{t(lang, 'mod0_p1')}</p>
+                <p>{t(lang, 'mod0_p2')}</p>
+
+                <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
+                    <h4 style="margin-top:0; font-size:1.3rem;">{t(lang, 'mod0_how_title')}</h4>
+                    <div style="font-size: 1.4rem; margin: 16px 0;">
+                        {t(lang, 'mod0_formula')}
+                    </div>
+                    <p style="font-size:1rem; max-width:650px; margin:0 auto;">
+                        {t(lang, 'mod0_formula_exp')}
+                    </p>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px; margin-top:24px;">
+                    <div class="hint-box" style="text-align:left;">
+                        <h4 style="margin-top:0; font-size:1.1rem;">{t(lang, 'mod0_grows_title')}</h4>
+                        <p style="font-size:0.98rem;">{t(lang, 'mod0_grows_text')}</p>
+                    </div>
+                    <div class="hint-box" style="text-align:left;">
+                        <h4 style="margin-top:0; font-size:1.1rem;">{t(lang, 'mod0_look_title')}</h4>
+                        <p style="font-size:0.98rem; margin-bottom:6px;">{t(lang, 'mod0_look_up')}</p>
+                        <p style="font-size:0.98rem; margin-bottom:0;">{t(lang, 'mod0_look_down')}</p>
+                    </div>
+                </div>
+
+                <div class="ai-risk-container" style="margin-top:26px;">
+                    <h4 style="margin-top:0; font-size:1.2rem;">{t(lang, 'mod0_try_title')}</h4>
+                    <p style="font-size:1.02rem; max-width:720px; margin:0 auto;">
+                        {t(lang, 'mod0_try_text')}
+                    </p>
+                </div>
+            </div>
+        </div>
+    """
+
 def get_module_html(module_id: int, lang: str = "en") -> str:
     """
     Get module HTML content with translations.
-    For now, returns English HTML for all modules except those with translations.
-    To translate a module, add its translated HTML to this function.
-    
-    Example for Module 0:
+    Translated modules return language-specific HTML.
+    Untranslated modules return original English HTML.
+    """
+    # Module 0 has full translation support
     if module_id == 0:
         return get_module_0_html(lang)
-    """
-    # Return original English HTML from MODULES
+    
+    # For other modules, return original English HTML from MODULES
     for mod in MODULES:
         if mod["id"] == module_id:
             return mod["html"]
@@ -2224,8 +2310,12 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                     elem_classes=["module-container"],
                     visible=(i == 0),
                 ) as mod_col:
-                    # Core slide HTML
-                    gr.HTML(mod["html"])
+                    # Core slide HTML - store reference for translation updates
+                    module_html_comp = gr.HTML(mod["html"])
+                    
+                    # Store HTML component reference for later updates
+                    if i == 0:
+                        module_0_html = module_html_comp
 
                     # --- MODULE 0: INTERACTIVE CALCULATOR + STATIC SCENARIO CARDS ---
                     if i == 0:
@@ -2458,6 +2548,7 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                     lang,  # Return detected language
                     get_loading_screen_html(lang),  # Update loading screen with translated text
                     get_nav_loading_html(lang),  # Update nav loading with translated text
+                    get_module_0_html(lang),  # Update Module 0 with translated content
                     gr.update(visible=False),
                     gr.update(visible=True),
                     *button_updates,  # Update all button labels
@@ -2477,6 +2568,7 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                 lang,  # Return detected language
                 get_loading_screen_html(lang),  # Update loading screen with translated text
                 get_nav_loading_html(lang),  # Update nav loading with translated text
+                get_module_0_html(lang),  # Update Module 0 with translated content
                 gr.update(visible=False),
                 gr.update(visible=True),
                 *button_updates,  # Update all button labels
@@ -2498,6 +2590,7 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                 lang_state,  # Add lang to outputs
                 loading_screen_html,  # Update loading screen
                 nav_loading_overlay,  # Update nav loading
+                module_0_html,  # Update Module 0 content
                 loader_col,
                 main_app_col,
                 *all_prev_buttons,  # Update all previous buttons
