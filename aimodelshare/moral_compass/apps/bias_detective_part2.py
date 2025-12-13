@@ -134,7 +134,7 @@ TRANSLATIONS = {
         
         # Module 0 - Part 2 Intro
         "mod0_p2_title": "🕵️‍♀️ PARTE 2: LA AUDITORÍA ALGORÍTMICA",
-        "mod0_p2_status": "ESTADO: FORENSIA DE DATOS COMPLETA",
+        "mod0_p2_status": "ESTADO: FORENSE DE DATOS COMPLETA",
         "mod0_p2_roadmap": "🗺️ Tu Hoja de Ruta de Investigación",
         "mod0_p2_step1": "1. Aprender las Reglas",
         "mod0_p2_step2": "2. Recopilar Evidencia",
@@ -173,7 +173,7 @@ TRANSLATIONS = {
         
         # Module 0 - Part 2 Intro
         "mod0_p2_title": "🕵️‍♀️ PART 2: L'AUDITORIA ALGORÍTMICA",
-        "mod0_p2_status": "ESTAT: FORENSE DE DADES COMPLETA",
+        "mod0_p2_status": "ESTAT: FORENSE DE DADES COMPLET",
         "mod0_p2_roadmap": "🗺️ La teva Fulla de Ruta d'Investigació",
         "mod0_p2_step1": "1. Aprendre les Regles",
         "mod0_p2_step2": "2. Recopilar Evidència",
