@@ -145,6 +145,33 @@ TRANSLATIONS = {
         "mod1_why": "⭐ Why This Matters",
         "mod1_why_text": "AI systems learn from history. If past data contains unfair patterns, the model may copy them unless someone catches the problem. <strong>That someone is you — the Bias Detective.</strong> Your ability to recognize bias will help unlock your Moral Compass Score and shape how the model behaves.",
         "mod1_next": "<strong>Your Next Move:</strong> Before you start examining the data, you need to understand the rules of the investigation. Scroll down to choose your first step.",
+        
+        # Module 2 - Intelligence Briefing
+        "mod2_badge": "STEP 1: LEARN THE RULES — Understand what actually counts as bias",
+        "mod2_title": "⚖️ Justice & Equity: Your Primary Rule",
+        "mod2_intro1": "Before we start our investigation, we need to know the rules. Ethics isn't abstract here—it's our <strong>field guide for action</strong>.",
+        "mod2_intro2": "We do not guess what is right or wrong; we rely on <strong>expert advice</strong>. We will use guidance from the experts at the Catalan Observatory for Ethics in AI <strong>OEIAC (UdG)</strong>, who help ensure AI systems are fair and responsible.",
+        "mod2_intro3": "While they have established seven core principles to keep AI safe, our intel suggests this specific case involves a violation of the <strong>Justice & Equity</strong> principle.",
+        "mod2_principles_title": "🗺️ Principles in Action",
+        "mod2_principles_intro": "The ethical principles are the <strong>first step</strong> in your roadmap. They translate the abstract concept of \"fairness\" into concrete steps for a detective:",
+        "mod2_flow_principles": "Principles",
+        "mod2_flow_evidence": "Evidence",
+        "mod2_flow_tests": "Tests",
+        "mod2_flow_judgment": "Judgment",
+        "mod2_flow_fixes": "Fixes",
+        "mod2_principles_text": "Principles define the <strong>evidence you must collect</strong> and the <strong>tests you must run</strong>. They are crucial because they <strong>create clear, shared standards for evaluation and make findings easy to explain</strong> to everyone. In this case, your evidence and tests will clearly show what counts as bias when you look at the model's data and final results.",
+        "mod2_justice_title": "🧩 Justice & Equity — What Counts as Bias",
+        "mod2_justice_badge": "Priority in this case",
+        "mod2_justice_intro": "To ensure fairness, we focus on three <strong>measurable</strong> types of bias:",
+        "mod2_bias1_title": "Representation Bias",
+        "mod2_bias1_desc": "Compares the dataset distribution to the <strong>actual real-world population.</strong>",
+        "mod2_bias1_example": "If one group appears far less or far more than reality (e.g., only <strong>10%</strong> of cases are from Group A, but the group is <strong>71%</strong> of the population), the AI may not have enough data to learn how to make accurate unbiased predictions.",
+        "mod2_bias2_title": "Error Gaps",
+        "mod2_bias2_desc": "Checks for AI prediction mistakes by subgroup.",
+        "mod2_bias2_example": "Compares the false positive rate for Group A vs. Group B. Higher error for a group can mean unfair treatment, which shows the model is less trustworthy or accurate for that specific group.",
+        "mod2_bias3_title": "Harm Patterns",
+        "mod2_bias3_desc": "Identifies when bias leads to real damage.",
+        "mod2_bias3_example": "Not all errors create equal harm. If false positives cause arrest or job denial, you must measure who gets hurt most and whether the harm falls unequally across groups.",
     },
     "es": {
         # Loading and auth messages
@@ -193,6 +220,33 @@ TRANSLATIONS = {
         "mod1_why": "⭐ Por Qué Esto Importa",
         "mod1_why_text": "Los sistemas de IA aprenden de la historia. Si los datos pasados contienen patrones injustos, el modelo puede copiarlos a menos que alguien detecte el problema. <strong>Ese alguien eres tú: el Detective de Sesgos.</strong> Tu capacidad para reconocer sesgos ayudará a desbloquear tu Puntuación de Brújula Moral y dar forma al comportamiento del modelo.",
         "mod1_next": "<strong>Tu Próximo Movimiento:</strong> Antes de comenzar a examinar los datos, necesitas comprender las reglas de la investigación. Desplázate hacia abajo para elegir tu primer paso.",
+        
+        # Module 2 - Intelligence Briefing
+        "mod2_badge": "PASO 1: APRENDER LAS REGLAS — Comprender qué cuenta realmente como sesgo",
+        "mod2_title": "⚖️ Justicia y Equidad: Tu Regla Principal",
+        "mod2_intro1": "Antes de comenzar nuestra investigación, necesitamos conocer las reglas. La ética no es abstracta aquí—es nuestra <strong>guía de campo para la acción</strong>.",
+        "mod2_intro2": "No adivinamos qué es correcto o incorrecto; confiamos en el <strong>consejo de expertos</strong>. Utilizaremos la orientación de los expertos del Observatorio Catalán de Ética en IA <strong>OEIAC (UdG)</strong>, que ayudan a garantizar que los sistemas de IA sean justos y responsables.",
+        "mod2_intro3": "Aunque han establecido siete principios fundamentales para mantener la IA segura, nuestra inteligencia sugiere que este caso específico implica una violación del principio de <strong>Justicia y Equidad</strong>.",
+        "mod2_principles_title": "🗺️ Principios en Acción",
+        "mod2_principles_intro": "Los principios éticos son el <strong>primer paso</strong> en tu hoja de ruta. Traducen el concepto abstracto de \"justicia\" en pasos concretos para un detective:",
+        "mod2_flow_principles": "Principios",
+        "mod2_flow_evidence": "Evidencia",
+        "mod2_flow_tests": "Pruebas",
+        "mod2_flow_judgment": "Juicio",
+        "mod2_flow_fixes": "Soluciones",
+        "mod2_principles_text": "Los principios definen la <strong>evidencia que debes recopilar</strong> y las <strong>pruebas que debes ejecutar</strong>. Son cruciales porque <strong>crean estándares claros y compartidos para la evaluación y hacen que los hallazgos sean fáciles de explicar</strong> a todos. En este caso, tu evidencia y pruebas mostrarán claramente qué cuenta como sesgo cuando mires los datos del modelo y los resultados finales.",
+        "mod2_justice_title": "🧩 Justicia y Equidad — Qué Cuenta como Sesgo",
+        "mod2_justice_badge": "Prioridad en este caso",
+        "mod2_justice_intro": "Para garantizar la justicia, nos centramos en tres tipos de sesgo <strong>medibles</strong>:",
+        "mod2_bias1_title": "Sesgo de Representación",
+        "mod2_bias1_desc": "Compara la distribución del conjunto de datos con la <strong>población real del mundo real.</strong>",
+        "mod2_bias1_example": "Si un grupo aparece mucho menos o mucho más que la realidad (por ejemplo, solo el <strong>10%</strong> de los casos son del Grupo A, pero el grupo es el <strong>71%</strong> de la población), la IA puede no tener suficientes datos para aprender a hacer predicciones precisas e imparciales.",
+        "mod2_bias2_title": "Brechas de Error",
+        "mod2_bias2_desc": "Verifica los errores de predicción de IA por subgrupo.",
+        "mod2_bias2_example": "Compara la tasa de falsos positivos para el Grupo A vs. el Grupo B. Un error mayor para un grupo puede significar un trato injusto, lo que muestra que el modelo es menos confiable o preciso para ese grupo específico.",
+        "mod2_bias3_title": "Patrones de Daño",
+        "mod2_bias3_desc": "Identifica cuándo el sesgo conduce a un daño real.",
+        "mod2_bias3_example": "No todos los errores crean el mismo daño. Si los falsos positivos causan arrestos o negación de empleo, debes medir quién resulta más perjudicado y si el daño recae desigualmente en los grupos.",
         
         # Module 0 - Moral Compass Intro
         "mod0_title": "🧭 Presentamos tu Nueva Puntuación de Brújula Moral",
@@ -256,6 +310,33 @@ TRANSLATIONS = {
         "mod1_why": "⭐ Per Què Això Importa",
         "mod1_why_text": "Els sistemes d'IA aprenen de la història. Si les dades passades contenen patrons injustos, el model pot copiar-los tret que algú detecti el problema. <strong>Aquesta persona ets tu: el Detective de Biaixos.</strong> La teva capacitat per reconèixer biaixos ajudarà a desbloquejar la teva Puntuació de Brúixola Moral i donar forma al comportament del model.",
         "mod1_next": "<strong>El Teu Proper Moviment:</strong> Abans de començar a examinar les dades, necessites comprendre les regles de la investigació. Desplaça't cap avall per triar el teu primer pas.",
+        
+        # Module 2 - Intelligence Briefing
+        "mod2_badge": "PAS 1: APRENDRE LES REGLES — Comprendre què compta realment com a biaix",
+        "mod2_title": "⚖️ Justícia i Equitat: La Teva Regla Principal",
+        "mod2_intro1": "Abans de començar la nostra investigació, necessitem conèixer les regles. L'ètica no és abstracta aquí—és la nostra <strong>guia de camp per a l'acció</strong>.",
+        "mod2_intro2": "No endevinem què és correcte o incorrecte; confiem en el <strong>consell d'experts</strong>. Utilitzarem l'orientació dels experts de l'Observatori Català d'Ètica en IA <strong>OEIAC (UdG)</strong>, que ajuden a garantir que els sistemes d'IA siguin justos i responsables.",
+        "mod2_intro3": "Tot i que han establert set principis fonamentals per mantenir la IA segura, la nostra intel·ligència suggereix que aquest cas específic implica una violació del principi de <strong>Justícia i Equitat</strong>.",
+        "mod2_principles_title": "🗺️ Principis en Acció",
+        "mod2_principles_intro": "Els principis ètics són el <strong>primer pas</strong> en la teva fulla de ruta. Tradueixen el concepte abstracte de \"justícia\" en passos concrets per a un detective:",
+        "mod2_flow_principles": "Principis",
+        "mod2_flow_evidence": "Evidència",
+        "mod2_flow_tests": "Proves",
+        "mod2_flow_judgment": "Judici",
+        "mod2_flow_fixes": "Solucions",
+        "mod2_principles_text": "Els principis defineixen l'<strong>evidència que has de recopilar</strong> i les <strong>proves que has d'executar</strong>. Són crucials perquè <strong>creen estàndards clars i compartits per a l'avaluació i fan que les troballes siguin fàcils d'explicar</strong> a tothom. En aquest cas, la teva evidència i proves mostraran clarament què compta com a biaix quan miris les dades del model i els resultats finals.",
+        "mod2_justice_title": "🧩 Justícia i Equitat — Què Compta com a Biaix",
+        "mod2_justice_badge": "Prioritat en aquest cas",
+        "mod2_justice_intro": "Per garantir la justícia, ens centrem en tres tipus de biaix <strong>mesurables</strong>:",
+        "mod2_bias1_title": "Biaix de Representació",
+        "mod2_bias1_desc": "Compara la distribució del conjunt de dades amb la <strong>població real del món real.</strong>",
+        "mod2_bias1_example": "Si un grup apareix molt menys o molt més que la realitat (per exemple, només el <strong>10%</strong> dels casos són del Grup A, però el grup és el <strong>71%</strong> de la població), la IA pot no tenir prou dades per aprendre a fer prediccions precises i imparcials.",
+        "mod2_bias2_title": "Bretxes d'Error",
+        "mod2_bias2_desc": "Verifica els errors de predicció d'IA per subgrup.",
+        "mod2_bias2_example": "Compara la taxa de falsos positius per al Grup A vs. el Grup B. Un error major per a un grup pot significar un tracte injust, cosa que mostra que el model és menys fiable o precís per a aquest grup específic.",
+        "mod2_bias3_title": "Patrons de Dany",
+        "mod2_bias3_desc": "Identifica quan el biaix condueix a un dany real.",
+        "mod2_bias3_example": "No tots els errors creen el mateix dany. Si els falsos positius causen arrest o denegació de feina, has de mesurar qui resulta més perjudicat i si el dany recau desigualment en els grups.",
         
         # Module 0 - Moral Compass Intro
         "mod0_title": "🧭 Presentem la teva Nova Puntuació de Brúixola Moral",
@@ -404,18 +485,124 @@ def get_module_1_html(lang: str = "en") -> str:
         </div>
     """
 
+def get_module_2_html(lang: str = "en") -> str:
+    """Generate Module 2 HTML with translations."""
+    return f"""
+        <div class="scenario-box">
+          <div class="slide-body">
+        
+            <div style="display:flex; justify-content:center; margin-bottom:14px;">
+              <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-weight:800;">
+                <span style="font-size:1.1rem;">📜</span>
+                <span>{t(lang, 'mod2_badge')}</span>
+              </div>
+            </div>
+            
+            <br>
+            <h2 class="slide-title" style="font-size:1.6rem; text-align:center;">{t(lang, 'mod2_title')}</h2>
+            <br>
+
+            <p style="font-size:1.05rem; max-width:820px; margin:0 auto 12px auto; text-align:center;">
+              {t(lang, 'mod2_intro1')}
+            </p>
+        
+            <p style="font-size:1.05rem; max-width:860px; margin:0 auto 12px auto; text-align:center;">
+              {t(lang, 'mod2_intro2')}
+            </p>
+        
+            <p style="font-size:1.02rem; max-width:860px; margin:0 auto 18px auto; text-align:center; color:var(--body-text-color-subdued);">
+              {t(lang, 'mod2_intro3')}
+            </p>
+        
+            <div class="ai-risk-container" style="margin-top:10px; border-width:2px;">
+              <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">{t(lang, 'mod2_principles_title')}</h4>
+              <p style="font-size:0.98rem; text-align:center; margin:10px auto 0 auto; max-width:860px;">
+                {t(lang, 'mod2_principles_intro')}
+              </p>
+        
+              <div style="display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; font-weight:800; margin-top:6px;">
+                <span>{t(lang, 'mod2_flow_principles')}</span>
+                <span style="opacity:0.6;">→</span>
+                <span>{t(lang, 'mod2_flow_evidence')}</span>
+                <span style="opacity:0.6;">→</span>
+                <span>{t(lang, 'mod2_flow_tests')}</span>
+                <span style="opacity:0.6;">→</span>
+                <span>{t(lang, 'mod2_flow_judgment')}</span>
+                <span style="opacity:0.6;">→</span>
+                <span>{t(lang, 'mod2_flow_fixes')}</span>
+              </div>
+        
+              <p style="font-size:0.98rem; text-align:center; margin:10px auto 0 auto; max-width:860px;">
+                {t(lang, 'mod2_principles_text')}
+              </p>
+            </div>
+        
+            <div class="ai-risk-container" style="margin-top:16px; border-width:2px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h4 style="margin:0; font-size:1.2rem; color:#ef4444;">
+                  {t(lang, 'mod2_justice_title')}
+                </h4>
+                <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.12em; font-weight:800; padding:2px 8px; border-radius:999px; border:1px solid #ef4444; color:#ef4444;">
+                  {t(lang, 'mod2_justice_badge')}
+                </div>
+              </div>
+        
+              <p style="font-size:0.98rem; margin:10px 0 12px 0; max-width:860px;">
+                {t(lang, 'mod2_justice_intro')}
+              </p>
+        
+              <div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px; margin-top:6px;">
+        
+                <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
+                  <div style="font-weight:800;">{t(lang, 'mod2_bias1_title')}</div>
+                  <div style="font-size:0.95rem; margin-top:4px;">
+                    {t(lang, 'mod2_bias1_desc')}
+                  </div>
+                  <div style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:4px;">
+                    {t(lang, 'mod2_bias1_example')}
+                  </div>
+                </div>
+        
+                <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
+                  <div style="font-weight:800;">{t(lang, 'mod2_bias2_title')}</div>
+                  <div style="font-size:0.95rem; margin-top:4px;">
+                    {t(lang, 'mod2_bias2_desc')}
+                  </div>
+                  <div style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:4px;">
+                    {t(lang, 'mod2_bias2_example')}
+                  </div>
+                </div>
+        
+                <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
+                  <div style="font-weight:800;">{t(lang, 'mod2_bias3_title')}</div>
+                  <div style="font-size:0.95rem; margin-top:4px;">
+                    {t(lang, 'mod2_bias3_desc')}
+                  </div>
+                  <div style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:4px;">
+                    {t(lang, 'mod2_bias3_example')}
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+    """
+
 def get_module_html(module_id: int, lang: str = "en") -> str:
     """
     Get module HTML content with translations.
     Translated modules return language-specific HTML.
     Untranslated modules return original English HTML.
     """
-    # Module 0 has full translation support
+    # Modules with full translation support
     if module_id == 0:
         return get_module_0_html(lang)
-    # Module 1 has full translation support
     elif module_id == 1:
         return get_module_1_html(lang)
+    elif module_id == 2:
+        return get_module_2_html(lang)
     
     # For other modules, return original English HTML from MODULES
     for mod in MODULES:
@@ -2436,6 +2623,8 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                         module_0_html = module_html_comp
                     elif i == 1:
                         module_1_html = module_html_comp
+                    elif i == 2:
+                        module_2_html = module_html_comp
 
                     # --- MODULE 0: INTERACTIVE CALCULATOR + STATIC SCENARIO CARDS ---
                     if i == 0:
@@ -2670,6 +2859,7 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                     get_nav_loading_html(lang),  # Update nav loading with translated text
                     get_module_0_html(lang),  # Update Module 0 with translated content
                     get_module_1_html(lang),  # Update Module 1 with translated content
+                    get_module_2_html(lang),  # Update Module 2 with translated content
                     gr.update(visible=False),
                     gr.update(visible=True),
                     *button_updates,  # Update all button labels
@@ -2691,6 +2881,7 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                 get_nav_loading_html(lang),  # Update nav loading with translated text
                 get_module_0_html(lang),  # Update Module 0 with translated content
                 get_module_1_html(lang),  # Update Module 1 with translated content
+                get_module_2_html(lang),  # Update Module 2 with translated content
                 gr.update(visible=False),
                 gr.update(visible=True),
                 *button_updates,  # Update all button labels
@@ -2714,6 +2905,7 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                 nav_loading_overlay,  # Update nav loading
                 module_0_html,  # Update Module 0 content
                 module_1_html,  # Update Module 1 content
+                module_2_html,  # Update Module 2 content
                 loader_col,
                 main_app_col,
                 *all_prev_buttons,  # Update all previous buttons
