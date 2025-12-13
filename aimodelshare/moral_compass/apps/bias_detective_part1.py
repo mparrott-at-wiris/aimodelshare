@@ -193,6 +193,16 @@ def get_nav_loading_html(lang: str = "en") -> str:
     """Generate navigation loading overlay HTML with translated text."""
     return f"""<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>{t(lang, 'loading_text')}</span></div>"""
 
+def get_button_label(lang: str, button_type: str, is_last: bool = False) -> str:
+    """Get translated button label based on type."""
+    if button_type == "previous":
+        return t(lang, 'btn_previous')
+    elif button_type == "next":
+        if is_last:
+            return t(lang, 'btn_completed_part1')
+        return t(lang, 'btn_next')
+    return ""
+
 # --- 4. MODULE DEFINITIONS (APP 1: 0-10) ---
 MODULES = [
     {
@@ -2272,6 +2282,14 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
 
                     module_ui_elements[i] = (mod_col, btn_prev, btn_next)
 
+            # Extract all buttons for translation updates
+            all_prev_buttons = []
+            all_next_buttons = []
+            for i in range(len(MODULES)):
+                _, prev_btn, next_btn = module_ui_elements[i]
+                all_prev_buttons.append(prev_btn)
+                all_next_buttons.append(next_btn)
+
             # Leaderboard card appears AFTER content & interactions
             leaderboard_html = gr.HTML()
 
@@ -2322,6 +2340,21 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                     ],
                     outputs=[out_top, leaderboard_html, feedback_comp, task_list_state],
                 )
+
+        # --- HELPER: GENERATE BUTTON UPDATES FOR LANGUAGE ---
+        def get_button_updates(lang: str):
+            """Generate gr.update() calls for all buttons based on language."""
+            updates = []
+            num_modules = len(MODULES)
+            for i in range(num_modules):
+                # Previous button update
+                prev_label = get_button_label(lang, "previous")
+                updates.append(gr.update(value=prev_label))
+                # Next button update
+                is_last = (i == num_modules - 1)
+                next_label = get_button_label(lang, "next", is_last)
+                updates.append(gr.update(value=next_label))
+            return updates
 
         # --- GLOBAL LOAD HANDLER ---
         def handle_load(req: gr.Request):
@@ -2396,6 +2429,7 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                 data, _ = ensure_table_and_get_data(
                     user, token, team, fetched_tasks
                 )
+                button_updates = get_button_updates(lang)
                 return (
                     user,
                     token,
@@ -2410,9 +2444,11 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                     get_nav_loading_html(lang),  # Update nav loading with translated text
                     gr.update(visible=False),
                     gr.update(visible=True),
+                    *button_updates,  # Update all button labels
                 )
 
             # Auth failed / no session
+            button_updates = get_button_updates(lang)
             return (
                 None,
                 None,
@@ -2427,6 +2463,7 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                 get_nav_loading_html(lang),  # Update nav loading with translated text
                 gr.update(visible=False),
                 gr.update(visible=True),
+                *button_updates,  # Update all button labels
             )
 
         # Attach load event
@@ -2447,6 +2484,8 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                 nav_loading_overlay,  # Update nav loading
                 loader_col,
                 main_app_col,
+                *all_prev_buttons,  # Update all previous buttons
+                *all_next_buttons,  # Update all next buttons
             ],
         )
 

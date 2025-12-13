@@ -161,6 +161,16 @@ def get_nav_loading_html(lang: str = "en") -> str:
     """Generate navigation loading overlay HTML with translated text."""
     return f"""<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>{t(lang, 'loading_text')}</span></div>"""
 
+def get_button_label(lang: str, button_type: str, is_last: bool = False) -> str:
+    """Get translated button label based on type."""
+    if button_type == "previous":
+        return t(lang, 'btn_previous')
+    elif button_type == "next":
+        if is_last:
+            return t(lang, 'btn_completed_part2')
+        return t(lang, 'btn_next')
+    return ""
+
 # --- 4. API & LEADERBOARD LOGIC ---
 def get_or_assign_team(client, username):
     try:
@@ -2580,8 +2590,30 @@ def create_bias_detective_part2_app(theme_primary_hue: str = "indigo"):
                         quiz_wiring_queue.append((i, radio, feedback, btn_next, reset_ref))
 
 
+            # Extract all buttons for translation updates
+            all_prev_buttons = []
+            all_next_buttons = []
+            for i in range(len(MODULES)):
+                _, prev_btn, next_btn = module_ui_elements[i]
+                all_prev_buttons.append(prev_btn)
+                all_next_buttons.append(next_btn)
 
             leaderboard_html = gr.HTML()
+
+        # --- HELPER: GENERATE BUTTON UPDATES FOR LANGUAGE ---
+        def get_button_updates(lang: str):
+            """Generate gr.update() calls for all buttons based on language."""
+            updates = []
+            num_modules = len(MODULES)
+            for i in range(num_modules):
+                # Previous button update
+                prev_label = get_button_label(lang, "previous")
+                updates.append(gr.update(value=prev_label))
+                # Next button update
+                is_last = (i == num_modules - 1)
+                next_label = get_button_label(lang, "next", is_last)
+                updates.append(gr.update(value=next_label))
+            return updates
 
             # --- WIRING: CONNECT QUIZZES ---
             for mod_id, radio_comp, feedback_comp, next_btn_comp, reset_btn_ref in quiz_wiring_queue:
@@ -2654,11 +2686,13 @@ def create_bias_detective_part2_app(theme_primary_hue: str = "indigo"):
                     time.sleep(1.0)
 
                 data, _ = ensure_table_and_get_data(user, token, team, fetched_tasks)
-                return (user, token, team, False, render_top_dashboard(data, 0), render_leaderboard_card(data, user, team), acc, fetched_tasks, lang, get_loading_screen_html(lang), get_nav_loading_html(lang), gr.update(visible=False), gr.update(visible=True))
+                button_updates = get_button_updates(lang)
+                return (user, token, team, False, render_top_dashboard(data, 0), render_leaderboard_card(data, user, team), acc, fetched_tasks, lang, get_loading_screen_html(lang), get_nav_loading_html(lang), gr.update(visible=False), gr.update(visible=True), *button_updates)
 
-            return (None, None, None, False, f"<div class='hint-box'>{t(lang, 'auth_failed')}</div>", "", 0.0, [], lang, get_loading_screen_html(lang), get_nav_loading_html(lang), gr.update(visible=False), gr.update(visible=True))
+            button_updates = get_button_updates(lang)
+            return (None, None, None, False, f"<div class='hint-box'>{t(lang, 'auth_failed')}</div>", "", 0.0, [], lang, get_loading_screen_html(lang), get_nav_loading_html(lang), gr.update(visible=False), gr.update(visible=True), *button_updates)
 
-        demo.load(handle_load, None, [username_state, token_state, team_state, module0_done, out_top, leaderboard_html, accuracy_state, task_list_state, lang_state, loading_screen_html, nav_loading_overlay, loader_col, main_app_col])
+        demo.load(handle_load, None, [username_state, token_state, team_state, module0_done, out_top, leaderboard_html, accuracy_state, task_list_state, lang_state, loading_screen_html, nav_loading_overlay, loader_col, main_app_col, *all_prev_buttons, *all_next_buttons])
 
         # --- JAVASCRIPT HELPER FOR NAVIGATION ---
         def nav_js(target_id: str, message: str) -> str:
