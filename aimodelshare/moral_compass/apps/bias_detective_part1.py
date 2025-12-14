@@ -10,6 +10,8 @@ ORIGINAL_PLAYGROUND_URL = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.co
 TABLE_ID = "m-mc"
 TOTAL_COURSE_TASKS = 19  # Score calculated against full course
 LOCAL_TEST_SESSION_ID = None
+# Add this new variable:
+LOCAL_TEST_LANG = None  # Change to "en", "es", or "ca" to test
 
 # --- 2. SETUP & DEPENDENCIES ---
 def install_dependencies():
@@ -87,7 +89,7 @@ TRANSLATIONS = {
         # Loading and auth messages
         "loading_auth": "🕵️‍♀️ Authenticating...",
         "loading_sync": "Syncing Moral Compass Data...",
-        "auth_failed": "⚠️ Auth Failed. Please launch from the course link.",
+        "auth_failed": "⚠️ Auth Failed. Please login in again to use this app..",
         "loading_text": "Loading...",
         
         # Navigation buttons
@@ -3755,26 +3757,44 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
         # --- HELPER: GENERATE BUTTON UPDATES FOR LANGUAGE ---
         def get_button_updates(lang: str):
             """Generate gr.update() calls for all buttons based on language."""
-            updates = []
+            prev_updates = []
+            next_updates = []
             num_modules = len(MODULES)
+            
             for i in range(num_modules):
-                # Previous button update
+                # 1. Create Update for Previous Button
                 prev_label = get_button_label(lang, "previous")
-                updates.append(gr.update(value=prev_label))
-                # Next button update
+                prev_updates.append(gr.update(value=prev_label))
+                
+                # 2. Create Update for Next Button
+                # Check if this is the last slide to show the "Complete" message
                 is_last = (i == num_modules - 1)
                 next_label = get_button_label(lang, "next", is_last)
-                updates.append(gr.update(value=next_label))
-            return updates
+                next_updates.append(gr.update(value=next_label))
+            
+            # 3. Return combined list in the exact order demo.load expects:
+            #    [All Previous Buttons] + [All Next Buttons]
+            return prev_updates + next_updates
 
         # --- GLOBAL LOAD HANDLER ---
         def handle_load(req: gr.Request):
             # Get language from query params
             params = req.query_params if req else {}
-            lang = params.get("lang", "en")
-            if lang not in TRANSLATIONS:
-                lang = "en"
             
+            # 2. Check Local Variable (Highest Priority for Colab Testing)
+            if LOCAL_TEST_LANG:
+                lang = LOCAL_TEST_LANG
+                print(f"DEBUG: Forcing language to '{lang}' via LOCAL_TEST_LANG")
+            
+            # 3. Check URL Query Parameters (Priority for Production)
+            # Only check this if we aren't locally testing a specific language
+            elif req and req.query_params:
+                lang = req.query_params.get("lang", "en")
+
+            # 4. Validate (Fallback to English if invalid)
+            if lang not in TRANSLATIONS:
+                print(f"DEBUG: Language '{lang}' not found. Falling back to 'en'.")
+                lang = "en"
             success, user, token = _try_session_based_auth(req)
             team = "Team-Unassigned"
             acc = 0.0
