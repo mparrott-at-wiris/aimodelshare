@@ -2178,31 +2178,1811 @@ def launch_fairness_fixer_app(
     share: bool = False,
     server_name: str = "0.0.0.0",
     server_port: int = 8080,
+    theme_primary_hue: str = "indigo",import os
+import sys
+import subprocess
+import time
+from typing import Tuple, Optional, List
+
+# --- 1. CONFIGURATION ---
+DEFAULT_API_URL = "https://b22q73wp50.execute-api.us-east-1.amazonaws.com/dev"
+ORIGINAL_PLAYGROUND_URL = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+TABLE_ID = "m-mc"
+TOTAL_COURSE_TASKS = 28  # Increased task count for the full sequence
+LOCAL_TEST_SESSION_ID = "446514ef-5db3-4f59-8004-e20fa1bc313c"
+
+# --- 2. SETUP & DEPENDENCIES ---
+def install_dependencies():
+    packages = ["gradio>=5.0.0", "aimodelshare", "pandas"]
+    for package in packages:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
+try:
+    import gradio as gr
+    import pandas as pd
+    from aimodelshare.playground import Competition
+    from aimodelshare.moral_compass import MoralcompassApiClient
+    from aimodelshare.aws import get_token_from_session, _get_username_from_token
+except ImportError:
+    print("📦 Installing dependencies...")
+    install_dependencies()
+    import gradio as gr
+    import pandas as pd
+    from aimodelshare.playground import Competition
+    from aimodelshare.moral_compass import MoralcompassApiClient
+    from aimodelshare.aws import get_token_from_session, _get_username_from_token
+
+# --- 3. AUTH & HISTORY HELPERS ---
+def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str], Optional[str]]:
+    try:
+        session_id = request.query_params.get("sessionid") if request else None
+        if not session_id and LOCAL_TEST_SESSION_ID:
+            session_id = LOCAL_TEST_SESSION_ID
+        if not session_id:
+            return False, None, None
+        token = get_token_from_session(session_id)
+        if not token:
+            return False, None, None
+        username = _get_username_from_token(token)
+        if not username:
+            return False, None, None
+        return True, username, token
+    except Exception:
+        return False, None, None
+
+def fetch_user_history(username, token):
+    default_acc = 0.0
+    default_team = "Team-Unassigned"
+    try:
+        playground = Competition(ORIGINAL_PLAYGROUND_URL)
+        df = playground.get_leaderboard(token=token)
+        if df is None or df.empty:
+            return default_acc, default_team
+        if "username" in df.columns and "accuracy" in df.columns:
+            user_rows = df[df["username"] == username]
+            if not user_rows.empty:
+                best_acc = user_rows["accuracy"].max()
+                if "timestamp" in user_rows.columns and "Team" in user_rows.columns:
+                    try:
+                        user_rows = user_rows.copy()
+                        user_rows["timestamp"] = pd.to_datetime(
+                            user_rows["timestamp"], errors="coerce"
+                        )
+                        user_rows = user_rows.sort_values("timestamp", ascending=False)
+                        found_team = user_rows.iloc[0]["Team"]
+                        if pd.notna(found_team) and str(found_team).strip():
+                            default_team = str(found_team).strip()
+                    except Exception:
+                        pass
+                return float(best_acc), default_team
+    except Exception:
+        pass
+    return default_acc, default_team
+
+# --- 4. MODULE DEFINITIONS (FAIRNESS FIXER) ---
+MODULES = [
+    {
+        "id": 0,
+        "title": "Module 0: The Fairness Engineer's Workbench",
+        "html": """
+            <div class="scenario-box">
+                <div class="slide-body">
+
+                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                        <div style="
+                            display:inline-flex;
+                            align-items:center;
+                            gap:10px;
+                            padding:10px 18px;
+                            border-radius:999px;
+                            background:rgba(16, 185, 129, 0.1);
+                            border:1px solid #10b981;
+                            font-size:0.95rem;
+                            text-transform:uppercase;
+                            letter-spacing:0.08em;
+                            font-weight:700;
+                            color:#065f46;">
+                            <span style="font-size:1.1rem;">🎓</span>
+                            <span>PROMOTION: FAIRNESS ENGINEER</span>
+                        </div>
+                    </div>
+
+                    <h2 class="slide-title" style="text-align:center;">🔧 Phase II: The Fix</h2>
+
+                    <p style="font-size:1.05rem; max-width:800px; margin:0 auto 20px auto; text-align:center;">
+                        <strong>Welcome back.</strong> You successfully exposed the bias in the COMPAS model and blocked its deployment. Good work.
+                    </p>
+
+                    <p style="font-size:1.05rem; max-width:800px; margin:0 auto 24px auto; text-align:center;">
+                        But the court is still waiting for a tool to help manage the backlog. Your new mission is to take that broken model and <strong>fix it</strong> so it is safe to use.
+                    </p>
+
+                    <div class="ai-risk-container" style="border-left:4px solid var(--color-accent);">
+                        <h4 style="margin-top:0; font-size:1.15rem;">The Challenge: "Sticky Bias"</h4>
+                        <p style="font-size:1.0rem; margin-bottom:0;">
+                            You can't just delete the "Race" column and walk away. Bias hides in <strong>Proxy Variables</strong>—data like <em>ZIP Code</em> or <em>Income</em>
+                            that correlate with race. If you delete the label but keep the proxies, the model learns the bias anyway.
+                        </p>
+                    </div>
+
+                    <div class="ai-risk-container" style="margin-top:16px;">
+                        <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">📋 Engineering Work Order</h4>
+                        <p style="text-align:center; margin-bottom:12px; font-size:0.95rem; color:var(--body-text-color-subdued);">
+                            You must complete these three protocols to certify the model for release:
+                        </p>
+
+                        <div style="display:grid; gap:10px; margin-top:12px;">
+
+                            <div style="display:flex; align-items:center; gap:12px; padding:10px; background:var(--background-fill-secondary); border-radius:8px; opacity:0.7;">
+                                <div style="font-size:1.4rem;">✂️</div>
+                                <div>
+                                    <div style="font-weight:700;">Protocol 1: Sanitize Inputs</div>
+                                    <div style="font-size:0.9rem;">Remove protected classes and hunt down hidden proxies.</div>
+                                </div>
+                                <div style="margin-left:auto; font-weight:700; font-size:0.8rem; text-transform:uppercase; color:var(--body-text-color-subdued);">Pending</div>
+                            </div>
+
+                            <div style="display:flex; align-items:center; gap:12px; padding:10px; background:var(--background-fill-secondary); border-radius:8px; opacity:0.7;">
+                                <div style="font-size:1.4rem;">🔗</div>
+                                <div>
+                                    <div style="font-weight:700;">Protocol 2: Causal Validity</div>
+                                    <div style="font-size:0.9rem;">Filter data for actual behavior, not just correlation.</div>
+                                </div>
+                                <div style="margin-left:auto; font-weight:700; font-size:0.8rem; text-transform:uppercase; color:var(--body-text-color-subdued);">Locked</div>
+                            </div>
+
+                            <div style="display:flex; align-items:center; gap:12px; padding:10px; background:var(--background-fill-secondary); border-radius:8px; opacity:0.7;">
+                                <div style="font-size:1.4rem;">⚖️</div>
+                                <div>
+                                    <div style="font-weight:700;">Protocol 3: Representative Sampling</div>
+                                    <div style="font-size:0.9rem;">Fix the demographic skew in the dataset rows.</div>
+                                </div>
+                                <div style="margin-left:auto; font-weight:700; font-size:0.8rem; text-transform:uppercase; color:var(--body-text-color-subdued);">Locked</div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div style="text-align:center; margin-top:24px;">
+                        <p style="font-size:1.05rem; font-weight:600; margin-bottom:8px;">
+                            Ready to start the fix?
+                        </p>
+                        <p style="font-size:1.0rem; color:var(--body-text-color-subdued);">
+                             Click <strong>Next ▶️</strong> to enter the Data Clean Room.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        """,
+    },
+    {
+        "id": 1,
+        "title": "Slide 2: First Pass — The Obvious Removal",
+        "html": """
+            <div class="scenario-box">
+                <div class="slide-body">
+
+                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(59,130,246,0.08); border:2px solid var(--color-accent); border-radius:12px; margin-bottom:20px;">
+                        <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">✂️</div>
+                        <div style="flex-grow:1;">
+                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); letter-spacing:0.05em;">PROTOCOL 1: SANITIZE INPUTS</div>
+                            <div style="font-size:0.9rem; color:var(--body-text-color);">Mission: Remove protected classes & hidden proxies.</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-weight:800; font-size:0.85rem; color:var(--color-accent);">STEP 1 OF 2</div>
+                            <div style="height:4px; width:60px; background:#bfdbfe; border-radius:2px; margin-top:4px;">
+                                <div style="height:100%; width:50%; background:var(--color-accent); border-radius:2px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
+                        <strong>Fairness Through Blindness.</strong>
+                        Legally and ethically, we cannot use <strong>Protected Classes</strong> (traits like race or gender) to calculate someone's risk score.
+                    </p>
+
+                    <div class="ai-risk-container">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <h4 style="margin:0;">📂 Dataset Column Inspector</h4>
+                            <div style="font-size:0.8rem; font-weight:700; color:#ef4444;">⚠ CONTAINS ILLEGAL FEATURES</div>
+                        </div>
+
+                        <p style="font-size:0.95rem; margin-bottom:12px;">
+                            Review the raw headers below. Identify the columns that violate fairness laws.
+                        </p>
+
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; background:rgba(0,0,0,0.05); padding:12px; border-radius:8px; border:1px solid var(--border-color-primary);">
+
+                            <div style="padding:6px 12px; background:#fee2e2; border:1px solid #ef4444; border-radius:6px; font-weight:700; color:#b91c1c;">
+                                ⚠️ Race
+                            </div>
+                            <div style="padding:6px 12px; background:#fee2e2; border:1px solid #ef4444; border-radius:6px; font-weight:700; color:#b91c1c;">
+                                ⚠️ Gender
+                            </div>
+                            <div style="padding:6px 12px; background:#fee2e2; border:1px solid #ef4444; border-radius:6px; font-weight:700; color:#b91c1c;">
+                                ⚠️ Age
+                            </div>
+
+                            <div style="padding:6px 12px; background:white; border:1px solid var(--border-color-primary); border-radius:6px;">Prior Convictions</div>
+                            <div style="padding:6px 12px; background:white; border:1px solid var(--border-color-primary); border-radius:6px;">Employment Status</div>
+                            <div style="padding:6px 12px; background:white; border:1px solid var(--border-color-primary); border-radius:6px;">Zip Code</div>
+                        </div>
+                    </div>
+
+                    <div style="text-align:center; margin-top:16px;">
+                        <p style="font-size:0.95rem; color:var(--body-text-color-subdued);">
+                            ⬇️ <strong>Action Required:</strong> Use the Command Panel below to execute deletion. ⬇️
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        """,
+    },
+{
+        "id": 2,
+        "title": "Slide 3: The Hidden Leak — Hunting Proxies",
+        "html": """
+            <div class="scenario-box">
+                <div class="slide-body">
+
+                   <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(59,130,246,0.08); border:2px solid var(--color-accent); border-radius:12px; margin-bottom:20px;">
+                        <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">✂️</div>
+                        <div style="flex-grow:1;">
+                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); letter-spacing:0.05em;">PROTOCOL 1: SANITIZE INPUTS</div>
+                            <div style="font-size:0.9rem; color:var(--body-text-color);">Mission: Remove protected classes & hidden proxies.</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-weight:800; font-size:0.85rem; color:var(--color-accent);">STEP 2 OF 2</div>
+                            <div style="height:4px; width:60px; background:#bfdbfe; border-radius:2px; margin-top:4px;">
+                                <div style="height:100%; width:100%; background:var(--color-accent); border-radius:2px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
+                        <strong>The "Sticky Bias" Problem.</strong>
+                        You removed Race and Gender. Great. But bias often hides in <strong>Proxy Variables</strong>—neutral data points that act as a secret substitute for race.
+                    </p>
+
+                    <div class="hint-box" style="border-left:4px solid #f97316;">
+                        <div style="font-weight:700;">Why "Zip Code" is a Proxy</div>
+
+                        <p style="margin:6px 0 0 0;">
+                            Historically, neighborhoods were segregated by law ("Redlining"). Even today, <strong>Zip Code</strong> correlates strongly with race.
+                        </p>
+                        <p style="margin-top:8px; font-weight:600; color:#c2410c;">
+                            🚨 The Risk: If you give the AI location data, it can "guess" a person's race with high accuracy, re-learning the exact bias you just tried to delete.
+                        </p>
+                    </div>
+
+                    <div class="ai-risk-container" style="margin-top:16px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <h4 style="margin:0;">📂 Dataset Column Inspector</h4>
+                            <div style="font-size:0.8rem; font-weight:700; color:#f97316;">⚠️ 1 PROXY DETECTED</div>
+                        </div>
+
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; padding:12px; background:rgba(0,0,0,0.05); border-radius:8px;">
+                            <div style="padding:6px 12px; background:#e5e7eb; color:#9ca3af; text-decoration:line-through; border-radius:6px;">Race</div>
+                            <div style="padding:6px 12px; background:#e5e7eb; color:#9ca3af; text-decoration:line-through; border-radius:6px;">Gender</div>
+
+                            <div style="padding:6px 12px; background:#ffedd5; border:1px solid #f97316; border-radius:6px; font-weight:700; color:#9a3412;">
+                                ⚠️ Zip Code
+                            </div>
+
+                            <div style="padding:6px 12px; background:white; border:1px solid var(--border-color-primary); border-radius:6px;">Prior Convictions</div>
+                            <div style="padding:6px 12px; background:white; border:1px solid var(--border-color-primary); border-radius:6px;">Employment</div>
+                        </div>
+                    </div>
+
+                     <div style="text-align:center; margin-top:16px;">
+                        <p style="font-size:0.95rem; color:var(--body-text-color-subdued);">
+                            ⬇️ <strong>Action Required:</strong> Select the Proxy Variable below to scrub it. ⬇️
+                        </p>
+                    </div>
+                </div>
+            </div>
+        """,
+    },
+    {
+        "id": 3,
+        "title": "Slide 4: The Blind Model Simulation",
+        "html": """
+            <div class="scenario-box">
+                <div class="slide-body">
+
+                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(59,130,246,0.08); border:2px solid var(--color-accent); border-radius:12px; margin-bottom:20px;">
+                        <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">✂️</div>
+                        <div style="flex-grow:1;">
+                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); letter-spacing:0.05em;">PROTOCOL 1: SANITIZE INPUTS</div>
+                            <div style="font-size:0.9rem; color:var(--body-text-color);">Phase: Verification & Model Retraining</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-weight:800; font-size:0.85rem; color:var(--color-accent);">STEP 3 OF 3</div>
+                            <div style="height:4px; width:60px; background:#bfdbfe; border-radius:2px; margin-top:4px;">
+                                <div style="height:100%; width:100%; background:var(--color-accent); border-radius:2px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">🤖 The Verification Run</h2>
+
+                    <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
+                        You have successfully deleted <strong>Race, Gender, Age, and Zip Code</strong>.
+                        The dataset is "sanitized." Now we run the simulation to see if the model still works.
+                    </p>
+
+                    <details style="border:none; margin-top:20px;">
+                        <summary style="
+                            background:var(--color-accent);
+                            color:white;
+                            padding:16px 24px;
+                            border-radius:12px;
+                            font-weight:800;
+                            font-size:1.1rem;
+                            text-align:center;
+                            cursor:pointer;
+                            list-style:none;
+                            box-shadow:0 4px 12px rgba(59,130,246,0.3);
+                            transition:transform 0.1s ease;">
+                            ▶️ CLICK TO FIX MODEL USING REPAIRED DATASET
+                        </summary>
+
+                        <div style="margin-top:24px; animation: fadeIn 0.6s ease-in-out;">
+
+                            <div class="ai-risk-container" style="display:grid; grid-template-columns:1fr 1fr; gap:20px; background:rgba(0,0,0,0.02);">
+
+                                <div style="text-align:center; padding:10px; border-right:1px solid var(--border-color-primary);">
+                                    <div style="font-size:2.2rem; font-weight:800; color:#ef4444;">📉 78%</div>
+                                    <div style="font-weight:bold; font-size:0.9rem; text-transform:uppercase; color:var(--body-text-color-subdued); margin-bottom:6px;">Accuracy (CRASHED)</div>
+                                    <div style="font-size:0.9rem; line-height:1.4;">
+                                        <strong>Diagnosis:</strong> The model lost its "shortcuts" (like Zip Code). It is confused and struggling to predict risk accurately.
+                                    </div>
+                                </div>
+
+                                <div style="text-align:center; padding:10px;">
+                                    <div style="font-size:2.2rem; font-weight:800; color:#f59e0b;">🧩 MISSING</div>
+                                    <div style="font-weight:bold; font-size:0.9rem; text-transform:uppercase; color:var(--body-text-color-subdued); margin-bottom:6px;">Meaningful Data</div>
+                                    <div style="font-size:0.9rem; line-height:1.4;">
+                                        <strong>Diagnosis:</strong> We cleaned the bad data, but we didn't replace it with <strong>Meaningful Data</strong>. The model needs better signals to learn from.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="hint-box" style="margin-top:20px; border-left:4px solid var(--color-accent);">
+                                <div style="font-weight:700; font-size:1.05rem;">💡 The Engineering Pivot</div>
+                                <p style="margin:6px 0 0 0;">
+                                    A model that knows <em>nothing</em> is fair, but useless.
+                                    To fix the accuracy safely, we need to stop deleting and start <strong>finding valid patterns</strong>: meaningful data that explains <em>why</em> crime happens.
+                                </p>
+                            </div>
+
+                             <div style="text-align:center; margin-top:16px;">
+                                 <p style="font-size:0.95rem; color:var(--body-text-color-subdued);">
+                                    ⬇️ <strong>Next Step:</strong> Learn to identify "Meaningful Data" in Protocol 2. ⬇️
+                                </p>
+                            </div>
+
+                        </div>
+                    </details>
+
+                </div>
+            </div>
+            <style>
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(-10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                /* Hide default arrow */
+                details > summary { list-style: none; }
+                details > summary::-webkit-details-marker { display: none; }
+            </style>
+        """,
+    },
+    {
+        "id": 4,
+        "title": "Slide 5: Pattern Recognition 101",
+        "html": """
+            <div class="scenario-box">
+                <div class="slide-body">
+
+                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(16, 185, 129, 0.08); border:2px solid #10b981; border-radius:12px; margin-bottom:20px;">
+                        <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🔗</div>
+                        <div style="flex-grow:1;">
+                            <div style="font-weight:800; font-size:1.05rem; color:#065f46; letter-spacing:0.05em;">
+                                PROTOCOL 2: CAUSAL VALIDITY
+                            </div>
+                            <div style="font-size:0.9rem; color:var(--body-text-color);">
+                                Mission: Learn how to tell when a pattern <strong>actually causes</strong> an outcome — and when it’s just a coincidence.
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-weight:800; font-size:0.85rem; color:#059669;">STEP 1 OF 2</div>
+                            <div style="height:4px; width:60px; background:#a7f3d0; border-radius:2px; margin-top:4px;">
+                                <div style="height:100%; width:50%; background:#10b981; border-radius:2px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">
+                        🧠 The “Big Foot” Trap: When Correlation Tricks You
+                    </h2>
+
+                    <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
+                        To improve a model, we often add more data.
+                        <br>
+                        But here’s the problem: <strong>some patterns look important even when they don’t actually cause anything.</strong>
+                        <br>
+                        Consider this real statistical pattern:
+                    </p>
+
+                    <div class="ai-risk-container" style="text-align:center; padding:20px; border:2px solid #ef4444; background:#fef2f2;">
+                        <div style="font-size:3rem; margin-bottom:10px;">🦶 📈 📖</div>
+                        <h3 style="margin:0; color:#b91c1c;">
+                            The Data: “People with bigger feet have higher reading scores.”
+                        </h3>
+                        <p style="font-size:1.0rem; margin-top:8px;">
+                            On average, people with size 12 shoes score much higher on reading tests than people with size 4 shoes.
+                        </p>
+                    </div>
+
+                    <details style="border:none; margin-top:16px;">
+                        <summary style="
+                            background:var(--color-accent);
+                            color:white;
+                            padding:12px 20px;
+                            border-radius:8px;
+                            font-weight:700;
+                            text-align:center;
+                            cursor:pointer;
+                            list-style:none;
+                            width:fit-content;
+                            margin:0 auto;
+                            box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+                            🤔 Why does this happen? (Click to reveal)
+                        </summary>
+
+                        <div style="margin-top:20px; animation: fadeIn 0.5s ease-in-out;">
+                            <div class="hint-box" style="border-left:4px solid #16a34a;">
+                                <div style="font-weight:800; font-size:1.1rem; color:#166534;">
+                                    The Hidden Third Variable: AGE
+                                </div>
+                                <p style="margin-top:8px;">
+                                    Do bigger feet <em>cause</em> people to read better? <strong>No.</strong>
+                                    <br>
+                                    Children have smaller feet and are still learning to read.
+                                    <br>
+                                    Adults have bigger feet and have had many more years of reading practice.
+                                </p>
+                                <p style="margin-bottom:0;">
+                                    <strong>The Key Idea:</strong> Age causes <em>both</em> foot size and reading ability.
+                                    <br>
+                                    Shoe size is a <em>correlated signal</em>, not a cause.
+                                </p>
+                            </div>
+
+                            <p style="font-size:1.05rem; text-align:center; margin-top:20px;">
+                                <strong>Why this matters:</strong>
+                                <br>
+                                In many real-world datasets, some variables look predictive only because they are linked to deeper causes.
+                                <br>
+                                Good models focus on <strong>what actually causes outcomes</strong>, not just what happens to move together.
+                            </p>
+                        </div>
+                    </details>
+
+                    <div style="text-align:center; margin-top:24px;">
+                        <p style="font-size:0.95rem; color:var(--body-text-color-subdued);">
+                            ⬇️ <strong>Action Required:</strong> Can you spot the next “Big Foot” trap in the data below? ⬇️
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <style>
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(-5px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                details > summary { list-style: none; }
+                details > summary::-webkit-details-marker { display: none; }
+            </style>
+        """
+    },
+    {
+        "id": 5,
+        "title": "Slide 6: Applying the Research",
+        "html": """
+            <div class="scenario-box">
+                <div class="slide-body">
+
+                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(16, 185, 129, 0.08); border:2px solid #10b981; border-radius:12px; margin-bottom:20px;">
+                        <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🔗</div>
+                        <div style="flex-grow:1;">
+                            <div style="font-weight:800; font-size:1.05rem; color:#065f46; letter-spacing:0.05em;">
+                                PROTOCOL 2: CAUSAL VALIDITY
+                            </div>
+                            <div style="font-size:0.9rem; color:var(--body-text-color);">
+                                Mission: Remove variables that <strong>correlate</strong> with outcomes but do not <strong>cause</strong> them.
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-weight:800; font-size:0.85rem; color:#059669;">STEP 2 OF 2</div>
+                            <div style="height:4px; width:60px; background:#a7f3d0; border-radius:2px; margin-top:4px;">
+                                <div style="height:100%; width:100%; background:#10b981; border-radius:2px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">
+                        🔬 Research Check: Causes vs Correlations
+                    </h2>
+
+                    <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
+                        You are ready to a new safer version of the model. Here are four variables to consider as inputs to the next model.
+                        <br>
+                        Use the rule below to decide which variables represent <strong>actual causes</strong> of behavior — and which are just “Big Foot” style correlations.
+                    </p>
+
+                    <div class="hint-box" style="border-left:4px solid var(--color-accent); background:white; border:1px solid var(--border-color-primary);">
+                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                            <div style="font-size:1.2rem;">📋</div>
+                            <div style="font-weight:800; color:var(--color-accent); text-transform:uppercase; letter-spacing:0.05em;">
+                                Research Rule
+                            </div>
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <div style="padding:8px; background:#fef2f2; border-radius:6px; border:1px solid #fee2e2;">
+                            <div style="font-weight:700; color:#b91c1c; font-size:0.85rem;">
+                                🚫 REJECT: BACKGROUND CONDITIONS
+                            </div>
+                            <div style="font-size:0.85rem; line-height:1.35;">
+                                Variables that describe someone’s situation or environment — not their actions
+                                (for example: job status, wealth, or neighborhood).
+                                <br>
+                                <strong>These often correlate with outcomes but do not directly cause them.</strong>
+                            </div>
+                        </div>
+                            <div style="padding:8px; background:#f0fdf4; border-radius:6px; border:1px solid #dcfce7;">
+                                <div style="font-weight:700; color:#15803d; font-size:0.85rem;">
+                                    ✅ KEEP: CONDUCT
+                                </div>
+                                <div style="font-size:0.85rem; line-height:1.35;">
+                                    Variables that describe documented actions taken by a person
+                                    (for example: prior convictions or missed court dates).
+                                    <br>
+                                    <strong>These are closer to the behaviors the model is trying to predict.</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ai-risk-container" style="margin-top:16px;">
+                        <h4 style="margin:0 0 10px 0;">📂 Variable Option Candidates</h4>
+
+                        <div style="display:flex; flex-direction:column; gap:8px;">
+
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:white; border:1px solid var(--border-color-primary); border-radius:6px;">
+                                <div style="font-weight:700;">Employment</div>
+                                <div style="font-size:0.8rem; color:var(--body-text-color-subdued);">
+                                    Data: Has Job / No Job (background condition)
+                                </div>
+                            </div>
+
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:white; border:1px solid var(--border-color-primary); border-radius:6px;">
+                                <div style="font-weight:700;">Prior Convictions</div>
+                                <div style="font-size:0.8rem; color:var(--body-text-color-subdued);">
+                                    Data: Count of past crimes (documented conduct)
+                                </div>
+                            </div>
+
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:white; border:1px solid var(--border-color-primary); border-radius:6px;">
+                                <div style="font-weight:700;">Neighborhood Safety Score</div>
+                                <div style="font-size:0.8rem; color:var(--body-text-color-subdued);">
+                                    Data: 1–10 rating of home area (context, not behavior)
+                                </div>
+                            </div>
+
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:white; border:1px solid var(--border-color-primary); border-radius:6px;">
+                                <div style="font-weight:700;">Failure to Appear</div>
+                                <div style="font-size:0.8rem; color:var(--body-text-color-subdued);">
+                                    Data: Missed court dates (documented conduct)
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div style="text-align:center; margin-top:16px;">
+                        <p style="font-size:0.95rem; color:var(--body-text-color-subdued);">
+                            ⬇️ <strong>Action:</strong> Select the variables that represent true <strong>conduct</strong>, not background conditions, to build the model. ⬇️
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        """
+    },
+
+    {
+        "id": 6,
+        "title": "Slide 7: Representation Matters",
+        "html": """
+            <div class="scenario-box">
+                <div class="slide-body">
+
+                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(139, 92, 246, 0.08); border:2px solid #8b5cf6; border-radius:12px; margin-bottom:20px;">
+                        <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🌍</div>
+                        <div style="flex-grow:1;">
+                            <div style="font-weight:800; font-size:1.05rem; color:#7c3aed; letter-spacing:0.05em;">
+                                PROTOCOL 3: REPRESENTATION
+                            </div>
+                            <div style="font-size:0.9rem; color:var(--body-text-color);">
+                                Mission: Make sure the training data matches the place where the model will be used — people, laws, and patterns.
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-weight:800; font-size:0.85rem; color:#7c3aed;">STEP 1 OF 2</div>
+                            <div style="height:4px; width:60px; background:#ddd6fe; border-radius:2px; margin-top:4px;">
+                                <div style="height:100%; width:50%; background:#8b5cf6; border-radius:2px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">
+                        🗺️ The “Wrong Map” Problem (When Training Data Doesn’t Match Reality)
+                    </h2>
+
+                    <p style="font-size:1.05rem; text-align:center; max-width:820px; margin:0 auto 16px auto;">
+                        We fixed the <strong>types of variables</strong> (the columns).
+                        <br>
+                        Now we must check the <strong>people and environment</strong> the data came from (the rows).
+                        <br>
+                        This dataset was built using data from <strong>Broward County, Florida (USA)</strong>.
+                        Imagine deploying that model in <strong>Barcelona</strong>.
+                    </p>
+
+                    <div class="ai-risk-container" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+
+                        <div class="hint-box" style="margin:0; border-left:4px solid #ef4444; background:#fef2f2;">
+                            <div style="font-weight:800; color:#b91c1c; margin-bottom:6px;">
+                                🇺🇸 THE SOURCE: FLORIDA
+                            </div>
+                            <div style="font-size:0.85rem; font-weight:700; color:#7f1d1d;">
+                                Training Context: US Justice System
+                            </div>
+                            <ul style="font-size:0.85rem; margin-top:8px; padding-left:16px; line-height:1.4;">
+                                <li><strong>Demographic categories:</strong> Defined using US-specific labels and groupings.</li>
+                                <li><strong>Crime & law:</strong> Different laws and justice processes (for example, bail and pretrial rules).</li>
+                                <li><strong>Geography:</strong> Car-centric cities and suburban sprawl.</li>
+                            </ul>
+                        </div>
+
+                        <div class="hint-box" style="margin:0; border-left:4px solid #3b82f6; background:#eff6ff;">
+                            <div style="font-weight:800; color:#1e40af; margin-bottom:6px;">
+                                🇪🇸 THE TARGET: BARCELONA
+                            </div>
+                            <div style="font-size:0.85rem; font-weight:700; color:#1e3a8a;">
+                                Deployment Context: EU Justice System
+                            </div>
+                            <ul style="font-size:0.85rem; margin-top:8px; padding-left:16px; line-height:1.4;">
+                                <li><strong>Demographic categories:</strong> Defined differently than in US datasets.</li>
+                                <li><strong>Crime & law:</strong> Different legal rules, policing practices, and common offense types.</li>
+                                <li><strong>Geography:</strong> Dense, walkable urban environment.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="hint-box" style="border-left:4px solid #8b5cf6;">
+                        <div style="font-weight:700; color:#6d28d9;">
+                            Why this fails
+                        </div>
+                        <p style="margin-top:6px;">
+                            The model learned patterns from Florida.
+                            <br>
+                            When the real-world environment is different, the model can make <strong>more errors</strong> — and those errors can be <strong>uneven across groups</strong>.
+                            <br>
+                            In machine learning, this is called a <strong>dataset (or domain) shift</strong>.
+                            <br>
+                            It’s like trying to find La Sagrada Família using a map of Miami.
+                        </p>
+                    </div>
+
+                    <div style="text-align:center; margin-top:20px;">
+                        <p style="font-size:0.95rem; color:var(--body-text-color-subdued);">
+                            ⬇️ <strong>Action Required:</strong> Choose the best way to <strong>collect or sample data</strong> so the training set matches Barcelona. ⬇️
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        """
+    },
+
+    {
+        "id": 7,
+        "title": "Slide 8: Fixing the Representation",
+        "html": """
+            <div class="scenario-box">
+                <div class="slide-body">
+
+                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(139, 92, 246, 0.08); border:2px solid #8b5cf6; border-radius:12px; margin-bottom:20px;">
+                        <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🌍</div>
+                        <div style="flex-grow:1;">
+                            <div style="font-weight:800; font-size:1.05rem; color:#7c3aed; letter-spacing:0.05em;">PROTOCOL 3: REPRESENTATION</div>
+                            <div style="font-size:0.9rem; color:var(--body-text-color);">Mission: Replace "Lazy Data" with "Local Data."</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-weight:800; font-size:0.85rem; color:#7c3aed;">STEP 2 OF 2</div>
+                            <div style="height:4px; width:60px; background:#ddd6fe; border-radius:2px; margin-top:4px;">
+                                <div style="height:100%; width:100%; background:#8b5cf6; border-radius:2px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">🔄 The Data Swap</h2>
+
+                    <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
+                        We cannot use the Florida dataset. It is "Lazy Data."
+                        <br>To build a fair model for Barcelona, we must <strong>reject</strong> the easy path and <strong>collect local data</strong> that reflects our actual reality.
+                    </p>
+
+                    <div class="ai-risk-container" style="text-align:center; border:2px solid #ef4444; background:#fef2f2; padding:16px; margin-bottom:20px;">
+                        <div style="font-weight:800; color:#b91c1c; font-size:1.1rem; margin-bottom:8px;">⚠️ CURRENT DATASET: FLORIDA (INVALID)</div>
+
+                        <p style="font-size:0.9rem; margin:0;">
+                            Contains 115 features irrelevant to EU law. <br>Over-represents gun crimes by 400%.
+                        </p>
+                    </div>
+
+                    <details style="border:none; margin-top:20px;">
+                        <summary style="
+                            background:#7c3aed;
+                            color:white;
+                            padding:16px 24px;
+                            border-radius:12px;
+                            font-weight:800;
+                            font-size:1.1rem;
+                            text-align:center;
+                            cursor:pointer;
+                            list-style:none;
+                            box-shadow:0 4px 12px rgba(124, 58, 237, 0.3);
+                            transition:transform 0.1s ease;">
+                            🔄 CLICK TO IMPORT LOCAL BARCELONA DATA
+                        </summary>
+
+                        <div style="margin-top:24px; animation: fadeIn 0.6s ease-in-out;">
+
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+                                <div style="padding:12px; border:1px solid #22c55e; background:#f0fdf4; border-radius:8px; text-align:center;">
+                                    <div style="font-size:2rem;">📍</div>
+                                    <div style="font-weight:700; color:#15803d; font-size:0.9rem;">GEOGRAPHY MATCHED</div>
+                                    <div style="font-size:0.8rem;">Data source: Catalonia Justice Dept</div>
+                                </div>
+                                <div style="padding:12px; border:1px solid #22c55e; background:#f0fdf4; border-radius:8px; text-align:center;">
+                                    <div style="font-size:2rem;">⚖️</div>
+                                    <div style="font-weight:700; color:#15803d; font-size:0.9rem;">LAWS SYNCED</div>
+                                    <div style="font-size:0.8rem;">Removed US-specific offenses</div>
+                                </div>
+                            </div>
+
+                            <div class="hint-box" style="border-left:4px solid #22c55e;">
+                                <div style="font-weight:700; color:#15803d;">System Update Complete</div>
+                                <p style="margin-top:6px;">
+                                    The model is now learning from the people it will actually affect. Accuracy is now meaningful because it reflects local truth.
+                                </p>
+                            </div>
+
+                             <div style="text-align:center; margin-top:16px;">
+                                 <p style="font-size:0.95rem; color:var(--body-text-color-subdued);">
+                                    ⬇️ <strong>Final Step:</strong> Confirm the new data policy below to finish the workshop. ⬇️
+                                </p>
+                            </div>
+
+                        </div>
+                    </details>
+
+                </div>
+            </div>
+            <style>
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(-10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                /* Hide default arrow */
+                details > summary { list-style: none; }
+                details > summary::-webkit-details-marker { display: none; }
+            </style>
+        """,
+    },
+    {
+        "id": 8,
+        "title": "Slide 9: Final Fairness Report",
+        "html": """
+            <div class="scenario-box">
+                <div class="slide-body">
+
+                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(34, 197, 94, 0.08); border:2px solid #22c55e; border-radius:12px; margin-bottom:20px;">
+                        <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🏁</div>
+                        <div style="flex-grow:1;">
+                            <div style="font-weight:800; font-size:1.05rem; color:#15803d; letter-spacing:0.05em;">AUDIT COMPLETE</div>
+                            <div style="font-size:0.9rem; color:var(--body-text-color);">System Status: READY FOR CERTIFICATION.</div>
+                        </div>
+                    </div>
+
+                    <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">📊 The "Before & After" Report</h2>
+
+                    <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
+                        You have successfully scrubbed the data, filtered for causality, and localized the context.
+                        <br>Let's compare your new model to the original "Black Box."
+                    </p>
+
+                    <div class="ai-risk-container" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+
+                        <div style="opacity:0.6; filter:grayscale(100%);">
+                            <div style="font-weight:800; color:#ef4444; margin-bottom:8px; text-transform:uppercase;">🚫 The Original Model</div>
+
+                            <div style="padding:10px; border-bottom:1px solid #e5e7eb;">
+                                <div style="font-size:0.8rem; font-weight:700;">INPUTS</div>
+                                <div style="color:#b91c1c;">Race, Gender, Zip Code</div>
+                            </div>
+                            <div style="padding:10px; border-bottom:1px solid #e5e7eb;">
+                                <div style="font-size:0.8rem; font-weight:700;">LOGIC</div>
+                                <div style="color:#b91c1c;">Status & Stereotypes</div>
+                            </div>
+                            <div style="padding:10px; border-bottom:1px solid #e5e7eb;">
+                                <div style="font-size:0.8rem; font-weight:700;">CONTEXT</div>
+                                <div style="color:#b91c1c;">Florida (Wrong Map)</div>
+                            </div>
+                            <div style="padding:10px; background:#fee2e2; margin-top:10px; border-radius:6px; color:#b91c1c; font-weight:700; text-align:center;">
+                                BIAS RISK: CRITICAL
+                            </div>
+                        </div>
+
+                        <div style="transform:scale(1.02); box-shadow:0 4px 12px rgba(0,0,0,0.1); border:2px solid #22c55e; border-radius:8px; overflow:hidden;">
+                            <div style="background:#22c55e; color:white; padding:6px; font-weight:800; text-align:center; text-transform:uppercase;">✅ Your Engineered Model</div>
+
+                            <div style="padding:10px; border-bottom:1px solid #f0fdf4; background:white;">
+                                <div style="font-size:0.8rem; font-weight:700; color:#15803d;">INPUTS</div>
+                                <div>Behavior Only</div>
+                            </div>
+                            <div style="padding:10px; border-bottom:1px solid #f0fdf4; background:white;">
+                                <div style="font-size:0.8rem; font-weight:700; color:#15803d;">LOGIC</div>
+                                <div>Causal Conduct</div>
+                            </div>
+                            <div style="padding:10px; border-bottom:1px solid #f0fdf4; background:white;">
+                                <div style="font-size:0.8rem; font-weight:700; color:#15803d;">CONTEXT</div>
+                                <div>Barcelona (Local)</div>
+                            </div>
+                            <div style="padding:10px; background:#dcfce7; margin-top:0; color:#15803d; font-weight:700; text-align:center;">
+                                BIAS RISK: MINIMIZED
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <div class="hint-box" style="border-left:4px solid #f59e0b;">
+                        <div style="font-weight:700; color:#b45309;">🚧 A Note on "Perfection"</div>
+                        <p style="margin-top:6px;">
+                            Is this model perfect? <strong>No.</strong>
+                            <br>Real-world data (like arrests) can still have hidden biases from human history.
+                            But you have moved from a system that <em>amplifies</em> prejudice to one that <em>measures fairness</em> using Conduct and Local Context.
+                        </p>
+                    </div>
+
+                    <div style="text-align:center; margin-top:24px;">
+                        <p style="font-size:0.95rem; color:var(--body-text-color-subdued);">
+                            ⬇️ <strong>Final Step:</strong> Pass the Certification Exam below to deploy the model. ⬇️
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        """,
+    },
+    {
+        "id": 9,
+        "title": "Slide 10: Good Faith Certification",
+        "html": """
+            <div class="scenario-box">
+                <h2 class="slide-title">✅ Good Faith Certification</h2>
+                <div class="slide-body">
+                    <p>Perfect AI doesn't exist. But this model is now a <strong>Good Faith Effort</strong>.</p>
+                    <div class="ai-risk-container">
+                        <ul style="list-style:none; padding:0;">
+                            <li style="margin-bottom:8px;">✅ <strong>Protected Classes Removed</strong> (No Race/Gender columns)</li>
+                            <li style="margin-bottom:8px;">✅ <strong>Proxies Removed</strong> (No Zip Codes)</li>
+                            <li style="margin-bottom:8px;">✅ <strong>Causal Validity</strong> (Only behavioral history used)</li>
+                            <li style="margin-bottom:8px;">✅ <strong>Representative</strong> (Reweighted to match Census)</li>
+                        </ul>
+                    </div>
+                    <p style="text-align:center; margin-top:20px;">
+                        You are ready to sign off on the <strong>Pilot Deployment</strong>.
+                    </p>
+                </div>
+            </div>
+        """,
+    },
+]
+
+# --- 5. INTERACTIVE CONTENT CONFIGURATION (APP 2) ---
+QUIZ_CONFIG = {
+    1: {
+        "t": "t11",
+        "q": "Action: Select the variables that must be deleted immediately because they are Protected Classes.",
+        "o": [
+            "A) Zip Code & Neighborhood",
+            "B) Race, Gender, Age",
+            "C) Prior Convictions",
+        ],
+        "a": "B) Race, Gender, Age",
+        "success": "Task Complete. Columns dropped. The model is now blinded to explicit demographics.",
+    },
+    2: {
+        "t": "t12",
+        "q": "Why must we also remove 'Zip Code' if we already removed 'Race'?",
+        "o": [
+            "A) Because Zip Codes take up too much memory.",
+            "B) It is a Proxy Variable that re-introduces racial bias due to historical segregation.",
+            "C) Zip Codes are not accurate.",
+        ],
+        "a": "B) It is a Proxy Variable that re-introduces racial bias due to historical segregation.",
+        "success": "Proxy Identified. Location data removed to prevent 'Redlining' bias.",
+    },
+    3: {
+        "t": "t13",
+        "q": "After removing Race and Zip Code, the model is fair but accuracy dropped. Why?",
+        "o": [
+            "A) The model is broken.",
+            "B) A model that knows nothing is fair but useless. We need better data, not just less data.",
+            "C) We should put the Race column back.",
+        ],
+        "a": "B) A model that knows nothing is fair but useless. We need better data, not just less data.",
+        "success": "Pivot Confirmed. We must move from 'Deleting' to 'Selecting' better features.",
+    },
+    4: {
+        "t": "t14",
+        "q": "Based on the “Big Foot” example, why can it be misleading to let an AI rely on variables like shoe size?",
+        "o": [
+            "A) Because they are physically hard to measure.",
+            "B) Because they often only correlate with outcomes and are caused by a hidden third factor, rather than causing the outcome themselves."
+        ],
+        "a": "B) Because they often only correlate with outcomes and are caused by a hidden third factor, rather than causing the outcome themselves.",
+        "success": "Filter Calibrated. You are now checking whether a pattern is caused by a hidden third variable — not confusing correlation for causation."
+    },
+
+    5: {
+        "t": "t15",
+        "q": "Which of these remaining features is a Valid Causal Predictor of criminal conduct?",
+        "o": [
+            "A) Employment (Background Condition)",
+            "B) Marital Status (Lifestyle)",
+            "C) Failure to Appear in Court (Conduct)",
+        ],
+        "a": "C) Failure to Appear in Court (Conduct)",
+        "success": "Feature Selected. 'Failure to Appear' reflects a specific action relevant to flight risk.",
+    },
+    6: {
+        "t": "t16",
+        "q": "Why can a model trained in Florida make unreliable predictions when used in Barcelona?",
+        "o": [
+            "A) Because the software is in English and needs to be translated.",
+            "B) Context mismatch: the model learned patterns tied to US laws, systems, and environments that don’t match Barcelona’s reality.",
+            "C) Because the number of people in Barcelona is different from the training dataset size."
+        ],
+        "a": "B) Context mismatch: the model learned patterns tied to US laws, systems, and environments that don’t match Barcelona’s reality.",
+        "success": "Correct! This is a dataset (or domain) shift. When training data doesn’t match where a model is used, predictions become less accurate and can fail unevenly across groups."
+    },
+
+    7: {
+        "t": "t17",
+        "q": "You just rejected a massive, free dataset (Florida) for a smaller, harder-to-get one (Barcelona). Why was this the right engineering choice?",
+        "o": [
+            "A) It wasn't. More data is always better, regardless of where it comes from.",
+            "B) Because 'Relevance' is more important than 'Volume.' A small, accurate map is better than a huge, wrong map.",
+            "C) Because the Florida dataset was too expensive.",
+        ],
+        "a": "B) Because 'Relevance' is more important than 'Volume.' A small, accurate map is better than a huge, wrong map.",
+        "success": "Workshop Complete! You have successfully audited, filtered, and localized the AI model.",
+    },
+    8: {
+        "t": "t18",
+        "q": "You have fixed the Inputs, the Logic, and the Context. Is your new model now 100% perfectly fair?",
+        "o": [
+            "A) Yes. Math is objective, so if the data is clean, the model is perfect.",
+            "B) No. It is safer because we prioritized 'Conduct' over 'Status' and 'Local Reality' over 'Easy Data,' but we must always remain vigilant.",
+        ],
+        "a": "B) No. It is safer because we prioritized 'Conduct' over 'Status' and 'Local Reality' over 'Easy Data,' but we must always remain vigilant.",
+        "success": "🏆 CERTIFICATION GRANTED. You have completed the Fairness Engineering Module.",
+    },
+    9: {
+        "t": "t19",
+        "q": "You have sanitized inputs, filtered for causality, and reweighted for representation. Are you ready to deploy?",
+        "o": [
+            "A) Yes, Pilot Deployment Approved.",
+            "B) No, wait for a perfect model.",
+        ],
+        "a": "A) Yes, Pilot Deployment Approved.",
+        "success": "Mission Accomplished. You have engineered a safer, fairer system.",
+    },
+}
+
+
+css = """
+/* Layout + containers */
+.summary-box {
+  background: var(--block-background-fill);
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color-primary);
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+.summary-box-inner { display: flex; align-items: center; justify-content: space-between; gap: 30px; }
+.summary-metrics { display: flex; gap: 30px; align-items: center; }
+.summary-progress { width: 560px; max-width: 100%; }
+
+/* Scenario cards */
+.scenario-box {
+  padding: 24px;
+  border-radius: 14px;
+  background: var(--block-background-fill);
+  border: 1px solid var(--border-color-primary);
+  margin-bottom: 22px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+.slide-title { margin-top: 0; font-size: 1.9rem; font-weight: 800; }
+.slide-body { font-size: 1.12rem; line-height: 1.65; }
+
+/* Hint boxes */
+.hint-box {
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--background-fill-secondary);
+  border: 1px solid var(--border-color-primary);
+  margin-top: 10px;
+  font-size: 0.98rem;
+}
+
+/* Success / profile card */
+.profile-card.success-card {
+  padding: 20px;
+  border-radius: 14px;
+  border-left: 6px solid #22c55e;
+  background: linear-gradient(135deg, rgba(34,197,94,0.08), var(--block-background-fill));
+  margin-top: 16px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+  font-size: 1.04rem;
+  line-height: 1.55;
+}
+.profile-card.first-score {
+  border-left-color: #facc15;
+  background: linear-gradient(135deg, rgba(250,204,21,0.18), var(--block-background-fill));
+}
+.success-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 8px; }
+.success-title { font-size: 1.26rem; font-weight: 900; color: #16a34a; }
+.success-summary { font-size: 1.06rem; color: var(--body-text-color-subdued); margin-top: 4px; }
+.success-delta { font-size: 1.5rem; font-weight: 800; color: #16a34a; }
+.success-metrics { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: var(--background-fill-secondary); font-size: 1.06rem; }
+.success-metric-line { margin-bottom: 4px; }
+.success-body { margin-top: 10px; font-size: 1.06rem; }
+.success-body-text { margin: 0 0 6px 0; }
+.success-cta { margin: 4px 0 0 0; font-weight: 700; font-size: 1.06rem; }
+
+/* Numbers + labels */
+.score-text-primary { font-size: 2.05rem; font-weight: 900; color: var(--color-accent); }
+.score-text-team { font-size: 2.05rem; font-weight: 900; color: #60a5fa; }
+.score-text-global { font-size: 2.05rem; font-weight: 900; }
+.label-text { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #6b7280; }
+
+/* Progress bar */
+.progress-bar-bg { width: 100%; height: 10px; background: #e5e7eb; border-radius: 6px; overflow: hidden; margin-top: 8px; }
+.progress-bar-fill { height: 100%; background: var(--color-accent); transition: width 280ms ease; }
+
+/* Leaderboard tabs + tables */
+.leaderboard-card input[type="radio"] { display: none; }
+.lb-tab-label {
+  display: inline-block; padding: 8px 16px; margin-right: 8px; border-radius: 20px;
+  cursor: pointer; border: 1px solid var(--border-color-primary); font-weight: 700; font-size: 0.94rem;
+}
+#lb-tab-team:checked + label, #lb-tab-user:checked + label {
+  background: var(--color-accent); color: white; border-color: var(--color-accent);
+  box-shadow: 0 3px 8px rgba(99,102,241,0.25);
+}
+.lb-panel { display: none; margin-top: 10px; }
+#lb-tab-team:checked ~ .lb-tab-panels .panel-team { display: block; }
+#lb-tab-user:checked ~ .lb-tab-panels .panel-user { display: block; }
+.table-container { height: 320px; overflow-y: auto; border: 1px solid var(--border-color-primary); border-radius: 10px; }
+.leaderboard-table { width: 100%; border-collapse: collapse; }
+.leaderboard-table th {
+  position: sticky; top: 0; background: var(--background-fill-secondary);
+  padding: 10px; text-align: left; border-bottom: 2px solid var(--border-color-primary);
+  font-weight: 800;
+}
+.leaderboard-table td { padding: 10px; border-bottom: 1px solid var(--border-color-primary); }
+.row-highlight-me, .row-highlight-team { background: rgba(96,165,250,0.18); font-weight: 700; }
+
+/* Containers */
+.ai-risk-container { margin-top: 16px; padding: 16px; background: var(--body-background-fill); border-radius: 10px; border: 1px solid var(--border-color-primary); }
+
+/* Interactive blocks (text size tuned for 17–20 age group) */
+.interactive-block { font-size: 1.06rem; }
+.interactive-block .hint-box { font-size: 1.02rem; }
+.interactive-text { font-size: 1.06rem; }
+
+/* Radio sizes */
+.scenario-radio-large label { font-size: 1.06rem; }
+.quiz-radio-large label { font-size: 1.06rem; }
+
+/* Small utility */
+.divider-vertical { width: 1px; height: 48px; background: var(--border-color-primary); opacity: 0.6; }
+
+/* Navigation loading overlay */
+#nav-loading-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: color-mix(in srgb, var(--body-background-fill) 95%, transparent);
+  z-index: 9999; display: none; flex-direction: column; align-items: center;
+  justify-content: center; opacity: 0; transition: opacity 0.3s ease;
+}
+.nav-spinner {
+  width: 50px; height: 50px; border: 5px solid var(--border-color-primary);
+  border-top: 5px solid var(--color-accent); border-radius: 50%;
+  animation: nav-spin 1s linear infinite; margin-bottom: 20px;
+}
+@keyframes nav-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+#nav-loading-text {
+  font-size: 1.3rem; font-weight: 600; color: var(--color-accent);
+}
+@media (prefers-color-scheme: dark) {
+  #nav-loading-overlay { background: rgba(15, 23, 42, 0.9); }
+  .nav-spinner { border-color: rgba(148, 163, 184, 0.4); border-top-color: var(--color-accent); }
+}
+"""
+# --- 8. LEADERBOARD & API LOGIC ---
+def get_leaderboard_data(client, username, team_name, local_task_list=None, override_score=None):
+    try:
+        resp = client.list_users(table_id=TABLE_ID, limit=500)
+        users = resp.get("users", [])
+
+        # 1. OPTIMISTIC UPDATE
+        if override_score is not None:
+            found = False
+            for u in users:
+                if u.get("username") == username:
+                    u["moralCompassScore"] = override_score
+                    found = True
+                    break
+            if not found:
+                users.append(
+                    {"username": username, "moralCompassScore": override_score, "teamName": team_name}
+                )
+
+        # 2. SORT with new score
+        users_sorted = sorted(
+            users, key=lambda x: float(x.get("moralCompassScore", 0) or 0), reverse=True
+        )
+
+        my_user = next((u for u in users_sorted if u.get("username") == username), None)
+        score = float(my_user.get("moralCompassScore", 0) or 0) if my_user else 0.0
+        rank = users_sorted.index(my_user) + 1 if my_user else 0
+
+        completed_task_ids = (
+            local_task_list
+            if local_task_list is not None
+            else (my_user.get("completedTaskIds", []) if my_user else [])
+        )
+
+        team_map = {}
+        for u in users:
+            t = u.get("teamName")
+            s = float(u.get("moralCompassScore", 0) or 0)
+            if t:
+                if t not in team_map:
+                    team_map[t] = {"sum": 0, "count": 0}
+                team_map[t]["sum"] += s
+                team_map[t]["count"] += 1
+        teams_sorted = []
+        for t, d in team_map.items():
+            teams_sorted.append({"team": t, "avg": d["sum"] / d["count"]})
+        teams_sorted.sort(key=lambda x: x["avg"], reverse=True)
+        my_team = next((t for t in teams_sorted if t["team"] == team_name), None)
+        team_rank = teams_sorted.index(my_team) + 1 if my_team else 0
+        return {
+            "score": score,
+            "rank": rank,
+            "team_rank": team_rank,
+            "all_users": users_sorted,
+            "all_teams": teams_sorted,
+            "completed_task_ids": completed_task_ids,
+        }
+    except Exception:
+        return None
+
+
+def ensure_table_and_get_data(username, token, team_name, task_list_state=None):
+    if not username or not token:
+        return None, username
+    os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
+    client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
+    try:
+        client.get_table(TABLE_ID)
+    except Exception:
+        try:
+            client.create_table(
+                table_id=TABLE_ID,
+                display_name="LMS",
+                playground_url="https://example.com",
+            )
+        except Exception:
+            pass
+    return get_leaderboard_data(client, username, team_name, task_list_state), username
+
+
+def trigger_api_update(
+    username, token, team_name, module_id, user_real_accuracy, task_list_state, append_task_id=None
+):
+    if not username or not token:
+        return None, None, username, task_list_state
+    os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
+    client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
+
+    acc = float(user_real_accuracy) if user_real_accuracy is not None else 0.0
+
+    # 1. Update Lists
+    old_task_list = list(task_list_state) if task_list_state else []
+    new_task_list = list(old_task_list)
+    if append_task_id and append_task_id not in new_task_list:
+        new_task_list.append(append_task_id)
+        try:
+            new_task_list.sort(
+                key=lambda x: int(x[1:]) if x.startswith("t") and x[1:].isdigit() else 0
+            )
+        except Exception:
+            pass
+
+    # 2. Write to Server
+    tasks_completed = len(new_task_list)
+    client.update_moral_compass(
+        table_id=TABLE_ID,
+        username=username,
+        team_name=team_name,
+        metrics={"accuracy": acc},
+        tasks_completed=tasks_completed,
+        total_tasks=TOTAL_COURSE_TASKS,
+        primary_metric="accuracy",
+        completed_task_ids=new_task_list,
+    )
+
+    # 3. Calculate Scores Locally (Simulate Before/After)
+    old_score_calc = acc * (len(old_task_list) / TOTAL_COURSE_TASKS)
+    new_score_calc = acc * (len(new_task_list) / TOTAL_COURSE_TASKS)
+
+    # 4. Get Data with Override to force rank re-calculation
+    prev_data = get_leaderboard_data(
+        client, username, team_name, old_task_list, override_score=old_score_calc
+    )
+    lb_data = get_leaderboard_data(
+        client, username, team_name, new_task_list, override_score=new_score_calc
+    )
+
+    return prev_data, lb_data, username, new_task_list
+
+# --- 9. SUCCESS MESSAGE RENDERER (approved version) ---
+# --- 8. SUCCESS MESSAGE / DASHBOARD RENDERING ---
+def generate_success_message(prev, curr, specific_text):
+    old_score = float(prev.get("score", 0) or 0) if prev else 0.0
+    new_score = float(curr.get("score", 0) or 0)
+    diff_score = new_score - old_score
+
+    old_rank = prev.get("rank", "–") if prev else "–"
+    new_rank = curr.get("rank", "–")
+
+    # Are ranks integers? If yes, we can reason about direction.
+    ranks_are_int = isinstance(old_rank, int) and isinstance(new_rank, int)
+    rank_diff = old_rank - new_rank if ranks_are_int else 0  # positive => rank improved
+
+    # --- STYLE SELECTION -------------------------------------------------
+    # First-time score: special "on the board" moment
+    if old_score == 0 and new_score > 0:
+        style_key = "first"
+    else:
+        if ranks_are_int:
+            if rank_diff >= 3:
+                style_key = "major"   # big rank jump
+            elif rank_diff > 0:
+                style_key = "climb"   # small climb
+            elif diff_score > 0 and new_rank == old_rank:
+                style_key = "solid"   # better score, same rank
+            else:
+                style_key = "tight"   # leaderboard shifted / no visible rank gain
+        else:
+            # When we can't trust rank as an int, lean on score change
+            style_key = "solid" if diff_score > 0 else "tight"
+
+    # --- TEXT + CTA BY STYLE --------------------------------------------
+    card_class = "profile-card success-card"
+
+    if style_key == "first":
+        card_class += " first-score"
+        header_emoji = "🎉"
+        header_title = "You're Officially on the Board!"
+        summary_line = (
+            "You just earned your first Moral Compass Score — you're now part of the global rankings."
+        )
+        cta_line = "Scroll down to take your next step and start climbing."
+    elif style_key == "major":
+        header_emoji = "🔥"
+        header_title = "Major Moral Compass Boost!"
+        summary_line = (
+            "Your decision made a big impact — you just moved ahead of other participants."
+        )
+        cta_line = "Scroll down to take on your next challenge and keep the boost going."
+    elif style_key == "climb":
+        header_emoji = "🚀"
+        header_title = "You're Climbing the Leaderboard"
+        summary_line = "Nice work — you edged out a few other participants."
+        cta_line = "Scroll down to continue your investigation and push even higher."
+    elif style_key == "tight":
+        header_emoji = "📊"
+        header_title = "The Leaderboard Is Shifting"
+        summary_line = (
+            "Other teams are moving too. You'll need a few more strong decisions to stand out."
+        )
+        cta_line = "Take on the next question to strengthen your position."
+    else:  # "solid"
+        header_emoji = "✅"
+        header_title = "Progress Logged"
+        summary_line = "Your ethical insight increased your Moral Compass Score."
+        cta_line = "Try the next scenario to break into the next tier."
+
+    # --- SCORE / RANK LINES ---------------------------------------------
+
+    # First-time: different wording (no previous score)
+    if style_key == "first":
+        score_line = f"🧭 Score: <strong>{new_score:.3f}</strong>"
+        if ranks_are_int:
+            rank_line = f"🏅 Initial Rank: <strong>#{new_rank}</strong>"
+        else:
+            rank_line = f"🏅 Initial Rank: <strong>#{new_rank}</strong>"
+    else:
+        score_line = (
+            f"🧭 Score: {old_score:.3f} → <strong>{new_score:.3f}</strong> "
+            f"(+{diff_score:.3f})"
+        )
+
+        if ranks_are_int:
+            if old_rank == new_rank:
+                rank_line = f"📊 Rank: <strong>#{new_rank}</strong> (holding steady)"
+            elif rank_diff > 0:
+                rank_line = (
+                    f"📈 Rank: #{old_rank} → <strong>#{new_rank}</strong> "
+                    f"(+{rank_diff} places)"
+                )
+            else:
+                rank_line = (
+                    f"🔻 Rank: #{old_rank} → <strong>#{new_rank}</strong> "
+                    f"({rank_diff} places)"
+                )
+        else:
+            rank_line = f"📊 Rank: <strong>#{new_rank}</strong>"
+
+    # --- HTML COMPOSITION -----------------------------------------------
+    return f"""
+    <div class="{card_class}">
+        <div class="success-header">
+            <div>
+                <div class="success-title">{header_emoji} {header_title}</div>
+                <div class="success-summary">{summary_line}</div>
+            </div>
+            <div class="success-delta">
+                +{diff_score:.3f}
+            </div>
+        </div>
+
+        <div class="success-metrics">
+            <div class="success-metric-line">{score_line}</div>
+            <div class="success-metric-line">{rank_line}</div>
+        </div>
+
+        <div class="success-body">
+            <p class="success-body-text">{specific_text}</p>
+            <p class="success-cta">{cta_line}</p>
+        </div>
+    </div>
+    """
+
+# --- 10. DASHBOARD & LEADERBOARD RENDERERS ---
+def render_top_dashboard(data, module_id):
+    display_score = 0.0
+    count_completed = 0
+    rank_display = "–"
+    team_rank_display = "–"
+    if data:
+        display_score = float(data.get("score", 0.0))
+        rank_display = f"#{data.get('rank', '–')}"
+        team_rank_display = f"#{data.get('team_rank', '–')}"
+        count_completed = len(data.get("completed_task_ids", []) or [])
+    progress_pct = min(100, int((count_completed / TOTAL_COURSE_TASKS) * 100))
+    return f"""
+    <div class="summary-box">
+        <div class="summary-box-inner">
+            <div class="summary-metrics">
+                <div style="text-align:center;">
+                    <div class="label-text">Moral Compass Score</div>
+                    <div class="score-text-primary">🧭 {display_score:.3f}</div>
+                </div>
+                <div class="divider-vertical"></div>
+                <div style="text-align:center;">
+                    <div class="label-text">Team Rank</div>
+                    <div class="score-text-team">{team_rank_display}</div>
+                </div>
+                <div class="divider-vertical"></div>
+                <div style="text-align:center;">
+                    <div class="label-text">Global Rank</div>
+                    <div class="score-text-global">{rank_display}</div>
+                </div>
+            </div>
+            <div class="summary-progress">
+                <div class="progress-label">Mission Progress: {progress_pct}%</div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width:{progress_pct}%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    """
+
+
+def render_leaderboard_card(data, username, team_name):
+    team_rows = ""
+    user_rows = ""
+    if data and data.get("all_teams"):
+        for i, t in enumerate(data["all_teams"]):
+            cls = "row-highlight-team" if t["team"] == team_name else "row-normal"
+            team_rows += (
+                f"<tr class='{cls}'><td style='padding:8px;text-align:center;'>{i+1}</td>"
+                f"<td style='padding:8px;'>{t['team']}</td>"
+                f"<td style='padding:8px;text-align:right;'>{t['avg']:.3f}</td></tr>"
+            )
+    if data and data.get("all_users"):
+        for i, u in enumerate(data["all_users"]):
+            cls = "row-highlight-me" if u.get("username") == username else "row-normal"
+            sc = float(u.get("moralCompassScore", 0))
+            if u.get("username") == username and data.get("score") != sc:
+                sc = data.get("score")
+            user_rows += (
+                f"<tr class='{cls}'><td style='padding:8px;text-align:center;'>{i+1}</td>"
+                f"<td style='padding:8px;'>{u.get('username','')}</td>"
+                f"<td style='padding:8px;text-align:right;'>{sc:.3f}</td></tr>"
+            )
+    return f"""
+    <div class="scenario-box leaderboard-card">
+        <h3 class="slide-title" style="margin-bottom:10px;">📊 Live Standings</h3>
+        <div class="lb-tabs">
+            <input type="radio" id="lb-tab-team" name="lb-tabs" checked>
+            <label for="lb-tab-team" class="lb-tab-label">🏆 Team</label>
+            <input type="radio" id="lb-tab-user" name="lb-tabs">
+            <label for="lb-tab-user" class="lb-tab-label">👤 Individual</label>
+            <div class="lb-tab-panels">
+                <div class="lb-panel panel-team">
+                    <div class='table-container'>
+                        <table class='leaderboard-table'>
+                            <thead>
+                                <tr><th>Rank</th><th>Team</th><th style='text-align:right;'>Avg 🧭</th></tr>
+                            </thead>
+                            <tbody>{team_rows}</tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="lb-panel panel-user">
+                    <div class='table-container'>
+                        <table class='leaderboard-table'>
+                            <thead>
+                                <tr><th>Rank</th><th>Agent</th><th style='text-align:right;'>Score 🧭</th></tr>
+                            </thead>
+                            <tbody>{user_rows}</tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    """
+
+# --- 6. HELPER: SLIDER FOR RESAMPLING (SLIDE 8) ---
+def simulate_resampling_impact(original_skew_pct, slider_val):
+    # original_skew_pct might be 51% (African American in dataset)
+    # target is 28% (Real population)
+    # slider goes 0 to 100 representing "Correction Strength"
+
+    current_pct = 51 - ((51 - 28) * (slider_val / 100))
+
+    return f"""
+    <div class="hint-box interactive-block">
+        <p style="margin-bottom:4px; font-size:1.05rem;">
+            <strong>Dataset Demographics (African-American):</strong> {current_pct:.1f}%
+        </p>
+        <p style="margin-bottom:0; font-size:1.05rem; color:{'#22c55e' if abs(current_pct - 28) < 2 else 'var(--body-text-color-subdued)'};">
+            <strong>Target (Census Reality):</strong> 28.0%
+            {'✅ MATCHED' if abs(current_pct - 28) < 2 else ''}
+        </p>
+    </div>
+    """
+
+# --- 7. APP FACTORY (FAIRNESS FIXER) ---
+def create_fairness_fixer_app(theme_primary_hue: str = "indigo"):
+    with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
+        # States
+        username_state = gr.State(value=None)
+        token_state = gr.State(value=None)
+        team_state = gr.State(value=None)
+        accuracy_state = gr.State(value=0.0)
+        task_list_state = gr.State(value=[])
+
+        # --- TOP ANCHOR & LOADING OVERLAY FOR NAVIGATION ---
+        gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
+        gr.HTML("<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>Loading...</span></div>")
+
+        # --- LOADING VIEW ---
+        with gr.Column(visible=True, elem_id="app-loader") as loader_col:
+            gr.HTML(
+                "<div style='text-align:center; padding:100px;'>"
+                "<h2>🕵️‍♀️ Authenticating...</h2>"
+                "<p>Syncing Fairness Engineer Profile...</p>"
+                "</div>"
+            )
+
+        # --- MAIN APP VIEW ---
+        with gr.Column(visible=False) as main_app_col:
+            # Top summary dashboard (progress bar & score)
+            out_top = gr.HTML()
+
+            # Dynamic modules container
+            module_ui_elements = {}
+            quiz_wiring_queue = []
+
+            # --- DYNAMIC MODULE GENERATION ---
+            for i, mod in enumerate(MODULES):
+                with gr.Column(
+                    elem_id=f"module-{i}",
+                    elem_classes=["module-container"],
+                    visible=(i == 0),
+                ) as mod_col:
+                    # Core slide HTML
+                    gr.HTML(mod["html"])
+
+
+                    # --- QUIZ CONTENT ---
+                    if i in QUIZ_CONFIG:
+                        q_data = QUIZ_CONFIG[i]
+                        gr.Markdown(f"### 🧠 {q_data['q']}")
+                        radio = gr.Radio(
+                            choices=q_data["o"],
+                            label="Select Action:",
+                            elem_classes=["quiz-radio-large"],
+                        )
+                        feedback = gr.HTML("")
+                        quiz_wiring_queue.append((i, radio, feedback))
+
+                    # --- NAVIGATION BUTTONS ---
+                    with gr.Row():
+                        btn_prev = gr.Button("⬅️ Previous", visible=(i > 0))
+                        next_label = (
+                            "Next ▶️"
+                            if i < len(MODULES) - 1
+                            else "🎉 Course Complete! (Return to Main Menu)"
+                        )
+                        btn_next = gr.Button(next_label, variant="primary")
+
+                    module_ui_elements[i] = (mod_col, btn_prev, btn_next)
+
+            # Leaderboard card
+            leaderboard_html = gr.HTML()
+
+            # --- WIRING: QUIZ LOGIC ---
+            for mod_id, radio_comp, feedback_comp in quiz_wiring_queue:
+                def quiz_logic_wrapper(user, tok, team, acc_val, task_list, ans, mid=mod_id):
+                    cfg = QUIZ_CONFIG[mid]
+                    if ans == cfg["a"]:
+                        prev, curr, _, new_tasks = trigger_api_update(
+                            user, tok, team, mid, acc_val, task_list, cfg["t"]
+                        )
+                        msg = generate_success_message(prev, curr, cfg["success"])
+                        return (
+                            render_top_dashboard(curr, mid),
+                            render_leaderboard_card(curr, user, team),
+                            msg,
+                            new_tasks,
+                        )
+                    else:
+                        return (
+                            gr.update(),
+                            gr.update(),
+                            "<div class='hint-box' style='border-color:red;'>❌ Incorrect. Try again.</div>",
+                            task_list,
+                        )
+
+                radio_comp.change(
+                    fn=quiz_logic_wrapper,
+                    inputs=[username_state, token_state, team_state, accuracy_state, task_list_state, radio_comp],
+                    outputs=[out_top, leaderboard_html, feedback_comp, task_list_state],
+                )
+
+        # --- GLOBAL LOAD HANDLER ---
+        def handle_load(req: gr.Request):
+            success, user, token = _try_session_based_auth(req)
+            team = "Team-Unassigned"
+            acc = 0.0
+            fetched_tasks: List[str] = []
+
+            if success and user and token:
+                acc, fetched_team = fetch_user_history(user, token)
+                os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
+                client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
+
+                # Team Assignment Logic
+                def get_or_assign_team(client_obj, username_val):
+                    try:
+                        user_data = client_obj.get_user(table_id=TABLE_ID, username=username_val)
+                    except Exception:
+                        user_data = None
+                    if user_data and isinstance(user_data, dict):
+                        if user_data.get("teamName"):
+                            return user_data["teamName"]
+                    return "team-a"
+
+                exist_team = get_or_assign_team(client, user)
+                if fetched_team != "Team-Unassigned":
+                    team = fetched_team
+                elif exist_team != "team-a":
+                    team = exist_team
+                else:
+                    team = "team-a"
+
+                # Fetch User Stats
+                try:
+                    user_stats = client.get_user(table_id=TABLE_ID, username=user)
+                except Exception:
+                    user_stats = None
+
+                if user_stats:
+                    if isinstance(user_stats, dict):
+                        fetched_tasks = user_stats.get("completedTaskIds") or []
+                    else:
+                        fetched_tasks = getattr(user_stats, "completed_task_ids", []) or []
+
+                # Sync Record
+                try:
+                    client.update_moral_compass(
+                        table_id=TABLE_ID,
+                        username=user,
+                        team_name=team,
+                        metrics={"accuracy": acc},
+                        tasks_completed=len(fetched_tasks),
+                        total_tasks=TOTAL_COURSE_TASKS,
+                        primary_metric="accuracy",
+                        completed_task_ids=fetched_tasks,
+                    )
+                    time.sleep(1.0)
+                except Exception:
+                    pass
+
+                data, _ = ensure_table_and_get_data(user, token, team, fetched_tasks)
+                return (
+                    user, token, team, False,
+                    render_top_dashboard(data, 0),
+                    render_leaderboard_card(data, user, team),
+                    acc, fetched_tasks,
+                    gr.update(visible=False), gr.update(visible=True),
+                )
+
+            return (
+                None, None, None, False,
+                "<div class='hint-box'>⚠️ Auth Failed. Please launch from the course link.</div>",
+                "", 0.0, [],
+                gr.update(visible=False), gr.update(visible=True),
+            )
+
+        demo.load(
+            handle_load, None,
+            [username_state, token_state, team_state, gr.State(False), out_top, leaderboard_html, accuracy_state, task_list_state, loader_col, main_app_col],
+        )
+
+        # --- JAVASCRIPT NAVIGATION ---
+        def nav_js(target_id: str, message: str) -> str:
+            return f"""
+            ()=>{{
+              try {{
+                const overlay = document.getElementById('nav-loading-overlay');
+                const messageEl = document.getElementById('nav-loading-text');
+                if(overlay && messageEl) {{
+                  messageEl.textContent = '{message}';
+                  overlay.style.display = 'flex';
+                  setTimeout(() => {{ overlay.style.opacity = '1'; }}, 10);
+                }}
+                const startTime = Date.now();
+                setTimeout(() => {{
+                  const anchor = document.getElementById('app_top_anchor');
+                  if(anchor) anchor.scrollIntoView({{behavior:'smooth', block:'start'}});
+                }}, 40);
+                const targetId = '{target_id}';
+                const pollInterval = setInterval(() => {{
+                  const elapsed = Date.now() - startTime;
+                  const target = document.getElementById(targetId);
+                  const isVisible = target && target.offsetParent !== null &&
+                                   window.getComputedStyle(target).display !== 'none';
+                  if((isVisible && elapsed >= 1200) || elapsed > 7000) {{
+                    clearInterval(pollInterval);
+                    if(overlay) {{
+                      overlay.style.opacity = '0';
+                      setTimeout(() => {{ overlay.style.display = 'none'; }}, 300);
+                    }}
+                  }}
+                }}, 90);
+              }} catch(e) {{ console.warn('nav-js error', e); }}
+            }}
+            """
+
+        # --- NAV BUTTON WIRING ---
+        for i in range(len(MODULES)):
+            curr_col, prev_btn, next_btn = module_ui_elements[i]
+            if i > 0:
+                prev_col = module_ui_elements[i - 1][0]
+                prev_target_id = f"module-{i-1}"
+                def make_prev_handler(p_col, c_col):
+                    def navigate_prev():
+                        yield gr.update(visible=False), gr.update(visible=False)
+                        yield gr.update(visible=True), gr.update(visible=False)
+                    return navigate_prev
+                prev_btn.click(
+                    fn=make_prev_handler(prev_col, curr_col),
+                    outputs=[prev_col, curr_col],
+                    js=nav_js(prev_target_id, "Loading..."),
+                )
+
+            if i < len(MODULES) - 1:
+                next_col = module_ui_elements[i + 1][0]
+                next_target_id = f"module-{i+1}"
+                def make_next_handler(c_col, n_col, next_idx):
+                    def wrapper_next(user, tok, team, tasks):
+                        data, _ = ensure_table_and_get_data(user, tok, team, tasks)
+                        return render_top_dashboard(data, next_idx)
+                    return wrapper_next
+                def make_nav_generator(c_col, n_col):
+                    def navigate_next():
+                        yield gr.update(visible=False), gr.update(visible=False)
+                        yield gr.update(visible=False), gr.update(visible=True)
+                    return navigate_next
+                next_btn.click(
+                    fn=make_next_handler(curr_col, next_col, i + 1),
+                    inputs=[username_state, token_state, team_state, task_list_state],
+                    outputs=[out_top],
+                    js=nav_js(next_target_id, "Loading..."),
+                ).then(
+                    fn=make_nav_generator(curr_col, next_col),
+                    outputs=[curr_col, next_col],
+                )
+
+        return demo
+
+# --- 8. LAUNCHER ---
+def launch_fairness_fixer_app(
+    share: bool = False,
+    server_name: str = "0.0.0.0",
+    server_port: int = 8080,
     theme_primary_hue: str = "indigo",
     **kwargs
 ) -> None:
-    """
-    Launch the Fairness Fixer app.
-
-    Args:
-        share: Whether to create a public link
-        server_name: Server hostname
-        server_port: Server port
-        theme_primary_hue: Primary color hue
-        **kwargs: Additional Gradio launch arguments
-    """
     app = create_fairness_fixer_app(theme_primary_hue=theme_primary_hue)
-    app.launch(
-        share=share,
-        server_name=server_name,
-        server_port=server_port,
-        **kwargs
-    )
-
-
-# ============================================================================
-# Main Entry Point
-# ============================================================================
+    app.launch(share=share, server_name=server_name,
+               server_port=server_port,
+               **kwargs)
 
 if __name__ == "__main__":
     launch_fairness_fixer_app(share=False, debug=True, height=1000)
