@@ -10,6 +10,8 @@ ORIGINAL_PLAYGROUND_URL = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.co
 TABLE_ID = "m-mc"
 TOTAL_COURSE_TASKS = 19  # Score calculated against full course
 LOCAL_TEST_SESSION_ID = None
+# Add this new variable:
+LOCAL_TEST_LANG = None  # Change to "en", "es", or "ca" to test
 
 # --- 2. SETUP & DEPENDENCIES ---
 def install_dependencies():
@@ -80,6 +82,1513 @@ def fetch_user_history(username, token):
     except Exception:
         pass
     return default_acc, default_team
+
+# --- 3b. I18N TRANSLATIONS ---
+TRANSLATIONS = {
+    "en": {
+        # Loading and auth messages
+        "loading_auth": "🕵️‍♀️ Authenticating...",
+        "loading_sync": "Syncing Moral Compass Data...",
+        "auth_failed": "⚠️ Auth Failed. Please login in again to use this app..",
+        "loading_text": "Loading...",
+        
+        # Navigation buttons
+        "btn_previous": "⬅️ Previous",
+        "btn_next": "Next ▶️",
+        "btn_completed_part1": "🎉 You Have Completed Part 1!! (Please Proceed to the Next Activity)",
+        
+        # Quiz labels
+        "quiz_select_answer": "Select Answer:",
+        "quiz_incorrect": "❌ Incorrect. Review the evidence above.",
+        
+        # Dashboard labels
+        "lbl_score": "Score",
+        "lbl_rank": "Rank",
+        "lbl_team_rank": "Team Rank",
+        "lbl_progress": "Progress",
+        "lbl_teams": "Teams",
+        "lbl_users": "Users",
+        
+        # Slider labels
+        "slider_label": "Simulated Ethical Progress %",
+        "slider_accuracy": "Your current accuracy (from the leaderboard):",
+        "slider_progress": "Simulated Ethical Progress %:",
+        "slider_score": "Simulated Moral Compass Score:",
+        
+        # Module 0 - Moral Compass Intro
+        "mod0_title": "🧭 Introducing Your New Moral Compass Score",
+        "mod0_p1": "Right now, your model is judged mostly on <strong>accuracy</strong>. That sounds fair, but accuracy alone can hide important risks—especially when a model is used to make decisions about real people.",
+        "mod0_p2": "To make that risk visible, this challenge uses a new metric: your <strong>Moral Compass Score</strong>.",
+        "mod0_how_title": "1. How Your Moral Compass Score Works",
+        "mod0_formula": "<strong>Moral Compass Score</strong> =<br><br><span style='color:var(--color-accent); font-weight:bold;'>[ Model Accuracy ]</span> × <span style='color:#22c55e; font-weight:bold;'>[ Ethical Progress % ]</span>",
+        "mod0_formula_exp": "Your accuracy is the starting point. Your <strong>Ethical Progress %</strong> reflects how far you've gone in understanding and reducing AI bias and harm. The more you progress through this challenge, the more of your accuracy \"counts\" toward your Moral Compass Score.",
+        "mod0_grows_title": "2. A Score That Grows With You",
+        "mod0_grows_text": "Your score is <strong>dynamic</strong>. As you complete more modules and demonstrate better judgment about fairness, your <strong>Ethical Progress %</strong> rises. That unlocks more of your model's base accuracy in the Moral Compass Score.",
+        "mod0_look_title": "3. Look Up. Look Down.",
+        "mod0_look_up": "<strong>Look up:</strong> The top bar shows your live Moral Compass Score and rank. As your Ethical Progress increases, you'll see your score move in real time.",
+        "mod0_look_down": "<strong>Look down:</strong> The leaderboards below re-rank teams and individuals as people advance. When you improve your ethical progress, you don't just change your score—you change your position.",
+        "mod0_try_title": "4. Try It Out: See How Progress Changes Your Score",
+        "mod0_try_text": "Below, you can move a slider to <strong>simulate</strong> how your Moral Compass Score would change as your <strong>Ethical Progress %</strong> increases. This gives you a preview of how much impact each step of your progress can have on your final score.",
+        
+        # Module 1 - Your Mission
+        "mod1_title": "🕵️ Your New Mission: Investigate Hidden AI Bias",
+        "mod1_intro": "You've been granted access to an AI model that <em>appears</em> safe — but the historical information it learned from may include unfair patterns. Your job is to <strong>collect evidence</strong>, <strong>spot hidden patterns</strong>, and <strong>show where the system could be unfair</strong> before anyone relies on its predictions.",
+        "mod1_detective": "🔎 You Are Now a <span style='color:#1d4ed8;'>Bias Detective</span>",
+        "mod1_job": "Your job is to uncover hidden bias inside AI systems — spotting unfair patterns that others might miss and protecting people from harmful predictions.",
+        "mod1_roadmap": "🔍 Your Investigation Roadmap",
+        "mod1_step1": "Step 1: Learn the Rules",
+        "mod1_step1_desc": "Understand what actually counts as bias.",
+        "mod1_step2": "Step 2: Collect Evidence",
+        "mod1_step2_desc": "Look inside the data the model learned from to find suspicious patterns.",
+        "mod1_step3": "Step 3: Prove the Prediction Error",
+        "mod1_step3_desc": "Use the evidence to show whether the model treats groups unfairly.",
+        "mod1_step4": "Step 4: Diagnose Harm",
+        "mod1_step4_desc": "Explain how those patterns could impact real people.",
+        "mod1_why": "⭐ Why This Matters",
+        "mod1_why_text": "AI systems learn from history. If past data contains unfair patterns, the model may copy them unless someone catches the problem. <strong>That someone is you — the Bias Detective.</strong> Your ability to recognize bias will help unlock your Moral Compass Score and shape how the model behaves.",
+        "mod1_next": "<strong>Your Next Move:</strong> Before you start examining the data, you need to understand the rules of the investigation. Scroll down to choose your first step.",
+        
+        # Module 2 - Intelligence Briefing
+        "mod2_badge": "STEP 1: LEARN THE RULES — Understand what actually counts as bias",
+        "mod2_title": "⚖️ Justice & Equity: Your Primary Rule",
+        "mod2_intro1": "Before we start our investigation, we need to know the rules. Ethics isn't abstract here—it's our <strong>field guide for action</strong>.",
+        "mod2_intro2": "We do not guess what is right or wrong; we rely on <strong>expert advice</strong>. We will use guidance from the experts at the Catalan Observatory for Ethics in AI <strong>OEIAC (UdG)</strong>, who help ensure AI systems are fair and responsible.",
+        "mod2_intro3": "While they have established seven core principles to keep AI safe, our intel suggests this specific case involves a violation of the <strong>Justice & Equity</strong> principle.",
+        "mod2_principles_title": "🗺️ Principles in Action",
+        "mod2_principles_intro": "The ethical principles are the <strong>first step</strong> in your roadmap. They translate the abstract concept of \"fairness\" into concrete steps for a detective:",
+        "mod2_flow_principles": "Principles",
+        "mod2_flow_evidence": "Evidence",
+        "mod2_flow_tests": "Tests",
+        "mod2_flow_judgment": "Judgment",
+        "mod2_flow_fixes": "Fixes",
+        "mod2_principles_text": "Principles define the <strong>evidence you must collect</strong> and the <strong>tests you must run</strong>. They are crucial because they <strong>create clear, shared standards for evaluation and make findings easy to explain</strong> to everyone. In this case, your evidence and tests will clearly show what counts as bias when you look at the model's data and final results.",
+        "mod2_justice_title": "🧩 Justice & Equity — What Counts as Bias",
+        "mod2_justice_badge": "Priority in this case",
+        "mod2_justice_intro": "To ensure fairness, we focus on three <strong>measurable</strong> types of bias:",
+        "mod2_bias1_title": "Representation Bias",
+        "mod2_bias1_desc": "Compares the dataset distribution to the <strong>actual real-world population.</strong>",
+        "mod2_bias1_example": "If one group appears far less or far more than reality (e.g., only <strong>10%</strong> of cases are from Group A, but the group is <strong>71%</strong> of the population), the AI may not have enough data to learn how to make accurate unbiased predictions.",
+        "mod2_bias2_title": "Error Gaps",
+        "mod2_bias2_desc": "Checks for AI prediction mistakes by subgroup.",
+        "mod2_bias2_example": "Compares the false positive rate for Group A vs. Group B. Higher error for a group can mean unfair treatment, which shows the model is less trustworthy or accurate for that specific group.",
+        "mod2_bias3_title": "Harm Patterns",
+        "mod2_bias3_desc": "Identifies when bias leads to real damage.",
+        "mod2_bias3_example": "Not all errors create equal harm. If false positives cause arrest or job denial, you must measure who gets hurt most and whether the harm falls unequally across groups.",
+        
+        # Module 3 - The Stakes
+        "mod3_badge": "STEP 1: LEARN THE RULES — Understand what actually counts as bias",
+        "mod3_title": "⚠️ The Risk of Invisible Bias",
+        "mod3_intro1": "You might ask: <strong>\"Why is an AI bias investigation such a big deal?\"</strong>",
+        "mod3_intro2": "When a human judge is biased, you can sometimes see it in their words or actions. But with AI, the bias is hidden behind clean numbers. The model produces a neat-looking <strong>\"risk of reoffending\" score</strong>, and people often assume it is neutral and objective — even when the data beneath it is biased.",
+        "mod3_ripple_title": "🌊 The Ripple Effect",
+        "mod3_ripple_formula": "1 Flawed Algorithm → 10,000 Potential Unfair Sentences",
+        "mod3_ripple_text": "Once a biased criminal risk model is deployed, it doesn't just make one bad call. It can quietly repeat the same unfair pattern across <strong>thousands of cases</strong>, shaping bail, sentencing, and future freedom for real people.",
+        "mod3_detective_title": "🔎 Why the World Needs Bias Detectives",
+        "mod3_detective_text": "Because AI bias is silent and scaled, most people never see it happening. That's where <strong>you</strong>, as a <strong>Bias Detective</strong>, come in. Your role is to look past the polished risk score, trace how the model is using biased data, and show where it might be treating groups unfairly.",
+        "mod3_next": "Next, you'll start scanning the <strong>evidence</strong> inside the data: who shows up in the dataset, how often, and what that means for the risk scores people receive. You're not just learning about bias — you're learning how to <strong>catch it</strong>.",
+        
+        # Module 4 - Detective's Method
+        "mod4_badge": "STEP 2: COLLECT EVIDENCE — Look for Unfair Patterns in the Data",
+        "mod4_title": "🔎 From Rules to Evidence",
+        "mod4_intro_title": "From Rules to Evidence",
+        "mod4_intro_text": "You've learned the primary principle—<strong>Justice & Equity</strong>—that sets the rules for your investigation. Now we apply those rules to the facts. Gathering evidence of the three categories of bias (Representation, Error Gaps, and Outcome Disparities) is the start of finding patterns that signal unfair treatment.",
+        "mod4_begin": "<strong>But where should you begin your investigation?</strong> You can't interrogate the AI system. It won't confess. To find bias, we have to look at the evidence trail it leaves behind.<br><br>If you were investigating a suspicious <strong>Judge</strong>, you would look for: <strong>who they charge most often, who they make the most mistakes with, and whether their decisions harm some people more than others?</strong>",
+        "mod4_checklist_title": "🗂️ The Investigation Checklist",
+        "mod4_folder1_title": "📂 Folder 1: \"Who is being charged?\"",
+        "mod4_folder1_action": "→ <strong>Action:</strong> Check the History (Is one group over‑represented vs reality?)<br>→ <strong>Reveal:</strong> <strong>Representation Bias</strong>—if group percentages in the data used to train the model do not match the real world.",
+        "mod4_folder2_title": "📂 Folder 2: \"Who is being wrongly accused?\"",
+        "mod4_folder2_action": "→ <strong>Action:</strong> Check the Mistakes (Are prediction errors higher for a group?)<br>→ <strong>Reveal:</strong> <strong>Error Gaps</strong> —if the error rate is significantly higher for one group.",
+        "mod4_folder3_title": "📂 Folder 3: \"Who is getting hurt?\"",
+        "mod4_folder3_action": "→ <strong>Action:</strong> Check the Punishment (Do model outputs lead to worse real outcomes for a group?)<br>→ <strong>Reveal:</strong> <strong>Outcome Disparities</strong>—if one group receives significantly worse real-world outcomes (e.g., harsher sentencing or loan rejections).",
+        "mod4_next_title": "✅ Next move",
+        "mod4_next_text": "You've identified the three types of evidence needed. Now, it's time to put your gloves on. The <strong>Data Forensics Briefing</strong> will guide you through the process of examining the raw data to spot the most common initial forms of unfairness: <strong>data distortions</strong> that lead to <strong>Representation Bias.</strong>",
+        
+        # Module 5 - Data Forensics Briefing
+        "mod5_badge": "STEP 2: COLLECT EVIDENCE — Look for Unfair Patterns in the Data",
+        "mod5_title": "The Data Forensics Briefing",
+        "mod5_intro": "You are about to access the raw evidence files. But be warned: The AI thinks this data is the truth.",
+        "mod5_warning": "If the dataset has built‑in biases, the AI will learn to treat those biases as facts. Your job is to scan the dataset before the model learns from it, so we can spot data issues <em>before</em> they become prediction patterns.",
+        "mod5_framework_title": "🧩 Your Three‑Question Framework",
+        "mod5_framework_intro": "When looking at any dataset, always ask three critical questions:",
+        "mod5_q1": "<strong>Who shows up in the data?</strong> (Are some groups over‑ or under‑represented?)",
+        "mod5_q2": "<strong>How are they described?</strong> (Does the dataset carry historical bias, like old stereotypes or unequal error patterns?)",
+        "mod5_q3": "<strong>What is missing?</strong> (Are there major gaps or important groups excluded entirely?)",
+        "mod5_raw_data": "If you find skewed numbers, missing groups, or distorted patterns, you're looking at the seed of a biased model—one that might produce unfair outcomes no matter how well it is trained.",
+        "mod5_proceed_title": "↓ Proceed to Evidence Scans ↓",
+        "mod5_proceed_text": "You now have the framework. The data is in front of you. Scroll down to start your forensic scan. We'll examine <strong>Race</strong>, <strong>Gender</strong>, and <strong>Age</strong>—and see if any group is being misrepresented.",
+        
+        # Module 6 - Evidence Scan Explanation
+        "mod6_badge": "STEP 2: COLLECT EVIDENCE — Look for Unfair Patterns in the Data",
+        "mod6_title": "The Data Forensics Analysis:",
+        "mod6_scanning_title": "🗃️ What Are We Scanning?",
+        "mod6_scanning_text": "We're examining the <strong>COMPAS dataset</strong>, collected and analyzed by investigative journalists at <strong>ProPublica</strong>. It contains real records used to score a person's \"risk of reoffending,\" including demographics (race, age, gender), charges, prior history, and risk scores.",
+        "mod6_scanning_note": "If the <em>data itself</em> is skewed (who shows up, how often, or what gets recorded), the model can learn those patterns as \"truth.\" Scanning helps us spot distortions that may violate <strong>Justice & Equity</strong>.",
+        "mod6_how_title": "🛠️ How the SCAN Works",
+        "mod6_how_text": "Click <strong>SCAN</strong> to run a quick analysis for the selected demographic group. The scan will:",
+        "mod6_how_item1": "Compare the group's share in the <strong>local population</strong> (Broward County, Florida, USA) vs the <strong>dataset</strong>.",
+        "mod6_how_item2": "Reveal <strong>visual bars</strong> showing the gap (population vs dataset).",
+        "mod6_how_item3": "Uncover a <strong>Detective's Analysis</strong> explaining what the gap means for <strong>Justice & Equity</strong> and what to check next.",
+        "mod6_what_title": "What you are going to SCAN",
+        "mod6_what_text": "Your first task is to look at racial patterns in the COMPAS dataset. Each data point is a clue — find distortions and see what they tell us about fairness. Later, you'll do the same for Gender and Age to check for bias across all groups.",
+        "mod6_what_note": "We focus on these three variables because they are commonly protected groups, and unfair treatment of any of them can lead to serious bias and unfair outcomes in AI decisions.",
+        
+        # Module 7 - Evidence Scan Race
+        "mod7_badge": "STEP 2: COLLECT EVIDENCE — Look for Unfair Patterns in the Data",
+        "mod7_title": "The Data Forensics Analysis: Race",
+        "mod7_intro": "Start by checking racial patterns. Compare how African-Americans appear in the dataset versus the real population. Big gaps may show bias that could affect AI predictions.",
+        "mod7_scan_button": "📡 SCAN: Race (African-American) — Click to reveal analysis",
+        "mod7_check_title": "What this scan checks",
+        "mod7_check_text": "We compare the share of African‑Americans in the <strong>local population</strong> vs their share in the <strong>COMPAS training dataset</strong>. Large gaps point to <em>historical or sampling bias</em> and may lead to unfair flagging.",
+        "mod7_context": "We know that in this local jurisdiction, African-Americans make up roughly 28% of the total population. If the data is unbiased, the \"Evidence Files\" should roughly match that number.",
+        "mod7_chart_title": "📊 Comparison Bars",
+        "mod7_pop_reality": "Population Reality: ~28% African-American",
+        "mod7_data_reality": "Dataset Reality: <strong style='color:#ef4444;'>51% African-American</strong>",
+        "mod7_analysis_title": "🔍 Detective's Analysis",
+        "mod7_analysis_main": "The dataset is 51% African-American. That is <strong>almost twice</strong> their representation in the local population.",
+        "mod7_analysis_means": "<strong>What it likely means:</strong> historical over‑policing or sampling bias concentrated in certain neighborhoods.",
+        "mod7_analysis_matters": "<strong>Why it matters:</strong> the model may learn to flag African‑Americans more often simply because it saw more cases.",
+        "mod7_analysis_next": "<strong>Next check:</strong> compare false high and low prediction rates by race to see if error gaps confirm Justice & Equity risks.",
+        "mod7_source": "Source context: ProPublica's COMPAS dataset is widely used to study fairness in criminal risk scoring. It helps us see how data patterns can shape model behavior — for better or worse.",
+        
+        # Module 8 - Evidence Scan Gender
+        "mod8_badge": "STEP 2: COLLECT EVIDENCE — Look for Unfair Patterns in the Data",
+        "mod8_title": "The Data Forensics Analysis: Gender",
+        "mod8_intro": "Next, look at gender. Compare the number of males and females in the dataset to the real population. Large differences may indicate the AI could treat one gender less fairly.",
+        "mod8_scan_button": "📡 SCAN: Gender — Click to reveal analysis",
+        "mod8_check_title": "What this scan checks",
+        "mod8_check_text": "We compare the gender split in the <strong>local population (Broward County, Florida, USA)</strong> (≈50/50) vs the <strong>COMPAS dataset</strong>. Large gaps signal <em>sampling or historical bias</em> that can influence how the model treats men vs women.",
+        "mod8_context": "We are now scanning for gender balance. In the real world, the population is roughly 50/50. A fair training set is more likely to reflect this balance.",
+        "mod8_chart_title": "📊 Comparison Bars",
+        "mod8_pop_reality": "Population Reality: ~50% Female, ~50% Male",
+        "mod8_data_reality": "Dataset Reality: <strong style='color:#ef4444;'>20% Female</strong>, 80% Male",
+        "mod8_analysis_title": "🔍 Detective's Analysis",
+        "mod8_analysis_main": "The dataset is only 20% female, but men and women split the population roughly 50/50.",
+        "mod8_analysis_means": "<strong>What it likely means:</strong> women are underrepresented in the dataset—possibly due to historical policies that targeted men.",
+        "mod8_analysis_matters": "<strong>Why it matters:</strong> the model sees few women, so it may have more difficulty predicting accurately for them (higher error gaps).",
+        "mod8_analysis_next": "<strong>Next check:</strong> compare false positive/negative rates by gender to see if data balance affects fairness.",
+        "mod8_source": "Source context: ProPublica's investigation of COMPAS exposed fairness gaps based on race and gender. This became a key case study for algorithmic justice.",
+        
+        # Module 9 - Evidence Scan Age
+        "mod9_badge": "STEP 2: COLLECT EVIDENCE — Look for Unfair Patterns in the Data",
+        "mod9_title": "The Data Forensics Analysis: Age",
+        "mod9_intro": "Finally, check age. Compare how ages are distributed in the dataset with the real population. If the dataset focuses too much on specific age groups, the model may estimate risk poorly for others.",
+        "mod9_scan_button": "📡 SCAN: Age — Click to reveal analysis",
+        "mod9_check_title": "What this scan checks",
+        "mod9_check_text": "We compare the age distribution in the <strong>local population</strong> vs the <strong>COMPAS dataset</strong>. Sampling bias or missing data for some age groups can distort risk predictions.",
+        "mod9_context": "We are now scanning for age balance. If the dataset focuses only on young people and ignores other age groups, the model may underestimate or overestimate risk for middle-age or older.",
+        "mod9_chart_title": "📊 Comparison Bars",
+        "mod9_pop_reality": "Population Reality: Wide age distribution (18-70+)",
+        "mod9_data_reality": "Dataset Reality: <strong style='color:#ef4444;'>Overrepresentation of 18-25 years</strong>",
+        "mod9_analysis_title": "🔍 Detective's Analysis",
+        "mod9_analysis_main": "The dataset shows a strong peak in young adults (18-25), but older age groups are underrepresented.",
+        "mod9_analysis_means": "<strong>What it likely means:</strong> sampling bias—policing policies focusing on young population, ignoring other ages.",
+        "mod9_analysis_matters": "<strong>Why it matters:</strong> the model may predict risk less reliably for older age groups (limited data leads to higher error gaps).",
+        "mod9_analysis_next": "<strong>Next check:</strong> compare error rates by age group to see if data gaps create fairness gaps.",
+        "mod9_source": "Source context: The COMPAS dataset has been criticized for its skewed age distribution, which can amplify unfair risks for underrepresented groups.",
+        
+        # Module 10 - Data Forensics Conclusion
+        "mod10_badge": "DATA FORENSICS INVESTIGATION: COMPLETE",
+        "mod10_title": "📋 Evidence Board: What We Found",
+        "mod10_intro": "You've completed your first forensic scan. You checked three demographic variables—Race, Gender, and Age—and found distortions that could create unfair outcomes.",
+        "mod10_evidence_title": "🗂️ Summary of Key Findings",
+        "mod10_evidence1_title": "📂 Race",
+        "mod10_evidence1_text": "African-Americans overrepresented (51% data vs 28% population) → risk of biased flagging.",
+        "mod10_evidence2_title": "📂 Gender",
+        "mod10_evidence2_text": "Women underrepresented (20% data vs 50% population) → risk of higher error gaps for women.",
+        "mod10_evidence3_title": "📂 Age",
+        "mod10_evidence3_text": "Young adults overrepresented (peak 18-25) → less reliable predictions for older age groups.",
+        "mod10_patterns_title": "🔍 The Patterns We See",
+        "mod10_patterns_text": "These imbalances are not coincidences. They reflect real historical policies—like over-policing in certain neighborhoods or targeting specific demographic groups. When data reflects these biased practices, the model learns them as if they were normal.",
+        "mod10_next_title": "⏭️ Next Move",
+        "mod10_next_text": "You've collected the initial evidence. The next step is to <strong>prove the prediction error</strong>: compare how well the model predicts for different groups and see if data gaps translate into error gaps that violate Justice & Equity.",
+        "mod10_congrats_title": "🎉 Well Done, Detective!",
+        "mod10_congrats_text": "You've completed the first phase of your investigation. Scroll down to proceed to the next step of your mission.",
+        
+        # Module 11 - Mission Complete
+        "mod11_title": "🎉 PART 1 MISSION COMPLETE: Initial Data Investigation Complete",
+        "mod11_congrats": "Congratulations, Detective! You've completed your first bias hunt.",
+        "mod11_roadmap_title": "🔍 Your Investigation Roadmap—What You've Accomplished",
+        "mod11_step1_title": "Step 1: Learn the Rules",
+        "mod11_step1_text": "✅ COMPLETE—You learned the Justice & Equity principle and the three bias types (Representation, Error Gaps, Outcome Disparities).",
+        "mod11_step2_title": "Step 2: Collect Evidence",
+        "mod11_step2_text": "✅ COMPLETE—You scanned the data for Race, Gender, and Age, and found distortions that could lead to unfair outcomes.",
+        "mod11_step3_title": "Step 3: Prove the Prediction Error",
+        "mod11_step3_text": "⏭️ NEXT—You'll now check if the model makes more mistakes with some groups (error gaps) and if those errors violate Justice & Equity.",
+        "mod11_step4_title": "Step 4: Diagnose Harm",
+        "mod11_step4_text": "⏭️ UPCOMING—Finally, you'll explain how these patterns could impact real people and what solutions can help.",
+        "mod11_next_title": "🔜 What comes next",
+        "mod11_next_text": "Part 2 will walk you through <strong>Proving the Prediction Error</strong>. You'll examine whether the data distortions you found translate into model errors that treat groups unequally. This is the core of bias investigation: not just finding biased data, but <strong>demonstrating it leads to unfair predictions</strong>.",
+        "mod11_cta": "Scroll down and click the button below to complete this activity and proceed to Part 2.",
+    },
+    "es": {
+        # Loading and auth messages
+        "loading_auth": "🕵️‍♀️ Autenticando...",
+        "loading_sync": "Sincronizando datos de la Brújula Moral...",
+        "auth_failed": "⚠️ Autenticación fallida. Inicia desde el enlace del curso.",
+        "loading_text": "Cargando...",
+        
+        # Navigation buttons  
+        "btn_previous": "⬅️ Anterior",
+        "btn_next": "Siguiente ▶️",
+        "btn_completed_part1": "🎉 ¡Has completado la Parte 1! (Continúa a la Siguiente Actividad)",
+        
+        # Quiz labels
+        "quiz_select_answer": "Selecciona la respuesta:",
+        "quiz_incorrect": "❌ Incorrecta. Revisa la evidencia de arriba.",
+        
+        # Dashboard labels
+        "lbl_score": "Puntuación",
+        "lbl_rank": "Rango",
+        "lbl_team_rank": "Rango del Equipo",
+        "lbl_progress": "Progreso",
+        "lbl_teams": "Equipos",
+        "lbl_users": "Usuarios",
+        
+        # Slider labels
+        "slider_label": "Progreso Ético Simulado %",
+        "slider_accuracy": "Tu precisión actual (de la tabla de clasificación):",
+        "slider_progress": "Progreso Ético Simulado %:",
+        "slider_score": "Puntuación de Brújula Moral Simulada:",
+        
+        # Module 1 - Your Mission
+        "mod1_title": "🕵️ Tu Nueva Misión: Investigar el Sesgo Oculto de la IA",
+        "mod1_intro": "Se te ha concedido acceso a un modelo de IA que <em>parece</em> seguro, pero la información histórica de la que aprendió puede incluir patrones injustos. Tu trabajo es <strong>recopilar evidencia</strong>, <strong>detectar patrones ocultos</strong> y <strong>mostrar dónde el sistema podría ser injusto</strong> antes de que alguien confíe en sus predicciones.",
+        "mod1_detective": "🔎 Ahora Eres un <span style='color:#1d4ed8;'>Detective de Sesgos</span>",
+        "mod1_job": "Tu trabajo es descubrir sesgos ocultos dentro de los sistemas de IA, detectando patrones injustos que otros podrían pasar por alto y protegiendo a las personas de predicciones dañinas.",
+        "mod1_roadmap": "🔍 Tu Hoja de Ruta de Investigación",
+        "mod1_step1": "Paso 1: Aprender las Reglas",
+        "mod1_step1_desc": "Comprender qué cuenta realmente como sesgo.",
+        "mod1_step2": "Paso 2: Recopilar Evidencia",
+        "mod1_step2_desc": "Mirar dentro de los datos de los que aprendió el modelo para encontrar patrones sospechosos.",
+        "mod1_step3": "Paso 3: Probar el Error de Predicción",
+        "mod1_step3_desc": "Usar la evidencia para mostrar si el modelo trata a los grupos injustamente.",
+        "mod1_step4": "Paso 4: Diagnosticar el Daño",
+        "mod1_step4_desc": "Explicar cómo esos patrones podrían impactar a personas reales.",
+        "mod1_why": "⭐ Por Qué Esto Importa",
+        "mod1_why_text": "Los sistemas de IA aprenden de la historia. Si los datos pasados contienen patrones injustos, el modelo puede copiarlos a menos que alguien detecte el problema. <strong>Ese alguien eres tú: el Detective de Sesgos.</strong> Tu capacidad para reconocer sesgos ayudará a desbloquear tu Puntuación de Brújula Moral y dar forma al comportamiento del modelo.",
+        "mod1_next": "<strong>Tu Próximo Movimiento:</strong> Antes de comenzar a examinar los datos, necesitas comprender las reglas de la investigación. Desplázate hacia abajo para elegir tu primer paso.",
+        
+        # Module 2 - Intelligence Briefing
+        "mod2_badge": "PASO 1: APRENDER LAS REGLAS — Comprender qué cuenta realmente como sesgo",
+        "mod2_title": "⚖️ Justicia y Equidad: Tu Regla Principal",
+        "mod2_intro1": "Antes de comenzar nuestra investigación, necesitamos conocer las reglas. La ética no es abstracta aquí—es nuestra <strong>guía de campo para la acción</strong>.",
+        "mod2_intro2": "No adivinamos qué es correcto o incorrecto; confiamos en el <strong>consejo de expertos</strong>. Utilizaremos la orientación de los expertos del Observatorio Catalán de Ética en IA <strong>OEIAC (UdG)</strong>, que ayudan a garantizar que los sistemas de IA sean justos y responsables.",
+        "mod2_intro3": "Aunque han establecido siete principios fundamentales para mantener la IA segura, nuestra inteligencia sugiere que este caso específico implica una violación del principio de <strong>Justicia y Equidad</strong>.",
+        "mod2_principles_title": "🗺️ Principios en Acción",
+        "mod2_principles_intro": "Los principios éticos son el <strong>primer paso</strong> en tu hoja de ruta. Traducen el concepto abstracto de \"justicia\" en pasos concretos para un detective:",
+        "mod2_flow_principles": "Principios",
+        "mod2_flow_evidence": "Evidencia",
+        "mod2_flow_tests": "Pruebas",
+        "mod2_flow_judgment": "Juicio",
+        "mod2_flow_fixes": "Soluciones",
+        "mod2_principles_text": "Los principios definen la <strong>evidencia que debes recopilar</strong> y las <strong>pruebas que debes ejecutar</strong>. Son cruciales porque <strong>crean estándares claros y compartidos para la evaluación y hacen que los hallazgos sean fáciles de explicar</strong> a todos. En este caso, tu evidencia y pruebas mostrarán claramente qué cuenta como sesgo cuando mires los datos del modelo y los resultados finales.",
+        "mod2_justice_title": "🧩 Justicia y Equidad — Qué Cuenta como Sesgo",
+        "mod2_justice_badge": "Prioridad en este caso",
+        "mod2_justice_intro": "Para garantizar la justicia, nos centramos en tres tipos de sesgo <strong>medibles</strong>:",
+        "mod2_bias1_title": "Sesgo de Representación",
+        "mod2_bias1_desc": "Compara la distribución del conjunto de datos con la <strong>población real del mundo real.</strong>",
+        "mod2_bias1_example": "Si un grupo aparece mucho menos o mucho más que la realidad (por ejemplo, solo el <strong>10%</strong> de los casos son del Grupo A, pero el grupo es el <strong>71%</strong> de la población), la IA puede no tener suficientes datos para aprender a hacer predicciones precisas e imparciales.",
+        "mod2_bias2_title": "Brechas de Error",
+        "mod2_bias2_desc": "Verifica los errores de predicción de IA por subgrupo.",
+        "mod2_bias2_example": "Compara la tasa de falsos positivos para el Grupo A vs. el Grupo B. Un error mayor para un grupo puede significar un trato injusto, lo que muestra que el modelo es menos confiable o preciso para ese grupo específico.",
+        "mod2_bias3_title": "Patrones de Daño",
+        "mod2_bias3_desc": "Identifica cuándo el sesgo conduce a un daño real.",
+        "mod2_bias3_example": "No todos los errores crean el mismo daño. Si los falsos positivos causan arrestos o negación de empleo, debes medir quién resulta más perjudicado y si el daño recae desigualmente en los grupos.",
+        
+        # Module 3 - The Stakes
+        "mod3_badge": "PASO 1: APRENDER LAS REGLAS — Comprender qué cuenta realmente como sesgo",
+        "mod3_title": "⚠️ El Riesgo del Sesgo Invisible",
+        "mod3_intro1": "Podrías preguntar: <strong>\"¿Por qué es tan importante una investigación de sesgo de IA?\"</strong>",
+        "mod3_intro2": "Cuando un juez humano tiene sesgos, a veces puedes verlo en sus palabras o acciones. Pero con la IA, el sesgo está oculto detrás de números limpios. El modelo produce una <strong>\"puntuación de riesgo de reincidencia\"</strong> de aspecto ordenado, y la gente a menudo asume que es neutral y objetiva, incluso cuando los datos debajo están sesgados.",
+        "mod3_ripple_title": "🌊 El Efecto Dominó",
+        "mod3_ripple_formula": "1 Algoritmo Defectuoso → 10,000 Sentencias Potencialmente Injustas",
+        "mod3_ripple_text": "Una vez que se implementa un modelo de riesgo criminal sesgado, no solo toma una mala decisión. Puede repetir silenciosamente el mismo patrón injusto en <strong>miles de casos</strong>, dando forma a la libertad bajo fianza, las sentencias y la libertad futura de personas reales.",
+        "mod3_detective_title": "🔎 Por Qué el Mundo Necesita Detectives de Sesgos",
+        "mod3_detective_text": "Porque el sesgo de IA es silencioso y escalado, la mayoría de las personas nunca lo ven sucediendo. Ahí es donde entras <strong>tú</strong>, como <strong>Detective de Sesgos</strong>. Tu función es mirar más allá de la puntuación de riesgo pulida, rastrear cómo el modelo está usando datos sesgados y mostrar dónde podría estar tratando a los grupos injustamente.",
+        "mod3_next": "A continuación, comenzarás a escanear la <strong>evidencia</strong> dentro de los datos: quién aparece en el conjunto de datos, con qué frecuencia y qué significa eso para las puntuaciones de riesgo que reciben las personas. No solo estás aprendiendo sobre el sesgo, estás aprendiendo cómo <strong>detectarlo</strong>.",
+        
+        # Module 4 - Detective's Method
+        "mod4_badge": "PASO 2: RECOPILAR EVIDENCIA — Buscar Patrones Injustos en los Datos",
+        "mod4_title": "🔎 De las Reglas a la Evidencia",
+        "mod4_intro_title": "De las Reglas a la Evidencia",
+        "mod4_intro_text": "Has aprendido el principio principal—<strong>Justicia y Equidad</strong>—que establece las reglas para tu investigación. Ahora aplicamos esas reglas a los hechos. Recopilar evidencia de las tres categorías de sesgo (Representación, Brechas de Error y Disparidades de Resultados) es el comienzo para encontrar patrones que señalan trato injusto.",
+        "mod4_begin": "<strong>¿Pero por dónde deberías comenzar tu investigación?</strong> No puedes interrogar al sistema de IA. No confesará. Para encontrar sesgos, tenemos que buscar el rastro de evidencia que deja atrás.<br><br>Si estuvieras investigando a un <strong>Juez</strong> sospechoso, buscarías: <strong>¿a quién acusan con más frecuencia, con quién cometen más errores y si sus decisiones perjudican más a algunas personas que a otras?</strong>",
+        "mod4_checklist_title": "🗂️ La Lista de Verificación de la Investigación",
+        "mod4_folder1_title": "📂 Carpeta 1: \"¿Quién está siendo acusado?\"",
+        "mod4_folder1_action": "→ <strong>Acción:</strong> Revisar el Historial (¿Está un grupo sobre-representado vs la realidad?)<br>→ <strong>Revelar:</strong> <strong>Sesgo de Representación</strong>—si los porcentajes de grupo en los datos usados para entrenar el modelo no coinciden con el mundo real.",
+        "mod4_folder2_title": "📂 Carpeta 2: \"¿Quién está siendo acusado injustamente?\"",
+        "mod4_folder2_action": "→ <strong>Acción:</strong> Revisar los Errores (¿Son mayores los errores de predicción para un grupo?)<br>→ <strong>Revelar:</strong> <strong>Brechas de Error</strong> —si la tasa de error es significativamente mayor para un grupo.",
+        "mod4_folder3_title": "📂 Carpeta 3: \"¿Quién está siendo perjudicado?\"",
+        "mod4_folder3_action": "→ <strong>Acción:</strong> Revisar el Castigo (¿Las salidas del modelo conducen a peores resultados reales para un grupo?)<br>→ <strong>Revelar:</strong> <strong>Disparidades de Resultados</strong>—si un grupo recibe resultados del mundo real significativamente peores (p. ej., sentencias más duras o rechazos de préstamos).",
+        "mod4_next_title": "✅ Próximo movimiento",
+        "mod4_next_text": "Has identificado los tres tipos de evidencia necesarios. Ahora, es hora de ponerte los guantes. El <strong>Informe de Análisis de Datos</strong> te guiará a través del proceso de examinar los datos sin procesar para detectar las formas iniciales más comunes de injusticia: <strong>distorsiones de datos</strong> que conducen a <strong>Sesgo de Representación.</strong>",
+        
+        # Module 5 - Data Forensics Briefing
+        "mod5_badge": "PASO 2: RECOPILAR EVIDENCIA — Buscar Patrones Injustos en los Datos",
+        "mod5_title": "El Informe de Análisis de Datos",
+        "mod5_intro": "Estás a punto de acceder a los archivos de evidencia sin procesar. Pero ten cuidado: La IA piensa que estos datos son la verdad.",
+        "mod5_warning": "Si el conjunto de datos tiene sesgos incorporados, la IA aprenderá a tratar esos sesgos como hechos. Tu trabajo es escanear el conjunto de datos antes de que el modelo aprenda de él, para que podamos detectar problemas de datos <em>antes</em> de que se conviertan en patrones de predicción.",
+        "mod5_framework_title": "🧩 Tu Marco de Tres Preguntas",
+        "mod5_framework_intro": "Al mirar cualquier conjunto de datos, siempre haz tres preguntas críticas:",
+        "mod5_q1": "<strong>¿Quién aparece en los datos?</strong> (¿Están algunos grupos sobre o sub-representados?)",
+        "mod5_q2": "<strong>¿Cómo se describen?</strong> (¿El conjunto de datos lleva sesgo histórico, como estereotipos antiguos o patrones de error desiguales?)",
+        "mod5_q3": "<strong>¿Qué falta?</strong> (¿Hay brechas importantes o grupos importantes excluidos por completo?)",
+        "mod5_raw_data": "Si encuentras números sesgados, grupos faltantes o patrones distorsionados, estás viendo la semilla de un modelo sesgado—uno que podría producir resultados injustos sin importar qué tan bien se entrene.",
+        "mod5_proceed_title": "↓ Proceder a los Escaneos de Evidencia ↓",
+        "mod5_proceed_text": "Ahora tienes el marco. Los datos están frente a ti. Desplázate hacia abajo para comenzar tu escaneo forense. Examinaremos <strong>Raza</strong>, <strong>Género</strong> y <strong>Edad</strong>—y veremos si algún grupo está siendo mal representado.",
+        
+        # Module 0 - Moral Compass Intro
+        "mod0_title": "🧭 Presentamos tu Nueva Puntuación de Brújula Moral",
+        "mod0_p1": "Ahora mismo, tu modelo se juzga principalmente por su <strong>precisión</strong>. Eso suena justo, pero la precisión por sí sola puede ocultar riesgos importantes, especialmente cuando un modelo se usa para tomar decisiones sobre personas reales.",
+        "mod0_p2": "Para hacer ese riesgo visible, este desafío usa una nueva métrica: tu <strong>Puntuación de Brújula Moral</strong>.",
+        "mod0_how_title": "1. Cómo Funciona tu Puntuación de Brújula Moral",
+        "mod0_formula": "<strong>Puntuación de Brújula Moral</strong> =<br><br><span style='color:var(--color-accent); font-weight:bold;'>[ Precisión del Modelo ]</span> × <span style='color:#22c55e; font-weight:bold;'>[ Progreso Ético % ]</span>",
+        "mod0_formula_exp": "Tu precisión es el punto de partida. Tu <strong>Progreso Ético %</strong> refleja qué tan lejos has llegado en comprender y reducir el sesgo y el daño de la IA. Cuanto más avances en este desafío, más de tu precisión \"cuenta\" para tu Puntuación de Brújula Moral.",
+        "mod0_grows_title": "2. Una Puntuación que Crece Contigo",
+        "mod0_grows_text": "Tu puntuación es <strong>dinámica</strong>. A medida que completas más módulos y demuestras mejor juicio sobre equidad, tu <strong>Progreso Ético %</strong> aumenta. Eso desbloquea más de la precisión base de tu modelo en la Puntuación de Brújula Moral.",
+        "mod0_look_title": "3. Mira Arriba. Mira Abajo.",
+        "mod0_look_up": "<strong>Mira arriba:</strong> La barra superior muestra tu Puntuación de Brújula Moral y rango en vivo. A medida que tu Progreso Ético aumenta, verás tu puntuación moverse en tiempo real.",
+        "mod0_look_down": "<strong>Mira abajo:</strong> Las tablas de clasificación a continuación reclasifican a equipos e individuos a medida que las personas avanzan. Cuando mejoras tu progreso ético, no solo cambias tu puntuación, cambias tu posición.",
+        "mod0_try_title": "4. Pruébalo: Ve Cómo el Progreso Cambia tu Puntuación",
+        "mod0_try_text": "A continuación, puedes mover un control deslizante para <strong>simular</strong> cómo cambiaría tu Puntuación de Brújula Moral a medida que tu <strong>Progreso Ético %</strong> aumenta. Esto te da una vista previa de cuánto impacto puede tener cada paso de tu progreso en tu puntuación final.",
+        
+        # Module 6 - Evidence Scan Explanation
+        "mod6_badge": "PASO 2: RECOPILAR EVIDENCIA — Buscar Patrones Injustos en los Datos",
+        "mod6_title": "El Análisis Forense de Datos:",
+        "mod6_scanning_title": "🗃️ ¿Qué estamos escaneando?",
+        "mod6_scanning_text": "Estamos examinando el <strong>conjunto de datos COMPAS</strong>, recopilado y analizado por periodistas de investigación de <strong>ProPublica</strong>. Contiene registros reales utilizados para puntuar el \"riesgo de reincidencia\" de una persona, incluyendo datos demográficos (raza, edad, género), cargos, historial previo y puntuaciones de riesgo.",
+        "mod6_scanning_note": "Si los <em>datos mismos</em> están sesgados (quién aparece, con qué frecuencia o qué se registra), el modelo puede aprender esos patrones como \"verdad\". El escaneo nos ayuda a detectar distorsiones que pueden violar <strong>Justicia y Equidad</strong>.",
+        "mod6_how_title": "🛠️ Cómo Funciona el ESCANEO",
+        "mod6_how_text": "Haz clic en <strong>ESCANEAR</strong> para ejecutar un análisis rápido del grupo demográfico seleccionado. El escaneo:",
+        "mod6_how_item1": "Compara la participación del grupo en la <strong>población local</strong> (Condado de Broward, Florida, EUA) vs el <strong>conjunto de datos</strong>.",
+        "mod6_how_item2": "Revela <strong>barras visuales</strong> mostrando la brecha (población vs conjunto de datos).",
+        "mod6_how_item3": "Descubre un <strong>Análisis del Detective</strong> explicando qué significa la brecha para <strong>Justicia y Equidad</strong> y qué revisar después.",
+        "mod6_what_title": "Qué vas a ESCANEAR",
+        "mod6_what_text": "Tu primera tarea es examinar patrones raciales en el conjunto de datos COMPAS. Cada punto de datos es una pista—encuentra distorsiones y mira qué nos dicen sobre equidad. Más tarde, harás lo mismo para Género y Edad para verificar sesgos en todos los grupos.",
+        "mod6_what_note": "Nos enfocamos en estas tres variables porque son grupos comúnmente protegidos, y el trato injusto de cualquiera de ellos puede conducir a un sesgo serio y resultados injustos en decisiones de IA.",
+        
+        # Module 7 - Evidence Scan Race
+        "mod7_badge": "PASO 2: RECOPILAR EVIDENCIA — Buscar Patrones Injustos en los Datos",
+        "mod7_title": "El Análisis Forense de Datos: Raza",
+        "mod7_intro": "Comienza verificando patrones raciales. Compara cómo aparecen los afroamericanos en el conjunto de datos versus la población real. Grandes brechas pueden mostrar sesgos que podrían afectar las predicciones de IA.",
+        "mod7_scan_button": "📡 ESCANEAR: Raza (Afroamericano) — Haz clic para revelar el análisis",
+        "mod7_check_title": "Qué verifica este escaneo",
+        "mod7_check_text": "Comparamos la participación de afroamericanos en la <strong>población local</strong> vs su participación en el <strong>conjunto de entrenamiento COMPAS</strong>. Grandes brechas apuntan a <em>sesgo histórico o de muestreo</em> y pueden conducir a marcado injusto.",
+        "mod7_context": "Sabemos que en esta jurisdicción local, los afroamericanos representan aproximadamente el 28% de la población total. Si los datos son imparciales, los \"Archivos de Evidencia\" deberían coincidir aproximadamente con este número.",
+        "mod7_chart_title": "📊 Barras de Comparación",
+        "mod7_pop_reality": "Realidad de la Población: ~28% Afroamericano",
+        "mod7_data_reality": "Realidad del Conjunto de Datos: <strong style='color:#ef4444;'>51% Afroamericano</strong>",
+        "mod7_analysis_title": "🔍 Análisis del Detective",
+        "mod7_analysis_main": "El conjunto de datos es 51% afroamericano. Eso es <strong>casi el doble</strong> de su representación en la población local.",
+        "mod7_analysis_means": "<strong>Qué probablemente significa:</strong> exceso de policía histórico o sesgo de muestreo concentrado en ciertos barrios.",
+        "mod7_analysis_matters": "<strong>Por qué importa:</strong> el modelo puede aprender a marcar afroamericanos más a menudo simplemente porque vio más casos.",
+        "mod7_analysis_next": "<strong>Siguiente verificación:</strong> comparar tasas de predicción falsa alta y baja por raza para ver si las brechas de error confirman riesgos de Justicia y Equidad.",
+        "mod7_source": "Contexto de la fuente: El conjunto de datos COMPAS de ProPublica se usa ampliamente para estudiar la equidad en la puntuación de riesgo criminal. Nos ayuda a ver cómo los patrones de datos pueden dar forma al comportamiento del modelo, para bien o para mal.",
+        
+        # Module 8 - Evidence Scan Gender
+        "mod8_badge": "PASO 2: RECOPILAR EVIDENCIA — Buscar Patrones Injustos en los Datos",
+        "mod8_title": "El Análisis Forense de Datos: Género",
+        "mod8_intro": "A continuación, examina el género. Compara el número de hombres y mujeres en el conjunto de datos con la población real. Grandes diferencias pueden indicar que la IA podría tratar un género menos justamente.",
+        "mod8_scan_button": "📡 ESCANEAR: Género — Haz clic para revelar el análisis",
+        "mod8_check_title": "Qué verifica este escaneo",
+        "mod8_check_text": "Comparamos la división de género en la <strong>población local (Condado de Broward, Florida, EUA)</strong> (≈50/50) vs el <strong>conjunto de datos COMPAS</strong>. Grandes brechas señalan <em>sesgo de muestreo o histórico</em> que puede influir en cómo el modelo trata hombres vs mujeres.",
+        "mod8_context": "Ahora escaneamos por equilibrio de género. En el mundo real, la población es aproximadamente 50/50. Un conjunto de entrenamiento justo es más probable que refleje este equilibrio.",
+        "mod8_chart_title": "📊 Barras de Comparación",
+        "mod8_pop_reality": "Realidad de la Población: ~50% Femenino, ~50% Masculino",
+        "mod8_data_reality": "Realidad del Conjunto de Datos: <strong style='color:#ef4444;'>20% Femenino</strong>, 80% Masculino",
+        "mod8_analysis_title": "🔍 Análisis del Detective",
+        "mod8_analysis_main": "El conjunto de datos es solo 20% femenino, pero hombres y mujeres dividen la población aproximadamente al 50%.",
+        "mod8_analysis_means": "<strong>Qué probablemente significa:</strong> las mujeres están subrepresentadas en el conjunto de datos—posiblemente debido a políticas históricas que apuntaron a hombres.",
+        "mod8_analysis_matters": "<strong>Por qué importa:</strong> el modelo ve pocas mujeres, así que puede tener más dificultad para predecir con precisión para ellas (mayores brechas de error).",
+        "mod8_analysis_next": "<strong>Siguiente verificación:</strong> comparar tasas de falsos positivos/negativos por género para ver si el equilibrio de datos afecta la equidad.",
+        "mod8_source": "Contexto de la fuente: La investigación de ProPublica sobre COMPAS expuso brechas de equidad basadas en raza y género. Esto se convirtió en un caso de estudio clave para la justicia algorítmica.",
+        
+        # Module 9 - Evidence Scan Age
+        "mod9_badge": "PASO 2: RECOPILAR EVIDENCIA — Buscar Patrones Injustos en los Datos",
+        "mod9_title": "El Análisis Forense de Datos: Edad",
+        "mod9_intro": "Finalmente, verifica la edad. Compara cómo están distribuidas las edades en el conjunto de datos con la población real. Si el conjunto de datos se enfoca demasiado en grupos de edad específicos, el modelo puede estimar mal el riesgo para otros.",
+        "mod9_scan_button": "📡 ESCANEAR: Edad — Haz clic para revelar el análisis",
+        "mod9_check_title": "Qué verifica este escaneo",
+        "mod9_check_text": "Comparamos la distribución de edades en la <strong>población local</strong> vs el <strong>conjunto de datos COMPAS</strong>. El sesgo de muestreo o datos faltantes para algunos grupos de edad pueden distorsionar las predicciones de riesgo.",
+        "mod9_context": "Ahora escaneamos por equilibrio de edad. Si el conjunto de datos se enfoca solo en personas jóvenes e ignora otros grupos de edad, el modelo puede subestimar o sobreestimar el riesgo para edad mediana o mayor.",
+        "mod9_chart_title": "📊 Barras de Comparación",
+        "mod9_pop_reality": "Realidad de la Población: Distribución amplia de edades (18-70+)",
+        "mod9_data_reality": "Realidad del Conjunto de Datos: <strong style='color:#ef4444;'>Sobrerrepresentación de 18-25 años</strong>",
+        "mod9_analysis_title": "🔍 Análisis del Detective",
+        "mod9_analysis_main": "El conjunto de datos muestra un pico fuerte en adultos jóvenes (18-25), pero grupos de edad mayores están subrepresentados.",
+        "mod9_analysis_means": "<strong>Qué probablemente significa:</strong> sesgo de muestreo—políticas de policía enfocándose en población joven, ignorando otras edades.",
+        "mod9_analysis_matters": "<strong>Por qué importa:</strong> el modelo puede predecir riesgo menos confiablemente para grupos de edad mayores (datos limitados conducen a mayores brechas de error).",
+        "mod9_analysis_next": "<strong>Siguiente verificación:</strong> comparar tasas de error por grupo de edad para ver si las brechas de datos crean brechas de equidad.",
+        "mod9_source": "Contexto de la fuente: El conjunto de datos COMPAS ha sido criticado por su distribución sesgada de edad, que puede amplificar riesgos injustos para grupos subrepresentados.",
+        
+        # Module 10 - Data Forensics Conclusion
+        "mod10_badge": "INVESTIGACIÓN DE DATOS FORENSES: COMPLETA",
+        "mod10_title": "📋 Tabla de Evidencia: Qué Hemos Descubierto",
+        "mod10_intro": "Has completado tu primer escaneo forense. Has verificado tres variables demográficas—Raza, Género y Edad—y has encontrado distorsiones que podrían crear resultados injustos.",
+        "mod10_evidence_title": "🗂️ Resumen de los Hallazgos Clave",
+        "mod10_evidence1_title": "📂 Raza",
+        "mod10_evidence1_text": "Afroamericanos sobrerrepresentados (51% datos vs 28% población) → riesgo de marcado sesgado.",
+        "mod10_evidence2_title": "📂 Género",
+        "mod10_evidence2_text": "Mujeres subrepresentadas (20% datos vs 50% población) → riesgo de brechas de error más altas para mujeres.",
+        "mod10_evidence3_title": "📂 Edad",
+        "mod10_evidence3_text": "Jóvenes sobrerrepresentados (pico 18-25) → predicciones menos confiables para grupos de edad mayores.",
+        "mod10_patterns_title": "🔍 Los Patrones que Vemos",
+        "mod10_patterns_text": "Estos desequilibrios no son coincidencias. Reflejan políticas históricas reales—como exceso de policía en ciertos barrios o apuntar a grupos demográficos específicos. Cuando los datos reflejan estas prácticas sesgadas, el modelo las aprende como si fueran normales.",
+        "mod10_next_title": "⏭️ Siguiente Movimiento",
+        "mod10_next_text": "Has recopilado la evidencia inicial. El siguiente paso es <strong>probar el error de predicción</strong>: comparar qué tan bien el modelo predice para diferentes grupos y ver si las brechas de datos se traducen en brechas de error que violan Justicia y Equidad.",
+        "mod10_congrats_title": "🎉 ¡Bien Hecho, Detective!",
+        "mod10_congrats_text": "Has completado la primera fase de tu investigación. Desplázate hacia abajo para proceder al siguiente paso de tu misión.",
+        
+        # Module 11 - Mission Complete
+        "mod11_title": "🎉 MISIÓN PARTE 1 COMPLETA: Investigación de Datos Inicial Completada",
+        "mod11_congrats": "¡Felicidades, Detective! Has completado tu primer caso de búsqueda de sesgo.",
+        "mod11_roadmap_title": "🔍 Tu Mapa de Investigación—Qué Has Logrado",
+        "mod11_step1_title": "Paso 1: Aprender las Reglas",
+        "mod11_step1_text": "✅ COMPLETO—Has aprendido el principio de Justicia y Equidad y los tres tipos de sesgo (Representación, Brechas de Error, Disparidades de Resultados).",
+        "mod11_step2_title": "Paso 2: Recopilar Evidencia",
+        "mod11_step2_text": "✅ COMPLETO—Has escaneado los datos para Raza, Género y Edad, y has encontrado distorsiones que podrían conducir a resultados injustos.",
+        "mod11_step3_title": "Paso 3: Probar el Error de Predicción",
+        "mod11_step3_text": "⏭️ SIGUIENTE—Ahora verificarás si el modelo comete más errores con algunos grupos (brechas de error) y si estos errores violan Justicia y Equidad.",
+        "mod11_step4_title": "Paso 4: Diagnosticar el Daño",
+        "mod11_step4_text": "⏭️ PRÓXIMO—Finalmente, explicarás cómo estos patrones podrían impactar a personas reales y qué soluciones pueden ayudar.",
+        "mod11_next_title": "🔜 Qué viene después",
+        "mod11_next_text": "La Parte 2 te guiará a través de <strong>Probar el Error de Predicción</strong>. Examinarás si las distorsiones de datos que has encontrado se traducen en errores del modelo que tratan grupos de manera desigual. Este es el núcleo de la investigación de sesgo: no solo encontrar datos sesgados, sino <strong>demostrar que conducen a predicciones injustas</strong>.",
+        "mod11_cta": "Desplázate hacia abajo y haz clic en el botón de abajo para completar esta actividad y proceder a la Parte 2.",
+    },
+    "ca": {
+        # Loading and auth messages
+        "loading_auth": "🕵️‍♀️ Autenticant...",
+        "loading_sync": "Sincronitzant dades de la Brúixola Moral...",
+        "auth_failed": "⚠️ Autenticació fallida. Inicia des de l'enllaç del curs.",
+        "loading_text": "Carregant...",
+        
+        # Navigation buttons
+        "btn_previous": "⬅️ Anterior",
+        "btn_next": "Següent ▶️",
+        "btn_completed_part1": "🎉 Has completat la Part 1! (Continua a la Següent Activitat)",
+        
+        # Quiz labels
+        "quiz_select_answer": "Selecciona la resposta:",
+        "quiz_incorrect": "❌ Incorrecta. Revisa l'evidència de dalt.",
+        
+        # Dashboard labels
+        "lbl_score": "Puntuació",
+        "lbl_rank": "Rang",
+        "lbl_team_rank": "Rang de l'Equip",
+        "lbl_progress": "Progrés",
+        "lbl_teams": "Equips",
+        "lbl_users": "Usuaris",
+        
+        # Slider labels
+        "slider_label": "Progrés Ètic Simulat %",
+        "slider_accuracy": "La teva precisió actual (de la taula de classificació):",
+        "slider_progress": "Progrés Ètic Simulat %:",
+        "slider_score": "Puntuació de Brúixola Moral Simulada:",
+        
+        # Module 1 - Your Mission
+        "mod1_title": "🕵️ La Teva Nova Missió: Investigar el Biaix Ocult de la IA",
+        "mod1_intro": "Se t'ha concedit accés a un model d'IA que <em>sembla</em> segur, però la informació històrica de la qual va aprendre pot incloure patrons injustos. La teva feina és <strong>recopilar evidència</strong>, <strong>detectar patrons ocults</strong> i <strong>mostrar on el sistema podria ser injust</strong> abans que algú confiï en les seves prediccions.",
+        "mod1_detective": "🔎 Ara Ets un <span style='color:#1d4ed8;'>Detective de Biaixos</span>",
+        "mod1_job": "La teva feina és descobrir biaixos ocults dins dels sistemes d'IA, detectant patrons injustos que altres podrien passar per alt i protegint les persones de prediccions perjudicials.",
+        "mod1_roadmap": "🔍 La Teva Fulla de Ruta d'Investigació",
+        "mod1_step1": "Pas 1: Aprendre les Regles",
+        "mod1_step1_desc": "Comprendre què compta realment com a biaix.",
+        "mod1_step2": "Pas 2: Recopilar Evidència",
+        "mod1_step2_desc": "Mirar dins de les dades de les quals va aprendre el model per trobar patrons sospitosos.",
+        "mod1_step3": "Pas 3: Provar l'Error de Predicció",
+        "mod1_step3_desc": "Utilitzar l'evidència per mostrar si el model tracta els grups injustament.",
+        "mod1_step4": "Pas 4: Diagnosticar el Dany",
+        "mod1_step4_desc": "Explicar com aquests patrons podrien impactar persones reals.",
+        "mod1_why": "⭐ Per Què Això Importa",
+        "mod1_why_text": "Els sistemes d'IA aprenen de la història. Si les dades passades contenen patrons injustos, el model pot copiar-los tret que algú detecti el problema. <strong>Aquesta persona ets tu: el Detective de Biaixos.</strong> La teva capacitat per reconèixer biaixos ajudarà a desbloquejar la teva Puntuació de Brúixola Moral i donar forma al comportament del model.",
+        "mod1_next": "<strong>El Teu Proper Moviment:</strong> Abans de començar a examinar les dades, necessites comprendre les regles de la investigació. Desplaça't cap avall per triar el teu primer pas.",
+        
+        # Module 2 - Intelligence Briefing
+        "mod2_badge": "PAS 1: APRENDRE LES REGLES — Comprendre què compta realment com a biaix",
+        "mod2_title": "⚖️ Justícia i Equitat: La Teva Regla Principal",
+        "mod2_intro1": "Abans de començar la nostra investigació, necessitem conèixer les regles. L'ètica no és abstracta aquí—és la nostra <strong>guia de camp per a l'acció</strong>.",
+        "mod2_intro2": "No endevinem què és correcte o incorrecte; confiem en el <strong>consell d'experts</strong>. Utilitzarem l'orientació dels experts de l'Observatori Català d'Ètica en IA <strong>OEIAC (UdG)</strong>, que ajuden a garantir que els sistemes d'IA siguin justos i responsables.",
+        "mod2_intro3": "Tot i que han establert set principis fonamentals per mantenir la IA segura, la nostra intel·ligència suggereix que aquest cas específic implica una violació del principi de <strong>Justícia i Equitat</strong>.",
+        "mod2_principles_title": "🗺️ Principis en Acció",
+        "mod2_principles_intro": "Els principis ètics són el <strong>primer pas</strong> en la teva fulla de ruta. Tradueixen el concepte abstracte de \"justícia\" en passos concrets per a un detective:",
+        "mod2_flow_principles": "Principis",
+        "mod2_flow_evidence": "Evidència",
+        "mod2_flow_tests": "Proves",
+        "mod2_flow_judgment": "Judici",
+        "mod2_flow_fixes": "Solucions",
+        "mod2_principles_text": "Els principis defineixen l'<strong>evidència que has de recopilar</strong> i les <strong>proves que has d'executar</strong>. Són crucials perquè <strong>creen estàndards clars i compartits per a l'avaluació i fan que les troballes siguin fàcils d'explicar</strong> a tothom. En aquest cas, la teva evidència i proves mostraran clarament què compta com a biaix quan miris les dades del model i els resultats finals.",
+        "mod2_justice_title": "🧩 Justícia i Equitat — Què Compta com a Biaix",
+        "mod2_justice_badge": "Prioritat en aquest cas",
+        "mod2_justice_intro": "Per garantir la justícia, ens centrem en tres tipus de biaix <strong>mesurables</strong>:",
+        "mod2_bias1_title": "Biaix de Representació",
+        "mod2_bias1_desc": "Compara la distribució del conjunt de dades amb la <strong>població real del món real.</strong>",
+        "mod2_bias1_example": "Si un grup apareix molt menys o molt més que la realitat (per exemple, només el <strong>10%</strong> dels casos són del Grup A, però el grup és el <strong>71%</strong> de la població), la IA pot no tenir prou dades per aprendre a fer prediccions precises i imparcials.",
+        "mod2_bias2_title": "Bretxes d'Error",
+        "mod2_bias2_desc": "Verifica els errors de predicció d'IA per subgrup.",
+        "mod2_bias2_example": "Compara la taxa de falsos positius per al Grup A vs. el Grup B. Un error major per a un grup pot significar un tracte injust, cosa que mostra que el model és menys fiable o precís per a aquest grup específic.",
+        "mod2_bias3_title": "Patrons de Dany",
+        "mod2_bias3_desc": "Identifica quan el biaix condueix a un dany real.",
+        "mod2_bias3_example": "No tots els errors creen el mateix dany. Si els falsos positius causen arrest o denegació de feina, has de mesurar qui resulta més perjudicat i si el dany recau desigualment en els grups.",
+        
+        # Module 3 - The Stakes
+        "mod3_badge": "PAS 1: APRENDRE LES REGLES — Comprendre què compta realment com a biaix",
+        "mod3_title": "⚠️ El Risc del Biaix Invisible",
+        "mod3_intro1": "Podries preguntar: <strong>\"Per què és tan important una investigació de biaix d'IA?\"</strong>",
+        "mod3_intro2": "Quan un jutge humà té biaixos, de vegades pots veure-ho en les seves paraules o accions. Però amb la IA, el biaix està ocult darrere de nombres nets. El model produeix una <strong>\"puntuació de risc de reincidència\"</strong> d'aspecte ordenat, i la gent sovint assumeix que és neutral i objectiva, fins i tot quan les dades a sota estan esbiaixades.",
+        "mod3_ripple_title": "🌊 L'Efecte Dòmino",
+        "mod3_ripple_formula": "1 Algoritme Defectuós → 10,000 Sentències Potencialment Injustes",
+        "mod3_ripple_text": "Una vegada que s'implementa un model de risc criminal esbiaixat, no només pren una mala decisió. Pot repetir silenciosament el mateix patró injust en <strong>milers de casos</strong>, donant forma a la llibertat sota fiança, les sentències i la llibertat futura de persones reals.",
+        "mod3_detective_title": "🔎 Per Què el Món Necessita Detectives de Biaixos",
+        "mod3_detective_text": "Perquè el biaix d'IA és silenciós i escalat, la majoria de les persones mai el veuen succeir. Aquí és on entres <strong>tu</strong>, com a <strong>Detective de Biaixos</strong>. La teva funció és mirar més enllà de la puntuació de risc polida, rastrejar com el model està usant dades esbiaixades i mostrar on podria estar tractant els grups injustament.",
+        "mod3_next": "A continuació, començaràs a escanejar l'<strong>evidència</strong> dins de les dades: qui apareix al conjunt de dades, amb quina freqüència i què significa això per a les puntuacions de risc que reben les persones. No només estàs aprenent sobre el biaix, estàs aprenent com <strong>detectar-lo</strong>.",
+        
+        # Module 4 - Detective's Method
+        "mod4_badge": "PAS 2: RECOPILAR EVIDÈNCIA — Buscar Patrons Injustos a les Dades",
+        "mod4_title": "🔎 De les Regles a l'Evidència",
+        "mod4_intro_title": "De les Regles a l'Evidència",
+        "mod4_intro_text": "Has après el principi principal—<strong>Justícia i Equitat</strong>—que estableix les regles per a la teva investigació. Ara apliquem aquestes regles als fets. Recopilar evidència de les tres categories de biaix (Representació, Bretxes d'Error i Disparitats de Resultats) és el començament per trobar patrons que assenyalen tracte injust.",
+        "mod4_begin": "<strong>Però per on hauries de començar la teva investigació?</strong> No pots interrogar el sistema d'IA. No confessarà. Per trobar biaixos, hem de buscar el rastre d'evidència que deixa enrere.<br><br>Si estiguéss is investigating a suspicious <strong>Jutge</strong>, buscaríes: <strong>a qui acusen amb més freqüència, amb qui cometen més errors i si les seves decisions perjudiquen més a algunes persones que a altres?</strong>",
+        "mod4_checklist_title": "🗂️ La Llista de Verificació de la Investigació",
+        "mod4_folder1_title": "📂 Carpeta 1: \"Qui està sent acusat?\"",
+        "mod4_folder1_action": "→ <strong>Acció:</strong> Revisar l'Historial (Està un grup sobre-representat vs la realitat?)<br>→ <strong>Revelar:</strong> <strong>Biaix de Representació</strong>—si els percentatges de grup a les dades usades per entrenar el model no coincideixen amb el món real.",
+        "mod4_folder2_title": "📂 Carpeta 2: \"Qui està sent acusat injustament?\"",
+        "mod4_folder2_action": "→ <strong>Acció:</strong> Revisar els Errors (Són majors els errors de predicció per a un grup?)<br>→ <strong>Revelar:</strong> <strong>Bretxes d'Error</strong> —si la taxa d'error és significativament major per a un grup.",
+        "mod4_folder3_title": "📂 Carpeta 3: \"Qui està sent perjudicat?\"",
+        "mod4_folder3_action": "→ <strong>Acció:</strong> Revisar el Càstig (Les sortides del model condueixen a pitjors resultats reals per a un grup?)<br>→ <strong>Revelar:</strong> <strong>Disparitats de Resultats</strong>—si un grup rep resultats del món real significativament pitjors (p. ex., sentències més dures o rebutjos de préstecs).",
+        "mod4_next_title": "✅ Proper moviment",
+        "mod4_next_text": "Has identificat els tres tipus d'evidència necessaris. Ara, és hora de posar-te els guants. L'<strong>Informe d'Anàlisi de Dades</strong> et guiarà a través del procés d'examinar les dades sense processar per detectar les formes inicials més comunes d'injustícia: <strong>distorsions de dades</strong> que condueixen a <strong>Biaix de Representació.</strong>",
+        
+        # Module 5 - Data Forensics Briefing
+        "mod5_badge": "PAS 2: RECOPILAR EVIDÈNCIA — Buscar Patrons Injustos a les Dades",
+        "mod5_title": "L'Informe d'Anàlisi de Dades",
+        "mod5_intro": "Estàs a punt d'accedir als arxius d'evidència sense processar. Però tingues cura: La IA pensa que aquestes dades són la veritat.",
+        "mod5_warning": "Si el conjunt de dades té biaixos incorporats, la IA aprendrà a tractar aquests biaixos com a fets. La teva feina és escanejar el conjunt de dades abans que el model aprengui d'ell, perquè puguem detectar problemes de dades <em>abans</em> que es converteixin en patrons de predicció.",
+        "mod5_framework_title": "🧩 El Teu Marc de Tres Preguntes",
+        "mod5_framework_intro": "En mirar qualsevol conjunt de dades, sempre fes tres preguntes crítiques:",
+        "mod5_q1": "<strong>Qui apareix a les dades?</strong> (Estan alguns grups sobre o sub-representats?)",
+        "mod5_q2": "<strong>Com es descriuen?</strong> (El conjunt de dades porta biaix històric, com estereotips antics o patrons d'error desiguals?)",
+        "mod5_q3": "<strong>Què falta?</strong> (Hi ha bretxes importants o grups importants exclosos completament?)",
+        "mod5_raw_data": "Si trobes nombres esbiaixats, grups que falten o patrons distorsionats, estàs veient la llavor d'un model esbiaixat—un que podria produir resultats injustos sense importar com de bé s'entreni.",
+        "mod5_proceed_title": "↓ Procedir als Escanejos d'Evidència ↓",
+        "mod5_proceed_text": "Ara tens el marc. Les dades estan davant teu. Desplaça't cap avall per començar el teu escaneig forense. Examinarem <strong>Raça</strong>, <strong>Gènere</strong> i <strong>Edat</strong>—i veurem si algun grup està sent mal representat.",
+        
+        # Module 0 - Moral Compass Intro
+        "mod2_bias3_desc": "Identifica quan el biaix condueix a un dany real.",
+        "mod2_bias3_example": "No tots els errors creen el mateix dany. Si els falsos positius causen arrest o denegació de feina, has de mesurar qui resulta més perjudicat i si el dany recau desigualment en els grups.",
+        
+        # Module 0 - Moral Compass Intro
+        "mod0_title": "🧭 Presentem la teva Nova Puntuació de Brúixola Moral",
+        "mod0_p1": "Ara mateix, el teu model es jutja principalment per la seva <strong>precisió</strong>. Això sembla just, però la precisió per si sola pot ocultar riscos importants, especialment quan un model s'utilitza per prendre decisions sobre persones reals.",
+        "mod0_p2": "Per fer aquest risc visible, aquest desafiament utilitza una nova mètrica: la teva <strong>Puntuació de Brúixola Moral</strong>.",
+        "mod0_how_title": "1. Com Funciona la teva Puntuació de Brúixola Moral",
+        "mod0_formula": "<strong>Puntuació de Brúixola Moral</strong> =<br><br><span style='color:var(--color-accent); font-weight:bold;'>[ Precisió del Model ]</span> × <span style='color:#22c55e; font-weight:bold;'>[ Progrés Ètic % ]</span>",
+        "mod0_formula_exp": "La teva precisió és el punt de partida. El teu <strong>Progrés Ètic %</strong> reflecteix fins on has arribat en comprendre i reduir el biaix i el dany de la IA. Com més avances en aquest desafiament, més de la teva precisió \"compta\" per a la teva Puntuació de Brúixola Moral.",
+        "mod0_grows_title": "2. Una Puntuació que Creix amb Tu",
+        "mod0_grows_text": "La teva puntuació és <strong>dinàmica</strong>. A mesura que completes més mòduls i demostres millor judici sobre equitat, el teu <strong>Progrés Ètic %</strong> augmenta. Això desbloqueja més de la precisió base del teu model en la Puntuació de Brúixola Moral.",
+        "mod0_look_title": "3. Mira Amunt. Mira Avall.",
+        "mod0_look_up": "<strong>Mira amunt:</strong> La barra superior mostra la teva Puntuació de Brúixola Moral i rang en viu. A mesura que el teu Progrés Ètic augmenta, veuràs la teva puntuació moure's en temps real.",
+        "mod0_look_down": "<strong>Mira avall:</strong> Les taules de classificació a continuació reclassifiquen equips i individus a mesura que les persones avancen. Quan millores el teu progrés ètic, no només canvies la teva puntuació, canvies la teva posició.",
+        "mod0_try_title": "4. Prova-ho: Mira Com el Progrés Canvia la teva Puntuació",
+        "mod0_try_text": "A continuació, pots moure un control lliscant per <strong>simular</strong> com canviaria la teva Puntuació de Brúixola Moral a mesura que el teu <strong>Progrés Ètic %</strong> augmenta. Això et dona una vista prèvia de quant impacte pot tenir cada pas del teu progrés en la teva puntuació final.",
+        
+        # Module 6 - Evidence Scan Explanation
+        "mod6_badge": "STEP 2: RECOLLIR EVIDÈNCIA — Busca Patrons Injustos a les Dades",
+        "mod6_title": "L'Anàlisi Forense de Dades:",
+        "mod6_scanning_title": "🗃️ Què estem escanejant?",
+        "mod6_scanning_text": "Estem examinant el <strong>conjunt de dades COMPAS</strong>, recopilat i analitzat per periodistes d'investigació de <strong>ProPublica</strong>. Conté registres reals utilitzats per puntuar el \"risc de reincidència\" d'una persona, incloent dades demogràfiques (raça, edat, gènere), càrrecs, historial previ i puntuacions de risc.",
+        "mod6_scanning_note": "Si les <em>mateixes dades</em> estan esbiaixades (qui apareix, amb quina freqüència o què es registra), el model pot aprendre aquests patrons com a \"veritat\". L'escaneig ens ajuda a detectar distorsions que poden violar <strong>Justícia i Equitat</strong>.",
+        "mod6_how_title": "🛠️ Com Funciona l'ESCANEIG",
+        "mod6_how_text": "Fes clic a <strong>ESCANEJAR</strong> per executar una anàlisi ràpida del grup demogràfic seleccionat. L'escaneig:",
+        "mod6_how_item1": "Compara la participació del grup a la <strong>població local</strong> (Comtat de Broward, Florida, EUA) vs el <strong>conjunt de dades</strong>.",
+        "mod6_how_item2": "Revela <strong>barres visuals</strong> mostrant la bretxa (població vs conjunt de dades).",
+        "mod6_how_item3": "Descobreix una <strong>Anàlisi del Detective</strong> explicant què significa la bretxa per a <strong>Justícia i Equitat</strong> i què revisar després.",
+        "mod6_what_title": "Què vas a ESCANEJAR",
+        "mod6_what_text": "La teva primera tasca és examinar patrons racials al conjunt de dades COMPAS. Cada punt de dades és una pista—troba distorsions i mira què ens diuen sobre equitat. Més tard, faràs el mateix per a Gènere i Edat per comprovar biaixos en tots els grups.",
+        "mod6_what_note": "Ens centrem en aquestes tres variables perquè són grups comunament protegits, i el tracte injust de qualsevol d'ells pot conduir a un biaix seriós i resultats injustos en decisions d'IA.",
+        
+        # Module 7 - Evidence Scan Race
+        "mod7_badge": "STEP 2: RECOLLIR EVIDÈNCIA — Busca Patrons Injustos a les Dades",
+        "mod7_title": "L'Anàlisi Forense de Dades: Raça",
+        "mod7_intro": "Comença comprovant patrons racials. Compara com apareixen els afroamericans al conjunt de dades versus la població real. Grans bretxes poden mostrar biaixos que podrien afectar les prediccions d'IA.",
+        "mod7_scan_button": "📡 ESCANEJAR: Raça (Afroamericà) — Fes clic per revelar l'anàlisi",
+        "mod7_check_title": "Què comprova aquest escaneig",
+        "mod7_check_text": "Comparem la participació d'afroamericans a la <strong>població local</strong> vs la seva participació al <strong>conjunt d'entrenament COMPAS</strong>. Grans bretxes apunten a <em>biaix històric o de mostreig</em> i poden conduir a marcat injust.",
+        "mod7_context": "Sabem que en aquesta jurisdicció local, els afroamericans representen aproximadament el 28% de la població total. Si les dades són imparcials, els \"Arxius d'Evidència\" haurien de coincidir aproximadament amb aquest número.",
+        "mod7_chart_title": "📊 Barres de Comparació",
+        "mod7_pop_reality": "Realitat de la Població: ~28% Afroamericà",
+        "mod7_data_reality": "Realitat del Conjunt de Dades: <strong style='color:#ef4444;'>51% Afroamericà</strong>",
+        "mod7_analysis_title": "🔍 Anàlisi del Detective",
+        "mod7_analysis_main": "El conjunt de dades és 51% afroamericà. Això és <strong>gairebé el doble</strong> de la seva representació a la població local.",
+        "mod7_analysis_means": "<strong>Què probablement significa:</strong> excés de policia històric o biaix de mostreig concentrat en certs barris.",
+        "mod7_analysis_matters": "<strong>Per què importa:</strong> el model pot aprendre a marcar afroamericans més sovint simplement perquè va veure més casos.",
+        "mod7_analysis_next": "<strong>Següent comprovació:</strong> comparar taxes de predicció falsa alta i baixa per raça per veure si les bretxes d'error confirmen riscos de Justícia i Equitat.",
+        "mod7_source": "Context de la font: El conjunt de dades COMPAS de ProPublica s'utilitza àmpliament per estudiar l'equitat en la puntuació de risc criminal. Ens ajuda a veure com els patrons de dades poden donar forma al comportament del model, per bé o per mal.",
+        
+        # Module 8 - Evidence Scan Gender
+        "mod8_badge": "STEP 2: RECOLLIR EVIDÈNCIA — Busca Patrons Injustos a les Dades",
+        "mod8_title": "L'Anàlisi Forense de Dades: Gènere",
+        "mod8_intro": "A continuació, examina el gènere. Compara el nombre d'homes i dones al conjunt de dades amb la població real. Grans diferències poden indicar que la IA podria tractar un gènere menys justament.",
+        "mod8_scan_button": "📡 ESCANEJAR: Gènere — Fes clic per revelar l'anàlisi",
+        "mod8_check_title": "Què comprova aquest escaneig",
+        "mod8_check_text": "Comparem la divisió de gènere a la <strong>població local (Comtat de Broward, Florida, EUA)</strong> (≈50/50) vs el <strong>conjunt de dades COMPAS</strong>. Grans bretxes senyalen <em>biaix de mostreig o històric</em> que pot influir en com el model tracta homes vs dones.",
+        "mod8_context": "Ara escanegem per equilibri de gènere. Al món real, la població és aproximadament 50/50. Un conjunt d'entrenament just és més probable que reflecteixi aquest equilibri.",
+        "mod8_chart_title": "📊 Barres de Comparació",
+        "mod8_pop_reality": "Realitat de la Població: ~50% Femení, ~50% Masculí",
+        "mod8_data_reality": "Realitat del Conjunt de Dades: <strong style='color:#ef4444;'>20% Femení</strong>, 80% Masculí",
+        "mod8_analysis_title": "🔍 Anàlisi del Detective",
+        "mod8_analysis_main": "El conjunt de dades és només 20% femení, però els homes i les dones divideixen la població aproximadament al 50%.",
+        "mod8_analysis_means": "<strong>Què probablement significa:</strong> les dones estan subrepresentades al conjunt de dades—possiblement degut a polítiques històriques que van targetejar homes.",
+        "mod8_analysis_matters": "<strong>Per què importa:</strong> el model veu poques dones, així que pot tenir més dificultats per predir amb precisió per a elles (majors bretxes d'error).",
+        "mod8_analysis_next": "<strong>Següent comprovació:</strong> comparar taxes de falsos positius/negatius per gènere per veure si l'equilibri de dades afecta l'equitat.",
+        "mod8_source": "Context de la font: La investigació de ProPublica sobre COMPAS va exposar bretxes d'equitat basades en raça i gènere. Això es va convertir en un cas d'estudi clau per a la justícia algorítmica.",
+        
+        # Module 9 - Evidence Scan Age
+        "mod9_badge": "STEP 2: RECOLLIR EVIDÈNCIA — Busca Patrons Injustos a les Dades",
+        "mod9_title": "L'Anàlisi Forense de Dades: Edat",
+        "mod9_intro": "Finalment, comprova l'edat. Compara com estan distribuïdes les edats al conjunt de dades amb la població real. Si el conjunt de dades se centra massa en grups d'edat específics, el model pot estimar malament el risc per a altres.",
+        "mod9_scan_button": "📡 ESCANEJAR: Edat — Fes clic per revelar l'anàlisi",
+        "mod9_check_title": "Què comprova aquest escaneig",
+        "mod9_check_text": "Comparem la distribució d'edats a la <strong>població local</strong> vs el <strong>conjunt de dades COMPAS</strong>. El biaix de mostreig o dades que falten per a alguns grups d'edat poden distorsionar les prediccions de risc.",
+        "mod9_context": "Ara escanegem per equilibri d'edat. Si el conjunt de dades se centra només en persones joves i ignora altres grups d'edat, el model pot subestimar o sobreestimar el risc per a edat mitjana o gran.",
+        "mod9_chart_title": "📊 Barres de Comparació",
+        "mod9_pop_reality": "Realitat de la Població: Distribució àmplia d'edats (18-70+)",
+        "mod9_data_reality": "Realitat del Conjunt de Dades: <strong style='color:#ef4444;'>Sobrerrepresentació d'18-25 anys</strong>",
+        "mod9_analysis_title": "🔍 Anàlisi del Detective",
+        "mod9_analysis_main": "El conjunt de dades mostra un pic fort en adults joves (18-25), però grups d'edat més grans estan subrepresentats.",
+        "mod9_analysis_means": "<strong>Què probablement significa:</strong> biaix de mostreig—polítiques de policia centrant-se en població jove, ignorant altres edats.",
+        "mod9_analysis_matters": "<strong>Per què importa:</strong> el model pot predir risc menys fiablement per a grups d'edat més grans (dades limitades condueixen a majors bretxes d'error).",
+        "mod9_analysis_next": "<strong>Següent comprovació:</strong> comparar taxes d'error per grup d'edat per veure si les bretxes de dades creen bretxes d'equitat.",
+        "mod9_source": "Context de la font: El conjunt de dades COMPAS ha estat criticat per la seva distribució esbiaixada d'edat, que pot amplificar riscos injustos per a grups subrepresentats.",
+        
+        # Module 10 - Data Forensics Conclusion
+        "mod10_badge": "INVESTIGACIÓ DE DADES FORENSES: COMPLETA",
+        "mod10_title": "📋 Taula d'Evidència: Què Hem Descobert",
+        "mod10_intro": "Has completat el teu primer escaneig forense. Has comprovat tres variables demogràfiques—Raça, Gènere i Edat—i has trobat distorsions que podrien crear resultats injustos.",
+        "mod10_evidence_title": "🗂️ Resum de les Troballes Clau",
+        "mod10_evidence1_title": "📂 Raça",
+        "mod10_evidence1_text": "Afroamericans sobrerrepresentats (51% dades vs 28% població) → risc de marcat esbiaixat.",
+        "mod10_evidence2_title": "📂 Gènere",
+        "mod10_evidence2_text": "Dones subrepresentades (20% dades vs 50% població) → risc de bretxes d'error més altes per a dones.",
+        "mod10_evidence3_title": "📂 Edat",
+        "mod10_evidence3_text": "Joves sobrerrepresentats (pic 18-25) → prediccions menys fiables per a grups d'edat més grans.",
+        "mod10_patterns_title": "🔍 Els Patrons que Veiem",
+        "mod10_patterns_text": "Aquests desequilibris no són coincidències. Reflecteixen polítiques històriques reals—com excés de policia en certs barris o targeteig de grups demogràfics específics. Quan les dades reflecteixen aquestes pràctiques esbiaixades, el model les aprèn com si fossin normals.",
+        "mod10_next_title": "⏭️ Següent Moviment",
+        "mod10_next_text": "Has recollit l'evidència inicial. El següent pas és <strong>provar l'error de predicció</strong>: comparar com de bé el model prediu per a diferents grups i veure si les bretxes de dades es tradueixen en bretxes d'error que violen Justícia i Equitat.",
+        "mod10_congrats_title": "🎉 Ben Fet, Detective!",
+        "mod10_congrats_text": "Has completat la primera fase de la teva investigació. Desplaça't cap avall per procedir al següent pas de la teva missió.",
+        
+        # Module 11 - Mission Complete
+        "mod11_title": "🎉 MISSIÓ PART 1 COMPLETA: Investigació de Dades Inicial Completada",
+        "mod11_congrats": "Enhorabona, Detective! Has completat el teu primer cas de recerca de bias.",
+        "mod11_roadmap_title": "🔍 El Teu Mapa d'Investigació—Què Has Aconseguit",
+        "mod11_step1_title": "Pas 1: Aprendre les Regles",
+        "mod11_step1_text": "✅ COMPLET—Has après el principi de Justícia i Equitat i els tres tipus de bias (Representació, Bretxes d'Error, Disparitats de Resultats).",
+        "mod11_step2_title": "Pas 2: Recollir Evidència",
+        "mod11_step2_text": "✅ COMPLET—Has escanejat les dades per a Raça, Gènere i Edat, i has trobat distorsions que podrien conduir a resultats injustos.",
+        "mod11_step3_title": "Pas 3: Provar l'Error de Predicció",
+        "mod11_step3_text": "⏭️ SEGÜENT—Ara comprovaràs si el model comet més errors amb alguns grups (bretxes d'error) i si aquests errors violen Justícia i Equitat.",
+        "mod11_step4_title": "Pas 4: Diagnosticar el Dany",
+        "mod11_step4_text": "⏭️ PROPER—Finalment, explicaràs com aquests patrons podrien impactar persones reals i quines solucions poden ajudar.",
+        "mod11_next_title": "🔜 Què ve després",
+        "mod11_next_text": "La Part 2 et guiarà a través de <strong>Provar l'Error de Predicció</strong>. Examinaràs si les distorsions de dades que has trobat es tradueixen en errors del model que tracten grups de manera desigual. Aquest és el nucli de la investigació de bias: no només trobar dades esbiaixades, sinó <strong>demostrar que condueixen a prediccions injustes</strong>.",
+        "mod11_cta": "Desplaça't cap avall i fes clic al botó de sota per completar aquesta activitat i procedir a la Part 2.",
+    }
+}
+
+# --- 3c. I18N TRANSLATION HELPER ---
+def t(lang: str, key: str) -> str:
+    """Get translated text for given language and key."""
+    return TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(key, key)
+
+def get_loading_screen_html(lang: str = "en") -> str:
+    """Generate loading screen HTML with translated text."""
+    return f"""
+    <div style='text-align:center; padding:100px;'>
+        <h2>{t(lang, 'loading_auth')}</h2>
+        <p>{t(lang, 'loading_sync')}</p>
+    </div>
+    """
+
+def get_nav_loading_html(lang: str = "en") -> str:
+    """Generate navigation loading overlay HTML with translated text."""
+    return f"""<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>{t(lang, 'loading_text')}</span></div>"""
+
+def get_button_label(lang: str, button_type: str, is_last: bool = False) -> str:
+    """Get translated button label based on type."""
+    if button_type == "previous":
+        return t(lang, 'btn_previous')
+    elif button_type == "next":
+        if is_last:
+            return t(lang, 'btn_completed_part1')
+        return t(lang, 'btn_next')
+    return ""
+
+def get_module_0_html(lang: str = "en") -> str:
+    """Generate Module 0 HTML with translations."""
+    return f"""
+        <div class="scenario-box">
+            <h2 class="slide-title">{t(lang, 'mod0_title')}</h2>
+            <div class="slide-body">
+                <p>{t(lang, 'mod0_p1')}</p>
+                <p>{t(lang, 'mod0_p2')}</p>
+
+                <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
+                    <h4 style="margin-top:0; font-size:1.3rem;">{t(lang, 'mod0_how_title')}</h4>
+                    <div style="font-size: 1.4rem; margin: 16px 0;">
+                        {t(lang, 'mod0_formula')}
+                    </div>
+                    <p style="font-size:1rem; max-width:650px; margin:0 auto;">
+                        {t(lang, 'mod0_formula_exp')}
+                    </p>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px; margin-top:24px;">
+                    <div class="hint-box" style="text-align:left;">
+                        <h4 style="margin-top:0; font-size:1.1rem;">{t(lang, 'mod0_grows_title')}</h4>
+                        <p style="font-size:0.98rem;">{t(lang, 'mod0_grows_text')}</p>
+                    </div>
+                    <div class="hint-box" style="text-align:left;">
+                        <h4 style="margin-top:0; font-size:1.1rem;">{t(lang, 'mod0_look_title')}</h4>
+                        <p style="font-size:0.98rem; margin-bottom:6px;">{t(lang, 'mod0_look_up')}</p>
+                        <p style="font-size:0.98rem; margin-bottom:0;">{t(lang, 'mod0_look_down')}</p>
+                    </div>
+                </div>
+
+                <div class="ai-risk-container" style="margin-top:26px;">
+                    <h4 style="margin-top:0; font-size:1.2rem;">{t(lang, 'mod0_try_title')}</h4>
+                    <p style="font-size:1.02rem; max-width:720px; margin:0 auto;">
+                        {t(lang, 'mod0_try_text')}
+                    </p>
+                </div>
+            </div>
+        </div>
+    """
+
+def get_module_1_html(lang: str = "en") -> str:
+    """Generate Module 1 HTML with translations."""
+    return f"""
+        <div class="scenario-box">
+            <h2 class="slide-title">{t(lang, 'mod1_title')}</h2>
+            <div class="slide-body">
+
+                <p style="font-size:1.05rem; max-width:800px; margin:0 auto 18px auto;">
+                    {t(lang, 'mod1_intro')}
+                </p>
+
+                <div style="text-align:center; margin:20px 0; padding:16px;
+                            background:rgba(59,130,246,0.10); border-radius:12px;
+                            border:1px solid rgba(59,130,246,0.25);">
+                    <h3 style="margin:0; font-size:1.45rem; font-weight:800; color:#2563eb;">
+                        {t(lang, 'mod1_detective')}
+                    </h3>
+                    <p style="margin-top:10px; font-size:1.1rem;">
+                        {t(lang, 'mod1_job')}
+                    </p>
+                </div>
+
+                <div class="ai-risk-container" style="margin-top:10px;">
+                    <h4 style="margin-top:0; font-size:1.2rem; text-align:center;">{t(lang, 'mod1_roadmap')}</h4>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:12px;">
+                        <div class="hint-box" style="margin-top:0;">
+                            <div style="font-weight:700;">{t(lang, 'mod1_step1')}</div>
+                            <div style="font-size:0.95rem;">{t(lang, 'mod1_step1_desc')}</div>
+                        </div>
+                        <div class="hint-box" style="margin-top:0;">
+                            <div style="font-weight:700;">{t(lang, 'mod1_step2')}</div>
+                            <div style="font-size:0.95rem;">{t(lang, 'mod1_step2_desc')}</div>
+                        </div>
+                        <div class="hint-box" style="margin-top:0;">
+                            <div style="font-weight:700;">{t(lang, 'mod1_step3')}</div>
+                            <div style="font-size:0.95rem;">{t(lang, 'mod1_step3_desc')}</div>
+                        </div>
+                        <div class="hint-box" style="margin-top:0;">
+                            <div style="font-weight:700;">{t(lang, 'mod1_step4')}</div>
+                            <div style="font-size:0.95rem;">{t(lang, 'mod1_step4_desc')}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ai-risk-container" style="margin-top:18px;">
+                    <h4 style="margin-top:0; font-size:1.1rem;">{t(lang, 'mod1_why')}</h4>
+                    <p style="font-size:1.0rem; max-width:760px; margin:0 auto;">
+                        {t(lang, 'mod1_why_text')}
+                    </p>
+                </div>
+
+                <div style="text-align:center; margin-top:22px; padding:14px; background:rgba(59,130,246,0.08); border-radius:10px;">
+                    <p style="font-size:1.05rem; margin:0;">
+                        {t(lang, 'mod1_next')}
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    """
+
+def get_module_2_html(lang: str = "en") -> str:
+    """Generate Module 2 HTML with translations."""
+    return f"""
+        <div class="scenario-box">
+          <div class="slide-body">
+        
+            <div style="display:flex; justify-content:center; margin-bottom:14px;">
+              <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-weight:800;">
+                <span style="font-size:1.1rem;">📜</span>
+                <span>{t(lang, 'mod2_badge')}</span>
+              </div>
+            </div>
+            
+            <br>
+            <h2 class="slide-title" style="font-size:1.6rem; text-align:center;">{t(lang, 'mod2_title')}</h2>
+            <br>
+
+            <p style="font-size:1.05rem; max-width:820px; margin:0 auto 12px auto; text-align:center;">
+              {t(lang, 'mod2_intro1')}
+            </p>
+        
+            <p style="font-size:1.05rem; max-width:860px; margin:0 auto 12px auto; text-align:center;">
+              {t(lang, 'mod2_intro2')}
+            </p>
+        
+            <p style="font-size:1.02rem; max-width:860px; margin:0 auto 18px auto; text-align:center; color:var(--body-text-color-subdued);">
+              {t(lang, 'mod2_intro3')}
+            </p>
+        
+            <div class="ai-risk-container" style="margin-top:10px; border-width:2px;">
+              <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">{t(lang, 'mod2_principles_title')}</h4>
+              <p style="font-size:0.98rem; text-align:center; margin:10px auto 0 auto; max-width:860px;">
+                {t(lang, 'mod2_principles_intro')}
+              </p>
+        
+              <div style="display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; font-weight:800; margin-top:6px;">
+                <span>{t(lang, 'mod2_flow_principles')}</span>
+                <span style="opacity:0.6;">→</span>
+                <span>{t(lang, 'mod2_flow_evidence')}</span>
+                <span style="opacity:0.6;">→</span>
+                <span>{t(lang, 'mod2_flow_tests')}</span>
+                <span style="opacity:0.6;">→</span>
+                <span>{t(lang, 'mod2_flow_judgment')}</span>
+                <span style="opacity:0.6;">→</span>
+                <span>{t(lang, 'mod2_flow_fixes')}</span>
+              </div>
+        
+              <p style="font-size:0.98rem; text-align:center; margin:10px auto 0 auto; max-width:860px;">
+                {t(lang, 'mod2_principles_text')}
+              </p>
+            </div>
+        
+            <div class="ai-risk-container" style="margin-top:16px; border-width:2px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h4 style="margin:0; font-size:1.2rem; color:#ef4444;">
+                  {t(lang, 'mod2_justice_title')}
+                </h4>
+                <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.12em; font-weight:800; padding:2px 8px; border-radius:999px; border:1px solid #ef4444; color:#ef4444;">
+                  {t(lang, 'mod2_justice_badge')}
+                </div>
+              </div>
+        
+              <p style="font-size:0.98rem; margin:10px 0 12px 0; max-width:860px;">
+                {t(lang, 'mod2_justice_intro')}
+              </p>
+        
+              <div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px; margin-top:6px;">
+        
+                <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
+                  <div style="font-weight:800;">{t(lang, 'mod2_bias1_title')}</div>
+                  <div style="font-size:0.95rem; margin-top:4px;">
+                    {t(lang, 'mod2_bias1_desc')}
+                  </div>
+                  <div style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:4px;">
+                    {t(lang, 'mod2_bias1_example')}
+                  </div>
+                </div>
+        
+                <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
+                  <div style="font-weight:800;">{t(lang, 'mod2_bias2_title')}</div>
+                  <div style="font-size:0.95rem; margin-top:4px;">
+                    {t(lang, 'mod2_bias2_desc')}
+                  </div>
+                  <div style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:4px;">
+                    {t(lang, 'mod2_bias2_example')}
+                  </div>
+                </div>
+        
+                <div class="hint-box" style="margin-top:0; border-left:4px solid #ef4444;">
+                  <div style="font-weight:800;">{t(lang, 'mod2_bias3_title')}</div>
+                  <div style="font-size:0.95rem; margin-top:4px;">
+                    {t(lang, 'mod2_bias3_desc')}
+                  </div>
+                  <div style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:4px;">
+                    {t(lang, 'mod2_bias3_example')}
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+    """
+
+def get_module_3_html(lang: str = "en") -> str:
+    """Generate Module 3 HTML with translations."""
+    return f"""
+        <div class="scenario-box">                         
+            <div style="display:flex; justify-content:center; margin-bottom:14px;">
+              <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-weight:800;">
+                <span style="font-size:1.1rem;">📜</span>
+                <span>{t(lang, 'mod3_badge')}</span>
+              </div>
+            </div>
+                            
+            <br>
+            <h2 class="slide-title" style="font-size:1.6rem; text-align:center;">{t(lang, 'mod3_title')}</h2>
+            <br>
+            
+            <div class="slide-body">
+                <p style="font-size:1.05rem; max-width:800px; margin:0 auto 18px auto;">
+                    {t(lang, 'mod3_intro1')}
+                </p>
+                <p style="font-size:1.05rem; max-width:800px; margin:0 auto 14px auto;">
+                    {t(lang, 'mod3_intro2')}
+                </p>
+
+                <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 24px 0;">
+                    <h4 style="margin-top:0; font-size:1.3rem;">{t(lang, 'mod3_ripple_title')}</h4>
+                    <div style="font-size: 1.6rem; margin: 16px 0; font-weight:bold;">
+                        {t(lang, 'mod3_ripple_formula')}
+                    </div>
+                    <p style="font-size:1rem; max-width:650px; margin:0 auto;">
+                        {t(lang, 'mod3_ripple_text')}
+                    </p>
+                </div>
+
+                <div class="ai-risk-container" style="margin-top:18px;">
+                    <h4 style="margin-top:0; font-size:1.15rem;">{t(lang, 'mod3_detective_title')}</h4>
+                    <p style="font-size:1.02rem; max-width:760px; margin:0 auto;">
+                        {t(lang, 'mod3_detective_text')}
+                    </p>
+                </div>
+
+                <div style="text-align:center; margin-top:22px; padding:14px; background:rgba(59,130,246,0.08); border-radius:10px;">
+                    <p style="font-size:1.05rem; margin:0;">
+                        {t(lang, 'mod3_next')}
+                    </p>
+                </div>
+            </div>
+        </div>
+    """
+
+def get_module_4_html(lang: str = "en") -> str:
+    """Generate Module 4 HTML with translations."""
+    return f"""
+<div class="scenario-box">
+  <div style="display:flex; justify-content:center; margin-bottom:18px;">
+    <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; font-weight:800;">
+      <span style="font-size:1.1rem;">📋</span><span>{t(lang, 'mod4_badge')}</span>
+    </div>
+  </div>
+
+  <h2 class="slide-title">{t(lang, 'mod4_title')}</h2>
+  <div class="slide-body">
+
+    <div class="hint-box" style="margin-bottom:16px;">
+      <div style="font-weight:800;">{t(lang, 'mod4_intro_title')}</div>
+      <div style="font-size:0.98rem;">
+        {t(lang, 'mod4_intro_text')}
+      </div>
+    </div>
+
+    <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
+      {t(lang, 'mod4_begin')}
+    </p>
+
+    <div class="ai-risk-container" style="margin-top:20px;">
+      <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">{t(lang, 'mod4_checklist_title')}</h4>
+      <div style="display:grid; gap:16px; margin-top:16px;">
+        
+        <div class="hint-box" style="margin-top:0;">
+          <div style="font-weight:bold; margin-bottom:8px;">{t(lang, 'mod4_folder1_title')}</div>
+          <div style="padding-left:20px; font-size:0.95rem; color:var(--body-text-color-subdued);">
+            {t(lang, 'mod4_folder1_action')}
+          </div>
+        </div>
+
+        <div class="hint-box" style="margin-top:0;">
+          <div style="font-weight:bold; margin-bottom:8px;">{t(lang, 'mod4_folder2_title')}</div>
+          <div style="padding-left:20px; font-size:0.95rem; color:var(--body-text-color-subdued);">
+            {t(lang, 'mod4_folder2_action')}
+          </div>
+        </div>
+
+        <div class="hint-box" style="margin-top:0;">
+          <div style="font-weight:bold; margin-bottom:8px;">{t(lang, 'mod4_folder3_title')}</div>
+          <div style="padding-left:20px; font-size:0.95rem; color:var(--body-text-color-subdued);">
+            {t(lang, 'mod4_folder3_action')}
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="hint-box" style="margin-top:16px;">
+      <div style="font-weight:800;">{t(lang, 'mod4_next_title')}</div>
+      <div style="font-size:0.98rem;">
+        {t(lang, 'mod4_next_text')}
+      </div>
+    </div>
+
+  </div>
+</div>
+    """
+
+def get_module_5_html(lang: str = "en") -> str:
+    """Generate Module 5 HTML with translations."""
+    return f"""
+        <div class="scenario-box">
+            <div style="display:flex; justify-content:center; margin-bottom:18px;">
+            <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; font-weight:800;">
+              <span style="font-size:1.1rem;">📋</span><span>{t(lang, 'mod5_badge')}</span>
+            </div>
+          </div>
+          <br>
+          <h2 class="slide-title" style="font-size:1.6rem; text-align:center;">{t(lang, 'mod5_title')}</h2>
+          <br>
+
+          <div class="slide-body">
+            <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
+              {t(lang, 'mod5_intro')}
+            </p>
+
+            <p style="font-size:1.05rem; max-width:780px; margin:0 auto 18px auto; text-align:center;">
+              {t(lang, 'mod5_warning')}
+            </p>
+
+            <div class="ai-risk-container" style="margin-top:20px;">
+              <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">{t(lang, 'mod5_framework_title')}</h4>
+              <p style="font-size:0.98rem; text-align:center; margin-top:8px;">
+                {t(lang, 'mod5_framework_intro')}
+              </p>
+              <ul style="max-width:680px; margin:12px auto 0 auto; font-size:0.98rem;">
+                <li>{t(lang, 'mod5_q1')}</li>
+                <li>{t(lang, 'mod5_q2')}</li>
+                <li>{t(lang, 'mod5_q3')}</li>
+              </ul>
+            </div>
+
+            <p style="font-size:1rem; max-width:780px; margin:22px auto 18px auto; text-align:center;">
+              {t(lang, 'mod5_raw_data')}
+            </p>
+
+            <div style="text-align:center; margin-top:22px; padding:16px; background:rgba(59,130,246,0.10); border-radius:10px;">
+              <p style="font-size:1.08rem; margin:0; font-weight:600;">
+                {t(lang, 'mod5_proceed_title')}
+              </p>
+              <p style="font-size:1rem; margin:8px auto 0 auto; max-width:640px;">
+                {t(lang, 'mod5_proceed_text')}
+              </p>
+            </div>
+          </div>
+        </div>
+    """
+
+def get_module_6_html(lang: str = "en") -> str:
+    """Generate Module 6 HTML with translations."""
+    return f"""
+        <div class="scenario-box">
+          <div style="display:flex; justify-content:center; margin-bottom:18px;">
+            <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; font-weight:800;">
+              <span style="font-size:1.1rem;">📋</span>
+              <span>{t(lang, 'mod6_badge')}</span>
+            </div>
+          </div>
+          <br>
+          <h2 class="slide-title" style="font-size:1.6rem; text-align:center;">{t(lang, 'mod6_title')}</h2>
+          <br>
+
+          <div class="slide-body">
+            <div class="ai-risk-container" style="margin-bottom:12px;">
+              <h4 style="margin-top:0; font-size:1.2rem; text-align:center;">{t(lang, 'mod6_scanning_title')}</h4>
+              <p style="font-size:1.02rem; max-width:820px; margin:0 auto 10px auto; text-align:center;">
+                {t(lang, 'mod6_scanning_text')}
+              </p>
+              <p style="font-size:1.02rem; max-width:820px; margin:0 auto; text-align:center; color:var(--body-text-color-subdued);">
+                {t(lang, 'mod6_scanning_note')}
+              </p>
+            </div>
+
+            <div class="ai-risk-container" style="margin-bottom:16px;">
+              <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">{t(lang, 'mod6_how_title')}</h4>
+              <p style="font-size:1.02rem; max-width:780px; margin:0 auto; text-align:center;">
+                {t(lang, 'mod6_how_text')}
+              </p>
+              <ul style="max-width:780px; margin:8px auto 0 auto; font-size:0.98rem;">
+                <li>{t(lang, 'mod6_how_item1')}</li>
+                <li>{t(lang, 'mod6_how_item2')}</li>
+                <li>{t(lang, 'mod6_how_item3')}</li>
+              </ul>
+            </div>
+
+            <div class="ai-risk-container" style="margin-bottom:16px;">
+              <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">{t(lang, 'mod6_what_title')}</h4>
+              <p style="font-size:1.02rem; max-width:780px; margin:0 auto; text-align:center;">
+                {t(lang, 'mod6_what_text')}
+                <br><br>
+                {t(lang, 'mod6_what_note')}
+              </p>
+            </div>
+          </div>
+        </div>
+    """
+
+def get_module_7_html(lang: str = "en") -> str:
+    """Generate Module 7 HTML with translations."""
+    return f"""
+      <div class="scenario-box">
+            <div style="display:flex; justify-content:center; margin-bottom:18px;">
+            <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; font-weight:800;">
+              <span style="font-size:1.1rem;">📋</span><span>{t(lang, 'mod7_badge')}</span>
+            </div>
+          </div>
+          <br>
+          <h2 class="slide-title" style="font-size:1.6rem; text-align:center;">{t(lang, 'mod7_title')}</h2>
+          <br>
+        <div class="slide-body">
+            <p style="font-size:1.05rem; max-width:780px; margin:0 auto 12px auto; text-align:center;">
+              {t(lang, 'mod7_intro')}
+            </p>
+          <details style="border:1px solid var(--border-color-primary); border-radius:12px; overflow:hidden;">
+            <summary style="list-style:none; cursor:pointer; padding:14px 18px; font-weight:800; text-align:center; background:var(--background-fill-secondary);">
+              {t(lang, 'mod7_scan_button')}
+            </summary>
+
+            <div class="hint-box" style="margin:14px; border-left:4px solid var(--color-accent);">
+              <div style="font-weight:800;">{t(lang, 'mod7_check_title')}</div>
+              <div style="font-size:0.95rem;">
+                {t(lang, 'mod7_check_text')}
+              </div>
+            </div>
+
+            <p style="font-size:1.05rem; max-width:780px; margin:0 auto 12px auto; text-align:center;">
+              {t(lang, 'mod7_context')}
+            </p>
+
+            <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 16px 0;">
+              <h4 style="margin-top:0; font-size:1.2rem;">{t(lang, 'mod7_chart_title')}</h4>
+              <div style="margin: 16px 0;">
+                <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:8px;">{t(lang, 'mod7_pop_reality')}</div>
+                <div style="height:40px; background:linear-gradient(to right, #3b82f6 0%, #3b82f6 28%, #e5e7eb 28%, #e5e7eb 100%); border-radius:8px; position:relative;">
+                  <div style="position:absolute; left:28%; top:50%; transform:translate(-50%, -50%); font-size:0.85rem; font-weight:bold; color:white;">28%</div>
+                </div>
+              </div>
+              <div style="margin: 16px 0;">
+                <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:8px;">
+                  {t(lang, 'mod7_data_reality')}
+                </div>
+                <div style="height:40px; background:linear-gradient(to right, #ef4444 0%, #ef4444 51%, #e5e7eb 51%, #e5e7eb 100%); border-radius:8px; position:relative;">
+                  <div style="position:absolute; left:51%; top:50%; transform:translate(-50%, -50%); font-size:0.85rem; font-weight:bold; color:white;">51%</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="hint-box" style="background:rgba(239, 68, 68, 0.08); margin-top:8px;">
+              <h4 style="margin-top:0;">{t(lang, 'mod7_analysis_title')}</h4>
+              <p style="margin-bottom:8px;">{t(lang, 'mod7_analysis_main')}</p>
+              <ul style="margin:0 0 10px 18px; padding:0; font-size:0.95rem;">
+                <li>{t(lang, 'mod7_analysis_means')}</li>
+                <li>{t(lang, 'mod7_analysis_matters')}</li>
+                <li>{t(lang, 'mod7_analysis_next')}</li>
+              </ul>
+              <p style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-top:8px;">
+                {t(lang, 'mod7_source')}
+              </p>
+            </div>
+          </details>
+        </div>
+      </div>
+    """
+
+def get_module_8_html(lang: str = "en") -> str:
+    """Generate Module 8 HTML with translations."""
+    return f"""
+      <div class="scenario-box">
+            <div style="display:flex; justify-content:center; margin-bottom:18px;">
+            <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; font-weight:800;">
+              <span style="font-size:1.1rem;">📋</span><span>{t(lang, 'mod8_badge')}</span>
+            </div>
+          </div>
+          <br>
+          <h2 class="slide-title" style="font-size:1.6rem; text-align:center;">{t(lang, 'mod8_title')}</h2>
+          <br>
+        <div class="slide-body">
+            <p style="font-size:1.05rem; max-width:780px; margin:0 auto 12px auto; text-align:center;">
+              {t(lang, 'mod8_intro')}
+            </p>
+
+          <details style="border:1px solid var(--border-color-primary); border-radius:12px; overflow:hidden;">
+            <summary style="list-style:none; cursor:pointer; padding:14px 18px; font-weight:800; text-align:center; background:var(--background-fill-secondary);">
+              {t(lang, 'mod8_scan_button')}
+            </summary>
+
+            <div class="hint-box" style="margin:14px; border-left:4px solid var(--color-accent);">
+              <div style="font-weight:800;">{t(lang, 'mod8_check_title')}</div>
+              <div style="font-size:0.95rem;">
+                {t(lang, 'mod8_check_text')}
+              </div>
+            </div>
+
+            <p style="font-size:1.05rem; max-width:780px; margin:0 auto 12px auto; text-align:center;">
+              {t(lang, 'mod8_context')}
+            </p>
+
+            <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 16px 0;">
+              <h4 style="margin-top:0; font-size:1.2rem;">{t(lang, 'mod8_chart_title')}</h4>
+              <div style="margin: 16px 0;">
+                <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:8px;">{t(lang, 'mod8_pop_reality')}</div>
+                <div style="height:40px; background:linear-gradient(to right, #3b82f6 0%, #3b82f6 50%, #e5e7eb 50%, #e5e7eb 100%); border-radius:8px; position:relative;">
+                  <div style="position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); font-size:0.85rem; font-weight:bold; color:white;">50/50</div>
+                </div>
+              </div>
+              <div style="margin: 16px 0;">
+                <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:8px;">
+                  {t(lang, 'mod8_data_reality')}
+                </div>
+                <div style="height:40px; background:linear-gradient(to right, #ef4444 0%, #ef4444 20%, #e5e7eb 20%, #e5e7eb 100%); border-radius:8px; position:relative;">
+                  <div style="position:absolute; left:20%; top:50%; transform:translate(-50%, -50%); font-size:0.85rem; font-weight:bold; color:white;">20%</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="hint-box" style="background:rgba(239, 68, 68, 0.08); margin-top:8px;">
+              <h4 style="margin-top:0;">{t(lang, 'mod8_analysis_title')}</h4>
+              <p style="margin-bottom:8px;">{t(lang, 'mod8_analysis_main')}</p>
+              <ul style="margin:0 0 10px 18px; padding:0; font-size:0.95rem;">
+                <li>{t(lang, 'mod8_analysis_means')}</li>
+                <li>{t(lang, 'mod8_analysis_matters')}</li>
+                <li>{t(lang, 'mod8_analysis_next')}</li>
+              </ul>
+              <p style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-top:8px;">
+                {t(lang, 'mod8_source')}
+              </p>
+            </div>
+          </details>
+        </div>
+      </div>
+    """
+
+def get_module_9_html(lang: str = "en") -> str:
+    """Generate Module 9 HTML with translations."""
+    return f"""
+      <div class="scenario-box">
+            <div style="display:flex; justify-content:center; margin-bottom:18px;">
+            <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; font-weight:800;">
+              <span style="font-size:1.1rem;">📋</span><span>{t(lang, 'mod9_badge')}</span>
+            </div>
+          </div>
+          <br>
+          <h2 class="slide-title" style="font-size:1.6rem; text-align:center;">{t(lang, 'mod9_title')}</h2>
+          <br>
+        <div class="slide-body">
+            <p style="font-size:1.05rem; max-width:780px; margin:0 auto 12px auto; text-align:center;">
+              {t(lang, 'mod9_intro')}
+            </p>
+
+          <details style="border:1px solid var(--border-color-primary); border-radius:12px; overflow:hidden;">
+            <summary style="list-style:none; cursor:pointer; padding:14px 18px; font-weight:800; text-align:center; background:var(--background-fill-secondary);">
+              {t(lang, 'mod9_scan_button')}
+            </summary>
+
+            <div class="hint-box" style="margin:14px; border-left:4px solid var(--color-accent);">
+              <div style="font-weight:800;">{t(lang, 'mod9_check_title')}</div>
+              <div style="font-size:0.95rem;">
+                {t(lang, 'mod9_check_text')}
+              </div>
+            </div>
+
+            <p style="font-size:1.05rem; max-width:780px; margin:0 auto 12px auto; text-align:center;">
+              {t(lang, 'mod9_context')}
+            </p>
+
+            <div class="ai-risk-container" style="text-align:center; padding: 20px; margin: 16px 0;">
+              <h4 style="margin-top:0; font-size:1.2rem;">{t(lang, 'mod9_chart_title')}</h4>
+              <div style="margin: 16px 0;">
+                <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:8px;">{t(lang, 'mod9_pop_reality')}</div>
+                <div style="height:40px; background:linear-gradient(to right, #3b82f6 0%, #3b82f6 100%); border-radius:8px; position:relative;">
+                  <div style="position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); font-size:0.85rem; font-weight:bold; color:white;">18-70+</div>
+                </div>
+              </div>
+              <div style="margin: 16px 0;">
+                <div style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-bottom:8px;">
+                  {t(lang, 'mod9_data_reality')}
+                </div>
+                <div style="height:40px; background:linear-gradient(to right, #ef4444 0%, #ef4444 35%, #e5e7eb 35%, #e5e7eb 100%); border-radius:8px; position:relative;">
+                  <div style="position:absolute; left:35%; top:50%; transform:translate(-50%, -50%); font-size:0.75rem; font-weight:bold; color:white;">18-25 Peak</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="hint-box" style="background:rgba(239, 68, 68, 0.08); margin-top:8px;">
+              <h4 style="margin-top:0;">{t(lang, 'mod9_analysis_title')}</h4>
+              <p style="margin-bottom:8px;">{t(lang, 'mod9_analysis_main')}</p>
+              <ul style="margin:0 0 10px 18px; padding:0; font-size:0.95rem;">
+                <li>{t(lang, 'mod9_analysis_means')}</li>
+                <li>{t(lang, 'mod9_analysis_matters')}</li>
+                <li>{t(lang, 'mod9_analysis_next')}</li>
+              </ul>
+              <p style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-top:8px;">
+                {t(lang, 'mod9_source')}
+              </p>
+            </div>
+          </details>
+        </div>
+      </div>
+    """
+
+def get_module_10_html(lang: str = "en") -> str:
+    """Generate Module 10 HTML with translations."""
+    return f"""
+      <div class="scenario-box">
+        <div style="display:flex; justify-content:center; margin-bottom:18px;">
+          <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:#22c55e; border:1px solid var(--border-color-primary); font-size:0.95rem; font-weight:800; color:white;">
+            <span style="font-size:1.1rem;">✅</span><span>{t(lang, 'mod10_badge')}</span>
+          </div>
+        </div>
+        <br>
+        <h2 class="slide-title" style="font-size:1.6rem; text-align:center;">{t(lang, 'mod10_title')}</h2>
+        <br>
+        <div class="slide-body">
+          <p style="font-size:1.05rem; max-width:820px; margin:0 auto 20px auto; text-align:center;">
+            {t(lang, 'mod10_intro')}
+          </p>
+
+          <div class="ai-risk-container" style="margin-bottom:16px;">
+            <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">{t(lang, 'mod10_evidence_title')}</h4>
+            <div style="display:grid; gap:12px; margin-top:12px;">
+              <div class="hint-box" style="margin-top:0;">
+                <div style="font-weight:bold; margin-bottom:6px;">{t(lang, 'mod10_evidence1_title')}</div>
+                <div style="font-size:0.95rem;">{t(lang, 'mod10_evidence1_text')}</div>
+              </div>
+              <div class="hint-box" style="margin-top:0;">
+                <div style="font-weight:bold; margin-bottom:6px;">{t(lang, 'mod10_evidence2_title')}</div>
+                <div style="font-size:0.95rem;">{t(lang, 'mod10_evidence2_text')}</div>
+              </div>
+              <div class="hint-box" style="margin-top:0;">
+                <div style="font-weight:bold; margin-bottom:6px;">{t(lang, 'mod10_evidence3_title')}</div>
+                <div style="font-size:0.95rem;">{t(lang, 'mod10_evidence3_text')}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ai-risk-container" style="margin-bottom:16px;">
+            <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">{t(lang, 'mod10_patterns_title')}</h4>
+            <p style="font-size:1rem; max-width:780px; margin:0 auto; text-align:center;">
+              {t(lang, 'mod10_patterns_text')}
+            </p>
+          </div>
+
+          <div class="hint-box" style="margin-top:16px;">
+            <div style="font-weight:800;">{t(lang, 'mod10_next_title')}</div>
+            <div style="font-size:0.98rem;">
+              {t(lang, 'mod10_next_text')}
+            </div>
+          </div>
+
+          <div style="text-align:center; margin-top:22px; padding:16px; background:rgba(34, 197, 94, 0.10); border-radius:10px;">
+            <h4 style="margin:0; font-size:1.15rem;">{t(lang, 'mod10_congrats_title')}</h4>
+            <p style="font-size:1rem; margin:8px 0 0 0;">
+              {t(lang, 'mod10_congrats_text')}
+            </p>
+          </div>
+        </div>
+      </div>
+    """
+
+def get_module_11_html(lang: str = "en") -> str:
+    """Generate Module 11 HTML with translations."""
+    return f"""
+      <div class="scenario-box">
+        <h2 class="slide-title" style="font-size:1.7rem; text-align:center;">{t(lang, 'mod11_title')}</h2>
+        <div class="slide-body">
+          <p style="font-size:1.15rem; max-width:820px; margin:20px auto; text-align:center; font-weight:600;">
+            {t(lang, 'mod11_congrats')}
+          </p>
+
+          <div class="ai-risk-container" style="margin-top:18px;">
+            <h4 style="margin-top:0; font-size:1.2rem; text-align:center;">{t(lang, 'mod11_roadmap_title')}</h4>
+            <div style="display:grid; gap:14px; margin-top:14px;">
+              <div class="hint-box" style="margin-top:0; background:rgba(34,197,94,0.1);">
+                <div style="font-weight:700;">{t(lang, 'mod11_step1_title')}</div>
+                <div style="font-size:0.95rem;">{t(lang, 'mod11_step1_text')}</div>
+              </div>
+              <div class="hint-box" style="margin-top:0; background:rgba(34,197,94,0.1);">
+                <div style="font-weight:700;">{t(lang, 'mod11_step2_title')}</div>
+                <div style="font-size:0.95rem;">{t(lang, 'mod11_step2_text')}</div>
+              </div>
+              <div class="hint-box" style="margin-top:0; background:rgba(59,130,246,0.1);">
+                <div style="font-weight:700;">{t(lang, 'mod11_step3_title')}</div>
+                <div style="font-size:0.95rem;">{t(lang, 'mod11_step3_text')}</div>
+              </div>
+              <div class="hint-box" style="margin-top:0; background:rgba(107,114,128,0.1);">
+                <div style="font-weight:700;">{t(lang, 'mod11_step4_title')}</div>
+                <div style="font-size:0.95rem;">{t(lang, 'mod11_step4_text')}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ai-risk-container" style="margin-top:18px;">
+            <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">{t(lang, 'mod11_next_title')}</h4>
+            <p style="font-size:1rem; max-width:800px; margin:0 auto;">
+              {t(lang, 'mod11_next_text')}
+            </p>
+          </div>
+
+          <div style="text-align:center; margin-top:22px; padding:14px; background:rgba(59,130,246,0.08); border-radius:10px;">
+            <p style="font-size:1.05rem; margin:0;">
+              <strong>{t(lang, 'mod11_cta')}</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+    """
+
+def get_module_html(module_id: int, lang: str = "en") -> str:
+    """
+    Get module HTML content with translations.
+    Translated modules return language-specific HTML.
+    Untranslated modules return original English HTML.
+    """
+    # Modules with full translation support
+    if module_id == 0:
+        return get_module_0_html(lang)
+    elif module_id == 1:
+        return get_module_1_html(lang)
+    elif module_id == 2:
+        return get_module_2_html(lang)
+    elif module_id == 3:
+        return get_module_3_html(lang)
+    elif module_id == 4:
+        return get_module_4_html(lang)
+    elif module_id == 5:
+        return get_module_5_html(lang)
+    elif module_id == 6:
+        return get_module_6_html(lang)
+    elif module_id == 7:
+        return get_module_7_html(lang)
+    elif module_id == 8:
+        return get_module_8_html(lang)
+    elif module_id == 9:
+        return get_module_9_html(lang)
+    elif module_id == 10:
+        return get_module_10_html(lang)
+    elif module_id == 11:
+        return get_module_11_html(lang)
+    
+    # For other modules, return original English HTML from MODULES
+    for mod in MODULES:
+        if mod["id"] == module_id:
+            return mod["html"]
+    return ""
 
 # --- 4. MODULE DEFINITIONS (APP 1: 0-10) ---
 MODULES = [
@@ -1177,6 +2686,246 @@ QUIZ_CONFIG = {
     },
 }
 
+# --- 5b. QUIZ TRANSLATIONS (ES, CA) ---
+QUIZ_CONFIG_ES = {
+    0: {
+        "t": "t1",
+        "q": "¿Por qué multiplicamos tu Precisión por el Progreso Ético?",
+        "o": [
+            "A) Porque la simple precisión ignora el sesgo potencial y el daño.",
+            "B) Para hacer más complicadas las matemáticas de la tabla de clasificación.",
+            "C) La precisión es la única métrica que realmente importa.",
+        ],
+        "a": "A) Porque la simple precisión ignora el sesgo potencial y el daño.",
+        "success": "Calibración inicializada. Ahora estás cuantificando el riesgo ético.",
+    },
+    1: {
+        "t": "t2",
+        "q": "¿Cuál es el mejor primer paso antes de empezar a examinar los datos del modelo?",
+        "o": [
+            "Ir directamente a los datos y buscar patrones.",
+            "Aprender las reglas que definen qué cuenta como sesgo.",
+            "Dejar que el modelo explique sus propias decisiones.",
+        ],
+        "a": "Aprender las reglas que definen qué cuenta como sesgo.",
+        "success": "Informe completo. Estás comenzando tu investigación con las reglas correctas en mente.",
+    },
+    2: {
+        "t": "t3",
+        "q": "¿Qué requiere Justicia y Equidad?",
+        "o": [
+            "Explicar las decisiones del modelo",
+            "Verificar errores de predicción a nivel de grupo para prevenir daños sistemáticos",
+            "Minimizar la tasa de error",
+        ],
+        "a": "Verificar errores de predicción a nivel de grupo para prevenir daños sistemáticos",
+        "success": "Protocolo Activo. Ahora estás auditando por Justicia y Equidad.",
+    },
+    3: {
+        "t": "t4",
+        "q": "Detective, basándote en el Efecto Dominó, ¿por qué este sesgo algorítmico se clasifica como Amenaza de Alta Prioridad?",
+        "o": [
+            "A) Porque las computadoras tienen intenciones maliciosas.",
+            "B) Porque el error se automatiza a escala, replicándose potencialmente miles de veces en muchos casos.",
+            "C) Porque cuesta más dinero ejecutar el software.",
+        ],
+        "a": "B) Porque el error se automatiza a escala, replicándose potencialmente miles de veces en muchos casos.",
+        "success": "Amenaza Evaluada. Has identificado el peligro único de la escala de automatización.",
+    },
+    4: {
+        "t": "t5",
+        "q": "Detective, dado que el modelo no confesará, ¿cuál es una forma clave de investigar el sesgo?",
+        "o": [
+            "A) Preguntar a los desarrolladores qué pretendían.",
+            "B) Comparar las predicciones del modelo con los resultados reales.",
+            "C) Ejecutar el modelo más rápido.",
+        ],
+        "a": "B) Comparar las predicciones del modelo con los resultados reales.",
+        "success": "Metodología Confirmada. Juzgaremos el modelo por sus resultados, no por su código.",
+    },
+    5: {
+        "t": "t6",
+        "q": "¿Cómo debes ver el conjunto de datos al comenzar tu investigación?",
+        "o": [
+            "A) Como verdad neutral.",
+            "B) Como una 'Escena del Crimen' que potencialmente contiene patrones históricos de discriminación entre otras formas de sesgo.",
+            "C) Como ruido aleatorio.",
+        ],
+        "a": "B) Como una 'Escena del Crimen' que potencialmente contiene patrones históricos de discriminación entre otras formas de sesgo.",
+        "success": "Mentalidad Cambiada. Estás tratando los datos como evidencia de la historia, no como verdad absoluta.",
+    },
+    7: {
+        "t": "t7",
+        "q": "El conjunto de datos tiene aproximadamente 2x más de este grupo que la realidad. ¿Qué término técnico describe mejor esta discrepancia entre el conjunto de datos y la población?",
+        "o": [
+            "A) Sesgo de Muestreo o Histórico",
+            "B) Sobreajuste",
+            "C) Fuga de Datos",
+            "D) Desplazamiento del Concepto",
+        ],
+        "a": "A) Sesgo de Muestreo o Histórico",
+        "success": "Sesgo detectado: Sesgo de Muestreo o Histórico. El conjunto de datos sobremuestrea este grupo en relación a la realidad, lo que puede llevar al modelo a sobre-señalar. Siguiente: comparar tasas de error por raza para confirmar impactos de equidad.",
+    },
+    8: {
+        "t": "t8",
+        "q": "La IA tiene muy pocos ejemplos de mujeres. ¿Cómo llamamos cuando un grupo específico no está adecuadamente incluido?",
+        "o": [
+            "A) Sobreajuste",
+            "B) Fuga de Datos",
+            "C) Desplazamiento del Concepto",
+            "D) Sesgo de Representación",
+        ],
+        "a": "D) Sesgo de Representación",
+        "success": "Sesgo detectado: Sesgo de Representación. La subrepresentación puede hacer que el modelo generalice mal para las mujeres. Siguiente: comparar tasas de error por género e inspeccionar campos faltantes para sesgo de exclusión.",
+    },
+    9: {
+        "t": "t9",
+        "q": "La mayoría de los datos de COMPAS están entre 25–45 años, con menos personas mayores de 45. ¿Cuál es el riesgo principal para una persona de 62 años?",
+        "o": [
+            "A) Error de Generalización: La IA puede juzgar mal el riesgo porque tiene pocos ejemplos de adultos mayores.",
+            "B) El modelo se niega a hacer una predicción.",
+            "C) Los adultos mayores automáticamente reciben predicciones más precisas.",
+        ],
+        "a": "A) Error de Generalización: La IA puede juzgar mal el riesgo porque tiene pocos ejemplos de adultos mayores.",
+        "success": "Riesgo Registrado: Error de Generalización. El modelo tiene 'visibilidad' limitada sobre acusados mayores.",
+    },
+    10: {
+        "t": "t10",
+        "q": "Detective, has construido evidencia de que los Datos de Entrada podrían estar sesgados. ¿Es esto suficiente para condenar el modelo?",
+        "o": [
+            "A) Sí, si los datos están sesgados, es ilegal.",
+            "B) No. Ahora debemos analizar los errores de predicción del Modelo para grupos específicos para estudiar el daño real a personas reales.",
+            "C) Sí, asume daño.",
+        ],
+        "a": "B) No. Ahora debemos analizar los errores de predicción del Modelo para grupos específicos para estudiar el daño real a personas reales.",
+        "success": "Pivote de Investigación. Fase 1 (Entradas) Completa. Comenzando Fase 2 (Salidas).",
+    },
+}
+
+QUIZ_CONFIG_CA = {
+    0: {
+        "t": "t1",
+        "q": "Per què multipliquem la teva Precisió pel Progrés Ètic?",
+        "o": [
+            "A) Perquè la simple precisió ignora el biaix potencial i el dany.",
+            "B) Per fer més complicades les matemàtiques de la taula de classificació.",
+            "C) La precisió és l'única mètrica que realment importa.",
+        ],
+        "a": "A) Perquè la simple precisió ignora el biaix potencial i el dany.",
+        "success": "Calibratge inicialitzat. Ara estàs quantificant el risc ètic.",
+    },
+    1: {
+        "t": "t2",
+        "q": "Quin és el millor primer pas abans de començar a examinar les dades del model?",
+        "o": [
+            "Anar directament a les dades i buscar patrons.",
+            "Aprendre les regles que defineixen què compta com a biaix.",
+            "Deixar que el model expliqui les seves pròpies decisions.",
+        ],
+        "a": "Aprendre les regles que defineixen què compta com a biaix.",
+        "success": "Informe complet. Estàs començant la teva investigació amb les regles correctes en ment.",
+    },
+    2: {
+        "t": "t3",
+        "q": "Què requereix Justícia i Equitat?",
+        "o": [
+            "Explicar les decisions del model",
+            "Verificar errors de predicció a nivell de grup per prevenir danys sistemàtics",
+            "Minimitzar la taxa d'error",
+        ],
+        "a": "Verificar errors de predicció a nivell de grup per prevenir danys sistemàtics",
+        "success": "Protocol Actiu. Ara estàs auditant per Justícia i Equitat.",
+    },
+    3: {
+        "t": "t4",
+        "q": "Detective, basant-te en l'Efecte Dominó, per què aquest biaix algorítmic es classifica com a Amenaça d'Alta Prioritat?",
+        "o": [
+            "A) Perquè els ordinadors tenen intencions malicioses.",
+            "B) Perquè l'error s'automatitza a escala, replicant-se potencialment milers de vegades en molts casos.",
+            "C) Perquè costa més diners executar el programari.",
+        ],
+        "a": "B) Perquè l'error s'automatitza a escala, replicant-se potencialment milers de vegades en molts casos.",
+        "success": "Amenaça Avaluada. Has identificat el perill únic de l'escala d'automatització.",
+    },
+    4: {
+        "t": "t5",
+        "q": "Detective, atès que el model no confessarà, quina és una manera clau d'investigar el biaix?",
+        "o": [
+            "A) Preguntar als desenvolupadors què pretenien.",
+            "B) Comparar les prediccions del model amb els resultats reals.",
+            "C) Executar el model més ràpid.",
+        ],
+        "a": "B) Comparar les prediccions del model amb els resultats reals.",
+        "success": "Metodologia Confirmada. Jutjarem el model pels seus resultats, no pel seu codi.",
+    },
+    5: {
+        "t": "t6",
+        "q": "Com has de veure el conjunt de dades en començar la teva investigació?",
+        "o": [
+            "A) Com a veritat neutral.",
+            "B) Com a una 'Escena del Crim' que potencialment conté patrons històrics de discriminació entre altres formes de biaix.",
+            "C) Com a soroll aleatori.",
+        ],
+        "a": "B) Com a una 'Escena del Crim' que potencialment conté patrons històrics de discriminació entre altres formes de biaix.",
+        "success": "Mentalitat Canviada. Estàs tractant les dades com a evidència de la història, no com a veritat absoluta.",
+    },
+    7: {
+        "t": "t7",
+        "q": "El conjunt de dades té aproximadament 2x més d'aquest grup que la realitat. Quin terme tècnic descriu millor aquesta discrepància entre el conjunt de dades i la població?",
+        "o": [
+            "A) Biaix de Mostreig o Històric",
+            "B) Sobreajust",
+            "C) Fugida de Dades",
+            "D) Desplaçament del Concepte",
+        ],
+        "a": "A) Biaix de Mostreig o Històric",
+        "success": "Biaix detectat: Biaix de Mostreig o Històric. El conjunt de dades sobremostra aquest grup en relació a la realitat, la qual cosa pot portar el model a sobre-assenyalar. Següent: comparar taxes d'error per raça per confirmar impactes d'equitat.",
+    },
+    8: {
+        "t": "t8",
+        "q": "La IA té molt pocs exemples de dones. Com anomenem quan un grup específic no està adequadament inclòs?",
+        "o": [
+            "A) Sobreajust",
+            "B) Fugida de Dades",
+            "C) Desplaçament del Concepte",
+            "D) Biaix de Representació",
+        ],
+        "a": "D) Biaix de Representació",
+        "success": "Biaix detectat: Biaix de Representació. La subrepresentació pot fer que el model generalitzi malament per a les dones. Següent: comparar taxes d'error per gènere i inspeccionar camps faltants per biaix d'exclusió.",
+    },
+    9: {
+        "t": "t9",
+        "q": "La majoria de les dades de COMPAS estan entre 25–45 anys, amb menys persones majors de 45. Quin és el risc principal per a una persona de 62 anys?",
+        "o": [
+            "A) Error de Generalització: La IA pot jutjar malament el risc perquè té pocs exemples d'adults grans.",
+            "B) El model es nega a fer una predicció.",
+            "C) Els adults grans automàticament reben prediccions més precises.",
+        ],
+        "a": "A) Error de Generalització: La IA pot jutjar malament el risc perquè té pocs exemples d'adults grans.",
+        "success": "Risc Registrat: Error de Generalització. El model té 'visibilitat' limitada sobre acusats grans.",
+    },
+    10: {
+        "t": "t10",
+        "q": "Detective, has construït evidència que les Dades d'Entrada podrien estar esbiaixades. És això suficient per condemnar el model?",
+        "o": [
+            "A) Sí, si les dades estan esbiaixades, és il·legal.",
+            "B) No. Ara hem d'analitzar els errors de predicció del Model per a grups específics per estudiar el dany real a persones reals.",
+            "C) Sí, assumeix dany.",
+        ],
+        "a": "B) No. Ara hem d'analitzar els errors de predicció del Model per a grups específics per estudiar el dany real a persones reals.",
+        "success": "Pivot d'Investigació. Fase 1 (Entrades) Completa. Començant Fase 2 (Sortides).",
+    },
+}
+
+def get_quiz_config(lang="en"):
+    """Get quiz configuration for the specified language."""
+    if lang == "es":
+        return QUIZ_CONFIG_ES
+    elif lang == "ca":
+        return QUIZ_CONFIG_CA
+    else:
+        return QUIZ_CONFIG
+
 # --- 6. SCENARIO CONFIG (for Module 0) ---
 SCENARIO_CONFIG = {
     "Criminal risk prediction": {
@@ -1814,14 +3563,15 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
         module0_done = gr.State(value=False)
         accuracy_state = gr.State(value=0.0)
         task_list_state = gr.State(value=[])
+        lang_state = gr.State(value="en")  # Language state for i18n
 
         # --- TOP ANCHOR & LOADING OVERLAY FOR NAVIGATION ---
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
-        gr.HTML("<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>Loading...</span></div>")
+        nav_loading_overlay = gr.HTML("<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>Loading...</span></div>")
 
-        # --- LOADING VIEW ---
+        # --- LOADING VIEW (will be updated with translated text on load) ---
         with gr.Column(visible=True, elem_id="app-loader") as loader_col:
-            gr.HTML(
+            loading_screen_html = gr.HTML(
                 "<div style='text-align:center; padding:100px;'>"
                 "<h2>🕵️‍♀️ Authenticating...</h2>"
                 "<p>Syncing Moral Compass Data...</p>"
@@ -1847,8 +3597,34 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                     elem_classes=["module-container"],
                     visible=(i == 0),
                 ) as mod_col:
-                    # Core slide HTML
-                    gr.HTML(mod["html"])
+                    # Core slide HTML - store reference for translation updates
+                    module_html_comp = gr.HTML(mod["html"])
+                    
+                    # Store HTML component references for translation updates
+                    if i == 0:
+                        module_0_html = module_html_comp
+                    elif i == 1:
+                        module_1_html = module_html_comp
+                    elif i == 2:
+                        module_2_html = module_html_comp
+                    elif i == 3:
+                        module_3_html = module_html_comp
+                    elif i == 4:
+                        module_4_html = module_html_comp
+                    elif i == 5:
+                        module_5_html = module_html_comp
+                    elif i == 6:
+                        module_6_html = module_html_comp
+                    elif i == 7:
+                        module_7_html = module_html_comp
+                    elif i == 8:
+                        module_8_html = module_html_comp
+                    elif i == 9:
+                        module_9_html = module_html_comp
+                    elif i == 10:
+                        module_10_html = module_html_comp
+                    elif i == 11:
+                        module_11_html = module_html_comp
 
                     # --- MODULE 0: INTERACTIVE CALCULATOR + STATIC SCENARIO CARDS ---
                     if i == 0:
@@ -1921,6 +3697,14 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
 
                     module_ui_elements[i] = (mod_col, btn_prev, btn_next)
 
+            # Extract all buttons for translation updates
+            all_prev_buttons = []
+            all_next_buttons = []
+            for i in range(len(MODULES)):
+                _, prev_btn, next_btn = module_ui_elements[i]
+                all_prev_buttons.append(prev_btn)
+                all_next_buttons.append(next_btn)
+
             # Leaderboard card appears AFTER content & interactions
             leaderboard_html = gr.HTML()
 
@@ -1934,9 +3718,11 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                     acc_val,
                     task_list,
                     ans,
+                    lang,
                     mid=mod_id,
                 ):
-                    cfg = QUIZ_CONFIG[mid]
+                    quiz_cfg = get_quiz_config(lang)
+                    cfg = quiz_cfg[mid]
                     if ans == cfg["a"]:
                         prev, curr, _, new_tasks = trigger_api_update(
                             user, tok, team, mid, acc_val, task_list, cfg["t"]
@@ -1952,8 +3738,7 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                         return (
                             gr.update(),
                             gr.update(),
-                            "<div class='hint-box' style='border-color:red;'>"
-                            "❌ Incorrect. Review the evidence above.</div>",
+                            f"<div class='hint-box' style='border-color:red;'>{t(lang, 'quiz_incorrect')}</div>",
                             task_list,
                         )
 
@@ -1966,12 +3751,52 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                         accuracy_state,
                         task_list_state,
                         radio_comp,
+                        lang_state,  # Add lang_state as input
                     ],
                     outputs=[out_top, leaderboard_html, feedback_comp, task_list_state],
                 )
 
+        # --- HELPER: GENERATE BUTTON UPDATES FOR LANGUAGE ---
+        def get_button_updates(lang: str):
+            """Generate gr.update() calls for all buttons based on language."""
+            prev_updates = []
+            next_updates = []
+            num_modules = len(MODULES)
+            
+            for i in range(num_modules):
+                # 1. Create Update for Previous Button
+                prev_label = get_button_label(lang, "previous")
+                prev_updates.append(gr.update(value=prev_label))
+                
+                # 2. Create Update for Next Button
+                # Check if this is the last slide to show the "Complete" message
+                is_last = (i == num_modules - 1)
+                next_label = get_button_label(lang, "next", is_last)
+                next_updates.append(gr.update(value=next_label))
+            
+            # 3. Return combined list in the exact order demo.load expects:
+            #    [All Previous Buttons] + [All Next Buttons]
+            return prev_updates + next_updates
+
         # --- GLOBAL LOAD HANDLER ---
         def handle_load(req: gr.Request):
+            # Get language from query params
+            params = req.query_params if req else {}
+            
+            # 2. Check Local Variable (Highest Priority for Colab Testing)
+            if LOCAL_TEST_LANG:
+                lang = LOCAL_TEST_LANG
+                print(f"DEBUG: Forcing language to '{lang}' via LOCAL_TEST_LANG")
+            
+            # 3. Check URL Query Parameters (Priority for Production)
+            # Only check this if we aren't locally testing a specific language
+            elif req and req.query_params:
+                lang = req.query_params.get("lang", "en")
+
+            # 4. Validate (Fallback to English if invalid)
+            if lang not in TRANSLATIONS:
+                print(f"DEBUG: Language '{lang}' not found. Falling back to 'en'.")
+                lang = "en"
             success, user, token = _try_session_based_auth(req)
             team = "Team-Unassigned"
             acc = 0.0
@@ -2037,6 +3862,7 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                 data, _ = ensure_table_and_get_data(
                     user, token, team, fetched_tasks
                 )
+                button_updates = get_button_updates(lang)
                 return (
                     user,
                     token,
@@ -2046,22 +3872,55 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                     render_leaderboard_card(data, user, team),
                     acc,
                     fetched_tasks,
+                    lang,  # Return detected language
+                    get_loading_screen_html(lang),  # Update loading screen with translated text
+                    get_nav_loading_html(lang),  # Update nav loading with translated text
+                    get_module_0_html(lang),  # Update Module 0 with translated content
+                    get_module_1_html(lang),  # Update Module 1 with translated content
+                    get_module_2_html(lang),  # Update Module 2 with translated content
+                    get_module_3_html(lang),  # Update Module 3 with translated content
+                    get_module_4_html(lang),  # Update Module 4 with translated content
+                    get_module_5_html(lang),  # Update Module 5 with translated content
+                    get_module_6_html(lang),  # Update Module 6 with translated content
+                    get_module_7_html(lang),  # Update Module 7 with translated content
+                    get_module_8_html(lang),  # Update Module 8 with translated content
+                    get_module_9_html(lang),  # Update Module 9 with translated content
+                    get_module_10_html(lang),  # Update Module 10 with translated content
+                    get_module_11_html(lang),  # Update Module 11 with translated content
                     gr.update(visible=False),
                     gr.update(visible=True),
+                    *button_updates,  # Update all button labels
                 )
 
             # Auth failed / no session
+            button_updates = get_button_updates(lang)
             return (
                 None,
                 None,
                 None,
                 False,
-                "<div class='hint-box'>⚠️ Auth Failed. Please launch from the course link.</div>",
+                f"<div class='hint-box'>{t(lang, 'auth_failed')}</div>",
                 "",
                 0.0,
                 [],
+                lang,  # Return detected language
+                get_loading_screen_html(lang),  # Update loading screen with translated text
+                get_nav_loading_html(lang),  # Update nav loading with translated text
+                get_module_0_html(lang),  # Update Module 0 with translated content
+                get_module_1_html(lang),  # Update Module 1 with translated content
+                get_module_2_html(lang),  # Update Module 2 with translated content
+                get_module_3_html(lang),  # Update Module 3 with translated content
+                get_module_4_html(lang),  # Update Module 4 with translated content
+                get_module_5_html(lang),  # Update Module 5 with translated content
+                get_module_6_html(lang),  # Update Module 6 with translated content
+                get_module_7_html(lang),  # Update Module 7 with translated content
+                get_module_8_html(lang),  # Update Module 8 with translated content
+                get_module_9_html(lang),  # Update Module 9 with translated content
+                get_module_10_html(lang),  # Update Module 10 with translated content
+                get_module_11_html(lang),  # Update Module 11 with translated content
                 gr.update(visible=False),
                 gr.update(visible=True),
+                *button_updates,  # Update all button labels
             )
 
         # Attach load event
@@ -2077,8 +3936,25 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                 leaderboard_html,
                 accuracy_state,
                 task_list_state,
+                lang_state,  # Add lang to outputs
+                loading_screen_html,  # Update loading screen
+                nav_loading_overlay,  # Update nav loading
+                module_0_html,  # Update Module 0 content
+                module_1_html,  # Update Module 1 content
+                module_2_html,  # Update Module 2 content
+                module_3_html,  # Update Module 3 content
+                module_4_html,  # Update Module 4 content
+                module_5_html,  # Update Module 5 content
+                module_6_html,  # Update Module 6 content
+                module_7_html,  # Update Module 7 content
+                module_8_html,  # Update Module 8 content
+                module_9_html,  # Update Module 9 content
+                module_10_html,  # Update Module 10 content
+                module_11_html,  # Update Module 11 content
                 loader_col,
                 main_app_col,
+                *all_prev_buttons,  # Update all previous buttons
+                *all_next_buttons,  # Update all next buttons
             ],
         )
 

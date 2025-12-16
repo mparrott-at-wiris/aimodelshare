@@ -67,6 +67,231 @@ def fetch_user_history(username, token):
     except Exception: pass
     return default_acc, default_team
 
+# --- 3b. I18N TRANSLATIONS ---
+TRANSLATIONS = {
+    "en": {
+        # Loading and auth messages
+        "loading_auth": "🕵️‍♀️ Authenticating...",
+        "loading_sync": "Syncing Moral Compass Data...",
+        "auth_failed": "⚠️ Auth Failed. Please launch from the course link.",
+        "loading_text": "Loading...",
+        
+        # Navigation buttons
+        "btn_previous": "⬅️ Previous",
+        "btn_next": "Next ▶️",
+        "btn_completed_part2": "🎉 You Have Completed Part 2!! (Please Proceed to the Next Activity)",
+        
+        # Quiz labels
+        "quiz_select_answer": "Select Answer:",
+        "quiz_incorrect": "❌ Incorrect. Review the evidence above.",
+        
+        # Dashboard labels
+        "lbl_score": "Score",
+        "lbl_rank": "Rank",
+        "lbl_team_rank": "Team Rank",
+        "lbl_progress": "Progress",
+        "lbl_teams": "Teams",
+        "lbl_users": "Users",
+        
+        # Module 0 - Part 2 Intro
+        "mod0_p2_title": "🕵️‍♀️ PART 2: THE ALGORITHMIC AUDIT",
+        "mod0_p2_status": "STATUS: DATA FORENSICS COMPLETE",
+        "mod0_p2_roadmap": "🗺️ Your Investigation Roadmap",
+        "mod0_p2_step1": "1. Learn the Rules",
+        "mod0_p2_step2": "2. Collect Evidence",
+        "mod0_p2_step3": "3. Prove the Prediction Error",
+        "mod0_p2_step4": "4. Diagnose Harm",
+        "mod0_p2_completed": "✔ Completed",
+        "mod0_p2_here": "⬅ You are here",
+        "mod0_p2_soon": "Coming Soon",
+        "mod0_p2_welcome": "Welcome back, Detective. In Part 1, you uncovered powerful evidence: the <strong>input data</strong> feeding this model was distorted by history and unequal sampling.",
+        "mod0_p2_half": "But corrupted data is only <em>half</em> the case. Now comes the decisive moment in any AI audit: testing whether these distorted inputs have produced <strong>unfair outputs</strong> — unequal predictions that change real lives.",
+        "mod0_p2_compare": "In Part 2, you will compare the model's predictions against reality, group by group. This is where you expose <strong>false positives</strong>, <strong>false negatives</strong>, and the hidden <strong>error gaps</strong> that reveal whether the system is treating people unfairly.",
+    },
+    "es": {
+        # Loading and auth messages
+        "loading_auth": "🕵️‍♀️ Autenticando...",
+        "loading_sync": "Sincronizando datos de la Brújula Moral...",
+        "auth_failed": "⚠️ Autenticación fallida. Inicia desde el enlace del curso.",
+        "loading_text": "Cargando...",
+        
+        # Navigation buttons  
+        "btn_previous": "⬅️ Anterior",
+        "btn_next": "Siguiente ▶️",
+        "btn_completed_part2": "🎉 ¡Has completado la Parte 2! (Continúa a la Siguiente Actividad)",
+        
+        # Quiz labels
+        "quiz_select_answer": "Selecciona la respuesta:",
+        "quiz_incorrect": "❌ Incorrecta. Revisa la evidencia de arriba.",
+        
+        # Dashboard labels
+        "lbl_score": "Puntuación",
+        "lbl_rank": "Rango",
+        "lbl_team_rank": "Rango del Equipo",
+        "lbl_progress": "Progreso",
+        "lbl_teams": "Equipos",
+        "lbl_users": "Usuarios",
+        
+        # Module 0 - Part 2 Intro
+        "mod0_p2_title": "🕵️‍♀️ PARTE 2: LA AUDITORÍA ALGORÍTMICA",
+        "mod0_p2_status": "ESTADO: FORENSE DE DATOS COMPLETA",
+        "mod0_p2_roadmap": "🗺️ Tu Hoja de Ruta de Investigación",
+        "mod0_p2_step1": "1. Aprender las Reglas",
+        "mod0_p2_step2": "2. Recopilar Evidencia",
+        "mod0_p2_step3": "3. Probar el Error de Predicción",
+        "mod0_p2_step4": "4. Diagnosticar el Daño",
+        "mod0_p2_completed": "✔ Completado",
+        "mod0_p2_here": "⬅ Estás aquí",
+        "mod0_p2_soon": "Próximamente",
+        "mod0_p2_welcome": "Bienvenido de nuevo, Detective. En la Parte 1, descubriste evidencia poderosa: los <strong>datos de entrada</strong> que alimentan este modelo estaban distorsionados por la historia y el muestreo desigual.",
+        "mod0_p2_half": "Pero los datos corruptos son solo la <em>mitad</em> del caso. Ahora llega el momento decisivo en cualquier auditoría de IA: probar si estas entradas distorsionadas han producido <strong>salidas injustas</strong> — predicciones desiguales que cambian vidas reales.",
+        "mod0_p2_compare": "En la Parte 2, compararás las predicciones del modelo con la realidad, grupo por grupo. Aquí es donde expones <strong>falsos positivos</strong>, <strong>falsos negativos</strong> y las <strong>brechas de error</strong> ocultas que revelan si el sistema está tratando a las personas injustamente.",
+    },
+    "ca": {
+        # Loading and auth messages
+        "loading_auth": "🕵️‍♀️ Autenticant...",
+        "loading_sync": "Sincronitzant dades de la Brúixola Moral...",
+        "auth_failed": "⚠️ Autenticació fallida. Inicia des de l'enllaç del curs.",
+        "loading_text": "Carregant...",
+        
+        # Navigation buttons
+        "btn_previous": "⬅️ Anterior",
+        "btn_next": "Següent ▶️",
+        "btn_completed_part2": "🎉 Has completat la Part 2! (Continua a la Següent Activitat)",
+        
+        # Quiz labels
+        "quiz_select_answer": "Selecciona la resposta:",
+        "quiz_incorrect": "❌ Incorrecta. Revisa l'evidència de dalt.",
+        
+        # Dashboard labels
+        "lbl_score": "Puntuació",
+        "lbl_rank": "Rang",
+        "lbl_team_rank": "Rang de l'Equip",
+        "lbl_progress": "Progrés",
+        "lbl_teams": "Equips",
+        "lbl_users": "Usuaris",
+        
+        # Module 0 - Part 2 Intro
+        "mod0_p2_title": "🕵️‍♀️ PART 2: L'AUDITORIA ALGORÍTMICA",
+        "mod0_p2_status": "ESTAT: FORENSE DE DADES COMPLET",
+        "mod0_p2_roadmap": "🗺️ La teva Fulla de Ruta d'Investigació",
+        "mod0_p2_step1": "1. Aprendre les Regles",
+        "mod0_p2_step2": "2. Recopilar Evidència",
+        "mod0_p2_step3": "3. Provar l'Error de Predicció",
+        "mod0_p2_step4": "4. Diagnosticar el Dany",
+        "mod0_p2_completed": "✔ Completat",
+        "mod0_p2_here": "⬅ Ets aquí",
+        "mod0_p2_soon": "Pròximament",
+        "mod0_p2_welcome": "Benvingut de nou, Detective. A la Part 1, vas descobrir evidència poderosa: les <strong>dades d'entrada</strong> que alimenten aquest model estaven distorsionades per la història i el mostreig desigual.",
+        "mod0_p2_half": "Però les dades corruptes són només la <em>meitat</em> del cas. Ara arriba el moment decisiu en qualsevol auditoria d'IA: provar si aquestes entrades distorsionades han produït <strong>sortides injustes</strong> — prediccions desiguals que canvien vides reals.",
+        "mod0_p2_compare": "A la Part 2, compararàs les prediccions del model amb la realitat, grup per grup. Aquí és on exposes <strong>falsos positius</strong>, <strong>falsos negatius</strong> i les <strong>bretxes d'error</strong> ocultes que revelen si el sistema està tractant les persones injustament.",
+    }
+}
+
+# --- 3c. I18N TRANSLATION HELPER ---
+def t(lang: str, key: str) -> str:
+    """Get translated text for given language and key."""
+    return TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(key, key)
+
+def get_loading_screen_html(lang: str = "en") -> str:
+    """Generate loading screen HTML with translated text."""
+    return f"""
+    <div style='text-align:center; padding:100px;'>
+        <h2>{t(lang, 'loading_auth')}</h2>
+        <p>{t(lang, 'loading_sync')}</p>
+    </div>
+    """
+
+def get_nav_loading_html(lang: str = "en") -> str:
+    """Generate navigation loading overlay HTML with translated text."""
+    return f"""<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>{t(lang, 'loading_text')}</span></div>"""
+
+def get_button_label(lang: str, button_type: str, is_last: bool = False) -> str:
+    """Get translated button label based on type."""
+    if button_type == "previous":
+        return t(lang, 'btn_previous')
+    elif button_type == "next":
+        if is_last:
+            return t(lang, 'btn_completed_part2')
+        return t(lang, 'btn_next')
+    return ""
+
+def get_module_0_html(lang: str = "en") -> str:
+    """Generate Module 0 HTML with translations for Part 2."""
+    return f"""
+        <div class="scenario-box">
+            <h2 class="slide-title">{t(lang, 'mod0_p2_title')}</h2>
+            <div class="slide-body">
+
+                <!-- STATUS BADGE -->
+                <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                    <div style="display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:999px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); font-size:0.95rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700;">
+                        <span style="font-size:1.1rem;">⚡</span>
+                        <span>{t(lang, 'mod0_p2_status')}</span>
+                    </div>
+                </div>
+
+                <!-- ROADMAP RECAP -->
+                <div class="ai-risk-container" style="margin:0 auto 22px auto; max-width:780px; padding:16px; border:1px solid var(--border-color-primary); border-radius:10px;">
+                    <h4 style="margin-top:0; font-size:1.05rem; text-align:center;">{t(lang, 'mod0_p2_roadmap')}</h4>
+                    <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-top:12px;">
+
+                        <div class="hint-box" style="margin-top:0;">
+                            <div style="font-weight:700;">{t(lang, 'mod0_p2_step1')}</div>
+                            <div style="font-size:0.85rem; color:var(--body-text-color-subdued);">{t(lang, 'mod0_p2_completed')}</div>
+                        </div>
+
+                        <div class="hint-box" style="margin-top:0;">
+                            <div style="font-weight:700;">{t(lang, 'mod0_p2_step2')}</div>
+                            <div style="font-size:0.85rem; color:var(--body-text-color-subdued);">{t(lang, 'mod0_p2_completed')}</div>
+                        </div>
+
+                        <div class="hint-box" style="margin-top:0; border-left:4px solid #3b82f6; background:rgba(59,130,246,0.08);">
+                            <div style="font-weight:700; color:#1d4ed8;">{t(lang, 'mod0_p2_step3')}</div>
+                            <div style="font-size:0.85rem; color:var(--body-text-color-subdued);">{t(lang, 'mod0_p2_here')}</div>
+                        </div>
+
+                        <div class="hint-box" style="margin-top:0;">
+                            <div style="font-weight:700;">{t(lang, 'mod0_p2_step4')}</div>
+                            <div style="font-size:0.85rem; color:var(--body-text-color-subdued);">{t(lang, 'mod0_p2_soon')}</div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- TRANSITION NARRATIVE -->
+                <p style="font-size:1.05rem; max-width:780px; margin:0 auto 14px auto; text-align:center;">
+                    {t(lang, 'mod0_p2_welcome')}
+                </p>
+
+                <p style="font-size:1.05rem; max-width:780px; margin:0 auto 18px auto; text-align:center;">
+                    {t(lang, 'mod0_p2_half')}
+                </p>
+
+                <p style="font-size:1.05rem; max-width:780px; margin:0 auto 22px auto; text-align:center;">
+                    {t(lang, 'mod0_p2_compare')}
+                </p>
+
+            </div>
+        </div>
+    """
+
+def get_module_html(module_id: int, lang: str = "en") -> str:
+    """
+    Get module HTML content with translations.
+    Translated modules return language-specific HTML.
+    Untranslated modules return original English HTML.
+    """
+    # Module 0 has full translation support
+    if module_id == 0:
+        return get_module_0_html(lang)
+    
+    # For other modules, return original English HTML from MODULES
+    for mod in MODULES:
+        if mod["id"] == module_id:
+            return mod["html"]
+    return ""
+
 # --- 4. API & LEADERBOARD LOGIC ---
 def get_or_assign_team(client, username):
     try:
@@ -1837,6 +2062,220 @@ QUIZ_CONFIG = {
     }
     }
 
+# --- 6b. QUIZ TRANSLATIONS (ES, CA) ---
+QUIZ_CONFIG_ES = {
+    1: {
+        "t": "t11",
+        "q": "¿Qué resultado muestra por qué es esencial probar las salidas de IA?",
+        "o": [
+            "A) Las predicciones incorrectas pueden dañar a personas o comunidades cuando un grupo obtiene más errores",
+            "B) Solo los datos de entrada determinan la equidad",
+            "C) Las salidas no afectan las decisiones reales"
+        ],
+        "a": "A) Las predicciones incorrectas pueden dañar a personas o comunidades cuando un grupo obtiene más errores",
+        "success": "Impacto Identificado. Entiendes que los errores desiguales moldean vidas reales y seguridad real."
+    },
+    2: {
+        "t": "t12",
+        "q": "¿Cómo descubrió ProPublica cuándo la IA estaba correcta o incorrecta?",
+        "o": [
+            "A) Entrevistó a jueces",
+            "B) Comparó las predicciones de la IA con lo que realmente sucedió durante 2 años",
+            "C) Ejecutó simulaciones por computadora"
+        ],
+        "a": "B) Comparó las predicciones de la IA con lo que realmente sucedió durante 2 años",
+        "success": "Retrospectiva Desbloqueada. Usaste los resultados reales para verificar la precisión de la IA."
+    },
+    3: {
+        "t": "t13",
+        "q": "Si las personas negras presas obtienen 45% de Falsas Alarmas y las personas blancas presas obtienen 23%, ¿qué significa esto para la equidad?",
+        "o": [
+            "A) El modelo es justo para ambos grupos",
+            "B) El modelo es indulgente con todos",
+            "C) La IA señala incorrectamente a las personas negras presas como 'Alto Riesgo' casi el doble de frecuencia"
+        ],
+        "a": "C) La IA señala incorrectamente a las personas negras presas como 'Alto Riesgo' casi el doble de frecuencia",
+        "success": "Daño Confirmado: Sesgo Punitivo contra personas negras presas."
+    },
+    4: {
+        "t": "t14",
+        "q": "Falsos Negativos: 48% (Blancos) vs 28% (Afroamericanos). ¿Qué muestra este patrón?",
+        "o": [
+            "A) El modelo da a las personas blancas presas más 'pases libres' (patrón de indulgencia / Riesgo No Detectado)",
+            "B) El modelo es igualmente justo para ambos grupos",
+            "C) El modelo es más duro con las personas blancas presas"
+        ],
+        "a": "A) El modelo da a las personas blancas presas más 'pases libres' (patrón de indulgencia / Riesgo No Detectado)",
+        "success": "Daño Verificado: Riesgo No Detectado / Patrón de Indulgencia — el modelo subestima el riesgo para personas blancas presas, desplazando la protección de manera desigual."
+    },
+    5: {
+        "t": "t15",
+        "q": "Si el modelo reporta '92% de precisión' en general pero frecuentemente etiqueta incorrectamente a las mujeres como Alto Riesgo, ¿qué revela esto?",
+        "o": [
+            "A) La puntuación alta de precisión oculta errores para un grupo más pequeño (sesgo de generalización)",
+            "B) El modelo es igualmente preciso para todos",
+            "C) Las mujeres deben ser realmente de mayor riesgo"
+        ],
+        "a": "A) La puntuación alta de precisión oculta errores para un grupo más pequeño (sesgo de generalización)",
+        "success": "Sesgo Confirmado: El promedio de '92% de precisión' oculta errores desiguales. El modelo generaliza patrones de hombres a mujeres."
+    },
+    6: {
+        "t": "t16",
+        "q": "¿Por qué el modelo comete menos errores para edades 25–45?",
+        "o": [
+            "A) Porque este grupo de edad aparece con más frecuencia en los datos del modelo",
+            "B) Porque las personas de 25–45 cometen menos crímenes",
+            "C) Porque el modelo está diseñado para ignorar adultos más jóvenes y mayores"
+        ],
+        "a": "A) Porque este grupo de edad aparece con más frecuencia en los datos del modelo",
+        "success": "Patrón Detectado: El modelo funciona mejor con el grupo que vio más, y tiene dificultades con adultos más jóvenes y mayores."
+    },
+    7: {
+        "t": "t17",
+        "q": "Si el modelo tiene el doble de probabilidades de señalar falsamente a personas de barrios de alta densidad como 'Alto Riesgo', ¿qué revela esto?",
+        "o": [
+            "A) La geografía actúa como un indicador de patrones de raza y clase que el modelo ha aprendido",
+            "B) Los barrios de alta densidad son naturalmente más peligrosos",
+            "C) El modelo necesita más potencia de CPU para ejecutarse correctamente"
+        ],
+        "a": "A) La geografía actúa como un indicador de patrones de raza y clase que el modelo ha aprendido",
+        "success": "Sesgo Confirmado: La ubicación se convierte en un sustituto de raza y clase, causando castigo injusto hacia personas de ciertos barrios."
+    },
+    8: {
+        "t": "t18",
+        "q": "Después de descubrir errores injustos consistentes en Raza, Género, Edad y Geografía, ¿cómo debes clasificar el comportamiento del modelo?",
+        "o": [
+            "A) Un fallo menor — pequeños errores de codificación ocurren",
+            "B) Error del usuario — los jueces están interpretando mal las puntuaciones",
+            "C) Un fallo sistémico — los patrones del modelo crean daño desigual"
+        ],
+        "a": "C) Un fallo sistémico — los patrones del modelo crean daño desigual",
+        "success": "Auditoría Completa: Identificaste correctamente esto como un fallo sistémico, no un pequeño error."
+    },
+    9: {
+        "t": "t19",
+        "q": "Dado todo lo que descubriste en tu investigación, ¿qué debería suceder con este modelo de IA?",
+        "o": [
+            "A) Desplegarlo inmediatamente — 92% de precisión es suficientemente bueno.",
+            "B) Pausar el despliegue — el modelo necesita reparaciones de equidad primero.",
+            "C) Eliminar el modelo por completo — la IA nunca puede ser justa."
+        ],
+        "a": "B) Pausar el despliegue — el modelo necesita reparaciones de equidad primero.",
+        "success": "Correcto. Un auditor responsable no apresura un sistema con daño documentado. Ahora entra en tu próxima misión: convertirte en el Ingeniero de Equidad que lo arregla."
+    }
+}
+
+QUIZ_CONFIG_CA = {
+    1: {
+        "t": "t11",
+        "q": "Quin resultat mostra per què és essencial provar les sortides d'IA?",
+        "o": [
+            "A) Les prediccions incorrectes poden danyar persones o comunitats quan un grup obté més errors",
+            "B) Només les dades d'entrada determinen l'equitat",
+            "C) Les sortides no afecten les decisions reals"
+        ],
+        "a": "A) Les prediccions incorrectes poden danyar persones o comunitats quan un grup obté més errors",
+        "success": "Impacte Identificat. Entens que els errors desiguals modelen vides reals i seguretat real."
+    },
+    2: {
+        "t": "t12",
+        "q": "Com va descobrir ProPublica quan la IA estava correcta o incorrecta?",
+        "o": [
+            "A) Va entrevistar jutges",
+            "B) Va comparar les prediccions de la IA amb el que realment va passar durant 2 anys",
+            "C) Va executar simulacions per ordinador"
+        ],
+        "a": "B) Va comparar les prediccions de la IA amb el que realment va passar durant 2 anys",
+        "success": "Retrospectiva Desbloquejada. Vas utilitzar els resultats reals per verificar la precisió de la IA."
+    },
+    3: {
+        "t": "t13",
+        "q": "Si les persones negres preses obtenen 45% de Falses Alarmes i les persones blanques preses obtenen 23%, què significa això per a l'equitat?",
+        "o": [
+            "A) El model és just per a ambdós grups",
+            "B) El model és indulgent amb tots",
+            "C) La IA assenyala incorrectament les persones negres preses com a 'Alt Risc' gairebé el doble de vegades"
+        ],
+        "a": "C) La IA assenyala incorrectament les persones negres preses com a 'Alt Risc' gairebé el doble de vegades",
+        "success": "Dany Confirmat: Biaix Punitiu contra persones negres preses."
+    },
+    4: {
+        "t": "t14",
+        "q": "Falsos Negatius: 48% (Blancs) vs 28% (Afroamericans). Què mostra aquest patró?",
+        "o": [
+            "A) El model dóna a les persones blanques preses més 'passis lliures' (patró d'indulgència / Risc No Detectat)",
+            "B) El model és igualment just per a ambdós grups",
+            "C) El model és més dur amb les persones blanques preses"
+        ],
+        "a": "A) El model dóna a les persones blanques preses més 'passis lliures' (patró d'indulgència / Risc No Detectat)",
+        "success": "Dany Verificat: Risc No Detectat / Patró d'Indulgència — el model subestima el risc per a persones blanques preses, desplaçant la protecció de manera desigual."
+    },
+    5: {
+        "t": "t15",
+        "q": "Si el model reporta '92% de precisió' en general però freqüentment etiqueta incorrectament les dones com a Alt Risc, què revela això?",
+        "o": [
+            "A) La puntuació alta de precisió amaga errors per a un grup més petit (biaix de generalització)",
+            "B) El model és igualment precís per a tots",
+            "C) Les dones han de ser realment de major risc"
+        ],
+        "a": "A) La puntuació alta de precisió amaga errors per a un grup més petit (biaix de generalització)",
+        "success": "Biaix Confirmat: La mitjana de '92% de precisió' amaga errors desiguals. El model generalitza patrons d'homes a dones."
+    },
+    6: {
+        "t": "t16",
+        "q": "Per què el model comet menys errors per a edats 25–45?",
+        "o": [
+            "A) Perquè aquest grup d'edat apareix amb més freqüència a les dades del model",
+            "B) Perquè les persones de 25–45 cometen menys crims",
+            "C) Perquè el model està dissenyat per ignorar adults més joves i grans"
+        ],
+        "a": "A) Perquè aquest grup d'edat apareix amb més freqüència a les dades del model",
+        "success": "Patró Detectat: El model funciona millor amb el grup que va veure més, i té dificultats amb adults més joves i grans."
+    },
+    7: {
+        "t": "t17",
+        "q": "Si el model té el doble de probabilitats d'assenyalar falsament persones de barris d'alta densitat com a 'Alt Risc', què revela això?",
+        "o": [
+            "A) La geografia actua com un indicador de patrons de raça i classe que el model ha après",
+            "B) Els barris d'alta densitat són naturalment més perillosos",
+            "C) El model necessita més potència de CPU per executar-se correctament"
+        ],
+        "a": "A) La geografia actua com un indicador de patrons de raça i classe que el model ha après",
+        "success": "Biaix Confirmat: La ubicació es converteix en un substitut de raça i classe, causant càstig injust cap a persones de certs barris."
+    },
+    8: {
+        "t": "t18",
+        "q": "Després de descobrir errors injustos consistents en Raça, Gènere, Edat i Geografia, com has de classificar el comportament del model?",
+        "o": [
+            "A) Una fallada menor — petits errors de codificació ocorren",
+            "B) Error de l'usuari — els jutges estan interpretant malament les puntuacions",
+            "C) Una fallada sistèmica — els patrons del model creen dany desigual"
+        ],
+        "a": "C) Una fallada sistèmica — els patrons del model creen dany desigual",
+        "success": "Auditoria Completa: Vas identificar correctament això com una fallada sistèmica, no un petit error."
+    },
+    9: {
+        "t": "t19",
+        "q": "Donat tot el que vas descobrir en la teva investigació, què hauria de passar amb aquest model d'IA?",
+        "o": [
+            "A) Desplegar-lo immediatament — 92% de precisió és prou bo.",
+            "B) Pausar el desplegament — el model necessita reparacions d'equitat primer.",
+            "C) Eliminar el model per complet — la IA mai pot ser justa."
+        ],
+        "a": "B) Pausar el desplegament — el model necessita reparacions d'equitat primer.",
+        "success": "Correcte. Un auditor responsable no precipita un sistema amb dany documentat. Ara entra en la teva propera missió: convertir-te en l'Enginyer d'Equitat que ho arregla."
+    }
+}
+
+def get_quiz_config(lang="en"):
+    """Get quiz configuration for the specified language."""
+    if lang == "es":
+        return QUIZ_CONFIG_ES
+    elif lang == "ca":
+        return QUIZ_CONFIG_CA
+    else:
+        return QUIZ_CONFIG
+
 # --- 7. RENDERERS ---
 def generate_success_message(prev, curr, specific_text):
     old_score = float(prev.get("score", 0) or 0) if prev else 0.0
@@ -2202,13 +2641,15 @@ def create_bias_detective_part2_app(theme_primary_hue: str = "indigo"):
         module0_done = gr.State(False)
         accuracy_state = gr.State(0.0)
         task_list_state = gr.State([])
+        lang_state = gr.State("en")  # Language state for i18n
 
         # --- TOP ANCHOR & LOADING OVERLAY FOR NAVIGATION ---
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
-        gr.HTML("<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>Loading...</span></div>")
+        nav_loading_overlay = gr.HTML("<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>Loading...</span></div>")
 
+        # --- LOADING VIEW (will be updated with translated text on load) ---
         with gr.Column(visible=True, elem_id="app-loader") as loader_col:
-            gr.HTML("<div style='text-align:center; padding:100px;'><h2>🕵️‍♀️ Authenticating...</h2><p>Syncing Moral Compass Data...</p></div>")
+            loading_screen_html = gr.HTML("<div style='text-align:center; padding:100px;'><h2>🕵️‍♀️ Authenticating...</h2><p>Syncing Moral Compass Data...</p></div>")
 
         with gr.Column(visible=False) as main_app_col:
             gr.Markdown("# 🕵️‍♀️ Bias Detective: Part 2 - Algorithmic Audit")
@@ -2221,7 +2662,11 @@ def create_bias_detective_part2_app(theme_primary_hue: str = "indigo"):
 
             for i, mod in enumerate(MODULES):
                 with gr.Column(elem_id=f"module-{i}", elem_classes=["module-container"], visible=(i==0)) as mod_col:
-                    gr.HTML(mod['html'])
+                    module_html_comp = gr.HTML(mod['html'])
+                    
+                    # Store HTML component reference for Module 0 translation updates
+                    if i == 0:
+                        module_0_html = module_html_comp
 
                     # --- Final Audit interactive builder on module index 8 ---
                     if i == 8:
@@ -2270,23 +2715,46 @@ def create_bias_detective_part2_app(theme_primary_hue: str = "indigo"):
                         quiz_wiring_queue.append((i, radio, feedback, btn_next, reset_ref))
 
 
+            # Extract all buttons for translation updates
+            all_prev_buttons = []
+            all_next_buttons = []
+            for i in range(len(MODULES)):
+                _, prev_btn, next_btn = module_ui_elements[i]
+                all_prev_buttons.append(prev_btn)
+                all_next_buttons.append(next_btn)
 
             leaderboard_html = gr.HTML()
 
+        # --- HELPER: GENERATE BUTTON UPDATES FOR LANGUAGE ---
+        def get_button_updates(lang: str):
+            """Generate gr.update() calls for all buttons based on language."""
+            updates = []
+            num_modules = len(MODULES)
+            for i in range(num_modules):
+                # Previous button update
+                prev_label = get_button_label(lang, "previous")
+                updates.append(gr.update(value=prev_label))
+                # Next button update
+                is_last = (i == num_modules - 1)
+                next_label = get_button_label(lang, "next", is_last)
+                updates.append(gr.update(value=next_label))
+            return updates
+
             # --- WIRING: CONNECT QUIZZES ---
             for mod_id, radio_comp, feedback_comp, next_btn_comp, reset_btn_ref in quiz_wiring_queue:
-                def quiz_logic_wrapper(user, tok, team, acc_val, task_list, ans, mid=mod_id):
-                    cfg = QUIZ_CONFIG[mid]
+                def quiz_logic_wrapper(user, tok, team, acc_val, task_list, ans, lang, mid=mod_id):
+                    quiz_cfg = get_quiz_config(lang)
+                    cfg = quiz_cfg[mid]
                     if ans == cfg['a']:
                         prev, curr, _, new_tasks = trigger_api_update(user, tok, team, mid, acc_val, task_list, cfg['t'])
                         msg = generate_success_message(prev, curr, cfg['success'])
                         return (render_top_dashboard(curr, mid), render_leaderboard_card(curr, user, team), msg, new_tasks)
                     else:
-                        return (gr.update(), gr.update(), "<div class='hint-box' style='border-color:red;'>❌ Incorrect. Review the evidence above.</div>", task_list)
+                        return (gr.update(), gr.update(), f"<div class='hint-box' style='border-color:red;'>{t(lang, 'quiz_incorrect')}</div>", task_list)
 
                 radio_comp.change(
                     fn=quiz_logic_wrapper,
-                    inputs=[username_state, token_state, team_state, accuracy_state, task_list_state, radio_comp],
+                    inputs=[username_state, token_state, team_state, accuracy_state, task_list_state, radio_comp, lang_state],
                     outputs=[out_top, leaderboard_html, feedback_comp, task_list_state]
                 )
 
@@ -2311,6 +2779,12 @@ def create_bias_detective_part2_app(theme_primary_hue: str = "indigo"):
 
         # --- LOGIC WIRING (Global) ---
         def handle_load(req: gr.Request):
+            # Get language from query params
+            params = req.query_params if req else {}
+            lang = params.get("lang", "en")
+            if lang not in TRANSLATIONS:
+                lang = "en"
+            
             success, user, token = _try_session_based_auth(req)
             team, acc = "Team-Unassigned", 0.0
             fetched_tasks = []
@@ -2337,11 +2811,13 @@ def create_bias_detective_part2_app(theme_primary_hue: str = "indigo"):
                     time.sleep(1.0)
 
                 data, _ = ensure_table_and_get_data(user, token, team, fetched_tasks)
-                return (user, token, team, False, render_top_dashboard(data, 0), render_leaderboard_card(data, user, team), acc, fetched_tasks, gr.update(visible=False), gr.update(visible=True))
+                button_updates = get_button_updates(lang)
+                return (user, token, team, False, render_top_dashboard(data, 0), render_leaderboard_card(data, user, team), acc, fetched_tasks, lang, get_loading_screen_html(lang), get_nav_loading_html(lang), get_module_0_html(lang), gr.update(visible=False), gr.update(visible=True), *button_updates)
 
-            return (None, None, None, False, "<div class='hint-box'>⚠️ Auth Failed</div>", "", 0.0, [], gr.update(visible=False), gr.update(visible=True))
+            button_updates = get_button_updates(lang)
+            return (None, None, None, False, f"<div class='hint-box'>{t(lang, 'auth_failed')}</div>", "", 0.0, [], lang, get_loading_screen_html(lang), get_nav_loading_html(lang), get_module_0_html(lang), gr.update(visible=False), gr.update(visible=True), *button_updates)
 
-        demo.load(handle_load, None, [username_state, token_state, team_state, module0_done, out_top, leaderboard_html, accuracy_state, task_list_state, loader_col, main_app_col])
+        demo.load(handle_load, None, [username_state, token_state, team_state, module0_done, out_top, leaderboard_html, accuracy_state, task_list_state, lang_state, loading_screen_html, nav_loading_overlay, module_0_html, loader_col, main_app_col, *all_prev_buttons, *all_next_buttons])
 
         # --- JAVASCRIPT HELPER FOR NAVIGATION ---
         def nav_js(target_id: str, message: str) -> str:
