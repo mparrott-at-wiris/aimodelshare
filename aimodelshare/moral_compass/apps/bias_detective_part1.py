@@ -11,6 +11,7 @@ TABLE_ID = "m-mc"
 TOTAL_COURSE_TASKS = 19  # Score calculated against full course
 LOCAL_TEST_SESSION_ID = None
 
+
 # --- 2. SETUP & DEPENDENCIES ---
 def install_dependencies():
     packages = ["gradio>=5.0.0", "aimodelshare", "pandas"]
@@ -571,7 +572,7 @@ MODULES = [
                                 </div>
 
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:white;">
-                                    <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDENCE LOGGED: Race Reprentation Bias</div>
+                                    <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDENCE LOGGED: Race Representation Bias</div>
                                     <div style="font-size:0.95rem; margin-top:5px;">
                                         The AI is **over-exposed** to this group (51% vs 28%). It may learn to associate "High Risk" with this demographic simply because it sees them more often in arrest records.
                                     </div>
@@ -723,34 +724,489 @@ MODULES = [
         "html": """
             <div class="scenario-box">
                 <div class="tracker-container">
-                    <div class="tracker-step completed">✓ RULES</div>
-                    <div class="tracker-step completed">✓ EVIDENCE</div>
+                    <div class="tracker-step completed">1. RULES</div>
+                    <div class="tracker-step completed">2. EVIDENCE</div>
                     <div class="tracker-step active">3. ERROR</div>
                     <div class="tracker-step">4. IMPACT</div>
                 </div>
-                <h2 class="slide-title" style="text-align:center;">🎯 PROVING THE PREDICTION ERROR</h2>
+
                 <div class="slide-body">
-                    <p style="font-size:1.05rem; max-width:800px; margin:0 auto 16px auto; text-align:center;">
-                        Welcome back. You exposed **flaws in the input**. Now, we test for **unfair outputs**.
-                    </p>
-                    <div class="ai-risk-container" style="margin-bottom:20px; border-left:4px solid #ef4444;">
-                        <h4 style="margin-top:0; font-size:1.15rem; color:#b91c1c; text-align:center;">⚠️ The Stakes: Unequal Justice</h4>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                    <h2 class="slide-title" style="margin:0;">STEP 3: EVALUATE PREDICTION ERRORS</h2>
+
+                    <div style="text-align:center; margin-bottom:20px;">
+                        <h2 class="slide-title" style="margin-top:10px; color:#be123c;">The Hunt For Prediction Errors</h2>
+                        <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:#334155;">
+                            We found evidence that the Input Data is biased. Now we must investigate if this bias has influenced the <strong>Model's Decisions</strong>.
+                            <br>We are looking for the second Red Flag from our Rulebook: <strong>Error Gaps</strong>.
+                        </p>
+                    </div>
+
+                    <div style="background:white; border:2px solid #e2e8f0; border-radius:16px; padding:25px; margin-bottom:25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                        
+                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px; border-bottom:1px solid #f1f5f9; padding-bottom:10px;">
+                            <div style="font-size:1.5rem;">🚩</div>
                             <div>
-                                <div style="font-weight:700; margin-bottom:4px;">False Alarms</div>
-                                <div style="font-size:0.95rem;">Labeling a low-risk person **High Risk**.</div>
-                                <div style="font-size:0.9rem; color:#b91c1c; margin-top:5px;">Harm: Unfair Detention.</div>
+                                <strong style="color:#be123c; font-size:1.1rem; text-transform:uppercase; letter-spacing:1px;">PATTERN: "THE DOUBLE STANDARD"</strong>
+                                <div style="font-size:0.9rem; color:#64748b;">(Unequal Impact of Mistakes)</div>
                             </div>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:30px;">
+                            
                             <div>
-                                <div style="font-weight:700; margin-bottom:4px;">Missed Warnings</div>
-                                <div style="font-size:0.95rem;">Labeling a high-risk person **Low Risk**.</div>
-                                <div style="font-size:0.9rem; color:#b91c1c; margin-top:5px;">Harm: Public Safety Risk.</div>
+                                <p style="font-size:1rem; color:#334155; line-height:1.6; margin-top:0;">
+                                    <strong>The Concept:</strong> A model's prediction shapes a person's future. When it makes a mistake, real people suffer.
+                                </p>
+
+                                <div style="margin-top:15px; margin-bottom:15px;">
+                                    <div style="background:#fff1f2; padding:12px; border-radius:8px; border:1px solid #fda4af; margin-bottom:10px;">
+                                        <div style="font-weight:700; color:#9f1239; margin-bottom:4px; font-size:0.95rem;">⚠️ TYPE 1: FALSE ALARMS</div>
+                                        <div style="font-size:0.9rem; color:#881337; line-height:1.4;">Labeling a low-risk person as <strong>High Risk</strong>.</div>
+                                        <div style="font-size:0.85rem; font-weight:700; color:#be123c; margin-top:4px;">Harm: Unfair Detention.</div>
+                                    </div>
+
+                                    <div style="background:#f0f9ff; padding:12px; border-radius:8px; border:1px solid #bae6fd;">
+                                        <div style="font-weight:700; color:#0369a1; margin-bottom:4px; font-size:0.95rem;">⚠️ TYPE 2: MISSED WARNINGS</div>
+                                        <div style="font-size:0.9rem; color:#075985; line-height:1.4;">Labeling a high-risk person as <strong>Low Risk</strong>.</div>
+                                        <div style="font-size:0.85rem; font-weight:700; color:#0284c7; margin-top:4px;">Harm: Public Safety Risk.</div>
+                                    </div>
+                                </div>
+
+                                <div style="background:#fff1f2; color:#be123c; padding:10px; border-radius:6px; font-size:0.9rem; border-left:4px solid #db2777; margin-top:15px;">
+                                    <strong>Key Clue:</strong> Look for a significant gap in the <strong>False Alarm Rate</strong>. If Group A is flagged incorrectly substantially more than Group B, that is an Error Gap.
+                                </div>
+                            </div>
+
+                            <div style="background:#f8fafc; padding:20px; border-radius:12px; border:1px solid #e2e8f0; display:flex; flex-direction:column; justify-content:center;">
+                                
+                                <div style="text-align:center; margin-bottom:10px; font-weight:700; color:#334155; font-size:0.9rem;">
+                                    "FALSE ALARMS" (Innocent People Flagged Risky)
+                                </div>
+
+                                <div style="margin-bottom:15px;">
+                                    <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:700; color:#9f1239; margin-bottom:4px;">
+                                        <span>GROUP A (Targeted)</span>
+                                        <span>60% ERROR</span>
+                                    </div>
+                                    <div style="width:100%; background:#e2e8f0; height:12px; border-radius:10px; overflow:hidden;">
+                                        <div style="width:60%; background:#db2777; height:100%;"></div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:700; color:#64748b; margin-bottom:4px;">
+                                        <span>GROUP B (Baseline)</span>
+                                        <span>30% ERROR</span>
+                                    </div>
+                                    <div style="width:100%; background:#e2e8f0; height:12px; border-radius:10px; overflow:hidden;">
+                                        <div style="width:30%; background:#94a3b8; height:100%;"></div>
+                                    </div>
+                                </div>
+
+                                <div style="text-align:center; margin-top:15px; font-size:0.85rem; color:#db2777; font-weight:700; background:#fff1f2; padding:5px; border-radius:4px;">
+                                    ⚠️ GAP DETECTED: +30 Percentage Point Difference
+                                </div>
+
                             </div>
                         </div>
                     </div>
-                    <div style="text-align:center; margin-top:24px;">
-                        <p style="font-size:1.05rem; font-weight:600;">
-                            Proceed to the lab to run your first test: False Alarms by Race.
+
+                    <details style="margin-bottom:25px; cursor:pointer; background:#fff1f2; border:1px solid #fda4af; border-radius:8px; padding:12px;">
+                        <summary style="font-weight:700; color:#9f1239; font-size:0.95rem;">🔬 The Hypothesis: How is Representation Bias connected to Prediction Error?</summary>
+                        <div style="margin-top:12px; font-size:0.95rem; color:#881337; line-height:1.5; padding:0 5px;">
+                            <p style="margin-bottom:10px;"><strong>Connect the dots:</strong> In Step 2, we found that the input data overrepresented specific groups.</p>
+                            <p><strong>The Theory:</strong> Because the AI saw these groups more often in arrest records, the data structure may lead the model to make group-specific prediction mistakes. The model may generate more <strong>False Alarms</strong> for innocent people from these groups at a much higher rate.</p>
+                        </div>
+                    </details>
+
+                    <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(219,39,119,0.1), rgba(251,113,133,0.1)); border-radius:12px; border:2px solid #fecdd3;">
+                        <p style="font-size:1.15rem; font-weight:800; color:#9f1239; margin-bottom:5px;">
+                            🚀 ERROR PATTERN ESTABLISHED: CONTINUE MISSION
+                        </p>
+                        <p style="font-size:1.05rem; margin:0; color:#881337;">
+                            Answer the question below to confirm your target.
+                            <br>Then click <strong>Next</strong> to open the <strong>Prediction Error Lab</strong> and test the False Alarm Rates.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        """
+    },
+
+    # --- MODULE 6: RACE ERROR GAP LAB ---
+# --- MODULE 6: PREDICTION ERROR LAB ---
+# --- MODULE 6: THE RACE ERROR GAP LAB ---
+    {
+        "id": 6,
+        "title": "Step 3: The Race Error Gap Lab",
+        "html": """
+            <div class="scenario-box">
+                <div class="tracker-container">
+                    <div class="tracker-step completed">1. RULES</div>
+                    <div class="tracker-step completed">2. EVIDENCE</div>
+                    <div class="tracker-step active">3. ERROR</div>
+                    <div class="tracker-step">4. IMPACT</div>
+                </div>
+
+                <div class="slide-body">
+                    <h2 class="slide-title" style="margin:0;">STEP 3: ANALYZE THE PREDICTION ERROR GAP</h2>
+
+                    <div style="text-align:center; margin-bottom:20px;">
+                        <h2 class="slide-title" style="margin-top:10px; color:#be123c;">The Prediction Error Lab - Race Analysis</h2>
+                        <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:#334155;">
+                            We suspected the model is generating unfair amounts of prediction errors for specific groups. Now, we run the analysis.
+                            <br>Click to reveal the error rates below. Do AI mistakes fall equally across white and black defendants?
+                        </p>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom:25px;">
+                        
+                        <div class="ai-risk-container" style="padding:0; border:2px solid #ef4444; overflow:hidden; border-radius:12px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);">
+                            <div style="background:#fff1f2; padding:15px; text-align:center; border-bottom:1px solid #fda4af;">
+                                <h3 style="margin:0; font-size:1.25rem; color:#b91c1c;">📡 SCAN 1: FALSE ALARMS</h3>
+                                <p style="font-size:0.9rem; margin:5px 0 0 0; color:#9f1239;">(Innocent people wrongly flagged as "High Risk")</p>
+                            </div>
+                            
+                            <details style="cursor:pointer; background:white;">
+                                <summary style="list-style:none; padding:20px; font-weight:800; text-align:center; color:#ef4444; font-size:1.1rem; transition:background 0.2s;">
+                                    👇 CLICK TO REVEAL DATA
+                                </summary>
+                                <div style="padding:0 20px 25px 20px; text-align:center; border-top:1px solid #fecdd3;">
+                                    
+                                    <div style="display:flex; justify-content:center; gap:30px; margin-bottom:20px;">
+                                        <div style="text-align:center;">
+                                            <div style="font-size:2.5rem; font-weight:900; color:#ef4444; line-height:1;">45%</div>
+                                            <div style="font-size:0.85rem; font-weight:700; color:#7f1d1d; margin-top:5px;">AFRICAN-AMERICAN</div>
+                                        </div>
+                                        <div style="width:1px; background:#e5e7eb;"></div>
+                                        <div style="text-align:center;">
+                                            <div style="font-size:2.5rem; font-weight:900; color:#3b82f6; line-height:1;">23%</div>
+                                            <div style="font-size:0.85rem; font-weight:700; color:#1e3a8a; margin-top:5px;">WHITE</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="hint-box" style="border-left:4px solid #ef4444; background:#fff1f2; text-align:left;">
+                                        <div style="font-weight:800; color:#b91c1c; font-size:0.95rem;">❌ VERDICT: PUNITIVE BIAS</div>
+                                        <div style="font-size:0.9rem; color:#9f1239; margin-top:3px;">
+                                            Black defendants are nearly <strong>twice as likely</strong> to be wrongly labeled as dangerous compared to White defendants.
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </details>
+                        </div>
+
+                        <div class="ai-risk-container" style="padding:0; border:2px solid #3b82f6; overflow:hidden; border-radius:12px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);">
+                            <div style="background:#eff6ff; padding:15px; text-align:center; border-bottom:1px solid #bfdbfe;">
+                                <h3 style="margin:0; font-size:1.25rem; color:#1e40af;">📡 SCAN 2: MISSED WARNINGS</h3>
+                                <p style="font-size:0.9rem; margin:5px 0 0 0; color:#1e3a8a;">(Risky people wrongly labeled as "Safe")</p>
+                            </div>
+                            
+                            <details style="cursor:pointer; background:white;">
+                                <summary style="list-style:none; padding:20px; font-weight:800; text-align:center; color:#3b82f6; font-size:1.1rem; transition:background 0.2s;">
+                                    👇 CLICK TO REVEAL DATA
+                                </summary>
+                                <div style="padding:0 20px 25px 20px; text-align:center; border-top:1px solid #dbeafe;">
+                                    
+                                    <div style="display:flex; justify-content:center; gap:30px; margin-bottom:20px;">
+                                        <div style="text-align:center;">
+                                            <div style="font-size:2.5rem; font-weight:900; color:#ef4444; line-height:1;">28%</div>
+                                            <div style="font-size:0.85rem; font-weight:700; color:#7f1d1d; margin-top:5px;">AFRICAN-AMERICAN</div>
+                                        </div>
+                                        <div style="width:1px; background:#e5e7eb;"></div>
+                                        <div style="text-align:center;">
+                                            <div style="font-size:2.5rem; font-weight:900; color:#3b82f6; line-height:1;">48%</div>
+                                            <div style="font-size:0.85rem; font-weight:700; color:#1e3a8a; margin-top:5px;">WHITE</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="hint-box" style="border-left:4px solid #3b82f6; background:#eff6ff; text-align:left;">
+                                        <div style="font-weight:800; color:#1e40af; font-size:0.95rem;">❌ VERDICT: LENIENCY BIAS</div>
+                                        <div style="font-size:0.9rem; color:#1e3a8a; margin-top:3px;">
+                                            White defendants who re-offend are much more likely to be <strong>missed</strong> by the system than Black defendants.
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+
+                    <div style="text-align:center; margin-top:20px; padding:20px; background:linear-gradient(to right, rgba(219,39,119,0.1), rgba(251,113,133,0.1)); border-radius:12px; border:2px solid #fecdd3;">
+                        <p style="font-size:1.15rem; font-weight:800; color:#9f1239; margin-bottom:5px;">
+                            🚀 RACIAL ERROR GAP CONFIRMED
+                        </p>
+                        <p style="font-size:1.05rem; margin:0; color:#881337;">
+                            We have demonstrated the model has a "Double Standard" for race. 
+                            <br>Answer the question below to certify your findings, then proceed to <strong>Step 4: Analyze Gender, Age, and Geography Gaps in Error.</strong>
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        """
+    },
+
+    # --- MODULE 7: GENERALIZATION SCAN LAB ---
+# --- MODULE 7: GENERALIZATION & PROXY SCAN ---
+    {
+        "id": 7,
+        "title": "Step 3: Generalization Scan Lab",
+        "html": """
+            <div class="scenario-box">
+                <div class="tracker-container">
+                    <div class="tracker-step completed">1. RULES</div>
+                    <div class="tracker-step completed">2. EVIDENCE</div>
+                    <div class="tracker-step active">3. ERROR</div>
+                    <div class="tracker-step">4. IMPACT</div>
+                </div>
+
+                <div class="slide-body">
+                    <h2 class="slide-title" style="margin:0;">STEP 3: ANALYZE THE PREDICTION ERROR GAP</h2>
+
+                    <div style="text-align:center; margin-bottom:20px;">
+                        <h2 class="slide-title" style="margin-top:10px; color:#b91c1c;">Gender, Age, and Geography Error Scans</h2>
+                        <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:#334155;">
+                            We revealed the Racial Error Gap. But bias hides in other places too.
+                            <br>Use the scanner below to check for gender and age <strong>Representation Errors</strong> (due to data gaps) and <strong>Proxy Bias</strong> (hidden variables).
+                        </p>
+                    </div>
+
+                    <div style="margin-top:20px;">
+                        <input type="radio" id="scan-gender-err" name="error-tabs" class="scan-radio" checked>
+                        <input type="radio" id="scan-age-err" name="error-tabs" class="scan-radio">
+                        <input type="radio" id="scan-geo-err" name="error-tabs" class="scan-radio">
+
+                        <div class="forensic-tabs" style="display:flex; justify-content:center; gap:10px; margin-bottom:0;">
+                            <label for="scan-gender-err" class="tab-label-styled" style="flex:1; text-align:center; border-color:#fda4af; color:#9f1239;">SCAN: GENDER</label>
+                            <label for="scan-age-err" class="tab-label-styled" style="flex:1; text-align:center; border-color:#fda4af; color:#9f1239;">SCAN: AGE</label>
+                            <label for="scan-geo-err" class="tab-label-styled" style="flex:1; text-align:center; border-color:#fda4af; color:#9f1239;">SCAN: GEOGRAPHY</label>
+                        </div>
+
+                        <div class="scan-content" style="border-top: 3px solid #db2777;">
+
+                            <div class="scan-pane pane-gender-err">
+                                <div style="background:#fff1f2; padding:15px; text-align:center; border-bottom:1px solid #fda4af; margin-bottom:15px;">
+                                    <h3 style="margin:0; font-size:1.2rem; color:#b91c1c;">📡 GENDER SCAN: PREDICTION ERROR</h3>
+                                    <p style="font-size:0.9rem; margin:5px 0 0 0; color:#9f1239;">(Does the "Data Gap" lead to more mistakes?)</p>
+                                </div>
+
+                                <details style="cursor:pointer; background:white; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden;">
+                                    <summary style="list-style:none; padding:15px; font-weight:800; text-align:center; color:#db2777; font-size:1.05rem; background:#fff1f2;">
+                                        👇 CLICK TO REVEAL FALSE ALARM RATES
+                                    </summary>
+                                    <div style="padding:20px;">
+                                        
+                                        <div style="margin-bottom:20px;">
+                                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                                <span style="font-weight:700; color:#9f1239;">WOMEN (The Minority Class)</span>
+                                                <span style="font-weight:700; color:#9f1239;">32% Error</span>
+                                            </div>
+                                            <div style="width:100%; background:#e2e8f0; height:18px; border-radius:4px; overflow:hidden;">
+                                                <div style="width:32%; background:#db2777; height:100%;"></div>
+                                            </div>
+                                        </div>
+
+                                        <div style="margin-bottom:20px;">
+                                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                                <span style="font-weight:700; color:#64748b;">MEN (Well Represented)</span>
+                                                <span style="font-weight:700; color:#64748b;">18% Error</span>
+                                            </div>
+                                            <div style="width:100%; background:#e2e8f0; height:18px; border-radius:4px; overflow:hidden;">
+                                                <div style="width:18%; background:#94a3b8; height:100%;"></div>
+                                            </div>
+                                        </div>
+
+                                        <div class="hint-box" style="border-left:4px solid #db2777; background:#fff1f2;">
+                                            <div style="font-weight:800; color:#b91c1c;">❌ VERDICT: BLIND SPOT CONFIRMED</div>
+                                            <div style="font-size:0.95rem; margin-top:5px;">
+                                                Because the model has less data on women, it is "guessing" more often. 
+                                                This high error rate is most likely the result of the <strong>Data Gap</strong> we found in Step 2.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </details>
+                            </div>
+
+                            <div class="scan-pane pane-age-err">
+                                <div style="background:#fff1f2; padding:15px; text-align:center; border-bottom:1px solid #fda4af; margin-bottom:15px;">
+                                    <h3 style="margin:0; font-size:1.2rem; color:#b91c1c;">📡 AGE SCAN: PREDICTION ERROR</h3>
+                                    <p style="font-size:0.9rem; margin:5px 0 0 0; color:#9f1239;">(Does the model fail outside the "25-45" bubble?)</p>
+                                </div>
+
+                                <details style="cursor:pointer; background:white; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden;">
+                                    <summary style="list-style:none; padding:15px; font-weight:800; text-align:center; color:#db2777; font-size:1.05rem; background:#fff1f2;">
+                                        👇 CLICK TO REVEAL FALSE ALARM RATES
+                                    </summary>
+                                    <div style="padding:20px;">
+                                        
+                                        <div style="display:flex; align-items:flex-end; justify-content:space-around; height:100px; margin-bottom:15px; padding-bottom:10px; border-bottom:1px solid #e2e8f0;">
+                                            <div style="text-align:center; width:25%;">
+                                                <div style="font-size:0.8rem; font-weight:700; color:#ef4444; margin-bottom:2px;">33%</div>
+                                                <div style="height:60px; background:#ef4444; width:100%; border-radius:4px 4px 0 0;"></div>
+                                                <div style="font-size:0.75rem; font-weight:700; margin-top:5px;"<Less than 25</div>
+                                            </div>
+                                            <div style="text-align:center; width:25%;">
+                                                <div style="font-size:0.8rem; font-weight:700; color:#16a34a; margin-bottom:2px;">18%</div>
+                                                <div style="height:30px; background:#16a34a; width:100%; border-radius:4px 4px 0 0;"></div>
+                                                <div style="font-size:0.75rem; font-weight:700; margin-top:5px;">25-45</div>
+                                            </div>
+                                            <div style="text-align:center; width:25%;">
+                                                <div style="font-size:0.8rem; font-weight:700; color:#ef4444; margin-bottom:2px;">27%</div>
+                                                <div style="height:50px; background:#ef4444; width:100%; border-radius:4px 4px 0 0;"></div>
+                                                <div style="font-size:0.75rem; font-weight:700; margin-top:5px;">Greater than 45</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="hint-box" style="border-left:4px solid #db2777; background:#fff1f2;">
+                                            <div style="font-weight:800; color:#b91c1c;">❌ VERDICT: THE "U-SHAPED" FAILURE</div>
+                                            <div style="font-size:0.95rem; margin-top:5px;">
+                                                The model works well for the "Bubble" (25-45) with more data but fails significantly for the less than 25 and greater than 45 age categories. 
+                                                It cannot accurately predict risk for age groups it hasn't studied enough.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </details>
+                            </div>
+
+                            <div class="scan-pane pane-geo-err">
+                                <div style="background:#fff1f2; padding:15px; text-align:center; border-bottom:1px solid #fda4af; margin-bottom:15px;">
+                                    <h3 style="margin:0; font-size:1.2rem; color:#b91c1c;">📡 GEOGRAPHY SCAN: THE PROXY CHECK</h3>
+                                    <p style="font-size:0.9rem; margin:5px 0 0 0; color:#9f1239;">(Is "Zip Code" creating a racial double standard?)</p>
+                                </div>
+
+                                <details style="cursor:pointer; background:white; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden;">
+                                    <summary style="list-style:none; padding:15px; font-weight:800; text-align:center; color:#db2777; font-size:1.05rem; background:#fff1f2;">
+                                        👇 CLICK TO REVEAL FALSE ALARM RATES
+                                    </summary>
+                                    <div style="padding:20px;">
+                                        
+                                        <div style="margin-bottom:20px;">
+                                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                                <span style="font-weight:700; color:#9f1239;">URBAN ZONES (High Minority Pop.)</span>
+                                                <span style="font-weight:700; color:#9f1239;">58% Error</span>
+                                            </div>
+                                            <div style="width:100%; background:#e2e8f0; height:18px; border-radius:4px; overflow:hidden;">
+                                                <div style="width:58%; background:#db2777; height:100%;"></div>
+                                            </div>
+                                        </div>
+
+                                        <div style="margin-bottom:20px;">
+                                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                                <span style="font-weight:700; color:#64748b;">RURAL ZONES</span>
+                                                <span style="font-weight:700; color:#64748b;">22% Error</span>
+                                            </div>
+                                            <div style="width:100%; background:#e2e8f0; height:18px; border-radius:4px; overflow:hidden;">
+                                                <div style="width:22%; background:#94a3b8; height:100%;"></div>
+                                            </div>
+                                        </div>
+
+                                        <div class="hint-box" style="border-left:4px solid #db2777; background:#fff1f2;">
+                                            <div style="font-weight:800; color:#b91c1c;">❌ VERDICT: PROXY (HIDDEN RELATIONSHIP) BIAS CONFIRMED</div>
+                                            <div style="font-size:0.95rem; margin-top:5px;">
+                                                The error rate in Urban Zones is massive (58%). 
+                                                Even if "Race" was removed, the model is using <strong>Location</strong> to target the same groups. 
+                                                It is treating "City Resident" as a synonym for "High Risk."
+                                            </div>
+                                        </div>
+                                    </div>
+                                </details>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div style="text-align:center; margin-top:25px; padding:20px; background:linear-gradient(to right, rgba(219,39,119,0.1), rgba(251,113,133,0.1)); border-radius:12px; border:2px solid #fecdd3;">
+                        <p style="font-size:1.15rem; font-weight:800; color:#9f1239; margin-bottom:5px;">
+                            🚀 ALL SYSTEMS SCANNED
+                        </p>
+                        <p style="font-size:1.05rem; margin:0; color:#881337;">
+                            You have collected all the forensic evidence. The bias is systemic.
+                            <br>Click <strong>Next</strong> to make your final recommendation about the AI system.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        """
+    },
+    # --- MODULE 8: PREDICTION AUDIT SUMMARY ---
+    {
+        "id": 8,
+        "title": "Step 3: Audit Report Summary",
+        "html": """
+            <div class="scenario-box">
+                <div class="tracker-container">
+                    <div class="tracker-step completed">1. RULES</div>
+                    <div class="tracker-step completed">2. EVIDENCE</div>
+                    <div class="tracker-step active">3. ERROR</div>
+                    <div class="tracker-step">4. IMPACT</div>
+                </div>
+
+                <div class="slide-body">
+                    <h2 class="slide-title" style="margin:0;">STEP 3: AUDIT REPORT SUMMARY</h2>
+
+                    <div style="text-align:center; margin-bottom:25px;">
+                        <h2 class="slide-title" style="margin-top:10px; color:#b91c1c;">Final Prediction Analysis</h2>
+                        <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:#334155;">
+                            Review your forensic logs. You have uncovered systemic failures across multiple dimensions.
+                            <br>This evidence shows the model violates the core principle of <strong>Justice & Fairness</strong>.
+                        </p>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:25px; margin-bottom:30px;">
+
+                        <div style="background:#fff1f2; border:2px solid #ef4444; border-radius:12px; padding:20px; box-shadow: 0 4px 10px rgba(239,68,68,0.1);">
+                            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #fda4af; padding-bottom:10px; margin-bottom:15px;">
+                                <strong style="color:#9f1239; font-size:1.1rem;">🚨 PRIMARY THREAT</strong>
+                                <span style="background:#ef4444; color:white; font-size:0.75rem; font-weight:800; padding:4px 8px; border-radius:4px;">CONFIRMED</span>
+                            </div>
+                            <h3 style="margin:0 0 10px 0; color:#b91c1c; font-size:1.25rem;">Racial Double Standard</h3>
+                            <p style="font-size:0.95rem; color:#7f1d1d; line-height:1.5;">
+                                <strong>The Evidence:</strong> African-American defendants face a <strong>45% False Alarm Rate</strong> (vs. 23% for White defendants).
+                            </p>
+                            <div style="background:white; padding:10px; border-radius:6px; border:1px solid #fda4af; margin-top:10px;">
+                                <strong style="color:#ef4444; font-size:0.9rem;">The Impact:</strong> Punitive Bias. Innocent people are being wrongly flagged for detention at 2x the rate of others.
+                            </div>
+                        </div>
+
+                        <div style="background:white; border:2px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:10px; margin-bottom:15px;">
+                                <strong style="color:#475569; font-size:1.1rem;">📍 PROXY FAILURE</strong>
+                                <span style="background:#f59e0b; color:white; font-size:0.75rem; font-weight:800; padding:4px 8px; border-radius:4px;">DETECTED</span>
+                            </div>
+                            <h3 style="margin:0 0 10px 0; color:#334155; font-size:1.25rem;">Geographic Discrimination</h3>
+                            <p style="font-size:0.95rem; color:#475569; line-height:1.5;">
+                                <strong>The Evidence:</strong> Urban Zones show a massive <strong>58% Error Rate</strong>.
+                            </p>
+                            <div style="background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #e2e8f0; margin-top:10px;">
+                                <strong style="color:#64748b; font-size:0.9rem;">The Mechanism:</strong> Although "Race" was hidden, the AI used "Zip Code" as a loophole to target the same communities.
+                            </div>
+                        </div>
+
+                        <div style="grid-column: span 2; background:#f0f9ff; border:2px solid #bae6fd; border-radius:12px; padding:20px;">
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                                <span style="font-size:1.5rem;">📉</span>
+                                <h3 style="margin:0; color:#0369a1; font-size:1.2rem;">Secondary Failure: Prediction Errors Due to Represenation Bias</h3>
+                            </div>
+                            <p style="font-size:1rem; color:#334155; margin-bottom:0;">
+                                <strong>The Evidence:</strong> High instability in predictions for <strong>Women and Younger/Older Age Groups</strong>.
+                                <br>
+                                <span style="color:#0284c7; font-size:0.95rem;"><strong>Why?</strong> The input data lacked sufficient examples for these groups (The Distorted Mirror), causing the model to "guess" rather than learn.</span>
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div style="text-align:center; margin-top:25px; padding:20px; background:linear-gradient(to right, rgba(219,39,119,0.1), rgba(251,113,133,0.1)); border-radius:12px; border:2px solid #fecdd3;">
+                        <p style="font-size:1.15rem; font-weight:800; color:#9f1239; margin-bottom:5px;">
+                            🚀 INVESTIGATION CASE FILE CLOSED. FINAL EVIDENCE LOCKED.
+                        </p>
+                        <p style="font-size:1.05rem; margin:0; color:#881337;">
+                            You have successfully investigated the Inputs Data and the Output Errors.
+                            <br>Answer the question below to boost your Moral Compass score.  Then click <strong>Next</strong> to file your final report about the AI system.
                         </p>
                     </div>
                 </div>
@@ -758,211 +1214,212 @@ MODULES = [
         """
     },
 
-    # --- MODULE 6: RACE ERROR GAP LAB ---
-    {
-        "id": 6,
-        "title": "Step 3: The Race Error Gap Lab",
-        "html": """
-            <div class="scenario-box">
-                <div class="tracker-container">
-                    <div class="tracker-step completed">✓ RULES</div>
-                    <div class="tracker-step completed">✓ EVIDENCE</div>
-                    <div class="tracker-step active">3. ERROR</div>
-                    <div class="tracker-step">4. IMPACT</div>
-                </div>
-                <h2 class="slide-title" style="text-align:center;">⚖️ SCANNING THE RACIAL ERROR GAP</h2>
-                <div class="slide-body">
-                    <p style="font-size:1.05rem; max-width:820px; margin:0 auto 16px auto; text-align:center;">
-                        Do mistakes fall equally across groups?
-                    </p>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div class="ai-risk-container" style="padding:18px; border:2px solid #ef4444;">
-                            <h3 style="margin-top:0; font-size:1.25rem; text-align:center; color:#b91c1c;">📡 SCAN 1: FALSE ALARMS</h3>
-                            <p style="font-size:0.9rem; text-align:center; margin-bottom:12px;">(Wrongly flagged as High Risk)</p>
-                            <details style="border:1px solid var(--border-color-primary); border-radius:12px; overflow:hidden; margin-top:10px;">
-                                <summary style="list-style:none; cursor:pointer; padding:14px 18px; font-weight:800; text-align:center; background:var(--background-fill-secondary);">Click to Reveal</summary>
-                                <div style="text-align:center; padding:20px;">
-                                    <div style="display:flex; justify-content:center; gap:40px;">
-                                        <div style="text-align:center;">
-                                            <div style="font-size:2rem; font-weight:800; color:#ef4444;">45%</div>
-                                            <div style="font-size:0.9rem;">African-American</div>
-                                        </div>
-                                        <div style="text-align:center;">
-                                            <div style="font-size:2rem; font-weight:800; color:#3b82f6;">23%</div>
-                                            <div style="font-size:0.9rem;">White</div>
-                                        </div>
-                                    </div>
-                                    <div class="hint-box" style="margin-top:15px; border-left:4px solid #ef4444;">
-                                        <strong>PUNITIVE BIAS:</strong> AA defendants receive **twice** the false alarms.
-                                    </div>
-                                </div>
-                            </details>
-                        </div>
-                        <div class="ai-risk-container" style="padding:18px; border:2px solid #3b82f6;">
-                            <h3 style="margin-top:0; font-size:1.25rem; text-align:center; color:#1d4ed8;">📡 SCAN 2: MISSED WARNINGS</h3>
-                            <p style="font-size:0.9rem; text-align:center; margin-bottom:12px;">(Wrongly labeled as Low Risk)</p>
-                            <details style="border:1px solid var(--border-color-primary); border-radius:12px; overflow:hidden; margin-top:10px;">
-                                <summary style="list-style:none; cursor:pointer; padding:14px 18px; font-weight:800; text-align:center; background:var(--background-fill-secondary);">Click to Reveal</summary>
-                                <div style="text-align:center; padding:20px;">
-                                    <div style="display:flex; justify-content:center; gap:40px;">
-                                        <div style="text-align:center;">
-                                            <div style="font-size:2rem; font-weight:800; color:#ef4444;">28%</div>
-                                            <div style="font-size:0.9rem;">African-American</div>
-                                        </div>
-                                        <div style="text-align:center;">
-                                            <div style="font-size:2rem; font-weight:800; color:#3b82f6;">48%</div>
-                                            <div style="font-size:0.9rem;">White</div>
-                                        </div>
-                                    </div>
-                                    <div class="hint-box" style="margin-top:15px; border-left:4px solid #3b82f6;">
-                                        <strong>LENIENCY BIAS:</strong> White defendants who re-offend are much more likely to be missed.
-                                    </div>
-                                </div>
-                            </details>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        """
-    },
-
-    # --- MODULE 7: GENERALIZATION SCAN LAB ---
-    {
-        "id": 7,
-        "title": "Step 3: Generalization Scan Lab",
-        "html": """
-            <div class="scenario-box">
-                <div class="tracker-container">
-                    <div class="tracker-step completed">✓ RULES</div>
-                    <div class="tracker-step completed">✓ EVIDENCE</div>
-                    <div class="tracker-step active">3. ERROR</div>
-                    <div class="tracker-step">4. IMPACT</div>
-                </div>
-                <h2 class="slide-title" style="text-align:center;">🧩 GENERALIZATION & PROXY SCANS</h2>
-                <div class="slide-body">
-                    <div class="data-scan-tabs">
-                        <input type="radio" id="scan-gender-err" name="error-tabs" class="scan-radio" checked>
-                        <label for="scan-gender-err" class="tab-label-styled">SECTOR 1: GENDER</label>
-                        <input type="radio" id="scan-age-err" name="error-tabs" class="scan-radio">
-                        <label for="scan-age-err" class="tab-label-styled">SECTOR 2: AGE</label>
-                        <input type="radio" id="scan-geo-err" name="error-tabs" class="scan-radio">
-                        <label for="scan-geo-err" class="tab-label-styled">SECTOR 3: GEOGRAPHY</label>
-                        <div class="scan-content" style="min-height: 350px; padding: 25px;">
-                            <div class="scan-pane pane-gender-err">
-                                <h4 style="margin-top:0;">GENDER SCAN: The Generalization Bias</h4>
-                                <details style="border:1px solid #ddd; padding:10px; border-radius:8px;">
-                                    <summary style="cursor:pointer; font-weight:bold;">Click to Reveal False Alarms</summary>
-                                    <div style="margin-top:10px; text-align:center;">
-                                        <div style="font-size:1.5rem;">Women: 32% vs Men: 18%</div>
-                                        <div style="color:#ef4444; font-weight:bold;">Women are over-flagged because the model lacks training data for them.</div>
-                                    </div>
-                                </details>
-                            </div>
-                            <div class="scan-pane pane-age-err">
-                                <h4 style="margin-top:0;">AGE SCAN: The Bubble Error</h4>
-                                <details style="border:1px solid #ddd; padding:10px; border-radius:8px;">
-                                    <summary style="cursor:pointer; font-weight:bold;">Click to Reveal False Alarms</summary>
-                                    <div style="margin-top:10px; text-align:center;">
-                                        <div style="font-size:1.5rem;">Youth: 33% | Bubble: 18% | Seniors: 27%</div>
-                                        <div style="color:#ef4444; font-weight:bold;">Accuracy drops significantly outside the 25-45 age bubble.</div>
-                                    </div>
-                                </details>
-                            </div>
-                            <div class="scan-pane pane-geo-err">
-                                <h4 style="margin-top:0;">GEOGRAPHY SCAN: The Proxy Variable</h4>
-                                <details style="border:1px solid #ddd; padding:10px; border-radius:8px;">
-                                    <summary style="cursor:pointer; font-weight:bold;">Click to Reveal False Alarms</summary>
-                                    <div style="margin-top:10px; text-align:center;">
-                                        <div style="font-size:1.5rem;">Urban: 58% vs Rural: 22%</div>
-                                        <div style="color:#ef4444; font-weight:bold;">Location acts as a proxy for race, reintroducing bias.</div>
-                                    </div>
-                                </details>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        """
-    },
-
     # --- MODULE 8: FINAL ERROR REPORT ---
-    {
-        "id": 8,
-        "title": "Step 4: Final Prediction Error Report",
-        "html": """
-            <div class="scenario-box">
-                <h2 class="slide-title" style="text-align:center;">📋 FINAL EVIDENCE SUMMARY</h2>
-                <div class="slide-body">
-                    <div class="ai-risk-container">
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                            <div class="hint-box" style="border-left:4px solid #ef4444;"><strong>Punitive Bias:</strong> AA defendants = 2x False Alarms.</div>
-                            <div class="hint-box" style="border-left:4px solid #3b82f6;"><strong>Leniency Bias:</strong> White defendants = Higher Missed Warnings.</div>
-                            <div class="hint-box" style="border-left:4px solid #f97316;"><strong>Generalization:</strong> Women/Youth over-flagged.</div>
-                            <div class="hint-box" style="border-left:4px solid #22c55e;"><strong>Proxy Bias:</strong> Geography reintroduces discrimination.</div>
-                        </div>
-                    </div>
-                    <div style="text-align:center; margin-top:20px;">
-                        <p style="font-weight:600;">Evidence Secured. Proceed to Final Decision.</p>
-                    </div>
-                </div>
-            </div>
-        """
-    },
-
-    # --- MODULE 9: FINAL AUDIT DECISION ---
+# --- MODULE 9: FINAL VERDICT & REPORT GENERATION ---
     {
         "id": 9,
-        "title": "Step 4: Final Audit Decision",
+        "title": "Step 4: The Final Verdict",
+        "html": """
+            <div class="scenario-box">
+                <div class="tracker-container">
+                    <div class="tracker-step completed">1. RULES</div>
+                    <div class="tracker-step completed">2. EVIDENCE</div>
+                    <div class="tracker-step completed">3. ERROR</div>
+                    <div class="tracker-step active">4. VERDICT</div>
+                </div>
+
+                <div class="slide-body">
+                    <h2 class="slide-title" style="margin:0;">STEP 4: FILE YOUR FINAL REPORT</h2>
+
+                    <div style="text-align:center; margin-bottom:20px;">
+                        <h2 class="slide-title" style="margin-top:10px; color:#0f766e;">Assemble The Case File</h2>
+                        <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:#334155;">
+                            You have completed the audit. Now you must build the final report for the court and other stakeholders.
+                            <br><strong>Select the valid findings below</strong> to add them to the official record. Be careful—do not include false evidence.
+                        </p>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:30px;">
+
+                        <details style="background:white; border:2px solid #e2e8f0; border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+                            <summary style="list-style:none; padding:15px; font-weight:700; color:#334155; display:flex; align-items:center; gap:10px;">
+                                <div style="background:#e2e8f0; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center;">+</div>
+                                Finding: "The Distorted Mirror"
+                            </summary>
+                            <div style="background:#f0fdf4; padding:15px; border-top:1px solid #bbf7d0; color:#166534;">
+                                <strong style="color:#15803d;">✅ ADDED TO REPORT</strong>
+                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmed: The Input Data incorrectly over-represents specific demographic groups likely due in part to historical bias.</p>
+                            </div>
+                        </details>
+
+                        <details style="background:white; border:2px solid #e2e8f0; border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+                            <summary style="list-style:none; padding:15px; font-weight:700; color:#334155; display:flex; align-items:center; gap:10px;">
+                                <div style="background:#e2e8f0; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center;">+</div>
+                                Finding: "Malicious Programmer Intent"
+                            </summary>
+                            <div style="background:#fef2f2; padding:15px; border-top:1px solid #fecaca; color:#991b1b;">
+                                <strong style="color:#b91c1c;">❌ REJECTED</strong>
+                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Incorrect. We found no evidence of malicious code. The bias came from the <em>data</em> and <em>proxies</em>, not the programmer's personality.</p>
+                            </div>
+                        </details>
+
+                        <details style="background:white; border:2px solid #e2e8f0; border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+                            <summary style="list-style:none; padding:15px; font-weight:700; color:#334155; display:flex; align-items:center; gap:10px;">
+                                <div style="background:#e2e8f0; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center;">+</div>
+                                Finding: "Racial Double Standard"
+                            </summary>
+                            <div style="background:#f0fdf4; padding:15px; border-top:1px solid #bbf7d0; color:#166534;">
+                                <strong style="color:#15803d;">✅ ADDED TO REPORT</strong>
+                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmed: African-American defendants suffer a 2x higher False Alarm rate than White defendants.</p>
+                            </div>
+                        </details>
+
+                        <details style="background:white; border:2px solid #e2e8f0; border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+                            <summary style="list-style:none; padding:15px; font-weight:700; color:#334155; display:flex; align-items:center; gap:10px;">
+                                <div style="background:#e2e8f0; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center;">+</div>
+                                Finding: "Proxy Variable Leakage"
+                            </summary>
+                            <div style="background:#f0fdf4; padding:15px; border-top:1px solid #bbf7d0; color:#166534;">
+                                <strong style="color:#15803d;">✅ ADDED TO REPORT</strong>
+                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmed: "Zip Code" is functioning as a proxy for Race, reintroducing bias even when variables like Race are removed.</p>
+                            </div>
+                        </details>
+
+                        <details style="background:white; border:2px solid #e2e8f0; border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+                            <summary style="list-style:none; padding:15px; font-weight:700; color:#334155; display:flex; align-items:center; gap:10px;">
+                                <div style="background:#e2e8f0; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center;">+</div>
+                                Finding: "Hardware Calculation Error"
+                            </summary>
+                            <div style="background:#fef2f2; padding:15px; border-top:1px solid #fecaca; color:#991b1b;">
+                                <strong style="color:#b91c1c;">❌ REJECTED</strong>
+                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Irrelevant. The servers are working fine. The math is correct; the <em>patterns</em> it learned are unfair.</p>
+                            </div>
+                        </details>
+
+                         <details style="background:white; border:2px solid #e2e8f0; border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+                            <summary style="list-style:none; padding:15px; font-weight:700; color:#334155; display:flex; align-items:center; gap:10px;">
+                                <div style="background:#e2e8f0; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center;">+</div>
+                                Finding: "Generalization Blind Spots"
+                            </summary>
+                            <div style="background:#f0fdf4; padding:15px; border-top:1px solid #bbf7d0; color:#166534;">
+                                <strong style="color:#15803d;">✅ ADDED TO REPORT</strong>
+                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmed: Lack of data for Women, Younger, and Older defendants creates unreliable predictions.</p>
+                            </div>
+                        </details>
+
+                    </div>
+
+                    <div style="background:#f8fafc; border-top:2px solid #e2e8f0; padding:25px; text-align:center; border-radius:0 0 12px 12px; margin-top:-15px;">
+                        <h3 style="margin-top:0; color:#1e293b;">⚖️ SUBMIT YOUR RECOMMENDATION (By using the Moral Compass Question below these cards.)</h3>
+                        <p style="font-size:1.05rem; margin-bottom:20px; color:#475569;">
+                            Based on the evidence filed above, what is your official recommendation regarding this AI system?
+                        </p>
+
+                        <div style="display:flex; justify-content:center; gap:20px; flex-wrap:wrap;">
+                            <div style="background:white; border:1px solid #cbd5e1; padding:15px 25px; border-radius:8px; cursor:pointer; max-width:250px; opacity:0.8; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+                                <div style="font-size:2rem; margin-bottom:10px;">✅</div>
+                                <div style="font-weight:700; color:#166534; margin-bottom:5px;">CERTIFY AS SAFE</div>
+                                <div style="font-size:0.85rem; color:#475569;">The biases are minor technicalities. Continue using the system.</div>
+                            </div>
+
+                            <div style="background:white; border:2px solid #ef4444; padding:15px 25px; border-radius:8px; cursor:pointer; max-width:250px; box-shadow:0 4px 12px rgba(239,68,68,0.2);">
+                                <div style="font-size:2rem; margin-bottom:10px;">🚨</div>
+                                <div style="font-weight:700; color:#b91c1c; margin-bottom:5px;">RED NOTICE: PAUSE & FIX</div>
+                                <div style="font-size:0.85rem; color:#7f1d1d;">The system violates Justice & Equity principles. Halt immediately.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="text-align:center; margin-top:30px;">
+                        <p style="font-size:0.95rem; color:#64748b;">
+                            Select your final recommendation below to officially file your report and complete your investigation.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        """
+    },
+
+
+    # --- MODULE 10: PROMOTION ---
+# --- MODULE 10: MISSION ACCOMPLISHED ---
+    {
+        "id": 10,
+        "title": "Mission Accomplished: Promotion Unlocked",
         "html": """
             <div class="scenario-box">
                 <div class="tracker-container">
                     <div class="tracker-step completed">✓ RULES</div>
                     <div class="tracker-step completed">✓ EVIDENCE</div>
                     <div class="tracker-step completed">✓ ERROR</div>
-                    <div class="tracker-step active">4. IMPACT</div>
+                    <div class="tracker-step completed">✓ VERDICT</div>
                 </div>
-                <h2 class="slide-title" style="text-align:center;">🗳️ THE FINAL AUDIT</h2>
-                <div class="slide-body">
-                    <p style="text-align:center; margin-bottom:20px;">Validate your findings and issue the final recommendation.</p>
 
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:25px;">
-                        <details class="evidence-card correct-finding"><summary style="cursor:pointer; padding:10px; border:1px solid #ddd; border-radius:6px; font-weight:bold;">Punitive Bias (Confirmed)</summary><div style="padding:10px; color:green;">✅ Validated.</div></details>
-                        <details class="evidence-card correct-finding"><summary style="cursor:pointer; padding:10px; border:1px solid #ddd; border-radius:6px; font-weight:bold;">Leniency Pattern (Confirmed)</summary><div style="padding:10px; color:green;">✅ Validated.</div></details>
-                        <details class="evidence-card incorrect-finding"><summary style="cursor:pointer; padding:10px; border:1px solid #ddd; border-radius:6px; font-weight:bold;">Error Rates were Equal (False)</summary><div style="padding:10px; color:red;">❌ Incorrect. Errors were unequal.</div></details>
-                        <details class="evidence-card correct-finding"><summary style="cursor:pointer; padding:10px; border:1px solid #ddd; border-radius:6px; font-weight:bold;">Proxy Bias Found (Confirmed)</summary><div style="padding:10px; color:green;">✅ Validated.</div></details>
+                <div class="slide-body">
+                    
+                    <div style="text-align:center; margin-bottom:25px;">
+                        <h2 class="slide-title" style="margin-top:10px; color:#15803d;">🎉 MISSION ACCOMPLISHED</h2>
+                        <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:#334155;">
+                            Report Filed. The court has accepted your recommendation to <strong>PAUSE</strong> the system.
+                        </p>
                     </div>
 
-                    <div class="ai-risk-container">
-                        <h4 style="text-align:center; margin-top:0;">🎯 Final Recommendation</h4>
-                        <div id="final-decision-quiz-container">
-                            <div style="text-align:center; padding:10px; font-style:italic;">(Final Decision Quiz will appear here)</div>
+                    <div style="background:#f0fdf4; border:2px solid #22c55e; border-radius:12px; padding:20px; margin-bottom:30px; text-align:center; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.1);">
+                        <div style="font-size:1.2rem; font-weight:800; color:#15803d; letter-spacing:1px; text-transform:uppercase;">
+                            ✅ DECISION VALIDATED
+                        </div>
+                        <p style="font-size:1.05rem; color:#166534; margin:10px 0 0 0;">
+                            You chose the responsible path. That decision required evidence, judgment, and a deep commitment to the principle of <strong>Justice & Equity</strong>.
+                        </p>
+                    </div>
+
+                    <div style="background:linear-gradient(135deg, #eff6ff 0%, #f0fdfa 100%); border:2px solid #0ea5e9; border-radius:16px; padding:0; overflow:hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+                        
+                        <div style="background:#0ea5e9; padding:15px; text-align:center; color:white;">
+                            <h3 style="margin:0; font-size:1.3rem; letter-spacing:1px;">🎖️ PROMOTION UNLOCKED</h3>
+                            <div style="font-size:0.9rem; opacity:0.9;">LEVEL UP: FROM DETECTIVE TO BUILDER</div>
+                        </div>
+
+                        <div style="padding:25px;">
+                            <p style="text-align:center; font-size:1.1rem; color:#334155; margin-bottom:20px;">
+                                Exposing bias is only the first half of the mission. Now that you have the evidence, the real work begins.
+                                <br><strong>You are trading your Magnifying Glass for a Wrench.</strong>
+                            </p>
+
+                            <div style="background:white; border-radius:12px; padding:20px; border:1px solid #bae6fd;">
+                                <h4 style="margin-top:0; color:#0369a1; text-align:center; margin-bottom:15px;">🎓 NEW ROLE: FAIRNESS ENGINEER</h4>
+                                
+                                <ul style="list-style:none; padding:0; margin:0; font-size:1rem; color:#475569;">
+                                    <li style="margin-bottom:12px; display:flex; gap:10px; align-items:start;">
+                                        <span>🔧</span>
+                                        <span><strong>Your Task 1:</strong> Dismantle the "Proxy Variables" (Remove Zip Code bias).</span>
+                                    </li>
+                                    <li style="margin-bottom:12px; display:flex; gap:10px; align-items:start;">
+                                        <span>📊</span>
+                                        <span><strong>Your Task 2:</strong> Fix the "Distorted Mirror" by redesigning the data strategy.</span>
+                                    </li>
+                                    <li style="display:flex; gap:10px; align-items:start;">
+                                        <span>🗺️</span>
+                                        <span><strong>Your Task 3:</strong> Build an ethical roadmap for continuous monitoring.</span>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        """
-    },
 
-    # --- MODULE 10: PROMOTION ---
-    {
-        "id": 10,
-        "title": "Mission Accomplished",
-        "html": """
-            <div class="scenario-box">
-                <h2 class="slide-title" style="text-align:center;">🎖️ PROMOTION UNLOCKED: FAIRNESS ENGINEER</h2>
-                <div class="slide-body">
-                    <p style="text-align:center;">You chose the responsible path: <strong>Pause & Fix.</strong></p>
-                    <div style="background:#f0f9ff; padding:20px; border-radius:12px; border:2px solid #3b82f6; text-align:center; margin-top:20px;">
-                        <h3 style="margin:0; color:#1e3a8a;">Next Mission: Fairness Fixer</h3>
-                        <p>Now that you've found the bias, it's time to fix the code.</p>
+                    <div style="text-align:center; margin-top:30px;">
+                        <p style="font-size:1.1rem; font-weight:600; color:#475569;">
+                            👉 Your next mission starts in <strong>Activity 8: The Fairness Fixer</strong>.
+                            <br>
+                            <span style="font-size:0.95rem; font-weight:400;"><strong>Scroll down to the next app</strong> to conclude this audit and begin the repairs.</span>
+                        </p>
                     </div>
-                    <div style="text-align:center; margin-top:20px;">
-                        <p style="font-weight:bold;">Click Next to finish.</p>
-                    </div>
+
                 </div>
             </div>
-        """
-    }
+        """,
+    },
 ]
 # --- 5. INTERACTIVE CONTENT CONFIGURATION (APP 1) ---
 QUIZ_CONFIG = {
@@ -1010,88 +1467,93 @@ QUIZ_CONFIG = {
             "C) I need to compare the Demographic Distributions (Race/Gender) in the data against real-world population statistics.",
         ],
         "a": "C) I need to compare the Demographic Distributions (Race/Gender) in the data against real-world population statistics.",
-        "success": "Target Acquired. You are ready to enter the Data Forensics Lab and inspect the histograms.",
+        "success": "Target Acquired. You are ready to enter the Data Forensics Lab.",
     },
     4: {
         "t": "t5",
         "q": "Forensic Analysis Review: You flagged the Gender data as a 'Data Gap' (only 19% Female). According to your evidence log, what is the specific technical risk for this group?",
         "o": [
-            "A) The model will have a 'Blind Spot' (Generalization Error) because it hasn't seen enough examples to learn accurate patterns.",
+            "A) The model will have a 'Blind Spot' because it hasn't seen enough examples to learn accurate patterns.",
             "B) The AI will automatically target this group due to historical over-policing.",
             "C) The model will default to the 'Real World' statistics to fill in the missing numbers.",
         ],
-        "a": "A) The model will have a 'Blind Spot' (Generalization Error) because it hasn't seen enough examples to learn accurate patterns.",
-        "success": "Evidence Locked. You understand that 'Missing Data' creates blind spots, making predictions for that group unreliable.",
+        "a": "A) The model will have a 'Blind Spot' because it hasn't seen enough examples to learn accurate patterns.",
+        "success": "Evidence Locked. You understand that 'Missing Data' creates blind spots, making predictions for that group less reliable.",
     },
-     5: {
+    # --- QUESTION 4 (Evidence Report Summary) ---
+    5: {
         "t": "t6",
-        "q": "The dataset has about 2x more of this group than reality. What technical term best describes this mismatch between the dataset and the population?",
+        "q": "Detective, review your Evidence Summary table. You found instances of both Over-representation (Race) and Under-representation (Gender/Age). What is your general conclusion about how Representation Bias affects the AI?",
         "o": [
-            "A) Representation Bias",
-            "B) Overfitting",
-            "C) Data Leakage",
-            "D) Concept Drift",
+            "A) It confirms the dataset is neutral, as the 'Over' and 'Under' categories mathematically cancel each other out.",
+            "B) It creates a 'Risk of Increased Prediction Error' in BOTH directions—whether a group is exaggerated or ignored, the AI's view of reality is warped.",
+            "C) It only creates risk when data is missing (Under-represented); having extra data (Over-represented) actually makes the model more accurate.",
         ],
-        "a": "A) Representation Bias",
-        "success": "Bias detected: Representation Bias. The dataset over‑samples this group relative to reality, which can lead the model to have more unfair prediction mistakes. Next: compare error rates by race to confirm fairness impacts.",
+        "a": "B) It creates a 'Risk of Increased Prediction Error' in BOTH directions—whether a group is exaggerated or ignored, the AI's view of reality is warped.",
+        "success": "Conclusion Verified. Distorted data—whether inflated or missing—can lead to distorted justice.",
     },
-     6: {
+    6: {
         "t": "t7",
-        "q": "The dataset has about 2x more of this group than reality. What technical term best describes this mismatch between the dataset and the population?",
+        "q": "Detective, you are hunting for the 'Double Standard' pattern. Which specific piece of evidence represents this Red Flag?",
         "o": [
-            "A) Sampling or Historical Bias",
-            "B) Overfitting",
-            "C) Data Leakage",
-            "D) Concept Drift",
+            "A) The model makes zero mistakes for any group.",
+            "B) One group suffers from a significantly higher 'False Alarm' rate than another group.",
+            "C) The input data contains more men than women.",
         ],
-        "a": "A) Sampling or Historical Bias",
-        "success": "Bias detected: Sampling or Historical Bias. The dataset over‑samples this group relative to reality, which can lead the model to over‑flag. Next: compare error rates by race to confirm fairness impacts.",
+        "a": "B) One group suffers from a significantly higher 'False Alarm' rate than another group.",
+        "success": "Pattern Confirmed. When the error rate is lopsided, it's a Double Standard.",
     },
+    # --- QUESTION 6 (Race Error Gap) ---
     7: {
         "t": "t8",
-        "q": "The AI has very few examples of women. What do we call it when a specific group is not adequately included?",
+        "q": "Review your data log. What did the 'False Alarm' scan reveal about the treatment of African-American defendants?",
         "o": [
-            "A) Overfitting",
-            "B) Data Leakage",
-            "C) Concept Drift",
-            "D) Representation Bias",
+            "A) They are treated exactly the same as White defendants.",
+            "B) They are missed by the system more often (Leniency Bias).",
+            "C) They are nearly twice as likely to be wrongly flagged as 'High Risk' (Punitive Bias).",
         ],
-        "a": "D) Representation Bias",
-        "success": "Bias detected: Representation Bias. Under‑representation can cause the model to generalize poorly for women. Next: compare error rates by gender and inspect missing fields for exclusion bias.",
+        "a": "C) They are nearly twice as likely to be wrongly flagged as 'High Risk' (Punitive Bias).",
+        "success": "Evidence Logged. The system is punishing innocent people based on race.",
     },
+
+    # --- QUESTION 7 (Generalization & Proxy Scan) ---
     8: {
         "t": "t9",
-        "q": "Most COMPAS data falls between ages 25–45, with fewer people over 45. What is the primary risk for a 62-year-old?",
+        "q": "The Geography Scan showed a massive error rate in Urban Zones. What does this prove about 'Zip Codes'?",
         "o": [
-            "A) Generalization Error: The AI may misjudge risk because it has few examples of older adults.",
-            "B) The model refuses to make a prediction.",
-            "C) Older adults automatically receive more accurate predictions.",
+            "A) Zip Codes are acting as a 'Proxy Variable' to target specific groups, even if variables like Race are removed from the dataset.",
+            "B) The AI is simply bad at reading maps and location data.",
+            "C) People in cities naturally generate more computer errors than people in rural areas.",
         ],
-        "a": "A) Generalization Error: The AI may misjudge risk because it has few examples of older adults.",
-        "success": "Risk Logged: Generalization Error. The model has limited 'visibility' into older defendants.",
+        "a": "A) Zip Codes are acting as a 'Proxy Variable' to target specific groups, even if variables like Race are removed from the dataset.",
+        "success": "Proxy Identified. Hiding a variable doesn't work if you leave a proxy behind.",
     },
+
+    # --- QUESTION 8 (Audit Summary) ---
     9: {
         "t": "t10",
-        "q": "Detective, you have built evidence that the Input Data could be biased. Is this enough to convict the model?",
+        "q": "You have closed the case file. Which of the following is CONFIRMED as the 'Primary Threat' in your final report?",
         "o": [
-            "A) Yes, if data is skewed, it's illegal.",
-            "B) No. We must now analyze the Model's prediction mistakes for specific groups to study actual harm to real people.",
-            "C) Yes, assume harm.",
+            "A) A Racial Double Standard where innocent Black defendants are penalized twice as often.",
+            "B) Malicious code written by hackers to break the system.",
+            "C) A hardware failure in the server room causing random math errors.",
         ],
-        "a": "B) No. We must now analyze the Model's prediction mistakes for specific groups to study actual harm to real people.",
-        "success": "Investigation Pivot. Phase 1 (Inputs) Complete. Beginning Phase 2 (Outputs).",
+        "a": "A) A Racial Double Standard where innocent Black defendants are penalized twice as often.",
+        "success": "Threat Assessed. The bias is confirmed and documented.",
     },
-      10: {
-      "t": "t11", # Assuming t19 is the final task ID
-      "q": "Given everything you uncovered, what should happen to this AI model?",
-      "o": [
-        "A) Deploy it immediately — 92% accuracy is good enough.",
-        "B) Pause deployment — the model needs fairness repairs first.",
-        "C) Delete the model entirely — AI can never be fair."
-      ],
-      "a": "B) Pause deployment — the model needs fairness repairs first.",
-      "success": "Correct. A responsible auditor doesn't rush a system with documented harm. Now step into your new mission: becoming the Fairness Engineer who fixes it."
-    }
+
+    # --- QUESTION 9 (Final Verdict) ---
+    10: {
+        "t": "t11",
+        "q": "Based on the severe violations of Justice & Equity found in your audit, what is your final recommendation to the court?",
+        "o": [
+            "A) CERTIFY: The system is mostly fine, minor glitches are acceptable.",
+            "B) RED NOTICE: Pause the system for repairs immediately because it is unsafe and biased.",
+            "C) WARNING: Only use the AI on weekends when crime is lower.",
+        ],
+        "a": "B) RED NOTICE: Pause the system for repairs immediately because it is unsafe and biased.",
+        "success": "Verdict Delivered. You successfully stopped a harmful system.",
+    },
 }
 
 
@@ -1946,54 +2408,6 @@ def create_bias_detective_part1_app(theme_primary_hue: str = "indigo"):
                     gr.HTML(mod["html"])
 
 
-                    # --- MODULE 10: FINAL AUDIT AND DECISION ---
-                    if i == 10:
-
-                        # 1. REPORT BUILDER (Checklist and Preview)
-                        with gr.Column() as report_builder_col:
-                            report_checklist = gr.CheckboxGroup(
-                                choices=[
-                                    "Choice A: Punitive Bias (Race): AA defendants were twice as likely to be falsely labeled 'High Risk.'",
-                                    "Choice B: Generalization (Gender): The model made more False Alarm errors for women than for men.",
-                                    "Choice C: Leniency Pattern (Race): White defendants who re-offended were more likely to be labeled 'Low Risk.'",
-                                    "Choice D: FALSE STATEMENT: The model achieved an equal False Negative Rate (FNR) across all races.",
-                                    "Choice E: Proxy Bias (Geography): Location acted as a proxy, doubling False Alarms in high-density areas.",
-                                ],
-                                label="Select ONLY the TRUE bias patterns confirmed by your audit:",
-                                info="Your report content will be generated below based on your correct selections.",
-                                elem_id="report-builder-checklist"
-                            )
-                            report_feedback = gr.HTML("")
-                            report_preview = gr.Markdown("Select the evidence cards above to draft your report. (The draft report will appear here.)")
-
-                            report_checklist.change(
-                                fn=check_audit_report_selection, # New function needed (see below)
-                                inputs=report_checklist,
-                                outputs=[report_preview, report_feedback]
-                            )
-
-                        # 2. FINAL DECISION QUIZ (Quiz ID 9 in original App 2)
-                        with gr.Column() as final_decision_col:
-                            q_data = QUIZ_CONFIG[9] # Original App 2 ID 9 is the final decision quiz
-                            gr.Markdown(f"### 🎯 {q_data['q']}")
-                            final_radio = gr.Radio(choices=q_data['o'], label="Your Final Recommendation:", elem_id="final-decision-radio")
-                            final_feedback = gr.HTML("")
-
-                        # Add quiz to the wiring queue for navigation:
-                        quiz_wiring_queue.append((10, final_radio, final_feedback))
-
-                        # JS to move components into HTML divs
-                        js_inject = f"""
-                            document.getElementById('report-builder-container').innerHTML = '';
-                            document.getElementById('report-builder-container').appendChild(document.getElementById('report-builder-checklist'));
-                            document.getElementById('report-builder-container').appendChild(document.getElementById('report-builder-feedback'));
-                            document.getElementById('report-builder-container').appendChild(document.getElementById('report-builder-preview'));
-
-                            document.getElementById('final-decision-quiz-container').innerHTML = '';
-                            document.getElementById('final-decision-quiz-container').appendChild(document.getElementById('final-decision-radio'));
-                            document.getElementById('final-decision-quiz-container').appendChild(document.getElementById('final-decision-feedback'));
-                        """
-                        demo.load(None, None, None, js=js_inject) # Use a dummy load to inject JS
 
                     # --- QUIZ CONTENT FOR MODULES WITH QUIZ_CONFIG ---
                     if i in QUIZ_CONFIG:
