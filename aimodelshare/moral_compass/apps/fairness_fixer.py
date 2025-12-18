@@ -8,8 +8,8 @@ from typing import Tuple, Optional, List
 DEFAULT_API_URL = "https://b22q73wp50.execute-api.us-east-1.amazonaws.com/dev"
 ORIGINAL_PLAYGROUND_URL = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
 TABLE_ID = "m-mc"
-TOTAL_COURSE_TASKS = 28  # Increased task count for the full sequence
-LOCAL_TEST_SESSION_ID = None
+TOTAL_COURSE_TASKS = 28  # Combined count across apps
+LOCAL_TEST_SESSION_ID = "976859b6-9536-49ee-abc6-64d44a125e21"
 
 # --- 2. SETUP & DEPENDENCIES ---
 def install_dependencies():
@@ -81,6 +81,7 @@ def fetch_user_history(username, token):
 
 # --- 4. MODULE DEFINITIONS (FAIRNESS FIXER) ---
 MODULES = [
+    # --- MODULE 0: THE PROMOTION ---
     {
         "id": 0,
         "title": "Module 0: The Fairness Engineer's Workbench",
@@ -107,7 +108,7 @@ MODULES = [
                         </div>
                     </div>
 
-                    <h2 class="slide-title" style="text-align:center;">🔧 Phase II: The Fix</h2>
+                    <h2 class="slide-title" style="text-align:center;">🔧 Final Phase: The Fix</h2>
 
                     <p style="font-size:1.05rem; max-width:800px; margin:0 auto 20px auto; text-align:center;">
                         <strong>Welcome back.</strong> You successfully exposed the bias in the COMPAS model and blocked its deployment. Good work.
@@ -145,7 +146,7 @@ MODULES = [
                             <div style="display:flex; align-items:center; gap:12px; padding:10px; background:var(--background-fill-secondary); border-radius:8px; opacity:0.7;">
                                 <div style="font-size:1.4rem;">🔗</div>
                                 <div>
-                                    <div style="font-weight:700;">Protocol 2: Causal Validity</div>
+                                    <div style="font-weight:700;">Protocol 2: Cause Versus Correlation</div>
                                     <div style="font-size:0.9rem;">Filter data for actual behavior, not just correlation.</div>
                                 </div>
                                 <div style="margin-left:auto; font-weight:700; font-size:0.8rem; text-transform:uppercase; color:var(--body-text-color-subdued);">Locked</div>
@@ -154,8 +155,8 @@ MODULES = [
                             <div style="display:flex; align-items:center; gap:12px; padding:10px; background:var(--background-fill-secondary); border-radius:8px; opacity:0.7;">
                                 <div style="font-size:1.4rem;">⚖️</div>
                                 <div>
-                                    <div style="font-weight:700;">Protocol 3: Representative Sampling</div>
-                                    <div style="font-size:0.9rem;">Fix the demographic skew in the dataset rows.</div>
+                                    <div style="font-weight:700;">Protocol 3: Representation & Sampling</div>
+                                    <div style="font-size:0.9rem;">Balance the data to match the local population.</div>
                                 </div>
                                 <div style="margin-left:auto; font-weight:700; font-size:0.8rem; text-transform:uppercase; color:var(--body-text-color-subdued);">Locked</div>
                             </div>
@@ -163,22 +164,22 @@ MODULES = [
                         </div>
                     </div>
 
-                    <div style="text-align:center; margin-top:24px;">
-                        <p style="font-size:1.05rem; font-weight:600; margin-bottom:8px;">
-                            Ready to start the fix?
+                   <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
+                        <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
+                            🚀 READY TO START THE FIX?
                         </p>
-                        <p style="font-size:1.0rem; color:var(--body-text-color-subdued);">
-                             Click <strong>Next ▶️</strong> to enter the Data Clean Room.
+                        <p style="font-size:1.05rem; margin:0;">
+                            Click <strong>Next</strong> to start fixing the model.
                         </p>
-                    </div>
-
+                    </div> 
                 </div>
             </div>
         """,
     },
+    # --- MODULE 1: SANITIZE INPUTS (Protected Classes) ---
     {
         "id": 1,
-        "title": "Slide 2: First Pass — The Obvious Removal",
+        "title": "Protocol 1: Sanitize Inputs",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
@@ -199,7 +200,7 @@ MODULES = [
 
                     <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
                         <strong>Fairness Through Blindness.</strong>
-                        Legally and ethically, we cannot use <strong>Protected Classes</strong> (traits like race or gender) to calculate someone's risk score.
+                        Legally and ethically, we cannot use <strong>Protected Classes</strong> (features you are born with, like race or age) to calculate someone's risk score.
                     </p>
 
                     <div class="ai-risk-container">
@@ -230,19 +231,24 @@ MODULES = [
                         </div>
                     </div>
 
-                    <div style="text-align:center; margin-top:16px;">
-                        <p style="font-size:0.95rem; color:var(--body-text-color-subdued);">
-                            ⬇️ <strong>Action Required:</strong> Use the Command Panel below to execute deletion. ⬇️
-                        </p>
-                    </div>
 
+            <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
+                        <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
+                            🚀 ACTION REQUIRED: DELETE PROTECTED INPUT DATA
+                        </p>
+                        <p style="font-size:1.05rem; margin:0;">
+                            Use the Command Panel below to execute deletion. 
+                            Then click <strong>Next</strong> to continue fixing the model.
+                        </p>
+                    </div> 
                 </div>
             </div>
         """,
     },
-{
+    # --- MODULE 2: SANITIZE INPUTS (Proxy Variables) ---
+    {
         "id": 2,
-        "title": "Slide 3: The Hidden Leak — Hunting Proxies",
+        "title": "Protocol 1: Hunting Proxies",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
@@ -270,8 +276,8 @@ MODULES = [
                         <div style="font-weight:700;">Why "Zip Code" is a Proxy</div>
 
                         <p style="margin:6px 0 0 0;">
-                            Historically, neighborhoods were segregated by law ("Redlining"). Even today, <strong>Zip Code</strong> correlates strongly with race.
-                        </p>
+                            Historically, many cities were segregated by law or class. Even today, <strong>Zip Code</strong> often correlates strongly with background.
+                            </p>
                         <p style="margin-top:8px; font-weight:600; color:#c2410c;">
                             🚨 The Risk: If you give the AI location data, it can "guess" a person's race with high accuracy, re-learning the exact bias you just tried to delete.
                         </p>
@@ -296,18 +302,24 @@ MODULES = [
                         </div>
                     </div>
 
-                     <div style="text-align:center; margin-top:16px;">
-                        <p style="font-size:0.95rem; color:var(--body-text-color-subdued);">
-                            ⬇️ <strong>Action Required:</strong> Select the Proxy Variable below to scrub it. ⬇️
+
+              <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
+                        <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
+                            🚀 ACTION REQUIRED: DELETE PROXY INPUT DATA
                         </p>
-                    </div>
+                        <p style="font-size:1.05rem; margin:0;">
+                            Select the Proxy Variable below to scrub it. 
+                            Then click <strong>Next</strong> to continue fixing the model.
+                        </p>
+                    </div> 
                 </div>
             </div>
         """,
     },
+    # --- MODULE 3: THE ACCURACY CRASH (The Pivot) ---
     {
         "id": 3,
-        "title": "Slide 4: The Blind Model Simulation",
+        "title": "System Alert: Model Verification",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
@@ -330,7 +342,7 @@ MODULES = [
 
                     <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
                         You have successfully deleted <strong>Race, Gender, Age, and Zip Code</strong>.
-                        The dataset is "sanitized." Now we run the simulation to see if the model still works.
+                        The dataset is "sanitized" (stripped of all demographic labels). Now we run the simulation to see if the model still works.
                     </p>
 
                     <details style="border:none; margin-top:20px;">
@@ -378,15 +390,18 @@ MODULES = [
                                 </p>
                             </div>
 
-                             <div style="text-align:center; margin-top:16px;">
-                                 <p style="font-size:0.95rem; color:var(--body-text-color-subdued);">
-                                    ⬇️ <strong>Next Step:</strong> Learn to identify "Meaningful Data" in Protocol 2. ⬇️
-                                </p>
-                            </div>
 
-                        </div>
                     </details>
 
+                          <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
+                        <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
+                            🚀 ACTION REQUIRED: Find Meaningful Data
+                        </p>
+                        <p style="font-size:1.05rem; margin:0;">
+                            Answer the below question to receive Moral Compass Points. 
+                            Then click <strong>Next</strong> to continue fixing the model.
+                        </p>
+                    </div> 
                 </div>
             </div>
             <style>
@@ -400,9 +415,10 @@ MODULES = [
             </style>
         """,
     },
+    # --- MODULE 4: CAUSAL VALIDITY (Big Foot) ---
     {
         "id": 4,
-        "title": "Slide 5: Pattern Recognition 101",
+        "title": "Protocol 2: Causal Validity",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
@@ -411,7 +427,7 @@ MODULES = [
                         <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🔗</div>
                         <div style="flex-grow:1;">
                             <div style="font-weight:800; font-size:1.05rem; color:#065f46; letter-spacing:0.05em;">
-                                PROTOCOL 2: CAUSAL VALIDITY
+                                PROTOCOL 2: CAUSE VS. CORRELATION
                             </div>
                             <div style="font-size:0.9rem; color:var(--body-text-color);">
                                 Mission: Learn how to tell when a pattern <strong>actually causes</strong> an outcome — and when it’s just a coincidence.
@@ -443,7 +459,7 @@ MODULES = [
                             The Data: “People with bigger feet have higher reading scores.”
                         </h3>
                         <p style="font-size:1.0rem; margin-top:8px;">
-                            On average, people with size 12 shoes score much higher on reading tests than people with size 4 shoes.
+                            On average, people with <strong>large feet</strong> score much higher on reading tests than people with <strong>small feet</strong>.
                         </p>
                     </div>
 
@@ -492,15 +508,18 @@ MODULES = [
                         </div>
                     </details>
 
-                    <div style="text-align:center; margin-top:24px;">
-                        <p style="font-size:0.95rem; color:var(--body-text-color-subdued);">
-                            ⬇️ <strong>Action Required:</strong> Can you spot the next “Big Foot” trap in the data below? ⬇️
-                        </p>
-                    </div>
 
+              <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
+                        <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
+                            🚀 ACTION REQUIRED: Can you spot the next “Big Foot” trap in the data below?
+                        </p>
+                        <p style="font-size:1.05rem; margin:0;">
+                            Answer this question to boost your Moral Compass score.
+                            Then click <strong>Next</strong> to continue fixing the model.
+                        </p>
+                    </div> 
                 </div>
             </div>
-
             <style>
                 @keyframes fadeIn {
                     from { opacity: 0; transform: translateY(-5px); }
@@ -509,11 +528,13 @@ MODULES = [
                 details > summary { list-style: none; }
                 details > summary::-webkit-details-marker { display: none; }
             </style>
-        """
+        """,
     },
+    # --- MODULE 5: APPLYING RESEARCH ---
+# --- MODULE 5: APPLYING RESEARCH (Stylized Candidates) ---
     {
         "id": 5,
-        "title": "Slide 6: Applying the Research",
+        "title": "Protocol 2: Cause vs. Correlation",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
@@ -522,7 +543,7 @@ MODULES = [
                         <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🔗</div>
                         <div style="flex-grow:1;">
                             <div style="font-weight:800; font-size:1.05rem; color:#065f46; letter-spacing:0.05em;">
-                                PROTOCOL 2: CAUSAL VALIDITY
+                                PROTOCOL 2: CAUSE VS. CORRELATION
                             </div>
                             <div style="font-size:0.9rem; color:var(--body-text-color);">
                                 Mission: Remove variables that <strong>correlate</strong> with outcomes but do not <strong>cause</strong> them.
@@ -537,98 +558,105 @@ MODULES = [
                     </div>
 
                     <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">
-                        🔬 Research Check: Causes vs Correlations
+                        🔬 Research Check: Choosing Fair Features
                     </h2>
 
                     <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
-                        You are ready to a new safer version of the model. Here are four variables to consider as inputs to the next model.
+                        You are ready to build a safer version of the model. Here are four variables to consider.
                         <br>
-                        Use the rule below to decide which variables represent <strong>actual causes</strong> of behavior — and which are just “Big Foot” style correlations.
+                        Use the rule below to decide which variables represent <strong>actual causes</strong> of behavior — and which are just circumstantial correlations.
                     </p>
 
                     <div class="hint-box" style="border-left:4px solid var(--color-accent); background:white; border:1px solid var(--border-color-primary);">
                         <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
                             <div style="font-size:1.2rem;">📋</div>
                             <div style="font-weight:800; color:var(--color-accent); text-transform:uppercase; letter-spacing:0.05em;">
-                                Research Rule
+                                The Engineering Rule
                             </div>
                         </div>
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                        <div style="padding:8px; background:#fef2f2; border-radius:6px; border:1px solid #fee2e2;">
-                            <div style="font-weight:700; color:#b91c1c; font-size:0.85rem;">
-                                🚫 REJECT: BACKGROUND CONDITIONS
+                            <div style="padding:10px; background:#fef2f2; border-radius:6px; border:1px solid #fee2e2;">
+                                <div style="font-weight:700; color:#b91c1c; font-size:0.9rem; margin-bottom:4px;">
+                                    🚫 REJECT: BACKGROUND
+                                </div>
+                                <div style="font-size:0.85rem; line-height:1.4; color:#7f1d1d;">
+                                    Variables describing a person's situation or environment (e.g., wealth, neighborhood).
+                                    <br><strong>These correlate with crime but do not cause it.</strong>
+                                </div>
                             </div>
-                            <div style="font-size:0.85rem; line-height:1.35;">
-                                Variables that describe someone’s situation or environment — not their actions
-                                (for example: job status, wealth, or neighborhood).
-                                <br>
-                                <strong>These often correlate with outcomes but do not directly cause them.</strong>
-                            </div>
-                        </div>
-                            <div style="padding:8px; background:#f0fdf4; border-radius:6px; border:1px solid #dcfce7;">
-                                <div style="font-weight:700; color:#15803d; font-size:0.85rem;">
+                            <div style="padding:10px; background:#f0fdf4; border-radius:6px; border:1px solid #dcfce7;">
+                                <div style="font-weight:700; color:#15803d; font-size:0.9rem; margin-bottom:4px;">
                                     ✅ KEEP: CONDUCT
                                 </div>
-                                <div style="font-size:0.85rem; line-height:1.35;">
-                                    Variables that describe documented actions taken by a person
-                                    (for example: prior convictions or missed court dates).
-                                    <br>
-                                    <strong>These are closer to the behaviors the model is trying to predict.</strong>
+                                <div style="font-size:0.85rem; line-height:1.4; color:#14532d;">
+                                    Variables describing documented actions taken by the person (e.g., missed court dates).
+                                    <br><strong>These reflect actual behavior.</strong>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="ai-risk-container" style="margin-top:16px;">
-                        <h4 style="margin:0 0 10px 0;">📂 Variable Option Candidates</h4>
+                    <div class="ai-risk-container" style="margin-top:20px; background:#f8fafc; border:1px solid #e2e8f0;">
+                        <h4 style="margin:0 0 12px 0; color:#334155; text-align:center; font-size:1.1rem;">📂 Input Data Candidates</h4>
 
-                        <div style="display:flex; flex-direction:column; gap:8px;">
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
 
-                            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:white; border:1px solid var(--border-color-primary); border-radius:6px;">
-                                <div style="font-weight:700;">Employment</div>
-                                <div style="font-size:0.8rem; color:var(--body-text-color-subdued);">
-                                    Data: Has Job / No Job (background condition)
+                            <div style="background:white; border:1px solid #cbd5e1; border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
+                                <div style="font-weight:700; font-size:1rem; color:#1e293b; margin-bottom:6px;">Employment Status</div>
+                                <div style="font-size:0.85rem; background:#f1f5f9; padding:4px 8px; border-radius:4px; color:#475569; display:inline-block;">
+                                    Category: <strong>Background Condition</strong>
                                 </div>
                             </div>
 
-                            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:white; border:1px solid var(--border-color-primary); border-radius:6px;">
-                                <div style="font-weight:700;">Prior Convictions</div>
-                                <div style="font-size:0.8rem; color:var(--body-text-color-subdued);">
-                                    Data: Count of past crimes (documented conduct)
+                            <div style="background:white; border:1px solid #cbd5e1; border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
+                                <div style="font-weight:700; font-size:1rem; color:#1e293b; margin-bottom:6px;">Prior Convictions</div>
+                                <div style="font-size:0.85rem; background:#dcfce7; padding:4px 8px; border-radius:4px; color:#166534; display:inline-block;">
+                                    Category: <strong>Conduct History</strong>
                                 </div>
                             </div>
 
-                            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:white; border:1px solid var(--border-color-primary); border-radius:6px;">
-                                <div style="font-weight:700;">Neighborhood Safety Score</div>
-                                <div style="font-size:0.8rem; color:var(--body-text-color-subdued);">
-                                    Data: 1–10 rating of home area (context, not behavior)
+                            <div style="background:white; border:1px solid #cbd5e1; border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
+                                <div style="font-weight:700; font-size:1rem; color:#1e293b; margin-bottom:6px;">Neighborhood Score</div>
+                                <div style="font-size:0.85rem; background:#f1f5f9; padding:4px 8px; border-radius:4px; color:#475569; display:inline-block;">
+                                    Category: <strong>Environment</strong>
                                 </div>
                             </div>
 
-                            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:white; border:1px solid var(--border-color-primary); border-radius:6px;">
-                                <div style="font-weight:700;">Failure to Appear</div>
-                                <div style="font-size:0.8rem; color:var(--body-text-color-subdued);">
-                                    Data: Missed court dates (documented conduct)
+                            <div style="background:white; border:1px solid #cbd5e1; border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
+                                <div style="font-weight:700; font-size:1rem; color:#1e293b; margin-bottom:6px;">Failure to Appear</div>
+                                <div style="font-size:0.85rem; background:#dcfce7; padding:4px 8px; border-radius:4px; color:#166534; display:inline-block;">
+                                    Category: <strong>Conduct History</strong>
                                 </div>
                             </div>
 
                         </div>
                     </div>
 
-                    <div style="text-align:center; margin-top:16px;">
+                    <div class="hint-box" style="margin-top:20px; border-left:4px solid #8b5cf6; background:linear-gradient(to right, #f5f3ff, white);">
+                        <div style="font-weight:700; color:#6d28d9; font-size:1.05rem;">💡 Why this matters for Fairness</div>
+                        <p style="margin:8px 0 0 0; font-size:0.95rem; line-height:1.5;">
+                            When an AI judges people based on <strong>Correlations</strong> (like neighborhood or poverty), it punishes them for their <strong>circumstances</strong>—things they often cannot control.
+                            <br><br>
+                            When an AI judges based on <strong>Causes</strong> (like Conduct), it holds them accountable for their <strong>actions</strong>.
+                            <br>
+                            <strong>True Fairness = Being judged on your choices, not your background.</strong>
+                        </p>
+                    </div>
+
+                    <div style="text-align:center; margin-top:20px;">
                         <p style="font-size:0.95rem; color:var(--body-text-color-subdued);">
-                            ⬇️ <strong>Action:</strong> Select the variables that represent true <strong>conduct</strong>, not background conditions, to build the model. ⬇️
+                            ⬇️ <strong>Action:</strong> Select the variables that represent true <strong>Conduct</strong> to build the fair model. ⬇️
                         </p>
                     </div>
 
                 </div>
             </div>
-        """
+        """,
     },
-
+# --- MODULE 6: REPRESENTATION (Intro) ---
     {
         "id": 6,
-        "title": "Slide 7: Representation Matters",
+        "title": "Protocol 3: Representation Matters",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
@@ -640,7 +668,7 @@ MODULES = [
                                 PROTOCOL 3: REPRESENTATION
                             </div>
                             <div style="font-size:0.9rem; color:var(--body-text-color);">
-                                Mission: Make sure the training data matches the place where the model will be used — people, laws, and patterns.
+                                Mission: Make sure the training data matches the place where the model will be used.
                             </div>
                         </div>
                         <div style="text-align:right;">
@@ -652,17 +680,21 @@ MODULES = [
                     </div>
 
                     <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">
-                        🗺️ The “Wrong Map” Problem (When Training Data Doesn’t Match Reality)
+                        🗺️ The “Wrong Map” Problem
                     </h2>
 
-                    <p style="font-size:1.05rem; text-align:center; max-width:820px; margin:0 auto 16px auto;">
-                        We fixed the <strong>types of variables</strong> (the columns).
-                        <br>
-                        Now we must check the <strong>people and environment</strong> the data came from (the rows).
-                        <br>
-                        This dataset was built using data from <strong>Broward County, Florida (USA)</strong>.
-                        Imagine deploying that model in <strong>Barcelona</strong>.
+                    <p style="font-size:1.05rem; text-align:center; max-width:820px; margin:0 auto 15px auto;">
+                        We fixed the <strong>variables</strong> (the columns). Now we must check the <strong>environment</strong> (the rows).
                     </p>
+
+                    <div style="background:linear-gradient(to right, #f8fafc, #f1f5f9); border:2px dashed #94a3b8; border-radius:12px; padding:20px; text-align:center; margin-bottom:25px;">
+                        <div style="font-weight:700; color:#64748b; font-size:0.9rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">THE SCENARIO</div>
+                        <p style="font-size:1.15rem; font-weight:600; color:#334155; margin:0; line-height:1.5;">
+                            This dataset was built using historical data from <span style="color:#ef4444;">Broward County, Florida (USA)</span>.
+                            <br><br>
+                            Imagine taking this Florida model and forcing it to judge people in a completely different justice system—like <span style="color:#3b82f6;">Barcelona, Spain</span> (or your own hometown).
+                        </p>
+                    </div>
 
                     <div class="ai-risk-container" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
 
@@ -710,20 +742,23 @@ MODULES = [
                         </p>
                     </div>
 
-                    <div style="text-align:center; margin-top:20px;">
-                        <p style="font-size:0.95rem; color:var(--body-text-color-subdued);">
-                            ⬇️ <strong>Action Required:</strong> Choose the best way to <strong>collect or sample data</strong> so the training set matches Barcelona. ⬇️
+                    <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
+                        <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
+                            🚀 ACTION REQUIRED:
                         </p>
-                    </div>
-
+                        <p style="font-size:1.05rem; margin:0;">
+                            Answer the below question to boost your Moral Compass leaderboard score.
+                            Then click <strong>Next</strong> to continue fixing the data representation problem.
+                        </p>
+                    </div> 
                 </div>
             </div>
-        """
+        """,
     },
-
+    # --- MODULE 7: THE DATA SWAP ---
     {
         "id": 7,
-        "title": "Slide 8: Fixing the Representation",
+        "title": "Protocol 3: Fixing the Representation",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
@@ -745,15 +780,18 @@ MODULES = [
                     <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">🔄 The Data Swap</h2>
 
                     <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
-                        We cannot use the Florida dataset. It is "Lazy Data."
-                        <br>To build a fair model for Barcelona, we must <strong>reject</strong> the easy path and <strong>collect local data</strong> that reflects our actual reality.
-                    </p>
+                    We cannot use the Florida dataset. It is "Lazy Data."
+                    <br>
+                    To build a fair model for <strong>Any Location</strong> (whether it's Barcelona, Berlin, or Boston), we must reject the easy path.
+                    <br>
+                    We must collect <strong>Local Data</strong> that reflects the actual reality of that place.
+                </p>
 
                     <div class="ai-risk-container" style="text-align:center; border:2px solid #ef4444; background:#fef2f2; padding:16px; margin-bottom:20px;">
                         <div style="font-weight:800; color:#b91c1c; font-size:1.1rem; margin-bottom:8px;">⚠️ CURRENT DATASET: FLORIDA (INVALID)</div>
 
                         <p style="font-size:0.9rem; margin:0;">
-                            Contains 115 features irrelevant to EU law. <br>Over-represents gun crimes by 400%.
+                            Dataset does not match local context where model will be used.
                         </p>
                     </div>
 
@@ -795,15 +833,15 @@ MODULES = [
                                 </p>
                             </div>
 
-                             <div style="text-align:center; margin-top:16px;">
-                                 <p style="font-size:0.95rem; color:var(--body-text-color-subdued);">
-                                    ⬇️ <strong>Final Step:</strong> Confirm the new data policy below to finish the workshop. ⬇️
-                                </p>
-                            </div>
-
-                        </div>
-                    </details>
-
+            <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
+                        <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
+                            🚀 ACTION REQUIRED:
+                        </p>
+                        <p style="font-size:1.05rem; margin:0;">
+                            Answer the below question to boost your Moral Compass score.
+                            Then click <strong>Next</strong> to review and certify that the model is fixed!
+                        </p>
+                    </div> 
                 </div>
             </div>
             <style>
@@ -817,9 +855,10 @@ MODULES = [
             </style>
         """,
     },
+    # --- MODULE 8: FINAL REPORT (Before & After) ---
     {
         "id": 8,
-        "title": "Slide 9: Final Fairness Report",
+        "title": "Final Fairness Report",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
@@ -882,8 +921,6 @@ MODULES = [
                         </div>
                     </div>
 
-
-
                     <div class="hint-box" style="border-left:4px solid #f59e0b;">
                         <div style="font-weight:700; color:#b45309;">🚧 A Note on "Perfection"</div>
                         <p style="margin-top:6px;">
@@ -893,35 +930,90 @@ MODULES = [
                         </p>
                     </div>
 
-                    <div style="text-align:center; margin-top:24px;">
-                        <p style="font-size:0.95rem; color:var(--body-text-color-subdued);">
-                            ⬇️ <strong>Final Step:</strong> Pass the Certification Exam below to deploy the model. ⬇️
+            <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
+                        <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
+                            🚀 ALMOST FINISHED!
                         </p>
-                    </div>
-
+                        <p style="font-size:1.05rem; margin:0;">
+                            Answer the below question to boost your Moral Compass Score.
+                            <br>
+                            Click <strong>Next</strong> complete your final model approvals to deploy the model.
+                        </p>
+                    </div> 
                 </div>
             </div>
         """,
     },
+    # --- MODULE 9: CERTIFICATION ---
+# --- MODULE 9: DEPLOYMENT LAUNCHPAD ---
     {
         "id": 9,
-        "title": "Slide 10: Good Faith Certification",
+        "title": "Protocol Complete: Deployment",
         "html": """
             <div class="scenario-box">
-                <h2 class="slide-title">✅ Good Faith Certification</h2>
                 <div class="slide-body">
-                    <p>Perfect AI doesn't exist. But this model is now a <strong>Good Faith Effort</strong>.</p>
-                    <div class="ai-risk-container">
-                        <ul style="list-style:none; padding:0;">
-                            <li style="margin-bottom:8px;">✅ <strong>Protected Classes Removed</strong> (No Race/Gender columns)</li>
-                            <li style="margin-bottom:8px;">✅ <strong>Proxies Removed</strong> (No Zip Codes)</li>
-                            <li style="margin-bottom:8px;">✅ <strong>Causal Validity</strong> (Only behavioral history used)</li>
-                            <li style="margin-bottom:8px;">✅ <strong>Representative</strong> (Reweighted to match Census)</li>
-                        </ul>
+
+                    <div style="text-align:center; margin-bottom:25px;">
+                        <h2 class="slide-title" style="margin-bottom:10px; color:#15803d;">🚀 ENGINEERING COMPLETE</h2>
+                        <p style="font-size:1.1rem; max-width:700px; margin:0 auto; color:#334155;">
+                            You have successfully refactored the AI model. It is no longer a "Black Box" of historical bias—it is now a transparent tool built on fair principles.
+                        </p>
                     </div>
-                    <p style="text-align:center; margin-top:20px;">
-                        You are ready to sign off on the <strong>Pilot Deployment</strong>.
-                    </p>
+
+                    <div class="ai-risk-container" style="background:#f0fdf4; border:2px solid #22c55e; padding:25px; border-radius:12px; box-shadow:0 4px 20px rgba(34, 197, 94, 0.15);">
+                        
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #bbf7d0; padding-bottom:15px; margin-bottom:20px;">
+                            <div style="font-weight:900; font-size:1.3rem; color:#15803d; letter-spacing:0.05em;">SYSTEM DIAGNOSTIC</div>
+                            <div style="background:#22c55e; color:white; font-weight:800; padding:6px 12px; border-radius:6px;">STATUS: GREEN</div>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                            
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div style="font-size:1.5rem; color:#16a34a;">✅</div>
+                                <div>
+                                    <div style="font-weight:800; color:#14532d;">INPUT SANITIZATION</div>
+                                    <div style="font-size:0.9rem; color:#166534;">Protected classes & proxies scrubbed.</div>
+                                </div>
+                            </div>
+
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div style="font-size:1.5rem; color:#16a34a;">✅</div>
+                                <div>
+                                    <div style="font-weight:800; color:#14532d;">CAUSAL LOGIC</div>
+                                    <div style="font-size:0.9rem; color:#166534;">Correlations replaced with conduct.</div>
+                                </div>
+                            </div>
+
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div style="font-size:1.5rem; color:#16a34a;">✅</div>
+                                <div>
+                                    <div style="font-weight:800; color:#14532d;">CONTEXT AWARENESS</div>
+                                    <div style="font-size:0.9rem; color:#166534;">Localized to city environment.</div>
+                                </div>
+                            </div>
+
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div style="font-size:1.5rem; color:#16a34a;">✅</div>
+                                <div>
+                                    <div style="font-weight:800; color:#14532d;">ETHICAL GUARDRAILS</div>
+                                    <div style="font-size:0.9rem; color:#166534;">Monitoring systems active.</div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div style="text-align:center; margin-top:30px;">
+                        <p style="font-size:1.1rem; font-weight:600; color:#475569; margin-bottom:15px;">
+                            The system is holding for your final authorization.
+                        </p>
+                        
+                        <div style="display:inline-block; padding:15px 30px; background:linear-gradient(to right, #22c55e, #16a34a); border-radius:50px; color:white; font-weight:800; font-size:1.2rem; box-shadow:0 4px 15px rgba(22, 163, 74, 0.4);">
+                            👇 ACTION: Select "AUTHORIZE DEPLOYMENT" below, then scroll to the final activity to receive your ethics cerficate and your Moral Compass Score!
+                        </div>
+                    </div>
+
                 </div>
             </div>
         """,
@@ -1030,7 +1122,7 @@ QUIZ_CONFIG = {
     },
 }
 
-
+# --- 6. CSS (Shared with App 1 for consistency) ---
 css = """
 /* Layout + containers */
 .summary-box {
@@ -1164,13 +1256,13 @@ css = """
   .nav-spinner { border-color: rgba(148, 163, 184, 0.4); border-top-color: var(--color-accent); }
 }
 """
-# --- 8. LEADERBOARD & API LOGIC ---
+
+# --- 7. LEADERBOARD & API LOGIC (Reused) ---
 def get_leaderboard_data(client, username, team_name, local_task_list=None, override_score=None):
     try:
         resp = client.list_users(table_id=TABLE_ID, limit=500)
         users = resp.get("users", [])
 
-        # 1. OPTIMISTIC UPDATE
         if override_score is not None:
             found = False
             for u in users:
@@ -1183,7 +1275,6 @@ def get_leaderboard_data(client, username, team_name, local_task_list=None, over
                     {"username": username, "moralCompassScore": override_score, "teamName": team_name}
                 )
 
-        # 2. SORT with new score
         users_sorted = sorted(
             users, key=lambda x: float(x.get("moralCompassScore", 0) or 0), reverse=True
         )
@@ -1224,7 +1315,6 @@ def get_leaderboard_data(client, username, team_name, local_task_list=None, over
     except Exception:
         return None
 
-
 def ensure_table_and_get_data(username, token, team_name, task_list_state=None):
     if not username or not token:
         return None, username
@@ -1243,7 +1333,6 @@ def ensure_table_and_get_data(username, token, team_name, task_list_state=None):
             pass
     return get_leaderboard_data(client, username, team_name, task_list_state), username
 
-
 def trigger_api_update(
     username, token, team_name, module_id, user_real_accuracy, task_list_state, append_task_id=None
 ):
@@ -1254,7 +1343,6 @@ def trigger_api_update(
 
     acc = float(user_real_accuracy) if user_real_accuracy is not None else 0.0
 
-    # 1. Update Lists
     old_task_list = list(task_list_state) if task_list_state else []
     new_task_list = list(old_task_list)
     if append_task_id and append_task_id not in new_task_list:
@@ -1266,7 +1354,6 @@ def trigger_api_update(
         except Exception:
             pass
 
-    # 2. Write to Server
     tasks_completed = len(new_task_list)
     client.update_moral_compass(
         table_id=TABLE_ID,
@@ -1279,11 +1366,9 @@ def trigger_api_update(
         completed_task_ids=new_task_list,
     )
 
-    # 3. Calculate Scores Locally (Simulate Before/After)
     old_score_calc = acc * (len(old_task_list) / TOTAL_COURSE_TASKS)
     new_score_calc = acc * (len(new_task_list) / TOTAL_COURSE_TASKS)
 
-    # 4. Get Data with Override to force rank re-calculation
     prev_data = get_leaderboard_data(
         client, username, team_name, old_task_list, override_score=old_score_calc
     )
@@ -1293,7 +1378,6 @@ def trigger_api_update(
 
     return prev_data, lb_data, username, new_task_list
 
-# --- 9. SUCCESS MESSAGE RENDERER (approved version) ---
 # --- 8. SUCCESS MESSAGE / DASHBOARD RENDERING ---
 def generate_success_message(prev, curr, specific_text):
     old_score = float(prev.get("score", 0) or 0) if prev else 0.0
@@ -1303,29 +1387,24 @@ def generate_success_message(prev, curr, specific_text):
     old_rank = prev.get("rank", "–") if prev else "–"
     new_rank = curr.get("rank", "–")
 
-    # Are ranks integers? If yes, we can reason about direction.
     ranks_are_int = isinstance(old_rank, int) and isinstance(new_rank, int)
-    rank_diff = old_rank - new_rank if ranks_are_int else 0  # positive => rank improved
+    rank_diff = old_rank - new_rank if ranks_are_int else 0
 
-    # --- STYLE SELECTION -------------------------------------------------
-    # First-time score: special "on the board" moment
     if old_score == 0 and new_score > 0:
         style_key = "first"
     else:
         if ranks_are_int:
             if rank_diff >= 3:
-                style_key = "major"   # big rank jump
+                style_key = "major"
             elif rank_diff > 0:
-                style_key = "climb"   # small climb
+                style_key = "climb"
             elif diff_score > 0 and new_rank == old_rank:
-                style_key = "solid"   # better score, same rank
+                style_key = "solid"
             else:
-                style_key = "tight"   # leaderboard shifted / no visible rank gain
+                style_key = "tight"
         else:
-            # When we can't trust rank as an int, lean on score change
             style_key = "solid" if diff_score > 0 else "tight"
 
-    # --- TEXT + CTA BY STYLE --------------------------------------------
     card_class = "profile-card success-card"
 
     if style_key == "first":
@@ -1355,15 +1434,12 @@ def generate_success_message(prev, curr, specific_text):
             "Other teams are moving too. You'll need a few more strong decisions to stand out."
         )
         cta_line = "Take on the next question to strengthen your position."
-    else:  # "solid"
+    else:
         header_emoji = "✅"
         header_title = "Progress Logged"
         summary_line = "Your ethical insight increased your Moral Compass Score."
         cta_line = "Try the next scenario to break into the next tier."
 
-    # --- SCORE / RANK LINES ---------------------------------------------
-
-    # First-time: different wording (no previous score)
     if style_key == "first":
         score_line = f"🧭 Score: <strong>{new_score:.3f}</strong>"
         if ranks_are_int:
@@ -1392,7 +1468,6 @@ def generate_success_message(prev, curr, specific_text):
         else:
             rank_line = f"📊 Rank: <strong>#{new_rank}</strong>"
 
-    # --- HTML COMPOSITION -----------------------------------------------
     return f"""
     <div class="{card_class}">
         <div class="success-header">
@@ -1417,7 +1492,6 @@ def generate_success_message(prev, curr, specific_text):
     </div>
     """
 
-# --- 10. DASHBOARD & LEADERBOARD RENDERERS ---
 def render_top_dashboard(data, module_id):
     display_score = 0.0
     count_completed = 0
@@ -1457,7 +1531,6 @@ def render_top_dashboard(data, module_id):
         </div>
     </div>
     """
-
 
 def render_leaderboard_card(data, username, team_name):
     team_rows = ""
@@ -1515,27 +1588,7 @@ def render_leaderboard_card(data, username, team_name):
     </div>
     """
 
-# --- 6. HELPER: SLIDER FOR RESAMPLING (SLIDE 8) ---
-def simulate_resampling_impact(original_skew_pct, slider_val):
-    # original_skew_pct might be 51% (African American in dataset)
-    # target is 28% (Real population)
-    # slider goes 0 to 100 representing "Correction Strength"
-
-    current_pct = 51 - ((51 - 28) * (slider_val / 100))
-
-    return f"""
-    <div class="hint-box interactive-block">
-        <p style="margin-bottom:4px; font-size:1.05rem;">
-            <strong>Dataset Demographics (African-American):</strong> {current_pct:.1f}%
-        </p>
-        <p style="margin-bottom:0; font-size:1.05rem; color:{'#22c55e' if abs(current_pct - 28) < 2 else 'var(--body-text-color-subdued)'};">
-            <strong>Target (Census Reality):</strong> 28.0%
-            {'✅ MATCHED' if abs(current_pct - 28) < 2 else ''}
-        </p>
-    </div>
-    """
-
-# --- 7. APP FACTORY (FAIRNESS FIXER) ---
+# --- 9. APP FACTORY (FAIRNESS FIXER) ---
 def create_fairness_fixer_app(theme_primary_hue: str = "indigo"):
     with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
         # States
@@ -1545,7 +1598,7 @@ def create_fairness_fixer_app(theme_primary_hue: str = "indigo"):
         accuracy_state = gr.State(value=0.0)
         task_list_state = gr.State(value=[])
 
-        # --- TOP ANCHOR & LOADING OVERLAY FOR NAVIGATION ---
+        # --- TOP ANCHOR & LOADING OVERLAY ---
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
         gr.HTML("<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>Loading...</span></div>")
 
@@ -1560,7 +1613,7 @@ def create_fairness_fixer_app(theme_primary_hue: str = "indigo"):
 
         # --- MAIN APP VIEW ---
         with gr.Column(visible=False) as main_app_col:
-            # Top summary dashboard (progress bar & score)
+            # Top summary dashboard
             out_top = gr.HTML()
 
             # Dynamic modules container
@@ -1576,7 +1629,6 @@ def create_fairness_fixer_app(theme_primary_hue: str = "indigo"):
                 ) as mod_col:
                     # Core slide HTML
                     gr.HTML(mod["html"])
-
 
                     # --- QUIZ CONTENT ---
                     if i in QUIZ_CONFIG:
@@ -1596,7 +1648,7 @@ def create_fairness_fixer_app(theme_primary_hue: str = "indigo"):
                         next_label = (
                             "Next ▶️"
                             if i < len(MODULES) - 1
-                            else "🎉 Course Complete! (Return to Main Menu)"
+                            else "🎉 Model Deployed!  Scroll Down to Receive an Ethics Certificate!"
                         )
                         btn_next = gr.Button(next_label, variant="primary")
 
@@ -1646,7 +1698,6 @@ def create_fairness_fixer_app(theme_primary_hue: str = "indigo"):
                 os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
                 client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
 
-                # Team Assignment Logic
                 def get_or_assign_team(client_obj, username_val):
                     try:
                         user_data = client_obj.get_user(table_id=TABLE_ID, username=username_val)
@@ -1665,7 +1716,6 @@ def create_fairness_fixer_app(theme_primary_hue: str = "indigo"):
                 else:
                     team = "team-a"
 
-                # Fetch User Stats
                 try:
                     user_stats = client.get_user(table_id=TABLE_ID, username=user)
                 except Exception:
@@ -1677,7 +1727,6 @@ def create_fairness_fixer_app(theme_primary_hue: str = "indigo"):
                     else:
                         fetched_tasks = getattr(user_stats, "completed_task_ids", []) or []
 
-                # Sync Record
                 try:
                     client.update_moral_compass(
                         table_id=TABLE_ID,
@@ -1789,19 +1838,19 @@ def create_fairness_fixer_app(theme_primary_hue: str = "indigo"):
                     outputs=[curr_col, next_col],
                 )
 
-        return demo
+    return demo
 
-# --- 8. LAUNCHER ---
+# --- 10. LAUNCHER ---
 def launch_fairness_fixer_app(
     share: bool = False,
     server_name: str = "0.0.0.0",
-    server_port: int = 8080,
+    #server_port: int = 8080,
     theme_primary_hue: str = "indigo",
     **kwargs
 ) -> None:
     app = create_fairness_fixer_app(theme_primary_hue=theme_primary_hue)
     app.launch(share=share, server_name=server_name,
-               server_port=server_port,
+               #server_port=server_port,
                **kwargs)
 
 if __name__ == "__main__":
