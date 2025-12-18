@@ -3523,7 +3523,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # Slide 3: Card 2 (What is a "Model"?)
         with gr.Column(visible=False, elem_id="slide-3") as briefing_slide_3:
-            gr.Markdown("<h1 style='text-align:center;'>🧠 What is a \"Model\"?</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🧠 What is an AI System?</h1>")
             
             # --- FIX FOR SLIDE 3 ---
             # Combined all content into single gr.HTML()
@@ -3532,7 +3532,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 <div class='slide-content'>
                     <div class='panel-box'>
                         <p>Before we start competing, let's break down exactly what you are building.</p>
-                        <h3>Think of a Model as a "Prediction Machine."</h3>
+                        <h3>Think of an AI System as a "Prediction Machine."</h3>
                         <p>You already know the flow:</p>
                         
                         <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
@@ -3558,9 +3558,9 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                         The information you feed the machine.<br>
                         <em>* Examples: Age, Prior Crimes, Charge Details.</em></p>
 
-                        <p><strong>2. The Model (Prediction Machine)</strong><br>
-                        The mathematical "brain" that looks for patterns in the inputs.<br>
-                        <em>* Examples: You will choose different "brains" that learn in different ways (e.g., simple rules vs. deep patterns).</em></p>
+                        <p><strong>2. The Model ("The Brain")</strong><br>
+                        This is the "brain" of your machine. It studies the inputs (data) and tries to figure out how things are connected to make a guess. There are different model strategies (brains) that you can choose for your machine.<br>
+                        <em>* Examples: Some "brains" or strategies only finds simple rules (like flagging an email if it says 'free money). Other strategies have the ability to find deep, complex patterns (like recognizing a specific person's face in a crowd.</em></p>
 
                         <p><strong>3. The Output (Prediction)</strong><br>
                         The model's best guess.<br>
