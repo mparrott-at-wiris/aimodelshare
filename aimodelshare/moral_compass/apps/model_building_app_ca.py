@@ -3689,11 +3689,11 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                     <div class='step-visual'>
                         <div class='step-visual-box'><b>1. Configura</b><br/>Fes servir els controls per seleccionar el tipus de model i les dades.</div>
                         <div class='step-visual-arrow'>→</div>
-                        <div class='step-visual-box'><b>2. Envia</b><br/>Click Clica a "construeix i envia" per entrenar el teu model.</div>
+                        <div class='step-visual-box'><b>2. Envia</b><br/>Clica a "construeix i envia" per entrenar el teu model.</div>
                         <div class='step-visual-arrow'>→</div>
                         <div class='step-visual-box'><b>3. Analitza</b><br/>Mira la teva posició a la classificació en temps real.</div>
                         <div class='step-visual-arrow'>→</div>
-                        <div class='step-visual-box'><b>4. Refina</b><br/>Canvia una opció i torna a enviar-lo!</div>
+                        <div class='step-visual-box'><b>4. Millora</b><br/>Canvia una opció i torna a enviar-lo.</div>
                     </div>
                     
                     <div class='leaderboard-box' style='text-align:center;'>
