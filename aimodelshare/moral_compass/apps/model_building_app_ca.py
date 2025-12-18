@@ -3503,7 +3503,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # Slide 1: From Understanding to Building (Retained as transition)
         with gr.Column(visible=True, elem_id="slide-1") as briefing_slide_1:
-            gr.Markdown("<h1 style='text-align:center;'>🔄 De la teoria a la práctica</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🔄 De la teoria a la pràctica</h1>")
             gr.HTML(
                 """
                 <div class='slide-content'>
@@ -3517,11 +3517,11 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                     </li>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
                         <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Aprendre què són els falsos positius i els falsos negatius
+                        Aprendre què són els falsos positius (falses alarmes) i els falsos negatius (alertes ignorades)
                     </li>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
                         <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Entendre com funciona la IA:
+                        Entendre els conceptes bàscis de com funciona la IA:
                     </li>
                 </ul>
 
