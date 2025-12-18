@@ -3651,7 +3651,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
 
                         <hr>
                         
-                        <p><strong>Cómo aprende:</strong> Haces que el modelo mire miles de casos antiguos (Entradas) + lo que pasó realmente (Salidas). El modelo los estudia para encontrar las reglas y así poder hacer predicciones sobre casos nuevos que no ha visto antes.</p>
+                        <p><strong>Cómo aprende:</strong> Muestras al modelo miles de casos antiguos (Entradas) + lo que pasó realmente (Salidas). El modelo los estudia para encontrar las reglas y así poder hacer predicciones sobre casos nuevos que no ha visto antes.</p>
                     </div>
                 </div>
                 """
