@@ -8,7 +8,7 @@ from typing import Tuple, Optional, List
 DEFAULT_API_URL = "https://b22q73wp50.execute-api.us-east-1.amazonaws.com/dev"
 ORIGINAL_PLAYGROUND_URL = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
 TABLE_ID = "m-mc"
-TOTAL_COURSE_TASKS = 21  # Combined count across apps
+TOTAL_COURSE_TASKS = 20  # Combined count across apps
 LOCAL_TEST_SESSION_ID = None
 
 # --- 2. SETUP & DEPENDENCIES ---
@@ -171,7 +171,7 @@ MODULES = [
                         <p style="font-size:1.05rem; margin:0;">
                             Click <strong>Next</strong> to start fixing the model.
                         </p>
-                    </div> 
+                    </div>
                 </div>
             </div>
         """,
@@ -237,10 +237,10 @@ MODULES = [
                             🚀 ACTION REQUIRED: DELETE PROTECTED INPUT DATA
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
-                            Use the Command Panel below to execute deletion. 
+                            Use the Command Panel below to execute deletion.
                             Then click <strong>Next</strong> to continue fixing the model.
                         </p>
-                    </div> 
+                    </div>
                 </div>
             </div>
         """,
@@ -308,10 +308,10 @@ MODULES = [
                             🚀 ACTION REQUIRED: DELETE PROXY INPUT DATA
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
-                            Select the Proxy Variable below to scrub it. 
+                            Select the Proxy Variable below to scrub it.
                             Then click <strong>Next</strong> to continue fixing the model.
                         </p>
-                    </div> 
+                    </div>
                 </div>
             </div>
         """,
@@ -398,10 +398,10 @@ MODULES = [
                             🚀 ACTION REQUIRED: Find Meaningful Data
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
-                            Answer the below question to receive Moral Compass Points. 
+                            Answer the below question to receive Moral Compass Points.
                             Then click <strong>Next</strong> to continue fixing the model.
                         </p>
-                    </div> 
+                    </div>
                 </div>
             </div>
             <style>
@@ -448,7 +448,7 @@ MODULES = [
                     <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
                         To improve a model, we often add more data.
                         <br>
-                        But here’s the problem: <strong>some patterns look important even when they don’t actually cause anything.</strong>
+                        But here’s the problem: the model finds <strong>Correlations</strong> (a relationship between two data variables) and wrongly assumes one <strong>Causes</strong> the other.
                         <br>
                         Consider this real statistical pattern:
                     </p>
@@ -517,7 +517,7 @@ MODULES = [
                             Answer this question to boost your Moral Compass score.
                             Then click <strong>Next</strong> to continue fixing the model.
                         </p>
-                    </div> 
+                    </div>
                 </div>
             </div>
             <style>
@@ -562,9 +562,9 @@ MODULES = [
                     </h2>
 
                     <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
-                        You are ready to build a safer version of the model. Here are four variables to consider.
+                        You are ready to continue to build a more just version of the model. Here are four variables to consider.
                         <br>
-                        Use the rule below to decide which variables represent <strong>actual causes</strong> of behavior — and which are just circumstantial correlations.
+                        Use the rule below to discover which variables represent <strong>actual causes</strong> of behavior — and which are just circumstantial correlations.
                     </p>
 
                     <div class="hint-box" style="border-left:4px solid var(--color-accent); background:white; border:1px solid var(--border-color-primary);">
@@ -643,12 +643,16 @@ MODULES = [
                         </p>
                     </div>
 
-                    <div style="text-align:center; margin-top:20px;">
-                        <p style="font-size:0.95rem; color:var(--body-text-color-subdued);">
-                            ⬇️ <strong>Action:</strong> Select the variables that represent true <strong>Conduct</strong> to build the fair model. ⬇️
+
+              <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
+                        <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
+                            🚀 ACTION REQUIRED: 
+                        </p>
+                        <p style="font-size:1.05rem; margin:0;">
+                            Select the variables that represent true <strong>Conduct</strong> to build the fair model..
+                            Then click <strong>Next</strong> to continue fixing the model.
                         </p>
                     </div>
-
                 </div>
             </div>
         """,
@@ -692,7 +696,7 @@ MODULES = [
                         <p style="font-size:1.15rem; font-weight:600; color:#334155; margin:0; line-height:1.5;">
                             This dataset was built using historical data from <span style="color:#ef4444;">Broward County, Florida (USA)</span>.
                             <br><br>
-                            Imagine taking this Florida model and forcing it to judge people in a completely different justice system—like <span style="color:#3b82f6;">Barcelona, Spain</span> (or your own hometown).
+                            Imagine taking this Florida model and forcing it to judge people in a completely different justice system—like <span style="color:#3b82f6;">Barcelona</span> (or your own hometown).
                         </p>
                     </div>
 
@@ -714,7 +718,7 @@ MODULES = [
 
                         <div class="hint-box" style="margin:0; border-left:4px solid #3b82f6; background:#eff6ff;">
                             <div style="font-weight:800; color:#1e40af; margin-bottom:6px;">
-                                🇪🇸 THE TARGET: BARCELONA
+                                📍 THE TARGET: BARCELONA
                             </div>
                             <div style="font-size:0.85rem; font-weight:700; color:#1e3a8a;">
                                 Deployment Context: EU Justice System
@@ -736,7 +740,7 @@ MODULES = [
                             <br>
                             When the real-world environment is different, the model can make <strong>more errors</strong> — and those errors can be <strong>uneven across groups</strong>.
                             <br>
-                            In machine learning, this is called a <strong>dataset (or domain) shift</strong>.
+                            On AI engineering teams, this is called a <strong>dataset (or domain) shift</strong>.
                             <br>
                             It’s like trying to find La Sagrada Família using a map of Miami.
                         </p>
@@ -750,7 +754,7 @@ MODULES = [
                             Answer the below question to boost your Moral Compass leaderboard score.
                             Then click <strong>Next</strong> to continue fixing the data representation problem.
                         </p>
-                    </div> 
+                    </div>
                 </div>
             </div>
         """,
@@ -767,7 +771,7 @@ MODULES = [
                         <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🌍</div>
                         <div style="flex-grow:1;">
                             <div style="font-weight:800; font-size:1.05rem; color:#7c3aed; letter-spacing:0.05em;">PROTOCOL 3: REPRESENTATION</div>
-                            <div style="font-size:0.9rem; color:var(--body-text-color);">Mission: Replace "Lazy Data" with "Local Data."</div>
+                            <div style="font-size:0.9rem; color:var(--body-text-color);">Mission: Replace "Shortcut Data" with "Local Data."</div>
                         </div>
                         <div style="text-align:right;">
                             <div style="font-weight:800; font-size:0.85rem; color:#7c3aed;">STEP 2 OF 2</div>
@@ -780,12 +784,12 @@ MODULES = [
                     <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">🔄 The Data Swap</h2>
 
                     <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
-                    We cannot use the Florida dataset. It is "Lazy Data."
-                    <br>
-                    To build a fair model for <strong>Any Location</strong> (whether it's Barcelona, Berlin, or Boston), we must reject the easy path.
-                    <br>
-                    We must collect <strong>Local Data</strong> that reflects the actual reality of that place.
-                </p>
+                        We cannot use the Florida dataset. It is <strong>"Shortcut Data"</strong>—chosen just because it was easy to find.
+                        <br>
+                        To build a fair model for <strong>Any Location</strong> (whether it's Barcelona, Berlin, or Boston), we must reject the easy path.
+                        <br>
+                        We must collect <strong>Local Data</strong> that reflects the actual reality of that place.
+                    </p>
 
                     <div class="ai-risk-container" style="text-align:center; border:2px solid #ef4444; background:#fef2f2; padding:16px; margin-bottom:20px;">
                         <div style="font-weight:800; color:#b91c1c; font-size:1.1rem; margin-bottom:8px;">⚠️ CURRENT DATASET: FLORIDA (INVALID)</div>
@@ -841,7 +845,7 @@ MODULES = [
                             Answer the below question to boost your Moral Compass score.
                             Then click <strong>Next</strong> to review and certify that the model is fixed!
                         </p>
-                    </div> 
+                    </div>
                 </div>
             </div>
             <style>
@@ -875,7 +879,7 @@ MODULES = [
 
                     <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
                         You have successfully scrubbed the data, filtered for causality, and localized the context.
-                        <br>Let's compare your new model to the original "Black Box."
+                        <br>Let's compare your new model to the original model to review what has changed.
                     </p>
 
                     <div class="ai-risk-container" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
@@ -937,80 +941,88 @@ MODULES = [
                         <p style="font-size:1.05rem; margin:0;">
                             Answer the below question to boost your Moral Compass Score.
                             <br>
-                            Click <strong>Next</strong> complete your final model approvals to deploy the model.
+                            Click <strong>Next</strong> complete your final model approvals to certify the model.
                         </p>
-                    </div> 
+                    </div>
                 </div>
             </div>
         """,
     },
     # --- MODULE 9: CERTIFICATION ---
-# --- MODULE 9: DEPLOYMENT LAUNCHPAD ---
+# --- MODULE 9: TRANSITION TO CERTIFICATION ---
     {
         "id": 9,
-        "title": "Protocol Complete: Deployment",
+        "title": "Protocol Complete: Ethics Secured",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
 
                     <div style="text-align:center; margin-bottom:25px;">
-                        <h2 class="slide-title" style="margin-bottom:10px; color:#15803d;">🚀 ENGINEERING COMPLETE</h2>
+                        <h2 class="slide-title" style="margin-bottom:10px; color:#15803d;">🚀 ETHICAL ARCHITECTURE VERIFIED</h2>
                         <p style="font-size:1.1rem; max-width:700px; margin:0 auto; color:#334155;">
-                            You have successfully refactored the AI model. It is no longer a "Black Box" of historical bias—it is now a transparent tool built on fair principles.
+                            You have successfully refactored the AI. It no longer relies on <strong>hidden proxies and unfair shortcuts</strong>—it is now a transparent tool built on fair principles.
                         </p>
                     </div>
-
                     <div class="ai-risk-container" style="background:#f0fdf4; border:2px solid #22c55e; padding:25px; border-radius:12px; box-shadow:0 4px 20px rgba(34, 197, 94, 0.15);">
                         
                         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #bbf7d0; padding-bottom:15px; margin-bottom:20px;">
                             <div style="font-weight:900; font-size:1.3rem; color:#15803d; letter-spacing:0.05em;">SYSTEM DIAGNOSTIC</div>
-                            <div style="background:#22c55e; color:white; font-weight:800; padding:6px 12px; border-radius:6px;">STATUS: GREEN</div>
+                            <div style="background:#22c55e; color:white; font-weight:800; padding:6px 12px; border-radius:6px;">SAFETY: 100%</div>
                         </div>
 
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-                            
                             <div style="display:flex; align-items:center; gap:12px;">
                                 <div style="font-size:1.5rem; color:#16a34a;">✅</div>
                                 <div>
-                                    <div style="font-weight:800; color:#14532d;">INPUT SANITIZATION</div>
-                                    <div style="font-size:0.9rem; color:#166534;">Protected classes & proxies scrubbed.</div>
+                                    <div style="font-weight:800; color:#14532d;">INPUTS</div>
+                                    <div style="font-size:0.9rem; color:#166534;">Sanitized</div>
                                 </div>
                             </div>
-
                             <div style="display:flex; align-items:center; gap:12px;">
                                 <div style="font-size:1.5rem; color:#16a34a;">✅</div>
                                 <div>
-                                    <div style="font-weight:800; color:#14532d;">CAUSAL LOGIC</div>
-                                    <div style="font-size:0.9rem; color:#166534;">Correlations replaced with conduct.</div>
+                                    <div style="font-weight:800; color:#14532d;">LOGIC</div>
+                                    <div style="font-size:0.9rem; color:#166534;">Causal</div>
                                 </div>
                             </div>
-
                             <div style="display:flex; align-items:center; gap:12px;">
                                 <div style="font-size:1.5rem; color:#16a34a;">✅</div>
                                 <div>
-                                    <div style="font-weight:800; color:#14532d;">CONTEXT AWARENESS</div>
-                                    <div style="font-size:0.9rem; color:#166534;">Localized to city environment.</div>
+                                    <div style="font-weight:800; color:#14532d;">CONTEXT</div>
+                                    <div style="font-size:0.9rem; color:#166534;">Localized</div>
                                 </div>
                             </div>
-
                             <div style="display:flex; align-items:center; gap:12px;">
                                 <div style="font-size:1.5rem; color:#16a34a;">✅</div>
                                 <div>
-                                    <div style="font-weight:800; color:#14532d;">ETHICAL GUARDRAILS</div>
-                                    <div style="font-size:0.9rem; color:#166534;">Monitoring systems active.</div>
+                                    <div style="font-weight:800; color:#14532d;">STATUS</div>
+                                    <div style="font-size:0.9rem; color:#166534;">Ethical</div>
                                 </div>
                             </div>
-
                         </div>
                     </div>
 
-                    <div style="text-align:center; margin-top:30px;">
+                    <div style="margin-top:30px; padding:20px; background:linear-gradient(to right, #fffbeb, #fff); border:2px solid #fcd34d; border-radius:12px;">
+                        <div style="display:flex; gap:15px;">
+                            <div style="font-size:2.5rem;">🎓</div>
+                            <div>
+                                <h3 style="margin:0; color:#92400e;">Next Objective: Certification & Performance</h3>
+                                <p style="font-size:1.05rem; line-height:1.5; color:#78350f; margin-top:8px;">
+                                    Now that you have made your model <strong>ethical</strong>, you can continue to improve your model’s <strong>accuracy</strong> in the final activity below.
+                                    <br><br>
+                                    But before you optimize for power, you must secure your credentials.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="text-align:center; margin-top:25px;">
                         <p style="font-size:1.1rem; font-weight:600; color:#475569; margin-bottom:15px;">
-                            The system is holding for your final authorization.
+                            ⬇️ <strong>Immediate Next Step</strong> ⬇️
                         </p>
                         
-                        <div style="display:inline-block; padding:15px 30px; background:linear-gradient(to right, #22c55e, #16a34a); border-radius:50px; color:white; font-weight:800; font-size:1.2rem; box-shadow:0 4px 15px rgba(22, 163, 74, 0.4);">
-                            👇 ACTION: Select "AUTHORIZE DEPLOYMENT" below, then scroll to the final activity to receive your ethics cerficate and your Moral Compass Score!
+                        <div style="display:inline-block; padding:15px 30px; background:linear-gradient(to right, #f59e0b, #d97706); border-radius:50px; color:white; font-weight:800; font-size:1.1rem; box-shadow:0 4px 15px rgba(245, 158, 11, 0.4);">
+                            Claim your official "Ethics at Play" Certificate in the next activity.
                         </div>
                     </div>
 
@@ -1108,16 +1120,16 @@ QUIZ_CONFIG = {
             "B) No. It is safer because we prioritized 'Conduct' over 'Status' and 'Local Reality' over 'Easy Data,' but we must always remain vigilant.",
         ],
         "a": "B) No. It is safer because we prioritized 'Conduct' over 'Status' and 'Local Reality' over 'Easy Data,' but we must always remain vigilant.",
-        "success": "🏆 CERTIFICATION GRANTED. You have completed the Fairness Engineering Module.",
+        "success": "Great work.  Next you can officially review this model for use.",
     },
     9: {
         "t": "t19",
-        "q": "You have sanitized inputs, filtered for causality, and reweighted for representation. Are you ready to deploy?",
+        "q": "You have sanitized inputs, filtered for causality, and reweighted for representation. Are you ready to approve this repaired AI system?",
         "o": [
-            "A) Yes, The model is now safe and I authorize the deployment of this AI system.",
+            "A) Yes, The model is now safe and I authorize the use of this AI system.",
             "B) No, wait for a perfect model.",
         ],
-        "a": "A) Yes, The model is now safe and I authorize the deployment of this AI system.",
+        "a": "A) Yes, The model is now safe and I authorize the use of this repaired AI system.",
         "success": "Mission Accomplished. You have engineered a safer, fairer system.",
     },
 }
@@ -1648,7 +1660,7 @@ def create_fairness_fixer_app(theme_primary_hue: str = "indigo"):
                         next_label = (
                             "Next ▶️"
                             if i < len(MODULES) - 1
-                            else "🎉 Model Deployed!  Scroll Down to Receive an Ethics Certificate!"
+                            else "🎉 Model Authorized!  Scroll Down to Receive your official 'Ethics at Play' Certificate!"
                         )
                         btn_next = gr.Button(next_label, variant="primary")
 
