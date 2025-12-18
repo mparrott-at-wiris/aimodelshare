@@ -3606,7 +3606,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # Slide 3: Card 2 (What is a "Model"?)
         with gr.Column(visible=False, elem_id="slide-3") as briefing_slide_3:
-            gr.Markdown("<h1 style='text-align:center;'>🧠 ¿Qué es un \"Modelo\"?</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🧠 ¿Qué es un sistema de IA"?</h1>")
             
             # --- FIX FOR SLIDE 3 ---
             # Combined all content into single gr.HTML()
@@ -3615,7 +3615,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                 <div class='slide-content'>
                     <div class='panel-box'>
                         <p>Antes de empezar a competir, veamos con claridad qué es exactamente lo que vas a construir.</p>
-                        <h3>Piensa en un modelo como una "Máquina de Predicción".</h3>
+                        <h3>Piensa en un sistema de IA como una "Máquina de Predicción".</h3>
                         <p>Ya conoces el flujo:</p>
                         
                         <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
@@ -3632,26 +3632,26 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                             </div>
                         </div>
                         
-                        <p>Como persona ingeniera, no necesitas escribir código complejo desde cero. En lugar de eso, construyes esta máquina combinando los tres siguientes componentes principales.</p>
+                        <p>Como persona ingeniera, no necesitas escribir código complejo desde cero. En lugar de eso, construyes esta máquina combinando los tres siguientes componentes principales:</p>
                     </div>
 
                     <div class='mock-ui-box'>
                         <h3>Los tres componentes:</h3>
-                        <p><strong>1. Las entradas (Datos)</strong><br>
+                        <p><strong>1. La entrada (Datos)</strong><br>
                         La información que le das a la máquina.<br>
                         <em>* Ejemplos: edad, número de antecedentes penales, detalles del cargo penal.</em></p>
 
-                        <p><strong>2. El modelo (La máquina de predicción)</strong><br>
-                        The mathematical "brain" that looks for patterns in the inputs.<br>
-                        <em>* Examples: You will choose different "brains" that learn in different ways (e.g., simple rules vs. deep patterns).</em></p>
+                        <p><strong>2. El modelo (El cerebro)</strong><br>
+                        Este es el "cerebro" de tu máquina. Estudia los datos de entrada e intenta averiguar cómo se conectan las cosas para hacer una predicción. Puedes elegir diferentes estrategias de modelo (cerebros) para tu máquina.<br>
+                        <em>* Ejemplos: Algunos "cerebros" solo encuentran reglas sencillas (como marcar un correo si dice 'dinero gratis'). Otros tienen la capacidad de encontrar patrones complejos (como reconocer una cara específica en una multitud).</em></p>
 
-                        <p><strong>3. The Output (Prediction)</strong><br>
-                        The model's best guess.<br>
-                        <em>* Example: Risk Level: High or Low.</em></p>
+                        <p><strong>3. La salida (Predicción)</strong><br>
+                        Lo que el modelo intenta adivinar como mejor opción.<br>
+                        <em>* Ejemplo: Nivel de riesgo: Alto o Bajo.</em></p>
 
                         <hr>
                         
-                        <p><strong>How it learns:</strong> You show the model thousands of old cases (Inputs) + what actually happened (Outcomes). It studies them to find the rules, so it can make predictions on new cases it hasn't seen before.</p>
+                        <p><strong>Cómo aprende:</strong> Haces que el modelo mire miles de casos antiguos (Entradas) + lo que pasó realmente (Salidas). El modelo los estudia para encontrar las reglas y así poder hacer predicciones sobre casos nuevos que no ha visto antes.</p>
                     </div>
                 </div>
                 """
