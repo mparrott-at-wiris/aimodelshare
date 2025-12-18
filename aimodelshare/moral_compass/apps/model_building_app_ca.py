@@ -3646,12 +3646,12 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                         <em>* Exemples: Alguns "cervells" només troben regles senzilles (com marcar un correu si diu 'diners gratis'). Altres tenen la capacitat de trobar patrons complexos (com reconèixer una cara concreta enmig d'una multitud).</em></p>
 
                         <p><strong>3. La sortida (La predicció)</strong><br>
-                        El que endevina el model, la seva millor estimació.<br>
+                        El que el model intenta endevinar com a millor opció.<br>
                         <em>* Exemple: Nivell de risc: Alt o Baix.</em></p>
 
                         <hr>
                         
-                        <p><strong>Com aprèn:</strong> Mostres al model milers de casos antics (Entrades) + el que va passar realment (Resultats). El model els estudia per trobar les regles i així poder fer prediccions sobre casos nous que no ha vist mai.</p>
+                        <p><strong>Com aprèn:</strong> Mostres al model milers de casos antics (Entrades) + el que va passar realment (Sortides). El model els estudia per trobar les regles i així poder fer prediccions sobre casos nous que no ha vist mai.</p>
                     </div>
                 </div>
                 """
