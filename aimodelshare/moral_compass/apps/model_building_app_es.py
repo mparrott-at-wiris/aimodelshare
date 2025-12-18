@@ -3517,11 +3517,11 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                     </li>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
                         <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Aprender qué son los falsos positivos y los falsos negativos
+                        Aprender qué son los falsos positivos (falsas alarmas) y los falsos negativos (alertas ignoradas)
                     </li>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
                         <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Entender cómo funciona la IA:
+                        Entender los principios básicos de cómo funciona la IA:
                     </li>
                 </ul>
 
