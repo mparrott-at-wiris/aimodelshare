@@ -8,8 +8,8 @@ from typing import Tuple, Optional, List
 DEFAULT_API_URL = "https://b22q73wp50.execute-api.us-east-1.amazonaws.com/dev"
 ORIGINAL_PLAYGROUND_URL = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
 TABLE_ID = "m-mc"
-TOTAL_COURSE_TASKS = 28  # Combined count across apps
-LOCAL_TEST_SESSION_ID = "976859b6-9536-49ee-abc6-64d44a125e21"
+TOTAL_COURSE_TASKS = 21  # Combined count across apps
+LOCAL_TEST_SESSION_ID = None
 
 # --- 2. SETUP & DEPENDENCIES ---
 def install_dependencies():
@@ -1114,10 +1114,10 @@ QUIZ_CONFIG = {
         "t": "t19",
         "q": "You have sanitized inputs, filtered for causality, and reweighted for representation. Are you ready to deploy?",
         "o": [
-            "A) Yes, Pilot Deployment Approved.",
+            "A) Yes, The model is now safe and I authorize the deployment of this AI system.",
             "B) No, wait for a perfect model.",
         ],
-        "a": "A) Yes, Pilot Deployment Approved.",
+        "a": "A) Yes, The model is now safe and I authorize the deployment of this AI system.",
         "success": "Mission Accomplished. You have engineered a safer, fairer system.",
     },
 }
@@ -1844,13 +1844,13 @@ def create_fairness_fixer_app(theme_primary_hue: str = "indigo"):
 def launch_fairness_fixer_app(
     share: bool = False,
     server_name: str = "0.0.0.0",
-    #server_port: int = 8080,
+    server_port: int = 8080,
     theme_primary_hue: str = "indigo",
     **kwargs
 ) -> None:
     app = create_fairness_fixer_app(theme_primary_hue=theme_primary_hue)
     app.launch(share=share, server_name=server_name,
-               #server_port=server_port,
+               server_port=server_port,
                **kwargs)
 
 if __name__ == "__main__":
