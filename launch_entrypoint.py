@@ -34,6 +34,7 @@ APP_NAME_TO_FACTORY = {
     "bias-detective-part1": "create_bias_detective_part1_app",
     "bias-detective-part2": "create_bias_detective_part2_app",
     "moral-compass-challenge": "create_moral_compass_challenge_app",
+    "fairness-fixer": "create_fairness_fixer_app",
 }
 
 # Supported language codes for model-building-game dynamic routing
