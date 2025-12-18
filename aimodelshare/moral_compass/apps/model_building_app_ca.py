@@ -3517,11 +3517,11 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                     </li>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
                         <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Aprendre què són els falsos positius (falses alarmes) i els falsos negatius (alertes ignorades)
+                        Aprendre què són els falsos positius (falses alarmes) i els falsos negatius (advertències ignorades)
                     </li>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
                         <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Entendre els conceptes bàscis de com funciona la IA:
+                        Entendre els conceptes bàsics de com funciona la IA:
                     </li>
                 </ul>
 
@@ -3546,7 +3546,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                     <strong>El teu nou repte:</strong> Crear models d’IA que siguin més precisos que el que has utilitzat en el rol de jutjar casos.
                 </p>
                 <p style='font-size: 1.1rem; text-align:center; margin-top: 12px;'>
-                    Recorda: has viscut en primera persona com les prediccions de la IA afecten la vida real de les persones. Fes servir aquest coneixement per construir un millor.
+                    Recorda: has viscut en primera persona com les prediccions de la IA afecten la vida real de les persones. Fes servir aquest coneixement per construir un model millor.
                 </p>
                 </div>
                 </div>
@@ -3556,14 +3556,14 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # Slide 2: Card 1 (Your Engineering Mission)
         with gr.Column(visible=False, elem_id="slide-2") as briefing_slide_2:
-            gr.Markdown("<h1 style='text-align:center;'>📋 La teva missió - Construir una IA millor</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>📋 La teva missió - Construir una sistema d'IA millor</h1>")
             
             gr.HTML(
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
                         <h3>La missió</h3>
-                        <p>Crea un model d’IA que ajudi als tribunals a prendre decisions més encertades. El model que has utilitzat abans et donava recomanacions imperfectes. Ara la teva feina és construir un model nou que predigui el risc amb més precisió i ofereixi a qui jutja informació fiable per poder ser justos i justes.</p>
+                        <p>Crea un sistema d’IA que ajudi als tribunals a prendre decisions més encertades. El model que has utilitzat abans et donava recomanacions imperfectes. Ara la teva feina és construir un model nou que predigui el risc amb més precisió i ofereixi a qui jutja informació fiable per poder ser justos i justes.</p>
                         
                         <h3>La competició</h3>
                         <p>Per fer-ho, competiràs amb altres persones enginyeres! Per ajudar-te en la missió, formaràs part d’un equip d’enginyeria. Els teus resultats es registraran tant de manera individual com col·lectiva a les classificacions en directe.</p>
