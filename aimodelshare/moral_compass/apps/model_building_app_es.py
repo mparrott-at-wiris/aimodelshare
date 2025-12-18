@@ -3632,7 +3632,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                             </div>
                         </div>
                         
-                        <p>Como persona ingeniera, no necesitas escribir código complejo desde cero. En lugar de eso, construyes esta máquina combinando los tres siguientes componentes principales:</p>
+                        <p>Como persona ingeniera, no necesitas escribir código complejo desde cero. En lugar de eso, vas a construir esta máquina combinando tres componentes principales.</p>
                     </div>
 
                     <div class='mock-ui-box'>
@@ -3659,12 +3659,12 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
             # --- END FIX ---
             
             with gr.Row():
-                briefing_3_back = gr.Button("◀️ Back", size="lg")
-                briefing_3_next = gr.Button("Next ▶️", variant="primary", size="lg")
+                briefing_3_back = gr.Button("◀️ Atrás", size="lg")
+                briefing_3_next = gr.Button("Siguiente ▶️", variant="primary", size="lg")
 
         # Slide 4: Card 3 (How Engineers Work — The Loop)
         with gr.Column(visible=False, elem_id="slide-4") as briefing_slide_4:
-            gr.Markdown("<h1 style='text-align:center;'>🔁 How Engineers Work — The Loop</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🔁 Cómo trabajan las personas ingenieras — El Bucle</h1>")
 
             # --- FIX FOR SLIDE 4 ---
             # Combined all content into single gr.HTML()
@@ -3672,32 +3672,32 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <p>Now that you know the components of a model, how do you build a better one?</p>
-                        <h3>Here is the secret:</h3>
-                        <p>Real AI teams almost never get it right on the first try. Instead, they follow a continuous loop of experimentation: <strong>Try, Test, Learn, Repeat.</strong></p>
+                        <p>Ahora que ya conoces los componentes de un modelo, ¿cómo puedes construir uno mejor?</p>
+                        <h3>Aquí tienes el secreto:</h3>
+                        <p>Los equipos de IA reales casi nunca aciertan a la primera. En su lugar, siguen un bucle continuo de experimentación: <strong>Provar, comprovar, aprender y repetir.</strong></p>
                         
-                        <h3>The Experiment Loop:</h3>
+                        <h3>El bucle de experimentación:</h3>
                         <ol style='list-style-position: inside;'>
-                            <li><strong>Build a Model:</strong> Assemble your components and get a starting prediction accuracy score.</li>
-                            <li><strong>Ask a Question:</strong> (e.g., "What happens if I change the 'Brain' type?")</li>
-                            <li><strong>Test & Compare:</strong> Did the score get better... or did it get worse?</li>
+                            <li><strong>Construye un modelo:</strong> Elige tus componentes y obtendrás una puntuación inicial de precisión.</li>
+                            <li><strong>Hazte una pregunta:</strong> (p. ej., "¿Qué pasa si cambio el 'Cerebro' —el tipo de modelo—?")</li>
+                            <li><strong>Comprueba y compara:</strong> ¿La puntuación ha mejorado... o ha empeorado?</li>
                         </ol>
                     </div>
 
-                    <h3>You will do the exact same thing in a competition!</h3>
+                    <h3>¡Harás exactamente lo mismo en la competición!</h3>
                     
                     <div class='step-visual'>
-                        <div class='step-visual-box'><b>1. Configure</b><br/>Use Control Knobs to select Strategy and Data.</div>
+                        <div class='step-visual-box'><b>1. Configura</b><br/>Use Control Knobs to select Strategy and Data.</div>
                         <div class='step-visual-arrow'>→</div>
-                        <div class='step-visual-box'><b>2. Submit</b><br/>Click "Build & Submit" to train your model.</div>
+                        <div class='step-visual-box'><b>2. Envía</b><br/>Click "Build & Submit" to train your model.</div>
                         <div class='step-visual-arrow'>→</div>
-                        <div class='step-visual-box'><b>3. Analyze</b><br/>Check your rank on the Live Leaderboard.</div>
+                        <div class='step-visual-box'><b>3. Analiza</b><br/>Mira tu posición en la clasificación en tiempo real.</div>
                         <div class='step-visual-arrow'>→</div>
-                        <div class='step-visual-box'><b>4. Refine</b><br/>Change one setting and submit again!</div>
+                        <div class='step-visual-box'><b>4. Mejora</b><br/>Cambia una opción y vuelve a enviarlo.</div>
                     </div>
                     
                     <div class='leaderboard-box' style='text-align:center;'>
-                        <p><strong>Pro Tip:</strong> Try to change only one thing at a time. If you change too many things at once, you won't know what made your model better or worse!</p>
+                        <p><strong>Consejo:</strong> ntenta cambiar solo una cosa a la vez. Si cambias demasiadas cosas de golpe, ¡no sabrás qué es lo que ha hecho que tu modelo mejore o empeore!</p>
                     </div>
                 </div>
                 """
