@@ -4460,3 +4460,4 @@ def launch_model_building_game_ca_app(height: int = 1200, share: bool = False, d
     demo = create_model_building_game_ca_app()
     port = int(os.environ.get("PORT", 8080))
     demo.launch(share=share, inline=True, debug=debug, height=height, server_port=port)
+
