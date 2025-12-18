@@ -3659,12 +3659,12 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
             # --- END FIX ---
             
             with gr.Row():
-                briefing_3_back = gr.Button("◀️ Back", size="lg")
-                briefing_3_next = gr.Button("Next ▶️", variant="primary", size="lg")
+                briefing_3_back = gr.Button("◀️ Enrere", size="lg")
+                briefing_3_next = gr.Button("Següent ▶️", variant="primary", size="lg")
 
         # Slide 4: Card 3 (How Engineers Work — The Loop)
         with gr.Column(visible=False, elem_id="slide-4") as briefing_slide_4:
-            gr.Markdown("<h1 style='text-align:center;'>🔁 How Engineers Work — The Loop</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🔁 Com treballen les persones enginyeres — El bucle</h1>")
 
             # --- FIX FOR SLIDE 4 ---
             # Combined all content into single gr.HTML()
@@ -3672,32 +3672,32 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <p>Now that you know the components of a model, how do you build a better one?</p>
-                        <h3>Here is the secret:</h3>
-                        <p>Real AI teams almost never get it right on the first try. Instead, they follow a continuous loop of experimentation: <strong>Try, Test, Learn, Repeat.</strong></p>
+                        <p>Ara que ja coneixes els components d'un sistema d'IA, com en pots construir un de millor?</p>
+                        <h3>Aquí tens el secret:</h3>
+                        <p>Els equips d'IA reals gairebé mai l'encerten a la primera. En lloc d'això, segueixen un bucle continu d'experimentació: <strong>provar, comprovar, aprendre, repetir.</strong></p>
                         
-                        <h3>The Experiment Loop:</h3>
+                        <h3>El bucle d'experimentació:</h3>
                         <ol style='list-style-position: inside;'>
-                            <li><strong>Build a Model:</strong> Assemble your components and get a starting prediction accuracy score.</li>
-                            <li><strong>Ask a Question:</strong> (e.g., "What happens if I change the 'Brain' type?")</li>
-                            <li><strong>Test & Compare:</strong> Did the score get better... or did it get worse?</li>
+                            <li><strong>Construeix un sistema d'IA:</strong> Escull els seus components i obtindràs una puntuació inicial de precisió.</li>
+                            <li><strong>Fes-te una pregunta:</strong> (p. ex., "Què passa si canvio el 'Cervell' —el tipus de model—?")</li>
+                            <li><strong>Comprova i compara:</strong> La puntuació ha millorat... o ha empitjorat?</li>
                         </ol>
                     </div>
 
-                    <h3>You will do the exact same thing in a competition!</h3>
+                    <h3>Faràs exactament el mateix en la competició!</h3>
                     
                     <div class='step-visual'>
-                        <div class='step-visual-box'><b>1. Configure</b><br/>Use Control Knobs to select Strategy and Data.</div>
+                        <div class='step-visual-box'><b>1. Configura</b><br/>Fes servir els controls per seleccionar el tipus de model i les dades.</div>
                         <div class='step-visual-arrow'>→</div>
-                        <div class='step-visual-box'><b>2. Submit</b><br/>Click "Build & Submit" to train your model.</div>
+                        <div class='step-visual-box'><b>2. Envia</b><br/>Click Clica a "construeix i envia" per entrenar el teu model.</div>
                         <div class='step-visual-arrow'>→</div>
-                        <div class='step-visual-box'><b>3. Analyze</b><br/>Check your rank on the Live Leaderboard.</div>
+                        <div class='step-visual-box'><b>3. Analitza</b><br/>Mira la teva posició a la classificació en temps real.</div>
                         <div class='step-visual-arrow'>→</div>
-                        <div class='step-visual-box'><b>4. Refine</b><br/>Change one setting and submit again!</div>
+                        <div class='step-visual-box'><b>4. Refina</b><br/>Canvia una opció i torna a enviar-lo!</div>
                     </div>
                     
                     <div class='leaderboard-box' style='text-align:center;'>
-                        <p><strong>Pro Tip:</strong> Try to change only one thing at a time. If you change too many things at once, you won't know what made your model better or worse!</p>
+                        <p><strong>Consell:</strong> Intenta canviar només una cosa a la vegada. Si canvies massa coses de cop, no sabràs què és el que ha fet que el teu model millori o empitjori!</p>
                     </div>
                 </div>
                 """
@@ -3705,8 +3705,8 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
             # --- END FIX ---
             
             with gr.Row():
-                briefing_4_back = gr.Button("◀️ Back", size="lg")
-                briefing_4_next = gr.Button("Next ▶️", variant="primary", size="lg")
+                briefing_4_back = gr.Button("◀️ Enrere", size="lg")
+                briefing_4_next = gr.Button("Següent ▶️", variant="primary", size="lg")
 
         # Slide 5: Card 4 (Control Knobs — The "Brain" Settings)
         with gr.Column(visible=False, elem_id="slide-5") as briefing_slide_5:
