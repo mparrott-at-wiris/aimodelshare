@@ -284,7 +284,7 @@ MODULES = [
                     <div class="tracker-step active">1. RULES</div>
                     <div class="tracker-step">2. EVIDENCE</div>
                     <div class="tracker-step">3. ERROR</div>
-                    <div class="tracker-step">4. IMPACT</div>
+                    <div class="tracker-step">4. VERDICT</div>
                 </div>
 
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -395,7 +395,7 @@ MODULES = [
                     <div class="tracker-step completed">1. RULES</div>
                     <div class="tracker-step active">2. EVIDENCE</div>
                     <div class="tracker-step">3. ERROR</div>
-                    <div class="tracker-step">4. IMPACT</div>
+                    <div class="tracker-step">4. VERDICT</div>
                 </div>
 
         <div class="slide-body">
@@ -502,7 +502,7 @@ MODULES = [
                     <div class="tracker-step completed">1. RULES</div>
                     <div class="tracker-step active">2. EVIDENCE</div>
                     <div class="tracker-step">3. ERROR</div>
-                    <div class="tracker-step">4. IMPACT</div>
+                    <div class="tracker-step">4. VERDICT</div>
                 </div>
 
            <h2 class="slide-title" style="margin:0;">STEP 2: SEARCH FOR THE EVIDENCE</h2>
@@ -669,7 +669,7 @@ MODULES = [
                     <div class="tracker-step completed">✓ RULES</div>
                     <div class="tracker-step completed">✓ EVIDENCE</div>
                     <div class="tracker-step active">3. ERROR</div>
-                    <div class="tracker-step">4. IMPACT</div>
+                    <div class="tracker-step">4. VERDICT</div>
                 </div>
                 <h2 class="slide-title" style="font-size:1.6rem; text-align:center; margin-bottom:15px;">Data Forensics Report: Input Flaws</h2>
                 <div class="ai-risk-container" style="border: 2px solid #ef4444; background: rgba(239,68,68,0.05); padding: 20px;">
@@ -727,7 +727,7 @@ MODULES = [
                     <div class="tracker-step completed">1. RULES</div>
                     <div class="tracker-step completed">2. EVIDENCE</div>
                     <div class="tracker-step active">3. ERROR</div>
-                    <div class="tracker-step">4. IMPACT</div>
+                    <div class="tracker-step">4. VERDICT</div>
                 </div>
 
                 <div class="slide-body">
@@ -846,7 +846,7 @@ MODULES = [
                     <div class="tracker-step completed">1. RULES</div>
                     <div class="tracker-step completed">2. EVIDENCE</div>
                     <div class="tracker-step active">3. ERROR</div>
-                    <div class="tracker-step">4. IMPACT</div>
+                    <div class="tracker-step">4. VERDICT</div>
                 </div>
 
                 <div class="slide-body">
@@ -959,7 +959,7 @@ MODULES = [
                     <div class="tracker-step completed">1. RULES</div>
                     <div class="tracker-step completed">2. EVIDENCE</div>
                     <div class="tracker-step active">3. ERROR</div>
-                    <div class="tracker-step">4. IMPACT</div>
+                    <div class="tracker-step">4. VERDICT</div>
                 </div>
 
                 <div class="slide-body">
@@ -1141,7 +1141,7 @@ MODULES = [
                     <div class="tracker-step completed">1. RULES</div>
                     <div class="tracker-step completed">2. EVIDENCE</div>
                     <div class="tracker-step active">3. ERROR</div>
-                    <div class="tracker-step">4. IMPACT</div>
+                    <div class="tracker-step">4. VERDICT</div>
                 </div>
 
                 <div class="slide-body">
