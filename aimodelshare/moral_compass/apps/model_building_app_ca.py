@@ -3710,7 +3710,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # Slide 5: Card 4 (Control Knobs — The "Brain" Settings)
         with gr.Column(visible=False, elem_id="slide-5") as briefing_slide_5:
-            gr.Markdown("<h1 style='text-align:center;'>🎛️ Botons de control — La configuració del \"cervell\"</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🎛️ Controls — La configuració del \"cervell\"</h1>")
             
             # --- FIX FOR SLIDE 5 ---
             # Combined all content into single gr.HTML()
@@ -3766,12 +3766,12 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
             # --- END FIX ---
             
             with gr.Row():
-                briefing_5_back = gr.Button("◀️ Back", size="lg")
-                briefing_5_next = gr.Button("Next ▶️", variant="primary", size="lg")
+                briefing_5_back = gr.Button("◀️ Enrere", size="lg")
+                briefing_5_next = gr.Button("Següent ▶️", variant="primary", size="lg")
 
         # Slide 6: Card 5 (Control Knobs — The "Data" Settings)
         with gr.Column(visible=False, elem_id="slide-6") as briefing_slide_6:
-            gr.Markdown("<h1 style='text-align:center;'>🎛️ Control Knobs — The \"Data\" Settings</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🎛️ Controls — La configuració de \"dades\"</h1>")
 
             # --- FIX FOR SLIDE 6 ---
             # Combined all content into single gr.HTML()
@@ -3779,42 +3779,42 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                 """
                 <div class='slide-content'>
                     <div class='mock-ui-inner'>
-                        <p>Now that you have set up your prediction machine, you must decide what information the machine processes. These next knobs control the Inputs (Data).</p>
+                        <p>Ara que ja has configurat la teva màquina de predicció, has de decidir quina informació processarà. Aquests selectors controlen les dades d'entrada del sistema d'IA.</p>
                         <hr style='margin: 16px 0;'>
 
-                        <h3 style='margin-top:0;'>3. Data Ingredients</h3>
+                        <h3 style='margin-top:0;'>3. Variables de les dades</h3>
                         <div style='font-size: 1rem; margin-bottom:12px;'>
-                            <b>What it is:</b> The specific data points the machine is allowed to access.
-                            <br><b>Why it matters:</b> The machine's output depends largely on its input.
+                            <b>Què és:</b> Els punts de dades concrets als quals el sistema de la IA (la màquina) té permís per accedir.
+                            <br><b>Per què és important:</b> El resultat del sistema depèn totalment de la informació que rep.
                         </div>
                         
                         <div class='mock-ui-control-box'>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-on'>☑</span>
-                                <b>Behavioral Inputs:</b> Data like <i>Juvenile Felony Count</i> may help the logic find valid risk patterns.
+                                <b>Dades de comportament:</b> Informació com el <i>nombre de delictes juvenils</i> ajuda el sistema a identificar patrons de risc basats en fets.
                             </p>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-off'>☐</span>
-                                <b>Demographic Inputs:</b> Data like <i>Race</i> may help the model learn, but they may also replicate human bias.
+                                <b>Dades demogràfiques:</b> Dades com la <i>raça</i> poden ajudar el model a aprendre, però també poden replicar biaixos humans.
                             </p>
                         </div>
-                        <p style='margin-top:10px;'><b>Your Job:</b> Check ☑ or uncheck ☐ the boxes to select the inputs to feed your model.</p>
+                        <p style='margin-top:10px;'><b>La teva feina:</b> Marca ☑ o Desmarca ☐ les caselles per triar quina informació "alimentarà" el teu model.</p>
 
                         <hr style='margin: 24px 0;'>
 
-                        <h3>4. Data Size (Training Volume)</h3>
+                        <h3>4. Volum de dades (Volum d'entrenament)</h3>
                         <div style='font-size: 1rem; margin-bottom:12px;'>
-                            <b>What it is:</b> The amount of historical cases the machine uses to learn patterns.
+                            <b>Què és:</b> La quantitat de casos històrics que el sistema de la IA utilitza per aprendre patrons.
                         </div>
                         
                         <div class='mock-ui-control-box'>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-on'>◉</span>
-                                <b>Small (20%):</b> Fast processing. Great for running quick tests to check your settings.
+                                <b>Petit (20%):</b> Processament ràpid. Ideal per fer proves ràpides i revisar la teva configuració.
                             </p>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-off'>○</span>
-                                <b>Full (100%):</b> Maximum data processing. It takes longer to build, but gives the machine the best chance to calibrate its accuracy.
+                                <b>Complet (100%):</b> Processament màxim de dades. Triga més a construir-se, però dóna al sistema d'IA la millor oportunitat per calibrar la precisió.
                             </p>
                         </div>
 
