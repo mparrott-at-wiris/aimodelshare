@@ -2478,7 +2478,7 @@ def on_initial_load(username, token=None, team_name=""):
 
     # 1. Prepare the Welcome HTML
     # Translate team name to Catalan for display only (keep team_name in English for logic)
-    display_team = translate_team_name_for_display(team_name, UI_TEAM_LANG) if team_name else "El Teu Equip"
+    display_team = translate_team_name_for_display(team_name, UI_TEAM_LANG) if team_name else "El teu equip"
     
     welcome_html = f"""
     <div style='text-align:center; padding: 30px 20px;'>
@@ -3830,7 +3830,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # Slide 7: Card 6 (Your Score as an Engineer)
         with gr.Column(visible=False, elem_id="slide-7") as briefing_slide_7:
-            gr.Markdown("<h1 style='text-align:center;'>🏆 Your Score as an Engineer</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🏆 La teva puntuació com a enginyer/a</h1>")
             
             # --- FIX FOR SLIDE 7 ---
             # Combined all content into single gr.HTML()
@@ -3838,19 +3838,18 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <p>You now know more about how to build a model. But how do we know if it works?</p>
+                        <p>Ara que ja saps com construir un model, és hora de posar a prova les teves habilitats. Aquí tens com mesurarem el teu èxit i com podràs pujar en la classificació:</p>
 
-                        <h3>How You Are Scored</h3>
+                        <h3>Com es calcula la teva puntuació/h3>
                         <ul style='list-style-position: inside;'>
-                            <li><strong>Prediction Accuracy:</strong> Your model is tested on <strong>Hidden Data</strong> (cases kept in a "secret vault" that your model has never seen). This simulates predicting the future to ensure you get a real-world prediction accuracy score.</li>
-                            <li><strong>The Leaderboard:</strong> Live Standings track your progress individually and as a team.</li>
+                            <li><strong>Precisió de la predicció:</strong> YEl teu model es posa a prova amb Dades Ocultes (casos guardats en una "caixa forta secreta" que el teu model mai ha vist). Això simula la predicció del futur per garantir que obtinguis una puntuació de precisió realista.</li>
+                            <li><strong>La classificació:</strong> Els marcadors en directe fan un seguiment del teu progrés individualment i en equip.</li>
                         </ul>
 
-                        <h3>How You Improve: The Game</h3>
+                        <h3>Com pots millorar: El Joc</h3>
                         <ul style='list-style-position: inside;'>
-                            <li><strong>Compete to Improve:</strong> Refine your model to beat your personal best score.</li>
-                            <li><strong>Get Promoted as an Engineer & Unlock Tools:</strong> As you submit more models, you rise in rank and unlock better analysis tools:</li>
-                        </ul>
+                            <li><strong>Competeix per millora:</strong> Refina el teu model per superar la teva millor marca personal.</li>
+                            <li><strong>Progressa com a persona enginyera i desbloqueja eines:</strong> A mesura que enviïs més models, guanyaràs posicions i desbloquejaràs millors eines d'anàlisi.
                         
                     </div>
                 </div>
@@ -3859,8 +3858,8 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
             # --- END FIX ---
             
             with gr.Row():
-                briefing_7_back = gr.Button("◀️ Back", size="lg")
-                briefing_7_next = gr.Button("Begin Model Building ▶️", variant="primary", size="lg")
+                briefing_7_back = gr.Button("◀️ Enrere", size="lg")
+                briefing_7_next = gr.Button("Comença a construir el model ▶️", variant="primary", size="lg")
 
         # --- End Briefing Slideshow ---
 
