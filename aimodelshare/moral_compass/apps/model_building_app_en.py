@@ -3755,7 +3755,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <p>You now know more about how to build a model. But how do we know if it works?</p>
+                        <p>Now that you know how to build a model, it’s time to test your skills. Here is how you’ll measure success and rise through the ranks:</p>
 
                         <h3>How You Are Scored</h3>
                         <ul style='list-style-position: inside;'>
