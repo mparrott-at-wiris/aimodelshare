@@ -3687,9 +3687,9 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                     <h3>¡Harás exactamente lo mismo en la competición!</h3>
                     
                     <div class='step-visual'>
-                        <div class='step-visual-box'><b>1. Configura</b><br/>Use Control Knobs to select Strategy and Data.</div>
+                        <div class='step-visual-box'><b>1. Configura</b><br/>Usa los controles para seleccionar el tipo de modelo y los datos.</div>
                         <div class='step-visual-arrow'>→</div>
-                        <div class='step-visual-box'><b>2. Envía</b><br/>Click "Build & Submit" to train your model.</div>
+                        <div class='step-visual-box'><b>2. Envía</b><br/>Haz clic en "construir y enviar" para entrenar tu modelo.</div>
                         <div class='step-visual-arrow'>→</div>
                         <div class='step-visual-box'><b>3. Analiza</b><br/>Mira tu posición en la clasificación en tiempo real.</div>
                         <div class='step-visual-arrow'>→</div>
@@ -3697,7 +3697,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                     </div>
                     
                     <div class='leaderboard-box' style='text-align:center;'>
-                        <p><strong>Consejo:</strong> ntenta cambiar solo una cosa a la vez. Si cambias demasiadas cosas de golpe, ¡no sabrás qué es lo que ha hecho que tu modelo mejore o empeore!</p>
+                        <p><strong>Consejo:</strong> Intenta cambiar solo una cosa a la vez. Si cambias demasiadas cosas de golpe, ¡no sabrás qué es lo que ha hecho que tu modelo mejore o empeore!</p>
                     </div>
                 </div>
                 """
@@ -3705,10 +3705,10 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
             # --- END FIX ---
             
             with gr.Row():
-                briefing_4_back = gr.Button("◀️ Back", size="lg")
-                briefing_4_next = gr.Button("Next ▶️", variant="primary", size="lg")
+                briefing_4_back = gr.Button("◀️ Atrás", size="lg")
+                briefing_4_next = gr.Button("Siguiente ▶️", variant="primary", size="lg")
 
-        # Slide 5: Card 4 (Control Knobs — The "Brain" Settings)
+        # Slide 5: Card 4 (Controles de configuración — The "Brain" Settings)
         with gr.Column(visible=False, elem_id="slide-5") as briefing_slide_5:
             gr.Markdown("<h1 style='text-align:center;'>🎛️ Control Knobs — The \"Brain\" Settings</h1>")
             
