@@ -1,853 +1,745 @@
-"""
-Activity 9: Justice & Equity Upgrade - Gradio application for the Justice & Equity Challenge.
-
-This app teaches:
-1. Elevating fairness through accessibility and inclusion
-2. Stakeholder engagement and community participation
-3. Final Moral Compass score reveal and team leaderboard
-4. Certificate unlock and challenge completion
-
-Structure:
-- Factory function `create_justice_equity_upgrade_app()` returns a Gradio Blocks object
-- Convenience wrapper `launch_justice_equity_upgrade_app()` launches it inline (for notebooks)
-
-Moral Compass Integration:
-- Uses ChallengeManager for progress tracking (tasks A-F)
-- Debounced sync prevents excessive API calls
-- Team aggregation via synthetic team: username
-- Force Sync button for manual refresh
-"""
-import contextlib
 import os
-import logging
+import sys
+import subprocess
+import time
+import datetime
+from typing import Tuple, Optional, List
 
-# Import moral compass integration helpers
-from .mc_integration_helpers import (
-    get_challenge_manager,
-    sync_user_moral_state,
-    sync_team_state,
-    build_moral_leaderboard_html,
-    get_moral_compass_widget_html,
-)
+# --- 1. CONFIGURATION ---
+DEFAULT_API_URL = "https://b22q73wp50.execute-api.us-east-1.amazonaws.com/dev"
+ORIGINAL_PLAYGROUND_URL = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+TABLE_ID = "m-mc"
+TOTAL_COURSE_TASKS = 20 # Sync with App 2
+LOCAL_TEST_SESSION_ID = None
 
-logger = logging.getLogger("aimodelshare.moral_compass.apps.justice_equity_upgrade")
+# ==============================================================================
+# --- BRANDING CONFIGURATION ---
+SHOW_BRANDED_LOGOS = False 
 
+# PASTE YOUR BASE64 STRINGS HERE (do not include "data:image/png;base64," prefix)
+PARTNER_LOGO_1_BASE64 = ""
+PARTNER_LOGO_2_BASE64 = ""
+PARTNER_LOGO_3_BASE64 = ""
+PARTNER_LOGO_4_BASE64 = ""
+PARTNER_LOGO_5_BASE64 = ""
+PARTNER_LOGO_6_BASE64 = ""
 
-def _get_user_stats():
-    """Get user statistics for final score reveal."""
+# Fallback/Default Logos
+FAKE_LOGO_1 = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/IBM_logo.svg/200px-IBM_logo.svg.png" 
+FAKE_LOGO_2 = "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/University_of_California%2C_Berkeley_logo.svg/200px-University_of_California%2C_Berkeley_logo.svg.png" 
+FAKE_LOGO_3 = "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/150px-Apple_logo_black.svg.png" 
+# ==============================================================================
+
+# --- 2. SETUP & DEPENDENCIES ---
+def install_dependencies():
+    packages = ["gradio>=5.0.0", "aimodelshare", "pandas"]
+    for package in packages:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
+try:
+    import gradio as gr
+    import pandas as pd
+    from aimodelshare.playground import Competition
+    from aimodelshare.moral_compass import MoralcompassApiClient
+    from aimodelshare.aws import get_token_from_session, _get_username_from_token
+except ImportError:
+    print("📦 Installing dependencies...")
+    install_dependencies()
+    import gradio as gr
+    import pandas as pd
+    from aimodelshare.playground import Competition
+    from aimodelshare.moral_compass import MoralcompassApiClient
+    from aimodelshare.aws import get_token_from_session, _get_username_from_token
+
+# --- 3. AUTH & HISTORY HELPERS ---
+def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str], Optional[str]]:
     try:
-        username = os.environ.get("username")
-        team_name = os.environ.get("TEAM_NAME", "Unknown Team")
-        
-        return {
-            "username": username or "Guest",
-            "team_name": team_name,
-            "is_signed_in": bool(username)
-        }
+        session_id = request.query_params.get("sessionid") if request else None
+        if not session_id and LOCAL_TEST_SESSION_ID:
+            session_id = LOCAL_TEST_SESSION_ID
+        if not session_id:
+            return False, None, None
+        token = get_token_from_session(session_id)
+        if not token:
+            return False, None, None
+        username = _get_username_from_token(token)
+        if not username:
+            return False, None, None
+        return True, username, token
     except Exception:
-        return {
-            "username": "Guest",
-            "team_name": "Unknown Team",
-            "is_signed_in": False
-        }
+        return False, None, None
 
-
-def create_justice_equity_upgrade_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
-    """Create the Justice & Equity Upgrade Gradio Blocks app (not launched yet)."""
+def fetch_user_history(username, token):
+    default_acc = 0.0
+    default_team = "Team-Unassigned"
     try:
-        import gradio as gr
-        gr.close_all(verbose=False)
-    except ImportError as e:
-        raise ImportError(
-            "Gradio is required for the justice & equity upgrade app. Install with `pip install gradio`."
-        ) from e
+        playground = Competition(ORIGINAL_PLAYGROUND_URL)
+        df = playground.get_leaderboard(token=token)
+        if df is None or df.empty:
+            return default_acc, default_team
+        if "username" in df.columns and "accuracy" in df.columns:
+            user_rows = df[df["username"] == username]
+            if not user_rows.empty:
+                best_acc = user_rows["accuracy"].max()
+                if "timestamp" in user_rows.columns and "Team" in user_rows.columns:
+                    try:
+                        user_rows = user_rows.copy()
+                        user_rows["timestamp"] = pd.to_datetime(
+                            user_rows["timestamp"], errors="coerce"
+                        )
+                        user_rows = user_rows.sort_values("timestamp", ascending=False)
+                        found_team = user_rows.iloc[0]["Team"]
+                        if pd.notna(found_team) and str(found_team).strip():
+                            default_team = str(found_team).strip()
+                    except Exception:
+                        pass
+                return float(best_acc), default_team
+    except Exception:
+        pass
+    return default_acc, default_team
 
-    # Get user stats and initialize challenge manager
-    user_stats = _get_user_stats()
-    challenge_manager = None
-    if user_stats["is_signed_in"]:
-        challenge_manager = get_challenge_manager(user_stats["username"])
+# --- 4. CSS (COMBINED STYLE FROM APP 2 + PRINT STYLES) ---
+css = """
+/* --- STYLES IMPORTED FROM APP 2 --- */
+/* Layout + containers */
+.summary-box { background: var(--block-background-fill); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color-primary); margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+.summary-box-inner { display: flex; align-items: center; justify-content: space-between; gap: 30px; }
+.summary-metrics { display: flex; gap: 30px; align-items: center; }
+.summary-progress { width: 560px; max-width: 100%; }
+
+/* Scenario cards */
+.scenario-box { padding: 24px; border-radius: 14px; background: var(--block-background-fill); border: 1px solid var(--border-color-primary); margin-bottom: 22px; box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+.slide-title { margin-top: 0; font-size: 1.9rem; font-weight: 800; }
+.slide-body { font-size: 1.12rem; line-height: 1.65; }
+
+/* Hint boxes */
+.hint-box { padding: 12px; border-radius: 10px; background: var(--background-fill-secondary); border: 1px solid var(--border-color-primary); margin-top: 10px; font-size: 0.98rem; }
+
+/* Numbers + labels */
+.score-text-primary { font-size: 2.05rem; font-weight: 900; color: var(--color-accent); }
+.score-text-team { font-size: 2.05rem; font-weight: 900; color: #60a5fa; }
+.score-text-global { font-size: 2.05rem; font-weight: 900; }
+.label-text { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #6b7280; }
+
+/* Progress bar */
+.progress-bar-bg { width: 100%; height: 10px; background: #e5e7eb; border-radius: 6px; overflow: hidden; margin-top: 8px; }
+.progress-bar-fill { height: 100%; background: var(--color-accent); transition: width 280ms ease; }
+
+/* Leaderboard tabs + tables */
+.leaderboard-card input[type="radio"] { display: none; }
+.lb-tab-label { display: inline-block; padding: 8px 16px; margin-right: 8px; border-radius: 20px; cursor: pointer; border: 1px solid var(--border-color-primary); font-weight: 700; font-size: 0.94rem; }
+#lb-tab-team:checked + label, #lb-tab-user:checked + label { background: var(--color-accent); color: white; border-color: var(--color-accent); box-shadow: 0 3px 8px rgba(99,102,241,0.25); }
+.lb-panel { display: none; margin-top: 10px; }
+#lb-tab-team:checked ~ .lb-tab-panels .panel-team { display: block; }
+#lb-tab-user:checked ~ .lb-tab-panels .panel-user { display: block; }
+.table-container { height: 320px; overflow-y: auto; border: 1px solid var(--border-color-primary); border-radius: 10px; }
+.leaderboard-table { width: 100%; border-collapse: collapse; }
+.leaderboard-table th { position: sticky; top: 0; background: var(--background-fill-secondary); padding: 10px; text-align: left; border-bottom: 2px solid var(--border-color-primary); font-weight: 800; }
+.leaderboard-table td { padding: 10px; border-bottom: 1px solid var(--border-color-primary); }
+.row-highlight-me, .row-highlight-team { background: rgba(96,165,250,0.18); font-weight: 700; }
+
+/* Containers */
+.ai-risk-container { margin-top: 16px; padding: 16px; background: var(--body-background-fill); border-radius: 10px; border: 1px solid var(--border-color-primary); }
+
+/* Small utility */
+.divider-vertical { width: 1px; height: 48px; background: var(--border-color-primary); opacity: 0.6; }
+
+/* --- APP 3 SPECIFIC STYLES (Printing/Sharing) --- */
+.share-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 20px; border-radius: 50px; font-weight: 700; text-decoration: none; color: white; transition: transform 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; border: none; }
+.share-btn:hover { transform: translateY(-2px); opacity: 0.95; }
+.share-wa { background-color: #25D366; }
+.share-tw { background-color: #1DA1F2; }
+.share-em { background-color: #64748b; }
+.share-ig { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
+.share-print { background-color: #1e3a8a; }
+
+/* STRICT PRINT STYLES - Hides App UI, Shows Certificate */
+@media print {
+    body, body * { visibility: hidden !important; height: 0; overflow: hidden; }
+    #cert-printable, #cert-printable * { visibility: visible !important; height: auto; overflow: visible; }
+    #cert-printable { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; margin: 0 !important; padding: 0 !important; z-index: 999999; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    button, .share-btn { display: none !important; }
+}
+"""
+
+# --- 5. RENDERERS (PORTED FROM APP 2) ---
+
+def render_top_dashboard(data):
+    display_score = 0.0
+    count_completed = 0
+    rank_display = "–"
+    team_rank_display = "–"
+    if data:
+        display_score = float(data.get("score", 0.0))
+        rank_display = f"#{data.get('rank', '–')}"
+        team_rank_display = f"#{data.get('team_rank', '–')}"
+        count_completed = len(data.get("completed_task_ids", []) or [])
     
-    # Track state
-    moral_compass_points = {"value": 0}
-    server_moral_score = {"value": None}
-    is_synced = {"value": False}
-    accessibility_features = []
-    diversity_improvements = []
-    stakeholder_priorities = []
+    # Force 100% since this is the certificate app
+    progress_pct = 100 
 
-    def sync_moral_state(override=False):
-        """Sync moral state to server (debounced unless override)."""
-        if not challenge_manager:
-            return {
-                'widget_html': get_moral_compass_widget_html(
-                    local_points=moral_compass_points["value"],
-                    server_score=None,
-                    is_synced=False
-                ),
-                'status': 'Guest mode - sign in to sync'
-            }
-        
-        # Mark task E (Accessibility) as completed
-        challenge_manager.complete_task('E')
-        
-        # Sync to server
-        sync_result = sync_user_moral_state(
-            cm=challenge_manager,
-            moral_points=moral_compass_points["value"],
-            override=override
-        )
-        
-        # Update state
-        if sync_result['synced']:
-            server_moral_score["value"] = sync_result.get('server_score')
-            is_synced["value"] = True
+    return f"""
+    <div class="summary-box">
+        <div class="summary-box-inner">
+            <div class="summary-metrics">
+                <div style="text-align:center;">
+                    <div class="label-text">Moral Compass Score</div>
+                    <div class="score-text-primary">🧭 {display_score:.3f}</div>
+                </div>
+                <div class="divider-vertical"></div>
+                <div style="text-align:center;">
+                    <div class="label-text">Team Rank</div>
+                    <div class="score-text-team">{team_rank_display}</div>
+                </div>
+                <div class="divider-vertical"></div>
+                <div style="text-align:center;">
+                    <div class="label-text">Global Rank</div>
+                    <div class="score-text-global">{rank_display}</div>
+                </div>
+            </div>
+            <div class="summary-progress">
+                <div class="progress-label" style="font-weight:700; color:var(--color-accent);">Certification Progress: {progress_pct}%</div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width:{progress_pct}%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    """
+
+def render_leaderboard_card(data, username, team_name):
+    team_rows = ""
+    user_rows = ""
+    if data and data.get("all_teams"):
+        for i, t in enumerate(data["all_teams"]):
+            cls = "row-highlight-team" if t["team"] == team_name else "row-normal"
+            team_rows += (
+                f"<tr class='{cls}'><td style='padding:8px;text-align:center;'>{i+1}</td>"
+                f"<td style='padding:8px;'>{t['team']}</td>"
+                f"<td style='padding:8px;text-align:right;'>{t['avg']:.3f}</td></tr>"
+            )
+    if data and data.get("all_users"):
+        for i, u in enumerate(data["all_users"]):
+            cls = "row-highlight-me" if u.get("username") == username else "row-normal"
+            sc = float(u.get("moralCompassScore", 0))
+            if u.get("username") == username and data.get("score") != sc:
+                sc = data.get("score")
+            user_rows += (
+                f"<tr class='{cls}'><td style='padding:8px;text-align:center;'>{i+1}</td>"
+                f"<td style='padding:8px;'>{u.get('username','')}</td>"
+                f"<td style='padding:8px;text-align:right;'>{sc:.3f}</td></tr>"
+            )
+    return f"""
+    <div class="scenario-box leaderboard-card">
+        <h3 class="slide-title" style="margin-bottom:10px;">📊 Live Standings</h3>
+        <div class="lb-tabs">
+            <input type="radio" id="lb-tab-team" name="lb-tabs" checked>
+            <label for="lb-tab-team" class="lb-tab-label">🏆 Team</label>
+            <input type="radio" id="lb-tab-user" name="lb-tabs">
+            <label for="lb-tab-user" class="lb-tab-label">👤 Individual</label>
+            <div class="lb-tab-panels">
+                <div class="lb-panel panel-team">
+                    <div class='table-container'>
+                        <table class='leaderboard-table'>
+                            <thead>
+                                <tr><th>Rank</th><th>Team</th><th style='text-align:right;'>Avg 🧭</th></tr>
+                            </thead>
+                            <tbody>{team_rows}</tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="lb-panel panel-user">
+                    <div class='table-container'>
+                        <table class='leaderboard-table'>
+                            <thead>
+                                <tr><th>Rank</th><th>Agent</th><th style='text-align:right;'>Score 🧭</th></tr>
+                            </thead>
+                            <tbody>{user_rows}</tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    """
+
+# --- 6. HTML CERTIFICATE GENERATOR ---
+# --- 4. HTML CERTIFICATE GENERATOR (TECH STYLE) ---
+def generate_html_certificate(name, score, team_name):
+    date_str = datetime.date.today().strftime("%B %d, %Y")
+    cert_id = int(time.time())
+    
+    # BRAND COLORS
+    c_primary = "#5a46cc"    # Deep Indigo
+    c_sec_light = "#d0d5e9"  # Soft Lavender
+    c_slate = "#8485a1"      # Tech Slate
+    
+    # --- LOGO LOGIC (Preserves layout unless branding is enabled) ---
+    if SHOW_BRANDED_LOGOS:
+        logo_section = f"""
+        <div style="display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; margin-top: 10px;">
+             <img src="data:image/png;base64,{PARTNER_LOGO_1_BASE64}" style="height: 35px; max-width: 100px; object-fit: contain;">
+             <img src="data:image/png;base64,{PARTNER_LOGO_2_BASE64}" style="height: 35px; max-width: 100px; object-fit: contain;">
+             <img src="data:image/png;base64,{PARTNER_LOGO_3_BASE64}" style="height: 35px; max-width: 100px; object-fit: contain;">
+             <img src="data:image/png;base64,{PARTNER_LOGO_4_BASE64}" style="height: 35px; max-width: 100px; object-fit: contain;">
+             <img src="data:image/png;base64,{PARTNER_LOGO_5_BASE64}" style="height: 35px; max-width: 100px; object-fit: contain;">
+             <img src="data:image/png;base64,{PARTNER_LOGO_6_BASE64}" style="height: 35px; max-width: 100px; object-fit: contain;">
+        </div>
+        """
+    else:
+        # Exact default layout requested
+        logo_section = f"""
+        <div style="display: flex; gap: 25px; opacity: 1.0; align-items: center;">
+             <img src="{FAKE_LOGO_1}" style="height: 30px; object-fit: contain;">
+             <img src="{FAKE_LOGO_2}" style="height: 35px; object-fit: contain;">
+             <img src="{FAKE_LOGO_3}" style="height: 25px; object-fit: contain;">
+        </div>
+        """
+
+    # --- HTML STRUCTURE ---
+    # Used ID cert-printable for JS printing targeting
+    html = f"""
+    <div id="cert-printable" style="
+        position: relative; width: 100%; max-width: 900px; margin: 0 auto;
+        padding: 0;
+        background: #fff;
+        /* Double Border: Thick Brand Indigo + Thin Inner Line */
+        border: 10px solid {c_primary}; 
+        outline: 2px solid {c_primary}; outline-offset: -16px;
+        font-family: 'IBM Plex Sans', 'Helvetica', sans-serif; 
+        color: #1e293b;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.15); 
+        text-align: center;
+        box-sizing: border-box;
+    ">
+        <div style="padding: 60px 50px;">
             
-            # Trigger team sync if user sync succeeded
-            if user_stats.get("team_name"):
-                sync_team_state(user_stats["team_name"])
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid {c_sec_light}; padding-bottom: 20px; margin-bottom: 40px;">
+                <div style="text-align: left;">
+                    <div style="
+                        font-family: 'Source Serif Pro', 'Georgia', serif; 
+                        font-weight: 700; 
+                        color: {c_primary}; 
+                        font-size: 1.4rem;
+                        letter-spacing: -0.5px;
+                    ">
+                        Ethics at Play - Digital Education Program
+                    </div>
+                    <div style="font-size: 0.75rem; color: {c_slate}; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 5px;">
+                        Ethical AI - Justice and Equity Accreditation
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-family: 'Courier New', monospace; font-size: 0.85rem; color: {c_slate};">
+                        REF_ID: <span style="color: #000;">{cert_id}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 40px;">
+                <h3 style="
+                    font-size: 1rem; 
+                    font-weight: 600; 
+                    color: {c_slate}; 
+                    text-transform: uppercase; 
+                    letter-spacing: 3px;
+                    margin: 0;
+                ">Ethics at Play Certification</h3>
+                
+                <h3 style="
+                    font-family: 'Source Serif Pro', 'Georgia', serif; 
+                    font-size: 3.5rem; 
+                    color: #1e293b; 
+                    margin: 10px 0 0 0;
+                    line-height: 1.1;
+                ">
+                    Ethical AI Innovation<br><span style="color: {c_primary};">Justice and Equity</span>
+                </h3>
+            </div>
+
+            <div style="background: #f8fafc; padding: 30px; border-radius: 8px; border-left: 6px solid {c_primary}; margin-bottom: 40px; text-align: left;">
+                <p style="font-size: 0.9rem; color: {c_slate}; text-transform: uppercase; margin: 0 0 5px 0;">Awarded To AI Fairness Engineer</p>
+                <h2 style="
+                    font-family: 'Source Serif Pro', 'Georgia', serif; 
+                    font-size: 3rem; 
+                    margin: 0; 
+                    color: #0f172a; 
+                    font-weight: 700;
+                ">{name}</h2>
+                <p style="font-size: 1.1rem; color: #475569; margin: 5px 0 0 0;">
+                    Member of <strong>{team_name}</strong>
+                </p>
+            </div>
+
+            <p style="font-size: 1.1rem; line-height: 1.6; color: #334155; margin-bottom: 40px; text-align: left;">
+                For demonstrating the ability to <strong>make AI more just and fair</strong> responsibly. The recipient has successfully successfully audited AI pipelines for representation bias, implemented causal sanitization, and localized AI systems for deployment contexts.
+            </p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 50px;">
+                <div style="border: 1px solid {c_sec_light}; border-radius: 6px; padding: 15px; text-align: left;">
+                    <div style="font-size: 0.75rem; color: {c_slate}; text-transform: uppercase; font-weight: 700;">Moral Compass Score</div>
+                    <div style="font-size: 2rem; font-weight: 700; color: {c_primary}; font-family: 'Courier New', monospace;">
+                        {score:.3f}
+                    </div>
+                </div>
+                <div style="border: 1px solid {c_sec_light}; border-radius: 6px; padding: 15px; text-align: left; background: #f0fdf4;">
+                    <div style="font-size: 0.75rem; color: #166534; text-transform: uppercase; font-weight: 700;">Audit Status</div>
+                    <div style="font-size: 1.2rem; font-weight: 700; color: #15803d; margin-top: 8px;">
+                        ✅ VERIFIED FAIR
+                    </div>
+                </div>
+            </div>
+
+            <div style="border-top: 2px solid #1e293b; padding-top: 25px; display: flex; justify-content: space-between; align-items: flex-end;">
+                <div style="text-align: left;">
+                    <div style="font-family: 'Source Serif Pro', serif; font-size: 1.2rem; font-weight: 700; color: #000;">
+                        Ethics at Play
+                    </div>
+                    <div style="font-size: 0.85rem; color: {c_slate}; margin-top: 5px;">
+                        Authorized Curriculum • {date_str}
+                    </div>
+                </div>
+
+                {logo_section}
+                
+            </div>
+
+        </div>
+    </div>
+    """
+    return html
+
+# --- 7. MODULE DEFINITIONS ---
+MODULES = [
+    # --- MODULE 0: VICTORY DASHBOARD (UPDATED TO MATCH APP 2 STYLE) ---
+    {
+        "id": 0,
+        "title": "Achievement Unlocked",
+        "html": """
+            <div class="scenario-box">
+                <div class="slide-body">
+                    <div style="text-align:center; margin-bottom:20px;">
+                        <div style="font-size:3rem;">🏆</div>
+                        <h2 class="slide-title" style="margin-top:5px; color:#b45309;">Achievement Unlocked</h2>
+                        <p style="font-size:1.1rem; max-width:800px; margin:0 auto; color:var(--body-text-color);">
+                            You have successfully completed the Fairness Protocol.
+                            <br>
+                            Review your final performance metrics below before claiming your credential.
+                        </p>
+                    </div>
+
+                    <div id="final-dashboard-inject"></div>
+                    <div id="final-leaderboard-inject" style="margin-top:20px;"></div>
+
+                    <p style="text-align:center; margin-top:25px; font-weight:600;">
+                        Click <strong>Next ▶️</strong> to review your engineering log and generate your certificate.
+                    </p>
+                </div>
+            </div>
+        """
+    },
+    # --- MODULE 1: THE ENGINEERING LOG ---
+    {
+        "id": 1,
+        "title": "Engineering Log",
+        "html": """
+            <div class="scenario-box">
+                <div class="slide-body">
+                    <h2 class="slide-title" style="text-align:center;">📋 Your Engineering Resume</h2>
+                    <p style="text-align:center; margin-bottom:20px;">
+                        You are now qualified to handle high-risk AI systems. Here is what you proved:
+                    </p>
+
+                    <div style="display:grid; gap:15px;">
+                        <div style="background:var(--background-fill-secondary); border-left:5px solid #3b82f6; padding:15px; border-radius:4px; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+                            <div style="font-weight:800; color:#1e40af; font-size:1.1rem;">👁️ BIAS DETECTION</div>
+                            <div style="color:var(--body-text-color);">You identified hidden Representation Bias ("The Distorted Mirror") and diagnosed the Racial Error Gap.</div>
+                        </div>
+
+                        <div style="background:var(--background-fill-secondary); border-left:5px solid #8b5cf6; padding:15px; border-radius:4px; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+                            <div style="font-weight:800; color:#6d28d9; font-size:1.1rem;">✂️ DATA SANITIZATION</div>
+                            <div style="color:var(--body-text-color);">You stripped Protected Classes and successfully hunted down sneaky Proxy Variables (Zip Codes).</div>
+                        </div>
+
+                        <div style="background:var(--background-fill-secondary); border-left:5px solid #10b981; padding:15px; border-radius:4px; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+                            <div style="font-weight:800; color:#065f46; font-size:1.1rem;">🌍 CONTEXTUAL ENGINEERING</div>
+                            <div style="color:var(--body-text-color);">You rejected "Shortcut Data" and implemented Local Data to prevent Context Mismatch.</div>
+                        </div>
+                    </div>
+
+                    <div style="text-align:center; margin-top:25px;">
+                        <p style="font-size:1.0rem;">
+                            Click <strong>Next ▶️</strong> to generate your official certificate.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        """
+    },
+    # --- MODULE 2: CERTIFICATE GENERATOR ---
+    {
+        "id": 2,
+        "title": "Official Certification",
+        "html": """
+            <div class="scenario-box">
+                <div class="slide-body">
+                    <h2 class="slide-title" style="text-align:center; color:#15803d;">🎓 Claim Your Credentials</h2>
+                    <p style="text-align:center; margin-bottom:20px;">
+                        Enter your name exactly as you want it to appear on your official <strong>Ethics at Play</strong> certificate.
+                    </p>
+
+                    <div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:20px; border-radius:12px; text-align:center; margin-bottom:20px;">
+                        <div style="font-weight:700; color:#166534; margin-bottom:10px;">AUTHORIZED FOR:</div>
+                        <div style="font-size:1.5rem; font-weight:900; color:#15803d; margin-bottom:5px;">AI FAIRNESS ENGINEER</div>
+                        <p style="font-size:0.9rem; color:#14532d; margin:0;">
+                            This document proves you prioritize Justice over Convenience.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        """
+    },
+    # --- MODULE 3: THE FINAL TRANSITION ---
+    {
+        "id": 3,
+        "title": "The Final Challenge",
+        "html": """
+            <div class="scenario-box">
+                <div class="slide-body">
+                    <div style="text-align:center;">
+                        <div style="font-size:3rem;">🚀</div>
+                        <h2 class="slide-title" style="margin-top:10px;">The Final Frontier</h2>
+                    </div>
+
+                    <p style="font-size:1.1rem; text-align:center; max-width:800px; margin:0 auto 25px auto;">
+                        You have the ethics. You have the certificate.
+                        <br>
+                        Now, it is time to prove you have the <strong>Skill</strong>.
+                    </p>
+
+                    <div class="ai-risk-container" style="background:linear-gradient(to right, #eff6ff, var(--body-background-fill)); border:2px solid #3b82f6;">
+                        <h3 style="margin-top:0; color:#1e40af;">🏆 The Accuracy Competition</h3>
+                        <p style="font-size:1.05rem; line-height:1.5; color:var(--body-text-color);">
+                            Your final mission is to compete against your classmates to build the <strong>most accurate model possible</strong>.
+                            <br><br>
+                            But remember: <strong>You must maintain your Moral Compass.</strong>
+                            <br>
+                            High accuracy achieved by cheating (using biased data) will result in disqualification.
+                        </p>
+                    </div>
+
+                    <div style="text-align:center; margin-top:30px;">
+                        <a href="#" target="_self" style="text-decoration:none;">
+                            <div style="display:inline-block; padding:16px 32px; background:var(--color-accent); color:white; border-radius:50px; font-weight:800; font-size:1.2rem; box-shadow:0 4px 15px rgba(99, 102, 241, 0.4);">
+                                ENTER THE ARENA ▶️
+                            </div>
+                        </a>
+                        <p style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-top:10px;">(Scroll down to the next activity to begin)</p>
+                    </div>
+                </div>
+            </div>
+        """
+    }
+]
+
+# --- 8. LOGIC FUNCTIONS ---
+
+def get_leaderboard_data(client, username, team_name):
+    # Ported from App 2 logic
+    try:
+        resp = client.list_users(table_id=TABLE_ID, limit=500)
+        users = resp.get("users", [])
         
-        # Generate widget HTML
-        widget_html = get_moral_compass_widget_html(
-            local_points=moral_compass_points["value"],
-            server_score=server_moral_score["value"],
-            is_synced=is_synced["value"]
+        users_sorted = sorted(
+            users, key=lambda x: float(x.get("moralCompassScore", 0) or 0), reverse=True
         )
+        my_user = next((u for u in users_sorted if u.get("username") == username), None)
+        score = float(my_user.get("moralCompassScore", 0) or 0) if my_user else 0.0
+        rank = users_sorted.index(my_user) + 1 if my_user else 0
+        completed_task_ids = my_user.get("completedTaskIds", []) if my_user else []
+        
+        team_map = {}
+        for u in users:
+            t = u.get("teamName")
+            s = float(u.get("moralCompassScore", 0) or 0)
+            if t:
+                if t not in team_map: team_map[t] = {"sum": 0, "count": 0}
+                team_map[t]["sum"] += s
+                team_map[t]["count"] += 1
+        teams_sorted = []
+        for t, d in team_map.items():
+            teams_sorted.append({"team": t, "avg": d["sum"] / d["count"]})
+        teams_sorted.sort(key=lambda x: x["avg"], reverse=True)
+        my_team = next((t for t in teams_sorted if t["team"] == team_name), None)
+        team_rank = teams_sorted.index(my_team) + 1 if my_team else 0
         
         return {
-            'widget_html': widget_html,
-            'status': sync_result['message']
+            "score": score, 
+            "rank": rank, 
+            "team_rank": team_rank, 
+            "completed_task_ids": completed_task_ids,
+            "all_users": users_sorted,
+            "all_teams": teams_sorted
         }
+    except:
+        return None
+
+def create_cert_handler(user_input_name, username_state, token, team_name):
+    if not user_input_name:
+        user_input_name = username_state
+
+    os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
+    client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
+    data = get_leaderboard_data(client, username_state, team_name)
+    score = data.get("score", 0.0)
+
+    # Generate HTML content (Using the Tech Style)
+    cert_html = generate_html_certificate(user_input_name, score, team_name)
+
+    share_text = f"I just certified as a Responsible AI Innovator! 🧭 #EthicsAtPlay #ResponsibleAI"
+    wa_link = f"https://wa.me/?text={share_text}"
+    tw_link = f"https://twitter.com/intent/tweet?text={share_text}"
+    ig_link = "https://instagram.com"
+
+    # --- JAVASCRIPT POPUP PRINTER ---
+    js_print_logic = """
+    var cert = document.getElementById('cert-printable');
+    var w = window.open('', '_blank');
+    w.document.write('<html><head><title>Certificate</title>');
+    w.document.write('<style>');
+    w.document.write('body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: sans-serif; background: #fff; }');
+    w.document.write('@media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }');
+    w.document.write('</style>');
+    w.document.write('</head><body>');
+    w.document.write(cert.outerHTML);
+    w.document.write('</body></html>');
+    w.document.close();
+    setTimeout(function() { w.print(); w.close(); }, 500);
+    """
+
+    share_html = f"""
+    <div style="margin-top:25px; text-align:center; padding:20px; background:linear-gradient(to bottom, #f8fafc, white); border-radius:12px; border:1px solid #e2e8f0;">
+        <p style="font-weight:800; color:#475569; margin-bottom:15px; font-size:1.1rem;">
+            📢 Save & Share Your Success
+        </p>
+
+        <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
+            <button onclick="{js_print_logic}" class="share-btn share-print">🖨️ Print / Save as PDF</button>
+            <a href="{wa_link}" target="_blank" class="share-btn share-wa">WhatsApp</a>
+            <a href="{ig_link}" target="_blank" class="share-btn share-ig">Instagram</a>
+            <a href="{tw_link}" target="_blank" class="share-btn share-tw">X / Twitter</a>
+        </div>
+
+        <p style="font-size:0.85rem; color:#94a3b8; margin-top:15px; font-style:italic;">
+            📸 <strong>Pro Tip:</strong> Click 'Print' and choose 'Save as PDF' to keep your certificate forever.
+            <br>For Instagram, take a screenshot of the certificate above!
+        </p>
+    </div>
+    """
     
-    def apply_accessibility_features(multilang, plaintext, screenreader):
-        """Apply accessibility features."""
-        features_added = []
-        
-        if multilang:
-            features_added.append("Multi-language support (Catalan, Spanish, English)")
-            accessibility_features.append("multilang")
-        
-        if plaintext:
-            features_added.append("Plain text summaries for non-technical users")
-            accessibility_features.append("plaintext")
-        
-        if screenreader:
-            features_added.append("Screen reader compatibility")
-            accessibility_features.append("screenreader")
-        
-        if features_added:
-            moral_compass_points["value"] += 75
+    return gr.update(value=cert_html, visible=True), gr.update(value=share_html, visible=True)
+
+# --- 9. APP FACTORY ---
+def create_certificate_app(theme_primary_hue: str = "indigo"):
+    with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
+        # States
+        username_state = gr.State(value=None)
+        token_state = gr.State(value=None)
+        team_state = gr.State(value=None)
+
+        # --- LOADING ---
+        with gr.Column(visible=True, elem_id="app-loader") as loader_col:
+            gr.HTML("<div style='text-align:center; padding:100px;'><h2>🏆 Verifying Credentials...</h2></div>")
+
+        # --- MAIN APP ---
+        with gr.Column(visible=False) as main_app_col:
+
+            # Module containers
+            module_ui_elements = {}
+
+            for i, mod in enumerate(MODULES):
+                with gr.Column(visible=(i==0), elem_id=f"mod-{i}") as mod_col:
+                    gr.HTML(mod["html"])
+
+                    # Special Logic for Module 0 (Victory Dashboard)
+                    if i == 0:
+                        dash_output = gr.HTML()
+                        lb_output = gr.HTML()
+
+                    # Special Logic for Module 2 (Certificate Input)
+                    if i == 2:
+                        name_input = gr.Textbox(label="Full Name for Certificate", placeholder="e.g. Jane Doe")
+                        gen_btn = gr.Button("🎓 Generate & Sign Certificate", variant="primary")
+
+                        cert_display = gr.HTML(label="Official Certificate", visible=False)
+                        share_row = gr.HTML(visible=False)
+
+                        gen_btn.click(
+                            create_cert_handler,
+                            inputs=[name_input, username_state, token_state, team_state],
+                            outputs=[cert_display, share_row]
+                        )
+
+                    # Nav
+                    with gr.Row():
+                        btn_prev = gr.Button("⬅️ Previous", visible=(i > 0))
+                        next_txt = "Next ▶️" if i < len(MODULES) - 1 else "Finish"
+                        btn_next = gr.Button(next_txt, visible=(i < len(MODULES) - 1))
+
+                    module_ui_elements[i] = (mod_col, btn_prev, btn_next)
+
+            # --- NAVIGATION LOGIC ---
+            for i in range(len(MODULES)):
+                curr_col, prev_btn, next_btn = module_ui_elements[i]
+
+                if i > 0:
+                    prev_col = module_ui_elements[i-1][0]
+                    def nav_back():
+                        return gr.update(visible=False), gr.update(visible=True)
+                    prev_btn.click(nav_back, None, [curr_col, prev_col])
+
+                if i < len(MODULES) - 1:
+                    next_col = module_ui_elements[i+1][0]
+                    def nav_fwd():
+                        return gr.update(visible=False), gr.update(visible=True)
+                    next_btn.click(nav_fwd, None, [curr_col, next_col])
+
+        # --- LOAD HANDLER ---
+        def handle_load(req: gr.Request):
+            success, user, token = _try_session_based_auth(req)
+            if not success:
+                return None, None, None, gr.update(visible=True), gr.update(visible=False), "", ""
+
+            # Fetch team/score data using the complex fetcher
+            os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
+            client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
             
-            # Update ChallengeManager if available
-            if challenge_manager:
-                challenge_manager.answer_question('E', 'E1', 1)  # Correct answer for accessibility task
+            # Simple fetch to get team name
+            _, simple_team = fetch_user_history(user, token)
             
-            report = "## Accessibility Features Applied\n\n"
-            for feature in features_added:
-                report += f"- ✓ {feature}\n"
-            report += f"\n**Impact:** These features ensure **equal opportunity of access** for all users, "
-            report += "regardless of language, technical background, or disability.\n\n"
-            report += "🏆 +75 Moral Compass points for improving accessibility!"
+            # Complex fetch for leaderboard logic
+            data = get_leaderboard_data(client, user, simple_team)
             
-            # Trigger sync
-            sync_result = sync_moral_state()
-            report += f"\n\n{sync_result['status']}"
-        else:
-            report = "Select accessibility features to apply."
-        
-        return report
+            # Render App 2 Components for Module 0
+            dashboard_html = render_top_dashboard(data)
+            leaderboard_html = render_leaderboard_card(data, user, simple_team)
 
-    def apply_diversity_improvements(team_diversity, community_voices, diverse_review):
-        """Apply diversity improvements."""
-        improvements = []
-        
-        if team_diversity:
-            improvements.append("Diverse team composition (gender, ethnicity, background)")
-            diversity_improvements.append("team_diversity")
-        
-        if community_voices:
-            improvements.append("Community advisory board with affected population representatives")
-            diversity_improvements.append("community_voices")
-        
-        if diverse_review:
-            improvements.append("Diverse review panel for model evaluation")
-            diversity_improvements.append("diverse_review")
-        
-        if improvements:
-            moral_compass_points["value"] += 100
-            
-            # Update ChallengeManager if available
-            if challenge_manager:
-                challenge_manager.complete_task('F')  # Diversity task
-            
-            report = "## Diversity & Inclusion Improvements\n\n"
-            for improvement in improvements:
-                report += f"- ✓ {improvement}\n"
-            report += f"\n**Impact:** Diverse perspectives help identify blind spots and ensure the "
-            report += "system serves all communities fairly.\n\n"
-            report += "🏆 +100 Moral Compass points for advancing inclusion!"
-            
-            # Trigger sync
-            sync_result = sync_moral_state()
-            report += f"\n\n{sync_result['status']}"
-        else:
-            report = "Select diversity improvements to apply."
-        
-        return report
+            return user, token, simple_team, gr.update(visible=False), gr.update(visible=True), dashboard_html, leaderboard_html
 
-    def visualize_improvements():
-        """Show before/after comparison."""
-        report = """
-## Before/After: System-Level Transformation
-
-### Before (Original System)
-- ❌ English-only interface
-- ❌ Technical jargon throughout
-- ❌ No accessibility accommodations
-- ❌ Homogeneous development team
-- ❌ No community input
-- ❌ Decisions made in isolation
-
-### After (Justice & Equity Upgrade)
-"""
-        
-        if "multilang" in accessibility_features:
-            report += "- ✅ Multi-language support\n"
-        if "plaintext" in accessibility_features:
-            report += "- ✅ Plain language explanations\n"
-        if "screenreader" in accessibility_features:
-            report += "- ✅ Screen reader compatibility\n"
-        if "team_diversity" in diversity_improvements:
-            report += "- ✅ Diverse development team\n"
-        if "community_voices" in diversity_improvements:
-            report += "- ✅ Community advisory board\n"
-        if "diverse_review" in diversity_improvements:
-            report += "- ✅ Inclusive review process\n"
-        
-        if accessibility_features or diversity_improvements:
-            report += "\n**Result:** A more **inclusive, accessible, and just** AI system.\n"
-        else:
-            report += "\n*Apply accessibility and diversity improvements to see the transformation.*\n"
-        
-        return report
-
-    def prioritize_stakeholders(judges_pri, defendants_pri, families_pri, community_pri, ngos_pri):
-        """Check stakeholder prioritization."""
-        scoring = {
-            "Defendants": defendants_pri == "Critical",
-            "Community Advocates": community_pri == "Critical",
-            "Families": families_pri == "High",
-            "Judges": judges_pri == "High",
-            "NGOs": ngos_pri in ["High", "Medium"]
-        }
-        
-        score = sum(scoring.values())
-        feedback = []
-        
-        if scoring["Defendants"]:
-            feedback.append("✓ Defendants are critical - they're directly affected by decisions.")
-        else:
-            feedback.append("⚠️ Defendants should be 'Critical' - they're most impacted.")
-        
-        if scoring["Community Advocates"]:
-            feedback.append("✓ Community Advocates are critical - they represent affected populations.")
-        else:
-            feedback.append("⚠️ Community Advocates should be 'Critical' - they ensure community voice.")
-        
-        if scoring["Families"]:
-            feedback.append("✓ Families are highly important - they're indirectly affected.")
-        else:
-            feedback.append("⚠️ Families should be 'High' importance - they suffer consequences too.")
-        
-        if scoring["Judges"]:
-            feedback.append("✓ Judges are highly important - they make final decisions.")
-        else:
-            feedback.append("⚠️ Judges should be 'High' importance - they're key decision makers.")
-        
-        points = 0
-        if score >= 4:
-            points = 100
-            moral_compass_points["value"] += points
-            feedback.append(f"\n🎉 Excellent stakeholder prioritization!\n🏆 +{points} Moral Compass points!")
-        elif score >= 3:
-            points = 50
-            moral_compass_points["value"] += points
-            feedback.append(f"\n🏆 +{points} Moral Compass points!")
-        
-        # Store prioritization
-        for stakeholder in ["Defendants", "Families", "Judges", "Community Advocates", "NGOs"]:
-            stakeholder_priorities.append(stakeholder)
-        
-        # Update ChallengeManager if available (stakeholder engagement = task F)
-        if challenge_manager and score >= 3:
-            challenge_manager.answer_question('F', 'F1', 1)
-        
-        explanation = "\n\n**Why certain groups are critical:**\n"
-        explanation += "- **Defendants & Community Advocates:** Directly affected by AI decisions\n"
-        explanation += "- **Families:** Bear consequences of incorrect predictions\n"
-        explanation += "- **Judges:** Need to trust the system they're using\n"
-        explanation += "- **NGOs:** Provide oversight and advocacy\n"
-        
-        result = "\n".join(feedback) + explanation
-        
-        # Trigger sync if points were awarded
-        if points > 0:
-            sync_result = sync_moral_state()
-            result += f"\n\n{sync_result['status']}"
-        
-        return result
-
-    def check_stakeholder_question(answer):
-        """Check stakeholder identification question."""
-        if answer == "Defendants and community members directly affected by the system":
-            moral_compass_points["value"] += 50
-            return "✓ Correct! Those directly affected by AI decisions must have a voice in system design and oversight.\n\n🏆 +50 Moral Compass points!"
-        else:
-            return "✗ Not quite. Think about who faces the real-world consequences of AI predictions."
-
-    def check_inclusion_question(answer):
-        """Check inclusion definition question."""
-        if answer == "Actively involving diverse stakeholders in design, development, and oversight":
-            moral_compass_points["value"] += 50
-            return "✓ Correct! Inclusion means bringing diverse voices into the process, not just serving diverse populations.\n\n🏆 +50 Moral Compass points!"
-        else:
-            return "✗ Not quite. Inclusion is about participation and voice, not just access."
-
-    def reveal_final_score():
-        """Reveal final Moral Compass score with growth visualization."""
-        user_stats = _get_user_stats()
-        total_score = moral_compass_points["value"]
-        
-        # Simulated score progression through activities
-        activity7_score = min(400, int(total_score * 0.3))
-        activity8_score = min(800, int(total_score * 0.6))
-        activity9_score = total_score
-        
-        report = f"""
-# 🎊 Final Moral Compass Score Reveal
-
-## Your Justice & Equity Journey
-
-### Score Progression
-- **Activity 7 (Bias Detective):** {activity7_score} points
-- **Activity 8 (Fairness Fixer):** {activity8_score} points  
-- **Activity 9 (Justice & Equity Upgrade):** {activity9_score} points
-
-### Total Moral Compass Score: {total_score} points
-
----
-
-## 🏆 Achievement Unlocked: **Justice & Equity Champion**
-
-You've demonstrated mastery of:
-- ✅ Expert fairness frameworks (OEIAC)
-- ✅ Bias detection and diagnosis
-- ✅ Technical fairness interventions
-- ✅ Representative data strategies
-- ✅ Accessibility and inclusion
-- ✅ Stakeholder engagement
-
----
-
-## Team Leaderboard
-"""
-        
-        if user_stats["is_signed_in"]:
-            report += f"""
-**Your Team:** {user_stats["team_name"]}
-**Username:** {user_stats["username"]}
-**Your Score:** {total_score} points
-
-*Check the full leaderboard in the Model Building Game app to see team rankings!*
-"""
-        else:
-            report += """
-*Sign in to see your team ranking and compete on the leaderboard!*
-"""
-        
-        report += """
----
-
-## 🎖️ Badge Earned
-
-**Justice & Equity Champion**
-
-*Awarded for completing Activities 7, 8, and 9 with demonstrated understanding 
-of fairness principles, technical fixes, and systemic improvements.*
-"""
-        
-        return report
-
-    def generate_completion_certificate():
-        """Generate completion message with certificate unlock."""
-        user_stats = _get_user_stats()
-        
-        certificate = f"""
-# 🎓 Certificate of Completion
-
-## Ethics at Play: Justice & Equity Challenge
-
-**This certifies that**
-
-### {user_stats["username"]}
-
-**has successfully completed Activities 7, 8, and 9:**
-
-- 🕵️ **Bias Detective:** Diagnosed bias in AI systems using expert frameworks
-- 🔧 **Fairness Fixer:** Applied technical fairness interventions
-- 🌟 **Justice & Equity Upgrade:** Elevated the system through inclusion and accessibility
-
-**Final Moral Compass Score:** {moral_compass_points["value"]} points
-
-**Team:** {user_stats["team_name"]}
-
----
-
-### Skills Demonstrated:
-- Expert fairness evaluation (OEIAC framework)
-- Demographic bias identification
-- Group-level disparity analysis
-- Feature and proxy removal
-- Representative data strategy
-- Continuous improvement planning
-- Accessibility enhancement
-- Stakeholder engagement
-
-**Date Completed:** [Auto-generated in production]
-
----
-
-### Next Steps:
-Proceed to **Section 10** to continue your Ethics at Play journey!
-"""
-        
-        return certificate
-
-    # Create the Gradio app
-    with gr.Blocks(
-        title="Activity 9: Justice & Equity Upgrade",
-        theme=gr.themes.Soft(primary_hue=theme_primary_hue)
-    ) as app:
-        gr.Markdown("# 🌟 Activity 9: Justice & Equity Upgrade")
-        gr.Markdown(
-            """
-            **Objective:** Elevate fairness improvements by addressing inclusion, accessibility, 
-            stakeholder engagement, and structural justice.
-            
-            **Your Role:** You're now a **Justice Architect**.
-            
-            **Progress:** Activity 9 of 10 — Elevate the System
-            
-            **Estimated Time:** 8–10 minutes
-            """
+        demo.load(
+            handle_load, None,
+            [username_state, token_state, team_state, loader_col, main_app_col, dash_output, lb_output]
         )
-        
-        # Moral Compass widget with Force Sync
-        with gr.Row():
-            with gr.Column(scale=3):
-                moral_compass_display = gr.HTML(
-                    get_moral_compass_widget_html(
-                        local_points=0,
-                        server_score=None,
-                        is_synced=False
-                    )
-                )
-            with gr.Column(scale=1):
-                force_sync_btn = gr.Button("Force Sync", variant="secondary", size="sm")
-                sync_status = gr.Markdown("")
-        
-        # Force Sync handler
-        def handle_force_sync():
-            sync_result = sync_moral_state(override=True)
-            return sync_result['widget_html'], sync_result['status']
-        
-        force_sync_btn.click(
-            fn=handle_force_sync,
-            outputs=[moral_compass_display, sync_status]
-        )
-        
-        gr.Markdown(
-            """
-            ### Quick Recap
-            
-            In Activities 7 & 8, you addressed **technical fairness**:
-            - Removed biased features
-            - Eliminated proxy variables  
-            - Created representative data guidelines
-            
-            Now, let's elevate to **systemic justice** through inclusion and accessibility.
-            """
-        )
-        
-        # Section 9.2: Access & Inclusion Makeover
-        with gr.Tab("9.2 Access & Inclusion"):
-            gr.Markdown(
-                """
-                ## Access & Inclusion Makeover
-                
-                **Principles:**
-                - **Equal Opportunity of Access:** Everyone can use the system
-                - **Inclusion and Diversity:** Diverse voices shape the system
-                
-                ### 📚 Real-World Example: Court Interface Multilanguage Support
-                
-                <details>
-                <summary><b>Click to expand: Barcelona Court System Case Study</b></summary>
-                
-                **Scenario:** A court in Barcelona implemented an AI risk assessment tool but provided 
-                the interface only in Spanish. 
-                
-                **Problem:** 
-                - Many defendants spoke primarily Catalan or were immigrants with limited Spanish
-                - Unable to understand the AI's reasoning or contest decisions
-                - Violated equal access principles
-                
-                **Solution:**
-                - Added Catalan, Spanish, and English interfaces
-                - Included plain-language summaries of technical terms
-                - Provided audio explanations for low-literacy users
-                
-                **Outcome:**
-                - 40% increase in defendants able to understand their risk scores
-                - Reduced appeals due to miscommunication
-                - Improved trust in the justice system
-                
-                </details>
-                
-                ---
-                
-                ### Accessibility Features
-                
-                Select features to add:
-                """
-            )
-            
-            multilang_toggle = gr.Checkbox(label="Multi-language support (Catalan, Spanish, English)", value=False)
-            plaintext_toggle = gr.Checkbox(label="Plain text summaries (non-technical language)", value=False)
-            screenreader_toggle = gr.Checkbox(label="Screen reader compatibility", value=False)
-            
-            accessibility_btn = gr.Button("Apply Accessibility Features", variant="primary")
-            accessibility_output = gr.Markdown("")
-            
-            def update_widget_after_accessibility(multilang, plaintext, screenreader):
-                result = apply_accessibility_features(multilang, plaintext, screenreader)
-                widget_html = get_moral_compass_widget_html(
-                    local_points=moral_compass_points["value"],
-                    server_score=server_moral_score["value"],
-                    is_synced=is_synced["value"]
-                )
-                return result, widget_html
-            
-            accessibility_btn.click(
-                fn=update_widget_after_accessibility,
-                inputs=[multilang_toggle, plaintext_toggle, screenreader_toggle],
-                outputs=[accessibility_output, moral_compass_display]
-            )
-            
-            gr.Markdown(
-                """
-                ### Diversity & Inclusion
-                
-                ### 📚 Case Study: Homogeneous vs Diverse Design Reviews
-                
-                <details>
-                <summary><b>Click to expand: Impact of Team Diversity</b></summary>
-                
-                **Scenario A - Homogeneous Team:**
-                - 5 data scientists, all from same demographic background
-                - Reviewed pretrial risk model
-                - Found model "looks good" - high accuracy on test set
-                - Deployed to production
-                
-                **Result:** 
-                - Within 3 months, community advocates identified severe racial bias
-                - Model was over-predicting risk for minority defendants
-                - Legal challenges filed; model withdrawn
-                
-                **Scenario B - Diverse Team:**
-                - Same 5 data scientists + 3 community advocates + 2 affected individuals + 1 civil rights lawyer
-                - Reviewed same pretrial risk model
-                - Identified 7 potential fairness issues before deployment
-                
-                **Result:**
-                - Addressed bias in training data
-                - Removed problematic proxy features
-                - Added fairness constraints
-                - Successful deployment with ongoing monitoring
-                
-                **Lesson:** Diverse perspectives catch blind spots that homogeneous teams miss.
-                
-                </details>
-                
-                ---
-                """
-            )
-            
-            team_diversity_toggle = gr.Checkbox(label="Diverse team composition (gender, ethnicity, expertise)", value=False)
-            community_toggle = gr.Checkbox(label="Community advisory board", value=False)
-            review_diversity_toggle = gr.Checkbox(label="Diverse review panel", value=False)
-            
-            diversity_btn = gr.Button("Apply Diversity Improvements", variant="primary")
-            diversity_output = gr.Markdown("")
-            
-            def update_widget_after_diversity(team_diversity, community_voices, diverse_review):
-                result = apply_diversity_improvements(team_diversity, community_voices, diverse_review)
-                widget_html = get_moral_compass_widget_html(
-                    local_points=moral_compass_points["value"],
-                    server_score=server_moral_score["value"],
-                    is_synced=is_synced["value"]
-                )
-                return result, widget_html
-            
-            diversity_btn.click(
-                fn=update_widget_after_diversity,
-                inputs=[team_diversity_toggle, community_toggle, review_diversity_toggle],
-                outputs=[diversity_output, moral_compass_display]
-            )
-            
-            gr.Markdown("### Before/After Comparison")
-            
-            compare_btn = gr.Button("Show System Transformation", variant="secondary")
-            compare_output = gr.Markdown("")
-            
-            compare_btn.click(
-                fn=visualize_improvements,
-                outputs=compare_output
-            )
-        
-        # Section 9.3: Stakeholder Mapping
-        with gr.Tab("9.3 Stakeholder Mapping"):
-            gr.Markdown(
-                """
-                ## Stakeholder Prioritization Map
-                
-                **Principle:** Affected community members must have a voice.
-                
-                ### 📊 Stakeholder Analysis Framework
-                
-                <details>
-                <summary><b>Click to expand: Power vs Impact vs Voice Matrix</b></summary>
-                
-                | Stakeholder Group | Power* | Impact** | Voice*** | Priority |
-                |-------------------|--------|----------|----------|----------|
-                | **Defendants** | Low | High | Low | **CRITICAL** |
-                | **Community Advocates** | Medium | High | Medium | **CRITICAL** |
-                | **Families** | Low | High | Low | **HIGH** |
-                | **Judges** | High | Medium | High | **HIGH** |
-                | **Data Scientists** | Medium | Low | High | **MEDIUM** |
-                | **NGOs** | Medium | Medium | Medium | **HIGH** |
-                | **System Administrators** | Medium | Low | Medium | **MEDIUM** |
-                
-                *Power = ability to influence system design  
-                **Impact = how much they're affected by system decisions  
-                ***Voice = current representation in decision-making
-                
-                **Key Insight:** Those with **high impact but low voice** (defendants, families) 
-                must be prioritized to achieve justice.
-                
-                </details>
-                
-                ---
-                
-                ### Exercise: Prioritize Stakeholders
-                
-                Assign each stakeholder to the appropriate priority level:
-                - **Critical:** Must be involved in all decisions
-                - **High:** Important voice in major decisions
-                - **Medium:** Should be consulted periodically
-                """
-            )
-            
-            judges_priority = gr.Radio(
-                choices=["Critical", "High", "Medium"],
-                label="Judges (use the system to make decisions):",
-                value=None
-            )
-            defendants_priority = gr.Radio(
-                choices=["Critical", "High", "Medium"],
-                label="Defendants (directly affected by predictions):",
-                value=None
-            )
-            families_priority = gr.Radio(
-                choices=["Critical", "High", "Medium"],
-                label="Families (indirectly affected):",
-                value=None
-            )
-            community_priority = gr.Radio(
-                choices=["Critical", "High", "Medium"],
-                label="Community Advocates (represent affected populations):",
-                value=None
-            )
-            ngos_priority = gr.Radio(
-                choices=["Critical", "High", "Medium"],
-                label="NGOs (provide oversight):",
-                value=None
-            )
-            
-            stakeholder_btn = gr.Button("Submit Prioritization", variant="primary")
-            stakeholder_output = gr.Markdown("")
-            
-            stakeholder_btn.click(
-                fn=prioritize_stakeholders,
-                inputs=[judges_priority, defendants_priority, families_priority, community_priority, ngos_priority],
-                outputs=stakeholder_output
-            ).then(
-                fn=lambda: f"## 🧭 Moral Compass Score: {moral_compass_points['value']} points",
-                outputs=moral_compass_display
-            )
-            
-            gr.Markdown("### Check-In Questions")
-            
-            stakeholder_question = gr.Radio(
-                choices=[
-                    "Technical experts and data scientists",
-                    "Government officials and administrators",
-                    "Defendants and community members directly affected by the system",
-                    "Only judges who use the system"
-                ],
-                label="Who should have the strongest voice in AI criminal justice systems?",
-                value=None
-            )
-            stakeholder_check_btn = gr.Button("Check Answer")
-            stakeholder_feedback = gr.Markdown("")
-            
-            stakeholder_check_btn.click(
-                fn=check_stakeholder_question,
-                inputs=stakeholder_question,
-                outputs=stakeholder_feedback
-            ).then(
-                fn=lambda: f"## 🧭 Moral Compass Score: {moral_compass_points['value']} points",
-                outputs=moral_compass_display
-            )
-            
-            inclusion_question = gr.Radio(
-                choices=[
-                    "Making sure the system works for everyone",
-                    "Hiring diverse employees",
-                    "Actively involving diverse stakeholders in design, development, and oversight",
-                    "Translating the interface into multiple languages"
-                ],
-                label="What does 'Inclusion' mean in the context of AI ethics?",
-                value=None
-            )
-            inclusion_check_btn = gr.Button("Check Answer")
-            inclusion_feedback = gr.Markdown("")
-            
-            inclusion_check_btn.click(
-                fn=check_inclusion_question,
-                inputs=inclusion_question,
-                outputs=inclusion_feedback
-            ).then(
-                fn=lambda: f"## 🧭 Moral Compass Score: {moral_compass_points['value']} points",
-                outputs=moral_compass_display
-            )
-        
-        # Section 9.4: Final Score Reveal
-        with gr.Tab("9.4 Final Score"):
-            gr.Markdown(
-                """
-                ## 🎊 Final Moral Compass Score Reveal
-                
-                See how you've grown from the start of Section 7 to now!
-                """
-            )
-            
-            reveal_btn = gr.Button("Reveal My Final Score", variant="primary", size="lg")
-            score_output = gr.Markdown("")
-            
-            reveal_btn.click(
-                fn=reveal_final_score,
-                outputs=score_output
-            )
-        
-        # Ethics Leaderboard Tab
-        with gr.Tab("Ethics Leaderboard"):
-            gr.Markdown(
-                """
-                ## 🏆 Ethics Leaderboard
-                
-                This leaderboard shows **combined ethical engagement + performance scores**,
-                different from the Model Building Game's accuracy-only leaderboard.
-                
-                **What's measured:**
-                - Your moral compass points (ethical decision-making)
-                - Your model accuracy (technical performance)
-                - Combined score = accuracy × normalized_moral_points
-                
-                **Difference from Model Game Leaderboard:**
-                - Model Game: Pure accuracy/performance
-                - Ethics Leaderboard: Holistic score (ethics + accuracy)
-                """
-            )
-            
-            leaderboard_display = gr.HTML("")
-            refresh_leaderboard_btn = gr.Button("Refresh Leaderboard", variant="secondary")
-            
-            def load_leaderboard():
-                return build_moral_leaderboard_html(
-                    highlight_username=user_stats.get("username"),
-                    include_teams=True
-                )
-            
-            # Load on tab open
-            refresh_leaderboard_btn.click(
-                fn=load_leaderboard,
-                outputs=leaderboard_display
-            )
-            
-            # Also load initially
-            app.load(fn=load_leaderboard, outputs=leaderboard_display)
-        
-        # Section 9.5: Completion
-        with gr.Tab("9.5 Completion"):
-            gr.Markdown(
-                """
-                ## 🎓 Activity 9 Complete!
-                
-                Generate your completion certificate and unlock the next section.
-                """
-            )
-            
-            certificate_btn = gr.Button("Generate Certificate", variant="primary", size="lg")
-            certificate_output = gr.Markdown("")
-            
-            certificate_btn.click(
-                fn=generate_completion_certificate,
-                outputs=certificate_output
-            )
-            
-            gr.Markdown(
-                """
-                ---
-                
-                ### 🎉 Congratulations!
-                
-                You've completed the **Justice & Equity Challenge** (Activities 7, 8, and 9).
-                
-                **What you've learned:**
-                - How to diagnose bias using expert frameworks
-                - Technical fairness interventions
-                - Representative data strategies
-                - Accessibility and inclusion principles
-                - Stakeholder engagement best practices
-                
-                **Next:** Continue to **Section 10** to complete your Ethics at Play journey!
-                """
-            )
 
-    return app
+    return demo
 
+def launch_certificate_app(share=False,
+                           server_port=8080,
+                           **kwargs):
+    app = create_certificate_app()
+    app.launch(share=share,
+               server_port=server_port,
+               **kwargs)
 
-def launch_justice_equity_upgrade_app(
-    share: bool = False,
-    server_name: str = None,
-    server_port: int = None,
-    theme_primary_hue: str = "indigo"
-) -> None:
-    """Convenience wrapper to create and launch the justice & equity upgrade app inline."""
-    app = create_justice_equity_upgrade_app(theme_primary_hue=theme_primary_hue)
-    # Use provided values or fall back to PORT env var and 0.0.0.0
-
-    if server_port is None:
-        server_port = int(os.environ.get("PORT", 8080))
-    app.launch(share=share, server_port=server_port)
+if __name__ == "__main__":
+    launch_certificate_app(share=False, debug=True, height=1000)
