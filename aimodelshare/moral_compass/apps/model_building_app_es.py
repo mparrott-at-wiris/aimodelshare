@@ -3708,9 +3708,9 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                 briefing_4_back = gr.Button("◀️ Atrás", size="lg")
                 briefing_4_next = gr.Button("Siguiente ▶️", variant="primary", size="lg")
 
-        # Slide 5: Card 4 (Controles de configuración — The "Brain" Settings)
+        # Slide 5: Card 4 (Control Knobs — The "Brain" Settings)
         with gr.Column(visible=False, elem_id="slide-5") as briefing_slide_5:
-            gr.Markdown("<h1 style='text-align:center;'>🎛️ Control Knobs — The \"Brain\" Settings</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🎛️ Controles — La configuración del \"cerebro\"</h1>")
             
             # --- FIX FOR SLIDE 5 ---
             # Combined all content into single gr.HTML()
@@ -3718,17 +3718,17 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                 """
                 <div class='slide-content'>
                     <div class='mock-ui-inner'>
-                        <p>To build your model, you will use Control Knobs to configure your Prediction Machine. The first two knobs allow you to choose a type of model and adjust how it learns patterns in data.</p>
+                        <p>Para construir tu sistema de IA, usarás controles para configurar tu Máquina de Predicción. Los dos primeros controles te permiten elegir la estrategia del modelo (el cerebro) y ajustar cómo aprende patrones a partir de los datos.</p>
                         <hr style='margin: 16px 0;'>
 
-                        <h3 style='margin-top:0;'>1. Model Strategy (Type of Model)</h3>
+                        <h3 style='margin-top:0;'>1. Estrategia del modelo (Tipo de modelo)</h3>
                         <div style='font-size: 1rem; margin-bottom:12px;'>
-                            <b>What it is:</b> The specific mathematical method the machine uses to find patterns.
+                            <b>Qué es:</b> El cerebro de tu Máquina de Predicción. Utiliza un método matemático específico —llamado algoritmo— para encontrar patrones en los datos. Una vez aprende de esos patrones, se convierte en un modelo listo para hacer su mejor predicción.
                         </div>
                         <div class='mock-ui-control-box'>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-on'>◉</span>
-                                <b>The Balanced Generalist:</b> A reliable, all-purpose algorithm. It provides stable results across most data.
+                                <b>El Generalista Equilibrado:</b> Aprende a partir de todos los datos y tiene en cuenta varios factores en cada decisión, lo que ayuda a obtener resultados coherentes en diferentes situaciones.
                             </p>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-off'>○</span>
