@@ -3795,7 +3795,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                             </p>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-off'>☐</span>
-                                <b>Datos demográficos:</b> Datos como la <i>raça</i> pueden ayudar al modelo a aprender, pero también pueden replicar sesgos humanos.
+                                <b>Datos demográficos:</b> Datos como la <i>raza</i> pueden ayudar al modelo a aprender, pero también pueden replicar sesgos humanos.
                 </p>
                             </p>
                         </div>
