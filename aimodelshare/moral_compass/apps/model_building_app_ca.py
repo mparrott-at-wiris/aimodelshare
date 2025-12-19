@@ -3718,7 +3718,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                 """
                 <div class='slide-content'>
                     <div class='mock-ui-inner'>
-                        <p>TPer construir el teu sistema d’IA, utilitzaràs controls per configurar la teva Màquina de Predicció. Els dos primers controls et permeten triar l’estratègia del model (el cervell) i ajustar com aprèn patrons a partir de les dades.</p>
+                        <p>Per construir el teu sistema d’IA, utilitzaràs controls per configurar la teva Màquina de Predicció. Els dos primers controls et permeten triar l’estratègia del model (el cervell) i ajustar com aprèn patrons a partir de les dades.</p>
                         <hr style='margin: 16px 0;'>
 
                         <h3 style='margin-top:0;'>1. Estratègia del Model (Tipus de model)</h3>
@@ -3736,7 +3736,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                             </p>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-off'>○</span>
-                                <b>El Cercador de Patrons Profunds:</b> Un model complex que detecta patrons amagats a les dades, però amb decisions més difícils d’explicar.
+                                <b>El Buscador de Patrons Profunds:</b> Un model complex que detecta patrons amagats a les dades, però amb decisions més difícils d’explicar.
                             </p>
                         </div>
 
@@ -3750,10 +3750,10 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                         <div style='margin-top: 16px; font-size: 1rem;'>
                             <ul style='list-style-position: inside;'>
                                 <li><b>Què és:</b> És el nivell de detall amb què el model aprèn a partir de les dades: si es fixa sobretot en patrons generals o també en casos molt específics.</li>
-                                <li><b>The Trade-off:</b>
+                                <li><b>L'equilibri:</b>
                                     <ul style='list-style-position: inside; margin-left: 20px;'>
-                                    <li><b>Baix (Level 1):</b> Aprèn principalment patrons generals de les dades.</li>
-                                    <li><b>Alt (Level 5):</b> Aprèn tant patrons generals com detalls molt fins.</li>
+                                    <li><b>Baix (Nivell 1):</b> Aprèn principalment patrons generals de les dades.</li>
+                                    <li><b>Alt (Nivell 5):</b> Aprèn tant patrons generals com detalls molt fins.</li>
                                     </ul>
                                 </li>
                             </ul>
