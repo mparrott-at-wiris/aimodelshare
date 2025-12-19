@@ -3696,7 +3696,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 """
                 <div class='slide-content'>
                     <div class='mock-ui-inner'>
-                        <p>Now that you have set up your prediction machine, you must decide what information the machine processes. These next knobs control the Inputs (Data).</p>
+                        <p>Now that you have set up your prediction machine, you must decide what information the AI system (the machine) processes. These next knobs control the Inputs (Data).</p>
                         <hr style='margin: 16px 0;'>
 
                         <h3 style='margin-top:0;'>3. Data Ingredients</h3>
@@ -3708,7 +3708,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                         <div class='mock-ui-control-box'>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-on'>☑</span>
-                                <b>Behavioral Inputs:</b> Data like <i>Juvenile Felony Count</i> may help the logic find valid risk patterns.
+                                <b>Behavioral Inputs:</b> Data like <i>Juvenile Felony Count</i> helps the AI system identify risk patterns based on facts.
                             </p>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-off'>☐</span>
@@ -3721,7 +3721,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
 
                         <h3>4. Data Size (Training Volume)</h3>
                         <div style='font-size: 1rem; margin-bottom:12px;'>
-                            <b>What it is:</b> The amount of historical cases the machine uses to learn patterns.
+                            <b>What it is:</b> The amount of historical cases the AI system uses to learn patterns.
                         </div>
                         
                         <div class='mock-ui-control-box'>
@@ -3731,7 +3731,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                             </p>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-off'>○</span>
-                                <b>Full (100%):</b> Maximum data processing. It takes longer to build, but gives the machine the best chance to calibrate its accuracy.
+                                <b>Full (100%):</b> Maximum data processing. It takes longer to build, but gives the AI system the best chance to calibrate its accuracy.
                             </p>
                         </div>
 
