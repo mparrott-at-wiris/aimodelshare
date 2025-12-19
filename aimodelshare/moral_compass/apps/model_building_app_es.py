@@ -3565,7 +3565,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                         <h3>La misión</h3>
                         <p>Crea un modelo de IA que ayude a los tribunales a tomar decisiones más acertadas. El modelo que utilizaste antes te daba recomendaciones imperfectas. Ahora tu tarea es construir un modelo nuevo que prediga el riesgo con mayor precisión y ofrezca a quienes juzgan información fiable para poder ser justos y justas.</p>
                         
-                        <h3>La competició</h3>
+                        <h3>La competición</h3>
                         <p>Para lograrlo, competirás con otras personas ingenieras. Formarás parte de un equipo de ingeniería que te ayudará en tu misión. Tus resultados se registrarán tanto de forma individual como colectiva en las clasificaciones en tiempo real.</p>
                     </div>
 
@@ -3674,7 +3674,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                     <div class='panel-box'>
                         <p>Ahora que ya conoces los componentes de un modelo, ¿cómo puedes construir uno mejor?</p>
                         <h3>Aquí tienes el secreto:</h3>
-                        <p>Los equipos de IA reales casi nunca aciertan a la primera. En su lugar, siguen un bucle continuo de experimentación: <strong>Provar, comprovar, aprender y repetir.</strong></p>
+                        <p>Los equipos de IA reales casi nunca aciertan a la primera. En su lugar, siguen un bucle continuo de experimentación: <strong>Probar, comprobar, aprender y repetir.</strong></p>
                         
                         <h3>El bucle de experimentación:</h3>
                         <ol style='list-style-position: inside;'>
@@ -3753,7 +3753,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                                 <li><b>El equilibrio:</b>
                                     <ul style='list-style-position: inside; margin-left: 20px;'>
                                     <li><b>Bajo (Nivel 1):</b> Aprende principalmente a partir de patrones generales de los datos.</li>
-                                    <li><b>Alto (Nivel 5):</b> Aprende tanto patrones generales como detalles muy finos..</li>
+                                    <li><b>Alto (Nivel 5):</b> Aprende tanto patrones generales como detalles muy finos.</li>
                                     </ul>
                                 </li>
                             </ul>
