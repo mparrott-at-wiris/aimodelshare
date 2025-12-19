@@ -3632,7 +3632,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                             </div>
                         </div>
                         
-                        <p>Com a persona enginyera a, no cal que escriguis codi complex des de zero. En lloc d'això, muntes aquesta màquina utilitzant tres components principals:</p>
+                        <p>Com a persona enginyera, no cal que escriguis codi complex des de zero. En lloc d'això, muntes aquesta màquina utilitzant tres components principals:</p>
                     </div>
 
                     <div class='mock-ui-box'>
