@@ -3710,7 +3710,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # Slide 5: Card 4 (Control Knobs — The "Brain" Settings)
         with gr.Column(visible=False, elem_id="slide-5") as briefing_slide_5:
-            gr.Markdown("<h1 style='text-align:center;'>🎛️ Control Knobs — The \"Brain\" Settings</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🎛️ Botons de control — La configuració del \"cervell\"</h1>")
             
             # --- FIX FOR SLIDE 5 ---
             # Combined all content into single gr.HTML()
@@ -3718,46 +3718,46 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                 """
                 <div class='slide-content'>
                     <div class='mock-ui-inner'>
-                        <p>To build your model, you will use Control Knobs to configure your Prediction Machine. The first two knobs allow you to choose a type of model and adjust how it learns patterns in data.</p>
+                        <p>TPer construir el teu sistema d’IA, utilitzaràs controls per configurar la teva Màquina de Predicció. Els dos primers controls et permeten triar l’estratègia del model (el cervell) i ajustar com aprèn patrons a partir de les dades.</p>
                         <hr style='margin: 16px 0;'>
 
-                        <h3 style='margin-top:0;'>1. Model Strategy (Type of Model)</h3>
+                        <h3 style='margin-top:0;'>1. Estratègia del Model (Tipus de model)</h3>
                         <div style='font-size: 1rem; margin-bottom:12px;'>
-                            <b>What it is:</b> The specific mathematical method the machine uses to find patterns.
+                            <b>Què és:</b> El cervell de la teva Màquina de Predicció. Utilitza un mètode matemàtic concret —anomenat algorisme— per trobar patrons a les dades. Quan aprèn d’aquests patrons, es converteix en un model preparat per fer la millor predicció possible.
                         </div>
                         <div class='mock-ui-control-box'>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-on'>◉</span>
-                                <b>The Balanced Generalist:</b> A reliable, all-purpose algorithm. It provides stable results across most data.
+                                <b>El Generalista Equilibrat:</b> Aprèn a partir de tot el conjunt de dades i combina diversos factors en cada decisió, cosa que ajuda a obtenir resultats coherents en diferents situacions.
                             </p>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-off'>○</span>
-                                <b>The Rule-Maker:</b> Creates strict "If... Then..." logic (e.g., If prior crimes > 2, then High Risk).
+                                <b>El Creador de Regles:</b> Utilitza regles clares del tipus “Si… aleshores…”, fàcils d’entendre però menys flexibles. (Per exemple: si hi ha delictes previs > 2, aleshores hi ha risc alt).
                             </p>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-off'>○</span>
-                                <b>The Deep Pattern-Finder:</b> A complex algorithm designed to detect subtle, hidden connections in the data.
+                                <b>El Cercador de Patrons Profunds:</b> Un model complex que detecta patrons amagats a les dades, però amb decisions més difícils d’explicar.
                             </p>
                         </div>
 
                         <hr style='margin: 24px 0;'>
 
-                        <h3>2. Model Complexity (Fitting Level)</h3>
+                        <h3>2. Complexitat del Model (Nivell d’ajust))</h3>
                         <div class='mock-ui-control-box' style='text-align: center;'>
-                            <p style='font-size: 1.1rem; margin:0;'>Range: Level 1 ─── ● ─── 10</p>
+                            <p style='font-size: 1.1rem; margin:0;'>Rang: Nivell 1 ─── ● ─── 10</p>
                         </div>
                         
                         <div style='margin-top: 16px; font-size: 1rem;'>
                             <ul style='list-style-position: inside;'>
-                                <li><b>What it is:</b> Tunes how tightly the machine fits its logic to find patterns in the data.</li>
+                                <li><b>Què és:</b> És el nivell de detall amb què el model aprèn a partir de les dades: si es fixa sobretot en patrons generals o també en casos molt específics.</li>
                                 <li><b>The Trade-off:</b>
                                     <ul style='list-style-position: inside; margin-left: 20px;'>
-                                    <li><b>Low (Level 1):</b> Captures only the broad, obvious trends.</li>
-                                    <li><b>High (Level 5):</b> Captures every tiny detail and variation.</li>
+                                    <li><b>Baix (Level 1):</b> Aprèn principalment patrons generals de les dades.</li>
+                                    <li><b>Alt (Level 5):</b> Aprèn tant patrons generals com detalls molt fins.</li>
                                     </ul>
                                 </li>
                             </ul>
-                            <p style='color:#b91c1c; font-weight:bold; margin-top:10px;'>Warning: Setting this too high causes the machine to "memorize" random, irrelevant details or random coincidences (noise) in the past data rather than learning the general rule.</p>
+                            <p style='color:#b91c1c; font-weight:bold; margin-top:10px;'>Avís: Si aquest valor és massa alt, el model pot “memoritzar” detalls aleatoris o coincidències sense importància (soroll) de les dades passades, en lloc d’aprendre la regla general.</p>
                         </div>
                     </div>
                 </div>
