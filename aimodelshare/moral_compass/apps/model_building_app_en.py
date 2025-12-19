@@ -3635,25 +3635,25 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 """
                 <div class='slide-content'>
                     <div class='mock-ui-inner'>
-                        <p>To build your model, you will use Control Knobs to configure your Prediction Machine. The first two knobs allow you to choose a type of model and adjust how it learns patterns in data.</p>
+                        <p>To build your AI system, you will use Control Knobs to configure your Prediction Machine. The first two knobs allow you to choose your Model Strategy (The Brain) and adjust how it learns patterns in data.</p>
                         <hr style='margin: 16px 0;'>
 
                         <h3 style='margin-top:0;'>1. Model Strategy (Type of Model)</h3>
                         <div style='font-size: 1rem; margin-bottom:12px;'>
-                            <b>What it is:</b> The specific mathematical method the machine uses to find patterns.
+                            <b>What it is:</b> The brain of your Prediction Machine. It uses a specific mathematical method—called an algorithm—to find patterns in data. Once it learns from these patterns, it becomes a Model ready to make its best guess.
                         </div>
                         <div class='mock-ui-control-box'>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-on'>◉</span>
-                                <b>The Balanced Generalist:</b> A reliable, all-purpose algorithm. It provides stable results across most data.
+                                <b>The Balanced Generalist:</b> Learns from the full dataset and combines multiple factors in each decision, which helps produce consistent results across different cases.
                             </p>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-off'>○</span>
-                                <b>The Rule-Maker:</b> Creates strict "If... Then..." logic (e.g., If prior crimes > 2, then High Risk).
+                                <b>The Rule-Maker:</b> Uses clear “If… then…” rules that are easy to understand but less flexible. (e.g., If prior crimes > 2, then High Risk).
                             </p>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-off'>○</span>
-                                <b>The Deep Pattern-Finder:</b> A complex algorithm designed to detect subtle, hidden connections in the data.
+                                <b>The Deep Pattern-Finder:</b> A complex model that finds hidden patterns in data, but its decisions are harder to explain.
                             </p>
                         </div>
 
@@ -3666,11 +3666,11 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                         
                         <div style='margin-top: 16px; font-size: 1rem;'>
                             <ul style='list-style-position: inside;'>
-                                <li><b>What it is:</b> Tunes how tightly the machine fits its logic to find patterns in the data.</li>
+                                <li><b>What it is:</b> It is the level of detail the model learns from the data: whether it focuses on general patterns or also on very specific cases.</li>
                                 <li><b>The Trade-off:</b>
                                     <ul style='list-style-position: inside; margin-left: 20px;'>
-                                    <li><b>Low (Level 1):</b> Captures only the broad, obvious trends.</li>
-                                    <li><b>High (Level 5):</b> Captures every tiny detail and variation.</li>
+                                    <li><b>Low (Level 1):</b> Learns mainly from general patterns in the data.</li>
+                                    <li><b>High (Level 5):</b> Learns from both general patterns and fine-grained details.</li>
                                     </ul>
                                 </li>
                             </ul>
