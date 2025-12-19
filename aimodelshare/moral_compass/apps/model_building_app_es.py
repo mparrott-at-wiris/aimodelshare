@@ -3817,7 +3817,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                                 <span class='mock-ui-radio-off'>○</span>
                                 <b>Completo (100%):</b> Procesamiento máximo de datos. Tarda más en construirse, pero da al sistema de IA la mejor oportunidad para calibrar su precisión.
                 </p>
-                            </p>
+                            
                         </div>
 
                     </div>
