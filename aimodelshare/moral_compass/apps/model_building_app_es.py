@@ -3771,7 +3771,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # Slide 6: Card 5 (Control Knobs — The "Data" Settings)
         with gr.Column(visible=False, elem_id="slide-6") as briefing_slide_6:
-            gr.Markdown("<h1 style='text-align:center;'>🎛️ Control Knobs — The \"Data\" Settings</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🎛️ Controles — La configuración de los \"datos\"</h1>")
 
             # --- FIX FOR SLIDE 6 ---
             # Combined all content into single gr.HTML()
@@ -3779,42 +3779,44 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                 """
                 <div class='slide-content'>
                     <div class='mock-ui-inner'>
-                        <p>Now that you have set up your prediction machine, you must decide what information the machine processes. These next knobs control the Inputs (Data).</p>
+                        <p>Ahora que has configurado tu máquina de predicción, debes decidir qué información procesará. Estos selectores controlan los datos de entrada del sistema de IA.</p>
                         <hr style='margin: 16px 0;'>
 
-                        <h3 style='margin-top:0;'>3. Data Ingredients</h3>
+                        <h3 style='margin-top:0;'>3. Variables de datos</h3>
                         <div style='font-size: 1rem; margin-bottom:12px;'>
-                            <b>What it is:</b> The specific data points the machine is allowed to access.
-                            <br><b>Why it matters:</b> The machine's output depends largely on its input.
+                            <b>Qué es:</b> Los puntos de datos específicos a los que el sistema de IA (la máquina) tiene permiso para acceder.
+                            <br><b>Por qué es importante:</b> El resultado del sistema depende totalmente de la información que recibe.
                         </div>
                         
                         <div class='mock-ui-control-box'>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-on'>☑</span>
-                                <b>Behavioral Inputs:</b> Data like <i>Juvenile Felony Count</i> may help the logic find valid risk patterns.
+                                <b>Datos de comportamiento:</b> Información commo el <i>número de delitos juveniles</i> ayuda al sistema a identificar patrones de riesgo basados en hechos.
                             </p>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-off'>☐</span>
-                                <b>Demographic Inputs:</b> Data like <i>Race</i> may help the model learn, but they may also replicate human bias.
+                                <b>Datos demográficos:</b> Datos como la <i>raça</i> pueden ayudar al modelo a aprender, pero también pueden replicar sesgos humanos.
+                </p>
                             </p>
                         </div>
-                        <p style='margin-top:10px;'><b>Your Job:</b> Check ☑ or uncheck ☐ the boxes to select the inputs to feed your model.</p>
+                        <p style='margin-top:10px;'><b>Tu tarea:</b> Marcar ☑ o Desmarcar ☐ las casillas para elegir qué información "alimentará" a tu modelo.</p>
 
                         <hr style='margin: 24px 0;'>
 
-                        <h3>4. Data Size (Training Volume)</h3>
+                        <h3>4. Volumen de datos (Volumen de entrenamiento)</h3>
                         <div style='font-size: 1rem; margin-bottom:12px;'>
-                            <b>What it is:</b> The amount of historical cases the machine uses to learn patterns.
+                            <b>What it is:</b> La cantidad de casos históricos que el sistema de IA utiliza para aprender patrones.
                         </div>
                         
                         <div class='mock-ui-control-box'>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-on'>◉</span>
-                                <b>Small (20%):</b> Fast processing. Great for running quick tests to check your settings.
+                                <b>Pequeño (20%):</b> Procesamiento rápido. Ideal para hacer pruebas rápidas y revisar tu configuración.
                             </p>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-off'>○</span>
-                                <b>Full (100%):</b> Maximum data processing. It takes longer to build, but gives the machine the best chance to calibrate its accuracy.
+                                <b>Completo (100%):</b> Procesamiento máximo de datos. Tarda más en construirse, pero da al sistema de IA la mejor oportunidad para calibrar su precisión.
+                </p>
                             </p>
                         </div>
 
