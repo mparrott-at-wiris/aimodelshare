@@ -3732,32 +3732,32 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                             </p>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-off'>○</span>
-                                <b>The Rule-Maker:</b> Creates strict "If... Then..." logic (e.g., If prior crimes > 2, then High Risk).
+                                <b>El Creador de Reglas:</b> Utiliza reglas claras del tipo “Si… entonces…”, fáciles de entender pero menos flexibles (Por ejemplo: si hay delitos previos > 2, entonces hay riesgo alto).
                             </p>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-off'>○</span>
-                                <b>The Deep Pattern-Finder:</b> A complex algorithm designed to detect subtle, hidden connections in the data.
+                                <b>El Buscador de Patrones Profundos:</b> Un modelo complejo que encuentra patrones ocultos en los datos, pero cuyas decisiones son más difíciles de explicar.
                             </p>
                         </div>
 
                         <hr style='margin: 24px 0;'>
 
-                        <h3>2. Model Complexity (Fitting Level)</h3>
+                        <h3>2. Complejidad del Modelo (Nivel de ajuste)</h3>
                         <div class='mock-ui-control-box' style='text-align: center;'>
-                            <p style='font-size: 1.1rem; margin:0;'>Range: Level 1 ─── ● ─── 10</p>
+                            <p style='font-size: 1.1rem; margin:0;'>Rango: Nivel 1 ─── ● ─── 10</p>
                         </div>
                         
                         <div style='margin-top: 16px; font-size: 1rem;'>
                             <ul style='list-style-position: inside;'>
-                                <li><b>What it is:</b> Tunes how tightly the machine fits its logic to find patterns in the data.</li>
-                                <li><b>The Trade-off:</b>
+                                <li><b>Qué es:</b> Es el nivel de detalle con el que el modelo aprende a partir de los datos: si se centra en patrones generales o también en casos muy específicos.</li>
+                                <li><b>El equilibrio:</b>
                                     <ul style='list-style-position: inside; margin-left: 20px;'>
-                                    <li><b>Low (Level 1):</b> Captures only the broad, obvious trends.</li>
-                                    <li><b>High (Level 5):</b> Captures every tiny detail and variation.</li>
+                                    <li><b>Bajo (Nivel 1):</b> Aprende principalmente a partir de patrones generales de los datos.</li>
+                                    <li><b>Alto (Nivel 5):</b> Aprende tanto patrones generales como detalles muy finos..</li>
                                     </ul>
                                 </li>
                             </ul>
-                            <p style='color:#b91c1c; font-weight:bold; margin-top:10px;'>Warning: Setting this too high causes the machine to "memorize" random, irrelevant details or random coincidences (noise) in the past data rather than learning the general rule.</p>
+                            <p style='color:#b91c1c; font-weight:bold; margin-top:10px;'>Aviso: Si este valor es demasiado alto, el modelo puede “memorizar” detalles aleatorios o coincidencias irrelevantes (ruido) de los datos pasados, en lugar de aprender la regla general.</p>
                         </div>
                     </div>
                 </div>
@@ -3766,8 +3766,8 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
             # --- END FIX ---
             
             with gr.Row():
-                briefing_5_back = gr.Button("◀️ Back", size="lg")
-                briefing_5_next = gr.Button("Next ▶️", variant="primary", size="lg")
+                briefing_5_back = gr.Button("◀️ Atrás", size="lg")
+                briefing_5_next = gr.Button("Siguiente ▶️", variant="primary", size="lg")
 
         # Slide 6: Card 5 (Control Knobs — The "Data" Settings)
         with gr.Column(visible=False, elem_id="slide-6") as briefing_slide_6:
