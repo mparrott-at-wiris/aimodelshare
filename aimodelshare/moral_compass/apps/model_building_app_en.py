@@ -3769,13 +3769,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                             <li><strong>Get Promoted as an Engineer & Unlock Tools:</strong> As you submit more models, you rise in rank and unlock better analysis tools:</li>
                         </ul>
                         
-                        <div style='text-align:center; font-weight:bold; font-size:1.2rem; color:#4f46e5; margin:16px 0;'>
-                        Trainee → Junior → Senior → Lead Engineer
-                        </div>
 
-                        <h3>Begin Your Mission</h3>
-                        <p>You are now ready. Use the experiment loop, get promoted, unlock all the tools, and find the best combination to get the highest score.</p>
-                        <p><strong>Remember: You've seen how these predictions affect real life decisions. Build accordingly.</strong></p>
                     </div>
                 </div>
                 """
