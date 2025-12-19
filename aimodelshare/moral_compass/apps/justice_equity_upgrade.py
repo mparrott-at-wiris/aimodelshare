@@ -620,7 +620,7 @@ def create_cert_handler(user_input_name, username_state, token, team_name):
     return gr.update(value=cert_html, visible=True), gr.update(value=share_html, visible=True)
 
 # --- 9. APP FACTORY ---
-def create_certificate_app(theme_primary_hue: str = "indigo"):
+def create_justice_equity_upgrade_app(theme_primary_hue: str = "indigo"):
     with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
         # States
         username_state = gr.State(value=None)
@@ -713,13 +713,13 @@ def create_certificate_app(theme_primary_hue: str = "indigo"):
 
     return demo
 
-def launch_certificate_app(share=False,
+def launch_justice_equity_upgrade_app(share=False,
                            server_port=8080,
                            **kwargs):
-    app = create_certificate_app()
+    app = create_justice_equity_upgrade_app()
     app.launch(share=share,
                server_port=server_port,
                **kwargs)
 
 if __name__ == "__main__":
-    launch_certificate_app(share=False, debug=True)
+    launch_justice_equity_upgrade_app(share=False, debug=True)
