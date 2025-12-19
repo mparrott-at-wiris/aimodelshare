@@ -3503,110 +3503,110 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # Slide 1: From Understanding to Building (Retained as transition)
         with gr.Column(visible=True, elem_id="slide-1") as briefing_slide_1:
-            gr.Markdown("<h1 style='text-align:center;'>🔄 From Understanding to Building</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🔄 De la teoria a la práctica</h1>")
             gr.HTML(
                 """
                 <div class='slide-content'>
                 <div class='panel-box'>
-                <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>Great progress! You've now:</h3>
+                <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>¡Buen trabajo! Ahora ya has conseguido:</h3>
 
                 <ul style='list-style: none; padding-left: 0; margin-top: 24px; margin-bottom: 24px;'>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
                         <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Made tough decisions as a judge using AI predictions
+                        Tomar decisiones difíciles como juez o jueza utilizando predicciones de IA
                     </li>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
                         <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Learned about false positives and false negatives
+                        Aprender qué son los falsos positivos (falsas alarmas) y los falsos negativos (alertas ignoradas)
                     </li>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
                         <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Understood how AI works:
+                        Entender los principios básicos de cómo funciona la IA:
                     </li>
                 </ul>
 
                 <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
                     <div style='display:inline-block; background:#dbeafe; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#0369a1;'>INPUT</h3>
+                        <h3 style='margin:0; color:#0369a1;'>ENTRADA</h3>
                     </div>
                     <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
                     <div style='display:inline-block; background:#fef3c7; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#92400e;'>MODEL</h3>
+                        <h3 style='margin:0; color:#92400e;'>MODELO</h3>
                     </div>
                     <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
                     <div style='display:inline-block; background:#f0fdf4; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#15803d;'>OUTPUT</h3>
+                        <h3 style='margin:0; color:#15803d;'>RESULTADO</h3>
                     </div>
                 </div>
 
                 <hr style='margin: 24px 0; border-top: 2px solid #c7d2fe;'>
 
-                <h3 style='font-size: 1.5rem; text-align:center;'>Now it's time to step into the shoes of an AI Engineer.</h3>
+                <h3 style='font-size: 1.5rem; text-align:center;'>Ahora ha llegado el momento de ponerte en la piel de una persona ingeniera de IA.</h3>
                 <p style='font-size: 1.1rem; text-align:center; margin-top: 12px;'>
-                    <strong>Your New Challenge:</strong> Build AI models that are more accurate than the one you used as a judge.
+                    <strong>Tu nuevo reto:</strong> Crear modelos de IA que sean más precisos que el que utilizaste en el rol de juzgar casos.
                 </p>
                 <p style='font-size: 1.1rem; text-align:center; margin-top: 12px;'>
-                    Remember: You experienced firsthand how AI predictions affect real people's lives. Use that knowledge to build something better.
+                    Recuerda: has vivido en primera persona cómo las predicciones de la IA afectan la vida real de las personas. Usa ese conocimiento para construir algo mejor.
                 </p>
                 </div>
                 </div>
                 """
             )
-            briefing_1_next = gr.Button("Next ▶️", variant="primary", size="lg")
+            briefing_1_next = gr.Button("Siguiente ▶️", variant="primary", size="lg")
 
         # Slide 2: Card 1 (Your Engineering Mission)
         with gr.Column(visible=False, elem_id="slide-2") as briefing_slide_2:
-            gr.Markdown("<h1 style='text-align:center;'>📋 Your Mission - Build Better AI</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>📋 Tu misión - Construir una IA mejor</h1>")
             
             gr.HTML(
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <h3>The Mission</h3>
-                        <p>Build an AI model that helps judges make better decisions. The model you used previously gave you imperfect advice. Your job now is to build a new model that predicts risk more accurately, providing judges with the reliable insights they need to be fair.</p>
+                        <h3>La misión</h3>
+                        <p>Crea un modelo de IA que ayude a los tribunales a tomar decisiones más acertadas. El modelo que utilizaste antes te daba recomendaciones imperfectas. Ahora tu tarea es construir un modelo nuevo que prediga el riesgo con mayor precisión y ofrezca a quienes juzgan información fiable para poder ser justos y justas.</p>
                         
-                        <h3>The Competition</h3>
-                        <p>To do this, you will compete against other engineers! To help you in your mission, you will join an engineering team. Your results will be tracked both individually and as a group in the Live Standings Leaderboards.</p>
+                        <h3>La competición</h3>
+                        <p>Para lograrlo, competirás con otras personas ingenieras. Formarás parte de un equipo de ingeniería que te ayudará en tu misión. Tus resultados se registrarán tanto de forma individual como colectiva en las clasificaciones en tiempo real.</p>
                     </div>
 
                     <div class='leaderboard-box' style='max-width: 600px; margin: 16px auto; text-align: center; padding: 16px;'>
-                        <p style='font-size: 1.1rem; margin:0;'>You will join a team like...</p>
+                        <p style='font-size: 1.1rem; margin:0;'>Te unirás a un equipo como...</p>
                         <h3 style='font-size: 1.75rem; color: #6b7280; margin: 8px 0;'>
-                            🛡️ The Ethical Explorers
+                            🛡️ Los Exploradores Éticos
                         </h3>
                     </div>
 
                     <div class='mock-ui-box'>
-                        <h3>The Data Challenge</h3>
-                        <p>To compete, you have access to thousands of old case files. You have two distinct types of information:</p>
+                        <h3>El reto de los datos</h3>
+                        <p>Para competir, tendrás acceso a miles de expedientes de casos antiguos. Dispones de dos tipos de información:</p>
                         <ol style='list-style-position: inside; padding-left: 20px;'>
-                            <li><strong>Defendant Profiles:</strong> This is like what the judge saw at the time of arrest.
+                            <li><strong>Perfiles de personas presas:</strong> Es la información que tenía el tribunal en el momento de la detención.
                                 <ul style='margin-left: 20px; list-style-type: disc;'>
-                                    <li><em>Age, Number of Prior Offenses, Type of Charge.</em></li>
+                                    <li><em>Edad, número de antecedentes penales, tipo de cargo penal.</em></li>
                                 </ul>
                             </li>
-                            <li><strong>Historical Outcomes:</strong> This is what actually happened to those people later.
+                            <li><strong>Resultados históricos:</strong> Esto es lo que ocurrió con esas personas pasado un tiempo.
                                 <ul style='margin-left: 20px; list-style-type: disc;'>
-                                    <li><em>Did they re-offend within 2 years? (Yes/No)</em></li>
+                                    <li><em>¿Volvieron a cometer un delito en dos años? (Sí/No)</em></li>
                                 </ul>
                             </li>
                         </ol>
                         
-                        <h3>The Core Task</h3>
-                        <p>You need to teach your AI to look at the "Profiles" and accurately predict the "Outcome."</p>
-                        <p><strong>Ready to build something that could change how justice works?</strong></p>
+                        <h3>La tarea principal</h3>
+                        <p>Debes enseñar a tu modelo de IA a analizar los "perfiles" y predecir con precisión el "resultado".</p>
+                        <p><strong>¿Te animas a construir algo que podría cambiar la manera en que funciona la justicia?</strong></p>
                     </div>
                 </div>
                 """
             )
             
             with gr.Row():
-                briefing_2_back = gr.Button("◀️ Back", size="lg")
-                briefing_2_next = gr.Button("Next ▶️", variant="primary", size="lg")
+                briefing_2_back = gr.Button("◀️ Atrás", size="lg")
+                briefing_2_next = gr.Button("Siguiente ▶️", variant="primary", size="lg")
 
         # Slide 3: Card 2 (What is a "Model"?)
         with gr.Column(visible=False, elem_id="slide-3") as briefing_slide_3:
-            gr.Markdown("<h1 style='text-align:center;'>🧠 What is a \"Model\"?</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🧠 ¿Qué es un sistema de IA"?</h1>")
             
             # --- FIX FOR SLIDE 3 ---
             # Combined all content into single gr.HTML()
@@ -3614,44 +3614,44 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <p>Before we start competing, let's break down exactly what you are building.</p>
-                        <h3>Think of a Model as a "Prediction Machine."</h3>
-                        <p>You already know the flow:</p>
+                        <p>Antes de empezar a competir, veamos con claridad qué es exactamente lo que vas a construir.</p>
+                        <h3>Piensa en un sistema de IA como una "Máquina de Predicción".</h3>
+                        <p>Ya conoces el flujo:</p>
                         
                         <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
                             <div style='display:inline-block; background:#dbeafe; padding:12px 16px; border-radius:8px; margin:4px;'>
-                                <h3 style='margin:0; color:#0369a1;'>INPUT</h3>
+                                <h3 style='margin:0; color:#0369a1;'>ENTRADA</h3>
                             </div>
                             <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
                             <div style='display:inline-block; background:#fef3c7; padding:12px 16px; border-radius:8px; margin:4px;'>
-                                <h3 style='margin:0; color:#92400e;'>MODEL</h3>
+                                <h3 style='margin:0; color:#92400e;'>MODELO</h3>
                             </div>
                             <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
                             <div style='display:inline-block; background:#f0fdf4; padding:12px 16px; border-radius:8px; margin:4px;'>
-                                <h3 style='margin:0; color:#15803d;'>OUTPUT</h3>
+                                <h3 style='margin:0; color:#15803d;'>SALIDA</h3>
                             </div>
                         </div>
                         
-                        <p>As an engineer, you don't need to write complex code from scratch. Instead, you assemble this machine using three main components.</p>
+                        <p>Como persona ingeniera, no necesitas escribir código complejo desde cero. En lugar de eso, vas a construir esta máquina combinando tres componentes principales.</p>
                     </div>
 
                     <div class='mock-ui-box'>
-                        <h3>The 3 Components:</h3>
-                        <p><strong>1. The Inputs (Data)</strong><br>
-                        The information you feed the machine.<br>
-                        <em>* Examples: Age, Prior Crimes, Charge Details.</em></p>
+                        <h3>Los tres componentes:</h3>
+                        <p><strong>1. La entrada (Datos)</strong><br>
+                        La información que le das a la máquina.<br>
+                        <em>* Ejemplos: edad, número de antecedentes penales, detalles del cargo penal.</em></p>
 
-                        <p><strong>2. The Model (Prediction Machine)</strong><br>
-                        The mathematical "brain" that looks for patterns in the inputs.<br>
-                        <em>* Examples: You will choose different "brains" that learn in different ways (e.g., simple rules vs. deep patterns).</em></p>
+                        <p><strong>2. El modelo (El cerebro)</strong><br>
+                        Este es el "cerebro" de tu máquina. Estudia los datos de entrada e intenta averiguar cómo se conectan las cosas para hacer una predicción. Puedes elegir diferentes estrategias de modelo (cerebros) para tu máquina.<br>
+                        <em>* Ejemplos: Algunos "cerebros" solo encuentran reglas sencillas (como marcar un correo si dice 'dinero gratis'). Otros tienen la capacidad de encontrar patrones complejos (como reconocer una cara específica en una multitud).</em></p>
 
-                        <p><strong>3. The Output (Prediction)</strong><br>
-                        The model's best guess.<br>
-                        <em>* Example: Risk Level: High or Low.</em></p>
+                        <p><strong>3. La salida (Predicción)</strong><br>
+                        Lo que el modelo intenta adivinar como mejor opción.<br>
+                        <em>* Ejemplo: Nivel de riesgo: Alto o Bajo.</em></p>
 
                         <hr>
                         
-                        <p><strong>How it learns:</strong> You show the model thousands of old cases (Inputs) + what actually happened (Outcomes). It studies them to find the rules, so it can make predictions on new cases it hasn't seen before.</p>
+                        <p><strong>Cómo aprende:</strong> Muestras al modelo miles de casos antiguos (Entradas) + lo que pasó realmente (Salidas). El modelo los estudia para encontrar las reglas y así poder hacer predicciones sobre casos nuevos que no ha visto antes.</p>
                     </div>
                 </div>
                 """
@@ -3659,12 +3659,12 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
             # --- END FIX ---
             
             with gr.Row():
-                briefing_3_back = gr.Button("◀️ Back", size="lg")
-                briefing_3_next = gr.Button("Next ▶️", variant="primary", size="lg")
+                briefing_3_back = gr.Button("◀️ Atrás", size="lg")
+                briefing_3_next = gr.Button("Siguiente ▶️", variant="primary", size="lg")
 
         # Slide 4: Card 3 (How Engineers Work — The Loop)
         with gr.Column(visible=False, elem_id="slide-4") as briefing_slide_4:
-            gr.Markdown("<h1 style='text-align:center;'>🔁 How Engineers Work — The Loop</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🔁 Cómo trabajan las personas ingenieras — El Bucle</h1>")
 
             # --- FIX FOR SLIDE 4 ---
             # Combined all content into single gr.HTML()
@@ -3672,32 +3672,32 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <p>Now that you know the components of a model, how do you build a better one?</p>
-                        <h3>Here is the secret:</h3>
-                        <p>Real AI teams almost never get it right on the first try. Instead, they follow a continuous loop of experimentation: <strong>Try, Test, Learn, Repeat.</strong></p>
+                        <p>Ahora que ya conoces los componentes de un modelo, ¿cómo puedes construir uno mejor?</p>
+                        <h3>Aquí tienes el secreto:</h3>
+                        <p>Los equipos de IA reales casi nunca aciertan a la primera. En su lugar, siguen un bucle continuo de experimentación: <strong>Probar, comprobar, aprender y repetir.</strong></p>
                         
-                        <h3>The Experiment Loop:</h3>
+                        <h3>El bucle de experimentación:</h3>
                         <ol style='list-style-position: inside;'>
-                            <li><strong>Build a Model:</strong> Assemble your components and get a starting prediction accuracy score.</li>
-                            <li><strong>Ask a Question:</strong> (e.g., "What happens if I change the 'Brain' type?")</li>
-                            <li><strong>Test & Compare:</strong> Did the score get better... or did it get worse?</li>
+                            <li><strong>Construye un modelo:</strong> Elige tus componentes y obtendrás una puntuación inicial de precisión.</li>
+                            <li><strong>Hazte una pregunta:</strong> (p. ej., "¿Qué pasa si cambio el 'Cerebro' —el tipo de modelo—?")</li>
+                            <li><strong>Comprueba y compara:</strong> ¿La puntuación ha mejorado... o ha empeorado?</li>
                         </ol>
                     </div>
 
-                    <h3>You will do the exact same thing in a competition!</h3>
+                    <h3>¡Harás exactamente lo mismo en la competición!</h3>
                     
                     <div class='step-visual'>
-                        <div class='step-visual-box'><b>1. Configure</b><br/>Use Control Knobs to select Strategy and Data.</div>
+                        <div class='step-visual-box'><b>1. Configura</b><br/>Usa los controles para seleccionar el tipo de modelo y los datos.</div>
                         <div class='step-visual-arrow'>→</div>
-                        <div class='step-visual-box'><b>2. Submit</b><br/>Click "Build & Submit" to train your model.</div>
+                        <div class='step-visual-box'><b>2. Envía</b><br/>Haz clic en "construir y enviar" para entrenar tu modelo.</div>
                         <div class='step-visual-arrow'>→</div>
-                        <div class='step-visual-box'><b>3. Analyze</b><br/>Check your rank on the Live Leaderboard.</div>
+                        <div class='step-visual-box'><b>3. Analiza</b><br/>Mira tu posición en la clasificación en tiempo real.</div>
                         <div class='step-visual-arrow'>→</div>
-                        <div class='step-visual-box'><b>4. Refine</b><br/>Change one setting and submit again!</div>
+                        <div class='step-visual-box'><b>4. Mejora</b><br/>Cambia una opción y vuelve a enviarlo.</div>
                     </div>
                     
                     <div class='leaderboard-box' style='text-align:center;'>
-                        <p><strong>Pro Tip:</strong> Try to change only one thing at a time. If you change too many things at once, you won't know what made your model better or worse!</p>
+                        <p><strong>Consejo:</strong> Intenta cambiar solo una cosa a la vez. Si cambias demasiadas cosas de golpe, ¡no sabrás qué es lo que ha hecho que tu modelo mejore o empeore!</p>
                     </div>
                 </div>
                 """
@@ -3705,12 +3705,12 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
             # --- END FIX ---
             
             with gr.Row():
-                briefing_4_back = gr.Button("◀️ Back", size="lg")
-                briefing_4_next = gr.Button("Next ▶️", variant="primary", size="lg")
+                briefing_4_back = gr.Button("◀️ Atrás", size="lg")
+                briefing_4_next = gr.Button("Siguiente ▶️", variant="primary", size="lg")
 
         # Slide 5: Card 4 (Control Knobs — The "Brain" Settings)
         with gr.Column(visible=False, elem_id="slide-5") as briefing_slide_5:
-            gr.Markdown("<h1 style='text-align:center;'>🎛️ Control Knobs — The \"Brain\" Settings</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🎛️ Controles — La configuración del \"cerebro\"</h1>")
             
             # --- FIX FOR SLIDE 5 ---
             # Combined all content into single gr.HTML()
@@ -3718,46 +3718,46 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                 """
                 <div class='slide-content'>
                     <div class='mock-ui-inner'>
-                        <p>To build your model, you will use Control Knobs to configure your Prediction Machine. The first two knobs allow you to choose a type of model and adjust how it learns patterns in data.</p>
+                        <p>Para construir tu sistema de IA, usarás controles para configurar tu Máquina de Predicción. Los dos primeros controles te permiten elegir la estrategia del modelo (el cerebro) y ajustar cómo aprende patrones a partir de los datos.</p>
                         <hr style='margin: 16px 0;'>
 
-                        <h3 style='margin-top:0;'>1. Model Strategy (Type of Model)</h3>
+                        <h3 style='margin-top:0;'>1. Estrategia del modelo (Tipo de modelo)</h3>
                         <div style='font-size: 1rem; margin-bottom:12px;'>
-                            <b>What it is:</b> The specific mathematical method the machine uses to find patterns.
+                            <b>Qué es:</b> El cerebro de tu Máquina de Predicción. Utiliza un método matemático específico —llamado algoritmo— para encontrar patrones en los datos. Una vez aprende de esos patrones, se convierte en un modelo listo para hacer su mejor predicción.
                         </div>
                         <div class='mock-ui-control-box'>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-on'>◉</span>
-                                <b>The Balanced Generalist:</b> A reliable, all-purpose algorithm. It provides stable results across most data.
+                                <b>El Generalista Equilibrado:</b> Aprende a partir de todos los datos y tiene en cuenta varios factores en cada decisión, lo que ayuda a obtener resultados coherentes en diferentes situaciones.
                             </p>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-off'>○</span>
-                                <b>The Rule-Maker:</b> Creates strict "If... Then..." logic (e.g., If prior crimes > 2, then High Risk).
+                                <b>El Creador de Reglas:</b> Utiliza reglas claras del tipo “Si… entonces…”, fáciles de entender pero menos flexibles (Por ejemplo: si hay delitos previos > 2, entonces hay riesgo alto).
                             </p>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-off'>○</span>
-                                <b>The Deep Pattern-Finder:</b> A complex algorithm designed to detect subtle, hidden connections in the data.
+                                <b>El Buscador de Patrones Profundos:</b> Un modelo complejo que encuentra patrones ocultos en los datos, pero cuyas decisiones son más difíciles de explicar.
                             </p>
                         </div>
 
                         <hr style='margin: 24px 0;'>
 
-                        <h3>2. Model Complexity (Fitting Level)</h3>
+                        <h3>2. Complejidad del Modelo (Nivel de ajuste)</h3>
                         <div class='mock-ui-control-box' style='text-align: center;'>
-                            <p style='font-size: 1.1rem; margin:0;'>Range: Level 1 ─── ● ─── 10</p>
+                            <p style='font-size: 1.1rem; margin:0;'>Rango: Nivel 1 ─── ● ─── 10</p>
                         </div>
                         
                         <div style='margin-top: 16px; font-size: 1rem;'>
                             <ul style='list-style-position: inside;'>
-                                <li><b>What it is:</b> Tunes how tightly the machine fits its logic to find patterns in the data.</li>
-                                <li><b>The Trade-off:</b>
+                                <li><b>Qué es:</b> Es el nivel de detalle con el que el modelo aprende a partir de los datos: si se centra en patrones generales o también en casos muy específicos.</li>
+                                <li><b>El equilibrio:</b>
                                     <ul style='list-style-position: inside; margin-left: 20px;'>
-                                    <li><b>Low (Level 1):</b> Captures only the broad, obvious trends.</li>
-                                    <li><b>High (Level 5):</b> Captures every tiny detail and variation.</li>
+                                    <li><b>Bajo (Nivel 1):</b> Aprende principalmente a partir de patrones generales de los datos.</li>
+                                    <li><b>Alto (Nivel 5):</b> Aprende tanto patrones generales como detalles muy finos.</li>
                                     </ul>
                                 </li>
                             </ul>
-                            <p style='color:#b91c1c; font-weight:bold; margin-top:10px;'>Warning: Setting this too high causes the machine to "memorize" random, irrelevant details or random coincidences (noise) in the past data rather than learning the general rule.</p>
+                            <p style='color:#b91c1c; font-weight:bold; margin-top:10px;'>Aviso: Si este valor es demasiado alto, el modelo puede “memorizar” detalles aleatorios o coincidencias irrelevantes (ruido) de los datos pasados, en lugar de aprender la regla general.</p>
                         </div>
                     </div>
                 </div>
@@ -3766,12 +3766,12 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
             # --- END FIX ---
             
             with gr.Row():
-                briefing_5_back = gr.Button("◀️ Back", size="lg")
-                briefing_5_next = gr.Button("Next ▶️", variant="primary", size="lg")
+                briefing_5_back = gr.Button("◀️ Atrás", size="lg")
+                briefing_5_next = gr.Button("Siguiente ▶️", variant="primary", size="lg")
 
         # Slide 6: Card 5 (Control Knobs — The "Data" Settings)
         with gr.Column(visible=False, elem_id="slide-6") as briefing_slide_6:
-            gr.Markdown("<h1 style='text-align:center;'>🎛️ Control Knobs — The \"Data\" Settings</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🎛️ Controles — La configuración de los \"datos\"</h1>")
 
             # --- FIX FOR SLIDE 6 ---
             # Combined all content into single gr.HTML()
@@ -3779,43 +3779,45 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                 """
                 <div class='slide-content'>
                     <div class='mock-ui-inner'>
-                        <p>Now that you have set up your prediction machine, you must decide what information the machine processes. These next knobs control the Inputs (Data).</p>
+                        <p>Ahora que has configurado tu máquina de predicción, debes decidir qué información procesará. Estos selectores controlan los datos de entrada del sistema de IA.</p>
                         <hr style='margin: 16px 0;'>
 
-                        <h3 style='margin-top:0;'>3. Data Ingredients</h3>
+                        <h3 style='margin-top:0;'>3. Variables de datos</h3>
                         <div style='font-size: 1rem; margin-bottom:12px;'>
-                            <b>What it is:</b> The specific data points the machine is allowed to access.
-                            <br><b>Why it matters:</b> The machine's output depends largely on its input.
+                            <b>Qué es:</b> Los puntos de datos específicos a los que el sistema de IA (la máquina) tiene permiso para acceder.
+                            <br><b>Por qué es importante:</b> El resultado del sistema depende totalmente de la información que recibe.
                         </div>
                         
                         <div class='mock-ui-control-box'>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-on'>☑</span>
-                                <b>Behavioral Inputs:</b> Data like <i>Juvenile Felony Count</i> may help the logic find valid risk patterns.
+                                <b>Datos de comportamiento:</b> Información commo el <i>número de delitos juveniles</i> ayuda al sistema a identificar patrones de riesgo basados en hechos.
                             </p>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-off'>☐</span>
-                                <b>Demographic Inputs:</b> Data like <i>Race</i> may help the model learn, but they may also replicate human bias.
+                                <b>Datos demográficos:</b> Datos como la <i>raza</i> pueden ayudar al modelo a aprender, pero también pueden replicar sesgos humanos.
+                </p>
                             </p>
                         </div>
-                        <p style='margin-top:10px;'><b>Your Job:</b> Check ☑ or uncheck ☐ the boxes to select the inputs to feed your model.</p>
+                        <p style='margin-top:10px;'><b>Tu tarea:</b> Marcar ☑ o Desmarcar ☐ las casillas para elegir qué información "alimentará" a tu modelo.</p>
 
                         <hr style='margin: 24px 0;'>
 
-                        <h3>4. Data Size (Training Volume)</h3>
+                        <h3>4. Volumen de datos (Volumen de entrenamiento)</h3>
                         <div style='font-size: 1rem; margin-bottom:12px;'>
-                            <b>What it is:</b> The amount of historical cases the machine uses to learn patterns.
+                            <b>What it is:</b> La cantidad de casos históricos que el sistema de IA utiliza para aprender patrones.
                         </div>
                         
                         <div class='mock-ui-control-box'>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-on'>◉</span>
-                                <b>Small (20%):</b> Fast processing. Great for running quick tests to check your settings.
+                                <b>Pequeño (20%):</b> Procesamiento rápido. Ideal para hacer pruebas rápidas y revisar tu configuración.
                             </p>
                             <p style='font-size: 1.1rem; margin: 8px 0;'>
                                 <span class='mock-ui-radio-off'>○</span>
-                                <b>Full (100%):</b> Maximum data processing. It takes longer to build, but gives the machine the best chance to calibrate its accuracy.
-                            </p>
+                                <b>Completo (100%):</b> Procesamiento máximo de datos. Tarda más en construirse, pero da al sistema de IA la mejor oportunidad para calibrar su precisión.
+                </p>
+                            
                         </div>
 
                     </div>
@@ -3830,7 +3832,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # Slide 7: Card 6 (Your Score as an Engineer)
         with gr.Column(visible=False, elem_id="slide-7") as briefing_slide_7:
-            gr.Markdown("<h1 style='text-align:center;'>🏆 Your Score as an Engineer</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🏆 Tu puntuación como ingeniero/a</h1>")
             
             # --- FIX FOR SLIDE 7 ---
             # Combined all content into single gr.HTML()
@@ -3838,27 +3840,20 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <p>You now know more about how to build a model. But how do we know if it works?</p>
+                        <p>Ahora que ya sabes cómo construir un modelo, es hora de poner a prueba tus habilidades. Aquí tienes cómo mediremos tu éxito y cómo podrás subir en la clasificación:</p>
 
-                        <h3>How You Are Scored</h3>
+                        <h3>Cómo se calcula tu puntuación</h3>
                         <ul style='list-style-position: inside;'>
-                            <li><strong>Prediction Accuracy:</strong> Your model is tested on <strong>Hidden Data</strong> (cases kept in a "secret vault" that your model has never seen). This simulates predicting the future to ensure you get a real-world prediction accuracy score.</li>
-                            <li><strong>The Leaderboard:</strong> Live Standings track your progress individually and as a team.</li>
+                            <li><strong>Precisión de la predicción:</strong> Tu modelo se pone a prueba con Datos Ocultos (casos guardados en una "caja fuerte secreta" que tu modelo nunca ha visto). Esto simula la predicción del futuro para garantizar que obtengas una puntuación de precisión realista.</li>
+                            <li><strong>La clasificación:</strong> Los marcadores en directo siguen tu progreso individualmente y en equipo.</li>
                         </ul>
 
-                        <h3>How You Improve: The Game</h3>
+                        <h3>Cómo puedes mejorar: El Juego</h3>
                         <ul style='list-style-position: inside;'>
-                            <li><strong>Compete to Improve:</strong> Refine your model to beat your personal best score.</li>
-                            <li><strong>Get Promoted as an Engineer & Unlock Tools:</strong> As you submit more models, you rise in rank and unlock better analysis tools:</li>
+                            <li><strong>Compite para mejorar:</strong> Refina tu modelo para superar tu mejor marca personal.</li>
+                            <li><strong>Progresa como persona ingeniera y desbloquea herramientas:</strong> A medida que envíes más modelos, ganarás posiciones y desbloquearás mejores herramientas de análisis.</li>
                         </ul>
                         
-                        <div style='text-align:center; font-weight:bold; font-size:1.2rem; color:#4f46e5; margin:16px 0;'>
-                        Trainee → Junior → Senior → Lead Engineer
-                        </div>
-
-                        <h3>Begin Your Mission</h3>
-                        <p>You are now ready. Use the experiment loop, get promoted, unlock all the tools, and find the best combination to get the highest score.</p>
-                        <p><strong>Remember: You've seen how these predictions affect real life decisions. Build accordingly.</strong></p>
                     </div>
                 </div>
                 """
