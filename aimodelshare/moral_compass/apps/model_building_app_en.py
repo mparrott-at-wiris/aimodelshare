@@ -3560,7 +3560,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
 
                         <p><strong>2. The Model ("The Brain")</strong><br>
                         This is the "brain" of your machine. It studies the inputs (data) and tries to figure out how things are connected to make a guess. There are different model strategies (brains) that you can choose for your machine.<br>
-                        <em>* Examples: Some "brains" or strategies only finds simple rules (like flagging an email if it says 'free money). Other strategies have the ability to find deep, complex patterns (like recognizing a specific person's face in a crowd.</em></p>
+                        <em>* Examples: Some "brains" or strategies only find simple rules (like flagging an email if it says 'free money). Other strategies have the ability to find deep, complex patterns (like recognizing a specific person's face in a crowd.</em></p>
 
                         <p><strong>3. The Output (Prediction)</strong><br>
                         The model's best guess.<br>
