@@ -3842,7 +3842,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
 
                         <h3>Com es calcula la teva puntuació/h3>
                         <ul style='list-style-position: inside;'>
-                            <li><strong>Precisió de la predicció:</strong> YEl teu model es posa a prova amb Dades Ocultes (casos guardats en una "caixa forta secreta" que el teu model mai ha vist). Això simula la predicció del futur per garantir que obtinguis una puntuació de precisió realista.</li>
+                            <li><strong>Precisió de la predicció:</strong> El teu model es posa a prova amb Dades Ocultes (casos guardats en una "caixa forta secreta" que el teu model mai ha vist). Això simula la predicció del futur per garantir que obtinguis una puntuació de precisió realista.</li>
                             <li><strong>La classificació:</strong> Els marcadors en directe fan un seguiment del teu progrés individualment i en equip.</li>
                         </ul>
 
