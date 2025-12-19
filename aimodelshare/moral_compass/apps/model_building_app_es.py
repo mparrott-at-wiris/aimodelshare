@@ -3606,7 +3606,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # Slide 3: Card 2 (What is a "Model"?)
         with gr.Column(visible=False, elem_id="slide-3") as briefing_slide_3:
-            gr.Markdown("<h1 style='text-align:center;'>🧠 ¿Qué es un sistema de IA"?</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🧠 ¿Qué es un sistema de IA?</h1>")
             
             # --- FIX FOR SLIDE 3 ---
             # Combined all content into single gr.HTML()
