@@ -3832,7 +3832,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # Slide 7: Card 6 (Your Score as an Engineer)
         with gr.Column(visible=False, elem_id="slide-7") as briefing_slide_7:
-            gr.Markdown("<h1 style='text-align:center;'>🏆 Your Score as an Engineer</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🏆 Tu puntuación como ingeniero/a</h1>")
             
             # --- FIX FOR SLIDE 7 ---
             # Combined all content into single gr.HTML()
@@ -3840,18 +3840,18 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <p>You now know more about how to build a model. But how do we know if it works?</p>
+                        <p>Ahora que ya sabes cómo construir un modelo, es hora de poner a prueba tus habilidades. Aquí tienes cómo mediremos tu éxito y cómo podrás subir en la clasificación:</p>
 
-                        <h3>How You Are Scored</h3>
+                        <h3>Cómo se calcula tu puntuación</h3>
                         <ul style='list-style-position: inside;'>
-                            <li><strong>Prediction Accuracy:</strong> Your model is tested on <strong>Hidden Data</strong> (cases kept in a "secret vault" that your model has never seen). This simulates predicting the future to ensure you get a real-world prediction accuracy score.</li>
-                            <li><strong>The Leaderboard:</strong> Live Standings track your progress individually and as a team.</li>
+                            <li><strong>Precisión de la predicción:</strong> Tu modelo se pone a prueba con Datos Ocultos (casos guardados en una "caja fuerte secreta" que tu modelo nunca ha visto). Esto simula la predicción del futuro para garantizar que obtengas una puntuación de precisión realista.</li>
+                            <li><strong>La clasificación:</strong> Los marcadores en directo siguen tu progreso individualmente y en equipo.</li>
                         </ul>
 
-                        <h3>How You Improve: The Game</h3>
+                        <h3>Cómo puedes mejorar: El Juego</h3>
                         <ul style='list-style-position: inside;'>
-                            <li><strong>Compete to Improve:</strong> Refine your model to beat your personal best score.</li>
-                            <li><strong>Get Promoted as an Engineer & Unlock Tools:</strong> As you submit more models, you rise in rank and unlock better analysis tools:</li>
+                            <li><strong>Compite para mejorar:</strong> Refina tu modelo para superar tu mejor marca personal.</li>
+                            <li><strong>Progresa como persona ingeniera y desbloquea herramientas:</strong> A medida que envíes más modelos, ganarás posiciones y desbloquearás mejores herramientas de análisis.</li>
                         </ul>
                         
                     </div>
