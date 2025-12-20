@@ -1601,7 +1601,7 @@ def render_leaderboard_card(data, username, team_name):
     """
 
 # --- 9. APP FACTORY (FAIRNESS FIXER) ---
-def create_fairness_fixer_app(theme_primary_hue: str = "indigo"):
+def create_fairness_fixer_ca_app(theme_primary_hue: str = "indigo"):
     with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
         # States
         username_state = gr.State(value=None)
@@ -1853,17 +1853,17 @@ def create_fairness_fixer_app(theme_primary_hue: str = "indigo"):
     return demo
 
 # --- 10. LAUNCHER ---
-def launch_fairness_fixer_app(
+def launch_fairness_fixer_ca_app(
     share: bool = False,
     server_name: str = "0.0.0.0",
     server_port: int = 8080,
     theme_primary_hue: str = "indigo",
     **kwargs
 ) -> None:
-    app = create_fairness_fixer_app(theme_primary_hue=theme_primary_hue)
+    app = create_fairness_fixer_ca_app(theme_primary_hue=theme_primary_hue)
     app.launch(share=share, server_name=server_name,
                server_port=server_port,
                **kwargs)
 
 if __name__ == "__main__":
-    launch_fairness_fixer_app(share=False, debug=True, height=1000)
+    launch_fairness_fixer_ca_app(share=False, debug=True, height=1000)
