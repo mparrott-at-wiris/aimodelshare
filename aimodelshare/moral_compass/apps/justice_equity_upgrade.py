@@ -643,11 +643,25 @@ def create_justice_equity_upgrade_app(theme_primary_hue: str = "indigo"):
         token_state = gr.State(value=None)
         team_state = gr.State(value=None)
 
-        # --- LOADING ---
+        # --- 1. LOADING STATE ---
         with gr.Column(visible=True, elem_id="app-loader") as loader_col:
             gr.HTML("<div style='text-align:center; padding:100px;'><h2>🏆 Verifying Credentials...</h2></div>")
 
-        # --- MAIN APP ---
+        # --- 2. AUTH FAILED STATE (New) ---
+        with gr.Column(visible=False, elem_id="auth-fail") as auth_fail_col:
+            gr.HTML(
+                """
+                <div style='text-align:center; padding:100px; color: #EF4444;'>
+                    <h2>🚫 Authentication Failed</h2>
+                    <p style='font-size: 1.2em;'>We could not verify your session.</p>
+                    <p>Please return to the login page and try again.</p>
+                    <br/>
+                    <a href='/login' style='background-color:#EF4444; color:white; padding:10px 20px; text-decoration:none; border-radius:5px;'>Go to Login</a>
+                </div>
+                """
+            )
+
+        # --- 3. MAIN APP STATE ---
         with gr.Column(visible=False) as main_app_col:
 
             # Module containers
@@ -703,28 +717,59 @@ def create_justice_equity_upgrade_app(theme_primary_hue: str = "indigo"):
         # --- LOAD HANDLER ---
         def handle_load(req: gr.Request):
             success, user, token = _try_session_based_auth(req)
+            
+            # --- FAILURE LOGIC ---
             if not success:
-                return None, None, None, gr.update(visible=True), gr.update(visible=False), "", ""
+                return (
+                    None, None, None,          # States
+                    gr.update(visible=False),  # Loader -> Hide
+                    gr.update(visible=True),   # Auth Fail -> SHOW
+                    gr.update(visible=False),  # Main App -> Hide
+                    "", ""                     # Dashboard/Leaderboard HTML
+                )
 
             # Fetch team/score data using the complex fetcher
-            os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
-            client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
-            
-            # Simple fetch to get team name
-            _, simple_team = fetch_user_history(user, token)
-            
-            # Complex fetch for leaderboard logic
-            data = get_leaderboard_data(client, user, simple_team)
-            
-            # Render App 2 Components for Module 0
-            dashboard_html = render_top_dashboard(data)
-            leaderboard_html = render_leaderboard_card(data, user, simple_team)
+            try:
+                os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
+                client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
 
-            return user, token, simple_team, gr.update(visible=False), gr.update(visible=True), dashboard_html, leaderboard_html
+                # Simple fetch to get team name
+                _, simple_team = fetch_user_history(user, token)
+
+                # Complex fetch for leaderboard logic
+                data = get_leaderboard_data(client, user, simple_team)
+
+                # Render App 2 Components for Module 0
+                dashboard_html = render_top_dashboard(data)
+                leaderboard_html = render_leaderboard_card(data, user, simple_team)
+            except Exception as e:
+                # Optional: Fallback if API fails even if Auth worked
+                print(f"API Error: {e}")
+                dashboard_html = "<div>Error loading data</div>"
+                leaderboard_html = ""
+
+            # --- SUCCESS LOGIC ---
+            return (
+                user, token, simple_team,  # States
+                gr.update(visible=False),  # Loader -> Hide
+                gr.update(visible=False),  # Auth Fail -> Hide
+                gr.update(visible=True),   # Main App -> SHOW
+                dashboard_html, leaderboard_html
+            )
 
         demo.load(
-            handle_load, None,
-            [username_state, token_state, team_state, loader_col, main_app_col, dash_output, lb_output]
+            handle_load, 
+            None,
+            [
+                username_state, 
+                token_state, 
+                team_state, 
+                loader_col, 
+                auth_fail_col, # Added this to outputs
+                main_app_col, 
+                dash_output, 
+                lb_output
+            ]
         )
 
     return demo
