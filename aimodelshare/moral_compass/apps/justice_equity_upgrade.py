@@ -585,16 +585,32 @@ def create_cert_handler(user_input_name, username_state, token, team_name):
     js_print_logic = """
     var cert = document.getElementById('cert-printable');
     var w = window.open('', '_blank');
-    w.document.write('<html><head><title>Certificate</title>');
+    w.document.write('<!DOCTYPE html><html><head><title>Certificate</title>');
     w.document.write('<style>');
-    w.document.write('body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: sans-serif; background: #fff; }');
-    w.document.write('@media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }');
+
+    // 1. Force the printer to Landscape mode and remove default browser margins
+    w.document.write('@page { size: landscape; margin: 0; }');
+
+    // 2. Center the content on the paper
+    w.document.write('body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; width: 100vw; overflow: hidden; }');
+
+    // 3. Ensure background colors and images print (essential for certificates)
+    w.document.write('* { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }');
+
+    // 4. Scale the certificate to fit within A4/Letter dimensions without distortion
+    w.document.write('#cert-printable { width: 100%; max-width: 100%; height: auto; max-height: 100vh; object-fit: contain; }');
+
     w.document.write('</style>');
     w.document.write('</head><body>');
+
+    // Inject the certificate HTML
     w.document.write(cert.outerHTML);
+
     w.document.write('</body></html>');
     w.document.close();
-    setTimeout(function() { w.print(); w.close(); }, 500);
+
+    // Wait briefly for styles/images to load, then print
+    setTimeout(function() { w.focus(); w.print(); w.close(); }, 500);
     """
 
     share_html = f"""
