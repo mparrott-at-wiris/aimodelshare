@@ -3866,7 +3866,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # Model Building App (Main Interface)
         with gr.Column(visible=False, elem_id="model-step") as model_building_step:
-            gr.Markdown("<h1 style='text-align:center;'>🛠️ Model Building Arena</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🛠️ Àrea de construcció de models</h1>")
             
             # Status panel for initialization progress - HIDDEN
             init_status_display = gr.HTML(value="", visible=False)
@@ -3877,7 +3877,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
               value=(
                   "<div class='init-banner'>"
                   "<p class='init-banner__text'>"
-                  "⏳ Initializing data & leaderboard… you can explore but must wait for readiness to submit."
+                  "⏳ Carregant les dades i la classificació… pots explorar, però has d’esperar que estigui llest per enviar."
                   "</p>"
                   "</div>"
               ),
@@ -3908,12 +3908,12 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
             feature_set_state = gr.State(DEFAULT_FEATURE_SET)
             data_size_state = gr.State(DEFAULT_DATA_SIZE)
 
-            rank_message_display = gr.Markdown("### Rank loading...")
+            rank_message_display = gr.Markdown("### Carregant la classificació...")
             with gr.Row():
                 with gr.Column(scale=1):
 
                     model_type_radio = gr.Radio(
-                        label="1. Model Strategy",
+                        label="1. Estratègia del model",
                         choices=[],
                         value=None,
                         interactive=False
@@ -3923,25 +3923,25 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                     gr.Markdown("---") # Separator
 
                     complexity_slider = gr.Slider(
-                        label="2. Model Complexity (1–10)",
+                        label="2. Complexitat del model (1–10)",
                         minimum=1, maximum=3, step=1, value=2,
-                        info="Higher values allow deeper pattern learning; very high values may overfit."
+                        info="Valors més alts aprenen més, però un excés pot empitjorar els resultats."
                     )
 
                     gr.Markdown("---") # Separator
 
                     feature_set_checkbox = gr.CheckboxGroup(
-                        label="3. Select Data Ingredients",
+                        label="3. Selecciona les variables de dades",
                         choices=FEATURE_SET_ALL_OPTIONS,
                         value=DEFAULT_FEATURE_SET,
                         interactive=False,
-                        info="More ingredients unlock as you rank up!"
+                        info="Desbloqueja més variables a mesura que puges de posició!"
                     )
 
                     gr.Markdown("---") # Separator
 
                     data_size_radio = gr.Radio(
-                        label="4. Data Size",
+                        label="4. Mida de les dades",
                         choices=[DEFAULT_DATA_SIZE],
                         value=DEFAULT_DATA_SIZE,
                         interactive=False
@@ -3952,13 +3952,13 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                     # Attempt tracker display
                     attempts_tracker_display = gr.HTML(
                         value="<div style='text-align:center; padding:8px; margin:8px 0; background:#f0f9ff; border-radius:8px; border:1px solid #bae6fd;'>"
-                        "<p style='margin:0; color:#0369a1; font-weight:600; font-size:1rem;'>📊 Attempts used: 0/10</p>"
+                        "<p style='margin:0; color:#0369a1; font-weight:600; font-size:1rem;'>📊 Intents utilitzats: 0/10</p>"
                         "</div>",
                         visible=True
                     )
 
                     submit_button = gr.Button(
-                        value="5. 🔬 Build & Submit Model",
+                        value="5. 🔬 Construir i enviar el model",
                         variant="primary",
                         size="lg"
                     )
@@ -3967,15 +3967,15 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                     gr.HTML(
                         """
                         <div class='leaderboard-box'>
-                            <h3 style='margin-top:0;'>🏆 Live Standings</h3>
-                            <p style='margin:0;'>Submit a model to see your rank.</p>
+                            <h3 style='margin-top:0;'>🏆 Classificació en directe</h3>
+                            <p style='margin:0;'>Envia un model per veure la teva posició.</p>
                         </div>
                         """
                     )
 
                     # KPI Card
                     submission_feedback_display = gr.HTML(
-                        "<p style='text-align:center; color:#6b7280; padding:20px 0;'>Submit your first model to get feedback!</p>"
+                        "<p style='text-align:center; color:#6b7280; padding:20px 0;'>Envia el teu primer model per obtenir una valoració!</p>"
                     )
                     
                     # Inline Login Components (initially hidden)
@@ -4001,23 +4001,23 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                     )
 
                     with gr.Tabs():
-                        with gr.TabItem("Team Standings"):
+                        with gr.TabItem("Classificació per equips"):
                             team_leaderboard_display = gr.HTML(
-                                "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Submit a model to see team rankings.</p>"
+                                "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Envia un model per veure la classificació dels equips.</p>"
                             )
-                        with gr.TabItem("Individual Standings"):
+                        with gr.TabItem("Classificació individual"):
                             individual_leaderboard_display = gr.HTML(
-                                "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Submit a model to see individual rankings.</p>"
+                                "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Envia un model per veure la classificació individual.</p>"
                             )
 
             # REMOVED: Ethical Reminder HTML Block
-            step_2_next = gr.Button("Finish & Reflect ▶️", variant="secondary")
+            step_2_next = gr.Button("Finalitza i reflexiona ▶️", variant="secondary")
 
         # Conclusion Step
         with gr.Column(visible=False, elem_id="conclusion-step") as conclusion_step:
-            gr.Markdown("<h1 style='text-align:center;'>✅ Section Complete</h1>")
-            final_score_display = gr.HTML(value="<p>Preparing final summary...</p>")
-            step_3_back = gr.Button("◀️ Back to Experiment")
+            gr.Markdown("<h1 style='text-align:center;'>✅ Secció completada</h1>")
+            final_score_display = gr.HTML(value="<p>Preparant el resum final...</p>")
+            step_3_back = gr.Button("◀️ Tornar a l'experiment")
 
         # --- Navigation Logic ---
         all_steps_nav = [
