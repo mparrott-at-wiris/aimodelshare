@@ -500,7 +500,7 @@ MODULES = [
                     <div class="ai-risk-container" style="background:linear-gradient(to right, #eff6ff, var(--body-background-fill)); border:2px solid #3b82f6;">
                         <h3 style="margin-top:0; color:#1e40af;">🏆 The Accuracy Competition</h3>
                         <p style="font-size:1.05rem; line-height:1.5; color:var(--body-text-color);">
-                            Your final mission is to compete against your classmates to build the <strong>most accurate model possible</strong>.
+                            Your final mission is to compete against your peers to build the <strong>most accurate model possible</strong>.
                             <br><br>
                             But remember: <strong>You must maintain your Moral Compass.</strong>
                             <br>
@@ -511,7 +511,7 @@ MODULES = [
                     <div style="text-align:center; margin-top:30px;">
                         <a href="#" target="_self" style="text-decoration:none;">
                             <div style="display:inline-block; padding:16px 32px; background:var(--color-accent); color:white; border-radius:50px; font-weight:800; font-size:1.2rem; box-shadow:0 4px 15px rgba(99, 102, 241, 0.4);">
-                                ENTER THE ARENA ▶️
+                                SCROLL DOWN TO ENTER THE ARENA ▶️
                             </div>
                         </a>
                         <p style="font-size:0.9rem; color:var(--body-text-color-subdued); margin-top:10px;">(Scroll down to the next activity to begin)</p>
@@ -630,6 +630,14 @@ def create_cert_handler(user_input_name, username_state, token, team_name):
             📸 <strong>Pro Tip:</strong> Click 'Print' and choose 'Save as PDF' to keep your certificate forever.
             <br>For Instagram, take a screenshot of the certificate above!
         </p>
+        <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
+        <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
+            🚀 CONTINUE TO THE FINAL COMPETITION
+        </p>
+        <p style="font-size:1.05rem; margin:0;">
+           Click <strong>Next</strong> to finish your certification.
+        </p>
+    </div> 
     </div>
     """
     
