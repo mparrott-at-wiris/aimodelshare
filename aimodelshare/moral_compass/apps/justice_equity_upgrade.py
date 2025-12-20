@@ -427,7 +427,7 @@ MODULES = [
                 <div class="slide-body">
                     <h2 class="slide-title" style="text-align:center;">📋 Your Engineering Resume</h2>
                     <p style="text-align:center; margin-bottom:20px;">
-                        You are now qualified to handle high-risk AI systems. Here is what you proved:
+                        You made a harmful AI system much more just. Congratulations! Here is what you improved:
                     </p>
 
                     <div style="display:grid; gap:15px;">
