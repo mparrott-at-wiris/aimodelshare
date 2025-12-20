@@ -2595,30 +2595,30 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
         attempt_cap_html = f"""
         <div class="final-conclusion-attempt-cap">
           <p style="margin:0;">
-            <b>📊 Attempt Limit Reached:</b> You used all {ATTEMPT_LIMIT} allowed submission attempts for this session.
-            We will open up submissions again after you complete some new activities next.
+            <b>📊 Límit d’intents assolit:</b> Has utilitzat tots els {ATTEMPT_LIMIT} intents d’enviament permesos per a aquesta sessió.
+            Podràs enviar més models un cop hagis algunes activitats noves.
           </p>
         </div>
         """
 
     return f"""
     <div class="final-conclusion-root">
-      <h1 class="final-conclusion-title">🎉 Engineering Phase Complete</h1>
+      <h1 class="final-conclusion-title">🎉 Fase d’enginyeria completada</h1>
       <div class="final-conclusion-card">
-        <h2 class="final-conclusion-subtitle">Your Performance Snapshot</h2>
+        <h2 class="final-conclusion-subtitle">Resum del teu rendiment</h2>
         <ul class="final-conclusion-list">
-          <li>🏁 <b>Best Accuracy:</b> {(best_score * 100):.2f}%</li>
-          <li>📊 <b>Rank Achieved:</b> {('#' + str(rank)) if rank > 0 else '—'}</li>
-          <li>🔁 <b>Submissions Made This Session:</b> {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li>
-          <li>🧗 <b>Improvement Over First Score This Session:</b> {(improvement * 100):+.2f}</li>
-          <li>🎖️ <b>Tier Progress:</b> {tier_line}</li>
-          <li>🧪 <b>Strong Predictors Used:</b> {len(strong_used)} ({', '.join(strong_used) if strong_used else 'None yet'})</li>
+          <li>🏁 <b>Millor precisió:</b> {(best_score * 100):.2f}%</li>
+          <li>📊 <b>Posició aconseguida:</b> {('#' + str(rank)) if rank > 0 else '—'}</li>
+          <li>🔁 <b>Submissions en aquesta sessió:</b> {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li>
+          <li>🧗 <b>Millora respecte a la primera puntuació d’aquesta sessió:</b> {(improvement * 100):+.2f}</li>
+          <li>🎖️ <b>Progrés de nivell:</b> {tier_line}</li>
+          <li>🧪 <b>Variables clau utilitzades:</b> {len(strong_used)} ({', '.join(strong_used) if strong_used else 'Encara cap'})</li>
         </ul>
 
         {tip_html}
 
         <div class="final-conclusion-ethics">
-          <p style="margin:0;"><b>Ethical Reflection:</b> {ethical_note}</p>
+          <p style="margin:0;"><b>Reflexió ètica:</b> {ethical_note}</p>
         </div>
 
         {attempt_cap_html}
@@ -2626,9 +2626,9 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
         <hr class="final-conclusion-divider" />
 
         <div class="final-conclusion-next">
-          <h2>➡️ Next: Real-World Consequences</h2>
-          <p>Scroll below this app to continue. You'll examine how models like yours shape judicial outcomes.</p>
-          <h1 class="final-conclusion-scroll">👇 SCROLL DOWN 👇</h1>
+          <h2>➡️ Següent: Conseqüències al món real</h2>
+          <p>Desplaça’t cap avall sota aquesta aplicació per continuar. Analitzaràs com models com el teu influeixen en els resultats judicials.</p>
+          <h1 class="final-conclusion-scroll">👇 DESPLAÇA’T CAP AVALL 👇</h1>
         </div>
       </div>
     </div>
