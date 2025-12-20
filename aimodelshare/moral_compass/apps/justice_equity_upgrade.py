@@ -152,71 +152,88 @@ css = """
 
 def render_top_dashboard(data):
     display_score = 0.0
-    count_completed = 0
     rank_display = "–"
     team_rank_display = "–"
+    
     if data:
         display_score = float(data.get("score", 0.0))
         rank_display = f"#{data.get('rank', '–')}"
         team_rank_display = f"#{data.get('team_rank', '–')}"
-        count_completed = len(data.get("completed_task_ids", []) or [])
-    
-    progress_pct = 100 
 
+    # Since this is the final certificate app, we assume 100% completion
+    
     return f"""
-    <div class="summary-box">
+    <div class="summary-box" style="text-align:center; padding-bottom: 20px;">
         <div class="summary-box-inner">
-            <div class="summary-metrics">
-                <div style="text-align:center;">
-                    <div class="label-text">Moral Compass Score</div>
-                    <div class="score-text-primary">🧭 {display_score:.3f}</div>
-                </div>
-                <div class="divider-vertical"></div>
-                <div style="text-align:center;">
-                    <div class="label-text">Team Rank</div>
-                    <div class="score-text-team">{team_rank_display}</div>
-                </div>
-                <div class="divider-vertical"></div>
-                <div style="text-align:center;">
-                    <div class="label-text">Global Rank</div>
-                    <div class="score-text-global">{rank_display}</div>
+            
+            <div style="margin-bottom: 20px;">
+                <h3 style="margin:0; color: var(--color-accent); text-transform: uppercase; letter-spacing: 2px;">
+                    🎉 Certification Complete 🎉
+                </h3>
+            </div>
+
+            <div style="margin-bottom: 25px; background: linear-gradient(to bottom, #f9fafb, #f3f4f6); border-radius: 12px; padding: 20px; border: 1px solid #e5e7eb;">
+                <div class="label-text" style="font-size: 1.1em; color: #6b7280;">Final Moral Compass Score</div>
+                <div style="font-size: 4em; font-weight: 800; color: var(--color-primary); line-height: 1.1; margin-top: 10px;">
+                    🧭 {display_score:.3f}
                 </div>
             </div>
-            <div class="summary-progress">
-                <div class="progress-label" style="font-weight:700; color:var(--color-accent);">Certification Progress: {progress_pct}%</div>
-                <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" style="width:{progress_pct}%;"></div>
+
+            <div style="display: flex; justify-content: center; gap: 40px; border-top: 1px solid #e5e7eb; padding-top: 20px;">
+                <div style="text-align:center;">
+                    <div class="label-text" style="margin-bottom:5px;">Team Rank</div>
+                    <div class="score-text-team" style="font-size: 1.8em;">{team_rank_display}</div>
+                </div>
+                <div style="text-align:center;">
+                    <div class="label-text" style="margin-bottom:5px;">Global Rank</div>
+                    <div class="score-text-global" style="font-size: 1.8em;">{rank_display}</div>
                 </div>
             </div>
+
+            <div style="margin-top: 25px;">
+                <span style="background-color: #d1fae5; color: #065f46; padding: 8px 16px; border-radius: 99px; font-weight: 700; font-size: 0.9em;">
+                    ✅ Official Certificate Ready
+                </span>
+            </div>
+
         </div>
     </div>
     """
 
 def render_leaderboard_card(data, username, team_name):
+    # This remains mostly the same, ensuring consistency with previous apps
     team_rows = ""
     user_rows = ""
+    
     if data and data.get("all_teams"):
         for i, t in enumerate(data["all_teams"]):
+            # Highlight the user's team
             cls = "row-highlight-team" if t["team"] == team_name else "row-normal"
             team_rows += (
                 f"<tr class='{cls}'><td style='padding:8px;text-align:center;'>{i+1}</td>"
                 f"<td style='padding:8px;'>{t['team']}</td>"
                 f"<td style='padding:8px;text-align:right;'>{t['avg']:.3f}</td></tr>"
             )
+
     if data and data.get("all_users"):
         for i, u in enumerate(data["all_users"]):
+            # Highlight the current user
             cls = "row-highlight-me" if u.get("username") == username else "row-normal"
+            
+            # Ensure the score in the table matches the 'official' final score
             sc = float(u.get("moralCompassScore", 0))
             if u.get("username") == username and data.get("score") != sc:
                 sc = data.get("score")
+                
             user_rows += (
                 f"<tr class='{cls}'><td style='padding:8px;text-align:center;'>{i+1}</td>"
                 f"<td style='padding:8px;'>{u.get('username','')}</td>"
                 f"<td style='padding:8px;text-align:right;'>{sc:.3f}</td></tr>"
             )
+
     return f"""
     <div class="scenario-box leaderboard-card">
-        <h3 class="slide-title" style="margin-bottom:10px;">📊 Live Standings</h3>
+        <h3 class="slide-title" style="margin-bottom:10px;">📊 Final Standings</h3>
         <div class="lb-tabs">
             <input type="radio" id="lb-tab-team" name="lb-tabs" checked>
             <label for="lb-tab-team" class="lb-tab-label">🏆 Team</label>
@@ -252,12 +269,12 @@ def render_leaderboard_card(data, username, team_name):
 def generate_html_certificate(name, score, team_name):
     date_str = datetime.date.today().strftime("%B %d, %Y")
     cert_id = int(time.time())
-    
+
     # BRAND COLORS
     c_primary = "#5a46cc"    # Deep Indigo
     c_sec_light = "#d0d5e9"  # Soft Lavender
     c_slate = "#8485a1"      # Tech Slate
-    
+
     # --- LOGO LOGIC (Preserves layout unless branding is enabled) ---
     if SHOW_BRANDED_LOGOS:
         # Note: We assume the image is a wide banner.
@@ -284,22 +301,22 @@ def generate_html_certificate(name, score, team_name):
         padding: 0;
         background: #fff;
         /* Double Border: Thick Brand Indigo + Thin Inner Line */
-        border: 10px solid {c_primary}; 
+        border: 10px solid {c_primary};
         outline: 2px solid {c_primary}; outline-offset: -16px;
-        font-family: 'IBM Plex Sans', 'Helvetica', sans-serif; 
+        font-family: 'IBM Plex Sans', 'Helvetica', sans-serif;
         color: #1e293b;
-        box-shadow: 0 15px 40px rgba(0,0,0,0.15); 
+        box-shadow: 0 15px 40px rgba(0,0,0,0.15);
         text-align: center;
         box-sizing: border-box;
     ">
         <div style="padding: 60px 50px;">
-            
+
             <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid {c_sec_light}; padding-bottom: 20px; margin-bottom: 40px;">
                 <div style="text-align: left;">
                     <div style="
-                        font-family: 'Source Serif Pro', 'Georgia', serif; 
-                        font-weight: 700; 
-                        color: {c_primary}; 
+                        font-family: 'Source Serif Pro', 'Georgia', serif;
+                        font-weight: 700;
+                        color: {c_primary};
                         font-size: 1.4rem;
                         letter-spacing: -0.5px;
                     ">
@@ -318,18 +335,18 @@ def generate_html_certificate(name, score, team_name):
 
             <div style="margin-bottom: 40px;">
                 <h3 style="
-                    font-size: 1rem; 
-                    font-weight: 600; 
-                    color: {c_slate}; 
-                    text-transform: uppercase; 
+                    font-size: 1rem;
+                    font-weight: 600;
+                    color: {c_slate};
+                    text-transform: uppercase;
                     letter-spacing: 3px;
                     margin: 0;
                 ">Ethics at Play Certification</h3>
-                
+
                 <h3 style="
-                    font-family: 'Source Serif Pro', 'Georgia', serif; 
-                    font-size: 3.5rem; 
-                    color: #1e293b; 
+                    font-family: 'Source Serif Pro', 'Georgia', serif;
+                    font-size: 3.5rem;
+                    color: #1e293b;
                     margin: 10px 0 0 0;
                     line-height: 1.1;
                 ">
@@ -340,10 +357,10 @@ def generate_html_certificate(name, score, team_name):
             <div style="background: #f8fafc; padding: 30px; border-radius: 8px; border-left: 6px solid {c_primary}; margin-bottom: 40px; text-align: left;">
                 <p style="font-size: 0.9rem; color: {c_slate}; text-transform: uppercase; margin: 0 0 5px 0;">Awarded To AI Fairness Engineer</p>
                 <h2 style="
-                    font-family: 'Source Serif Pro', 'Georgia', serif; 
-                    font-size: 3rem; 
-                    margin: 0; 
-                    color: #0f172a; 
+                    font-family: 'Source Serif Pro', 'Georgia', serif;
+                    font-size: 3rem;
+                    margin: 0;
+                    color: #0f172a;
                     font-weight: 700;
                 ">{name}</h2>
                 <p style="font-size: 1.1rem; color: #475569; margin: 5px 0 0 0;">
@@ -376,12 +393,12 @@ def generate_html_certificate(name, score, team_name):
                         Ethics at Play
                     </div>
                     <div style="font-size: 0.85rem; color: {c_slate}; margin-top: 5px;">
-                        Authorized Curriculum • {date_str}
+                       {date_str}
                     </div>
                 </div>
 
                 {logo_section}
-                
+
             </div>
 
         </div>
@@ -400,7 +417,9 @@ MODULES = [
                 <div class="slide-body">
                     <div style="text-align:center; margin-bottom:20px;">
                         <div style="font-size:3rem;">🏆</div>
-                        <h2 class="slide-title" style="margin-top:5px; color:#b45309;">Achievement Unlocked</h2>
+                        <h2 class="slide-title" style="margin-top:5px; color:var(--color-primary);">
+    Achievement Unlocked
+</h2>
                         <p style="font-size:1.1rem; max-width:800px; margin:0 auto; color:var(--body-text-color);">
                             You have successfully completed the Fairness Protocol.
                             <br>
@@ -410,10 +429,15 @@ MODULES = [
 
                     <div id="final-dashboard-inject"></div>
                     <div id="final-leaderboard-inject" style="margin-top:20px;"></div>
+                          <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
+                        <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
+                            🚀 RECEIVE YOUR CERTIFICATION BEFORE THE FINAL COMPETITION
+                        </p>
+                        <p style="font-size:1.05rem; margin:0;">
+                           Click <strong>Next</strong> to review your engineering log and generate your certificate.
+                        </p>
+                    </div> 
 
-                    <p style="text-align:center; margin-top:25px; font-weight:600;">
-                        Click <strong>Next ▶️</strong> to review your engineering log and generate your certificate.
-                    </p>
                 </div>
             </div>
         """
@@ -504,7 +528,7 @@ MODULES = [
                             <br><br>
                             But remember: <strong>You must maintain your Moral Compass.</strong>
                             <br>
-                            High accuracy achieved by cheating (using biased data) will result in disqualification.
+                            High accuracy achieved by adding new unethical data will result in disqualification.
                         </p>
                     </div>
 
@@ -529,7 +553,7 @@ def get_leaderboard_data(client, username, team_name):
     try:
         resp = client.list_users(table_id=TABLE_ID, limit=500)
         users = resp.get("users", [])
-        
+
         users_sorted = sorted(
             users, key=lambda x: float(x.get("moralCompassScore", 0) or 0), reverse=True
         )
@@ -537,7 +561,7 @@ def get_leaderboard_data(client, username, team_name):
         score = float(my_user.get("moralCompassScore", 0) or 0) if my_user else 0.0
         rank = users_sorted.index(my_user) + 1 if my_user else 0
         completed_task_ids = my_user.get("completedTaskIds", []) if my_user else []
-        
+
         team_map = {}
         for u in users:
             t = u.get("teamName")
@@ -552,11 +576,11 @@ def get_leaderboard_data(client, username, team_name):
         teams_sorted.sort(key=lambda x: x["avg"], reverse=True)
         my_team = next((t for t in teams_sorted if t["team"] == team_name), None)
         team_rank = teams_sorted.index(my_team) + 1 if my_team else 0
-        
+
         return {
-            "score": score, 
-            "rank": rank, 
-            "team_rank": team_rank, 
+            "score": score,
+            "rank": rank,
+            "team_rank": team_rank,
             "completed_task_ids": completed_task_ids,
             "all_users": users_sorted,
             "all_teams": teams_sorted
@@ -630,19 +654,19 @@ def create_cert_handler(user_input_name, username_state, token, team_name):
             📸 <strong>Pro Tip:</strong> Click 'Print' and choose 'Save as PDF' to keep your certificate forever.
             <br>For Instagram, take a screenshot of the certificate above!
         </p>
-        <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
-        <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-            🚀 CONTINUE TO THE FINAL COMPETITION
-        </p>
-        <p style="font-size:1.05rem; margin:0;">
-           Click <strong>Next</strong> to finish your certification.
-        </p>
-    </div> 
+                          <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
+                        <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
+                            🚀 CONTINUE TO THE FINAL COMPETITION
+                        </p>
+                        <p style="font-size:1.05rem; margin:0;">
+                           Click <strong>Next</strong> to finish your certification.
+                        </p>
+                    </div> 
     </div>
     """
-    
-    return gr.update(value=cert_html, visible=True), gr.update(value=share_html, visible=True)
 
+    return gr.update(value=cert_html, visible=True), gr.update(value=share_html, visible=True)
+    
 # --- 9. APP FACTORY ---
 def create_justice_equity_upgrade_app(theme_primary_hue: str = "indigo"):
     with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
@@ -687,7 +711,7 @@ def create_justice_equity_upgrade_app(theme_primary_hue: str = "indigo"):
                     # Special Logic for Module 2 (Certificate Input)
                     if i == 2:
                         name_input = gr.Textbox(label="Full Name for Certificate", placeholder="e.g. Jane Doe")
-                        gen_btn = gr.Button("🎓 Generate & Sign Certificate", variant="primary")
+                        gen_btn = gr.Button("🎓 Generate Your Certificate", variant="primary")
 
                         cert_display = gr.HTML(label="Official Certificate", visible=False)
                         share_row = gr.HTML(visible=False)
