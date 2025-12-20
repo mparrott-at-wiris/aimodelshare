@@ -4139,68 +4139,68 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
         briefing_1_next.click(
             fn=create_nav(briefing_slide_1, briefing_slide_2),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-2", "Loading mission overview...")
+            js=nav_js("slide-2", "Carregant la visió general de la missió...")
         )
         briefing_2_back.click(
             fn=create_nav(briefing_slide_2, briefing_slide_1),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-1", "Returning to introduction...")
+            js=nav_js("slide-1", "Tornant a la introducció...")
         )
         briefing_2_next.click(
             fn=create_nav(briefing_slide_2, briefing_slide_3),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-3", "Exploring model concept...")
+            js=nav_js("slide-3", "Explorant el concepte del model...")
         )
         briefing_3_back.click(
             fn=create_nav(briefing_slide_3, briefing_slide_2),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-2", "Going back one step...")
+            js=nav_js("slide-2", "Tornant un pas enrere...")
         )
         briefing_3_next.click(
             fn=create_nav(briefing_slide_3, briefing_slide_4),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-4", "Understanding the experiment loop...")
+            js=nav_js("slide-4", "Entenent el bucle de l'experiment...")
         )
         briefing_4_back.click(
             fn=create_nav(briefing_slide_4, briefing_slide_3),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-3", "Reviewing previous concepts...")
+            js=nav_js("slide-3", "Revisant els conceptes previs...")
         )
         briefing_4_next.click(
             fn=create_nav(briefing_slide_4, briefing_slide_5),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-5", "Configuring brain settings...")
+            js=nav_js("slide-5", "Configurant els paràmetres del model...")
         )
         briefing_5_back.click(
             fn=create_nav(briefing_slide_5, briefing_slide_4),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-4", "Revisiting the loop...")
+            js=nav_js("slide-4", "Revisitant el bucle...")
         )
         briefing_5_next.click(
             fn=create_nav(briefing_slide_5, briefing_slide_6),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-6", "Configuring data inputs...")
+            js=nav_js("slide-6", "Configurant les dades d’entrada...")
         )
         briefing_6_back.click(
             fn=create_nav(briefing_slide_6, briefing_slide_5),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-5", "Adjusting model strategy...")
+            js=nav_js("slide-5", "Ajustant l’estratègia del model...")
         )
         briefing_6_next.click(
             fn=create_nav(briefing_slide_6, briefing_slide_7),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-7", "Preparing scoring overview...")
+            js=nav_js("slide-7", "Preparant el resum de puntuació...")
         )
         briefing_7_back.click(
             fn=create_nav(briefing_slide_7, briefing_slide_6),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-6", "Reviewing data knobs...")
+            js=nav_js("slide-6", "Revisant els paràmetres de les dades...")
         )
         # Slide 7 -> App
         briefing_7_next.click(
             fn=create_nav(briefing_slide_7, model_building_step),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("model-step", "Entering model arena...")
+            js=nav_js("model-step", "Entrant a l'àrea de construcció del model...")
         )
 
         # App -> Conclusion
@@ -4214,14 +4214,14 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                 feature_set_state
             ],
             outputs=all_steps_nav + [final_score_display],
-            js=nav_js("conclusion-step", "Generating performance summary...")
+            js=nav_js("conclusion-step", "Generant el resum de rendiment...")
         )
 
         # Conclusion -> App
         step_3_back.click(
             fn=create_nav(conclusion_step, model_building_step),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("model-step", "Returning to experiment workspace...")
+            js=nav_js("model-step", "Tornant a l'àrea de construcció del model...")
         )
 
         # Events
@@ -4312,7 +4312,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
             ],
             outputs=all_outputs,
             show_progress="full",
-            js=nav_js("model-step", "Running experiment...", 500)
+            js=nav_js("model-step", "Executant l'experiment...", 500)
         )
 
         # Timer for polling initialization status
@@ -4333,7 +4333,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                 submit_label = "5. 🔬 Build & Submit Model"
                 submit_interactive = True
             else:
-                submit_label = "⏳ Waiting for data..."
+                submit_label = "⏳ Esperant les dades..."
                 submit_interactive = False
             
             # Get available data sizes based on init progress
