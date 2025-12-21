@@ -177,12 +177,12 @@ jobs:
           region: ${{ env.REGION }}
           flags: >-
             --allow-unauthenticated
-            --memory=2Gi
+            --memory=4Gi
             --cpu=2
             --session-affinity
-            --concurrency=20
+            --concurrency=4
             --min-instances=0
-            --max-instances=50
+            --max-instances=500
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
@@ -205,12 +205,13 @@ jobs:
           region: ${{ env.REGION }}
           flags: >-
             --allow-unauthenticated
-            --memory=2Gi
+            --cpu-boost
+            --memory=4Gi
             --cpu=2
             --session-affinity
-            --concurrency=20
+            --concurrency=4
             --min-instances=0
-            --max-instances=50
+            --max-instances=500
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
@@ -233,12 +234,14 @@ jobs:
           region: ${{ env.REGION }}
           flags: >-
             --allow-unauthenticated
-            --memory=2Gi
+            --cpu-boost
+            --cpu-boost
+            --memory=4Gi
             --cpu=2
             --session-affinity
-            --concurrency=20
+            --concurrency=4
             --min-instances=0
-            --max-instances=50
+            --max-instances=500
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
