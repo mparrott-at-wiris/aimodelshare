@@ -25,4 +25,3 @@ IPython
 networkx
 onnxmltools
 astunparse
-cachetools
