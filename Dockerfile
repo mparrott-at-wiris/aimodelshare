@@ -14,6 +14,10 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements-apps.txt && \
     pip install aimodelshare --no-dependencies
 
+# [SAFETY CHECK] Explicitly copy the cache. 
+# This will cause the build to FAIL if the GitHub Action didn't download the file correctly.
+COPY prediction_cache.json.gz .
+
 COPY . .
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
