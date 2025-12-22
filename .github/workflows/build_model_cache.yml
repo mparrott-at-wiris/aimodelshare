@@ -1,0 +1,37 @@
+name: Build Prediction Model Cache Artifact
+
+on:
+  workflow_dispatch: # Manual trigger only (run this once)
+
+jobs:
+  build-and-upload-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          pip install pandas numpy scikit-learn joblib
+
+      - name: Generate Prediction Cache (This takes ~1 hour)
+        run: |
+          # Set thread limits to prevent oversubscription
+          export OMP_NUM_THREADS=1
+          export OPENBLAS_NUM_THREADS=1
+          
+          # Run the script (Ensure precompute_cache.py is in your repo root)
+          python precompute_cache.py
+
+      - name: Upload Cache Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: prediction-cache-file
+          path: prediction_cache.json.gz
+          retention-days: 90 # Keep it available for 3 months
