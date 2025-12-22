@@ -108,21 +108,18 @@ def process(task):
             
         model.fit(X_tr, Y_SAMPLES[data_size])
         
-        # MEMORY OPTIMIZATION: Convert predictions to a compact string
-        # [0, 1, 1] -> "011"
+        # Compact prediction string
         preds = model.predict(X_te)
-        # Fast join of numpy array to string
         pred_string = "".join(preds.astype(str))
         
-        return key, pred_string
+        return (key, pred_string)
     except Exception:
         return None
 
-# --- 4. EXECUTION ---
+# --- 4. EXECUTION (STREAMING MODE) ---
 if __name__ == "__main__":
     print(f"Generating feature combinations for {len(ALL_FEATURES)} features...")
     
-    # Generate all combinations
     all_combos = []
     for r in range(1, len(ALL_FEATURES) + 1):
         all_combos.extend(itertools.combinations(ALL_FEATURES, r))
@@ -139,22 +136,39 @@ if __name__ == "__main__":
     total_tasks = len(tasks)
     print(f"Total Models to Train: {total_tasks}")
     
-    # RESOURCE SAFETY: 
-    # Limit n_jobs to 2 to prevent CPU starvation on runner
-    # Batch size helps reduce IPC overhead
-    results = Parallel(n_jobs=2, verbose=1, batch_size=50)(delayed(process)(t) for t in tasks)
-    
-    cache = {k: v for k, v in results if k is not None}
-    
-    if len(cache) == 0:
-        print("❌ ERROR: No models generated")
-        exit(1)
-
-    print(f"Computed {len(cache)} models.")
-    
     outfile = "prediction_cache.json.gz"
+    print(f"Streaming results to {outfile}...")
+
+    # MEMORY FIX:
+    # 1. Open the file first
+    # 2. Use 'return_as=generator' so we don't collect a list in RAM
+    # 3. Write line-by-line manually to construct a valid JSON object
+    
     with gzip.open(outfile, "wt", encoding="UTF-8") as f:
-        json.dump(cache, f)
+        f.write("{")  # Start JSON object
         
+        # return_as="generator" allows iterating as results finish
+        # n_jobs=2 keeps CPU/RAM usage stable
+        with Parallel(n_jobs=2, return_as="generator", verbose=1) as parallel:
+            
+            is_first = True
+            for result in parallel(delayed(process)(t) for t in tasks):
+                if result is None:
+                    continue
+                
+                key, val = result
+                
+                # Write comma if not first item
+                if not is_first:
+                    f.write(",")
+                else:
+                    is_first = False
+                
+                # Write Key:Value pair manually to stream
+                # json.dumps ensures proper escaping of strings
+                f.write(f"{json.dumps(key)}:{json.dumps(val)}")
+        
+        f.write("}") # End JSON object
+
     size_mb = os.path.getsize(outfile) / (1024 * 1024)
     print(f"✅ DONE! Cache Size: {size_mb:.2f} MB")
