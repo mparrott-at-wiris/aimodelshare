@@ -274,31 +274,24 @@ def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str],
         _log(f"Session auth failed: {e}")
         return False, None, None
 
-# -------------------------------------------------------------------------
-# UPDATED CONFIGURATION (No cachetools required)
-# -------------------------------------------------------------------------
-# Standard dictionary (fast, built-in)
-_user_stats_cache: Dict[str, Dict[str, Any]] = {}
-_user_stats_lock = threading.Lock()
-
-# -------------------------------------------------------------------------
-# UPDATED FUNCTION
-# -------------------------------------------------------------------------
 def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
     """
-    Compute user statistics with manual caching and size protection.
+    Compute user statistics with caching.
+    
+    Concurrency Note: Protected by _user_stats_lock for thread-safe
+    cache reads and writes.
     """
     now = time.time()
     
-    # 1. READ: Check cache with manual TTL expiration
+    # Thread-safe cache check
     with _user_stats_lock:
         cached = _user_stats_cache.get(username)
-        # Check if exists AND is fresh (less than 45s old)
         if cached and (now - cached.get("_ts", 0) < USER_STATS_TTL):
             _log(f"User stats cache hit for {username}")
+            # Return shallow copy to prevent caller mutations from affecting cache.
+            # Stats dict contains only primitives (float, int, str), so shallow copy is sufficient.
             return cached.copy()
 
-    # 2. COMPUTE: Fetch data (Heavy operation outside lock)
     _log(f"Computing fresh stats for {username}")
     leaderboard_df = _fetch_leaderboard(token)
     team_name, _ = _get_or_assign_team(username, leaderboard_df)
@@ -309,7 +302,7 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
         "team_name": team_name,
         "submission_count": 0,
         "last_score": 0.0,
-        "_ts": time.time() # Stamped for manual TTL check
+        "_ts": time.time()
     }
 
     try:
@@ -317,11 +310,8 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
             user_submissions = leaderboard_df[leaderboard_df["username"] == username]
             if not user_submissions.empty:
                 stats["submission_count"] = len(user_submissions)
-                
                 if "accuracy" in user_submissions.columns:
                     stats["best_score"] = float(user_submissions["accuracy"].max())
-                    
-                    # Robust timestamp parsing for "Last Score"
                     if "timestamp" in user_submissions.columns:
                         try:
                             user_submissions = user_submissions.copy()
@@ -330,12 +320,11 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
                             )
                             recent = user_submissions.sort_values("timestamp", ascending=False).iloc[0]
                             stats["last_score"] = float(recent["accuracy"])
-                        except Exception:
+                        except:
                             stats["last_score"] = stats["best_score"]
                     else:
                         stats["last_score"] = stats["best_score"]
             
-            # Calculate Rank
             if "accuracy" in leaderboard_df.columns:
                 user_bests = leaderboard_df.groupby("username")["accuracy"].max()
                 ranked = user_bests.sort_values(ascending=False)
@@ -346,20 +335,11 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
     except Exception as e:
         _log(f"Error computing stats for {username}: {e}")
 
-    # 3. WRITE: Update cache with Safety Valve
+    # Thread-safe cache update
     with _user_stats_lock:
-        # SAFETY VALVE: If cache grows beyond 500 users, wipe it clean.
-        # This prevents the memory leak. It's a "brute force" cleanup 
-        # but perfectly safe and effective for this use case.
-        if len(_user_stats_cache) > 500:
-            _user_stats_cache.clear()
-            _log("User stats cache full. Cleared to protect memory.")
-            
         _user_stats_cache[username] = stats
-        
     _log(f"Stats for {username}: {stats}")
     return stats
-  
 def _build_attempts_tracker_html(current_count, limit=10):
     """
     Generate HTML for the attempts tracker display.
@@ -3853,8 +3833,8 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
 
                     model_type_radio = gr.Radio(
                         label="1. Model Strategy",
-                        choices=[DEFAULT_MODEL],
-                        value=DEFAULT_MODEL,
+                        choices=[],
+                        value=None,
                         interactive=False
                     )
                     model_card_display = gr.Markdown(get_model_card(DEFAULT_MODEL))
