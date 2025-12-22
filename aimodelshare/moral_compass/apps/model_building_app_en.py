@@ -60,7 +60,26 @@ except ImportError:
 # -------------------------------------------------------------------------
 # Configuration & Caching Infrastructure
 # -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# CACHE CONFIGURATION (Add this near imports)
+# -------------------------------------------------------------------------
+import gzip
+import json
 
+PREDICTION_CACHE = {}
+CACHE_FILE = "prediction_cache.json.gz"
+
+if os.path.exists(CACHE_FILE):
+    try:
+        print(f"Loading prediction cache from {CACHE_FILE}...")
+        with gzip.open(CACHE_FILE, "rt", encoding="UTF-8") as f:
+            PREDICTION_CACHE = json.load(f)
+        print(f"✅ Cache loaded successfully! ({len(PREDICTION_CACHE)} models)")
+    except Exception as e:
+        print(f"⚠️ Error loading cache: {e}")
+else:
+    print(f"ℹ️ No cache file found ({CACHE_FILE}). App will run in full training mode.")
+  
 LEADERBOARD_CACHE_SECONDS = int(os.environ.get("LEADERBOARD_CACHE_SECONDS", "45"))
 MAX_LEADERBOARD_ENTRIES = os.environ.get("MAX_LEADERBOARD_ENTRIES")
 MAX_LEADERBOARD_ENTRIES = int(MAX_LEADERBOARD_ENTRIES) if MAX_LEADERBOARD_ENTRIES else None
