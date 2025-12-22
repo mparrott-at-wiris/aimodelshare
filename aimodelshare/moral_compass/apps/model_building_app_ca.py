@@ -432,23 +432,23 @@ LEADERBOARD_POLL_SLEEP = 1.0  # Sleep duration between polls (seconds)
 ENABLE_AUTO_RESUBMIT_AFTER_READY = False  # Future feature flag for auto-resubmit
 
 MODEL_TYPES = {
-    "The Balanced Generalist": {
+    "El Generalista Equilibrat": {
         "model_builder": lambda: LogisticRegression(
             max_iter=500, random_state=42, class_weight="balanced"
         ),
         "card": "A fast, reliable, well-rounded model. Good starting point; less prone to overfitting."
     },
-    "The Rule-Maker": {
+    "El Creador de Regles": {
         "model_builder": lambda: DecisionTreeClassifier(
             random_state=42, class_weight="balanced"
         ),
         "card": "Learns simple 'if/then' rules. Easy to interpret, but can miss subtle patterns."
     },
-    "The 'Nearest Neighbor'": {
+    "El 'Veí més Proper'": {
         "model_builder": lambda: KNeighborsClassifier(),
         "card": "Looks at the closest past examples. 'You look like these others; I'll predict like they behave.'"
     },
-    "The Deep Pattern-Finder": {
+    "El Detector de Patrons Profunds": {
         "model_builder": lambda: RandomForestClassifier(
             random_state=42, class_weight="balanced"
         ),
@@ -478,7 +478,7 @@ TEAM_NAME_TRANSLATIONS = {
     "ca": {
         "The Justice League": "La Lliga de la Justícia",
         "The Moral Champions": "Els Campions Morals",
-        "The Data Detectives": "Els Detectives de Dades",
+        "The Data Detectives": "Els Detectius de Dades",
         "The Ethical Explorers": "Els Exploradors Ètics",
         "The Fairness Finders": "Els Cercadors d'Equitat",
         "The Accuracy Avengers": "Els Venjadors de Precisió"
@@ -520,10 +520,10 @@ DEFAULT_FEATURE_SET = FEATURE_SET_GROUP_1_VALS
 
 # --- Data Size config ---
 DATA_SIZE_MAP = {
-    "Small (20%)": 0.2,
-    "Medium (60%)": 0.6,
-    "Large (80%)": 0.8,
-    "Full (100%)": 1.0
+    "Petita (20%)": 0.2,
+    "Mitjana (60%)": 0.6,
+    "Gran (80%)": 0.8,
+    "Completa (100%)": 1.0
 }
 DEFAULT_DATA_SIZE = "Small (20%)"
 
