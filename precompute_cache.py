@@ -18,9 +18,7 @@ from sklearn.neighbors import KNeighborsClassifier
 # --- 1. CONFIGURATION ---
 MAX_ROWS = 4000
 ALL_NUMERIC_COLS = ["juv_fel_count", "juv_misd_count", "juv_other_count", "days_b_screening_arrest", "age", "length_of_stay", "priors_count"]
-ALL_CATEGORICAL_COLS = ["race", "sex", "c_charge_degree", "c_charge_desc"] # Removed native-country to match your snippet
-
-# Combine for iteration
+ALL_CATEGORICAL_COLS = ["race", "sex", "c_charge_degree", "c_charge_desc"]
 ALL_FEATURES = ALL_NUMERIC_COLS + ALL_CATEGORICAL_COLS
 
 DATA_SIZE_MAP = {"Small (20%)": 0.2, "Medium (60%)": 0.6, "Large (80%)": 0.8, "Full (100%)": 1.0}
@@ -51,7 +49,6 @@ def load_data():
     top_charges = df["c_charge_desc"].value_counts().head(50).index
     df["c_charge_desc"] = df["c_charge_desc"].apply(lambda x: x if pd.notna(x) and x in top_charges else "OTHER")
 
-    # Ensure all columns exist
     for col in ALL_FEATURES:
         if col not in df.columns: df[col] = np.nan
 
@@ -84,7 +81,6 @@ def tune_model(model, level):
     if isinstance(model, LogisticRegression):
         model.C = {1: 0.01, 2: 0.025, 3: 0.05, 4: 0.1, 5: 0.25, 6: 0.5, 7: 1.0, 8: 2.0, 9: 5.0, 10: 10.0}.get(level, 1.0)
     elif isinstance(model, RandomForestClassifier):
-        # Optimized trees for speed (users won't notice diff between 30 and 100 in a game)
         model.n_estimators = {1: 10, 2: 15, 3: 20, 4: 25, 5: 30, 6: 40, 7: 50, 8: 60, 9: 80, 10: 100}.get(level, 30)
         model.max_depth = level * 2 + 2 if level < 9 else None
     elif isinstance(model, DecisionTreeClassifier):
@@ -95,8 +91,6 @@ def tune_model(model, level):
 
 def process(task):
     model_name, complexity, data_size, feature_tuple = task
-    
-    # Key Format: Model|Complexity|DataSize|SortedFeatures
     feature_key = ",".join(sorted(feature_tuple))
     key = f"{model_name}|{complexity}|{data_size}|{feature_key}"
     
@@ -113,24 +107,28 @@ def process(task):
             X_te = X_te.toarray() if hasattr(X_te, "toarray") else X_te
             
         model.fit(X_tr, Y_SAMPLES[data_size])
-        return key, model.predict(X_te).tolist()
-    except Exception as e:
-        # Log failure but don't crash
-        # print(f"FAIL: {key} -> {e}") 
+        
+        # MEMORY OPTIMIZATION: Convert predictions to a compact string
+        # [0, 1, 1] -> "011"
+        preds = model.predict(X_te)
+        # Fast join of numpy array to string
+        pred_string = "".join(preds.astype(str))
+        
+        return key, pred_string
+    except Exception:
         return None
 
 # --- 4. EXECUTION ---
 if __name__ == "__main__":
     print(f"Generating feature combinations for {len(ALL_FEATURES)} features...")
     
-    # Generate ALL combinations of length 1 to N
+    # Generate all combinations
     all_combos = []
     for r in range(1, len(ALL_FEATURES) + 1):
         all_combos.extend(itertools.combinations(ALL_FEATURES, r))
     
-    print(f"Total Feature Combinations: {len(all_combos)}")
+    print(f"Total Feature Combos: {len(all_combos)}")
     
-    # Create Task List
     tasks = []
     for m in MODEL_TYPES:
         for c in range(1, 11):
@@ -139,27 +137,22 @@ if __name__ == "__main__":
                     tasks.append((m, c, d, f_combo))
                     
     total_tasks = len(tasks)
-    print(f"--------------------------------------------------")
     print(f"Total Models to Train: {total_tasks}")
-    print(f"Estimated Time (4 cores): {total_tasks * 0.05 / 4 / 60:.1f} minutes (Optimistic)")
-    print(f"Estimated Time (4 cores): {total_tasks * 0.15 / 4 / 60 / 60:.1f} hours (Realistic)")
-    print(f"--------------------------------------------------")
     
-    # Run in parallel
-    # n_jobs=-1 uses all CPUs. n_jobs=-2 uses all but one.
-    results = Parallel(n_jobs=-1, verbose=1, batch_size=100)(delayed(process)(t) for t in tasks)
+    # RESOURCE SAFETY: 
+    # Limit n_jobs to 2 to prevent CPU starvation on runner
+    # Batch size helps reduce IPC overhead
+    results = Parallel(n_jobs=2, verbose=1, batch_size=50)(delayed(process)(t) for t in tasks)
     
-    # Filter success
     cache = {k: v for k, v in results if k is not None}
     
-    print(f"Completed: {len(cache)} / {total_tasks}")
-    
     if len(cache) == 0:
-        print("❌ FAILURE: No models generated.")
+        print("❌ ERROR: No models generated")
         exit(1)
-        
+
+    print(f"Computed {len(cache)} models.")
+    
     outfile = "prediction_cache.json.gz"
-    print(f"Saving to {outfile}...")
     with gzip.open(outfile, "wt", encoding="UTF-8") as f:
         json.dump(cache, f)
         
