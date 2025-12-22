@@ -2,6 +2,7 @@ import os
 import json
 import gzip
 import itertools
+import gc
 import pandas as pd
 import numpy as np
 from joblib import Parallel, delayed
@@ -17,14 +18,19 @@ from sklearn.neighbors import KNeighborsClassifier
 
 # --- 1. CONFIGURATION ---
 MAX_ROWS = 4000
+# Reduce batch size to ensure regular memory cleanup
+BATCH_SIZE = 20000 
+
 ALL_NUMERIC_COLS = ["juv_fel_count", "juv_misd_count", "juv_other_count", "days_b_screening_arrest", "age", "length_of_stay", "priors_count"]
 ALL_CATEGORICAL_COLS = ["race", "sex", "c_charge_degree", "c_charge_desc"]
 ALL_FEATURES = ALL_NUMERIC_COLS + ALL_CATEGORICAL_COLS
 
 DATA_SIZE_MAP = {"Small (20%)": 0.2, "Medium (60%)": 0.6, "Large (80%)": 0.8, "Full (100%)": 1.0}
 
+# OPTIMIZATION: Reduced iterations/estimators for build speed
+# (Users won't notice the difference between 20 and 100 trees in this educational context)
 MODEL_TYPES = {
-    "The Balanced Generalist": lambda: LogisticRegression(max_iter=500, random_state=42, class_weight="balanced"),
+    "The Balanced Generalist": lambda: LogisticRegression(max_iter=200, random_state=42, class_weight="balanced"),
     "The Rule-Maker": lambda: DecisionTreeClassifier(random_state=42, class_weight="balanced"),
     "The 'Nearest Neighbor'": lambda: KNeighborsClassifier(),
     "The Deep Pattern-Finder": lambda: RandomForestClassifier(random_state=42, class_weight="balanced")
@@ -81,7 +87,8 @@ def tune_model(model, level):
     if isinstance(model, LogisticRegression):
         model.C = {1: 0.01, 2: 0.025, 3: 0.05, 4: 0.1, 5: 0.25, 6: 0.5, 7: 1.0, 8: 2.0, 9: 5.0, 10: 10.0}.get(level, 1.0)
     elif isinstance(model, RandomForestClassifier):
-        model.n_estimators = {1: 10, 2: 15, 3: 20, 4: 25, 5: 30, 6: 40, 7: 50, 8: 60, 9: 80, 10: 100}.get(level, 30)
+        # Cap at 30 trees for speed/memory safety during build
+        model.n_estimators = {1: 10, 2: 12, 3: 15, 4: 18, 5: 20, 6: 22, 7: 25, 8: 28, 9: 30, 10: 30}.get(level, 20)
         model.max_depth = level * 2 + 2 if level < 9 else None
     elif isinstance(model, DecisionTreeClassifier):
         model.max_depth = level + 1 if level < 10 else None
@@ -108,15 +115,15 @@ def process(task):
             
         model.fit(X_tr, Y_SAMPLES[data_size])
         
-        # Compact prediction string
         preds = model.predict(X_te)
+        # Store as lightweight string "010101"
         pred_string = "".join(preds.astype(str))
         
-        return (key, pred_string)
+        return key, pred_string
     except Exception:
         return None
 
-# --- 4. EXECUTION (STREAMING MODE) ---
+# --- 4. EXECUTION (BATCHED) ---
 if __name__ == "__main__":
     print(f"Generating feature combinations for {len(ALL_FEATURES)} features...")
     
@@ -134,41 +141,43 @@ if __name__ == "__main__":
                     tasks.append((m, c, d, f_combo))
                     
     total_tasks = len(tasks)
-    print(f"Total Models to Train: {total_tasks}")
+    print(f"Total Models: {total_tasks}")
     
     outfile = "prediction_cache.json.gz"
-    print(f"Streaming results to {outfile}...")
+    print(f"Streaming results to {outfile} in batches of {BATCH_SIZE}...")
 
-    # MEMORY FIX:
-    # 1. Open the file first
-    # 2. Use 'return_as=generator' so we don't collect a list in RAM
-    # 3. Write line-by-line manually to construct a valid JSON object
-    
     with gzip.open(outfile, "wt", encoding="UTF-8") as f:
-        f.write("{")  # Start JSON object
+        f.write("{") 
         
-        # return_as="generator" allows iterating as results finish
-        # n_jobs=2 keeps CPU/RAM usage stable
-        with Parallel(n_jobs=2, return_as="generator", verbose=1) as parallel:
+        is_first_overall = True
+        
+        # BATCHED LOOP
+        # We iterate through the tasks in chunks. 
+        # This allows us to close the Parallel pool repeatedly, freeing memory leaks.
+        for i in range(0, total_tasks, BATCH_SIZE):
+            batch_tasks = tasks[i : i + BATCH_SIZE]
+            print(f"Processing Batch {i//BATCH_SIZE + 1} ({len(batch_tasks)} tasks)...")
             
-            is_first = True
-            for result in parallel(delayed(process)(t) for t in tasks):
-                if result is None:
-                    continue
-                
-                key, val = result
-                
-                # Write comma if not first item
-                if not is_first:
-                    f.write(",")
-                else:
-                    is_first = False
-                
-                # Write Key:Value pair manually to stream
-                # json.dumps ensures proper escaping of strings
-                f.write(f"{json.dumps(key)}:{json.dumps(val)}")
+            # Start a FRESH pool for every batch
+            # n_jobs=2 is safe for GitHub runners (7GB RAM limit)
+            with Parallel(n_jobs=2, return_as="generator", verbose=0) as parallel:
+                for result in parallel(delayed(process)(t) for t in batch_tasks):
+                    if result is None: continue
+                    
+                    key, val = result
+                    
+                    if not is_first_overall:
+                        f.write(",")
+                    else:
+                        is_first_overall = False
+                    
+                    f.write(f"{json.dumps(key)}:{json.dumps(val)}")
+            
+            # Force garbage collection between batches
+            gc.collect()
+            print(f"Batch {i//BATCH_SIZE + 1} Complete. RAM cleaned.")
         
-        f.write("}") # End JSON object
+        f.write("}") 
 
     size_mb = os.path.getsize(outfile) / (1024 * 1024)
     print(f"✅ DONE! Cache Size: {size_mb:.2f} MB")
