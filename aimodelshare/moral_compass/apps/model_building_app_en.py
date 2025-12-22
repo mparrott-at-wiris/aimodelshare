@@ -4259,8 +4259,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             ],
             outputs=all_outputs,
             show_progress="full",
-            js=nav_js("model-step", "Running experiment...", 500),
-            concurrency_limit=2
+            js=nav_js("model-step", "Running experiment...", 500)
         )
 
         # Timer for polling initialization status
