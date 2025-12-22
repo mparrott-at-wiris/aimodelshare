@@ -180,9 +180,9 @@ jobs:
             --memory=2Gi
             --cpu=2
             --session-affinity
-            --concurrency=4
+            --concurrency=40
             --min-instances=0
-            --max-instances=500
+            --max-instances=50
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
