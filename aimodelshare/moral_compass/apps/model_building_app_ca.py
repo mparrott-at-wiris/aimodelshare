@@ -358,14 +358,14 @@ def _build_attempts_tracker_html(current_count, limit=10):
         border_color = "#bae6fd"
         text_color = "#0369a1"
         icon = "🛑"
-        label = f"Last chance (for now) to boost your score!: {current_count}/{limit}"
+        label = f"Última oportunitat (de moment) per pujar la teva puntuació!: {current_count}/{limit}"
     else:
         # Normal - blue styling
         bg_color = "#f0f9ff"
         border_color = "#bae6fd"
         text_color = "#0369a1"
         icon = "📊"
-        label = f"Attempts used: {current_count}/{limit}"
+        label = f"Intents utilitzats: {current_count}/{limit}"
 
     return f"""<div style='text-align:center; padding:8px; margin:8px 0; background:{bg_color}; border-radius:8px; border:1px solid {border_color};'>
         <p style='margin:0; color:{text_color}; font-weight:600; font-size:1rem;'>{icon} {label}</p>
@@ -378,9 +378,9 @@ def check_attempt_limit(submission_count: int, limit: int = None) -> Tuple[bool,
         limit = ATTEMPT_LIMIT
     
     if submission_count >= limit:
-        msg = f"⚠️ Attempt limit reached ({submission_count}/{limit})"
+        msg = f"⚠️ Límit d’intents assolit ({submission_count}/{limit})"
         return False, msg
-    return True, f"Attempts: {submission_count}/{limit}"
+    return True, f"Intents: {submission_count}/{limit}"
 
 # -------------------------------------------------------------------------
 # Future: Fairness Metrics
@@ -1182,14 +1182,14 @@ def _format_leaderboard_for_display(df: Optional[pd.DataFrame], lang: str = "ca"
     return df_display
 
 
-def _build_skeleton_leaderboard(rows=6, is_team=True, submit_button_label="5. 🔬 Build & Submit Model"):
-    context_label = "Team" if is_team else "Individual"
+def _build_skeleton_leaderboard(rows=6, is_team=True, submit_button_label="5. 🔬 Construir i enviar el model"):
+    context_label = "Equip" if is_team else "Individual"
     return f"""
     <div class='lb-placeholder' aria-live='polite'>
-        <div class='lb-placeholder-title'>{context_label} Standings Pending</div>
+        <div class='lb-placeholder-title'>{context_label} · Classificació pendent</div>
         <div class='lb-placeholder-sub'>
-            <p style='margin:0 0 6px 0;'>Submit your first model to populate this table.</p>
-            <p style='margin:0;'><strong>Click “{submit_button_label}” (bottom-left)</strong> to begin!</p>
+            <p style='margin:0 0 6px 0;'>Envia el teu primer model i desbloqueja la classificació!</p>
+            <p style='margin:0;'><strong>Fes clic a “{submit_button_label}” (bottom-left)</strong> per començar!</p>
         </div>
     </div>
     """
@@ -1200,7 +1200,7 @@ def build_login_prompt_html():
     The styled preview card will be prepended to this.
     """
     return f"""
-    <h2 style='color: #111827; margin-top:20px; border-top: 2px solid #e5e7eb; padding-top: 20px;'>🔐 Sign in to submit & rank</h2>
+    <h2 style='color: #111827; margin-top:20px; border-top: 2px solid #e5e7eb; padding-top: 20px;'>🔐 Inicia sessió per enviar i classificar-te</h2>
     <div style='margin-top:16px; text-align:left; font-size:1rem; line-height:1.6; color:#374151;'>
         <p style='margin:12px 0;'>
             This is a preview run only. Sign in to publish your score to the live leaderboard, 
