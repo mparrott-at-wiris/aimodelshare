@@ -4232,7 +4232,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
         briefing_7_next.click(
             fn=create_nav(briefing_slide_7, model_building_step),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("model-step", "Entrando en el área de contrucción de modelos...")
+            js=nav_js("model-step", "Entrando en el área de construcción de modelos...")
         )
 
         # App -> Conclusion
