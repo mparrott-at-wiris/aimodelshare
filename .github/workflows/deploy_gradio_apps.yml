@@ -24,7 +24,7 @@ jobs:
       - name: Download Prediction Cache
         uses: dawidd6/action-download-artifact@v6
         with:
-          workflow: build-cache.yml       # Must match the filename of the file above
+          workflow: build_model_cache.yml       # Must match the filename of the file above
           name: prediction-cache-file     # Must match the artifact name in the file above
           path: .                         # Save to root folder
           search_artifacts: true          # Look for the most recent successful run
