@@ -1189,7 +1189,7 @@ def _build_skeleton_leaderboard(rows=6, is_team=True, submit_button_label="5. �
         <div class='lb-placeholder-title'>{context_label} · Classificació pendent</div>
         <div class='lb-placeholder-sub'>
             <p style='margin:0 0 6px 0;'>Envia el teu primer model i desbloqueja la classificació!</p>
-            <p style='margin:0;'><strong>Fes clic a “{submit_button_label}” (bottom-left)</strong> per començar!</p>
+            <p style='margin:0;'><strong>Fes clic a «{submit_button_label}» (a baix a l’esquerra)</strong> per començar!</p>
         </div>
     </div>
     """
