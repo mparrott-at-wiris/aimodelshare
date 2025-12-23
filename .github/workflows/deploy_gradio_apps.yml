@@ -203,8 +203,8 @@ jobs:
             --min-instances=0
             --max-instances=100
             --timeout=3000
-            --set-env-vars=APP_NAME=model-building-game-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
-
+            --set-env-vars=APP_NAME=model-building-game-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
+            
   deploy-model-building-game-ca:
     runs-on: ubuntu-latest
     needs: build-and-push
