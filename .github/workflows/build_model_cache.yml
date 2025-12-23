@@ -3,6 +3,11 @@ name: Build Prediction Cache Artifact (Resumable)
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+  actions: read      # Required to list/download artifacts
+  checks: write
+
 jobs:
   build-cache-chunk:
     runs-on: ubuntu-latest
@@ -20,27 +25,30 @@ jobs:
       - name: Install Dependencies
         run: pip install pandas numpy scikit-learn joblib
 
-      # 1. Download previous checkpoint (PERMISSIVE MODE)
+      # --------------------------------------------------------
+      # FIX APPLIED HERE:
+      # 1. Removed 'workflow: build-cache.yml' (Auto-detects current workflow)
+      # 2. Kept 'workflow_conclusion: ""' (Accepts Cancelled/Failed runs)
+      # --------------------------------------------------------
       - name: Restore Checkpoint
         uses: dawidd6/action-download-artifact@v6
         with:
-          workflow: build-cache.yml
           name: cache-checkpoint
           path: .
-          # CRITICAL FIX: Empty string = Look for artifacts in FAILED or TIMED OUT runs too
-          workflow_conclusion: ""  
           search_artifacts: true
+          workflow_conclusion: "" 
           if_no_artifact_found: warn
         continue-on-error: true
 
-      # Debug: Verify if it worked
+      # Debug: Verify the file arrived
       - name: Debug Checkpoint
         run: |
           if [ -f "cache_checkpoint.jsonl" ]; then
             echo "✅ SUCCESS: Checkpoint found!"
             ls -lh cache_checkpoint.jsonl
           else
-            echo "⚠️ NOTE: No checkpoint found. This is normal for the very first run."
+            echo "⚠️ NOTE: No checkpoint found. If this is the FIRST run, this is normal."
+            echo "If this is the SECOND run, something is wrong."
           fi
 
       # 2. Run the script
