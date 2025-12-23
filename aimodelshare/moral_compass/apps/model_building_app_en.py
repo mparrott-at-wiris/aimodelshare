@@ -78,15 +78,16 @@ def get_cached_prediction(key):
     
     # 1. Check if DB exists
     if not os.path.exists(CACHE_DB_FILE):
-        if DEBUG_LOG: print(f"⚠️ Cache Miss: DB file '{CACHE_DB_FILE}' not found.")
+        print(f"⚠️ Cache Miss: DB file '{CACHE_DB_FILE}' not found.", flush=True)
         return None
 
     # 2. Lazy connection
     if _db_conn is None:
         try:
+            # Check same thread=False is required for multi-threaded Gradio apps
             _db_conn = sqlite3.connect(CACHE_DB_FILE, check_same_thread=False)
         except Exception as e:
-            print(f"❌ DB Connect Error: {e}")
+            print(f"❌ DB Connect Error: {e}", flush=True)
             return None
 
     try:
@@ -95,19 +96,18 @@ def get_cached_prediction(key):
         result = cursor.fetchone()
         
         if result:
-            if DEBUG_LOG: print(f"✅ Cache Hit: {key}")
-            return result[0] # Returns the compressed string "010101..."
+            # Optional: Uncomment if you want to see every success (spammy)
+            # print(f"✅ Cache Hit: {key}", flush=True)
+            return result[0] 
         else:
-            # This print is CRITICAL to see why it's failing
-            print(f"🐢 Cache Miss (Key not found): {key}")
+            # THIS IS THE CRITICAL LOG YOU ARE MISSING
+            print(f"🐢 Cache Miss (Key not found): {key}", flush=True)
             return None
             
     except Exception as e:
-        print(f"⚠️ DB Read Error: {e}")
+        print(f"⚠️ DB Read Error: {e}", flush=True)
     
     return None
-
-print("✅ App configured for Instant-Load SQLite Cache.")
   
 LEADERBOARD_CACHE_SECONDS = int(os.environ.get("LEADERBOARD_CACHE_SECONDS", "45"))
 MAX_LEADERBOARD_ENTRIES = os.environ.get("MAX_LEADERBOARD_ENTRIES")
