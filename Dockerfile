@@ -14,9 +14,15 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements-apps.txt && \
     pip install aimodelshare --no-dependencies
 
-# [SAFETY CHECK] Explicitly copy the cache. 
-# This will cause the build to FAIL if the GitHub Action didn't download the file correctly.
+# 1. Copy the raw JSON cache
 COPY prediction_cache.json.gz .
+
+# 2. Copy the converter script
+COPY convert_db.py .
+
+# 3. RUN the conversion immediately. 
+# This turns the 50MB JSON into a fast SQLite DB inside the image.
+RUN python convert_db.py && rm prediction_cache.json.gz
 
 COPY . .
 
