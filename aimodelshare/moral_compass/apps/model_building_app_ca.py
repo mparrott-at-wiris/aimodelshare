@@ -2625,7 +2625,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
         <div class="final-conclusion-attempt-cap">
           <p style="margin:0;">
             <b>📊 Límit d’intents assolit:</b> Has utilitzat tots els {ATTEMPT_LIMIT} intents d’enviament permesos per a aquesta sessió.
-            Podràs enviar més models un cop hagis algunes activitats noves.
+            Podràs enviar més models un cop hagis completat algunes activitats noves.
           </p>
         </div>
         """
