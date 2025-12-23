@@ -358,14 +358,14 @@ def _build_attempts_tracker_html(current_count, limit=10):
         border_color = "#bae6fd"
         text_color = "#0369a1"
         icon = "🛑"
-        label = f"Last chance (for now) to boost your score!: {current_count}/{limit}"
+        label = f"Última oportunidad (por ahora) para mejorar tu puntuación: {current_count}/{limit}"
     else:
         # Normal - blue styling
         bg_color = "#f0f9ff"
         border_color = "#bae6fd"
         text_color = "#0369a1"
         icon = "📊"
-        label = f"Attempts used: {current_count}/{limit}"
+        label = f"Intentos usados: {current_count}/{limit}"
 
     return f"""<div style='text-align:center; padding:8px; margin:8px 0; background:{bg_color}; border-radius:8px; border:1px solid {border_color};'>
         <p style='margin:0; color:{text_color}; font-weight:600; font-size:1rem;'>{icon} {label}</p>
@@ -378,9 +378,9 @@ def check_attempt_limit(submission_count: int, limit: int = None) -> Tuple[bool,
         limit = ATTEMPT_LIMIT
     
     if submission_count >= limit:
-        msg = f"⚠️ Attempt limit reached ({submission_count}/{limit})"
+        msg = f"⚠️ Límite de intentos alcanzado ({submission_count}/{limit})"
         return False, msg
-    return True, f"Attempts: {submission_count}/{limit}"
+    return True, f"Intentos: {submission_count}/{limit}"
 
 # -------------------------------------------------------------------------
 # Future: Fairness Metrics
@@ -4142,68 +4142,68 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
         briefing_1_next.click(
             fn=create_nav(briefing_slide_1, briefing_slide_2),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-2", "Loading mission overview...")
+            js=nav_js("slide-2", "Cargando la misión...")
         )
         briefing_2_back.click(
             fn=create_nav(briefing_slide_2, briefing_slide_1),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-1", "Returning to introduction...")
+            js=nav_js("slide-1", "Volviendo a la introducción...")
         )
         briefing_2_next.click(
             fn=create_nav(briefing_slide_2, briefing_slide_3),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-3", "Exploring model concept...")
+            js=nav_js("slide-3", "Explorando el concepto de modelo...")
         )
         briefing_3_back.click(
             fn=create_nav(briefing_slide_3, briefing_slide_2),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-2", "Going back one step...")
+            js=nav_js("slide-2", "Retrocediendo...")
         )
         briefing_3_next.click(
             fn=create_nav(briefing_slide_3, briefing_slide_4),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-4", "Understanding the experiment loop...")
+            js=nav_js("slide-4", "Entendiendo el ciclo del experimento...")
         )
         briefing_4_back.click(
             fn=create_nav(briefing_slide_4, briefing_slide_3),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-3", "Reviewing previous concepts...")
+            js=nav_js("slide-3", "Repasando conceptos anteriores...")
         )
         briefing_4_next.click(
             fn=create_nav(briefing_slide_4, briefing_slide_5),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-5", "Configuring brain settings...")
+            js=nav_js("slide-5", "Configurando los controles del modelo...")
         )
         briefing_5_back.click(
             fn=create_nav(briefing_slide_5, briefing_slide_4),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-4", "Revisiting the loop...")
+            js=nav_js("slide-4", "Volviendo al ciclo...")
         )
         briefing_5_next.click(
             fn=create_nav(briefing_slide_5, briefing_slide_6),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-6", "Configuring data inputs...")
+            js=nav_js("slide-6", "Configurando los datos...")
         )
         briefing_6_back.click(
             fn=create_nav(briefing_slide_6, briefing_slide_5),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-5", "Adjusting model strategy...")
+            js=nav_js("slide-5", "Ajustando la estrategia del modelo...")
         )
         briefing_6_next.click(
             fn=create_nav(briefing_slide_6, briefing_slide_7),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-7", "Preparing scoring overview...")
+            js=nav_js("slide-7", "Preparando el resumen de la puntuación...")
         )
         briefing_7_back.click(
             fn=create_nav(briefing_slide_7, briefing_slide_6),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-6", "Reviewing data knobs...")
+            js=nav_js("slide-6", "Repasando los controles de datos...")
         )
         # Slide 7 -> App
         briefing_7_next.click(
             fn=create_nav(briefing_slide_7, model_building_step),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("model-step", "Entering model arena...")
+            js=nav_js("model-step", "Entrando en el área de contrucción de modelos...")
         )
 
         # App -> Conclusion
@@ -4217,14 +4217,14 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                 feature_set_state
             ],
             outputs=all_steps_nav + [final_score_display],
-            js=nav_js("conclusion-step", "Generating performance summary...")
+            js=nav_js("conclusion-step", "Generando el resumen de rendimiento...")
         )
 
         # Conclusion -> App
         step_3_back.click(
             fn=create_nav(conclusion_step, model_building_step),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("model-step", "Returning to experiment workspace...")
+            js=nav_js("model-step", "Volviendo al área de trabajo del experimento...")
         )
 
         # Events
