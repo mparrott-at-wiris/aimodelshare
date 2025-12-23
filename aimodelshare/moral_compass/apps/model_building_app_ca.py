@@ -475,7 +475,7 @@ MODEL_TYPES = {
     },
     "El 'Veí més Proper'": {
         "model_builder": lambda: KNeighborsClassifier(),
-        "card": "Aquest model es basa en exemples semblants del passat.«Si t’assembles a aquests casos, prediré el mateix resultat»."
+        "card": "Aquest model es basa en exemples semblants del passat. «Si t’assembles a aquests casos, prediré el mateix resultat»."
     },
     "El Detector de Patrons Profunds": {
         "model_builder": lambda: RandomForestClassifier(
