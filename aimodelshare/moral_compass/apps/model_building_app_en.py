@@ -60,9 +60,8 @@ except ImportError:
 # -------------------------------------------------------------------------
 # Configuration & Caching Infrastructure
 # -------------------------------------------------------------------------
-# -------------------------------------------------------------------------
-# CACHE CONFIGURATION (Add this near imports)
-# -------------------------------------------------------------------------
+
+
 # -------------------------------------------------------------------------
 # CACHE CONFIGURATION (Optimized: SQLite)
 # -------------------------------------------------------------------------
@@ -76,44 +75,39 @@ def get_cached_prediction(key):
     Lightning-fast lookup from SQLite database.
     """
     global _db_conn
-    # Lazy connection: Connect only when we first need it
+    
+    # 1. Check if DB exists
+    if not os.path.exists(CACHE_DB_FILE):
+        if DEBUG_LOG: print(f"⚠️ Cache Miss: DB file '{CACHE_DB_FILE}' not found.")
+        return None
+
+    # 2. Lazy connection
     if _db_conn is None:
-        if os.path.exists(CACHE_DB_FILE):
-            # check_same_thread=False is safe here because we only READ
+        try:
             _db_conn = sqlite3.connect(CACHE_DB_FILE, check_same_thread=False)
-        else:
+        except Exception as e:
+            print(f"❌ DB Connect Error: {e}")
             return None
 
     try:
         cursor = _db_conn.cursor()
-        # "Select" is typically under 1 millisecond
         cursor.execute("SELECT value FROM cache WHERE key=?", (key,))
         result = cursor.fetchone()
+        
         if result:
+            if DEBUG_LOG: print(f"✅ Cache Hit: {key}")
             return result[0] # Returns the compressed string "010101..."
+        else:
+            # This print is CRITICAL to see why it's failing
+            print(f"🐢 Cache Miss (Key not found): {key}")
+            return None
+            
     except Exception as e:
         print(f"⚠️ DB Read Error: {e}")
     
     return None
 
 print("✅ App configured for Instant-Load SQLite Cache.")
-
-import gzip
-import json
-
-PREDICTION_CACHE = {}
-CACHE_FILE = "prediction_cache.json.gz"
-
-if os.path.exists(CACHE_FILE):
-    try:
-        print(f"Loading prediction cache from {CACHE_FILE}...")
-        with gzip.open(CACHE_FILE, "rt", encoding="UTF-8") as f:
-            PREDICTION_CACHE = json.load(f)
-        print(f"✅ Cache loaded successfully! ({len(PREDICTION_CACHE)} models)")
-    except Exception as e:
-        print(f"⚠️ Error loading cache: {e}")
-else:
-    print(f"ℹ️ No cache file found ({CACHE_FILE}). App will run in full training mode.")
   
 LEADERBOARD_CACHE_SECONDS = int(os.environ.get("LEADERBOARD_CACHE_SECONDS", "45"))
 MAX_LEADERBOARD_ENTRIES = os.environ.get("MAX_LEADERBOARD_ENTRIES")
