@@ -889,7 +889,7 @@ def get_available_data_sizes():
     if flags["pre_samples_full"]:
         available.append("Completo (100%)")
     
-    return available if available else ["Small (20%)"]  # Fallback
+    return available if available else ["Pequeño (20%)"]  # Fallback
 
 def _is_ready() -> bool:
     """
