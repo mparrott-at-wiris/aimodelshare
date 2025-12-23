@@ -456,7 +456,7 @@ MODEL_TYPES = {
     }
 }
 
-DEFAULT_MODEL = "The Balanced Generalist"
+DEFAULT_MODEL = "El Generalista Equilibrado"
 
 TEAM_NAMES = [
     "The Moral Champions", "The Justice League", "The Data Detectives",
@@ -525,7 +525,7 @@ DATA_SIZE_MAP = {
     "Grande (80%)": 0.8,
     "Completo (100%)": 1.0
 }
-DEFAULT_DATA_SIZE = "Small (20%)"
+DEFAULT_DATA_SIZE = "Pequeño (20%)"
 
 
 MAX_ROWS = 4000
@@ -803,10 +803,10 @@ def _fit_default_preprocessor():
     Pre-fit a default preprocessor on the small sample with default features.
     Uses memoized preprocessor builder for efficiency.
     """
-    if "Small (20%)" not in X_TRAIN_SAMPLES_MAP:
+    if "Pequeño (20%)" not in X_TRAIN_SAMPLES_MAP:
         return
     
-    X_sample = X_TRAIN_SAMPLES_MAP["Small (20%)"]
+    X_sample = X_TRAIN_SAMPLES_MAP["Pequeño (20%)"]
     
     # Use default feature set
     numeric_cols = [f for f in DEFAULT_FEATURE_SET if f in ALL_NUMERIC_COLS]
@@ -852,13 +852,13 @@ def get_available_data_sizes():
     
     available = []
     if flags["pre_samples_small"]:
-        available.append("Small (20%)")
+        available.append("Pequeño (20%)")
     if flags["pre_samples_medium"]:
-        available.append("Medium (60%)")
+        available.append("Medio (60%)")
     if flags["pre_samples_large"]:
-        available.append("Large (80%)")
+        available.append("Grande (80%)")
     if flags["pre_samples_full"]:
-        available.append("Full (100%)")
+        available.append("Completo (100%)")
     
     return available if available else ["Small (20%)"]  # Fallback
 
