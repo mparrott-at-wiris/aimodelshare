@@ -209,11 +209,11 @@ MODULES = [
         <div class="scenario-box">
             <div class="slide-body">
 
-                <h2 class="slide-title" style="text-align:center; margin-bottom:15px;">🗺️ MISSION ROADMAP</h2>
+                <h2 class="slide-title" style="text-align:center; margin-bottom:15px;">🗺️ FULL DE RUTA DE LA MISSIÓ</h2>
 
                 <p style="font-size:1.1rem; max-width:800px; margin:0 auto 25px auto; text-align:center;">
-                    <strong>Your mission is clear:</strong> Uncover the bias hiding inside the 
-                    AI system before it hurts real people. If you cannot find bias, we cannot fix it.
+                    <strong>La teva missió és clara:</strong> descobrir el biaix que s’amaga dins del 
+                    sistema d’IA abans que perjudiqui més persones. Si no identifiquem el biaix, no el podem corregir.
                 </p>
 
                 <div class="ai-risk-container" style="background:white; border:none; padding:0;">
@@ -221,20 +221,20 @@ MODULES = [
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
 
                         <div style="border: 3px solid #3b82f6; background: #eff6ff; border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 12px rgba(59,130,246,0.25);">
-                            <div style="position:absolute; top:-15px; left:15px; background:#3b82f6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 1: RULES</div>
+                            <div style="position:absolute; top:-15px; left:15px; background:#3b82f6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PAS 1: LES REGLES</div>
                             <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">📜</div>
-                            <div style="font-weight:800; font-size:1.2rem; color:#1e3a8a; margin-bottom:5px;">Establish the Rules</div>
+                            <div style="font-weight:800; font-size:1.2rem; color:#1e3a8a; margin-bottom:5px;">Establir les regles</div>
                             <div style="font-size:1.0rem; color:#1e40af; font-weight:500; line-height:1.4;">
-                                Define the ethical standard: <strong>Justice & Equity</strong>. What specifically counts as bias in this investigation?
+                                Definir l’estàndard ètic: <strong>Justía i Equitat</strong>. Què considerem exactament un biaix en aquesta investigació?
                             </div>
                         </div>
 
                         <div style="border: 3px solid #14b8a6; background: #f0fdfa; border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(20, 184, 166, 0.15);">
-                            <div style="position:absolute; top:-15px; left:15px; background:#14b8a6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 2: DATA EVIDENCE</div>
+                            <div style="position:absolute; top:-15px; left:15px; background:#14b8a6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PAS 2: PROVES AMB DADES</div>
                             <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">🔍</div>
-                            <div style="font-weight:800; font-size:1.2rem; color:#134e4a; margin-bottom:5px;">Input Data Forensics</div>
+                            <div style="font-weight:800; font-size:1.2rem; color:#134e4a; margin-bottom:5px;">Anàlisi de les dades d’entrada</div>
                             <div style="font-size:1.0rem; color:#0f766e; font-weight:500; line-height:1.4;">
-                                Scan the <strong>Input Data</strong> for historical injustice, representation gaps, and exclusion bias.
+                                Examina les <strong>dades d'entrada</strong> per detectar injustícies històriques, buits de representació i biaixos d’exclusió.
                             </div>
                         </div>
 
