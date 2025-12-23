@@ -63,6 +63,41 @@ except ImportError:
 # -------------------------------------------------------------------------
 # CACHE CONFIGURATION (Add this near imports)
 # -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# CACHE CONFIGURATION (Optimized: SQLite)
+# -------------------------------------------------------------------------
+import sqlite3
+
+CACHE_DB_FILE = "prediction_cache.sqlite"
+_db_conn = None
+
+def get_cached_prediction(key):
+    """
+    Lightning-fast lookup from SQLite database.
+    """
+    global _db_conn
+    # Lazy connection: Connect only when we first need it
+    if _db_conn is None:
+        if os.path.exists(CACHE_DB_FILE):
+            # check_same_thread=False is safe here because we only READ
+            _db_conn = sqlite3.connect(CACHE_DB_FILE, check_same_thread=False)
+        else:
+            return None
+
+    try:
+        cursor = _db_conn.cursor()
+        # "Select" is typically under 1 millisecond
+        cursor.execute("SELECT value FROM cache WHERE key=?", (key,))
+        result = cursor.fetchone()
+        if result:
+            return result[0] # Returns the compressed string "010101..."
+    except Exception as e:
+        print(f"⚠️ DB Read Error: {e}")
+    
+    return None
+
+print("✅ App configured for Instant-Load SQLite Cache.")
+
 import gzip
 import json
 
@@ -1925,7 +1960,7 @@ def run_experiment(
         cache_key = f"{model_name_key}|{complexity_level}|{data_size_str}|{feature_key}"
         
         # 2. Check Cache
-        cached_predictions = PREDICTION_CACHE.get(cache_key)
+        cached_predictions = get_cached_prediction(cache_key)
         
         # Initialize submission variables
         predictions = None
