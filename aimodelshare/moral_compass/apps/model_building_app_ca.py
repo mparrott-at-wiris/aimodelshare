@@ -491,16 +491,16 @@ UI_TEAM_LANG = "ca"
 
 # --- Feature groups for scaffolding (Weak -> Medium -> Strong) ---
 FEATURE_SET_ALL_OPTIONS = [
-    ("Juvenile Felony Count", "juv_fel_count"),
-    ("Juvenile Misdemeanor Count", "juv_misd_count"),
-    ("Other Juvenile Count", "juv_other_count"),
-    ("Race", "race"),
-    ("Sex", "sex"),
-    ("Charge Severity (M/F)", "c_charge_degree"),
-    ("Days Before Arrest", "days_b_screening_arrest"),
-    ("Age", "age"),
-    ("Length of Stay", "length_of_stay"),
-    ("Prior Crimes Count", "priors_count"),
+    ("Nombre de delictes greus juvenils", "juv_fel_count"),
+    ("Nombre de delictes lleus juvenils", "juv_misd_count"),
+    ("Altres delictes juvenils", "juv_other_count"),
+    ("Origen ètnic", "race"),
+    ("Sexe", "sex"),
+    ("Gravetat del càrrec (lleu / greu)", "c_charge_degree"),
+    ("Dies abans de l'arrest", "days_b_screening_arrest"),
+    ("Edat", "age"),
+    ("Dies a la presó", "length_of_stay"),
+    ("Nombre de delictes previs", "priors_count"),
 ]
 FEATURE_SET_GROUP_1_VALS = [
     "juv_fel_count", "juv_misd_count", "juv_other_count", "race", "sex",
