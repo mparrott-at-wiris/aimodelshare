@@ -529,7 +529,7 @@ FEATURE_SET_ALL_OPTIONS = [
     ("Días antes del arresto", "days_b_screening_arrest"),
     ("Edad", "age"),
     ("Días en prisión", "length_of_stay"),
-    ("Número de delitos previo", "priors_count"),
+    ("Número de delitos previos", "priors_count"),
 ]
 FEATURE_SET_GROUP_1_VALS = [
     "juv_fel_count", "juv_misd_count", "juv_other_count", "race", "sex",
