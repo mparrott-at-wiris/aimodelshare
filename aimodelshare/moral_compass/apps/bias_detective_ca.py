@@ -223,7 +223,7 @@ MODULES = [
                         <div style="border: 3px solid #3b82f6; background: #eff6ff; border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 12px rgba(59,130,246,0.25);">
                             <div style="position:absolute; top:-15px; left:15px; background:#3b82f6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PAS 1: LES REGLES</div>
                             <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">📜</div>
-                            <div style="font-weight:800; font-size:1.2rem; color:#1e3a8a; margin-bottom:5px;">Establir les regles</div>
+                            <div style="font-weight:800; font-size:1.2rem; color:#1e3a8a; margin-bottom:5px;">Establir els criteris ètics</div>
                             <div style="font-size:1.0rem; color:#1e40af; font-weight:500; line-height:1.4;">
                                 Definir l’estàndard ètic: <strong>Justía i Equitat</strong>. Què considerem exactament un biaix en aquesta investigació?
                             </div>
@@ -239,20 +239,20 @@ MODULES = [
                         </div>
 
                         <div style="border: 3px solid #8b5cf6; background: #f5f3ff; border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(139, 92, 246, 0.15);">
-                            <div style="position:absolute; top:-15px; left:15px; background:#8b5cf6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 3: TEST ERROR</div>
+                            <div style="position:absolute; top:-15px; left:15px; background:#8b5cf6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PAS 3: ANÀLISI DELS ERRORS</div>
                             <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">🎯</div>
-                            <div style="font-weight:800; font-size:1.2rem; color:#4c1d95; margin-bottom:5px;">Output Error Testing</div>
+                            <div style="font-weight:800; font-size:1.2rem; color:#4c1d95; margin-bottom:5px;">Avaluar els errors del sistema</div>
                             <div style="font-size:1.0rem; color:#6d28d9; font-weight:500; line-height:1.4;">
-                                Test the Model's predictions. Prove that mistakes (False Alarms) are <strong>unequal</strong> across groups.
+                                Comprova les prediccions del model. Demostra que els errors (falses alarmes) <strong>afecten de manera desigual</strong> els diferents grups.
                             </div>
                         </div>
 
                         <div style="border: 3px solid #f97316; background: #fff7ed; border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(249, 115, 22, 0.15);">
-                            <div style="position:absolute; top:-15px; left:15px; background:#f97316; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 4: REPORT IMPACT</div>
+                            <div style="position:absolute; top:-15px; left:15px; background:#f97316; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PAS 4: INFORME D'IMPACTE</div>
                             <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">⚖️</div>
-                            <div style="font-weight:800; font-size:1.2rem; color:#7c2d12; margin-bottom:5px;">The Final Report</div>
+                            <div style="font-weight:800; font-size:1.2rem; color:#7c2d12; margin-bottom:5px;">L'informe final</div>
                             <div style="font-size:1.0rem; color:#c2410c; font-weight:500; line-height:1.4;">
-                                Diagnose systematic harm and issue your final recommendation to the court: <strong>Deploy AI System or Pause to Repair.</strong>
+                                Identifica els danys sistèmics i emet una recomanació clara al tribunal: <strong>implantar el sistema d’IA o aturar-lo per corregir-lo.</strong>
                             </div>
                         </div>
 
@@ -262,11 +262,11 @@ MODULES = [
 
                    <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 CONTINUE MISSION
+                            🚀 CONTINUA LA MISSIÓ
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
-                            Answer the question below to receive your next <strong>Moral Compass Score boost</strong>.
-                            <br>Then click <strong>Next</strong> to continue the investigation.
+                            Respon la pregunta següent per obtenir la teva pròxima <strong>millora de puntuació gràcies a la Brúixola Moral</strong>.
+                            <br>Després fes clic a <strong>Següent</strong> per començar la investigació.
                         </p>
                     </div>
             </div>
