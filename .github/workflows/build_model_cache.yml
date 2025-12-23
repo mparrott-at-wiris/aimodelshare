@@ -20,27 +20,27 @@ jobs:
       - name: Install Dependencies
         run: pip install pandas numpy scikit-learn joblib
 
-      # 1. Download previous checkpoint (Permissive Mode)
+      # 1. Download previous checkpoint (PERMISSIVE MODE)
       - name: Restore Checkpoint
         uses: dawidd6/action-download-artifact@v6
         with:
           workflow: build-cache.yml
           name: cache-checkpoint
           path: .
+          # CRITICAL FIX: Empty string = Look for artifacts in FAILED or TIMED OUT runs too
+          workflow_conclusion: ""  
           search_artifacts: true
-          # FIX: Empty string means "Download from any run status" (success, failure, or cancelled)
-          workflow_conclusion: ""
           if_no_artifact_found: warn
         continue-on-error: true
 
-      # Debug: Verify the file arrived
+      # Debug: Verify if it worked
       - name: Debug Checkpoint
         run: |
           if [ -f "cache_checkpoint.jsonl" ]; then
-            echo "✅ Checkpoint found!"
+            echo "✅ SUCCESS: Checkpoint found!"
             ls -lh cache_checkpoint.jsonl
           else
-            echo "⚠️ No checkpoint found. Starting from scratch."
+            echo "⚠️ NOTE: No checkpoint found. This is normal for the very first run."
           fi
 
       # 2. Run the script
