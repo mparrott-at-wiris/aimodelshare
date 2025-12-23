@@ -21,7 +21,8 @@ from sklearn.neighbors import KNeighborsClassifier
 MAX_ROWS = 4000
 # Stop script after 50 minutes (3000 seconds) to prevent GitHub Timeout Crash
 MAX_RUNTIME_SEC = 3000 
-BATCH_SIZE = 5000 
+# UPDATED: Reduced batch size to force frequent garbage collection
+BATCH_SIZE = 1000 
 
 CHECKPOINT_FILE = "cache_checkpoint.jsonl"
 FINAL_FILE = "prediction_cache.json.gz"
@@ -118,6 +119,7 @@ def process(task):
         model.fit(X_tr, Y_SAMPLES[data_size])
         
         preds = model.predict(X_te)
+        # Store as lightweight string "010101"
         pred_string = "".join(preds.astype(str))
         
         return key, pred_string
@@ -137,7 +139,6 @@ if __name__ == "__main__":
                 for line in f:
                     if line.strip():
                         # Minimal parsing to get key without loading full JSON objects
-                        # Assumes format {"k": "KEY", "v": "VAL"}
                         data = json.loads(line)
                         completed_keys.add(data["k"])
         except Exception as e:
@@ -181,21 +182,22 @@ if __name__ == "__main__":
                 batch_tasks = all_tasks[i : i + BATCH_SIZE]
                 print(f"Processing Batch {i//BATCH_SIZE + 1} ({len(batch_tasks)} tasks)...")
                 
-                with Parallel(n_jobs=2, return_as="generator", verbose=0) as parallel:
+                # UPDATED: n_jobs=1 (Serial Mode) 
+                # This prevents memory explosion with heavy Random Forest models.
+                with Parallel(n_jobs=1, return_as="generator", verbose=0) as parallel:
                     for result in parallel(delayed(process)(t) for t in batch_tasks):
                         if result is None: continue
                         
                         key, val = result
-                        # Write as JSON Lines: {"k": key, "v": value}
                         f_out.write(json.dumps({"k": key, "v": val}) + "\n")
                 
                 # Flush to disk & clean RAM
                 f_out.flush()
+                os.fsync(f_out.fileno())
                 gc.collect()
                 print(f"Batch saved. Time elapsed: {time.time() - start_time:.0f}s")
 
     # 4. Finalization Check
-    # Reload keys to see if we are truly done
     final_keys = set()
     if os.path.exists(CHECKPOINT_FILE):
         with open(CHECKPOINT_FILE, "r") as f:
@@ -204,7 +206,7 @@ if __name__ == "__main__":
                     final_keys.add(json.loads(line)["k"])
     
     # Re-calculate total possible tasks count
-    total_possible = 4 * 10 * 4 * len(all_combos)
+    total_possible = 327520 
     
     print(f"Status: {len(final_keys)} / {total_possible} complete.")
     
@@ -223,7 +225,5 @@ if __name__ == "__main__":
             json.dump(final_cache, f)
             
         print(f"✅ Final Artifact Created: {FINAL_FILE}")
-        # Optional: Remove checkpoint to clean up
-        # os.remove(CHECKPOINT_FILE)
     else:
         print("⏳ Time limit reached. Please re-run this job to continue.")
