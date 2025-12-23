@@ -87,30 +87,30 @@ MODULES = [
     # --- MODULE 0: THE HOOK (Mission Dossier) ---
     {
         "id": 0,
-        "title": "Mission Dossier",
+        "title": "El dosier de la misión",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin-bottom:25px; text-align:center; font-size: 2.2rem;">🕵️ MISSION DOSSIER</h2>
+                    <h2 class="slide-title" style="margin-bottom:25px; text-align:center; font-size: 2.2rem;">🕵️ DOSIER DE LA MISIÓN</h2>
 
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:25px; margin-bottom:30px; align-items:stretch;">
                         <div style="background:var(--background-fill-secondary); padding:20px; border-radius:12px; border:1px solid var(--border-color-primary);">
                             <div style="margin-bottom:15px;">
-                                <div style="font-size:0.9rem; font-weight:800; color:var(--body-text-color-subdued); letter-spacing:1px;">YOUR ROLE</div>
-                                <div style="font-size:1.3rem; font-weight:700; color:var(--color-accent);">Lead Bias Detective</div>
+                                <div style="font-size:0.9rem; font-weight:800; color:var(--body-text-color-subdued); letter-spacing:1px;">TU ROL</div>
+                                <div style="font-size:1.3rem; font-weight:700; color:var(--color-accent);">Detective principal de sesgos</div>
                             </div>
                             <div>
-                                <div style="font-size:0.9rem; font-weight:800; color:var(--body-text-color-subdued); letter-spacing:1px;">YOUR TARGET</div>
-                                <div style="font-size:1.3rem; font-weight:700;">"Compas" AI Algorithm</div>
-                                <div style="font-size:1.0rem; margin-top:5px; opacity:0.8;">Used by judges to decide bail.</div>
+                                <div style="font-size:0.9rem; font-weight:800; color:var(--body-text-color-subdued); letter-spacing:1px;">TU OBJETIVO</div>
+                                <div style="font-size:1.3rem; font-weight:700;">El sistema de IA «COMPAS»</div>
+                                <div style="font-size:1.0rem; margin-top:5px; opacity:0.8;">Utilizado por algunos jueces de EE. UU. para decidir la libertad bajo fianza.</div>
                             </div>
                         </div>
                         <div style="background:rgba(239,68,68,0.08); padding:20px; border-radius:12px; border:2px solid #fca5a5; display:flex; flex-direction:column; justify-content:center;">
-                            <div style="font-size:0.9rem; font-weight:800; color:#b91c1c; letter-spacing:1px;">🚨 THE THREAT</div>
+                            <div style="font-size:0.9rem; font-weight:800; color:#b91c1c; letter-spacing:1px;">🚨 LA AMENAZA</div>
                             <div style="font-size:1.15rem; font-weight:600; line-height:1.4; color:#7f1d1d;">
-                                The model is 92% accurate, but we suspect a <strong>hidden systematic bias</strong>.
+                                El modelo tiene una precisión del 92 %, pero sospechamos que <strong>oculta un sesgo sistemático</strong>.
                                 <br><br>
-                                Your goal: Expose flaws before this model is deployed nationwide.
+                                Tu misión: detectar problemas graves antes de que se implante en todo el país.
                             </div>
                         </div>
                     </div>
@@ -118,7 +118,7 @@ MODULES = [
                     <hr style="opacity:0.2; margin:25px 0;">
 
                     <p style="text-align:center; font-weight:800; color:var(--body-text-color-subdued); margin-bottom:20px; font-size:1.0rem; letter-spacing:1px;">
-                        👇 CLICK CARDS TO UNLOCK INTEL
+                        👇 HAZ CLIC EN LAS TARJETAS PARA DESCUBRIR INFORMACIÓN CLAVE
                     </p>
 
                     <div style="display:grid; gap:20px;">
@@ -126,19 +126,19 @@ MODULES = [
                             <summary style="padding:20px; font-weight:800; font-size:1.2rem; color:#1f2937; cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between; background:rgba(254,242,242,0.5);">
                                 <div style="display:flex; align-items:center; gap:15px;">
                                     <span style="font-size:1.8rem;">⚠️</span>
-                                    <span>RISK: The "Ripple Effect"</span>
+                                    <span>RIESGO: El «efecto ondulante»</span>
                                 </div>
-                                <span style="font-size:0.9rem; color:#ef4444; text-transform:uppercase;">Click to Simulate</span>
+                                <span style="font-size:0.9rem; color:#ef4444; text-transform:uppercase;">Haz clic para simular</span>
                             </summary>
                             <div style="padding:25px; border-top:1px solid #e5e7eb;">
                                 <div style="display:flex; gap:30px; align-items:center;">
                                     <div style="font-size:3.5rem; line-height:1;">🌊</div>
                                     <div>
-                                        <div style="font-weight:900; font-size:2.0rem; color:#ef4444; line-height:1;">15,000+</div>
-                                        <div style="font-weight:700; font-size:1.1rem; color:#374151; margin-bottom:5px;">Cases Processed Per Year</div>
+                                        <div style="font-weight:900; font-size:2.0rem; color:#ef4444; line-height:1;">15.000+</div>
+                                        <div style="font-weight:700; font-size:1.1rem; color:#374151; margin-bottom:5px;">Casos tramitados al año</div>
                                         <div style="font-size:1.1rem; color:#4b5563; line-height:1.5;">
-                                            A human makes a mistake once. This AI will repeat the same bias <strong>15,000+ times a year</strong>.
-                                            <br>If we don't fix it, we automate unfairness at a massive scale.
+                                            Un error humano puede ocurrir una sola vez. Un sistema de IA, en cambio, puede repetir el mismo sesgo más de <strong>15.000 veces al año</strong>.
+                                            <br>Si no lo corregimos, este sesgo se reproducirá automáticamente a gran escala.
                                         </div>
                                     </div>
                                 </div>
@@ -149,36 +149,36 @@ MODULES = [
                             <summary style="padding:20px; font-weight:800; font-size:1.2rem; color:#1f2937; cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between; background:rgba(240,253,244,0.5);">
                                 <div style="display:flex; align-items:center; gap:15px;">
                                     <span style="font-size:1.8rem;">🧭</span>
-                                    <span>OBJECTIVE: How to Win</span>
+                                    <span>OBJECTIVO: Cómo ganar</span>
                                 </div>
-                                <span style="font-size:0.9rem; color:#15803d; text-transform:uppercase;">Click to Calculate</span>
+                                <span style="font-size:0.9rem; color:#15803d; text-transform:uppercase;">Haz clic para calcular</span>
                             </summary>
                             <div style="padding:25px; border-top:1px solid #e5e7eb;">
                                 <div style="text-align:center; margin-bottom:20px;">
                                     <div style="font-size:1.4rem; font-weight:800; background:#f3f4f6; padding:15px; border-radius:10px; display:inline-block;">
-                                        <span style="color:#6366f1;">[ Accuracy ]</span>
+                                        <span style="color:#6366f1;">[ Precisión ]</span>
                                         <span style="color:#9ca3af; margin:0 10px;">×</span>
-                                        <span style="color:#22c55e;">[ Ethical Progress % ]</span>
+                                        <span style="color:#22c55e;">[ Progreso ético % ]</span>
                                         <span style="color:#9ca3af; margin:0 10px;">=</span>
-                                        SCORE
+                                        PUNTUACIÓN
                                     </div>
                                 </div>
                                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
                                     <div style="padding:15px; background:#fef2f2; border:2px solid #fecaca; border-radius:10px; text-align:center;">
-                                        <div style="font-weight:700; color:#b91c1c; margin-bottom:5px;">Scenario A: Ignored Ethics</div>
-                                        <div style="font-size:0.95rem;">High Accuracy (95%)</div>
-                                        <div style="font-size:0.95rem;">0% Ethics</div>
+                                        <div style="font-weight:700; color:#b91c1c; margin-bottom:5px;">Escenario A: Ética ignorada</div>
+                                        <div style="font-size:0.95rem;">Alta precisión (95%)</div>
+                                        <div style="font-size:0.95rem;">0% de ética</div>
                                         <div style="margin-top:10px; border-top:1px solid #fecaca; padding-top:5px;">
                                             <div style="font-size:0.8rem; text-transform:uppercase; color:#7f1d1d;">Final Score</div>
                                             <div style="font-size:2.5rem; font-weight:900; color:#ef4444;">0</div>
                                         </div>
                                     </div>
                                     <div style="padding:15px; background:#f0fdf4; border:2px solid #bbf7d0; border-radius:10px; text-align:center;">
-                                        <div style="font-weight:700; color:#15803d; margin-bottom:5px;">Scenario B: True Detective</div>
-                                        <div style="font-size:0.95rem;">Good Accuracy (92%)</div>
-                                        <div style="font-size:0.95rem;">100% Ethics</div>
+                                        <div style="font-weight:700; color:#15803d; margin-bottom:5px;">Escenario B: Detective con criterio</div>
+                                        <div style="font-size:0.95rem;">Buena precisión (92%)</div>
+                                        <div style="font-size:0.95rem;">100% de ética</div>
                                         <div style="margin-top:10px; border-top:1px solid #bbf7d0; padding-top:5px;">
-                                            <div style="font-size:0.8rem; text-transform:uppercase; color:#14532d;">Final Score</div>
+                                            <div style="font-size:0.8rem; text-transform:uppercase; color:#14532d;">Puntuación final</div>
                                             <div style="font-size:2.5rem; font-weight:900; color:#22c55e;">92</div>
                                         </div>
                                     </div>
@@ -189,11 +189,11 @@ MODULES = [
 
                    <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 MISSION START
+                            🚀 INICIO DE LA MISIÓN
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
-                            Answer the question below to receive your first <strong>Moral Compass Score boost</strong>.
-                            <br>Then click <strong>Next</strong> to start the investigation.
+                            Responde la siguiente pregunta para obtener tu primera <strong>mejora de puntuación gracias a la Brújula Moral</strong>.
+                            <br>Después haz clic en <strong>Siguiente</strong> para empezar la investigación.
                         </p>
                     </div> 
                 </div>
