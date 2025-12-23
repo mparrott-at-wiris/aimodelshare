@@ -149,7 +149,7 @@ MODULES = [
                             <summary style="padding:20px; font-weight:800; font-size:1.2rem; color:#1f2937; cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between; background:rgba(240,253,244,0.5);">
                                 <div style="display:flex; align-items:center; gap:15px;">
                                     <span style="font-size:1.8rem;">🧭</span>
-                                    <span>OBJECTIVO: Cómo ganar</span>
+                                    <span>OBJETIVO: Cómo ganar</span>
                                 </div>
                                 <span style="font-size:0.9rem; color:#15803d; text-transform:uppercase;">Haz clic para calcular</span>
                             </summary>
@@ -169,7 +169,7 @@ MODULES = [
                                         <div style="font-size:0.95rem;">Alta precisión (95%)</div>
                                         <div style="font-size:0.95rem;">0% de ética</div>
                                         <div style="margin-top:10px; border-top:1px solid #fecaca; padding-top:5px;">
-                                            <div style="font-size:0.8rem; text-transform:uppercase; color:#7f1d1d;">Final Score</div>
+                                            <div style="font-size:0.8rem; text-transform:uppercase; color:#7f1d1d;">Puntuación final</div>
                                             <div style="font-size:2.5rem; font-weight:900; color:#ef4444;">0</div>
                                         </div>
                                     </div>
@@ -225,7 +225,7 @@ MODULES = [
                             <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">📜</div>
                             <div style="font-weight:800; font-size:1.2rem; color:#1e3a8a; margin-bottom:5px;">Establecer los criterios éticos</div>
                             <div style="font-size:1.0rem; color:#1e40af; font-weight:500; line-height:1.4;">
-                                Definir el estándar ético: <strong>Justícia y Equidad</strong>. ¿Qué consideramos exactamente un sesgo en esta investigación?
+                                Definir el estándar ético: <strong>Justicia y Equidad</strong>. ¿Qué consideramos exactamente un sesgo en esta investigación?
                             </div>
                         </div>
 
@@ -248,7 +248,7 @@ MODULES = [
                         </div>
 
                         <div style="border: 3px solid #f97316; background: #fff7ed; border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(249, 115, 22, 0.15);">
-                            <div style="position:absolute; top:-15px; left:15px; background:#f97316; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 4: INFORME DE IMPACTO</div>
+                            <div style="position:absolute; top:-15px; left:15px; background:#f97316; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PASO 4: INFORME DE IMPACTO</div>
                             <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">⚖️</div>
                             <div style="font-weight:800; font-size:1.2rem; color:#7c2d12; margin-bottom:5px;">El informe final</div>
                             <div style="font-size:1.0rem; color:#c2410c; font-weight:500; line-height:1.4;">
