@@ -491,16 +491,16 @@ UI_TEAM_LANG = "es"
 
 # --- Feature groups for scaffolding (Weak -> Medium -> Strong) ---
 FEATURE_SET_ALL_OPTIONS = [
-    ("Juvenile Felony Count", "juv_fel_count"),
-    ("Juvenile Misdemeanor Count", "juv_misd_count"),
-    ("Other Juvenile Count", "juv_other_count"),
-    ("Race", "race"),
-    ("Sex", "sex"),
-    ("Charge Severity (M/F)", "c_charge_degree"),
-    ("Days Before Arrest", "days_b_screening_arrest"),
-    ("Age", "age"),
-    ("Length of Stay", "length_of_stay"),
-    ("Prior Crimes Count", "priors_count"),
+    ("Número de delitos graves juveniles", "juv_fel_count"),
+    ("Número de delitos leves juveniles", "juv_misd_count"),
+    ("Otros delitos juveniles", "juv_other_count"),
+    ("Origen étnico", "race"),
+    ("Sexo", "sex"),
+    ("Gravedad del cargo (leve / grave)", "c_charge_degree"),
+    ("Días antes del arresto", "days_b_screening_arrest"),
+    ("Edad", "age"),
+    ("Días en prisión", "length_of_stay"),
+    ("Número de delitos previo", "priors_count"),
 ]
 FEATURE_SET_GROUP_1_VALS = [
     "juv_fel_count", "juv_misd_count", "juv_other_count", "race", "sex",
@@ -520,10 +520,10 @@ DEFAULT_FEATURE_SET = FEATURE_SET_GROUP_1_VALS
 
 # --- Data Size config ---
 DATA_SIZE_MAP = {
-    "Small (20%)": 0.2,
-    "Medium (60%)": 0.6,
-    "Large (80%)": 0.8,
-    "Full (100%)": 1.0
+    "Pequeño (20%)": 0.2,
+    "Medio (60%)": 0.6,
+    "Grande (80%)": 0.8,
+    "Completo (100%)": 1.0
 }
 DEFAULT_DATA_SIZE = "Small (20%)"
 
