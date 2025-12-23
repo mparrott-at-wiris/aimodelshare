@@ -387,14 +387,14 @@ def _build_attempts_tracker_html(current_count, limit=10):
         border_color = "#bae6fd"
         text_color = "#0369a1"
         icon = "🛑"
-        label = f"Last chance (for now) to boost your score!: {current_count}/{limit}"
+        label = f"Última oportunitat (de moment) per pujar la teva puntuació!: {current_count}/{limit}"
     else:
         # Normal - blue styling
         bg_color = "#f0f9ff"
         border_color = "#bae6fd"
         text_color = "#0369a1"
         icon = "📊"
-        label = f"Attempts used: {current_count}/{limit}"
+        label = f"Intents utilitzats: {current_count}/{limit}"
 
     return f"""<div style='text-align:center; padding:8px; margin:8px 0; background:{bg_color}; border-radius:8px; border:1px solid {border_color};'>
         <p style='margin:0; color:{text_color}; font-weight:600; font-size:1rem;'>{icon} {label}</p>
@@ -407,9 +407,9 @@ def check_attempt_limit(submission_count: int, limit: int = None) -> Tuple[bool,
         limit = ATTEMPT_LIMIT
     
     if submission_count >= limit:
-        msg = f"⚠️ Attempt limit reached ({submission_count}/{limit})"
+        msg = f"⚠️ Límit d’intents assolit ({submission_count}/{limit})"
         return False, msg
-    return True, f"Attempts: {submission_count}/{limit}"
+    return True, f"Intents: {submission_count}/{limit}"
 
 # -------------------------------------------------------------------------
 # Future: Fairness Metrics
@@ -461,31 +461,31 @@ LEADERBOARD_POLL_SLEEP = 1.0  # Sleep duration between polls (seconds)
 ENABLE_AUTO_RESUBMIT_AFTER_READY = False  # Future feature flag for auto-resubmit
 
 MODEL_TYPES = {
-    "The Balanced Generalist": {
+    "El Generalista Equilibrat": {
         "model_builder": lambda: LogisticRegression(
             max_iter=500, random_state=42, class_weight="balanced"
         ),
-        "card": "A fast, reliable, well-rounded model. Good starting point; less prone to overfitting."
+        "card": "Aquest model és ràpid, fiable i equilibrat. Bon punt de partida; sol donar resultats més estables."
     },
-    "The Rule-Maker": {
+    "El Creador de Regles": {
         "model_builder": lambda: DecisionTreeClassifier(
             random_state=42, class_weight="balanced"
         ),
-        "card": "Learns simple 'if/then' rules. Easy to interpret, but can miss subtle patterns."
+        "card": "Aquest model aprèn regles simples de tipus «si/aleshores». Fàcil d’interpretar, però li costa captar patrons complexos."
     },
-    "The 'Nearest Neighbor'": {
+    "El 'Veí més Proper'": {
         "model_builder": lambda: KNeighborsClassifier(),
-        "card": "Looks at the closest past examples. 'You look like these others; I'll predict like they behave.'"
+        "card": "Aquest model es basa en exemples semblants del passat. «Si t’assembles a aquests casos, prediré el mateix resultat»."
     },
-    "The Deep Pattern-Finder": {
+    "El Detector de Patrons Profunds": {
         "model_builder": lambda: RandomForestClassifier(
             random_state=42, class_weight="balanced"
         ),
-        "card": "An ensemble of many decision trees. Powerful, can capture deep patterns; watch complexity."
+        "card": "Aquest model combina molts arbres de decisió per trobar patrons complexos. És potent, però cal vigilar no fer-lo massa complex."
     }
 }
 
-DEFAULT_MODEL = "The Balanced Generalist"
+DEFAULT_MODEL = "El Generalista Equilibrat"
 
 TEAM_NAMES = [
     "The Moral Champions", "The Justice League", "The Data Detectives",
@@ -507,7 +507,7 @@ TEAM_NAME_TRANSLATIONS = {
     "ca": {
         "The Justice League": "La Lliga de la Justícia",
         "The Moral Champions": "Els Campions Morals",
-        "The Data Detectives": "Els Detectives de Dades",
+        "The Data Detectives": "Els Detectius de Dades",
         "The Ethical Explorers": "Els Exploradors Ètics",
         "The Fairness Finders": "Els Cercadors d'Equitat",
         "The Accuracy Avengers": "Els Venjadors de Precisió"
@@ -520,16 +520,16 @@ UI_TEAM_LANG = "ca"
 
 # --- Feature groups for scaffolding (Weak -> Medium -> Strong) ---
 FEATURE_SET_ALL_OPTIONS = [
-    ("Juvenile Felony Count", "juv_fel_count"),
-    ("Juvenile Misdemeanor Count", "juv_misd_count"),
-    ("Other Juvenile Count", "juv_other_count"),
-    ("Race", "race"),
-    ("Sex", "sex"),
-    ("Charge Severity (M/F)", "c_charge_degree"),
-    ("Days Before Arrest", "days_b_screening_arrest"),
-    ("Age", "age"),
-    ("Length of Stay", "length_of_stay"),
-    ("Prior Crimes Count", "priors_count"),
+    ("Nombre de delictes greus juvenils", "juv_fel_count"),
+    ("Nombre de delictes lleus juvenils", "juv_misd_count"),
+    ("Altres delictes juvenils", "juv_other_count"),
+    ("Origen ètnic", "race"),
+    ("Sexe", "sex"),
+    ("Gravetat del càrrec (lleu / greu)", "c_charge_degree"),
+    ("Dies abans de l'arrest", "days_b_screening_arrest"),
+    ("Edat", "age"),
+    ("Dies a la presó", "length_of_stay"),
+    ("Nombre de delictes previs", "priors_count"),
 ]
 FEATURE_SET_GROUP_1_VALS = [
     "juv_fel_count", "juv_misd_count", "juv_other_count", "race", "sex",
@@ -549,12 +549,12 @@ DEFAULT_FEATURE_SET = FEATURE_SET_GROUP_1_VALS
 
 # --- Data Size config ---
 DATA_SIZE_MAP = {
-    "Small (20%)": 0.2,
-    "Medium (60%)": 0.6,
-    "Large (80%)": 0.8,
-    "Full (100%)": 1.0
+    "Petita (20%)": 0.2,
+    "Mitjana (60%)": 0.6,
+    "Gran (80%)": 0.8,
+    "Completa (100%)": 1.0
 }
-DEFAULT_DATA_SIZE = "Small (20%)"
+DEFAULT_DATA_SIZE = "Petita (20%)"
 
 
 MAX_ROWS = 4000
@@ -700,8 +700,8 @@ def load_and_prep_data(use_cache=True):
     # Pre-sample all data sizes
     global X_TRAIN_SAMPLES_MAP, Y_TRAIN_SAMPLES_MAP, X_TRAIN_WARM, Y_TRAIN_WARM
 
-    X_TRAIN_SAMPLES_MAP["Full (100%)"] = X_train_raw
-    Y_TRAIN_SAMPLES_MAP["Full (100%)"] = y_train
+    X_TRAIN_SAMPLES_MAP["Completa (100%)"] = X_train_raw
+    Y_TRAIN_SAMPLES_MAP["Completa (100%)"] = y_train
 
     for label, frac in DATA_SIZE_MAP.items():
         if frac < 1.0:
@@ -832,10 +832,10 @@ def _fit_default_preprocessor():
     Pre-fit a default preprocessor on the small sample with default features.
     Uses memoized preprocessor builder for efficiency.
     """
-    if "Small (20%)" not in X_TRAIN_SAMPLES_MAP:
+    if "Petita (20%)" not in X_TRAIN_SAMPLES_MAP:
         return
     
-    X_sample = X_TRAIN_SAMPLES_MAP["Small (20%)"]
+    X_sample = X_TRAIN_SAMPLES_MAP["Petita (20%)"]
     
     # Use default feature set
     numeric_cols = [f for f in DEFAULT_FEATURE_SET if f in ALL_NUMERIC_COLS]
@@ -881,15 +881,15 @@ def get_available_data_sizes():
     
     available = []
     if flags["pre_samples_small"]:
-        available.append("Small (20%)")
+        available.append("Petita (20%)")
     if flags["pre_samples_medium"]:
-        available.append("Medium (60%)")
+        available.append("Mitjana (60%)")
     if flags["pre_samples_large"]:
-        available.append("Large (80%)")
+        available.append("Gran (80%)")
     if flags["pre_samples_full"]:
-        available.append("Full (100%)")
+        available.append("Completa (100%)")
     
-    return available if available else ["Small (20%)"]  # Fallback
+    return available if available else ["Petita (20%)"]  # Fallback
 
 def _is_ready() -> bool:
     """
@@ -1211,14 +1211,14 @@ def _format_leaderboard_for_display(df: Optional[pd.DataFrame], lang: str = "ca"
     return df_display
 
 
-def _build_skeleton_leaderboard(rows=6, is_team=True, submit_button_label="5. 🔬 Build & Submit Model"):
-    context_label = "Team" if is_team else "Individual"
+def _build_skeleton_leaderboard(rows=6, is_team=True, submit_button_label="5. 🔬 Construir i enviar el model"):
+    context_label = "Equip" if is_team else "Individual"
     return f"""
     <div class='lb-placeholder' aria-live='polite'>
-        <div class='lb-placeholder-title'>{context_label} Standings Pending</div>
+        <div class='lb-placeholder-title'>{context_label} · Classificació pendent</div>
         <div class='lb-placeholder-sub'>
-            <p style='margin:0 0 6px 0;'>Submit your first model to populate this table.</p>
-            <p style='margin:0;'><strong>Click “{submit_button_label}” (bottom-left)</strong> to begin!</p>
+            <p style='margin:0 0 6px 0;'>Envia el teu primer model i desbloqueja la classificació!</p>
+            <p style='margin:0;'><strong>Fes clic a «{submit_button_label}» (a baix a l’esquerra)</strong> per començar!</p>
         </div>
     </div>
     """
@@ -1229,7 +1229,7 @@ def build_login_prompt_html():
     The styled preview card will be prepended to this.
     """
     return f"""
-    <h2 style='color: #111827; margin-top:20px; border-top: 2px solid #e5e7eb; padding-top: 20px;'>🔐 Sign in to submit & rank</h2>
+    <h2 style='color: #111827; margin-top:20px; border-top: 2px solid #e5e7eb; padding-top: 20px;'>🔐 Inicia sessió per enviar i classificar-te</h2>
     <div style='margin-top:16px; text-align:left; font-size:1rem; line-height:1.6; color:#374151;'>
         <p style='margin:12px 0;'>
             This is a preview run only. Sign in to publish your score to the live leaderboard, 
@@ -2624,30 +2624,30 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
         attempt_cap_html = f"""
         <div class="final-conclusion-attempt-cap">
           <p style="margin:0;">
-            <b>📊 Attempt Limit Reached:</b> You used all {ATTEMPT_LIMIT} allowed submission attempts for this session.
-            We will open up submissions again after you complete some new activities next.
+            <b>📊 Límit d’intents assolit:</b> Has utilitzat tots els {ATTEMPT_LIMIT} intents d’enviament permesos per a aquesta sessió.
+            Podràs enviar més models un cop hagis completat algunes activitats noves.
           </p>
         </div>
         """
 
     return f"""
     <div class="final-conclusion-root">
-      <h1 class="final-conclusion-title">🎉 Engineering Phase Complete</h1>
+      <h1 class="final-conclusion-title">🎉 Fase d’enginyeria completada</h1>
       <div class="final-conclusion-card">
-        <h2 class="final-conclusion-subtitle">Your Performance Snapshot</h2>
+        <h2 class="final-conclusion-subtitle">Resum del teu rendiment</h2>
         <ul class="final-conclusion-list">
-          <li>🏁 <b>Best Accuracy:</b> {(best_score * 100):.2f}%</li>
-          <li>📊 <b>Rank Achieved:</b> {('#' + str(rank)) if rank > 0 else '—'}</li>
-          <li>🔁 <b>Submissions Made This Session:</b> {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li>
-          <li>🧗 <b>Improvement Over First Score This Session:</b> {(improvement * 100):+.2f}</li>
-          <li>🎖️ <b>Tier Progress:</b> {tier_line}</li>
-          <li>🧪 <b>Strong Predictors Used:</b> {len(strong_used)} ({', '.join(strong_used) if strong_used else 'None yet'})</li>
+          <li>🏁 <b>Millor precisió:</b> {(best_score * 100):.2f}%</li>
+          <li>📊 <b>Posició aconseguida:</b> {('#' + str(rank)) if rank > 0 else '—'}</li>
+          <li>🔁 <b>Enviaments en aquesta sessió:</b> {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li>
+          <li>🧗 <b>Millora respecte a la primera puntuació d’aquesta sessió:</b> {(improvement * 100):+.2f}</li>
+          <li>🎖️ <b>Progrés de nivell:</b> {tier_line}</li>
+          <li>🧪 <b>Variables clau utilitzades:</b> {len(strong_used)} ({', '.join(strong_used) if strong_used else 'Encara cap'})</li>
         </ul>
 
         {tip_html}
 
         <div class="final-conclusion-ethics">
-          <p style="margin:0;"><b>Ethical Reflection:</b> {ethical_note}</p>
+          <p style="margin:0;"><b>Reflexió ètica:</b> {ethical_note}</p>
         </div>
 
         {attempt_cap_html}
@@ -2655,9 +2655,9 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
         <hr class="final-conclusion-divider" />
 
         <div class="final-conclusion-next">
-          <h2>➡️ Next: Real-World Consequences</h2>
-          <p>Scroll below this app to continue. You'll examine how models like yours shape judicial outcomes.</p>
-          <h1 class="final-conclusion-scroll">👇 SCROLL DOWN 👇</h1>
+          <h2>➡️ Següent: Conseqüències al món real</h2>
+          <p>Desplaça’t cap avall sota aquesta aplicació per continuar. Analitzaràs com models com el teu influeixen en els resultats judicials.</p>
+          <h1 class="final-conclusion-scroll">👇 DESPLAÇA’T CAP AVALL 👇</h1>
         </div>
       </div>
     </div>
@@ -3895,7 +3895,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # Model Building App (Main Interface)
         with gr.Column(visible=False, elem_id="model-step") as model_building_step:
-            gr.Markdown("<h1 style='text-align:center;'>🛠️ Model Building Arena</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🛠️ Àrea de construcció de models</h1>")
             
             # Status panel for initialization progress - HIDDEN
             init_status_display = gr.HTML(value="", visible=False)
@@ -3906,7 +3906,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
               value=(
                   "<div class='init-banner'>"
                   "<p class='init-banner__text'>"
-                  "⏳ Initializing data & leaderboard… you can explore but must wait for readiness to submit."
+                  "⏳ Carregant les dades i la classificació… pots explorar, però has d’esperar que estigui llest per enviar."
                   "</p>"
                   "</div>"
               ),
@@ -3937,12 +3937,12 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
             feature_set_state = gr.State(DEFAULT_FEATURE_SET)
             data_size_state = gr.State(DEFAULT_DATA_SIZE)
 
-            rank_message_display = gr.Markdown("### Rank loading...")
+            rank_message_display = gr.Markdown("### Carregant la classificació...")
             with gr.Row():
                 with gr.Column(scale=1):
 
                     model_type_radio = gr.Radio(
-                        label="1. Model Strategy",
+                        label="1. Estratègia del model",
                         choices=[],
                         value=None,
                         interactive=False
@@ -3952,25 +3952,25 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                     gr.Markdown("---") # Separator
 
                     complexity_slider = gr.Slider(
-                        label="2. Model Complexity (1–10)",
+                        label="2. Complexitat del model (1–10)",
                         minimum=1, maximum=3, step=1, value=2,
-                        info="Higher values allow deeper pattern learning; very high values may overfit."
+                        info="Valors més alts aprenen més, però un excés pot empitjorar els resultats."
                     )
 
                     gr.Markdown("---") # Separator
 
                     feature_set_checkbox = gr.CheckboxGroup(
-                        label="3. Select Data Ingredients",
+                        label="3. Selecciona les variables de dades",
                         choices=FEATURE_SET_ALL_OPTIONS,
                         value=DEFAULT_FEATURE_SET,
                         interactive=False,
-                        info="More ingredients unlock as you rank up!"
+                        info="Desbloqueja més variables a mesura que puges de posició!"
                     )
 
                     gr.Markdown("---") # Separator
 
                     data_size_radio = gr.Radio(
-                        label="4. Data Size",
+                        label="4. Mida de les dades",
                         choices=[DEFAULT_DATA_SIZE],
                         value=DEFAULT_DATA_SIZE,
                         interactive=False
@@ -3981,13 +3981,13 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                     # Attempt tracker display
                     attempts_tracker_display = gr.HTML(
                         value="<div style='text-align:center; padding:8px; margin:8px 0; background:#f0f9ff; border-radius:8px; border:1px solid #bae6fd;'>"
-                        "<p style='margin:0; color:#0369a1; font-weight:600; font-size:1rem;'>📊 Attempts used: 0/10</p>"
+                        "<p style='margin:0; color:#0369a1; font-weight:600; font-size:1rem;'>📊 Intents utilitzats: 0/10</p>"
                         "</div>",
                         visible=True
                     )
 
                     submit_button = gr.Button(
-                        value="5. 🔬 Build & Submit Model",
+                        value="5. 🔬 Construir i enviar el model",
                         variant="primary",
                         size="lg"
                     )
@@ -3996,15 +3996,15 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                     gr.HTML(
                         """
                         <div class='leaderboard-box'>
-                            <h3 style='margin-top:0;'>🏆 Live Standings</h3>
-                            <p style='margin:0;'>Submit a model to see your rank.</p>
+                            <h3 style='margin-top:0;'>🏆 Classificació en directe</h3>
+                            <p style='margin:0;'>Envia un model per veure la teva posició.</p>
                         </div>
                         """
                     )
 
                     # KPI Card
                     submission_feedback_display = gr.HTML(
-                        "<p style='text-align:center; color:#6b7280; padding:20px 0;'>Submit your first model to get feedback!</p>"
+                        "<p style='text-align:center; color:#6b7280; padding:20px 0;'>Envia el teu primer model per obtenir una valoració!</p>"
                     )
                     
                     # Inline Login Components (initially hidden)
@@ -4030,23 +4030,23 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                     )
 
                     with gr.Tabs():
-                        with gr.TabItem("Team Standings"):
+                        with gr.TabItem("Classificació per equips"):
                             team_leaderboard_display = gr.HTML(
-                                "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Submit a model to see team rankings.</p>"
+                                "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Envia un model per veure la classificació dels equips.</p>"
                             )
-                        with gr.TabItem("Individual Standings"):
+                        with gr.TabItem("Classificació individual"):
                             individual_leaderboard_display = gr.HTML(
-                                "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Submit a model to see individual rankings.</p>"
+                                "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Envia un model per veure la classificació individual.</p>"
                             )
 
             # REMOVED: Ethical Reminder HTML Block
-            step_2_next = gr.Button("Finish & Reflect ▶️", variant="secondary")
+            step_2_next = gr.Button("Finalitza i reflexiona ▶️", variant="secondary")
 
         # Conclusion Step
         with gr.Column(visible=False, elem_id="conclusion-step") as conclusion_step:
-            gr.Markdown("<h1 style='text-align:center;'>✅ Section Complete</h1>")
-            final_score_display = gr.HTML(value="<p>Preparing final summary...</p>")
-            step_3_back = gr.Button("◀️ Back to Experiment")
+            gr.Markdown("<h1 style='text-align:center;'>✅ Secció completada</h1>")
+            final_score_display = gr.HTML(value="<p>Preparant el resum final...</p>")
+            step_3_back = gr.Button("◀️ Tornar a l'experiment")
 
         # --- Navigation Logic ---
         all_steps_nav = [
@@ -4168,68 +4168,68 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
         briefing_1_next.click(
             fn=create_nav(briefing_slide_1, briefing_slide_2),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-2", "Loading mission overview...")
+            js=nav_js("slide-2", "Carregant la visió general de la missió...")
         )
         briefing_2_back.click(
             fn=create_nav(briefing_slide_2, briefing_slide_1),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-1", "Returning to introduction...")
+            js=nav_js("slide-1", "Tornant a la introducció...")
         )
         briefing_2_next.click(
             fn=create_nav(briefing_slide_2, briefing_slide_3),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-3", "Exploring model concept...")
+            js=nav_js("slide-3", "Explorant el concepte del model...")
         )
         briefing_3_back.click(
             fn=create_nav(briefing_slide_3, briefing_slide_2),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-2", "Going back one step...")
+            js=nav_js("slide-2", "Tornant un pas enrere...")
         )
         briefing_3_next.click(
             fn=create_nav(briefing_slide_3, briefing_slide_4),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-4", "Understanding the experiment loop...")
+            js=nav_js("slide-4", "Entenent el bucle de l'experiment...")
         )
         briefing_4_back.click(
             fn=create_nav(briefing_slide_4, briefing_slide_3),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-3", "Reviewing previous concepts...")
+            js=nav_js("slide-3", "Revisant els conceptes previs...")
         )
         briefing_4_next.click(
             fn=create_nav(briefing_slide_4, briefing_slide_5),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-5", "Configuring brain settings...")
+            js=nav_js("slide-5", "Configurant els paràmetres del model...")
         )
         briefing_5_back.click(
             fn=create_nav(briefing_slide_5, briefing_slide_4),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-4", "Revisiting the loop...")
+            js=nav_js("slide-4", "Revisitant el bucle...")
         )
         briefing_5_next.click(
             fn=create_nav(briefing_slide_5, briefing_slide_6),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-6", "Configuring data inputs...")
+            js=nav_js("slide-6", "Configurant les dades d’entrada...")
         )
         briefing_6_back.click(
             fn=create_nav(briefing_slide_6, briefing_slide_5),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-5", "Adjusting model strategy...")
+            js=nav_js("slide-5", "Ajustant l’estratègia del model...")
         )
         briefing_6_next.click(
             fn=create_nav(briefing_slide_6, briefing_slide_7),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-7", "Preparing scoring overview...")
+            js=nav_js("slide-7", "Preparant el resum de puntuació...")
         )
         briefing_7_back.click(
             fn=create_nav(briefing_slide_7, briefing_slide_6),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-6", "Reviewing data knobs...")
+            js=nav_js("slide-6", "Revisant els paràmetres de les dades...")
         )
         # Slide 7 -> App
         briefing_7_next.click(
             fn=create_nav(briefing_slide_7, model_building_step),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("model-step", "Entering model arena...")
+            js=nav_js("model-step", "Entrant a l'àrea de construcció del model...")
         )
 
         # App -> Conclusion
@@ -4243,14 +4243,14 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                 feature_set_state
             ],
             outputs=all_steps_nav + [final_score_display],
-            js=nav_js("conclusion-step", "Generating performance summary...")
+            js=nav_js("conclusion-step", "Generant el resum de rendiment...")
         )
 
         # Conclusion -> App
         step_3_back.click(
             fn=create_nav(conclusion_step, model_building_step),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("model-step", "Returning to experiment workspace...")
+            js=nav_js("model-step", "Tornant a l'àrea de construcció del model...")
         )
 
         # Events
@@ -4341,8 +4341,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
             ],
             outputs=all_outputs,
             show_progress="full",
-            js=nav_js("model-step", "Running experiment...", 500),
-            concurrency_limit=2
+            js=nav_js("model-step", "Executant l'experiment...", 500)
         )
 
         # Timer for polling initialization status
@@ -4363,7 +4362,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                 submit_label = "5. 🔬 Build & Submit Model"
                 submit_interactive = True
             else:
-                submit_label = "⏳ Waiting for data..."
+                submit_label = "⏳ Esperant les dades..."
                 submit_interactive = False
             
             # Get available data sizes based on init progress
