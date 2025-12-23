@@ -2,6 +2,7 @@ import os
 import json
 import gzip
 import itertools
+import time
 import gc
 import pandas as pd
 import numpy as np
@@ -18,8 +19,12 @@ from sklearn.neighbors import KNeighborsClassifier
 
 # --- 1. CONFIGURATION ---
 MAX_ROWS = 4000
-# Reduce batch size to ensure regular memory cleanup
-BATCH_SIZE = 20000 
+# Stop script after 50 minutes (3000 seconds) to prevent GitHub Timeout Crash
+MAX_RUNTIME_SEC = 3000 
+BATCH_SIZE = 5000 
+
+CHECKPOINT_FILE = "cache_checkpoint.jsonl"
+FINAL_FILE = "prediction_cache.json.gz"
 
 ALL_NUMERIC_COLS = ["juv_fel_count", "juv_misd_count", "juv_other_count", "days_b_screening_arrest", "age", "length_of_stay", "priors_count"]
 ALL_CATEGORICAL_COLS = ["race", "sex", "c_charge_degree", "c_charge_desc"]
@@ -27,8 +32,6 @@ ALL_FEATURES = ALL_NUMERIC_COLS + ALL_CATEGORICAL_COLS
 
 DATA_SIZE_MAP = {"Small (20%)": 0.2, "Medium (60%)": 0.6, "Large (80%)": 0.8, "Full (100%)": 1.0}
 
-# OPTIMIZATION: Reduced iterations/estimators for build speed
-# (Users won't notice the difference between 20 and 100 trees in this educational context)
 MODEL_TYPES = {
     "The Balanced Generalist": lambda: LogisticRegression(max_iter=200, random_state=42, class_weight="balanced"),
     "The Rule-Maker": lambda: DecisionTreeClassifier(random_state=42, class_weight="balanced"),
@@ -87,7 +90,6 @@ def tune_model(model, level):
     if isinstance(model, LogisticRegression):
         model.C = {1: 0.01, 2: 0.025, 3: 0.05, 4: 0.1, 5: 0.25, 6: 0.5, 7: 1.0, 8: 2.0, 9: 5.0, 10: 10.0}.get(level, 1.0)
     elif isinstance(model, RandomForestClassifier):
-        # Cap at 30 trees for speed/memory safety during build
         model.n_estimators = {1: 10, 2: 12, 3: 15, 4: 18, 5: 20, 6: 22, 7: 25, 8: 28, 9: 30, 10: 30}.get(level, 20)
         model.max_depth = level * 2 + 2 if level < 9 else None
     elif isinstance(model, DecisionTreeClassifier):
@@ -116,68 +118,112 @@ def process(task):
         model.fit(X_tr, Y_SAMPLES[data_size])
         
         preds = model.predict(X_te)
-        # Store as lightweight string "010101"
         pred_string = "".join(preds.astype(str))
         
         return key, pred_string
     except Exception:
         return None
 
-# --- 4. EXECUTION (BATCHED) ---
+# --- 4. EXECUTION (RESUMABLE) ---
 if __name__ == "__main__":
-    print(f"Generating feature combinations for {len(ALL_FEATURES)} features...")
+    start_time = time.time()
     
+    # 1. Load Checkpoint (Completed Keys)
+    completed_keys = set()
+    if os.path.exists(CHECKPOINT_FILE):
+        print(f"Reading checkpoint {CHECKPOINT_FILE}...")
+        try:
+            with open(CHECKPOINT_FILE, "r") as f:
+                for line in f:
+                    if line.strip():
+                        # Minimal parsing to get key without loading full JSON objects
+                        # Assumes format {"k": "KEY", "v": "VAL"}
+                        data = json.loads(line)
+                        completed_keys.add(data["k"])
+        except Exception as e:
+            print(f"Warning: Checkpoint corrupt ({e}). Starting fresh.")
+            completed_keys = set()
+    
+    print(f"Resuming with {len(completed_keys)} already finished.")
+
+    # 2. Generate Tasks
+    print("Generating task list...")
     all_combos = []
     for r in range(1, len(ALL_FEATURES) + 1):
         all_combos.extend(itertools.combinations(ALL_FEATURES, r))
     
-    print(f"Total Feature Combos: {len(all_combos)}")
-    
-    tasks = []
+    all_tasks = []
     for m in MODEL_TYPES:
         for c in range(1, 11):
             for d in DATA_SIZE_MAP:
                 for f_combo in all_combos:
-                    tasks.append((m, c, d, f_combo))
+                    # Pre-calculate key to check against checkpoint
+                    fk = ",".join(sorted(f_combo))
+                    k = f"{m}|{c}|{d}|{fk}"
+                    if k not in completed_keys:
+                        all_tasks.append((m, c, d, f_combo))
                     
-    total_tasks = len(tasks)
-    print(f"Total Models: {total_tasks}")
+    total_remaining = len(all_tasks)
+    print(f"Models remaining to train: {total_remaining}")
     
-    outfile = "prediction_cache.json.gz"
-    print(f"Streaming results to {outfile} in batches of {BATCH_SIZE}...")
-
-    with gzip.open(outfile, "wt", encoding="UTF-8") as f:
-        f.write("{") 
-        
-        is_first_overall = True
-        
-        # BATCHED LOOP
-        # We iterate through the tasks in chunks. 
-        # This allows us to close the Parallel pool repeatedly, freeing memory leaks.
-        for i in range(0, total_tasks, BATCH_SIZE):
-            batch_tasks = tasks[i : i + BATCH_SIZE]
-            print(f"Processing Batch {i//BATCH_SIZE + 1} ({len(batch_tasks)} tasks)...")
+    # 3. Processing Loop
+    if total_remaining > 0:
+        # Open in APPEND mode ('a')
+        with open(CHECKPOINT_FILE, "a") as f_out:
             
-            # Start a FRESH pool for every batch
-            # n_jobs=2 is safe for GitHub runners (7GB RAM limit)
-            with Parallel(n_jobs=2, return_as="generator", verbose=0) as parallel:
-                for result in parallel(delayed(process)(t) for t in batch_tasks):
-                    if result is None: continue
-                    
-                    key, val = result
-                    
-                    if not is_first_overall:
-                        f.write(",")
-                    else:
-                        is_first_overall = False
-                    
-                    f.write(f"{json.dumps(key)}:{json.dumps(val)}")
-            
-            # Force garbage collection between batches
-            gc.collect()
-            print(f"Batch {i//BATCH_SIZE + 1} Complete. RAM cleaned.")
-        
-        f.write("}") 
+            for i in range(0, total_remaining, BATCH_SIZE):
+                # Time Check
+                elapsed = time.time() - start_time
+                if elapsed > MAX_RUNTIME_SEC:
+                    print(f"⚠️ Time limit reached ({elapsed:.0f}s). Stopping gracefully to save progress.")
+                    break
+                
+                batch_tasks = all_tasks[i : i + BATCH_SIZE]
+                print(f"Processing Batch {i//BATCH_SIZE + 1} ({len(batch_tasks)} tasks)...")
+                
+                with Parallel(n_jobs=2, return_as="generator", verbose=0) as parallel:
+                    for result in parallel(delayed(process)(t) for t in batch_tasks):
+                        if result is None: continue
+                        
+                        key, val = result
+                        # Write as JSON Lines: {"k": key, "v": value}
+                        f_out.write(json.dumps({"k": key, "v": val}) + "\n")
+                
+                # Flush to disk & clean RAM
+                f_out.flush()
+                gc.collect()
+                print(f"Batch saved. Time elapsed: {time.time() - start_time:.0f}s")
 
-    size_mb = os.path.getsize(outfile) / (1024 * 1024)
-    print(f"✅ DONE! Cache Size: {size_mb:.2f} MB")
+    # 4. Finalization Check
+    # Reload keys to see if we are truly done
+    final_keys = set()
+    if os.path.exists(CHECKPOINT_FILE):
+        with open(CHECKPOINT_FILE, "r") as f:
+            for line in f:
+                if line.strip():
+                    final_keys.add(json.loads(line)["k"])
+    
+    # Re-calculate total possible tasks count
+    total_possible = 4 * 10 * 4 * len(all_combos)
+    
+    print(f"Status: {len(final_keys)} / {total_possible} complete.")
+    
+    if len(final_keys) >= total_possible:
+        print("🎉 ALL TASKS COMPLETE. Building final cache file...")
+        
+        # Convert JSONL -> Standard compressed JSON dictionary
+        final_cache = {}
+        with open(CHECKPOINT_FILE, "r") as f:
+            for line in f:
+                if line.strip():
+                    entry = json.loads(line)
+                    final_cache[entry["k"]] = entry["v"]
+        
+        with gzip.open(FINAL_FILE, "wt", encoding="UTF-8") as f:
+            json.dump(final_cache, f)
+            
+        print(f"✅ Final Artifact Created: {FINAL_FILE}")
+        # Optional: Remove checkpoint to clean up
+        # os.remove(CHECKPOINT_FILE)
+    else:
+        print("⏳ Time limit reached. Please re-run this job to continue.")
