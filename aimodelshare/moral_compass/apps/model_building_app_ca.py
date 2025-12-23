@@ -456,7 +456,7 @@ MODEL_TYPES = {
     }
 }
 
-DEFAULT_MODEL = "The Balanced Generalist"
+DEFAULT_MODEL = "El Generalista Equilibrat"
 
 TEAM_NAMES = [
     "The Moral Champions", "The Justice League", "The Data Detectives",
@@ -525,7 +525,7 @@ DATA_SIZE_MAP = {
     "Gran (80%)": 0.8,
     "Completa (100%)": 1.0
 }
-DEFAULT_DATA_SIZE = "Small (20%)"
+DEFAULT_DATA_SIZE = "Petita (20%)"
 
 
 MAX_ROWS = 4000
@@ -671,8 +671,8 @@ def load_and_prep_data(use_cache=True):
     # Pre-sample all data sizes
     global X_TRAIN_SAMPLES_MAP, Y_TRAIN_SAMPLES_MAP, X_TRAIN_WARM, Y_TRAIN_WARM
 
-    X_TRAIN_SAMPLES_MAP["Full (100%)"] = X_train_raw
-    Y_TRAIN_SAMPLES_MAP["Full (100%)"] = y_train
+    X_TRAIN_SAMPLES_MAP["Completa (100%)"] = X_train_raw
+    Y_TRAIN_SAMPLES_MAP["Completa (100%)"] = y_train
 
     for label, frac in DATA_SIZE_MAP.items():
         if frac < 1.0:
@@ -803,10 +803,10 @@ def _fit_default_preprocessor():
     Pre-fit a default preprocessor on the small sample with default features.
     Uses memoized preprocessor builder for efficiency.
     """
-    if "Small (20%)" not in X_TRAIN_SAMPLES_MAP:
+    if "Petita (20%)" not in X_TRAIN_SAMPLES_MAP:
         return
     
-    X_sample = X_TRAIN_SAMPLES_MAP["Small (20%)"]
+    X_sample = X_TRAIN_SAMPLES_MAP["Petita (20%)"]
     
     # Use default feature set
     numeric_cols = [f for f in DEFAULT_FEATURE_SET if f in ALL_NUMERIC_COLS]
@@ -852,15 +852,15 @@ def get_available_data_sizes():
     
     available = []
     if flags["pre_samples_small"]:
-        available.append("Small (20%)")
+        available.append("Petita (20%)")
     if flags["pre_samples_medium"]:
-        available.append("Medium (60%)")
+        available.append("Mitjana (60%)")
     if flags["pre_samples_large"]:
-        available.append("Large (80%)")
+        available.append("Gran (80%)")
     if flags["pre_samples_full"]:
-        available.append("Full (100%)")
+        available.append("Completa (100%)")
     
-    return available if available else ["Small (20%)"]  # Fallback
+    return available if available else ["Petita (20%)"]  # Fallback
 
 def _is_ready() -> bool:
     """
