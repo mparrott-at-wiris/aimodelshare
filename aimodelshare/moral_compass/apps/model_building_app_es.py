@@ -432,27 +432,27 @@ LEADERBOARD_POLL_SLEEP = 1.0  # Sleep duration between polls (seconds)
 ENABLE_AUTO_RESUBMIT_AFTER_READY = False  # Future feature flag for auto-resubmit
 
 MODEL_TYPES = {
-    "The Balanced Generalist": {
+    "El Generalista Equilibrado": {
         "model_builder": lambda: LogisticRegression(
             max_iter=500, random_state=42, class_weight="balanced"
         ),
-        "card": "A fast, reliable, well-rounded model. Good starting point; less prone to overfitting."
+        "card": "Este modelo es rápido, fiable y equilibrado. Buen punto de partida; suele dar resultados estables en muchos casos."
     },
     "The Rule-Maker": {
         "model_builder": lambda: DecisionTreeClassifier(
             random_state=42, class_weight="balanced"
         ),
-        "card": "Learns simple 'if/then' rules. Easy to interpret, but can miss subtle patterns."
+        "card": "Este modelo aprende reglas simples del tipo «si/entonces». Fácil de entender, pero le cuesta captar patrones complejos."
     },
     "The 'Nearest Neighbor'": {
         "model_builder": lambda: KNeighborsClassifier(),
-        "card": "Looks at the closest past examples. 'You look like these others; I'll predict like they behave.'"
+        "card": "Este modelo se basa en los ejemplos más parecidos del pasado. «Si te pareces a estos casos, predeciré el mismo resultado».'"
     },
     "The Deep Pattern-Finder": {
         "model_builder": lambda: RandomForestClassifier(
             random_state=42, class_weight="balanced"
         ),
-        "card": "An ensemble of many decision trees. Powerful, can capture deep patterns; watch complexity."
+        "card": "Este modelo combina muchos árboles de decisión para encontrar patrones complejos. Es potente, pero conviene no pasarse con la complejidad."
     }
 }
 
