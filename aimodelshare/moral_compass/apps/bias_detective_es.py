@@ -209,11 +209,11 @@ MODULES = [
         <div class="scenario-box">
             <div class="slide-body">
 
-                <h2 class="slide-title" style="text-align:center; margin-bottom:15px;">🗺️ MISSION ROADMAP</h2>
+                <h2 class="slide-title" style="text-align:center; margin-bottom:15px;">🗺️ HOJA DE RUTA DE LA MISIÓN</h2>
 
                 <p style="font-size:1.1rem; max-width:800px; margin:0 auto 25px auto; text-align:center;">
-                    <strong>Your mission is clear:</strong> Uncover the bias hiding inside the 
-                    AI system before it hurts real people. If you cannot find bias, we cannot fix it.
+                    <strong>Tu misión es clara:</strong> descubrir el sesgo que se esconde dentro del 
+                    sistema de IA antes de que perjudique a más personas. Si no identificamos el sesgo, no podremos corregirlo.
                 </p>
 
                 <div class="ai-risk-container" style="background:white; border:none; padding:0;">
@@ -221,38 +221,38 @@ MODULES = [
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
 
                         <div style="border: 3px solid #3b82f6; background: #eff6ff; border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 12px rgba(59,130,246,0.25);">
-                            <div style="position:absolute; top:-15px; left:15px; background:#3b82f6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 1: RULES</div>
+                            <div style="position:absolute; top:-15px; left:15px; background:#3b82f6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PASO 1: LAS REGLAS</div>
                             <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">📜</div>
-                            <div style="font-weight:800; font-size:1.2rem; color:#1e3a8a; margin-bottom:5px;">Establish the Rules</div>
+                            <div style="font-weight:800; font-size:1.2rem; color:#1e3a8a; margin-bottom:5px;">Establecer los criterios éticos</div>
                             <div style="font-size:1.0rem; color:#1e40af; font-weight:500; line-height:1.4;">
-                                Define the ethical standard: <strong>Justice & Equity</strong>. What specifically counts as bias in this investigation?
+                                Definir el estándar ético: <strong>Justícia y Equidad</strong>. ¿Qué consideramos exactamente un sesgo en esta investigación?
                             </div>
                         </div>
 
                         <div style="border: 3px solid #14b8a6; background: #f0fdfa; border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(20, 184, 166, 0.15);">
-                            <div style="position:absolute; top:-15px; left:15px; background:#14b8a6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 2: DATA EVIDENCE</div>
+                            <div style="position:absolute; top:-15px; left:15px; background:#14b8a6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PASO 2: PRUEBAS CON DATOS</div>
                             <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">🔍</div>
-                            <div style="font-weight:800; font-size:1.2rem; color:#134e4a; margin-bottom:5px;">Input Data Forensics</div>
+                            <div style="font-weight:800; font-size:1.2rem; color:#134e4a; margin-bottom:5px;">Análisis de los datos de entrada</div>
                             <div style="font-size:1.0rem; color:#0f766e; font-weight:500; line-height:1.4;">
-                                Scan the <strong>Input Data</strong> for historical injustice, representation gaps, and exclusion bias.
+                                Examina los <strong>datos de entrada</strong> para detectar injusticias históricas, carencias de representación y sesgos de exclusión.
                             </div>
                         </div>
 
                         <div style="border: 3px solid #8b5cf6; background: #f5f3ff; border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(139, 92, 246, 0.15);">
-                            <div style="position:absolute; top:-15px; left:15px; background:#8b5cf6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 3: TEST ERROR</div>
+                            <div style="position:absolute; top:-15px; left:15px; background:#8b5cf6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PASO 3: ANÁLISIS DE ERRORES</div>
                             <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">🎯</div>
-                            <div style="font-weight:800; font-size:1.2rem; color:#4c1d95; margin-bottom:5px;">Output Error Testing</div>
+                            <div style="font-weight:800; font-size:1.2rem; color:#4c1d95; margin-bottom:5px;">Evaluar los errores del sistema</div>
                             <div style="font-size:1.0rem; color:#6d28d9; font-weight:500; line-height:1.4;">
-                                Test the Model's predictions. Prove that mistakes (False Alarms) are <strong>unequal</strong> across groups.
+                                Comprueba las predicciones del modelo. Demuestra que los errores (falsas alarmas) <strong>afectan de manera desigual</strong> a los distintos grupos.
                             </div>
                         </div>
 
                         <div style="border: 3px solid #f97316; background: #fff7ed; border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(249, 115, 22, 0.15);">
-                            <div style="position:absolute; top:-15px; left:15px; background:#f97316; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 4: REPORT IMPACT</div>
+                            <div style="position:absolute; top:-15px; left:15px; background:#f97316; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 4: INFORME DE IMPACTO</div>
                             <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">⚖️</div>
-                            <div style="font-weight:800; font-size:1.2rem; color:#7c2d12; margin-bottom:5px;">The Final Report</div>
+                            <div style="font-weight:800; font-size:1.2rem; color:#7c2d12; margin-bottom:5px;">El informe final</div>
                             <div style="font-size:1.0rem; color:#c2410c; font-weight:500; line-height:1.4;">
-                                Diagnose systematic harm and issue your final recommendation to the court: <strong>Deploy AI System or Pause to Repair.</strong>
+                                Identifica los daños sistémicos y emite una recomendación clara al tribunal: <strong>implantar el sistema de IA o detenerlo para corregirlo.</strong>
                             </div>
                         </div>
 
@@ -262,11 +262,11 @@ MODULES = [
 
                    <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 CONTINUE MISSION
+                            🚀 CONTINUA LA MISIÓN
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
-                            Answer the question below to receive your next <strong>Moral Compass Score boost</strong>.
-                            <br>Then click <strong>Next</strong> to continue the investigation.
+                            Responde a la siguiente pregunta para obtener tu próxima <strong>mejora de puntuación gracias a la Brújula Moral</strong>.
+                            <br>Después haz clic en <strong>Siguiente</strong> para continuar la investigación.
                         </p>
                     </div>
             </div>
