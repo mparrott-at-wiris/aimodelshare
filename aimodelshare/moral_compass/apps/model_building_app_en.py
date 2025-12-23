@@ -70,25 +70,45 @@ import sqlite3
 CACHE_DB_FILE = "prediction_cache.sqlite"
 _db_conn = None
 
+# -------------------------------------------------------------------------
+# CACHE CONFIGURATION (Aggressive Debugging)
+# -------------------------------------------------------------------------
+import sqlite3
+import os
+
+CACHE_DB_FILE = "prediction_cache.sqlite"
+_db_conn = None
+
+# --- DEBUG: Print file status on startup ---
+if os.path.exists(CACHE_DB_FILE):
+    size_mb = os.path.getsize(CACHE_DB_FILE) / (1024 * 1024)
+    print(f"✅ STARTUP CHECK: Database found at '{CACHE_DB_FILE}' ({size_mb:.2f} MB)", flush=True)
+else:
+    print(f"❌ STARTUP CHECK: Database '{CACHE_DB_FILE}' NOT FOUND in current directory: {os.getcwd()}", flush=True)
+    # List files to see what IS there
+    print(f"📂 Files in current dir: {os.listdir('.')}", flush=True)
+# -------------------------------------------
+
 def get_cached_prediction(key):
     """
-    Lightning-fast lookup from SQLite database.
+    Lightning-fast lookup. Raises ERROR on miss to force debugging.
     """
     global _db_conn
     
     # 1. Check if DB exists
     if not os.path.exists(CACHE_DB_FILE):
-        print(f"⚠️ Cache Miss: DB file '{CACHE_DB_FILE}' not found.", flush=True)
-        return None
+        error_msg = f"CRITICAL ERROR: Database file '{CACHE_DB_FILE}' is missing from the container."
+        print(error_msg, flush=True)
+        raise ValueError(error_msg)
 
     # 2. Lazy connection
     if _db_conn is None:
         try:
-            # Check same thread=False is required for multi-threaded Gradio apps
             _db_conn = sqlite3.connect(CACHE_DB_FILE, check_same_thread=False)
         except Exception as e:
-            print(f"❌ DB Connect Error: {e}", flush=True)
-            return None
+            error_msg = f"CRITICAL ERROR: Could not connect to DB: {e}"
+            print(error_msg, flush=True)
+            raise ValueError(error_msg)
 
     try:
         cursor = _db_conn.cursor()
@@ -96,19 +116,25 @@ def get_cached_prediction(key):
         result = cursor.fetchone()
         
         if result:
-            # Optional: Uncomment if you want to see every success (spammy)
-            # print(f"✅ Cache Hit: {key}", flush=True)
+            # Uncomment if you want to confirm hits (spammy)
+            # print(f"✅ Cache Hit", flush=True)
             return result[0] 
         else:
-            # THIS IS THE CRITICAL LOG YOU ARE MISSING
-            print(f"🐢 Cache Miss (Key not found): {key}", flush=True)
-            return None
+            # --- THE TRAP ---
+            # We found the DB, but the key wasn't in it. 
+            # This prints the EXACT key so you can compare it to your build script.
+            error_msg = f"🐢 CACHE MISS (Key Not Found): '{key}'"
+            print(error_msg, flush=True)
+            raise ValueError(error_msg)
             
     except Exception as e:
+        # If it was our ValueError, just re-raise it
+        if "CACHE MISS" in str(e):
+            raise e
         print(f"⚠️ DB Read Error: {e}", flush=True)
-    
-    return None
-  
+        raise ValueError(f"DB Read Error: {e}")
+
+
 LEADERBOARD_CACHE_SECONDS = int(os.environ.get("LEADERBOARD_CACHE_SECONDS", "45"))
 MAX_LEADERBOARD_ENTRIES = os.environ.get("MAX_LEADERBOARD_ENTRIES")
 MAX_LEADERBOARD_ENTRIES = int(MAX_LEADERBOARD_ENTRIES) if MAX_LEADERBOARD_ENTRIES else None
