@@ -475,7 +475,7 @@ MODEL_TYPES = {
     },
     "The 'Nearest Neighbor'": {
         "model_builder": lambda: KNeighborsClassifier(),
-        "card": "Este modelo se basa en los ejemplos más parecidos del pasado. «Si te pareces a estos casos, predeciré el mismo resultado».'"
+        "card": "Este modelo se basa en los ejemplos más parecidos del pasado. «Si te pareces a estos casos, predeciré el mismo resultado»."
     },
     "The Deep Pattern-Finder": {
         "model_builder": lambda: RandomForestClassifier(
