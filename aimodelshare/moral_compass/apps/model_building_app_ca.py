@@ -2638,7 +2638,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
         <ul class="final-conclusion-list">
           <li>🏁 <b>Millor precisió:</b> {(best_score * 100):.2f}%</li>
           <li>📊 <b>Posició aconseguida:</b> {('#' + str(rank)) if rank > 0 else '—'}</li>
-          <li>🔁 <b>Submissions en aquesta sessió:</b> {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li>
+          <li>🔁 <b>Enviaments en aquesta sessió:</b> {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li>
           <li>🧗 <b>Millora respecte a la primera puntuació d’aquesta sessió:</b> {(improvement * 100):+.2f}</li>
           <li>🎖️ <b>Progrés de nivell:</b> {tier_line}</li>
           <li>🧪 <b>Variables clau utilitzades:</b> {len(strong_used)} ({', '.join(strong_used) if strong_used else 'Encara cap'})</li>
