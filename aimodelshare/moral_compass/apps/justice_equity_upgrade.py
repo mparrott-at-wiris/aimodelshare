@@ -645,9 +645,6 @@ def create_cert_handler(user_input_name, username_state, token, team_name):
 
         <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
             <button onclick="{js_print_logic}" class="share-btn share-print">🖨️ Print / Save as PDF</button>
-            <a href="{wa_link}" target="_blank" class="share-btn share-wa">WhatsApp</a>
-            <a href="{ig_link}" target="_blank" class="share-btn share-ig">Instagram</a>
-            <a href="{tw_link}" target="_blank" class="share-btn share-tw">X / Twitter</a>
         </div>
 
         <p style="font-size:0.85rem; color:#94a3b8; margin-top:15px; font-style:italic;">

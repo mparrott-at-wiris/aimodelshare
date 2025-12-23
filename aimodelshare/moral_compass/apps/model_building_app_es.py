@@ -274,24 +274,44 @@ def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str],
         _log(f"Session auth failed: {e}")
         return False, None, None
 
+# -------------------------------------------------------------------------
+# NEW IMPORTS (Add to top of app.py)
+# -------------------------------------------------------------------------
+try:
+    from cachetools import TTLCache
+except ImportError:
+    raise ImportError("Please run 'pip install cachetools' to fix memory stability issues.")
+
+# -------------------------------------------------------------------------
+# UPDATED CONFIGURATION (Replace the old _user_stats_cache definition)
+# -------------------------------------------------------------------------
+# Fixes Memory Leak: Automatically deletes data older than USER_STATS_TTL
+# Fixes Memory Limit: Holds max 500 users in RAM (approx 2MB)
+_user_stats_cache = TTLCache(maxsize=500, ttl=USER_STATS_TTL)
+
+# Keep the lock (cachetools is not thread-safe for concurrent read/write)
+_user_stats_lock = threading.Lock() 
+
+# -------------------------------------------------------------------------
+# UPDATED FUNCTION
+# -------------------------------------------------------------------------
 def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
     """
-    Compute user statistics with caching.
+    Compute user statistics with memory-safe caching (TTLCache).
     
     Concurrency Note: Protected by _user_stats_lock for thread-safe
     cache reads and writes.
     """
-    now = time.time()
-    
-    # Thread-safe cache check
+    # 1. Thread-safe cache check
+    # TTLCache automatically returns None if the entry has expired.
+    # We no longer need manual timestamp math.
     with _user_stats_lock:
         cached = _user_stats_cache.get(username)
-        if cached and (now - cached.get("_ts", 0) < USER_STATS_TTL):
+        if cached is not None:
             _log(f"User stats cache hit for {username}")
-            # Return shallow copy to prevent caller mutations from affecting cache.
-            # Stats dict contains only primitives (float, int, str), so shallow copy is sufficient.
             return cached.copy()
 
+    # 2. Compute fresh stats (Heavy operation - done outside lock)
     _log(f"Computing fresh stats for {username}")
     leaderboard_df = _fetch_leaderboard(token)
     team_name, _ = _get_or_assign_team(username, leaderboard_df)
@@ -310,8 +330,12 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
             user_submissions = leaderboard_df[leaderboard_df["username"] == username]
             if not user_submissions.empty:
                 stats["submission_count"] = len(user_submissions)
+                
+                # Extract Best Score
                 if "accuracy" in user_submissions.columns:
                     stats["best_score"] = float(user_submissions["accuracy"].max())
+                    
+                    # Extract Last Score (Time-based or fallback to best)
                     if "timestamp" in user_submissions.columns:
                         try:
                             user_submissions = user_submissions.copy()
@@ -320,11 +344,12 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
                             )
                             recent = user_submissions.sort_values("timestamp", ascending=False).iloc[0]
                             stats["last_score"] = float(recent["accuracy"])
-                        except:
+                        except Exception:
                             stats["last_score"] = stats["best_score"]
                     else:
                         stats["last_score"] = stats["best_score"]
             
+            # Calculate Rank
             if "accuracy" in leaderboard_df.columns:
                 user_bests = leaderboard_df.groupby("username")["accuracy"].max()
                 ranked = user_bests.sort_values(ascending=False)
@@ -332,14 +357,18 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
                     stats["rank"] = int(ranked.index.get_loc(username) + 1)
                 except KeyError:
                     stats["rank"] = 0
+                    
     except Exception as e:
         _log(f"Error computing stats for {username}: {e}")
 
-    # Thread-safe cache update
+    # 3. Thread-safe cache update
+    # The lock prevents race conditions during the write
     with _user_stats_lock:
         _user_stats_cache[username] = stats
+        
     _log(f"Stats for {username}: {stats}")
     return stats
+  
 def _build_attempts_tracker_html(current_count, limit=10):
     """
     Generate HTML for the attempts tracker display.
@@ -4315,7 +4344,8 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
             ],
             outputs=all_outputs,
             show_progress="full",
-            js=nav_js("model-step", "Running experiment...", 500)
+            js=nav_js("model-step", "Running experiment...", 500),
+            concurrency_limit=2
         )
 
         # Timer for polling initialization status

@@ -1,0 +1,77 @@
+name: Build Prediction Cache Artifact (Resumable)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read      # Required to list/download artifacts
+  checks: write
+
+jobs:
+  build-cache-chunk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: pip install pandas numpy scikit-learn joblib
+
+      # --------------------------------------------------------
+      # FIX APPLIED HERE:
+      # 1. Removed 'workflow: build-cache.yml' (Auto-detects current workflow)
+      # 2. Kept 'workflow_conclusion: ""' (Accepts Cancelled/Failed runs)
+      # --------------------------------------------------------
+      - name: Restore Checkpoint
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          name: cache-checkpoint
+          path: .
+          search_artifacts: true
+          workflow_conclusion: "" 
+          if_no_artifact_found: warn
+        continue-on-error: true
+
+      # Debug: Verify the file arrived
+      - name: Debug Checkpoint
+        run: |
+          if [ -f "cache_checkpoint.jsonl" ]; then
+            echo "✅ SUCCESS: Checkpoint found!"
+            ls -lh cache_checkpoint.jsonl
+          else
+            echo "⚠️ NOTE: No checkpoint found. If this is the FIRST run, this is normal."
+            echo "If this is the SECOND run, something is wrong."
+          fi
+
+      # 2. Run the script
+      - name: Run Compute Chunk
+        run: |
+          export OMP_NUM_THREADS=1
+          export OPENBLAS_NUM_THREADS=1
+          python precompute_cache.py
+
+      # 3. Save Checkpoint (Runs even if timeout occurs)
+      - name: Save Checkpoint
+        if: always() 
+        uses: actions/upload-artifact@v4
+        with:
+          name: cache-checkpoint
+          path: cache_checkpoint.jsonl
+          retention-days: 5
+
+      # 4. Save Final Result (Only if the script finishes 100%)
+      - name: Save Final Artifact
+        if: hashFiles('prediction_cache.json.gz') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: prediction-cache-file
+          path: prediction_cache.json.gz
+          retention-days: 90

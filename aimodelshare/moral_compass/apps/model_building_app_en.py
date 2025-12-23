@@ -60,7 +60,26 @@ except ImportError:
 # -------------------------------------------------------------------------
 # Configuration & Caching Infrastructure
 # -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# CACHE CONFIGURATION (Add this near imports)
+# -------------------------------------------------------------------------
+import gzip
+import json
 
+PREDICTION_CACHE = {}
+CACHE_FILE = "prediction_cache.json.gz"
+
+if os.path.exists(CACHE_FILE):
+    try:
+        print(f"Loading prediction cache from {CACHE_FILE}...")
+        with gzip.open(CACHE_FILE, "rt", encoding="UTF-8") as f:
+            PREDICTION_CACHE = json.load(f)
+        print(f"✅ Cache loaded successfully! ({len(PREDICTION_CACHE)} models)")
+    except Exception as e:
+        print(f"⚠️ Error loading cache: {e}")
+else:
+    print(f"ℹ️ No cache file found ({CACHE_FILE}). App will run in full training mode.")
+  
 LEADERBOARD_CACHE_SECONDS = int(os.environ.get("LEADERBOARD_CACHE_SECONDS", "45"))
 MAX_LEADERBOARD_ENTRIES = os.environ.get("MAX_LEADERBOARD_ENTRIES")
 MAX_LEADERBOARD_ENTRIES = int(MAX_LEADERBOARD_ENTRIES) if MAX_LEADERBOARD_ENTRIES else None
@@ -1771,31 +1790,7 @@ def run_experiment(
 ):
     """
     Core experiment: Uses 'yield' for visual updates and progress bar.
-    
-    Concurrency Note: Authentication is determined SOLELY from the passed-in
-    username and token parameters (from gr.State). This function does NOT
-    read from os.environ for per-user credentials, preventing cross-user
-    data leakage under concurrent requests.
-    
-    Args:
-        model_name_key: Selected model type
-        complexity_level: Model complexity slider value
-        feature_set: List of selected features
-        data_size_str: Data size selection
-        team_name: User's team name (from gr.State)
-        last_submission_score: Previous submission score
-        last_rank: Previous rank
-        submission_count: Number of submissions made
-        first_submission_score: Score from first submission
-        best_score: Best score achieved
-        username: User's username (from gr.State, not os.environ)
-        token: Authentication token (from gr.State, not os.environ)
-        readiness_flag: System readiness flag (from gr.State, renamed to avoid shadowing)
-        was_preview_prev: Whether last run was preview (from gr.State, renamed to avoid shadowing)
-        progress: Gradio progress tracker
-    
-    Returns:
-        Updates for all output components including new state variables
+    Updated with "Look-Before-You-Leap" caching strategy.
     """
     # --- COLLISION GUARDS ---
     # Log types of potentially shadowed names to ensure they refer to component objects, not dicts
@@ -1868,113 +1863,13 @@ def run_experiment(
 
     if not model_name_key or model_name_key not in MODEL_TYPES:
         model_name_key = DEFAULT_MODEL
-    feature_set = feature_set or []
     complexity_level = safe_int(complexity_level, 2)
 
     log_output = f"▶ New Experiment\nModel: {model_name_key}\n..."
 
     # Check readiness
-    with INIT_LOCK:
-        flags = INIT_FLAGS.copy()
-    
-    # Normalize variable name for consistency
-    ready_for_submission = ready
-    
-    # If not ready but warm mini available, run preview
-    if not ready_for_submission and flags["warm_mini"] and X_TRAIN_WARM is not None:
-        _log("Running warm mini preview (not ready yet)")
-        progress(0.5, desc="Running Preview...")
-        yield { 
-            submission_feedback_display: gr.update(value=get_status_html("Preview", "Warm-up Run", "Testing on mini-dataset..."), visible=True),
-            login_error: gr.update(visible=False)
-        }
-        
-        try:
-            # Run preview on warm mini dataset
-            numeric_cols = [f for f in feature_set if f in ALL_NUMERIC_COLS]
-            categorical_cols = [f for f in feature_set if f in ALL_CATEGORICAL_COLS]
-            
-            if not numeric_cols and not categorical_cols:
-                raise ValueError("No features selected for modeling.")
-            
-            # Quick preprocessing and training on warm mini (uses memoized preprocessor)
-            preprocessor, selected_cols = build_preprocessor(numeric_cols, categorical_cols)
-            
-            X_warm_processed = preprocessor.fit_transform(X_TRAIN_WARM[selected_cols])
-            X_test_processed = preprocessor.transform(X_TEST_RAW[selected_cols])
-            
-            base_model = MODEL_TYPES[model_name_key]["model_builder"]()
-            tuned_model = tune_model_complexity(base_model, complexity_level)
-            
-            # Handle sparse arrays for models that require dense input
-            if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
-                X_warm_for_fit = _ensure_dense(X_warm_processed)
-                X_test_for_predict = _ensure_dense(X_test_processed)
-            else:
-                X_warm_for_fit = X_warm_processed
-                X_test_for_predict = X_test_processed
-            
-            tuned_model.fit(X_warm_for_fit, Y_TRAIN_WARM)
-            
-            # Get preview score
-            from sklearn.metrics import accuracy_score
-            predictions = tuned_model.predict(X_test_for_predict)
-            preview_score = accuracy_score(Y_TEST, predictions)
-            
-            # Update metadata state
-            new_kpi_meta = {
-                "was_preview": True,
-                "preview_score": preview_score,
-                "ready_at_run_start": False,
-                "poll_iterations": 0,
-                "local_test_accuracy": preview_score,
-                "this_submission_score": None,
-                "new_best_accuracy": None,
-                "rank": None
-            }
-            
-            # Show preview card
-            preview_html = _build_kpi_card_html(
-                preview_score, 0, 0, 0, -1, 
-                is_preview=True, is_pending=False, local_test_accuracy=None
-            )
-            
-            settings = compute_rank_settings(
-                 submission_count, model_name_key, complexity_level, feature_set, data_size_str
-            )
-            
-            final_updates = {
-                submission_feedback_display: gr.update(value=preview_html, visible=True),
-                team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
-                individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
-                last_submission_score_state: last_submission_score,
-                last_rank_state: last_rank,
-                best_score_state: best_score,
-                submission_count_state: submission_count,
-                first_submission_score_state: first_submission_score,
-                rank_message_display: settings["rank_message"],
-                model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
-                complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
-                feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
-                data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-                submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
-                login_username: gr.update(visible=False),
-                login_password: gr.update(visible=False),
-                login_submit: gr.update(visible=False),
-                login_error: gr.update(visible=False),
-                attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
-                was_preview_state: True,
-                kpi_meta_state: new_kpi_meta,
-                last_seen_ts_state: None  # No timestamp for preview
-            }
-            yield final_updates
-            return
-            
-        except Exception as e:
-            _log(f"Preview failed: {e}")
-            # Fall through to error handling
-    
-    if playground is None or not ready_for_submission:
+    # If playground is None or not ready, fallback error
+    if playground is None or not ready:
         settings = compute_rank_settings(
              submission_count, model_name_key, complexity_level, feature_set, data_size_str
         )
@@ -1987,14 +1882,9 @@ def run_experiment(
         error_msg += "</p>"
         
         error_kpi_meta = {
-            "was_preview": False,
-            "preview_score": None,
-            "ready_at_run_start": False,
-            "poll_iterations": 0,
-            "local_test_accuracy": None,
-            "this_submission_score": None,
-            "new_best_accuracy": None,
-            "rank": None
+            "was_preview": False, "preview_score": None, "ready_at_run_start": False,
+            "poll_iterations": 0, "local_test_accuracy": None, "this_submission_score": None,
+            "new_best_accuracy": None, "rank": None
         }
         
         error_updates = {
@@ -2025,64 +1915,112 @@ def run_experiment(
         return
 
     try:
-        # --- Stage 2: Train Model (Local) ---
-        progress(0.3, desc="Training Model...")
-        yield { 
-            submission_feedback_display: gr.update(value=get_status_html(2, "Training Model", "The machine is learning from history..."), visible=True),
-            login_error: gr.update(visible=False)
-        }
-
-        # A. Get pre-sampled data
-        sample_frac = DATA_SIZE_MAP.get(data_size_str, 0.2)
-        X_train_sampled = X_TRAIN_SAMPLES_MAP[data_size_str]
-        y_train_sampled = Y_TRAIN_SAMPLES_MAP[data_size_str]
-        log_output += f"Using {int(sample_frac * 100)}% data.\n"
-
-        # B. Determine features...
-        numeric_cols = []
-        categorical_cols = []
-        for feat in feature_set:
-            if feat in ALL_NUMERIC_COLS: numeric_cols.append(feat)
-            elif feat in ALL_CATEGORICAL_COLS: categorical_cols.append(feat)
-
-        if not numeric_cols and not categorical_cols:
-            raise ValueError("No features selected for modeling.")
-
-        # C. Preprocessing (uses memoized preprocessor builder)
-        preprocessor, selected_cols = build_preprocessor(numeric_cols, categorical_cols)
-
-        X_train_processed = preprocessor.fit_transform(X_train_sampled[selected_cols])
-        X_test_processed = preprocessor.transform(X_TEST_RAW[selected_cols])
-
-        # D. Model build & tune
-        base_model = MODEL_TYPES[model_name_key]["model_builder"]()
-        tuned_model = tune_model_complexity(base_model, complexity_level)
-
-        # E. Train
-        # Concurrency Note: DecisionTree and RandomForest require dense arrays.
-        # LogisticRegression and KNN handle sparse matrices natively.
-        if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
-            X_train_for_fit = _ensure_dense(X_train_processed)
-        else:
-            X_train_for_fit = X_train_processed
+        # --- Stage 2: Smart Build (Cache vs Train) ---
+        progress(0.3, desc="Building Model...")
         
-        tuned_model.fit(X_train_for_fit, y_train_sampled)
-        log_output += "Training done.\n"
+        # 1. Generate Cache Key (Matches format in precompute_cache.py)
+        # Key: "ModelName|Complexity|DataSize|SortedFeatures"
+        sanitized_features = sorted([str(f) for f in feature_set])
+        feature_key = ",".join(sanitized_features)
+        cache_key = f"{model_name_key}|{complexity_level}|{data_size_str}|{feature_key}"
+        
+        # 2. Check Cache
+        cached_predictions = PREDICTION_CACHE.get(cache_key)
+        
+        # Initialize submission variables
+        predictions = None
+        tuned_model = None
+        preprocessor = None
+        
+        if cached_predictions:
+            # === FAST PATH (Zero CPU) ===
+            _log(f"⚡ CACHE HIT: {cache_key}")
+            yield { 
+                submission_feedback_display: gr.update(value=get_status_html(2, "Training Model", "⚡ The machine is learning from history..."), visible=True),
+                login_error: gr.update(visible=False)
+            }
 
-# --- Stage 3: Submit (API Call 1) ---
+            # --- DECOMPRESSION STEP (Vital) ---
+            # If string "01010...", convert to [0, 1, 0, 1...]
+            if isinstance(cached_predictions, str):
+                predictions = [int(c) for c in cached_predictions]
+            else:
+                predictions = cached_predictions
+
+            # Pass None to submit_model to skip training overhead validation
+            tuned_model = None
+            preprocessor = None
+            
+            
+        else:
+            # === SLOW PATH (Fallback Training) ===
+            _log(f"🐢 CACHE MISS: {cache_key} (Training for real...)")
+            yield { 
+                submission_feedback_display: gr.update(value=get_status_html(2, "Training Model", "The machine is learning from history..."), visible=True),
+                login_error: gr.update(visible=False)
+            }
+
+            # A. Get pre-sampled data
+            sample_frac = DATA_SIZE_MAP.get(data_size_str, 0.2)
+            X_train_sampled = X_TRAIN_SAMPLES_MAP[data_size_str]
+            y_train_sampled = Y_TRAIN_SAMPLES_MAP[data_size_str]
+            log_output += f"Using {int(sample_frac * 100)}% data.\n"
+
+            # B. Determine features...
+            numeric_cols = [f for f in feature_set if f in ALL_NUMERIC_COLS]
+            categorical_cols = [f for f in feature_set if f in ALL_CATEGORICAL_COLS]
+            for feat in feature_set:
+                if feat in ALL_NUMERIC_COLS: numeric_cols.append(feat)
+                elif feat in ALL_CATEGORICAL_COLS: categorical_cols.append(feat)
+            
+            # De-dupe logic just in case (though loop above covers it, ensuring lists are clean)
+            numeric_cols = sorted(list(set([f for f in feature_set if f in ALL_NUMERIC_COLS])))
+            categorical_cols = sorted(list(set([f for f in feature_set if f in ALL_CATEGORICAL_COLS])))
+
+            if not numeric_cols and not categorical_cols:
+                raise ValueError("No features selected for modeling.")
+
+            # C. Preprocessing (uses memoized preprocessor builder)
+            preprocessor, selected_cols = build_preprocessor(numeric_cols, categorical_cols)
+
+            X_train_processed = preprocessor.fit_transform(X_train_sampled[selected_cols])
+            X_test_processed = preprocessor.transform(X_TEST_RAW[selected_cols])
+
+            # D. Model build & tune
+            base_model = MODEL_TYPES[model_name_key]["model_builder"]()
+            tuned_model = tune_model_complexity(base_model, complexity_level)
+
+            # E. Train
+            # Concurrency Note: DecisionTree and RandomForest require dense arrays.
+            if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
+                X_train_for_fit = _ensure_dense(X_train_processed)
+                X_test_for_predict = _ensure_dense(X_test_processed)
+            else:
+                X_train_for_fit = X_train_processed
+                X_test_for_predict = X_test_processed
+            
+            tuned_model.fit(X_train_for_fit, y_train_sampled)
+            log_output += "Training done.\n"
+            
+            # F. Predict
+            predictions = tuned_model.predict(X_test_for_predict)
+
+        # --- Stage 3: Submit (API Call 1) ---
         # AUTHENTICATION GATE: Check for token before submission
         if token is None:
             # User not authenticated - compute preview score and show login prompt
             progress(0.6, desc="Computing Preview Score...")
             
-            if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
-                X_test_for_predict = _ensure_dense(X_test_processed)
-            else:
-                X_test_for_predict = X_test_processed
-            
-            predictions = tuned_model.predict(X_test_for_predict)
+            # We need to calculate accuracy for the preview card
             from sklearn.metrics import accuracy_score
-            preview_score = accuracy_score(Y_TEST, predictions)
+            # Ensure predictions are in correct format (list or array)
+            if isinstance(predictions, list):
+                # Cached predictions are lists
+                preds_array = np.array(predictions)
+            else:
+                preds_array = predictions
+                
+            preview_score = accuracy_score(Y_TEST, preds_array)
             
             preview_kpi_meta = {
                 "was_preview": True, "preview_score": preview_score, "ready_at_run_start": ready,
@@ -2166,12 +2104,6 @@ def run_experiment(
             login_error: gr.update(visible=False)
         }
 
-        if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
-            X_test_for_predict = _ensure_dense(X_test_processed)
-        else:
-            X_test_for_predict = X_test_processed
-        
-        predictions = tuned_model.predict(X_test_for_predict)
         description = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
         tags = f"team:{team_name},model:{model_name_key}"
 
@@ -2179,12 +2111,21 @@ def run_experiment(
         baseline_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
         
         from sklearn.metrics import accuracy_score
-        local_test_accuracy = accuracy_score(Y_TEST, predictions)
+        # Ensure correct type for local accuracy calc
+        if isinstance(predictions, list):
+            local_accuracy_preds = np.array(predictions)
+        else:
+            local_accuracy_preds = predictions
+        local_test_accuracy = accuracy_score(Y_TEST, local_accuracy_preds)
 
-# 2. SUBMIT & CAPTURE ACCURACY
+        # 2. SUBMIT & CAPTURE ACCURACY
         def _submit():
+            # If using cache (tuned_model is None), we pass None for model/preprocessor
+            # and explicitly pass predictions.
             return playground.submit_model(
-                model=tuned_model, preprocessor=preprocessor, prediction_submission=predictions,
+                model=tuned_model, 
+                preprocessor=preprocessor, 
+                prediction_submission=predictions,
                 input_dict={'description': description, 'tags': tags},
                 custom_metadata={'Team': team_name, 'Moral_Compass': 0}, 
                 token=token,
@@ -2261,8 +2202,6 @@ def run_experiment(
             is_preview=False,
             is_pending=False
         )
-
-# ... (Previous Stage 1-4 logic remains unchanged) ...
 
         # --- Stage 5: Final UI Update ---
         progress(1.0, desc="Complete!")
@@ -2345,15 +2284,9 @@ def run_experiment(
         )
         
         exception_kpi_meta = {
-            "was_preview": False,
-            "preview_score": None,
-            "ready_at_run_start": ready if 'ready' in locals() else False,
-            "poll_iterations": 0,
-            "local_test_accuracy": None,
-            "this_submission_score": None,
-            "new_best_accuracy": None,
-            "rank": None,
-            "error": str(e)
+            "was_preview": False, "preview_score": None, "ready_at_run_start": ready if 'ready' in locals() else False,
+            "poll_iterations": 0, "local_test_accuracy": None, "this_submission_score": None,
+            "new_best_accuracy": None, "rank": None, "error": str(e)
         }
         
         error_updates = {
@@ -2383,7 +2316,6 @@ def run_experiment(
             last_seen_ts_state: None
         }
         yield error_updates
-
 
 def on_initial_load(username, token=None, team_name=""):
     """

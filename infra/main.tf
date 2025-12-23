@@ -313,6 +313,12 @@ resource "aws_apigatewayv2_route" "route_get_session" {
   target    = "integrations/${aws_apigatewayv2_integration.lambda_proxy.id}"
 }
 
+resource "aws_apigatewayv2_route" "route_update_session" {
+  api_id    = aws_apigatewayv2_api.http_api.id
+  route_key = "PATCH /sessions/{sessionId}"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda_proxy.id}"
+}
+
 resource "aws_apigatewayv2_stage" "stage" {
   api_id      = aws_apigatewayv2_api.http_api.id
   name        = local.stage_name

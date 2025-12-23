@@ -10,7 +10,7 @@ env:
 
 jobs:
   # ------------------------------------------------------------
-  # Build the universal image ONCE
+  # Build the universal image
   # ------------------------------------------------------------
   build-and-push:
     runs-on: ubuntu-latest
@@ -19,6 +19,17 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      # --- NEW STEP: Download the pre-computed cache ---
+      - name: Download Prediction Cache
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: build-cache.yml       # Must match the filename of the file above
+          name: prediction-cache-file     # Must match the artifact name in the file above
+          path: .                         # Save to root folder
+          search_artifacts: true          # Look for the most recent successful run
+          if_no_artifact_found: warn      # Don't fail the build if cache is missing (optional)
+      # -------------------------------------------------
 
       - id: auth
         name: Authenticate to Google Cloud
@@ -36,6 +47,14 @@ jobs:
         run: |
           IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}"
           echo "Building image: $IMAGE"
+          
+          # Check if cache downloaded successfully (Optional Debug)
+          if [ -f "prediction_cache.json.gz" ]; then
+            echo "✅ Cache file found! Embedding into Docker image."
+          else
+            echo "⚠️ Cache file NOT found. App will run in slow training mode."
+          fi
+
           docker build --pull -t "$IMAGE" .
           docker push "$IMAGE"
           echo "IMAGE=$IMAGE" >> $GITHUB_ENV
@@ -177,12 +196,12 @@ jobs:
           region: ${{ env.REGION }}
           flags: >-
             --allow-unauthenticated
-            --memory=2Gi
+            --memory=4Gi
             --cpu=2
             --session-affinity
-            --concurrency=20
+            --concurrency=40
             --min-instances=0
-            --max-instances=50
+            --max-instances=100
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
@@ -205,12 +224,13 @@ jobs:
           region: ${{ env.REGION }}
           flags: >-
             --allow-unauthenticated
-            --memory=2Gi
+            --cpu-boost
+            --memory=4Gi
             --cpu=2
             --session-affinity
-            --concurrency=20
+            --concurrency=4
             --min-instances=0
-            --max-instances=50
+            --max-instances=500
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
@@ -233,12 +253,14 @@ jobs:
           region: ${{ env.REGION }}
           flags: >-
             --allow-unauthenticated
-            --memory=2Gi
+            --cpu-boost
+            --cpu-boost
+            --memory=4Gi
             --cpu=2
             --session-affinity
-            --concurrency=20
+            --concurrency=4
             --min-instances=0
-            --max-instances=50
+            --max-instances=500
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
