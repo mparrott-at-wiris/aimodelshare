@@ -544,6 +544,62 @@ def get_session(event):
         print(f"[ERROR] get_session exception: {e}")
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
         
+def update_session(event):
+    """
+    Updates the token and extends the TTL for an existing session.
+    Used for silent token refreshes from the frontend.
+    """
+    try:
+        # 1. Parse inputs
+        params = event.get('pathParameters') or {}
+        session_id = params.get('sessionId')
+        body = json.loads(event.get('body', '{}'))
+        new_token = body.get('token')
+
+        # 2. Validation
+        if not session_id or not _TABLE_ID_RE.match(session_id):
+            return create_response(400, {'error': 'Invalid sessionId format'})
+        if not new_token:
+            return create_response(400, {'error': 'New token is required'})
+
+        # 3. Calculate New TTL
+        new_expiration_time = int(time.time()) + SESSION_TTL_SECONDS
+
+        # 4. Update DynamoDB
+        try:
+            retry_dynamo(lambda: table.update_item(
+                Key={
+                    'tableId': session_id,
+                    'username': '_session'
+                },
+                UpdateExpression="SET jwtToken = :t, #ttl_attr = :l, lastUpdated = :u",
+                ConditionExpression="attribute_exists(tableId)",
+                ExpressionAttributeNames={
+                    '#ttl_attr': 'ttl'
+                },
+                ExpressionAttributeValues={
+                    ':t': new_token,
+                    ':l': new_expiration_time,
+                    ':u': datetime.utcnow().isoformat()
+                }
+            ))
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
+                return create_response(404, {'error': 'Session expired or not found'})
+            raise e
+
+        return create_response(200, {
+            'message': 'Session refreshed successfully',
+            'sessionId': session_id,
+            'expiresAt': new_expiration_time
+        })
+
+    except json.JSONDecodeError:
+        return create_response(400, {'error': 'Invalid JSON in request body'})
+    except Exception as e:
+        print(f"[ERROR] update_session exception: {e}")
+        return create_response(500, {'error': f'Internal server error: {str(e)}'})
+        
 
 def create_table(event):
     try:
@@ -1604,6 +1660,8 @@ def handler(event, context):
             return create_session(event)
         elif route_key == 'GET /sessions/{sessionId}':  
             return get_session(event)
+        elif route_key == 'PATCH /sessions/{sessionId}':
+            return update_session(event)
         elif route_key == 'GET /health':
             return health(event)
 
@@ -1644,6 +1702,8 @@ def handler(event, context):
              # (You might need logic to parse it cleanly depending on your path structure)
              print(get_session())
              return get_session(event)
+        elif method == 'PATCH' and '/sessions/' in path:
+             return update_session(event)
         elif method == 'GET' and path == '/health':
             return health(event)
 
