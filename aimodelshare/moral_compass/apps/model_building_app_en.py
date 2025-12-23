@@ -1936,14 +1936,21 @@ def run_experiment(
             # === FAST PATH (Zero CPU) ===
             _log(f"⚡ CACHE HIT: {cache_key}")
             yield { 
-                submission_feedback_display: gr.update(value=get_status_html(2, "Instant Build", "⚡ Using pre-computed engine..."), visible=True),
+                submission_feedback_display: gr.update(value=get_status_html(2, "Training Model", "⚡ The machine is learning from history..."), visible=True),
                 login_error: gr.update(visible=False)
             }
-            # Use cached predictions
-            predictions = cached_predictions
+
+            # --- DECOMPRESSION STEP (Vital) ---
+            # If string "01010...", convert to [0, 1, 0, 1...]
+            if isinstance(cached_predictions, str):
+                predictions = [int(c) for c in cached_predictions]
+            else:
+                predictions = cached_predictions
+
             # Pass None to submit_model to skip training overhead validation
             tuned_model = None
             preprocessor = None
+            
             
         else:
             # === SLOW PATH (Fallback Training) ===
