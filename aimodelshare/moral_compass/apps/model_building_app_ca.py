@@ -436,23 +436,23 @@ MODEL_TYPES = {
         "model_builder": lambda: LogisticRegression(
             max_iter=500, random_state=42, class_weight="balanced"
         ),
-        "card": "A fast, reliable, well-rounded model. Good starting point; less prone to overfitting."
+        "card": "Aquest model és ràpid, fiable i equilibrat. Bon punt de partida; sol donar resultats més estables."
     },
     "El Creador de Regles": {
         "model_builder": lambda: DecisionTreeClassifier(
             random_state=42, class_weight="balanced"
         ),
-        "card": "Learns simple 'if/then' rules. Easy to interpret, but can miss subtle patterns."
+        "card": "Aquest model aprèn regles simples de tipus «si/aleshores». Fàcil d’interpretar, però li costa captar patrons complexos."
     },
     "El 'Veí més Proper'": {
         "model_builder": lambda: KNeighborsClassifier(),
-        "card": "Looks at the closest past examples. 'You look like these others; I'll predict like they behave.'"
+        "card": "Aquest model es basa en exemples semblants del passat.«Si t’assembles a aquests casos, prediré el mateix resultat»."
     },
     "El Detector de Patrons Profunds": {
         "model_builder": lambda: RandomForestClassifier(
             random_state=42, class_weight="balanced"
         ),
-        "card": "An ensemble of many decision trees. Powerful, can capture deep patterns; watch complexity."
+        "card": "Aquest model combina molts arbres de decisió per trobar patrons complexos. És potent, però cal vigilar no fer-lo massa complex."
     }
 }
 
