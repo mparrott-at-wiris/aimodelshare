@@ -5,6 +5,9 @@ Includes language-specific model building game variants:
 - model_building_app_en.py
 - model_building_app_ca.py
 - model_building_app_es.py
+- model_building_app_en_final.py
+- model_building_app_ca_final.py
+- model_building_app_es_final.py
 
 If you rename files to model_building_game_<lang>.py, update _EXPORT_MAP accordingly.
 """
@@ -36,6 +39,15 @@ _EXPORT_MAP = {
     "launch_model_building_game_ca_app": ("model_building_app_ca", "launch_model_building_game_ca_app"),
     "create_model_building_game_es_app": ("model_building_app_es", "create_model_building_game_es_app"),
     "launch_model_building_game_es_app": ("model_building_app_es", "launch_model_building_game_es_app"),
+
+    # NEW: Final language-specific variants
+    "create_model_building_game_en_final_app": ("model_building_app_en_final", "create_model_building_game_en_final_app"),
+    "launch_model_building_game_en_final_app": ("model_building_app_en_final", "launch_model_building_game_en_final_app"),
+    "create_model_building_game_ca_final_app": ("model_building_app_ca_final", "create_model_building_game_ca_final_app"),
+    "launch_model_building_game_ca_final_app": ("model_building_app_ca_final", "launch_model_building_game_ca_final_app"),
+    "create_model_building_game_es_final_app": ("model_building_app_es_final", "create_model_building_game_es_final_app"),
+    "launch_model_building_game_es_final_app": ("model_building_app_es_final", "launch_model_building_game_es_final_app"),
+
     # Other apps
     "create_ethical_revelation_app": ("ethical_revelation", "create_ethical_revelation_app"),
     "launch_ethical_revelation_app": ("ethical_revelation", "launch_ethical_revelation_app"),
