@@ -3355,94 +3355,49 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # --- Briefing Slideshow (Updated with New Cards) ---
 
-        # Slide 1: From Understanding to Building (Retained as transition)
-        with gr.Column(visible=True, elem_id="slide-1") as briefing_slide_1:
-            gr.Markdown("<h1 style='text-align:center;'>🔄 From Understanding to Building</h1>")
-            gr.HTML(
-                """
-                <div class='slide-content'>
-                <div class='panel-box'>
-                <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>Great progress! You've now:</h3>
-
-                <ul style='list-style: none; padding-left: 0; margin-top: 24px; margin-bottom: 24px;'>
-                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
-                        <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Made tough decisions as a judge using AI predictions
-                    </li>
-                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
-                        <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Learned about false positives (false alarms) and false negatives (missed warnings)
-                    </li>
-                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
-                        <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Understood how AI works:
-                    </li>
-                </ul>
-
-                <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
-                    <div style='display:inline-block; background:#dbeafe; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#0369a1;'>INPUT</h3>
-                    </div>
-                    <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
-                    <div style='display:inline-block; background:#fef3c7; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#92400e;'>MODEL</h3>
-                    </div>
-                    <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
-                    <div style='display:inline-block; background:#f0fdf4; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#15803d;'>OUTPUT</h3>
-                    </div>
-                </div>
-
-                <hr style='margin: 24px 0; border-top: 2px solid #c7d2fe;'>
-
-                <h3 style='font-size: 1.5rem; text-align:center;'>Now it's time to step into the shoes of an AI Engineer.</h3>
-                <p style='font-size: 1.1rem; text-align:center; margin-top: 12px;'>
-                    <strong>Your New Challenge:</strong> Build AI models that are more accurate than the one you used as a judge.
-                </p>
-                <p style='font-size: 1.1rem; text-align:center; margin-top: 12px;'>
-                    Remember: You experienced firsthand how AI predictions affect real people's lives. Use that knowledge to build something better.
-                </p>
-                </div>
-                </div>
-                """
-            )
-            briefing_1_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
-
-        # Slide 7: Card 6 (Your Score as an Engineer)
-        with gr.Column(visible=False, elem_id="slide-7") as briefing_slide_7:
-            gr.Markdown("<h1 style='text-align:center;'>🏆 Your Score as an Engineer</h1>")
+        # Slide 7: The Final Transition
+        with gr.Column(visible=True, elem_id="intro-slide") as intro_slide:
+            gr.Markdown("<h1 style='text-align:center;'>🚀 The Final Frontier</h1>")
             
-            # --- FIX FOR SLIDE 7 ---
-            # Combined all content into single gr.HTML()
             gr.HTML(
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <p>Now that you know how to build a model, it’s time to test your skills. Here is how you’ll measure success and rise through the ranks:</p>
+                        <div style="text-align:center; margin-bottom: 25px;">
+                            <p style="font-size:1.15rem; line-height:1.6;">
+                                You have explored the ethics. You understand the risks.
+                                <br>
+                                Now, it is time to prove you have the technical <strong>Skill</strong>.
+                            </p>
+                        </div>
 
-                        <h3>How You Are Scored</h3>
-                        <ul style='list-style-position: inside;'>
-                            <li><strong>Prediction Accuracy:</strong> Your model is tested on <strong>Hidden Data</strong> (cases kept in a "secret vault" that your model has never seen). This simulates predicting the future to ensure you get a real-world prediction accuracy score.</li>
-                            <li><strong>The Leaderboard:</strong> Live Standings track your progress individually and as a team.</li>
-                        </ul>
+                        <div style="background:linear-gradient(to right, #eff6ff, white); border:2px solid #3b82f6; border-radius:12px; padding:24px; margin-bottom: 25px;">
+                            <h3 style="margin-top:0; color:#1e40af; text-align:center; font-size:1.4rem;">🛠️ The Accuracy Competition</h3>
+                            <div style="font-size:1.1rem; line-height:1.6; color:#1f2937;">
+                                <p>Your <strong>final mission</strong> is to compete against your peers to build the <strong>most accurate model possible</strong>.</p>
+                                
+                                <p>✨ <strong>Unrestricted Access:</strong> You are now a Lead Engineer. All data inputs and modeling tools are <strong>unlocked immediately</strong>.</p>
+                                
+                                <p>Use every tool at your disposal to climb the leaderboard, but remember the lessons you just learned: 
+                                <em>Accuracy is the goal, but data choices have consequences.</em></p>
+                            </div>
+                        </div>
 
-                        <h3>How You Improve: The Game</h3>
-                        <ul style='list-style-position: inside;'>
-                            <li><strong>Compete to Improve:</strong> Refine your model to beat your personal best score.</li>
-                            <li><strong>Get Promoted as an Engineer & Unlock Tools:</strong> As you submit more models, you rise in rank and unlock better analysis tools:</li>
-                        </ul>
-                        
-
+                        <div style="text-align:center; margin-top:20px; padding-top:10px; border-top: 1px solid #e5e7eb;">
+                            <p style="font-size:1.2rem; font-weight:700; color:#4b5563; margin-bottom:5px;">
+                                Ready to begin?
+                            </p>
+                            <p style="font-size:1rem; color:#6b7280; margin-top:0;">
+                                👇 Click the <b>"Enter the Arena"</b> button below.
+                            </p>
+                        </div>
                     </div>
                 </div>
                 """
             )
-            # --- END FIX ---
             
-            with gr.Row():
-                briefing_7_back = gr.Button("◀️ Back", size="lg")
-                briefing_7_next = gr.Button("Begin Model Building ▶️", variant="primary", size="lg")
+            # Only ONE button needed now
+            intro_next_btn = gr.Button("Enter the Arena ▶️", variant="primary", size="lg")
 
         # --- End Briefing Slideshow ---
 
@@ -3604,8 +3559,10 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # --- Navigation Logic ---
         all_steps_nav = [
-            briefing_slide_1, briefing_slide_7,
-            model_building_step, conclusion_step, loading_screen
+            intro_slide, 
+            model_building_step, 
+            conclusion_step, 
+            loading_screen
         ]
 
         def create_nav(current_step, next_step):
@@ -3715,29 +3672,14 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
   }} catch(e) {{ console.warn('nav-js error', e); }}
 }}
 """
-        # 1. Slide 1 (Intro) -> Slide 7 (Score/Rules)
-        briefing_1_next.click(
-            fn=create_nav(briefing_slide_1, briefing_slide_7),
-            inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-7", "Entering model arena..")
-        )
-
-        # 2. Slide 7 Back Button -> Return to Slide 1
-        briefing_7_back.click(
-            fn=create_nav(briefing_slide_7, briefing_slide_1),
-            inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-1", "Returning to start...")
-        )
-
-        # 3. Slide 7 Next Button -> Enter the App (Model Building Step)
-        briefing_7_next.click(
-            fn=create_nav(briefing_slide_7, model_building_step),
+        # Final wiring
+        intro_next_btn.click(
+            fn=create_nav(intro_slide, model_building_step),
             inputs=None, outputs=all_steps_nav,
             js=nav_js("model-step", "Entering model arena...")
         )
 
-
-        # App -> Conclusion
+        # App -> Conclusion (unchanged)
         step_2_next.click(
             fn=finalize_and_show_conclusion,
             inputs=[
@@ -3751,7 +3693,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             js=nav_js("conclusion-step", "Generating performance summary...")
         )
 
-        # Conclusion -> App
+        # Conclusion -> App (unchanged)
         step_3_back.click(
             fn=create_nav(conclusion_step, model_building_step),
             inputs=None, outputs=all_steps_nav,
