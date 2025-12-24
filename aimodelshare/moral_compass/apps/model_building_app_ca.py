@@ -1580,8 +1580,8 @@ def compute_rank_settings(
             "feature_set_choices": get_choices_for_rank(0),
             "feature_set_value": FEATURE_SET_GROUP_1_VALS,
             "feature_set_interactive": False,
-            "data_size_choices": ["Small (20%)"],
-            "data_size_value": "Small (20%)",
+            "data_size_choices": ["Petita (20%)"],
+            "data_size_value": "Petita (20%)",
             "data_size_interactive": False,
         }
     elif submission_count == 1:
@@ -1595,8 +1595,8 @@ def compute_rank_settings(
             "feature_set_choices": get_choices_for_rank(1),
             "feature_set_value": current_feature_set,
             "feature_set_interactive": True,
-            "data_size_choices": ["Small (20%)", "Medium (60%)"],
-            "data_size_value": current_data_size if current_data_size in ["Small (20%)", "Medium (60%)"] else "Small (20%)",
+            "data_size_choices":  ["Petita (20%)","Mitjana (60%)"],
+            "data_size_value": current_data_size if current_data_size in ["Petita (20%)","Mitjana (60%)"] else "Petita (20%)",
             "data_size_interactive": True,
         }
     elif submission_count == 2:
@@ -1610,8 +1610,8 @@ def compute_rank_settings(
             "feature_set_choices": get_choices_for_rank(2),
             "feature_set_value": current_feature_set,
             "feature_set_interactive": True,
-            "data_size_choices": ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"],
-            "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Small (20%)",
+            "data_size_choices":  ["Petita (20%)","Mitjana (60%)","Gran (80%)","Completa (100%)"],
+            "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Petita (20%)",
             "data_size_interactive": True,
         }
     else:
@@ -1625,8 +1625,8 @@ def compute_rank_settings(
             "feature_set_choices": get_choices_for_rank(3),
             "feature_set_value": current_feature_set,
             "feature_set_interactive": True,
-            "data_size_choices": ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"],
-            "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Small (20%)",
+            "data_size_choices":  ["Petita (20%)","Mitjana (60%)","Gran (80%)","Completa (100%)"],
+            "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Petita (20%)",
             "data_size_interactive": True,
         }
 
