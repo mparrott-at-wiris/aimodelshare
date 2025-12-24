@@ -22,6 +22,15 @@ try:
         create_what_is_ai_app, launch_what_is_ai_app,
         create_model_building_game_app, launch_model_building_game_app,
         create_model_building_game_beginner_app, launch_model_building_game_beginner_app,
+        # Language-specific variants
+        create_model_building_game_en_app, launch_model_building_game_en_app,
+        create_model_building_game_ca_app, launch_model_building_game_ca_app,
+        create_model_building_game_es_app, launch_model_building_game_es_app,
+        # NEW: Final language-specific variants
+        create_model_building_game_en_final_app, launch_model_building_game_en_final_app,
+        create_model_building_game_es_final_app, launch_model_building_game_es_final_app,
+        create_model_building_game_ca_final_app, launch_model_building_game_ca_final_app,
+        # Bias Detective split apps
         create_bias_detective_part1_app, launch_bias_detective_part1_app,
         create_bias_detective_part2_app, launch_bias_detective_part2_app,
     )
@@ -39,6 +48,21 @@ except Exception:  # noqa: BLE001
     launch_model_building_game_app = None
     create_model_building_game_beginner_app = None
     launch_model_building_game_beginner_app = None
+    # Language-specific variants
+    create_model_building_game_en_app = None
+    launch_model_building_game_en_app = None
+    create_model_building_game_ca_app = None
+    launch_model_building_game_ca_app = None
+    create_model_building_game_es_app = None
+    launch_model_building_game_es_app = None
+    # NEW: Final language-specific variants
+    create_model_building_game_en_final_app = None
+    launch_model_building_game_en_final_app = None
+    create_model_building_game_es_final_app = None
+    launch_model_building_game_es_final_app = None
+    create_model_building_game_ca_final_app = None
+    launch_model_building_game_ca_final_app = None
+    # Bias Detective split apps
     create_bias_detective_part1_app = None
     launch_bias_detective_part1_app = None
     create_bias_detective_part2_app = None
@@ -68,6 +92,21 @@ __all__ = [
     "launch_model_building_game_app",
     "create_model_building_game_beginner_app",
     "launch_model_building_game_beginner_app",
+    # Language-specific variants
+    "create_model_building_game_en_app",
+    "launch_model_building_game_en_app",
+    "create_model_building_game_ca_app",
+    "launch_model_building_game_ca_app",
+    "create_model_building_game_es_app",
+    "launch_model_building_game_es_app",
+    # NEW: Final language-specific variants
+    "create_model_building_game_en_final_app",
+    "launch_model_building_game_en_final_app",
+    "create_model_building_game_es_final_app",
+    "launch_model_building_game_es_final_app",
+    "create_model_building_game_ca_final_app",
+    "launch_model_building_game_ca_final_app",
+    # Bias Detective split apps
     "create_bias_detective_part1_app",
     "launch_bias_detective_part1_app",
     "create_bias_detective_part2_app",
