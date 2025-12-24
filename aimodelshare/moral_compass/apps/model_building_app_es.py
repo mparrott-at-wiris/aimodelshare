@@ -319,23 +319,7 @@ def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str],
         _log(f"Session auth failed: {e}")
         return False, None, None
 
-# -------------------------------------------------------------------------
-# NEW IMPORTS (Add to top of app.py)
-# -------------------------------------------------------------------------
-try:
-    from cachetools import TTLCache
-except ImportError:
-    raise ImportError("Please run 'pip install cachetools' to fix memory stability issues.")
 
-# -------------------------------------------------------------------------
-# UPDATED CONFIGURATION (Replace the old _user_stats_cache definition)
-# -------------------------------------------------------------------------
-# Fixes Memory Leak: Automatically deletes data older than USER_STATS_TTL
-# Fixes Memory Limit: Holds max 500 users in RAM (approx 2MB)
-_user_stats_cache = TTLCache(maxsize=500, ttl=USER_STATS_TTL)
-
-# Keep the lock (cachetools is not thread-safe for concurrent read/write)
-_user_stats_lock = threading.Lock() 
 
 # -------------------------------------------------------------------------
 # UPDATED FUNCTION
