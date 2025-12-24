@@ -61,6 +61,51 @@ except ImportError:
 # Configuration & Caching Infrastructure
 # -------------------------------------------------------------------------
 
+# -------------------------------------------------------------------------
+# CACHE CONFIGURATION (Optimized: SQLite)
+# -------------------------------------------------------------------------
+import sqlite3
+
+CACHE_DB_FILE = "prediction_cache.sqlite"
+_db_conn = None
+
+def get_cached_prediction(key):
+    """
+    Lightning-fast lookup from SQLite database.
+    Production Safe: Logs errors but returns None so app falls back to training.
+    """
+    global _db_conn
+    
+    # 1. Check if DB exists
+    if not os.path.exists(CACHE_DB_FILE):
+        print(f"⚠️ CACHE MISS: DB file missing. Falling back to training.", flush=True)
+        return None
+
+    # 2. Lazy connection
+    if _db_conn is None:
+        try:
+            _db_conn = sqlite3.connect(CACHE_DB_FILE, check_same_thread=False)
+        except Exception as e:
+            print(f"❌ DB ERROR: Could not connect. Falling back to training. Error: {e}", flush=True)
+            return None
+
+    try:
+        cursor = _db_conn.cursor()
+        cursor.execute("SELECT value FROM cache WHERE key=?", (key,))
+        result = cursor.fetchone()
+        
+        if result:
+            return result[0] 
+        else:
+            print(f"🐢 CACHE MISS: Key not found. Training model... Key: '{key}'", flush=True)
+            return None
+            
+    except Exception as e:
+        print(f"⚠️ DB READ ERROR: {e}", flush=True)
+        return None
+
+print("✅ App configured for Instant-Load SQLite Cache.")
+
 LEADERBOARD_CACHE_SECONDS = int(os.environ.get("LEADERBOARD_CACHE_SECONDS", "45"))
 MAX_LEADERBOARD_ENTRIES = os.environ.get("MAX_LEADERBOARD_ENTRIES")
 MAX_LEADERBOARD_ENTRIES = int(MAX_LEADERBOARD_ENTRIES) if MAX_LEADERBOARD_ENTRIES else None
@@ -2134,67 +2179,106 @@ def run_experiment(
         }
         yield error_updates
         return
-
     try:
-        # --- Stage 2: Train Model (Local) ---
-        progress(0.3, desc="Training Model...")
-        yield { 
-            submission_feedback_display: gr.update(value=get_status_html(2, "Training Model", "The machine is learning from history..."), visible=True),
-            login_error: gr.update(visible=False)
-        }
-
-        # A. Get pre-sampled data
-        sample_frac = DATA_SIZE_MAP.get(data_size_str, 0.2)
-        X_train_sampled = X_TRAIN_SAMPLES_MAP[data_size_str]
-        y_train_sampled = Y_TRAIN_SAMPLES_MAP[data_size_str]
-        log_output += f"Using {int(sample_frac * 100)}% data.\n"
-
-        # B. Determine features...
-        numeric_cols = []
-        categorical_cols = []
-        for feat in feature_set:
-            if feat in ALL_NUMERIC_COLS: numeric_cols.append(feat)
-            elif feat in ALL_CATEGORICAL_COLS: categorical_cols.append(feat)
-
-        if not numeric_cols and not categorical_cols:
-            raise ValueError("No features selected for modeling.")
-
-        # C. Preprocessing (uses memoized preprocessor builder)
-        preprocessor, selected_cols = build_preprocessor(numeric_cols, categorical_cols)
-
-        X_train_processed = preprocessor.fit_transform(X_train_sampled[selected_cols])
-        X_test_processed = preprocessor.transform(X_TEST_RAW[selected_cols])
-
-        # D. Model build & tune
-        base_model = MODEL_TYPES[model_name_key]["model_builder"]()
-        tuned_model = tune_model_complexity(base_model, complexity_level)
-
-        # E. Train
-        # Concurrency Note: DecisionTree and RandomForest require dense arrays.
-        # LogisticRegression and KNN handle sparse matrices natively.
-        if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
-            X_train_for_fit = _ensure_dense(X_train_processed)
-        else:
-            X_train_for_fit = X_train_processed
+        # --- Stage 2: Smart Build (Cache vs Train) ---
+        progress(0.3, desc="Building Model...")
         
-        tuned_model.fit(X_train_for_fit, y_train_sampled)
-        log_output += "Training done.\n"
+        # 1. Generate Cache Key
+        sanitized_features = sorted([str(f) for f in feature_set])
+        feature_key = ",".join(sanitized_features)
+        cache_key = f"{model_name_key}|{complexity_level}|{data_size_str}|{feature_key}"
+        
+        # 2. Check Cache
+        cached_predictions = get_cached_prediction(cache_key)
+        
+        # Initialize variables
+        predictions = None
+        tuned_model = None
+        preprocessor = None
+        
+        if cached_predictions:
+            # === FAST PATH (Zero CPU) ===
+            # Note: Keeping English status text as per your previous file, or you can translate to:
+            # "⚡ La màquina està aprenent de la història..."
+            yield { 
+                submission_feedback_display: gr.update(value=get_status_html(2, "Training Model", "⚡ The machine is learning from history..."), visible=True),
+                login_error: gr.update(visible=False)
+            }
+
+            # --- DECOMPRESSION STEP ---
+            if isinstance(cached_predictions, str):
+                predictions = [int(c) for c in cached_predictions]
+            else:
+                predictions = cached_predictions
+
+            # Set model to None to skip training upload
+            tuned_model = None
+            preprocessor = None
+            
+        else:
+            # === SLOW PATH (Fallback Training) ===
+            yield { 
+                submission_feedback_display: gr.update(value=get_status_html(2, "Training Model", "The machine is learning from history..."), visible=True),
+                login_error: gr.update(visible=False)
+            }
+
+            # A. Get pre-sampled data
+            sample_frac = DATA_SIZE_MAP.get(data_size_str, 0.2)
+            X_train_sampled = X_TRAIN_SAMPLES_MAP[data_size_str]
+            y_train_sampled = Y_TRAIN_SAMPLES_MAP[data_size_str]
+            log_output += f"Using {int(sample_frac * 100)}% data.\n"
+
+            # B. Determine features...
+            numeric_cols = []
+            categorical_cols = []
+            for feat in feature_set:
+                if feat in ALL_NUMERIC_COLS: numeric_cols.append(feat)
+                elif feat in ALL_CATEGORICAL_COLS: categorical_cols.append(feat)
+
+            if not numeric_cols and not categorical_cols:
+                raise ValueError("No features selected for modeling.")
+
+            # C. Preprocessing
+            preprocessor, selected_cols = build_preprocessor(numeric_cols, categorical_cols)
+
+            X_train_processed = preprocessor.fit_transform(X_train_sampled[selected_cols])
+            X_test_processed = preprocessor.transform(X_TEST_RAW[selected_cols])
+
+            # D. Model build & tune
+            base_model = MODEL_TYPES[model_name_key]["model_builder"]()
+            tuned_model = tune_model_complexity(base_model, complexity_level)
+
+            # E. Train
+            if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
+                X_train_for_fit = _ensure_dense(X_train_processed)
+                X_test_for_predict = _ensure_dense(X_test_processed)
+            else:
+                X_train_for_fit = X_train_processed
+                X_test_for_predict = X_test_processed
+            
+            tuned_model.fit(X_train_for_fit, y_train_sampled)
+            predictions = tuned_model.predict(X_test_for_predict)
+            log_output += "Training done.\n"
 
 # --- Stage 3: Submit (API Call 1) ---
         # AUTHENTICATION GATE: Check for token before submission
+
         if token is None:
-            # User not authenticated - compute preview score and show login prompt
+            # User not authenticated - compute preview score
             progress(0.6, desc="Computing Preview Score...")
             
-            if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
-                X_test_for_predict = _ensure_dense(X_test_processed)
-            else:
-                X_test_for_predict = X_test_processed
-            
-            predictions = tuned_model.predict(X_test_for_predict)
+            # NOTE: Logic updated to handle cached predictions
             from sklearn.metrics import accuracy_score
-            preview_score = accuracy_score(Y_TEST, predictions)
             
+            # Ensure format is correct (list vs array)
+            if isinstance(predictions, list):
+                preds_for_metric = np.array(predictions)
+            else:
+                preds_for_metric = predictions
+                
+            preview_score = accuracy_score(Y_TEST, preds_for_metric)
+            
+            # ... (Rest of preview logic remains the same) ...
             preview_kpi_meta = {
                 "was_preview": True, "preview_score": preview_score, "ready_at_run_start": ready,
                 "poll_iterations": 0, "local_test_accuracy": preview_score,
@@ -2292,10 +2376,12 @@ def run_experiment(
         from sklearn.metrics import accuracy_score
         local_test_accuracy = accuracy_score(Y_TEST, predictions)
 
-# 2. SUBMIT & CAPTURE ACCURACY
+        # 2. SUBMIT & CAPTURE ACCURACY
         def _submit():
             return playground.submit_model(
-                model=tuned_model, preprocessor=preprocessor, prediction_submission=predictions,
+                model=tuned_model,  # This can now be None!
+                preprocessor=preprocessor, # This can now be None!
+                prediction_submission=predictions, # We explicitly send predictions
                 input_dict={'description': description, 'tags': tags},
                 custom_metadata={'Team': team_name, 'Moral_Compass': 0}, 
                 token=token,
