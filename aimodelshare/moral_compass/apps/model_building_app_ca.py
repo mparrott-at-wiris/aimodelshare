@@ -1569,7 +1569,7 @@ def compute_rank_settings(
             return [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in (FEATURE_SET_GROUP_1_VALS + FEATURE_SET_GROUP_2_VALS)]
         return FEATURE_SET_ALL_OPTIONS # Senior+
 
-if submission_count == 0:
+    if submission_count == 0:
         return {
             "rank_message": "# 🧑‍🎓 Rang: Enginyer/a en Pràctiques\n<p style='font-size:24px; line-height:1.4;'>Per al teu primer enviament, només cal que facis clic al botó gran '🔬 Construir i enviar el model' de sota!</p>",
             "model_choices": ["El Generalista Equilibrat"],
