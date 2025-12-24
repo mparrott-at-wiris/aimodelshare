@@ -1570,67 +1570,84 @@ def compute_rank_settings(
             return [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in (FEATURE_SET_GROUP_1_VALS + FEATURE_SET_GROUP_2_VALS)]
         return FEATURE_SET_ALL_OPTIONS # Senior+
 
+    # --- Rank 0: Trainee ---
     if submission_count == 0:
         return {
-            "rank_message": "# 🧑‍🎓 Rank: Trainee Engineer\n<p style='font-size:24px; line-height:1.4;'>For your first submission, just click the big '🔬 Build & Submit Model' button below!</p>",
-            "model_choices": ["The Balanced Generalist"],
-            "model_value": "The Balanced Generalist",
+            "rank_message": "# 🧑‍🎓 Rango: Ingeniero en Prácticas\n<p style='font-size:24px; line-height:1.4;'>Para tu primer envío, simplemente haz clic en el botón grande '🔬 Construir y Enviar Modelo' abajo.</p>",
+            "model_choices": ["El Generalista Equilibrado"],
+            "model_value": "El Generalista Equilibrado",
             "model_interactive": False,
             "complexity_max": 3,
             "complexity_value": min(current_complexity, 3),
             "feature_set_choices": get_choices_for_rank(0),
             "feature_set_value": FEATURE_SET_GROUP_1_VALS,
             "feature_set_interactive": False,
-            "data_size_choices": ["Small (20%)"],
-            "data_size_value": "Small (20%)",
+            "data_size_choices": ["Pequeño (20%)"],
+            "data_size_value": "Pequeño (20%)",
             "data_size_interactive": False,
         }
+    
+    # --- Rank 1: Junior ---
     elif submission_count == 1:
+        # Models available at this rank
+        rank_models = ["El Generalista Equilibrado", "El Creador de Reglas", "El 'Vecino Más Cercano'"]
+        
+        # Data sizes available at this rank
+        rank_data_sizes = ["Pequeño (20%)", "Medio (60%)"]
+
         return {
-            "rank_message": "# 🎉 Rank Up! Junior Engineer\n<p style='font-size:24px; line-height:1.4;'>New models, data sizes, and data ingredients unlocked!</p>",
-            "model_choices": ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"],
-            "model_value": current_model if current_model in ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"] else "The Balanced Generalist",
+            "rank_message": "# 🎉 ¡Subida de Rango! Ingeniero Junior\n<p style='font-size:24px; line-height:1.4;'>¡Nuevos modelos, tamaños de datos e ingredientes de datos desbloqueados!</p>",
+            "model_choices": rank_models,
+            "model_value": current_model if current_model in rank_models else "El Generalista Equilibrado",
             "model_interactive": True,
             "complexity_max": 6,
             "complexity_value": min(current_complexity, 6),
             "feature_set_choices": get_choices_for_rank(1),
             "feature_set_value": current_feature_set,
             "feature_set_interactive": True,
-            "data_size_choices": ["Pequeño (20%)","Medio (60%)"],
-            "data_size_value": current_data_size if current_data_size in  ["Pequeño (20%)","Medio (60%)"] else "Pequeño (20%)",
+            "data_size_choices": rank_data_sizes,
+            "data_size_value": current_data_size if current_data_size in rank_data_sizes else "Pequeño (20%)",
             "data_size_interactive": True,
         }
+
+    # --- Rank 2: Senior ---
     elif submission_count == 2:
+        # Full data sizes
+        rank_data_sizes = ["Pequeño (20%)", "Medio (60%)", "Grande (80%)", "Completo (100%)"]
+
         return {
-            "rank_message": "# 🌟 Rank Up! Senior Engineer\n<p style='font-size:24px; line-height:1.4;'>Strongest Data Ingredients Unlocked! The most powerful predictors (like 'Age' and 'Prior Crimes Count') are now available in your list. These will likely boost your accuracy, but remember they often carry the most societal bias.</p>",
+            "rank_message": "# 🌟 ¡Subida de Rango! Ingeniero Senior\n<p style='font-size:24px; line-height:1.4;'>¡Ingredientes de datos más potentes desbloqueados! Los predictores más fuertes (como 'Edad' y 'Historial Delictivo') ya están disponibles. Probablemente mejorarán tu precisión, pero recuerda que a menudo conllevan mayor sesgo social.</p>",
             "model_choices": list(MODEL_TYPES.keys()),
-            "model_value": current_model if current_model in MODEL_TYPES else "The Deep Pattern-Finder",
+            "model_value": current_model if current_model in MODEL_TYPES else "El Buscador de Patrones Profundo",
             "model_interactive": True,
             "complexity_max": 8,
             "complexity_value": min(current_complexity, 8),
             "feature_set_choices": get_choices_for_rank(2),
             "feature_set_value": current_feature_set,
             "feature_set_interactive": True,
-            "data_size_choices": ["Pequeño (20%)","Medio (60%)","Grande (80%)","Completo (100%)"],
-            "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Pequeño (20%)",
+            "data_size_choices": rank_data_sizes,
+            "data_size_value": current_data_size if current_data_size in rank_data_sizes else "Pequeño (20%)",
             "data_size_interactive": True,
         }
+
+    # --- Rank 3: Lead ---
     else:
+        rank_data_sizes = ["Pequeño (20%)", "Medio (60%)", "Grande (80%)", "Completo (100%)"]
+
         return {
-            "rank_message": "# 👑 Rank: Lead Engineer\n<p style='font-size:24px; line-height:1.4;'>All tools unlocked — optimize freely!</p>",
+            "rank_message": "# 👑 Rango: Ingeniero Líder\n<p style='font-size:24px; line-height:1.4;'>Todas las herramientas desbloqueadas — ¡optimiza libremente!</p>",
             "model_choices": list(MODEL_TYPES.keys()),
-            "model_value": current_model if current_model in MODEL_TYPES else "The Balanced Generalist",
+            "model_value": current_model if current_model in MODEL_TYPES else "El Generalista Equilibrado",
             "model_interactive": True,
             "complexity_max": 10,
             "complexity_value": current_complexity,
             "feature_set_choices": get_choices_for_rank(3),
             "feature_set_value": current_feature_set,
             "feature_set_interactive": True,
-            "data_size_choices": ["Pequeño (20%)","Medio (60%)","Grande (80%)","Completo (100%)"],
-            "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Pequeño (20%)",
+            "data_size_choices": rank_data_sizes,
+            "data_size_value": current_data_size if current_data_size in rank_data_sizes else "Pequeño (20%)",
             "data_size_interactive": True,
         }
-
 # Find components by name to yield updates
 # --- Existing global component placeholders ---
 submit_button = None
