@@ -3715,25 +3715,27 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
   }} catch(e) {{ console.warn('nav-js error', e); }}
 }}
 """
-
-
-        # Wire up slide buttons with enhanced navigation
+        # 1. Slide 1 (Intro) -> Slide 7 (Score/Rules)
         briefing_1_next.click(
-            fn=create_nav(briefing_slide_1, briefing_slide_2),
+            fn=create_nav(briefing_slide_1, briefing_slide_7),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-2", "Loading mission overview...")
+            js=nav_js("slide-7", "Entering model arena..")
         )
+
+        # 2. Slide 7 Back Button -> Return to Slide 1
         briefing_7_back.click(
-            fn=create_nav(briefing_slide_7, briefing_slide_6),
+            fn=create_nav(briefing_slide_7, briefing_slide_1),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-6", "Reviewing data knobs...")
+            js=nav_js("slide-1", "Returning to start...")
         )
-        # Slide 7 -> App
+
+        # 3. Slide 7 Next Button -> Enter the App (Model Building Step)
         briefing_7_next.click(
             fn=create_nav(briefing_slide_7, model_building_step),
             inputs=None, outputs=all_steps_nav,
             js=nav_js("model-step", "Entering model arena...")
         )
+
 
         # App -> Conclusion
         step_2_next.click(
