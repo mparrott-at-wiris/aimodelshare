@@ -1573,7 +1573,7 @@ def compute_rank_settings(
     # --- Rank 0: Trainee ---
     if submission_count == 0:
         return {
-            "rank_message": "# 🧑‍🎓 Rango: Ingeniero en Prácticas\n<p style='font-size:24px; line-height:1.4;'>Para tu primer envío, simplemente haz clic en el botón grande '🔬 Construir y Enviar Modelo' abajo.</p>",
+            "rank_message": "# 🧑‍🎓 Rango: Ingeniero/a en prácticas\n<p style='font-size:24px; line-height:1.4;'>Para empezar, envía tu primer modelo haciendo clic en el botón '🔬 Construir y enviar modelo' que aparece abajo.</p>",
             "model_choices": ["El Generalista Equilibrado"],
             "model_value": "El Generalista Equilibrado",
             "model_interactive": False,
@@ -1596,7 +1596,7 @@ def compute_rank_settings(
         rank_data_sizes = ["Pequeño (20%)", "Medio (60%)"]
 
         return {
-            "rank_message": "# 🎉 ¡Subida de Rango! Ingeniero Junior\n<p style='font-size:24px; line-height:1.4;'>¡Nuevos modelos, tamaños de datos e ingredientes de datos desbloqueados!</p>",
+            "rank_message": "# 🎉 ¡Nuevo rango! Ingeniero/a Junior\n<p style='font-size:24px; line-height:1.4;'>¡Nuevos modelos, tamaños de datos e ingredientes de datos desbloqueados!</p>",
             "model_choices": rank_models,
             "model_value": current_model if current_model in rank_models else "El Generalista Equilibrado",
             "model_interactive": True,
@@ -1616,7 +1616,7 @@ def compute_rank_settings(
         rank_data_sizes = ["Pequeño (20%)", "Medio (60%)", "Grande (80%)", "Completo (100%)"]
 
         return {
-            "rank_message": "# 🌟 ¡Subida de Rango! Ingeniero Senior\n<p style='font-size:24px; line-height:1.4;'>¡Ingredientes de datos más potentes desbloqueados! Los predictores más fuertes (como 'Edad' y 'Historial Delictivo') ya están disponibles. Probablemente mejorarán tu precisión, pero recuerda que a menudo conllevan mayor sesgo social.</p>",
+            "rank_message": "# 🌟 ¡Nuevo rango! Ingeniero/a Senior\n<p style='font-size:24px; line-height:1.4;'>¡Variables de datos más potentes desbloqueados! Los predictores más fuertes (como 'Edad' y 'Historial delictivo') ya están disponibles. Probablemente mejorarán tu precisión, pero recuerda que a menudo conllevan mayor sesgo social.</p>",
             "model_choices": list(MODEL_TYPES.keys()),
             "model_value": current_model if current_model in MODEL_TYPES else "El Buscador de Patrones Profundo",
             "model_interactive": True,
@@ -1635,7 +1635,7 @@ def compute_rank_settings(
         rank_data_sizes = ["Pequeño (20%)", "Medio (60%)", "Grande (80%)", "Completo (100%)"]
 
         return {
-            "rank_message": "# 👑 Rango: Ingeniero Líder\n<p style='font-size:24px; line-height:1.4;'>Todas las herramientas desbloqueadas — ¡optimiza libremente!</p>",
+            "rank_message": "# 👑 Rango: Líder de Ingeniería\n<p style='font-size:24px; line-height:1.4;'>Todas las herramientas desbloqueadas — ¡optimiza libremente!</p>",
             "model_choices": list(MODEL_TYPES.keys()),
             "model_value": current_model if current_model in MODEL_TYPES else "El Generalista Equilibrado",
             "model_interactive": True,
