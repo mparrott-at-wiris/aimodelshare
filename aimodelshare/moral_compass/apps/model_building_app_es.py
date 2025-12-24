@@ -4094,13 +4094,13 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                     # Inline Login Components (initially hidden)
                     login_username = gr.Textbox(
                         label="Username",
-                        placeholder="Enter your modelshare.ai username",
+                        placeholder="Introduce tu nombre de usuario de modelshare.ai",
                         visible=False
                     )
                     login_password = gr.Textbox(
-                        label="Password",
+                        label="Contraseña",
                         type="password",
-                        placeholder="Enter your password",
+                        placeholder="Introduce tu contraseña",
                         visible=False
                     )
                     login_submit = gr.Button(
@@ -4114,23 +4114,23 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                     )
 
                     with gr.Tabs():
-                        with gr.TabItem("Team Standings"):
+                        with gr.TabItem("Clasificación por equipos"):
                             team_leaderboard_display = gr.HTML(
                                 "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Submit a model to see team rankings.</p>"
                             )
-                        with gr.TabItem("Individual Standings"):
+                        with gr.TabItem("Clasificación individual"):
                             individual_leaderboard_display = gr.HTML(
-                                "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Submit a model to see individual rankings.</p>"
+                                "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Envía un modelo para ver la clasificación individual.</p>"
                             )
 
             # REMOVED: Ethical Reminder HTML Block
-            step_2_next = gr.Button("Finish & Reflect ▶️", variant="secondary")
+            step_2_next = gr.Button("Finalizar y reflexionar ▶️", variant="secondary")
 
         # Conclusion Step
         with gr.Column(visible=False, elem_id="conclusion-step") as conclusion_step:
-            gr.Markdown("<h1 style='text-align:center;'>✅ Section Complete</h1>")
-            final_score_display = gr.HTML(value="<p>Preparing final summary...</p>")
-            step_3_back = gr.Button("◀️ Back to Experiment")
+            gr.Markdown("<h1 style='text-align:center;'>✅ Sección completada</h1>")
+            final_score_display = gr.HTML(value="<p>Preparando el resumen final...</p>")
+            step_3_back = gr.Button("◀️ Volver al experimento")
 
         # --- Navigation Logic ---
         all_steps_nav = [
