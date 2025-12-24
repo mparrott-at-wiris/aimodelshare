@@ -2321,24 +2321,24 @@ def run_experiment(
         if submission_count >= ATTEMPT_LIMIT:
             limit_warning_html = f"""
             <div class='kpi-card' style='border-color: #ef4444;'>
-                <h2 style='color: #111827; margin-top:0;'>🛑 Submission Limit Reached</h2>
+                <h2 style='color: #111827; margin-top:0;'>🛑 Límite de envíos alcanzado</h2>
                 <div class='kpi-card-body'>
                     <div class='kpi-metric-box'>
-                        <p class='kpi-label'>Attempts Used</p>
+                        <p class='kpi-label'>Intentos utilizados</p>
                         <p class='kpi-score' style='color: #ef4444;'>{ATTEMPT_LIMIT} / {ATTEMPT_LIMIT}</p>
                     </div>
                 </div>
                 <div style='margin-top: 16px; background:#fef2f2; padding:16px; border-radius:12px; text-align:left; font-size:0.98rem; line-height:1.4;'>
-                    <p style='margin:0; color:#991b1b;'><b>Nice Work!</b> Scroll down to "Finish and Reflect".</p>
+                    <p style='margin:0; color:#991b1b;'><b>¡Buen trabajo!</b> Desplázate hacia abajo hasta «Finalizar y reflexionar».</p>
                 </div>
             </div>"""
             settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
             limit_reached_updates = {
                 submission_feedback_display: gr.update(value=limit_warning_html, visible=True),
-                submit_button: gr.update(value="🛑 Submission Limit Reached", interactive=False),
+                submit_button: gr.update(value="🛑 Límite de envíos alcanzado", interactive=False),
                 model_type_radio: gr.update(interactive=False), complexity_slider: gr.update(interactive=False),
                 feature_set_checkbox: gr.update(interactive=False), data_size_radio: gr.update(interactive=False),
-                attempts_tracker_display: gr.update(value=f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'><p style='margin:0; color:#991b1b; font-weight:600;'>🛑 Attempts used: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT}</p></div>"),
+                attempts_tracker_display: gr.update(value=f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'><p style='margin:0; color:#991b1b; font-weight:600;'>🛑 Intentos utilizados: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT}</p></div>"),
                 team_leaderboard_display: team_leaderboard_display, individual_leaderboard_display: individual_leaderboard_display,
                 last_submission_score_state: last_submission_score, last_rank_state: last_rank,
                 best_score_state: best_score, submission_count_state: submission_count,
@@ -2350,9 +2350,9 @@ def run_experiment(
             yield limit_reached_updates
             return
         
-        progress(0.5, desc="Submitting to Cloud...")
+        progress(0.5, desc="Enviando a la nube...")
         yield { 
-            submission_feedback_display: gr.update(value=get_status_html(3, "Submitting", "Sending model to the competition server..."), visible=True),
+            submission_feedback_display: gr.update(value=get_status_html(3, "Enviando", "Enviando el modelo al servidor de la competición..."), visible=True),
             login_error: gr.update(visible=False)
         }
 
@@ -2394,14 +2394,14 @@ def run_experiment(
             else:
                 this_submission_score = local_test_accuracy
         except Exception as e:
-            _log(f"Submission return parsing failed: {e}. Using local accuracy.")
+            _log(f"Falló el análisis de la respuesta del envío: {e}. Uso de precisión local.")
             this_submission_score = local_test_accuracy
         
-        _log(f"Submission successful. Server Score: {this_submission_score}")
+        _log(f"Envío exitoso. Puntuación del servidor: {this_submission_score}")
 
         try:
             # Short timeout to trigger the lambda without hanging the UI
-            _log("Triggering backend merge...")
+            _log("Iniciando fusión en el backend...")
             playground.get_leaderboard(token=token) 
         except Exception:
             # We ignore errors here because the 'submit_model' post 
@@ -2416,7 +2416,7 @@ def run_experiment(
             new_first_submission_score = this_submission_score
 
         # --- Stage 4: Local Rank Calculation (Optimistic) ---
-        progress(0.9, desc="Calculating Rank...")
+        progress(0.9, desc="Calculando rango...")
         
         # 3. SIMULATE UPDATED LEADERBOARD
         simulated_df = baseline_leaderboard_df.copy() if baseline_leaderboard_df is not None else pd.DataFrame()
@@ -2457,7 +2457,7 @@ def run_experiment(
 # ... (Previous Stage 1-4 logic remains unchanged) ...
 
         # --- Stage 5: Final UI Update ---
-        progress(1.0, desc="Complete!")
+        progress(1.0, desc="¡Completado!")
         
         success_kpi_meta = {
             "was_preview": False, "preview_score": None, "ready_at_run_start": ready,
@@ -2478,24 +2478,24 @@ def run_experiment(
             # 1. Append the Limit Warning HTML *below* the Result Card
             limit_html = f"""
             <div style='margin-top: 16px; border: 2px solid #ef4444; background:#fef2f2; padding:16px; border-radius:12px; text-align:left;'>
-                <h3 style='margin:0 0 8px 0; color:#991b1b;'>🛑 Submission Limit Reached ({ATTEMPT_LIMIT}/{ATTEMPT_LIMIT})</h3>
+                <h3 style='margin:0 0 8px 0; color:#991b1b;'>🛑 Límite de envíos alcanzado ({ATTEMPT_LIMIT}/{ATTEMPT_LIMIT})</h3>
                 <p style='margin:0; color:#7f1d1d; line-height:1.4;'>
-                    <b>You have used all your attempts for this session.</b><br>
-                    Review your final results above, then scroll down to "Finish and Reflect" to continue.
+                    <b>Has utilizado todos tus intentos para esta sesión.</b><br>
+                    Revisa tus resultados finales arriba, luego desplázate hacia abajo hasta 'Finalizar y Reflexionar' para continuar.
                 </p>
             </div>
             """
             final_html_display = kpi_card_html + limit_html
             
             # 2. Disable all controls
-            button_update = gr.update(value="🛑 Limit Reached", interactive=False)
+            button_update = gr.update(value="🛑 Límite alcanzado", interactive=False)
             interactive_state = False
-            tracker_html = f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'><p style='margin:0; color:#991b1b; font-weight:600;'>🛑 Attempts used: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT} (Max)</p></div>"
+            tracker_html = f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'><p style='margin:0; color:#991b1b; font-weight:600;'>🛑 Intentos utilizados: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT} (Max)</p></div>"
         
         else:
             # Normal State: Show just the result card and keep controls active
             final_html_display = kpi_card_html
-            button_update = gr.update(value="🔬 Build & Submit Model", interactive=True)
+            button_update = gr.update(value="🔬 Construir y enviar modelo", interactive=True)
             interactive_state = True
             tracker_html = _build_attempts_tracker_html(new_submission_count)
 
@@ -2550,7 +2550,7 @@ def run_experiment(
         
         error_updates = {
             submission_feedback_display: gr.update(
-                f"<p style='text-align:center; color:red; padding:20px 0;'>An error occurred: {error_msg}</p>", visible=True
+                f"<p style='text-align:center; color:red; padding:20px 0;'>Ocurrió un error: {error_msg}</p>", visible=True
             ),
             team_leaderboard_display: f"<p style='text-align:center; color:red; padding-top:20px;'>An error occurred: {error_msg}</p>",
             individual_leaderboard_display: f"<p style='text-align:center; color:red; padding-top:20px;'>An error occurred: {error_msg}</p>",
