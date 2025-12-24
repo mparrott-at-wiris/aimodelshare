@@ -1569,11 +1569,11 @@ def compute_rank_settings(
             return [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in (FEATURE_SET_GROUP_1_VALS + FEATURE_SET_GROUP_2_VALS)]
         return FEATURE_SET_ALL_OPTIONS # Senior+
 
-    if submission_count == 0:
+if submission_count == 0:
         return {
-            "rank_message": "# 🧑‍🎓 Rank: Trainee Engineer\n<p style='font-size:24px; line-height:1.4;'>For your first submission, just click the big '🔬 Build & Submit Model' button below!</p>",
-            "model_choices": ["The Balanced Generalist"],
-            "model_value": "The Balanced Generalist",
+            "rank_message": "# 🧑‍🎓 Rang: Enginyer/a en Pràctiques\n<p style='font-size:24px; line-height:1.4;'>Per al teu primer enviament, només cal que facis clic al botó gran '🔬 Construir i enviar el model' de sota!</p>",
+            "model_choices": ["El Generalista Equilibrat"],
+            "model_value": "El Generalista Equilibrat",
             "model_interactive": False,
             "complexity_max": 3,
             "complexity_value": min(current_complexity, 3),
@@ -1585,10 +1585,14 @@ def compute_rank_settings(
             "data_size_interactive": False,
         }
     elif submission_count == 1:
+        # Define available models for Rank 1 using the new Catalan keys
+        rank_1_models = ["El Generalista Equilibrat", "El Creador de Regles", "El 'Veí més Proper'"]
+        
         return {
-            "rank_message": "# 🎉 Rank Up! Junior Engineer\n<p style='font-size:24px; line-height:1.4;'>New models, data sizes, and data ingredients unlocked!</p>",
-            "model_choices": ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"],
-            "model_value": current_model if current_model in ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"] else "The Balanced Generalist",
+            "rank_message": "# 🎉 Has pujat de nivell! Enginyer/a Júnior\n<p style='font-size:24px; line-height:1.4;'>Nous models, mides de dades i variables desbloquejats!</p>",
+            "model_choices": rank_1_models,
+            # Ensure current selection is valid for this rank, else reset to default
+            "model_value": current_model if current_model in rank_1_models else "El Generalista Equilibrat",
             "model_interactive": True,
             "complexity_max": 6,
             "complexity_value": min(current_complexity, 6),
@@ -1601,9 +1605,9 @@ def compute_rank_settings(
         }
     elif submission_count == 2:
         return {
-            "rank_message": "# 🌟 Rank Up! Senior Engineer\n<p style='font-size:24px; line-height:1.4;'>Strongest Data Ingredients Unlocked! The most powerful predictors (like 'Age' and 'Prior Crimes Count') are now available in your list. These will likely boost your accuracy, but remember they often carry the most societal bias.</p>",
+            "rank_message": "# 🌟 Has pujat de nivell! Enginyer/a Sènior\n<p style='font-size:24px; line-height:1.4;'>Variables més potents desbloquejades! Els predictors més forts (com 'Edat' i 'Nombre de delictes previs') ja estan disponibles a la teva llista. Probablement milloraran la teva precisió, però recorda que sovint comporten més biaixos socials.</p>",
             "model_choices": list(MODEL_TYPES.keys()),
-            "model_value": current_model if current_model in MODEL_TYPES else "The Deep Pattern-Finder",
+            "model_value": current_model if current_model in MODEL_TYPES else "El Detector de Patrons Profunds",
             "model_interactive": True,
             "complexity_max": 8,
             "complexity_value": min(current_complexity, 8),
@@ -1616,9 +1620,9 @@ def compute_rank_settings(
         }
     else:
         return {
-            "rank_message": "# 👑 Rank: Lead Engineer\n<p style='font-size:24px; line-height:1.4;'>All tools unlocked — optimize freely!</p>",
+            "rank_message": "# 👑 Rang: Enginyer/a Principal\n<p style='font-size:24px; line-height:1.4;'>Totes les eines desbloquejades — optimitza amb llibertat!</p>",
             "model_choices": list(MODEL_TYPES.keys()),
-            "model_value": current_model if current_model in MODEL_TYPES else "The Balanced Generalist",
+            "model_value": current_model if current_model in MODEL_TYPES else "El Generalista Equilibrat",
             "model_interactive": True,
             "complexity_max": 10,
             "complexity_value": current_complexity,
