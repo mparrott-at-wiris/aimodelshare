@@ -3937,8 +3937,8 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
             # --- END FIX ---
             
             with gr.Row():
-                briefing_6_back = gr.Button("◀️ Back", size="lg")
-                briefing_6_next = gr.Button("Next ▶️", variant="primary", size="lg")
+                briefing_6_back = gr.Button("◀️ Atrás", size="lg")
+                briefing_6_next = gr.Button("Siguiente ▶️", variant="primary", size="lg")
 
         # Slide 7: Card 6 (Your Score as an Engineer)
         with gr.Column(visible=False, elem_id="slide-7") as briefing_slide_7:
@@ -3971,15 +3971,15 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
             # --- END FIX ---
             
             with gr.Row():
-                briefing_7_back = gr.Button("◀️ Back", size="lg")
-                briefing_7_next = gr.Button("Begin Model Building ▶️", variant="primary", size="lg")
+                briefing_7_back = gr.Button("◀️ Atrás", size="lg")
+                briefing_7_next = gr.Button("Comienza a construir un modelo ▶️", variant="primary", size="lg")
 
         # --- End Briefing Slideshow ---
 
 
         # Model Building App (Main Interface)
         with gr.Column(visible=False, elem_id="model-step") as model_building_step:
-            gr.Markdown("<h1 style='text-align:center;'>🛠️ Model Building Arena</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🛠️ Área de construcción de modelos</h1>")
             
             # Status panel for initialization progress - HIDDEN
             init_status_display = gr.HTML(value="", visible=False)
@@ -3990,7 +3990,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
               value=(
                   "<div class='init-banner'>"
                   "<p class='init-banner__text'>"
-                  "⏳ Initializing data & leaderboard… you can explore but must wait for readiness to submit."
+                  "⏳ Inicializando datos y clasificación… puedes explorar, pero debes esperar a que esté listo para enviar."
                   "</p>"
                   "</div>"
               ),
@@ -4026,7 +4026,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                 with gr.Column(scale=1):
 
                     model_type_radio = gr.Radio(
-                        label="1. Model Strategy",
+                        label="1. Estrategia del modelo",
                         choices=[],
                         value=None,
                         interactive=False
@@ -4036,25 +4036,25 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                     gr.Markdown("---") # Separator
 
                     complexity_slider = gr.Slider(
-                        label="2. Model Complexity (1–10)",
+                        label="2. Complejidad del modelo (1–10)",
                         minimum=1, maximum=3, step=1, value=2,
-                        info="Higher values allow deeper pattern learning; very high values may overfit."
+                        info="Valores más altos permiten aprender patrones más complejos, pero si son demasiado altos pueden empeorar los resultados."
                     )
 
                     gr.Markdown("---") # Separator
 
                     feature_set_checkbox = gr.CheckboxGroup(
-                        label="3. Select Data Ingredients",
+                        label="3. Selecciona las variables de data",
                         choices=FEATURE_SET_ALL_OPTIONS,
                         value=DEFAULT_FEATURE_SET,
                         interactive=False,
-                        info="More ingredients unlock as you rank up!"
+                        info="¡Se desbloquean más ingredientes según tu posición en la clasificación!"
                     )
 
                     gr.Markdown("---") # Separator
 
                     data_size_radio = gr.Radio(
-                        label="4. Data Size",
+                        label="4. Tamaño de los datos",
                         choices=[DEFAULT_DATA_SIZE],
                         value=DEFAULT_DATA_SIZE,
                         interactive=False
@@ -4071,7 +4071,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                     )
 
                     submit_button = gr.Button(
-                        value="5. 🔬 Build & Submit Model",
+                        value="5. 🔬 Construye y envia el modelo",
                         variant="primary",
                         size="lg"
                     )
@@ -4080,15 +4080,15 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                     gr.HTML(
                         """
                         <div class='leaderboard-box'>
-                            <h3 style='margin-top:0;'>🏆 Live Standings</h3>
-                            <p style='margin:0;'>Submit a model to see your rank.</p>
+                            <h3 style='margin-top:0;'>🏆 Clasificación en directo</h3>
+                            <p style='margin:0;'>Envía un modelo para ver tu posición.</p>
                         </div>
                         """
                     )
 
                     # KPI Card
                     submission_feedback_display = gr.HTML(
-                        "<p style='text-align:center; color:#6b7280; padding:20px 0;'>Submit your first model to get feedback!</p>"
+                        "<p style='text-align:center; color:#6b7280; padding:20px 0;'>¡Envía tu primer modelo para recibir una valoración!</p>"
                     )
                     
                     # Inline Login Components (initially hidden)
