@@ -342,21 +342,22 @@ _user_stats_lock = threading.Lock()
 # -------------------------------------------------------------------------
 def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
     """
-    Compute user statistics with memory-safe caching (TTLCache).
+    Compute user statistics with caching.
     
     Concurrency Note: Protected by _user_stats_lock for thread-safe
     cache reads and writes.
     """
-    # 1. Thread-safe cache check
-    # TTLCache automatically returns None if the entry has expired.
-    # We no longer need manual timestamp math.
+    now = time.time()
+    
+    # Thread-safe cache check
     with _user_stats_lock:
         cached = _user_stats_cache.get(username)
-        if cached is not None:
+        if cached and (now - cached.get("_ts", 0) < USER_STATS_TTL):
             _log(f"User stats cache hit for {username}")
+            # Return shallow copy to prevent caller mutations from affecting cache.
+            # Stats dict contains only primitives (float, int, str), so shallow copy is sufficient.
             return cached.copy()
 
-    # 2. Compute fresh stats (Heavy operation - done outside lock)
     _log(f"Computing fresh stats for {username}")
     leaderboard_df = _fetch_leaderboard(token)
     team_name, _ = _get_or_assign_team(username, leaderboard_df)
@@ -375,12 +376,8 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
             user_submissions = leaderboard_df[leaderboard_df["username"] == username]
             if not user_submissions.empty:
                 stats["submission_count"] = len(user_submissions)
-                
-                # Extract Best Score
                 if "accuracy" in user_submissions.columns:
                     stats["best_score"] = float(user_submissions["accuracy"].max())
-                    
-                    # Extract Last Score (Time-based or fallback to best)
                     if "timestamp" in user_submissions.columns:
                         try:
                             user_submissions = user_submissions.copy()
@@ -389,12 +386,11 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
                             )
                             recent = user_submissions.sort_values("timestamp", ascending=False).iloc[0]
                             stats["last_score"] = float(recent["accuracy"])
-                        except Exception:
+                        except:
                             stats["last_score"] = stats["best_score"]
                     else:
                         stats["last_score"] = stats["best_score"]
             
-            # Calculate Rank
             if "accuracy" in leaderboard_df.columns:
                 user_bests = leaderboard_df.groupby("username")["accuracy"].max()
                 ranked = user_bests.sort_values(ascending=False)
@@ -402,17 +398,15 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
                     stats["rank"] = int(ranked.index.get_loc(username) + 1)
                 except KeyError:
                     stats["rank"] = 0
-                    
     except Exception as e:
         _log(f"Error computing stats for {username}: {e}")
 
-    # 3. Thread-safe cache update
-    # The lock prevents race conditions during the write
+    # Thread-safe cache update
     with _user_stats_lock:
         _user_stats_cache[username] = stats
-        
     _log(f"Stats for {username}: {stats}")
     return stats
+  
   
 def _build_attempts_tracker_html(current_count, limit=10):
     """
