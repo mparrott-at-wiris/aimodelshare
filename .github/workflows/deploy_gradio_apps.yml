@@ -231,7 +231,7 @@ jobs:
             --min-instances=0
             --max-instances=100
             --timeout=3000
-            --set-env-vars=APP_NAME=model-building-game-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
+            --set-env-vars=APP_NAME=model-building-game-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
             
   deploy-model-building-game-es:
     runs-on: ubuntu-latest
@@ -259,7 +259,7 @@ jobs:
             --min-instances=0
             --max-instances=100
             --timeout=3000
-            --set-env-vars=APP_NAME=model-building-game-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
+            --set-env-vars=APP_NAME=model-building-game-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
             
   # --- NEW: Final variants for EN, ES, CA ---
   deploy-model-building-game-en-final:
