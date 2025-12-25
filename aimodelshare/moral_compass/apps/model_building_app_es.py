@@ -4026,9 +4026,10 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                 with gr.Column(scale=1):
 
                     model_type_radio = gr.Radio(
-                        label="1. Model Strategy",
-                        choices=[],
-                        value=None,
+                        label="1. Estrategia modelo",
+                        # Initialize with all possible keys so validation passes even if browser caches a high-rank selection
+                        choices=list(MODEL_TYPES.keys()), 
+                        value=DEFAULT_MODEL,
                         interactive=False
                     )
                     model_card_display = gr.Markdown(get_model_card(DEFAULT_MODEL))
