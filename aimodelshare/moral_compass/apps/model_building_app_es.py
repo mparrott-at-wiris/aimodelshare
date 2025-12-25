@@ -723,8 +723,8 @@ def load_and_prep_data(use_cache=True):
     # Pre-sample all data sizes
     global X_TRAIN_SAMPLES_MAP, Y_TRAIN_SAMPLES_MAP, X_TRAIN_WARM, Y_TRAIN_WARM
 
-    X_TRAIN_SAMPLES_MAP["Full (100%)"] = X_train_raw
-    Y_TRAIN_SAMPLES_MAP["Full (100%)"] = y_train
+    X_TRAIN_SAMPLES_MAP["Completo (100%)"] = X_train_raw
+    Y_TRAIN_SAMPLES_MAP["Completo (100%)"] = y_train
 
     for label, frac in DATA_SIZE_MAP.items():
         if frac < 1.0:
