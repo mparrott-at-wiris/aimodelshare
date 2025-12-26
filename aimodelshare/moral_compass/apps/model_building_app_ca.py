@@ -2231,7 +2231,6 @@ def run_experiment(
         }
 
         
-        predictions = tuned_model.predict(X_test_for_predict)
         description = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
         tags = f"team:{team_name},model:{model_name_key}"
 
