@@ -3802,16 +3802,16 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         # 3. Use .then() to trigger the Tour JS *after* Python is done (ensuring elements are visible).
         # ----------------------------------------------------------------------------------
         # CRITICAL FIX: Chain events to ensure visibility before tour starts
-            briefing_4_next.click(
-                fn=None, 
-                js=show_loader_js  # 1. Immediate JS: Show "Entering Arena" overlay
-            ).then(
-                fn=create_nav(briefing_slide_4, model_building_step), 
-                outputs=all_steps_nav # 2. Python: Make Arena visible
-            ).then(
-                fn=None, 
-                js=run_tour_js     # 3. Delayed JS: Start Driver.js tour
-            )
+        briefing_4_next.click(
+            fn=None, 
+            js=show_loader_js  # 1. Immediate JS: Show "Entering Arena" overlay
+        ).then(
+            fn=create_nav(briefing_slide_4, model_building_step), 
+            outputs=all_steps_nav # 2. Python: Make Arena visible
+        ).then(
+            fn=None, 
+            js=run_tour_js     # 3. Delayed JS: Start Driver.js tour
+        )
 
         # Conclusion nav
         def finalize_and_show_conclusion(best, sub_count, rank, first, feat):
