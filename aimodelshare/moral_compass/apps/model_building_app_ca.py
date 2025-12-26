@@ -2230,10 +2230,6 @@ def run_experiment(
             login_error: gr.update(visible=False)
         }
 
-        if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
-            X_test_for_predict = _ensure_dense(X_test_processed)
-        else:
-            X_test_for_predict = X_test_processed
         
         predictions = tuned_model.predict(X_test_for_predict)
         description = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
