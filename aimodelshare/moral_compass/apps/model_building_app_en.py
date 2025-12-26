@@ -2625,28 +2625,52 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
     # 3. JS to RUN the tour (Triggered AFTER visibility update)
     run_tour_js = f"""
     () => {{
-        // Hide the loading overlay if it exists
+        // 1. Hide Overlay Immediately (So user is never stuck)
         const overlay = document.getElementById('nav-loading-overlay');
-        if(overlay) {{
+        if(overlay) {{ 
             overlay.style.opacity = '0'; 
-            setTimeout(()=>overlay.style.display='none', 300);
+            setTimeout(()=>overlay.style.display='none', 300); 
         }}
 
-        // Small delay to ensure DOM paint is complete
-        setTimeout(() => {{
-            try {{
-                const driver = window.driver.js.driver;
-                const driverObj = driver({{
-                    showProgress: true,
-                    animate: true,
-                    allowClose: true,
-                    steps: {driver_steps}
-                }});
-                driverObj.drive();
-            }} catch (e) {{
-                console.error("Driver.js error:", e);
-            }}
-        }}, 500); 
+        // 2. Define the Start Logic
+        const startDriver = () => {{
+            // Wait for the specific element to exist in the DOM
+            const checkExist = setInterval(function() {{
+               const target = document.querySelector('#tour-intro-header');
+               if (target) {{
+                  clearInterval(checkExist);
+                  try {{
+                      // Initialize Driver
+                      const driver = window.driver.js.driver;
+                      const driverObj = driver({{
+                          showProgress: true,
+                          animate: true,
+                          allowClose: true,
+                          steps: {driver_steps}
+                      }});
+                      driverObj.drive();
+                  }} catch (e) {{
+                      console.error("Driver.js initialization error:", e);
+                  }}
+               }}
+            }}, 100); // check every 100ms
+        }};
+
+        // 3. Ensure Library is Loaded
+        if (!window.driver || !window.driver.js) {{
+            console.log("Driver.js not found. Loading dynamically...");
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css';
+            document.head.appendChild(link);
+
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js';
+            script.onload = startDriver;
+            document.head.appendChild(script);
+        }} else {{
+            startDriver();
+        }}
     }}
     """
 
