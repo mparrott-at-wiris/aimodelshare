@@ -3309,7 +3309,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         }
     }
     
-    /* Driver.js Z-Index Fixes */
+/* Driver.js Z-Index Fixes */
     .driver-popover {
         z-index: 10000 !important;
         font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -3364,7 +3364,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             element: '#tour-data-features',
             popover: {
                 title: '3. Data Ingredients',
-                description: 'Select what information the AI sees.<br><br><b>Behavioral Inputs:</b> (e.g., Prior Crimes) help identify risk based on facts.<br><b>Demographic Inputs:</b> (e.g., Race) might help accuracy but can replicate human bias.',
+                description: 'Select what information the AI sees. <br><br><b>Behavioral Inputs:</b> (e.g., Prior Crimes) help identify risk based on facts.<br><b>Demographic Inputs:</b> (e.g., Race) might help accuracy but can replicate human bias.',
                 side: "top",
                 align: 'start'
             }
@@ -3760,7 +3760,9 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             js=nav_js("model-step", "Running...")
         )
 
-
+        # -------------------------------------------------------------------------
+        # DEFINITION MOVED HERE (Before Timer Logic)
+        # -------------------------------------------------------------------------
         def update_init_status():
             """
             Poll initialization status and update UI elements.
