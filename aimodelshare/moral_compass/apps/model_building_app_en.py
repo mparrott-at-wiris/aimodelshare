@@ -3617,7 +3617,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # --- MODEL BUILDING ARENA ---
         # Note: visible=True immediately.
-        with gr.Column(visible=True, elem_id="model-step") as model_building_step:
+        with gr.Column(visible=False, elem_id="model-step") as model_building_step:
             # Session-based authentication state objects
             # Concurrency Note: These are initialized to None/empty and populated
             # during handle_load_with_session_auth. Do NOT use os.environ here.
