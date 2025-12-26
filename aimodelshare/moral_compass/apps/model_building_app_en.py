@@ -2484,7 +2484,7 @@ def build_conclusion_from_state(best_score, submissions, rank, first_score, feat
 def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """
     Create (but do not launch) the model building game app.
-    Updated: Uses robust JS loader to ensure Driver.js is ready before running.
+    Updated: Uses .then() chaining to ensure DOM is visible before starting Driver.js.
     """
     start_background_init()
 
@@ -2553,12 +2553,17 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             )
 
     # -------------------------------------------------------------------------
-    # 2. ROBUST TUTORIAL JAVASCRIPT
+    # 2. JAVASCRIPT & HEAD CONFIGURATION
     # -------------------------------------------------------------------------
     
-    # This JSON string defines the steps. We format it here to inject into the JS below.
-    # Note: Double braces {{ }} are needed for Python f-strings to output literal curly braces.
-    steps_json = """
+    # 1. Libraries to load in the <head> tag
+    head_content = """
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
+    """
+
+    # 2. Tour Steps Definition
+    driver_steps = """
     [
         {
             element: '#tour-intro-header',
@@ -2617,80 +2622,45 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
     ]
     """
 
-    # Shared Logic: Checks if Driver exists, loads if not, then runs.
-    # We define the runner function inside the string to avoid global scope pollution.
-    start_tour_logic_js = f"""
+    # 3. JS to RUN the tour (Triggered AFTER visibility update)
+    run_tour_js = f"""
     () => {{
-        function runDriver() {{
+        // Hide the loading overlay if it exists
+        const overlay = document.getElementById('nav-loading-overlay');
+        if(overlay) {{
+            overlay.style.opacity = '0'; 
+            setTimeout(()=>overlay.style.display='none', 300);
+        }}
+
+        // Small delay to ensure DOM paint is complete
+        setTimeout(() => {{
             try {{
                 const driver = window.driver.js.driver;
                 const driverObj = driver({{
                     showProgress: true,
                     animate: true,
                     allowClose: true,
-                    steps: {steps_json}
+                    steps: {driver_steps}
                 }});
                 driverObj.drive();
             }} catch (e) {{
-                console.error("Driver.js failed to initialize:", e);
+                console.error("Driver.js error:", e);
             }}
-        }}
-
-        if (!window.driver || !window.driver.js) {{
-            console.log("Driver.js not loaded. Loading now...");
-            
-            // Load CSS
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = 'https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css';
-            document.head.appendChild(link);
-
-            // Load JS
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js';
-            script.onload = () => {{
-                console.log("Driver.js loaded. Starting tour...");
-                // Short delay to ensure parsing is done
-                setTimeout(runDriver, 100);
-            }};
-            document.head.appendChild(script);
-        }} else {{
-            runDriver();
-        }}
+        }}, 500); 
     }}
     """
 
-    # Navigation + Auto-Start logic (Injects the same robust loader)
-    nav_and_tour_js = f"""
-    () => {{
-        // 1. Show Visual Overlay
+    # 4. JS to Show Loading Overlay (Triggered IMMEDIATELY on click)
+    show_loader_js = """
+    () => {
         const overlay = document.getElementById('nav-loading-overlay');
         const messageEl = document.getElementById('nav-loading-text');
-        if(overlay && messageEl) {{
+        if(overlay && messageEl) {
             messageEl.textContent = 'Entering Model Arena...';
             overlay.style.display = 'flex';
-            setTimeout(() => {{ overlay.style.opacity = '1'; }}, 10);
-        }}
-
-        // 2. Scroll and Hide Overlay
-        setTimeout(() => {{
-             const element = document.getElementById('model-step');
-             if(element) element.scrollIntoView({{behavior:'smooth', block:'start'}});
-             
-             // Hide overlay
-             setTimeout(() => {{ 
-                if(overlay) {{ 
-                    overlay.style.opacity = '0'; 
-                    setTimeout(()=>overlay.style.display='none', 300); 
-                    
-                    // 3. Trigger the Robust Tour Logic
-                    // We simply call the function defined in the string above
-                    const runner = {start_tour_logic_js};
-                    runner();
-                }} 
-             }}, 1000);
-        }}, 100);
-    }}
+            setTimeout(() => { overlay.style.opacity = '1'; }, 10);
+        }
+    }
     """
   
     # -------------------------------------------------------------------------
@@ -3500,8 +3470,26 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             color: color-mix(in srgb, var(--color-accent) 75%, var(--body-text-color) 25%);
         }
     }
-    
-with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css) as demo:
+    /* Driver.js Z-Index Fixes */
+    .driver-popover {
+        z-index: 99999 !important;
+        font-family: sans-serif;
+        max-width: 400px !important;
+    }
+    div#driver-highlighted-element-stage {
+        z-index: 99998 !important;
+    }
+    div#driver-page-overlay {
+        z-index: 99998 !important;
+    }
+    /* Scroll offsets */
+    #tour-intro-header, #tour-model-strategy, #tour-model-complexity, #tour-data-features, #tour-data-size, #tour-submit-button {
+        scroll-margin-top: 100px; 
+    }
+    """
+
+    # Pass 'head' content here to ensure libraries load reliably
+    with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css, head=head_content) as demo:
         
         # Inject styling div for scroll anchor
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
@@ -3613,7 +3601,8 @@ with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css) as demo:
                 with gr.Column(scale=2, min_width=300):
                      # This button triggers the JS tour manually using the Robust Loader logic
                     start_tour_btn = gr.Button("👋 Replay Tutorial", variant="secondary", size="sm")
-                    start_tour_btn.click(None, None, None, js=start_tour_logic_js)
+                    # Use run_tour_js directly for the replay button
+                    start_tour_btn.click(None, None, None, js=run_tour_js)
                 with gr.Column(scale=1, min_width=100):
                      pass
 
@@ -3761,8 +3750,19 @@ with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css) as demo:
         briefing_3_next.click(fn=create_nav(briefing_slide_3, briefing_slide_4), outputs=all_steps_nav, js=nav_js("slide-4", "Loading loop..."))
         briefing_4_back.click(fn=create_nav(briefing_slide_4, briefing_slide_3), outputs=all_steps_nav, js=nav_js("slide-3", "Back..."))
         
-        # IMPORTANT: Slide 4 Next now uses nav_and_tour_js to AUTO-START the tour
-        briefing_4_next.click(fn=create_nav(briefing_slide_4, model_building_step), outputs=all_steps_nav, js=nav_and_tour_js)
+        # ----------------------------------------------------------------------------------
+        # CRITICAL FIX: The Transition to Model Building
+        # 1. Trigger the Visual Overlay immediately (client-side JS).
+        # 2. Call Python to toggle visibility (fn=create_nav).
+        # 3. Use .then() to trigger the Tour JS *after* Python is done (ensuring elements are visible).
+        # ----------------------------------------------------------------------------------
+        briefing_4_next.click(
+            fn=None, js=show_loader_js  # 1. Show "Entering Arena" overlay immediately
+        ).then(
+            fn=create_nav(briefing_slide_4, model_building_step), outputs=all_steps_nav # 2. Python updates visibility
+        ).then(
+            fn=None, js=run_tour_js # 3. JS runs AFTER visibility update to start Driver.js
+        )
 
         # Conclusion nav
         def finalize_and_show_conclusion(best, sub_count, rank, first, feat):
