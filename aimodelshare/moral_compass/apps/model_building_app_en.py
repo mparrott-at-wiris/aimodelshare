@@ -2533,6 +2533,54 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 timer_active,
                 ready  # readiness_state
             )
+              # Handle session-based authentication on page load
+    def handle_load_with_session_auth(request: "gr.Request"):
+            """
+            Check for session token, auto-login if present, then load initial UI with stats.
+            
+            Concurrency Note: This function does NOT set per-user values in os.environ.
+            All authentication state is returned via gr.State objects (username_state,
+            token_state, team_name_state) to prevent cross-user data leakage.
+            """
+            success, username, token = _try_session_based_auth(request)
+            
+            if success and username and token:
+                _log(f"Session auth successful on load for {username}")
+                
+                # Get user stats and team from cache/leaderboard
+                stats = _compute_user_stats(username, token)
+                team_name = stats.get("team_name", "")
+                
+                # Concurrency Note: Do NOT set os.environ for per-user values.
+                # Return state via gr.State objects exclusively.
+                
+                # Hide login form since user is authenticated via session
+                # Return initial load results plus login form hidden
+                # Pass token explicitly for authenticated leaderboard fetch
+                initial_results = on_initial_load(username, token=token, team_name=team_name)
+                return initial_results + (
+                    gr.update(visible=False),  # login_username
+                    gr.update(visible=False),  # login_password  
+                    gr.update(visible=False),  # login_submit
+                    gr.update(visible=False),  # login_error (hide any messages)
+                    username,  # username_state
+                    token,     # token_state
+                    team_name, # team_name_state
+                )
+            else:
+                _log("No valid session on load, showing login form")
+                # No valid session, proceed with normal load (show login form)
+                # No token available, call without token
+                initial_results = on_initial_load(None, token=None, team_name="")
+                return initial_results + (
+                    gr.update(visible=True),   # login_username
+                    gr.update(visible=True),   # login_password
+                    gr.update(visible=True),   # login_submit
+                    gr.update(visible=False),  # login_error
+                    None,  # username_state
+                    None,  # token_state
+                    "",    # team_name_state
+                )
     # -------------------------------------------------------------------------
     # CSS
     # -------------------------------------------------------------------------
