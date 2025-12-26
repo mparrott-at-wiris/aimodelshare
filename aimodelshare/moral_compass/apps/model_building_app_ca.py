@@ -1595,7 +1595,8 @@ def compute_rank_settings(
 
     # Helper to generate Model Radio Tuples [(Catalan, English)]
     def get_model_tuples(available_english_keys):
-        return [(MODEL_TRANSLATIONS[k], k) for k in available_english_keys if k in MODEL_TRANSLATIONS]
+        # FIX: Use MODEL_DISPLAY_MAP
+        return [(MODEL_DISPLAY_MAP[k], k) for k in available_english_keys if k in MODEL_DISPLAY_MAP]
 
     # Rank 0: Trainee
     if submission_count == 0:
