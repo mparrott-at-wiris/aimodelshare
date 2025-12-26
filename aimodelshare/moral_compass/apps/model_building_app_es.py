@@ -490,17 +490,17 @@ MODEL_TYPES = {
         ),
         "card": "Este modelo es rápido, fiable y equilibrado. Buen punto de partida; suele dar resultados estables en muchos casos."
     },
-    "The Rule-Maker": {
+    "El Creador de Reglas": {
         "model_builder": lambda: DecisionTreeClassifier(
             random_state=42, class_weight="balanced"
         ),
         "card": "Este modelo aprende reglas simples del tipo «si/entonces». Fácil de entender, pero le cuesta captar patrones complejos."
     },
-    "The 'Nearest Neighbor'": {
+    "El 'Vecino más Cercano'": {
         "model_builder": lambda: KNeighborsClassifier(),
         "card": "Este modelo se basa en los ejemplos más parecidos del pasado. «Si te pareces a estos casos, predeciré el mismo resultado»."
     },
-    "The Deep Pattern-Finder": {
+    "El Buscador de Patrones Profundos": {
         "model_builder": lambda: RandomForestClassifier(
             random_state=42, class_weight="balanced"
         ),
@@ -1272,7 +1272,7 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
 
     # Handle pending state - show processing message with provisional diff
     if is_pending:
-        title = "⏳ Submission Processing"
+        title = "⏳ Procesando envío"
         acc_color = "#3b82f6"  # Blue
         acc_text = f"{(local_test_accuracy * 100):.2f}%" if local_test_accuracy is not None else "N/A"
         
@@ -1280,60 +1280,60 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
         if local_test_accuracy is not None and last_score is not None and last_score > 0:
             score_diff = local_test_accuracy - last_score
             if abs(score_diff) < 0.0001:
-                acc_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #6b7280; margin:0;'>No Change (↔) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
+                acc_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #6b7280; margin:0;'>Sin cambios (↔) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Actualizando la clasificación...</p>"
             elif score_diff > 0:
-                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>+{(score_diff * 100):.2f} (⬆️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
+                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>+{(score_diff * 100):.2f} (⬆️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Actualizando la clasificación...</p>"
             else:
-                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>{(score_diff * 100):.2f} (⬇️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
+                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>{(score_diff * 100):.2f} (⬇️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Actualizando la clasificación...</p>"
         else:
             # No last score available - just show pending message
-            acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
+            acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Actualizando la clasificación...</p>"
         
         border_color = acc_color
         rank_color = "#6b7280"  # Gray
-        rank_text = "Pending"
-        rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0;'>Calculating rank...</p>"
+        rank_text = "Pendiente"
+        rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0;'>Calculando posición...</p>"
         
     # Handle preview mode - Styled to match "success" card
     elif is_preview:
-        title = "🔬 Successful Preview Run!"
+        title = "🔬 ¡Prueba completada con éxito!"
         acc_color = "#16a34a"  # Green (like success)
         acc_text = f"{(new_score * 100):.2f}%" if new_score > 0 else "N/A"
-        acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>(Preview only - not submitted)</p>" # Neutral color
+        acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>(Solo prueba - no enviado)</p>" # Neutral color
         border_color = acc_color # Green border
         rank_color = "#3b82f6" # Blue (like rank)
         rank_text = "N/A" # Placeholder
-        rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0;'>Not ranked (preview)</p>" # Neutral color
+        rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0;'>Sin clasificar (prueba)</p>" # Neutral color
     
     # 1. Handle First Submission
     elif submission_count == 0:
-        title = "🎉 First Model Submitted!"
+        title = "🎉 ¡Primer modelo enviado!"
         acc_color = "#16a34a" # green
         acc_text = f"{(new_score * 100):.2f}%"
-        acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>(Your first score!)</p>"
+        acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>(¡Tu primera puntuación!)</p>"
 
         rank_color = "#3b82f6" # blue
         rank_text = f"#{new_rank}"
-        rank_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #3b82f6; margin:0;'>You're on the board!</p>"
+        rank_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #3b82f6; margin:0;'>¡Ya estás en la tabla!</p>"
         border_color = acc_color
 
     else:
         # 2. Handle Score Changes
         score_diff = new_score - last_score
         if abs(score_diff) < 0.0001:
-            title = "✅ Submission Successful"
+            title = "✅ Envío realizado con éxito"
             acc_color = "#6b7280" # gray
             acc_text = f"{(new_score * 100):.2f}%"
-            acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>No Change (↔)</p>"
+            acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>Sin variaciones (↔)</p>"
             border_color = acc_color
         elif score_diff > 0:
-            title = "✅ Submission Successful!"
+            title = "✅ Envío éxitoso!"
             acc_color = "#16a34a" # green
             acc_text = f"{(new_score * 100):.2f}%"
             acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>+{(score_diff * 100):.2f} (⬆️)</p>"
             border_color = acc_color
         else:
-            title = "📉 Score Dropped"
+            title = "📉 Tu puntuación ha bajado"
             acc_color = "#ef4444" # red
             acc_text = f"{(new_score * 100):.2f}%"
             acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>{(score_diff * 100):.2f} (⬇️)</p>"
@@ -1344,25 +1344,25 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
         rank_color = "#3b82f6" # blue
         rank_text = f"#{new_rank}"
         if last_rank == 0: # Handle first rank
-             rank_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #3b82f6; margin:0;'>You're on the board!</p>"
+             rank_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #3b82f6; margin:0;'>¡Ya estás en la tabla!</p>"
         elif rank_diff > 0:
-            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>🚀 Moved up {rank_diff} spot{'s' if rank_diff > 1 else ''}!</p>"
+            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>🚀 ¡Has subido {rank_diff} posición(es)!</p>"
         elif rank_diff < 0:
-            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>🔻 Dropped {abs(rank_diff)} spot{'s' if abs(rank_diff) > 1 else ''}</p>"
+            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>🔻 Has bajado {abs(rank_diff)} posición(es)</p>"
         else:
-            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {rank_color}; margin:0;'>No Change (↔)</p>"
+            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {rank_color}; margin:0;'>Mantienes tu posición (↔)</p>"
 
     return f"""
     <div class='kpi-card' style='border-color: {border_color};'>
         <h2 style='color: #111827; margin-top:0;'>{title}</h2>
         <div class='kpi-card-body'>
             <div class='kpi-metric-box'>
-                <p class='kpi-label'>New Accuracy</p>
+                <p class='kpi-label'>Nueva precisión</p>
                 <p class='kpi-score' style='color: {acc_color};'>{acc_text}</p>
                 {acc_diff_html}
             </div>
             <div class='kpi-metric-box'>
-                <p class='kpi-label'>Your Rank</p>
+                <p class='kpi-label'>Tu posición</p>
                 <p class='kpi-score' style='color: {rank_color};'>{rank_text}</p>
                 {rank_diff_html}
             </div>
@@ -1381,7 +1381,7 @@ def _build_team_html(team_summary_df, team_name):
     use the unmodified English team names from the DataFrame.
     """
     if team_summary_df is None or team_summary_df.empty:
-        return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>No team submissions yet.</p>"
+        return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Aún no hay envíos de equipos.</p>"
 
     # Normalize the current user's team name for comparison (using English names)
     normalized_user_team = _normalize_team_name(team_name).lower()
@@ -1390,11 +1390,11 @@ def _build_team_html(team_summary_df, team_name):
     <table class='leaderboard-html-table'>
         <thead>
             <tr>
-                <th>Rank</th>
-                <th>Team</th>
-                <th>Best_Score</th>
-                <th>Avg_Score</th>
-                <th>Submissions</th>
+                <th>Posición</th>
+                <th>Equipo</th>
+                <th>Mejor_Puntuación</th>
+                <th>Puntuación_Media</th>
+                <th>Envíos</th>
             </tr>
         </thead>
         <tbody>
@@ -1618,7 +1618,7 @@ def compute_rank_settings(
         return {
             "rank_message": "# 🌟 ¡Nuevo rango! Ingeniero/a Senior\n<p style='font-size:24px; line-height:1.4;'>¡Variables de datos más potentes desbloqueados! Los predictores más fuertes (como 'Edad' y 'Historial delictivo') ya están disponibles. Probablemente mejorarán tu precisión, pero recuerda que a menudo conllevan mayor sesgo social.</p>",
             "model_choices": list(MODEL_TYPES.keys()),
-            "model_value": current_model if current_model in MODEL_TYPES else "El Buscador de Patrones Profundo",
+            "model_value": current_model if current_model in MODEL_TYPES else "El Buscador de Patrones Profundos",
             "model_interactive": True,
             "complexity_max": 8,
             "complexity_value": min(current_complexity, 8),
@@ -1841,9 +1841,9 @@ def perform_inline_login(username_input, password_input):
         
         # Build success message based on whether team is new or existing
         if is_new_team:
-            team_message = f"Has sido asignado a un nuevo equipo: <b>{display_team_name}</b> 🎉"
+            team_message = f"¡Todo listo! Tu equipo es: <b>{display_team_name}</b> 🎉"
         else:
-            team_message = f"¡Bienvenido de vuelta! Permaneces en el equipo: <b>{display_team_name}</b> ✅"
+            team_message = f"Hola de nuevo! Sigues en el equipo: <b>{display_team_name}</b> ✅"
         
         # Success: hide login form, show success message with team info, enable submit button
         success_html = f"""
@@ -1853,7 +1853,7 @@ def perform_inline_login(username_input, password_input):
                 {team_message}
             </p>
             <p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>
-                Haz clic en "Build & Submit Model" nuevamente para publicar tu puntuación.
+                Haz clic de nuevo en "Construir y enviar el modelo" para publicar tu puntuación.
             </p>
         </div>
         """
@@ -2008,10 +2008,10 @@ def run_experiment(
         """
 
     # --- Stage 1: Lock UI and give initial feedback ---
-    progress(0.1, desc="Starting Experiment...")
+    progress(0.1, desc="Iniciando experimento...")
     initial_updates = {
-        submit_button: gr.update(value="⏳ Experiment Running...", interactive=False),
-        submission_feedback_display: gr.update(value=get_status_html(1, "Initializing", "Preparing your data ingredients..."), visible=True), # Make sure it's visible
+        submit_button: gr.update(value="⏳ Experimento en marcha...", interactive=False),
+        submission_feedback_display: gr.update(value=get_status_html(1, "Iniciando", "Preparando las variables de tu data..."), visible=True), # Make sure it's visible
         login_error: gr.update(visible=False), # Hide login success/error message
         attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))
     }
@@ -2036,7 +2036,7 @@ def run_experiment(
         _log("Running warm mini preview (not ready yet)")
         progress(0.5, desc="Running Preview...")
         yield { 
-            submission_feedback_display: gr.update(value=get_status_html("Preview", "Warm-up Run", "Testing on mini-dataset..."), visible=True),
+            submission_feedback_display: gr.update(value=get_status_html("Vista previa", "Prueba de calentamiento", "Probando con un conjunto de datos reducido..."), visible=True),
             login_error: gr.update(visible=False)
         }
         
@@ -2600,7 +2600,7 @@ def on_initial_load(username, token=None, team_name=""):
         
         <div style='background:#eff6ff; padding:16px; border-radius:12px; border:2px solid #bfdbfe; display:inline-block;'>
             <p style='margin:0; color:#1e40af; font-weight:bold; font-size:1.1rem;'>
-                👈 ¡Haz clic en "Build & Submit Model" para comenzar a jugar!
+                👈 ¡Haz clic en el botón "Construir y enviar modelo" para comenzar a jugar!
             </p>
         </div>
     </div>
@@ -3799,7 +3799,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                     <div class='step-visual'>
                         <div class='step-visual-box'><b>1. Configura</b><br/>Usa los controles para seleccionar el tipo de modelo y los datos.</div>
                         <div class='step-visual-arrow'>→</div>
-                        <div class='step-visual-box'><b>2. Envía</b><br/>Haz clic en "construir y enviar" para entrenar tu modelo.</div>
+                        <div class='step-visual-box'><b>2. Envía</b><br/>Haz clic en "Construir y enviar modelo" para entrenar tu modelo.</div>
                         <div class='step-visual-arrow'>→</div>
                         <div class='step-visual-box'><b>3. Analiza</b><br/>Mira tu posición en la clasificación en tiempo real.</div>
                         <div class='step-visual-arrow'>→</div>
@@ -3852,7 +3852,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
 
                         <hr style='margin: 24px 0;'>
 
-                        <h3>2. Complejidad del Modelo (Nivel de ajuste)</h3>
+                        <h3>2. Complejidad del modelo (Nivel de ajuste)</h3>
                         <div class='mock-ui-control-box' style='text-align: center;'>
                             <p style='font-size: 1.1rem; margin:0;'>Rango: Nivel 1 ─── ● ─── 10</p>
                         </div>
@@ -4071,7 +4071,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                     )
 
                     submit_button = gr.Button(
-                        value="5. 🔬 Construye y envia el modelo",
+                        value="5. 🔬 Construir y enviar el modelo",
                         variant="primary",
                         size="lg"
                     )
@@ -4443,10 +4443,10 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
             
             # Update submit button
             if ready:
-                submit_label = "5. 🔬 Build & Submit Model"
+                submit_label = "5. 🔬 Construir y enviar el modelo"
                 submit_interactive = True
             else:
-                submit_label = "⏳ Waiting for data..."
+                submit_label = "⏳ Esperando datos..."
                 submit_interactive = False
             
             # Get available data sizes based on init progress
