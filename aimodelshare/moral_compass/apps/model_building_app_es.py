@@ -62,49 +62,45 @@ except ImportError:
 # -------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------
-# CACHE CONFIGURATION (Optimized: SQLite)
+# CACHE CONFIGURATION (Optimized: Thread-Safe SQLite)
 # -------------------------------------------------------------------------
 import sqlite3
 
 CACHE_DB_FILE = "prediction_cache.sqlite"
-_db_conn = None
 
 def get_cached_prediction(key):
     """
     Lightning-fast lookup from SQLite database.
-    Production Safe: Logs errors but returns None so app falls back to training.
+    THREAD-SAFE FIX: Opens a new connection for every lookup.
     """
-    global _db_conn
-    
     # 1. Check if DB exists
     if not os.path.exists(CACHE_DB_FILE):
-        print(f"⚠️ CACHE MISS: DB file missing. Falling back to training.", flush=True)
         return None
 
-    # 2. Lazy connection
-    if _db_conn is None:
-        try:
-            _db_conn = sqlite3.connect(CACHE_DB_FILE, check_same_thread=False)
-        except Exception as e:
-            print(f"❌ DB ERROR: Could not connect. Falling back to training. Error: {e}", flush=True)
-            return None
-
     try:
-        cursor = _db_conn.cursor()
-        cursor.execute("SELECT value FROM cache WHERE key=?", (key,))
-        result = cursor.fetchone()
-        
-        if result:
-            return result[0] 
-        else:
-            print(f"🐢 CACHE MISS: Key not found. Training model... Key: '{key}'", flush=True)
-            return None
+        # Use a context manager ('with') to ensure the connection 
+        # is ALWAYS closed, releasing file locks immediately.
+        # timeout=10 ensures we don't wait forever if the file is busy.
+        with sqlite3.connect(CACHE_DB_FILE, timeout=10.0) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT value FROM cache WHERE key=?", (key,))
+            result = cursor.fetchone()
             
+            if result:
+                return result[0] 
+            else:
+                return None
+            
+    except sqlite3.OperationalError as e:
+        # Handle locking errors gracefully
+        print(f"⚠️ CACHE LOCK ERROR: {e}. Falling back to training.", flush=True)
+        return None
+        
     except Exception as e:
         print(f"⚠️ DB READ ERROR: {e}", flush=True)
         return None
 
-print("✅ App configured for Instant-Load SQLite Cache.")
+print("✅ App configured for Thread-Safe SQLite Cache.")
 
 LEADERBOARD_CACHE_SECONDS = int(os.environ.get("LEADERBOARD_CACHE_SECONDS", "45"))
 MAX_LEADERBOARD_ENTRIES = os.environ.get("MAX_LEADERBOARD_ENTRIES")
