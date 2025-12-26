@@ -480,12 +480,13 @@ LEADERBOARD_POLL_SLEEP = 1.0  # Sleep duration between polls (seconds)
 ENABLE_AUTO_RESUBMIT_AFTER_READY = False  # Future feature flag for auto-resubmit
 
 # --- 1. MODEL CONFIGURATION (Keys match Database - English) ---
+# --- 1. MODEL CONFIGURATION (Keys match Database - English) ---
 MODEL_TYPES = {
     "The Balanced Generalist": {
         "model_builder": lambda: LogisticRegression(
             max_iter=500, random_state=42, class_weight="balanced"
         ),
-        "card_es": "Este modelo es rápido, fiable y equilibrado. Buen punto de partida; suele dar resultados estables en muchos casos."
+        "card_es": "Este modelo es rápido, fiable y equilibrat. Buen punto de partida; suele dar resultados estables en muchos casos."
     },
     "The Rule-Maker": {
         "model_builder": lambda: DecisionTreeClassifier(
@@ -516,6 +517,11 @@ MODEL_DISPLAY_MAP = {
     "The 'Nearest Neighbor'": "El 'Vecino Más Cercano'",
     "The Deep Pattern-Finder": "El Buscador de Patrones Profundo"
 }
+
+# --- THIS WAS MISSING ---
+# Create the Choices List as Tuples: [(Spanish Label, English Value)]
+MODEL_RADIO_CHOICES = [(label, key) for key, label in MODEL_DISPLAY_MAP.items()]
+# ------------------------
 
 # Map Spanish Data Sizes (UI) to English Keys (Database)
 DATA_SIZE_DB_MAP = {
