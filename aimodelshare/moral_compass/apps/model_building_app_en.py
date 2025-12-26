@@ -3344,63 +3344,79 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
     # --- ONBOARDING INSTRUCTION BLOCKS ---
     # These contain the exact text from your original Slides 5, 6, and 7.
 
-    # --- JIT ONBOARDING INSTRUCTIONS ---
+    # --- JIT ONBOARDING INSTRUCTIONS (Clear, Motivating, "Step" based) ---
+
     html_step_1_brain = """
     <div class='mock-ui-box' style='margin-bottom: 12px; border-left: 6px solid #4f46e5;'>
-        <h3 style='margin-top:0; color: #4f46e5;'>🎛️ Knob 1: Model Strategy (The "Brain")</h3>
-        <p>The <strong>Model Strategy</strong> uses a specific mathematical method to find patterns.</p>
+        <h3 style='margin-top:0; color: #4f46e5;'>1️⃣ Step 1 of 5: Model Strategy (The "Brain")</h3>
+        
+        <p style='font-size: 1.05rem; font-weight: 500; color: #312e81; margin-bottom: 14px;'>
+            Let's get you on the leaderboard! You are just <strong>5 quick steps</strong> away from submitting your first AI model to the competition.
+        </p>
+
+        <p>First, choose a <strong>Model Strategy</strong>. This is the mathematical method your AI uses to find patterns.</p>
         <ul style='margin-bottom:0; padding-left: 20px; font-size: 0.95rem;'>
-            <li><strong>The Balanced Generalist:</strong> Learns broad patterns. Consistent and reliable.</li>
-            <li><strong>The Rule-Maker:</strong> Creates simple "If/Then" rules. Rigid but easy to understand.</li>
-            <li><strong>The Nearest Neighbor:</strong> Looks at history. "This case looks like Person A, so predict the same outcome."</li>
+            <li><strong>The Balanced Generalist:</strong> Learns from the full dataset and combines multiple factors. Consistent and reliable.</li>
+            <li><strong>The Rule-Maker:</strong> Creates simple "If/Then" rules (e.g., "If 2 felonies, then High Risk"). Easy to understand but rigid.</li>
+            <li><strong>The Nearest Neighbor:</strong> Looks at history. "This defendant looks like Person A from the past, so predict the same outcome."</li>
         </ul>
+        <p style='margin-top: 12px; font-weight: 600; color: #4338ca;'>👇 Action: Select a strategy below to unlock Step 2.</p>
     </div>
     """
 
     html_step_2_complexity = """
     <div class='mock-ui-box' style='margin-bottom: 12px; border-left: 6px solid #0ea5e9;'>
-        <h3 style='margin-top:0; color: #0ea5e9;'>🎛️ Knob 2: Complexity (Fitting Level)</h3>
-        <p>This controls how much detail the model memorizes.</p>
+        <h3 style='margin-top:0; color: #0ea5e9;'>2️⃣ Step 2 of 5: Complexity (Fitting Level)</h3>
+        <p>This controls the level of detail the model learns from the data.</p>
         <ul style='margin-bottom:0; padding-left: 20px; font-size: 0.95rem;'>
-            <li><strong>Low (1-3):</strong> Focuses on big, obvious rules.</li>
-            <li><strong>High (8-10):</strong> Memorizes tiny details.</li>
+            <li><strong>Low (Level 1):</strong> Learns mainly from general patterns.</li>
+            <li><strong>High (Level 10):</strong> Learns from both general patterns and fine-grained details.</li>
         </ul>
-        <div style='background: #fef2f2; border: 1px solid #fecaca; padding: 8px; border-radius: 6px; margin-top: 8px;'>
-            <p style='color:#b91c1c; font-weight:bold; margin:0; font-size:0.9em;'>
-                ⚠️ Warning: Setting this too high can cause "Overfitting" (memorizing noise).
+        <div style='background: #f0f9ff; border: 1px solid #bae6fd; padding: 8px; border-radius: 6px; margin-top: 8px;'>
+            <p style='color:#0369a1; font-weight:bold; margin:0; font-size:0.9em;'>
+                ⚠️ Warning: Setting this too high causes the machine to "memorize" random noise rather than learning general rules.
             </p>
         </div>
+        <p style='margin-top: 12px; font-weight: 600; color: #0369a1;'>👇 Action: Adjust the slider to unlock Step 3.</p>
     </div>
     """
 
     html_step_3_ingredients = """
     <div class='mock-ui-box' style='margin-bottom: 12px; border-left: 6px solid #8b5cf6;'>
-        <h3 style='margin-top:0; color: #8b5cf6;'>🧪 Knob 3: Data Ingredients</h3>
-        <p><strong>"Garbage in, garbage out."</strong> You decide what the AI sees.</p>
+        <h3 style='margin-top:0; color: #7c3aed;'>3️⃣ Step 3 of 5: Data Ingredients</h3>
+        <p><strong>"Garbage in, garbage out."</strong> You must decide what information the AI is allowed to see.</p>
         <ul style='margin-bottom:0; padding-left: 20px; font-size: 0.95rem;'>
-            <li><strong>Behavioral:</strong> Factual history (e.g., <em>Prior Crimes</em>).</li>
-            <li><strong>Demographic:</strong> Traits like <em>Race</em> or <em>Age</em>. Can introduce bias.</li>
+            <li><strong>Behavioral Inputs:</strong> Factual history (e.g., <em>Juvenile Felony Count</em>).</li>
+            <li><strong>Demographic Inputs:</strong> Personal traits (e.g., <em>Race, Age</em>). These might increase accuracy, but often introduce bias.</li>
         </ul>
+        <p style='margin-top: 12px; font-weight: 600; color: #7c3aed;'>👇 Action: Check the boxes to unlock Step 4.</p>
     </div>
     """
 
     html_step_4_size = """
     <div class='mock-ui-box' style='margin-bottom: 12px; border-left: 6px solid #10b981;'>
-        <h3 style='margin-top:0; color: #10b981;'>📊 Knob 4: Data Size</h3>
-        <p><strong>Small (20%):</strong> Fast. Great for testing.<br>
-        <strong>Full (100%):</strong> Slower, but most accurate.</p>
+        <h3 style='margin-top:0; color: #059669;'>4️⃣ Step 4 of 5: Data Size</h3>
+        <p>How many historical case files should the model study?</p>
+        <ul style='margin-bottom:0; padding-left: 20px; font-size: 0.95rem;'>
+            <li><strong>Small (20%):</strong> Fast processing. Great for running quick tests.</li>
+            <li><strong>Full (100%):</strong> Slower, but gives the AI the best chance to calibrate its accuracy.</li>
+        </ul>
+        <p style='margin-top: 12px; font-weight: 600; color: #059669;'>👇 Action: Select a size to initialize the Launch Button.</p>
     </div>
     """
 
     html_step_5_submit = """
     <div class='mock-ui-box' style='margin-bottom: 12px; border-left: 6px solid #f59e0b; background: #fffbeb;'>
-        <h3 style='margin-top:0; color: #d97706;'>🏆 Ready to Launch</h3>
-        <p>Clicking Build & Submit will:</p>
+        <h3 style='margin-top:0; color: #d97706;'>🚀 Step 5 of 5: Launch Mission</h3>
+        <p><strong>Clicking Build & Submit will:</strong></p>
         <ol style='margin-bottom:10px; padding-left: 20px; font-size: 0.95rem;'>
             <li>Train your model on the selected data.</li>
             <li>Test it on a <strong>Hidden Vault</strong> of future cases.</li>
             <li>Post your score to the <strong>Live Leaderboard</strong>.</li>
         </ol>
+        <p style='text-align:center; font-weight:bold; color:#b45309; margin-top:10px;'>
+            Are you ready to beat the baseline?
+        </p>
     </div>
     """
   
