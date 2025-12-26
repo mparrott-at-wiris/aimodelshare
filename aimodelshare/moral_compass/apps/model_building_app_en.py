@@ -1473,79 +1473,76 @@ def compute_rank_settings(
     current_feature_set,
     current_data_size
 ):
-    """Returns rank gating settings."""
+    """Returns rank gating settings (updated for 1–10 complexity scale)."""
 
     def get_choices_for_rank(rank):
-        if rank == 0 or rank >= 2:
-            return FEATURE_SET_ALL_OPTIONS
-        return [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in (FEATURE_SET_GROUP_1_VALS + FEATURE_SET_GROUP_2_VALS)]
+        if rank == 0: # Trainee
+            return [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in FEATURE_SET_GROUP_1_VALS]
+        if rank == 1: # Junior
+            return [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in (FEATURE_SET_GROUP_1_VALS + FEATURE_SET_GROUP_2_VALS)]
+        return FEATURE_SET_ALL_OPTIONS # Senior+
 
-    # --- JIT ONBOARDING (Rank 0) ---
     if submission_count == 0:
         return {
-            "rank_message": "Onboarding",
-            "model_choices": list(MODEL_TYPES.keys()),
-            "model_value": None, 
-            "model_interactive": True,
-            "complexity_max": 10,
-            "complexity_value": 2,
-            "feature_set_choices": FEATURE_SET_ALL_OPTIONS,
-            "feature_set_value": [], 
-            "feature_set_interactive": True,
-            "data_size_choices": ["Small (20%)", "Full (100%)"],
-            "data_size_value": None,
-            "data_size_interactive": True,
-            "steps_visible": False  # <--- NEW: Force hide next steps
+            "rank_message": "# 🧑‍🎓 Rank: Trainee Engineer\n<p style='font-size:24px; line-height:1.4;'>For your first submission, just click the big '🔬 Build & Submit Model' button below!</p>",
+            "model_choices": ["The Balanced Generalist"],
+            "model_value": "The Balanced Generalist",
+            "model_interactive": False,
+            "complexity_max": 3,
+            "complexity_value": min(current_complexity, 3),
+            "feature_set_choices": get_choices_for_rank(0),
+            "feature_set_value": FEATURE_SET_GROUP_1_VALS,
+            "feature_set_interactive": False,
+            "data_size_choices": ["Small (20%)"],
+            "data_size_value": "Small (20%)",
+            "data_size_interactive": False,
         }
-
-    # --- RETURNING ENGINEERS (Rank 1+) ---
-    # For all other ranks, steps should be visible (Dashboard mode)
-    base_settings = {
-        "steps_visible": True, # <--- NEW: Show everything
-        "model_interactive": True,
-        "feature_set_interactive": True,
-        "data_size_interactive": True,
-    }
-    
-    if submission_count == 1:
-        base_settings.update({
-            "rank_message": "# 🎉 Rank Up! Junior Engineer",
+    elif submission_count == 1:
+        return {
+            "rank_message": "# 🎉 Rank Up! Junior Engineer\n<p style='font-size:24px; line-height:1.4;'>New models, data sizes, and data ingredients unlocked!</p>",
             "model_choices": ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"],
-            "model_value": current_model if current_model else "The Balanced Generalist",
+            "model_value": current_model if current_model in ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"] else "The Balanced Generalist",
+            "model_interactive": True,
             "complexity_max": 6,
             "complexity_value": min(current_complexity, 6),
             "feature_set_choices": get_choices_for_rank(1),
-            "feature_set_value": current_feature_set if current_feature_set else DEFAULT_FEATURE_SET,
+            "feature_set_value": current_feature_set,
+            "feature_set_interactive": True,
             "data_size_choices": ["Small (20%)", "Medium (60%)"],
-            "data_size_value": current_data_size if current_data_size else "Small (20%)",
-        })
+            "data_size_value": current_data_size if current_data_size in ["Small (20%)", "Medium (60%)"] else "Small (20%)",
+            "data_size_interactive": True,
+        }
     elif submission_count == 2:
-        base_settings.update({
-            "rank_message": "# 🌟 Rank Up! Senior Engineer",
+        return {
+            "rank_message": "# 🌟 Rank Up! Senior Engineer\n<p style='font-size:24px; line-height:1.4;'>Strongest Data Ingredients Unlocked! The most powerful predictors (like 'Age' and 'Prior Crimes Count') are now available in your list. These will likely boost your accuracy, but remember they often carry the most societal bias.</p>",
             "model_choices": list(MODEL_TYPES.keys()),
-            "model_value": current_model,
+            "model_value": current_model if current_model in MODEL_TYPES else "The Deep Pattern-Finder",
+            "model_interactive": True,
             "complexity_max": 8,
             "complexity_value": min(current_complexity, 8),
             "feature_set_choices": get_choices_for_rank(2),
             "feature_set_value": current_feature_set,
+            "feature_set_interactive": True,
             "data_size_choices": ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"],
-            "data_size_value": current_data_size,
-        })
+            "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Small (20%)",
+            "data_size_interactive": True,
+        }
     else:
-        base_settings.update({
-            "rank_message": "# 👑 Rank: Lead Engineer",
+        return {
+            "rank_message": "# 👑 Rank: Lead Engineer\n<p style='font-size:24px; line-height:1.4;'>All tools unlocked — optimize freely!</p>",
             "model_choices": list(MODEL_TYPES.keys()),
-            "model_value": current_model,
+            "model_value": current_model if current_model in MODEL_TYPES else "The Balanced Generalist",
+            "model_interactive": True,
             "complexity_max": 10,
             "complexity_value": current_complexity,
             "feature_set_choices": get_choices_for_rank(3),
             "feature_set_value": current_feature_set,
+            "feature_set_interactive": True,
             "data_size_choices": ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"],
-            "data_size_value": current_data_size,
-        })
-        
-    return base_settings
-      
+            "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Small (20%)",
+            "data_size_interactive": True,
+        }
+
 # Find components by name to yield updates
 # --- Existing global component placeholders ---
 submit_button = None
@@ -2315,10 +2312,16 @@ def run_experiment(
 
 def on_initial_load(username, token=None, team_name=""):
     """
-    Updated to handle JIT visibility resets.
+    Updated to show "Welcome & CTA" if the SPECIFIC USER has 0 submissions,
+    even if the leaderboard/team already has data from others.
     """
-    # ... [Keep your existing Welcome HTML logic here] ...
+    initial_ui = compute_rank_settings(
+        0, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE
+    )
+
+    # 1. Prepare the Welcome HTML
     display_team = team_name if team_name else "Your Team"
+    
     welcome_html = f"""
     <div style='text-align:center; padding: 30px 20px;'>
         <div style='font-size: 3rem; margin-bottom: 10px;'>👋</div>
@@ -2326,6 +2329,7 @@ def on_initial_load(username, token=None, team_name=""):
         <p style='font-size: 1.1rem; color: #4b5563; margin: 0 0 20px 0;'>
             Your team is waiting for your help to improve the AI.
         </p>
+        
         <div style='background:#eff6ff; padding:16px; border-radius:12px; border:2px solid #bfdbfe; display:inline-block;'>
             <p style='margin:0; color:#1e40af; font-weight:bold; font-size:1.1rem;'>
                 👈 Click "Build & Submit Model" to Start Playing!
@@ -2349,59 +2353,52 @@ def on_initial_load(username, token=None, team_name=""):
             print(f"Error on initial load fetch: {e}")
             full_leaderboard_df = None
 
+    # -------------------------------------------------------------------------
+    # LOGIC UPDATE: Check if THIS user has submitted anything
+    # -------------------------------------------------------------------------
     user_has_submitted = False
     if full_leaderboard_df is not None and not full_leaderboard_df.empty:
         if "username" in full_leaderboard_df.columns and username:
+            # Check if the username exists in the dataframe
             user_has_submitted = username in full_leaderboard_df["username"].values
 
-    # Determine submission count for settings
-    # If we have data, calculate count, otherwise 0
-    current_sub_count = 0
-    if user_has_submitted:
-        # Quick filter to get count
-        current_sub_count = len(full_leaderboard_df[full_leaderboard_df["username"] == username])
-
-    # Generate Settings based on count
-    initial_ui = compute_rank_settings(
-        current_sub_count, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE
-    )
-
-    # HTML Generation (Keep existing logic)
+    # Decision Logic
     if not user_has_submitted:
+        # CASE 1: New User (or first time loading session) -> FORCE WELCOME
+        # regardless of whether the leaderboard has other people's data.
         team_html = welcome_html
         individual_html = "<p style='text-align:center; color:#6b7280; padding-top:40px;'>Submit your model to see where you rank!</p>"
+        
     elif full_leaderboard_df is None or full_leaderboard_df.empty:
+        # CASE 2: Returning user, but data fetch failed -> Show Skeleton
         team_html = _build_skeleton_leaderboard(rows=6, is_team=True)
         individual_html = _build_skeleton_leaderboard(rows=6, is_team=False)
+        
     else:
+        # CASE 3: Returning user WITH data -> Show Real Tables
         try:
             team_html, individual_html, _, _, _, _ = generate_competitive_summary(
-                full_leaderboard_df, team_name, username, 0, 0, -1
+                full_leaderboard_df,
+                team_name,
+                username,
+                0, 0, -1
             )
-        except Exception:
-            team_html = "Error"
-            individual_html = "Error"
-
-    # VISIBILITY LOGIC
-    # If steps_visible is False (Onboarding), we force hide boxes 2-5
-    steps_vis = initial_ui.get("steps_visible", True)
-    box_update = gr.update(visible=steps_vis)
+        except Exception as e:
+            print(f"Error generating summary HTML: {e}")
+            team_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
+            individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
 
     return (
         get_model_card(DEFAULT_MODEL),
         team_html,
         individual_html,
-        initial_ui.get("rank_message", ""),
+        initial_ui["rank_message"],
         gr.update(choices=initial_ui["model_choices"], value=initial_ui["model_value"], interactive=initial_ui["model_interactive"]),
         gr.update(minimum=1, maximum=initial_ui["complexity_max"], value=initial_ui["complexity_value"]),
         gr.update(choices=initial_ui["feature_set_choices"], value=initial_ui["feature_set_value"], interactive=initial_ui["feature_set_interactive"]),
         gr.update(choices=initial_ui["data_size_choices"], value=initial_ui["data_size_value"], interactive=initial_ui["data_size_interactive"]),
-        # Return visibility updates for the 4 boxes
-        box_update, # Step 2
-        box_update, # Step 3
-        box_update, # Step 4
-        box_update  # Step 5
     )
+
 
 # -------------------------------------------------------------------------
 # Conclusion helpers (dark/light mode aware)
@@ -2483,7 +2480,6 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
 
 def build_conclusion_from_state(best_score, submissions, rank, first_score, feature_set):
     return build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set)
-  
 def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """
     Create (but do not launch) the model building game app.
@@ -3319,85 +3315,6 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
     global login_username, login_password, login_submit, login_error
     global attempts_tracker_display, team_name_state
 
-    # --- ONBOARDING INSTRUCTION BLOCKS ---
-    # These contain the exact text from your original Slides 5, 6, and 7.
-
-    # --- JIT ONBOARDING INSTRUCTIONS (Clear, Motivating, "Step" based) ---
-
-    html_step_1_brain = """
-    <div class='mock-ui-box' style='margin-bottom: 12px; border-left: 6px solid #4f46e5;'>
-        <h3 style='margin-top:0; color: #4f46e5;'>1️⃣ Step 1 of 5: Model Strategy (The "Brain")</h3>
-        
-        <p style='font-size: 1.05rem; font-weight: 500; color: #312e81; margin-bottom: 14px;'>
-            Let's get you on the leaderboard! You are just <strong>5 quick steps</strong> away from submitting your first AI model to the competition.
-        </p>
-
-        <p>First, choose a <strong>Model Strategy</strong>. This is the mathematical method your AI uses to find patterns.</p>
-        <ul style='margin-bottom:0; padding-left: 20px; font-size: 0.95rem;'>
-            <li><strong>The Balanced Generalist:</strong> Learns from the full dataset and combines multiple factors. Consistent and reliable.</li>
-            <li><strong>The Rule-Maker:</strong> Creates simple "If/Then" rules (e.g., "If 2 felonies, then High Risk"). Easy to understand but rigid.</li>
-            <li><strong>The Nearest Neighbor:</strong> Looks at history. "This defendant looks like Person A from the past, so predict the same outcome."</li>
-        </ul>
-        <p style='margin-top: 12px; font-weight: 600; color: #4338ca;'>👇 Action: Select a strategy below to unlock Step 2.</p>
-    </div>
-    """
-
-    html_step_2_complexity = """
-    <div class='mock-ui-box' style='margin-bottom: 12px; border-left: 6px solid #0ea5e9;'>
-        <h3 style='margin-top:0; color: #0ea5e9;'>2️⃣ Step 2 of 5: Complexity (Fitting Level)</h3>
-        <p>This controls the level of detail the model learns from the data.</p>
-        <ul style='margin-bottom:0; padding-left: 20px; font-size: 0.95rem;'>
-            <li><strong>Low (Level 1):</strong> Learns mainly from general patterns.</li>
-            <li><strong>High (Level 10):</strong> Learns from both general patterns and fine-grained details.</li>
-        </ul>
-        <div style='background: #f0f9ff; border: 1px solid #bae6fd; padding: 8px; border-radius: 6px; margin-top: 8px;'>
-            <p style='color:#0369a1; font-weight:bold; margin:0; font-size:0.9em;'>
-                ⚠️ Warning: Setting this too high causes the machine to "memorize" random noise rather than learning general rules.
-            </p>
-        </div>
-        <p style='margin-top: 12px; font-weight: 600; color: #0369a1;'>👇 Action: Adjust the slider to unlock Step 3.</p>
-    </div>
-    """
-
-    html_step_3_ingredients = """
-    <div class='mock-ui-box' style='margin-bottom: 12px; border-left: 6px solid #8b5cf6;'>
-        <h3 style='margin-top:0; color: #7c3aed;'>3️⃣ Step 3 of 5: Data Ingredients</h3>
-        <p><strong>"Garbage in, garbage out."</strong> You must decide what information the AI is allowed to see.</p>
-        <ul style='margin-bottom:0; padding-left: 20px; font-size: 0.95rem;'>
-            <li><strong>Behavioral Inputs:</strong> Factual history (e.g., <em>Juvenile Felony Count</em>).</li>
-            <li><strong>Demographic Inputs:</strong> Personal traits (e.g., <em>Race, Age</em>). These might increase accuracy, but often introduce bias.</li>
-        </ul>
-        <p style='margin-top: 12px; font-weight: 600; color: #7c3aed;'>👇 Action: Check the boxes to unlock Step 4.</p>
-    </div>
-    """
-
-    html_step_4_size = """
-    <div class='mock-ui-box' style='margin-bottom: 12px; border-left: 6px solid #10b981;'>
-        <h3 style='margin-top:0; color: #059669;'>4️⃣ Step 4 of 5: Data Size</h3>
-        <p>How many historical case files should the model study?</p>
-        <ul style='margin-bottom:0; padding-left: 20px; font-size: 0.95rem;'>
-            <li><strong>Small (20%):</strong> Fast processing. Great for running quick tests.</li>
-            <li><strong>Full (100%):</strong> Slower, but gives the AI the best chance to calibrate its accuracy.</li>
-        </ul>
-        <p style='margin-top: 12px; font-weight: 600; color: #059669;'>👇 Action: Select a size to initialize the Launch Button.</p>
-    </div>
-    """
-
-    html_step_5_submit = """
-    <div class='mock-ui-box' style='margin-bottom: 12px; border-left: 6px solid #f59e0b; background: #fffbeb;'>
-        <h3 style='margin-top:0; color: #d97706;'>🚀 Step 5 of 5: Launch & Unlock</h3>
-        <p><strong>You are ready to enter the competition.</strong></p>
-        <p>Clicking <b>Build & Submit</b> will:</p>
-        <ol style='margin-bottom:10px; padding-left: 20px; font-size: 0.95rem;'>
-            <li>Train your model and test it against the <strong>Hidden Vault</strong>.</li>
-            <li><strong>🔓 UNLOCK THE FULL ARENA:</strong> These instructions will vanish, and the Live Leaderboards will open right here on the next screen.</li>
-        </ol>
-        <p style='text-align:center; font-weight:bold; color:#b45309; margin-top:10px;'>
-            Click below to reveal your first score!
-        </p>
-    </div>
-    """
-  
     with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css) as demo:
         # Persistent top anchor for scroll-to-top navigation
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
@@ -3633,10 +3550,183 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 briefing_4_back = gr.Button("◀️ Back", size="lg")
                 briefing_4_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
+        # Slide 5: Card 4 (Control Knobs — The "Brain" Settings)
+        with gr.Column(visible=False, elem_id="slide-5") as briefing_slide_5:
+            gr.Markdown("<h1 style='text-align:center;'>🎛️ Control Knobs — The \"Brain\" Settings</h1>")
+            
+            # --- FIX FOR SLIDE 5 ---
+            # Combined all content into single gr.HTML()
+            gr.HTML(
+                """
+                <div class='slide-content'>
+                    <div class='mock-ui-inner'>
+                        <p>To build your AI system, you will use Control Knobs to configure your Prediction Machine. The first two knobs allow you to choose your Model Strategy (The Brain) and adjust how it learns patterns in data.</p>
+                        <hr style='margin: 16px 0;'>
 
-        # --- MODEL BUILDING ARENA ---
-        # Note: visible=True immediately.
+                        <h3 style='margin-top:0;'>1. Model Strategy (Type of Model)</h3>
+                        <div style='font-size: 1rem; margin-bottom:12px;'>
+                            <b>What it is:</b> The brain of your Prediction Machine. It uses a specific mathematical method—called an algorithm—to find patterns in data. Once it learns from these patterns, it becomes a Model ready to make its best guess.
+                        </div>
+                        <div class='mock-ui-control-box'>
+                            <p style='font-size: 1.1rem; margin: 8px 0;'>
+                                <span class='mock-ui-radio-on'>◉</span>
+                                <b>The Balanced Generalist:</b> Learns from the full dataset and combines multiple factors in each decision, which helps produce consistent results across different cases.
+                            </p>
+                            <p style='font-size: 1.1rem; margin: 8px 0;'>
+                                <span class='mock-ui-radio-off'>○</span>
+                                <b>The Rule-Maker:</b> Uses clear “If… then…” rules that are easy to understand but less flexible. (e.g., If prior crimes > 2, then High Risk).
+                            </p>
+                            <p style='font-size: 1.1rem; margin: 8px 0;'>
+                                <span class='mock-ui-radio-off'>○</span>
+                                <b>The Deep Pattern-Finder:</b> A complex model that finds hidden patterns in data, but its decisions are harder to explain.
+                            </p>
+                        </div>
+
+                        <hr style='margin: 24px 0;'>
+
+                        <h3>2. Model Complexity (Fitting Level)</h3>
+                        <div class='mock-ui-control-box' style='text-align: center;'>
+                            <p style='font-size: 1.1rem; margin:0;'>Range: Level 1 ─── ● ─── 10</p>
+                        </div>
+                        
+                        <div style='margin-top: 16px; font-size: 1rem;'>
+                            <ul style='list-style-position: inside;'>
+                                <li><b>What it is:</b> It is the level of detail the model learns from the data: whether it focuses on general patterns or also on very specific cases.</li>
+                                <li><b>The Trade-off:</b>
+                                    <ul style='list-style-position: inside; margin-left: 20px;'>
+                                    <li><b>Low (Level 1):</b> Learns mainly from general patterns in the data.</li>
+                                    <li><b>High (Level 5):</b> Learns from both general patterns and fine-grained details.</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                            <p style='color:#b91c1c; font-weight:bold; margin-top:10px;'>Warning: Setting this too high causes the machine to "memorize" random, irrelevant details or random coincidences (noise) in the past data rather than learning the general rule.</p>
+                        </div>
+                    </div>
+                </div>
+                """
+            )
+            # --- END FIX ---
+            
+            with gr.Row():
+                briefing_5_back = gr.Button("◀️ Back", size="lg")
+                briefing_5_next = gr.Button("Next ▶️", variant="primary", size="lg")
+
+        # Slide 6: Card 5 (Control Knobs — The "Data" Settings)
+        with gr.Column(visible=False, elem_id="slide-6") as briefing_slide_6:
+            gr.Markdown("<h1 style='text-align:center;'>🎛️ Control Knobs — The \"Data\" Settings</h1>")
+
+            # --- FIX FOR SLIDE 6 ---
+            # Combined all content into single gr.HTML()
+            gr.HTML(
+                """
+                <div class='slide-content'>
+                    <div class='mock-ui-inner'>
+                        <p>Now that you have set up your prediction machine, you must decide what information the AI system (the machine) processes. These next knobs control the Inputs (Data).</p>
+                        <hr style='margin: 16px 0;'>
+
+                        <h3 style='margin-top:0;'>3. Data Ingredients</h3>
+                        <div style='font-size: 1rem; margin-bottom:12px;'>
+                            <b>What it is:</b> The specific data points the machine is allowed to access.
+                            <br><b>Why it matters:</b> The machine's output depends largely on its input.
+                        </div>
+                        
+                        <div class='mock-ui-control-box'>
+                            <p style='font-size: 1.1rem; margin: 8px 0;'>
+                                <span class='mock-ui-radio-on'>☑</span>
+                                <b>Behavioral Inputs:</b> Data like <i>Juvenile Felony Count</i> helps the AI system identify risk patterns based on facts.
+                            </p>
+                            <p style='font-size: 1.1rem; margin: 8px 0;'>
+                                <span class='mock-ui-radio-off'>☐</span>
+                                <b>Demographic Inputs:</b> Data like <i>Race</i> may help the model learn, but they may also replicate human bias.
+                            </p>
+                        </div>
+                        <p style='margin-top:10px;'><b>Your Job:</b> Check ☑ or uncheck ☐ the boxes to select the inputs to feed your model.</p>
+
+                        <hr style='margin: 24px 0;'>
+
+                        <h3>4. Data Size (Training Volume)</h3>
+                        <div style='font-size: 1rem; margin-bottom:12px;'>
+                            <b>What it is:</b> The amount of historical cases the AI system uses to learn patterns.
+                        </div>
+                        
+                        <div class='mock-ui-control-box'>
+                            <p style='font-size: 1.1rem; margin: 8px 0;'>
+                                <span class='mock-ui-radio-on'>◉</span>
+                                <b>Small (20%):</b> Fast processing. Great for running quick tests to check your settings.
+                            </p>
+                            <p style='font-size: 1.1rem; margin: 8px 0;'>
+                                <span class='mock-ui-radio-off'>○</span>
+                                <b>Full (100%):</b> Maximum data processing. It takes longer to build, but gives the AI system the best chance to calibrate its accuracy.
+                            </p>
+                        </div>
+
+                    </div>
+                </div>
+                """
+            )
+            # --- END FIX ---
+            
+            with gr.Row():
+                briefing_6_back = gr.Button("◀️ Back", size="lg")
+                briefing_6_next = gr.Button("Next ▶️", variant="primary", size="lg")
+
+        # Slide 7: Card 6 (Your Score as an Engineer)
+        with gr.Column(visible=False, elem_id="slide-7") as briefing_slide_7:
+            gr.Markdown("<h1 style='text-align:center;'>🏆 Your Score as an Engineer</h1>")
+            
+            # --- FIX FOR SLIDE 7 ---
+            # Combined all content into single gr.HTML()
+            gr.HTML(
+                """
+                <div class='slide-content'>
+                    <div class='panel-box'>
+                        <p>Now that you know how to build a model, it’s time to test your skills. Here is how you’ll measure success and rise through the ranks:</p>
+
+                        <h3>How You Are Scored</h3>
+                        <ul style='list-style-position: inside;'>
+                            <li><strong>Prediction Accuracy:</strong> Your model is tested on <strong>Hidden Data</strong> (cases kept in a "secret vault" that your model has never seen). This simulates predicting the future to ensure you get a real-world prediction accuracy score.</li>
+                            <li><strong>The Leaderboard:</strong> Live Standings track your progress individually and as a team.</li>
+                        </ul>
+
+                        <h3>How You Improve: The Game</h3>
+                        <ul style='list-style-position: inside;'>
+                            <li><strong>Compete to Improve:</strong> Refine your model to beat your personal best score.</li>
+                            <li><strong>Get Promoted as an Engineer & Unlock Tools:</strong> As you submit more models, you rise in rank and unlock better analysis tools:</li>
+                        </ul>
+                        
+
+                    </div>
+                </div>
+                """
+            )
+            # --- END FIX ---
+            
+            with gr.Row():
+                briefing_7_back = gr.Button("◀️ Back", size="lg")
+                briefing_7_next = gr.Button("Begin Model Building ▶️", variant="primary", size="lg")
+
+        # --- End Briefing Slideshow ---
+
+
+        # Model Building App (Main Interface)
         with gr.Column(visible=False, elem_id="model-step") as model_building_step:
+            gr.Markdown("<h1 style='text-align:center;'>🛠️ Model Building Arena</h1>")
+            
+            # Status panel for initialization progress - HIDDEN
+            init_status_display = gr.HTML(value="", visible=False)
+            
+            # Banner for UI state
+
+            init_banner = gr.HTML(
+              value=(
+                  "<div class='init-banner'>"
+                  "<p class='init-banner__text'>"
+                  "⏳ Initializing data & leaderboard… you can explore but must wait for readiness to submit."
+                  "</p>"
+                  "</div>"
+              ),
+              visible=True)
+
             # Session-based authentication state objects
             # Concurrency Note: These are initialized to None/empty and populated
             # during handle_load_with_session_auth. Do NOT use os.environ here.
@@ -3662,92 +3752,111 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             feature_set_state = gr.State(DEFAULT_FEATURE_SET)
             data_size_state = gr.State(DEFAULT_DATA_SIZE)
 
-            # New State to track if instructions should be hidden
-            onboarding_complete_state = gr.State(False)
-                   
-            gr.Markdown("# 🛠️ Model Building Arena")
-            init_status_display = gr.HTML(visible=False)
-            init_banner = gr.HTML(visible=True) 
-            # ------------------------------------     
-            rank_message_display = gr.HTML(visible=False) 
-
+            rank_message_display = gr.Markdown("### Rank loading...")
             with gr.Row():
-                # === LEFT COLUMN: Controls & Instructions ===
-                with gr.Column(scale=1, elem_classes="control-panel") as left_col:
+                with gr.Column(scale=1):
+
+                    model_type_radio = gr.Radio(
+                        label="1. Model Strategy",
+                        # Initialize with all possible keys so validation passes even if browser caches a high-rank selection
+                        choices=list(MODEL_TYPES.keys()), 
+                        value=DEFAULT_MODEL,
+                        interactive=False
+                    )
+                    model_card_display = gr.Markdown(get_model_card(DEFAULT_MODEL))
+
+                    gr.Markdown("---") # Separator
+
+                    complexity_slider = gr.Slider(
+                        label="2. Model Complexity (1–10)",
+                        minimum=1, maximum=3, step=1, value=2,
+                        info="Higher values allow deeper pattern learning; very high values may overfit."
+                    )
+
+                    gr.Markdown("---") # Separator
+
+                    feature_set_checkbox = gr.CheckboxGroup(
+                        label="3. Select Data Ingredients",
+                        choices=FEATURE_SET_ALL_OPTIONS,
+                        value=DEFAULT_FEATURE_SET,
+                        interactive=False,
+                        info="More ingredients unlock as you rank up!"
+                    )
+
+                    gr.Markdown("---") # Separator
+
+                    data_size_radio = gr.Radio(
+                        label="4. Data Size",
+                        choices=[DEFAULT_DATA_SIZE],
+                        value=DEFAULT_DATA_SIZE,
+                        interactive=False
+                    )
+
+                    gr.Markdown("---") # Separator
+
+                    # Attempt tracker display
+                    attempts_tracker_display = gr.HTML(
+                        value="<div style='text-align:center; padding:8px; margin:8px 0; background:#f0f9ff; border-radius:8px; border:1px solid #bae6fd;'>"
+                        "<p style='margin:0; color:#0369a1; font-weight:600; font-size:1rem;'>📊 Attempts used: 0/10</p>"
+                        "</div>",
+                        visible=True
+                    )
+
+                    submit_button = gr.Button(
+                        value="5. 🔬 Build & Submit Model",
+                        variant="primary",
+                        size="lg"
+                    )
+
+                with gr.Column(scale=1):
+                    gr.HTML(
+                        """
+                        <div class='leaderboard-box'>
+                            <h3 style='margin-top:0;'>🏆 Live Standings</h3>
+                            <p style='margin:0;'>Submit a model to see your rank.</p>
+                        </div>
+                        """
+                    )
+
+                    # KPI Card
+                    submission_feedback_display = gr.HTML(
+                        "<p style='text-align:center; color:#6b7280; padding:20px 0;'>Submit your first model to get feedback!</p>"
+                    )
                     
-                    # STEP 1: Strategy (Visible Start)
-                    step_1_box = gr.Group(visible=True)
-                    with step_1_box:
-                        instr_1 = gr.HTML(html_step_1_brain) 
-                        model_type_radio = gr.Radio(
-                            label="1. Select Strategy",
-                            choices=list(MODEL_TYPES.keys()),
-                            value=DEFAULT_MODEL,
-                            interactive=True 
-                        )
-                        model_card_display = gr.Markdown(get_model_card(DEFAULT_MODEL), visible=False)
+                    # Inline Login Components (initially hidden)
+                    login_username = gr.Textbox(
+                        label="Username",
+                        placeholder="Enter your modelshare.ai username",
+                        visible=False
+                    )
+                    login_password = gr.Textbox(
+                        label="Password",
+                        type="password",
+                        placeholder="Enter your password",
+                        visible=False
+                    )
+                    login_submit = gr.Button(
+                        "Sign In & Submit",
+                        variant="primary",
+                        visible=False
+                    )
+                    login_error = gr.HTML(
+                        value="",
+                        visible=False
+                    )
 
-                    # STEP 2: Complexity (Hidden Start)
-                    step_2_box = gr.Group(visible=False)
-                    with step_2_box:
-                        instr_2 = gr.HTML(html_step_2_complexity) 
-                        complexity_slider = gr.Slider(
-                            label="2. Set Complexity Level",
-                            minimum=1, maximum=3, step=1, value=2,
-                            interactive=True
-                        )
-
-                    # STEP 3: Ingredients (Hidden Start)
-                    step_3_box = gr.Group(visible=False)
-                    with step_3_box:
-                        instr_3 = gr.HTML(html_step_3_ingredients) 
-                        feature_set_checkbox = gr.CheckboxGroup(
-                            label="3. Select Ingredients",
-                            choices=FEATURE_SET_ALL_OPTIONS,
-                            value=[],  # <--- CHANGED: Start empty to force click
-                            interactive=True
-                        )
-
-                    # STEP 4: Data Size (Hidden Start)
-                    step_4_box = gr.Group(visible=False)
-                    with step_4_box:
-                        instr_4 = gr.HTML(html_step_4_size) 
-                        data_size_radio = gr.Radio(
-                            label="4. Select Dataset Size",
-                            choices=[DEFAULT_DATA_SIZE], # Or ["Small (20%)", "Full (100%)"]
-                            value=None,  # <--- CHANGED: Start None to force click
-                            interactive=True
-                        )
-
-                    # STEP 5: Submit (Hidden Start)
-                    step_5_box = gr.Group(visible=False)
-                    with step_5_box:
-                        instr_5 = gr.HTML(html_step_5_submit) 
-                        attempts_tracker_display = gr.HTML(
-                             value=_build_attempts_tracker_html(0), visible=True
-                        )
-                        submit_button = gr.Button(
-                            value="🚀 Build & Submit Model", variant="primary", size="lg"
-                        )
-                    
-                    # Inline Login (Hidden)
-                    login_username = gr.Textbox(label="Username", visible=False)
-                    login_password = gr.Textbox(label="Password", type="password", visible=False)
-                    login_submit = gr.Button("Sign In & Submit", variant="primary", visible=False)
-                    login_error = gr.HTML(visible=False)
-
-                # === RIGHT COLUMN: Results (Hidden Start) ===
-                with gr.Column(scale=1, visible=False) as right_col:
-                    gr.HTML("<h3 style='margin-top:0;'>🏆 Live Standings</h3>")
-                    submission_feedback_display = gr.HTML("Loading results...")
                     with gr.Tabs():
-                        with gr.TabItem("Team"):
-                            team_leaderboard_display = gr.HTML()
-                        with gr.TabItem("Individual"):
-                            individual_leaderboard_display = gr.HTML()
-                    gr.Markdown("---")
-                    step_2_next = gr.Button("Finish & Reflect ▶️", variant="secondary")
+                        with gr.TabItem("Team Standings"):
+                            team_leaderboard_display = gr.HTML(
+                                "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Submit a model to see team rankings.</p>"
+                            )
+                        with gr.TabItem("Individual Standings"):
+                            individual_leaderboard_display = gr.HTML(
+                                "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Submit a model to see individual rankings.</p>"
+                            )
 
+            # REMOVED: Ethical Reminder HTML Block
+            step_2_next = gr.Button("Finish & Reflect ▶️", variant="secondary")
 
         # Conclusion Step
         with gr.Column(visible=False, elem_id="conclusion-step") as conclusion_step:
@@ -3757,12 +3866,18 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # --- Navigation Logic ---
         all_steps_nav = [
-            briefing_slide_1, briefing_slide_2, briefing_slide_3, briefing_slide_4,
+            briefing_slide_1, briefing_slide_2, briefing_slide_3,
+            briefing_slide_4, briefing_slide_5, briefing_slide_6, briefing_slide_7,
             model_building_step, conclusion_step, loading_screen
         ]
 
         def create_nav(current_step, next_step):
+            """
+            Simplified navigation: directly switches visibility without artificial loading screen.
+            Loading screen only shown when entering arena if not yet ready.
+            """
             def _nav():
+                # Direct single-step navigation
                 updates = {next_step: gr.update(visible=True)}
                 for s in all_steps_nav:
                     if s != next_step:
@@ -3865,123 +3980,185 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
 """
 
 
-# 2. Wire Slide 1-4 Navigation (Keep existing)
-        briefing_1_next.click(fn=create_nav(briefing_slide_1, briefing_slide_2), inputs=None, outputs=all_steps_nav, js=nav_js("slide-2", "Loading mission..."))
-        briefing_2_back.click(fn=create_nav(briefing_slide_2, briefing_slide_1), inputs=None, outputs=all_steps_nav, js=nav_js("slide-1", "Returning..."))
-        briefing_2_next.click(fn=create_nav(briefing_slide_2, briefing_slide_3), inputs=None, outputs=all_steps_nav, js=nav_js("slide-3", "Next slide..."))
-        briefing_3_back.click(fn=create_nav(briefing_slide_3, briefing_slide_2), inputs=None, outputs=all_steps_nav, js=nav_js("slide-2", "Back..."))
-        briefing_3_next.click(fn=create_nav(briefing_slide_3, briefing_slide_4), inputs=None, outputs=all_steps_nav, js=nav_js("slide-4", "Next slide..."))
-        briefing_4_back.click(fn=create_nav(briefing_slide_4, briefing_slide_3), inputs=None, outputs=all_steps_nav, js=nav_js("slide-3", "Back..."))
-
-        # 3. CRITICAL UPDATE: Slide 4 Button -> Jumps to App (model-step)
+        # Wire up slide buttons with enhanced navigation
+        briefing_1_next.click(
+            fn=create_nav(briefing_slide_1, briefing_slide_2),
+            inputs=None, outputs=all_steps_nav,
+            js=nav_js("slide-2", "Loading mission overview...")
+        )
+        briefing_2_back.click(
+            fn=create_nav(briefing_slide_2, briefing_slide_1),
+            inputs=None, outputs=all_steps_nav,
+            js=nav_js("slide-1", "Returning to introduction...")
+        )
+        briefing_2_next.click(
+            fn=create_nav(briefing_slide_2, briefing_slide_3),
+            inputs=None, outputs=all_steps_nav,
+            js=nav_js("slide-3", "Exploring model concept...")
+        )
+        briefing_3_back.click(
+            fn=create_nav(briefing_slide_3, briefing_slide_2),
+            inputs=None, outputs=all_steps_nav,
+            js=nav_js("slide-2", "Going back one step...")
+        )
+        briefing_3_next.click(
+            fn=create_nav(briefing_slide_3, briefing_slide_4),
+            inputs=None, outputs=all_steps_nav,
+            js=nav_js("slide-4", "Understanding the experiment loop...")
+        )
+        briefing_4_back.click(
+            fn=create_nav(briefing_slide_4, briefing_slide_3),
+            inputs=None, outputs=all_steps_nav,
+            js=nav_js("slide-3", "Reviewing previous concepts...")
+        )
         briefing_4_next.click(
-            fn=create_nav(briefing_slide_4, model_building_step),
-            inputs=None, 
-            outputs=all_steps_nav,
-            js=nav_js("model-step", "Entering Arena...")
+            fn=create_nav(briefing_slide_4, briefing_slide_5),
+            inputs=None, outputs=all_steps_nav,
+            js=nav_js("slide-5", "Configuring brain settings...")
+        )
+        briefing_5_back.click(
+            fn=create_nav(briefing_slide_5, briefing_slide_4),
+            inputs=None, outputs=all_steps_nav,
+            js=nav_js("slide-4", "Revisiting the loop...")
+        )
+        briefing_5_next.click(
+            fn=create_nav(briefing_slide_5, briefing_slide_6),
+            inputs=None, outputs=all_steps_nav,
+            js=nav_js("slide-6", "Configuring data inputs...")
+        )
+        briefing_6_back.click(
+            fn=create_nav(briefing_slide_6, briefing_slide_5),
+            inputs=None, outputs=all_steps_nav,
+            js=nav_js("slide-5", "Adjusting model strategy...")
+        )
+        briefing_6_next.click(
+            fn=create_nav(briefing_slide_6, briefing_slide_7),
+            inputs=None, outputs=all_steps_nav,
+            js=nav_js("slide-7", "Preparing scoring overview...")
+        )
+        briefing_7_back.click(
+            fn=create_nav(briefing_slide_7, briefing_slide_6),
+            inputs=None, outputs=all_steps_nav,
+            js=nav_js("slide-6", "Reviewing data knobs...")
+        )
+        # Slide 7 -> App
+        briefing_7_next.click(
+            fn=create_nav(briefing_slide_7, model_building_step),
+            inputs=None, outputs=all_steps_nav,
+            js=nav_js("model-step", "Entering model arena...")
         )
 
-# 1. Strategy Selected
-        # Action: Hide Step 1 Instructions -> Show Step 2 Box
-        model_type_radio.change(
-            fn=lambda: (gr.update(visible=False), gr.update(visible=True)), 
-            outputs=[instr_1, step_2_box]
-        ).then(
-            # Update state backend
-            fn=lambda v: v, inputs=model_type_radio, outputs=model_type_state
-        )
-
-        # 2. Complexity Slider Released
-        # Action: Hide Step 2 Instructions -> Show Step 3 Box
-        complexity_slider.release(
-            fn=lambda: (gr.update(visible=False), gr.update(visible=True)), 
-            outputs=[instr_2, step_3_box]
-        ).then(
-            fn=lambda v: v, inputs=complexity_slider, outputs=complexity_state
-        )
-
-        # 3. Ingredients Selected
-        # Action: Hide Step 3 Instructions -> Show Step 4 Box
-        feature_set_checkbox.change(
-            fn=lambda: (gr.update(visible=False), gr.update(visible=True)), 
-            outputs=[instr_3, step_4_box]
-        ).then(
-             fn=lambda v: v, inputs=feature_set_checkbox, outputs=feature_set_state
-        )
-        
-        # 4. Data Size Selected
-        # Action: Hide Step 4 Instructions -> Show Step 5 Box
-        data_size_radio.change(
-            fn=lambda: (gr.update(visible=False), gr.update(visible=True)), 
-            outputs=[instr_4, step_5_box]
-        ).then(
-             fn=lambda v: v, inputs=data_size_radio, outputs=data_size_state
-        )
-
-        # 5. Submit Transformation Logic (Cleanup)
-        def on_submit_finish_onboarding():
-            return {
-                # Ensure all instructions are hidden
-                instr_1: gr.update(visible=False),
-                instr_2: gr.update(visible=False),
-                instr_3: gr.update(visible=False),
-                instr_4: gr.update(visible=False),
-                instr_5: gr.update(visible=False),
-                # Show results and helper card
-                right_col: gr.update(visible=True), 
-                model_card_display: gr.update(visible=True),
-                onboarding_complete_state: True
-            }
-
-        # 6. Wire Submit Button
-        submit_button.click(
-            fn=run_experiment,
-            inputs=[
-                model_type_state, complexity_state, feature_set_state, data_size_state,
-                team_name_state, last_submission_score_state, last_rank_state,
-                submission_count_state, first_submission_score_state, best_score_state,
-                username_state, token_state, readiness_state, was_preview_state
-            ],
-            outputs=[
-                submission_feedback_display, team_leaderboard_display, individual_leaderboard_display,
-                last_submission_score_state, last_rank_state, best_score_state,
-                submission_count_state, first_submission_score_state, rank_message_display,
-                model_type_radio, complexity_slider, feature_set_checkbox, data_size_radio,
-                submit_button, login_username, login_password, login_submit, login_error,
-                attempts_tracker_display, was_preview_state, kpi_meta_state, last_seen_ts_state
-            ]
-        ).then(
-            # Trigger the final cleanup (Hide Step 5 text)
-            fn=on_submit_finish_onboarding,
-            outputs=[instr_1, instr_2, instr_3, instr_4, instr_5, right_col, model_card_display, onboarding_complete_state]
-        )
-
-        # 7. Finish Button Logic
-        def finalize_and_show_conclusion(best_score, submissions, rank, first_score, feature_set):
-            html = build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set)
-            updates = create_nav(model_building_step, conclusion_step)()
-            updates[final_score_display] = gr.update(value=html)
-            return updates
-
+        # App -> Conclusion
         step_2_next.click(
             fn=finalize_and_show_conclusion,
-            inputs=[best_score_state, submission_count_state, last_rank_state, first_submission_score_state, feature_set_state],
+            inputs=[
+                best_score_state,
+                submission_count_state,
+                last_rank_state,
+                first_submission_score_state,
+                feature_set_state
+            ],
             outputs=all_steps_nav + [final_score_display],
-            js=nav_js("conclusion-step", "Generating summary...")
+            js=nav_js("conclusion-step", "Generating performance summary...")
         )
 
-        # Back from conclusion
+        # Conclusion -> App
         step_3_back.click(
             fn=create_nav(conclusion_step, model_building_step),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("model-step", "Returning...")
+            js=nav_js("model-step", "Returning to experiment workspace...")
         )
 
-        # Events (State updates without visual changes)
-        model_type_radio.change(fn=get_model_card, inputs=model_type_radio, outputs=model_card_display)
-        model_type_radio.change(fn=lambda v: v or DEFAULT_MODEL, inputs=model_type_radio, outputs=model_type_state)
-      
-# --- TIMER & INITIALIZATION LOGIC ---
+        # Events
+        model_type_radio.change(
+            fn=get_model_card,
+            inputs=model_type_radio,
+            outputs=model_card_display
+        )
+        model_type_radio.change(
+            fn=lambda v: v or DEFAULT_MODEL,
+            inputs=model_type_radio,
+            outputs=model_type_state
+        )
+        complexity_slider.change(fn=lambda v: v, inputs=complexity_slider, outputs=complexity_state)
+
+        feature_set_checkbox.change(
+            fn=lambda v: v or [],
+            inputs=feature_set_checkbox,
+            outputs=feature_set_state
+        )
+        data_size_radio.change(
+            fn=lambda v: v or DEFAULT_DATA_SIZE,
+            inputs=data_size_radio,
+            outputs=data_size_state
+        )
+
+        all_outputs = [
+            submission_feedback_display,
+            team_leaderboard_display,
+            individual_leaderboard_display,
+            last_submission_score_state,
+            last_rank_state,
+            best_score_state,
+            submission_count_state,
+            first_submission_score_state,
+            rank_message_display,
+            model_type_radio,
+            complexity_slider,
+            feature_set_checkbox,
+            data_size_radio,
+            submit_button,
+            login_username,
+            login_password,
+            login_submit,
+            login_error,
+            attempts_tracker_display,
+            was_preview_state,
+            kpi_meta_state,
+            last_seen_ts_state
+        ]
+
+        # Wire up login button
+        login_submit.click(
+            fn=perform_inline_login,
+            inputs=[login_username, login_password],
+            outputs=[
+                login_username, 
+                login_password, 
+                login_submit, 
+                login_error, 
+                submit_button, 
+                submission_feedback_display, 
+                team_name_state,
+                username_state,  # NEW
+                token_state      # NEW
+            ]
+        )
+
+        # Removed gr.State(username) from the inputs list
+        submit_button.click(
+            fn=run_experiment,
+            inputs=[
+                model_type_state,
+                complexity_state,
+                feature_set_state,
+                data_size_state,
+                team_name_state,
+                last_submission_score_state,
+                last_rank_state,
+                submission_count_state,
+                first_submission_score_state,
+                best_score_state,
+                username_state,  # NEW: Session-based auth
+                token_state,     # NEW: Session-based auth
+                readiness_state, # Renamed to readiness_flag in function signature
+                was_preview_state, # Renamed to was_preview_prev in function signature
+                # kpi_meta_state removed from inputs - used only as output
+            ],
+            outputs=all_outputs,
+            show_progress="full",
+            js=nav_js("model-step", "Running experiment...", 500)
+        )
 
         # Timer for polling initialization status
         status_timer = gr.Timer(value=0.5, active=True)  # Poll every 0.5 seconds
@@ -3998,7 +4175,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             
             # Update submit button
             if ready:
-                submit_label = "🚀 Build & Submit Model" # Updated label to match Step 5
+                submit_label = "5. 🔬 Build & Submit Model"
                 submit_interactive = True
             else:
                 submit_label = "⏳ Waiting for data..."
@@ -4027,27 +4204,42 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # Handle session-based authentication on page load
         def handle_load_with_session_auth(request: "gr.Request"):
+            """
+            Check for session token, auto-login if present, then load initial UI with stats.
+            
+            Concurrency Note: This function does NOT set per-user values in os.environ.
+            All authentication state is returned via gr.State objects (username_state,
+            token_state, team_name_state) to prevent cross-user data leakage.
+            """
             success, username, token = _try_session_based_auth(request)
             
             if success and username and token:
                 _log(f"Session auth successful on load for {username}")
+                
+                # Get user stats and team from cache/leaderboard
                 stats = _compute_user_stats(username, token)
                 team_name = stats.get("team_name", "")
                 
-                # Get initial results (now includes box updates)
-                initial_results = on_initial_load(username, token=token, team_name=team_name)
+                # Concurrency Note: Do NOT set os.environ for per-user values.
+                # Return state via gr.State objects exclusively.
                 
+                # Hide login form since user is authenticated via session
+                # Return initial load results plus login form hidden
+                # Pass token explicitly for authenticated leaderboard fetch
+                initial_results = on_initial_load(username, token=token, team_name=team_name)
                 return initial_results + (
                     gr.update(visible=False),  # login_username
                     gr.update(visible=False),  # login_password  
                     gr.update(visible=False),  # login_submit
-                    gr.update(visible=False),  # login_error
+                    gr.update(visible=False),  # login_error (hide any messages)
                     username,  # username_state
                     token,     # token_state
                     team_name, # team_name_state
                 )
             else:
                 _log("No valid session on load, showing login form")
+                # No valid session, proceed with normal load (show login form)
+                # No token available, call without token
                 initial_results = on_initial_load(None, token=None, team_name="")
                 return initial_results + (
                     gr.update(visible=True),   # login_username
@@ -4059,7 +4251,6 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                     "",    # team_name_state
                 )
         
-        # Final Load Wiring
         demo.load(
             fn=handle_load_with_session_auth,
             inputs=None,  # Request is auto-injected
@@ -4072,12 +4263,6 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 complexity_slider,
                 feature_set_checkbox,
                 data_size_radio,
-                # NEW: Wire the visibility updates to the boxes (Critical for JIT Reset)
-                step_2_box,
-                step_3_box,
-                step_4_box,
-                step_5_box,
-                # ... rest of existing outputs
                 login_username,
                 login_password,
                 login_submit,
