@@ -63,76 +63,45 @@ except ImportError:
 
 
 # -------------------------------------------------------------------------
-# CACHE CONFIGURATION (Optimized: SQLite)
+# CACHE CONFIGURATION (Optimized: Thread-Safe SQLite)
 # -------------------------------------------------------------------------
 import sqlite3
 
 CACHE_DB_FILE = "prediction_cache.sqlite"
-_db_conn = None
-
-# -------------------------------------------------------------------------
-# CACHE CONFIGURATION (Aggressive Debugging)
-# -------------------------------------------------------------------------
-import sqlite3
-import os
-
-CACHE_DB_FILE = "prediction_cache.sqlite"
-_db_conn = None
-
-# --- DEBUG: Print file status on startup ---
-if os.path.exists(CACHE_DB_FILE):
-    size_mb = os.path.getsize(CACHE_DB_FILE) / (1024 * 1024)
-    print(f"✅ STARTUP CHECK: Database found at '{CACHE_DB_FILE}' ({size_mb:.2f} MB)", flush=True)
-else:
-    print(f"❌ STARTUP CHECK: Database '{CACHE_DB_FILE}' NOT FOUND in current directory: {os.getcwd()}", flush=True)
-    # List files to see what IS there
-    print(f"📂 Files in current dir: {os.listdir('.')}", flush=True)
-# -------------------------------------------
 
 def get_cached_prediction(key):
     """
-    Lightning-fast lookup. Raises ERROR on miss to force debugging.
+    Lightning-fast lookup from SQLite database.
+    THREAD-SAFE FIX: Opens a new connection for every lookup.
     """
-    global _db_conn
-    
     # 1. Check if DB exists
     if not os.path.exists(CACHE_DB_FILE):
-        error_msg = f"CRITICAL ERROR: Database file '{CACHE_DB_FILE}' is missing from the container."
-        print(error_msg, flush=True)
-        raise ValueError(error_msg)
-
-    # 2. Lazy connection
-    if _db_conn is None:
-        try:
-            _db_conn = sqlite3.connect(CACHE_DB_FILE, check_same_thread=False)
-        except Exception as e:
-            error_msg = f"CRITICAL ERROR: Could not connect to DB: {e}"
-            print(error_msg, flush=True)
-            raise ValueError(error_msg)
+        return None
 
     try:
-        cursor = _db_conn.cursor()
-        cursor.execute("SELECT value FROM cache WHERE key=?", (key,))
-        result = cursor.fetchone()
-        
-        if result:
-            # Uncomment if you want to confirm hits (spammy)
-            # print(f"✅ Cache Hit", flush=True)
-            return result[0] 
-        else:
-            # --- THE TRAP ---
-            # We found the DB, but the key wasn't in it. 
-            # This prints the EXACT key so you can compare it to your build script.
-            error_msg = f"🐢 CACHE MISS (Key Not Found): '{key}'"
-            print(error_msg, flush=True)
-            raise ValueError(error_msg)
+        # Use a context manager ('with') to ensure the connection 
+        # is ALWAYS closed, releasing file locks immediately.
+        # timeout=10 ensures we don't wait forever if the file is busy.
+        with sqlite3.connect(CACHE_DB_FILE, timeout=10.0) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT value FROM cache WHERE key=?", (key,))
+            result = cursor.fetchone()
             
+            if result:
+                return result[0] 
+            else:
+                return None
+            
+    except sqlite3.OperationalError as e:
+        # Handle locking errors gracefully
+        print(f"⚠️ CACHE LOCK ERROR: {e}. Falling back to training.", flush=True)
+        return None
+        
     except Exception as e:
-        # If it was our ValueError, just re-raise it
-        if "CACHE MISS" in str(e):
-            raise e
-        print(f"⚠️ DB Read Error: {e}", flush=True)
-        raise ValueError(f"DB Read Error: {e}")
+        print(f"⚠️ DB READ ERROR: {e}", flush=True)
+        return None
+
+print("✅ App configured for Thread-Safe SQLite Cache.")
 
 
 LEADERBOARD_CACHE_SECONDS = int(os.environ.get("LEADERBOARD_CACHE_SECONDS", "45"))
