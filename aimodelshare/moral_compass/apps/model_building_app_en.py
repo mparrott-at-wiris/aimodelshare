@@ -1473,100 +1473,78 @@ def compute_rank_settings(
     current_feature_set,
     current_data_size
 ):
-    """
-    Returns rank gating settings.
-    
-    CRITICAL UPDATE FOR JIT ONBOARDING:
-    For Rank 0 (Onboarding), we force 'value' to None or [] for all inputs.
-    This ensures the user MUST interact (click/slide) to trigger the 
-    progressive disclosure events that unlock the next steps.
-    """
+    """Returns rank gating settings."""
 
     def get_choices_for_rank(rank):
-        # Rank 0 (Onboarding) gets EVERYTHING so they can explore
-        if rank == 0:
+        if rank == 0 or rank >= 2:
             return FEATURE_SET_ALL_OPTIONS
-        # Rank 1 (Junior) is restricted
-        if rank == 1: 
-            return [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in (FEATURE_SET_GROUP_1_VALS + FEATURE_SET_GROUP_2_VALS)]
-        # Rank 2+ (Senior) gets everything
-        return FEATURE_SET_ALL_OPTIONS 
+        return [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in (FEATURE_SET_GROUP_1_VALS + FEATURE_SET_GROUP_2_VALS)]
 
-    # --- 🟢 ONBOARDING MODE (Rank 0) ---
+    # --- JIT ONBOARDING (Rank 0) ---
     if submission_count == 0:
         return {
             "rank_message": "Onboarding",
-            
-            # 1. MODEL: Open all choices, but select NONE to force a click
             "model_choices": list(MODEL_TYPES.keys()),
             "model_value": None, 
             "model_interactive": True,
-            
-            # 2. COMPLEXITY: Default to 2, user must slide to unlock next
             "complexity_max": 10,
             "complexity_value": 2,
-            
-            # 3. INGREDIENTS: Open all choices, but start EMPTY to force checks
             "feature_set_choices": FEATURE_SET_ALL_OPTIONS,
             "feature_set_value": [], 
             "feature_set_interactive": True,
-            
-            # 4. DATA SIZE: Show choices, but select NONE to force a click
             "data_size_choices": ["Small (20%)", "Full (100%)"],
             "data_size_value": None,
             "data_size_interactive": True,
+            "steps_visible": False  # <--- NEW: Force hide next steps
         }
 
-    # --- 🟡 JUNIOR ENGINEER (Rank 1) ---
-    elif submission_count == 1:
-        return {
-            "rank_message": "# 🎉 Rank Up! Junior Engineer\n<p style='font-size:24px; line-height:1.4;'>New models, data sizes, and data ingredients unlocked!</p>",
+    # --- RETURNING ENGINEERS (Rank 1+) ---
+    # For all other ranks, steps should be visible (Dashboard mode)
+    base_settings = {
+        "steps_visible": True, # <--- NEW: Show everything
+        "model_interactive": True,
+        "feature_set_interactive": True,
+        "data_size_interactive": True,
+    }
+    
+    if submission_count == 1:
+        base_settings.update({
+            "rank_message": "# 🎉 Rank Up! Junior Engineer",
             "model_choices": ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"],
             "model_value": current_model if current_model else "The Balanced Generalist",
-            "model_interactive": True,
             "complexity_max": 6,
             "complexity_value": min(current_complexity, 6),
             "feature_set_choices": get_choices_for_rank(1),
             "feature_set_value": current_feature_set if current_feature_set else DEFAULT_FEATURE_SET,
-            "feature_set_interactive": True,
             "data_size_choices": ["Small (20%)", "Medium (60%)"],
             "data_size_value": current_data_size if current_data_size else "Small (20%)",
-            "data_size_interactive": True,
-        }
-
-    # --- 🔵 SENIOR ENGINEER (Rank 2) ---
+        })
     elif submission_count == 2:
-        return {
-            "rank_message": "# 🌟 Rank Up! Senior Engineer\n<p style='font-size:24px; line-height:1.4;'>Strongest Data Ingredients Unlocked!</p>",
+        base_settings.update({
+            "rank_message": "# 🌟 Rank Up! Senior Engineer",
             "model_choices": list(MODEL_TYPES.keys()),
             "model_value": current_model,
-            "model_interactive": True,
             "complexity_max": 8,
             "complexity_value": min(current_complexity, 8),
             "feature_set_choices": get_choices_for_rank(2),
             "feature_set_value": current_feature_set,
-            "feature_set_interactive": True,
             "data_size_choices": ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"],
             "data_size_value": current_data_size,
-            "data_size_interactive": True,
-        }
-
-    # --- 🟣 LEAD ENGINEER (Rank 3+) ---
+        })
     else:
-        return {
-            "rank_message": "# 👑 Rank: Lead Engineer\n<p style='font-size:24px; line-height:1.4;'>All tools unlocked — optimize freely!</p>",
+        base_settings.update({
+            "rank_message": "# 👑 Rank: Lead Engineer",
             "model_choices": list(MODEL_TYPES.keys()),
             "model_value": current_model,
-            "model_interactive": True,
             "complexity_max": 10,
             "complexity_value": current_complexity,
             "feature_set_choices": get_choices_for_rank(3),
             "feature_set_value": current_feature_set,
-            "feature_set_interactive": True,
             "data_size_choices": ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"],
             "data_size_value": current_data_size,
-            "data_size_interactive": True,
-        }
+        })
+        
+    return base_settings
       
 # Find components by name to yield updates
 # --- Existing global component placeholders ---
