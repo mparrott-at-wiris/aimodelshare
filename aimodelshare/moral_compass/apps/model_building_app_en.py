@@ -3649,7 +3649,9 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             onboarding_complete_state = gr.State(False)
                    
             gr.Markdown("# 🛠️ Model Building Arena")
-            
+            init_status_display = gr.HTML(visible=False)
+            init_banner = gr.HTML(visible=True) 
+            # ------------------------------------     
             rank_message_display = gr.HTML(visible=False) 
 
             with gr.Row():
