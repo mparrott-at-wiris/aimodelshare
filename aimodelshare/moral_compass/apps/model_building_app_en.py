@@ -2337,16 +2337,10 @@ def run_experiment(
 
 def on_initial_load(username, token=None, team_name=""):
     """
-    Updated to show "Welcome & CTA" if the SPECIFIC USER has 0 submissions,
-    even if the leaderboard/team already has data from others.
+    Updated to handle JIT visibility resets.
     """
-    initial_ui = compute_rank_settings(
-        0, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE
-    )
-
-    # 1. Prepare the Welcome HTML
+    # ... [Keep your existing Welcome HTML logic here] ...
     display_team = team_name if team_name else "Your Team"
-    
     welcome_html = f"""
     <div style='text-align:center; padding: 30px 20px;'>
         <div style='font-size: 3rem; margin-bottom: 10px;'>👋</div>
@@ -2354,7 +2348,6 @@ def on_initial_load(username, token=None, team_name=""):
         <p style='font-size: 1.1rem; color: #4b5563; margin: 0 0 20px 0;'>
             Your team is waiting for your help to improve the AI.
         </p>
-        
         <div style='background:#eff6ff; padding:16px; border-radius:12px; border:2px solid #bfdbfe; display:inline-block;'>
             <p style='margin:0; color:#1e40af; font-weight:bold; font-size:1.1rem;'>
                 👈 Click "Build & Submit Model" to Start Playing!
@@ -2378,52 +2371,59 @@ def on_initial_load(username, token=None, team_name=""):
             print(f"Error on initial load fetch: {e}")
             full_leaderboard_df = None
 
-    # -------------------------------------------------------------------------
-    # LOGIC UPDATE: Check if THIS user has submitted anything
-    # -------------------------------------------------------------------------
     user_has_submitted = False
     if full_leaderboard_df is not None and not full_leaderboard_df.empty:
         if "username" in full_leaderboard_df.columns and username:
-            # Check if the username exists in the dataframe
             user_has_submitted = username in full_leaderboard_df["username"].values
 
-    # Decision Logic
+    # Determine submission count for settings
+    # If we have data, calculate count, otherwise 0
+    current_sub_count = 0
+    if user_has_submitted:
+        # Quick filter to get count
+        current_sub_count = len(full_leaderboard_df[full_leaderboard_df["username"] == username])
+
+    # Generate Settings based on count
+    initial_ui = compute_rank_settings(
+        current_sub_count, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE
+    )
+
+    # HTML Generation (Keep existing logic)
     if not user_has_submitted:
-        # CASE 1: New User (or first time loading session) -> FORCE WELCOME
-        # regardless of whether the leaderboard has other people's data.
         team_html = welcome_html
         individual_html = "<p style='text-align:center; color:#6b7280; padding-top:40px;'>Submit your model to see where you rank!</p>"
-        
     elif full_leaderboard_df is None or full_leaderboard_df.empty:
-        # CASE 2: Returning user, but data fetch failed -> Show Skeleton
         team_html = _build_skeleton_leaderboard(rows=6, is_team=True)
         individual_html = _build_skeleton_leaderboard(rows=6, is_team=False)
-        
     else:
-        # CASE 3: Returning user WITH data -> Show Real Tables
         try:
             team_html, individual_html, _, _, _, _ = generate_competitive_summary(
-                full_leaderboard_df,
-                team_name,
-                username,
-                0, 0, -1
+                full_leaderboard_df, team_name, username, 0, 0, -1
             )
-        except Exception as e:
-            print(f"Error generating summary HTML: {e}")
-            team_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
-            individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
+        except Exception:
+            team_html = "Error"
+            individual_html = "Error"
+
+    # VISIBILITY LOGIC
+    # If steps_visible is False (Onboarding), we force hide boxes 2-5
+    steps_vis = initial_ui.get("steps_visible", True)
+    box_update = gr.update(visible=steps_vis)
 
     return (
         get_model_card(DEFAULT_MODEL),
         team_html,
         individual_html,
-        initial_ui["rank_message"],
+        initial_ui.get("rank_message", ""),
         gr.update(choices=initial_ui["model_choices"], value=initial_ui["model_value"], interactive=initial_ui["model_interactive"]),
         gr.update(minimum=1, maximum=initial_ui["complexity_max"], value=initial_ui["complexity_value"]),
         gr.update(choices=initial_ui["feature_set_choices"], value=initial_ui["feature_set_value"], interactive=initial_ui["feature_set_interactive"]),
         gr.update(choices=initial_ui["data_size_choices"], value=initial_ui["data_size_value"], interactive=initial_ui["data_size_interactive"]),
+        # Return visibility updates for the 4 boxes
+        box_update, # Step 2
+        box_update, # Step 3
+        box_update, # Step 4
+        box_update  # Step 5
     )
-
 
 # -------------------------------------------------------------------------
 # Conclusion helpers (dark/light mode aware)
@@ -3407,15 +3407,15 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
 
     html_step_5_submit = """
     <div class='mock-ui-box' style='margin-bottom: 12px; border-left: 6px solid #f59e0b; background: #fffbeb;'>
-        <h3 style='margin-top:0; color: #d97706;'>🚀 Step 5 of 5: Launch Mission</h3>
-        <p><strong>Clicking Build & Submit will:</strong></p>
+        <h3 style='margin-top:0; color: #d97706;'>🚀 Step 5 of 5: Launch & Unlock</h3>
+        <p><strong>You are ready to enter the competition.</strong></p>
+        <p>Clicking <b>Build & Submit</b> will:</p>
         <ol style='margin-bottom:10px; padding-left: 20px; font-size: 0.95rem;'>
-            <li>Train your model on the selected data.</li>
-            <li>Test it on a <strong>Hidden Vault</strong> of future cases.</li>
-            <li>Post your score to the <strong>Live Leaderboard</strong>.</li>
+            <li>Train your model and test it against the <strong>Hidden Vault</strong>.</li>
+            <li><strong>🔓 UNLOCK THE FULL ARENA:</strong> These instructions will vanish, and the Live Leaderboards will open right here on the next screen.</li>
         </ol>
         <p style='text-align:center; font-weight:bold; color:#b45309; margin-top:10px;'>
-            Are you ready to beat the baseline?
+            Click below to reveal your first score!
         </p>
     </div>
     """
@@ -3684,8 +3684,6 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             feature_set_state = gr.State(DEFAULT_FEATURE_SET)
             data_size_state = gr.State(DEFAULT_DATA_SIZE)
 
-            rank_message_display = gr.Markdown("### Rank loading...")
-
             # New State to track if instructions should be hidden
             onboarding_complete_state = gr.State(False)
                    
@@ -3905,32 +3903,53 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             js=nav_js("model-step", "Entering Arena...")
         )
 
-        # --- PROGRESSIVE APP LOGIC (The New Stuff) ---
+# 1. Strategy Selected
+        # Action: Hide Step 1 Instructions -> Show Step 2 Box
+        model_type_radio.change(
+            fn=lambda: (gr.update(visible=False), gr.update(visible=True)), 
+            outputs=[instr_1, step_2_box]
+        ).then(
+            # Update state backend
+            fn=lambda v: v, inputs=model_type_radio, outputs=model_type_state
+        )
 
-        # 1. Strategy -> Unlock Step 2
-        model_type_radio.change(fn=lambda: gr.update(visible=True), outputs=step_2_box).then(
-            fn=lambda v: v, inputs=model_type_radio, outputs=model_type_state)
+        # 2. Complexity Slider Released
+        # Action: Hide Step 2 Instructions -> Show Step 3 Box
+        complexity_slider.release(
+            fn=lambda: (gr.update(visible=False), gr.update(visible=True)), 
+            outputs=[instr_2, step_3_box]
+        ).then(
+            fn=lambda v: v, inputs=complexity_slider, outputs=complexity_state
+        )
 
-        # 2. Complexity -> Unlock Step 3
-        complexity_slider.release(fn=lambda: gr.update(visible=True), outputs=step_3_box).then(
-            fn=lambda v: v, inputs=complexity_slider, outputs=complexity_state)
-
-        # 3. Ingredients -> Unlock Step 4
-        feature_set_checkbox.change(fn=lambda: gr.update(visible=True), outputs=step_4_box).then(
-             fn=lambda v: v, inputs=feature_set_checkbox, outputs=feature_set_state)
+        # 3. Ingredients Selected
+        # Action: Hide Step 3 Instructions -> Show Step 4 Box
+        feature_set_checkbox.change(
+            fn=lambda: (gr.update(visible=False), gr.update(visible=True)), 
+            outputs=[instr_3, step_4_box]
+        ).then(
+             fn=lambda v: v, inputs=feature_set_checkbox, outputs=feature_set_state
+        )
         
-        # 4. Data Size -> Unlock Step 5
-        data_size_radio.change(fn=lambda: gr.update(visible=True), outputs=step_5_box).then(
-             fn=lambda v: v, inputs=data_size_radio, outputs=data_size_state)
+        # 4. Data Size Selected
+        # Action: Hide Step 4 Instructions -> Show Step 5 Box
+        data_size_radio.change(
+            fn=lambda: (gr.update(visible=False), gr.update(visible=True)), 
+            outputs=[instr_4, step_5_box]
+        ).then(
+             fn=lambda v: v, inputs=data_size_radio, outputs=data_size_state
+        )
 
-        # 5. Submit Transformation Logic
+        # 5. Submit Transformation Logic (Cleanup)
         def on_submit_finish_onboarding():
             return {
+                # Ensure all instructions are hidden
                 instr_1: gr.update(visible=False),
                 instr_2: gr.update(visible=False),
                 instr_3: gr.update(visible=False),
                 instr_4: gr.update(visible=False),
                 instr_5: gr.update(visible=False),
+                # Show results and helper card
                 right_col: gr.update(visible=True), 
                 model_card_display: gr.update(visible=True),
                 onboarding_complete_state: True
@@ -3954,6 +3973,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 attempts_tracker_display, was_preview_state, kpi_meta_state, last_seen_ts_state
             ]
         ).then(
+            # Trigger the final cleanup (Hide Step 5 text)
             fn=on_submit_finish_onboarding,
             outputs=[instr_1, instr_2, instr_3, instr_4, instr_5, right_col, model_card_display, onboarding_complete_state]
         )
@@ -3961,7 +3981,6 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         # 7. Finish Button Logic
         def finalize_and_show_conclusion(best_score, submissions, rank, first_score, feature_set):
             html = build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set)
-            # Use create_nav helper to ensure clean switching
             updates = create_nav(model_building_step, conclusion_step)()
             updates[final_score_display] = gr.update(value=html)
             return updates
@@ -3980,96 +3999,11 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             js=nav_js("model-step", "Returning...")
         )
 
-        # Events
-        model_type_radio.change(
-            fn=get_model_card,
-            inputs=model_type_radio,
-            outputs=model_card_display
-        )
-        model_type_radio.change(
-            fn=lambda v: v or DEFAULT_MODEL,
-            inputs=model_type_radio,
-            outputs=model_type_state
-        )
-        complexity_slider.change(fn=lambda v: v, inputs=complexity_slider, outputs=complexity_state)
-
-        feature_set_checkbox.change(
-            fn=lambda v: v or [],
-            inputs=feature_set_checkbox,
-            outputs=feature_set_state
-        )
-        data_size_radio.change(
-            fn=lambda v: v or DEFAULT_DATA_SIZE,
-            inputs=data_size_radio,
-            outputs=data_size_state
-        )
-
-        all_outputs = [
-            submission_feedback_display,
-            team_leaderboard_display,
-            individual_leaderboard_display,
-            last_submission_score_state,
-            last_rank_state,
-            best_score_state,
-            submission_count_state,
-            first_submission_score_state,
-            rank_message_display,
-            model_type_radio,
-            complexity_slider,
-            feature_set_checkbox,
-            data_size_radio,
-            submit_button,
-            login_username,
-            login_password,
-            login_submit,
-            login_error,
-            attempts_tracker_display,
-            was_preview_state,
-            kpi_meta_state,
-            last_seen_ts_state
-        ]
-
-        # Wire up login button
-        login_submit.click(
-            fn=perform_inline_login,
-            inputs=[login_username, login_password],
-            outputs=[
-                login_username, 
-                login_password, 
-                login_submit, 
-                login_error, 
-                submit_button, 
-                submission_feedback_display, 
-                team_name_state,
-                username_state,  # NEW
-                token_state      # NEW
-            ]
-        )
-
-        # Removed gr.State(username) from the inputs list
-        submit_button.click(
-            fn=run_experiment,
-            inputs=[
-                model_type_state,
-                complexity_state,
-                feature_set_state,
-                data_size_state,
-                team_name_state,
-                last_submission_score_state,
-                last_rank_state,
-                submission_count_state,
-                first_submission_score_state,
-                best_score_state,
-                username_state,  # NEW: Session-based auth
-                token_state,     # NEW: Session-based auth
-                readiness_state, # Renamed to readiness_flag in function signature
-                was_preview_state, # Renamed to was_preview_prev in function signature
-                # kpi_meta_state removed from inputs - used only as output
-            ],
-            outputs=all_outputs,
-            show_progress="full",
-            js=nav_js("model-step", "Running experiment...", 500)
-        )
+        # Events (State updates without visual changes)
+        model_type_radio.change(fn=get_model_card, inputs=model_type_radio, outputs=model_card_display)
+        model_type_radio.change(fn=lambda v: v or DEFAULT_MODEL, inputs=model_type_radio, outputs=model_type_state)
+      
+# --- TIMER & INITIALIZATION LOGIC ---
 
         # Timer for polling initialization status
         status_timer = gr.Timer(value=0.5, active=True)  # Poll every 0.5 seconds
@@ -4086,7 +4020,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             
             # Update submit button
             if ready:
-                submit_label = "5. 🔬 Build & Submit Model"
+                submit_label = "🚀 Build & Submit Model" # Updated label to match Step 5
                 submit_interactive = True
             else:
                 submit_label = "⏳ Waiting for data..."
@@ -4115,42 +4049,27 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # Handle session-based authentication on page load
         def handle_load_with_session_auth(request: "gr.Request"):
-            """
-            Check for session token, auto-login if present, then load initial UI with stats.
-            
-            Concurrency Note: This function does NOT set per-user values in os.environ.
-            All authentication state is returned via gr.State objects (username_state,
-            token_state, team_name_state) to prevent cross-user data leakage.
-            """
             success, username, token = _try_session_based_auth(request)
             
             if success and username and token:
                 _log(f"Session auth successful on load for {username}")
-                
-                # Get user stats and team from cache/leaderboard
                 stats = _compute_user_stats(username, token)
                 team_name = stats.get("team_name", "")
                 
-                # Concurrency Note: Do NOT set os.environ for per-user values.
-                # Return state via gr.State objects exclusively.
-                
-                # Hide login form since user is authenticated via session
-                # Return initial load results plus login form hidden
-                # Pass token explicitly for authenticated leaderboard fetch
+                # Get initial results (now includes box updates)
                 initial_results = on_initial_load(username, token=token, team_name=team_name)
+                
                 return initial_results + (
                     gr.update(visible=False),  # login_username
                     gr.update(visible=False),  # login_password  
                     gr.update(visible=False),  # login_submit
-                    gr.update(visible=False),  # login_error (hide any messages)
+                    gr.update(visible=False),  # login_error
                     username,  # username_state
                     token,     # token_state
                     team_name, # team_name_state
                 )
             else:
                 _log("No valid session on load, showing login form")
-                # No valid session, proceed with normal load (show login form)
-                # No token available, call without token
                 initial_results = on_initial_load(None, token=None, team_name="")
                 return initial_results + (
                     gr.update(visible=True),   # login_username
@@ -4162,6 +4081,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                     "",    # team_name_state
                 )
         
+        # Final Load Wiring
         demo.load(
             fn=handle_load_with_session_auth,
             inputs=None,  # Request is auto-injected
@@ -4174,6 +4094,12 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 complexity_slider,
                 feature_set_checkbox,
                 data_size_radio,
+                # NEW: Wire the visibility updates to the boxes (Critical for JIT Reset)
+                step_2_box,
+                step_3_box,
+                step_4_box,
+                step_5_box,
+                # ... rest of existing outputs
                 login_username,
                 login_password,
                 login_submit,
