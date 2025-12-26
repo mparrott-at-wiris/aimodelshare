@@ -3760,13 +3760,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             js=nav_js("model-step", "Running...")
         )
 
-        # Timer logic
-        status_timer = gr.Timer(value=0.5, active=True)
-        status_timer.tick(
-            fn=update_init_status,
-            outputs=[init_status_display, init_banner, submit_button, data_size_radio, status_timer, readiness_state]
-        )
-        
+
         def update_init_status():
             """
             Poll initialization status and update UI elements.
