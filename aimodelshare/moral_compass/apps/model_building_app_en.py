@@ -1977,57 +1977,26 @@ def run_experiment(
             
             
         else:
-            # === SLOW PATH (Fallback Training) ===
-            _log(f"🐢 CACHE MISS: {cache_key} (Training for real...)")
+            # === CACHE MISS (Training Disabled) ===
+            # This ensures we NEVER run heavy training code in production.
+            msg = f"❌ CACHE MISS: {cache_key}"
+            _log(msg)
+            
+            # User-friendly error message
+            error_html = f"""
+            <div style='background:#fee2e2; padding:16px; border-radius:8px; border:2px solid #ef4444; color:#991b1b; text-align:center;'>
+                <h3 style='margin:0;'>⚠️ Configuration Not Found</h3>
+                <p style='margin:8px 0;'>This specific combination of settings was not found in our pre-computed database.</p>
+                <p style='font-size:0.9em;'>To ensure system stability, real-time training is disabled. Please adjust your settings (e.g., change the Data Size or Model Strategy) and try again.</p>
+            </div>
+            """
+            
             yield { 
-                submission_feedback_display: gr.update(value=get_status_html(2, "Training Model", "The machine is learning from history..."), visible=True),
+                submission_feedback_display: gr.update(value=error_html, visible=True),
+                submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
                 login_error: gr.update(visible=False)
             }
-
-            # A. Get pre-sampled data
-            sample_frac = DATA_SIZE_MAP.get(data_size_str, 0.2)
-            X_train_sampled = X_TRAIN_SAMPLES_MAP[data_size_str]
-            y_train_sampled = Y_TRAIN_SAMPLES_MAP[data_size_str]
-            log_output += f"Using {int(sample_frac * 100)}% data.\n"
-
-            # B. Determine features...
-            numeric_cols = [f for f in feature_set if f in ALL_NUMERIC_COLS]
-            categorical_cols = [f for f in feature_set if f in ALL_CATEGORICAL_COLS]
-            for feat in feature_set:
-                if feat in ALL_NUMERIC_COLS: numeric_cols.append(feat)
-                elif feat in ALL_CATEGORICAL_COLS: categorical_cols.append(feat)
-            
-            # De-dupe logic just in case (though loop above covers it, ensuring lists are clean)
-            numeric_cols = sorted(list(set([f for f in feature_set if f in ALL_NUMERIC_COLS])))
-            categorical_cols = sorted(list(set([f for f in feature_set if f in ALL_CATEGORICAL_COLS])))
-
-            if not numeric_cols and not categorical_cols:
-                raise ValueError("No features selected for modeling.")
-
-            # C. Preprocessing (uses memoized preprocessor builder)
-            preprocessor, selected_cols = build_preprocessor(numeric_cols, categorical_cols)
-
-            X_train_processed = preprocessor.fit_transform(X_train_sampled[selected_cols])
-            X_test_processed = preprocessor.transform(X_TEST_RAW[selected_cols])
-
-            # D. Model build & tune
-            base_model = MODEL_TYPES[model_name_key]["model_builder"]()
-            tuned_model = tune_model_complexity(base_model, complexity_level)
-
-            # E. Train
-            # Concurrency Note: DecisionTree and RandomForest require dense arrays.
-            if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
-                X_train_for_fit = _ensure_dense(X_train_processed)
-                X_test_for_predict = _ensure_dense(X_test_processed)
-            else:
-                X_train_for_fit = X_train_processed
-                X_test_for_predict = X_test_processed
-            
-            tuned_model.fit(X_train_for_fit, y_train_sampled)
-            log_output += "Training done.\n"
-            
-            # F. Predict
-            predictions = tuned_model.predict(X_test_for_predict)
+            return # <--- CRITICAL: Stop execution here.
 
         # --- Stage 3: Submit (API Call 1) ---
         # AUTHENTICATION GATE: Check for token before submission
