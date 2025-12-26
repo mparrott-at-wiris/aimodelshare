@@ -3487,7 +3487,52 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         scroll-margin-top: 100px; 
     }
     """
+    # 1. Libraries
+    head_content = """
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
+    """
 
+    # 2. Steps
+    driver_steps = """
+    [
+        {
+            element: '#tour-intro-header',
+            popover: { title: '🏟️ Welcome to the Model Building Arena!', description: '<b>Your Role:</b> AI Engineer<br><b>Your Goal:</b> Build the most accurate model to predict recidivism.<br><b>How to Win:</b> Configure your settings, submit your model, and climb the live leaderboard!<br><br><i>(Click "Next" for a tour, or "X" to skip instructions)</i>', side: "bottom", align: 'center' }
+        },
+        { element: '#tour-model-strategy', popover: { title: '1. Model Strategy', description: 'Choose the "brain" of your machine.<br><b>Balanced Generalist:</b> Consistent.<br><b>Rule-Maker:</b> Simple logic.<br><b>Pattern-Finder:</b> Complex hidden patterns.', side: "right", align: 'start' } },
+        { element: '#tour-model-complexity', popover: { title: '2. Model Complexity', description: '<b>Low (1-3):</b> General patterns.<br><b>High (8-10):</b> Specific details.<br>⚠️ Too high = memorizing noise!', side: "bottom", align: 'start' } },
+        { element: '#tour-data-features', popover: { title: '3. Data Ingredients', description: '<b>Behavioral:</b> Risk based on facts.<br><b>Demographic:</b> Can improve accuracy but adds bias.', side: "top", align: 'start' } },
+        { element: '#tour-data-size', popover: { title: '4. Data Size', description: '<b>Small:</b> Fast testing.<br><b>Full:</b> High accuracy, slower.', side: "top", align: 'start' } },
+        { element: '#tour-submit-button', popover: { title: '5. Build & Submit', description: 'We test on <b>Hidden Data</b> to calculate your true accuracy rank.', side: "top", align: 'center' } }
+    ]
+    """
+
+    # 3. Logic to Run Tour (Robust)
+    run_tour_js = f"""
+    () => {{
+        const overlay = document.getElementById('nav-loading-overlay');
+        if(overlay) {{ overlay.style.opacity = '0'; setTimeout(()=>overlay.style.display='none', 300); }}
+        
+        setTimeout(() => {{
+            try {{
+                const driver = window.driver.js.driver;
+                const driverObj = driver({{ showProgress: true, animate: true, allowClose: true, steps: {driver_steps} }});
+                driverObj.drive();
+            }} catch (e) {{ console.error("Driver error:", e); }}
+        }}, 500); 
+    }}
+    """
+
+    # 4. Logic to Show Overlay
+    show_loader_js = """
+    () => {
+        const overlay = document.getElementById('nav-loading-overlay');
+        const msg = document.getElementById('nav-loading-text');
+        if(overlay && msg) { msg.textContent = 'Entering Model Arena...'; overlay.style.display = 'flex'; setTimeout(() => { overlay.style.opacity = '1'; }, 10); }
+    }
+    """
+  
     # Pass 'head' content here to ensure libraries load reliably
     with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css, head=head_content) as demo:
         
@@ -3756,13 +3801,17 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         # 2. Call Python to toggle visibility (fn=create_nav).
         # 3. Use .then() to trigger the Tour JS *after* Python is done (ensuring elements are visible).
         # ----------------------------------------------------------------------------------
-        briefing_4_next.click(
-            fn=None, js=show_loader_js  # 1. Show "Entering Arena" overlay immediately
-        ).then(
-            fn=create_nav(briefing_slide_4, model_building_step), outputs=all_steps_nav # 2. Python updates visibility
-        ).then(
-            fn=None, js=run_tour_js # 3. JS runs AFTER visibility update to start Driver.js
-        )
+        # CRITICAL FIX: Chain events to ensure visibility before tour starts
+            briefing_4_next.click(
+                fn=None, 
+                js=show_loader_js  # 1. Immediate JS: Show "Entering Arena" overlay
+            ).then(
+                fn=create_nav(briefing_slide_4, model_building_step), 
+                outputs=all_steps_nav # 2. Python: Make Arena visible
+            ).then(
+                fn=None, 
+                js=run_tour_js     # 3. Delayed JS: Start Driver.js tour
+            )
 
         # Conclusion nav
         def finalize_and_show_conclusion(best, sub_count, rank, first, feat):
