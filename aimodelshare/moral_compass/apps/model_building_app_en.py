@@ -1473,50 +1473,73 @@ def compute_rank_settings(
     current_feature_set,
     current_data_size
 ):
-    """Returns rank gating settings (updated for 1–10 complexity scale)."""
+    """
+    Returns rank gating settings.
+    
+    CRITICAL UPDATE FOR JIT ONBOARDING:
+    For Rank 0 (Onboarding), we force 'value' to None or [] for all inputs.
+    This ensures the user MUST interact (click/slide) to trigger the 
+    progressive disclosure events that unlock the next steps.
+    """
 
     def get_choices_for_rank(rank):
-        if rank == 0: # Trainee
-            return [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in FEATURE_SET_GROUP_1_VALS]
-        if rank == 1: # Junior
+        # Rank 0 (Onboarding) gets EVERYTHING so they can explore
+        if rank == 0:
+            return FEATURE_SET_ALL_OPTIONS
+        # Rank 1 (Junior) is restricted
+        if rank == 1: 
             return [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in (FEATURE_SET_GROUP_1_VALS + FEATURE_SET_GROUP_2_VALS)]
-        return FEATURE_SET_ALL_OPTIONS # Senior+
+        # Rank 2+ (Senior) gets everything
+        return FEATURE_SET_ALL_OPTIONS 
 
+    # --- 🟢 ONBOARDING MODE (Rank 0) ---
     if submission_count == 0:
         return {
-            "rank_message": "# 🧑‍🎓 Rank: Trainee Engineer\n<p style='font-size:24px; line-height:1.4;'>For your first submission, just click the big '🔬 Build & Submit Model' button below!</p>",
-            "model_choices": ["The Balanced Generalist"],
-            "model_value": "The Balanced Generalist",
-            "model_interactive": False,
-            "complexity_max": 3,
-            "complexity_value": min(current_complexity, 3),
-            "feature_set_choices": get_choices_for_rank(0),
-            "feature_set_value": FEATURE_SET_GROUP_1_VALS,
-            "feature_set_interactive": False,
-            "data_size_choices": ["Small (20%)"],
-            "data_size_value": "Small (20%)",
-            "data_size_interactive": False,
+            "rank_message": "Onboarding",
+            
+            # 1. MODEL: Open all choices, but select NONE to force a click
+            "model_choices": list(MODEL_TYPES.keys()),
+            "model_value": None, 
+            "model_interactive": True,
+            
+            # 2. COMPLEXITY: Default to 2, user must slide to unlock next
+            "complexity_max": 10,
+            "complexity_value": 2,
+            
+            # 3. INGREDIENTS: Open all choices, but start EMPTY to force checks
+            "feature_set_choices": FEATURE_SET_ALL_OPTIONS,
+            "feature_set_value": [], 
+            "feature_set_interactive": True,
+            
+            # 4. DATA SIZE: Show choices, but select NONE to force a click
+            "data_size_choices": ["Small (20%)", "Full (100%)"],
+            "data_size_value": None,
+            "data_size_interactive": True,
         }
+
+    # --- 🟡 JUNIOR ENGINEER (Rank 1) ---
     elif submission_count == 1:
         return {
             "rank_message": "# 🎉 Rank Up! Junior Engineer\n<p style='font-size:24px; line-height:1.4;'>New models, data sizes, and data ingredients unlocked!</p>",
             "model_choices": ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"],
-            "model_value": current_model if current_model in ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"] else "The Balanced Generalist",
+            "model_value": current_model if current_model else "The Balanced Generalist",
             "model_interactive": True,
             "complexity_max": 6,
             "complexity_value": min(current_complexity, 6),
             "feature_set_choices": get_choices_for_rank(1),
-            "feature_set_value": current_feature_set,
+            "feature_set_value": current_feature_set if current_feature_set else DEFAULT_FEATURE_SET,
             "feature_set_interactive": True,
             "data_size_choices": ["Small (20%)", "Medium (60%)"],
-            "data_size_value": current_data_size if current_data_size in ["Small (20%)", "Medium (60%)"] else "Small (20%)",
+            "data_size_value": current_data_size if current_data_size else "Small (20%)",
             "data_size_interactive": True,
         }
+
+    # --- 🔵 SENIOR ENGINEER (Rank 2) ---
     elif submission_count == 2:
         return {
-            "rank_message": "# 🌟 Rank Up! Senior Engineer\n<p style='font-size:24px; line-height:1.4;'>Strongest Data Ingredients Unlocked! The most powerful predictors (like 'Age' and 'Prior Crimes Count') are now available in your list. These will likely boost your accuracy, but remember they often carry the most societal bias.</p>",
+            "rank_message": "# 🌟 Rank Up! Senior Engineer\n<p style='font-size:24px; line-height:1.4;'>Strongest Data Ingredients Unlocked!</p>",
             "model_choices": list(MODEL_TYPES.keys()),
-            "model_value": current_model if current_model in MODEL_TYPES else "The Deep Pattern-Finder",
+            "model_value": current_model,
             "model_interactive": True,
             "complexity_max": 8,
             "complexity_value": min(current_complexity, 8),
@@ -1524,14 +1547,16 @@ def compute_rank_settings(
             "feature_set_value": current_feature_set,
             "feature_set_interactive": True,
             "data_size_choices": ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"],
-            "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Small (20%)",
+            "data_size_value": current_data_size,
             "data_size_interactive": True,
         }
+
+    # --- 🟣 LEAD ENGINEER (Rank 3+) ---
     else:
         return {
             "rank_message": "# 👑 Rank: Lead Engineer\n<p style='font-size:24px; line-height:1.4;'>All tools unlocked — optimize freely!</p>",
             "model_choices": list(MODEL_TYPES.keys()),
-            "model_value": current_model if current_model in MODEL_TYPES else "The Balanced Generalist",
+            "model_value": current_model,
             "model_interactive": True,
             "complexity_max": 10,
             "complexity_value": current_complexity,
@@ -1539,10 +1564,10 @@ def compute_rank_settings(
             "feature_set_value": current_feature_set,
             "feature_set_interactive": True,
             "data_size_choices": ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"],
-            "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Small (20%)",
+            "data_size_value": current_data_size,
             "data_size_interactive": True,
         }
-
+      
 # Find components by name to yield updates
 # --- Existing global component placeholders ---
 submit_button = None
@@ -3687,7 +3712,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                         feature_set_checkbox = gr.CheckboxGroup(
                             label="3. Select Ingredients",
                             choices=FEATURE_SET_ALL_OPTIONS,
-                            value=DEFAULT_FEATURE_SET,
+                            value=[],  # <--- CHANGED: Start empty to force click
                             interactive=True
                         )
 
@@ -3697,8 +3722,8 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                         instr_4 = gr.HTML(html_step_4_size) 
                         data_size_radio = gr.Radio(
                             label="4. Select Dataset Size",
-                            choices=[DEFAULT_DATA_SIZE],
-                            value=DEFAULT_DATA_SIZE,
+                            choices=[DEFAULT_DATA_SIZE], # Or ["Small (20%)", "Full (100%)"]
+                            value=None,  # <--- CHANGED: Start None to force click
                             interactive=True
                         )
 
