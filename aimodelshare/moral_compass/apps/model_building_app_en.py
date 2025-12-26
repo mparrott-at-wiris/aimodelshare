@@ -2500,7 +2500,39 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
     global username_state, token_state
     global readiness_state, was_preview_state, kpi_meta_state
     global last_seen_ts_state
-    
+  
+    def update_init_status():
+            """
+            Poll initialization status and update UI elements.
+            Returns status HTML, banner visibility, submit button state, data size choices, and readiness_state.
+            """
+            status_html, ready = poll_init_status()
+            
+            # Update banner visibility - hide when ready
+            banner_visible = not ready
+            
+            # Update submit button
+            if ready:
+                submit_label = "5. 🔬 Build & Submit Model"
+                submit_interactive = True
+            else:
+                submit_label = "⏳ Waiting for data..."
+                submit_interactive = False
+            
+            # Get available data sizes based on init progress
+            available_sizes = get_available_data_sizes()
+            
+            # Stop timer once fully initialized
+            timer_active = not (ready and INIT_FLAGS.get("pre_samples_full", False))
+            
+            return (
+                status_html,
+                gr.update(visible=banner_visible),
+                gr.update(value=submit_label, interactive=submit_interactive),
+                gr.update(choices=available_sizes),
+                timer_active,
+                ready  # readiness_state
+            )
     # -------------------------------------------------------------------------
     # CSS
     # -------------------------------------------------------------------------
