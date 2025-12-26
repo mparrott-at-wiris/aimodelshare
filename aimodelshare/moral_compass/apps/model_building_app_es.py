@@ -1432,10 +1432,10 @@ def _build_individual_html(individual_summary_df, username):
     <table class='leaderboard-html-table'>
         <thead>
             <tr>
-                <th>Rank</th>
-                <th>Engineer</th>
-                <th>Best_Score</th>
-                <th>Submissions</th>
+                <th>Posición</th>
+                <th>Ingeniero/a</th>
+                <th>Mejor_Puntuación</th>
+                <th>Envíos</th>
             </tr>
         </thead>
         <tbody>
