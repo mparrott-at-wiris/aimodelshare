@@ -2484,8 +2484,7 @@ def build_conclusion_from_state(best_score, submissions, rank, first_score, feat
 def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """
     Create (but do not launch) the model building game app.
-    Updated: Adds Welcome Step to tutorial, auto-starts tutorial on load,
-    and provides navigation logic that combines scrolling + tour triggering.
+    Updated: Uses robust JS loader to ensure Driver.js is ready before running.
     """
     start_background_init()
 
@@ -2500,87 +2499,200 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
     global username_state, token_state
     global readiness_state, was_preview_state, kpi_meta_state
     global last_seen_ts_state
-  
+    
+    # -------------------------------------------------------------------------
+    # 1. HELPER FUNCTIONS
+    # -------------------------------------------------------------------------
+    
     def update_init_status():
-            """
-            Poll initialization status and update UI elements.
-            Returns status HTML, banner visibility, submit button state, data size choices, and readiness_state.
-            """
-            status_html, ready = poll_init_status()
+        """Poll initialization status and update UI elements."""
+        status_html, ready = poll_init_status()
+        banner_visible = not ready
+        
+        if ready:
+            submit_label = "5. 🔬 Build & Submit Model"
+            submit_interactive = True
+        else:
+            submit_label = "⏳ Waiting for data..."
+            submit_interactive = False
+        
+        available_sizes = get_available_data_sizes()
+        timer_active = not (ready and INIT_FLAGS.get("pre_samples_full", False))
+        
+        return (
+            status_html,
+            gr.update(visible=banner_visible),
+            gr.update(value=submit_label, interactive=submit_interactive),
+            gr.update(choices=available_sizes),
+            timer_active,
+            ready 
+        )
+
+    def handle_load_with_session_auth(request: gr.Request):
+        """Check for session token, auto-login if present, then load initial UI."""
+        success, username, token = _try_session_based_auth(request)
+        
+        if success and username and token:
+            _log(f"Session auth successful on load for {username}")
+            stats = _compute_user_stats(username, token)
+            team_name = stats.get("team_name", "")
+            initial_results = on_initial_load(username, token=token, team_name=team_name)
             
-            # Update banner visibility - hide when ready
-            banner_visible = not ready
-            
-            # Update submit button
-            if ready:
-                submit_label = "5. 🔬 Build & Submit Model"
-                submit_interactive = True
-            else:
-                submit_label = "⏳ Waiting for data..."
-                submit_interactive = False
-            
-            # Get available data sizes based on init progress
-            available_sizes = get_available_data_sizes()
-            
-            # Stop timer once fully initialized
-            timer_active = not (ready and INIT_FLAGS.get("pre_samples_full", False))
-            
-            return (
-                status_html,
-                gr.update(visible=banner_visible),
-                gr.update(value=submit_label, interactive=submit_interactive),
-                gr.update(choices=available_sizes),
-                timer_active,
-                ready  # readiness_state
+            return initial_results + (
+                gr.update(visible=False), gr.update(visible=False), 
+                gr.update(visible=False), gr.update(visible=False),
+                username, token, team_name
             )
-              # Handle session-based authentication on page load
-    def handle_load_with_session_auth(request: "gr.Request"):
-            """
-            Check for session token, auto-login if present, then load initial UI with stats.
+        else:
+            _log("No valid session on load, showing login form")
+            initial_results = on_initial_load(None, token=None, team_name="")
+            return initial_results + (
+                gr.update(visible=True), gr.update(visible=True),
+                gr.update(visible=True), gr.update(visible=False),
+                None, None, ""
+            )
+
+    # -------------------------------------------------------------------------
+    # 2. ROBUST TUTORIAL JAVASCRIPT
+    # -------------------------------------------------------------------------
+    
+    # This JSON string defines the steps. We format it here to inject into the JS below.
+    # Note: Double braces {{ }} are needed for Python f-strings to output literal curly braces.
+    steps_json = """
+    [
+        {
+            element: '#tour-intro-header',
+            popover: {
+                title: '🏟️ Welcome to the Model Building Arena!',
+                description: '<b>Your Role:</b> AI Engineer<br><b>Your Goal:</b> Build the most accurate model to predict recidivism.<br><b>How to Win:</b> Configure your settings, submit your model, and climb the live leaderboard!<br><br><i>(Click "Next" for a tour, or "X" to skip instructions)</i>',
+                side: "bottom",
+                align: 'center'
+            }
+        },
+        {
+            element: '#tour-model-strategy',
+            popover: {
+                title: '1. Model Strategy (The Brain)',
+                description: 'Choose the "brain" of your machine. <br><br><b>Balanced Generalist:</b> Consistent & reliable.<br><b>Rule-Maker:</b> Simple "If/Then" logic.<br><b>Pattern-Finder:</b> Finds deep, hidden connections.',
+                side: "right",
+                align: 'start'
+            }
+        },
+        {
+            element: '#tour-model-complexity',
+            popover: {
+                title: '2. Model Complexity',
+                description: 'Adjust how much detail the model learns.<br><br><b>Low (1-3):</b> Learns general patterns.<br><b>High (8-10):</b> Learns specific details.<br><br>⚠️ <b>Warning:</b> Too high might make it "memorize" noise instead of learning rules!',
+                side: "bottom",
+                align: 'start'
+            }
+        },
+        {
+            element: '#tour-data-features',
+            popover: {
+                title: '3. Data Ingredients',
+                description: 'Select what information the AI sees. <br><br><b>Behavioral Inputs:</b> (e.g., Prior Crimes) help identify risk based on facts.<br><b>Demographic Inputs:</b> (e.g., Race) might help accuracy but can replicate human bias.',
+                side: "top",
+                align: 'start'
+            }
+        },
+        {
+            element: '#tour-data-size',
+            popover: {
+                title: '4. Data Size',
+                description: 'How many historical cases to learn from.<br><br><b>Small (20%):</b> Fast processing. Good for testing.<br><b>Full (100%):</b> Slower, but highest accuracy potential.',
+                side: "top",
+                align: 'start'
+            }
+        },
+        {
+            element: '#tour-submit-button',
+            popover: {
+                title: '5. Build & Submit',
+                description: 'Click here to train your model!<br><br>We will test it on <b>Hidden Data</b> (cases the model has never seen) to calculate your true accuracy score and rank you on the leaderboard.',
+                side: "top",
+                align: 'center'
+            }
+        }
+    ]
+    """
+
+    # Shared Logic: Checks if Driver exists, loads if not, then runs.
+    # We define the runner function inside the string to avoid global scope pollution.
+    start_tour_logic_js = f"""
+    () => {{
+        function runDriver() {{
+            try {{
+                const driver = window.driver.js.driver;
+                const driverObj = driver({{
+                    showProgress: true,
+                    animate: true,
+                    allowClose: true,
+                    steps: {steps_json}
+                }});
+                driverObj.drive();
+            }} catch (e) {{
+                console.error("Driver.js failed to initialize:", e);
+            }}
+        }}
+
+        if (!window.driver || !window.driver.js) {{
+            console.log("Driver.js not loaded. Loading now...");
             
-            Concurrency Note: This function does NOT set per-user values in os.environ.
-            All authentication state is returned via gr.State objects (username_state,
-            token_state, team_name_state) to prevent cross-user data leakage.
-            """
-            success, username, token = _try_session_based_auth(request)
-            
-            if success and username and token:
-                _log(f"Session auth successful on load for {username}")
-                
-                # Get user stats and team from cache/leaderboard
-                stats = _compute_user_stats(username, token)
-                team_name = stats.get("team_name", "")
-                
-                # Concurrency Note: Do NOT set os.environ for per-user values.
-                # Return state via gr.State objects exclusively.
-                
-                # Hide login form since user is authenticated via session
-                # Return initial load results plus login form hidden
-                # Pass token explicitly for authenticated leaderboard fetch
-                initial_results = on_initial_load(username, token=token, team_name=team_name)
-                return initial_results + (
-                    gr.update(visible=False),  # login_username
-                    gr.update(visible=False),  # login_password  
-                    gr.update(visible=False),  # login_submit
-                    gr.update(visible=False),  # login_error (hide any messages)
-                    username,  # username_state
-                    token,     # token_state
-                    team_name, # team_name_state
-                )
-            else:
-                _log("No valid session on load, showing login form")
-                # No valid session, proceed with normal load (show login form)
-                # No token available, call without token
-                initial_results = on_initial_load(None, token=None, team_name="")
-                return initial_results + (
-                    gr.update(visible=True),   # login_username
-                    gr.update(visible=True),   # login_password
-                    gr.update(visible=True),   # login_submit
-                    gr.update(visible=False),  # login_error
-                    None,  # username_state
-                    None,  # token_state
-                    "",    # team_name_state
-                )
+            // Load CSS
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css';
+            document.head.appendChild(link);
+
+            // Load JS
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js';
+            script.onload = () => {{
+                console.log("Driver.js loaded. Starting tour...");
+                // Short delay to ensure parsing is done
+                setTimeout(runDriver, 100);
+            }};
+            document.head.appendChild(script);
+        }} else {{
+            runDriver();
+        }}
+    }}
+    """
+
+    # Navigation + Auto-Start logic (Injects the same robust loader)
+    nav_and_tour_js = f"""
+    () => {{
+        // 1. Show Visual Overlay
+        const overlay = document.getElementById('nav-loading-overlay');
+        const messageEl = document.getElementById('nav-loading-text');
+        if(overlay && messageEl) {{
+            messageEl.textContent = 'Entering Model Arena...';
+            overlay.style.display = 'flex';
+            setTimeout(() => {{ overlay.style.opacity = '1'; }}, 10);
+        }}
+
+        // 2. Scroll and Hide Overlay
+        setTimeout(() => {{
+             const element = document.getElementById('model-step');
+             if(element) element.scrollIntoView({{behavior:'smooth', block:'start'}});
+             
+             // Hide overlay
+             setTimeout(() => {{ 
+                if(overlay) {{ 
+                    overlay.style.opacity = '0'; 
+                    setTimeout(()=>overlay.style.display='none', 300); 
+                    
+                    // 3. Trigger the Robust Tour Logic
+                    // We simply call the function defined in the string above
+                    const runner = {start_tour_logic_js};
+                    runner();
+                }} 
+             }}, 1000);
+        }}, 100);
+    }}
+    """
+  
     # -------------------------------------------------------------------------
     # CSS
     # -------------------------------------------------------------------------
@@ -3389,150 +3501,10 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         }
     }
     
-/* Driver.js Z-Index Fixes */
-    .driver-popover {
-        z-index: 10000 !important;
-        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        max-width: 400px !important;
-    }
-    
-    div#driver-highlighted-element-stage, div#driver-page-overlay {
-        z-index: 9999 !important;
-    }
-    
-    /* Scroll offsets for tour targets */
-    #tour-intro-header, #tour-model-strategy, #tour-model-complexity, #tour-data-features, #tour-data-size, #tour-submit-button {
-        scroll-margin-top: 100px; 
-    }
-    """
-    
-    # -------------------------------------------------------------------------
-    # Driver.js Configuration
-    # -------------------------------------------------------------------------
-    
-    # The list of steps, centralized so we can use it in both the button and the auto-load logic
-    driver_steps = """
-    [
-        {
-            element: '#tour-intro-header',
-            popover: {
-                title: '🏟️ Welcome to the Model Building Arena!',
-                description: '<b>Your Role:</b> AI Engineer<br><b>Your Goal:</b> Build the most accurate model to predict recidivism.<br><b>How to Win:</b> Configure your settings, submit your model, and climb the live leaderboard!<br><br><i>(Click "Next" for a tour, or "X" to skip instructions)</i>',
-                side: "bottom",
-                align: 'center'
-            }
-        },
-        {
-            element: '#tour-model-strategy',
-            popover: {
-                title: '1. Model Strategy (The Brain)',
-                description: 'Choose the "brain" of your machine. <br><br><b>Balanced Generalist:</b> Consistent & reliable.<br><b>Rule-Maker:</b> Simple "If/Then" logic.<br><b>Pattern-Finder:</b> Finds deep, hidden connections.',
-                side: "right",
-                align: 'start'
-            }
-        },
-        {
-            element: '#tour-model-complexity',
-            popover: {
-                title: '2. Model Complexity',
-                description: 'Adjust how much detail the model learns.<br><br><b>Low (1-3):</b> Learns general patterns.<br><b>High (8-10):</b> Learns specific details.<br><br>⚠️ <b>Warning:</b> Too high might make it "memorize" noise instead of learning rules!',
-                side: "bottom",
-                align: 'start'
-            }
-        },
-        {
-            element: '#tour-data-features',
-            popover: {
-                title: '3. Data Ingredients',
-                description: 'Select what information the AI sees. <br><br><b>Behavioral Inputs:</b> (e.g., Prior Crimes) help identify risk based on facts.<br><b>Demographic Inputs:</b> (e.g., Race) might help accuracy but can replicate human bias.',
-                side: "top",
-                align: 'start'
-            }
-        },
-        {
-            element: '#tour-data-size',
-            popover: {
-                title: '4. Data Size',
-                description: 'How many historical cases to learn from.<br><br><b>Small (20%):</b> Fast processing. Good for testing.<br><b>Full (100%):</b> Slower, but highest accuracy potential.',
-                side: "top",
-                align: 'start'
-            }
-        },
-        {
-            element: '#tour-submit-button',
-            popover: {
-                title: '5. Build & Submit',
-                description: 'Click here to train your model!<br><br>We will test it on <b>Hidden Data</b> (cases the model has never seen) to calculate your true accuracy score and rank you on the leaderboard.',
-                side: "top",
-                align: 'center'
-            }
-        }
-    ]
-    """
-
-    # JS for the manual "Start Tutorial" button
-    tour_js = f"""
-    () => {{
-        const driver = window.driver.js.driver;
-        const driverObj = driver({{
-            showProgress: true,
-            animate: true,
-            allowClose: true,
-            steps: {driver_steps}
-        }});
-        driverObj.drive();
-    }}
-    """
-
-    # JS for the Auto-Run on Load (Nav + Tour)
-    # This combines the visual loading overlay with the tour trigger
-    nav_and_tour_js = f"""
-    () => {{
-        // 1. Show Navigation Overlay
-        const overlay = document.getElementById('nav-loading-overlay');
-        const messageEl = document.getElementById('nav-loading-text');
-        if(overlay && messageEl) {{
-            messageEl.textContent = 'Entering Model Arena...';
-            overlay.style.display = 'flex';
-            setTimeout(() => {{ overlay.style.opacity = '1'; }}, 10);
-        }}
-
-        // 2. Perform Scroll and Overlay Hiding logic
-        setTimeout(() => {{
-             const element = document.getElementById('model-step');
-             if(element) element.scrollIntoView({{behavior:'smooth', block:'start'}});
-             
-             // Hide overlay
-             setTimeout(() => {{ 
-                if(overlay) {{ 
-                    overlay.style.opacity = '0'; 
-                    setTimeout(()=>overlay.style.display='none', 300); 
-                    
-                    // 3. START TOUR (Wait for overlay to clear)
-                    setTimeout(() => {{
-                        const driver = window.driver.js.driver;
-                        const driverObj = driver({{
-                            showProgress: true,
-                            animate: true,
-                            allowClose: true,
-                            steps: {driver_steps}
-                        }});
-                        driverObj.drive();
-                    }}, 500);
-                }} 
-             }}, 1000);
-        }}, 100);
-    }}
-    """
-
-    with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css) as demo:
+with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css) as demo:
         
-        # 1. Inject Driver.js Library via HTML
-        gr.HTML("""
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
-            <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
-            <div id='app_top_anchor' style='height:0;'></div>
-        """)
+        # Inject styling div for scroll anchor
+        gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
         
         # Navigation loading overlay
         gr.HTML("""
@@ -3639,9 +3611,9 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 with gr.Column(scale=1, min_width=100):
                      pass
                 with gr.Column(scale=2, min_width=300):
-                     # This button triggers the JS tour manually
+                     # This button triggers the JS tour manually using the Robust Loader logic
                     start_tour_btn = gr.Button("👋 Replay Tutorial", variant="secondary", size="sm")
-                    start_tour_btn.click(None, None, None, js=tour_js)
+                    start_tour_btn.click(None, None, None, js=start_tour_logic_js)
                 with gr.Column(scale=1, min_width=100):
                      pass
 
@@ -3840,42 +3812,6 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             js=nav_js("model-step", "Running...")
         )
 
-        # -------------------------------------------------------------------------
-        # DEFINITION MOVED HERE (Before Timer Logic)
-        # -------------------------------------------------------------------------
-        def update_init_status():
-            """
-            Poll initialization status and update UI elements.
-            Returns status HTML, banner visibility, submit button state, data size choices, and readiness_state.
-            """
-            status_html, ready = poll_init_status()
-            
-            # Update banner visibility - hide when ready
-            banner_visible = not ready
-            
-            # Update submit button
-            if ready:
-                submit_label = "5. 🔬 Build & Submit Model"
-                submit_interactive = True
-            else:
-                submit_label = "⏳ Waiting for data..."
-                submit_interactive = False
-            
-            # Get available data sizes based on init progress
-            available_sizes = get_available_data_sizes()
-            
-            # Stop timer once fully initialized
-            timer_active = not (ready and INIT_FLAGS.get("pre_samples_full", False))
-            
-            return (
-                status_html,
-                gr.update(visible=banner_visible),
-                gr.update(value=submit_label, interactive=submit_interactive),
-                gr.update(choices=available_sizes),
-                timer_active,
-                ready  # readiness_state
-            )
-
         # Timer logic
         status_timer = gr.Timer(value=0.5, active=True)
         status_timer.tick(
@@ -3892,25 +3828,3 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         )
 
     return demo
-# -------------------------------------------------------------------------
-# 4. Convenience Launcher
-# -------------------------------------------------------------------------
-
-def launch_model_building_game_en_app(height: int = 1200, share: bool = False, debug: bool = False) -> None:
-    """
-    Create and directly launch the Model Building Game app inline (e.g., in notebooks).
-    """
-    global playground, X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST
-    if playground is None:
-        try:
-            playground = Competition(MY_PLAYGROUND_ID)
-        except Exception as e:
-            print(f"WARNING: Could not connect to playground: {e}")
-            playground = None
-
-    if X_TRAIN_RAW is None:
-        X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data()
-
-    demo = create_model_building_game_en_app()
-    port = int(os.environ.get("PORT", 8080))
-    demo.launch(share=share, inline=True, debug=debug, height=height, server_port=port)
