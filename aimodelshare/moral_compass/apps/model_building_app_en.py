@@ -2504,20 +2504,27 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
     # 1. HELPER FUNCTIONS (Defined at top to ensure visibility)
     # -------------------------------------------------------------------------
     def update_init_status():
+        """Poll initialization status and update UI elements."""
         status_html, ready = poll_init_status()
         banner_visible = not ready
-    
-        submit_label = "5. 🔬 Build & Submit Model" if ready else "⏳ Waiting for data..."
-        submit_interactive = ready
-    
+        
+        if ready:
+            submit_label = "5. 🔬 Build & Submit Model"
+            submit_interactive = True
+        else:
+            submit_label = "⏳ Waiting for data..."
+            submit_interactive = False
+        
         available_sizes = get_available_data_sizes()
-    
+        timer_active = not (ready and INIT_FLAGS.get("pre_samples_full", False))
+        
         return (
             status_html,
             gr.update(visible=banner_visible),
             gr.update(value=submit_label, interactive=submit_interactive),
             gr.update(choices=available_sizes),
-            ready,
+            timer_active,
+            ready 
         )
 
     def handle_load_with_session_auth(request: gr.Request):
@@ -2552,108 +2559,92 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
     <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
     
     <script>
-    // 1. Define the specific steps for the Game Tour
     window.gameTourSteps = [
-        {
-            element: '#tour-intro-header',
-            popover: {
-                title: '🏟️ Welcome to the Model Building Arena!',
-                description: '<b>Your Role:</b> AI Engineer<br><b>Your Goal:</b> Build the most accurate model to predict recidivism.<br><b>How to Win:</b> Configure your settings, submit your model, and climb the live leaderboard!<br><br><i>(Click "Next" for a tour, or "X" to skip instructions)</i>',
-                side: "bottom",
-                align: 'center'
-            }
-        },
-        {
-            element: '#tour-model-strategy',
-            popover: {
-                title: '1. Model Strategy (The Brain)',
-                description: 'Choose the "brain" of your machine. <br><br><b>Balanced Generalist:</b> Consistent & reliable.<br><b>Rule-Maker:</b> Simple "If/Then" logic.<br><b>Pattern-Finder:</b> Finds deep, hidden connections.',
-                side: "right", align: 'start'
-            }
-        },
-        {
-            element: '#tour-model-complexity',
-            popover: {
-                title: '2. Model Complexity',
-                description: 'Adjust how much detail the model learns.<br><br><b>Low (1-3):</b> Learns general patterns.<br><b>High (8-10):</b> Learns specific details.<br><br>⚠️ <b>Warning:</b> Too high might make it "memorize" noise instead of learning rules!',
-                side: "bottom", align: 'start'
-            }
-        },
-        {
-            element: '#tour-data-features',
-            popover: {
-                title: '3. Data Ingredients',
-                description: 'Select what information the AI sees. <br><br><b>Behavioral Inputs:</b> (e.g., Prior Crimes) help identify risk based on facts.<br><b>Demographic Inputs:</b> (e.g., Race) might help accuracy but can replicate human bias.',
-                side: "top", align: 'start'
-            }
-        },
-        {
-            element: '#tour-data-size',
-            popover: {
-                title: '4. Data Size',
-                description: 'How many historical cases to learn from.<br><br><b>Small (20%):</b> Fast processing. Good for testing.<br><b>Full (100%):</b> Slower, but highest accuracy potential.',
-                side: "top", align: 'start'
-            }
-        },
-        {
-            element: '#tour-submit-button',
-            popover: {
-                title: '5. Build & Submit',
-                description: 'Click here to train your model!<br><br>We will test it on <b>Hidden Data</b> (cases the model has never seen) to calculate your true accuracy score and rank you on the leaderboard.',
-                side: "top", align: 'center'
-            }
-        }
+      { element:'#tour-intro-header', popover:{ title:'🏟️ Welcome to the Model Building Arena!', description:'...', side:'bottom', align:'center' } },
+      { element:'#tour-model-strategy', popover:{ title:'1. Model Strategy (The Brain)', description:'...', side:'right', align:'start' } },
+      { element:'#tour-model-complexity', popover:{ title:'2. Model Complexity', description:'...', side:'bottom', align:'start' } },
+      { element:'#tour-data-features', popover:{ title:'3. Data Ingredients', description:'...', side:'top', align:'start' } },
+      { element:'#tour-data-size', popover:{ title:'4. Data Size', description:'...', side:'top', align:'start' } },
+      { element:'#tour-submit-button', popover:{ title:'5. Build & Submit', description:'...', side:'top', align:'center' } },
     ];
-
-    // 2. Main function to start the tour
+    
+    // Main function to start the tour (robust driver.js global lookup)
     window.startTour = () => {
-        const driver = window.driver.js.driver;
-        const driverObj = driver({
-            showProgress: true,
-            animate: true,
-            allowClose: true,
-            steps: window.gameTourSteps
-        });
-        driverObj.drive();
-    }
-
-    // 3. Helper to show the loading overlay
+      const drv =
+        (window.driver && window.driver.js && window.driver.js.driver) ||
+        (window.driverjs && window.driverjs.driver) ||
+        window.driver;
+    
+      if (!drv) {
+        console.error("❌ Driver.js not found on window.");
+        return;
+      }
+    
+      const driverObj = drv({
+        showProgress: true,
+        animate: true,
+        allowClose: true,
+        steps: window.gameTourSteps
+      });
+    
+      driverObj.drive();
+    };
+    
     window.showLoader = () => {
-        const overlay = document.getElementById('nav-loading-overlay');
-        const msg = document.getElementById('nav-loading-text');
-        if(overlay && msg) {
-            msg.textContent = 'Entering Model Arena...';
-            overlay.style.display = 'flex';
-            setTimeout(() => { overlay.style.opacity = '1'; }, 10);
-        }
-    }
-
-    // 4. SMART WAITER: Waits for the Arena to render, then starts tour
+      const overlay = document.getElementById('nav-loading-overlay');
+      const msg = document.getElementById('nav-loading-text');
+      if (overlay && msg) {
+        msg.textContent = 'Entering Model Arena...';
+        overlay.style.display = 'flex';
+        setTimeout(() => { overlay.style.opacity = '1'; }, 10);
+      }
+    };
+    
+    // SMART WAITER: waits for ALL tour targets to exist + be visible
     window.waitForArenaAndStartTour = () => {
-        // First, hide the overlay smoothly
-        const overlay = document.getElementById('nav-loading-overlay');
-        if(overlay) {
-            overlay.style.opacity = '0';
-            setTimeout(() => overlay.style.display = 'none', 300);
+      console.log("⏳ Waiting for Model Building Arena to fully render...");
+    
+      const overlay = document.getElementById('nav-loading-overlay');
+      if (overlay) {
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.style.display = 'none', 300);
+      }
+    
+      const requiredSelectors = [
+        '#tour-intro-header',
+        '#tour-model-strategy',
+        '#tour-model-complexity',
+        '#tour-data-features',
+        '#tour-data-size',
+        '#tour-submit-button'
+      ];
+    
+      let attempts = 0;
+      const maxAttempts = 100; // ~10 seconds
+    
+      const checkReady = setInterval(() => {
+        attempts++;
+    
+        const allReady = requiredSelectors.every(selector => {
+          const el = document.querySelector(selector);
+          return el && el.offsetParent !== null;
+        });
+    
+        if (allReady) {
+          clearInterval(checkReady);
+          console.log("✅ Arena fully ready. Starting tour...");
+          setTimeout(() => window.startTour && window.startTour(), 300);
         }
-
-        // Poll for the Header Element to ensure it exists in DOM
-        const checkExist = setInterval(function() {
-           const target = document.querySelector('#tour-intro-header');
-           // Check if it exists AND is visible (not display:none)
-           if (target && target.offsetParent !== null) {
-              clearInterval(checkExist);
-              console.log("Arena detected. Starting Tour...");
-              // Small delay to allow CSS transitions to finish
-              setTimeout(window.startTour, 500);
-           }
-        }, 100); // Check every 100ms
-        
-        // Safety timeout: stop checking after 10 seconds
-        setTimeout(() => clearInterval(checkExist), 10000);
-    }
+    
+        if (attempts >= maxAttempts) {
+          clearInterval(checkReady);
+          console.warn("⚠️ Tour aborted: elements not ready in time.", requiredSelectors);
+        }
+      }, 100);
+    };
     </script>
     """
+
   
     # -------------------------------------------------------------------------
     # CSS
@@ -3482,7 +3473,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
   
 
 
-    with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css, head=head_content) as demo:
+with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css, head=head_content) as demo:
         
         # Inject styling div for scroll anchor
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
@@ -3585,7 +3576,8 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             
             with gr.Row():
                 # HEADER with ID for Tour Step 0
-                gr.Markdown("<h1 id='tour-intro-header' style='text-align:center; margin-bottom:0;'>🛠️ Model Building Arena</h1>")
+                gr.Markdown("## 🛠️ Model Building Arena", elem_id="tour-intro-header")
+
             
             # Manual Tour Button
             with gr.Row():
@@ -3594,8 +3586,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 with gr.Column(scale=2, min_width=300):
                      # This button calls the GLOBAL window function
                     start_tour_btn = gr.Button("👋 Replay Tutorial", variant="secondary", size="sm")
-                    start_tour_btn.click(None, None, None, js="() => { if (window.startTour) window.startTour(); }")
-
+                    start_tour_btn.click(None, None, None, js="window.startTour()")
                 with gr.Column(scale=1, min_width=100):
                      pass
 
@@ -3750,18 +3741,14 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         # 3. Trigger window.waitForArenaAndStartTour() to ensure elements exist.
         # ----------------------------------------------------------------------------------
         briefing_4_next.click(
-            fn=None,
-            inputs=None,
-            outputs=None,
-            js="() => { if (window.showLoader) window.showLoader(); }"
+            fn=None, 
+            js="window.showLoader()" 
         ).then(
-            fn=create_nav(briefing_slide_4, model_building_step),
+            fn=create_nav(briefing_slide_4, model_building_step), 
             outputs=all_steps_nav
         ).then(
-            fn=None,
-            inputs=None,
-            outputs=None,
-            js="() => { if (window.waitForArenaAndStartTour) window.waitForArenaAndStartTour(); }"
+            fn=None, 
+            js="window.waitForArenaAndStartTour()"
         )
 
         # Conclusion nav
@@ -3813,18 +3800,10 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         )
 
         # Timer logic
-        status_timer = gr.Timer(value=1.0, active=True)
-        
+        status_timer = gr.Timer(value=0.5, active=True)
         status_timer.tick(
             fn=update_init_status,
-            outputs=[
-                init_status_display,
-                init_banner,
-                submit_button,
-                data_size_radio,
-                readiness_state,
-            ],
-            queue=False,   # CRITICAL: prevents join flood
+            outputs=[init_status_display, init_banner, submit_button, data_size_radio, status_timer, readiness_state]
         )
         
         # Load Handler
