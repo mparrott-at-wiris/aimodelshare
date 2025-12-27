@@ -4191,7 +4191,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 current_feature_set or DEFAULT_FEATURE_SET,
                 current_data_size or DEFAULT_DATA_SIZE
             )
-            # Show login only if user is not authenticated (both username and token must be present)
+            # Show login only if user is not authenticated (username or token is missing)
             show_login = not (username and token)
             return {
                 tutorial_panel: gr.update(visible=False),
