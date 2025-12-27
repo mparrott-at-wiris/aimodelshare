@@ -1,21 +1,40 @@
 FROM python:3.12-slim
 
-ENV PYTHONUNBUFFERED=1
+# ---------------------------------------------------------------------
+# CRITICAL PERFORMANCE FIX: Prevent CPU Oversubscription
+# ---------------------------------------------------------------------
+# By default, NumPy/Pandas try to use multiple threads per request.
+# On Cloud Run (2 vCPU), this causes thread contention, leading to 
+# timeouts and the "Join" refresh loop you saw.
+# We force math libraries to use 1 thread, letting Gradio manage user concurrency.
+ENV OMP_NUM_THREADS=1 \
+    MKL_NUM_THREADS=1 \
+    OPENBLAS_NUM_THREADS=1 \
+    VECLIB_MAXIMUM_THREADS=1 \
+    NUMEXPR_NUM_THREADS=1 \
+    PYTHONUNBUFFERED=1
 
+# Install system dependencies
+# Added 'sqlite3' for easier debugging of the cache if needed
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \
     gcc \
     python3-dev \
+    sqlite3 \
   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
+# Install Python dependencies
 COPY requirements-apps.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements-apps.txt && \
     pip install aimodelshare --no-dependencies
 
+# ---------------------------------------------------------------------
+# Cache Conversion Layer
+# ---------------------------------------------------------------------
 # 1. Copy the raw JSON cache
 COPY prediction_cache.json.gz .
 
@@ -23,13 +42,19 @@ COPY prediction_cache.json.gz .
 COPY convert_db.py .
 
 # 3. RUN the conversion immediately. 
-# This turns the 50MB JSON into a fast SQLite DB inside the image.
+# This burns the optimized SQLite DB into the image layer.
 RUN python convert_db.py && rm prediction_cache.json.gz
 
+# ---------------------------------------------------------------------
+# Final Setup
+# ---------------------------------------------------------------------
 COPY . .
 
+# Healthcheck to ensure container is responsive
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD python -c "import socket,os; s=socket.socket(); s.settimeout(2); s.connect(('127.0.0.1', int(os.environ.get('PORT','8080')))); s.close()" || exit 1
 
 EXPOSE 8080
+
+# This runs the dispatcher script to select the correct app
 CMD ["python", "launch_entrypoint.py"]
