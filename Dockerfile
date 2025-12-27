@@ -15,13 +15,14 @@ ENV OMP_NUM_THREADS=1 \
     PYTHONUNBUFFERED=1
 
 # Install system dependencies
-# Added 'sqlite3' for easier debugging of the cache if needed
+# Added 'sqlite3' for debug and 'wget' for downloading data during build
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \
     gcc \
     python3-dev \
     sqlite3 \
+    wget \
   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -44,6 +45,13 @@ COPY convert_db.py .
 # 3. RUN the conversion immediately. 
 # This burns the optimized SQLite DB into the image layer.
 RUN python convert_db.py && rm prediction_cache.json.gz
+
+# ---------------------------------------------------------------------
+# DATA CACHING: Download raw data during build
+# ---------------------------------------------------------------------
+# We download the CSV once here so the app never has to fetch it at runtime.
+# This prevents GitHub rate-limiting issues on Cloud Run.
+RUN wget -O compas.csv "https://raw.githubusercontent.com/propublica/compas-analysis/master/compas-scores-two-years.csv"
 
 # ---------------------------------------------------------------------
 # Final Setup
