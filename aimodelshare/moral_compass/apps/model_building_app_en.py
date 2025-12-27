@@ -2484,7 +2484,7 @@ def build_conclusion_from_state(best_score, submissions, rank, first_score, feat
 def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """
     Create (but do not launch) the model building game app.
-    Updated: Uses .then() chaining to ensure DOM is visible before starting Driver.js.
+    Updated: Uses Global Window Functions in <head> for reliable Driver.js execution.
     """
     start_background_init()
 
@@ -2501,9 +2501,8 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
     global last_seen_ts_state
     
     # -------------------------------------------------------------------------
-    # 1. HELPER FUNCTIONS
+    # 1. HELPER FUNCTIONS (Defined at top to ensure visibility)
     # -------------------------------------------------------------------------
-    
     def update_init_status():
         """Poll initialization status and update UI elements."""
         status_html, ready = poll_init_status()
@@ -2553,18 +2552,15 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             )
 
     # -------------------------------------------------------------------------
-    # 2. JAVASCRIPT & HEAD CONFIGURATION
+    # 2. HEAD CONTENT (CSS + Global JS Functions)
     # -------------------------------------------------------------------------
-    
-    # 1. Libraries to load in the <head> tag
     head_content = """
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
     <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
-    """
-
-    # 2. Tour Steps Definition
-    driver_steps = """
-    [
+    
+    <script>
+    // 1. Define the specific steps for the Game Tour
+    window.gameTourSteps = [
         {
             element: '#tour-intro-header',
             popover: {
@@ -2579,8 +2575,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             popover: {
                 title: '1. Model Strategy (The Brain)',
                 description: 'Choose the "brain" of your machine. <br><br><b>Balanced Generalist:</b> Consistent & reliable.<br><b>Rule-Maker:</b> Simple "If/Then" logic.<br><b>Pattern-Finder:</b> Finds deep, hidden connections.',
-                side: "right",
-                align: 'start'
+                side: "right", align: 'start'
             }
         },
         {
@@ -2588,8 +2583,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             popover: {
                 title: '2. Model Complexity',
                 description: 'Adjust how much detail the model learns.<br><br><b>Low (1-3):</b> Learns general patterns.<br><b>High (8-10):</b> Learns specific details.<br><br>⚠️ <b>Warning:</b> Too high might make it "memorize" noise instead of learning rules!',
-                side: "bottom",
-                align: 'start'
+                side: "bottom", align: 'start'
             }
         },
         {
@@ -2597,8 +2591,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             popover: {
                 title: '3. Data Ingredients',
                 description: 'Select what information the AI sees. <br><br><b>Behavioral Inputs:</b> (e.g., Prior Crimes) help identify risk based on facts.<br><b>Demographic Inputs:</b> (e.g., Race) might help accuracy but can replicate human bias.',
-                side: "top",
-                align: 'start'
+                side: "top", align: 'start'
             }
         },
         {
@@ -2606,8 +2599,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             popover: {
                 title: '4. Data Size',
                 description: 'How many historical cases to learn from.<br><br><b>Small (20%):</b> Fast processing. Good for testing.<br><b>Full (100%):</b> Slower, but highest accuracy potential.',
-                side: "top",
-                align: 'start'
+                side: "top", align: 'start'
             }
         },
         {
@@ -2615,76 +2607,59 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             popover: {
                 title: '5. Build & Submit',
                 description: 'Click here to train your model!<br><br>We will test it on <b>Hidden Data</b> (cases the model has never seen) to calculate your true accuracy score and rank you on the leaderboard.',
-                side: "top",
-                align: 'center'
+                side: "top", align: 'center'
             }
         }
-    ]
-    """
+    ];
 
-    # 3. JS to RUN the tour (Triggered AFTER visibility update)
-    run_tour_js = f"""
-    () => {{
-        // 1. Hide Overlay Immediately (So user is never stuck)
+    // 2. Main function to start the tour
+    window.startTour = () => {
+        const driver = window.driver.js.driver;
+        const driverObj = driver({
+            showProgress: true,
+            animate: true,
+            allowClose: true,
+            steps: window.gameTourSteps
+        });
+        driverObj.drive();
+    }
+
+    // 3. Helper to show the loading overlay
+    window.showLoader = () => {
         const overlay = document.getElementById('nav-loading-overlay');
-        if(overlay) {{ 
-            overlay.style.opacity = '0'; 
-            setTimeout(()=>overlay.style.display='none', 300); 
-        }}
-
-        // 2. Define the Start Logic
-        const startDriver = () => {{
-            // Wait for the specific element to exist in the DOM
-            const checkExist = setInterval(function() {{
-               const target = document.querySelector('#tour-intro-header');
-               if (target) {{
-                  clearInterval(checkExist);
-                  try {{
-                      // Initialize Driver
-                      const driver = window.driver.js.driver;
-                      const driverObj = driver({{
-                          showProgress: true,
-                          animate: true,
-                          allowClose: true,
-                          steps: {driver_steps}
-                      }});
-                      driverObj.drive();
-                  }} catch (e) {{
-                      console.error("Driver.js initialization error:", e);
-                  }}
-               }}
-            }}, 100); // check every 100ms
-        }};
-
-        // 3. Ensure Library is Loaded
-        if (!window.driver || !window.driver.js) {{
-            console.log("Driver.js not found. Loading dynamically...");
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = 'https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css';
-            document.head.appendChild(link);
-
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js';
-            script.onload = startDriver;
-            document.head.appendChild(script);
-        }} else {{
-            startDriver();
-        }}
-    }}
-    """
-
-    # 4. JS to Show Loading Overlay (Triggered IMMEDIATELY on click)
-    show_loader_js = """
-    () => {
-        const overlay = document.getElementById('nav-loading-overlay');
-        const messageEl = document.getElementById('nav-loading-text');
-        if(overlay && messageEl) {
-            messageEl.textContent = 'Entering Model Arena...';
+        const msg = document.getElementById('nav-loading-text');
+        if(overlay && msg) {
+            msg.textContent = 'Entering Model Arena...';
             overlay.style.display = 'flex';
             setTimeout(() => { overlay.style.opacity = '1'; }, 10);
         }
     }
+
+    // 4. SMART WAITER: Waits for the Arena to render, then starts tour
+    window.waitForArenaAndStartTour = () => {
+        // First, hide the overlay smoothly
+        const overlay = document.getElementById('nav-loading-overlay');
+        if(overlay) {
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.style.display = 'none', 300);
+        }
+
+        // Poll for the Header Element to ensure it exists in DOM
+        const checkExist = setInterval(function() {
+           const target = document.querySelector('#tour-intro-header');
+           // Check if it exists AND is visible (not display:none)
+           if (target && target.offsetParent !== null) {
+              clearInterval(checkExist);
+              console.log("Arena detected. Starting Tour...");
+              // Small delay to allow CSS transitions to finish
+              setTimeout(window.startTour, 500);
+           }
+        }, 100); // Check every 100ms
+        
+        // Safety timeout: stop checking after 10 seconds
+        setTimeout(() => clearInterval(checkExist), 10000);
+    }
+    </script>
     """
   
     # -------------------------------------------------------------------------
@@ -3511,54 +3486,14 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         scroll-margin-top: 100px; 
     }
     """
+  
     # 1. Libraries
     head_content = """
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
     <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
     """
 
-    # 2. Steps
-    driver_steps = """
-    [
-        {
-            element: '#tour-intro-header',
-            popover: { title: '🏟️ Welcome to the Model Building Arena!', description: '<b>Your Role:</b> AI Engineer<br><b>Your Goal:</b> Build the most accurate model to predict recidivism.<br><b>How to Win:</b> Configure your settings, submit your model, and climb the live leaderboard!<br><br><i>(Click "Next" for a tour, or "X" to skip instructions)</i>', side: "bottom", align: 'center' }
-        },
-        { element: '#tour-model-strategy', popover: { title: '1. Model Strategy', description: 'Choose the "brain" of your machine.<br><b>Balanced Generalist:</b> Consistent.<br><b>Rule-Maker:</b> Simple logic.<br><b>Pattern-Finder:</b> Complex hidden patterns.', side: "right", align: 'start' } },
-        { element: '#tour-model-complexity', popover: { title: '2. Model Complexity', description: '<b>Low (1-3):</b> General patterns.<br><b>High (8-10):</b> Specific details.<br>⚠️ Too high = memorizing noise!', side: "bottom", align: 'start' } },
-        { element: '#tour-data-features', popover: { title: '3. Data Ingredients', description: '<b>Behavioral:</b> Risk based on facts.<br><b>Demographic:</b> Can improve accuracy but adds bias.', side: "top", align: 'start' } },
-        { element: '#tour-data-size', popover: { title: '4. Data Size', description: '<b>Small:</b> Fast testing.<br><b>Full:</b> High accuracy, slower.', side: "top", align: 'start' } },
-        { element: '#tour-submit-button', popover: { title: '5. Build & Submit', description: 'We test on <b>Hidden Data</b> to calculate your true accuracy rank.', side: "top", align: 'center' } }
-    ]
-    """
-
-    # 3. Logic to Run Tour (Robust)
-    run_tour_js = f"""
-    () => {{
-        const overlay = document.getElementById('nav-loading-overlay');
-        if(overlay) {{ overlay.style.opacity = '0'; setTimeout(()=>overlay.style.display='none', 300); }}
-        
-        setTimeout(() => {{
-            try {{
-                const driver = window.driver.js.driver;
-                const driverObj = driver({{ showProgress: true, animate: true, allowClose: true, steps: {driver_steps} }});
-                driverObj.drive();
-            }} catch (e) {{ console.error("Driver error:", e); }}
-        }}, 500); 
-    }}
-    """
-
-    # 4. Logic to Show Overlay
-    show_loader_js = """
-    () => {
-        const overlay = document.getElementById('nav-loading-overlay');
-        const msg = document.getElementById('nav-loading-text');
-        if(overlay && msg) { msg.textContent = 'Entering Model Arena...'; overlay.style.display = 'flex'; setTimeout(() => { overlay.style.opacity = '1'; }, 10); }
-    }
-    """
-  
-    # Pass 'head' content here to ensure libraries load reliably
-    with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css, head=head_content) as demo:
+with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css, head=head_content) as demo:
         
         # Inject styling div for scroll anchor
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
@@ -3575,7 +3510,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         with gr.Column(visible=False) as loading_screen:
             gr.Markdown("<div style='text-align:center; padding:100px 0;'><h2 style='font-size:2rem; color:#6b7280;'>⏳ Loading...</h2></div>")
 
-        # --- Briefing Slideshow (Keep 1-4) ---
+        # --- Briefing Slideshow ---
 
         # Slide 1: Intro
         with gr.Column(visible=True, elem_id="slide-1") as briefing_slide_1:
@@ -3668,10 +3603,9 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 with gr.Column(scale=1, min_width=100):
                      pass
                 with gr.Column(scale=2, min_width=300):
-                     # This button triggers the JS tour manually using the Robust Loader logic
+                     # This button calls the GLOBAL window function
                     start_tour_btn = gr.Button("👋 Replay Tutorial", variant="secondary", size="sm")
-                    # Use run_tour_js directly for the replay button
-                    start_tour_btn.click(None, None, None, js=run_tour_js)
+                    start_tour_btn.click(None, None, None, js="window.startTour()")
                 with gr.Column(scale=1, min_width=100):
                      pass
 
@@ -3820,21 +3754,20 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         briefing_4_back.click(fn=create_nav(briefing_slide_4, briefing_slide_3), outputs=all_steps_nav, js=nav_js("slide-3", "Back..."))
         
         # ----------------------------------------------------------------------------------
-        # CRITICAL FIX: The Transition to Model Building
-        # 1. Trigger the Visual Overlay immediately (client-side JS).
-        # 2. Call Python to toggle visibility (fn=create_nav).
-        # 3. Use .then() to trigger the Tour JS *after* Python is done (ensuring elements are visible).
+        # CRITICAL FIX: The Transition to Model Building (Using Global JS Functions)
+        # 1. Trigger window.showLoader() immediately.
+        # 2. Call Python to toggle visibility.
+        # 3. Trigger window.waitForArenaAndStartTour() to ensure elements exist.
         # ----------------------------------------------------------------------------------
-        # CRITICAL FIX: Chain events to ensure visibility before tour starts
         briefing_4_next.click(
             fn=None, 
-            js=show_loader_js  # 1. Immediate JS: Show "Entering Arena" overlay
+            js="window.showLoader()" 
         ).then(
             fn=create_nav(briefing_slide_4, model_building_step), 
-            outputs=all_steps_nav # 2. Python: Make Arena visible
+            outputs=all_steps_nav
         ).then(
             fn=None, 
-            js=run_tour_js     # 3. Delayed JS: Start Driver.js tour
+            js="window.waitForArenaAndStartTour()"
         )
 
         # Conclusion nav
