@@ -3486,6 +3486,8 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         # --- Briefing Slideshow (Updated with New Cards) ---
 
         # Slide 1: From Understanding to Building (Retained as transition)
+        with gr.Column(visible=False, elem_id="slide-1") as briefing_slide_1:
+
             gr.Markdown("<h1 style='text-align:center;'>🔄 From Understanding to Building</h1>")
             gr.HTML(
                 """
