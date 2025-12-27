@@ -4226,7 +4226,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                     ]
                 )
         
-            return demo
+    return demo
 
 # -------------------------------------------------------------------------
 # 4. Convenience Launcher
