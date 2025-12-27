@@ -635,23 +635,35 @@ def safe_int(value, default=1):
 
 def load_and_prep_data(use_cache=True, lite_mode=True):
     """
-    Load data. If lite_mode=True, skips heavy sampling and only returns Test data.
+    Load data from local Docker cache if available.
     """
+    # 1. Try Local Docker Cache First
+    local_path = Path("compas.csv")
     url = "https://raw.githubusercontent.com/propublica/compas-analysis/master/compas-scores-two-years.csv"
-
-    # 1. Download or Load Cache
-    if use_cache:
+    
+    df = None
+    
+    if local_path.exists():
+        print("✅ Found local data cache (compas.csv). Loading directly...")
         try:
-            df = _safe_request_csv(url)
+            df = pd.read_csv(local_path)
         except Exception as e:
-            print(f"Cache failed, fetching directly: {e}")
-            response = requests.get(url)
-            df = pd.read_csv(StringIO(response.text))
-    else:
-        response = requests.get(url)
-        df = pd.read_csv(StringIO(response.text))
+            print(f"⚠️ Local file read failed: {e}. Falling back to network.")
 
-    # 2. Basic Preprocessing (Fast)
+    # 2. Fallback to Network Download (if local file is missing/corrupt)
+    if df is None:
+        print("⬇️ Downloading data from GitHub...")
+        try:
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
+            df = pd.read_csv(StringIO(response.text))
+        except Exception as e:
+            print(f"❌ Critical Data Load Error: {e}")
+            raise e
+
+    # --- (Rest of the processing logic stays the same) ---
+    
+    # 3. Basic Preprocessing (Fast)
     try:
         df['c_jail_in'] = pd.to_datetime(df['c_jail_in'])
         df['c_jail_out'] = pd.to_datetime(df['c_jail_out'])
@@ -665,12 +677,10 @@ def load_and_prep_data(use_cache=True, lite_mode=True):
     feature_columns = sorted(list(set(ALL_NUMERIC_COLS + ALL_CATEGORICAL_COLS)))
     target_column = "two_year_recid"
 
-    # Fix charge descriptions
     if "c_charge_desc" in df.columns:
         top_charges = df["c_charge_desc"].value_counts().head(TOP_N_CHARGE_CATEGORICAL).index
         df["c_charge_desc"] = df["c_charge_desc"].apply(lambda x: x if pd.notna(x) and x in top_charges else "OTHER")
 
-    # Add missing columns
     for col in feature_columns:
         if col not in df.columns:
             if col == 'length_of_stay' and 'length_of_stay' in df.columns: continue
@@ -679,7 +689,7 @@ def load_and_prep_data(use_cache=True, lite_mode=True):
     X = df[feature_columns].copy()
     y = df[target_column].copy()
 
-    # 3. Split (We only really need y_test for scoring)
+    # 4. Split
     X_train_raw, X_test_raw, y_train, y_test = train_test_split(
         X, y, test_size=0.25, random_state=42, stratify=y
     )
@@ -688,17 +698,14 @@ def load_and_prep_data(use_cache=True, lite_mode=True):
     global X_TRAIN_SAMPLES_MAP, Y_TRAIN_SAMPLES_MAP, X_TRAIN_WARM, Y_TRAIN_WARM
     
     if lite_mode:
-        # Skip all the heavy sampling loops!
-        # Just set placeholders so the app doesn't crash if it looks for them
         X_TRAIN_SAMPLES_MAP["Full (100%)"] = None
         Y_TRAIN_SAMPLES_MAP["Full (100%)"] = None
         X_TRAIN_WARM = None
         Y_TRAIN_WARM = None
-        print("⚡ Lite Mode: Skipped heavy training data sampling.")
         return None, None, None, y_test
     # ------------------------------
 
-    # (Original heavy logic stays here for non-lite mode)
+    # (Original heavy logic...)
     X_TRAIN_SAMPLES_MAP["Full (100%)"] = X_train_raw
     Y_TRAIN_SAMPLES_MAP["Full (100%)"] = y_train
 
@@ -714,7 +721,6 @@ def load_and_prep_data(use_cache=True, lite_mode=True):
     Y_TRAIN_WARM = y_train.loc[X_TRAIN_WARM.index]
 
     return X_train_raw, X_test_raw, y_train, y_test
-
 def _background_initializer():
     """
     Lite initialization for Cache-Only mode.
