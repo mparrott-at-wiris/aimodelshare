@@ -1827,9 +1827,9 @@ def perform_inline_login(username_input, password_input):
         
         # Build success message based on whether team is new or existing
         if is_new_team:
-            team_message = f"You have been assigned to a new team: <b>{display_team_name}</b> 🎉"
+            team_message = f"T'hem assignat a un nou equip: <b>{display_team_name}</b> 🎉"
         else:
-            team_message = f"Welcome back! You remain on team: <b>{display_team_name}</b> ✅"
+            team_message = f"Hola de nou! Continues a l'equip: <b>{display_team_name}</b> ✅"
         
         # Success: hide login form, show success message with team info, enable submit button
         success_html = f"""
@@ -2319,7 +2319,7 @@ def run_experiment(
         if submission_count >= ATTEMPT_LIMIT:
             limit_warning_html = f"""
             <div class='kpi-card' style='border-color: #ef4444;'>
-                <h2 style='color: #111827; margin-top:0;'>🛑 Submission Limit Reached</h2>
+                <h2 style='color: #111827; margin-top:0;'>🛑 Límit d'enviaments assolit</h2>
                 <div class='kpi-card-body'>
                     <div class='kpi-metric-box'>
                         <p class='kpi-label'>Attempts Used</p>
@@ -2333,10 +2333,10 @@ def run_experiment(
             settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
             limit_reached_updates = {
                 submission_feedback_display: gr.update(value=limit_warning_html, visible=True),
-                submit_button: gr.update(value="🛑 Submission Limit Reached", interactive=False),
+                submit_button: gr.update(value="🛑 Límit d'enviaments assolit", interactive=False),
                 model_type_radio: gr.update(interactive=False), complexity_slider: gr.update(interactive=False),
                 feature_set_checkbox: gr.update(interactive=False), data_size_radio: gr.update(interactive=False),
-                attempts_tracker_display: gr.update(value=f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'><p style='margin:0; color:#991b1b; font-weight:600;'>🛑 Attempts used: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT}</p></div>"),
+                attempts_tracker_display: gr.update(value=f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'><p style='margin:0; color:#991b1b; font-weight:600;'>🛑 Intents utilitzats: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT}</p></div>"),
                 team_leaderboard_display: team_leaderboard_display, individual_leaderboard_display: individual_leaderboard_display,
                 last_submission_score_state: last_submission_score, last_rank_state: last_rank,
                 best_score_state: best_score, submission_count_state: submission_count,
@@ -2348,9 +2348,9 @@ def run_experiment(
             yield limit_reached_updates
             return
         
-        progress(0.5, desc="Submitting to Cloud...")
+        progress(0.5, desc="S'està enviant al núvol...")
         yield { 
-            submission_feedback_display: gr.update(value=get_status_html(3, "Submitting", "Sending model to the competition server..."), visible=True),
+            submission_feedback_display: gr.update(value=get_status_html(3, "Enviament en curs", "S'està enviant el model al servidor de la competició..."), visible=True),
             login_error: gr.update(visible=False)
         }
 
@@ -2476,24 +2476,24 @@ def run_experiment(
             # 1. Append the Limit Warning HTML *below* the Result Card
             limit_html = f"""
             <div style='margin-top: 16px; border: 2px solid #ef4444; background:#fef2f2; padding:16px; border-radius:12px; text-align:left;'>
-                <h3 style='margin:0 0 8px 0; color:#991b1b;'>🛑 Submission Limit Reached ({ATTEMPT_LIMIT}/{ATTEMPT_LIMIT})</h3>
+                <h3 style='margin:0 0 8px 0; color:#991b1b;'>🛑 Límit d'enviaments assolit ({ATTEMPT_LIMIT}/{ATTEMPT_LIMIT})</h3>
                 <p style='margin:0; color:#7f1d1d; line-height:1.4;'>
                     <b>You have used all your attempts for this session.</b><br>
-                    Review your final results above, then scroll down to "Finish and Reflect" to continue.
+                    Revisa els teus resultats finals a dalt i després baixa fins a "Finalitzar i reflexionar" per continuar.
                 </p>
             </div>
             """
             final_html_display = kpi_card_html + limit_html
             
             # 2. Disable all controls
-            button_update = gr.update(value="🛑 Limit Reached", interactive=False)
+            button_update = gr.update(value="🛑 Límit assolit", interactive=False)
             interactive_state = False
-            tracker_html = f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'><p style='margin:0; color:#991b1b; font-weight:600;'>🛑 Attempts used: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT} (Max)</p></div>"
+            tracker_html = f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'><p style='margin:0; color:#991b1b; font-weight:600;'>🛑 Intents utilitzats: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT} (Max)</p></div>"
         
         else:
             # Normal State: Show just the result card and keep controls active
             final_html_display = kpi_card_html
-            button_update = gr.update(value="🔬 Build & Submit Model", interactive=True)
+            button_update = gr.update(value="🔬 Construir i enviar model", interactive=True)
             interactive_state = True
             tracker_html = _build_attempts_tracker_html(new_submission_count)
 
@@ -2633,7 +2633,7 @@ def on_initial_load(username, token=None, team_name=""):
         # CASE 1: New User (or first time loading session) -> FORCE WELCOME
         # regardless of whether the leaderboard has other people's data.
         team_html = welcome_html
-        individual_html = "<p style='text-align:center; color:#6b7280; padding-top:40px;'>Submit your model to see where you rank!</p>"
+        individual_html = "<p style='text-align:center; color:#6b7280; padding-top:40px;'>Envia el teu model per veure la teva posició a la classificació!</p>"
         
     elif full_leaderboard_df is None or full_leaderboard_df.empty:
         # CASE 2: Returning user, but data fetch failed -> Show Skeleton
@@ -2652,7 +2652,7 @@ def on_initial_load(username, token=None, team_name=""):
         except Exception as e:
             print(f"Error generating summary HTML: {e}")
             team_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
-            individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
+            individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>'ha produït un error en mostrar la classificació.</p>"
 
     return (
         get_model_card(DEFAULT_MODEL),
@@ -2675,7 +2675,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     Colors are handled via CSS classes so that light/dark mode work correctly.
     """
     unlocked_tiers = min(3, max(0, submissions - 1))  # 0..3
-    tier_names = ["Trainee", "Junior", "Senior", "Lead"]
+    tier_names = ["En pràctiques", "Júnior", "Sènior", "Principal"]
     reached = tier_names[: unlocked_tiers + 1]
     tier_line = " → ".join([f"{t}{' ✅' if t in reached else ''}" for t in tier_names])
 
@@ -2684,8 +2684,8 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     strong_used = [f for f in feature_set if f in strong_predictors]
 
     ethical_note = (
-        "You unlocked powerful predictors. Consider: Would removing demographic fields change fairness? "
-        "In the next section we will begin to investigate this question further."
+        "Has desbloquejat predictors molt potents. Reflexiona: eliminant els camps demogràfics canviaria la justícia del model?"
+        "En la següent secció començarem a investigar aquesta qüestió a fons."
     )
 
     # Tailor message for very few submissions
@@ -2693,7 +2693,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     if submissions < 2:
         tip_html = """
         <div class="final-conclusion-tip">
-          <b>Tip:</b> Try at least 2–3 submissions changing ONE setting at a time to see clear cause/effect.
+          <b>Tip:</b> Prova de fer almenys 2 o 3 enviaments canviant NOMÉS un paràmetre cada vegada per veure clarament la relació causa-efecte.
         </div>
         """
 
@@ -3602,7 +3602,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
             gr.Markdown(
                 """
                 <div style='text-align:center; padding:100px 0;'>
-                    <h2 style='font-size:2rem; color:#6b7280;'>⏳ Loading...</h2>
+                    <h2 style='font-size:2rem; color:#6b7280;'>⏳ Carregant...</h2>
                 </div>
                 """
             )
