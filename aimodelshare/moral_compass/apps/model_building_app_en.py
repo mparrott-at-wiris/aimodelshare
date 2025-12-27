@@ -4161,7 +4161,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         )
 
         # Timer for polling initialization status
-        status_timer = gr.Timer(value=2, active=True)  # Poll every 2 seconds
+        status_timer = gr.Timer(value=1, active=True)  # Poll every 2 seconds
         
         def update_init_status():
             """
@@ -4196,7 +4196,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                     gr.update(visible=banner_visible),               # Output 2: Banner
                     gr.update(value=submit_label, interactive=submit_interactive), # Output 3: Button
                     gr.update(choices=available_sizes),              # Output 4: Radio/Dropdown
-                    gr.update(active=should_keep_ticking),           # Output 5: Timer
+                    should_keep_ticking,                             # Output 5: Timer ACTIVE (bool)
                     ready                                            # Output 6: State
                 )
         
@@ -4208,7 +4208,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                     gr.update(), # No change
                     gr.update(), # No change
                     gr.update(), # No change
-                    gr.update(active=True), # Keep ticking to retry
+                    True,        # Keep ticking to retry (bool)
                     False        # Not ready
                 )
             # Wiring the timer
