@@ -404,7 +404,7 @@ def _build_attempts_tracker_html(current_count, limit=10):
         border_color = "#bae6fd"
         text_color = "#0369a1"
         icon = "🛑"
-        label = f"Última oportunitat (de moment) per pujar la teva puntuació!: {current_count}/{limit}"
+        label = f"Última oportunitat (per ara) per pujar la teva puntuació!: {current_count}/{limit}"
     else:
         # Normal - blue styling
         bg_color = "#f0f9ff"
@@ -784,7 +784,7 @@ def _background_initializer():
             INIT_FLAGS["competition"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Competition connection failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"La connexió amb la competició ha fallat: {str(e)}")
     
     try:
         # Step 2: Load dataset core (train/test split)
@@ -793,7 +793,7 @@ def _background_initializer():
             INIT_FLAGS["dataset_core"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Dataset loading failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"La càrrega del conjunt de dades ha fallat: {str(e)}")
         return  # Cannot proceed without data
     
     try:
@@ -803,7 +803,7 @@ def _background_initializer():
                 INIT_FLAGS["warm_mini"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Warm mini dataset failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"El dataset mini de preescalfament ha fallat: {str(e)}")
     
     # Progressive sampling - samples are already created in load_and_prep_data
     # Just mark them as ready sequentially with delays to simulate progressive loading
@@ -815,7 +815,7 @@ def _background_initializer():
             INIT_FLAGS["pre_samples_small"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Small sample failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"La mostra petita ha fallat: {str(e)}")
     
     try:
         # Step 4b: Medium sample (60%)
@@ -824,7 +824,7 @@ def _background_initializer():
             INIT_FLAGS["pre_samples_medium"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Medium sample failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"La mostra mitjana ha fallat: {str(e)}")
     
     try:
         # Step 4c: Large sample (80%)
@@ -833,7 +833,7 @@ def _background_initializer():
             INIT_FLAGS["pre_samples_large"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Large sample failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"La mostra gran ha fallat: {str(e)}")
         print(f"✗ Large sample failed: {e}")
     
     try:
@@ -844,7 +844,7 @@ def _background_initializer():
             INIT_FLAGS["pre_samples_full"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Full sample failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"La mostra completa ha fallat: {str(e)}")
     
     try:
         # Step 5: Leaderboard prefetch (best-effort, unauthenticated)
@@ -856,7 +856,7 @@ def _background_initializer():
                 INIT_FLAGS["leaderboard"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Leaderboard prefetch failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"La pre-obtenció de la classificació ha fallat: {str(e)}")
     
     try:
         # Step 6: Default preprocessor on small sample
@@ -865,7 +865,7 @@ def _background_initializer():
             INIT_FLAGS["default_preprocessor"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Default preprocessor failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"El preprocessador per defecte ha fallat: {str(e)}")
         print(f"✗ Default preprocessor failed: {e}")
     
 
@@ -1291,7 +1291,7 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
 
     # Handle pending state - show processing message with provisional diff
     if is_pending:
-        title = "⏳ Submission Processing"
+        title = "⏳ Processant l'enviament"
         acc_color = "#3b82f6"  # Blue
         acc_text = f"{(local_test_accuracy * 100):.2f}%" if local_test_accuracy is not None else "N/A"
         
@@ -1299,60 +1299,60 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
         if local_test_accuracy is not None and last_score is not None and last_score > 0:
             score_diff = local_test_accuracy - last_score
             if abs(score_diff) < 0.0001:
-                acc_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #6b7280; margin:0;'>No Change (↔) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
+                acc_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #6b7280; margin:0;'>Sense canvis (↔) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Actualització de la classificació pendent...</p>"
             elif score_diff > 0:
-                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>+{(score_diff * 100):.2f} (⬆️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
+                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>+{(score_diff * 100):.2f} (⬆️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Actualització de la classificació pendent...</p>"
             else:
-                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>{(score_diff * 100):.2f} (⬇️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
+                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>{(score_diff * 100):.2f} (⬇️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Actualització de la classificació pendent...</p>"
         else:
             # No last score available - just show pending message
             acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
         
         border_color = acc_color
         rank_color = "#6b7280"  # Gray
-        rank_text = "Pending"
-        rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0;'>Calculating rank...</p>"
+        rank_text = "Pendent"
+        rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0;'>Calculant la posició...</p>"
         
     # Handle preview mode - Styled to match "success" card
     elif is_preview:
-        title = "🔬 Successful Preview Run!"
+        title = "🔬 Prova de vista prèvia finalitzada!"
         acc_color = "#16a34a"  # Green (like success)
         acc_text = f"{(new_score * 100):.2f}%" if new_score > 0 else "N/A"
-        acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>(Preview only - not submitted)</p>" # Neutral color
+        acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>(Només vista prèvia - no s'ha enviat)</p>" # Neutral color
         border_color = acc_color # Green border
         rank_color = "#3b82f6" # Blue (like rank)
         rank_text = "N/A" # Placeholder
-        rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0;'>Not ranked (preview)</p>" # Neutral color
+        rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0;'>Sense posició (vista prèvia)</p>" # Neutral color
     
     # 1. Handle First Submission
     elif submission_count == 0:
-        title = "🎉 First Model Submitted!"
+        title = "🎉 Primer model enviat!"
         acc_color = "#16a34a" # green
         acc_text = f"{(new_score * 100):.2f}%"
-        acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>(Your first score!)</p>"
+        acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>(La teva primera puntuació!)</p>"
 
         rank_color = "#3b82f6" # blue
         rank_text = f"#{new_rank}"
-        rank_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #3b82f6; margin:0;'>You're on the board!</p>"
+        rank_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #3b82f6; margin:0;'>¡Ja ets a la taula!</p>"
         border_color = acc_color
 
     else:
         # 2. Handle Score Changes
         score_diff = new_score - last_score
         if abs(score_diff) < 0.0001:
-            title = "✅ Submission Successful"
+            title = "✅ Enviament completat!"
             acc_color = "#6b7280" # gray
             acc_text = f"{(new_score * 100):.2f}%"
-            acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>No Change (↔)</p>"
+            acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>Sense canvis (↔)</p>"
             border_color = acc_color
         elif score_diff > 0:
-            title = "✅ Submission Successful!"
+            title = "✅ Enviament completat!"
             acc_color = "#16a34a" # green
             acc_text = f"{(new_score * 100):.2f}%"
             acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>+{(score_diff * 100):.2f} (⬆️)</p>"
             border_color = acc_color
         else:
-            title = "📉 Score Dropped"
+            title = "📉 La puntuació ha baixat"
             acc_color = "#ef4444" # red
             acc_text = f"{(new_score * 100):.2f}%"
             acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>{(score_diff * 100):.2f} (⬇️)</p>"
@@ -1363,25 +1363,25 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
         rank_color = "#3b82f6" # blue
         rank_text = f"#{new_rank}"
         if last_rank == 0: # Handle first rank
-             rank_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #3b82f6; margin:0;'>You're on the board!</p>"
+             rank_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #3b82f6; margin:0;'>¡Ja ets a la taula!</p>"
         elif rank_diff > 0:
-            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>🚀 Moved up {rank_diff} spot{'s' if rank_diff > 1 else ''}!</p>"
+            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>🚀 ¡Has pujat {rank_diff} posició/ons!</p>"
         elif rank_diff < 0:
-            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>🔻 Dropped {abs(rank_diff)} spot{'s' if abs(rank_diff) > 1 else ''}</p>"
+            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>🔻 Has baixat {abs(rank_diff)} posició/ons!</p>"
         else:
-            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {rank_color}; margin:0;'>No Change (↔)</p>"
+            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {rank_color}; margin:0;'>Mantens la teva posició (↔)</p>"
 
     return f"""
     <div class='kpi-card' style='border-color: {border_color};'>
         <h2 style='color: #111827; margin-top:0;'>{title}</h2>
         <div class='kpi-card-body'>
             <div class='kpi-metric-box'>
-                <p class='kpi-label'>New Accuracy</p>
+                <p class='kpi-label'>Nova precisió</p>
                 <p class='kpi-score' style='color: {acc_color};'>{acc_text}</p>
                 {acc_diff_html}
             </div>
             <div class='kpi-metric-box'>
-                <p class='kpi-label'>Your Rank</p>
+                <p class='kpi-label'>La teva posició</p>
                 <p class='kpi-score' style='color: {rank_color};'>{rank_text}</p>
                 {rank_diff_html}
             </div>
@@ -1400,7 +1400,7 @@ def _build_team_html(team_summary_df, team_name):
     use the unmodified English team names from the DataFrame.
     """
     if team_summary_df is None or team_summary_df.empty:
-        return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>No team submissions yet.</p>"
+        return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Encara no hi ha enviaments per equips.</p>"
 
     # Normalize the current user's team name for comparison (using English names)
     normalized_user_team = _normalize_team_name(team_name).lower()
@@ -1409,11 +1409,11 @@ def _build_team_html(team_summary_df, team_name):
     <table class='leaderboard-html-table'>
         <thead>
             <tr>
-                <th>Rank</th>
-                <th>Team</th>
-                <th>Best_Score</th>
-                <th>Avg_Score</th>
-                <th>Submissions</th>
+                <th>Posició</th>
+                <th>Equip</th>
+                <th>Millor Puntuació</th>
+                <th>Mitjana</th>
+                <th>Enviaments</th>
             </tr>
         </thead>
         <tbody>
@@ -1445,16 +1445,16 @@ def _build_team_html(team_summary_df, team_name):
 def _build_individual_html(individual_summary_df, username):
     """Generates the HTML for the individual leaderboard."""
     if individual_summary_df is None or individual_summary_df.empty:
-        return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>No individual submissions yet.</p>"
+        return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Encara no hi ha enviaments individuals.</p>"
 
     header = """
     <table class='leaderboard-html-table'>
         <thead>
             <tr>
-                <th>Rank</th>
-                <th>Engineer</th>
-                <th>Best_Score</th>
-                <th>Submissions</th>
+                <th>Posició</th>
+                <th>Enginyer/a</th>
+                <th>Millor Puntuació</th>
+                <th>Enviaments</th>
             </tr>
         </thead>
         <tbody>
@@ -1496,8 +1496,8 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
 
     if leaderboard_df is None or leaderboard_df.empty or "accuracy" not in leaderboard_df.columns:
         return (
-            "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Leaderboard empty.</p>",
-            "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Leaderboard empty.</p>",
+            "<p style='text-align:center; color:#6b7280; padding-top:20px;'>La classificació està buida.</p>",
+            "<p style='text-align:center; color:#6b7280; padding-top:20px;'>La classificació està buida.</p>",
             _build_kpi_card_html(0, 0, 0, 0, 0, is_preview=False, is_pending=False, local_test_accuracy=None), 
             0.0, 0, 0.0
         )
@@ -1867,9 +1867,9 @@ def perform_inline_login(username_input, password_input):
         
         # Build success message based on whether team is new or existing
         if is_new_team:
-            team_message = f"You have been assigned to a new team: <b>{display_team_name}</b> 🎉"
+            team_message = f"T'hem assignat a un nou equip: <b>{display_team_name}</b> 🎉"
         else:
-            team_message = f"Welcome back! You remain on team: <b>{display_team_name}</b> ✅"
+            team_message = f"Hola de nou! Continues a l'equip: <b>{display_team_name}</b> ✅"
         
         # Success: hide login form, show success message with team info, enable submit button
         success_html = f"""
@@ -2010,11 +2010,11 @@ def run_experiment(
         """
 
     # --- Stage 1: Lock UI and give initial feedback ---
-    progress(0.1, desc="Starting Experiment...")
+    progress(0.1, desc="Iniciant l'experiment...")
     initial_updates = {
-        submit_button: gr.update(value="⏳ Experiment Running...", interactive=False),
-        submission_feedback_display: gr.update(value=get_status_html(1, "Initializing", "Preparing your data ingredients..."), visible=True), 
-        login_error: gr.update(visible=False), 
+        submit_button: gr.update(value="⏳ Experiment en curs...", interactive=False),
+        submission_feedback_display: gr.update(value=get_status_html(1, "Iniciant", "Preparant les variables de dades..."), visible=True), # Make sure it's visible
+        login_error: gr.update(visible=False), # Hide login success/error message
         attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))
     }
     yield initial_updates
@@ -2028,10 +2028,155 @@ def run_experiment(
     log_output = f"▶ New Experiment\nModel: {model_name_key}\n..."
 
     # Check readiness
-    if playground is None or not ready:
-        # ... (Error handling code remains the same) ...
-        # (For brevity, I'm assuming you keep the existing error handling block here)
-        pass 
+    with INIT_LOCK:
+        flags = INIT_FLAGS.copy()
+    
+    # Normalize variable name for consistency
+    ready_for_submission = ready
+    
+    # If not ready but warm mini available, run preview
+    if not ready_for_submission and flags["warm_mini"] and X_TRAIN_WARM is not None:
+        _log("Running warm mini preview (not ready yet)")
+        progress(0.5, desc="Executant la vista prèvia...")
+        yield { 
+            submission_feedback_display: gr.update(value=get_status_html("Vista prèvia", "Prova d'escalfament", "Provant amb un conjunt de dades reduït..."), visible=True),
+            login_error: gr.update(visible=False)
+        }
+        
+        try:
+            # Run preview on warm mini dataset
+            numeric_cols = [f for f in feature_set if f in ALL_NUMERIC_COLS]
+            categorical_cols = [f for f in feature_set if f in ALL_CATEGORICAL_COLS]
+            
+            if not numeric_cols and not categorical_cols:
+                raise ValueError("No features selected for modeling.")
+            
+            # Quick preprocessing and training on warm mini (uses memoized preprocessor)
+            preprocessor, selected_cols = build_preprocessor(numeric_cols, categorical_cols)
+            
+            X_warm_processed = preprocessor.fit_transform(X_TRAIN_WARM[selected_cols])
+            X_test_processed = preprocessor.transform(X_TEST_RAW[selected_cols])
+            
+            base_model = MODEL_TYPES[model_name_key]["model_builder"]()
+            tuned_model = tune_model_complexity(base_model, complexity_level)
+            
+            # Handle sparse arrays for models that require dense input
+            if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
+                X_warm_for_fit = _ensure_dense(X_warm_processed)
+                X_test_for_predict = _ensure_dense(X_test_processed)
+            else:
+                X_warm_for_fit = X_warm_processed
+                X_test_for_predict = X_test_processed
+            
+            tuned_model.fit(X_warm_for_fit, Y_TRAIN_WARM)
+            
+            # Get preview score
+            from sklearn.metrics import accuracy_score
+            predictions = tuned_model.predict(X_test_for_predict)
+            preview_score = accuracy_score(Y_TEST, predictions)
+            
+            # Update metadata state
+            new_kpi_meta = {
+                "was_preview": True,
+                "preview_score": preview_score,
+                "ready_at_run_start": False,
+                "poll_iterations": 0,
+                "local_test_accuracy": preview_score,
+                "this_submission_score": None,
+                "new_best_accuracy": None,
+                "rank": None
+            }
+            
+            # Show preview card
+            preview_html = _build_kpi_card_html(
+                preview_score, 0, 0, 0, -1, 
+                is_preview=True, is_pending=False, local_test_accuracy=None
+            )
+            
+            settings = compute_rank_settings(
+                 submission_count, model_name_key, complexity_level, feature_set, data_size_str
+            )
+            
+            final_updates = {
+                submission_feedback_display: gr.update(value=preview_html, visible=True),
+                team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
+                individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
+                last_submission_score_state: last_submission_score,
+                last_rank_state: last_rank,
+                best_score_state: best_score,
+                submission_count_state: submission_count,
+                first_submission_score_state: first_submission_score,
+                rank_message_display: settings["rank_message"],
+                model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
+                complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
+                feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
+                data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
+                submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
+                login_username: gr.update(visible=False),
+                login_password: gr.update(visible=False),
+                login_submit: gr.update(visible=False),
+                login_error: gr.update(visible=False),
+                attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
+                was_preview_state: True,
+                kpi_meta_state: new_kpi_meta,
+                last_seen_ts_state: None  # No timestamp for preview
+            }
+            yield final_updates
+            return
+            
+        except Exception as e:
+            _log(f"Preview failed: {e}")
+            # Fall through to error handling
+    
+    if playground is None or not ready_for_submission:
+        settings = compute_rank_settings(
+             submission_count, model_name_key, complexity_level, feature_set, data_size_str
+        )
+        
+        error_msg = "<p style='text-align:center; color:red; padding:20px 0;'>"
+        if playground is None:
+            error_msg += "Playground not connected. Please try again later."
+        else:
+            error_msg += "Data still initializing. Please wait a moment and try again."
+        error_msg += "</p>"
+        
+        error_kpi_meta = {
+            "was_preview": False,
+            "preview_score": None,
+            "ready_at_run_start": False,
+            "poll_iterations": 0,
+            "local_test_accuracy": None,
+            "this_submission_score": None,
+            "new_best_accuracy": None,
+            "rank": None
+        }
+        
+        error_updates = {
+            submission_feedback_display: gr.update(value=error_msg, visible=True),
+            submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
+            team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
+            individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
+            last_submission_score_state: last_submission_score,
+            last_rank_state: last_rank,
+            best_score_state: best_score,
+            submission_count_state: submission_count,
+            first_submission_score_state: first_submission_score,
+            rank_message_display: settings["rank_message"],
+            model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
+            complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
+            feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
+            data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
+            login_username: gr.update(visible=False),
+            login_password: gr.update(visible=False),
+            login_submit: gr.update(visible=False),
+            login_error: gr.update(visible=False),
+            attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
+            was_preview_state: False,
+            kpi_meta_state: error_kpi_meta,
+            last_seen_ts_state: None
+        }
+        yield error_updates
+        return
 
     try:
         # --- Stage 2: Smart Build (Cache vs Train) ---
@@ -2160,7 +2305,7 @@ def run_experiment(
         if submission_count >= ATTEMPT_LIMIT:
             limit_warning_html = f"""
             <div class='kpi-card' style='border-color: #ef4444;'>
-                <h2 style='color: #111827; margin-top:0;'>🛑 Submission Limit Reached</h2>
+                <h2 style='color: #111827; margin-top:0;'>🛑 Límit d'enviaments assolit</h2>
                 <div class='kpi-card-body'>
                     <div class='kpi-metric-box'>
                         <p class='kpi-label'>Attempts Used</p>
@@ -2174,10 +2319,10 @@ def run_experiment(
             settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
             limit_reached_updates = {
                 submission_feedback_display: gr.update(value=limit_warning_html, visible=True),
-                submit_button: gr.update(value="🛑 Submission Limit Reached", interactive=False),
+                submit_button: gr.update(value="🛑 Límit d'enviaments assolit", interactive=False),
                 model_type_radio: gr.update(interactive=False), complexity_slider: gr.update(interactive=False),
                 feature_set_checkbox: gr.update(interactive=False), data_size_radio: gr.update(interactive=False),
-                attempts_tracker_display: gr.update(value=f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'><p style='margin:0; color:#991b1b; font-weight:600;'>🛑 Attempts used: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT}</p></div>"),
+                attempts_tracker_display: gr.update(value=f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'><p style='margin:0; color:#991b1b; font-weight:600;'>🛑 Intents utilitzats: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT}</p></div>"),
                 team_leaderboard_display: team_leaderboard_display, individual_leaderboard_display: individual_leaderboard_display,
                 last_submission_score_state: last_submission_score, last_rank_state: last_rank,
                 best_score_state: best_score, submission_count_state: submission_count,
@@ -2189,9 +2334,9 @@ def run_experiment(
             yield limit_reached_updates
             return
         
-        progress(0.5, desc="Submitting to Cloud...")
+        progress(0.5, desc="S'està enviant al núvol...")
         yield { 
-            submission_feedback_display: gr.update(value=get_status_html(3, "Submitting", "Sending model to the competition server..."), visible=True),
+            submission_feedback_display: gr.update(value=get_status_html(3, "Enviament en curs", "S'està enviant el model al servidor de la competició..."), visible=True),
             login_error: gr.update(visible=False)
         }
 
@@ -2312,24 +2457,24 @@ def run_experiment(
             # 1. Append the Limit Warning HTML *below* the Result Card
             limit_html = f"""
             <div style='margin-top: 16px; border: 2px solid #ef4444; background:#fef2f2; padding:16px; border-radius:12px; text-align:left;'>
-                <h3 style='margin:0 0 8px 0; color:#991b1b;'>🛑 Submission Limit Reached ({ATTEMPT_LIMIT}/{ATTEMPT_LIMIT})</h3>
+                <h3 style='margin:0 0 8px 0; color:#991b1b;'>🛑 Límit d'enviaments assolit ({ATTEMPT_LIMIT}/{ATTEMPT_LIMIT})</h3>
                 <p style='margin:0; color:#7f1d1d; line-height:1.4;'>
                     <b>You have used all your attempts for this session.</b><br>
-                    Review your final results above, then scroll down to "Finish and Reflect" to continue.
+                    Revisa els teus resultats finals a dalt i després baixa fins a "Finalitzar i reflexionar" per continuar.
                 </p>
             </div>
             """
             final_html_display = kpi_card_html + limit_html
             
             # 2. Disable all controls
-            button_update = gr.update(value="🛑 Limit Reached", interactive=False)
+            button_update = gr.update(value="🛑 Límit assolit", interactive=False)
             interactive_state = False
-            tracker_html = f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'><p style='margin:0; color:#991b1b; font-weight:600;'>🛑 Attempts used: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT} (Max)</p></div>"
+            tracker_html = f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'><p style='margin:0; color:#991b1b; font-weight:600;'>🛑 Intents utilitzats: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT} (Max)</p></div>"
         
         else:
             # Normal State: Show just the result card and keep controls active
             final_html_display = kpi_card_html
-            button_update = gr.update(value="🔬 Build & Submit Model", interactive=True)
+            button_update = gr.update(value="🔬 Construir i enviar model", interactive=True)
             interactive_state = True
             tracker_html = _build_attempts_tracker_html(new_submission_count)
 
@@ -2427,14 +2572,14 @@ def on_initial_load(username, token=None, team_name=""):
     welcome_html = f"""
     <div style='text-align:center; padding: 30px 20px;'>
         <div style='font-size: 3rem; margin-bottom: 10px;'>👋</div>
-        <h3 style='margin: 0 0 8px 0; color: #111827; font-size: 1.5rem;'>Benvingut a <b>{display_team}</b>!</h3>
+        <h3 style='margin: 0 0 8px 0; color: #111827; font-size: 1.5rem;'>Ja formes part de l'equip: <b>{display_team}</b>!</h3>
         <p style='font-size: 1.1rem; color: #4b5563; margin: 0 0 20px 0;'>
-            El teu equip espera la teva ajuda per millorar la IA.
+            El teu equip necessita la teva ajuda per millorar la IA.
         </p>
         
         <div style='background:#eff6ff; padding:16px; border-radius:12px; border:2px solid #bfdbfe; display:inline-block;'>
             <p style='margin:0; color:#1e40af; font-weight:bold; font-size:1.1rem;'>
-                👈 Fes clic a "Build & Submit Model" per començar a jugar!
+                👈 Fes clic a 'Construir i enviar model' per començar a jugar!
             </p>
         </div>
     </div>
@@ -2469,7 +2614,7 @@ def on_initial_load(username, token=None, team_name=""):
         # CASE 1: New User (or first time loading session) -> FORCE WELCOME
         # regardless of whether the leaderboard has other people's data.
         team_html = welcome_html
-        individual_html = "<p style='text-align:center; color:#6b7280; padding-top:40px;'>Submit your model to see where you rank!</p>"
+        individual_html = "<p style='text-align:center; color:#6b7280; padding-top:40px;'>Envia el teu model per veure la teva posició a la classificació!</p>"
         
     elif full_leaderboard_df is None or full_leaderboard_df.empty:
         # CASE 2: Returning user, but data fetch failed -> Show Skeleton
@@ -2487,8 +2632,8 @@ def on_initial_load(username, token=None, team_name=""):
             )
         except Exception as e:
             print(f"Error generating summary HTML: {e}")
-            team_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
-            individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
+            team_html = "<p style='text-align:center; color:red; padding-top:20px;'>S'ha produït un error en carregar la classificació.</p>"
+            individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>S'ha produït un error en mostrar la classificació.</p>"
 
     return (
         get_model_card(DEFAULT_MODEL),
@@ -2511,7 +2656,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     Colors are handled via CSS classes so that light/dark mode work correctly.
     """
     unlocked_tiers = min(3, max(0, submissions - 1))  # 0..3
-    tier_names = ["Trainee", "Junior", "Senior", "Lead"]
+    tier_names = ["En pràctiques", "Júnior", "Sènior", "Principal"]
     reached = tier_names[: unlocked_tiers + 1]
     tier_line = " → ".join([f"{t}{' ✅' if t in reached else ''}" for t in tier_names])
 
@@ -2520,8 +2665,8 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     strong_used = [f for f in feature_set if f in strong_predictors]
 
     ethical_note = (
-        "You unlocked powerful predictors. Consider: Would removing demographic fields change fairness? "
-        "In the next section we will begin to investigate this question further."
+        "Has desbloquejat predictors molt potents. Reflexiona: eliminant els camps demogràfics canviaria la justícia del model?"
+        "En la següent secció començarem a investigar aquesta qüestió a fons."
     )
 
     # Tailor message for very few submissions
@@ -2529,7 +2674,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     if submissions < 2:
         tip_html = """
         <div class="final-conclusion-tip">
-          <b>Tip:</b> Try at least 2–3 submissions changing ONE setting at a time to see clear cause/effect.
+          <b>Tip:</b> Prova de fer almenys 2 o 3 enviaments canviant NOMÉS un paràmetre cada vegada per veure clarament la relació causa-efecte.
         </div>
         """
 
@@ -3438,7 +3583,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
             gr.Markdown(
                 """
                 <div style='text-align:center; padding:100px 0;'>
-                    <h2 style='font-size:2rem; color:#6b7280;'>⏳ Loading...</h2>
+                    <h2 style='font-size:2rem; color:#6b7280;'>⏳ Carregant...</h2>
                 </div>
                 """
             )
