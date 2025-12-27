@@ -4161,12 +4161,11 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         )
 
         # Timer for polling initialization status
-        status_timer = gr.Timer(value=0.5, active=True)  # Poll every 0.5 seconds
+        status_timer = gr.Timer(value=2, active=True)  # Poll every 2 seconds
         
         def update_init_status():
             """
             Poll initialization status and update UI elements.
-            Returns status HTML, banner visibility, submit button state, data size choices, and readiness_state.
             """
             status_html, ready = poll_init_status()
             
@@ -4184,8 +4183,9 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             # Get available data sizes based on init progress
             available_sizes = get_available_data_sizes()
             
-            # Stop timer once fully initialized
-            timer_active = not (ready and INIT_FLAGS.get("pre_samples_full", False))
+            # FIX: Stop timer immediately when the app is ready (small sample loaded).
+            # Do not wait for "pre_samples_full"; that can happen silently in the background.
+            timer_active = not ready 
             
             return (
                 status_html,
@@ -4193,7 +4193,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 gr.update(value=submit_label, interactive=submit_interactive),
                 gr.update(choices=available_sizes),
                 timer_active,
-                ready  # readiness_state
+                ready
             )
         
         status_timer.tick(
