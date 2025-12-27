@@ -3486,53 +3486,52 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         # --- Briefing Slideshow (Updated with New Cards) ---
 
         # Slide 1: From Understanding to Building (Retained as transition)
-        with gr.Column(visible=True, elem_id="slide-1") as briefing_slide_1:
+            gr.Markdown("<h1 style='text-align:center;'>🔄 From Understanding to Building</h1>")
             gr.HTML(
                 """
                 <div class='slide-content'>
-                    <div class='panel-box'>
-                        <!-- Explicit Countdown Trigger -->
-                        <div class='launch-banner'>⚠ LAUNCH SEQUENCE INITIATED ⚠</div>
-                        
-                        <div class='t-minus-header' style='border:none; margin-bottom:10px;'>
-                            <span class='t-minus-badge'>T-Minus 5</span>
-                            <h2 class='t-minus-title' style='font-size: 1.8rem;'>PROMOTION: AI ENGINEER</h2>
-                        </div>
-                        
-                        <p style='font-size: 1.15rem; line-height: 1.6; text-align: center; margin-bottom: 24px;'>
-                            <b>Training Complete.</b> You have seen the human cost of bad AI.<br>You know that false alarms can ruin lives.
-                        </p>
-            
-                        <ul style='font-size: 1.1rem; margin-bottom: 24px; max-width: 600px; margin-left: auto; margin-right: auto;'>
-                            <li style='margin-bottom: 8px;'>The <b>Judge</b> just <i>uses</i> the tool.</li>
-                            <li>The <b>Engineer</b> has the power to <i>build</i> it.</li>
-                        </ul>
-            
-                        <div style='background:var(--prose-background-fill); padding:20px; border-radius:12px; margin:20px 0; border: 1px solid var(--card-border-subtle); text-align:center;'>
-                            <p style='color:var(--text-muted); font-size:0.9rem; font-weight:700; letter-spacing:1px; margin-bottom:16px; text-transform:uppercase;'>Your New Toolkit</p>
-                            
-                            <div style='display:inline-block; background:#dbeafe; padding:12px 18px; border-radius:8px; margin:4px; border:1px solid #93c5fd;'>
-                                <h3 style='margin:0; color:#1e40af;'>INPUT</h3>
-                            </div>
-                            <div style='display:inline-block; font-size:1.5rem; margin:0 10px; color:var(--text-muted);'>→</div>
-                            <div style='display:inline-block; background:#fef3c7; padding:12px 18px; border-radius:8px; margin:4px; border:1px solid #fcd34d;'>
-                                <h3 style='margin:0; color:#92400e;'>MODEL</h3>
-                            </div>
-                            <div style='display:inline-block; font-size:1.5rem; margin:0 10px; color:var(--text-muted);'>→</div>
-                            <div style='display:inline-block; background:#dcfce7; padding:12px 18px; border-radius:8px; margin:4px; border:1px solid #86efac;'>
-                                <h3 style='margin:0; color:#166534;'>OUTPUT</h3>
-                            </div>
-                        </div>
-            
-                        <p style='font-size: 1.15rem; text-align:center; margin-top: 24px;'>
-                            You are leaving the courtroom and entering the <b>Machine Room</b>. 
-                            To fix the system, you must master the flow of data.
-                        </p>
-                        
-                        <div style='text-align:center; margin-top: 24px; padding: 12px; background: color-mix(in srgb, var(--color-accent) 10%, transparent); border-radius: 8px; color: var(--color-accent); font-weight: 700; font-size: 1.2rem;'>
-                            Are you ready to build something better?
-                        </div>
+                <div class='panel-box'>
+                <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>Great progress! You've now:</h3>
+
+                <ul style='list-style: none; padding-left: 0; margin-top: 24px; margin-bottom: 24px;'>
+                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
+                        <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
+                        Made tough decisions as a judge using AI predictions
+                    </li>
+                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
+                        <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
+                        Learned about false positives (false alarms) and false negatives (missed warnings)
+                    </li>
+                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
+                        <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
+                        Understood how AI works:
+                    </li>
+                </ul>
+
+                <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
+                    <div style='display:inline-block; background:#dbeafe; padding:12px 16px; border-radius:8px; margin:4px;'>
+                        <h3 style='margin:0; color:#0369a1;'>INPUT</h3>
                     </div>
+                    <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
+                    <div style='display:inline-block; background:#fef3c7; padding:12px 16px; border-radius:8px; margin:4px;'>
+                        <h3 style='margin:0; color:#92400e;'>MODEL</h3>
+                    </div>
+                    <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
+                    <div style='display:inline-block; background:#f0fdf4; padding:12px 16px; border-radius:8px; margin:4px;'>
+                        <h3 style='margin:0; color:#15803d;'>OUTPUT</h3>
+                    </div>
+                </div>
+
+                <hr style='margin: 24px 0; border-top: 2px solid #c7d2fe;'>
+
+                <h3 style='font-size: 1.5rem; text-align:center;'>Now it's time to step into the shoes of an AI Engineer.</h3>
+                <p style='font-size: 1.1rem; text-align:center; margin-top: 12px;'>
+                    <strong>Your New Challenge:</strong> Build AI models that are more accurate than the one you used as a judge.
+                </p>
+                <p style='font-size: 1.1rem; text-align:center; margin-top: 12px;'>
+                    Remember: You experienced firsthand how AI predictions affect real people's lives. Use that knowledge to build something better.
+                </p>
+                </div>
                 </div>
                 """
             )
@@ -3540,126 +3539,102 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # Slide 2: Card 1 (Your Engineering Mission)
         with gr.Column(visible=False, elem_id="slide-2") as briefing_slide_2:
+            gr.Markdown("<h1 style='text-align:center;'>📋 Your Mission - Build Better AI</h1>")
+            
             gr.HTML(
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <div class='t-minus-header'>
-                            <span class='t-minus-badge'>T-Minus 4</span>
-                            <h2 class='t-minus-title'>MISSION BRIEFING</h2>
-                        </div>
-            
-                        <div style='font-size: 1.15rem; line-height: 1.5; text-align:center; margin-bottom: 24px;'>
-                            <p><b>Status:</b> The old model was flawed. It made too many mistakes.</p>
-                            <p><b>Objective:</b> Build a new AI that is smarter, fairer, and more accurate.</p>
-                        </div>
-            
-                        <div style='background:var(--block-background-fill); padding:20px; border-radius:12px; border:2px dashed var(--card-border-subtle); max-width:600px; margin:0 auto; text-align:center; margin-bottom: 24px;'>
-                            <h3 style='margin:0; color:var(--text-muted); font-size:1rem;'>ACTIVE TEAM</h3>
-                            <h2 style='margin: 10px 0; color: var(--accent-strong);'>🛡️ The Ethical Explorers</h2>
-                            <p style='margin:0; font-size:0.95rem;'>Your score helps your team win.</p>
-                        </div>
-            
-                        <h3 style='text-align:center; font-size:1.1rem; color:var(--text-muted); margin-bottom:12px;'>ACCESSING DATA VAULT... (Click to Inspect)</h3>
+                        <h3>The Mission</h3>
+                        <p>Build an AI model that helps judges make better decisions. The model you used previously gave you imperfect advice. Your job now is to build a new model that predicts risk more accurately, providing judges with the reliable insights they need to be fair.</p>
                         
-                        <!-- Interactive Clues -->
-                        <div style='display: flex; gap: 12px; flex-wrap: wrap;'>
-                            <div style='flex:1; min-width: 250px;'>
-                                <details class="styled-details">
-                                    <summary><span style='font-size: 1.5rem; margin-right:8px;'>🕵️‍♀️</span> The Clues</summary>
-                                    <div class="content">
-                                        <p style='margin:0 0 8px 0;'><b>Defendant Profiles:</b> This is what the police saw at the time of arrest.</p>
-                                        <ul style='margin:0; padding-left:20px; color:var(--text-muted);'>
-                                            <li>Age</li>
-                                            <li>Prior Crimes Count</li>
-                                            <li>Charge Type (Felony/Misdemeanor)</li>
-                                        </ul>
-                                    </div>
-                                </details>
-                            </div>
-            
-                            <div style='flex:1; min-width: 250px;'>
-                                <details class="styled-details">
-                                    <summary><span style='font-size: 1.5rem; margin-right:8px;'>🔮</span> The Truth</summary>
-                                    <div class="content">
-                                        <p style='margin:0 0 8px 0;'><b>Actual Outcomes:</b> This is what <i>actually</i> happened to those people 2 years later.</p>
-                                        <ul style='margin:0; padding-left:20px; color:var(--text-muted);'>
-                                            <li>Did they re-offend? (Yes/No)</li>
-                                            <li>Used to grade your accuracy.</li>
-                                        </ul>
-                                    </div>
-                                </details>
-                            </div>
-                        </div>
-            
+                        <h3>The Competition</h3>
+                        <p>To do this, you will compete against other engineers! To help you in your mission, you will join an engineering team. Your results will be tracked both individually and as a group in the Live Standings Leaderboards.</p>
+                    </div>
+
+                    <div class='leaderboard-box' style='max-width: 600px; margin: 16px auto; text-align: center; padding: 16px;'>
+                        <p style='font-size: 1.1rem; margin:0;'>You will join a team like...</p>
+                        <h3 style='font-size: 1.75rem; color: #6b7280; margin: 8px 0;'>
+                            🛡️ The Ethical Explorers
+                        </h3>
+                    </div>
+
+                    <div class='mock-ui-box'>
+                        <h3>The Data Challenge</h3>
+                        <p>To compete, you have access to thousands of old case files. You have two distinct types of information:</p>
+                        <ol style='list-style-position: inside; padding-left: 20px;'>
+                            <li><strong>Defendant Profiles:</strong> This is like what the judge saw at the time of arrest.
+                                <ul style='margin-left: 20px; list-style-type: disc;'>
+                                    <li><em>Age, Number of Prior Offenses, Type of Charge.</em></li>
+                                </ul>
+                            </li>
+                            <li><strong>Historical Outcomes:</strong> This is what actually happened to those people later.
+                                <ul style='margin-left: 20px; list-style-type: disc;'>
+                                    <li><em>Did they re-offend within 2 years? (Yes/No)</em></li>
+                                </ul>
+                            </li>
+                        </ol>
+                        
+                        <h3>The Core Task</h3>
+                        <p>You need to teach your AI to look at the "Profiles" and accurately predict the "Outcome."</p>
+                        <p><strong>Ready to build something that could change how justice works?</strong></p>
                     </div>
                 </div>
-                """)
+                """
+            )
             
             with gr.Row():
                 briefing_2_back = gr.Button("◀️ Back", size="lg")
                 briefing_2_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
         # Slide 3: Card 2 (What is a "Model"?)
-        with gr.Column(visible=False, elem_id="slide-3") as briefing_slide_3:            
+        with gr.Column(visible=False, elem_id="slide-3") as briefing_slide_3:
+            gr.Markdown("<h1 style='text-align:center;'>🧠 What is an AI System?</h1>")
+            
             # --- FIX FOR SLIDE 3 ---
             # Combined all content into single gr.HTML()
             gr.HTML(
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <div class='t-minus-header'>
-                            <span class='t-minus-badge'>T-Minus 3</span>
-                            <h2 class='t-minus-title'>STRATEGY DOWNLOAD</h2>
+                        <p>Before we start competing, let's break down exactly what you are building.</p>
+                        <h3>Think of an AI System as a "Prediction Machine."</h3>
+                        <p>You already know the flow:</p>
+                        
+                        <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
+                            <div style='display:inline-block; background:#dbeafe; padding:12px 16px; border-radius:8px; margin:4px;'>
+                                <h3 style='margin:0; color:#0369a1;'>INPUT</h3>
+                            </div>
+                            <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
+                            <div style='display:inline-block; background:#fef3c7; padding:12px 16px; border-radius:8px; margin:4px;'>
+                                <h3 style='margin:0; color:#92400e;'>MODEL</h3>
+                            </div>
+                            <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
+                            <div style='display:inline-block; background:#f0fdf4; padding:12px 16px; border-radius:8px; margin:4px;'>
+                                <h3 style='margin:0; color:#15803d;'>OUTPUT</h3>
+                            </div>
                         </div>
                         
-                        <p style='font-size: 1.15rem; text-align:center; margin-bottom: 20px;'>
-                            Downloading Engineering Protocols...<br>
-                            <b>Core Rule:</b> Don't guess—<b>Iterate</b>.
-                        </p>
-            
-                        <!-- Vertical Interactive List -->
-                        <details class="styled-details">
-                            <summary>
-                                <span style="display:flex; align-items:center;"><span style='font-size:1.5rem; margin-right:12px;'>🎛️</span> 1. Configure</span>
-                            </summary>
-                            <div class="content">
-                                <p style="margin:0;">Use the control knobs to adjust your model's <b>Brain</b> (Algorithm) and <b>Fuel</b> (Data). Every choice has a trade-off.</p>
-                            </div>
-                        </details>
-            
-                        <details class="styled-details">
-                            <summary>
-                                <span style="display:flex; align-items:center; color:var(--accent-strong);"><span style='font-size:1.5rem; margin-right:12px;'>🚀</span> 2. Launch</span>
-                            </summary>
-                            <div class="content">
-                                <p style="margin:0;">Click <b>"Build & Submit"</b>. Your model travels to the competition server where it is trained and tested against hidden data.</p>
-                            </div>
-                        </details>
-            
-                        <details class="styled-details">
-                            <summary>
-                                <span style="display:flex; align-items:center;"><span style='font-size:1.5rem; margin-right:12px;'>📊</span> 3. Rank</span>
-                            </summary>
-                            <div class="content">
-                                <p style="margin:0;">Check the <b>Live Leaderboard</b>. Did you beat your personal best? Did you help your team move up?</p>
-                            </div>
-                        </details>
-            
-                        <details class="styled-details">
-                            <summary>
-                                <span style="display:flex; align-items:center;"><span style='font-size:1.5rem; margin-right:12px;'>🔧</span> 4. Refine</span>
-                            </summary>
-                            <div class="content">
-                                <p style="margin:0;"><b>This is the secret to winning.</b> Change ONE variable and submit again. See if your score improves.</p>
-                            </div>
-                        </details>
+                        <p>As an engineer, you don't need to write complex code from scratch. Instead, you assemble this machine using three main components.</p>
+                    </div>
+
+                    <div class='mock-ui-box'>
+                        <h3>The 3 Components:</h3>
+                        <p><strong>1. The Inputs (Data)</strong><br>
+                        The information you feed the machine.<br>
+                        <em>* Examples: Age, Prior Crimes, Charge Details.</em></p>
+
+                        <p><strong>2. The Model ("The Brain")</strong><br>
+                        This is the "brain" of your machine. It studies the inputs (data) and tries to figure out how things are connected to make a guess. There are different model strategies (brains) that you can choose for your machine.<br>
+                        <em>* Examples: Some "brains" or strategies only find simple rules (like flagging an email if it says 'free money). Other strategies have the ability to find deep, complex patterns (like recognizing a specific person's face in a crowd.</em></p>
+
+                        <p><strong>3. The Output (Prediction)</strong><br>
+                        The model's best guess.<br>
+                        <em>* Example: Risk Level: High or Low.</em></p>
+
+                        <hr>
                         
-                        <div style='background:#fefce8; border:1px solid #fde047; padding:12px; border-radius:8px; text-align:center; margin-top:20px;'>
-                            <p style='margin:0; color:#854d0e; font-weight:600;'>
-                                🧪 Pro Tip: Change ONE variable at a time so you know what worked!
-                            </p>
-                        </div>
+                        <p><strong>How it learns:</strong> You show the model thousands of old cases (Inputs) + what actually happened (Outcomes). It studies them to find the rules, so it can make predictions on new cases it hasn't seen before.</p>
                     </div>
                 </div>
                 """
@@ -3672,6 +3647,51 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # Slide 4: Card 3 (How Engineers Work — The Loop)
         with gr.Column(visible=False, elem_id="slide-4") as briefing_slide_4:
+            gr.Markdown("<h1 style='text-align:center;'>🔁 How Engineers Work — The Loop</h1>")
+
+            # --- FIX FOR SLIDE 4 ---
+            # Combined all content into single gr.HTML()
+            gr.HTML(
+                """
+                <div class='slide-content'>
+                    <div class='panel-box'>
+                        <p>Now that you know the components of a model, how do you build a better one?</p>
+                        <h3>Here is the secret:</h3>
+                        <p>Real AI teams almost never get it right on the first try. Instead, they follow a continuous loop of experimentation: <strong>Try, Test, Learn, Repeat.</strong></p>
+                        
+                        <h3>The Experiment Loop:</h3>
+                        <ol style='list-style-position: inside;'>
+                            <li><strong>Build a Model:</strong> Assemble your components and get a starting prediction accuracy score.</li>
+                            <li><strong>Ask a Question:</strong> (e.g., "What happens if I change the 'Brain' type?")</li>
+                            <li><strong>Test & Compare:</strong> Did the score get better... or did it get worse?</li>
+                        </ol>
+                    </div>
+
+                    <h3>You will do the exact same thing in a competition!</h3>
+                    
+                    <div class='step-visual'>
+                        <div class='step-visual-box'><b>1. Configure</b><br/>Use Control Knobs to select Strategy and Data.</div>
+                        <div class='step-visual-arrow'>→</div>
+                        <div class='step-visual-box'><b>2. Submit</b><br/>Click "Build & Submit" to train your model.</div>
+                        <div class='step-visual-arrow'>→</div>
+                        <div class='step-visual-box'><b>3. Analyze</b><br/>Check your rank on the Live Leaderboard.</div>
+                        <div class='step-visual-arrow'>→</div>
+                        <div class='step-visual-box'><b>4. Refine</b><br/>Change one setting and submit again!</div>
+                    </div>
+                    
+                    <div class='leaderboard-box' style='text-align:center;'>
+                        <p><strong>Pro Tip:</strong> Try to change only one thing at a time. If you change too many things at once, you won't know what made your model better or worse!</p>
+                    </div>
+                </div>
+                """
+            )
+            # --- END FIX ---
+            
+            with gr.Row():
+                briefing_4_back = gr.Button("◀️ Back", size="lg")
+                briefing_4_next = gr.Button("Next ▶️", variant="primary", size="lg")
+
+        with gr.Column(visible=False, elem_id="slide-5") as briefing_slide_5:
             # --- FIX FOR SLIDE 4 ---
             # Combined all content into single gr.HTML()
             gr.HTML(
@@ -3700,7 +3720,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                                 <div class="widget-row"><span class="radio-circle"></span> The Deep Pattern-Finder</div>
                                 
                                 <div class="info-popup">
-                                    <b>In the Game:</b> You will choose one of these algorithms.<br>
+                                    <b>In the Game:</b> You will choose one of these model strategies.<br>
                                     <i>Tip: Start with "Balanced Generalist" for a safe, reliable baseline score.</i>
                                 </div>
                             </div>
@@ -3759,11 +3779,11 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             # --- END FIX ---
             
             with gr.Row():
-                briefing_4_back = gr.Button("◀️ Back", size="lg")
-                briefing_4_next = gr.Button("Next ▶️", variant="primary", size="lg")
+                briefing_5_back = gr.Button("◀️ Back", size="lg")
+                briefing_5_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
         # Slide 5: Card 4 (Control Knobs — The "Brain" Settings)
-        with gr.Column(visible=False, elem_id="slide-5") as briefing_slide_5:            
+        with gr.Column(visible=False, elem_id="slide-6") as briefing_slide_6:            
             # --- FIX FOR SLIDE 5 ---
             # Combined all content into single gr.HTML()
             gr.HTML(
@@ -3776,16 +3796,17 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                         </div>
                         
                         <p style='font-size: 1.15rem; text-align:center; margin-bottom: 24px;'>
-                            <b>Anti-Cheat System Active.</b> You are cleared for launch.
+                            <b>Anti-Cheat System Active.</b> You are cleared to begin competing.
                         </p>
             
                         <div style='background:var(--prose-background-fill); padding:20px; border-radius:12px; text-align:left; margin-bottom:24px; display:flex; align-items:center; gap:16px;'>
                             <div style='font-size:2.5rem;'>🔐</div>
                             <div>
-                                <strong style='font-size:1.1rem;'>The "Hidden Vault"</strong>
+                                <strong style='font-size:1.1rem;'>How to Win</strong>
                                 <p style='margin:4px 0 0 0; color:var(--text-muted); font-size:0.95rem;'>
                                     We have hidden 20% of the cases. Your model <b>never</b> sees them.
-                                    Your final score is based 100% on predicting these hidden cases.
+                                    Your final score indicates how accurate your AI system is at predicting this data.
+                                    50% prediction accuracy means your AI system predicts half of the hidden cases correctly.
                                 </p>
                             </div>
                         </div>
@@ -3811,8 +3832,8 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             # --- END FIX ---
             
             with gr.Row():
-                briefing_5_back = gr.Button("◀️ Back", size="lg")
-                briefing_5_next = gr.Button("Begin Model Building ▶️", variant="primary", size="lg")
+                briefing_6_back = gr.Button("◀️ Back", size="lg")
+                briefing_6_next = gr.Button("Begin Model Building ▶️", variant="primary", size="lg")
 
         # --- End Briefing Slideshow ---
 
@@ -3976,7 +3997,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         # --- Navigation Logic ---
         all_steps_nav = [
             briefing_slide_1, briefing_slide_2, briefing_slide_3,
-            briefing_slide_4, briefing_slide_5, 
+            briefing_slide_4, briefing_slide_5,  briefing_slide_6, 
             model_building_step, conclusion_step, loading_screen
         ]
 
@@ -4128,10 +4149,20 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         briefing_5_back.click(
             fn=create_nav(briefing_slide_5, briefing_slide_4),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-4", "Revisiting the loop...")
+            js=nav_js("slide-4", "System check...")
         )
         briefing_5_next.click(
-            fn=create_nav(briefing_slide_5, model_building_step),
+            fn=create_nav(briefing_slide_5,briefing_slide_6),
+            inputs=None, outputs=all_steps_nav,
+            js=nav_js("model-step", "Final Clearance...")
+        )
+        briefing_6_back.click(
+            fn=create_nav(briefing_slide_6, briefing_slide_5),
+            inputs=None, outputs=all_steps_nav,
+            js=nav_js("model-step", "Entering model arena...")
+        )
+        briefing_6_next.click(
+            fn=create_nav(briefing_slide_6, model_building_step),
             inputs=None, outputs=all_steps_nav,
             js=nav_js("model-step", "Entering model arena...")
         )
