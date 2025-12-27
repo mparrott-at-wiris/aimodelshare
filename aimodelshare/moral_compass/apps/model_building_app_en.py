@@ -3741,15 +3741,10 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         # 3. Trigger window.waitForArenaAndStartTour() to ensure elements exist.
         # ----------------------------------------------------------------------------------
         briefing_4_next.click(
-            fn=None, 
-            js="window.showLoader()" 
-        ).then(
-            fn=create_nav(briefing_slide_4, model_building_step), 
-            outputs=all_steps_nav
-        ).then(
-            fn=None, 
-            js="window.waitForArenaAndStartTour()"
+            fn=None,
+            js="(() => { console.log('click'); console.log('showLoader type:', typeof window.showLoader); if (typeof window.showLoader === 'function') window.showLoader(); })()"
         )
+
 
         # Conclusion nav
         def finalize_and_show_conclusion(best, sub_count, rank, first, feat):
