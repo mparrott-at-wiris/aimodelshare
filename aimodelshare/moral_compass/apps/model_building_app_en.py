@@ -2504,27 +2504,20 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
     # 1. HELPER FUNCTIONS (Defined at top to ensure visibility)
     # -------------------------------------------------------------------------
     def update_init_status():
-        """Poll initialization status and update UI elements."""
         status_html, ready = poll_init_status()
         banner_visible = not ready
-        
-        if ready:
-            submit_label = "5. 🔬 Build & Submit Model"
-            submit_interactive = True
-        else:
-            submit_label = "⏳ Waiting for data..."
-            submit_interactive = False
-        
+    
+        submit_label = "5. 🔬 Build & Submit Model" if ready else "⏳ Waiting for data..."
+        submit_interactive = ready
+    
         available_sizes = get_available_data_sizes()
-        timer_active = not (ready and INIT_FLAGS.get("pre_samples_full", False))
-        
+    
         return (
             status_html,
             gr.update(visible=banner_visible),
             gr.update(value=submit_label, interactive=submit_interactive),
             gr.update(choices=available_sizes),
-            timer_active,
-            ready 
+            ready,
         )
 
     def handle_load_with_session_auth(request: gr.Request):
@@ -3815,10 +3808,18 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         )
 
         # Timer logic
-        status_timer = gr.Timer(value=0.5, active=True)
+        status_timer = gr.Timer(value=1.0, active=True)
+        
         status_timer.tick(
             fn=update_init_status,
-            outputs=[init_status_display, init_banner, submit_button, data_size_radio, status_timer, readiness_state]
+            outputs=[
+                init_status_display,
+                init_banner,
+                submit_button,
+                data_size_radio,
+                readiness_state,
+            ],
+            queue=False,   # CRITICAL: prevents join flood
         )
         
         # Load Handler
