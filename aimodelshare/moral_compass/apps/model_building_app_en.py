@@ -633,79 +633,63 @@ def safe_int(value, default=1):
     except (ValueError, TypeError):
         return default
 
-def load_and_prep_data(use_cache=True, lite_mode=True):
+def load_and_prep_data(use_cache=True):
     """
-    Load data from local Docker cache if available.
+    Load, sample, and prepare raw COMPAS dataset.
+    NOW PRE-SAMPLES ALL DATA SIZES and creates warm mini dataset.
     """
-    # 1. Try Local Docker Cache First
-    local_path = Path("compas.csv")
     url = "https://raw.githubusercontent.com/propublica/compas-analysis/master/compas-scores-two-years.csv"
-    
-    df = None
-    
-    if local_path.exists():
-        print("✅ Found local data cache (compas.csv). Loading directly...")
-        try:
-            df = pd.read_csv(local_path)
-        except Exception as e:
-            print(f"⚠️ Local file read failed: {e}. Falling back to network.")
 
-    # 2. Fallback to Network Download (if local file is missing/corrupt)
-    if df is None:
-        print("⬇️ Downloading data from GitHub...")
+    # Use cached version if available
+    if use_cache:
         try:
-            response = requests.get(url, timeout=10)
-            response.raise_for_status()
+            df = _safe_request_csv(url)
+        except Exception as e:
+            print(f"Cache failed, fetching directly: {e}")
+            response = requests.get(url)
             df = pd.read_csv(StringIO(response.text))
-        except Exception as e:
-            print(f"❌ Critical Data Load Error: {e}")
-            raise e
+    else:
+        response = requests.get(url)
+        df = pd.read_csv(StringIO(response.text))
 
-    # --- (Rest of the processing logic stays the same) ---
-    
-    # 3. Basic Preprocessing (Fast)
+    # Calculate length_of_stay
     try:
         df['c_jail_in'] = pd.to_datetime(df['c_jail_in'])
         df['c_jail_out'] = pd.to_datetime(df['c_jail_out'])
-        df['length_of_stay'] = (df['c_jail_out'] - df['c_jail_in']).dt.total_seconds() / (24 * 60 * 60)
+        df['length_of_stay'] = (df['c_jail_out'] - df['c_jail_in']).dt.total_seconds() / (24 * 60 * 60) # in days
     except Exception:
         df['length_of_stay'] = np.nan
 
     if df.shape[0] > MAX_ROWS:
         df = df.sample(n=MAX_ROWS, random_state=42)
 
-    feature_columns = sorted(list(set(ALL_NUMERIC_COLS + ALL_CATEGORICAL_COLS)))
+    feature_columns = ALL_NUMERIC_COLS + ALL_CATEGORICAL_COLS
+    feature_columns = sorted(list(set(feature_columns)))
+
     target_column = "two_year_recid"
 
     if "c_charge_desc" in df.columns:
         top_charges = df["c_charge_desc"].value_counts().head(TOP_N_CHARGE_CATEGORICAL).index
-        df["c_charge_desc"] = df["c_charge_desc"].apply(lambda x: x if pd.notna(x) and x in top_charges else "OTHER")
+        df["c_charge_desc"] = df["c_charge_desc"].apply(
+            lambda x: x if pd.notna(x) and x in top_charges else "OTHER"
+        )
 
     for col in feature_columns:
         if col not in df.columns:
-            if col == 'length_of_stay' and 'length_of_stay' in df.columns: continue
+            if col == 'length_of_stay' and 'length_of_stay' in df.columns:
+                continue
             df[col] = np.nan
 
     X = df[feature_columns].copy()
     y = df[target_column].copy()
 
-    # 4. Split
     X_train_raw, X_test_raw, y_train, y_test = train_test_split(
         X, y, test_size=0.25, random_state=42, stratify=y
     )
 
-    # --- LITE MODE OPTIMIZATION ---
+    # Pre-sample all data sizes
     global X_TRAIN_SAMPLES_MAP, Y_TRAIN_SAMPLES_MAP, X_TRAIN_WARM, Y_TRAIN_WARM
-    
-    if lite_mode:
-        X_TRAIN_SAMPLES_MAP["Full (100%)"] = None
-        Y_TRAIN_SAMPLES_MAP["Full (100%)"] = None
-        X_TRAIN_WARM = None
-        Y_TRAIN_WARM = None
-        return None, None, None, y_test
-    # ------------------------------
 
-    # (Original heavy logic...)
     X_TRAIN_SAMPLES_MAP["Full (100%)"] = X_train_raw
     Y_TRAIN_SAMPLES_MAP["Full (100%)"] = y_train
 
@@ -716,54 +700,121 @@ def load_and_prep_data(use_cache=True, lite_mode=True):
             X_TRAIN_SAMPLES_MAP[label] = X_train_sampled
             Y_TRAIN_SAMPLES_MAP[label] = y_train_sampled
 
+    # Create warm mini dataset for instant preview
     warm_size = min(WARM_MINI_ROWS, len(X_train_raw))
     X_TRAIN_WARM = X_train_raw.sample(n=warm_size, random_state=42)
     Y_TRAIN_WARM = y_train.loc[X_TRAIN_WARM.index]
 
+
+
     return X_train_raw, X_test_raw, y_train, y_test
+
 def _background_initializer():
     """
-    Lite initialization for Cache-Only mode.
-    Skips downloading raw training data and fitting preprocessors.
+    Background thread that performs sequential initialization tasks.
+    Updates INIT_FLAGS dict with readiness booleans and captures errors.
+    
+    Initialization sequence:
+    1. Competition object connection
+    2. Dataset cached download and core split
+    3. Warm mini dataset creation
+    4. Progressive sampling: small -> medium -> large -> full
+    5. Leaderboard prefetch
+    6. Default preprocessor fit on small sample
     """
     global playground, X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST
     
     try:
-        # 1. Connect to Competition (API Handshake)
+        # Step 1: Connect to competition
         with INIT_LOCK:
             if playground is None:
                 playground = Competition(MY_PLAYGROUND_ID)
             INIT_FLAGS["competition"] = True
-            
-        # 2. Load ONLY the Test Labels (Y_TEST) for scoring
-        # passing lite_mode=True makes this fast
-        _, _, _, Y_TEST = load_and_prep_data(use_cache=True, lite_mode=True)
-        
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Competition connection failed: {str(e)}")
+    
+    try:
+        # Step 2: Load dataset core (train/test split)
+        X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data(use_cache=True)
         with INIT_LOCK:
             INIT_FLAGS["dataset_core"] = True
-            
-            # FAKE IT: Mark all heavy data steps as "Done" immediately
-            INIT_FLAGS["warm_mini"] = True
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Dataset loading failed: {str(e)}")
+        return  # Cannot proceed without data
+    
+    try:
+        # Step 3: Warm mini dataset (already created in load_and_prep_data)
+        if X_TRAIN_WARM is not None and len(X_TRAIN_WARM) > 0:
+            with INIT_LOCK:
+                INIT_FLAGS["warm_mini"] = True
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Warm mini dataset failed: {str(e)}")
+    
+    # Progressive sampling - samples are already created in load_and_prep_data
+    # Just mark them as ready sequentially with delays to simulate progressive loading
+    
+    try:
+        # Step 4a: Small sample (20%)
+        time.sleep(0.5)  # Simulate processing
+        with INIT_LOCK:
             INIT_FLAGS["pre_samples_small"] = True
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Small sample failed: {str(e)}")
+    
+    try:
+        # Step 4b: Medium sample (60%)
+        time.sleep(0.5)
+        with INIT_LOCK:
             INIT_FLAGS["pre_samples_medium"] = True
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Medium sample failed: {str(e)}")
+    
+    try:
+        # Step 4c: Large sample (80%)
+        time.sleep(0.5)
+        with INIT_LOCK:
             INIT_FLAGS["pre_samples_large"] = True
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Large sample failed: {str(e)}")
+        print(f"✗ Large sample failed: {e}")
+    
+    try:
+        # Step 4d: Full sample (100%)
+        print("Background init: Full sample (100%)...")
+        time.sleep(0.5)
+        with INIT_LOCK:
             INIT_FLAGS["pre_samples_full"] = True
-            
-            # FAKE IT: We don't need the preprocessor because we use cached predictions
-            INIT_FLAGS["default_preprocessor"] = True 
-            
-        # 3. Prefetch Leaderboard (Background network call)
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Full sample failed: {str(e)}")
+    
+    try:
+        # Step 5: Leaderboard prefetch (best-effort, unauthenticated)
+        # Concurrency Note: Do NOT use os.environ for ambient token - prefetch
+        # anonymously to warm the cache for initial page loads.
         if playground is not None:
-            _get_leaderboard_with_optional_token(playground, None)
+            _ = _get_leaderboard_with_optional_token(playground, None)
             with INIT_LOCK:
                 INIT_FLAGS["leaderboard"] = True
-                
-        print("✅ Background Init Complete (Lite Mode)")
-            
     except Exception as e:
-        print(f"❌ Init failed: {e}")
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(str(e))
+            INIT_FLAGS["errors"].append(f"Leaderboard prefetch failed: {str(e)}")
+    
+    try:
+        # Step 6: Default preprocessor on small sample
+        _fit_default_preprocessor()
+        with INIT_LOCK:
+            INIT_FLAGS["default_preprocessor"] = True
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Default preprocessor failed: {str(e)}")
+        print(f"✗ Default preprocessor failed: {e}")
     
 
 def _fit_default_preprocessor():
@@ -4110,10 +4161,12 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         )
 
         # Timer for polling initialization status
+        status_timer = gr.Timer(value=0.5, active=True)  # Poll every 0.5 seconds
         
         def update_init_status():
             """
             Poll initialization status and update UI elements.
+            Returns status HTML, banner visibility, submit button state, data size choices, and readiness_state.
             """
             status_html, ready = poll_init_status()
             
@@ -4131,9 +4184,8 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             # Get available data sizes based on init progress
             available_sizes = get_available_data_sizes()
             
-            # FIX: Stop timer immediately when the app is ready (small sample loaded).
-            # Do not wait for "pre_samples_full"; that can happen silently in the background.
-            timer_active = not ready 
+            # Stop timer once fully initialized
+            timer_active = not (ready and INIT_FLAGS.get("pre_samples_full", False))
             
             return (
                 status_html,
@@ -4141,18 +4193,15 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 gr.update(value=submit_label, interactive=submit_interactive),
                 gr.update(choices=available_sizes),
                 timer_active,
-                ready
+                ready  # readiness_state
             )
-          
-        # Timer for polling initialization status
-        status_timer = gr.Timer(value=2, active=True)  # Poll every 2 seconds
         
         status_timer.tick(
             fn=update_init_status,
             inputs=None,
             outputs=[init_status_display, init_banner, submit_button, data_size_radio, status_timer, readiness_state]
         )
-      
+
         # Handle session-based authentication on page load
         def handle_load_with_session_auth(request: "gr.Request"):
             """
@@ -4202,30 +4251,28 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                     "",    # team_name_state
                 )
         
-                # 1. Handle the login/session load first
-        
-                demo.load(
-                    fn=handle_load_with_session_auth,
-                    inputs=None,  # Request is auto-injected
-                    outputs=[
-                        model_card_display,
-                        team_leaderboard_display, 
-                        individual_leaderboard_display, 
-                        rank_message_display,
-                        model_type_radio,
-                        complexity_slider,
-                        feature_set_checkbox,
-                        data_size_radio,
-                        login_username,
-                        login_password,
-                        login_submit,
-                        login_error,
-                        username_state,  # NEW
-                        token_state,     # NEW
-                        team_name_state, # NEW
-                    ]
-                )
-        
+        demo.load(
+            fn=handle_load_with_session_auth,
+            inputs=None,  # Request is auto-injected
+            outputs=[
+                model_card_display,
+                team_leaderboard_display, 
+                individual_leaderboard_display, 
+                rank_message_display,
+                model_type_radio,
+                complexity_slider,
+                feature_set_checkbox,
+                data_size_radio,
+                login_username,
+                login_password,
+                login_submit,
+                login_error,
+                username_state,  # NEW
+                token_state,     # NEW
+                team_name_state, # NEW
+            ]
+        )
+
     return demo
 
 # -------------------------------------------------------------------------
