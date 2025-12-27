@@ -3487,11 +3487,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
     }
     """
   
-    # 1. Libraries
-    head_content = """
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
-    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
-    """
+
 
     with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css, head=head_content) as demo:
         
