@@ -409,7 +409,7 @@ def _build_attempts_tracker_html(current_count, limit=10):
         border_color = "#bae6fd"
         text_color = "#0369a1"
         icon = "🛑"
-        label = f"Última oportunitat (de moment) per pujar la teva puntuació!: {current_count}/{limit}"
+        label = f"Última oportunitat (per ara) per pujar la teva puntuació!: {current_count}/{limit}"
     else:
         # Normal - blue styling
         bg_color = "#f0f9ff"
@@ -764,7 +764,7 @@ def _background_initializer():
             INIT_FLAGS["competition"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Competition connection failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"La connexió amb la competició ha fallat: {str(e)}")
     
     try:
         # Step 2: Load dataset core (train/test split)
@@ -773,7 +773,7 @@ def _background_initializer():
             INIT_FLAGS["dataset_core"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Dataset loading failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"La càrrega del conjunt de dades ha fallat: {str(e)}")
         return  # Cannot proceed without data
     
     try:
@@ -783,7 +783,7 @@ def _background_initializer():
                 INIT_FLAGS["warm_mini"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Warm mini dataset failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"El dataset mini de preescalfament ha fallat: {str(e)}")
     
     # Progressive sampling - samples are already created in load_and_prep_data
     # Just mark them as ready sequentially with delays to simulate progressive loading
@@ -795,7 +795,7 @@ def _background_initializer():
             INIT_FLAGS["pre_samples_small"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Small sample failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"La mostra petita ha fallat: {str(e)}")
     
     try:
         # Step 4b: Medium sample (60%)
@@ -804,7 +804,7 @@ def _background_initializer():
             INIT_FLAGS["pre_samples_medium"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Medium sample failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"La mostra mitjana ha fallat: {str(e)}")
     
     try:
         # Step 4c: Large sample (80%)
@@ -813,7 +813,7 @@ def _background_initializer():
             INIT_FLAGS["pre_samples_large"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Large sample failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"La mostra gran ha fallat: {str(e)}")
         print(f"✗ Large sample failed: {e}")
     
     try:
@@ -824,7 +824,7 @@ def _background_initializer():
             INIT_FLAGS["pre_samples_full"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Full sample failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"La mostra completa ha fallat: {str(e)}")
     
     try:
         # Step 5: Leaderboard prefetch (best-effort, unauthenticated)
@@ -836,7 +836,7 @@ def _background_initializer():
                 INIT_FLAGS["leaderboard"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Leaderboard prefetch failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"La pre-obtenció de la classificació ha fallat: {str(e)}")
     
     try:
         # Step 6: Default preprocessor on small sample
@@ -845,7 +845,7 @@ def _background_initializer():
             INIT_FLAGS["default_preprocessor"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Default preprocessor failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"El preprocessador per defecte ha fallat: {str(e)}")
         print(f"✗ Default preprocessor failed: {e}")
     
 
