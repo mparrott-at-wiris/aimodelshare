@@ -765,7 +765,7 @@ def _background_initializer():
             INIT_FLAGS["competition"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Competition connection failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"Fallo en la conexión con la competición: {str(e)}")
     
     try:
         # Step 2: Load dataset core (train/test split)
@@ -774,7 +774,7 @@ def _background_initializer():
             INIT_FLAGS["dataset_core"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Dataset loading failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"Error al cargar el conjunto de datos principal: {str(e)}")
         return  # Cannot proceed without data
     
     try:
@@ -784,7 +784,7 @@ def _background_initializer():
                 INIT_FLAGS["warm_mini"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Warm mini dataset failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"Error al generar la vista previa instantánea: {str(e)}")
     
     # Progressive sampling - samples are already created in load_and_prep_data
     # Just mark them as ready sequentially with delays to simulate progressive loading
@@ -796,7 +796,7 @@ def _background_initializer():
             INIT_FLAGS["pre_samples_small"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Small sample failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"Error en la muestra pequeña: {str(e)}")
     
     try:
         # Step 4b: Medium sample (60%)
@@ -805,7 +805,7 @@ def _background_initializer():
             INIT_FLAGS["pre_samples_medium"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Medium sample failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"Error en la muestra mediana: {str(e)}")
     
     try:
         # Step 4c: Large sample (80%)
@@ -814,7 +814,7 @@ def _background_initializer():
             INIT_FLAGS["pre_samples_large"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Large sample failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"Error en la muestra grande: {str(e)}")
         print(f"✗ Large sample failed: {e}")
     
     try:
@@ -825,7 +825,7 @@ def _background_initializer():
             INIT_FLAGS["pre_samples_full"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Full sample failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"Error en la muestra completa: {str(e)}")
     
     try:
         # Step 5: Leaderboard prefetch (best-effort, unauthenticated)
@@ -837,7 +837,7 @@ def _background_initializer():
                 INIT_FLAGS["leaderboard"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Leaderboard prefetch failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"Error al obtener la tabla de clasificación: {str(e)}")
     
     try:
         # Step 6: Default preprocessor on small sample
@@ -846,7 +846,7 @@ def _background_initializer():
             INIT_FLAGS["default_preprocessor"] = True
     except Exception as e:
         with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Default preprocessor failed: {str(e)}")
+            INIT_FLAGS["errors"].append(f"Error en el sistema de preprocesamiento: {str(e)}")
         print(f"✗ Default preprocessor failed: {e}")
     
 
