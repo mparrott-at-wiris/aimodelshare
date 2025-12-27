@@ -3901,3 +3901,22 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         )
 
     return demo
+
+def launch_model_building_game_en_app(height: int = 1200, share: bool = False, debug: bool = False) -> None:
+    """
+    Create and directly launch the Model Building Game app inline (e.g., in notebooks).
+    """
+    global playground, X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST
+    if playground is None:
+        try:
+            playground = Competition(MY_PLAYGROUND_ID)
+        except Exception as e:
+            print(f"WARNING: Could not connect to playground: {e}")
+            playground = None
+
+    if X_TRAIN_RAW is None:
+        X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data()
+
+    demo = create_model_building_game_en_app()
+    port = int(os.environ.get("PORT", 8080))
+    demo.launch(share=share, inline=True, debug=debug, height=height, server_port=port)
