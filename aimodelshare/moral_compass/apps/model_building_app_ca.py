@@ -1994,10 +1994,10 @@ def run_experiment(
         """
 
     # --- Stage 1: Lock UI and give initial feedback ---
-    progress(0.1, desc="Starting Experiment...")
+    progress(0.1, desc="Iniciant l'experiment...")
     initial_updates = {
-        submit_button: gr.update(value="⏳ Experiment Running...", interactive=False),
-        submission_feedback_display: gr.update(value=get_status_html(1, "Initializing", "Preparing your data ingredients..."), visible=True), # Make sure it's visible
+        submit_button: gr.update(value="⏳ Experiment en curs...", interactive=False),
+        submission_feedback_display: gr.update(value=get_status_html(1, "Iniciant", "Preparant les variables de dades..."), visible=True), # Make sure it's visible
         login_error: gr.update(visible=False), # Hide login success/error message
         attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))
     }
@@ -2020,9 +2020,9 @@ def run_experiment(
     # If not ready but warm mini available, run preview
     if not ready_for_submission and flags["warm_mini"] and X_TRAIN_WARM is not None:
         _log("Running warm mini preview (not ready yet)")
-        progress(0.5, desc="Running Preview...")
+        progress(0.5, desc="Executant la vista prèvia...")
         yield { 
-            submission_feedback_display: gr.update(value=get_status_html("Preview", "Warm-up Run", "Testing on mini-dataset..."), visible=True),
+            submission_feedback_display: gr.update(value=get_status_html("Vista prèvia", "Prova d'escalfament", "Provant amb un conjunt de dades reduït..."), visible=True),
             login_error: gr.update(visible=False)
         }
         
@@ -2651,8 +2651,8 @@ def on_initial_load(username, token=None, team_name=""):
             )
         except Exception as e:
             print(f"Error generating summary HTML: {e}")
-            team_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
-            individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>'ha produït un error en mostrar la classificació.</p>"
+            team_html = "<p style='text-align:center; color:red; padding-top:20px;'>S'ha produït un error en carregar la classificació.</p>"
+            individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>S'ha produït un error en mostrar la classificació.</p>"
 
     return (
         get_model_card(DEFAULT_MODEL),
