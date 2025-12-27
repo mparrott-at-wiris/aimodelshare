@@ -3594,7 +3594,8 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 with gr.Column(scale=2, min_width=300):
                      # This button calls the GLOBAL window function
                     start_tour_btn = gr.Button("👋 Replay Tutorial", variant="secondary", size="sm")
-                    start_tour_btn.click(None, None, None, js="window.startTour()")
+                    start_tour_btn.click(None, None, None, js="() => { if (window.startTour) window.startTour(); }")
+
                 with gr.Column(scale=1, min_width=100):
                      pass
 
@@ -3749,15 +3750,19 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         # 3. Trigger window.waitForArenaAndStartTour() to ensure elements exist.
         # ----------------------------------------------------------------------------------
         briefing_4_next.click(
-                fn=None, 
-                js="window.showLoader()" 
-            ).then(
-                fn=create_nav(briefing_slide_4, model_building_step), 
-                outputs=all_steps_nav
-            ).then(
-                fn=None, 
-                js="window.waitForArenaAndStartTour()"
-            )
+            fn=None,
+            inputs=None,
+            outputs=None,
+            js="() => { if (window.showLoader) window.showLoader(); }"
+        ).then(
+            fn=create_nav(briefing_slide_4, model_building_step),
+            outputs=all_steps_nav
+        ).then(
+            fn=None,
+            inputs=None,
+            outputs=None,
+            js="() => { if (window.waitForArenaAndStartTour) window.waitForArenaAndStartTour(); }"
+        )
 
         # Conclusion nav
         def finalize_and_show_conclusion(best, sub_count, rank, first, feat):
