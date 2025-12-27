@@ -3760,15 +3760,15 @@ with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css, head=head_co
         # 3. Trigger window.waitForArenaAndStartTour() to ensure elements exist.
         # ----------------------------------------------------------------------------------
         briefing_4_next.click(
-            fn=None, 
-            js="window.showLoader()" 
-        ).then(
-            fn=create_nav(briefing_slide_4, model_building_step), 
-            outputs=all_steps_nav
-        ).then(
-            fn=None, 
-            js="window.waitForArenaAndStartTour()"
-        )
+                fn=None, 
+                js="window.showLoader()" 
+            ).then(
+                fn=create_nav(briefing_slide_4, model_building_step), 
+                outputs=all_steps_nav
+            ).then(
+                fn=None, 
+                js="window.waitForArenaAndStartTour()"
+            )
 
         # Conclusion nav
         def finalize_and_show_conclusion(best, sub_count, rank, first, feat):
