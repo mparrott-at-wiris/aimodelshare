@@ -3809,6 +3809,8 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                     )
 
                     # ---------- ADD: Tutorial Mode UI ----------
+                    # Tutorial components appear in the left column below the submit button.
+                    # The tutorial panel overlays other controls when active.
                     # A toggle to start tutorial and a guided overlay panel with Next/Back
                     tutorial_active_state = gr.State(False)
                     tutorial_step_state = gr.State(0)  # 0=off, 1..5 steps
@@ -4090,6 +4092,8 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         )
 
         # ---------- Tutorial Mode Helper Functions ----------
+        TUTORIAL_MAX_STEPS = 5  # Number of tutorial steps
+        
         # Helper: per-step text
         def _tutorial_text(step: int) -> str:
             texts = {
@@ -4118,7 +4122,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 features_interactive = True
             if step >= 4:
                 size_interactive = True
-            if step >= 5:
+            if step >= TUTORIAL_MAX_STEPS:
                 submit_interactive = True
 
             return (
@@ -4150,9 +4154,9 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 login_error: gr.update(visible=False),
             }
 
-        # Advance tutorial: step+1 up to 5
+        # Advance tutorial: step+1 up to TUTORIAL_MAX_STEPS
         def tutorial_next(step: int):
-            step = max(1, min(step + 1, 5))
+            step = max(1, min(step + 1, TUTORIAL_MAX_STEPS))
             m, c, f, d, s = _tutorial_interact_for_step(step)
             return {
                 tutorial_content: gr.update(value=_tutorial_text(step)),
@@ -4166,7 +4170,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # Go back: step-1 down to 1
         def tutorial_back(step: int):
-            step = max(1, min(step - 1, 5))
+            step = max(1, min(step - 1, TUTORIAL_MAX_STEPS))
             m, c, f, d, s = _tutorial_interact_for_step(step)
             return {
                 tutorial_content: gr.update(value=_tutorial_text(step)),
@@ -4187,7 +4191,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 current_feature_set or DEFAULT_FEATURE_SET,
                 current_data_size or DEFAULT_DATA_SIZE
             )
-            # Show login only if user is not authenticated
+            # Show login only if user is not authenticated (both username and token must be present)
             show_login = not (username and token)
             return {
                 tutorial_panel: gr.update(visible=False),
