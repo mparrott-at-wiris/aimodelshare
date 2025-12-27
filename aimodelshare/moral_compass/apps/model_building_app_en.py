@@ -3586,7 +3586,8 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 with gr.Column(scale=2, min_width=300):
                      # This button calls the GLOBAL window function
                     start_tour_btn = gr.Button("👋 Replay Tutorial", variant="secondary", size="sm")
-                    start_tour_btn.click(None, None, None, js="window.startTour()")
+                    start_tour_btn.click(None, None, None, js="() => window.startTour && window.startTour()")
+
                 with gr.Column(scale=1, min_width=100):
                      pass
 
@@ -3742,8 +3743,15 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         # ----------------------------------------------------------------------------------
         briefing_4_next.click(
             fn=None,
-            js="(() => { console.log('click'); console.log('showLoader type:', typeof window.showLoader); if (typeof window.showLoader === 'function') window.showLoader(); })()"
+            js="() => window.showLoader && window.showLoader()"
+        ).then(
+            fn=create_nav(briefing_slide_4, model_building_step),
+            outputs=all_steps_nav
+        ).then(
+            fn=None,
+            js="() => window.waitForArenaAndStartTour && window.waitForArenaAndStartTour()"
         )
+
 
 
         # Conclusion nav
