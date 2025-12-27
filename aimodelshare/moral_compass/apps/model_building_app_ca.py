@@ -1367,7 +1367,7 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
         elif rank_diff > 0:
             rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>🚀 ¡Has pujat {rank_diff} posició/ons!</p>"
         elif rank_diff < 0:
-            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>🔻 Has baixat {abs(rank_diff)} sposició/ons!</p>"
+            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>🔻 Has baixat {abs(rank_diff)} posició/ons!</p>"
         else:
             rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {rank_color}; margin:0;'>Mantens la teva posició (↔)</p>"
 
