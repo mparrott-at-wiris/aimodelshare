@@ -3447,7 +3447,6 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                             showButtons: ['next', 'previous', 'close'],
                             steps: [
                                 {
-                                    element: '#model-step h1',
                                     popover: {
                                         title: '🎉 Welcome to the Model Building Arena!',
                                         description: `<div style='line-height: 1.8;'>
@@ -3461,13 +3460,10 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                                             <p><strong>Your New Challenge:</strong> Step into the shoes of an AI Engineer and build models that are more accurate than the one you used as a judge.</p>
                                             <p><strong>The Mission:</strong> Build an AI model that helps judges make better decisions. You will compete against other engineers, joining an engineering team. Your results will be tracked both individually and as a group in the Live Standings Leaderboards.</p>
                                             <p><em>Remember: You experienced firsthand how AI predictions affect real people's lives. Use that knowledge to build something better.</em></p>
-                                        </div>`,
-                                        side: 'bottom',
-                                        align: 'center'
+                                        </div>`
                                     }
                                 },
                                 {
-                                    element: 'label:contains("1. Model Strategy")',
                                     popover: {
                                         title: '🧠 What is a "Model"?',
                                         description: `<div style='line-height: 1.8;'>
@@ -3479,14 +3475,10 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                                             </ol>
                                             <hr style='margin: 16px 0;'>
                                             <p><strong>How it learns:</strong> You show the model thousands of old cases (Inputs) + what actually happened (Outcomes). It studies them to find the rules, so it can make predictions on new cases it hasn't seen before.</p>
-                                            <p><strong>Model Strategy & Complexity:</strong> These first two knobs allow you to choose a type of model and adjust how it learns patterns in data.</p>
-                                        </div>`,
-                                        side: 'right',
-                                        align: 'start'
+                                        </div>`
                                     }
                                 },
                                 {
-                                    element: '#model-step h1',
                                     popover: {
                                         title: '🔁 How Engineers Work — The Loop',
                                         description: `<div style='line-height: 1.8;'>
@@ -3501,66 +3493,58 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
                                             <p><strong>You will do the exact same thing in a competition!</strong></p>
                                             <p>1. <strong>Configure</strong> using Control Knobs → 2. <strong>Submit</strong> to train your model → 3. <strong>Analyze</strong> your rank on the Leaderboard → 4. <strong>Refine</strong> and submit again!</p>
                                             <p><strong>Pro Tip:</strong> Try to change only one thing at a time. If you change too many things at once, you won't know what made your model better or worse!</p>
-                                        </div>`,
-                                        side: 'bottom',
-                                        align: 'center'
+                                        </div>`
                                     }
                                 },
                                 {
-                                    element: 'label:contains("1. Model Strategy")',
                                     popover: {
                                         title: '🎛️ Control Knobs — The "Brain" Settings',
                                         description: `<div style='line-height: 1.8;'>
                                             <p><strong>1. Model Strategy (Type of Model):</strong><br>
                                             The specific mathematical method the machine uses to find patterns.</p>
                                             <ul style='margin-left: 20px;'>
-                                                <li><strong>The Balanced Generalist:</strong> A reliable, all-purpose algorithm. It provides stable results across most data.</li>
-                                                <li><strong>The Rule-Maker:</strong> Creates strict "If... Then..." logic (e.g., If prior crimes > 2, then High Risk).</li>
-                                                <li><strong>The Deep Pattern-Finder:</strong> A complex algorithm designed to detect subtle, hidden connections in the data.</li>
+                                                <li><strong>The Balanced Generalist:</strong> A reliable, all-purpose algorithm</li>
+                                                <li><strong>The Rule-Maker:</strong> Creates strict "If... Then..." logic</li>
+                                                <li><strong>The Deep Pattern-Finder:</strong> Detects subtle, hidden connections</li>
                                             </ul>
                                             <hr style='margin: 12px 0;'>
                                             <p><strong>2. Model Complexity (Fitting Level):</strong><br>
                                             Range: Level 1 ─── ● ─── 10</p>
                                             <p>Tunes how tightly the machine fits its logic to find patterns in the data.</p>
                                             <ul style='margin-left: 20px;'>
-                                                <li><strong>Low (Level 1):</strong> Captures only the broad, obvious trends</li>
+                                                <li><strong>Low (Level 1):</strong> Captures only broad, obvious trends</li>
                                                 <li><strong>High (Level 10):</strong> Captures every tiny detail and variation</li>
                                             </ul>
-                                            <p style='color:#b91c1c; font-weight:bold;'>⚠️ Warning: Setting this too high causes the machine to "memorize" random, irrelevant details or coincidences (noise) in the past data rather than learning the general rule.</p>
-                                        </div>`,
-                                        side: 'right',
-                                        align: 'start'
+                                            <p style='color:#b91c1c; font-weight:bold;'>⚠️ Warning: Setting this too high causes the machine to "memorize" random details (noise) rather than learning the general rule.</p>
+                                        </div>`
                                     }
                                 },
                                 {
-                                    element: 'label:contains("3. Select Data Ingredients")',
                                     popover: {
                                         title: '🎛️ Control Knobs — The "Data" Settings & Build Function',
                                         description: `<div style='line-height: 1.8;'>
                                             <p><strong>3. Data Ingredients:</strong><br>
                                             The specific data points the machine is allowed to access. The machine's output depends largely on its input.</p>
                                             <ul style='margin-left: 20px;'>
-                                                <li><strong>Behavioral Inputs:</strong> Data like <em>Juvenile Felony Count</em> may help the logic find valid risk patterns</li>
-                                                <li><strong>Demographic Inputs:</strong> Data like <em>Race</em> may help the model learn, but they may also replicate human bias</li>
+                                                <li><strong>Behavioral Inputs:</strong> Data like <em>Juvenile Felony Count</em> may help find valid risk patterns</li>
+                                                <li><strong>Demographic Inputs:</strong> Data like <em>Race</em> may help the model learn, but may also replicate human bias</li>
                                             </ul>
                                             <p><strong>Your Job:</strong> Check ☑ or uncheck ☐ the boxes to select the inputs to feed your model.</p>
                                             <hr style='margin: 12px 0;'>
                                             <p><strong>4. Data Size (Training Volume):</strong><br>
                                             The amount of historical cases the machine uses to learn patterns.</p>
                                             <ul style='margin-left: 20px;'>
-                                                <li><strong>Small (20%):</strong> Fast processing. Great for running quick tests to check your settings.</li>
-                                                <li><strong>Full (100%):</strong> Maximum data processing. Takes longer to build, but gives the machine the best chance to calibrate its accuracy.</li>
+                                                <li><strong>Small (20%):</strong> Fast processing. Great for quick tests.</li>
+                                                <li><strong>Full (100%):</strong> Maximum data. Takes longer but gives the best chance to calibrate accuracy.</li>
                                             </ul>
                                             <hr style='margin: 12px 0;'>
                                             <p><strong>5. Build & Submit Model:</strong><br>
-                                            Once you've configured all your settings, click this button to train your model and submit it to the competition!</p>
-                                            <p><strong>How You Are Scored:</strong> Your model is tested on <strong>Hidden Data</strong> (cases kept in a "secret vault" that your model has never seen). This simulates predicting the future to ensure you get a real-world prediction accuracy score.</p>
-                                            <p><strong>Get Promoted & Unlock Tools:</strong> As you submit more models, you rise in rank and unlock better analysis tools:</p>
+                                            Once you've configured all settings, click the button below the controls to train your model and submit it!</p>
+                                            <p><strong>How You Are Scored:</strong> Your model is tested on <strong>Hidden Data</strong> (cases in a "secret vault"). This simulates predicting the future.</p>
+                                            <p><strong>Get Promoted & Unlock Tools:</strong> As you submit more models, you rise in rank:</p>
                                             <p style='text-align:center; font-weight:bold; color:#4f46e5;'>Trainee → Junior → Senior → Lead Engineer</p>
                                             <p><strong>Remember:</strong> You've seen how these predictions affect real life decisions. Build accordingly.</p>
-                                        </div>`,
-                                        side: 'right',
-                                        align: 'start'
+                                        </div>`
                                     }
                                 }
                             ]
