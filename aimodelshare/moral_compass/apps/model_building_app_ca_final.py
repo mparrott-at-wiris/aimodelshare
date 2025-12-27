@@ -463,7 +463,7 @@ MY_PLAYGROUND_ID = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/
 # by refreshing the browser. For production use with 100+ concurrent users,
 # consider implementing server-side persistence via Redis or Firestore to track
 # attempt counts per user across sessions.
-ATTEMPT_LIMIT = 10
+ATTEMPT_LIMIT = 1000000000
 
 # --- Leaderboard Polling Configuration ---
 # After a real authenticated submission, we poll the leaderboard to detect eventual consistency.
@@ -1475,73 +1475,23 @@ def compute_rank_settings(
 ):
     """Returns rank gating settings (updated for 1–10 complexity scale)."""
 
-    def get_choices_for_rank(rank):
-        if rank == 0: # Trainee
-            return [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in FEATURE_SET_GROUP_1_VALS]
-        if rank == 1: # Junior
-            return [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in (FEATURE_SET_GROUP_1_VALS + FEATURE_SET_GROUP_2_VALS)]
-        return FEATURE_SET_ALL_OPTIONS # Senior+
 
-    if submission_count == 0:
-        return {
-            "rank_message": "# 🧑‍🎓 Rank: Trainee Engineer\n<p style='font-size:24px; line-height:1.4;'>For your first submission, just click the big '🔬 Build & Submit Model' button below!</p>",
-            "model_choices": ["The Balanced Generalist"],
-            "model_value": "The Balanced Generalist",
-            "model_interactive": False,
-            "complexity_max": 3,
-            "complexity_value": min(current_complexity, 3),
-            "feature_set_choices": get_choices_for_rank(0),
-            "feature_set_value": FEATURE_SET_GROUP_1_VALS,
-            "feature_set_interactive": False,
-            "data_size_choices": ["Small (20%)"],
-            "data_size_value": "Small (20%)",
-            "data_size_interactive": False,
-        }
-    elif submission_count == 1:
-        return {
-            "rank_message": "# 🎉 Rank Up! Junior Engineer\n<p style='font-size:24px; line-height:1.4;'>New models, data sizes, and data ingredients unlocked!</p>",
-            "model_choices": ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"],
-            "model_value": current_model if current_model in ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"] else "The Balanced Generalist",
-            "model_interactive": True,
-            "complexity_max": 6,
-            "complexity_value": min(current_complexity, 6),
-            "feature_set_choices": get_choices_for_rank(1),
-            "feature_set_value": current_feature_set,
-            "feature_set_interactive": True,
-            "data_size_choices": ["Small (20%)", "Medium (60%)"],
-            "data_size_value": current_data_size if current_data_size in ["Small (20%)", "Medium (60%)"] else "Small (20%)",
-            "data_size_interactive": True,
-        }
-    elif submission_count == 2:
-        return {
-            "rank_message": "# 🌟 Rank Up! Senior Engineer\n<p style='font-size:24px; line-height:1.4;'>Strongest Data Ingredients Unlocked! The most powerful predictors (like 'Age' and 'Prior Crimes Count') are now available in your list. These will likely boost your accuracy, but remember they often carry the most societal bias.</p>",
-            "model_choices": list(MODEL_TYPES.keys()),
-            "model_value": current_model if current_model in MODEL_TYPES else "The Deep Pattern-Finder",
-            "model_interactive": True,
-            "complexity_max": 8,
-            "complexity_value": min(current_complexity, 8),
-            "feature_set_choices": get_choices_for_rank(2),
-            "feature_set_value": current_feature_set,
-            "feature_set_interactive": True,
-            "data_size_choices": ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"],
-            "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Small (20%)",
-            "data_size_interactive": True,
-        }
-    else:
-        return {
-            "rank_message": "# 👑 Rank: Lead Engineer\n<p style='font-size:24px; line-height:1.4;'>All tools unlocked — optimize freely!</p>",
-            "model_choices": list(MODEL_TYPES.keys()),
-            "model_value": current_model if current_model in MODEL_TYPES else "The Balanced Generalist",
-            "model_interactive": True,
-            "complexity_max": 10,
-            "complexity_value": current_complexity,
-            "feature_set_choices": get_choices_for_rank(3),
-            "feature_set_value": current_feature_set,
-            "feature_set_interactive": True,
-            "data_size_choices": ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"],
-            "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Small (20%)",
-            "data_size_interactive": True,
-        }
+    # Always allow all options
+    return {
+        "rank_message": "# 👑 Rank: Lead Engineer\n<p style='font-size:24px; line-height:1.4;'>All tools unlocked — optimize freely!</p>",
+        "model_choices": list(MODEL_TYPES.keys()),
+        "model_value": current_model if current_model in MODEL_TYPES else "The Balanced Generalist",
+        "model_interactive": True,
+        "complexity_max": 10,
+        "complexity_value": current_complexity,
+        "feature_set_choices": FEATURE_SET_ALL_OPTIONS, 
+        "feature_set_value": current_feature_set,
+        "feature_set_interactive": True,
+        "data_size_choices": ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"],
+        "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Small (20%)",
+        "data_size_interactive": True,
+    }
+
 
 # Find components by name to yield updates
 # --- Existing global component placeholders ---
@@ -1977,26 +1927,57 @@ def run_experiment(
             
             
         else:
-            # === CACHE MISS (Training Disabled) ===
-            # This ensures we NEVER run heavy training code in production.
-            msg = f"❌ CACHE MISS: {cache_key}"
-            _log(msg)
-            
-            # User-friendly error message
-            error_html = f"""
-            <div style='background:#fee2e2; padding:16px; border-radius:8px; border:2px solid #ef4444; color:#991b1b; text-align:center;'>
-                <h3 style='margin:0;'>⚠️ Configuration Not Found</h3>
-                <p style='margin:8px 0;'>This specific combination of settings was not found in our pre-computed database.</p>
-                <p style='font-size:0.9em;'>To ensure system stability, real-time training is disabled. Please adjust your settings (e.g., change the Data Size or Model Strategy) and try again.</p>
-            </div>
-            """
-            
+            # === SLOW PATH (Fallback Training) ===
+            _log(f"🐢 CACHE MISS: {cache_key} (Training for real...)")
             yield { 
-                submission_feedback_display: gr.update(value=error_html, visible=True),
-                submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
+                submission_feedback_display: gr.update(value=get_status_html(2, "Training Model", "The machine is learning from history..."), visible=True),
                 login_error: gr.update(visible=False)
             }
-            return # <--- CRITICAL: Stop execution here.
+
+            # A. Get pre-sampled data
+            sample_frac = DATA_SIZE_MAP.get(data_size_str, 0.2)
+            X_train_sampled = X_TRAIN_SAMPLES_MAP[data_size_str]
+            y_train_sampled = Y_TRAIN_SAMPLES_MAP[data_size_str]
+            log_output += f"Using {int(sample_frac * 100)}% data.\n"
+
+            # B. Determine features...
+            numeric_cols = [f for f in feature_set if f in ALL_NUMERIC_COLS]
+            categorical_cols = [f for f in feature_set if f in ALL_CATEGORICAL_COLS]
+            for feat in feature_set:
+                if feat in ALL_NUMERIC_COLS: numeric_cols.append(feat)
+                elif feat in ALL_CATEGORICAL_COLS: categorical_cols.append(feat)
+            
+            # De-dupe logic just in case (though loop above covers it, ensuring lists are clean)
+            numeric_cols = sorted(list(set([f for f in feature_set if f in ALL_NUMERIC_COLS])))
+            categorical_cols = sorted(list(set([f for f in feature_set if f in ALL_CATEGORICAL_COLS])))
+
+            if not numeric_cols and not categorical_cols:
+                raise ValueError("No features selected for modeling.")
+
+            # C. Preprocessing (uses memoized preprocessor builder)
+            preprocessor, selected_cols = build_preprocessor(numeric_cols, categorical_cols)
+
+            X_train_processed = preprocessor.fit_transform(X_train_sampled[selected_cols])
+            X_test_processed = preprocessor.transform(X_TEST_RAW[selected_cols])
+
+            # D. Model build & tune
+            base_model = MODEL_TYPES[model_name_key]["model_builder"]()
+            tuned_model = tune_model_complexity(base_model, complexity_level)
+
+            # E. Train
+            # Concurrency Note: DecisionTree and RandomForest require dense arrays.
+            if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
+                X_train_for_fit = _ensure_dense(X_train_processed)
+                X_test_for_predict = _ensure_dense(X_test_processed)
+            else:
+                X_train_for_fit = X_train_processed
+                X_test_for_predict = X_test_processed
+            
+            tuned_model.fit(X_train_for_fit, y_train_sampled)
+            log_output += "Training done.\n"
+            
+            # F. Predict
+            predictions = tuned_model.predict(X_test_for_predict)
 
         # --- Stage 3: Submit (API Call 1) ---
         # AUTHENTICATION GATE: Check for token before submission
@@ -2480,7 +2461,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
 
 def build_conclusion_from_state(best_score, submissions, rank, first_score, feature_set):
     return build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set)
-def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
+def create_model_building_game_ca_final_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """
     Create (but do not launch) the model building game app.
     """
@@ -3343,367 +3324,49 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # --- Briefing Slideshow (Updated with New Cards) ---
 
-        # Slide 1: From Understanding to Building (Retained as transition)
-        with gr.Column(visible=True, elem_id="slide-1") as briefing_slide_1:
-            gr.Markdown("<h1 style='text-align:center;'>🔄 From Understanding to Building</h1>")
-            gr.HTML(
-                """
-                <div class='slide-content'>
-                <div class='panel-box'>
-                <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>Great progress! You've now:</h3>
-
-                <ul style='list-style: none; padding-left: 0; margin-top: 24px; margin-bottom: 24px;'>
-                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
-                        <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Made tough decisions as a judge using AI predictions
-                    </li>
-                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
-                        <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Learned about false positives (false alarms) and false negatives (missed warnings)
-                    </li>
-                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
-                        <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Understood how AI works:
-                    </li>
-                </ul>
-
-                <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
-                    <div style='display:inline-block; background:#dbeafe; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#0369a1;'>INPUT</h3>
-                    </div>
-                    <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
-                    <div style='display:inline-block; background:#fef3c7; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#92400e;'>MODEL</h3>
-                    </div>
-                    <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
-                    <div style='display:inline-block; background:#f0fdf4; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#15803d;'>OUTPUT</h3>
-                    </div>
-                </div>
-
-                <hr style='margin: 24px 0; border-top: 2px solid #c7d2fe;'>
-
-                <h3 style='font-size: 1.5rem; text-align:center;'>Now it's time to step into the shoes of an AI Engineer.</h3>
-                <p style='font-size: 1.1rem; text-align:center; margin-top: 12px;'>
-                    <strong>Your New Challenge:</strong> Build AI models that are more accurate than the one you used as a judge.
-                </p>
-                <p style='font-size: 1.1rem; text-align:center; margin-top: 12px;'>
-                    Remember: You experienced firsthand how AI predictions affect real people's lives. Use that knowledge to build something better.
-                </p>
-                </div>
-                </div>
-                """
-            )
-            briefing_1_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
-        # Slide 2: Card 1 (Your Engineering Mission)
-        with gr.Column(visible=False, elem_id="slide-2") as briefing_slide_2:
-            gr.Markdown("<h1 style='text-align:center;'>📋 Your Mission - Build Better AI</h1>")
+        # Slide 7: The Final Transition
+        with gr.Column(visible=True, elem_id="intro-slide") as intro_slide:
+            gr.Markdown("<h1 style='text-align:center;'>🚀 The Final Frontier</h1>")
             
             gr.HTML(
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <h3>The Mission</h3>
-                        <p>Build an AI model that helps judges make better decisions. The model you used previously gave you imperfect advice. Your job now is to build a new model that predicts risk more accurately, providing judges with the reliable insights they need to be fair.</p>
-                        
-                        <h3>The Competition</h3>
-                        <p>To do this, you will compete against other engineers! To help you in your mission, you will join an engineering team. Your results will be tracked both individually and as a group in the Live Standings Leaderboards.</p>
-                    </div>
+                        <div style="text-align:center; margin-bottom: 25px;">
+                            <p style="font-size:1.15rem; line-height:1.6;">
+                                You have explored the ethics. You understand the risks.
+                                <br>
+                                Now, it is time to prove you have the technical <strong>Skill</strong>.
+                            </p>
+                        </div>
 
-                    <div class='leaderboard-box' style='max-width: 600px; margin: 16px auto; text-align: center; padding: 16px;'>
-                        <p style='font-size: 1.1rem; margin:0;'>You will join a team like...</p>
-                        <h3 style='font-size: 1.75rem; color: #6b7280; margin: 8px 0;'>
-                            🛡️ The Ethical Explorers
-                        </h3>
-                    </div>
-
-                    <div class='mock-ui-box'>
-                        <h3>The Data Challenge</h3>
-                        <p>To compete, you have access to thousands of old case files. You have two distinct types of information:</p>
-                        <ol style='list-style-position: inside; padding-left: 20px;'>
-                            <li><strong>Defendant Profiles:</strong> This is like what the judge saw at the time of arrest.
-                                <ul style='margin-left: 20px; list-style-type: disc;'>
-                                    <li><em>Age, Number of Prior Offenses, Type of Charge.</em></li>
-                                </ul>
-                            </li>
-                            <li><strong>Historical Outcomes:</strong> This is what actually happened to those people later.
-                                <ul style='margin-left: 20px; list-style-type: disc;'>
-                                    <li><em>Did they re-offend within 2 years? (Yes/No)</em></li>
-                                </ul>
-                            </li>
-                        </ol>
-                        
-                        <h3>The Core Task</h3>
-                        <p>You need to teach your AI to look at the "Profiles" and accurately predict the "Outcome."</p>
-                        <p><strong>Ready to build something that could change how justice works?</strong></p>
-                    </div>
-                </div>
-                """
-            )
-            
-            with gr.Row():
-                briefing_2_back = gr.Button("◀️ Back", size="lg")
-                briefing_2_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
-        # Slide 3: Card 2 (What is a "Model"?)
-        with gr.Column(visible=False, elem_id="slide-3") as briefing_slide_3:
-            gr.Markdown("<h1 style='text-align:center;'>🧠 What is an AI System?</h1>")
-            
-            # --- FIX FOR SLIDE 3 ---
-            # Combined all content into single gr.HTML()
-            gr.HTML(
-                """
-                <div class='slide-content'>
-                    <div class='panel-box'>
-                        <p>Before we start competing, let's break down exactly what you are building.</p>
-                        <h3>Think of an AI System as a "Prediction Machine."</h3>
-                        <p>You already know the flow:</p>
-                        
-                        <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
-                            <div style='display:inline-block; background:#dbeafe; padding:12px 16px; border-radius:8px; margin:4px;'>
-                                <h3 style='margin:0; color:#0369a1;'>INPUT</h3>
-                            </div>
-                            <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
-                            <div style='display:inline-block; background:#fef3c7; padding:12px 16px; border-radius:8px; margin:4px;'>
-                                <h3 style='margin:0; color:#92400e;'>MODEL</h3>
-                            </div>
-                            <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
-                            <div style='display:inline-block; background:#f0fdf4; padding:12px 16px; border-radius:8px; margin:4px;'>
-                                <h3 style='margin:0; color:#15803d;'>OUTPUT</h3>
+                        <div style="background:linear-gradient(to right, #eff6ff, white); border:2px solid #3b82f6; border-radius:12px; padding:24px; margin-bottom: 25px;">
+                            <h3 style="margin-top:0; color:#1e40af; text-align:center; font-size:1.4rem;">🛠️ The Accuracy Competition</h3>
+                            <div style="font-size:1.1rem; line-height:1.6; color:#1f2937;">
+                                <p>Your <strong>final mission</strong> is to compete against your peers to build the <strong>most accurate model possible</strong>.</p>
+                                
+                                <p>✨ <strong>Unrestricted Access:</strong> You are now a Lead Engineer. All data inputs and modeling tools are <strong>unlocked immediately</strong>.</p>
+                                
+                                <p>Use every tool at your disposal to climb the leaderboard, but remember the lessons you just learned: 
+                                <em>Accuracy is the goal, but data choices have consequences.</em></p>
                             </div>
                         </div>
-                        
-                        <p>As an engineer, you don't need to write complex code from scratch. Instead, you assemble this machine using three main components.</p>
-                    </div>
 
-                    <div class='mock-ui-box'>
-                        <h3>The 3 Components:</h3>
-                        <p><strong>1. The Inputs (Data)</strong><br>
-                        The information you feed the machine.<br>
-                        <em>* Examples: Age, Prior Crimes, Charge Details.</em></p>
-
-                        <p><strong>2. The Model ("The Brain")</strong><br>
-                        This is the "brain" of your machine. It studies the inputs (data) and tries to figure out how things are connected to make a guess. There are different model strategies (brains) that you can choose for your machine.<br>
-                        <em>* Examples: Some "brains" or strategies only find simple rules (like flagging an email if it says 'free money). Other strategies have the ability to find deep, complex patterns (like recognizing a specific person's face in a crowd.</em></p>
-
-                        <p><strong>3. The Output (Prediction)</strong><br>
-                        The model's best guess.<br>
-                        <em>* Example: Risk Level: High or Low.</em></p>
-
-                        <hr>
-                        
-                        <p><strong>How it learns:</strong> You show the model thousands of old cases (Inputs) + what actually happened (Outcomes). It studies them to find the rules, so it can make predictions on new cases it hasn't seen before.</p>
-                    </div>
-                </div>
-                """
-            )
-            # --- END FIX ---
-            
-            with gr.Row():
-                briefing_3_back = gr.Button("◀️ Back", size="lg")
-                briefing_3_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
-        # Slide 4: Card 3 (How Engineers Work — The Loop)
-        with gr.Column(visible=False, elem_id="slide-4") as briefing_slide_4:
-            gr.Markdown("<h1 style='text-align:center;'>🔁 How Engineers Work — The Loop</h1>")
-
-            # --- FIX FOR SLIDE 4 ---
-            # Combined all content into single gr.HTML()
-            gr.HTML(
-                """
-                <div class='slide-content'>
-                    <div class='panel-box'>
-                        <p>Now that you know the components of a model, how do you build a better one?</p>
-                        <h3>Here is the secret:</h3>
-                        <p>Real AI teams almost never get it right on the first try. Instead, they follow a continuous loop of experimentation: <strong>Try, Test, Learn, Repeat.</strong></p>
-                        
-                        <h3>The Experiment Loop:</h3>
-                        <ol style='list-style-position: inside;'>
-                            <li><strong>Build a Model:</strong> Assemble your components and get a starting prediction accuracy score.</li>
-                            <li><strong>Ask a Question:</strong> (e.g., "What happens if I change the 'Brain' type?")</li>
-                            <li><strong>Test & Compare:</strong> Did the score get better... or did it get worse?</li>
-                        </ol>
-                    </div>
-
-                    <h3>You will do the exact same thing in a competition!</h3>
-                    
-                    <div class='step-visual'>
-                        <div class='step-visual-box'><b>1. Configure</b><br/>Use Control Knobs to select Strategy and Data.</div>
-                        <div class='step-visual-arrow'>→</div>
-                        <div class='step-visual-box'><b>2. Submit</b><br/>Click "Build & Submit" to train your model.</div>
-                        <div class='step-visual-arrow'>→</div>
-                        <div class='step-visual-box'><b>3. Analyze</b><br/>Check your rank on the Live Leaderboard.</div>
-                        <div class='step-visual-arrow'>→</div>
-                        <div class='step-visual-box'><b>4. Refine</b><br/>Change one setting and submit again!</div>
-                    </div>
-                    
-                    <div class='leaderboard-box' style='text-align:center;'>
-                        <p><strong>Pro Tip:</strong> Try to change only one thing at a time. If you change too many things at once, you won't know what made your model better or worse!</p>
-                    </div>
-                </div>
-                """
-            )
-            # --- END FIX ---
-            
-            with gr.Row():
-                briefing_4_back = gr.Button("◀️ Back", size="lg")
-                briefing_4_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
-        # Slide 5: Card 4 (Control Knobs — The "Brain" Settings)
-        with gr.Column(visible=False, elem_id="slide-5") as briefing_slide_5:
-            gr.Markdown("<h1 style='text-align:center;'>🎛️ Control Knobs — The \"Brain\" Settings</h1>")
-            
-            # --- FIX FOR SLIDE 5 ---
-            # Combined all content into single gr.HTML()
-            gr.HTML(
-                """
-                <div class='slide-content'>
-                    <div class='mock-ui-inner'>
-                        <p>To build your AI system, you will use Control Knobs to configure your Prediction Machine. The first two knobs allow you to choose your Model Strategy (The Brain) and adjust how it learns patterns in data.</p>
-                        <hr style='margin: 16px 0;'>
-
-                        <h3 style='margin-top:0;'>1. Model Strategy (Type of Model)</h3>
-                        <div style='font-size: 1rem; margin-bottom:12px;'>
-                            <b>What it is:</b> The brain of your Prediction Machine. It uses a specific mathematical method—called an algorithm—to find patterns in data. Once it learns from these patterns, it becomes a Model ready to make its best guess.
-                        </div>
-                        <div class='mock-ui-control-box'>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-on'>◉</span>
-                                <b>The Balanced Generalist:</b> Learns from the full dataset and combines multiple factors in each decision, which helps produce consistent results across different cases.
+                        <div style="text-align:center; margin-top:20px; padding-top:10px; border-top: 1px solid #e5e7eb;">
+                            <p style="font-size:1.2rem; font-weight:700; color:#4b5563; margin-bottom:5px;">
+                                Ready to begin?
                             </p>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-off'>○</span>
-                                <b>The Rule-Maker:</b> Uses clear “If… then…” rules that are easy to understand but less flexible. (e.g., If prior crimes > 2, then High Risk).
+                            <p style="font-size:1rem; color:#6b7280; margin-top:0;">
+                                👇 Click the <b>"Enter the Arena"</b> button below.
                             </p>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-off'>○</span>
-                                <b>The Deep Pattern-Finder:</b> A complex model that finds hidden patterns in data, but its decisions are harder to explain.
-                            </p>
-                        </div>
-
-                        <hr style='margin: 24px 0;'>
-
-                        <h3>2. Model Complexity (Fitting Level)</h3>
-                        <div class='mock-ui-control-box' style='text-align: center;'>
-                            <p style='font-size: 1.1rem; margin:0;'>Range: Level 1 ─── ● ─── 10</p>
-                        </div>
-                        
-                        <div style='margin-top: 16px; font-size: 1rem;'>
-                            <ul style='list-style-position: inside;'>
-                                <li><b>What it is:</b> It is the level of detail the model learns from the data: whether it focuses on general patterns or also on very specific cases.</li>
-                                <li><b>The Trade-off:</b>
-                                    <ul style='list-style-position: inside; margin-left: 20px;'>
-                                    <li><b>Low (Level 1):</b> Learns mainly from general patterns in the data.</li>
-                                    <li><b>High (Level 5):</b> Learns from both general patterns and fine-grained details.</li>
-                                    </ul>
-                                </li>
-                            </ul>
-                            <p style='color:#b91c1c; font-weight:bold; margin-top:10px;'>Warning: Setting this too high causes the machine to "memorize" random, irrelevant details or random coincidences (noise) in the past data rather than learning the general rule.</p>
                         </div>
                     </div>
                 </div>
                 """
             )
-            # --- END FIX ---
             
-            with gr.Row():
-                briefing_5_back = gr.Button("◀️ Back", size="lg")
-                briefing_5_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
-        # Slide 6: Card 5 (Control Knobs — The "Data" Settings)
-        with gr.Column(visible=False, elem_id="slide-6") as briefing_slide_6:
-            gr.Markdown("<h1 style='text-align:center;'>🎛️ Control Knobs — The \"Data\" Settings</h1>")
-
-            # --- FIX FOR SLIDE 6 ---
-            # Combined all content into single gr.HTML()
-            gr.HTML(
-                """
-                <div class='slide-content'>
-                    <div class='mock-ui-inner'>
-                        <p>Now that you have set up your prediction machine, you must decide what information the AI system (the machine) processes. These next knobs control the Inputs (Data).</p>
-                        <hr style='margin: 16px 0;'>
-
-                        <h3 style='margin-top:0;'>3. Data Ingredients</h3>
-                        <div style='font-size: 1rem; margin-bottom:12px;'>
-                            <b>What it is:</b> The specific data points the machine is allowed to access.
-                            <br><b>Why it matters:</b> The machine's output depends largely on its input.
-                        </div>
-                        
-                        <div class='mock-ui-control-box'>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-on'>☑</span>
-                                <b>Behavioral Inputs:</b> Data like <i>Juvenile Felony Count</i> helps the AI system identify risk patterns based on facts.
-                            </p>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-off'>☐</span>
-                                <b>Demographic Inputs:</b> Data like <i>Race</i> may help the model learn, but they may also replicate human bias.
-                            </p>
-                        </div>
-                        <p style='margin-top:10px;'><b>Your Job:</b> Check ☑ or uncheck ☐ the boxes to select the inputs to feed your model.</p>
-
-                        <hr style='margin: 24px 0;'>
-
-                        <h3>4. Data Size (Training Volume)</h3>
-                        <div style='font-size: 1rem; margin-bottom:12px;'>
-                            <b>What it is:</b> The amount of historical cases the AI system uses to learn patterns.
-                        </div>
-                        
-                        <div class='mock-ui-control-box'>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-on'>◉</span>
-                                <b>Small (20%):</b> Fast processing. Great for running quick tests to check your settings.
-                            </p>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-off'>○</span>
-                                <b>Full (100%):</b> Maximum data processing. It takes longer to build, but gives the AI system the best chance to calibrate its accuracy.
-                            </p>
-                        </div>
-
-                    </div>
-                </div>
-                """
-            )
-            # --- END FIX ---
-            
-            with gr.Row():
-                briefing_6_back = gr.Button("◀️ Back", size="lg")
-                briefing_6_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
-        # Slide 7: Card 6 (Your Score as an Engineer)
-        with gr.Column(visible=False, elem_id="slide-7") as briefing_slide_7:
-            gr.Markdown("<h1 style='text-align:center;'>🏆 Your Score as an Engineer</h1>")
-            
-            # --- FIX FOR SLIDE 7 ---
-            # Combined all content into single gr.HTML()
-            gr.HTML(
-                """
-                <div class='slide-content'>
-                    <div class='panel-box'>
-                        <p>Now that you know how to build a model, it’s time to test your skills. Here is how you’ll measure success and rise through the ranks:</p>
-
-                        <h3>How You Are Scored</h3>
-                        <ul style='list-style-position: inside;'>
-                            <li><strong>Prediction Accuracy:</strong> Your model is tested on <strong>Hidden Data</strong> (cases kept in a "secret vault" that your model has never seen). This simulates predicting the future to ensure you get a real-world prediction accuracy score.</li>
-                            <li><strong>The Leaderboard:</strong> Live Standings track your progress individually and as a team.</li>
-                        </ul>
-
-                        <h3>How You Improve: The Game</h3>
-                        <ul style='list-style-position: inside;'>
-                            <li><strong>Compete to Improve:</strong> Refine your model to beat your personal best score.</li>
-                            <li><strong>Get Promoted as an Engineer & Unlock Tools:</strong> As you submit more models, you rise in rank and unlock better analysis tools:</li>
-                        </ul>
-                        
-
-                    </div>
-                </div>
-                """
-            )
-            # --- END FIX ---
-            
-            with gr.Row():
-                briefing_7_back = gr.Button("◀️ Back", size="lg")
-                briefing_7_next = gr.Button("Begin Model Building ▶️", variant="primary", size="lg")
+            # Only ONE button needed now
+            intro_next_btn = gr.Button("Enter the Arena ▶️", variant="primary", size="lg")
 
         # --- End Briefing Slideshow ---
 
@@ -3758,9 +3421,8 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
 
                     model_type_radio = gr.Radio(
                         label="1. Model Strategy",
-                        # Initialize with all possible keys so validation passes even if browser caches a high-rank selection
-                        choices=list(MODEL_TYPES.keys()), 
-                        value=DEFAULT_MODEL,
+                        choices=[],
+                        value=None,
                         interactive=False
                     )
                     model_card_display = gr.Markdown(get_model_card(DEFAULT_MODEL))
@@ -3866,9 +3528,10 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # --- Navigation Logic ---
         all_steps_nav = [
-            briefing_slide_1, briefing_slide_2, briefing_slide_3,
-            briefing_slide_4, briefing_slide_5, briefing_slide_6, briefing_slide_7,
-            model_building_step, conclusion_step, loading_screen
+            intro_slide, 
+            model_building_step, 
+            conclusion_step, 
+            loading_screen
         ]
 
         def create_nav(current_step, next_step):
@@ -3978,77 +3641,14 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
   }} catch(e) {{ console.warn('nav-js error', e); }}
 }}
 """
-
-
-        # Wire up slide buttons with enhanced navigation
-        briefing_1_next.click(
-            fn=create_nav(briefing_slide_1, briefing_slide_2),
-            inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-2", "Loading mission overview...")
-        )
-        briefing_2_back.click(
-            fn=create_nav(briefing_slide_2, briefing_slide_1),
-            inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-1", "Returning to introduction...")
-        )
-        briefing_2_next.click(
-            fn=create_nav(briefing_slide_2, briefing_slide_3),
-            inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-3", "Exploring model concept...")
-        )
-        briefing_3_back.click(
-            fn=create_nav(briefing_slide_3, briefing_slide_2),
-            inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-2", "Going back one step...")
-        )
-        briefing_3_next.click(
-            fn=create_nav(briefing_slide_3, briefing_slide_4),
-            inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-4", "Understanding the experiment loop...")
-        )
-        briefing_4_back.click(
-            fn=create_nav(briefing_slide_4, briefing_slide_3),
-            inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-3", "Reviewing previous concepts...")
-        )
-        briefing_4_next.click(
-            fn=create_nav(briefing_slide_4, briefing_slide_5),
-            inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-5", "Configuring brain settings...")
-        )
-        briefing_5_back.click(
-            fn=create_nav(briefing_slide_5, briefing_slide_4),
-            inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-4", "Revisiting the loop...")
-        )
-        briefing_5_next.click(
-            fn=create_nav(briefing_slide_5, briefing_slide_6),
-            inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-6", "Configuring data inputs...")
-        )
-        briefing_6_back.click(
-            fn=create_nav(briefing_slide_6, briefing_slide_5),
-            inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-5", "Adjusting model strategy...")
-        )
-        briefing_6_next.click(
-            fn=create_nav(briefing_slide_6, briefing_slide_7),
-            inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-7", "Preparing scoring overview...")
-        )
-        briefing_7_back.click(
-            fn=create_nav(briefing_slide_7, briefing_slide_6),
-            inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-6", "Reviewing data knobs...")
-        )
-        # Slide 7 -> App
-        briefing_7_next.click(
-            fn=create_nav(briefing_slide_7, model_building_step),
+        # Final wiring
+        intro_next_btn.click(
+            fn=create_nav(intro_slide, model_building_step),
             inputs=None, outputs=all_steps_nav,
             js=nav_js("model-step", "Entering model arena...")
         )
 
-        # App -> Conclusion
+        # App -> Conclusion (unchanged)
         step_2_next.click(
             fn=finalize_and_show_conclusion,
             inputs=[
@@ -4062,7 +3662,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             js=nav_js("conclusion-step", "Generating performance summary...")
         )
 
-        # Conclusion -> App
+        # Conclusion -> App (unchanged)
         step_3_back.click(
             fn=create_nav(conclusion_step, model_building_step),
             inputs=None, outputs=all_steps_nav,
@@ -4279,7 +3879,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
 # 4. Convenience Launcher
 # -------------------------------------------------------------------------
 
-def launch_model_building_game_en_app(height: int = 1200, share: bool = False, debug: bool = False) -> None:
+def launch_model_building_game_ca_final_app(height: int = 1200, share: bool = False, debug: bool = False) -> None:
     """
     Create and directly launch the Model Building Game app inline (e.g., in notebooks).
     """
@@ -4294,6 +3894,6 @@ def launch_model_building_game_en_app(height: int = 1200, share: bool = False, d
     if X_TRAIN_RAW is None:
         X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data()
 
-    demo = create_model_building_game_en_app()
+    demo = create_model_building_game_ca_final_app()
     port = int(os.environ.get("PORT", 8080))
     demo.launch(share=share, inline=True, debug=debug, height=height, server_port=port)

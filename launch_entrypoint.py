@@ -26,6 +26,10 @@ APP_NAME_TO_FACTORY = {
     "model-building-game-en": "create_model_building_game_en_app",
     "model-building-game-ca": "create_model_building_game_ca_app",
     "model-building-game-es": "create_model_building_game_es_app",
+    # NEW: Final language-specific variants
+    "model-building-game-en-final": "create_model_building_game_en_final_app",
+    "model-building-game-es-final": "create_model_building_game_es_final_app",
+    "model-building-game-ca-final": "create_model_building_game_ca_final_app",
     "ethical-revelation": "create_ethical_revelation_app",
     "moral-compass-challenge": "create_moral_compass_challenge_app",
     "moral-compass-challenge": "create_moral_compass_challenge_app",

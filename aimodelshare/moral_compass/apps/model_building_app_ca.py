@@ -62,50 +62,45 @@ except ImportError:
 # -------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------
-# CACHE CONFIGURATION (Optimized: SQLite)
+# CACHE CONFIGURATION (Optimized: Thread-Safe SQLite)
 # -------------------------------------------------------------------------
 import sqlite3
 
 CACHE_DB_FILE = "prediction_cache.sqlite"
-_db_conn = None
 
 def get_cached_prediction(key):
     """
     Lightning-fast lookup from SQLite database.
-    Production Safe: Logs errors but returns None so app falls back to training.
+    THREAD-SAFE FIX: Opens a new connection for every lookup.
     """
-    global _db_conn
-    
     # 1. Check if DB exists
     if not os.path.exists(CACHE_DB_FILE):
-        print(f"⚠️ CACHE MISS: DB file missing. Falling back to training.", flush=True)
         return None
 
-    # 2. Lazy connection
-    if _db_conn is None:
-        try:
-            _db_conn = sqlite3.connect(CACHE_DB_FILE, check_same_thread=False)
-        except Exception as e:
-            print(f"❌ DB ERROR: Could not connect. Falling back to training. Error: {e}", flush=True)
-            return None
-
     try:
-        cursor = _db_conn.cursor()
-        cursor.execute("SELECT value FROM cache WHERE key=?", (key,))
-        result = cursor.fetchone()
-        
-        if result:
-            return result[0] 
-        else:
-            print(f"🐢 CACHE MISS: Key not found. Training model... Key: '{key}'", flush=True)
-            return None
+        # Use a context manager ('with') to ensure the connection 
+        # is ALWAYS closed, releasing file locks immediately.
+        # timeout=10 ensures we don't wait forever if the file is busy.
+        with sqlite3.connect(CACHE_DB_FILE, timeout=10.0) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT value FROM cache WHERE key=?", (key,))
+            result = cursor.fetchone()
             
+            if result:
+                return result[0] 
+            else:
+                return None
+            
+    except sqlite3.OperationalError as e:
+        # Handle locking errors gracefully
+        print(f"⚠️ CACHE LOCK ERROR: {e}. Falling back to training.", flush=True)
+        return None
+        
     except Exception as e:
         print(f"⚠️ DB READ ERROR: {e}", flush=True)
         return None
 
-print("✅ App configured for Instant-Load SQLite Cache.")
-
+print("✅ App configured for Thread-Safe SQLite Cache.")
 
 LEADERBOARD_CACHE_SECONDS = int(os.environ.get("LEADERBOARD_CACHE_SECONDS", "45"))
 MAX_LEADERBOARD_ENTRIES = os.environ.get("MAX_LEADERBOARD_ENTRIES")
@@ -482,32 +477,57 @@ LEADERBOARD_POLL_TRIES = 60  # Number of polling attempts (increased to handle b
 LEADERBOARD_POLL_SLEEP = 1.0  # Sleep duration between polls (seconds)
 ENABLE_AUTO_RESUBMIT_AFTER_READY = False  # Future feature flag for auto-resubmit
 
+# --- 1. MODEL CONFIGURATION (Keys match Database) ---
 MODEL_TYPES = {
-    "El Generalista Equilibrat": {
+    "The Balanced Generalist": {
         "model_builder": lambda: LogisticRegression(
             max_iter=500, random_state=42, class_weight="balanced"
         ),
-        "card": "Aquest model és ràpid, fiable i equilibrat. Bon punt de partida; sol donar resultats més estables."
+        # Store the Catalan description here for the UI
+        "card_ca": "Aquest model és ràpid, fiable i equilibrat. Bon punt de partida; sol donar resultats més estables."
     },
-    "El Creador de Regles": {
+    "The Rule-Maker": {
         "model_builder": lambda: DecisionTreeClassifier(
             random_state=42, class_weight="balanced"
         ),
-        "card": "Aquest model aprèn regles simples de tipus «si/aleshores». Fàcil d’interpretar, però li costa captar patrons complexos."
+        "card_ca": "Aquest model aprèn regles simples de tipus «si/aleshores». Fàcil d’interpretar, però li costa captar patrons complexos."
     },
-    "El 'Veí més Proper'": {
+    "The 'Nearest Neighbor'": {
         "model_builder": lambda: KNeighborsClassifier(),
-        "card": "Aquest model es basa en exemples semblants del passat. «Si t’assembles a aquests casos, prediré el mateix resultat»."
+        "card_ca": "Aquest model es basa en exemples semblants del passat. «Si t’assembles a aquests casos, prediré el mateix resultat»."
     },
-    "El Detector de Patrons Profunds": {
+    "The Deep Pattern-Finder": {
         "model_builder": lambda: RandomForestClassifier(
             random_state=42, class_weight="balanced"
         ),
-        "card": "Aquest model combina molts arbres de decisió per trobar patrons complexos. És potent, però cal vigilar no fer-lo massa complex."
+        "card_ca": "Aquest model combina molts arbres de decisió per trobar patrons complexos. És potent, però cal vigilar no fer-lo massa complex."
     }
 }
 
-DEFAULT_MODEL = "El Generalista Equilibrat"
+DEFAULT_MODEL = "The Balanced Generalist"  # Now using the English key
+
+# --- 2. TRANSLATION MAPS (UI Display -> Database Key) ---
+
+# Map English Keys to Catalan Display Names for the Radio Button
+MODEL_DISPLAY_MAP = {
+    "The Balanced Generalist": "El Generalista Equilibrat",
+    "The Rule-Maker": "El Creador de Regles",
+    "The 'Nearest Neighbor'": "El 'Veí més Proper'",
+    "The Deep Pattern-Finder": "El Detector de Patrons Profunds"
+}
+
+# Create the Choices List as Tuples: [(Catalan Label, English Value)]
+# This tells Gradio: "Show the user Catalan, but send Python the English key"
+MODEL_RADIO_CHOICES = [(label, key) for key, label in MODEL_DISPLAY_MAP.items()]
+
+# Map Catalan Data Sizes (UI) to English Keys (Database)
+DATA_SIZE_DB_MAP = {
+    "Petita (20%)": "Small (20%)",
+    "Mitjana (60%)": "Medium (60%)",
+    "Gran (80%)": "Large (80%)",
+    "Completa (100%)": "Full (100%)"
+}
+
 
 TEAM_NAMES = [
     "The Moral Champions", "The Justice League", "The Data Detectives",
@@ -1551,7 +1571,7 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
 
 
 def get_model_card(model_name):
-    return MODEL_TYPES.get(model_name, {}).get("card", "No description available.")
+    return MODEL_TYPES.get(model_name, {}).get("card_ca", "Descripció no disponible.")
 
 def compute_rank_settings(
     submission_count,
@@ -1560,8 +1580,12 @@ def compute_rank_settings(
     current_feature_set,
     current_data_size
 ):
-    """Returns rank gating settings (updated for 1–10 complexity scale)."""
+    """
+    Returns rank gating settings (updated for 1–10 complexity scale).
+    Adapted for Catalan UI: Returns Tuple choices [(Display, Value)]
+    """
 
+    # Helper to generate feature choices (unchanged logic)
     def get_choices_for_rank(rank):
         if rank == 0: # Trainee
             return [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in FEATURE_SET_GROUP_1_VALS]
@@ -1569,11 +1593,18 @@ def compute_rank_settings(
             return [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in (FEATURE_SET_GROUP_1_VALS + FEATURE_SET_GROUP_2_VALS)]
         return FEATURE_SET_ALL_OPTIONS # Senior+
 
+    # Helper to generate Model Radio Tuples [(Catalan, English)]
+    def get_model_tuples(available_english_keys):
+        # FIX: Use MODEL_DISPLAY_MAP
+        return [(MODEL_DISPLAY_MAP[k], k) for k in available_english_keys if k in MODEL_DISPLAY_MAP]
+
+    # Rank 0: Trainee
     if submission_count == 0:
+        avail_keys = ["The Balanced Generalist"]
         return {
             "rank_message": "# 🧑‍🎓 Rang: Enginyer/a en Pràctiques\n<p style='font-size:24px; line-height:1.4;'>Per al teu primer enviament, només cal que facis clic al botó gran '🔬 Construir i enviar el model' de sota!</p>",
-            "model_choices": ["El Generalista Equilibrat"],
-            "model_value": "El Generalista Equilibrat",
+            "model_choices": get_model_tuples(avail_keys),
+            "model_value": "The Balanced Generalist",
             "model_interactive": False,
             "complexity_max": 3,
             "complexity_value": min(current_complexity, 3),
@@ -1584,56 +1615,65 @@ def compute_rank_settings(
             "data_size_value": "Petita (20%)",
             "data_size_interactive": False,
         }
+        
+    # Rank 1: Junior
     elif submission_count == 1:
-        # Define available models for Rank 1 using the new Catalan keys
-        rank_1_models = ["El Generalista Equilibrat", "El Creador de Regles", "El 'Veí més Proper'"]
+        # Define available models for Rank 1 using ENGLISH keys
+        avail_keys = ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"]
         
         return {
             "rank_message": "# 🎉 Has pujat de nivell! Enginyer/a Júnior\n<p style='font-size:24px; line-height:1.4;'>Nous models, mides de dades i variables desbloquejats!</p>",
-            "model_choices": rank_1_models,
+            "model_choices": get_model_tuples(avail_keys),
             # Ensure current selection is valid for this rank, else reset to default
-            "model_value": current_model if current_model in rank_1_models else "El Generalista Equilibrat",
+            "model_value": current_model if current_model in avail_keys else "The Balanced Generalist",
             "model_interactive": True,
             "complexity_max": 6,
             "complexity_value": min(current_complexity, 6),
             "feature_set_choices": get_choices_for_rank(1),
             "feature_set_value": current_feature_set,
             "feature_set_interactive": True,
-            "data_size_choices":  ["Petita (20%)","Mitjana (60%)"],
-            "data_size_value": current_data_size if current_data_size in ["Petita (20%)","Mitjana (60%)"] else "Petita (20%)",
+            "data_size_choices": ["Petita (20%)", "Mitjana (60%)"],
+            "data_size_value": current_data_size if current_data_size in ["Petita (20%)", "Mitjana (60%)"] else "Petita (20%)",
             "data_size_interactive": True,
         }
+
+    # Rank 2: Senior
     elif submission_count == 2:
+        avail_keys = list(MODEL_TYPES.keys()) # All models
+        
         return {
             "rank_message": "# 🌟 Has pujat de nivell! Enginyer/a Sènior\n<p style='font-size:24px; line-height:1.4;'>Variables més potents desbloquejades! Els predictors més forts (com 'Edat' i 'Nombre de delictes previs') ja estan disponibles a la teva llista. Probablement milloraran la teva precisió, però recorda que sovint comporten més biaixos socials.</p>",
-            "model_choices": list(MODEL_TYPES.keys()),
-            "model_value": current_model if current_model in MODEL_TYPES else "El Detector de Patrons Profunds",
+            "model_choices": get_model_tuples(avail_keys),
+            "model_value": current_model if current_model in avail_keys else "The Deep Pattern-Finder",
             "model_interactive": True,
             "complexity_max": 8,
             "complexity_value": min(current_complexity, 8),
             "feature_set_choices": get_choices_for_rank(2),
             "feature_set_value": current_feature_set,
             "feature_set_interactive": True,
-            "data_size_choices":  ["Petita (20%)","Mitjana (60%)","Gran (80%)","Completa (100%)"],
-            "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Petita (20%)",
+            "data_size_choices": ["Petita (20%)", "Mitjana (60%)", "Gran (80%)", "Completa (100%)"],
+            "data_size_value": current_data_size if current_data_size in DATA_SIZE_DB_MAP else "Petita (20%)",
             "data_size_interactive": True,
         }
+        
+    # Rank 3+: Lead
     else:
+        avail_keys = list(MODEL_TYPES.keys()) # All models
+
         return {
             "rank_message": "# 👑 Rang: Enginyer/a Principal\n<p style='font-size:24px; line-height:1.4;'>Totes les eines desbloquejades — optimitza amb llibertat!</p>",
-            "model_choices": list(MODEL_TYPES.keys()),
-            "model_value": current_model if current_model in MODEL_TYPES else "El Generalista Equilibrat",
+            "model_choices": get_model_tuples(avail_keys),
+            "model_value": current_model if current_model in avail_keys else "The Balanced Generalist",
             "model_interactive": True,
             "complexity_max": 10,
             "complexity_value": current_complexity,
             "feature_set_choices": get_choices_for_rank(3),
             "feature_set_value": current_feature_set,
             "feature_set_interactive": True,
-            "data_size_choices":  ["Petita (20%)","Mitjana (60%)","Gran (80%)","Completa (100%)"],
-            "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Petita (20%)",
+            "data_size_choices": ["Petita (20%)", "Mitjana (60%)", "Gran (80%)", "Completa (100%)"],
+            "data_size_value": current_data_size if current_data_size in DATA_SIZE_DB_MAP else "Petita (20%)",
             "data_size_interactive": True,
         }
-
 # Find components by name to yield updates
 # --- Existing global component placeholders ---
 submit_button = None
@@ -1890,10 +1930,10 @@ def perform_inline_login(username_input, password_input):
         }
 
 def run_experiment(
-    model_name_key,
+    model_name_key,      # Recieves ENGLISH KEY (e.g., "The Balanced Generalist") from the updated Radio Tuples
     complexity_level,
     feature_set,
-    data_size_str,
+    data_size_str,       # Recieves CATALAN LABEL (e.g., "Petita (20%)")
     team_name,
     last_submission_score,
     last_rank,
@@ -1908,31 +1948,7 @@ def run_experiment(
 ):
     """
     Core experiment: Uses 'yield' for visual updates and progress bar.
-    
-    Concurrency Note: Authentication is determined SOLELY from the passed-in
-    username and token parameters (from gr.State). This function does NOT
-    read from os.environ for per-user credentials, preventing cross-user
-    data leakage under concurrent requests.
-    
-    Args:
-        model_name_key: Selected model type
-        complexity_level: Model complexity slider value
-        feature_set: List of selected features
-        data_size_str: Data size selection
-        team_name: User's team name (from gr.State)
-        last_submission_score: Previous submission score
-        last_rank: Previous rank
-        submission_count: Number of submissions made
-        first_submission_score: Score from first submission
-        best_score: Best score achieved
-        username: User's username (from gr.State, not os.environ)
-        token: Authentication token (from gr.State, not os.environ)
-        readiness_flag: System readiness flag (from gr.State, renamed to avoid shadowing)
-        was_preview_prev: Whether last run was preview (from gr.State, renamed to avoid shadowing)
-        progress: Gradio progress tracker
-    
-    Returns:
-        Updates for all output components including new state variables
+    Updated to translate Catalan inputs to English keys for Cache/DB lookup.
     """
     # --- COLLISION GUARDS ---
     # Log types of potentially shadowed names to ensure they refer to component objects, not dicts
@@ -1955,17 +1971,20 @@ def run_experiment(
         }
         return
     
+    # --- TRANSLATION LOGIC (THE FIX) ---
+    # 1. Translate Data Size to English for DB/Cache Lookup
+    # Example: "Petita (20%)" -> "Small (20%)"
+    # Fallback to the input string if not found in map
+    db_data_size = DATA_SIZE_DB_MAP.get(data_size_str, "Small (20%)")
+    
     # Sanitize feature_set: convert dicts/tuples to their string values
     sanitized_feature_set = []
     for feat in (feature_set or []):
         if isinstance(feat, dict):
-            # Extract 'value' key if present, otherwise use string representation
             sanitized_feature_set.append(feat.get("value", str(feat)))
         elif isinstance(feat, tuple):
-            # For tuples like ("Label", "value"), take the second element
             sanitized_feature_set.append(feat[1] if len(feat) > 1 else str(feat))
         else:
-            # Already a string
             sanitized_feature_set.append(str(feat))
     feature_set = sanitized_feature_set
     
@@ -1976,9 +1995,6 @@ def run_experiment(
         ready = _is_ready()
     _log(f"run_experiment: ready={ready}, username={username}, token_present={token is not None}")
     
-    # Add debug log (optional)
-    _log(f"run_experiment received username={username} token_present={token is not None}")    
-    # Concurrency Note: Use provided parameters exclusively, not os.environ.
     # Default to "Unknown_User" only if no username provided via state.
     if not username:
         username = "Unknown_User"
@@ -2003,9 +2019,10 @@ def run_experiment(
     }
     yield initial_updates
 
+    # Ensure model key is valid (It should already be English from the Radio Tuple)
     if not model_name_key or model_name_key not in MODEL_TYPES:
         model_name_key = DEFAULT_MODEL
-    feature_set = feature_set or []
+        
     complexity_level = safe_int(complexity_level, 2)
 
     log_output = f"▶ New Experiment\nModel: {model_name_key}\n..."
@@ -2166,11 +2183,14 @@ def run_experiment(
         progress(0.3, desc="Building Model...")
         
         # 1. Generate Cache Key (Matches format in precompute_cache.py)
-        # Key: "ModelName|Complexity|DataSize|SortedFeatures"
+        # Uses ENGLISH keys: "The Balanced Generalist|2|Small (20%)|age,race"
         sanitized_features = sorted([str(f) for f in feature_set])
         feature_key = ",".join(sanitized_features)
-        cache_key = f"{model_name_key}|{complexity_level}|{data_size_str}|{feature_key}"
         
+        cache_key = f"{model_name_key}|{complexity_level}|{db_data_size}|{feature_key}"
+        
+        _log(f"Generated Key: {cache_key}") # Debug Log
+
         # 2. Check Cache
         cached_predictions = get_cached_prediction(cache_key)
         
@@ -2187,70 +2207,36 @@ def run_experiment(
                 login_error: gr.update(visible=False)
             }
 
-            # --- DECOMPRESSION STEP (Vital) ---
-            # If string "01010...", convert to [0, 1, 0, 1...]
+            # --- DECOMPRESSION STEP ---
             if isinstance(cached_predictions, str):
                 predictions = [int(c) for c in cached_predictions]
             else:
                 predictions = cached_predictions
 
-            # Pass None to submit_model to skip training overhead validation
             tuned_model = None
             preprocessor = None
             
-            
         else:
-            # === SLOW PATH (Fallback Training) ===
-            _log(f"🐢 CACHE MISS: {cache_key} (Training for real...)")
+            # === CACHE MISS (Training Disabled) ===
+            # This ensures we NEVER run heavy training code in production.
+            msg = f"❌ CACHE MISS: {cache_key}"
+            _log(msg)
+            
+            # User-friendly error message (Catalan)
+            error_html = f"""
+            <div style='background:#fee2e2; padding:16px; border-radius:8px; border:2px solid #ef4444; color:#991b1b; text-align:center;'>
+                <h3 style='margin:0;'>⚠️ Configuració no trobada</h3>
+                <p style='margin:8px 0;'>Aquesta combinació específica de paràmetres no s'ha trobat a la nostra base de dades.</p>
+                <p style='font-size:0.9em;'>Per garantir l'estabilitat del sistema, l'entrenament en temps real està desactivat. Si us plau, ajusta la configuració (per exemple, canvia la "Mida de les dades" o l'"Estratègia del model") i torna-ho a provar.</p>
+            </div>
+            """
+            
             yield { 
-                submission_feedback_display: gr.update(value=get_status_html(2, "Training Model", "The machine is learning from history..."), visible=True),
+                submission_feedback_display: gr.update(value=error_html, visible=True),
+                submit_button: gr.update(value="🔬 Construir i enviar el model", interactive=True),
                 login_error: gr.update(visible=False)
             }
-
-            # A. Get pre-sampled data
-            sample_frac = DATA_SIZE_MAP.get(data_size_str, 0.2)
-            X_train_sampled = X_TRAIN_SAMPLES_MAP[data_size_str]
-            y_train_sampled = Y_TRAIN_SAMPLES_MAP[data_size_str]
-            log_output += f"Using {int(sample_frac * 100)}% data.\n"
-
-            # B. Determine features...
-            numeric_cols = [f for f in feature_set if f in ALL_NUMERIC_COLS]
-            categorical_cols = [f for f in feature_set if f in ALL_CATEGORICAL_COLS]
-            for feat in feature_set:
-                if feat in ALL_NUMERIC_COLS: numeric_cols.append(feat)
-                elif feat in ALL_CATEGORICAL_COLS: categorical_cols.append(feat)
-            
-            # De-dupe logic just in case (though loop above covers it, ensuring lists are clean)
-            numeric_cols = sorted(list(set([f for f in feature_set if f in ALL_NUMERIC_COLS])))
-            categorical_cols = sorted(list(set([f for f in feature_set if f in ALL_CATEGORICAL_COLS])))
-
-            if not numeric_cols and not categorical_cols:
-                raise ValueError("No features selected for modeling.")
-
-            # C. Preprocessing (uses memoized preprocessor builder)
-            preprocessor, selected_cols = build_preprocessor(numeric_cols, categorical_cols)
-
-            X_train_processed = preprocessor.fit_transform(X_train_sampled[selected_cols])
-            X_test_processed = preprocessor.transform(X_TEST_RAW[selected_cols])
-
-            # D. Model build & tune
-            base_model = MODEL_TYPES[model_name_key]["model_builder"]()
-            tuned_model = tune_model_complexity(base_model, complexity_level)
-
-            # E. Train
-            # Concurrency Note: DecisionTree and RandomForest require dense arrays.
-            if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
-                X_train_for_fit = _ensure_dense(X_train_processed)
-                X_test_for_predict = _ensure_dense(X_test_processed)
-            else:
-                X_train_for_fit = X_train_processed
-                X_test_for_predict = X_test_processed
-            
-            tuned_model.fit(X_train_for_fit, y_train_sampled)
-            log_output += "Training done.\n"
-            
-            # F. Predict
-            predictions = tuned_model.predict(X_test_for_predict)
+            return # <--- CRITICAL: Stop execution here.
 
 
         # --- Stage 3: Submit (API Call 1) ---
@@ -2354,12 +2340,7 @@ def run_experiment(
             login_error: gr.update(visible=False)
         }
 
-        if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
-            X_test_for_predict = _ensure_dense(X_test_processed)
-        else:
-            X_test_for_predict = X_test_processed
         
-        predictions = tuned_model.predict(X_test_for_predict)
         description = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
         tags = f"team:{team_name},model:{model_name_key}"
 
@@ -4022,8 +4003,8 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
 
                     model_type_radio = gr.Radio(
                         label="1. Estratègia del model",
-                        choices=[],
-                        value=None,
+                        choices=MODEL_RADIO_CHOICES, # Uses the list of tuples [(Cat, En), ...]
+                        value=DEFAULT_MODEL,         # "The Balanced Generalist"
                         interactive=False
                     )
                     model_card_display = gr.Markdown(get_model_card(DEFAULT_MODEL))
