@@ -4153,7 +4153,8 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             outputs=[init_status_display, init_banner, submit_button, data_size_radio, status_timer, readiness_state]
         )
 
-
+        demo.queue(concurrency_count=1, max_size=64)
+      
         # Handle session-based authentication on page load
         def handle_load_with_session_auth(request: "gr.Request"):
             """
