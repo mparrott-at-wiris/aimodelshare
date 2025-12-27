@@ -1392,8 +1392,8 @@ def _build_team_html(team_summary_df, team_name):
             <tr>
                 <th>Posición</th>
                 <th>Equipo</th>
-                <th>Mejor_Puntuación</th>
-                <th>Puntuación_Media</th>
+                <th>Mejor Puntuación</th>
+                <th>Media</th>
                 <th>Envíos</th>
             </tr>
         </thead>
@@ -1426,7 +1426,7 @@ def _build_team_html(team_summary_df, team_name):
 def _build_individual_html(individual_summary_df, username):
     """Generates the HTML for the individual leaderboard."""
     if individual_summary_df is None or individual_summary_df.empty:
-        return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>No individual submissions yet.</p>"
+        return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Aún no hay envíos individuales.</p>"
 
     header = """
     <table class='leaderboard-html-table'>
@@ -1434,7 +1434,7 @@ def _build_individual_html(individual_summary_df, username):
             <tr>
                 <th>Posición</th>
                 <th>Ingeniero/a</th>
-                <th>Mejor_Puntuación</th>
+                <th>Mejor Puntuación</th>
                 <th>Envíos</th>
             </tr>
         </thead>
@@ -1596,7 +1596,7 @@ def compute_rank_settings(
         rank_data_sizes = ["Pequeño (20%)", "Medio (60%)"]
 
         return {
-            "rank_message": "# 🎉 ¡Nuevo rango! Ingeniero/a Junior\n<p style='font-size:24px; line-height:1.4;'>¡Nuevos modelos, tamaños de datos e ingredientes de datos desbloqueados!</p>",
+            "rank_message": "# 🎉 ¡Nuevo rango! Ingeniero/a Junior\n<p style='font-size:24px; line-height:1.4;'>¡Nuevos modelos, variables y volúmenes de datos desbloqueados!</p>",
             "model_choices": rank_models,
             "model_value": current_model if current_model in rank_models else "El Generalista Equilibrado",
             "model_interactive": True,
@@ -1956,16 +1956,16 @@ def run_experiment(
     if isinstance(submit_button, dict) or isinstance(submission_feedback_display, dict) or isinstance(kpi_meta_state, dict) or isinstance(was_preview_state, dict):
         error_html = """
         <div class='kpi-card' style='border-color: #ef4444;'>
-            <h2 style='color: #111827; margin-top:0;'>⚠️ Configuration Error</h2>
+            <h2 style='color: #111827; margin-top:0;'>⚠️ Error de configuración</h2>
             <div class='kpi-card-body'>
-                <p style='color: #991b1b;'>Parameter shadowing detected. Global component variables were shadowed by local parameters.</p>
-                <p style='color: #7f1d1d; margin-top: 8px;'>Please refresh the page and try again. If the issue persists, contact support.</p>
+                <p style='color: #991b1b;'>Se ha detectado un conflicto de parámetros (shadowing). Las variables globales del componente han sido sobrescritas por parámetros locales.</p>
+                <p style='color: #7f1d1d; margin-top: 8px;'>Por favor, actualiza la página e inténtalo de nuevo. Si el problema persiste, contacta con soporte técnico.</p>
             </div>
         </div>
         """
         yield {
             submission_feedback_display: gr.update(value=error_html, visible=True),
-            submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True)
+            submit_button: gr.update(value="🔬 Construir y enviar modelo", interactive=True)
         }
         return
     
