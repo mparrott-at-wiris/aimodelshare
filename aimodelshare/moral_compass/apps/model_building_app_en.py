@@ -4161,46 +4161,56 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         )
 
         # Timer for polling initialization status
-        status_timer = gr.Timer(value=0.5, active=True)  # Poll every 0.5 seconds
+        status_timer = gr.Timer(value=2, active=True)  # Poll every 2 seconds
         
         def update_init_status():
             """
-            Poll initialization status and update UI elements.
-            Returns status HTML, banner visibility, submit button state, data size choices, and readiness_state.
+            Poll initialization status and update UI elements safely.
             """
-            status_html, ready = poll_init_status()
-            
-            # Update banner visibility - hide when ready
-            banner_visible = not ready
-            
-            # Update submit button
-            if ready:
-                submit_label = "5. 🔬 Build & Submit Model"
-                submit_interactive = True
-            else:
-                submit_label = "⏳ Waiting for data..."
-                submit_interactive = False
-            
-            # Get available data sizes based on init progress
-            available_sizes = get_available_data_sizes()
-            
-            # Stop timer once fully initialized
-            timer_active = not (ready and INIT_FLAGS.get("pre_samples_full", False))
-            
-            return (
-                status_html,
-                gr.update(visible=banner_visible),
-                gr.update(value=submit_label, interactive=submit_interactive),
-                gr.update(choices=available_sizes),
-                timer_active,
-                ready  # readiness_state
-            )
+            try:
+                # 1. Poll backend
+                status_html, ready = poll_init_status()
+                
+                # 2. Determine UI States
+                banner_visible = not ready
+                
+                if ready:
+                    submit_label = "5. 🔬 Build & Submit Model"
+                    submit_interactive = True
+                else:
+                    submit_label = "⏳ Waiting for data..."
+                    submit_interactive = False
+                    
+                # 3. Get Data Sizes (Only if likely to change, otherwise cache this)
+                available_sizes = get_available_data_sizes()
+                
+                # 4. Determine Timer State
+                # Check if we are done. If ready AND full samples are loaded, stop timer.
+                # Read INIT_FLAGS under INIT_LOCK for thread-safety.
+                with INIT_LOCK:
+                    is_fully_loaded = bool(INIT_FLAGS.get("pre_samples_full", False))
+                should_keep_ticking = not (ready and is_fully_loaded)
         
-        status_timer.tick(
-            fn=update_init_status,
-            inputs=None,
-            outputs=[init_status_display, init_banner, submit_button, data_size_radio, status_timer, readiness_state]
-        )
+                return (
+                    status_html,                                     # Output 1: HTML
+                    gr.update(visible=banner_visible),               # Output 2: Banner
+                    gr.update(value=submit_label, interactive=submit_interactive), # Output 3: Button
+                    gr.update(choices=available_sizes),              # Output 4: Radio/Dropdown
+                    gr.update(active=should_keep_ticking),           # Output 5: Timer
+                    ready                                            # Output 6: State
+                )
+        
+            except Exception as e:
+                # Fallback in case of error to prevent UI freeze
+                print(f"Polling Error: {e}")
+                return (
+                    f"<div style='color: red'>Error polling status: {str(e)}</div>",
+                    gr.update(), # No change
+                    gr.update(), # No change
+                    gr.update(), # No change
+                    gr.update(active=True), # Keep ticking to retry
+                    False        # Not ready
+                )
 
         # Handle session-based authentication on page load
         def handle_load_with_session_auth(request: "gr.Request"):
