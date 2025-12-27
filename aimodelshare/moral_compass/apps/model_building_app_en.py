@@ -3493,7 +3493,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
     <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
     """
 
-with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css, head=head_content) as demo:
+    with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css, head=head_content) as demo:
         
         # Inject styling div for scroll anchor
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
