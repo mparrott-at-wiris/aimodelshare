@@ -3808,6 +3808,26 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                         size="lg"
                     )
 
+                    # ---------- ADD: Tutorial Mode UI ----------
+                    # A toggle to start tutorial and a guided overlay panel with Next/Back
+                    tutorial_active_state = gr.State(False)
+                    tutorial_step_state = gr.State(0)  # 0=off, 1..5 steps
+
+                    # Button to start guided tutorial
+                    tutorial_start_btn = gr.Button(
+                        value="🧭 Start Guided Tutorial",
+                        variant="secondary",
+                        size="sm"
+                    )
+
+                    # Tutorial panel (initially hidden)
+                    with gr.Column(visible=False) as tutorial_panel:
+                        tutorial_content = gr.Markdown("### Tutorial\nLet's learn how to use the arena step-by-step.")
+                        with gr.Row():
+                            tutorial_back_btn = gr.Button("◀️ Back", size="sm")
+                            tutorial_next_btn = gr.Button("Next ▶️", variant="primary", size="sm")
+                            tutorial_exit_btn = gr.Button("Exit Tutorial", variant="secondary", size="sm")
+
                 with gr.Column(scale=1):
                     gr.HTML(
                         """
@@ -4069,6 +4089,122 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             js=nav_js("model-step", "Returning to experiment workspace...")
         )
 
+        # ---------- Tutorial Mode Helper Functions ----------
+        # Helper: per-step text
+        def _tutorial_text(step: int) -> str:
+            texts = {
+                1: "### Step 1: Model Strategy\nChoose a model strategy that sets the 'brain' of your system. Try starting with 'The Balanced Generalist'.",
+                2: "### Step 2: Model Complexity\nAdjust how deeply the model learns patterns. Start low and increase gradually.",
+                3: "### Step 3: Data Ingredients\nSelect the inputs your model can use. Begin with behavioral inputs; consider ethics when adding demographics.",
+                4: "### Step 4: Data Size\nPick how much historical data to train on. 'Small (20%)' is fast for tests; 'Full (100%)' is strongest.",
+                5: "### Final Step: Build & Submit\nYou're ready! Click 'Build & Submit Model' to run your first build."
+            }
+            return texts.get(step, "### Tutorial\nLet's learn how to use the arena step-by-step.")
+
+        # Helper: compute interactive gating for a tutorial step
+        def _tutorial_interact_for_step(step: int):
+            # Default: disable everything during tutorial
+            model_interactive = False
+            complexity_interactive = False
+            features_interactive = False
+            size_interactive = False
+            submit_interactive = False
+
+            if step >= 1:
+                model_interactive = True
+            if step >= 2:
+                complexity_interactive = True
+            if step >= 3:
+                features_interactive = True
+            if step >= 4:
+                size_interactive = True
+            if step >= 5:
+                submit_interactive = True
+
+            return (
+                gr.update(interactive=model_interactive),
+                gr.update(interactive=complexity_interactive),
+                gr.update(interactive=features_interactive),
+                gr.update(interactive=size_interactive),
+                gr.update(interactive=submit_interactive),
+            )
+
+        # Start tutorial: show panel, set step=1, progressively enable controls
+        def tutorial_start():
+            step = 1
+            m, c, f, d, s = _tutorial_interact_for_step(step)
+            return {
+                tutorial_panel: gr.update(visible=True),
+                tutorial_content: gr.update(value=_tutorial_text(step)),
+                tutorial_active_state: True,
+                tutorial_step_state: step,
+                model_type_radio: m,
+                complexity_slider: c,
+                feature_set_checkbox: f,
+                data_size_radio: d,
+                submit_button: s,
+                # During tutorial, hide login prompts to reduce distraction
+                login_username: gr.update(visible=False),
+                login_password: gr.update(visible=False),
+                login_submit: gr.update(visible=False),
+                login_error: gr.update(visible=False),
+            }
+
+        # Advance tutorial: step+1 up to 5
+        def tutorial_next(step: int):
+            step = max(1, min(step + 1, 5))
+            m, c, f, d, s = _tutorial_interact_for_step(step)
+            return {
+                tutorial_content: gr.update(value=_tutorial_text(step)),
+                tutorial_step_state: step,
+                model_type_radio: m,
+                complexity_slider: c,
+                feature_set_checkbox: f,
+                data_size_radio: d,
+                submit_button: s,
+            }
+
+        # Go back: step-1 down to 1
+        def tutorial_back(step: int):
+            step = max(1, min(step - 1, 5))
+            m, c, f, d, s = _tutorial_interact_for_step(step)
+            return {
+                tutorial_content: gr.update(value=_tutorial_text(step)),
+                tutorial_step_state: step,
+                model_type_radio: m,
+                complexity_slider: c,
+                feature_set_checkbox: f,
+                data_size_radio: d,
+                submit_button: s,
+            }
+
+        # Exit tutorial: restore normal interactive settings using rank gating
+        def tutorial_exit(submission_count, current_model, current_complexity, current_feature_set, current_data_size, username, token):
+            settings = compute_rank_settings(
+                submission_count,
+                current_model or DEFAULT_MODEL,
+                current_complexity or 2,
+                current_feature_set or DEFAULT_FEATURE_SET,
+                current_data_size or DEFAULT_DATA_SIZE
+            )
+            # Show login only if user is not authenticated
+            show_login = not (username and token)
+            return {
+                tutorial_panel: gr.update(visible=False),
+                tutorial_active_state: False,
+                tutorial_step_state: 0,
+                rank_message_display: settings["rank_message"],
+                model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
+                complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
+                feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
+                data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
+                submit_button: gr.update(value="5. 🔬 Build & Submit Model", interactive=True),
+                # Restore login visibility if user is not authenticated
+                login_username: gr.update(visible=show_login),
+                login_password: gr.update(visible=show_login),
+                login_submit: gr.update(visible=show_login),
+            }
+
         # Events
         model_type_radio.change(
             fn=get_model_card,
@@ -4158,6 +4294,37 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             outputs=all_outputs,
             show_progress="full",
             js=nav_js("model-step", "Running experiment...", 500)
+        )
+
+        # ---------- Tutorial Mode Event Wiring ----------
+        tutorial_start_btn.click(
+            fn=tutorial_start,
+            inputs=None,
+            outputs=[
+                tutorial_panel, tutorial_content,
+                tutorial_active_state, tutorial_step_state,
+                model_type_radio, complexity_slider, feature_set_checkbox, data_size_radio, submit_button,
+                login_username, login_password, login_submit, login_error
+            ]
+        )
+        tutorial_next_btn.click(
+            fn=tutorial_next,
+            inputs=[tutorial_step_state],
+            outputs=[tutorial_content, tutorial_step_state, model_type_radio, complexity_slider, feature_set_checkbox, data_size_radio, submit_button]
+        )
+        tutorial_back_btn.click(
+            fn=tutorial_back,
+            inputs=[tutorial_step_state],
+            outputs=[tutorial_content, tutorial_step_state, model_type_radio, complexity_slider, feature_set_checkbox, data_size_radio, submit_button]
+        )
+        tutorial_exit_btn.click(
+            fn=tutorial_exit,
+            inputs=[submission_count_state, model_type_state, complexity_state, feature_set_state, data_size_state, username_state, token_state],
+            outputs=[
+                tutorial_panel, tutorial_active_state, tutorial_step_state,
+                rank_message_display, model_type_radio, complexity_slider, feature_set_checkbox, data_size_radio, submit_button,
+                login_username, login_password, login_submit
+            ]
         )
 
         # Timer for polling initialization status
