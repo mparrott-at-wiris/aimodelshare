@@ -4143,48 +4143,17 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 timer_active,
                 ready
             )
+          
+        # Timer for polling initialization status
+        status_timer = gr.Timer(value=2, active=True)  # Poll every 2 seconds
         
+        status_timer.tick(
+            fn=update_init_status,
+            inputs=None,
+            outputs=[init_status_display, init_banner, submit_button, data_size_radio, status_timer, readiness_state]
+        )
 
-        import asyncio  # <--- Add this import
-        
-        # Change 'def' to 'async def'
-        async def wait_for_readiness_stream():
-            """
-            Async generator that streams updates.
-            Uses asyncio.sleep to be non-blocking, allowing 1 thread to handle 
-            hundreds of concurrent waiting users.
-            """
-            while True:
-                # 1. Check status (poll_init_status is fast/non-blocking)
-                status_html, ready = poll_init_status()
-                
-                # 2. Determine UI State
-                banner_visible = not ready
-                
-                if ready:
-                    submit_label = "5. 🔬 Build & Submit Model"
-                    submit_interactive = True
-                else:
-                    submit_label = "⏳ Waiting for data..."
-                    submit_interactive = False
-                    
-                available_sizes = get_available_data_sizes()
-                
-                # 3. YIELD the update
-                yield (
-                    status_html,
-                    gr.update(visible=banner_visible),
-                    gr.update(value=submit_label, interactive=submit_interactive),
-                    gr.update(choices=available_sizes),
-                    ready
-                )
-                
-                # 4. Stop Condition
-                if ready:
-                    break
-                    
-                # 5. Non-blocking sleep (Releases thread while waiting)
-                await asyncio.sleep(2)
+
         # Handle session-based authentication on page load
         def handle_load_with_session_auth(request: "gr.Request"):
             """
@@ -4235,14 +4204,14 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 )
         
                 # 1. Handle the login/session load first
+        
                 demo.load(
                     fn=handle_load_with_session_auth,
-                    inputs=None, 
-                    outputs=[ 
-                        # ... (keep your existing long list of outputs here) ...
+                    inputs=None,  # Request is auto-injected
+                    outputs=[
                         model_card_display,
-                        team_leaderboard_display,
-                        individual_leaderboard_display,
+                        team_leaderboard_display, 
+                        individual_leaderboard_display, 
                         rank_message_display,
                         model_type_radio,
                         complexity_slider,
@@ -4252,23 +4221,13 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                         login_password,
                         login_submit,
                         login_error,
-                        username_state,
-                        token_state,
-                        team_name_state,
-                    ]
-                ).then(  # <--- CHAIN THE STREAM HERE
-                    fn=wait_for_readiness_stream,
-                    inputs=None,
-                    outputs=[
-                        init_status_display, 
-                        init_banner, 
-                        submit_button, 
-                        data_size_radio, 
-                        readiness_state
+                        username_state,  # NEW
+                        token_state,     # NEW
+                        team_name_state, # NEW
                     ]
                 )
-
-    return demo
+        
+            return demo
 
 # -------------------------------------------------------------------------
 # 4. Convenience Launcher
