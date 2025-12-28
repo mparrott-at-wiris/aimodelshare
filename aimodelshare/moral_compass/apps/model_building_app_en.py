@@ -3600,10 +3600,12 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                                     <span>Level 10 (Specific)</span>
                                 </div>
                                 
-                                <div class="info-popup">
-                                    <b>In the Game:</b> You will slide this to adjust how hard the AI studies your input data.  Higher numbers mean the model memorizes patterns in the input data that may not exist in real world data!<br>
-                                    <strong style="color:#ef4444;">⚠️ Warning:</strong> Higher isn't always better. Too high = "Overlearning" (memorizing unimportant patterns).
-                                </div>
+                        <div class="info-popup">
+                            <b>In the Game:</b> Think of this like <b>Studying vs. Memorizing</b>.<br>
+                            • <b>Low Complexity:</b> The AI learns general concepts (Good for new cases).<br>
+                            • <b>High Complexity:</b> The AI memorizes the answer key (Bad for new cases).<br>
+                            <strong style="color:#ef4444;">⚠️ The Trap:</strong> A high setting looks perfect on the practice test, but fails in the real world because the AI just memorized the answers!
+                        </div>
                             </div>
                         </details>
             
