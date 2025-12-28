@@ -3493,78 +3493,85 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                 briefing_4_next = gr.Button("Siguiente ▶️", variant="primary", size="lg")
 
         # Slide 5: Systems Check (Controls)
+ # Slide 5: Systems Check (Controls) - Spanish (Dark Mode Fixed)
         with gr.Column(visible=False, elem_id="slide-5") as briefing_slide_5:
             gr.HTML(
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
                         <div class='t-minus-header'>
-                            <h2 class='t-minus-title'>🔧 Comprobación de Sistemas de Ingeniería</h2>
+                            <h2 class='t-minus-title' style='color: var(--body-text-color);'>🔧 Comprobación de Sistemas de Ingeniería</h2>
                         </div>
             
-                        <div style='background:#eff6ff; border:1px solid #bfdbfe; padding:16px; border-radius:10px; text-align:center; margin-bottom:24px;'>
-                            <strong style='color:#1e40af; font-size:1.1rem;'>⚠️ MODO SIMULACIÓN ACTIVO</strong>
-                            <p style='margin:8px 0 0 0; color:#1e3a8a; font-size:1.05rem; line-height:1.4;'>
+                        <div style='background: color-mix(in srgb, var(--color-accent) 10%, transparent); border:1px solid var(--color-accent); padding:16px; border-radius:10px; text-align:center; margin-bottom:24px;'>
+                            <strong style='color: var(--color-accent); font-size:1.1rem;'>⚠️ MODO SIMULACIÓN ACTIVO</strong>
+                            <p style='margin:8px 0 0 0; color: var(--body-text-color); font-size:1.05rem; line-height:1.4;'>
                                 A continuación tienes los <b>4 controles exactos</b> que usarás para construir tu modelo en el siguiente paso.<br>
                                 <b>Haz clic en cada uno ahora</b> para aprender qué hacen antes de que empiece la competición.
                             </p>
                         </div>
             
-                        <details class="styled-details">
-                            <summary>1. Estrategia del Modelo (El ‘cerebro’)</summary>
-                            <div class="content">
-                                <div class="widget-row"><span class="radio-circle selected"></span> <b>El Generalista Equilibrado</b></div>
-                                <div class="widget-row"><span class="radio-circle"></span> El Creador de Reglas</div>
-                                <div class="widget-row"><span class="radio-circle"></span> El Buscador de Patrones Profundos</div>
+                        <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px; margin-bottom: 8px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">1. Estrategia del Modelo (El ‘cerebro’)</summary>
+                            <div class="content" style="padding-top: 12px; padding-left: 12px;">
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);"><span class="radio-circle selected" style="display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--color-accent); margin-right:8px;"></span> <b>El Generalista Equilibrado</b></div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> El Creador de Reglas</div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> El Buscador de Patrones Profundos</div>
                                 
-                                <div class="info-popup">
-                                    <b>En el Juego:</b> Elegirás una de estas estrategias. Cada una permite que tu modelo aprenda de los datos de entrada de una forma única.<br>
-                                    <i>Consejo: Empieza con "Generalista Equilibrado" para una puntuación base segura y fiable.</i>
+                                <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
+                                    <b style="color: var(--body-text-color);">En el Juego:</b> <span style="color: var(--body-text-color);">Elegirás una de estas estrategias. Cada una permite que tu modelo aprenda de los datos de entrada de una forma única.</span><br>
+                                    <i style="color: var(--body-text-color-subdued);">Consejo: Empieza con "Generalista Equilibrado" para una puntuación base segura y fiable.</i>
                                 </div>
                             </div>
                         </details>
             
-                        <details class="styled-details">
-                            <summary>2. Complejidad del Modelo (Nivel de Enfoque)</summary>
-                            <div class="content">
-                                <div class="slider-track"><div class="slider-thumb"></div></div>
-                                <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-muted);">
+                        <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px; margin-bottom: 8px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">2. Complejidad del Modelo (Nivel de Enfoque)</summary>
+                            <div class="content" style="padding-top: 12px; padding-left: 12px;">
+                                <div class="slider-track" style="height: 4px; background: var(--neutral-200); margin: 16px 0; position: relative;"><div class="slider-thumb" style="width: 16px; height: 16px; background: var(--color-accent); border-radius: 50%; position: absolute; left: 50%; top: -6px;"></div></div>
+                                <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--body-text-color-subdued);">
                                     <span>Nivel 1 (General)</span>
                                     <span>Nivel 10 (Específico)</span>
                                 </div>
                                 
-                        <div class="info-popup">
-                            <b>En el Juego:</b> Piensa en esto como <b>Estudiar vs. Memorizar</b>.<br>
-                            • <b>Baja Complejidad:</b> La IA aprende conceptos generales (Bueno para casos nuevos).<br>
-                            • <b>Alta Complejidad:</b> La IA memoriza las respuestas (Malo para casos nuevos).<br>
-                            <strong style="color:#ef4444;">⚠️ La Trampa:</strong> ¡Una configuración alta parece perfecta en el examen de práctica, pero falla en el mundo real porque la IA solo memorizó las respuestas!
-                        </div>
-                            </div>
-                        </details>
-            
-                        <details class="styled-details">
-                            <summary>3. Ingredientes de Datos (Las entradas)</summary>
-                            <div class="content">
-                                <div class="widget-row"><span class="check-square checked"></span> <b>Delitos Previos</b></div>
-                                <div class="widget-row"><span class="check-square checked"></span> <b>Grado del Cargo</b></div>
-                                <div class="widget-row"><span class="check-square"></span> <b>Demografía (Raza/Sexo)</b> <span class="risk-tag">⚠️ RIESGO</span></div>
-                                
-                                <div class="info-popup">
-                                    <b>En el Juego:</b> Marcarás casillas para decidir qué datos de entrada brutos puede usar la IA para aprender nuevos patrones.<br>
-                                    <strong style="color:#ef4444;">⚠️ Riesgo Ético:</strong> Puedes usar la demografía para mejorar tu puntuación, pero ¿es justo?
+                                <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
+                                    <b style="color: var(--body-text-color);">En el Juego:</b> <span style="color: var(--body-text-color);">Piensa en esto como <b>Estudiar vs. Memorizar</b>.</span><br>
+                                    <span style="color: var(--body-text-color);">• <b>Baja Complejidad:</b> La IA aprende conceptos generales (Bueno para casos nuevos).</span><br>
+                                    <span style="color: var(--body-text-color);">• <b>Alta Complejidad:</b> La IA memoriza las respuestas (Malo para casos nuevos).</span><br>
+                                    <strong style="color:#ef4444;">⚠️ La Trampa:</strong> <span style="color: var(--body-text-color);">¡Una configuración alta parece perfecta en el examen de práctica, pero falla en el mundo real porque la IA solo memorizó las respuestas!</span>
                                 </div>
                             </div>
                         </details>
             
-                        <details class="styled-details">
-                            <summary>4. Tamaño de Datos (Volumen)</summary>
-                            <div class="content">
-                                <div class="widget-row"><span class="radio-circle selected"></span> <b>Pequeño (20%)</b> - La IA aprende rápido, pero ve menos datos.</div>
-                                <div class="widget-row"><span class="radio-circle"></span> <b>Completo (100%)</b> - La IA ve más datos y aprende más lento.</div>
+                        <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px; margin-bottom: 8px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">3. Ingredientes de Datos (Las entradas)</summary>
+                            <div class="content" style="padding-top: 12px; padding-left: 12px;">
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);">
+                                    <span style="color:var(--color-accent); font-weight:bold;">☑</span> <b>Delitos Previos</b>
+                                </div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);">
+                                    <span style="color:var(--color-accent); font-weight:bold;">☑</span> <b>Grado del Cargo</b>
+                                </div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);">
+                                    <span style="color:var(--neutral-400); font-weight:bold;">☐</span> <b>Demografía (Raza/Sexo)</b> <span class="risk-tag" style="background:#fef2f2; color:#b91c1c; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold;">⚠️ RIESGO</span>
+                                </div>
                                 
-                                <div class="info-popup">
-                                    <b>En el Juego:</b> Tú eliges cuánta historia lee el modelo.<br>
-                                    <i>Consejo: Usa "Pequeño" para probar ideas rápido. Usa "Completo" cuando creas tener una estrategia ganadora.</i>
+                                <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
+                                    <b style="color: var(--body-text-color);">En el Juego:</b> <span style="color: var(--body-text-color);">Marcarás casillas para decidir qué datos de entrada brutos puede usar la IA para aprender nuevos patrones.</span><br>
+                                    <strong style="color:#ef4444;">⚠️ Riesgo Ético:</strong> <span style="color: var(--body-text-color);">Puedes usar la demografía para mejorar tu puntuación, pero ¿es justo?</span>
+                                </div>
+                            </div>
+                        </details>
+            
+                        <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">4. Tamaño de Datos (Volumen)</summary>
+                            <div class="content" style="padding-top: 12px; padding-left: 12px;">
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);"><span class="radio-circle selected" style="display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--color-accent); margin-right:8px;"></span> <b>Pequeño (20%)</b> - La IA aprende rápido, pero ve menos datos.</div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> <b>Completo (100%)</b> - La IA ve más datos y aprende más lento.</div>
+                                
+                                <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
+                                    <b style="color: var(--body-text-color);">En el Juego:</b> <span style="color: var(--body-text-color);">Tú eliges cuánta historia lee el modelo.</span><br>
+                                    <i style="color: var(--body-text-color-subdued);">Consejo: Usa "Pequeño" para probar ideas rápido. Usa "Completo" cuando creas tener una estrategia ganadora.</i>
                                 </div>
                             </div>
                         </details>
