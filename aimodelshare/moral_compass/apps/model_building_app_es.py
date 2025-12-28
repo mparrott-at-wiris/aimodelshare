@@ -486,7 +486,7 @@ MODEL_TYPES = {
         "model_builder": lambda: LogisticRegression(
             max_iter=500, random_state=42, class_weight="balanced"
         ),
-        "card_es": "Este modelo es rápido, fiable y equilibrat. Buen punto de partida; suele dar resultados estables en muchos casos."
+        "card_es": "Este modelo es rápido, fiable y equilibrado. Buen punto de partida; suele dar resultados estables en muchos casos."
     },
     "El Creador de Reglas": {
         "model_builder": lambda: DecisionTreeClassifier(
@@ -1603,7 +1603,7 @@ def compute_rank_settings(
     if submission_count == 0:
         avail_keys = ["The Balanced Generalist"]
         return {
-            "rank_message": "# 🧑‍🎓 Rango: Ingeniero en Pràcticas\n<p style='font-size:24px; line-height:1.4;'>Para tu primer envío, simplemente haz clic en el botón grande '🔬 Construir y Enviar Modelo' abajo.</p>",
+            "rank_message": "# 🧑‍🎓 Rango: Ingeniero en Prácticas\n<p style='font-size:24px; line-height:1.4;'>Para tu primer envío, simplemente haz clic en el botón '🔬 Construir y enviar modelo' de abajo.</p>",
             "model_choices": get_model_tuples(avail_keys),
             "model_value": "The Balanced Generalist",
             "model_interactive": False,
@@ -2004,14 +2004,14 @@ def run_experiment(
 
     try:
         # --- Stage 2: Smart Build (Cache vs Train) ---
-        progress(0.3, desc="Building Model...")
+        progress(0.3, desc="Construyendo el modelo...")
         
         # 1. Generate Cache Key (ENGLISH KEYS)
         sanitized_features = sorted([str(f) for f in feature_set])
         feature_key = ",".join(sanitized_features)
         cache_key = f"{model_name_key}|{complexity_level}|{db_data_size}|{feature_key}"
         
-        _log(f"Generated Key: {cache_key}")
+        _log(f"Clave generada: {cache_key}")
 
         # 2. Check Cache
         cached_predictions = get_cached_prediction(cache_key)
@@ -2480,8 +2480,8 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     strong_used = [f for f in feature_set if f in strong_predictors]
 
     ethical_note = (
-        "You unlocked powerful predictors. Consider: Would removing demographic fields change fairness? "
-        "In the next section we will begin to investigate this question further."
+        "Has desbloqueado predictores potentes. Reflexiona: ¿eliminar variables demográficas cambiaría la equidad del sistema?"
+        "En la siguiente sección empezaremos a investigar esta cuestión con más profundidad."
     )
 
     # Tailor message for very few submissions
@@ -2489,7 +2489,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     if submissions < 2:
         tip_html = """
         <div class="final-conclusion-tip">
-          <b>Tip:</b> Try at least 2–3 submissions changing ONE setting at a time to see clear cause/effect.
+          <b>Tip:</b> Intenta al menos 2–3 envíos, cambiando UNA sola configuración cada vez, para ver claramente la relación causa-efecto.
         </div>
         """
 
@@ -2507,22 +2507,22 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
 
     return f"""
     <div class="final-conclusion-root">
-      <h1 class="final-conclusion-title">🎉 Engineering Phase Complete</h1>
+      <h1 class="final-conclusion-title">🎉 Fase de ingeniería completada</h1>
       <div class="final-conclusion-card">
-        <h2 class="final-conclusion-subtitle">Your Performance Snapshot</h2>
+        <h2 class="final-conclusion-subtitle">Resumen de tu rendimiento</h2>
         <ul class="final-conclusion-list">
-          <li>🏁 <b>Best Accuracy:</b> {(best_score * 100):.2f}%</li>
-          <li>📊 <b>Rank Achieved:</b> {('#' + str(rank)) if rank > 0 else '—'}</li>
-          <li>🔁 <b>Submissions Made This Session:</b> {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li>
-          <li>🧗 <b>Improvement Over First Score This Session:</b> {(improvement * 100):+.2f}</li>
-          <li>🎖️ <b>Tier Progress:</b> {tier_line}</li>
-          <li>🧪 <b>Strong Predictors Used:</b> {len(strong_used)} ({', '.join(strong_used) if strong_used else 'None yet'})</li>
+          <li>🏁 <b>Mejor precisión:</b> {(best_score * 100):.2f}%</li>
+          <li>📊 <b>Posición alcanzada:</b> {('#' + str(rank)) if rank > 0 else '—'}</li>
+          <li>🔁 <b>Envíos realizados en esta sesión:</b> {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li>
+          <li>🧗 <b>Mejora respecto a la primera puntuación de esta sesión:</b> {(improvement * 100):+.2f}</li>
+          <li>🎖️ <b>Progreso de nivel:</b> {tier_line}</li>
+          <li>🧪 <b>Predictores fuertes utilizados:</b> {len(strong_used)} ({', '.join(strong_used) if strong_used else 'None yet'})</li>
         </ul>
 
         {tip_html}
 
         <div class="final-conclusion-ethics">
-          <p style="margin:0;"><b>Ethical Reflection:</b> {ethical_note}</p>
+          <p style="margin:0;"><b>Reflexión ética:</b> {ethical_note}</p>
         </div>
 
         {attempt_cap_html}
@@ -2530,9 +2530,9 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
         <hr class="final-conclusion-divider" />
 
         <div class="final-conclusion-next">
-          <h2>➡️ Next: Real-World Consequences</h2>
-          <p>Scroll below this app to continue. You'll examine how models like yours shape judicial outcomes.</p>
-          <h1 class="final-conclusion-scroll">👇 SCROLL DOWN 👇</h1>
+          <h2>➡️ Siguiente: Real-World Consequences</h2>
+          <p>Desplázate hacia abajo, después de esta aplicación, para continuar. Analizarás cómo modelos como el tuyo influyen en las decisiones judiciales.</p>
+          <h1 class="final-conclusion-scroll">👇 DESPLÁZATE HACIA ABAJO 👇</h1>
         </div>
       </div>
     </div>
@@ -3860,7 +3860,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                     # Attempt tracker display
                     attempts_tracker_display = gr.HTML(
                         value="<div style='text-align:center; padding:8px; margin:8px 0; background:#f0f9ff; border-radius:8px; border:1px solid #bae6fd;'>"
-                        "<p style='margin:0; color:#0369a1; font-weight:600; font-size:1rem;'>📊 Attempts used: 0/10</p>"
+                        "<p style='margin:0; color:#0369a1; font-weight:600; font-size:1rem;'>📊 Intentos usados: 0/10</p>"
                         "</div>",
                         visible=True
                     )
