@@ -22,28 +22,26 @@ APP_NAME_TO_FACTORY = {
     "what-is-ai": "create_what_is_ai_app",
     # Legacy generic model building game
     "model-building-game": "create_model_building_game_app",
-    # Language-specific variants (each module should define its own factory)
+    # Language-specific variants (Standard)
     "model-building-game-en": "create_model_building_game_en_app",
     "model-building-game-ca": "create_model_building_game_ca_app",
     "model-building-game-es": "create_model_building_game_es_app",
-    # NEW: Final language-specific variants
+    # Language-specific variants (Final)
     "model-building-game-en-final": "create_model_building_game_en_final_app",
     "model-building-game-es-final": "create_model_building_game_es_final_app",
     "model-building-game-ca-final": "create_model_building_game_ca_final_app",
+    # Other apps
     "ethical-revelation": "create_ethical_revelation_app",
     "moral-compass-challenge": "create_moral_compass_challenge_app",
-    "moral-compass-challenge": "create_moral_compass_challenge_app",
-    # Bias Detective apps (split into two separate services)
-    # Keep legacy "bias-detective" as an alias for part1 for backward compatibility
     "bias-detective-part1": "create_bias_detective_part1_app",
     "bias-detective-part2": "create_bias_detective_part2_app",
-    "moral-compass-challenge": "create_moral_compass_challenge_app",
     "fairness-fixer": "create_fairness_fixer_app",
     "justice-equity-upgrade": "create_justice_equity_upgrade_app",
 }
 
-# Supported language codes for model-building-game dynamic routing
-MODEL_GAME_LANGS = ("en", "es", "ca")
+# Supported language/variant codes for model-building-game dynamic routing
+# Now includes the 'final' variants so they can be routed via /en-final or ?lang=en-final
+MODEL_GAME_LANGS = ("en", "es", "ca", "en-final", "es-final", "ca-final")
 
 
 def lazy_get_factory(factory_name: str):
@@ -74,19 +72,7 @@ def build_standard_app(app_name: str):
 def build_model_building_game_router():
     """
     Build a FastAPI router that serves the model building game in different languages
-    based on a 'lang' query parameter.
-
-    Access patterns:
-      /?lang=es&sessionid=... -> redirect to /es?sessionid=...
-      /?lang=ca&sessionid=... -> redirect to /ca?sessionid=...
-      /?lang=en or missing/invalid -> redirect to /en (preserving any other query params)
-
-    Direct paths:
-      /en?sessionid=...  -> English game (params forwarded to Gradio)
-      /es?sessionid=...  -> Spanish game
-      /ca?sessionid=...  -> Catalan game
-
-    Blocks apps are created lazily on first access to reduce startup time.
+    and variants based on a 'lang' query parameter or path prefix.
     """
     logger.info("Initializing dynamic language router for model-building-game...")
 
@@ -96,31 +82,37 @@ def build_model_building_game_router():
     blocks_cache = {}
 
     def get_blocks(lang: str):
-        """Return (and cache) the Blocks instance for the requested language."""
+        """Return (and cache) the Blocks instance for the requested language/variant."""
         if lang not in MODEL_GAME_LANGS:
             lang = "en"
         if lang in blocks_cache:
             return blocks_cache[lang]
 
-        factory_name = {
+        # Map language codes to their specific factory functions
+        factory_map = {
             "en": "create_model_building_game_en_app",
             "es": "create_model_building_game_es_app",
             "ca": "create_model_building_game_ca_app",
-        }[lang]
+            # Final variants
+            "en-final": "create_model_building_game_en_final_app",
+            "es-final": "create_model_building_game_es_final_app",
+            "ca-final": "create_model_building_game_ca_final_app",
+        }
+        
+        factory_name = factory_map.get(lang, "create_model_building_game_en_app")
 
         logger.info(f"Lazy-building Blocks for lang='{lang}' using factory '{factory_name}'...")
         factory = lazy_get_factory(factory_name)
         blocks = factory()
+        
+        # --- ENABLE QUEUE FOR ALL ROUTED APPS ---
+        # Ensures 20-person concurrency limit for standard AND final versions
+        logger.info(f"Starting queue for {lang} blocks (limit=20)...")
+        blocks.queue(default_concurrency_limit=20)
+        # ----------------------------------------
+
         blocks_cache[lang] = blocks
         return blocks
-
-    # Mount Gradio apps at language-specific paths (pre-warm optional)
-    for lang in MODEL_GAME_LANGS:
-        # Optional pre-warm; comment out if you want fully lazy mounts
-        # blocks = get_blocks(lang)
-        # gr.mount_gradio_app(fastapi_app, blocks, path=f"/{lang}")
-        # logger.info(f"Mounted Gradio Blocks at '/{lang}' for lang='{lang}'.")
-        pass
 
     # Lazy mount handler: mounts app on first visit to /{lang}
     @fastapi_app.get("/{lang_code}")
@@ -134,7 +126,6 @@ def build_model_building_game_router():
 
         # Mount on demand if not already mounted
         path = f"/{lang_code}"
-        # Check if a route exists that serves this path; mount if needed
         try:
             blocks = get_blocks(lang_code)
             # Always re-mount to ensure the path exists (idempotent for Gradio/FastAPI)
@@ -187,31 +178,23 @@ def main():
     logger.info(f"=== BOOTSTRAP === APP_NAME={app_name} PORT={port}")
 
     try:
-        # For the base router service, enable query-param based language routing.
+        # CASE 1: The Main Router (model-building-game)
+        # Enables routing for ALL variants (en, es, ca, en-final, etc.)
         if app_name == "model-building-game":
-            logger.info(
-                "Detected base model-building-game. Enabling query parameter routing (?lang=en|es|ca), preserving all query params."
-            )
+            logger.info("Detected base model-building-game. Enabling dynamic routing.")
             asgi_app = build_model_building_game_router()
             launch_asgi_app(asgi_app, port)
+            
+        # CASE 2: ANY app starting with "model-building-game-"
+        # This catches standalone launches for both standard AND final variants
+        # e.g., "model-building-game-en", "model-building-game-es-final"
         elif app_name.startswith("model-building-game-"):
-            # Language-specific services: launch only that language variant (no redirects needed)
-            logger.info(f"Launching single language variant app: {app_name}")
+            logger.info(f"Launching model-building-game variant with QUEUE ENABLED: {app_name}")
             demo = build_standard_app(app_name)
-            demo.queue(default_concurrency_limit=20)
-            demo.launch(
-                server_name="0.0.0.0",
-                server_port=port,
-                show_api=False,
-                show_error=True,
-            )
-            logger.info(
-                f"Gradio server started successfully in {time.time() - start_ts:.2f}s (listening on :{port})."
-            )
-        else:
-            # Standard single-language / single-app launch
-            demo = build_standard_app(app_name)
-            logger.info("Launching Gradio server (non-inline)...")
+            
+            # --- ENABLE QUEUE ---
+            demo.queue(default_concurrency_limit=20) 
+            # --------------------
             
             demo.launch(
                 server_name="0.0.0.0",
@@ -219,8 +202,17 @@ def main():
                 show_api=False,
                 show_error=True,
             )
-            logger.info(
-                f"Gradio server started successfully in {time.time() - start_ts:.2f}s (listening on :{port})."
+
+        # CASE 3: All other standard apps (judge, tutorial, etc.)
+        else:
+            demo = build_standard_app(app_name)
+            logger.info(f"Launching standard app (NO QUEUE): {app_name}")
+            
+            demo.launch(
+                server_name="0.0.0.0",
+                server_port=port,
+                show_api=False,
+                show_error=True,
             )
 
     except Exception as e:
