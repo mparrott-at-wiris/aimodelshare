@@ -198,6 +198,7 @@ def main():
             # Language-specific services: launch only that language variant (no redirects needed)
             logger.info(f"Launching single language variant app: {app_name}")
             demo = build_standard_app(app_name)
+            demo.queue(default_concurrency_limit=20)
             demo.launch(
                 server_name="0.0.0.0",
                 server_port=port,
@@ -211,6 +212,7 @@ def main():
             # Standard single-language / single-app launch
             demo = build_standard_app(app_name)
             logger.info("Launching Gradio server (non-inline)...")
+            
             demo.launch(
                 server_name="0.0.0.0",
                 server_port=port,
