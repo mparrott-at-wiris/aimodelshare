@@ -2543,7 +2543,7 @@ def run_experiment(
             complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
             feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
             data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-            submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
+            submit_button: gr.update(value="🔬 Construir i enviar model", interactive=True),
             login_username: gr.update(visible=False),
             login_password: gr.update(visible=False),
             login_submit: gr.update(visible=False),
@@ -2665,8 +2665,8 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     strong_used = [f for f in feature_set if f in strong_predictors]
 
     ethical_note = (
-        "Has desbloquejat predictors molt potents. Reflexiona: eliminant els camps demogràfics canviaria la justícia del model?"
-        "En la següent secció començarem a investigar aquesta qüestió a fons."
+        "Has desbloquejat predictors molt potents. Reflexiona: eliminant els camps demogràfics canviaria l'equitat del sistema?"
+         "En la següent secció començarem a investigar aquesta qüestió a fons."
     )
 
     # Tailor message for very few submissions
@@ -3973,7 +3973,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                             )
 
             # REMOVED: Ethical Reminder HTML Block
-            step_2_next = gr.Button("Finalitza i reflexiona ▶️", variant="secondary")
+            step_2_next = gr.Button("Finalitzar i reflexionar ▶️", variant="secondary")
 
         # Conclusion Step
         with gr.Column(visible=False, elem_id="conclusion-step") as conclusion_step:
