@@ -862,22 +862,10 @@ def poll_init_status():
 
 def get_available_data_sizes():
     """
-    Return list of data sizes that are currently available based on init flags.
+    Return all data sizes immediately (Optimistic).
+    We rely on the 'Safety Guard' in run_experiment to prevent crashes if clicked too early.
     """
-    with INIT_LOCK:
-        flags = INIT_FLAGS.copy()
-    
-    available = []
-    if flags["pre_samples_small"]:
-        available.append("Small (20%)")
-    if flags["pre_samples_medium"]:
-        available.append("Medium (60%)")
-    if flags["pre_samples_large"]:
-        available.append("Large (80%)")
-    if flags["pre_samples_full"]:
-        available.append("Full (100%)")
-    
-    return available if available else ["Small (20%)"]  # Fallback
+    return ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"]
 
 def _is_ready() -> bool:
     """
@@ -4173,7 +4161,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             available_sizes = get_available_data_sizes()
             
             # Stop timer once fully initialized
-            timer_active = not (ready and INIT_FLAGS.get("pre_samples_full", False))
+            timer_active = not ready
             
             return (
                 status_html,
