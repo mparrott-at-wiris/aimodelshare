@@ -3585,7 +3585,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                                 <div class="widget-row"><span class="radio-circle"></span> The Deep Pattern-Finder</div>
                                 
                                 <div class="info-popup">
-                                    <b>In the Game:</b> You will choose one of these model strategies.  Each strategy learns from input data in a unique way.<br>
+                                    <b>In the Game:</b> You will choose one of these model strategies.  Each strategy enables your model to learn from input data in a unique way.<br>
                                     <i>Tip: Start with "Balanced Generalist" for a safe, reliable baseline score.</i>
                                 </div>
                             </div>
