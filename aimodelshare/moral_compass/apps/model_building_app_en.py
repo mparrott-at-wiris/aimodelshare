@@ -3566,80 +3566,89 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 <div class='slide-content'>
                     <div class='panel-box'>
                         <div class='t-minus-header'>
-                            <h2 class='t-minus-title'>🔧 Engineering Systems Check</h2>
+                            <h2 class='t-minus-title' style='color: var(--body-text-color);'>🔧 Engineering Systems Check</h2>
                         </div>
             
-                        <div style='background:#eff6ff; border:1px solid #bfdbfe; padding:16px; border-radius:10px; text-align:center; margin-bottom:24px;'>
-                            <strong style='color:#1e40af; font-size:1.1rem;'>⚠️ SIMULATION MODE ACTIVE</strong>
-                            <p style='margin:8px 0 0 0; color:#1e3a8a; font-size:1.05rem; line-height:1.4;'>
+                        <div style='background: color-mix(in srgb, var(--color-accent) 10%, transparent); border:1px solid var(--color-accent); padding:16px; border-radius:10px; text-align:center; margin-bottom:24px;'>
+                            <strong style='color: var(--color-accent); font-size:1.1rem;'>⚠️ SIMULATION MODE ACTIVE</strong>
+                            <p style='margin:8px 0 0 0; color: var(--body-text-color); font-size:1.05rem; line-height:1.4;'>
                                 Below are the <b>exact 4 controls</b> you will use to build your model in the next step.<br>
                                 <b>Click each one now</b> to learn what they do before the competition starts.
                             </p>
                         </div>
             
-                        <details class="styled-details">
-                            <summary>1. Model Strategy (The ‘brain’)</summary>
-                            <div class="content">
-                                <div class="widget-row"><span class="radio-circle selected"></span> <b>The Balanced Generalist</b></div>
-                                <div class="widget-row"><span class="radio-circle"></span> The Rule-Maker</div>
-                                <div class="widget-row"><span class="radio-circle"></span> The Deep Pattern-Finder</div>
+                        <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px; margin-bottom: 8px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">1. Model Strategy (The ‘brain’)</summary>
+                            <div class="content" style="padding-top: 12px; padding-left: 12px;">
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);"><span class="radio-circle selected" style="display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--color-accent); margin-right:8px;"></span> <b>The Balanced Generalist</b></div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> The Rule-Maker</div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> The Deep Pattern-Finder</div>
                                 
-                                <div class="info-popup">
-                                    <b>In the Game:</b> You will choose one of these model strategies.  Each strategy enables your model to learn from input data in a unique way.<br>
-                                    <i>Tip: Start with "Balanced Generalist" for a safe, reliable baseline score.</i>
+                                <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
+                                    <b style="color: var(--body-text-color);">In the Game:</b> <span style="color: var(--body-text-color);">You will choose one of these model strategies. Each strategy enables your model to learn from input data in a unique way.</span><br>
+                                    <i style="color: var(--body-text-color-subdued);">Tip: Start with "Balanced Generalist" for a safe, reliable baseline score.</i>
                                 </div>
                             </div>
                         </details>
             
-                        <details class="styled-details">
-                            <summary>2. Model Complexity (Focus Level)</summary>
-                            <div class="content">
-                                <div class="slider-track"><div class="slider-thumb"></div></div>
-                                <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-muted);">
+                        <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px; margin-bottom: 8px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">2. Model Complexity (Focus Level)</summary>
+                            <div class="content" style="padding-top: 12px; padding-left: 12px;">
+                                <div class="slider-track" style="height: 4px; background: var(--neutral-200); margin: 16px 0; position: relative;"><div class="slider-thumb" style="width: 16px; height: 16px; background: var(--color-accent); border-radius: 50%; position: absolute; left: 50%; top: -6px;"></div></div>
+                                <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--body-text-color-subdued);">
                                     <span>Level 1 (General)</span>
                                     <span>Level 10 (Specific)</span>
                                 </div>
                                 
-                        <div class="info-popup">
-                            <b>In the Game:</b> Think of this like <b>Studying vs. Memorizing</b>.<br>
-                            • <b>Low Complexity:</b> The AI learns general concepts (Good for new cases).<br>
-                            • <b>High Complexity:</b> The AI memorizes the answer key (Bad for new cases).<br>
-                            <strong style="color:#ef4444;">⚠️ The Trap:</strong> A high setting looks perfect on the practice test, but fails in the real world because the AI just memorized the answers!
-                        </div>
-                            </div>
-                        </details>
-            
-                        <details class="styled-details">
-                            <summary>3. Data Ingredients (The inputs)</summary>
-                            <div class="content">
-                                <div class="widget-row"><span class="check-square checked"></span> <b>Prior Crimes</b></div>
-                                <div class="widget-row"><span class="check-square checked"></span> <b>Charge Degree</b></div>
-                                <div class="widget-row"><span class="check-square"></span> <b>Demographics (Race/Sex)</b> <span class="risk-tag">⚠️ RISK</span></div>
-                                
-                                <div class="info-popup">
-                                    <b>In the Game:</b> You will check boxes to decide what raw input data the AI is allowed to use to learn new patterns.<br>
-                                    <strong style="color:#ef4444;">⚠️ Ethical Risk:</strong> You <i>can</i> use demographics to boost your score, but is it fair?
+                                <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
+                                    <b style="color: var(--body-text-color);">In the Game:</b> <span style="color: var(--body-text-color);">Think of this like <b>Studying vs. Memorizing</b>.</span><br>
+                                    <span style="color: var(--body-text-color);">• <b>Low Complexity:</b> The AI learns general concepts (Good for new cases).</span><br>
+                                    <span style="color: var(--body-text-color);">• <b>High Complexity:</b> The AI memorizes the answer key (Bad for new cases).</span><br>
+                                    <strong style="color:#ef4444;">⚠️ The Trap:</strong> <span style="color: var(--body-text-color);">A high setting looks perfect on the practice test, but fails in the real world because the AI just memorized the answers!</span>
                                 </div>
                             </div>
                         </details>
             
-                        <details class="styled-details">
-                            <summary>4. Data Size (Volume)</summary>
-                            <div class="content">
-                                <div class="widget-row"><span class="radio-circle selected"></span> <b>Small (20%)</b> - AI Learns fast, but sees lest data.</div>
-                                <div class="widget-row"><span class="radio-circle"></span> <b>Full (100%)</b> - AI sees more data and learns more slowly.</div>
+                        <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px; margin-bottom: 8px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">3. Data Ingredients (The inputs)</summary>
+                            <div class="content" style="padding-top: 12px; padding-left: 12px;">
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);">
+                                    <span style="color:var(--color-accent); font-weight:bold;">☑</span> <b>Prior Crimes</b>
+                                </div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);">
+                                    <span style="color:var(--color-accent); font-weight:bold;">☑</span> <b>Charge Degree</b>
+                                </div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);">
+                                    <span style="color:var(--neutral-400); font-weight:bold;">☐</span> <b>Demographics (Race/Sex)</b> <span class="risk-tag" style="background:#fef2f2; color:#b91c1c; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold;">⚠️ RISK</span>
+                                </div>
                                 
-                                <div class="info-popup">
-                                    <b>In the Game:</b> You choose how much history the model reads.<br>
-                                    <i>Tip: Use "Small" to test ideas quickly. Use "Full" when you think you have a winning strategy.</i>
+                                <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
+                                    <b style="color: var(--body-text-color);">In the Game:</b> <span style="color: var(--body-text-color);">You will check boxes to decide what raw input data the AI is allowed to use to learn new patterns.</span><br>
+                                    <strong style="color:#ef4444;">⚠️ Ethical Risk:</strong> <span style="color: var(--body-text-color);">You <i>can</i> use demographics to boost your score, but is it fair?</span>
                                 </div>
                             </div>
                         </details>
             
+                        <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">4. Data Size (Volume)</summary>
+                            <div class="content" style="padding-top: 12px; padding-left: 12px;">
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);"><span class="radio-circle selected" style="display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--color-accent); margin-right:8px;"></span> <b>Small (20%)</b> - AI Learns fast, but sees less data.</div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> <b>Full (100%)</b> - AI sees more data and learns more slowly.</div>
+                                
+                                <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
+                                    <b style="color: var(--body-text-color);">In the Game:</b> <span style="color: var(--body-text-color);">You choose how much history the model reads.</span><br>
+                                    <i style="color: var(--body-text-color-subdued);">Tip: Use "Small" to test ideas quickly. Use "Full" when you think you have a winning strategy.</i>
+                                </div>
+                            </div>
+                        </details>
                     </div>
                 </div>
                 """
             )
+            
+            with gr.Row():
+                briefing_5_back = gr.Button("◀️ Back", size="lg")
+                briefing_5_next = gr.Button("Next ▶️", variant="primary", size="lg")
             
             with gr.Row():
                 briefing_5_back = gr.Button("◀️ Back", size="lg")
