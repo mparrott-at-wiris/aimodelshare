@@ -848,17 +848,15 @@ def start_background_init():
 
 def poll_init_status():
     """
-    Poll the initialization status and return readiness bool.
-    Returns empty string for HTML so users don't see the checklist.
-    
-    Returns:
-        tuple: (status_html, ready_bool)
+    Poll the initialization status.
+    FORCED READY: Returns True immediately to unlock UI without waiting for data.
     """
+    # We still fetch flags so we can debug or track data sizes if needed
     with INIT_LOCK:
         flags = INIT_FLAGS.copy()
     
-    # Determine if minimum requirements met
-    ready = flags["competition"] and flags["dataset_core"] and flags["pre_samples_small"]
+    # NEW LOGIC: Force the app to believe it is ready immediately.
+    ready = True 
     
     return "", ready
 
@@ -890,7 +888,7 @@ def _is_ready() -> bool:
     """
     with INIT_LOCK:
         flags = INIT_FLAGS.copy()
-    return flags["competition"] and flags["dataset_core"] and flags["pre_samples_small"]
+    return flags["competition"]
 
 def _get_user_latest_accuracy(df: Optional[pd.DataFrame], username: str) -> Optional[float]:
     """
