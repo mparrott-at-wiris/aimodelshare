@@ -3684,72 +3684,78 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                 <div class='slide-content'>
                     <div class='panel-box'>
                         <div class='t-minus-header'>
-                            <h2 class='t-minus-title'>🔧 Comprovació de Sistemes d'Enginyeria</h2>
+                            <h2 class='t-minus-title' style='color: var(--body-text-color);'>🔧 Comprovació de Sistemes d'Enginyeria</h2>
                         </div>
             
-                        <div style='background:#eff6ff; border:1px solid #bfdbfe; padding:16px; border-radius:10px; text-align:center; margin-bottom:24px;'>
-                            <strong style='color:#1e40af; font-size:1.1rem;'>⚠️ MODE DE SIMULACIÓ ACTIU</strong>
-                            <p style='margin:8px 0 0 0; color:#1e3a8a; font-size:1.05rem; line-height:1.4;'>
+                        <div style='background: color-mix(in srgb, var(--color-accent) 10%, transparent); border:1px solid var(--color-accent); padding:16px; border-radius:10px; text-align:center; margin-bottom:24px;'>
+                            <strong style='color: var(--color-accent); font-size:1.1rem;'>⚠️ MODE DE SIMULACIÓ ACTIU</strong>
+                            <p style='margin:8px 0 0 0; color: var(--body-text-color); font-size:1.05rem; line-height:1.4;'>
                                 A continuació tens els <b>4 controls exactes</b> que utilitzaràs per construir el teu model en el següent pas.<br>
                                 <b>Fes clic a cadascun ara</b> per aprendre què fan abans que comenci la competició.
                             </p>
                         </div>
             
-                        <details class="styled-details">
-                            <summary>1. Estratègia del Model (El ‘cervell’)</summary>
-                            <div class="content">
-                                <div class="widget-row"><span class="radio-circle selected"></span> <b>El Generalista Equilibrat</b></div>
-                                <div class="widget-row"><span class="radio-circle"></span> El Creador de Regles</div>
-                                <div class="widget-row"><span class="radio-circle"></span> El Cercador de Patrons Profunds</div>
+                        <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px; margin-bottom: 8px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">1. Estratègia del Model (El ‘cervell’)</summary>
+                            <div class="content" style="padding-top: 12px; padding-left: 12px;">
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);"><span class="radio-circle selected" style="display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--color-accent); margin-right:8px;"></span> <b>El Generalista Equilibrat</b></div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> El Creador de Regles</div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> El Cercador de Patrons Profunds</div>
                                 
-                                <div class="info-popup">
-                                    <b>Al Joc:</b> Triaràs una d'aquestes estratègies de model. Cada estratègia permet que el teu model aprengui de les dades d'entrada d'una manera única.<br>
-                                    <i>Consell: Comença amb el "Generalista Equilibrat" per a una puntuació base segura i fiable.</i>
+                                <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
+                                    <b style="color: var(--body-text-color);">Al Joc:</b> <span style="color: var(--body-text-color);">Triaràs una d'aquestes estratègies de model. Cada estratègia permet que el teu model aprengui de les dades d'entrada d'una manera única.</span><br>
+                                    <i style="color: var(--body-text-color-subdued);">Consell: Comença amb el "Generalista Equilibrat" per a una puntuació base segura i fiable.</i>
                                 </div>
                             </div>
                         </details>
             
-                        <details class="styled-details">
-                            <summary>2. Complexitat del Model (Nivell d'Enfocament)</summary>
-                            <div class="content">
-                                <div class="slider-track"><div class="slider-thumb"></div></div>
-                                <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-muted);">
+                        <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px; margin-bottom: 8px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">2. Complexitat del Model (Nivell d'Enfocament)</summary>
+                            <div class="content" style="padding-top: 12px; padding-left: 12px;">
+                                <div class="slider-track" style="height: 4px; background: var(--neutral-200); margin: 16px 0; position: relative;"><div class="slider-thumb" style="width: 16px; height: 16px; background: var(--color-accent); border-radius: 50%; position: absolute; left: 50%; top: -6px;"></div></div>
+                                <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--body-text-color-subdued);">
                                     <span>Nivell 1 (General)</span>
                                     <span>Nivell 10 (Específic)</span>
                                 </div>
                                 
-                        <div class="info-popup">
-                            <b>Al Joc:</b> Pensa en això com <b>Estudiar vs. Memoritzar</b>.<br>
-                            • <b>Complexitat Baixa:</b> La IA aprèn conceptes generals (Bo per a nous casos).<br>
-                            • <b>Complexitat Alta:</b> La IA memoritza les respostes (Dolent per a nous casos).<br>
-                            <strong style="color:#ef4444;">⚠️ El Parany:</strong> Una configuració alta sembla perfecta en el test de pràctica, però falla al món real perquè la IA només ha memoritzat les respostes!
-                        </div>
-                            </div>
-                        </details>
-            
-                        <details class="styled-details">
-                            <summary>3. Ingredients de Dades (Les entrades)</summary>
-                            <div class="content">
-                                <div class="widget-row"><span class="check-square checked"></span> <b>Delictes Anteriors</b></div>
-                                <div class="widget-row"><span class="check-square checked"></span> <b>Grau del Càrrec</b></div>
-                                <div class="widget-row"><span class="check-square"></span> <b>Demografia (Raça/Sexe)</b> <span class="risk-tag">⚠️ RISC</span></div>
-                                
-                                <div class="info-popup">
-                                    <b>Al Joc:</b> Marcaràs caselles per decidir quines dades d'entrada brutes pot utilitzar la IA per aprendre nous patrons.<br>
-                                    <strong style="color:#ef4444;">⚠️ Risc Ètic:</strong> Pots utilitzar la demografia per millorar la teva puntuació, però és just?
+                                <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
+                                    <b style="color: var(--body-text-color);">Al Joc:</b> <span style="color: var(--body-text-color);">Pensa en això com <b>Estudiar vs. Memoritzar</b>.</span><br>
+                                    <span style="color: var(--body-text-color);">• <b>Complexitat Baixa:</b> La IA aprèn conceptes generals (Bo per a nous casos).</span><br>
+                                    <span style="color: var(--body-text-color);">• <b>Complexitat Alta:</b> La IA memoritza les respostes (Dolent per a nous casos).</span><br>
+                                    <strong style="color:#ef4444;">⚠️ El Parany:</strong> <span style="color: var(--body-text-color);">Una configuració alta sembla perfecta en el test de pràctica, però falla al món real perquè la IA només ha memoritzat les respostes!</span>
                                 </div>
                             </div>
                         </details>
             
-                        <details class="styled-details">
-                            <summary>4. Mida de les Dades (Volum)</summary>
-                            <div class="content">
-                                <div class="widget-row"><span class="radio-circle selected"></span> <b>Petita (20%)</b> - La IA aprèn ràpid, però veu menys dades.</div>
-                                <div class="widget-row"><span class="radio-circle"></span> <b>Completa (100%)</b> - La IA veu més dades i aprèn més lentament.</div>
+                        <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px; margin-bottom: 8px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">3. Ingredients de Dades (Les entrades)</summary>
+                            <div class="content" style="padding-top: 12px; padding-left: 12px;">
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);">
+                                    <span style="color:var(--color-accent); font-weight:bold;">☑</span> <b>Delictes Anteriors</b>
+                                </div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);">
+                                    <span style="color:var(--color-accent); font-weight:bold;">☑</span> <b>Grau del Càrrec</b>
+                                </div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);">
+                                    <span style="color:var(--neutral-400); font-weight:bold;">☐</span> <b>Demografia (Raça/Sexe)</b> <span class="risk-tag" style="background:#fef2f2; color:#b91c1c; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold;">⚠️ RISC</span>
+                                </div>
                                 
-                                <div class="info-popup">
-                                    <b>Al Joc:</b> Tries quanta història llegeix el model.<br>
-                                    <i>Consell: Fes servir "Petita" per provar idees ràpidament. Fes servir "Completa" quan creguis que tens una estratègia guanyadora.</i>
+                                <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
+                                    <b style="color: var(--body-text-color);">Al Joc:</b> <span style="color: var(--body-text-color);">Marcaràs caselles per decidir quines dades d'entrada brutes pot utilitzar la IA per aprendre nous patrons.</span><br>
+                                    <strong style="color:#ef4444;">⚠️ Risc Ètic:</strong> <span style="color: var(--body-text-color);">Pots utilitzar la demografia per millorar la teva puntuació, però és just?</span>
+                                </div>
+                            </div>
+                        </details>
+            
+                        <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">4. Mida de les Dades (Volum)</summary>
+                            <div class="content" style="padding-top: 12px; padding-left: 12px;">
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);"><span class="radio-circle selected" style="display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--color-accent); margin-right:8px;"></span> <b>Petita (20%)</b> - La IA aprèn ràpid, però veu menys dades.</div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> <b>Completa (100%)</b> - La IA veu més dades i aprèn més lentament.</div>
+                                
+                                <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
+                                    <b style="color: var(--body-text-color);">Al Joc:</b> <span style="color: var(--body-text-color);">Tries quanta història llegeix el model.</span><br>
+                                    <i style="color: var(--body-text-color-subdued);">Consell: Fes servir "Petita" per provar idees ràpidament. Fes servir "Completa" quan creguis que tens una estratègia guanyadora.</i>
                                 </div>
                             </div>
                         </details>
