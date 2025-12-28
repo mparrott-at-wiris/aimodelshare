@@ -3589,366 +3589,239 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
             )
 
         # --- Briefing Slideshow (Updated with New Cards) ---
-
+  
         # Slide 1: From Understanding to Building (Retained as transition)
         with gr.Column(visible=True, elem_id="slide-1") as briefing_slide_1:
-            gr.Markdown("<h1 style='text-align:center;'>🔄 De la teoria a la pràctica</h1>")
-            gr.HTML(
-                """
+            gr.Markdown("<h1 style='text-align:center;'>🔄 De la Comprensió a la Creació</h1>")
+            gr.HTML("""
                 <div class='slide-content'>
                 <div class='panel-box'>
-                <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>Bona feina! Ara ja has aconseguit:</h3>
-
+                <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>Molt bon progrés! Ara ja has:</h3>
                 <ul style='list-style: none; padding-left: 0; margin-top: 24px; margin-bottom: 24px;'>
-                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
-                        <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Prendre decisions difícils com a jutge o jutgessa utilitzant prediccions d’IA
-                    </li>
-                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
-                        <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Aprendre què són els falsos positius (falses alarmes) i els falsos negatius (advertències ignorades)
-                    </li>
-                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
-                        <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Entendre els conceptes bàsics de com funciona la IA:
-                    </li>
+                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Pres decisions difícils com a jutge</li>
+                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Après sobre falsos positius i negatius</li>
+                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Entès com funciona la IA</li>
                 </ul>
-
                 <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
-                    <div style='display:inline-block; background:#dbeafe; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#0369a1;'>ENTRADA</h3>
-                    </div>
-                    <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
-                    <div style='display:inline-block; background:#fef3c7; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#92400e;'>MODEL</h3>
-                    </div>
-                    <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
-                    <div style='display:inline-block; background:#f0fdf4; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#15803d;'>SORTIDA</h3>
-                    </div>
+                    <span style='background:#dbeafe; padding:8px; border-radius:4px; color:#0369a1; font-weight:bold;'>ENTRADA</span> → 
+                    <span style='background:#fef3c7; padding:8px; border-radius:4px; color:#92400e; font-weight:bold;'>MODEL</span> → 
+                    <span style='background:#f0fdf4; padding:8px; border-radius:4px; color:#15803d; font-weight:bold;'>SORTIDA</span>
                 </div>
-
-                <hr style='margin: 24px 0; border-top: 2px solid #c7d2fe;'>
-
-                <h3 style='font-size: 1.5rem; text-align:center;'>Ara és el moment de posar-te a la pell d’una persona enginyera d’IA.</h3>
-                <p style='font-size: 1.1rem; text-align:center; margin-top: 12px;'>
-                    <strong>El teu nou repte:</strong> Crear models d’IA que siguin més precisos que el que has utilitzat en el rol de jutjar casos.
-                </p>
-                <p style='font-size: 1.1rem; text-align:center; margin-top: 12px;'>
-                    Recorda: has viscut en primera persona com les prediccions de la IA afecten la vida real de les persones. Fes servir aquest coneixement per construir un model millor.
-                </p>
+                <h3 style='font-size: 1.5rem; text-align:center;'>Ara: Posa't a la pell d'un Enginyer d'IA.</h3>
                 </div>
                 </div>
-                """
-            )
+            """)
             briefing_1_next = gr.Button("Següent ▶️", variant="primary", size="lg")
-
-        # Slide 2: Card 1 (Your Engineering Mission)
+  
+        # Slide 2: Mission
         with gr.Column(visible=False, elem_id="slide-2") as briefing_slide_2:
-            gr.Markdown("<h1 style='text-align:center;'>📋 La teva missió - Construir una IA millor</h1>")
-            
-            gr.HTML(
-                """
+            gr.Markdown("<h1 style='text-align:center;'>📋 La Teva Missió: Crear una IA Millor</h1>")
+            gr.HTML("""
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <h3>La missió</h3>
-                        <p>Crea un sistema d’IA que ajudi als tribunals a prendre decisions més encertades. El model que has utilitzat abans et donava recomanacions imperfectes. Ara la teva feina és construir un model nou que predigui el risc amb més precisió i ofereixi a qui jutja informació fiable per poder ser justos i justes.</p>
+                        <h3>La Missió</h3>
+                        <p>Construeix un model d'IA que ajudi els jutges a prendre millors decisions. La teva feina és predir el risc de reincidència amb més precisió que el model anterior.</p>
                         
-                        <h3>La competició</h3>
-                        <p>Per fer-ho, competiràs amb altres persones enginyeres! Per ajudar-te en la missió, formaràs part d’un equip d’enginyeria. Els teus resultats es registraran tant de manera individual com col·lectiva a les classificacions en directe.</p>
-                    </div>
-
-                    <div class='leaderboard-box' style='max-width: 600px; margin: 16px auto; text-align: center; padding: 16px;'>
-                        <p style='font-size: 1.1rem; margin:0;'>T’uniràs a un equip com ara...</p>
-                        <h3 style='font-size: 1.75rem; color: #6b7280; margin: 8px 0;'>
-                            🛡️ Els Exploradors Ètics
-                        </h3>
-                    </div>
-
-                    <div class='mock-ui-box'>
-                        <h3>El repte de les dades</h3>
-                        <p>Per competir, tindràs accés a milers d’expedients de casos antics. Disposes de dos tipus d’informació:</p>
-                        <ol style='list-style-position: inside; padding-left: 20px;'>
-                            <li><strong>Perfils persones preses:</strong> És la informació que tenia el tribunal en el moment de la detenció.
-                                <ul style='margin-left: 20px; list-style-type: disc;'>
-                                    <li><em>Edat, nombre d'antecedents penals, tipus de càrrec penal.</em></li>
-                                </ul>
-                            </li>
-                            <li><strong>Resultats històrics:</strong> Això és el que va passar amb aquestes persones al cap d’un temps.
-                                <ul style='margin-left: 20px; list-style-type: disc;'>
-                                    <li><em>Van tornar a cometre un delicte en dos anys? (Sí/No)</em></li>
-                                </ul>
-                            </li>
-                        </ol>
-                        
-                        <h3>La tasca principal</h3>
-                        <p>Has d’ensenyar el teu model d'IA a analitzar els "perfils" i predir amb precisió el "resultat".</p>
-                        <p><strong>A punt per construir alguna cosa que podria canviar la manera com funciona la justícia?</strong></p>
+                        <h3>La Competició</h3>
+                        <p>Per fer-ho, competiràs amb altres enginyers! T'uniràs a un equip, amb puntuacions registrades tant pel rendiment individual com d'equip a les taules de classificació en directe.</p>
+                        <div style="background:var(--background-fill-secondary); padding:8px 12px; border-radius:8px; margin-bottom:12px; border:1px solid var(--border-color-primary);">
+                             T'uniràs a un equip com ara… <b>🛡️ Els Exploradors Ètics</b>
+                        </div>
+  
+                        <h3>El Repte de Dades</h3>
+                        <p>Per competir, tindràs accés a milers d'arxius de casos antics que contenen <b>Perfils dels Acusats</b> (Edat, Historial) i <b>Resultats Històrics</b> (Van reincidir?).</p>
+                        <p>La teva tasca és entrenar un sistema d'IA que aprengui dels perfils i predigui el resultat amb precisió. A punt per construir quelcom que podria canviar com funciona la justícia?</p>
                     </div>
                 </div>
-                """
-            )
-            
+            """)
             with gr.Row():
                 briefing_2_back = gr.Button("◀️ Enrere", size="lg")
                 briefing_2_next = gr.Button("Següent ▶️", variant="primary", size="lg")
-
-        # Slide 3: Card 2 (What is a "Model"?)
+  
+        # Slide 3: Concept
         with gr.Column(visible=False, elem_id="slide-3") as briefing_slide_3:
-            gr.Markdown("<h1 style='text-align:center;'>🧠 Què és un sistema d'IA?</h1>")
-            
-            # --- FIX FOR SLIDE 3 ---
-            # Combined all content into single gr.HTML()
-            gr.HTML(
-                """
+            gr.Markdown("<h1 style='text-align:center;'>🧠 Què és un Sistema d'IA?</h1>")
+            gr.HTML("""
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <p>Abans de començar a competir, analitzem exactament què estàs construint.</p>
-                        <h3>Pensa en un sistema d'IA com una "Màquina de Predicció."</h3>
-                        <p>Ja coneixes el flux:</p>
-                        
-                        <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
-                            <div style='display:inline-block; background:#dbeafe; padding:12px 16px; border-radius:8px; margin:4px;'>
-                                <h3 style='margin:0; color:#0369a1;'>ENTRADA</h3>
-                            </div>
-                            <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
-                            <div style='display:inline-block; background:#fef3c7; padding:12px 16px; border-radius:8px; margin:4px;'>
-                                <h3 style='margin:0; color:#92400e;'>MODEL</h3>
-                            </div>
-                            <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
-                            <div style='display:inline-block; background:#f0fdf4; padding:12px 16px; border-radius:8px; margin:4px;'>
-                                <h3 style='margin:0; color:#15803d;'>SORTIDA</h3>
-                            </div>
-                        </div>
-                        
-                        <p>Com a persona enginyera, no cal que escriguis codi complex des de zero. En lloc d'això, muntes aquesta màquina utilitzant tres components principals:</p>
-                    </div>
-
-                    <div class='mock-ui-box'>
-                        <h3>The 3 Components:</h3>
-                        <p><strong>1. L'entrada (Dades)</strong><br>
-                        La informació que li dones a la màquina.<br>
-                        <em>* Exemples: Edat, antecedents, detalls de l'acusació.</em></p>
-
-                        <p><strong>2. El Model (El "cervell")</strong><br>
-                        Aquest és el "cervell" de la teva màquina. Estudia les dades d'entrada i intenta descobrir com es connecten les coses per fer una predicció. Pots triar diferents estratègies de model (cervells) per a la teva màquina.<br>
-                        <em>* Exemples: Alguns "cervells" només troben regles senzilles (com marcar un correu si diu 'diners gratis'). Altres tenen la capacitat de trobar patrons complexos (com reconèixer una cara concreta enmig d'una multitud).</em></p>
-
-                        <p><strong>3. La sortida (La predicció)</strong><br>
-                        El que el model intenta endevinar com a millor opció.<br>
-                        <em>* Exemple: Nivell de risc: Alt o Baix.</em></p>
-
-                        <hr>
-                        
-                        <p><strong>Com aprèn:</strong> Mostres al model milers de casos antics (Entrades) + el que va passar realment (Sortides). El model els estudia per trobar les regles i així poder fer prediccions sobre casos nous que no ha vist mai.</p>
+                        <p>Pensa en un Sistema d'IA com una "Màquina de Predicció". La construeixes utilitzant tres components principals:</p>
+                        <p><strong>1. Les Entrades:</strong> Les dades que li subministres (ex: Edat, Delictes).</p>
+                        <p><strong>2. El Model ("El Cervell"):</strong> Les matemàtiques (algorisme) que troben patrons.</p>
+                        <p><strong>3. La Sortida:</strong> La predicció (ex: Nivell de Risc).</p>
                     </div>
                 </div>
-                """
-            )
-            # --- END FIX ---
-            
+            """)
             with gr.Row():
                 briefing_3_back = gr.Button("◀️ Enrere", size="lg")
                 briefing_3_next = gr.Button("Següent ▶️", variant="primary", size="lg")
-
-        # Slide 4: Card 3 (How Engineers Work — The Loop)
+  
+        # Slide 4: The Loop
         with gr.Column(visible=False, elem_id="slide-4") as briefing_slide_4:
-            gr.Markdown("<h1 style='text-align:center;'>🔁 Com treballen les persones enginyeres — El bucle</h1>")
-
-            # --- FIX FOR SLIDE 4 ---
-            # Combined all content into single gr.HTML()
-            gr.HTML(
-                """
+            gr.Markdown("<h1 style='text-align:center;'>🔁 Com Treballen els Enginyers: El Cicle</h1>")
+            gr.HTML("""
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <p>Ara que ja coneixes els components d'un sistema d'IA, com en pots construir un de millor?</p>
-                        <h3>Aquí tens el secret:</h3>
-                        <p>Els equips d'IA reals gairebé mai l'encerten a la primera. En lloc d'això, segueixen un bucle continu d'experimentació: <strong>provar, comprovar, aprendre, repetir.</strong></p>
-                        
-                        <h3>El bucle d'experimentació:</h3>
-                        <ol style='list-style-position: inside;'>
-                            <li><strong>Construeix un sistema d'IA:</strong> Escull els seus components i obtindràs una puntuació inicial de precisió.</li>
-                            <li><strong>Fes-te una pregunta:</strong> (p. ex., "Què passa si canvio el 'Cervell' —el tipus de model—?")</li>
-                            <li><strong>Comprova i compara:</strong> La puntuació ha millorat... o ha empitjorat?</li>
-                        </ol>
-                    </div>
-
-                    <h3>Faràs exactament el mateix en la competició!</h3>
-                    
-                    <div class='step-visual'>
-                        <div class='step-visual-box'><b>1. Configura</b><br/>Fes servir els controls per seleccionar el tipus de model i les dades.</div>
-                        <div class='step-visual-arrow'>→</div>
-                        <div class='step-visual-box'><b>2. Envia</b><br/>Clica a "construeix i envia" per entrenar el teu model.</div>
-                        <div class='step-visual-arrow'>→</div>
-                        <div class='step-visual-box'><b>3. Analitza</b><br/>Mira la teva posició a la classificació en temps real.</div>
-                        <div class='step-visual-arrow'>→</div>
-                        <div class='step-visual-box'><b>4. Millora</b><br/>Canvia una opció i torna a enviar-lo.</div>
-                    </div>
-                    
-                    <div class='leaderboard-box' style='text-align:center;'>
-                        <p><strong>Consell:</strong> Intenta canviar només una cosa a la vegada. Si canvies massa coses de cop, no sabràs què és el que ha fet que el teu model millori o empitjori!</p>
+                        <p>Els equips d'IA reals mai l'encerten a la primera. Segueixen un cicle: <strong>Provar, Testejar, Aprendre, Repetir.</strong></p>
+                        <p>Faràs exactament el mateix en aquesta competició:</p>
+                        <div class='step-visual'>
+                            <div class='step-visual-box'><b>1. Configurar</b><br><span style='font-size:0.85rem'>tria model i dades</span></div>→
+                            <div class='step-visual-box'><b>2. Enviar</b><br><span style='font-size:0.85rem'>entrena el teu sistema</span></div>→
+                            <div class='step-visual-box'><b>3. Analitzar</b><br><span style='font-size:0.85rem'>comprova el rànquing</span></div>→
+                            <div class='step-visual-box'><b>4. Refinar</b><br><span style='font-size:0.85rem'>ajusta i torna-ho a provar</span></div>
+                        </div>
                     </div>
                 </div>
-                """
-            )
-            # --- END FIX ---
+            """)
             
             with gr.Row():
                 briefing_4_back = gr.Button("◀️ Enrere", size="lg")
                 briefing_4_next = gr.Button("Següent ▶️", variant="primary", size="lg")
-
-        # Slide 5: Card 4 (Control Knobs — The "Brain" Settings)
+  
+        # Slide 5: Systems Check (Controls)
         with gr.Column(visible=False, elem_id="slide-5") as briefing_slide_5:
-            gr.Markdown("<h1 style='text-align:center;'>🎛️ Controls — La configuració del \"cervell\"</h1>")
-            
-            # --- FIX FOR SLIDE 5 ---
-            # Combined all content into single gr.HTML()
-            gr.HTML(
-                """
-                <div class='slide-content'>
-                    <div class='mock-ui-inner'>
-                        <p>Per construir el teu sistema d’IA, utilitzaràs controls per configurar la teva Màquina de Predicció. Els dos primers controls et permeten triar l’estratègia del model (el cervell) i ajustar com aprèn patrons a partir de les dades.</p>
-                        <hr style='margin: 16px 0;'>
-
-                        <h3 style='margin-top:0;'>1. Estratègia del Model (Tipus de model)</h3>
-                        <div style='font-size: 1rem; margin-bottom:12px;'>
-                            <b>Què és:</b> El cervell de la teva Màquina de Predicció. Utilitza un mètode matemàtic concret —anomenat algorisme— per trobar patrons a les dades. Quan aprèn d’aquests patrons, es converteix en un model preparat per fer la millor predicció possible.
-                        </div>
-                        <div class='mock-ui-control-box'>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-on'>◉</span>
-                                <b>El Generalista Equilibrat:</b> Aprèn a partir de tot el conjunt de dades i combina diversos factors en cada decisió, cosa que ajuda a obtenir resultats coherents en diferents situacions.
-                            </p>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-off'>○</span>
-                                <b>El Creador de Regles:</b> Utilitza regles clares del tipus “Si… aleshores…”, fàcils d’entendre però menys flexibles. (Per exemple: si hi ha delictes previs > 2, aleshores hi ha risc alt).
-                            </p>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-off'>○</span>
-                                <b>El Buscador de Patrons Profunds:</b> Un model complex que detecta patrons amagats a les dades, però amb decisions més difícils d’explicar.
-                            </p>
-                        </div>
-
-                        <hr style='margin: 24px 0;'>
-
-                        <h3>2. Complexitat del Model (Nivell d’ajust))</h3>
-                        <div class='mock-ui-control-box' style='text-align: center;'>
-                            <p style='font-size: 1.1rem; margin:0;'>Rang: Nivell 1 ─── ● ─── 10</p>
-                        </div>
-                        
-                        <div style='margin-top: 16px; font-size: 1rem;'>
-                            <ul style='list-style-position: inside;'>
-                                <li><b>Què és:</b> És el nivell de detall amb què el model aprèn a partir de les dades: si es fixa sobretot en patrons generals o també en casos molt específics.</li>
-                                <li><b>L'equilibri:</b>
-                                    <ul style='list-style-position: inside; margin-left: 20px;'>
-                                    <li><b>Baix (Nivell 1):</b> Aprèn principalment patrons generals de les dades.</li>
-                                    <li><b>Alt (Nivell 5):</b> Aprèn tant patrons generals com detalls molt fins.</li>
-                                    </ul>
-                                </li>
-                            </ul>
-                            <p style='color:#b91c1c; font-weight:bold; margin-top:10px;'>Avís: Si aquest valor és massa alt, el model pot “memoritzar” detalls aleatoris o coincidències sense importància (soroll) de les dades passades, en lloc d’aprendre la regla general.</p>
-                        </div>
-                    </div>
-                </div>
-                """
-            )
-            # --- END FIX ---
-            
-            with gr.Row():
-                briefing_5_back = gr.Button("◀️ Enrere", size="lg")
-                briefing_5_next = gr.Button("Següent ▶️", variant="primary", size="lg")
-
-        # Slide 6: Card 5 (Control Knobs — The "Data" Settings)
-        with gr.Column(visible=False, elem_id="slide-6") as briefing_slide_6:
-            gr.Markdown("<h1 style='text-align:center;'>🎛️ Controls — La configuració de \"dades\"</h1>")
-
-            # --- FIX FOR SLIDE 6 ---
-            # Combined all content into single gr.HTML()
-            gr.HTML(
-                """
-                <div class='slide-content'>
-                    <div class='mock-ui-inner'>
-                        <p>Ara que ja has configurat la teva màquina de predicció, has de decidir quina informació processarà. Aquests selectors controlen les dades d'entrada del sistema d'IA.</p>
-                        <hr style='margin: 16px 0;'>
-
-                        <h3 style='margin-top:0;'>3. Variables de les dades</h3>
-                        <div style='font-size: 1rem; margin-bottom:12px;'>
-                            <b>Què és:</b> Els punts de dades concrets als quals el sistema de la IA (la màquina) té permís per accedir.
-                            <br><b>Per què és important:</b> El resultat del sistema depèn totalment de la informació que rep.
-                        </div>
-                        
-                        <div class='mock-ui-control-box'>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-on'>☑</span>
-                                <b>Dades de comportament:</b> Informació com el <i>nombre de delictes juvenils</i> ajuda el sistema a identificar patrons de risc basats en fets.
-                            </p>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-off'>☐</span>
-                                <b>Dades demogràfiques:</b> Dades com la <i>raça</i> poden ajudar el model a aprendre, però també poden replicar biaixos humans.
-                            </p>
-                        </div>
-                        <p style='margin-top:10px;'><b>La teva feina:</b> Marca ☑ o Desmarca ☐ les caselles per triar quina informació "alimentarà" el teu model.</p>
-
-                        <hr style='margin: 24px 0;'>
-
-                        <h3>4. Volum de dades (Volum d'entrenament)</h3>
-                        <div style='font-size: 1rem; margin-bottom:12px;'>
-                            <b>Què és:</b> La quantitat de casos històrics que el sistema de la IA utilitza per aprendre patrons.
-                        </div>
-                        
-                        <div class='mock-ui-control-box'>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-on'>◉</span>
-                                <b>Petit (20%):</b> Processament ràpid. Ideal per fer proves ràpides i revisar la teva configuració.
-                            </p>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-off'>○</span>
-                                <b>Complet (100%):</b> Processament màxim de dades. Triga més a construir-se, però dóna al sistema d'IA la millor oportunitat per calibrar la precisió.
-                            </p>
-                        </div>
-
-                    </div>
-                </div>
-                """
-            )
-            # --- END FIX ---
-            
-            with gr.Row():
-                briefing_6_back = gr.Button("◀️ Back", size="lg")
-                briefing_6_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
-        # Slide 7: Card 6 (Your Score as an Engineer)
-        with gr.Column(visible=False, elem_id="slide-7") as briefing_slide_7:
-            gr.Markdown("<h1 style='text-align:center;'>🏆 La teva puntuació com a enginyer/a</h1>")
-            
-            # --- FIX FOR SLIDE 7 ---
-            # Combined all content into single gr.HTML()
             gr.HTML(
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <p>Ara que ja saps com construir un model, és hora de posar a prova les teves habilitats. Aquí tens com mesurarem el teu èxit i com podràs pujar en la classificació:</p>
-
-                        <h3>Com es calcula la teva puntuació/h3>
-                        <ul style='list-style-position: inside;'>
-                            <li><strong>Precisió de la predicció:</strong> El teu model es posa a prova amb Dades Ocultes (casos guardats en una "caixa forta secreta" que el teu model mai ha vist). Això simula la predicció del futur per garantir que obtinguis una puntuació de precisió realista.</li>
-                            <li><strong>La classificació:</strong> Els marcadors en directe fan un seguiment del teu progrés individualment i en equip.</li>
-                        </ul>
-
-                        <h3>Com pots millorar: El Joc</h3>
-                        <ul style='list-style-position: inside;'>
-                            <li><strong>Competeix per millora:</strong> Refina el teu model per superar la teva millor marca personal.</li>
-                            <li><strong>Progressa com a persona enginyera i desbloqueja eines:</strong> A mesura que enviïs més models, guanyaràs posicions i desbloquejaràs millors eines d'anàlisi.
-                        
+                        <div class='t-minus-header'>
+                            <h2 class='t-minus-title'>🔧 Comprovació de Sistemes d'Enginyeria</h2>
+                        </div>
+            
+                        <div style='background:#eff6ff; border:1px solid #bfdbfe; padding:16px; border-radius:10px; text-align:center; margin-bottom:24px;'>
+                            <strong style='color:#1e40af; font-size:1.1rem;'>⚠️ MODE DE SIMULACIÓ ACTIU</strong>
+                            <p style='margin:8px 0 0 0; color:#1e3a8a; font-size:1.05rem; line-height:1.4;'>
+                                A continuació tens els <b>4 controls exactes</b> que utilitzaràs per construir el teu model en el següent pas.<br>
+                                <b>Fes clic a cadascun ara</b> per aprendre què fan abans que comenci la competició.
+                            </p>
+                        </div>
+            
+                        <details class="styled-details">
+                            <summary>1. Estratègia del Model (El ‘cervell’)</summary>
+                            <div class="content">
+                                <div class="widget-row"><span class="radio-circle selected"></span> <b>El Generalista Equilibrat</b></div>
+                                <div class="widget-row"><span class="radio-circle"></span> El Creador de Regles</div>
+                                <div class="widget-row"><span class="radio-circle"></span> El Cercador de Patrons Profunds</div>
+                                
+                                <div class="info-popup">
+                                    <b>Al Joc:</b> Triaràs una d'aquestes estratègies de model. Cada estratègia permet que el teu model aprengui de les dades d'entrada d'una manera única.<br>
+                                    <i>Consell: Comença amb el "Generalista Equilibrat" per a una puntuació base segura i fiable.</i>
+                                </div>
+                            </div>
+                        </details>
+            
+                        <details class="styled-details">
+                            <summary>2. Complexitat del Model (Nivell d'Enfocament)</summary>
+                            <div class="content">
+                                <div class="slider-track"><div class="slider-thumb"></div></div>
+                                <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-muted);">
+                                    <span>Nivell 1 (General)</span>
+                                    <span>Nivell 10 (Específic)</span>
+                                </div>
+                                
+                        <div class="info-popup">
+                            <b>Al Joc:</b> Pensa en això com <b>Estudiar vs. Memoritzar</b>.<br>
+                            • <b>Complexitat Baixa:</b> La IA aprèn conceptes generals (Bo per a nous casos).<br>
+                            • <b>Complexitat Alta:</b> La IA memoritza les respostes (Dolent per a nous casos).<br>
+                            <strong style="color:#ef4444;">⚠️ El Parany:</strong> Una configuració alta sembla perfecta en el test de pràctica, però falla al món real perquè la IA només ha memoritzat les respostes!
+                        </div>
+                            </div>
+                        </details>
+            
+                        <details class="styled-details">
+                            <summary>3. Ingredients de Dades (Les entrades)</summary>
+                            <div class="content">
+                                <div class="widget-row"><span class="check-square checked"></span> <b>Delictes Anteriors</b></div>
+                                <div class="widget-row"><span class="check-square checked"></span> <b>Grau del Càrrec</b></div>
+                                <div class="widget-row"><span class="check-square"></span> <b>Demografia (Raça/Sexe)</b> <span class="risk-tag">⚠️ RISC</span></div>
+                                
+                                <div class="info-popup">
+                                    <b>Al Joc:</b> Marcaràs caselles per decidir quines dades d'entrada brutes pot utilitzar la IA per aprendre nous patrons.<br>
+                                    <strong style="color:#ef4444;">⚠️ Risc Ètic:</strong> Pots utilitzar la demografia per millorar la teva puntuació, però és just?
+                                </div>
+                            </div>
+                        </details>
+            
+                        <details class="styled-details">
+                            <summary>4. Mida de les Dades (Volum)</summary>
+                            <div class="content">
+                                <div class="widget-row"><span class="radio-circle selected"></span> <b>Petita (20%)</b> - La IA aprèn ràpid, però veu menys dades.</div>
+                                <div class="widget-row"><span class="radio-circle"></span> <b>Completa (100%)</b> - La IA veu més dades i aprèn més lentament.</div>
+                                
+                                <div class="info-popup">
+                                    <b>Al Joc:</b> Tries quanta història llegeix el model.<br>
+                                    <i>Consell: Fes servir "Petita" per provar idees ràpidament. Fes servir "Completa" quan creguis que tens una estratègia guanyadora.</i>
+                                </div>
+                            </div>
+                        </details>
+            
                     </div>
                 </div>
                 """
             )
-            # --- END FIX ---
             
             with gr.Row():
-                briefing_7_back = gr.Button("◀️ Enrere", size="lg")
-                briefing_7_next = gr.Button("Comença a construir el model ▶️", variant="primary", size="lg")
+                briefing_5_back = gr.Button("◀️ Enrere", size="lg")
+                briefing_5_next = gr.Button("Següent ▶️", variant="primary", size="lg")
+  
+        # Slide 6: Final Score
+        with gr.Column(visible=False, elem_id="slide-6") as briefing_slide_6:            
+            gr.HTML(
+                """
+                <div class='slide-content'>
+                    <div class='panel-box'>
+                        <div class='t-minus-header'>
+                            <h2 class='t-minus-title'>🚀 Informe de Missió: La Puntuació Final</h2>
+                        </div>
+                        
+                        <p style='font-size: 1.15rem; text-align:center; margin-bottom: 24px;'>
+                            Accés concedit. Així és com es jutjarà la teva feina.
+                        </p>
+            
+                        <div style='background:var(--prose-background-fill); padding:20px; border-radius:12px; text-align:left; margin-bottom:24px;'>
+                            <div style='display:flex; align-items:center; gap:8px; margin-bottom:12px;'>
+                                <span style='font-size:1.5rem;'>🔐</span>
+                                <strong style='font-size:1.2rem; color:#064e3b;'>Com Guanyar</strong>
+                            </div>
+                            
+                            <p style='margin-bottom:12px;'>
+                                Al món real, no coneixem el futur. Per simular-ho, hem amagat el 20% dels arxius de casos (dades) en una "Caixa Forta".
+                            </p>
+                            
+                            <ul style='margin:0; padding-left:24px; color:var(--text-muted); line-height:1.6;'>
+                                <li style='margin-bottom:8px;'>
+                                    La teva IA aprendrà de les dades d'entrada que li donis, però serà avaluada amb les dades amagades a la Caixa Forta.
+                                </li>
+                                <li>
+                                    <b>La Teva Puntuació:</b> Se et puntua segons la precisió de la predicció. Si obtens un 50%, la teva IA bàsicament està endevinant (com tirar una moneda). El teu objectiu és dissenyar un sistema que predigui molt millor!
+                                </li>
+                            </ul>
+                        </div>
+            
+                        <div style='text-align:center; border-top:1px solid var(--card-border-subtle); padding-top:20px; margin-bottom:30px;'>
+                            <h3 style='margin:0 0 8px 0; font-size:1.2rem;'>Rangs Desbloquejables</h3>
+                            <p style='margin-bottom:16px; font-size:0.95rem; color:var(--text-muted);'>
+                                A mesura que refinis el teu model i pugis a la classificació, guanyaràs nous rangs:
+                            </p>
+                            <div style='display:inline-flex; gap:12px; flex-wrap:wrap; justify-content:center;'>
+                                <span style='padding:6px 12px; background:#f3f4f6; border-radius:20px; font-size:0.9rem;'>⭐ Novell</span>
+                                <span style='padding:6px 12px; background:#e0e7ff; border-radius:20px; font-size:0.9rem; color:#4338ca;'>⭐⭐ Júnior</span>
+                                <span style='padding:6px 12px; background:#fae8ff; border-radius:20px; font-size:0.9rem; color:#86198f;'>⭐⭐⭐ Enginyer Principal</span>
+                            </div>
+                        </div>
+                        
+                        <div style='text-align:center; background: color-mix(in srgb, var(--color-accent) 10%, transparent); padding: 20px; border-radius: 12px; border: 2px solid var(--color-accent);'>
+                            <p style='margin:0 0 8px 0; font-size: 1.1rem; color: var(--text-muted);'>Per començar la competició:</p>
+                            <b style='color:var(--accent-strong); font-size:1.3rem;'>Fes clic a "Començar", i després a "Construir i Enviar Model"</b>
+                            <p style='margin:8px 0 0 0; font-size: 1rem;'>Això farà la teva primera tramesa a la classificació.</p>
+                        </div>
+                    </div>
+                </div>
+                """
+            )
+            
+            with gr.Row():
+                briefing_6_back = gr.Button("◀️ Enrere", size="lg")
+                briefing_6_next = gr.Button("Començar la Construcció del Model ▶️", variant="primary", size="lg")
 
         # --- End Briefing Slideshow ---
 
@@ -4111,7 +3984,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
         # --- Navigation Logic ---
         all_steps_nav = [
             briefing_slide_1, briefing_slide_2, briefing_slide_3,
-            briefing_slide_4, briefing_slide_5, briefing_slide_6, briefing_slide_7,
+            briefing_slide_4, briefing_slide_5, briefing_slide_6, 
             model_building_step, conclusion_step, loading_screen
         ]
 
@@ -4224,12 +4097,16 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
 """
 
 
-        # Wire up slide buttons with enhanced navigation
+        # --- Wire up slide buttons with enhanced navigation ---
+
+        # Slide 1 -> 2
         briefing_1_next.click(
             fn=create_nav(briefing_slide_1, briefing_slide_2),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-2", "Carregant la visió general de la missió...")
+            js=nav_js("slide-2", "Carregant la missió...")
         )
+
+        # Slide 2 (Mission) Navigation
         briefing_2_back.click(
             fn=create_nav(briefing_slide_2, briefing_slide_1),
             inputs=None, outputs=all_steps_nav,
@@ -4238,58 +4115,56 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
         briefing_2_next.click(
             fn=create_nav(briefing_slide_2, briefing_slide_3),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-3", "Explorant el concepte del model...")
+            js=nav_js("slide-3", "Explorant el concepte del sistema...")
         )
+
+        # Slide 3 (Concepts) Navigation
         briefing_3_back.click(
             fn=create_nav(briefing_slide_3, briefing_slide_2),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-2", "Tornant un pas enrere...")
+            js=nav_js("slide-2", "Revisant la missió...")
         )
         briefing_3_next.click(
             fn=create_nav(briefing_slide_3, briefing_slide_4),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-4", "Entenent el bucle de l'experiment...")
+            js=nav_js("slide-4", "Entenent el bucle de treball...")
         )
+
+        # Slide 4 (The Loop) Navigation
         briefing_4_back.click(
             fn=create_nav(briefing_slide_4, briefing_slide_3),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-3", "Revisant els conceptes previs...")
+            js=nav_js("slide-3", "Tornant als conceptes...")
         )
         briefing_4_next.click(
             fn=create_nav(briefing_slide_4, briefing_slide_5),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-5", "Configurant els paràmetres del model...")
+            js=nav_js("slide-5", "Carregant els controls del sistema...")
         )
+
+        # Slide 5 (Controls) Navigation
         briefing_5_back.click(
             fn=create_nav(briefing_slide_5, briefing_slide_4),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-4", "Revisitant el bucle...")
+            js=nav_js("slide-4", "Revisant el flux de treball...")
         )
         briefing_5_next.click(
             fn=create_nav(briefing_slide_5, briefing_slide_6),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-6", "Configurant les dades d’entrada...")
+            js=nav_js("slide-6", "Analitzant els objectius de puntuació...")
         )
+
+        # Slide 6 (Score/Final) Navigation
         briefing_6_back.click(
             fn=create_nav(briefing_slide_6, briefing_slide_5),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-5", "Ajustant l’estratègia del model...")
+            js=nav_js("slide-5", "Tornant als controls...")
         )
+        # Final Step: Slide 6 -> Model Building Interface
         briefing_6_next.click(
-            fn=create_nav(briefing_slide_6, briefing_slide_7),
+            fn=create_nav(briefing_slide_6, model_building_step),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-7", "Preparant el resum de puntuació...")
-        )
-        briefing_7_back.click(
-            fn=create_nav(briefing_slide_7, briefing_slide_6),
-            inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-6", "Revisant els paràmetres de les dades...")
-        )
-        # Slide 7 -> App
-        briefing_7_next.click(
-            fn=create_nav(briefing_slide_7, model_building_step),
-            inputs=None, outputs=all_steps_nav,
-            js=nav_js("model-step", "Entrant a l'àrea de construcció del model...")
+            js=nav_js("model-step", "Inicialitzant l'entorn de construcció...")
         )
 
         # App -> Conclusion

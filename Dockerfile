@@ -12,7 +12,8 @@ ENV OMP_NUM_THREADS=1 \
     OPENBLAS_NUM_THREADS=1 \
     VECLIB_MAXIMUM_THREADS=1 \
     NUMEXPR_NUM_THREADS=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    FORWARDED_ALLOW_IPS="*"
 
 # Install system dependencies
 # Added 'sqlite3' for debug and 'wget' for downloading data during build
