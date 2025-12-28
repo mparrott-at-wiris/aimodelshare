@@ -167,7 +167,18 @@ def build_model_building_game_router():
 def launch_asgi_app(app, port: int):
     """Launch the provided ASGI app with uvicorn."""
     logger.info(f"Starting uvicorn ASGI server on 0.0.0.0:{port} ...")
-    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
+    
+    # --- CRITICAL FIX: TRUST CLOUD RUN PROXY ---
+    # We must tell Uvicorn to trust the load balancer's headers
+    # so WebSockets can be correctly upgraded.
+    uvicorn.run(
+        app, 
+        host="0.0.0.0", 
+        port=port, 
+        log_level="info",
+        proxy_headers=True,          # Enable Proxy Headers
+        forwarded_allow_ips="*"      # Trust ALL Google LB IPs
+    )
 
 
 def main():
