@@ -3495,15 +3495,24 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             briefing_1_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
         # Slide 2: Mission
+# Slide 2: Mission
         with gr.Column(visible=False, elem_id="slide-2") as briefing_slide_2:
-            gr.Markdown("<h1 style='text-align:center;'>📋 Your Mission - Build Better AI</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>📋 Your Mission – Build Better AI</h1>")
             gr.HTML("""
                 <div class='slide-content'>
                     <div class='panel-box'>
                         <h3>The Mission</h3>
-                        <p>Build an AI model that helps judges make better decisions. Your job is to predict risk more accurately than the previous model.</p>
+                        <p>Build an AI model that helps judges make better decisions. Your job is to predict re-offending risk more accurately than the previous model.</p>
+                        
+                        <h3>The Competition</h3>
+                        <p>To do this, you’ll compete with other engineers! You’ll join a team, with scores tracked for both individual and team performance on live leaderboards.</p>
+                        <div style="background:var(--background-fill-secondary); padding:8px 12px; border-radius:8px; margin-bottom:12px; border:1px solid var(--border-color-primary);">
+                             You’ll join a team such as… <b>🛡️ The Ethical Explorers</b>
+                        </div>
+
                         <h3>The Data Challenge</h3>
-                        <p>You have access to thousands of old case files containing <b>Defendant Profiles</b> (Age, History) and <b>Historical Outcomes</b> (Did they re-offend?).</p>
+                        <p>To compete, you’ll have access to thousands of old case files containing <b>Defendant Profiles</b> (Age, History) and <b>Historical Outcomes</b> (Did they re-offend?).</p>
+                        <p>Your task is to train an AI system that learns from the profiles and accurately predicts the outcome. Ready to build something that could change how justice works?</p>
                     </div>
                 </div>
             """)
@@ -3518,9 +3527,9 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 <div class='slide-content'>
                     <div class='panel-box'>
                         <p>Think of an AI System as a "Prediction Machine." You assemble it using three main components:</p>
-                        <p><strong>1. The Inputs:</strong> The data you feed it (Age, Crimes).</p>
-                        <p><strong>2. The Model ("The Brain"):</strong> The math that finds patterns.</p>
-                        <p><strong>3. The Output:</strong> The prediction (Risk Level).</p>
+                        <p><strong>1. The Inputs:</strong> The data you feed it (eg: Age, Crimes).</p>
+                        <p><strong>2. The Model ("The Brain"):</strong> The math (algorithm) that finds patterns.</p>
+                        <p><strong>3. The Output:</strong> The prediction (eg: Risk Level)</p>
                     </div>
                 </div>
             """)
@@ -3535,30 +3544,29 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 <div class='slide-content'>
                     <div class='panel-box'>
                         <p>Real AI teams never get it right on the first try. They follow a loop: <strong>Try, Test, Learn, Repeat.</strong></p>
+                        <p>You’ll do exactly the same in this competition:</p>
                         <div class='step-visual'>
-                            <div class='step-visual-box'><b>1. Configure</b></div>→
-                            <div class='step-visual-box'><b>2. Submit</b></div>→
-                            <div class='step-visual-box'><b>3. Analyze</b></div>→
-                            <div class='step-visual-box'><b>4. Refine</b></div>
+                            <div class='step-visual-box'><b>1. Configure</b><br><span style='font-size:0.85rem'>choose model & data</span></div>→
+                            <div class='step-visual-box'><b>2. Submit</b><br><span style='font-size:0.85rem'>train your system</span></div>→
+                            <div class='step-visual-box'><b>3. Analyze</b><br><span style='font-size:0.85rem'>check ranking</span></div>→
+                            <div class='step-visual-box'><b>4. Refine</b><br><span style='font-size:0.85rem'>tweak & try again</span></div>
                         </div>
                     </div>
                 </div>
             """)
-            # --- END FIX ---
             
             with gr.Row():
                 briefing_4_back = gr.Button("◀️ Back", size="lg")
                 briefing_4_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
+        # Slide 5: Systems Check (Controls)
         with gr.Column(visible=False, elem_id="slide-5") as briefing_slide_5:
-            # --- FIX FOR SLIDE 4 ---
-            # Combined all content into single gr.HTML()
             gr.HTML(
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
                         <div class='t-minus-header'>
-                            <h2 class='t-minus-title'>SYSTEMS CHECK</h2>
+                            <h2 class='t-minus-title'>🔧 ENGINEERING SYSTEMS CHECK</h2>
                         </div>
             
                         <div style='background:#eff6ff; border:1px solid #bfdbfe; padding:16px; border-radius:10px; text-align:center; margin-bottom:24px;'>
@@ -3569,22 +3577,20 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                             </p>
                         </div>
             
-                        <!-- 1. Model Strategy -->
                         <details class="styled-details">
-                            <summary>1. Model Strategy (The Engine)</summary>
+                            <summary>1. Model Strategy (The ‘brain’)</summary>
                             <div class="content">
                                 <div class="widget-row"><span class="radio-circle selected"></span> <b>The Balanced Generalist</b></div>
                                 <div class="widget-row"><span class="radio-circle"></span> The Rule-Maker</div>
                                 <div class="widget-row"><span class="radio-circle"></span> The Deep Pattern-Finder</div>
                                 
                                 <div class="info-popup">
-                                    <b>In the Game:</b> You will choose one of these model strategies.<br>
+                                    <b>In the Game:</b> You will choose one of these model strategies.  Each strategy learns from input data in a unique way.<br>
                                     <i>Tip: Start with "Balanced Generalist" for a safe, reliable baseline score.</i>
                                 </div>
                             </div>
                         </details>
             
-                        <!-- 2. Model Complexity -->
                         <details class="styled-details">
                             <summary>2. Model Complexity (Focus Level)</summary>
                             <div class="content">
@@ -3595,33 +3601,31 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                                 </div>
                                 
                                 <div class="info-popup">
-                                    <b>In the Game:</b> You will slide this to adjust how hard the AI studies.<br>
-                                    <strong style="color:#ef4444;">⚠️ Warning:</strong> Higher isn't always better. Too high = "Overthinking" (memorizing noise).
+                                    <b>In the Game:</b> You will slide this to adjust how hard the AI studies your input data.  Higher numbers mean the model memorizes patterns in the input data that may not exist in real world data!<br>
+                                    <strong style="color:#ef4444;">⚠️ Warning:</strong> Higher isn't always better. Too high = "Overlearning" (memorizing unimportant patterns).
                                 </div>
                             </div>
                         </details>
             
-                        <!-- 3. Data Ingredients -->
                         <details class="styled-details">
-                            <summary>3. Data Ingredients (The Fuel)</summary>
+                            <summary>3. Data Ingredients (The inputs)</summary>
                             <div class="content">
                                 <div class="widget-row"><span class="check-square checked"></span> <b>Prior Crimes</b></div>
                                 <div class="widget-row"><span class="check-square checked"></span> <b>Charge Degree</b></div>
                                 <div class="widget-row"><span class="check-square"></span> <b>Demographics (Race/Sex)</b> <span class="risk-tag">⚠️ RISK</span></div>
                                 
                                 <div class="info-popup">
-                                    <b>In the Game:</b> You will check boxes to decide what the AI is allowed to know.<br>
+                                    <b>In the Game:</b> You will check boxes to decide what raw input data the AI is allowed to use to learn new patterns.<br>
                                     <strong style="color:#ef4444;">⚠️ Ethical Risk:</strong> You <i>can</i> use demographics to boost your score, but is it fair?
                                 </div>
                             </div>
                         </details>
             
-                        <!-- 4. Data Size -->
                         <details class="styled-details">
                             <summary>4. Data Size (Volume)</summary>
                             <div class="content">
-                                <div class="widget-row"><span class="radio-circle selected"></span> <b>Small (20%)</b> - Fast Test</div>
-                                <div class="widget-row"><span class="radio-circle"></span> <b>Full (100%)</b> - Max Accuracy</div>
+                                <div class="widget-row"><span class="radio-circle selected"></span> <b>Small (20%)</b> - AI Learns fast, but sees lest data.</div>
+                                <div class="widget-row"><span class="radio-circle"></span> <b>Full (100%)</b> - AI sees more data and learns more slowly.</div>
                                 
                                 <div class="info-popup">
                                     <b>In the Game:</b> You choose how much history the model reads.<br>
@@ -3634,42 +3638,52 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 </div>
                 """
             )
-            # --- END FIX ---
             
             with gr.Row():
                 briefing_5_back = gr.Button("◀️ Back", size="lg")
                 briefing_5_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
-        # Slide 5: Card 4 (Control Knobs — The "Brain" Settings)
+        # Slide 6: Final Score
         with gr.Column(visible=False, elem_id="slide-6") as briefing_slide_6:            
-            # --- FIX FOR SLIDE 5 ---
-            # Combined all content into single gr.HTML()
             gr.HTML(
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
                         <div class='t-minus-header'>
-                            <h2 class='t-minus-title'>FINAL CLEARANCE</h2>
+                            <h2 class='t-minus-title'>🚀 Mission Briefing: The Final Score</h2>
                         </div>
                         
                         <p style='font-size: 1.15rem; text-align:center; margin-bottom: 24px;'>
-                            <b>Anti-Cheat System Active.</b> You are cleared to begin competing.
+                            Your access is granted. Here is how your work will be judged.
                         </p>
             
-                        <div style='background:var(--prose-background-fill); padding:20px; border-radius:12px; text-align:left; margin-bottom:24px; display:flex; align-items:center; gap:16px;'>
-                            <div style='font-size:2.5rem;'>🔐</div>
-                            <div>
-                                <strong style='font-size:1.1rem;'>How to Win</strong>
-                                <p style='margin:4px 0 0 0; color:var(--text-muted); font-size:0.95rem;'>
-                                    We have hidden 20% of the cases. Your model <b>never</b> sees them.
-                                    Your final score indicates how accurate your AI system is at predicting this data.
-                                    50% prediction accuracy means your AI system predicts half of the hidden cases correctly.
-                                </p>
+                        <!-- How to Win Section -->
+                        <div style='background:var(--prose-background-fill); padding:20px; border-radius:12px; text-align:left; margin-bottom:24px;'>
+                            <div style='display:flex; align-items:center; gap:8px; margin-bottom:12px;'>
+                                <span style='font-size:1.5rem;'>🔐</span>
+                                <strong style='font-size:1.2rem; color:#064e3b;'>How to Win</strong>
                             </div>
+                            
+                            <p style='margin-bottom:12px;'>
+                                In the real world, we don't know the future. To simulate this, we have hidden 20% of the case files (data) in a "Vault."
+                            </p>
+                            
+                            <ul style='margin:0; padding-left:24px; color:var(--text-muted); line-height:1.6;'>
+                                <li style='margin-bottom:8px;'>
+                                    Your AI will learn from the input data you give it, but it will be tested on the hidden data in the Vault.
+                                </li>
+                                <li>
+                                    <b>Your Score:</b> You are scored using prediction accuracy. If you get a 50%, your AI is essentially guessing (like a coin flip). Your goal is to engineer a system that predicts much higher!
+                                </li>
+                            </ul>
                         </div>
             
+                        <!-- Ranks Section -->
                         <div style='text-align:center; border-top:1px solid var(--card-border-subtle); padding-top:20px; margin-bottom:30px;'>
-                            <h3 style='margin:0 0 12px 0; font-size:1.2rem;'>Unlockable Ranks</h3>
+                            <h3 style='margin:0 0 8px 0; font-size:1.2rem;'>Unlockable Ranks</h3>
+                            <p style='margin-bottom:16px; font-size:0.95rem; color:var(--text-muted);'>
+                                As you refine your model and climb the leaderboard, you will earn new ranks:
+                            </p>
                             <div style='display:inline-flex; gap:12px; flex-wrap:wrap; justify-content:center;'>
                                 <span style='padding:6px 12px; background:#f3f4f6; border-radius:20px; font-size:0.9rem;'>⭐ Rookie</span>
                                 <span style='padding:6px 12px; background:#e0e7ff; border-radius:20px; font-size:0.9rem; color:#4338ca;'>⭐⭐ Junior</span>
@@ -3677,6 +3691,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                             </div>
                         </div>
                         
+                        <!-- CTA Section -->
                         <div style='text-align:center; background: color-mix(in srgb, var(--color-accent) 10%, transparent); padding: 20px; border-radius: 12px; border: 2px solid var(--color-accent);'>
                             <p style='margin:0 0 8px 0; font-size: 1.1rem; color: var(--text-muted);'>To start the competition:</p>
                             <b style='color:var(--accent-strong); font-size:1.3rem;'>Click "Begin", then "Build & Submit Model"</b>
