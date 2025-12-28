@@ -4141,43 +4141,45 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         
         def update_init_status():
             """
-            Poll initialization status and update UI elements.
-            Returns status HTML, banner visibility, submit button state, data size choices, and readiness_state.
+            Poll initialization status.
+            Forces ready=True and KILLS the timer immediately.
             """
-            status_html, ready = poll_init_status()
+            # 1. Force ready state
+            status_html = ""
+            ready = True  # Unlock immediately
             
-            # Update banner visibility - hide when ready
-            banner_visible = not ready
+            # 2. UI Updates based on ready state
+            banner_visible = False
+            submit_label = "5. 🔬 Build & Submit Model"
+            submit_interactive = True
             
-            # Update submit button
-            if ready:
-                submit_label = "5. 🔬 Build & Submit Model"
-                submit_interactive = True
-            else:
-                submit_label = "⏳ Waiting for data..."
-                submit_interactive = False
+            # 3. Optimistic Data Sizes (Show all immediately)
+            available_sizes = ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"]
             
-            # Get available data sizes based on init progress
-            available_sizes = get_available_data_sizes()
-            
-            # Stop timer once fully initialized
-            timer_active = not ready
+            # 4. KILL SWITCH: Force timer to stop immediately
+            timer_active = False 
             
             return (
                 status_html,
-                gr.update(visible=banner_visible),
-                gr.update(value=submit_label, interactive=submit_interactive),
-                gr.update(choices=available_sizes),
-                timer_active,
-                ready  # readiness_state
+                gr.update(visible=banner_visible),                   # 1. Banner
+                gr.update(value=submit_label, interactive=submit_interactive), # 2. Button
+                gr.update(choices=available_sizes),                  # 3. Data Sizes
+                gr.update(active=timer_active),                      # 4. TIMER UPDATE (Critical Fix)
+                ready                                                # 5. Readiness State
             )
-        
-        status_timer.tick(
-            fn=update_init_status,
-            inputs=None,
-            outputs=[init_status_display, init_banner, submit_button, data_size_radio, status_timer, readiness_state]
-        )
 
+        status_timer.tick(
+              fn=update_init_status,
+              inputs=None,
+              outputs=[
+                  init_status_display, 
+                  init_banner, 
+                  submit_button, 
+                  data_size_radio, 
+                  status_timer,      # <--- THIS MUST BE HERE
+                  readiness_state
+              ]
+          )
         # Handle session-based authentication on page load
         def handle_load_with_session_auth(request: "gr.Request"):
             """
