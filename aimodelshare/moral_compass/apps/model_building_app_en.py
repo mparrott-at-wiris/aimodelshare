@@ -3566,7 +3566,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 <div class='slide-content'>
                     <div class='panel-box'>
                         <div class='t-minus-header'>
-                            <h2 class='t-minus-title'>🔧 Engineering Systems Check/h2>
+                            <h2 class='t-minus-title'>🔧 Engineering Systems Check</h2>
                         </div>
             
                         <div style='background:#eff6ff; border:1px solid #bfdbfe; padding:16px; border-radius:10px; text-align:center; margin-bottom:24px;'>
