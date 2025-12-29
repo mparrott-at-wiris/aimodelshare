@@ -2296,68 +2296,27 @@ def run_experiment(
 
 def on_initial_load(username, token=None, team_name=""):
     """
-    Forces immediate leaderboard fetch so tables are populated on load.
-    REMOVED: The logic that hid the leaderboard for new users.
+    Fast load: Shows skeletons immediately. 
+    The status_timer will populate real data a few seconds later.
     """
-    global playground  # Ensure we use the global instance
-
     initial_ui = compute_rank_settings(
         0, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE
     )
 
-    # 1. FORCE PLAYGROUND CONNECTION
-    if playground is None:
-        try:
-            playground = Competition(MY_PLAYGROUND_ID)
-        except Exception as e:
-            print(f"⚠️ Could not connect to playground on init: {e}")
-            playground = None
-
-    # 2. FORCE DATA FETCH
-    # We fetch unconditionally to ensure the table is never empty.
-    full_leaderboard_df = None
-    if playground is not None:
-        try:
-            # Fetch with token (if avail) or anonymously to get the full list
-            full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
-            print(f"Init fetch: {len(full_leaderboard_df) if full_leaderboard_df is not None else 0} rows.")
-        except Exception as e:
-            print(f"⚠️ Error forcing initial leaderboard fetch: {e}")
-            full_leaderboard_df = None
-
-    # 3. GENERATE TABLES (Always!)
-    # We default to skeleton, but if we have data, we render it immediately.
+    # Always show skeletons first (Fastest UI)
     team_html = _build_skeleton_leaderboard(rows=6, is_team=True)
     individual_html = _build_skeleton_leaderboard(rows=6, is_team=False)
 
-    if full_leaderboard_df is not None and not full_leaderboard_df.empty:
-        try:
-            # We pass the username so it can highlight 'You', but we render the whole table
-            team_html, individual_html, _, _, _, _ = generate_competitive_summary(
-                full_leaderboard_df,
-                team_name,
-                username,
-                0, 0, -1
-            )
-        except Exception as e:
-            print(f"Error rendering tables: {e}")
-            # Keep the skeletons if rendering fails
-
-    # --- REMOVED THE BLOCK THAT OVERWROTE TABLES WITH WELCOME HTML ---
-    # The user can see the "Welcome" context in the rank message or slide deck.
-    # The Leaderboard tabs should always show the actual Leaderboard.
-
     return (
         get_model_card(DEFAULT_MODEL),
-        team_html,       # Now always returns the table if fetch succeeded
-        individual_html, # Now always returns the table if fetch succeeded
+        team_html,
+        individual_html,
         initial_ui["rank_message"],
         gr.update(choices=initial_ui["model_choices"], value=initial_ui["model_value"], interactive=initial_ui["model_interactive"]),
         gr.update(minimum=1, maximum=initial_ui["complexity_max"], value=initial_ui["complexity_value"]),
         gr.update(choices=initial_ui["feature_set_choices"], value=initial_ui["feature_set_value"], interactive=initial_ui["feature_set_interactive"]),
         gr.update(choices=initial_ui["data_size_choices"], value=initial_ui["data_size_value"], interactive=initial_ui["data_size_interactive"]),
     )
-
 # -------------------------------------------------------------------------
 # Conclusion helpers (dark/light mode aware)
 # -------------------------------------------------------------------------
@@ -4136,20 +4095,23 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         
         def update_init_status(username, team_name):
             """
-            1. Unlocks Submit Button immediately (Optimistic).
-            2. POPULATES LEADERBOARD once background thread finishes fetching data.
-            3. Updates Data Size options as they load.
+            1. Checks if playground is ready (unlocks buttons).
+            2. Checks if leaderboard data is ready (populates tables).
+            3. Stops the timer only when everything is loaded.
             """
-            # --- 1. Check Flags ---
+            global playground # Access global directly
+            
+            # --- 1. Check/Refresh Flags ---
             with INIT_LOCK:
                 flags = INIT_FLAGS.copy()
             
-            comp_ready = flags["competition"]
+            # Use global check as backup if flag is stuck
+            comp_ready = flags["competition"] or (playground is not None)
             lb_ready = flags["leaderboard"]
             full_ready = flags["pre_samples_full"]
         
-            # --- 2. Button & Banner Logic (Optimistic) ---
-            # Unlock as soon as competition connects (usually instant)
+            # --- 2. Button & Banner Logic ---
+            # Hide banner as soon as basic connection exists
             banner_visible = not comp_ready
             submit_interactive = comp_ready
             submit_label = "5. 🔬 Build & Submit Model" if comp_ready else "⏳ Connecting..."
@@ -4159,7 +4121,7 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             team_html_update = gr.update()
             indiv_html_update = gr.update()
             
-            # If background thread just finished fetching leaderboard, render it!
+            # If background thread indicates data is ready, render it!
             if lb_ready:
                 # Fetch from cache (it was just populated by background thread)
                 df = _fetch_leaderboard(token=None) 
@@ -4172,10 +4134,11 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                         team_html_update = gr.update(value=t_html)
                         indiv_html_update = gr.update(value=i_html)
                     except Exception:
-                        pass # Keep skeleton if render fails
+                        pass 
         
             # --- 4. Data Size Logic ---
-            available_sizes = get_available_data_sizes()
+            # Show all sizes immediately (Optimistic)
+            available_sizes = ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"]
         
             # --- 5. Timer Life Logic ---
             # Keep timer alive until: Competition Ready AND Leaderboard Ready AND Full Data Ready
@@ -4189,13 +4152,14 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 gr.update(choices=available_sizes),
                 gr.update(active=timer_active),
                 comp_ready,             # readiness_state
-                team_html_update,       # <--- NEW OUTPUT
-                indiv_html_update       # <--- NEW OUTPUT
+                team_html_update,       # <--- NEW OUTPUT (Team Table)
+                indiv_html_update       # <--- NEW OUTPUT (Individual Table)
             )
-
             status_timer.tick(
                 fn=update_init_status,
-                inputs=[username_state, team_name_state], # <--- NEW INPUTS
+                # INPUTS: We need username/team to highlight the user in the table
+                inputs=[username_state, team_name_state], 
+                # OUTPUTS: MUST MATCH the return statement of update_init_status above (8 items)
                 outputs=[
                     init_status_display, 
                     init_banner, 
@@ -4203,8 +4167,8 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                     data_size_radio, 
                     status_timer, 
                     readiness_state,
-                    team_leaderboard_display,       # <--- NEW OUTPUT
-                    individual_leaderboard_display  # <--- NEW OUTPUT
+                    team_leaderboard_display,       # <--- CRITICAL ADDITION
+                    individual_leaderboard_display  # <--- CRITICAL ADDITION
                 ]
             )
         # Handle session-based authentication on page load
