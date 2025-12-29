@@ -2296,8 +2296,8 @@ def run_experiment(
 
 def on_initial_load(username, token=None, team_name=""):
     """
-    Updated to show "Welcome & CTA" if the SPECIFIC USER has 0 submissions.
-    FORCES immediate leaderboard fetch (Synchronous) to avoid skeleton tables.
+    1. Forces immediate leaderboard fetch (Synchronous) so tables are never empty on load.
+    2. Shows 'Welcome' screen only if the specific user has 0 submissions.
     """
     global playground  # Ensure we use the global instance
 
@@ -2305,9 +2305,40 @@ def on_initial_load(username, token=None, team_name=""):
         0, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE
     )
 
-    # 1. Prepare the Welcome HTML
+    # -------------------------------------------------------------------------
+    # 1. FORCE PLAYGROUND CONNECTION
+    # Don't wait for background thread. Connect right now.
+    # -------------------------------------------------------------------------
+    if playground is None:
+        try:
+            # Re-initialize the connection if it's missing
+            playground = Competition(MY_PLAYGROUND_ID)
+        except Exception as e:
+            print(f"⚠️ Could not connect to playground on init: {e}")
+            playground = None
+
+    # -------------------------------------------------------------------------
+    # 2. FORCE DATA FETCH
+    # Don't check flags. Just get the data.
+    # -------------------------------------------------------------------------
+    full_leaderboard_df = None
+    if playground is not None:
+        try:
+            # This will block for ~1 second, but ensures data is visible
+            full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
+            print(f"Init fetch success: {len(full_leaderboard_df) if full_leaderboard_df is not None else 0} rows found.")
+        except Exception as e:
+            print(f"⚠️ Error forcing initial leaderboard fetch: {e}")
+            full_leaderboard_df = None
+
+    # 3. Check if THIS user is already in the data
+    user_has_submitted = False
+    if full_leaderboard_df is not None and not full_leaderboard_df.empty:
+        if "username" in full_leaderboard_df.columns and username:
+            user_has_submitted = username in full_leaderboard_df["username"].values
+
+    # 4. Prepare Welcome HTML
     display_team = team_name if team_name else "Your Team"
-    
     welcome_html = f"""
     <div style='text-align:center; padding: 30px 20px;'>
         <div style='font-size: 3rem; margin-bottom: 10px;'>👋</div>
@@ -2315,7 +2346,6 @@ def on_initial_load(username, token=None, team_name=""):
         <p style='font-size: 1.1rem; color: #4b5563; margin: 0 0 20px 0;'>
             Your team is waiting for your help to improve the AI.
         </p>
-        
         <div style='background:#eff6ff; padding:16px; border-radius:12px; border:2px solid #bfdbfe; display:inline-block;'>
             <p style='margin:0; color:#1e40af; font-weight:bold; font-size:1.1rem;'>
                 👈 Click "Build & Submit Model" to Start Playing!
@@ -2324,43 +2354,13 @@ def on_initial_load(username, token=None, team_name=""):
     </div>
     """
 
-    # 2. FORCE PLAYGROUND CONNECTION (If not ready)
-    if playground is None:
-        try:
-            playground = Competition(MY_PLAYGROUND_ID)
-        except Exception as e:
-            print(f"⚠️ Could not connect to playground on init: {e}")
-            playground = None
-
-    # 3. FORCE FETCH LEADERBOARD (Synchronous / Blocking)
-    # We do NOT check INIT_FLAGS. We just fetch it right now.
-    full_leaderboard_df = None
-    if playground is not None:
-        try:
-            full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
-        except Exception as e:
-            print(f"⚠️ Error forcing initial leaderboard fetch: {e}")
-            full_leaderboard_df = None
-
-    # 4. CHECK USER STATUS (Existing Logic)
-    user_has_submitted = False
-    if full_leaderboard_df is not None and not full_leaderboard_df.empty:
-        if "username" in full_leaderboard_df.columns and username:
-            user_has_submitted = username in full_leaderboard_df["username"].values
-
-    # 5. DECISION LOGIC (Generate Tables)
-    if not user_has_submitted:
-        # CASE 1: New User -> FORCE WELCOME
-        team_html = welcome_html
-        individual_html = "<p style='text-align:center; color:#6b7280; padding-top:40px;'>Submit your model to see where you rank!</p>"
-        
-    elif full_leaderboard_df is None or full_leaderboard_df.empty:
-        # CASE 2: Fetch failed -> Show Skeleton
+    # 5. GENERATE TABLES
+    if full_leaderboard_df is None or full_leaderboard_df.empty:
+        # Fallback: If fetch genuinely failed (API down), show skeletons
         team_html = _build_skeleton_leaderboard(rows=6, is_team=True)
         individual_html = _build_skeleton_leaderboard(rows=6, is_team=False)
-        
     else:
-        # CASE 3: Success -> Show Real Tables
+        # Success: Render real tables with the data we just fetched
         try:
             team_html, individual_html, _, _, _, _ = generate_competitive_summary(
                 full_leaderboard_df,
@@ -2369,9 +2369,14 @@ def on_initial_load(username, token=None, team_name=""):
                 0, 0, -1
             )
         except Exception as e:
-            print(f"Error generating summary HTML: {e}")
-            team_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
-            individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
+            print(f"Error rendering tables: {e}")
+            team_html = "<p style='text-align:center; color:red;'>Error rendering leaderboard.</p>"
+            individual_html = "<p style='text-align:center; color:red;'>Error rendering leaderboard.</p>"
+
+    # Overwrite Team HTML if user hasn't submitted yet (Welcome Screen)
+    if not user_has_submitted:
+        team_html = welcome_html
+        individual_html = "<p style='text-align:center; color:#6b7280; padding-top:40px;'>Submit your model to see where you rank!</p>"
 
     return (
         get_model_card(DEFAULT_MODEL),
