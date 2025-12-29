@@ -3602,7 +3602,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                         <div style='background:var(--prose-background-fill); padding:20px; border-radius:12px; text-align:left; margin-bottom:24px;'>
                             <div style='display:flex; align-items:center; gap:8px; margin-bottom:12px;'>
                                 <span style='font-size:1.5rem;'>🔐</span>
-                                <strong style='font-size:1.2rem; color:#064e3b;'>Cómo Ganar</strong>
+                                <strong style='font-size:1.2rem; color:#eef2ff;'>Cómo Ganar</strong>
                             </div>
                             
                             <p style='margin-bottom:12px;'>
@@ -3625,7 +3625,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                                 A medida que refines tu modelo y subas en el ranking, ganarás nuevos rangos:
                             </p>
                             <div style='display:inline-flex; gap:12px; flex-wrap:wrap; justify-content:center;'>
-                                <span style='padding:6px 12px; background:#f3f4f6; border-radius:20px; font-size:0.9rem;'>⭐ Novato</span>
+                                <span style='padding:6px 12px; background:#064e3b; border-radius:20px; font-size:0.9rem;'>⭐ Novato</span>
                                 <span style='padding:6px 12px; background:#e0e7ff; border-radius:20px; font-size:0.9rem; color:#4338ca;'>⭐⭐ Junior</span>
                                 <span style='padding:6px 12px; background:#fae8ff; border-radius:20px; font-size:0.9rem; color:#86198f;'>⭐⭐⭐ Ingeniero Principal</span>
                             </div>
