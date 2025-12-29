@@ -2312,16 +2312,81 @@ def run_experiment(
 
 def on_initial_load(username, token=None, team_name=""):
     """
-    Fast load: Shows skeletons immediately. 
-    The status_timer will populate real data a few seconds later.
+    Updated to show "Welcome & CTA" if the SPECIFIC USER has 0 submissions,
+    even if the leaderboard/team already has data from others.
     """
     initial_ui = compute_rank_settings(
         0, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE
     )
 
-    # Always show skeletons first (Fastest UI)
-    team_html = _build_skeleton_leaderboard(rows=6, is_team=True)
-    individual_html = _build_skeleton_leaderboard(rows=6, is_team=False)
+    # 1. Prepare the Welcome HTML
+    display_team = team_name if team_name else "Your Team"
+    
+    welcome_html = f"""
+    <div style='text-align:center; padding: 30px 20px;'>
+        <div style='font-size: 3rem; margin-bottom: 10px;'>👋</div>
+        <h3 style='margin: 0 0 8px 0; color: #111827; font-size: 1.5rem;'>Welcome to <b>{display_team}</b>!</h3>
+        <p style='font-size: 1.1rem; color: #4b5563; margin: 0 0 20px 0;'>
+            Your team is waiting for your help to improve the AI.
+        </p>
+        
+        <div style='background:#eff6ff; padding:16px; border-radius:12px; border:2px solid #bfdbfe; display:inline-block;'>
+            <p style='margin:0; color:#1e40af; font-weight:bold; font-size:1.1rem;'>
+                👈 Click "Build & Submit Model" to Start Playing!
+            </p>
+        </div>
+    </div>
+    """
+
+    # Check background init
+    with INIT_LOCK:
+        background_ready = INIT_FLAGS["leaderboard"]
+    
+    should_attempt_fetch = background_ready or (token is not None)
+    full_leaderboard_df = None
+    
+    if should_attempt_fetch:
+        try:
+            if playground:
+                full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
+        except Exception as e:
+            print(f"Error on initial load fetch: {e}")
+            full_leaderboard_df = None
+
+    # -------------------------------------------------------------------------
+    # LOGIC UPDATE: Check if THIS user has submitted anything
+    # -------------------------------------------------------------------------
+    user_has_submitted = False
+    if full_leaderboard_df is not None and not full_leaderboard_df.empty:
+        if "username" in full_leaderboard_df.columns and username:
+            # Check if the username exists in the dataframe
+            user_has_submitted = username in full_leaderboard_df["username"].values
+
+    # Decision Logic
+    if not user_has_submitted:
+        # CASE 1: New User (or first time loading session) -> FORCE WELCOME
+        # regardless of whether the leaderboard has other people's data.
+        team_html = welcome_html
+        individual_html = "<p style='text-align:center; color:#6b7280; padding-top:40px;'>Submit your model to see where you rank!</p>"
+        
+    elif full_leaderboard_df is None or full_leaderboard_df.empty:
+        # CASE 2: Returning user, but data fetch failed -> Show Skeleton
+        team_html = _build_skeleton_leaderboard(rows=6, is_team=True)
+        individual_html = _build_skeleton_leaderboard(rows=6, is_team=False)
+        
+    else:
+        # CASE 3: Returning user WITH data -> Show Real Tables
+        try:
+            team_html, individual_html, _, _, _, _ = generate_competitive_summary(
+                full_leaderboard_df,
+                team_name,
+                username,
+                0, 0, -1
+            )
+        except Exception as e:
+            print(f"Error generating summary HTML: {e}")
+            team_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
+            individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
 
     return (
         get_model_card(DEFAULT_MODEL),
