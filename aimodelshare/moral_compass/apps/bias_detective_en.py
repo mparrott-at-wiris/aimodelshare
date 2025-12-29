@@ -166,8 +166,8 @@ MODULES = [
                                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
                                     <div style="padding:15px; background:#fef2f2; border:2px solid #fecaca; border-radius:10px; text-align:center;">
                                         <div style="font-weight:700; color:#b91c1c; margin-bottom:5px;">Scenario A: Ignored Ethics</div>
-                                        <div style="font-size:0.95rem;">High Accuracy (95%)</div>
-                                        <div style="font-size:0.95rem;">0% Ethics</div>
+                                        <div style="font-size:0.95rem; color:#374151;">High Accuracy (95%)</div>
+                                        <div style="font-size:0.95rem; color:#374151;">0% Ethics</div>
                                         <div style="margin-top:10px; border-top:1px solid #fecaca; padding-top:5px;">
                                             <div style="font-size:0.8rem; text-transform:uppercase; color:#7f1d1d;">Final Score</div>
                                             <div style="font-size:2.5rem; font-weight:900; color:#ef4444;">0</div>
@@ -175,8 +175,8 @@ MODULES = [
                                     </div>
                                     <div style="padding:15px; background:#f0fdf4; border:2px solid #bbf7d0; border-radius:10px; text-align:center;">
                                         <div style="font-weight:700; color:#15803d; margin-bottom:5px;">Scenario B: True Detective</div>
-                                        <div style="font-size:0.95rem;">Good Accuracy (92%)</div>
-                                        <div style="font-size:0.95rem;">100% Ethics</div>
+                                        <div style="font-size:0.95rem; color:#374151;">Good Accuracy (92%)</div>
+                                        <div style="font-size:0.95rem; color:#374151;">100% Ethics</div>
                                         <div style="margin-top:10px; border-top:1px solid #bbf7d0; padding-top:5px;">
                                             <div style="font-size:0.8rem; text-transform:uppercase; color:#14532d;">Final Score</div>
                                             <div style="font-size:2.5rem; font-weight:900; color:#22c55e;">92</div>
@@ -187,7 +187,7 @@ MODULES = [
                         </details>
                     </div>
 
-                   <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
+                    <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
                             🚀 MISSION START
                         </p>
@@ -202,65 +202,65 @@ MODULES = [
     },
 
     # --- MODULE 1: THE MAP (Mission Roadmap) ---
-{
-    "id": 1,
-    "title": "Mission Roadmap",
-    "html": """
-        <div class="scenario-box">
-            <div class="slide-body">
+    {
+        "id": 1,
+        "title": "Mission Roadmap",
+        "html": """
+            <div class="scenario-box">
+                <div class="slide-body">
 
-                <h2 class="slide-title" style="text-align:center; margin-bottom:15px;">🗺️ MISSION ROADMAP</h2>
+                    <h2 class="slide-title" style="text-align:center; margin-bottom:15px;">🗺️ MISSION ROADMAP</h2>
 
-                <p style="font-size:1.1rem; max-width:800px; margin:0 auto 25px auto; text-align:center;">
-                    <strong>Your mission is clear:</strong> Uncover the bias hiding inside the 
-                    AI system before it hurts real people. If you cannot find bias, we cannot fix it.
-                </p>
+                    <p style="font-size:1.1rem; max-width:800px; margin:0 auto 25px auto; text-align:center;">
+                        <strong>Your mission is clear:</strong> Uncover the bias hiding inside the 
+                        AI system before it hurts real people. If you cannot find bias, we cannot fix it.
+                    </p>
 
-                <div class="ai-risk-container" style="background:white; border:none; padding:0;">
+                    <div class="ai-risk-container" style="background:white; border:none; padding:0;">
 
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
 
-                        <div style="border: 3px solid #3b82f6; background: #eff6ff; border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 12px rgba(59,130,246,0.25);">
-                            <div style="position:absolute; top:-15px; left:15px; background:#3b82f6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 1: RULES</div>
-                            <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">📜</div>
-                            <div style="font-weight:800; font-size:1.2rem; color:#1e3a8a; margin-bottom:5px;">Establish the Rules</div>
-                            <div style="font-size:1.0rem; color:#1e40af; font-weight:500; line-height:1.4;">
-                                Define the ethical standard: <strong>Justice & Equity</strong>. What specifically counts as bias in this investigation?
+                            <div style="border: 3px solid #3b82f6; background: #eff6ff; border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 12px rgba(59,130,246,0.25);">
+                                <div style="position:absolute; top:-15px; left:15px; background:#3b82f6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 1: RULES</div>
+                                <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">📜</div>
+                                <div style="font-weight:800; font-size:1.2rem; color:#1e3a8a; margin-bottom:5px;">Establish the Rules</div>
+                                <div style="font-size:1.0rem; color:#1e40af; font-weight:500; line-height:1.4;">
+                                    Define the ethical standard: <strong>Justice & Equity</strong>. What specifically counts as bias in this investigation?
+                                </div>
                             </div>
-                        </div>
 
-                        <div style="border: 3px solid #14b8a6; background: #f0fdfa; border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(20, 184, 166, 0.15);">
-                            <div style="position:absolute; top:-15px; left:15px; background:#14b8a6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 2: DATA EVIDENCE</div>
-                            <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">🔍</div>
-                            <div style="font-weight:800; font-size:1.2rem; color:#134e4a; margin-bottom:5px;">Input Data Forensics</div>
-                            <div style="font-size:1.0rem; color:#0f766e; font-weight:500; line-height:1.4;">
-                                Scan the <strong>Input Data</strong> for historical injustice, representation gaps, and exclusion bias.
+                            <div style="border: 3px solid #14b8a6; background: #f0fdfa; border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(20, 184, 166, 0.15);">
+                                <div style="position:absolute; top:-15px; left:15px; background:#14b8a6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 2: DATA EVIDENCE</div>
+                                <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">🔍</div>
+                                <div style="font-weight:800; font-size:1.2rem; color:#134e4a; margin-bottom:5px;">Input Data Forensics</div>
+                                <div style="font-size:1.0rem; color:#0f766e; font-weight:500; line-height:1.4;">
+                                    Scan the <strong>Input Data</strong> for historical injustice, representation gaps, and exclusion bias.
+                                </div>
                             </div>
-                        </div>
 
-                        <div style="border: 3px solid #8b5cf6; background: #f5f3ff; border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(139, 92, 246, 0.15);">
-                            <div style="position:absolute; top:-15px; left:15px; background:#8b5cf6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 3: TEST ERROR</div>
-                            <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">🎯</div>
-                            <div style="font-weight:800; font-size:1.2rem; color:#4c1d95; margin-bottom:5px;">Output Error Testing</div>
-                            <div style="font-size:1.0rem; color:#6d28d9; font-weight:500; line-height:1.4;">
-                                Test the Model's predictions. Prove that mistakes (False Alarms) are <strong>unequal</strong> across groups.
+                            <div style="border: 3px solid #8b5cf6; background: #f5f3ff; border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(139, 92, 246, 0.15);">
+                                <div style="position:absolute; top:-15px; left:15px; background:#8b5cf6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 3: TEST ERROR</div>
+                                <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">🎯</div>
+                                <div style="font-weight:800; font-size:1.2rem; color:#4c1d95; margin-bottom:5px;">Output Error Testing</div>
+                                <div style="font-size:1.0rem; color:#6d28d9; font-weight:500; line-height:1.4;">
+                                    Test the Model's predictions. Prove that mistakes (False Alarms) are <strong>unequal</strong> across groups.
+                                </div>
                             </div>
-                        </div>
 
-                        <div style="border: 3px solid #f97316; background: #fff7ed; border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(249, 115, 22, 0.15);">
-                            <div style="position:absolute; top:-15px; left:15px; background:#f97316; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 4: REPORT IMPACT</div>
-                            <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">⚖️</div>
-                            <div style="font-weight:800; font-size:1.2rem; color:#7c2d12; margin-bottom:5px;">The Final Report</div>
-                            <div style="font-size:1.0rem; color:#c2410c; font-weight:500; line-height:1.4;">
-                                Diagnose systematic harm and issue your final recommendation to the court: <strong>Deploy AI System or Pause to Repair.</strong>
+                            <div style="border: 3px solid #f97316; background: #fff7ed; border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(249, 115, 22, 0.15);">
+                                <div style="position:absolute; top:-15px; left:15px; background:#f97316; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 4: REPORT IMPACT</div>
+                                <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">⚖️</div>
+                                <div style="font-weight:800; font-size:1.2rem; color:#7c2d12; margin-bottom:5px;">The Final Report</div>
+                                <div style="font-size:1.0rem; color:#c2410c; font-weight:500; line-height:1.4;">
+                                    Diagnose systematic harm and issue your final recommendation to the court: <strong>Deploy AI System or Pause to Repair.</strong>
+                                </div>
                             </div>
-                        </div>
 
+                        </div>
                     </div>
-                </div>
 
 
-                   <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
+                    <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
                             🚀 CONTINUE MISSION
                         </p>
@@ -269,10 +269,10 @@ MODULES = [
                             <br>Then click <strong>Next</strong> to continue the investigation.
                         </p>
                     </div>
+                </div>
             </div>
-        </div>
-    """,
-},
+        """,
+    },
 
     # --- MODULE 2: RULES (Interactive) ---
     {
@@ -294,7 +294,7 @@ MODULES = [
 
                 <div class="slide-body">
 
-                    <div style="background:#eff6ff; border-left:4px solid #3b82f6; padding:15px; margin-bottom:20px; border-radius:4px;">
+                    <div style="background:#eff6ff; border-left:4px solid #3b82f6; padding:15px; margin-bottom:20px; border-radius:4px; color: #1e3a8a;">
                         <p style="margin:0; font-size:1.05rem; line-height:1.5;">
                             <strong>Justice & Equity: Your Primary Rule.</strong><br>
                             Ethics isn't abstract here—it’s our field guide for action. We rely on expert advice from the Catalan Observatory for Ethics in AI <strong>OEIAC (UdG)</strong> to ensure AI systems are fair.
@@ -386,10 +386,10 @@ MODULES = [
         """
     },
 
-{
-    "id": 3,
-    "title": "Step 2: Pattern Recognition",
-    "html": """
+    {
+        "id": 3,
+        "title": "Step 2: Pattern Recognition",
+        "html": """
             <div class="scenario-box">
                 <div class="tracker-container">
                     <div class="tracker-step completed">1. RULES</div>
@@ -403,8 +403,8 @@ MODULES = [
 
             <div style="text-align:center; margin-bottom:20px;">
 
-                <h2 class="slide-title" style="margin-top:10px; color:#0c4a6e;">The Hunt for Biased Demographic Patterns</h2>
-                <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:#334155;">
+                <h2 class="slide-title header-accent" style="margin-top:10px;">The Hunt for Biased Demographic Patterns</h2>
+                <p style="font-size:1.1rem; max-width:820px; margin:0 auto;">
                     An AI is only as fair as the data it learns from. If the input data distorts reality, the AI will likely distort justice.
                     <br>The first step is to hunt for patterns that reveal <strong>Representation Bias.</strong>  To find representation bias we must inspect the <strong>Demographics.</strong>.
                 </p>
@@ -422,12 +422,12 @@ MODULES = [
 
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:30px;">
                     
-                    <div>
-                        <p style="font-size:1rem; color:#334155; line-height:1.6;">
+                    <div style="color: #1f2937;">
+                        <p style="font-size:1rem; line-height:1.6;">
                             <strong>The Concept:</strong> Ideally, a dataset should look like a "Mirror" of the real population. 
                             If a group makes up 50% of the population, they should generally make up ~50% of the data.
                         </p>
-                        <p style="font-size:1rem; color:#334155; line-height:1.6;">
+                        <p style="font-size:1rem; line-height:1.6;">
                             <strong>The Red Flag:</strong> Look for <strong>Drastic Imbalances</strong> in Protected Characteristics (Race, Gender, Age).
                         </p>
                         <ul style="font-size:0.95rem; color:#475569; margin-top:10px; padding-left:20px; line-height:1.5;">
@@ -464,7 +464,7 @@ MODULES = [
             </div>
 
             <div style="margin-bottom: 25px; padding: 0 10px;">
-                <p style="font-size:1.1rem; color:#1e293b; line-height:1.5;">
+                <p style="font-size:1.1rem; line-height:1.5;">
                     <strong>🕵️ Your Next Step:</strong> You must enter the Data Forensics Lab and check the data for specific demographic categories. If the patterns look like the "Distorted Mirror" above, the data is likely unsafe.
                 </p>
             </div>
@@ -490,11 +490,11 @@ MODULES = [
         </div>
     </div>
     """
-},
+    },
 
     # --- MODULE 4: DATA FORENSICS LAB (The Action) ---
     {
-        "id": 4, # Re-indexed from 3
+        "id": 4, 
         "title": "Step 2: Data Forensics Lab",
         "html": """
             <div class="scenario-box">
@@ -509,7 +509,7 @@ MODULES = [
 
             <div style="text-align:center; margin-bottom:20px;">
 
-                <h2 class="slide-title" style="margin-top:10px; color:#0c4a6e;">The Data Forensics Lab</h2>               
+                <h2 class="slide-title header-accent" style="margin-top:10px;">The Data Forensics Lab</h2>                
                 <div class="slide-body">
 
                     <p style="text-align:center; max-width:700px; margin:0 auto 15px auto; font-size:1.1rem;">
@@ -548,7 +548,7 @@ MODULES = [
                                     <div style="text-align:center; background:white; padding:15px; border-radius:8px; border:1px solid #bfdbfe;">
                                         <div style="font-size:0.9rem; font-weight:700; color:#64748b; letter-spacing:1px;">REAL WORLD</div>
                                         <div style="font-size:2rem; font-weight:900; color:#3b82f6; margin:5px 0;">28%</div>
-                                        <div style="font-size:0.9rem; margin-bottom:10px;">African-American Population</div>
+                                        <div style="font-size:0.9rem; margin-bottom:10px; color: #1f2937;">African-American Population</div>
                                         <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:4px; max-width:80px; margin:0 auto;">
                                             <span style="color:#3b82f6;">●</span><span style="color:#3b82f6;">●</span><span style="color:#3b82f6;">●</span><span style="color:#e2e8f0;">●</span>
                                             <span style="color:#e2e8f0;">●</span><span style="color:#e2e8f0;">●</span><span style="color:#e2e8f0;">●</span><span style="color:#e2e8f0;">●</span>
@@ -561,7 +561,7 @@ MODULES = [
                                     <div style="text-align:center; background:#fef2f2; padding:15px; border-radius:8px; border:2px solid #ef4444;">
                                         <div style="font-size:0.9rem; font-weight:700; color:#b91c1c; letter-spacing:1px;">INPUT DATA</div>
                                         <div style="font-size:2rem; font-weight:900; color:#ef4444; margin:5px 0;">51%</div>
-                                        <div style="font-size:0.9rem; margin-bottom:10px;">African-American Records</div>
+                                        <div style="font-size:0.9rem; margin-bottom:10px; color: #1f2937;">African-American Records</div>
                                         <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:4px; max-width:80px; margin:0 auto;">
                                             <span style="color:#ef4444;">●</span><span style="color:#ef4444;">●</span><span style="color:#ef4444;">●</span><span style="color:#ef4444;">●</span>
                                             <span style="color:#ef4444;">●</span><span style="color:#ef4444;">●</span><span style="color:#e2e8f0;">●</span><span style="color:#e2e8f0;">●</span>
@@ -573,7 +573,7 @@ MODULES = [
 
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:white;">
                                     <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDENCE LOGGED: Race Representation Bias</div>
-                                    <div style="font-size:0.95rem; margin-top:5px;">
+                                    <div style="font-size:0.95rem; margin-top:5px; color: #1f2937;">
                                         The AI is **over-exposed** to this group (51% vs 28%). It may learn to associate "High Risk" with this demographic simply because it sees them more often in arrest records.
                                     </div>
                                 </div>
@@ -600,7 +600,7 @@ MODULES = [
                                 </div>
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:white;">
                                     <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDENCE LOGGED: Gender Representation Bias</div>
-                                    <div style="font-size:0.95rem; margin-top:5px;">
+                                    <div style="font-size:0.95rem; margin-top:5px; color: #1f2937;">
                                         Women are a "minority class" in this dataset even though they typically make up 50% of the true population. The model will likely struggle to learn accurate patterns for them, leading to **higher error rates** for female defendants.
                                     </div>
                                 </div>
@@ -617,7 +617,7 @@ MODULES = [
                                     <div style="width:20%; text-align:center; display:flex; flex-direction:column; justify-content:flex-end; height:100%;">
                                         <div style="font-weight:700; color:#64748b; margin-bottom:5px;">Low</div>
                                         <div style="height:60px; background:#cbd5e1; border-radius:4px 4px 0 0; width:100%;"></div>
-                                        <div style="margin-top:10px; font-size:0.85rem; font-weight:700; color:#334155;">Younger (<25)</div>
+                                        <div style="margin-top:10px; font-size:0.85rem; font-weight:700; color: #1f2937;">Younger (<25)</div>
                                     </div>
 
                                     <div style="width:35%; text-align:center; display:flex; flex-direction:column; justify-content:flex-end; height:100%;">
@@ -629,14 +629,14 @@ MODULES = [
                                     <div style="width:20%; text-align:center; display:flex; flex-direction:column; justify-content:flex-end; height:100%;">
                                         <div style="font-weight:700; color:#64748b; margin-bottom:5px;">Low</div>
                                         <div style="height:50px; background:#cbd5e1; border-radius:4px 4px 0 0; width:100%;"></div>
-                                        <div style="margin-top:10px; font-size:0.85rem; font-weight:700; color:#334155;">Older (>45)</div>
+                                        <div style="margin-top:10px; font-size:0.85rem; font-weight:700; color: #1f2937;">Older (>45)</div>
                                     </div>
 
                                 </div>
 
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:white;">
                                     <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDENCE LOGGED: Age Representation Bias</div>
-                                    <div style="font-size:0.95rem; margin-top:5px;">
+                                    <div style="font-size:0.95rem; margin-top:5px; color: #1f2937;">
                                         The data is concentrated in the 25-45 age "Bubble." The model has a **blind spot** for younger and older people, meaning predictions for those groups will be unreliable (Generalization Error).
                                     </div>
                                 </div>
@@ -2358,6 +2358,25 @@ def simulate_moral_compass_score(acc, progress_pct):
             <strong>Simulated Moral Compass Score:</strong> 🧭 {score:.3f}
         </p>
     </div>
+    /* --- DARK MODE FIXES --- */
+    
+    /* Class to force dark text on elements inside white cards */
+    /* This ensures text inside white boxes stays readable in Dark Mode */
+    .force-dark-text {
+        color: #1f2937 !important;
+    }
+    
+    /* Adaptive header color */
+    /* Default (Light Mode) */
+    .header-accent {
+        color: #0c4a6e;
+    }
+    
+    /* Dark Mode Override */
+    /* Changes header to light blue when Gradio is in Dark Mode */
+    body.dark .header-accent, .dark .header-accent {
+        color: #e0f2fe;
+    }
     """
 
 
