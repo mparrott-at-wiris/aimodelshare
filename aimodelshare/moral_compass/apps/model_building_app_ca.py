@@ -1373,7 +1373,7 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
 
     return f"""
     <div class='kpi-card' style='border-color: {border_color};'>
-        <h2 style='color: #111827; margin-top:0;'>{title}</h2>
+        <h2 style='color: #eef2ff; margin-top:0;'>{title}</h2>
         <div class='kpi-card-body'>
             <div class='kpi-metric-box'>
                 <p class='kpi-label'>Nova precisió</p>
