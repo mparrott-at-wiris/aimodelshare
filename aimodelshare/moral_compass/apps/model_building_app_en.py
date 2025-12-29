@@ -3647,9 +3647,6 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 """
             )
             
-            with gr.Row():
-                briefing_5_back = gr.Button("◀️ Back", size="lg")
-                briefing_5_next = gr.Button("Next ▶️", variant="primary", size="lg")
             
             with gr.Row():
                 briefing_5_back = gr.Button("◀️ Back", size="lg")
