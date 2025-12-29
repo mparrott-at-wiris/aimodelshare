@@ -4046,12 +4046,12 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         briefing_5_next.click(
             fn=create_nav(briefing_slide_5,briefing_slide_6),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("model-step", "Final Clearance...")
+            js=nav_js("slide-6", "Final Clearance...")
         )
         briefing_6_back.click(
             fn=create_nav(briefing_slide_6, briefing_slide_5),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("model-step", "Entering model arena...")
+            js=nav_js("slide-5", "Configuring brain settings...")
         )
         briefing_6_next.click(
             fn=create_nav(briefing_slide_6, model_building_step),
