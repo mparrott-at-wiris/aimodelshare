@@ -4134,52 +4134,79 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         # Timer for polling initialization status
         status_timer = gr.Timer(value=0.5, active=True)  # Poll every 0.5 seconds
         
-        def update_init_status():
+        def update_init_status(username, team_name):
             """
-            Poll initialization status.
-            Unlocks UI when Competition connects, then kills the timer.
+            1. Unlocks Submit Button immediately (Optimistic).
+            2. POPULATES LEADERBOARD once background thread finishes fetching data.
+            3. Updates Data Size options as they load.
             """
-            # 1. Check readiness (Now waits for competition flag)
-            status_html, ready = poll_init_status()
+            # --- 1. Check Flags ---
+            with INIT_LOCK:
+                flags = INIT_FLAGS.copy()
             
-            # 2. UI Updates
-            banner_visible = not ready  # Show banner until connected
-            submit_interactive = ready
-            
-            if ready:
-                submit_label = "5. 🔬 Build & Submit Model"
-            else:
-                submit_label = "⏳ Connecting to Server..." # Informative label
+            comp_ready = flags["competition"]
+            lb_ready = flags["leaderboard"]
+            full_ready = flags["pre_samples_full"]
         
-            # 3. Optimistic Data Sizes
-            # Since we kill the timer early, we must show all options now.
-            available_sizes = ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"]
+            # --- 2. Button & Banner Logic (Optimistic) ---
+            # Unlock as soon as competition connects (usually instant)
+            banner_visible = not comp_ready
+            submit_interactive = comp_ready
+            submit_label = "5. 🔬 Build & Submit Model" if comp_ready else "⏳ Connecting..."
+        
+            # --- 3. Leaderboard Logic (The Fix) ---
+            # Default: No change (keep existing value)
+            team_html_update = gr.update()
+            indiv_html_update = gr.update()
             
-            # 4. TIMER LOGIC
-            # Keep ticking if NOT ready. Stop immediately once ready.
-            timer_active = not ready 
-            
+            # If background thread just finished fetching leaderboard, render it!
+            if lb_ready:
+                # Fetch from cache (it was just populated by background thread)
+                df = _fetch_leaderboard(token=None) 
+                if df is not None and not df.empty:
+                    try:
+                        # Generate the HTML tables
+                        t_html, i_html, _, _, _, _ = generate_competitive_summary(
+                            df, team_name, username, 0, 0, -1
+                        )
+                        team_html_update = gr.update(value=t_html)
+                        indiv_html_update = gr.update(value=i_html)
+                    except Exception:
+                        pass # Keep skeleton if render fails
+        
+            # --- 4. Data Size Logic ---
+            available_sizes = get_available_data_sizes()
+        
+            # --- 5. Timer Life Logic ---
+            # Keep timer alive until: Competition Ready AND Leaderboard Ready AND Full Data Ready
+            # This ensures we don't stop ticking before the tables update.
+            timer_active = not (comp_ready and lb_ready and full_ready)
+        
             return (
-                status_html,
+                "",                     # status_html
                 gr.update(visible=banner_visible),
                 gr.update(value=submit_label, interactive=submit_interactive),
                 gr.update(choices=available_sizes),
-                gr.update(active=timer_active), # Send the stop command to UI
-                ready
+                gr.update(active=timer_active),
+                comp_ready,             # readiness_state
+                team_html_update,       # <--- NEW OUTPUT
+                indiv_html_update       # <--- NEW OUTPUT
             )
 
-        status_timer.tick(
-            fn=update_init_status,
-            inputs=None,
-            outputs=[
-                init_status_display, 
-                init_banner, 
-                submit_button, 
-                data_size_radio, 
-                status_timer, 
-                readiness_state
-            ]
-        )
+            status_timer.tick(
+                fn=update_init_status,
+                inputs=[username_state, team_name_state], # <--- NEW INPUTS
+                outputs=[
+                    init_status_display, 
+                    init_banner, 
+                    submit_button, 
+                    data_size_radio, 
+                    status_timer, 
+                    readiness_state,
+                    team_leaderboard_display,       # <--- NEW OUTPUT
+                    individual_leaderboard_display  # <--- NEW OUTPUT
+                ]
+            )
         # Handle session-based authentication on page load
         def handle_load_with_session_auth(request: "gr.Request"):
             """
