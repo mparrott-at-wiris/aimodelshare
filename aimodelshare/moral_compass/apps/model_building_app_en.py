@@ -2296,8 +2296,8 @@ def run_experiment(
 
 def on_initial_load(username, token=None, team_name=""):
     """
-    1. Forces immediate leaderboard fetch (Synchronous) so tables are never empty on load.
-    2. Shows 'Welcome' screen only if the specific user has 0 submissions.
+    Forces immediate leaderboard fetch so tables are populated on load.
+    REMOVED: The logic that hid the leaderboard for new users.
     """
     global playground  # Ensure we use the global instance
 
@@ -2305,63 +2305,34 @@ def on_initial_load(username, token=None, team_name=""):
         0, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE
     )
 
-    # -------------------------------------------------------------------------
     # 1. FORCE PLAYGROUND CONNECTION
-    # Don't wait for background thread. Connect right now.
-    # -------------------------------------------------------------------------
     if playground is None:
         try:
-            # Re-initialize the connection if it's missing
             playground = Competition(MY_PLAYGROUND_ID)
         except Exception as e:
             print(f"⚠️ Could not connect to playground on init: {e}")
             playground = None
 
-    # -------------------------------------------------------------------------
     # 2. FORCE DATA FETCH
-    # Don't check flags. Just get the data.
-    # -------------------------------------------------------------------------
+    # We fetch unconditionally to ensure the table is never empty.
     full_leaderboard_df = None
     if playground is not None:
         try:
-            # This will block for ~1 second, but ensures data is visible
+            # Fetch with token (if avail) or anonymously to get the full list
             full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
-            print(f"Init fetch success: {len(full_leaderboard_df) if full_leaderboard_df is not None else 0} rows found.")
+            print(f"Init fetch: {len(full_leaderboard_df) if full_leaderboard_df is not None else 0} rows.")
         except Exception as e:
             print(f"⚠️ Error forcing initial leaderboard fetch: {e}")
             full_leaderboard_df = None
 
-    # 3. Check if THIS user is already in the data
-    user_has_submitted = False
+    # 3. GENERATE TABLES (Always!)
+    # We default to skeleton, but if we have data, we render it immediately.
+    team_html = _build_skeleton_leaderboard(rows=6, is_team=True)
+    individual_html = _build_skeleton_leaderboard(rows=6, is_team=False)
+
     if full_leaderboard_df is not None and not full_leaderboard_df.empty:
-        if "username" in full_leaderboard_df.columns and username:
-            user_has_submitted = username in full_leaderboard_df["username"].values
-
-    # 4. Prepare Welcome HTML
-    display_team = team_name if team_name else "Your Team"
-    welcome_html = f"""
-    <div style='text-align:center; padding: 30px 20px;'>
-        <div style='font-size: 3rem; margin-bottom: 10px;'>👋</div>
-        <h3 style='margin: 0 0 8px 0; color: #111827; font-size: 1.5rem;'>Welcome to <b>{display_team}</b>!</h3>
-        <p style='font-size: 1.1rem; color: #4b5563; margin: 0 0 20px 0;'>
-            Your team is waiting for your help to improve the AI.
-        </p>
-        <div style='background:#eff6ff; padding:16px; border-radius:12px; border:2px solid #bfdbfe; display:inline-block;'>
-            <p style='margin:0; color:#1e40af; font-weight:bold; font-size:1.1rem;'>
-                👈 Click "Build & Submit Model" to Start Playing!
-            </p>
-        </div>
-    </div>
-    """
-
-    # 5. GENERATE TABLES
-    if full_leaderboard_df is None or full_leaderboard_df.empty:
-        # Fallback: If fetch genuinely failed (API down), show skeletons
-        team_html = _build_skeleton_leaderboard(rows=6, is_team=True)
-        individual_html = _build_skeleton_leaderboard(rows=6, is_team=False)
-    else:
-        # Success: Render real tables with the data we just fetched
         try:
+            # We pass the username so it can highlight 'You', but we render the whole table
             team_html, individual_html, _, _, _, _ = generate_competitive_summary(
                 full_leaderboard_df,
                 team_name,
@@ -2370,25 +2341,22 @@ def on_initial_load(username, token=None, team_name=""):
             )
         except Exception as e:
             print(f"Error rendering tables: {e}")
-            team_html = "<p style='text-align:center; color:red;'>Error rendering leaderboard.</p>"
-            individual_html = "<p style='text-align:center; color:red;'>Error rendering leaderboard.</p>"
+            # Keep the skeletons if rendering fails
 
-    # Overwrite Team HTML if user hasn't submitted yet (Welcome Screen)
-    if not user_has_submitted:
-        team_html = welcome_html
-        individual_html = "<p style='text-align:center; color:#6b7280; padding-top:40px;'>Submit your model to see where you rank!</p>"
+    # --- REMOVED THE BLOCK THAT OVERWROTE TABLES WITH WELCOME HTML ---
+    # The user can see the "Welcome" context in the rank message or slide deck.
+    # The Leaderboard tabs should always show the actual Leaderboard.
 
     return (
         get_model_card(DEFAULT_MODEL),
-        team_html,
-        individual_html,
+        team_html,       # Now always returns the table if fetch succeeded
+        individual_html, # Now always returns the table if fetch succeeded
         initial_ui["rank_message"],
         gr.update(choices=initial_ui["model_choices"], value=initial_ui["model_value"], interactive=initial_ui["model_interactive"]),
         gr.update(minimum=1, maximum=initial_ui["complexity_max"], value=initial_ui["complexity_value"]),
         gr.update(choices=initial_ui["feature_set_choices"], value=initial_ui["feature_set_value"], interactive=initial_ui["feature_set_interactive"]),
         gr.update(choices=initial_ui["data_size_choices"], value=initial_ui["data_size_value"], interactive=initial_ui["data_size_interactive"]),
     )
-
 
 # -------------------------------------------------------------------------
 # Conclusion helpers (dark/light mode aware)
