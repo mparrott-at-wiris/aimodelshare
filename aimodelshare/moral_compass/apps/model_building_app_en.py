@@ -2298,9 +2298,11 @@ def run_experiment(
 
 def on_initial_load(username, token=None, team_name=""):
     """
-    Updated to show "Welcome & CTA" if the SPECIFIC USER has 0 submissions,
-    even if the leaderboard/team already has data from others.
+    Updated to show "Welcome & CTA" if the SPECIFIC USER has 0 submissions.
+    FORCES immediate leaderboard fetch (Synchronous) to avoid skeleton tables.
     """
+    global playground  # Ensure we use the global instance
+
     initial_ui = compute_rank_settings(
         0, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE
     )
@@ -2324,44 +2326,43 @@ def on_initial_load(username, token=None, team_name=""):
     </div>
     """
 
-    # Check background init
-    with INIT_LOCK:
-        background_ready = INIT_FLAGS["leaderboard"]
-    
-    should_attempt_fetch = background_ready or (token is not None)
-    full_leaderboard_df = None
-    
-    if should_attempt_fetch:
+    # 2. FORCE PLAYGROUND CONNECTION (If not ready)
+    if playground is None:
         try:
-            if playground:
-                full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
+            playground = Competition(MY_PLAYGROUND_ID)
         except Exception as e:
-            print(f"Error on initial load fetch: {e}")
+            print(f"⚠️ Could not connect to playground on init: {e}")
+            playground = None
+
+    # 3. FORCE FETCH LEADERBOARD (Synchronous / Blocking)
+    # We do NOT check INIT_FLAGS. We just fetch it right now.
+    full_leaderboard_df = None
+    if playground is not None:
+        try:
+            full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
+        except Exception as e:
+            print(f"⚠️ Error forcing initial leaderboard fetch: {e}")
             full_leaderboard_df = None
 
-    # -------------------------------------------------------------------------
-    # LOGIC UPDATE: Check if THIS user has submitted anything
-    # -------------------------------------------------------------------------
+    # 4. CHECK USER STATUS (Existing Logic)
     user_has_submitted = False
     if full_leaderboard_df is not None and not full_leaderboard_df.empty:
         if "username" in full_leaderboard_df.columns and username:
-            # Check if the username exists in the dataframe
             user_has_submitted = username in full_leaderboard_df["username"].values
 
-    # Decision Logic
+    # 5. DECISION LOGIC (Generate Tables)
     if not user_has_submitted:
-        # CASE 1: New User (or first time loading session) -> FORCE WELCOME
-        # regardless of whether the leaderboard has other people's data.
+        # CASE 1: New User -> FORCE WELCOME
         team_html = welcome_html
         individual_html = "<p style='text-align:center; color:#6b7280; padding-top:40px;'>Submit your model to see where you rank!</p>"
         
     elif full_leaderboard_df is None or full_leaderboard_df.empty:
-        # CASE 2: Returning user, but data fetch failed -> Show Skeleton
+        # CASE 2: Fetch failed -> Show Skeleton
         team_html = _build_skeleton_leaderboard(rows=6, is_team=True)
         individual_html = _build_skeleton_leaderboard(rows=6, is_team=False)
         
     else:
-        # CASE 3: Returning user WITH data -> Show Real Tables
+        # CASE 3: Success -> Show Real Tables
         try:
             team_html, individual_html, _, _, _, _ = generate_competitive_summary(
                 full_leaderboard_df,
