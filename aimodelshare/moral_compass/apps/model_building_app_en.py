@@ -848,33 +848,49 @@ def start_background_init():
 
 def poll_init_status():
     """
-    Poll initialization.
-    Returns True only when the Competition Backend is connected.
+    Poll the initialization status and return readiness bool.
+    Returns empty string for HTML so users don't see the checklist.
+    
+    Returns:
+        tuple: (status_html, ready_bool)
     """
     with INIT_LOCK:
         flags = INIT_FLAGS.copy()
     
-    # NEW LOGIC: Wait specifically for the competition object to be ready.
-    ready = flags["competition"]
+    # Determine if minimum requirements met
+    ready = flags["competition"] and flags["dataset_core"] and flags["pre_samples_small"]
     
     return "", ready
 
 def get_available_data_sizes():
     """
-    Return all data sizes immediately (Optimistic).
-    We rely on the 'Safety Guard' in run_experiment to prevent crashes if clicked too early.
-    """
-    return ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"]
-
-def _is_ready() -> bool:
-    """
-    Check if system is ready for real submissions.
+    Return list of data sizes that are currently available based on init flags.
     """
     with INIT_LOCK:
         flags = INIT_FLAGS.copy()
-        
-    # NEW LOGIC: Only allow submission if competition is connected
-    return flags["competition"]
+    
+    available = []
+    if flags["pre_samples_small"]:
+        available.append("Small (20%)")
+    if flags["pre_samples_medium"]:
+        available.append("Medium (60%)")
+    if flags["pre_samples_large"]:
+        available.append("Large (80%)")
+    if flags["pre_samples_full"]:
+        available.append("Full (100%)")
+    
+    return available if available else ["Small (20%)"]  # Fallback
+
+def _is_ready() -> bool:
+    """
+    Check if initialization is complete and system is ready for real submissions.
+    
+    Returns:
+        bool: True if competition, dataset, and small sample are initialized
+    """
+    with INIT_LOCK:
+        flags = INIT_FLAGS.copy()
+    return flags["competition"] and flags["dataset_core"] and flags["pre_samples_small"]
 
 def _get_user_latest_accuracy(df: Optional[pd.DataFrame], username: str) -> Optional[float]:
     """
