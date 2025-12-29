@@ -848,15 +848,14 @@ def start_background_init():
 
 def poll_init_status():
     """
-    Poll the initialization status.
-    FORCED READY: Returns True immediately to unlock UI without waiting for data.
+    Poll initialization.
+    Returns True only when the Competition Backend is connected.
     """
-    # We still fetch flags so we can debug or track data sizes if needed
     with INIT_LOCK:
         flags = INIT_FLAGS.copy()
     
-    # NEW LOGIC: Force the app to believe it is ready immediately.
-    ready = True 
+    # NEW LOGIC: Wait specifically for the competition object to be ready.
+    ready = flags["competition"]
     
     return "", ready
 
@@ -869,13 +868,12 @@ def get_available_data_sizes():
 
 def _is_ready() -> bool:
     """
-    Check if initialization is complete and system is ready for real submissions.
-    
-    Returns:
-        bool: True if competition, dataset, and small sample are initialized
+    Check if system is ready for real submissions.
     """
     with INIT_LOCK:
         flags = INIT_FLAGS.copy()
+        
+    # NEW LOGIC: Only allow submission if competition is connected
     return flags["competition"]
 
 def _get_user_latest_accuracy(df: Optional[pd.DataFrame], username: str) -> Optional[float]:
@@ -4166,44 +4164,36 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
         def update_init_status():
             """
             Poll initialization status.
-            Forces ready=True and KILLS the timer immediately.
+            Unlocks UI when Competition connects, then kills the timer.
             """
-            # 1. Force ready state
-            status_html = ""
-            ready = True  # Unlock immediately
+            # 1. Check readiness (Now waits for competition flag)
+            status_html, ready = poll_init_status()
             
-            # 2. UI Updates based on ready state
-            banner_visible = False
-            submit_label = "5. 🔬 Build & Submit Model"
-            submit_interactive = True
+            # 2. UI Updates
+            banner_visible = not ready  # Show banner until connected
+            submit_interactive = ready
             
-            # 3. Optimistic Data Sizes (Show all immediately)
+            if ready:
+                submit_label = "5. 🔬 Build & Submit Model"
+            else:
+                submit_label = "⏳ Connecting to Server..." # Informative label
+        
+            # 3. Optimistic Data Sizes
+            # Since we kill the timer early, we must show all options now.
             available_sizes = ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"]
             
-            # 4. KILL SWITCH: Force timer to stop immediately
-            timer_active = False 
+            # 4. TIMER LOGIC
+            # Keep ticking if NOT ready. Stop immediately once ready.
+            timer_active = not ready 
             
             return (
                 status_html,
-                gr.update(visible=banner_visible),                   # 1. Banner
-                gr.update(value=submit_label, interactive=submit_interactive), # 2. Button
-                gr.update(choices=available_sizes),                  # 3. Data Sizes
-                gr.update(active=timer_active),                      # 4. TIMER UPDATE (Critical Fix)
-                ready                                                # 5. Readiness State
+                gr.update(visible=banner_visible),
+                gr.update(value=submit_label, interactive=submit_interactive),
+                gr.update(choices=available_sizes),
+                gr.update(active=timer_active), # Send the stop command to UI
+                ready
             )
-
-        status_timer.tick(
-              fn=update_init_status,
-              inputs=None,
-              outputs=[
-                  init_status_display, 
-                  init_banner, 
-                  submit_button, 
-                  data_size_radio, 
-                  status_timer,      # <--- THIS MUST BE HERE
-                  readiness_state
-              ]
-          )
         # Handle session-based authentication on page load
         def handle_load_with_session_auth(request: "gr.Request"):
             """
