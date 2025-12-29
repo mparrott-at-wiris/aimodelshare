@@ -4194,6 +4194,19 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
                 gr.update(active=timer_active), # Send the stop command to UI
                 ready
             )
+
+        status_timer.tick(
+            fn=update_init_status,
+            inputs=None,
+            outputs=[
+                init_status_display, 
+                init_banner, 
+                submit_button, 
+                data_size_radio, 
+                status_timer, 
+                readiness_state
+            ]
+        )
         # Handle session-based authentication on page load
         def handle_load_with_session_auth(request: "gr.Request"):
             """
