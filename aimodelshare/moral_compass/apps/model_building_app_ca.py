@@ -1879,7 +1879,7 @@ def perform_inline_login(username_input, password_input):
                 {team_message}
             </p>
             <p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>
-                Click "Build & Submit Model" again to publish your score.
+                Fes clic a "Construir i enviar el model" un altre cop per publicar la teva puntuació.
             </p>
         </div>
         """
@@ -1888,7 +1888,7 @@ def perform_inline_login(username_input, password_input):
             login_password: gr.update(visible=False),
             login_submit: gr.update(visible=False),
             login_error: gr.update(value=success_html, visible=True),
-            submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
+            submit_button: gr.update(value="🔬 Construir i enviar el model", interactive=True),
             submission_feedback_display: gr.update(visible=False),
             team_name_state: gr.update(value=team_name),
             username_state: gr.update(value=username_clean),
@@ -1967,7 +1967,7 @@ def run_experiment(
         """
         yield {
             submission_feedback_display: gr.update(value=error_html, visible=True),
-            submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True)
+            submit_button: gr.update(value="🔬 Construir i enviar el model", interactive=True)
         }
         return
     
@@ -2111,7 +2111,7 @@ def run_experiment(
                 complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
                 feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
                 data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-                submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
+                submit_button: gr.update(value="🔬 Construir i enviar el model", interactive=True),
                 login_username: gr.update(visible=False),
                 login_password: gr.update(visible=False),
                 login_submit: gr.update(visible=False),
@@ -2153,7 +2153,7 @@ def run_experiment(
         
         error_updates = {
             submission_feedback_display: gr.update(value=error_msg, visible=True),
-            submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
+            submit_button: gr.update(value="🔬 Construir i enviar el model", interactive=True),
             team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
             individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
             last_submission_score_state: last_submission_score,
@@ -4300,7 +4300,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
             
             # Update submit button
             if ready:
-                submit_label = "5. 🔬 Build & Submit Model"
+                submit_label = "5. 🔬 Construir i enviar el model"
                 submit_interactive = True
             else:
                 submit_label = "⏳ Esperant les dades..."
