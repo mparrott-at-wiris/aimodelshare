@@ -3644,7 +3644,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
             gr.HTML("""
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <p>Imagina't un sistema d'IA com una "màquina de predicció". Es construeix a través de tres components principals:</p>
+                        <p>Imagina't un sistema d'IA com una "màquina de predicció". Es construeix amb tres components principals:</p>
                         <p><strong>1. Les entrades:</strong> Les dades que li subministres (ex: edat, delictes).</p>
                         <p><strong>2. El model (el "cervell"):</strong> Les matemàtiques (algorisme) que troben patrons.</p>
                         <p><strong>3. La sortida:</strong> La predicció (ex: nivell de risc).</p>
@@ -3700,7 +3700,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                             <div class="content" style="padding-top: 12px; padding-left: 12px;">
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);"><span class="radio-circle selected" style="display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--color-accent); margin-right:8px;"></span> <b>El Generalista Equilibrat</b></div>
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> El Creador de Regles</div>
-                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> El Cercador de Patrons Profunds</div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> El Detector de Patrons Profunds</div>
                                 
                                 <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
                                     <b style="color: var(--body-text-color);">En el joc:</b> <span style="color: var(--body-text-color);">Triaràs una d'aquestes estratègies de model. Cada estratègia permet que el model aprengui de les dades d’entrada d’una manera diferent.</span><br>
@@ -3817,7 +3817,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                         
                         <div style='text-align:center; background: color-mix(in srgb, var(--color-accent) 10%, transparent); padding: 20px; border-radius: 12px; border: 2px solid var(--color-accent);'>
                             <p style='margin:0 0 8px 0; font-size: 1.1rem; color: var(--text-muted);'>Per començar la competició:</p>
-                            <b style='color:var(--accent-strong); font-size:1.3rem;'>Fes clic a "Començar" i després a "Construir i enviar model"</b>
+                            <b style='color:var(--accent-strong); font-size:1.3rem;'>Fes clic a "Començar" i després a "Construir i enviar el model"</b>
                             <p style='margin:8px 0 0 0; font-size: 1rem;'>Així, la teva primera puntuació apareixerà a la classificació.</p>
                         </div>
                     </div>
