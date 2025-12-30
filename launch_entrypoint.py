@@ -35,6 +35,10 @@ APP_NAME_TO_FACTORY = {
     "moral-compass-challenge": "create_moral_compass_challenge_app",
     "bias-detective-part1": "create_bias_detective_part1_app",
     "bias-detective-part2": "create_bias_detective_part2_app",
+    # NEW: Language-specific Bias Detective variants
+    "bias-detective-en": "create_bias_detective_en_app",
+    "bias-detective-es": "create_bias_detective_es_app",
+    "bias-detective-ca": "create_bias_detective_ca_app",
     "fairness-fixer": "create_fairness_fixer_app",
     "justice-equity-upgrade": "create_justice_equity_upgrade_app",
 }
