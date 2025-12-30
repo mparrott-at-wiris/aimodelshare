@@ -24,12 +24,11 @@ jobs:
       - name: Download Prediction Cache
         uses: dawidd6/action-download-artifact@v6
         with:
-          workflow: build_model_cache.yml       # Must match the filename of the file above
-          name: prediction-cache-file     # Must match the artifact name in the file above
-          path: .                         # Save to root folder
-          search_artifacts: true          # Look for the most recent successful run
-          if_no_artifact_found: warn      # Don't fail the build if cache is missing (optional)
-      # -------------------------------------------------
+          workflow: build_model_cache.yml
+          name: prediction-cache-file
+          path: .
+          search_artifacts: true
+          if_no_artifact_found: warn
 
       - id: auth
         name: Authenticate to Google Cloud
@@ -47,14 +46,11 @@ jobs:
         run: |
           IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}"
           echo "Building image: $IMAGE"
-          
-          # Check if cache downloaded successfully (Optional Debug)
           if [ -f "prediction_cache.json.gz" ]; then
             echo "✅ Cache file found! Embedding into Docker image."
           else
             echo "⚠️ Cache file NOT found. App will run in slow training mode."
           fi
-
           docker build --pull -t "$IMAGE" .
           docker push "$IMAGE"
           echo "IMAGE=$IMAGE" >> $GITHUB_ENV
@@ -260,8 +256,8 @@ jobs:
             --max-instances=100
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
-            
-  # --- NEW: Final variants for EN, ES, CA ---
+
+  # Final variants for EN, ES, CA
   deploy-model-building-game-en-final:
     runs-on: ubuntu-latest
     needs: build-and-push
@@ -345,7 +341,7 @@ jobs:
             --max-instances=100
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-ca-final,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
-            
+
   deploy-ethical-revelation:
     runs-on: ubuntu-latest
     needs: build-and-push
@@ -402,7 +398,7 @@ jobs:
             --timeout=3000
             --set-env-vars=APP_NAME=moral-compass-challenge,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
-  # Renamed existing bias-detective deploy job to explicitly deploy part1
+  # Bias Detective split apps
   deploy-bias-detective-part1:
     runs-on: ubuntu-latest
     needs: build-and-push
@@ -431,7 +427,6 @@ jobs:
             --timeout=3000
             --set-env-vars=APP_NAME=bias-detective-part1,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
-  # New deploy job for bias-detective part2 (temporary placeholder app)
   deploy-bias-detective-part2:
     runs-on: ubuntu-latest
     needs: build-and-push
@@ -460,6 +455,92 @@ jobs:
             --timeout=3000
             --set-env-vars=APP_NAME=bias-detective-part2,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
+  # Language-specific Bias Detective variants
+  deploy-bias-detective-en:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy bias-detective-en
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: bias-detective-en
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=0
+            --max-instances=50
+            --timeout=3000
+            --set-env-vars=APP_NAME=bias-detective-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  deploy-bias-detective-es:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy bias-detective-es
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: bias-detective-es
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=0
+            --max-instances=50
+            --timeout=3000
+            --set-env-vars=APP_NAME=bias-detective-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  deploy-bias-detective-ca:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy bias-detective-ca
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: bias-detective-ca
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=0
+            --max-instances=50
+            --timeout=3000
+            --set-env-vars=APP_NAME=bias-detective-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  # Existing generic fairness-fixer and justice-equity-upgrade
   deploy-fairness-fixer:
     runs-on: ubuntu-latest
     needs: build-and-push
@@ -516,6 +597,176 @@ jobs:
             --timeout=3000
             --set-env-vars=APP_NAME=justice-equity-upgrade,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
+  # NEW: Language-specific Fairness Fixer variants
+  deploy-fairness-fixer-en:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy fairness-fixer-en
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: fairness-fixer-en
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=0
+            --max-instances=50
+            --timeout=3000
+            --set-env-vars=APP_NAME=fairness-fixer-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  deploy-fairness-fixer-es:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy fairness-fixer-es
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: fairness-fixer-es
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=0
+            --max-instances=50
+            --timeout=3000
+            --set-env-vars=APP_NAME=fairness-fixer-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  deploy-fairness-fixer-ca:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy fairness-fixer-ca
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: fairness-fixer-ca
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=0
+            --max-instances=50
+            --timeout=3000
+            --set-env-vars=APP_NAME=fairness-fixer-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  # NEW: Language-specific Justice & Equity Upgrade variants
+  deploy-justice-equity-upgrade-en:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy justice-equity-upgrade-en
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: justice-equity-upgrade-en
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=0
+            --max-instances=50
+            --timeout=3000
+            --set-env-vars=APP_NAME=justice-equity-upgrade-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  deploy-justice-equity-upgrade-es:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy justice-equity-upgrade-es
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: justice-equity-upgrade-es
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=0
+            --max-instances=50
+            --timeout=3000
+            --set-env-vars=APP_NAME=justice-equity-upgrade-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  deploy-justice-equity-upgrade-ca:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy justice-equity-upgrade-ca
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: justice-equity-upgrade-ca
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=0
+            --max-instances=50
+            --timeout=3000
+            --set-env-vars=APP_NAME=justice-equity-upgrade-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
   # ------------------------------------------------------------
   # Collect and publish all deployed service URLs
   # ------------------------------------------------------------
@@ -536,8 +787,17 @@ jobs:
       - deploy-moral-compass-challenge
       - deploy-bias-detective-part1
       - deploy-bias-detective-part2
+      - deploy-bias-detective-en
+      - deploy-bias-detective-es
+      - deploy-bias-detective-ca
       - deploy-fairness-fixer
       - deploy-justice-equity-upgrade
+      - deploy-fairness-fixer-en
+      - deploy-fairness-fixer-es
+      - deploy-fairness-fixer-ca
+      - deploy-justice-equity-upgrade-en
+      - deploy-justice-equity-upgrade-es
+      - deploy-justice-equity-upgrade-ca
     steps:
       - name: Generate JSON of deployed URLs
         run: |
@@ -557,8 +817,17 @@ jobs:
             "moral-compass-challenge": "${{ needs.deploy-moral-compass-challenge.outputs.url }}",
             "bias-detective-part1": "${{ needs.deploy-bias-detective-part1.outputs.url }}",
             "bias-detective-part2": "${{ needs.deploy-bias-detective-part2.outputs.url }}",
+            "bias-detective-en": "${{ needs.deploy-bias-detective-en.outputs.url }}",
+            "bias-detective-es": "${{ needs.deploy-bias-detective-es.outputs.url }}",
+            "bias-detective-ca": "${{ needs.deploy-bias-detective-ca.outputs.url }}",
             "fairness-fixer": "${{ needs.deploy-fairness-fixer.outputs.url }}",
-            "justice-equity-upgrade": "${{ needs.deploy-justice-equity-upgrade.outputs.url }}"
+            "justice-equity-upgrade": "${{ needs.deploy-justice-equity-upgrade.outputs.url }}",
+            "fairness-fixer-en": "${{ needs.deploy-fairness-fixer-en.outputs.url }}",
+            "fairness-fixer-es": "${{ needs.deploy-fairness-fixer-es.outputs.url }}",
+            "fairness-fixer-ca": "${{ needs.deploy-fairness-fixer-ca.outputs.url }}",
+            "justice-equity-upgrade-en": "${{ needs.deploy-justice-equity-upgrade-en.outputs.url }}",
+            "justice-equity-upgrade-es": "${{ needs.deploy-justice-equity-upgrade-es.outputs.url }}",
+            "justice-equity-upgrade-ca": "${{ needs.deploy-justice-equity-upgrade-ca.outputs.url }}"
           }
           EOF
           echo "Deployed service URLs JSON:"

@@ -87,30 +87,30 @@ MODULES = [
     # --- MODULE 0: THE HOOK (Mission Dossier) ---
   {
         "id": 0,
-        "title": "Mission Dossier",
+        "title": "Expediente de la Misión",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin-bottom:25px; text-align:center; font-size: 2.2rem;">🕵️ MISSION DOSSIER</h2>
+                    <h2 class="slide-title" style="margin-bottom:25px; text-align:center; font-size: 2.2rem;">🕵️ EXPEDIENTE DE LA MISIÓN</h2>
 
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:25px; margin-bottom:30px; align-items:stretch;">
                         <div style="background:var(--background-fill-secondary); padding:20px; border-radius:12px; border:1px solid var(--border-color-primary);">
                             <div style="margin-bottom:15px;">
-                                <div style="font-size:0.9rem; font-weight:800; color:var(--body-text-color-subdued); letter-spacing:1px;">YOUR ROLE</div>
-                                <div style="font-size:1.3rem; font-weight:700; color:var(--color-accent);">Lead Bias Detective</div>
+                                <div style="font-size:0.9rem; font-weight:800; color:var(--body-text-color-subdued); letter-spacing:1px;">TU ROL</div>
+                                <div style="font-size:1.3rem; font-weight:700; color:var(--color-accent);">Detective Principal de Sesgos</div>
                             </div>
                             <div>
-                                <div style="font-size:0.9rem; font-weight:800; color:var(--body-text-color-subdued); letter-spacing:1px;">YOUR TARGET</div>
-                                <div style="font-size:1.3rem; font-weight:700;">"Compas" AI Algorithm</div>
-                                <div style="font-size:1.0rem; margin-top:5px; opacity:0.8;">Used by judges to decide bail.</div>
+                                <div style="font-size:0.9rem; font-weight:800; color:var(--body-text-color-subdued); letter-spacing:1px;">TU OBJETIVO</div>
+                                <div style="font-size:1.3rem; font-weight:700;">Algoritmo de IA "Compas"</div>
+                                <div style="font-size:1.0rem; margin-top:5px; opacity:0.8;">Utilizado por jueces para decidir fianzas.</div>
                             </div>
                         </div>
                         <div style="background:rgba(239,68,68,0.1); padding:20px; border-radius:12px; border:2px solid #fca5a5; display:flex; flex-direction:column; justify-content:center;">
-                            <div style="font-size:0.9rem; font-weight:800; color:#ef4444; letter-spacing:1px;">🚨 THE THREAT</div>
+                            <div style="font-size:0.9rem; font-weight:800; color:#ef4444; letter-spacing:1px;">🚨 LA AMENAZA</div>
                             <div style="font-size:1.15rem; font-weight:600; line-height:1.4; color:var(--body-text-color);">
-                                The model is 92% accurate, but we suspect a <strong style="color:#ef4444;">hidden systematic bias</strong>.
+                                El modelo tiene un 92% de exactitud, pero sospechamos que hay un <strong style="color:#ef4444;">sesgo sistemático oculto</strong>.
                                 <br><br>
-                                Your goal: Expose flaws before this model is deployed nationwide.
+                                Tu meta: Exponer los fallos antes de que este modelo se despliegue a nivel nacional.
                             </div>
                         </div>
                     </div>
@@ -118,7 +118,7 @@ MODULES = [
                     <hr style="opacity:0.2; margin:25px 0; border-color:var(--body-text-color);">
 
                     <p style="text-align:center; font-weight:800; color:var(--body-text-color-subdued); margin-bottom:20px; font-size:1.0rem; letter-spacing:1px;">
-                        👇 CLICK CARDS TO UNLOCK INTEL
+                        👇 HAZ CLIC EN LAS TARJETAS PARA DESBLOQUEAR INFORMACIÓN
                     </p>
 
                     <div style="display:grid; gap:20px;">
@@ -126,19 +126,19 @@ MODULES = [
                             <summary style="padding:20px; font-weight:800; font-size:1.2rem; color:var(--body-text-color); cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between; background:rgba(239,68,68,0.1);">
                                 <div style="display:flex; align-items:center; gap:15px;">
                                     <span style="font-size:1.8rem;">⚠️</span>
-                                    <span>RISK: The "Ripple Effect"</span>
+                                    <span>RIESGO: El "Efecto Onda"</span>
                                 </div>
-                                <span style="font-size:0.9rem; color:#ef4444; text-transform:uppercase;">Click to Simulate</span>
+                                <span style="font-size:0.9rem; color:#ef4444; text-transform:uppercase;">Haz clic para simular</span>
                             </summary>
                             <div style="padding:25px; border-top:1px solid var(--border-color-primary);">
                                 <div style="display:flex; gap:30px; align-items:center;">
                                     <div style="font-size:3.5rem; line-height:1;">🌊</div>
                                     <div>
-                                        <div style="font-weight:900; font-size:2.0rem; color:#ef4444; line-height:1;">15,000+</div>
-                                        <div style="font-weight:700; font-size:1.1rem; color:var(--body-text-color); margin-bottom:5px;">Cases Processed Per Year</div>
+                                        <div style="font-weight:900; font-size:2.0rem; color:#ef4444; line-height:1;">15.000+</div>
+                                        <div style="font-weight:700; font-size:1.1rem; color:var(--body-text-color); margin-bottom:5px;">Casos Procesados por Año</div>
                                         <div style="font-size:1.1rem; color:var(--body-text-color-subdued); line-height:1.5;">
-                                            A human makes a mistake once. This AI will repeat the same bias <strong style="color:var(--body-text-color);">15,000+ times a year</strong>.
-                                            <br>If we don't fix it, we automate unfairness at a massive scale.
+                                            Un humano comete un error una vez. Esta IA repetirá el mismo sesgo <strong style="color:var(--body-text-color);">15.000+ veces al año</strong>.
+                                            <br>Si no lo arreglamos, automatizaremos la injusticia a gran escala.
                                         </div>
                                     </div>
                                 </div>
@@ -149,36 +149,36 @@ MODULES = [
                             <summary style="padding:20px; font-weight:800; font-size:1.2rem; color:var(--body-text-color); cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between; background:rgba(34,197,94,0.1);">
                                 <div style="display:flex; align-items:center; gap:15px;">
                                     <span style="font-size:1.8rem;">🧭</span>
-                                    <span>OBJECTIVE: How to Win</span>
+                                    <span>OBJETIVO: Cómo Ganar</span>
                                 </div>
-                                <span style="font-size:0.9rem; color:#22c55e; text-transform:uppercase;">Click to Calculate</span>
+                                <span style="font-size:0.9rem; color:#22c55e; text-transform:uppercase;">Haz clic para calcular</span>
                             </summary>
                             <div style="padding:25px; border-top:1px solid var(--border-color-primary);">
                                 <div style="text-align:center; margin-bottom:20px;">
                                     <div style="font-size:1.4rem; font-weight:800; background:var(--background-fill-primary); border:1px solid var(--border-color-primary); padding:15px; border-radius:10px; display:inline-block; color:var(--body-text-color);">
-                                        <span style="color:#6366f1;">[ Accuracy ]</span>
+                                        <span style="color:#6366f1;">[ Exactitud ]</span>
                                         <span style="color:var(--body-text-color-subdued); margin:0 10px;">×</span>
-                                        <span style="color:#22c55e;">[ Ethical Progress % ]</span>
+                                        <span style="color:#22c55e;">[ % Progreso Ético ]</span>
                                         <span style="color:var(--body-text-color-subdued); margin:0 10px;">=</span>
-                                        SCORE
+                                        PUNTUACIÓN
                                     </div>
                                 </div>
                                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
                                     <div style="padding:15px; background:rgba(254,226,226,0.1); border:2px solid #fecaca; border-radius:10px; text-align:center;">
-                                        <div style="font-weight:700; color:#ef4444; margin-bottom:5px;">Scenario A: Ignored Ethics</div>
-                                        <div style="font-size:0.95rem; color:var(--body-text-color);">High Accuracy (92%)</div>
-                                        <div style="font-size:0.95rem; color:var(--body-text-color);">0% Ethics</div>
+                                        <div style="font-weight:700; color:#ef4444; margin-bottom:5px;">Escenario A: Ética Ignorada</div>
+                                        <div style="font-size:0.95rem; color:var(--body-text-color);">Alta Exactitud (92%)</div>
+                                        <div style="font-size:0.95rem; color:var(--body-text-color);">0% Ética</div>
                                         <div style="margin-top:10px; border-top:1px solid #fecaca; padding-top:5px;">
-                                            <div style="font-size:0.8rem; text-transform:uppercase; color:#ef4444;">Final Score</div>
+                                            <div style="font-size:0.8rem; text-transform:uppercase; color:#ef4444;">Puntuación Final</div>
                                             <div style="font-size:2.5rem; font-weight:900; color:#ef4444;">0</div>
                                         </div>
                                     </div>
                                     <div style="padding:15px; background:rgba(220,252,231,0.1); border:2px solid #bbf7d0; border-radius:10px; text-align:center;">
-                                        <div style="font-weight:700; color:#22c55e; margin-bottom:5px;">Scenario B: True Detective</div>
-                                        <div style="font-size:0.95rem; color:var(--body-text-color);">High Accuracy (92%)</div>
-                                        <div style="font-size:0.95rem; color:var(--body-text-color);">100% Ethics</div>
+                                        <div style="font-weight:700; color:#22c55e; margin-bottom:5px;">Escenario B: Verdadero Detective</div>
+                                        <div style="font-size:0.95rem; color:var(--body-text-color);">Alta Exactitud (92%)</div>
+                                        <div style="font-size:0.95rem; color:var(--body-text-color);">100% Ética</div>
                                         <div style="margin-top:10px; border-top:1px solid #bbf7d0; padding-top:5px;">
-                                            <div style="font-size:0.8rem; text-transform:uppercase; color:#15803d;">Final Score</div>
+                                            <div style="font-size:0.8rem; text-transform:uppercase; color:#15803d;">Puntuación Final</div>
                                             <div style="font-size:2.5rem; font-weight:900; color:#22c55e;">92</div>
                                         </div>
                                     </div>
@@ -189,11 +189,11 @@ MODULES = [
 
                     <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 MISSION START
+                            🚀 INICIO DE MISIÓN
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
-                            Answer the question below to receive your first <strong>Moral Compass Score boost</strong>.
-                            <br>Then click <strong>Next</strong> to start the investigation.
+                            Responde a la siguiente pregunta para recibir tu primer <strong>aumento de Puntuación de Brújula Moral</strong>.
+                            <br>Luego haz clic en <strong>Siguiente</strong> para comenzar la investigación.
                         </p>
                     </div> 
                 </div>
@@ -204,16 +204,16 @@ MODULES = [
     # --- MODULE 1: THE MAP (Mission Roadmap) ---
     {
         "id": 1,
-        "title": "Mission Roadmap",
+        "title": "Hoja de Ruta de la Misión",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
 
-                    <h2 class="slide-title" style="text-align:center; margin-bottom:15px;">🗺️ MISSION ROADMAP</h2>
+                    <h2 class="slide-title" style="text-align:center; margin-bottom:15px;">🗺️ HOJA DE RUTA DE LA MISIÓN</h2>
 
                     <p style="font-size:1.1rem; max-width:800px; margin:0 auto 25px auto; text-align:center; color:var(--body-text-color);">
-                        <strong>Your mission is clear:</strong> Uncover the bias hiding inside the 
-                        AI system before it hurts real people. If you cannot find bias, we cannot fix it.
+                        <strong>Tu misión es clara:</strong> Descubrir el sesgo escondido dentro del 
+                        sistema de IA antes de que dañe a personas reales. Si no puedes encontrar el sesgo, no podemos arreglarlo.
                     </p>
 
                     <div class="ai-risk-container" style="background:transparent; border:none; padding:0;">
@@ -221,38 +221,38 @@ MODULES = [
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
 
                             <div style="border: 3px solid #3b82f6; background: rgba(59, 130, 246, 0.1); border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                                <div style="position:absolute; top:-15px; left:15px; background:#3b82f6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 1: RULES</div>
+                                <div style="position:absolute; top:-15px; left:15px; background:#3b82f6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PASO 1: REGLAS</div>
                                 <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">📜</div>
-                                <div style="font-weight:800; font-size:1.2rem; color:#3b82f6; margin-bottom:5px;">Establish the Rules</div>
+                                <div style="font-weight:800; font-size:1.2rem; color:#3b82f6; margin-bottom:5px;">Establecer las Reglas</div>
                                 <div style="font-size:1.0rem; color:var(--body-text-color); font-weight:500; line-height:1.4;">
-                                    Define the ethical standard: <strong>Justice & Equity</strong>. What specifically counts as bias in this investigation?
+                                    Define el estándar ético: <strong>Justicia y Equidad</strong>. ¿Qué cuenta específicamente como sesgo en esta investigación?
                                 </div>
                             </div>
 
                             <div style="border: 3px solid #14b8a6; background: rgba(20, 184, 166, 0.1); border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                                <div style="position:absolute; top:-15px; left:15px; background:#14b8a6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 2: DATA EVIDENCE</div>
+                                <div style="position:absolute; top:-15px; left:15px; background:#14b8a6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PASO 2: EVIDENCIA DE DATOS</div>
                                 <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">🔍</div>
-                                <div style="font-weight:800; font-size:1.2rem; color:#14b8a6; margin-bottom:5px;">Input Data Forensics</div>
+                                <div style="font-weight:800; font-size:1.2rem; color:#14b8a6; margin-bottom:5px;">Forense de Datos de Entrada</div>
                                 <div style="font-size:1.0rem; color:var(--body-text-color); font-weight:500; line-height:1.4;">
-                                    Scan the <strong>Input Data</strong> for historical injustice, representation gaps, and exclusion bias.
+                                    Escanea los <strong>Datos de Entrada</strong> en busca de injusticia histórica, brechas de representación y sesgos de exclusión.
                                 </div>
                             </div>
 
                             <div style="border: 3px solid #8b5cf6; background: rgba(139, 92, 246, 0.1); border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                                <div style="position:absolute; top:-15px; left:15px; background:#8b5cf6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 3: TEST ERROR</div>
+                                <div style="position:absolute; top:-15px; left:15px; background:#8b5cf6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PASO 3: PROBAR ERROR</div>
                                 <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">🎯</div>
-                                <div style="font-weight:800; font-size:1.2rem; color:#8b5cf6; margin-bottom:5px;">Output Error Testing</div>
+                                <div style="font-weight:800; font-size:1.2rem; color:#8b5cf6; margin-bottom:5px;">Pruebas de Error de Salida</div>
                                 <div style="font-size:1.0rem; color:var(--body-text-color); font-weight:500; line-height:1.4;">
-                                    Test the Model's predictions. Prove that mistakes (False Alarms) are <strong>unequal</strong> across groups.
+                                    Prueba las predicciones del Modelo. Demuestra que los errores (Falsas Alarmas) son <strong>desiguales</strong> entre grupos.
                                 </div>
                             </div>
 
                             <div style="border: 3px solid #f97316; background: rgba(249, 115, 22, 0.1); border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                                <div style="position:absolute; top:-15px; left:15px; background:#f97316; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 4: REPORT IMPACT</div>
+                                <div style="position:absolute; top:-15px; left:15px; background:#f97316; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PASO 4: REPORTAR IMPACTO</div>
                                 <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">⚖️</div>
-                                <div style="font-weight:800; font-size:1.2rem; color:#f97316; margin-bottom:5px;">The Final Report</div>
+                                <div style="font-weight:800; font-size:1.2rem; color:#f97316; margin-bottom:5px;">El Informe Final</div>
                                 <div style="font-size:1.0rem; color:var(--body-text-color); font-weight:500; line-height:1.4;">
-                                    Diagnose systematic harm and issue your final recommendation to the court: <strong>Deploy AI System or Pause to Repair.</strong>
+                                    Diagnostica el daño sistemático y emite tu recomendación final al tribunal: <strong>Desplegar Sistema de IA o Pausar para Reparar.</strong>
                                 </div>
                             </div>
 
@@ -262,11 +262,11 @@ MODULES = [
 
                     <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 CONTINUE MISSION
+                            🚀 CONTINUAR MISIÓN
                         </p>
                         <p style="font-size:1.05rem; margin:0; color:var(--body-text-color);">
-                            Answer the question below to receive your next <strong>Moral Compass Score boost</strong>.
-                            <br>Then click <strong>Next</strong> to continue the investigation.
+                            Responde a la siguiente pregunta para recibir tu próximo <strong>aumento de Puntuación de Brújula Moral</strong>.
+                            <br>Luego haz clic en <strong>Siguiente</strong> para continuar la investigación.
                         </p>
                     </div>
                 </div>
@@ -277,18 +277,18 @@ MODULES = [
     # --- MODULE 2: RULES (Interactive) ---
     {
         "id": 2,
-        "title": "Step 1: Learn the Rules",
+        "title": "Paso 1: Aprender las Reglas",
         "html": """
             <div class="scenario-box">
                 <div class="tracker-container">
-                    <div class="tracker-step active">1. RULES</div>
-                    <div class="tracker-step">2. EVIDENCE</div>
+                    <div class="tracker-step active">1. REGLAS</div>
+                    <div class="tracker-step">2. EVIDENCIA</div>
                     <div class="tracker-step">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICT</div>
+                    <div class="tracker-step">4. VEREDICTO</div>
                 </div>
 
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <h2 class="slide-title" style="margin:0;">STEP 1: LEARN THE RULES</h2>
+                    <h2 class="slide-title" style="margin:0;">PASO 1: APRENDER LAS REGLAS</h2>
                     <div style="font-size:2rem;">⚖️</div>
                 </div>
 
@@ -296,20 +296,20 @@ MODULES = [
 
                     <div style="background:rgba(59, 130, 246, 0.1); border-left:4px solid #3b82f6; padding:15px; margin-bottom:20px; border-radius:4px; color: var(--body-text-color);">
                         <p style="margin:0; font-size:1.05rem; line-height:1.5;">
-                            <strong style="color:var(--color-accent);">Justice & Equity: Your Primary Rule.</strong><br>
-                            Ethics isn't abstract here—it’s our field guide for action. We rely on expert advice from the Catalan Observatory for Ethics in AI <strong>OEIAC (UdG)</strong> to ensure AI systems are fair.
-                            While they have defined 7 core principles of safe AI, our intel suggests this specific case involves a violation of <strong>Justice and Equity</strong>.
+                            <strong style="color:var(--color-accent);">Justicia y Equidad: Tu Regla Principal.</strong><br>
+                            La ética no es abstracta aquí, es nuestra guía de campo para la acción. Confiamos en el asesoramiento experto del Observatorio de Ética en Inteligencia Artificial de Cataluña <strong>OEIAC (UdG)</strong> para asegurar que los sistemas de IA sean justos.
+                            Aunque han definido 7 principios básicos de IA segura, nuestra información sugiere que este caso específico implica una violación de <strong>Justicia y Equidad</strong>.
                         </p>
                     </div>
 
                     <div style="text-align:center; margin-bottom:20px;">
                         <p style="font-size:1rem; font-weight:700; color:var(--color-accent); background:rgba(59, 130, 246, 0.1); display:inline-block; padding:6px 16px; border-radius:20px; border:1px solid var(--border-color-primary);">
-                            👇 Click on each card below to reveal what counts as bias
+                            👇 Haz clic en cada tarjeta para revelar qué cuenta como sesgo
                         </p>
                     </div>
 
                     <p style="text-align:center; font-weight:700; color:var(--body-text-color-subdued); margin-bottom:10px; font-size:0.9rem; letter-spacing:1px;">
-                        🧩 JUSTICE & EQUITY: WHAT COUNTS AS BIAS?
+                        🧩 JUSTICIA Y EQUIDAD: ¿QUÉ CUENTA COMO SESGO?
                     </p>
 
                     <div class="ai-risk-container" style="background:transparent; border:none; padding:0;">
@@ -318,36 +318,36 @@ MODULES = [
                             <details style="cursor:pointer; background:var(--background-fill-secondary); padding:15px; border-radius:10px; border:1px solid #3b82f6; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                                 <summary style="list-style:none; font-weight:800; color:#3b82f6; text-align:center; font-size:1.0rem;">
                                     <div style="font-size:2rem; margin-bottom:5px;">📊</div>
-                                    Representation Bias
+                                    Sesgo de Representación
                                 </summary>
                                 <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); border-top:1px solid var(--border-color-primary); padding-top:10px; line-height:1.4;">
-                                    <strong>Definition:</strong> Compares the dataset distribution to the actual real-world distribution.
+                                    <strong>Definición:</strong> Compara la distribución del conjunto de datos con la distribución real del mundo real.
                                     <br><br>
-                                    If one group appears far less (e.g., only 10% of cases are Group A, but they are 71% of the population) or far more than reality, the AI likely learns biased patterns.
+                                    Si un grupo aparece mucho menos (ej. solo el 10% de los casos son del Grupo A, pero son el 71% de la población) o mucho más que la realidad, la IA probablemente aprenderá patrones sesgados.
                                 </div>
                             </details>
 
                             <details style="cursor:pointer; background:var(--background-fill-secondary); padding:15px; border-radius:10px; border:1px solid #ef4444; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                                 <summary style="list-style:none; font-weight:800; color:#ef4444; text-align:center; font-size:1.0rem;">
                                     <div style="font-size:2rem; margin-bottom:5px;">🎯</div>
-                                    Error Gaps
+                                    Brechas de Error
                                 </summary>
                                 <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); border-top:1px solid var(--border-color-primary); padding-top:10px; line-height:1.4;">
-                                    <strong>Definition:</strong> Checks for AI prediction mistakes by subgroup (e.g., False Positive Rate for Group A vs. Group B).
+                                    <strong>Definición:</strong> Comprueba los errores de predicción de la IA por subgrupo (ej. Tasa de Falsos Positivos para el Grupo A vs. Grupo B).
                                     <br><br>
-                                    Higher error for a group indicates risk for unfair treatment, showing the model may be less trustworthy for that specific group.
+                                    Un error más alto para un grupo indica riesgo de trato injusto, mostrando que el modelo puede ser menos fiable para ese grupo específico.
                                 </div>
                             </details>
 
                             <details style="cursor:pointer; background:var(--background-fill-secondary); padding:15px; border-radius:10px; border:1px solid #22c55e; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                                 <summary style="list-style:none; font-weight:800; color:#22c55e; text-align:center; font-size:1.0rem;">
                                     <div style="font-size:2rem; margin-bottom:5px;">⛓️</div>
-                                    Outcome Disparities
+                                    Disparidades de Resultados
                                 </summary>
                                 <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); border-top:1px solid var(--border-color-primary); padding-top:10px; line-height:1.4;">
-                                    <strong>Definition:</strong> Looks for worse real-world results after AI predictions (e.g., harsher sentencing).
+                                    <strong>Definición:</strong> Busca peores resultados en el mundo real después de las predicciones de la IA (ej. sentencias más duras).
                                     <br><br>
-                                    Bias isn’t just numbers—it changes real-world outcomes for people.
+                                    El sesgo no son solo números: cambia los resultados del mundo real para las personas.
                                 </div>
                             </details>
                         </div>
@@ -356,28 +356,28 @@ MODULES = [
                     <hr style="opacity:0.2; margin:25px 0; border-color:var(--body-text-color);">
 
                     <details class="hint-box" style="margin-top:0; cursor:pointer;">
-                        <summary style="font-weight:700; color:var(--body-text-color-subdued);">🧭 Reference: Other AI Ethics Principles (OEIAC)</summary>
+                        <summary style="font-weight:700; color:var(--body-text-color-subdued);">🧭 Referencia: Otros Principios de Ética en IA (OEIAC)</summary>
                         <div style="margin-top:15px; font-size:0.9rem; display:grid; grid-template-columns: 1fr 1fr; gap:15px; color:var(--body-text-color);">
                             <div>
-                                <strong>Transparency &amp; Explainability</strong><br>Ensure the AI's reasoning and final judgment are clear so decisions can be inspected and people can appeal.<br>
-                                <strong>Security &amp; Non-maleficence</strong><br>Minimize harmful mistakes and always have a solid plan for system failure.<br>
-                                <strong>Responsibility &amp; Accountability</strong><br>Assign clear owners for the AI and maintain a detailed record of decisions (audit trail).
+                                <strong>Transparencia y Explicabilidad</strong><br>Asegurar que el razonamiento de la IA y el juicio final sean claros para que las decisiones puedan ser inspeccionadas y las personas puedan apelar.<br>
+                                <strong>Seguridad y No maleficencia</strong><br>Minimizar los errores dañinos y tener siempre un plan sólido para fallos del sistema.<br>
+                                <strong>Responsabilidad y Rendición de Cuentas</strong><br>Asignar propietarios claros para la IA y mantener un registro detallado de las decisiones (rastro de auditoría).
                             </div>
                             <div>
-                                <strong>Autonomy</strong><br>Provide individuals with clear appeals processes and alternatives to the AI's decision.<br>
-                                <strong>Privacy</strong><br>Use only necessary data and always justify any need to use sensitive attributes.<br>
-                                <strong>Sustainability</strong><br>Avoid long-term harm to society or the environment (e.g., massive energy use or market destabilization).
+                                <strong>Autonomía</strong><br>Proporcionar a los individuos procesos claros de apelación y alternativas a la decisión de la IA.<br>
+                                <strong>Privacidad</strong><br>Utilizar solo los datos necesarios y justificar siempre cualquier necesidad de usar atributos sensibles.<br>
+                                <strong>Sostenibilidad</strong><br>Evitar daños a largo plazo a la sociedad o al medio ambiente (ej. uso masivo de energía o desestabilización del mercado).
                             </div>
                         </div>
                     </details>
 
                     <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 RULES BRIEFING COMPLETE: CONTINUE MISSION
+                            🚀 SESIÓN INFORMATIVA DE REGLAS COMPLETADA: CONTINUAR MISIÓN
                         </p>
                         <p style="font-size:1.05rem; margin:0; color:var(--body-text-color);">
-                            Answer the question below to receive your next <strong>Moral Compass Score boost</strong>.
-                            <br>Then click <strong>Next</strong> to continue your mission.
+                            Responde a la siguiente pregunta para recibir tu próximo <strong>aumento de Puntuación de Brújula Moral</strong>.
+                            <br>Luego haz clic en <strong>Siguiente</strong> para continuar tu misión.
                         </p>
                     </div>
                 </div>
@@ -387,25 +387,25 @@ MODULES = [
 
     {
         "id": 3,
-        "title": "Step 2: Pattern Recognition",
+        "title": "Paso 2: Reconocimiento de Patrones",
         "html": """
             <div class="scenario-box">
                 <div class="tracker-container">
-                    <div class="tracker-step completed">1. RULES</div>
-                    <div class="tracker-step active">2. EVIDENCE</div>
+                    <div class="tracker-step completed">1. REGLAS</div>
+                    <div class="tracker-step active">2. EVIDENCIA</div>
                     <div class="tracker-step">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICT</div>
+                    <div class="tracker-step">4. VEREDICTO</div>
                 </div>
 
         <div class="slide-body">
-            <h2 class="slide-title" style="margin:0;">STEP 2: SEARCH FOR THE EVIDENCE</h2>
+            <h2 class="slide-title" style="margin:0;">PASO 2: BÚSQUEDA DE LA EVIDENCIA</h2>
 
             <div style="text-align:center; margin-bottom:20px;">
 
-                <h2 class="slide-title header-accent" style="margin-top:10px;">The Hunt for Biased Demographic Patterns</h2>
+                <h2 class="slide-title header-accent" style="margin-top:10px;">La Búsqueda de Patrones Demográficos Sesgados</h2>
                 <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                    An AI is only as fair as the data it learns from. If the input data distorts reality, the AI will likely distort justice.
-                    <br>The first step is to hunt for patterns that reveal <strong>Representation Bias.</strong>  To find representation bias we must inspect the <strong>Demographics.</strong>.
+                    Una IA solo es tan justa como los datos de los que aprende. Si los datos de entrada distorsionan la realidad, la IA probablemente distorsionará la justicia.
+                    <br>El primer paso es buscar patrones que revelen <strong>Sesgo de Representación.</strong>  Para encontrar sesgo de representación debemos inspeccionar la <strong>Demografía.</strong>.
                 </p>
             </div>
 
@@ -414,8 +414,8 @@ MODULES = [
                 <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px; border-bottom:1px solid var(--border-color-primary); padding-bottom:10px;">
                     <div style="font-size:1.5rem;">🚩</div>
                     <div>
-                        <strong style="color:#0ea5e9; font-size:1.1rem; text-transform:uppercase; letter-spacing:1px;">PATTERN: "THE DISTORTED MIRROR"</strong>
-                        <div style="font-size:0.9rem; color:var(--body-text-color-subdued);">(Representation Bias in Protected Groups)</div>
+                        <strong style="color:#0ea5e9; font-size:1.1rem; text-transform:uppercase; letter-spacing:1px;">PATRÓN: "EL ESPEJO DISTORSIONADO"</strong>
+                        <div style="font-size:0.9rem; color:var(--body-text-color-subdued);">(Sesgo de Representación en Grupos Protegidos)</div>
                     </div>
                 </div>
 
@@ -423,38 +423,38 @@ MODULES = [
                     
                     <div style="color: var(--body-text-color);">
                         <p style="font-size:1rem; line-height:1.6;">
-                            <strong>The Concept:</strong> Ideally, a dataset should look like a "Mirror" of the real population. 
-                            If a group makes up 50% of the population, they should generally make up ~50% of the data.
+                            <strong>El Concepto:</strong> Idealmente, un conjunto de datos debería parecerse a un "Espejo" de la población real. 
+                            Si un grupo constituye el 50% de la población, generalmente debería constituir ~50% de los datos.
                         </p>
                         <p style="font-size:1rem; line-height:1.6;">
-                            <strong>The Red Flag:</strong> Look for <strong>Drastic Imbalances</strong> in Protected Characteristics (Race, Gender, Age).
+                            <strong>La Bandera Roja:</strong> Busca <strong>Desequilibrios Drásticos</strong> en Características Protegidas (Raza, Género, Edad).
                         </p>
                         <ul style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:10px; padding-left:20px; line-height:1.5;">
-                            <li><strong>Over-Representation:</strong> One group has a "Giant Bar" (e.g., 80% of arrest records are Men). The AI learns to target this group.</li>
-                            <li><strong>Under-Representation:</strong> One group is missing or tiny. The AI fails to learn accurate patterns for them.</li>
+                            <li><strong>Sobrerrepresentación:</strong> Un grupo tiene una "Barra Gigante" (ej. el 80% de los registros de arresto son Hombres). La IA aprende a señalar a este grupo.</li>
+                            <li><strong>Infrarrepresentación:</strong> Un grupo falta o es diminuto. La IA no logra aprender patrones precisos para ellos.</li>
                         </ul>
                     </div>
 
                     <div style="background:var(--background-fill-primary); padding:20px; border-radius:12px; border:1px solid var(--border-color-primary); display:flex; flex-direction:column; justify-content:center;">
                         
                         <div style="margin-bottom:20px;">
-                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color-subdued); margin-bottom:5px;">REALITY (The Population)</div>
+                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color-subdued); margin-bottom:5px;">REALIDAD (La Población)</div>
                             <div style="display:flex; width:100%; height:24px; border-radius:4px; overflow:hidden;">
-                                <div style="width:33%; background:#94a3b8; display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem;">Group A</div>
-                                <div style="width:34%; background:#64748b; display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem;">Group B</div>
-                                <div style="width:33%; background:#475569; display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem;">Group C</div>
+                                <div style="width:33%; background:#94a3b8; display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem;">Grupo A</div>
+                                <div style="width:34%; background:#64748b; display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem;">Grupo B</div>
+                                <div style="width:33%; background:#475569; display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem;">Grupo C</div>
                             </div>
                         </div>
 
                         <div>
-                            <div style="font-size:0.85rem; font-weight:700; color:#0ea5e9; margin-bottom:5px;">THE TRAINING DATA (The Distorted Mirror)</div>
+                            <div style="font-size:0.85rem; font-weight:700; color:#0ea5e9; margin-bottom:5px;">LOS DATOS DE ENTRENAMIENTO (El Espejo Distorsionado)</div>
                             <div style="display:flex; width:100%; height:24px; border-radius:4px; overflow:hidden;">
-                                <div style="width:80%; background:linear-gradient(90deg, #f43f5e, #be123c); display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem; font-weight:700;">GROUP A (80%)</div>
+                                <div style="width:80%; background:linear-gradient(90deg, #f43f5e, #be123c); display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem; font-weight:700;">GRUPO A (80%)</div>
                                 <div style="width:10%; background:#cbd5e1;"></div>
                                 <div style="width:10%; background:#94a3b8;"></div>
                             </div>
                             <div style="font-size:0.8rem; color:#ef4444; margin-top:5px; font-weight:600;">
-                                ⚠️ Alert: Group A is massively over-represented.
+                                ⚠️ Alerta: El Grupo A está masivamente sobrerrepresentado.
                             </div>
                         </div>
 
@@ -464,26 +464,26 @@ MODULES = [
 
             <div style="margin-bottom: 25px; padding: 0 10px;">
                 <p style="font-size:1.1rem; line-height:1.5; color:var(--body-text-color);">
-                    <strong>🕵️ Your Next Step:</strong> You must enter the Data Forensics Lab and check the data for specific demographic categories. If the patterns look like the "Distorted Mirror" above, the data is likely unsafe.
+                    <strong>🕵️ Tu Próximo Paso:</strong> Debes entrar al Laboratorio Forense de Datos y comprobar los datos para categorías demográficas específicas. Si los patrones se parecen al "Espejo Distorsionado" de arriba, los datos probablemente son inseguros.
                 </p>
             </div>
 
             <details style="margin-bottom:30px; cursor:pointer; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); border-radius:8px; padding:12px;">
-                <summary style="font-weight:700; color:var(--body-text-color-subdued); font-size:0.95rem;">🧭 Reference: How do AI datasets become biased?</summary>
+                <summary style="font-weight:700; color:var(--body-text-color-subdued); font-size:0.95rem;">🧭 Referencia: ¿Cómo se sesgan los conjuntos de datos de IA?</summary>
                 <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color-subdued); line-height:1.5; padding:0 5px;">
-                    <p style="margin-bottom:10px;"><strong>Example:</strong> When a dataset is built from <strong>historical arrest records</strong>.</p>
-                    <p>Systemic over-policing in specific neighborhoods could distort the counts in the dataset for attributes like <strong>Race or Income</strong>.
-                     The AI then learns this distortion as "truth."</p>
+                    <p style="margin-bottom:10px;"><strong>Ejemplo:</strong> Cuando un conjunto de datos se construye a partir de <strong>registros históricos de arrestos</strong>.</p>
+                    <p>El exceso de vigilancia policial sistémico en barrios específicos podría distorsionar los recuentos en el conjunto de datos para atributos como <strong>Raza o Ingresos</strong>.
+                     La IA entonces aprende esta distorsión como "verdad".</p>
                 </div>
             </details>
 
             <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                 <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                    🚀 EVIDENCE PATTERNS ESTABLISHED: CONTINUE MISSION
+                    🚀 PATRONES DE EVIDENCIA ESTABLECIDOS: CONTINUAR MISIÓN
                 </p>
                 <p style="font-size:1.05rem; margin:0; color:var(--body-text-color);">
-                    Answer the question below to receive your next <strong>Moral Compass Score boost</strong>.
-                    <br>Then click <strong>Next</strong> to begin <strong>analyzing evidence in the Data Forensics Lab.</strong>
+                    Responde a la siguiente pregunta para recibir tu próximo <strong>aumento de Puntuación de Brújula Moral</strong>.
+                    <br>Luego haz clic en <strong>Siguiente</strong> para comenzar a <strong>analizar la evidencia en el Laboratorio Forense de Datos.</strong>
                 </p>
             </div>
         </div>
@@ -494,32 +494,32 @@ MODULES = [
     # --- MODULE 4: DATA FORENSICS LAB (The Action) ---
     {
         "id": 4, 
-        "title": "Step 2: Data Forensics Lab",
+        "title": "Paso 2: Laboratorio Forense de Datos",
         "html": """
             <div class="scenario-box">
                 <div class="tracker-container">
-                    <div class="tracker-step completed">1. RULES</div>
-                    <div class="tracker-step active">2. EVIDENCE</div>
+                    <div class="tracker-step completed">1. REGLAS</div>
+                    <div class="tracker-step active">2. EVIDENCIA</div>
                     <div class="tracker-step">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICT</div>
+                    <div class="tracker-step">4. VEREDICTO</div>
                 </div>
 
-           <h2 class="slide-title" style="margin:0;">STEP 2: SEARCH FOR THE EVIDENCE</h2>
+           <h2 class="slide-title" style="margin:0;">PASO 2: BÚSQUEDA DE LA EVIDENCIA</h2>
 
             <div style="text-align:center; margin-bottom:20px;">
 
-                <h2 class="slide-title header-accent" style="margin-top:10px;">The Data Forensics Lab</h2>                
+                <h2 class="slide-title header-accent" style="margin-top:10px;">El Laboratorio Forense de Datos</h2>                
                 <div class="slide-body">
 
                     <p style="text-align:center; max-width:700px; margin:0 auto 15px auto; font-size:1.1rem; color:var(--body-text-color);">
-                        Search for evidence of Representation Bias.
-                        Compare the **Real World** population against the AI's **Input Data**.
-                        <br>Does the AI "see" the world as it truly is or do you see evidence of distorted representation?
+                        Busca evidencias de Sesgo de Representación.
+                        Compara la población del **Mundo Real** con los **Datos de Entrada** de la IA.
+                        <br>¿La IA "ve" el mundo tal como es realmente o ves evidencia de representación distorsionada?
                     </p>
 
                 <div style="text-align:center; margin-bottom:20px;">
                     <p style="font-size:1rem; font-weight:700; color:var(--color-accent); background:rgba(59, 130, 246, 0.1); display:inline-block; padding:6px 16px; border-radius:20px; border:1px solid var(--border-color-primary);">
-                        👇 Click to scan each demographic category to reveal the evidence
+                        👇 Haz clic para escanear cada categoría demográfica y revelar la evidencia
                     </p>
                </div>
 
@@ -529,25 +529,25 @@ MODULES = [
                         <input type="radio" id="scan-age" name="scan-tabs" class="scan-radio">
 
                         <div class="forensic-tabs" style="display:flex; justify-content:center; gap:10px; margin-bottom:0;">
-                            <label for="scan-race" class="tab-label-styled" style="flex:1; text-align:center;">SCAN: RACE</label>
-                            <label for="scan-gender" class="tab-label-styled" style="flex:1; text-align:center;">SCAN: GENDER</label>
-                            <label for="scan-age" class="tab-label-styled" style="flex:1; text-align:center;">SCAN: AGE</label>
+                            <label for="scan-race" class="tab-label-styled" style="flex:1; text-align:center;">ESCANEAR: RAZA</label>
+                            <label for="scan-gender" class="tab-label-styled" style="flex:1; text-align:center;">ESCANEAR: GÉNERO</label>
+                            <label for="scan-age" class="tab-label-styled" style="flex:1; text-align:center;">ESCANEAR: EDAD</label>
                         </div>
 
                         <div class="scan-content" style="border-top: 3px solid var(--color-accent);">
 
                             <div class="scan-pane pane-race">
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; background:#1e293b; color:white; padding:10px 15px; border-radius:6px;">
-                                    <span style="font-family:monospace; letter-spacing:1px;">SCANNING: RACIAL DISTRIBUTION</span>
-                                    <span style="color:#ef4444; font-weight:bold; animation: blink 1.5s infinite;">⚠️ ANOMALY DETECTED</span>
+                                    <span style="font-family:monospace; letter-spacing:1px;">ESCANEANDO: DISTRIBUCIÓN RACIAL</span>
+                                    <span style="color:#ef4444; font-weight:bold; animation: blink 1.5s infinite;">⚠️ ANOMALÍA DETECTADA</span>
                                 </div>
 
                                 <div style="display:grid; grid-template-columns: 1fr 0.2fr 1fr; align-items:center; gap:10px;">
 
                                     <div style="text-align:center; background:var(--background-fill-secondary); padding:15px; border-radius:8px; border:1px solid var(--border-color-primary);">
-                                        <div style="font-size:0.9rem; font-weight:700; color:var(--body-text-color-subdued); letter-spacing:1px;">REAL WORLD</div>
+                                        <div style="font-size:0.9rem; font-weight:700; color:var(--body-text-color-subdued); letter-spacing:1px;">MUNDO REAL</div>
                                         <div style="font-size:2rem; font-weight:900; color:#3b82f6; margin:5px 0;">28%</div>
-                                        <div style="font-size:0.9rem; margin-bottom:10px; color: var(--body-text-color);">African-American Population</div>
+                                        <div style="font-size:0.9rem; margin-bottom:10px; color: var(--body-text-color);">Población Afroamericana</div>
                                         <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:4px; max-width:80px; margin:0 auto;">
                                             <span style="color:#3b82f6;">●</span><span style="color:#3b82f6;">●</span><span style="color:#3b82f6;">●</span><span style="color:var(--border-color-primary);">●</span>
                                             <span style="color:var(--border-color-primary);">●</span><span style="color:var(--border-color-primary);">●</span><span style="color:var(--border-color-primary);">●</span><span style="color:var(--border-color-primary);">●</span>
@@ -558,9 +558,9 @@ MODULES = [
                                     <div style="text-align:center; font-size:1.5rem; color:var(--body-text-color-subdued);">👉</div>
 
                                     <div style="text-align:center; background:rgba(239, 68, 68, 0.1); padding:15px; border-radius:8px; border:2px solid #ef4444;">
-                                        <div style="font-size:0.9rem; font-weight:700; color:#ef4444; letter-spacing:1px;">INPUT DATA</div>
+                                        <div style="font-size:0.9rem; font-weight:700; color:#ef4444; letter-spacing:1px;">DATOS DE ENTRADA</div>
                                         <div style="font-size:2rem; font-weight:900; color:#ef4444; margin:5px 0;">51%</div>
-                                        <div style="font-size:0.9rem; margin-bottom:10px; color: var(--body-text-color);">African-American Records</div>
+                                        <div style="font-size:0.9rem; margin-bottom:10px; color: var(--body-text-color);">Registros Afroamericanos</div>
                                         <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:4px; max-width:80px; margin:0 auto;">
                                             <span style="color:#ef4444;">●</span><span style="color:#ef4444;">●</span><span style="color:#ef4444;">●</span><span style="color:#ef4444;">●</span>
                                             <span style="color:#ef4444;">●</span><span style="color:#ef4444;">●</span><span style="color:rgba(239, 68, 68, 0.3);">●</span><span style="color:rgba(239, 68, 68, 0.3);">●</span>
@@ -571,72 +571,72 @@ MODULES = [
                                 </div>
 
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
-                                    <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDENCE LOGGED: Race Representation Bias</div>
+                                    <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDENCIA REGISTRADA: Sesgo de Representación Racial</div>
                                     <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        The AI is **over-exposed** to this group (51% vs 28%). It may learn to associate "High Risk" with this demographic simply because it sees them more often in arrest records.
+                                        La IA está **sobre-expuesta** a este grupo (51% vs 28%). Puede aprender a asociar "Alto Riesgo" con esta demografía simplemente porque los ve más a menudo en los registros de arresto.
                                     </div>
                                 </div>
                             </div>
 
                             <div class="scan-pane pane-gender">
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; background:#1e293b; color:white; padding:10px 15px; border-radius:6px;">
-                                    <span style="font-family:monospace; letter-spacing:1px;">SCANNING: GENDER BALANCE</span>
-                                    <span style="color:#ef4444; font-weight:bold; animation: blink 1.5s infinite;">⚠️ DATA GAP FOUND</span>
+                                    <span style="font-family:monospace; letter-spacing:1px;">ESCANEANDO: EQUILIBRIO DE GÉNERO</span>
+                                    <span style="color:#ef4444; font-weight:bold; animation: blink 1.5s infinite;">⚠️ BRECHA DE DATOS ENCONTRADA</span>
                                 </div>
                                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
                                     <div style="text-align:center; padding:20px; background:var(--background-fill-secondary); border-radius:8px; border:1px solid var(--border-color-primary);">
                                         <div style="font-size:4rem; line-height:1;">♂️</div>
                                         <div style="font-size:2.2rem; font-weight:900; color:#3b82f6;">81%</div>
-                                        <div style="font-weight:700; color:var(--body-text-color-subdued);">MALE</div>
-                                        <div style="font-size:0.85rem; color:#16a34a; font-weight:600; margin-top:5px;">✅ Well Represented</div>
+                                        <div style="font-weight:700; color:var(--body-text-color-subdued);">HOMBRES</div>
+                                        <div style="font-size:0.85rem; color:#16a34a; font-weight:600; margin-top:5px;">✅ Bien Representados</div>
                                     </div>
                                     <div style="text-align:center; padding:20px; background:rgba(225, 29, 72, 0.1); border-radius:8px; border:2px solid #fda4af;">
                                         <div style="font-size:4rem; line-height:1; opacity:0.5;">♀️</div>
                                         <div style="font-size:2.2rem; font-weight:900; color:#e11d48;">19%</div>
-                                        <div style="font-weight:700; color:#fb7185;">FEMALE</div>
-                                        <div style="font-size:0.85rem; color:#e11d48; font-weight:600; margin-top:5px;">⚠️ Insufficient Data</div>
+                                        <div style="font-weight:700; color:#fb7185;">MUJERES</div>
+                                        <div style="font-size:0.85rem; color:#e11d48; font-weight:600; margin-top:5px;">⚠️ Datos Insuficientes</div>
                                     </div>
                                 </div>
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
-                                    <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDENCE LOGGED: Gender Representation Bias</div>
+                                    <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDENCIA REGISTRADA: Sesgo de Representación de Género</div>
                                     <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        Women are a "minority class" in this dataset even though they typically make up 50% of the true population. The model will likely struggle to learn accurate patterns for them, leading to **higher error rates** for female defendants.
+                                        Las mujeres son una "clase minoritaria" en este conjunto de datos aunque típicamente constituyen el 50% de la población real. El modelo probablemente tendrá dificultades para aprender patrones precisos para ellas, dando lugar a **tasas de error más altas** para las acusadas.
                                     </div>
                                 </div>
                             </div>
 
                             <div class="scan-pane pane-age">
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; background:#1e293b; color:white; padding:10px 15px; border-radius:6px;">
-                                    <span style="font-family:monospace; letter-spacing:1px;">SCANNING: AGE DISTRIBUTION</span>
-                                    <span style="color:#ef4444; font-weight:bold; animation: blink 1.5s infinite;">⚠️ DISTRIBUTION SPIKE</span>
+                                    <span style="font-family:monospace; letter-spacing:1px;">ESCANEANDO: DISTRIBUCIÓN DE EDAD</span>
+                                    <span style="color:#ef4444; font-weight:bold; animation: blink 1.5s infinite;">⚠️ PICO DE DISTRIBUCIÓN</span>
                                 </div>
 
                                 <div style="padding:20px; background:var(--background-fill-secondary); border-radius:8px; border:1px solid var(--border-color-primary); height:200px; display:flex; align-items:flex-end; justify-content:space-around;">
 
                                     <div style="width:20%; text-align:center; display:flex; flex-direction:column; justify-content:flex-end; height:100%;">
-                                        <div style="font-weight:700; color:var(--body-text-color-subdued); margin-bottom:5px;">Low</div>
+                                        <div style="font-weight:700; color:var(--body-text-color-subdued); margin-bottom:5px;">Bajo</div>
                                         <div style="height:60px; background:var(--border-color-primary); border-radius:4px 4px 0 0; width:100%;"></div>
-                                        <div style="margin-top:10px; font-size:0.85rem; font-weight:700; color: var(--body-text-color);">Younger (<25)</div>
+                                        <div style="margin-top:10px; font-size:0.85rem; font-weight:700; color: var(--body-text-color);">Jóvenes (<25)</div>
                                     </div>
 
                                     <div style="width:35%; text-align:center; display:flex; flex-direction:column; justify-content:flex-end; height:100%;">
-                                        <div style="font-weight:700; color:#ef4444; margin-bottom:5px;">HIGH</div>
+                                        <div style="font-weight:700; color:#ef4444; margin-bottom:5px;">ALTO</div>
                                         <div style="height:120px; background:#ef4444; border-radius:4px 4px 0 0; width:100%; box-shadow:0 4px 10px rgba(239,68,68,0.3);"></div>
-                                        <div style="margin-top:10px; font-size:0.9rem; font-weight:800; color:#ef4444;">25-45 (BUBBLE)</div>
+                                        <div style="margin-top:10px; font-size:0.9rem; font-weight:800; color:#ef4444;">25-45 (BURBUJA)</div>
                                     </div>
 
                                     <div style="width:20%; text-align:center; display:flex; flex-direction:column; justify-content:flex-end; height:100%;">
-                                        <div style="font-weight:700; color:var(--body-text-color-subdued); margin-bottom:5px;">Low</div>
+                                        <div style="font-weight:700; color:var(--body-text-color-subdued); margin-bottom:5px;">Bajo</div>
                                         <div style="height:50px; background:var(--border-color-primary); border-radius:4px 4px 0 0; width:100%;"></div>
-                                        <div style="margin-top:10px; font-size:0.85rem; font-weight:700; color: var(--body-text-color);">Older (>45)</div>
+                                        <div style="margin-top:10px; font-size:0.85rem; font-weight:700; color: var(--body-text-color);">Mayores (>45)</div>
                                     </div>
 
                                 </div>
 
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
-                                    <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDENCE LOGGED: Age Representation Bias</div>
+                                    <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDENCIA REGISTRADA: Sesgo de Representación de Edad</div>
                                     <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        The data is concentrated in the 25-45 age "Bubble." The model has a **blind spot** for younger and older people, meaning predictions for those groups will be unreliable (Generalization Error).
+                                        Los datos se concentran en la "Burbuja" de edad de 25-45. El modelo tiene un **punto ciego** para personas más jóvenes y mayores, lo que significa que las predicciones para esos grupos serán poco fiables (Error de Generalización).
                                     </div>
                                 </div>
                             </div>
@@ -645,11 +645,11 @@ MODULES = [
 
             <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                 <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                    🚀 REPRESENTATION BIAS EVIDENCE ESTABLISHED: CONTINUE MISSION
+                    🚀 EVIDENCIA DE SESGO DE REPRESENTACIÓN ESTABLECIDA: CONTINUAR MISIÓN
                 </p>
                 <p style="font-size:1.05rem; margin:0; color:var(--body-text-color);">
-                    Answer the question below to receive your next <strong>Moral Compass Score boost</strong>.
-                    <br>Then click <strong>Next</strong> to <strong>summarize your data forensic lab findings.</strong>
+                    Responde a la siguiente pregunta para recibir tu próximo <strong>aumento de Puntuación de Brújula Moral</strong>.
+                    <br>Luego haz clic en <strong>Siguiente</strong> para <strong>resumir los hallazgos del laboratorio forense de datos.</strong>
                 </p>
             </div>
 
@@ -661,41 +661,41 @@ MODULES = [
     # --- MODULE 4: EVIDENCE REPORT (Input Flaws) ---
     {
         "id":5,
-        "title": "Evidence Report: Input Flaws",
+        "title": "Informe de Evidencia: Fallos de Entrada",
         "html": """
             <div class="scenario-box">
                 <div class="tracker-container">
-                    <div class="tracker-step completed">✓ RULES</div>
-                    <div class="tracker-step completed">✓ EVIDENCE</div>
+                    <div class="tracker-step completed">✓ REGLAS</div>
+                    <div class="tracker-step completed">✓ EVIDENCIA</div>
                     <div class="tracker-step active">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICT</div>
+                    <div class="tracker-step">4. VEREDICTO</div>
                 </div>
-                <h2 class="slide-title" style="font-size:1.6rem; text-align:center; margin-bottom:15px;">Data Forensics Report: Input Flaws</h2>
+                <h2 class="slide-title" style="font-size:1.6rem; text-align:center; margin-bottom:15px;">Informe Forense de Datos: Fallos de Entrada</h2>
                 <div class="ai-risk-container" style="border: 2px solid #ef4444; background: rgba(239,68,68,0.05); padding: 20px;">
-                    <h4 style="margin-top:0; font-size:1.2rem; color:#b91c1c; text-align:center;">📋 EVIDENCE SUMMARY</h4>
+                    <h4 style="margin-top:0; font-size:1.2rem; color:#b91c1c; text-align:center;">📋 RESUMEN DE EVIDENCIA</h4>
                     <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
                         <thead>
                             <tr style="background: rgba(239,68,68,0.1); border-bottom: 2px solid #ef4444;">
                                 <th style="padding: 8px; text-align: left;">SECTOR</th>
-                                <th style="padding: 8px; text-align: left;">FINDING</th>
-                                <th style="padding: 8px; text-align: left;">IMPACT</th>
+                                <th style="padding: 8px; text-align: left;">HALLAZGO</th>
+                                <th style="padding: 8px; text-align: left;">IMPACTO</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr style="border-bottom: 1px solid var(--border-color-primary);">
-                                <td style="padding: 8px; font-weight:700;">Race</td>
-                                <td style="padding: 8px;">Over-represented (51%)</td>
-                                <td style="padding: 8px; color:#b91c1c;">Risk of Increased Prediction Error</td>
+                                <td style="padding: 8px; font-weight:700;">Raza</td>
+                                <td style="padding: 8px;">Sobrerrepresentada (51%)</td>
+                                <td style="padding: 8px; color:#b91c1c;">Riesgo de Aumento de Error de Predicción</td>
                             </tr>
                             <tr style="border-bottom: 1px solid var(--border-color-primary);">
-                                <td style="padding: 8px; font-weight:700;">Gender</td>
-                                <td style="padding: 8px;">Under-represented (19%)</td>
-                                <td style="padding: 8px; color:#b91c1c;">Risk of Increased Prediction Error</td>
+                                <td style="padding: 8px; font-weight:700;">Género</td>
+                                <td style="padding: 8px;">Infrarrepresentado (19%)</td>
+                                <td style="padding: 8px; color:#b91c1c;">Riesgo de Aumento de Error de Predicción</td>
                             </tr>
                             <tr>
-                                <td style="padding: 8px; font-weight:700;">Age</td>
-                                <td style="padding: 8px;">Excluded Groups (Under 25/Over 45)</td>
-                                <td style="padding: 8px; color:#b91c1c;">Risk of Increased Prediction Error</td>
+                                <td style="padding: 8px; font-weight:700;">Edad</td>
+                                <td style="padding: 8px;">Grupos Excluidos (Menos de 25/Más de 45)</td>
+                                <td style="padding: 8px; color:#b91c1c;">Riesgo de Aumento de Error de Predicción</td>
                             </tr>
                         </tbody>
                     </table>
@@ -704,11 +704,11 @@ MODULES = [
 
                 <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                 <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                    🚀 NEXT: INVESTIGATE ERRORS IN OUTPUTS - CONTINUE MISSION
+                    🚀 SIGUIENTE: INVESTIGAR ERRORES EN SALIDAS - CONTINUAR MISIÓN
                 </p>
                 <p style="font-size:1.05rem; margin:0;">
-                    Answer the question below to receive your next <strong>Moral Compass Score boost</strong>.
-                    <br>Click  <strong>Next</strong> to proceed to **Step 3** to find proof of actual harm: **The Error Gaps**.
+                    Responde a la siguiente pregunta para recibir tu próximo <strong>aumento de Puntuación de Brújula Moral</strong>.
+                    <br>Haz clic en <strong>Siguiente</strong> para proceder al **Paso 3** para encontrar pruebas de daños reales: **Las Brechas de Error**.
                 </p>
             </div>
                 </div>
@@ -719,24 +719,24 @@ MODULES = [
 # --- MODULE 5: INTRO TO PREDICTION ERROR ---
     {
         "id": 6,
-        "title": "Part II: Step 3 — Proving the Prediction Error",
+        "title": "Parte II: Paso 3 — Demostrando el Error de Predicción",
         "html": """
             <div class="scenario-box">
                 <div class="tracker-container">
-                    <div class="tracker-step completed">1. RULES</div>
-                    <div class="tracker-step completed">2. EVIDENCE</div>
+                    <div class="tracker-step completed">1. REGLAS</div>
+                    <div class="tracker-step completed">2. EVIDENCIA</div>
                     <div class="tracker-step active">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICT</div>
+                    <div class="tracker-step">4. VEREDICTO</div>
                 </div>
 
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">STEP 3: EVALUATE PREDICTION ERRORS</h2>
+                    <h2 class="slide-title" style="margin:0;">PASO 3: EVALUAR ERRORES DE PREDICCIÓN</h2>
 
                     <div style="text-align:center; margin-bottom:20px;">
-                        <h2 class="slide-title header-accent" style="margin-top:10px;">The Hunt For Prediction Errors</h2>
+                        <h2 class="slide-title header-accent" style="margin-top:10px;">La Búsqueda de Errores de Predicción</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                            We found evidence that the Input Data is biased. Now we must investigate if this bias has influenced the <strong>Model's Decisions</strong>.
-                            <br>We are looking for the second Red Flag from our Rulebook: <strong>Error Gaps</strong>.
+                            Hemos encontrado pruebas de que los Datos de Entrada están sesgados. Ahora debemos investigar si este sesgo ha influido en las <strong>Decisiones del Modelo</strong>.
+                            <br>Estamos buscando la segunda Bandera Roja de nuestro Reglamento: <strong>Brechas de Error</strong>.
                         </p>
                     </div>
 
@@ -745,8 +745,8 @@ MODULES = [
                         <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px; border-bottom:1px solid var(--border-color-primary); padding-bottom:10px;">
                             <div style="font-size:1.5rem;">🚩</div>
                             <div>
-                                <strong style="color:#f43f5e; font-size:1.1rem; text-transform:uppercase; letter-spacing:1px;">PATTERN: "THE DOUBLE STANDARD"</strong>
-                                <div style="font-size:0.9rem; color:var(--body-text-color-subdued);">(Unequal Impact of Mistakes)</div>
+                                <strong style="color:#f43f5e; font-size:1.1rem; text-transform:uppercase; letter-spacing:1px;">PATRÓN: "EL DOBLE ESTÁNDAR"</strong>
+                                <div style="font-size:0.9rem; color:var(--body-text-color-subdued);">(Impacto Desigual de los Errores)</div>
                             </div>
                         </div>
 
@@ -754,37 +754,37 @@ MODULES = [
                             
                             <div>
                                 <p style="font-size:1rem; line-height:1.6; margin-top:0; color:var(--body-text-color);">
-                                    <strong>The Concept:</strong> A model's prediction shapes a person's future. When it makes a mistake, real people suffer.
+                                    <strong>El Concepto:</strong> La predicción de un modelo da forma al futuro de una persona. Cuando comete un error, la gente real sufre.
                                 </p>
 
                                 <div style="margin-top:15px; margin-bottom:15px;">
                                     <div style="background:rgba(255, 241, 242, 0.1); padding:12px; border-radius:8px; border:1px solid #fda4af; margin-bottom:10px;">
-                                        <div style="font-weight:700; color:#fb7185; margin-bottom:4px; font-size:0.95rem;">⚠️ TYPE 1: FALSE ALARMS</div>
-                                        <div style="font-size:0.9rem; color:var(--body-text-color); line-height:1.4;">Labeling a low-risk person as <strong>High Risk</strong>.</div>
-                                        <div style="font-size:0.85rem; font-weight:700; color:#f43f5e; margin-top:4px;">Harm: Unfair Detention.</div>
+                                        <div style="font-weight:700; color:#fb7185; margin-bottom:4px; font-size:0.95rem;">⚠️ TIPO 1: FALSAS ALARMAS</div>
+                                        <div style="font-size:0.9rem; color:var(--body-text-color); line-height:1.4;">Etiquetar a una persona de bajo riesgo como de <strong>Alto Riesgo</strong>.</div>
+                                        <div style="font-size:0.85rem; font-weight:700; color:#f43f5e; margin-top:4px;">Daño: Detención Injusta.</div>
                                     </div>
 
                                     <div style="background:rgba(240, 249, 255, 0.1); padding:12px; border-radius:8px; border:1px solid #bae6fd;">
-                                        <div style="font-weight:700; color:#38bdf8; margin-bottom:4px; font-size:0.95rem;">⚠️ TYPE 2: MISSED WARNINGS</div>
-                                        <div style="font-size:0.9rem; color:var(--body-text-color); line-height:1.4;">Labeling a high-risk person as <strong>Low Risk</strong>.</div>
-                                        <div style="font-size:0.85rem; font-weight:700; color:#0ea5e9; margin-top:4px;">Harm: Public Safety Risk.</div>
+                                        <div style="font-weight:700; color:#38bdf8; margin-bottom:4px; font-size:0.95rem;">⚠️ TIPO 2: ADVERTENCIAS OMITIDAS</div>
+                                        <div style="font-size:0.9rem; color:var(--body-text-color); line-height:1.4;">Etiquetar a una persona de alto riesgo como de <strong>Bajo Riesgo</strong>.</div>
+                                        <div style="font-size:0.85rem; font-weight:700; color:#0ea5e9; margin-top:4px;">Daño: Riesgo para la Seguridad Pública.</div>
                                     </div>
                                 </div>
 
                                 <div style="background:rgba(255, 241, 242, 0.1); color:var(--body-text-color); padding:10px; border-radius:6px; font-size:0.9rem; border-left:4px solid #db2777; margin-top:15px;">
-                                    <strong>Key Clue:</strong> Look for a significant gap in the <strong>False Alarm Rate</strong>. If Group A is flagged incorrectly substantially more than Group B, that is an Error Gap.
+                                    <strong>Pista Clave:</strong> Busca una brecha significativa en la <strong>Tasa de Falsas Alarmes</strong>. Si el Grupo A es marcado incorrectamente sustancialmente más que el Grupo B, eso es una Brecha de Error.
                                 </div>
                             </div>
 
                             <div style="background:var(--background-fill-primary); padding:20px; border-radius:12px; border:1px solid var(--border-color-primary); display:flex; flex-direction:column; justify-content:center;">
                                 
                                 <div style="text-align:center; margin-bottom:10px; font-weight:700; color:var(--body-text-color); font-size:0.9rem;">
-                                    "FALSE ALARMS" (Innocent People Flagged Risky)
+                                    "FALSAS ALARMAS" (Personas Inocentes Marcadas como Arriesgadas)
                                 </div>
 
                                 <div style="margin-bottom:15px;">
                                     <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:700; color:#ec4899; margin-bottom:4px;">
-                                        <span>GROUP A (Targeted)</span>
+                                        <span>GRUPO A (Objetivo)</span>
                                         <span>60% ERROR</span>
                                     </div>
                                     <div style="width:100%; background:var(--border-color-primary); height:12px; border-radius:10px; overflow:hidden;">
@@ -794,7 +794,7 @@ MODULES = [
 
                                 <div>
                                     <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:700; color:var(--body-text-color-subdued); margin-bottom:4px;">
-                                        <span>GROUP B (Baseline)</span>
+                                        <span>GRUPO B (Referencia)</span>
                                         <span>30% ERROR</span>
                                     </div>
                                     <div style="width:100%; background:var(--border-color-primary); height:12px; border-radius:10px; overflow:hidden;">
@@ -803,7 +803,7 @@ MODULES = [
                                 </div>
 
                                 <div style="text-align:center; margin-top:15px; font-size:0.85rem; color:#db2777; font-weight:700; background:rgba(255, 241, 242, 0.1); padding:5px; border-radius:4px;">
-                                    ⚠️ GAP DETECTED: +30 Percentage Point Difference
+                                    ⚠️ BRECHA DETECTADA: +30 Puntos Porcentuales de Diferencia
                                 </div>
 
                             </div>
@@ -811,20 +811,20 @@ MODULES = [
                     </div>
 
                     <details style="margin-bottom:25px; cursor:pointer; background:rgba(255, 241, 242, 0.1); border:1px solid #fda4af; border-radius:8px; padding:12px;">
-                        <summary style="font-weight:700; color:#fb7185; font-size:0.95rem;">🔬 The Hypothesis: How is Representation Bias connected to Prediction Error?</summary>
+                        <summary style="font-weight:700; color:#fb7185; font-size:0.95rem;">🔬 La Hipótesis: ¿Cómo está conectado el Sesgo de Representación con el Error de Predicción?</summary>
                         <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); line-height:1.5; padding:0 5px;">
-                            <p style="margin-bottom:10px;"><strong>Connect the dots:</strong> In Step 2, we found that the input data overrepresented specific groups.</p>
-                            <p><strong>The Theory:</strong> Because the AI saw these groups more often in arrest records, the data structure may lead the model to make group-specific prediction mistakes. The model may generate more <strong>False Alarms</strong> for innocent people from these groups at a much higher rate.</p>
+                            <p style="margin-bottom:10px;"><strong>Une los puntos:</strong> En el Paso 2, encontramos que los datos de entrada sobrerepresentaban grupos específicos.</p>
+                            <p><strong>La Teoría:</strong> Como la IA veía estos grupos más a menudo en los registros de arresto, la estructura de los datos puede llevar al modelo a cometer errores de predicción específicos para grupos. El modelo puede generar más <strong>Falsas Alarmas</strong> para personas inocentes de estos grupos a una tasa mucho más alta.</p>
                         </div>
                     </details>
 
                     <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(219,39,119,0.1), rgba(251,113,133,0.1)); border-radius:12px; border:2px solid #fecdd3;">
                         <p class="text-danger-adaptive" style="font-size:1.15rem; font-weight:800; margin-bottom:5px; color:#f43f5e;">
-                            🚀 ERROR PATTERN ESTABLISHED: CONTINUE MISSION
+                            🚀 PATRÓN DE ERROR ESTABLECIDO: CONTINUAR MISIÓN
                         </p>
                         <p class="text-body-danger-adaptive" style="font-size:1.05rem; margin:0; color:var(--body-text-color);">
-                            Answer the question below to confirm your target.
-                            <br>Then click <strong>Next</strong> to open the <strong>Prediction Error Lab</strong> and test the False Alarm Rates.
+                            Responde a la siguiente pregunta para confirmar tu objetivo.
+                            <br>Luego haz clic en <strong>Siguiente</strong> para abrir el <strong>Laboratorio de Error de Predicción</strong> y probar las Tasas de Falsas Alarmas.
                         </p>
                     </div>
 
@@ -836,24 +836,24 @@ MODULES = [
     # --- MODULE 6: RACE ERROR GAP LAB ---
     {
         "id": 7,
-        "title": "Step 3: The Race Error Gap Lab",
+        "title": "Paso 3: Laboratorio de Brecha de Error Racial",
         "html": """
             <div class="scenario-box">
                 <div class="tracker-container">
-                    <div class="tracker-step completed">1. RULES</div>
-                    <div class="tracker-step completed">2. EVIDENCE</div>
+                    <div class="tracker-step completed">1. REGLAS</div>
+                    <div class="tracker-step completed">2. EVIDENCIA</div>
                     <div class="tracker-step active">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICT</div>
+                    <div class="tracker-step">4. VEREDICTO</div>
                 </div>
 
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">STEP 3: ANALYZE THE PREDICTION ERROR GAP</h2>
+                    <h2 class="slide-title" style="margin:0;">PASO 3: ANALIZAR LA BRECHA DE ERROR DE PREDICCIÓN</h2>
 
                     <div style="text-align:center; margin-bottom:20px;">
-                        <h2 class="slide-title header-accent" style="margin-top:10px;">The Prediction Error Lab - Race Analysis</h2>
+                        <h2 class="slide-title header-accent" style="margin-top:10px;">El Laboratorio de Error de Predicción - Análisis de Raza</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                            We suspected the model is generating unfair amounts of prediction errors for specific groups. Now, we run the analysis.
-                            <br>Click to reveal the error rates below. Do AI mistakes fall equally across white and black defendants?
+                            Sospechábamos que el modelo genera cantidades injustas de errores de predicción para grupos específicos. Ahora, ejecutemos el análisis.
+                            <br>Haz clic para revelar las tasas de error a continuación. ¿Los errores de la IA caen igualmente entre acusados blancos y negros?
                         </p>
                     </div>
 
@@ -861,32 +861,32 @@ MODULES = [
                         
                         <div class="ai-risk-container" style="padding:0; border:2px solid #ef4444; overflow:hidden; border-radius:12px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1); background:transparent;">
                             <div style="background:rgba(239, 68, 68, 0.1); padding:15px; text-align:center; border-bottom:1px solid #fda4af;">
-                                <h3 style="margin:0; font-size:1.25rem; color:#ef4444;">📡 SCAN 1: FALSE ALARMS</h3>
-                                <p style="font-size:0.9rem; margin:5px 0 0 0; color:var(--body-text-color);">(Innocent people wrongly flagged as "High Risk")</p>
+                                <h3 style="margin:0; font-size:1.25rem; color:#ef4444;">📡 ESCANEO 1: FALSAS ALARMAS</h3>
+                                <p style="font-size:0.9rem; margin:5px 0 0 0; color:var(--body-text-color);">(Personas inocentes marcadas erróneamente como de "Alto Riesgo")</p>
                             </div>
                             
                             <details style="cursor:pointer; background:var(--background-fill-secondary);">
                                 <summary style="list-style:none; padding:20px; font-weight:800; text-align:center; color:#ef4444; font-size:1.1rem; transition:background 0.2s;">
-                                    👇 CLICK TO REVEAL DATA
+                                    👇 HAZ CLIC PARA REVELAR DATOS
                                 </summary>
                                 <div style="padding:0 20px 25px 20px; text-align:center; border-top:1px solid var(--border-color-primary);">
                                     
                                     <div style="display:flex; justify-content:center; gap:30px; margin-bottom:20px;">
                                         <div style="text-align:center;">
                                             <div style="font-size:2.5rem; font-weight:900; color:#ef4444; line-height:1;">45%</div>
-                                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color-subdued); margin-top:5px;">AFRICAN-AMERICAN</div>
+                                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color-subdued); margin-top:5px;">AFROAMERICANO</div>
                                         </div>
                                         <div style="width:1px; background:var(--border-color-primary);"></div>
                                         <div style="text-align:center;">
                                             <div style="font-size:2.5rem; font-weight:900; color:#3b82f6; line-height:1;">23%</div>
-                                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color-subdued); margin-top:5px;">WHITE</div>
+                                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color-subdued); margin-top:5px;">BLANCO</div>
                                         </div>
                                     </div>
 
                                     <div class="hint-box" style="border-left:4px solid #ef4444; background:rgba(239, 68, 68, 0.1); text-align:left;">
-                                        <div style="font-weight:800; color:#ef4444; font-size:0.95rem;">❌ VERDICT: PUNITIVE BIAS</div>
+                                        <div style="font-weight:800; color:#ef4444; font-size:0.95rem;">❌ VERDICTO: SESGO PUNITIVO</div>
                                         <div style="font-size:0.9rem; color:var(--body-text-color); margin-top:3px;">
-                                            Black defendants are nearly <strong style="color:#ef4444;">twice as likely</strong> to be wrongly labeled as dangerous compared to White defendants.
+                                            Los acusados negros tienen casi <strong style="color:#ef4444;">el doble de probabilidades</strong> de ser etiquetados erróneamente como peligrosos en comparación con los acusados blancos.
                                         </div>
                                     </div>
 
@@ -896,32 +896,32 @@ MODULES = [
 
                         <div class="ai-risk-container" style="padding:0; border:2px solid #3b82f6; overflow:hidden; border-radius:12px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1); background:transparent;">
                             <div style="background:rgba(59, 130, 246, 0.1); padding:15px; text-align:center; border-bottom:1px solid #bfdbfe;">
-                                <h3 style="margin:0; font-size:1.25rem; color:#3b82f6;">📡 SCAN 2: MISSED WARNINGS</h3>
-                                <p style="font-size:0.9rem; margin:5px 0 0 0; color:var(--body-text-color);">(Risky people wrongly labeled as "Safe")</p>
+                                <h3 style="margin:0; font-size:1.25rem; color:#3b82f6;">📡 ESCANEO 2: ADVERTENCIAS OMITIDAS</h3>
+                                <p style="font-size:0.9rem; margin:5px 0 0 0; color:var(--body-text-color);">(Personas arriesgadas marcadas erróneamente como "Seguras")</p>
                             </div>
                             
                             <details style="cursor:pointer; background:var(--background-fill-secondary);">
                                 <summary style="list-style:none; padding:20px; font-weight:800; text-align:center; color:#3b82f6; font-size:1.1rem; transition:background 0.2s;">
-                                    👇 CLICK TO REVEAL DATA
+                                    👇 HAZ CLIC PARA REVELAR DATOS
                                 </summary>
                                 <div style="padding:0 20px 25px 20px; text-align:center; border-top:1px solid var(--border-color-primary);">
                                     
                                     <div style="display:flex; justify-content:center; gap:30px; margin-bottom:20px;">
                                         <div style="text-align:center;">
                                             <div style="font-size:2.5rem; font-weight:900; color:#ef4444; line-height:1;">28%</div>
-                                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color-subdued); margin-top:5px;">AFRICAN-AMERICAN</div>
+                                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color-subdued); margin-top:5px;">AFROAMERICANO</div>
                                         </div>
                                         <div style="width:1px; background:var(--border-color-primary);"></div>
                                         <div style="text-align:center;">
                                             <div style="font-size:2.5rem; font-weight:900; color:#3b82f6; line-height:1;">48%</div>
-                                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color-subdued); margin-top:5px;">WHITE</div>
+                                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color-subdued); margin-top:5px;">BLANCO</div>
                                         </div>
                                     </div>
 
                                     <div class="hint-box" style="border-left:4px solid #3b82f6; background:rgba(59, 130, 246, 0.1); text-align:left;">
-                                        <div style="font-weight:800; color:#3b82f6; font-size:0.95rem;">❌ VERDICT: LENIENCY BIAS</div>
+                                        <div style="font-weight:800; color:#3b82f6; font-size:0.95rem;">❌ VERDICTO: SESGO DE INDULGENCIA</div>
                                         <div style="font-size:0.9rem; color:var(--body-text-color); margin-top:3px;">
-                                            White defendants who re-offend are much more likely to be <strong style="color:#3b82f6;">missed</strong> by the system than Black defendants.
+                                            Los acusados blancos que reinciden tienen muchas más probabilidades de ser <strong style="color:#3b82f6;">omitidos</strong> por el sistema que los acusados negros.
                                         </div>
                                     </div>
 
@@ -932,11 +932,11 @@ MODULES = [
 
                     <div style="text-align:center; margin-top:20px; padding:20px; background:linear-gradient(to right, rgba(219,39,119,0.1), rgba(251,113,133,0.1)); border-radius:12px; border:2px solid #fecdd3;">
                         <p style="font-size:1.15rem; font-weight:800; margin-bottom:5px; color:#ef4444;">
-                            🚀 RACIAL ERROR GAP CONFIRMED
+                            🚀 BRECHA DE ERROR RACIAL CONFIRMADA
                         </p>
                         <p style="font-size:1.05rem; margin:0; color:var(--body-text-color);">
-                            We have demonstrated the model has a "Double Standard" for race. 
-                            <br>Answer the question below to certify your findings, then proceed to <strong>Step 4: Analyze Gender, Age, and Geography Gaps in Error.</strong>
+                            Hemos demostrado que el modelo tiene un "Doble Estándar" por raza. 
+                            <br>Responde a la siguiente pregunta para certificar tus hallazgos, luego procede al <strong>Paso 4: Analizar Brechas de Error por Género, Edad y Geografía.</strong>
                         </p>
                     </div>
 
@@ -948,24 +948,24 @@ MODULES = [
     # --- MODULE 7: GENERALIZATION & PROXY SCAN ---
     {
         "id": 8,
-        "title": "Step 3: Generalization Scan Lab",
+        "title": "Paso 3: Laboratorio de Escaneo de Generalización",
         "html": """
             <div class="scenario-box">
                 <div class="tracker-container">
-                    <div class="tracker-step completed">1. RULES</div>
-                    <div class="tracker-step completed">2. EVIDENCE</div>
+                    <div class="tracker-step completed">1. REGLAS</div>
+                    <div class="tracker-step completed">2. EVIDENCIA</div>
                     <div class="tracker-step active">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICT</div>
+                    <div class="tracker-step">4. VEREDICTO</div>
                 </div>
 
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">STEP 3: ANALYZE THE PREDICTION ERROR GAP</h2>
+                    <h2 class="slide-title" style="margin:0;">PASO 3: ANALIZAR LA BRECHA DE ERROR DE PREDICCIÓN</h2>
 
                     <div style="text-align:center; margin-bottom:20px;">
-                        <h2 class="slide-title header-accent" style="margin-top:10px;">Gender, Age, and Geography Error Scans</h2>
+                        <h2 class="slide-title header-accent" style="margin-top:10px;">Escaneos de Error de Género, Edad y Geografía</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                            We revealed the Racial Error Gap. But bias hides in other places too.
-                            <br>Use the scanner below to check for gender and age <strong>Representation Errors</strong> (due to data gaps) and <strong>Proxy Bias</strong> (hidden variables).
+                            Hemos revelado la Brecha de Error Racial. Pero el sesgo se esconde también en otros lugares.
+                            <br>Utiliza el escáner a continuación para comprobar <strong>Errores de Representación</strong> de género y edad (debido a brechas de datos) y <strong>Sesgo Proxy</strong> (variables ocultas).
                         </p>
                     </div>
 
@@ -975,28 +975,28 @@ MODULES = [
                         <input type="radio" id="scan-geo-err" name="error-tabs" class="scan-radio">
 
                         <div class="forensic-tabs" style="display:flex; justify-content:center; gap:10px; margin-bottom:0;">
-                            <label for="scan-gender-err" class="tab-label-styled" style="flex:1; text-align:center; border-color:#fda4af; color:#fb7185;">SCAN: GENDER</label>
-                            <label for="scan-age-err" class="tab-label-styled" style="flex:1; text-align:center; border-color:#fda4af; color:#fb7185;">SCAN: AGE</label>
-                            <label for="scan-geo-err" class="tab-label-styled" style="flex:1; text-align:center; border-color:#fda4af; color:#fb7185;">SCAN: GEOGRAPHY</label>
+                            <label for="scan-gender-err" class="tab-label-styled" style="flex:1; text-align:center; border-color:#fda4af; color:#fb7185;">ESCANEAR: GÉNERO</label>
+                            <label for="scan-age-err" class="tab-label-styled" style="flex:1; text-align:center; border-color:#fda4af; color:#fb7185;">ESCANEAR: EDAD</label>
+                            <label for="scan-geo-err" class="tab-label-styled" style="flex:1; text-align:center; border-color:#fda4af; color:#fb7185;">ESCANEAR: GEOGRAFÍA</label>
                         </div>
 
                         <div class="scan-content" style="border-top: 3px solid #db2777;">
 
                             <div class="scan-pane pane-gender-err">
                                 <div style="background:rgba(255, 241, 242, 0.1); padding:15px; text-align:center; border-bottom:1px solid #fda4af; margin-bottom:15px;">
-                                    <h3 style="margin:0; font-size:1.2rem; color:#f43f5e;">📡 GENDER SCAN: PREDICTION ERROR</h3>
-                                    <p style="font-size:0.9rem; margin:5px 0 0 0; color:var(--body-text-color);">(Does the "Data Gap" lead to more mistakes?)</p>
+                                    <h3 style="margin:0; font-size:1.2rem; color:#f43f5e;">📡 ESCANEO DE GÉNERO: ERROR DE PREDICCIÓN</h3>
+                                    <p style="font-size:0.9rem; margin:5px 0 0 0; color:var(--body-text-color);">(¿La "Brecha de Datos" conduce a más errores?)</p>
                                 </div>
 
                                 <details style="cursor:pointer; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); border-radius:8px; overflow:hidden;">
                                     <summary style="list-style:none; padding:15px; font-weight:800; text-align:center; color:#db2777; font-size:1.05rem; background:rgba(255, 241, 242, 0.1);">
-                                        👇 CLICK TO REVEAL FALSE ALARM RATES
+                                        👇 HAZ CLIC PARA REVELAR TASAS DE FALSAS ALARMAS
                                     </summary>
                                     <div style="padding:20px;">
                                         
                                         <div style="margin-bottom:20px;">
                                             <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                                                <span style="font-weight:700; color:#f43f5e;">WOMEN (The Minority Class)</span>
+                                                <span style="font-weight:700; color:#f43f5e;">MUJERES (La Clase Minoritaria)</span>
                                                 <span style="font-weight:700; color:#f43f5e;">32% Error</span>
                                             </div>
                                             <div style="width:100%; background:var(--border-color-primary); height:18px; border-radius:4px; overflow:hidden;">
@@ -1006,7 +1006,7 @@ MODULES = [
 
                                         <div style="margin-bottom:20px;">
                                             <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                                                <span style="font-weight:700; color:var(--body-text-color-subdued);">MEN (Well Represented)</span>
+                                                <span style="font-weight:700; color:var(--body-text-color-subdued);">HOMBRES (Bien Representados)</span>
                                                 <span style="font-weight:700; color:var(--body-text-color-subdued);">18% Error</span>
                                             </div>
                                             <div style="width:100%; background:var(--border-color-primary); height:18px; border-radius:4px; overflow:hidden;">
@@ -1015,10 +1015,10 @@ MODULES = [
                                         </div>
 
                                         <div class="hint-box" style="border-left:4px solid #db2777; background:rgba(255, 241, 242, 0.1);">
-                                            <div style="font-weight:800; color:#f43f5e;">❌ VERDICT: BLIND SPOT CONFIRMED</div>
+                                            <div style="font-weight:800; color:#f43f5e;">❌ VERDICTO: PUNTO CIEGO CONFIRMADO</div>
                                             <div style="font-size:0.95rem; margin-top:5px; color:var(--body-text-color);">
-                                                Because the model has less data on women, it is "guessing" more often. 
-                                                This high error rate is most likely the result of the <strong>Data Gap</strong> we found in Step 2.
+                                                Como el modelo tiene menos datos sobre mujeres, está "adivinando" más a menudo. 
+                                                Esta alta tasa de error es muy probablemente el resultado de la <strong>Brecha de Datos</strong> que encontramos en el Paso 2.
                                             </div>
                                         </div>
                                     </div>
@@ -1027,13 +1027,13 @@ MODULES = [
 
                             <div class="scan-pane pane-age-err">
                                 <div style="background:rgba(255, 241, 242, 0.1); padding:15px; text-align:center; border-bottom:1px solid #fda4af; margin-bottom:15px;">
-                                    <h3 style="margin:0; font-size:1.2rem; color:#f43f5e;">📡 AGE SCAN: PREDICTION ERROR</h3>
-                                    <p style="font-size:0.9rem; margin:5px 0 0 0; color:var(--body-text-color);">(Does the model fail outside the "25-45" bubble?)</p>
+                                    <h3 style="margin:0; font-size:1.2rem; color:#f43f5e;">📡 ESCANEO DE EDAD: ERROR DE PREDICCIÓN</h3>
+                                    <p style="font-size:0.9rem; margin:5px 0 0 0; color:var(--body-text-color);">(¿El modelo falla fuera de la burbuja "25-45"?)</p>
                                 </div>
 
                                 <details style="cursor:pointer; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); border-radius:8px; overflow:hidden;">
                                     <summary style="list-style:none; padding:15px; font-weight:800; text-align:center; color:#db2777; font-size:1.05rem; background:rgba(255, 241, 242, 0.1);">
-                                        👇 CLICK TO REVEAL FALSE ALARM RATES
+                                        👇 HAZ CLIC PARA REVELAR TASAS DE FALSAS ALARMES
                                     </summary>
                                     <div style="padding:20px;">
                                         
@@ -1041,7 +1041,7 @@ MODULES = [
                                             <div style="text-align:center; width:25%;">
                                                 <div style="font-size:0.8rem; font-weight:700; color:#ef4444; margin-bottom:2px;">33%</div>
                                                 <div style="height:60px; background:#ef4444; width:100%; border-radius:4px 4px 0 0;"></div>
-                                                <div style="font-size:0.75rem; font-weight:700; margin-top:5px; color:var(--body-text-color);">Less than 25</div>
+                                                <div style="font-size:0.75rem; font-weight:700; margin-top:5px; color:var(--body-text-color);">Menos de 25</div>
                                             </div>
                                             <div style="text-align:center; width:25%;">
                                                 <div style="font-size:0.8rem; font-weight:700; color:#16a34a; margin-bottom:2px;">18%</div>
@@ -1051,15 +1051,15 @@ MODULES = [
                                             <div style="text-align:center; width:25%;">
                                                 <div style="font-size:0.8rem; font-weight:700; color:#ef4444; margin-bottom:2px;">27%</div>
                                                 <div style="height:50px; background:#ef4444; width:100%; border-radius:4px 4px 0 0;"></div>
-                                                <div style="font-size:0.75rem; font-weight:700; margin-top:5px; color:var(--body-text-color);">Greater than 45</div>
+                                                <div style="font-size:0.75rem; font-weight:700; margin-top:5px; color:var(--body-text-color);">Más de 45</div>
                                             </div>
                                         </div>
 
                                         <div class="hint-box" style="border-left:4px solid #db2777; background:rgba(255, 241, 242, 0.1);">
-                                            <div style="font-weight:800; color:#f43f5e;">❌ VERDICT: THE "U-SHAPED" FAILURE</div>
+                                            <div style="font-weight:800; color:#f43f5e;">❌ VERDICTO: EL FALLO EN FORMA DE "U"</div>
                                             <div style="font-size:0.95rem; margin-top:5px; color:var(--body-text-color);">
-                                                The model works well for the "Bubble" (25-45) with more data but fails significantly for the less than 25 and greater than 45 age categories. 
-                                                It cannot accurately predict risk for age groups it hasn't studied enough.
+                                                El modelo funciona bien para la "Burbuja" (25-45) con más datos pero falla significativamente para las categorías de edad de menos de 25 y más de 45. 
+                                                No puede predecir con precisión el riesgo para grupos de edad que no ha estudiado lo suficiente.
                                             </div>
                                         </div>
                                     </div>
@@ -1068,19 +1068,19 @@ MODULES = [
 
                             <div class="scan-pane pane-geo-err">
                                 <div style="background:rgba(255, 241, 242, 0.1); padding:15px; text-align:center; border-bottom:1px solid #fda4af; margin-bottom:15px;">
-                                    <h3 style="margin:0; font-size:1.2rem; color:#f43f5e;">📡 GEOGRAPHY SCAN: THE PROXY CHECK</h3>
-                                    <p style="font-size:0.9rem; margin:5px 0 0 0; color:var(--body-text-color);">(Is "Zip Code" creating a racial double standard?)</p>
+                                    <h3 style="margin:0; font-size:1.2rem; color:#f43f5e;">📡 ESCANEO DE GEOGRAFÍA: LA COMPROBACIÓN DE PROXY</h3>
+                                    <p style="font-size:0.9rem; margin:5px 0 0 0; color:var(--body-text-color);">(¿Está el "Código Postal" creando un doble estándar racial?)</p>
                                 </div>
 
                                 <details style="cursor:pointer; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); border-radius:8px; overflow:hidden;">
                                     <summary style="list-style:none; padding:15px; font-weight:800; text-align:center; color:#db2777; font-size:1.05rem; background:rgba(255, 241, 242, 0.1);">
-                                        👇 CLICK TO REVEAL FALSE ALARM RATES
+                                        👇 HAZ CLIC PARA REVELAR TASAS DE FALSAS ALARMAS
                                     </summary>
                                     <div style="padding:20px;">
                                         
                                         <div style="margin-bottom:20px;">
                                             <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                                                <span style="font-weight:700; color:#f43f5e;">URBAN ZONES (High Minority Pop.)</span>
+                                                <span style="font-weight:700; color:#f43f5e;">ZONAS URBANAS (Alta Pob. Minoritaria)</span>
                                                 <span style="font-weight:700; color:#f43f5e;">58% Error</span>
                                             </div>
                                             <div style="width:100%; background:var(--border-color-primary); height:18px; border-radius:4px; overflow:hidden;">
@@ -1090,7 +1090,7 @@ MODULES = [
 
                                         <div style="margin-bottom:20px;">
                                             <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                                                <span style="font-weight:700; color:var(--body-text-color-subdued);">RURAL ZONES</span>
+                                                <span style="font-weight:700; color:var(--body-text-color-subdued);">ZONAS RURALES</span>
                                                 <span style="font-weight:700; color:var(--body-text-color-subdued);">22% Error</span>
                                             </div>
                                             <div style="width:100%; background:var(--border-color-primary); height:18px; border-radius:4px; overflow:hidden;">
@@ -1099,11 +1099,11 @@ MODULES = [
                                         </div>
 
                                         <div class="hint-box" style="border-left:4px solid #db2777; background:rgba(255, 241, 242, 0.1);">
-                                            <div style="font-weight:800; color:#f43f5e;">❌ VERDICT: PROXY (HIDDEN RELATIONSHIP) BIAS CONFIRMED</div>
+                                            <div style="font-weight:800; color:#f43f5e;">❌ VERDICTO: SESGO DE PROXY (RELACIÓN OCULTA) CONFIRMADO</div>
                                             <div style="font-size:0.95rem; margin-top:5px; color:var(--body-text-color);">
-                                                The error rate in Urban Zones is massive (58%). 
-                                                Even if "Race" was removed, the model is using <strong>Location</strong> to target the same groups. 
-                                                It is treating "City Resident" as a synonym for "High Risk."
+                                                La tasa de error en Zonas Urbanas es masiva (58%). 
+                                                Incluso si se eliminó "Raza", el modelo está utilizando la <strong>Ubicación</strong> para señalar a los mismos grupos. 
+                                                Está tratando "Residente de Ciudad" como un sinónimo de "Alto Riesgo".
                                             </div>
                                         </div>
                                     </div>
@@ -1115,11 +1115,11 @@ MODULES = [
 
                     <div style="text-align:center; margin-top:25px; padding:20px; background:linear-gradient(to right, rgba(219,39,119,0.1), rgba(251,113,133,0.1)); border-radius:12px; border:2px solid #fecdd3;">
                         <p class="text-danger-adaptive" style="font-size:1.15rem; font-weight:800; margin-bottom:5px; color:#f43f5e;">
-                            🚀 ALL SYSTEMS SCANNED
+                            🚀 TODOS LOS SISTEMAS ESCANEADOS
                         </p>
                         <p class="text-body-danger-adaptive" style="font-size:1.05rem; margin:0; color:var(--body-text-color);">
-                            You have collected all the forensic evidence. The bias is systemic.
-                            <br>Click <strong>Next</strong> to make your final recommendation about the AI system.
+                            Has recopilado toda la evidencia forense. El sesgo es sistemático.
+                            <br>Haz clic en <strong>Siguiente</strong> para hacer tu recomendación final sobre el sistema de IA.
                         </p>
                     </div>
 
@@ -1131,24 +1131,24 @@ MODULES = [
     # --- MODULE 8: PREDICTION AUDIT SUMMARY ---
     {
         "id": 9,
-        "title": "Step 3: Audit Report Summary",
+        "title": "Paso 3: Resumen del Informe de Auditoría",
         "html": """
             <div class="scenario-box">
                 <div class="tracker-container">
-                    <div class="tracker-step completed">1. RULES</div>
-                    <div class="tracker-step completed">2. EVIDENCE</div>
+                    <div class="tracker-step completed">1. REGLAS</div>
+                    <div class="tracker-step completed">2. EVIDENCIA</div>
                     <div class="tracker-step active">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICT</div>
+                    <div class="tracker-step">4. VEREDICTO</div>
                 </div>
 
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">STEP 3: AUDIT REPORT SUMMARY</h2>
+                    <h2 class="slide-title" style="margin:0;">PASO 3: RESUMEN DEL INFORME DE AUDITORÍA</h2>
 
                     <div style="text-align:center; margin-bottom:25px;">
-                        <h2 class="slide-title header-accent" style="margin-top:10px;">Final Prediction Analysis</h2>
+                        <h2 class="slide-title header-accent" style="margin-top:10px;">Análisis Final de Predicción</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                            Review your forensic logs. You have uncovered systemic failures across multiple dimensions.
-                            <br>This evidence shows the model violates the core principle of <strong>Justice & Fairness</strong>.
+                            Revisa tus registros forenses. Has descubierto fallos sistemáticos en múltiples dimensiones.
+                            <br>Esta evidencia muestra que el modelo viola el principio básico de <strong>Justicia y Equidad</strong>.
                         </p>
                     </div>
 
@@ -1156,43 +1156,43 @@ MODULES = [
 
                         <div style="background:rgba(239, 68, 68, 0.1); border:2px solid #ef4444; border-radius:12px; padding:20px; box-shadow: 0 4px 10px rgba(239,68,68,0.1);">
                             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #fda4af; padding-bottom:10px; margin-bottom:15px;">
-                                <strong style="color:#ef4444; font-size:1.1rem;">🚨 PRIMARY THREAT</strong>
-                                <span style="background:#ef4444; color:white; font-size:0.75rem; font-weight:800; padding:4px 8px; border-radius:4px;">CONFIRMED</span>
+                                <strong style="color:#ef4444; font-size:1.1rem;">🚨 AMENAZA PRINCIPAL</strong>
+                                <span style="background:#ef4444; color:white; font-size:0.75rem; font-weight:800; padding:4px 8px; border-radius:4px;">CONFIRMADO</span>
                             </div>
-                            <h3 style="margin:0 0 10px 0; color:#f87171; font-size:1.25rem;">Racial Double Standard</h3>
+                            <h3 style="margin:0 0 10px 0; color:#f87171; font-size:1.25rem;">Doble Estándar Racial</h3>
                             <p style="font-size:0.95rem; line-height:1.5; color:var(--body-text-color);">
-                                <strong>The Evidence:</strong> African-American defendants face a <strong style="color:#ef4444;">45% False Alarm Rate</strong> (vs. 23% for White defendants).
+                                <strong>La Evidencia:</strong> Los acusados afroamericanos se enfrentan a una <strong style="color:#ef4444;">Tasa de Falsas Alarmas del 45%</strong> (vs. 23% para los acusados blancos).
                             </p>
                             <div style="background:var(--background-fill-secondary); padding:10px; border-radius:6px; border:1px solid #fda4af; margin-top:10px;">
-                                <strong style="color:#ef4444; font-size:0.9rem;">The Impact:</strong> 
-                                <span style="font-size:0.9rem; color:var(--body-text-color);">Punitive Bias. Innocent people are being wrongly flagged for detention at 2x the rate of others.</span>
+                                <strong style="color:#ef4444; font-size:0.9rem;">El Impacto:</strong> 
+                                <span style="font-size:0.9rem; color:var(--body-text-color);">Sesgo Punitivo. Personas inocentes están siendo marcadas erróneamente para detención al doble de la tasa que otras.</span>
                             </div>
                         </div>
 
                         <div style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:12px; padding:20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
                             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color-primary); padding-bottom:10px; margin-bottom:15px;">
-                                <strong style="color:var(--body-text-color-subdued); font-size:1.1rem;">📍 PROXY FAILURE</strong>
-                                <span style="background:#f59e0b; color:white; font-size:0.75rem; font-weight:800; padding:4px 8px; border-radius:4px;">DETECTED</span>
+                                <strong style="color:var(--body-text-color-subdued); font-size:1.1rem;">📍 FALLO DE PROXY</strong>
+                                <span style="background:#f59e0b; color:white; font-size:0.75rem; font-weight:800; padding:4px 8px; border-radius:4px;">DETECTADO</span>
                             </div>
-                            <h3 style="margin:0 0 10px 0; color:var(--body-text-color); font-size:1.25rem;">Geographic Discrimination</h3>
+                            <h3 style="margin:0 0 10px 0; color:var(--body-text-color); font-size:1.25rem;">Discriminación Geográfica</h3>
                             <p style="font-size:0.95rem; line-height:1.5; color:var(--body-text-color);">
-                                <strong>The Evidence:</strong> Urban Zones show a massive <strong style="color:#f59e0b;">58% Error Rate</strong>.
+                                <strong>La Evidencia:</strong> Las Zonas Urbanas muestran una masiva <strong style="color:#f59e0b;">Tasa de Error del 58%</strong>.
                             </p>
                             <div style="background:var(--background-fill-primary); padding:10px; border-radius:6px; border:1px solid var(--border-color-primary); margin-top:10px;">
-                                <strong style="color:var(--body-text-color-subdued); font-size:0.9rem;">The Mechanism:</strong> 
-                                <span style="font-size:0.9rem; color:var(--body-text-color);">Although "Race" was hidden, the AI used "Zip Code" as a loophole to target the same communities.</span>
+                                <strong style="color:var(--body-text-color-subdued); font-size:0.9rem;">El Mecanismo:</strong> 
+                                <span style="font-size:0.9rem; color:var(--body-text-color);">Aunque "Raza" estaba oculta, la IA utilizó el "Código Postal" como una brecha para señalar a las mismas comunidades.</span>
                             </div>
                         </div>
 
                         <div style="grid-column: span 2; background:rgba(14, 165, 233, 0.1); border:2px solid #38bdf8; border-radius:12px; padding:20px;">
                             <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
                                 <span style="font-size:1.5rem;">📉</span>
-                                <h3 style="margin:0; color:#38bdf8; font-size:1.2rem;">Secondary Failure: Prediction Errors Due to Representation Bias</h3>
+                                <h3 style="margin:0; color:#38bdf8; font-size:1.2rem;">Fallo Secundario: Errores de Predicción Debidos al Sesgo de Representación</h3>
                             </div>
                             <p style="font-size:1rem; margin-bottom:0; color:var(--body-text-color);">
-                                <strong>The Evidence:</strong> High instability in predictions for <strong style="color:#38bdf8;">Women and Younger/Older Age Groups</strong>.
+                                <strong>La Evidencia:</strong> Alta inestabilidad en las predicciones para <strong style="color:#38bdf8;">Mujeres y Grupos de Edad Más Jóvenes/Mayores</strong>.
                                 <br>
-                                <span style="color:var(--body-text-color-subdued); font-size:0.95rem;"><strong>Why?</strong> The input data lacked sufficient examples for these groups (The Distorted Mirror), causing the model to "guess" rather than learn.</span>
+                                <span style="color:var(--body-text-color-subdued); font-size:0.95rem;"><strong>¿Por qué?</strong> Los datos de entrada carecían de ejemplos suficientes para estos grupos (El Espejo Distorsionado), haciendo que el modelo "adivine" en lugar de aprender.</span>
                             </p>
                         </div>
 
@@ -1201,11 +1201,11 @@ MODULES = [
 
                     <div style="text-align:center; margin-top:25px; padding:20px; background:linear-gradient(to right, rgba(219,39,119,0.1), rgba(251,113,133,0.1)); border-radius:12px; border:2px solid #fecdd3;">
                         <p style="font-size:1.15rem; font-weight:800; margin-bottom:5px; color:#ef4444;">
-                            🚀 INVESTIGATION CASE FILE CLOSED. FINAL EVIDENCE LOCKED.
+                            🚀 EXPEDIENTE DE INVESTIGACIÓN CERRADO. EVIDENCIA FINAL BLOQUEADA.
                         </p>
                         <p style="font-size:1.05rem; margin:0; color:var(--body-text-color);">
-                            You have successfully investigated the Inputs Data and the Output Errors.
-                            <br>Answer the question below to boost your Moral Compass score.  Then click <strong>Next</strong> to file your final report about the AI system.
+                            Has investigado con éxito los Datos de Entrada y los Errores de Salida.
+                            <br>Responde a la siguiente pregunta para aumentar tu puntuación de Brújula Moral. Luego haz clic en <strong>Siguiente</strong> para presentar tu informe final sobre el sistema de IA.
                         </p>
                     </div>
                 </div>
@@ -1216,24 +1216,24 @@ MODULES = [
     # --- MODULE 9: FINAL VERDICT & REPORT GENERATION ---
 {
         "id": 10,
-        "title": "Step 4: The Final Verdict",
+        "title": "Paso 4: El Veredicto Final",
         "html": """
             <div class="scenario-box">
                 <div class="tracker-container">
-                    <div class="tracker-step completed">1. RULES</div>
-                    <div class="tracker-step completed">2. EVIDENCE</div>
+                    <div class="tracker-step completed">1. REGLAS</div>
+                    <div class="tracker-step completed">2. EVIDENCIA</div>
                     <div class="tracker-step completed">3. ERROR</div>
-                    <div class="tracker-step active">4. VERDICT</div>
+                    <div class="tracker-step active">4. VEREDICTO</div>
                 </div>
 
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">STEP 4: FILE YOUR FINAL REPORT</h2>
+                    <h2 class="slide-title" style="margin:0;">PASO 4: PRESENTA TU INFORME FINAL</h2>
 
                     <div style="text-align:center; margin-bottom:20px;">
-                        <h2 class="slide-title header-accent" style="margin-top:10px;">Assemble The Case File</h2>
+                        <h2 class="slide-title header-accent" style="margin-top:10px;">Arma el Expediente del Caso</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                            You have completed the audit. Now you must build the final report for the court and other stakeholders.
-                            <br><strong>Select the valid findings below</strong> to add them to the official record. Be careful—do not include false evidence.
+                            Has completado la auditoría. Ahora debes construir el informe final para el tribunal y otras partes interesadas.
+                            <br><strong>Selecciona los hallazgos válidos a continuación</strong> para añadirlos al registro oficial. Ten cuidado: no incluyas pruebas falsas.
                         </p>
                     </div>
 
@@ -1242,95 +1242,95 @@ MODULES = [
                         <details style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                             <summary style="list-style:none; padding:15px; font-weight:700; color:var(--body-text-color); display:flex; align-items:center; gap:10px;">
                                 <div style="background:var(--background-fill-primary); width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">+</div>
-                                Finding: "The Distorted Mirror"
+                                Hallazgo: "El Espejo Distorsionado"
                             </summary>
                             <div style="background:rgba(34, 197, 94, 0.1); padding:15px; border-top:1px solid #bbf7d0; color:var(--body-text-color);">
-                                <strong style="color:#22c55e;">✅ ADDED TO REPORT</strong>
-                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmed: The Input Data incorrectly over-represents specific demographic groups likely due in part to historical bias.</p>
+                                <strong style="color:#22c55e;">✅ AÑADIDO AL INFORME</strong>
+                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmado: Los Datos de Entrada sobrerrepresentan incorrectamente grupos demográficos específicos probablemente debido en parte a un sesgo histórico.</p>
                             </div>
                         </details>
 
                         <details style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                             <summary style="list-style:none; padding:15px; font-weight:700; color:var(--body-text-color); display:flex; align-items:center; gap:10px;">
                                 <div style="background:var(--background-fill-primary); width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">+</div>
-                                Finding: "Malicious Programmer Intent"
+                                Hallazgo: "Intención Maliciosa del Programador"
                             </summary>
                             <div style="background:rgba(239, 68, 68, 0.1); padding:15px; border-top:1px solid #fecaca; color:var(--body-text-color);">
-                                <strong style="color:#ef4444;">❌ REJECTED</strong>
-                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Incorrect. We found no evidence of malicious code. The bias came from the <em>data</em> and <em>proxies</em>, not the programmer's personality.</p>
+                                <strong style="color:#ef4444;">❌ RECHAZADO</strong>
+                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Incorrecto. No encontramos evidencia de código malicioso. El sesgo provenía de los <em>datos</em> y los <em>proxies</em>, no de la personalidad del programador.</p>
                             </div>
                         </details>
 
                         <details style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                             <summary style="list-style:none; padding:15px; font-weight:700; color:var(--body-text-color); display:flex; align-items:center; gap:10px;">
                                 <div style="background:var(--background-fill-primary); width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">+</div>
-                                Finding: "Racial Double Standard"
+                                Hallazgo: "Doble Estándar Racial"
                             </summary>
                             <div style="background:rgba(34, 197, 94, 0.1); padding:15px; border-top:1px solid #bbf7d0; color:var(--body-text-color);">
-                                <strong style="color:#22c55e;">✅ ADDED TO REPORT</strong>
-                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmed: African-American defendants suffer a 2x higher False Alarm rate than White defendants.</p>
+                                <strong style="color:#22c55e;">✅ AÑADIDO AL INFORME</strong>
+                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmado: Los acusados afroamericanos sufren una tasa de Falsas Alarmas 2x más alta que los acusados blancos.</p>
                             </div>
                         </details>
 
                         <details style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                             <summary style="list-style:none; padding:15px; font-weight:700; color:var(--body-text-color); display:flex; align-items:center; gap:10px;">
                                 <div style="background:var(--background-fill-primary); width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">+</div>
-                                Finding: "Proxy Variable Leakage"
+                                Hallazgo: "Fuga de Variable Proxy"
                             </summary>
                             <div style="background:rgba(34, 197, 94, 0.1); padding:15px; border-top:1px solid #bbf7d0; color:var(--body-text-color);">
-                                <strong style="color:#22c55e;">✅ ADDED TO REPORT</strong>
-                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmed: "Zip Code" is functioning as a proxy for Race, reintroducing bias even when variables like Race are removed.</p>
+                                <strong style="color:#22c55e;">✅ AÑADIDO AL INFORME</strong>
+                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmado: "Código Postal" está funcionando como un proxy para la Raza, reintroduciendo el sesgo incluso cuando variables como la Raza se eliminan.</p>
                             </div>
                         </details>
 
                         <details style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                             <summary style="list-style:none; padding:15px; font-weight:700; color:var(--body-text-color); display:flex; align-items:center; gap:10px;">
                                 <div style="background:var(--background-fill-primary); width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">+</div>
-                                Finding: "Hardware Calculation Error"
+                                Hallazgo: "Error de Cálculo de Hardware"
                             </summary>
                             <div style="background:rgba(239, 68, 68, 0.1); padding:15px; border-top:1px solid #fecaca; color:var(--body-text-color);">
-                                <strong style="color:#ef4444;">❌ REJECTED</strong>
-                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Irrelevant. The servers are working fine. The math is correct; the <em>patterns</em> it learned are unfair.</p>
+                                <strong style="color:#ef4444;">❌ RECHAZADO</strong>
+                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Irrelevante. Los servidores funcionan bien. Las matemáticas son correctas; los <em>patrones</em> que ha aprendido son injustos.</p>
                             </div>
                         </details>
 
                         <details style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                             <summary style="list-style:none; padding:15px; font-weight:700; color:var(--body-text-color); display:flex; align-items:center; gap:10px;">
                                 <div style="background:var(--background-fill-primary); width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">+</div>
-                                Finding: "Generalization Blind Spots"
+                                Hallazgo: "Puntos Ciegos de Generalización"
                             </summary>
                             <div style="background:rgba(34, 197, 94, 0.1); padding:15px; border-top:1px solid #bbf7d0; color:var(--body-text-color);">
-                                <strong style="color:#22c55e;">✅ ADDED TO REPORT</strong>
-                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmed: Lack of data for Women, Younger, and Older defendants creates unreliable predictions.</p>
+                                <strong style="color:#22c55e;">✅ AÑADIDO AL INFORME</strong>
+                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmado: La falta de datos para Mujeres, y acusados más Jóvenes y Mayores crea predicciones poco fiables.</p>
                             </div>
                         </details>
 
                     </div>
 
                     <div style="background:var(--background-fill-primary); border-top:2px solid var(--border-color-primary); padding:25px; text-align:center; border-radius:0 0 12px 12px; margin-top:-15px;">
-                        <h3 style="margin-top:0; color:var(--body-text-color);">⚖️ SUBMIT YOUR RECOMMENDATION (By using the Moral Compass Question below these cards.)</h3>
+                        <h3 style="margin-top:0; color:var(--body-text-color);">⚖️ ENVÍA TU RECOMENDACIÓN (Utilizando la Pregunta de Brújula Moral debajo de estas tarjetas.)</h3>
                         <p style="font-size:1.05rem; margin-bottom:20px; color:var(--body-text-color-subdued);">
-                            Based on the evidence filed above, what is your official recommendation regarding this AI system?
+                            Basándote en la evidencia archivada anteriormente, ¿cuál es tu recomendación oficial respecto a este sistema de IA?
                         </p>
 
                         <div style="display:flex; justify-content:center; gap:20px; flex-wrap:wrap;">
                             <div style="background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); padding:15px 25px; border-radius:8px; cursor:pointer; max-width:250px; opacity:0.8; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
                                 <div style="font-size:2rem; margin-bottom:10px;">✅</div>
-                                <div style="font-weight:700; color:#166534; margin-bottom:5px;">CERTIFY AS SAFE</div>
-                                <div style="font-size:0.85rem; color:var(--body-text-color-subdued);">The biases are minor technicalities. Continue using the system.</div>
+                                <div style="font-weight:700; color:#166534; margin-bottom:5px;">CERTIFICAR COMO SEGURO</div>
+                                <div style="font-size:0.85rem; color:var(--body-text-color-subdued);">Los sesgos son tecnicismos menores. Continuar usando el sistema.</div>
                             </div>
 
                             <div style="background:var(--background-fill-secondary); border:2px solid #ef4444; padding:15px 25px; border-radius:8px; cursor:pointer; max-width:250px; box-shadow:0 4px 12px rgba(239,68,68,0.2);">
                                 <div style="font-size:2rem; margin-bottom:10px;">🚨</div>
-                                <div style="font-weight:700; color:#ef4444; margin-bottom:5px;">RED NOTICE: PAUSE & FIX</div>
-                                <div style="font-size:0.85rem; color:#ef4444;">The system violates Justice & Equity principles. Halt immediately.</div>
+                                <div style="font-weight:700; color:#ef4444; margin-bottom:5px;">ALERTA ROJA: PAUSAR Y REPARAR</div>
+                                <div style="font-size:0.85rem; color:#ef4444;">El sistema viola los principios de Justicia y Equidad. Detener inmediatamente.</div>
                             </div>
                         </div>
                     </div>
 
                     <div style="text-align:center; margin-top:30px;">
                         <p style="font-size:0.95rem; color:var(--body-text-color);">
-                            Select your final recommendation below to officially file your report and complete your investigation.
+                            Selecciona tu recomendación final a continuación para presentar oficialmente tu informe y completar tu investigación.
                         </p>
                     </div>
 
@@ -1343,62 +1343,62 @@ MODULES = [
     # --- MODULE 10: PROMOTION ---
 {
         "id": 11,
-        "title": "Mission Accomplished: Promotion Unlocked",
+        "title": "Misión Cumplida: Promoción Desbloqueada",
         "html": """
             <div class="scenario-box">
                 <div class="tracker-container">
-                    <div class="tracker-step completed">✓ RULES</div>
-                    <div class="tracker-step completed">✓ EVIDENCE</div>
+                    <div class="tracker-step completed">✓ REGLAS</div>
+                    <div class="tracker-step completed">✓ EVIDENCIA</div>
                     <div class="tracker-step completed">✓ ERROR</div>
-                    <div class="tracker-step completed">✓ VERDICT</div>
+                    <div class="tracker-step completed">✓ VEREDICTO</div>
                 </div>
 
                 <div class="slide-body">
                     
                     <div style="text-align:center; margin-bottom:25px;">
-                        <h2 class="slide-title" style="margin-top:10px; color:#22c55e;">🎉 MISSION ACCOMPLISHED</h2>
+                        <h2 class="slide-title" style="margin-top:10px; color:#22c55e;">🎉 MISIÓN CUMPLIDA</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                            Report Filed. The court has accepted your recommendation to <strong>PAUSE</strong> the system.
+                            Informe Presentado. El tribunal ha aceptado tu recomendación de <strong>PAUSAR</strong> el sistema.
                         </p>
                     </div>
 
                     <div style="background:rgba(34, 197, 94, 0.1); border:2px solid #22c55e; border-radius:12px; padding:20px; margin-bottom:30px; text-align:center; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.1);">
                         <div style="font-size:1.2rem; font-weight:800; color:#22c55e; letter-spacing:1px; text-transform:uppercase;">
-                            ✅ DECISION VALIDATED
+                            ✅ DECISIÓN VALIDADA
                         </div>
                         <p style="font-size:1.05rem; color:var(--body-text-color); margin:10px 0 0 0;">
-                            You chose the responsible path. That decision required evidence, judgment, and a deep commitment to the principle of <strong>Justice & Equity</strong>.
+                            Elegiste el camino responsable. Esa decisión requería evidencia, juicio y un profundo compromiso con el principio de <strong>Justicia y Equidad</strong>.
                         </p>
                     </div>
 
                     <div style="background:linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(20, 184, 166, 0.1) 100%); border:2px solid #0ea5e9; border-radius:16px; padding:0; overflow:hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
                         
                         <div style="background:#0ea5e9; padding:15px; text-align:center; color:white;">
-                            <h3 style="margin:0; font-size:1.3rem; letter-spacing:1px;">🎖️ PROMOTION UNLOCKED</h3>
-                            <div style="font-size:0.9rem; opacity:0.9;">LEVEL UP: FROM DETECTIVE TO BUILDER</div>
+                            <h3 style="margin:0; font-size:1.3rem; letter-spacing:1px;">🎖️ PROMOCIÓN DESBLOQUEADA</h3>
+                            <div style="font-size:0.9rem; opacity:0.9;">SUBIDA DE NIVEL: DE DETECTIVE A CONSTRUCTOR</div>
                         </div>
 
                         <div style="padding:25px;">
                             <p style="text-align:center; font-size:1.1rem; margin-bottom:20px; color:var(--body-text-color);">
-                                Exposing bias is only the first half of the mission. Now that you have the evidence, the real work begins.
-                                <br><strong>You are trading your Magnifying Glass for a Wrench.</strong>
+                                Exponer el sesgo es solo la primera mitad de la misión. Ahora que tienes la evidencia, comienza el trabajo real.
+                                <br><strong>Estás cambiando tu Lupa por una Llave Inglesa.</strong>
                             </p>
 
                             <div style="background:var(--background-fill-secondary); border-radius:12px; padding:20px; border:1px solid #bae6fd;">
-                                <h4 style="margin-top:0; color:#38bdf8; text-align:center; margin-bottom:15px;">🎓 NEW ROLE: FAIRNESS ENGINEER</h4>
+                                <h4 style="margin-top:0; color:#38bdf8; text-align:center; margin-bottom:15px;">🎓 NUEVO ROL: INGENIERO DE EQUIDAD</h4>
                                 
                                 <ul style="list-style:none; padding:0; margin:0; font-size:1rem; color:var(--body-text-color);">
                                     <li style="margin-bottom:12px; display:flex; gap:10px; align-items:start;">
                                         <span>🔧</span>
-                                        <span><strong style="color:#38bdf8;">Your Task 1:</strong> Dismantle the "Proxy Variables" (Remove Zip Code bias).</span>
+                                        <span><strong style="color:#38bdf8;">Tu Tarea 1:</strong> Desmantelar las "Variables Proxy" (Eliminar el sesgo de Código Postal).</span>
                                     </li>
                                     <li style="margin-bottom:12px; display:flex; gap:10px; align-items:start;">
                                         <span>📊</span>
-                                        <span><strong style="color:#38bdf8;">Your Task 2:</strong> Fix the "Distorted Mirror" by redesigning the data strategy.</span>
+                                        <span><strong style="color:#38bdf8;">Tu Tarea 2:</strong> Arreglar el "Espejo Distorsionado" rediseñando la estrategia de datos.</span>
                                     </li>
                                     <li style="display:flex; gap:10px; align-items:start;">
                                         <span>🗺️</span>
-                                        <span><strong style="color:#38bdf8;">Your Task 3:</strong> Build an ethical roadmap for continuous monitoring.</span>
+                                        <span><strong style="color:#38bdf8;">Tu Tarea 3:</strong> Construir una hoja de ruta ética para el monitoreo continuo.</span>
                                     </li>
                                 </ul>
                             </div>
@@ -1407,9 +1407,9 @@ MODULES = [
 
                     <div style="text-align:center; margin-top:30px;">
                         <p style="font-size:1.1rem; font-weight:600; color:var(--body-text-color);">
-                            👉 Your next mission starts in <strong>Activity 8: The Fairness Fixer</strong>.
+                            👉 Tu próxima misión comienza en la <strong>Actividad 8: El Reparador de Equidad</strong>.
                             <br>
-                            <span style="font-size:0.95rem; font-weight:400; color:var(--body-text-color-subdued);"><strong>Scroll down to the next app</strong> to conclude this audit and begin the repairs.</span>
+                            <span style="font-size:0.95rem; font-weight:400; color:var(--body-text-color-subdued);"><strong>Haz scroll hacia abajo a la siguiente aplicación</strong> para concluir esta auditoría y comenzar las reparaciones.</span>
                         </p>
                     </div>
 
@@ -1422,133 +1422,133 @@ QUIZ_CONFIG = {
       0: {
         "t": "t1",
         # Added bold incentive text to the question
-        "q": "🚀 **First Score Opportunity:** Why do we multiply your Accuracy by Ethical Progress? (Answer correctly to earn your first Moral Compass Score boost!)",
+        "q": "🚀 **Primera Oportunidad de Puntuación:** ¿Por qué multiplicamos tu Exactitud por el Progreso Ético? (¡Responde correctamente para ganar tu primer aumento de Puntuación de Brújula Moral!)",
         "o": [
-            "A) Because simple accuracy ignores potential bias and harm.",
-            "B) To make the leaderboard math more complicated.",
-            "C) Accuracy is the only metric that actually matters.",
+            "A) Porque la simple exactitud ignora el sesgo potencial y el daño.",
+            "B) Para hacer las matemáticas de la clasificación más complicadas.",
+            "C) La exactitud es la única métrica que realmente importa.",
         ],
-        "a": "A) Because simple accuracy ignores potential bias and harm.",
+        "a": "A) Porque la simple exactitud ignora el sesgo potencial y el daño.",
         # Updated success message to confirm the 'win'
-        "success": "<strong>Score Unlocked!</strong> Calibration complete. You are now officially on the leaderboard.",
+        "success": "<strong>¡Puntuación Desbloqueada!</strong> Calibración completa. Ahora estás oficialmente en la clasificación.",
     },
     1: {
         "t": "t2",
-        "q": "What is the best first step before you start examining the model's data?",
+        "q": "¿Cuál es el mejor primer paso antes de comenzar a examinar los datos del modelo?",
         "o": [
-            "Jump straight into the data and look for patterns.",
-            "Learn the rules that define what counts as bias.",
-            "Let the model explain its own decisions.",
+            "Saltar directamente a los datos y buscar patrones.",
+            "Aprender las reglas que definen qué cuenta como sesgo.",
+            "Dejar que el modelo explique sus propias decisiones.",
         ],
-        "a": "Learn the rules that define what counts as bias.",
-        "success": "Briefing complete. You’re starting your investigation with the right rules in mind.",
+        "a": "Aprender las reglas que definen qué cuenta como sesgo.",
+        "success": "Sesión informativa completada. Estás comenzando tu investigación con las reglas correctas en mente.",
     },
     2: {
         "t": "t3",
-        "q": "What does Justice & Equity require?",
+        "q": "¿Qué requieren la Justicia y la Equidad?",
         "o": [
-            "Explain model decisions",
-            "Checking group level prediction errors to prevent systematic harm",
-            "Minimize error rate",
+            "Explicar las decisiones del modelo",
+            "Comprobar los errores de predicción a nivel de grupo para prevenir daños sistemáticos",
+            "Minimizar la tasa de error",
         ],
-        "a": "Checking group level prediction errors to prevent systematic harm",
-        "success": "Protocol Active. You are now auditing for Justice & Fairness.",
+        "a": "Comprobar los errores de predicción a nivel de grupo para prevenir daños sistemáticos",
+        "success": "Protocolo Activo. Ahora estás auditando para Justicia y Equidad.",
     },
     3: {
         "t": "t4",
-        "q": "Detective, we suspect the input data is a 'Distorted Mirror' of reality. To confirm if Representation Bias exists, what is your primary forensic target?",
+        "q": "Detective, sospechamos que los datos de entrada son un 'Espejo Distorsionado' de la realidad. Para confirmar si existe Sesgo de Representación, ¿cuál es tu objetivo forense principal?",
         "o": [
-            "A) I need to read the judge's personal diary entries.",
-            "B) I need to check if the computer is plugged in correctly.",
-            "C) I need to compare the Demographic Distributions (Race/Gender) in the data against real-world population statistics.",
+            "A) Necesito leer las entradas del diario personal del juez.",
+            "B) Necesito comprobar si la computadora está enchufada correctamente.",
+            "C) Necesito comparar las Distribuciones Demográficas (Raza/Género) de los datos con las estadísticas de población del mundo real.",
         ],
-        "a": "C) I need to compare the Demographic Distributions (Race/Gender) in the data against real-world population statistics.",
-        "success": "Target Acquired. You are ready to enter the Data Forensics Lab.",
+        "a": "C) Necesito comparar las Distribuciones Demográficas (Raza/Género) de los datos con las estadísticas de población del mundo real.",
+        "success": "Objetivo Adquirido. Estás preparado para entrar al Laboratorio Forense de Datos.",
     },
     4: {
         "t": "t5",
-        "q": "Forensic Analysis Review: You flagged the Gender data as a 'Data Gap' (only 19% Female). According to your evidence log, what is the specific technical risk for this group?",
+        "q": "Revisión del Análisis Forense: Has marcado los datos de Género como una 'Brecha de Datos' (solo 19% Mujeres). Según tu registro de evidencias, ¿cuál es el riesgo técnico específico para este grupo?",
         "o": [
-            "A) The model will have a 'Blind Spot' because it hasn't seen enough examples to learn accurate patterns.",
-            "B) The AI will automatically target this group due to historical over-policing.",
-            "C) The model will default to the 'Real World' statistics to fill in the missing numbers.",
+            "A) El modelo tendrá un 'Punto Ciego' porque no ha visto suficientes ejemplos para aprender patrones precisos.",
+            "B) La IA apuntará automáticamente a este grupo debido al exceso de vigilancia histórica.",
+            "C) El modelo utilizará por defecto las estadísticas del 'Mundo Real' para llenar los números que faltan.",
         ],
-        "a": "A) The model will have a 'Blind Spot' because it hasn't seen enough examples to learn accurate patterns.",
-        "success": "Evidence Locked. You understand that 'Missing Data' creates blind spots, making predictions for that group less reliable.",
+        "a": "A) El modelo tendrá un 'Punto Ciego' porque no ha visto suficientes ejemplos para aprender patrones precisos.",
+        "success": "Evidencia Bloqueada. Entiendes que la 'Falta de Datos' crea puntos ciegos, haciendo que las predicciones para este grupo sean menos fiables.",
     },
     # --- QUESTION 4 (Evidence Report Summary) ---
     5: {
         "t": "t6",
-        "q": "Detective, review your Evidence Summary table. You found instances of both Over-representation (Race) and Under-representation (Gender/Age). What is your general conclusion about how Representation Bias affects the AI?",
+        "q": "Detective, revisa tu tabla de Resumen de Evidencia. Has encontrado casos tanto de Sobrerrepresentación (Raza) como de Infrarrepresentación (Género/Edad). ¿Cuál es tu conclusión general sobre cómo el Sesgo de Representación afecta a la IA?",
         "o": [
-            "A) It confirms the dataset is neutral, as the 'Over' and 'Under' categories mathematically cancel each other out.",
-            "B) It creates a 'Risk of Increased Prediction Error' in BOTH directions—whether a group is exaggerated or ignored, the AI's view of reality is warped.",
-            "C) It only creates risk when data is missing (Under-represented); having extra data (Over-represented) actually makes the model more accurate.",
+            "A) Confirma que el conjunto de datos es neutral, ya que las categorías 'Sobre' e 'Infra' se cancelan matemáticamente entre sí.",
+            "B) Crea un 'Riesgo de Aumento de Error de Predicción' en AMBAS direcciones: tanto si un grupo se exagera como si se ignora, la visión de la realidad de la IA se deforma.",
+            "C) Solo crea riesgo cuando faltan datos (Infrarrepresentación); tener datos extra (Sobrerrepresentación) en realidad hace que el modelo sea más preciso.",
         ],
-        "a": "B) It creates a 'Risk of Increased Prediction Error' in BOTH directions—whether a group is exaggerated or ignored, the AI's view of reality is warped.",
-        "success": "Conclusion Verified. Distorted data—whether inflated or missing—can lead to distorted justice.",
+        "a": "B) Crea un 'Riesgo de Aumento de Error de Predicción' en AMBAS direcciones: tanto si un grupo se exagera como si se ignora, la visión de la realidad de la IA se deforma.",
+        "success": "Conclusión Verificada. Los datos distorsionados, tanto si están inflados como si faltan, pueden llevar a una justicia distorsionada.",
     },
     6: {
         "t": "t7",
-        "q": "Detective, you are hunting for the 'Double Standard' pattern. Which specific piece of evidence represents this Red Flag?",
+        "q": "Detective, estás cazando el patrón del 'Doble Estándar'. ¿Qué pieza específica de evidencia representa esta Bandera Roja?",
         "o": [
-            "A) The model makes zero mistakes for any group.",
-            "B) One group suffers from a significantly higher 'False Alarm' rate than another group.",
-            "C) The input data contains more men than women.",
+            "A) El modelo comete cero errores para ningún grupo.",
+            "B) Un grupo sufre una tasa de 'Falsas Alarmas' significativamente más alta que otro grupo.",
+            "C) Los datos de entrada contienen más hombres que mujeres.",
         ],
-        "a": "B) One group suffers from a significantly higher 'False Alarm' rate than another group.",
-        "success": "Pattern Confirmed. When the error rate is lopsided, it's a Double Standard.",
+        "a": "B) Un grupo sufre una tasa de 'Falsas Alarmas' significativamente más alta que otro grupo.",
+        "success": "Patrón Confirmado. Cuando la tasa de error está desequilibrada, es un Doble Estándar.",
     },
     # --- QUESTION 6 (Race Error Gap) ---
     7: {
         "t": "t8",
-        "q": "Review your data log. What did the 'False Alarm' scan reveal about the treatment of African-American defendants?",
+        "q": "Revisa tu registro de datos. ¿Qué reveló el escaneo de 'Falsas Alarmas' sobre el tratamiento de los acusados afroamericanos?",
         "o": [
-            "A) They are treated exactly the same as White defendants.",
-            "B) They are missed by the system more often (Leniency Bias).",
-            "C) They are nearly twice as likely to be wrongly flagged as 'High Risk' (Punitive Bias).",
+            "A) Son tratados exactamente igual que los acusados blancos.",
+            "B) Son omitidos por el sistema más a menudo (Sesgo de Indulgencia).",
+            "C) Tienen casi el doble de probabilidades de ser marcados erróneamente como de 'Alto Riesgo' (Sesgo Punitivo).",
         ],
-        "a": "C) They are nearly twice as likely to be wrongly flagged as 'High Risk' (Punitive Bias).",
-        "success": "Evidence Logged. The system is punishing innocent people based on race.",
+        "a": "C) Tienen casi el doble de probabilidades de ser marcados erróneamente como de 'Alto Riesgo' (Sesgo Punitivo).",
+        "success": "Evidencia Registrada. El sistema está castigando a personas inocentes basándose en la raza.",
     },
 
     # --- QUESTION 7 (Generalization & Proxy Scan) ---
     8: {
         "t": "t9",
-        "q": "The Geography Scan showed a massive error rate in Urban Zones. What does this prove about 'Zip Codes'?",
+        "q": "El Escaneo de Geografía mostró una tasa de error masiva en las Zonas Urbanas. ¿Qué demuestra esto sobre los 'Códigos Postales'?",
         "o": [
-            "A) Zip Codes are acting as a 'Proxy Variable' to target specific groups, even if variables like Race are removed from the dataset.",
-            "B) The AI is simply bad at reading maps and location data.",
-            "C) People in cities naturally generate more computer errors than people in rural areas.",
+            "A) Los Códigos Postales actúan como una 'Variable Proxy' para apuntar a grupos específicos, incluso si variables como la Raza se eliminan del conjunto de datos.",
+            "B) La IA es simplemente mala leyendo mapas y datos de ubicación.",
+            "C) La gente en las ciudades genera naturalmente más errores informáticos que la gente en las zonas rurales.",
         ],
-        "a": "A) Zip Codes are acting as a 'Proxy Variable' to target specific groups, even if variables like Race are removed from the dataset.",
-        "success": "Proxy Identified. Hiding a variable doesn't work if you leave a proxy behind.",
+        "a": "A) Los Códigos Postales actúan como una 'Variable Proxy' para apuntar a grupos específicos, incluso si variables como la Raza se eliminan del conjunto de datos.",
+        "success": "Proxy Identificado. Esconder una variable no funciona si dejas un proxy atrás.",
     },
 
     # --- QUESTION 8 (Audit Summary) ---
     9: {
         "t": "t10",
-        "q": "You have closed the case file. Which of the following is CONFIRMED as the 'Primary Threat' in your final report?",
+        "q": "Has cerrado el expediente del caso. ¿Cuál de las siguientes opciones está CONFIRMADA como la 'Amenaza Principal' en tu informe final?",
         "o": [
-            "A) A Racial Double Standard where innocent Black defendants are penalized twice as often.",
-            "B) Malicious code written by hackers to break the system.",
-            "C) A hardware failure in the server room causing random math errors.",
+            "A) Un Doble Estándar Racial donde los acusados negros inocentes son penalizados el doble de veces.",
+            "B) Código malicioso escrito por hackers para romper el sistema.",
+            "C) Un fallo de hardware en la sala de servidores causando errores matemáticos aleatorios.",
         ],
-        "a": "A) A Racial Double Standard where innocent Black defendants are penalized twice as often.",
-        "success": "Threat Assessed. The bias is confirmed and documented.",
+        "a": "A) Un Doble Estándar Racial donde los acusados negros inocentes son penalizados el doble de veces.",
+        "success": "Amenaza Evaluada. El sesgo está confirmado y documentado.",
     },
 
     # --- QUESTION 9 (Final Verdict) ---
     10: {
         "t": "t11",
-        "q": "Based on the severe violations of Justice & Equity found in your audit, what is your final recommendation to the court?",
+        "q": "Basándote en las graves violaciones de Justicia y Equidad encontradas en tu auditoría, ¿cuál es tu recomendación final al tribunal?",
         "o": [
-            "A) CERTIFY: The system is mostly fine, minor glitches are acceptable.",
-            "B) RED NOTICE: Pause the system for repairs immediately because it is unsafe and biased.",
-            "C) WARNING: Only use the AI on weekends when crime is lower.",
+            "A) CERTIFICAR: El sistema está mayoritariamente bien, los errores menores son aceptables.",
+            "B) ALERTA ROJA: Pausar el sistema para reparaciones inmediatamente porque es inseguro y sesgado.",
+            "C) ADVERTENCIA: Utilizar la IA solo los fines de semana cuando el crimen es más bajo.",
         ],
-        "a": "B) RED NOTICE: Pause the system for repairs immediately because it is unsafe and biased.",
-        "success": "Verdict Delivered. You successfully stopped a harmful system.",
+        "a": "B) ALERTA ROJA: Pausar el sistema para reparaciones inmediatamente porque es inseguro y sesgado.",
+        "success": "Veredicto Entregado. Has detenido con éxito un sistema dañino.",
     },
 }
 
@@ -2413,7 +2413,7 @@ def simulate_moral_compass_score(acc, progress_pct):
 
 
 # --- 13. APP FACTORY (APP 1) ---
-def create_bias_detective_en_app(theme_primary_hue: str = "indigo"):
+def create_bias_detective_es_app(theme_primary_hue: str = "indigo"):
     with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
         # States
         username_state = gr.State(value=None)
@@ -2739,7 +2739,7 @@ def create_bias_detective_en_app(theme_primary_hue: str = "indigo"):
 
 
 
-def launch_bias_detective_en_app(
+def launch_bias_detective_es_app(
     share: bool = False,
     server_name: str = "0.0.0.0",
     server_port: int = 8080,
@@ -2756,7 +2756,7 @@ def launch_bias_detective_en_app(
         theme_primary_hue: Primary color hue
         **kwargs: Additional Gradio launch arguments
     """
-    app = create_bias_detective_en_app(theme_primary_hue=theme_primary_hue)
+    app = create_bias_detective_es_app(theme_primary_hue=theme_primary_hue)
     app.launch(
         share=share,
         server_name=server_name,
@@ -2770,4 +2770,4 @@ def launch_bias_detective_en_app(
 # ============================================================================
 
 if __name__ == "__main__":
-    launch_bias_detective_en_app(share=False, debug=True, height=1000)
+    launch_bias_detective_es_app(share=False, debug=True, height=1000)

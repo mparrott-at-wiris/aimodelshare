@@ -20,24 +20,35 @@ APP_NAME_TO_FACTORY = {
     "judge": "create_judge_app",
     "ai-consequences": "create_ai_consequences_app",
     "what-is-ai": "create_what_is_ai_app",
-    # Legacy generic model building game
+    # Model building game (router and variants)
     "model-building-game": "create_model_building_game_app",
-    # Language-specific variants (Standard)
     "model-building-game-en": "create_model_building_game_en_app",
     "model-building-game-ca": "create_model_building_game_ca_app",
     "model-building-game-es": "create_model_building_game_es_app",
-    # Language-specific variants (Final)
     "model-building-game-en-final": "create_model_building_game_en_final_app",
     "model-building-game-es-final": "create_model_building_game_es_final_app",
     "model-building-game-ca-final": "create_model_building_game_ca_final_app",
     # Other apps
     "ethical-revelation": "create_ethical_revelation_app",
     "moral-compass-challenge": "create_moral_compass_challenge_app",
+    # Bias Detective (split + language variants)
     "bias-detective-part1": "create_bias_detective_part1_app",
     "bias-detective-part2": "create_bias_detective_part2_app",
+    "bias-detective-en": "create_bias_detective_en_app",
+    "bias-detective-es": "create_bias_detective_es_app",
+    "bias-detective-ca": "create_bias_detective_ca_app",
+    # Fairness Fixer (generic + language variants) — NEW
     "fairness-fixer": "create_fairness_fixer_app",
+    "fairness-fixer-en": "create_fairness_fixer_en_app",
+    "fairness-fixer-es": "create_fairness_fixer_es_app",
+    "fairness-fixer-ca": "create_fairness_fixer_ca_app",
+    # Justice & Equity Upgrade (generic + language variants) — NEW
     "justice-equity-upgrade": "create_justice_equity_upgrade_app",
+    "justice-equity-upgrade-en": "create_justice_equity_upgrade_en_app",
+    "justice-equity-upgrade-es": "create_justice_equity_upgrade_es_app",
+    "justice-equity-upgrade-ca": "create_justice_equity_upgrade_ca_app",
 }
+
 
 # Supported language/variant codes for model-building-game dynamic routing
 # Now includes the 'final' variants so they can be routed via /en-final or ?lang=en-final

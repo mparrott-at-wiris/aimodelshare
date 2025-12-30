@@ -22,17 +22,30 @@ try:
         create_what_is_ai_app, launch_what_is_ai_app,
         create_model_building_game_app, launch_model_building_game_app,
         create_model_building_game_beginner_app, launch_model_building_game_beginner_app,
-        # Language-specific variants
+        # Language-specific games
         create_model_building_game_en_app, launch_model_building_game_en_app,
         create_model_building_game_ca_app, launch_model_building_game_ca_app,
         create_model_building_game_es_app, launch_model_building_game_es_app,
-        # NEW: Final language-specific variants
+        # Final language-specific games
         create_model_building_game_en_final_app, launch_model_building_game_en_final_app,
         create_model_building_game_es_final_app, launch_model_building_game_es_final_app,
         create_model_building_game_ca_final_app, launch_model_building_game_ca_final_app,
-        # Bias Detective split apps
+        # Bias Detective split + language variants
         create_bias_detective_part1_app, launch_bias_detective_part1_app,
         create_bias_detective_part2_app, launch_bias_detective_part2_app,
+        create_bias_detective_en_app, launch_bias_detective_en_app,
+        create_bias_detective_es_app, launch_bias_detective_es_app,
+        create_bias_detective_ca_app, launch_bias_detective_ca_app,
+        # Fairness Fixer (generic + language variants) — NEW
+        create_fairness_fixer_app, launch_fairness_fixer_app,
+        create_fairness_fixer_en_app, launch_fairness_fixer_en_app,
+        create_fairness_fixer_es_app, launch_fairness_fixer_es_app,
+        create_fairness_fixer_ca_app, launch_fairness_fixer_ca_app,
+        # Justice & Equity Upgrade (generic + language variants) — NEW
+        create_justice_equity_upgrade_app, launch_justice_equity_upgrade_app,
+        create_justice_equity_upgrade_en_app, launch_justice_equity_upgrade_en_app,
+        create_justice_equity_upgrade_es_app, launch_justice_equity_upgrade_es_app,
+        create_justice_equity_upgrade_ca_app, launch_justice_equity_upgrade_ca_app,
     )
 except Exception:  # noqa: BLE001
     # Fallback if Gradio apps have an issue (e.g., Gradio not installed)
@@ -48,25 +61,49 @@ except Exception:  # noqa: BLE001
     launch_model_building_game_app = None
     create_model_building_game_beginner_app = None
     launch_model_building_game_beginner_app = None
-    # Language-specific variants
+    # Language-specific games
     create_model_building_game_en_app = None
     launch_model_building_game_en_app = None
     create_model_building_game_ca_app = None
     launch_model_building_game_ca_app = None
     create_model_building_game_es_app = None
     launch_model_building_game_es_app = None
-    # NEW: Final language-specific variants
+    # Final language-specific games
     create_model_building_game_en_final_app = None
     launch_model_building_game_en_final_app = None
     create_model_building_game_es_final_app = None
     launch_model_building_game_es_final_app = None
     create_model_building_game_ca_final_app = None
     launch_model_building_game_ca_final_app = None
-    # Bias Detective split apps
+    # Bias Detective split + language variants
     create_bias_detective_part1_app = None
     launch_bias_detective_part1_app = None
     create_bias_detective_part2_app = None
     launch_bias_detective_part2_app = None
+    create_bias_detective_en_app = None
+    launch_bias_detective_en_app = None
+    create_bias_detective_es_app = None
+    launch_bias_detective_es_app = None
+    create_bias_detective_ca_app = None
+    launch_bias_detective_ca_app = None
+    # Fairness Fixer — NEW
+    create_fairness_fixer_app = None
+    launch_fairness_fixer_app = None
+    create_fairness_fixer_en_app = None
+    launch_fairness_fixer_en_app = None
+    create_fairness_fixer_es_app = None
+    launch_fairness_fixer_es_app = None
+    create_fairness_fixer_ca_app = None
+    launch_fairness_fixer_ca_app = None
+    # Justice & Equity Upgrade — NEW
+    create_justice_equity_upgrade_app = None
+    launch_justice_equity_upgrade_app = None
+    create_justice_equity_upgrade_en_app = None
+    launch_justice_equity_upgrade_en_app = None
+    create_justice_equity_upgrade_es_app = None
+    launch_justice_equity_upgrade_es_app = None
+    create_justice_equity_upgrade_ca_app = None
+    launch_justice_equity_upgrade_ca_app = None
 
 __all__ = [
     "__version__",
@@ -92,23 +129,46 @@ __all__ = [
     "launch_model_building_game_app",
     "create_model_building_game_beginner_app",
     "launch_model_building_game_beginner_app",
-    # Language-specific variants
+    # Games
     "create_model_building_game_en_app",
     "launch_model_building_game_en_app",
     "create_model_building_game_ca_app",
     "launch_model_building_game_ca_app",
     "create_model_building_game_es_app",
     "launch_model_building_game_es_app",
-    # NEW: Final language-specific variants
     "create_model_building_game_en_final_app",
     "launch_model_building_game_en_final_app",
     "create_model_building_game_es_final_app",
     "launch_model_building_game_es_final_app",
     "create_model_building_game_ca_final_app",
     "launch_model_building_game_ca_final_app",
-    # Bias Detective split apps
+    # Bias Detective
     "create_bias_detective_part1_app",
     "launch_bias_detective_part1_app",
     "create_bias_detective_part2_app",
     "launch_bias_detective_part2_app",
+    "create_bias_detective_en_app",
+    "launch_bias_detective_en_app",
+    "create_bias_detective_es_app",
+    "launch_bias_detective_es_app",
+    "create_bias_detective_ca_app",
+    "launch_bias_detective_ca_app",
+    # Fairness Fixer — NEW
+    "create_fairness_fixer_app",
+    "launch_fairness_fixer_app",
+    "create_fairness_fixer_en_app",
+    "launch_fairness_fixer_en_app",
+    "create_fairness_fixer_es_app",
+    "launch_fairness_fixer_es_app",
+    "create_fairness_fixer_ca_app",
+    "launch_fairness_fixer_ca_app",
+    # Justice & Equity Upgrade — NEW
+    "create_justice_equity_upgrade_app",
+    "launch_justice_equity_upgrade_app",
+    "create_justice_equity_upgrade_en_app",
+    "launch_justice_equity_upgrade_en_app",
+    "create_justice_equity_upgrade_es_app",
+    "launch_justice_equity_upgrade_es_app",
+    "create_justice_equity_upgrade_ca_app",
+    "launch_justice_equity_upgrade_ca_app",
 ]
