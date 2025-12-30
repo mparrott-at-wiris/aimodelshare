@@ -33,6 +33,10 @@ try:
         # Bias Detective split apps
         create_bias_detective_part1_app, launch_bias_detective_part1_app,
         create_bias_detective_part2_app, launch_bias_detective_part2_app,
+        # NEW: Language-specific Bias Detective variants
+        create_bias_detective_en_app, launch_bias_detective_en_app,
+        create_bias_detective_es_app, launch_bias_detective_es_app,
+        create_bias_detective_ca_app, launch_bias_detective_ca_app,
     )
 except Exception:  # noqa: BLE001
     # Fallback if Gradio apps have an issue (e.g., Gradio not installed)
@@ -67,6 +71,13 @@ except Exception:  # noqa: BLE001
     launch_bias_detective_part1_app = None
     create_bias_detective_part2_app = None
     launch_bias_detective_part2_app = None
+    # NEW: Language-specific Bias Detective variants
+    create_bias_detective_en_app = None
+    launch_bias_detective_en_app = None
+    create_bias_detective_es_app = None
+    launch_bias_detective_es_app = None
+    create_bias_detective_ca_app = None
+    launch_bias_detective_ca_app = None
 
 __all__ = [
     "__version__",
@@ -111,4 +122,11 @@ __all__ = [
     "launch_bias_detective_part1_app",
     "create_bias_detective_part2_app",
     "launch_bias_detective_part2_app",
+    # NEW: Language-specific Bias Detective variants
+    "create_bias_detective_en_app",
+    "launch_bias_detective_en_app",
+    "create_bias_detective_es_app",
+    "launch_bias_detective_es_app",
+    "create_bias_detective_ca_app",
+    "launch_bias_detective_ca_app",
 ]
