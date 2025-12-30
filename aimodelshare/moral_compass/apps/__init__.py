@@ -57,7 +57,7 @@ _EXPORT_MAP = {
     "create_bias_detective_ca_app": ("bias_detective_ca", "create_bias_detective_ca_app"),
     "launch_bias_detective_ca_app": ("bias_detective_ca", "launch_bias_detective_ca_app"),
 
-    # Fairness Fixer variants (generic + language-specific)
+    # Fairness Fixer variants (generic + language-specific) — NEW
     "create_fairness_fixer_app": ("fairness_fixer", "create_fairness_fixer_app"),
     "launch_fairness_fixer_app": ("fairness_fixer", "launch_fairness_fixer_app"),
     "create_fairness_fixer_en_app": ("fairness_fixer_en", "create_fairness_fixer_en_app"),
@@ -67,7 +67,7 @@ _EXPORT_MAP = {
     "create_fairness_fixer_ca_app": ("fairness_fixer_ca", "create_fairness_fixer_ca_app"),
     "launch_fairness_fixer_ca_app": ("fairness_fixer_ca", "launch_fairness_fixer_ca_app"),
 
-    # Justice & Equity Upgrade variants (generic + language-specific)
+    # Justice & Equity Upgrade variants (generic + language-specific) — NEW
     "create_justice_equity_upgrade_app": ("justice_equity_upgrade", "create_justice_equity_upgrade_app"),
     "launch_justice_equity_upgrade_app": ("justice_equity_upgrade", "launch_justice_equity_upgrade_app"),
     "create_justice_equity_upgrade_en_app": ("justice_equity_upgrade_en", "create_justice_equity_upgrade_en_app"),
