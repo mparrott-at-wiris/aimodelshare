@@ -36,12 +36,12 @@ try:
         create_bias_detective_en_app, launch_bias_detective_en_app,
         create_bias_detective_es_app, launch_bias_detective_es_app,
         create_bias_detective_ca_app, launch_bias_detective_ca_app,
-        # Fairness Fixer (generic + language variants)
+        # Fairness Fixer (generic + language variants) — NEW
         create_fairness_fixer_app, launch_fairness_fixer_app,
         create_fairness_fixer_en_app, launch_fairness_fixer_en_app,
         create_fairness_fixer_es_app, launch_fairness_fixer_es_app,
         create_fairness_fixer_ca_app, launch_fairness_fixer_ca_app,
-        # Justice & Equity Upgrade (generic + language variants)
+        # Justice & Equity Upgrade (generic + language variants) — NEW
         create_justice_equity_upgrade_app, launch_justice_equity_upgrade_app,
         create_justice_equity_upgrade_en_app, launch_justice_equity_upgrade_en_app,
         create_justice_equity_upgrade_es_app, launch_justice_equity_upgrade_es_app,
@@ -86,7 +86,7 @@ except Exception:  # noqa: BLE001
     launch_bias_detective_es_app = None
     create_bias_detective_ca_app = None
     launch_bias_detective_ca_app = None
-    # Fairness Fixer
+    # Fairness Fixer — NEW
     create_fairness_fixer_app = None
     launch_fairness_fixer_app = None
     create_fairness_fixer_en_app = None
@@ -95,7 +95,7 @@ except Exception:  # noqa: BLE001
     launch_fairness_fixer_es_app = None
     create_fairness_fixer_ca_app = None
     launch_fairness_fixer_ca_app = None
-    # Justice & Equity Upgrade
+    # Justice & Equity Upgrade — NEW
     create_justice_equity_upgrade_app = None
     launch_justice_equity_upgrade_app = None
     create_justice_equity_upgrade_en_app = None
@@ -129,7 +129,7 @@ __all__ = [
     "launch_model_building_game_app",
     "create_model_building_game_beginner_app",
     "launch_model_building_game_beginner_app",
-    # Games (lang-specific + finals)
+    # Games
     "create_model_building_game_en_app",
     "launch_model_building_game_en_app",
     "create_model_building_game_ca_app",
@@ -153,7 +153,7 @@ __all__ = [
     "launch_bias_detective_es_app",
     "create_bias_detective_ca_app",
     "launch_bias_detective_ca_app",
-    # Fairness Fixer
+    # Fairness Fixer — NEW
     "create_fairness_fixer_app",
     "launch_fairness_fixer_app",
     "create_fairness_fixer_en_app",
@@ -162,7 +162,7 @@ __all__ = [
     "launch_fairness_fixer_es_app",
     "create_fairness_fixer_ca_app",
     "launch_fairness_fixer_ca_app",
-    # Justice & Equity Upgrade
+    # Justice & Equity Upgrade — NEW
     "create_justice_equity_upgrade_app",
     "launch_justice_equity_upgrade_app",
     "create_justice_equity_upgrade_en_app",
