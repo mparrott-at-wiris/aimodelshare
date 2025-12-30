@@ -54,18 +54,19 @@ _EXPORT_MAP = {
     "create_moral_compass_challenge_app": ("moral_compass_challenge", "create_moral_compass_challenge_app"),
     "launch_moral_compass_challenge_app": ("moral_compass_challenge", "launch_moral_compass_challenge_app"),
 
-    # NEW: split Bias Detective into two explicit modules (part1 uses current code;
-    # part2 is the temporary placeholder module). Ensure files bias_detective_part1.py
-    # and bias_detective_part2.py exist under this package.
+    # Bias Detective split apps (part1/part2)
     "create_bias_detective_part1_app": ("bias_detective_part1", "create_bias_detective_part1_app"),
     "launch_bias_detective_part1_app": ("bias_detective_part1", "launch_bias_detective_part1_app"),
     "create_bias_detective_part2_app": ("bias_detective_part2", "create_bias_detective_part2_app"),
     "launch_bias_detective_part2_app": ("bias_detective_part2", "launch_bias_detective_part2_app"),
 
-    "create_fairness_fixer_app": ("fairness_fixer", "create_fairness_fixer_app"),
-    "launch_fairness_fixer_app": ("fairness_fixer", "launch_fairness_fixer_app"),
-    "create_justice_equity_upgrade_app": ("justice_equity_upgrade", "create_justice_equity_upgrade_app"),
-    "launch_justice_equity_upgrade_app": ("justice_equity_upgrade", "launch_justice_equity_upgrade_app"),
+    # NEW: Language-specific Bias Detective variants
+    "create_bias_detective_en_app": ("bias_detective_en", "create_bias_detective_en_app"),
+    "launch_bias_detective_en_app": ("bias_detective_en", "launch_bias_detective_en_app"),
+    "create_bias_detective_es_app": ("bias_detective_es", "create_bias_detective_es_app"),
+    "launch_bias_detective_es_app": ("bias_detective_es", "launch_bias_detective_es_app"),
+    "create_bias_detective_ca_app": ("bias_detective_ca", "create_bias_detective_ca_app"),
+    "launch_bias_detective_ca_app": ("bias_detective_ca", "launch_bias_detective_ca_app"),
 }
 
 __all__ = list(_EXPORT_MAP.keys())
