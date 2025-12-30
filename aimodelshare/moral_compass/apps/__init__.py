@@ -1,15 +1,5 @@
 """
 Lazy export layer for Moral Compass Gradio app factories.
-
-Includes language-specific model building game variants:
-- model_building_app_en.py
-- model_building_app_ca.py
-- model_building_app_es.py
-- model_building_app_en_final.py
-- model_building_app_ca_final.py
-- model_building_app_es_final.py
-
-If you rename files to model_building_game_<lang>.py, update _EXPORT_MAP accordingly.
 """
 
 import importlib
@@ -32,15 +22,14 @@ _EXPORT_MAP = {
     # Beginner variant
     "create_model_building_game_beginner_app": ("model_building_game_beginner", "create_model_building_game_beginner_app"),
     "launch_model_building_game_beginner_app": ("model_building_game_beginner", "launch_model_building_game_beginner_app"),
-    # Language-specific (adjusted to actual filenames model_building_app_<lang>.py)
+    # Language-specific games
     "create_model_building_game_en_app": ("model_building_app_en", "create_model_building_game_en_app"),
     "launch_model_building_game_en_app": ("model_building_app_en", "launch_model_building_game_en_app"),
     "create_model_building_game_ca_app": ("model_building_app_ca", "create_model_building_game_ca_app"),
     "launch_model_building_game_ca_app": ("model_building_app_ca", "launch_model_building_game_ca_app"),
     "create_model_building_game_es_app": ("model_building_app_es", "create_model_building_game_es_app"),
     "launch_model_building_game_es_app": ("model_building_app_es", "launch_model_building_game_es_app"),
-
-    # NEW: Final language-specific variants
+    # Final language-specific game variants
     "create_model_building_game_en_final_app": ("model_building_app_en_final", "create_model_building_game_en_final_app"),
     "launch_model_building_game_en_final_app": ("model_building_app_en_final", "launch_model_building_game_en_final_app"),
     "create_model_building_game_ca_final_app": ("model_building_app_ca_final", "create_model_building_game_ca_final_app"),
@@ -54,19 +43,39 @@ _EXPORT_MAP = {
     "create_moral_compass_challenge_app": ("moral_compass_challenge", "create_moral_compass_challenge_app"),
     "launch_moral_compass_challenge_app": ("moral_compass_challenge", "launch_moral_compass_challenge_app"),
 
-    # Bias Detective split apps (part1/part2)
+    # Bias Detective split apps
     "create_bias_detective_part1_app": ("bias_detective_part1", "create_bias_detective_part1_app"),
     "launch_bias_detective_part1_app": ("bias_detective_part1", "launch_bias_detective_part1_app"),
     "create_bias_detective_part2_app": ("bias_detective_part2", "create_bias_detective_part2_app"),
     "launch_bias_detective_part2_app": ("bias_detective_part2", "launch_bias_detective_part2_app"),
 
-    # NEW: Language-specific Bias Detective variants
+    # Language-specific Bias Detective variants
     "create_bias_detective_en_app": ("bias_detective_en", "create_bias_detective_en_app"),
     "launch_bias_detective_en_app": ("bias_detective_en", "launch_bias_detective_en_app"),
     "create_bias_detective_es_app": ("bias_detective_es", "create_bias_detective_es_app"),
     "launch_bias_detective_es_app": ("bias_detective_es", "launch_bias_detective_es_app"),
     "create_bias_detective_ca_app": ("bias_detective_ca", "create_bias_detective_ca_app"),
     "launch_bias_detective_ca_app": ("bias_detective_ca", "launch_bias_detective_ca_app"),
+
+    # Fairness Fixer variants (generic + language-specific)
+    "create_fairness_fixer_app": ("fairness_fixer", "create_fairness_fixer_app"),
+    "launch_fairness_fixer_app": ("fairness_fixer", "launch_fairness_fixer_app"),
+    "create_fairness_fixer_en_app": ("fairness_fixer_en", "create_fairness_fixer_en_app"),
+    "launch_fairness_fixer_en_app": ("fairness_fixer_en", "launch_fairness_fixer_en_app"),
+    "create_fairness_fixer_es_app": ("fairness_fixer_es", "create_fairness_fixer_es_app"),
+    "launch_fairness_fixer_es_app": ("fairness_fixer_es", "launch_fairness_fixer_es_app"),
+    "create_fairness_fixer_ca_app": ("fairness_fixer_ca", "create_fairness_fixer_ca_app"),
+    "launch_fairness_fixer_ca_app": ("fairness_fixer_ca", "launch_fairness_fixer_ca_app"),
+
+    # Justice & Equity Upgrade variants (generic + language-specific)
+    "create_justice_equity_upgrade_app": ("justice_equity_upgrade", "create_justice_equity_upgrade_app"),
+    "launch_justice_equity_upgrade_app": ("justice_equity_upgrade", "launch_justice_equity_upgrade_app"),
+    "create_justice_equity_upgrade_en_app": ("justice_equity_upgrade_en", "create_justice_equity_upgrade_en_app"),
+    "launch_justice_equity_upgrade_en_app": ("justice_equity_upgrade_en", "launch_justice_equity_upgrade_en_app"),
+    "create_justice_equity_upgrade_es_app": ("justice_equity_upgrade_es", "create_justice_equity_upgrade_es_app"),
+    "launch_justice_equity_upgrade_es_app": ("justice_equity_upgrade_es", "launch_justice_equity_upgrade_es_app"),
+    "create_justice_equity_upgrade_ca_app": ("justice_equity_upgrade_ca", "create_justice_equity_upgrade_ca_app"),
+    "launch_justice_equity_upgrade_ca_app": ("justice_equity_upgrade_ca", "launch_justice_equity_upgrade_ca_app"),
 }
 
 __all__ = list(_EXPORT_MAP.keys())
