@@ -2180,7 +2180,7 @@ def run_experiment(
 
     try:
         # --- Stage 2: Smart Build (Cache vs Train) ---
-        progress(0.3, desc="Building Model...")
+        progress(0.3, desc="Creant model...")
         
         # 1. Generate Cache Key (Matches format in precompute_cache.py)
         # Uses ENGLISH keys: "The Balanced Generalist|2|Small (20%)|age,race"
@@ -2579,7 +2579,7 @@ def on_initial_load(username, token=None, team_name=""):
         
         <div style='background:#eff6ff; padding:16px; border-radius:12px; border:2px solid #bfdbfe; display:inline-block;'>
             <p style='margin:0; color:#1e40af; font-weight:bold; font-size:1.1rem;'>
-                👈 Fes clic a 'Construir i enviar model' per començar a jugar!
+                👈 Fes clic al botó 'Construir i enviar model' per començar a jugar!
             </p>
         </div>
     </div>
@@ -3592,13 +3592,13 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
   
         # Slide 1: From Understanding to Building (Retained as transition)
         with gr.Column(visible=True, elem_id="slide-1") as briefing_slide_1:
-            gr.Markdown("<h1 style='text-align:center;'>🔄 De la Comprensió a la Creació</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🔄 De la teoria a la pràctica</h1>")
             gr.HTML("""
                 <div class='slide-content'>
                 <div class='panel-box'>
-                <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>Molt bon progrés! Ara ja has:</h3>
+                <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>Molt bona feina! Fins ara has:</h3>
                 <ul style='list-style: none; padding-left: 0; margin-top: 24px; margin-bottom: 24px;'>
-                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Pres decisions difícils com a jutge</li>
+                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Pres decisions difícils en el rol de jutge</li>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Après sobre falsos positius i negatius</li>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Entès com funciona la IA</li>
                 </ul>
@@ -3607,7 +3607,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                     <span style='background:#fef3c7; padding:8px; border-radius:4px; color:#92400e; font-weight:bold;'>MODEL</span> → 
                     <span style='background:#f0fdf4; padding:8px; border-radius:4px; color:#15803d; font-weight:bold;'>SORTIDA</span>
                 </div>
-                <h3 style='font-size: 1.5rem; text-align:center;'>Ara: Posa't a la pell d'un Enginyer d'IA.</h3>
+                <h3 style='font-size: 1.5rem; text-align:center;'>Ara: Posa't a la pell d'una persona enginyera d'IA.</h3>
                 </div>
                 </div>
             """)
@@ -3615,22 +3615,22 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
   
         # Slide 2: Mission
         with gr.Column(visible=False, elem_id="slide-2") as briefing_slide_2:
-            gr.Markdown("<h1 style='text-align:center;'>📋 La Teva Missió: Crear una IA Millor</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>📋 La teva missió: Crear un sistema d'IA millor</h1>")
             gr.HTML("""
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <h3>La Missió</h3>
-                        <p>Construeix un model d'IA que ajudi els jutges a prendre millors decisions. La teva feina és predir el risc de reincidència amb més precisió que el model anterior.</p>
+                        <h3>La missió</h3>
+                        <p>Construeix un sistema d'IA que ajudi a millorar les decisions judicials. El teu objectiu és predir el risc de reincidència amb més precisió que el sistema anterior.</p>
                         
-                        <h3>La Competició</h3>
-                        <p>Per fer-ho, competiràs amb altres enginyers! T'uniràs a un equip, amb puntuacions registrades tant pel rendiment individual com d'equip a les taules de classificació en directe.</p>
+                        <h3>La competició</h3>
+                        <p>Per fer-ho, competiràs amb altres professionals d'enginyeria! T'uniràs a un equip i podràs seguir tant el rendiment individual com el d’equip a les classificacions en temps real.</p>
                         <div style="background:var(--background-fill-secondary); padding:8px 12px; border-radius:8px; margin-bottom:12px; border:1px solid var(--border-color-primary);">
                              T'uniràs a un equip com ara… <b>🛡️ Els Exploradors Ètics</b>
                         </div>
   
-                        <h3>El Repte de Dades</h3>
-                        <p>Per competir, tindràs accés a milers d'arxius de casos antics que contenen <b>Perfils dels Acusats</b> (Edat, Historial) i <b>Resultats Històrics</b> (Van reincidir?).</p>
-                        <p>La teva tasca és entrenar un sistema d'IA que aprengui dels perfils i predigui el resultat amb precisió. A punt per construir quelcom que podria canviar com funciona la justícia?</p>
+                        <h3>El repte de les dades</h3>
+                        <p>Per competir, tindràs accés a milers d'arxius de casos antics que contenen <b>perfils de persones acusades</b> (edat, historial) i <b>resultats històrics</b> (hi ha reincidència o no).</p>
+                        <p>La teva tasca és crear un sistema d'IA que aprengui dels perfils i predigui el resultat amb precisió. A punt per construir alguna cosa que podria canviar la manera com funciona la justícia?</p>
                     </div>
                 </div>
             """)
@@ -3640,14 +3640,14 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
   
         # Slide 3: Concept
         with gr.Column(visible=False, elem_id="slide-3") as briefing_slide_3:
-            gr.Markdown("<h1 style='text-align:center;'>🧠 Què és un Sistema d'IA?</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🧠 Què és un sistema d'IA?</h1>")
             gr.HTML("""
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <p>Pensa en un Sistema d'IA com una "Màquina de Predicció". La construeixes utilitzant tres components principals:</p>
-                        <p><strong>1. Les Entrades:</strong> Les dades que li subministres (ex: Edat, Delictes).</p>
-                        <p><strong>2. El Model ("El Cervell"):</strong> Les matemàtiques (algorisme) que troben patrons.</p>
-                        <p><strong>3. La Sortida:</strong> La predicció (ex: Nivell de Risc).</p>
+                        <p>Imagina't un sistema d'IA com una "màquina de predicció". Es construeix a través de tres components principals:</p>
+                        <p><strong>1. Les entrades:</strong> Les dades que li subministres (ex: edat, delictes).</p>
+                        <p><strong>2. El model ("el cervell"):</strong> Les matemàtiques (algorisme) que troben patrons.</p>
+                        <p><strong>3. La sortida:</strong> La predicció (ex: nivell de risc).</p>
                     </div>
                 </div>
             """)
@@ -3657,17 +3657,17 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
   
         # Slide 4: The Loop
         with gr.Column(visible=False, elem_id="slide-4") as briefing_slide_4:
-            gr.Markdown("<h1 style='text-align:center;'>🔁 Com Treballen els Enginyers: El Cicle</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🔁 Com treballen els equips d'enginyeria: El cicle</h1>")
             gr.HTML("""
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <p>Els equips d'IA reals mai l'encerten a la primera. Segueixen un cicle: <strong>Provar, Testejar, Aprendre, Repetir.</strong></p>
+                        <p>Els equips d’IA reals gairebé mai ho encerten a la primera. Segueixen un cicle: <strong>provar, avaluar, aprendre, repetir.</strong></p>
                         <p>Faràs exactament el mateix en aquesta competició:</p>
                         <div class='step-visual'>
-                            <div class='step-visual-box'><b>1. Configurar</b><br><span style='font-size:0.85rem'>tria model i dades</span></div>→
-                            <div class='step-visual-box'><b>2. Enviar</b><br><span style='font-size:0.85rem'>entrena el teu sistema</span></div>→
-                            <div class='step-visual-box'><b>3. Analitzar</b><br><span style='font-size:0.85rem'>comprova el rànquing</span></div>→
-                            <div class='step-visual-box'><b>4. Refinar</b><br><span style='font-size:0.85rem'>ajusta i torna-ho a provar</span></div>
+                            <div class='step-visual-box'><b>1. Configura</b><br><span style='font-size:0.85rem'>tria el model i les dades</span></div>→
+                            <div class='step-visual-box'><b>2. Envia</b><br><span style='font-size:0.85rem'>entrena el teu sistema</span></div>→
+                            <div class='step-visual-box'><b>3. Analitza</b><br><span style='font-size:0.85rem'>consulta la classificació</span></div>→
+                            <div class='step-visual-box'><b>4. Refina</b><br><span style='font-size:0.85rem'>ajusta i torna-ho a provar</span></div>
                         </div>
                     </div>
                 </div>
@@ -3684,77 +3684,77 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                 <div class='slide-content'>
                     <div class='panel-box'>
                         <div class='t-minus-header'>
-                            <h2 class='t-minus-title' style='color: var(--body-text-color);'>🔧 Comprovació de Sistemes d'Enginyeria</h2>
+                            <h2 class='t-minus-title' style='color: var(--body-text-color);'>🔧 Revisió dels controls d'enginyeria</h2>
                         </div>
             
                         <div style='background: color-mix(in srgb, var(--color-accent) 10%, transparent); border:1px solid var(--color-accent); padding:16px; border-radius:10px; text-align:center; margin-bottom:24px;'>
                             <strong style='color: var(--color-accent); font-size:1.1rem;'>⚠️ MODE DE SIMULACIÓ ACTIU</strong>
                             <p style='margin:8px 0 0 0; color: var(--body-text-color); font-size:1.05rem; line-height:1.4;'>
-                                A continuació tens els <b>4 controls exactes</b> que utilitzaràs per construir el teu model en el següent pas.<br>
-                                <b>Fes clic a cadascun ara</b> per aprendre què fan abans que comenci la competició.
+                                A continuació tens els <b>4 controls</b> que utilitzaràs per construir el teu sistema d'IA en el pas següent.<br>
+                                <b>Fes clic a cadascun ara</b> per entendre què fan abans que comenci la competició.
                             </p>
                         </div>
             
                         <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px; margin-bottom: 8px;">
-                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">1. Estratègia del Model (El ‘cervell’)</summary>
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">1. Estratègia del model (el ‘cervell’)</summary>
                             <div class="content" style="padding-top: 12px; padding-left: 12px;">
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);"><span class="radio-circle selected" style="display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--color-accent); margin-right:8px;"></span> <b>El Generalista Equilibrat</b></div>
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> El Creador de Regles</div>
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> El Cercador de Patrons Profunds</div>
                                 
                                 <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
-                                    <b style="color: var(--body-text-color);">Al Joc:</b> <span style="color: var(--body-text-color);">Triaràs una d'aquestes estratègies de model. Cada estratègia permet que el teu model aprengui de les dades d'entrada d'una manera única.</span><br>
-                                    <i style="color: var(--body-text-color-subdued);">Consell: Comença amb el "Generalista Equilibrat" per a una puntuació base segura i fiable.</i>
+                                    <b style="color: var(--body-text-color);">En el joc:</b> <span style="color: var(--body-text-color);">Triaràs una d'aquestes estratègies de model. Cada estratègia permet que el model aprengui de les dades d’entrada d’una manera diferent..</span><br>
+                                    <i style="color: var(--body-text-color-subdued);">Consell: Comença amb el "Generalista Equilibrat" per obtenir una puntuació base segura i fiable.</i>
                                 </div>
                             </div>
                         </details>
             
                         <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px; margin-bottom: 8px;">
-                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">2. Complexitat del Model (Nivell d'Enfocament)</summary>
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">2. Complexitat del model (nivell de focus)</summary>
                             <div class="content" style="padding-top: 12px; padding-left: 12px;">
                                 <div class="slider-track" style="height: 4px; background: var(--neutral-200); margin: 16px 0; position: relative;"><div class="slider-thumb" style="width: 16px; height: 16px; background: var(--color-accent); border-radius: 50%; position: absolute; left: 50%; top: -6px;"></div></div>
                                 <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--body-text-color-subdued);">
-                                    <span>Nivell 1 (General)</span>
-                                    <span>Nivell 10 (Específic)</span>
+                                    <span>Nivell 1 (general)</span>
+                                    <span>Nivell 10 (específic)</span>
                                 </div>
                                 
                                 <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
-                                    <b style="color: var(--body-text-color);">Al Joc:</b> <span style="color: var(--body-text-color);">Pensa en això com <b>Estudiar vs. Memoritzar</b>.</span><br>
-                                    <span style="color: var(--body-text-color);">• <b>Complexitat Baixa:</b> La IA aprèn conceptes generals (Bo per a nous casos).</span><br>
-                                    <span style="color: var(--body-text-color);">• <b>Complexitat Alta:</b> La IA memoritza les respostes (Dolent per a nous casos).</span><br>
-                                    <strong style="color:#ef4444;">⚠️ El Parany:</strong> <span style="color: var(--body-text-color);">Una configuració alta sembla perfecta en el test de pràctica, però falla al món real perquè la IA només ha memoritzat les respostes!</span>
+                                    <b style="color: var(--body-text-color);">En el joc:</b> <span style="color: var(--body-text-color);">Pensa en això com <b>estudiar vs. memoritzar</b>.</span><br>
+                                    <span style="color: var(--body-text-color);">• <b>Complexitat baixa:</b> La IA aprèn conceptes generals (bo per a casos nous).</span><br>
+                                    <span style="color: var(--body-text-color);">• <b>Complexitat alta:</b> La IA memoritza les respostes (dolent per a casos nous).</span><br>
+                                    <strong style="color:#ef4444;">⚠️ El parany:</strong> <span style="color: var(--body-text-color);">un nivell alt pot semblar perfecte a la prova pràctica, però falla al món real perquè la IA només ha memoritzat les respostes.</span>
                                 </div>
                             </div>
                         </details>
             
                         <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px; margin-bottom: 8px;">
-                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">3. Ingredients de Dades (Les entrades)</summary>
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">3. Variables de dades (Les entrades)</summary>
                             <div class="content" style="padding-top: 12px; padding-left: 12px;">
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);">
-                                    <span style="color:var(--color-accent); font-weight:bold;">☑</span> <b>Delictes Anteriors</b>
+                                    <span style="color:var(--color-accent); font-weight:bold;">☑</span> <b>Delictes anteriors</b>
                                 </div>
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);">
-                                    <span style="color:var(--color-accent); font-weight:bold;">☑</span> <b>Grau del Càrrec</b>
+                                    <span style="color:var(--color-accent); font-weight:bold;">☑</span> <b>Grau del càrrec delictiu</b>
                                 </div>
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);">
-                                    <span style="color:var(--neutral-400); font-weight:bold;">☐</span> <b>Demografia (Raça/Sexe)</b> <span class="risk-tag" style="background:#fef2f2; color:#b91c1c; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold;">⚠️ RISC</span>
+                                    <span style="color:var(--neutral-400); font-weight:bold;">☐</span> <b>Dades democràfiques (origen ètnic/sexe)</b> <span class="risk-tag" style="background:#fef2f2; color:#b91c1c; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold;">⚠️ RISC</span>
                                 </div>
                                 
                                 <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
-                                    <b style="color: var(--body-text-color);">Al Joc:</b> <span style="color: var(--body-text-color);">Marcaràs caselles per decidir quines dades d'entrada brutes pot utilitzar la IA per aprendre nous patrons.</span><br>
-                                    <strong style="color:#ef4444;">⚠️ Risc Ètic:</strong> <span style="color: var(--body-text-color);">Pots utilitzar la demografia per millorar la teva puntuació, però és just?</span>
+                                    <b style="color: var(--body-text-color);">En el joc:</b> <span style="color: var(--body-text-color);">marcaràs caselles per decidir quines dades d’entrada pot utilitzar la IA per aprendre nous patrons.</span><br>
+                                    <strong style="color:#ef4444;">⚠️ Risc ètic:</strong> <span style="color: var(--body-text-color);">Pots utilitzar les dades demogràfiques per millorar la teva puntuació, però és just?</span>
                                 </div>
                             </div>
                         </details>
             
                         <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px;">
-                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">4. Mida de les Dades (Volum)</summary>
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">4. Mida de les dades (Volum)</summary>
                             <div class="content" style="padding-top: 12px; padding-left: 12px;">
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);"><span class="radio-circle selected" style="display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--color-accent); margin-right:8px;"></span> <b>Petita (20%)</b> - La IA aprèn ràpid, però veu menys dades.</div>
-                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> <b>Completa (100%)</b> - La IA veu més dades i aprèn més lentament.</div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> <b>Completa (100%)</b> - La IA veu més dades, però aprèn més lentament.</div>
                                 
                                 <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
-                                    <b style="color: var(--body-text-color);">Al Joc:</b> <span style="color: var(--body-text-color);">Tries quanta història llegeix el model.</span><br>
+                                    <b style="color: var(--body-text-color);">En el joc:</b> <span style="color: var(--body-text-color);">Decideixes quina quantitat d’historial de dades llegeix el model.</span><br>
                                     <i style="color: var(--body-text-color-subdued);">Consell: Fes servir "Petita" per provar idees ràpidament. Fes servir "Completa" quan creguis que tens una estratègia guanyadora.</i>
                                 </div>
                             </div>
