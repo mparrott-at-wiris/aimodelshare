@@ -1602,7 +1602,7 @@ def compute_rank_settings(
     if submission_count == 0:
         avail_keys = ["The Balanced Generalist"]
         return {
-            "rank_message": "# 🧑‍🎓 Rang: Enginyer/a en Pràctiques\n<p style='font-size:24px; line-height:1.4;'>Per al teu primer enviament, només cal que facis clic al botó gran '🔬 Construir i enviar el model' de sota!</p>",
+            "rank_message": "# 🧑‍🎓 Rang: Enginyer/a en pràctiques\n<p style='font-size:24px; line-height:1.4;'>Per al teu primer enviament, només cal que facis clic al botó gran '🔬 Construir i enviar el model' de sota!</p>",
             "model_choices": get_model_tuples(avail_keys),
             "model_value": "The Balanced Generalist",
             "model_interactive": False,
@@ -1622,7 +1622,7 @@ def compute_rank_settings(
         avail_keys = ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"]
         
         return {
-            "rank_message": "# 🎉 Has pujat de nivell! Enginyer/a Júnior\n<p style='font-size:24px; line-height:1.4;'>Nous models, mides de dades i variables desbloquejats!</p>",
+            "rank_message": "# 🎉 Has pujat de nivell! Enginyer/a júnior\n<p style='font-size:24px; line-height:1.4;'>Nous models, mides de dades i variables desbloquejats!</p>",
             "model_choices": get_model_tuples(avail_keys),
             # Ensure current selection is valid for this rank, else reset to default
             "model_value": current_model if current_model in avail_keys else "The Balanced Generalist",
@@ -1642,7 +1642,7 @@ def compute_rank_settings(
         avail_keys = list(MODEL_TYPES.keys()) # All models
         
         return {
-            "rank_message": "# 🌟 Has pujat de nivell! Enginyer/a Sènior\n<p style='font-size:24px; line-height:1.4;'>Variables més potents desbloquejades! Els predictors més forts (com 'Edat' i 'Nombre de delictes previs') ja estan disponibles a la teva llista. Probablement milloraran la teva precisió, però recorda que sovint comporten més biaixos socials.</p>",
+            "rank_message": "# 🌟 Has pujat de nivell! Enginyer/a sènior\n<p style='font-size:24px; line-height:1.4;'>Variables més potents desbloquejades! Els predictors més forts (com 'Edat' i 'Nombre de delictes previs') ja estan disponibles a la teva llista. Probablement milloraran la teva precisió, però recorda que sovint comporten més biaixos socials.</p>",
             "model_choices": get_model_tuples(avail_keys),
             "model_value": current_model if current_model in avail_keys else "The Deep Pattern-Finder",
             "model_interactive": True,
@@ -1661,7 +1661,7 @@ def compute_rank_settings(
         avail_keys = list(MODEL_TYPES.keys()) # All models
 
         return {
-            "rank_message": "# 👑 Rang: Enginyer/a Principal\n<p style='font-size:24px; line-height:1.4;'>Totes les eines desbloquejades — optimitza amb llibertat!</p>",
+            "rank_message": "# 👑 Rang: Enginyer/a principal\n<p style='font-size:24px; line-height:1.4;'>Totes les eines desbloquejades — optimitza amb llibertat!</p>",
             "model_choices": get_model_tuples(avail_keys),
             "model_value": current_model if current_model in avail_keys else "The Balanced Generalist",
             "model_interactive": True,
@@ -3599,7 +3599,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                 <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>Molt bona feina! Fins ara has:</h3>
                 <ul style='list-style: none; padding-left: 0; margin-top: 24px; margin-bottom: 24px;'>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Pres decisions difícils en el rol de jutge</li>
-                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Après què són falsos positius i negatius</li>
+                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Après què són els falsos positius i els falsos negatius</li>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Entès com funciona la IA</li>
                 </ul>
                 <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
@@ -3646,7 +3646,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                     <div class='panel-box'>
                         <p>Imagina't un sistema d'IA com una "màquina de predicció". Es construeix a través de tres components principals:</p>
                         <p><strong>1. Les entrades:</strong> Les dades que li subministres (ex: edat, delictes).</p>
-                        <p><strong>2. El model ("el cervell"):</strong> Les matemàtiques (algorisme) que troben patrons.</p>
+                        <p><strong>2. El model (el "cervell"):</strong> Les matemàtiques (algorisme) que troben patrons.</p>
                         <p><strong>3. La sortida:</strong> La predicció (ex: nivell de risc).</p>
                     </div>
                 </div>
@@ -3657,7 +3657,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
   
         # Slide 4: The Loop
         with gr.Column(visible=False, elem_id="slide-4") as briefing_slide_4:
-            gr.Markdown("<h1 style='text-align:center;'>🔁 Com treballen els equips d'enginyeria: El cicle</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🔁 Com treballen els equips d'enginyeria: el cicle</h1>")
             gr.HTML("""
                 <div class='slide-content'>
                     <div class='panel-box'>
@@ -3696,7 +3696,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                         </div>
             
                         <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px; margin-bottom: 8px;">
-                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">1. Estratègia del model (el ‘cervell’)</summary>
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">1. Estratègia del model (el "cervell")</summary>
                             <div class="content" style="padding-top: 12px; padding-left: 12px;">
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);"><span class="radio-circle selected" style="display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--color-accent); margin-right:8px;"></span> <b>El Generalista Equilibrat</b></div>
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> El Creador de Regles</div>
@@ -3719,7 +3719,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                                 </div>
                                 
                                 <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
-                                    <b style="color: var(--body-text-color);">En el joc:</b> <span style="color: var(--body-text-color);">Pensa en això com <b>estudiar vs. memoritzar</b>.</span><br>
+                                    <b style="color: var(--body-text-color);">En el joc:</b> <span style="color: var(--body-text-color);">Pensa-hi com <b>estudiar vs. memoritzar</b>.</span><br>
                                     <span style="color: var(--body-text-color);">• <b>Complexitat baixa:</b> La IA aprèn conceptes generals (bo per a casos nous).</span><br>
                                     <span style="color: var(--body-text-color);">• <b>Complexitat alta:</b> La IA memoritza les respostes (dolent per a casos nous).</span><br>
                                     <strong style="color:#ef4444;">⚠️ El parany:</strong> <span style="color: var(--body-text-color);">un nivell alt pot semblar perfecte a la prova pràctica, però falla al món real perquè la IA només ha memoritzat les respostes.</span>
@@ -3776,7 +3776,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                 <div class='slide-content'>
                     <div class='panel-box'>
                         <div class='t-minus-header'>
-                            <h2 class='t-minus-title'>🚀 Informe de Missió: La Puntuació Final</h2>
+                            <h2 class='t-minus-title'>🚀 Les claus finals: el veredicte de la missió</h2>
                         </div>
                         
                         <p style='font-size: 1.15rem; text-align:center; margin-bottom: 24px;'>
@@ -3786,39 +3786,39 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                         <div style='background:var(--prose-background-fill); padding:20px; border-radius:12px; text-align:left; margin-bottom:24px;'>
                             <div style='display:flex; align-items:center; gap:8px; margin-bottom:12px;'>
                                 <span style='font-size:1.5rem;'>🔐</span>
-                                <strong style='font-size:1.2rem; color:#064e3b;'>Com Guanyar</strong>
+                                <strong style='font-size:1.2rem; color:#064e3b;'>Com guanyar</strong>
                             </div>
                             
                             <p style='margin-bottom:12px;'>
-                                Al món real, no coneixem el futur. Per simular-ho, hem amagat el 20% dels arxius de casos (dades) en una "Caixa Forta".
+                                Al món real, no coneixem el futur. Per simular-ho, hem amagat el 20% dels arxius de casos (dades) en una "caixa forta".
                             </p>
                             
                             <ul style='margin:0; padding-left:24px; color:var(--text-muted); line-height:1.6;'>
                                 <li style='margin-bottom:8px;'>
-                                    La teva IA aprendrà de les dades d'entrada que li donis, però serà avaluada amb les dades amagades a la Caixa Forta.
+                                    El teu sistema d'IA aprendrà de les dades d'entrada que li donis, però serà avaluat amb les dades amagades a la "caixa forta".
                                 </li>
                                 <li>
-                                    <b>La Teva Puntuació:</b> Se et puntua segons la precisió de la predicció. Si obtens un 50%, la teva IA bàsicament està endevinant (com tirar una moneda). El teu objectiu és dissenyar un sistema que predigui molt millor!
+                                    <b>La teva puntuació:</b> es calcula segons la precisió de la predicció. Si obtens un 50%, la teva IA bàsicament està endevinant (com fer un cara o creu). El teu objectiu és dissenyar un sistema que faci prediccions molt més precises!
                                 </li>
                             </ul>
                         </div>
             
                         <div style='text-align:center; border-top:1px solid var(--card-border-subtle); padding-top:20px; margin-bottom:30px;'>
-                            <h3 style='margin:0 0 8px 0; font-size:1.2rem;'>Rangs Desbloquejables</h3>
+                            <h3 style='margin:0 0 8px 0; font-size:1.2rem;'>Desbloqueja rangs</h3>
                             <p style='margin-bottom:16px; font-size:0.95rem; color:var(--text-muted);'>
                                 A mesura que refinis el teu model i pugis a la classificació, guanyaràs nous rangs:
                             </p>
                             <div style='display:inline-flex; gap:12px; flex-wrap:wrap; justify-content:center;'>
-                                <span style='padding:6px 12px; background:#f3f4f6; border-radius:20px; font-size:0.9rem;'>⭐ Novell</span>
+                                <span style='padding:6px 12px; background:#f3f4f6; border-radius:20px; font-size:0.9rem;'>⭐ En pràctiques</span>
                                 <span style='padding:6px 12px; background:#e0e7ff; border-radius:20px; font-size:0.9rem; color:#4338ca;'>⭐⭐ Júnior</span>
-                                <span style='padding:6px 12px; background:#fae8ff; border-radius:20px; font-size:0.9rem; color:#86198f;'>⭐⭐⭐ Enginyer Principal</span>
+                                <span style='padding:6px 12px; background:#fae8ff; border-radius:20px; font-size:0.9rem; color:#86198f;'>⭐⭐⭐ Sènior</span>
                             </div>
                         </div>
                         
                         <div style='text-align:center; background: color-mix(in srgb, var(--color-accent) 10%, transparent); padding: 20px; border-radius: 12px; border: 2px solid var(--color-accent);'>
                             <p style='margin:0 0 8px 0; font-size: 1.1rem; color: var(--text-muted);'>Per començar la competició:</p>
-                            <b style='color:var(--accent-strong); font-size:1.3rem;'>Fes clic a "Començar", i després a "Construir i Enviar Model"</b>
-                            <p style='margin:8px 0 0 0; font-size: 1rem;'>Això farà la teva primera tramesa a la classificació.</p>
+                            <b style='color:var(--accent-strong); font-size:1.3rem;'>Fes clic a "Començar" i després a "Construir i enviar model"</b>
+                            <p style='margin:8px 0 0 0; font-size: 1rem;'>Així, la teva primera puntuació apareixerà a la classificació.</p>
                         </div>
                     </div>
                 </div>
@@ -3827,7 +3827,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
             
             with gr.Row():
                 briefing_6_back = gr.Button("◀️ Enrere", size="lg")
-                briefing_6_next = gr.Button("Començar la Construcció del Model ▶️", variant="primary", size="lg")
+                briefing_6_next = gr.Button("Començar la construcció del model ▶️", variant="primary", size="lg")
 
         # --- End Briefing Slideshow ---
 
