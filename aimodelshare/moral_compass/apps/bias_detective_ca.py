@@ -2413,7 +2413,7 @@ def simulate_moral_compass_score(acc, progress_pct):
 
 
 # --- 13. APP FACTORY (APP 1) ---
-def create_bias_detective_en_app(theme_primary_hue: str = "indigo"):
+def create_bias_detective_ca_app(theme_primary_hue: str = "indigo"):
     with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
         # States
         username_state = gr.State(value=None)
@@ -2739,7 +2739,7 @@ def create_bias_detective_en_app(theme_primary_hue: str = "indigo"):
 
 
 
-def launch_bias_detective_en_app(
+def launch_bias_detective_ca_app(
     share: bool = False,
     server_name: str = "0.0.0.0",
     server_port: int = 8080,
@@ -2756,7 +2756,7 @@ def launch_bias_detective_en_app(
         theme_primary_hue: Primary color hue
         **kwargs: Additional Gradio launch arguments
     """
-    app = create_bias_detective_en_app(theme_primary_hue=theme_primary_hue)
+    app = create_bias_detective_ca_app(theme_primary_hue=theme_primary_hue)
     app.launch(
         share=share,
         server_name=server_name,
@@ -2770,4 +2770,4 @@ def launch_bias_detective_en_app(
 # ============================================================================
 
 if __name__ == "__main__":
-    launch_bias_detective_en_app(share=False, debug=True, height=1000)
+    launch_bias_detective_ca_app(share=False, debug=True, height=1000)
