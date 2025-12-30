@@ -3599,7 +3599,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                 <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>Molt bona feina! Fins ara has:</h3>
                 <ul style='list-style: none; padding-left: 0; margin-top: 24px; margin-bottom: 24px;'>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Pres decisions difícils en el rol de jutge</li>
-                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Après sobre falsos positius i negatius</li>
+                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Après què són falsos positius i negatius</li>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Entès com funciona la IA</li>
                 </ul>
                 <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
@@ -3703,7 +3703,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> El Cercador de Patrons Profunds</div>
                                 
                                 <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
-                                    <b style="color: var(--body-text-color);">En el joc:</b> <span style="color: var(--body-text-color);">Triaràs una d'aquestes estratègies de model. Cada estratègia permet que el model aprengui de les dades d’entrada d’una manera diferent..</span><br>
+                                    <b style="color: var(--body-text-color);">En el joc:</b> <span style="color: var(--body-text-color);">Triaràs una d'aquestes estratègies de model. Cada estratègia permet que el model aprengui de les dades d’entrada d’una manera diferent.</span><br>
                                     <i style="color: var(--body-text-color-subdued);">Consell: Comença amb el "Generalista Equilibrat" per obtenir una puntuació base segura i fiable.</i>
                                 </div>
                             </div>
@@ -3728,7 +3728,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                         </details>
             
                         <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px; margin-bottom: 8px;">
-                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">3. Variables de dades (Les entrades)</summary>
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">3. Variables de dades (les entrades)</summary>
                             <div class="content" style="padding-top: 12px; padding-left: 12px;">
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);">
                                     <span style="color:var(--color-accent); font-weight:bold;">☑</span> <b>Delictes anteriors</b>
@@ -3737,7 +3737,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                                     <span style="color:var(--color-accent); font-weight:bold;">☑</span> <b>Grau del càrrec delictiu</b>
                                 </div>
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);">
-                                    <span style="color:var(--neutral-400); font-weight:bold;">☐</span> <b>Dades democràfiques (origen ètnic/sexe)</b> <span class="risk-tag" style="background:#fef2f2; color:#b91c1c; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold;">⚠️ RISC</span>
+                                    <span style="color:var(--neutral-400); font-weight:bold;">☐</span> <b>Dades demogràfiques (origen ètnic/sexe)</b> <span class="risk-tag" style="background:#fef2f2; color:#b91c1c; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold;">⚠️ RISC</span>
                                 </div>
                                 
                                 <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
@@ -3748,7 +3748,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                         </details>
             
                         <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px;">
-                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">4. Mida de les dades (Volum)</summary>
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">4. Mida de les dades (volum)</summary>
                             <div class="content" style="padding-top: 12px; padding-left: 12px;">
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);"><span class="radio-circle selected" style="display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--color-accent); margin-right:8px;"></span> <b>Petita (20%)</b> - La IA aprèn ràpid, però veu menys dades.</div>
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> <b>Completa (100%)</b> - La IA veu més dades, però aprèn més lentament.</div>
