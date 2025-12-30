@@ -2275,7 +2275,7 @@ def run_experiment(
                 <h3 style='margin:0 0 8px 0; color:#991b1b;'>🛑 Límite de envíos alcanzado ({ATTEMPT_LIMIT}/{ATTEMPT_LIMIT})</h3>
                 <p style='margin:0; color:#7f1d1d; line-height:1.4;'>
                     <b>Has utilizado todos tus intentos para esta sesión.</b><br>
-                    Revisa tus resultados finales arriba, luego desplázate hacia abajo hasta 'Finalizar y Reflexionar' para continuar.
+                    Revisa tus resultados finales arriba, luego desplázate hacia abajo hasta 'Finalizar y reflexionar' para continuar.
                 </p>
             </div>
             """
@@ -2480,9 +2480,9 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     strong_used = [f for f in feature_set if f in strong_predictors]
 
     ethical_note = (
-        "Has desbloqueado predictores potentes. Reflexiona: ¿eliminar variables demográficas cambiaría la equidad del sistema?"
-        "En la siguiente sección empezaremos a investigar esta cuestión con más profundidad."
-    )
+    "Has desbloqueado predictores potentes. Reflexiona: ¿eliminar variables demográficas cambiaría la equidad del sistema? "
+    "En la siguiente sección empezaremos a investigar esta cuestión con más profundidad."
+)
 
     # Tailor message for very few submissions
     tip_html = ""
