@@ -2480,7 +2480,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     strong_used = [f for f in feature_set if f in strong_predictors]
 
     ethical_note = (
-    "Has desbloqueado predictores potentes. Reflexiona: ¿eliminar variables demográficas cambiaría la equidad del sistema? "
+    "Has desbloqueado predictores potentes. Reflexiona: ¿eliminar variables demográficas cambiaría la equidad del sistema?"
     "En la siguiente sección empezaremos a investigar esta cuestión con más profundidad."
 )
 
@@ -2489,7 +2489,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     if submissions < 2:
         tip_html = """
         <div class="final-conclusion-tip">
-          <b>Tip:</b> Intenta al menos 2–3 envíos, cambiando UNA sola configuración cada vez, para ver claramente la relación causa-efecto.
+          <b>Consejo:</b> Intenta al menos 2–3 envíos, cambiando UNA sola configuración cada vez, para ver claramente la relación causa-efecto.
         </div>
         """
 
@@ -2514,9 +2514,9 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
           <li>🏁 <b>Mejor precisión:</b> {(best_score * 100):.2f}%</li>
           <li>📊 <b>Posición alcanzada:</b> {('#' + str(rank)) if rank > 0 else '—'}</li>
           <li>🔁 <b>Envíos realizados en esta sesión:</b> {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li>
-          <li>🧗 <b>Mejora respecto a la primera puntuación de esta sesión:</b> {(improvement * 100):+.2f}</li>
+          <li>🧗 <b>Mejora respecto a la primera puntuación de esta sesión:</b> {(improvement * 100):+.2f}%</li>
           <li>🎖️ <b>Progreso de nivel:</b> {tier_line}</li>
-          <li>🧪 <b>Predictores fuertes utilizados:</b> {len(strong_used)} ({', '.join(strong_used) if strong_used else 'None yet'})</li>
+          <li>🧪 <b>Predictores fuertes utilizados:</b> {len(strong_used)} ({', '.join(strong_used) if strong_used else 'Aún no'})</li>
         </ul>
 
         {tip_html}
@@ -2530,7 +2530,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
         <hr class="final-conclusion-divider" />
 
         <div class="final-conclusion-next">
-          <h2>➡️ Siguiente: Real-World Consequences</h2>
+          <h2>➡️ Siguiente: Consecuencias en el mundo real</h2>
           <p>Desplázate hacia abajo, después de esta aplicación, para continuar. Analizarás cómo modelos como el tuyo influyen en las decisiones judiciales.</p>
           <h1 class="final-conclusion-scroll">👇 DESPLÁZATE HACIA ABAJO 👇</h1>
         </div>
