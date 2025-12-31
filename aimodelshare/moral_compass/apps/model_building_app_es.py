@@ -488,17 +488,17 @@ MODEL_TYPES = {
         ),
         "card_es": "Este modelo es rápido, fiable y equilibrado. Buen punto de partida; suele dar resultados estables en muchos casos."
     },
-    "El Creador de Reglas": {
+    "The Rule-Maker": {
         "model_builder": lambda: DecisionTreeClassifier(
             random_state=42, class_weight="balanced"
         ),
         "card_es": "Este modelo aprende reglas simples del tipo «si/entonces». Fácil de entender, pero le cuesta captar patrones complejos."
     },
-    "El 'Vecino más Cercano'": {
+    "The 'Nearest Neighbor'": {
         "model_builder": lambda: KNeighborsClassifier(),
         "card_es": "Este modelo se basa en los ejemplos más parecidos del pasado. «Si te pareces a estos casos, predeciré el mismo resultado»."
     },
-    "El Buscador de Patrones Profundos": {
+     "The Deep Pattern-Finder": {
         "model_builder": lambda: RandomForestClassifier(
             random_state=42, class_weight="balanced"
         ),
