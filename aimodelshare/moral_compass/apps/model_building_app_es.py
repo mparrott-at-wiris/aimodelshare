@@ -2480,7 +2480,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     strong_used = [f for f in feature_set if f in strong_predictors]
 
     ethical_note = (
-    "Has desbloqueado predictores potentes. Reflexiona: ¿eliminar variables demográficas cambiaría la equidad del sistema? "
+    "Has desbloqueado predictores potentes. Reflexiona: ¿eliminar variables demográficas cambiaría la equidad del sistema?"
     "En la siguiente sección empezaremos a investigar esta cuestión con más profundidad."
 )
 
@@ -2489,7 +2489,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     if submissions < 2:
         tip_html = """
         <div class="final-conclusion-tip">
-          <b>Tip:</b> Intenta al menos 2–3 envíos, cambiando UNA sola configuración cada vez, para ver claramente la relación causa-efecto.
+          <b>Consejo:</b> Intenta al menos 2–3 envíos, cambiando UNA sola configuración cada vez, para ver claramente la relación causa-efecto.
         </div>
         """
 
@@ -2514,9 +2514,9 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
           <li>🏁 <b>Mejor precisión:</b> {(best_score * 100):.2f}%</li>
           <li>📊 <b>Posición alcanzada:</b> {('#' + str(rank)) if rank > 0 else '—'}</li>
           <li>🔁 <b>Envíos realizados en esta sesión:</b> {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li>
-          <li>🧗 <b>Mejora respecto a la primera puntuación de esta sesión:</b> {(improvement * 100):+.2f}</li>
+          <li>🧗 <b>Mejora respecto a la primera puntuación de esta sesión:</b> {(improvement * 100):+.2f}%</li>
           <li>🎖️ <b>Progreso de nivel:</b> {tier_line}</li>
-          <li>🧪 <b>Predictores fuertes utilizados:</b> {len(strong_used)} ({', '.join(strong_used) if strong_used else 'None yet'})</li>
+          <li>🧪 <b>Predictores fuertes utilizados:</b> {len(strong_used)} ({', '.join(strong_used) if strong_used else 'Aún no'})</li>
         </ul>
 
         {tip_html}
@@ -2530,7 +2530,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
         <hr class="final-conclusion-divider" />
 
         <div class="final-conclusion-next">
-          <h2>➡️ Siguiente: Real-World Consequences</h2>
+          <h2>➡️ Siguiente: Consecuencias en el mundo real</h2>
           <p>Desplázate hacia abajo, después de esta aplicación, para continuar. Analizarás cómo modelos como el tuyo influyen en las decisiones judiciales.</p>
           <h1 class="final-conclusion-scroll">👇 DESPLÁZATE HACIA ABAJO 👇</h1>
         </div>
@@ -3407,13 +3407,13 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
 
         # Slide 1: From Understanding to Building (Retained as transition)
         with gr.Column(visible=True, elem_id="slide-1") as briefing_slide_1:
-            gr.Markdown("<h1 style='text-align:center;'>🔄 De la teoria a la práctica</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🔄 De la teoría a la práctica</h1>")
             gr.HTML("""
                 <div class='slide-content'>
                 <div class='panel-box'>
                 <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>¡Muy buen trabajo! Hasta ahora has:</h3>
                 <ul style='list-style: none; padding-left: 0; margin-top: 24px; margin-bottom: 24px;'>
-                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Tomado decisiones difíciles el rol de juez</li>
+                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Tomado decisiones difíciles en el rol de juez</li>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Aprendido qué son los falsos positivos y los falsos negativos</li>
                     <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Entendido cómo funciona la IA</li>
                 </ul>
@@ -3422,7 +3422,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                     <span style='background:#fef3c7; padding:8px; border-radius:4px; color:#92400e; font-weight:bold;'>MODELO</span> → 
                     <span style='background:#f0fdf4; padding:8px; border-radius:4px; color:#15803d; font-weight:bold;'>SALIDA</span>
                 </div>
-                <h3 style='font-size: 1.5rem; text-align:center;'>Ahora: Asume el rol de la ingeniería de IA.</h3>
+                <h3 style='font-size: 1.5rem; text-align:center;'>Ahora: Asume el rol de ingeniero/a de IA.</h3>
                 </div>
                 </div>
             """)
@@ -3444,8 +3444,8 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                         </div>
 
                         <h3>El reto de los datos</h3>
-                        <p>Para competir, tendrás acceso a miles de archivos de casos antiguos que contienen <b>perfiles de acusados</b> (edad, historial) y <b>resultados históricos</b> (si hay reincidencia o no).</p>
-                        <p>Tu tarea es crear un sistema de IA que aprenda de los perfiles y prediga el resultado con precisión. ¿¿Te atreves a construir algo que podría cambiar el funcionamiento de la justicia?</p>
+                        <p>Para competir, tendrás acceso a miles de archivos de casos antiguos que contienen <b>perfiles de personas acusadas</b> (edad, historial) y <b>resultados históricos</b> (si hay reincidencia o no).</p>
+                        <p>Tu tarea es crear un sistema de IA que aprenda de los perfiles y prediga el resultado con precisión. ¿Te atreves a construir algo que podría cambiar el funcionamiento de la justicia?</p>
                     </div>
                 </div>
             """)
@@ -3460,9 +3460,9 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                 <div class='slide-content'>
                     <div class='panel-box'>
                         <p>Imagínate un sistema de IA como una "máquina de predicción". Se construye a partir de tres componentes principales:</p>
-                        <p><strong>1. Las entradas:</strong> Los datos que le das (ej: edad, delitos).</p>
+                        <p><strong>1. Las entradas:</strong> Los datos que le das (p. ej: edad, delitos).</p>
                         <p><strong>2. El modelo (el "cerebro"):</strong> Las matemáticas (algoritmo) que encuentran patrones.</p>
-                        <p><strong>3. La salida:</strong> La predicción (ej: nivel de riesgo).</p>
+                        <p><strong>3. La salida:</strong> La predicción (p. ej: nivel de riesgo).</p>
                     </div>
                 </div>
             """)
@@ -3476,11 +3476,11 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
             gr.HTML("""
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <p>Los equipos de IA reales casi nunca aciertan a la primera. Siguen un ciclo: <strong>Probar, Evaluar, Aprender, Repetir.</strong></p>
+                        <p>Los equipos de IA reales casi nunca aciertan a la primera. Siguen un ciclo: <strong>probar, evaluar, aprender, repetir.</strong></p>
                         <p>Harás exactamente lo mismo en esta competición:</p>
                         <div class='step-visual'>
                             <div class='step-visual-box'><b>1. Configura</b><br><span style='font-size:0.85rem'>elige el modelo y los datos</span></div>→
-                            <div class='step-visual-box'><b>2. Envia</b><br><span style='font-size:0.85rem'>entrena tu sistema</span></div>→
+                            <div class='step-visual-box'><b>2. Envía</b><br><span style='font-size:0.85rem'>entrena tu sistema</span></div>→
                             <div class='step-visual-box'><b>3. Analiza</b><br><span style='font-size:0.85rem'>revisa la clasificación</span></div>→
                             <div class='step-visual-box'><b>4. Refina</b><br><span style='font-size:0.85rem'>ajusta y prueba otra vez</span></div>
                         </div>
@@ -3504,15 +3504,15 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                         </div>
             
                         <div style='background: color-mix(in srgb, var(--color-accent) 10%, transparent); border:1px solid var(--color-accent); padding:16px; border-radius:10px; text-align:center; margin-bottom:24px;'>
-                            <strong style='color: var(--color-accent); font-size:1.1rem;'>⚠️ MODO SIMULACIÓN ACTIVO</strong>
+                            <strong style='color: var(--color-accent); font-size:1.1rem;'>⚠️ MODO DE SIMULACIÓN ACTIVO</strong>
                             <p style='margin:8px 0 0 0; color: var(--body-text-color); font-size:1.05rem; line-height:1.4;'>
                                 A continuación tienes los <b>4 controles</b> que utilizarás para construir tu modelo en el siguiente paso.<br>
-                                <b>Haz clic en cada uno </b> para entender qué hacen antes de que empiece la competición.
+                                <b>Haz clic en cada uno</b> para entender qué hacen antes de que empiece la competición.
                             </p>
                         </div>
             
                         <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px; margin-bottom: 8px;">
-                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">1. Estrategia del modelo (El "cerebro")</summary>
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">1. Estrategia del modelo (el "cerebro")</summary>
                             <div class="content" style="padding-top: 12px; padding-left: 12px;">
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);"><span class="radio-circle selected" style="display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--color-accent); margin-right:8px;"></span> <b>El Generalista Equilibrado</b></div>
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> El Creador de Reglas</div>
@@ -3553,7 +3553,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                                     <span style="color:var(--color-accent); font-weight:bold;">☑</span> <b>Grado del cargo delictivo</b>
                                 </div>
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);">
-                                    <span style="color:var(--neutral-400); font-weight:bold;">☐</span> <b>Datos demográficos (Orígen étnico/Sexo)</b> <span class="risk-tag" style="background:#fef2f2; color:#b91c1c; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold;">⚠️ RIESGO</span>
+                                    <span style="color:var(--neutral-400); font-weight:bold;">☐</span> <b>Datos demográficos (origen étnico/sexo)</b> <span class="risk-tag" style="background:#fef2f2; color:#b91c1c; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold;">⚠️ RIESGO</span>
                                 </div>
                                 
                                 <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
@@ -3570,7 +3570,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> <b>Completo (100%)</b> - La IA ve más datos, pero aprende más despacio.</div>
                                 
                                 <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
-                                    <b style="color: var(--body-text-color);">En el Juego:</b> <span style="color: var(--body-text-color);">Tú decides qué cantidad de historial de datos lee el modelo.</span><br>
+                                    <b style="color: var(--body-text-color);">En el juego:</b> <span style="color: var(--body-text-color);">Tú decides qué cantidad de historial de datos lee el modelo.</span><br>
                                     <i style="color: var(--body-text-color-subdued);">Consejo: Usa "Pequeño" para probar ideas rápidamente. Usa "Completo" cuando creas que tienes una estrategia ganadora.</i>
                                 </div>
                             </div>
@@ -3633,7 +3633,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                         
                         <div style='text-align:center; background: color-mix(in srgb, var(--color-accent) 10%, transparent); padding: 20px; border-radius: 12px; border: 2px solid var(--color-accent);'>
                             <p style='margin:0 0 8px 0; font-size: 1.1rem; color: var(--text-muted);'>Para empezar la competición:</p>
-                            <b style='color:var(--accent-strong); font-size:1.3rem;'>Haz clic en "Comenzar" y después en "Construir y enviar modelo"</b>
+                            <b style='color:var(--accent-strong); font-size:1.3rem;'>Haz clic en "Comenzar" y después en "Construir y enviar el modelo"</b>
                             <p style='margin:8px 0 0 0; font-size: 1rem;'>Así, tu primera puntuación aparecerá en la clasificación.</p>
                         </div>
                     </div>
@@ -3716,11 +3716,11 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                     gr.Markdown("---") # Separator
 
                     feature_set_checkbox = gr.CheckboxGroup(
-                        label="3. Selecciona las variables de data",
+                        label="3. Selecciona las variables de datos",
                         choices=FEATURE_SET_ALL_OPTIONS,
                         value=DEFAULT_FEATURE_SET,
                         interactive=False,
-                        info="¡Se desbloquean más ingredientes según tu posición en la clasificación!"
+                        info="¡Se desbloquean más variables según tu posición en la clasificación!"
                     )
 
                     gr.Markdown("---") # Separator
@@ -3788,7 +3788,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                     with gr.Tabs():
                         with gr.TabItem("Clasificación por equipos"):
                             team_leaderboard_display = gr.HTML(
-                                "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Submit a model to see team rankings.</p>"
+                                "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Envía un modelo para ver la clasificación por equipos.</p>"
                             )
                         with gr.TabItem("Clasificación individual"):
                             individual_leaderboard_display = gr.HTML(
@@ -4100,7 +4100,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
             ],
             outputs=all_outputs,
             show_progress="full",
-            js=nav_js("model-step", "Running experiment...", 500)
+            js=nav_js("model-step", "Ejecutando el experimento...", 500)
         )
 
         # Timer for polling initialization status
