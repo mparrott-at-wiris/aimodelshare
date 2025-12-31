@@ -111,7 +111,7 @@ MODULES = [
                     <h2 class="slide-title" style="text-align:center;">🔧 Final Phase: The Fix</h2>
 
                     <p style="font-size:1.05rem; max-width:800px; margin:0 auto 20px auto; text-align:center;">
-                        <strong>Welcome back.</strong> You successfully exposed the bias in the COMPAS model and blocked its deployment. Good work.
+                        <strong>Welcome back.</strong> You successfully exposed the bias in the COMPAS risk prediction AI system and blocked its deployment. Good work.
                     </p>
 
                     <p style="font-size:1.05rem; max-width:800px; margin:0 auto 24px auto; text-align:center;">
@@ -185,13 +185,13 @@ MODULES = [
                 <div class="slide-body">
 
                     <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(59,130,246,0.08); border:2px solid var(--color-accent); border-radius:12px; margin-bottom:20px;">
-                        <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">✂️</div>
+                        <div style="font-size:1.8rem; background:var(--background-fill-primary); width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">✂️</div>
                         <div style="flex-grow:1;">
                             <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); letter-spacing:0.05em;">PROTOCOL 1: SANITIZE INPUTS</div>
                             <div style="font-size:0.9rem; color:var(--body-text-color);">Mission: Remove protected classes & hidden proxies.</div>
                         </div>
                         <div style="text-align:right;">
-                            <div style="font-weight:800; font-size:0.85rem; color:var(--color-accent);">STEP 1 OF 2</div>
+                            <div style="font-weight:800; font-size:0.85rem; color:var(--color-accent);">STEP 1 OF 3</div>
                             <div style="height:4px; width:60px; background:#bfdbfe; border-radius:2px; margin-top:4px;">
                                 <div style="height:100%; width:50%; background:var(--color-accent); border-radius:2px;"></div>
                             </div>
@@ -225,9 +225,9 @@ MODULES = [
                                 ⚠️ Age
                             </div>
 
-                            <div style="padding:6px 12px; background:white; border:1px solid var(--border-color-primary); border-radius:6px;">Prior Convictions</div>
-                            <div style="padding:6px 12px; background:white; border:1px solid var(--border-color-primary); border-radius:6px;">Employment Status</div>
-                            <div style="padding:6px 12px; background:white; border:1px solid var(--border-color-primary); border-radius:6px;">Zip Code</div>
+                            <div style="padding:6px 12px; background:var(--background-fill-primary); color:var(--body-text-color); border:1px solid var(--border-color-primary); border-radius:6px;">Prior Convictions</div>
+                            <div style="padding:6px 12px; background:var(--background-fill-primary); color:var(--body-text-color); border:1px solid var(--border-color-primary); border-radius:6px;">Employment Status</div>
+                            <div style="padding:6px 12px; background:var(--background-fill-primary); color:var(--body-text-color); border:1px solid var(--border-color-primary); border-radius:6px;">Zip Code</div>
                         </div>
                     </div>
 
@@ -254,13 +254,13 @@ MODULES = [
                 <div class="slide-body">
 
                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(59,130,246,0.08); border:2px solid var(--color-accent); border-radius:12px; margin-bottom:20px;">
-                        <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">✂️</div>
+                        <div style="font-size:1.8rem; background:var(--background-fill-primary); width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">✂️</div>
                         <div style="flex-grow:1;">
                             <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); letter-spacing:0.05em;">PROTOCOL 1: SANITIZE INPUTS</div>
                             <div style="font-size:0.9rem; color:var(--body-text-color);">Mission: Remove protected classes & hidden proxies.</div>
                         </div>
                         <div style="text-align:right;">
-                            <div style="font-weight:800; font-size:0.85rem; color:var(--color-accent);">STEP 2 OF 2</div>
+                            <div style="font-weight:800; font-size:0.85rem; color:var(--color-accent);">STEP 2 OF 3</div>
                             <div style="height:4px; width:60px; background:#bfdbfe; border-radius:2px; margin-top:4px;">
                                 <div style="height:100%; width:100%; background:var(--color-accent); border-radius:2px;"></div>
                             </div>
@@ -297,8 +297,8 @@ MODULES = [
                                 ⚠️ Zip Code
                             </div>
 
-                            <div style="padding:6px 12px; background:white; border:1px solid var(--border-color-primary); border-radius:6px;">Prior Convictions</div>
-                            <div style="padding:6px 12px; background:white; border:1px solid var(--border-color-primary); border-radius:6px;">Employment</div>
+                            <div style="padding:6px 12px; background:var(--background-fill-primary); color:var(--body-text-color); border:1px solid var(--border-color-primary); border-radius:6px;">Prior Convictions</div>
+                            <div style="padding:6px 12px; background:var(--background-fill-primary); color:var(--body-text-color); border:1px solid var(--border-color-primary); border-radius:6px;">Employment</div>
                         </div>
                     </div>
 
@@ -423,10 +423,10 @@ MODULES = [
             <div class="scenario-box">
                 <div class="slide-body">
 
-                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(16, 185, 129, 0.08); border:2px solid #10b981; border-radius:12px; margin-bottom:20px;">
-                        <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🔗</div>
+                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(16, 185, 129, 0.1); border:2px solid #10b981; border-radius:12px; margin-bottom:20px;">
+                        <div style="font-size:1.8rem; background:var(--background-fill-primary); width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🔗</div>
                         <div style="flex-grow:1;">
-                            <div style="font-weight:800; font-size:1.05rem; color:#065f46; letter-spacing:0.05em;">
+                            <div style="font-weight:800; font-size:1.05rem; color:#10b981; letter-spacing:0.05em;">
                                 PROTOCOL 2: CAUSE VS. CORRELATION
                             </div>
                             <div style="font-size:0.9rem; color:var(--body-text-color);">
@@ -434,8 +434,8 @@ MODULES = [
                             </div>
                         </div>
                         <div style="text-align:right;">
-                            <div style="font-weight:800; font-size:0.85rem; color:#059669;">STEP 1 OF 2</div>
-                            <div style="height:4px; width:60px; background:#a7f3d0; border-radius:2px; margin-top:4px;">
+                            <div style="font-weight:800; font-size:0.85rem; color:#10b981;">STEP 1 OF 2</div>
+                            <div style="height:4px; width:60px; background:rgba(16, 185, 129, 0.3); border-radius:2px; margin-top:4px;">
                                 <div style="height:100%; width:50%; background:#10b981; border-radius:2px;"></div>
                             </div>
                         </div>
@@ -453,12 +453,12 @@ MODULES = [
                         Consider this real statistical pattern:
                     </p>
 
-                    <div class="ai-risk-container" style="text-align:center; padding:20px; border:2px solid #ef4444; background:#fef2f2;">
+                    <div class="ai-risk-container" style="text-align:center; padding:20px; border:2px solid #ef4444; background:rgba(239, 68, 68, 0.1);">
                         <div style="font-size:3rem; margin-bottom:10px;">🦶 📈 📖</div>
-                        <h3 style="margin:0; color:#b91c1c;">
+                        <h3 style="margin:0; color:#ef4444;">
                             The Data: “People with bigger feet have higher reading scores.”
                         </h3>
-                        <p style="font-size:1.0rem; margin-top:8px;">
+                        <p style="font-size:1.0rem; margin-top:8px; color:var(--body-text-color);">
                             On average, people with <strong>large feet</strong> score much higher on reading tests than people with <strong>small feet</strong>.
                         </p>
                     </div>
@@ -480,18 +480,19 @@ MODULES = [
                         </summary>
 
                         <div style="margin-top:20px; animation: fadeIn 0.5s ease-in-out;">
-                            <div class="hint-box" style="border-left:4px solid #16a34a;">
-                                <div style="font-weight:800; font-size:1.1rem; color:#166534;">
+                            
+                            <div class="hint-box" style="border-left:4px solid #16a34a; background:rgba(22, 163, 74, 0.1);">
+                                <div style="font-weight:800; font-size:1.1rem; color:#16a34a;">
                                     The Hidden Third Variable: AGE
                                 </div>
-                                <p style="margin-top:8px;">
+                                <p style="margin-top:8px; color:var(--body-text-color);">
                                     Do bigger feet <em>cause</em> people to read better? <strong>No.</strong>
                                     <br>
                                     Children have smaller feet and are still learning to read.
                                     <br>
                                     Adults have bigger feet and have had many more years of reading practice.
                                 </p>
-                                <p style="margin-bottom:0;">
+                                <p style="margin-bottom:0; color:var(--body-text-color);">
                                     <strong>The Key Idea:</strong> Age causes <em>both</em> foot size and reading ability.
                                     <br>
                                     Shoe size is a <em>correlated signal</em>, not a cause.
@@ -531,7 +532,6 @@ MODULES = [
         """,
     },
     # --- MODULE 5: APPLYING RESEARCH ---
-# --- MODULE 5: APPLYING RESEARCH (Stylized Candidates) ---
     {
         "id": 5,
         "title": "Protocol 2: Cause vs. Correlation",
@@ -539,10 +539,10 @@ MODULES = [
             <div class="scenario-box">
                 <div class="slide-body">
 
-                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(16, 185, 129, 0.08); border:2px solid #10b981; border-radius:12px; margin-bottom:20px;">
-                        <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🔗</div>
+                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(16, 185, 129, 0.1); border:2px solid #10b981; border-radius:12px; margin-bottom:20px;">
+                        <div style="font-size:1.8rem; background:var(--background-fill-primary); width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🔗</div>
                         <div style="flex-grow:1;">
-                            <div style="font-weight:800; font-size:1.05rem; color:#065f46; letter-spacing:0.05em;">
+                            <div style="font-weight:800; font-size:1.05rem; color:#10b981; letter-spacing:0.05em;">
                                 PROTOCOL 2: CAUSE VS. CORRELATION
                             </div>
                             <div style="font-size:0.9rem; color:var(--body-text-color);">
@@ -550,8 +550,8 @@ MODULES = [
                             </div>
                         </div>
                         <div style="text-align:right;">
-                            <div style="font-weight:800; font-size:0.85rem; color:#059669;">STEP 2 OF 2</div>
-                            <div style="height:4px; width:60px; background:#a7f3d0; border-radius:2px; margin-top:4px;">
+                            <div style="font-weight:800; font-size:0.85rem; color:#10b981;">STEP 2 OF 2</div>
+                            <div style="height:4px; width:60px; background:rgba(16, 185, 129, 0.3); border-radius:2px; margin-top:4px;">
                                 <div style="height:100%; width:100%; background:#10b981; border-radius:2px;"></div>
                             </div>
                         </div>
@@ -567,7 +567,7 @@ MODULES = [
                         Use the rule below to discover which variables represent <strong>actual causes</strong> of behavior — and which are just circumstantial correlations.
                     </p>
 
-                    <div class="hint-box" style="border-left:4px solid var(--color-accent); background:white; border:1px solid var(--border-color-primary);">
+                    <div class="hint-box" style="border-left:4px solid var(--color-accent); background:var(--background-fill-secondary); border:1px solid var(--border-color-primary);">
                         <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
                             <div style="font-size:1.2rem;">📋</div>
                             <div style="font-weight:800; color:var(--color-accent); text-transform:uppercase; letter-spacing:0.05em;">
@@ -575,20 +575,22 @@ MODULES = [
                             </div>
                         </div>
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                            <div style="padding:10px; background:#fef2f2; border-radius:6px; border:1px solid #fee2e2;">
-                                <div style="font-weight:700; color:#b91c1c; font-size:0.9rem; margin-bottom:4px;">
+                            
+                            <div style="padding:10px; background:rgba(239, 68, 68, 0.1); border-radius:6px; border:1px solid rgba(239, 68, 68, 0.3);">
+                                <div style="font-weight:700; color:#ef4444; font-size:0.9rem; margin-bottom:4px;">
                                     🚫 REJECT: BACKGROUND
                                 </div>
-                                <div style="font-size:0.85rem; line-height:1.4; color:#7f1d1d;">
+                                <div style="font-size:0.85rem; line-height:1.4; color:var(--body-text-color);">
                                     Variables describing a person's situation or environment (e.g., wealth, neighborhood).
                                     <br><strong>These correlate with crime but do not cause it.</strong>
                                 </div>
                             </div>
-                            <div style="padding:10px; background:#f0fdf4; border-radius:6px; border:1px solid #dcfce7;">
-                                <div style="font-weight:700; color:#15803d; font-size:0.9rem; margin-bottom:4px;">
+                            
+                            <div style="padding:10px; background:rgba(22, 163, 74, 0.1); border-radius:6px; border:1px solid rgba(22, 163, 74, 0.3);">
+                                <div style="font-weight:700; color:#16a34a; font-size:0.9rem; margin-bottom:4px;">
                                     ✅ KEEP: CONDUCT
                                 </div>
-                                <div style="font-size:0.85rem; line-height:1.4; color:#14532d;">
+                                <div style="font-size:0.85rem; line-height:1.4; color:var(--body-text-color);">
                                     Variables describing documented actions taken by the person (e.g., missed court dates).
                                     <br><strong>These reflect actual behavior.</strong>
                                 </div>
@@ -596,35 +598,35 @@ MODULES = [
                         </div>
                     </div>
 
-                    <div class="ai-risk-container" style="margin-top:20px; background:#f8fafc; border:1px solid #e2e8f0;">
-                        <h4 style="margin:0 0 12px 0; color:#334155; text-align:center; font-size:1.1rem;">📂 Input Data Candidates</h4>
+                    <div class="ai-risk-container" style="margin-top:20px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary);">
+                        <h4 style="margin:0 0 12px 0; color:var(--body-text-color); text-align:center; font-size:1.1rem;">📂 Input Data Candidates</h4>
 
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
 
-                            <div style="background:white; border:1px solid #cbd5e1; border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
-                                <div style="font-weight:700; font-size:1rem; color:#1e293b; margin-bottom:6px;">Employment Status</div>
-                                <div style="font-size:0.85rem; background:#f1f5f9; padding:4px 8px; border-radius:4px; color:#475569; display:inline-block;">
+                            <div style="background:var(--background-fill-primary); border:1px solid var(--border-color-primary); border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
+                                <div style="font-weight:700; font-size:1rem; color:var(--body-text-color); margin-bottom:6px;">Employment Status</div>
+                                <div style="font-size:0.85rem; background:var(--background-fill-secondary); padding:4px 8px; border-radius:4px; color:var(--body-text-color); display:inline-block;">
                                     Category: <strong>Background Condition</strong>
                                 </div>
                             </div>
 
-                            <div style="background:white; border:1px solid #cbd5e1; border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
-                                <div style="font-weight:700; font-size:1rem; color:#1e293b; margin-bottom:6px;">Prior Convictions</div>
-                                <div style="font-size:0.85rem; background:#dcfce7; padding:4px 8px; border-radius:4px; color:#166534; display:inline-block;">
+                            <div style="background:var(--background-fill-primary); border:1px solid var(--border-color-primary); border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
+                                <div style="font-weight:700; font-size:1rem; color:var(--body-text-color); margin-bottom:6px;">Prior Convictions</div>
+                                <div style="font-size:0.85rem; background:rgba(22, 163, 74, 0.1); padding:4px 8px; border-radius:4px; color:#16a34a; display:inline-block;">
                                     Category: <strong>Conduct History</strong>
                                 </div>
                             </div>
 
-                            <div style="background:white; border:1px solid #cbd5e1; border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
-                                <div style="font-weight:700; font-size:1rem; color:#1e293b; margin-bottom:6px;">Neighborhood Score</div>
-                                <div style="font-size:0.85rem; background:#f1f5f9; padding:4px 8px; border-radius:4px; color:#475569; display:inline-block;">
+                            <div style="background:var(--background-fill-primary); border:1px solid var(--border-color-primary); border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
+                                <div style="font-weight:700; font-size:1rem; color:var(--body-text-color); margin-bottom:6px;">Neighborhood Score</div>
+                                <div style="font-size:0.85rem; background:var(--background-fill-secondary); padding:4px 8px; border-radius:4px; color:var(--body-text-color); display:inline-block;">
                                     Category: <strong>Environment</strong>
                                 </div>
                             </div>
 
-                            <div style="background:white; border:1px solid #cbd5e1; border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
-                                <div style="font-weight:700; font-size:1rem; color:#1e293b; margin-bottom:6px;">Failure to Appear</div>
-                                <div style="font-size:0.85rem; background:#dcfce7; padding:4px 8px; border-radius:4px; color:#166534; display:inline-block;">
+                            <div style="background:var(--background-fill-primary); border:1px solid var(--border-color-primary); border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
+                                <div style="font-weight:700; font-size:1rem; color:var(--body-text-color); margin-bottom:6px;">Failure to Appear</div>
+                                <div style="font-size:0.85rem; background:rgba(22, 163, 74, 0.1); padding:4px 8px; border-radius:4px; color:#16a34a; display:inline-block;">
                                     Category: <strong>Conduct History</strong>
                                 </div>
                             </div>
@@ -632,8 +634,8 @@ MODULES = [
                         </div>
                     </div>
 
-                    <div class="hint-box" style="margin-top:20px; border-left:4px solid #8b5cf6; background:linear-gradient(to right, #f5f3ff, white);">
-                        <div style="font-weight:700; color:#6d28d9; font-size:1.05rem;">💡 Why this matters for Fairness</div>
+                    <div class="hint-box" style="margin-top:20px; border-left:4px solid #8b5cf6; background:linear-gradient(to right, rgba(139, 92, 246, 0.05), var(--background-fill-primary)); color:var(--body-text-color);">
+                        <div style="font-weight:700; color:#8b5cf6; font-size:1.05rem;">💡 Why this matters for Fairness</div>
                         <p style="margin:8px 0 0 0; font-size:0.95rem; line-height:1.5;">
                             When an AI judges people based on <strong>Correlations</strong> (like neighborhood or poverty), it punishes them for their <strong>circumstances</strong>—things they often cannot control.
                             <br><br>
@@ -657,7 +659,6 @@ MODULES = [
             </div>
         """,
     },
-# --- MODULE 6: REPRESENTATION (Intro) ---
     {
         "id": 6,
         "title": "Protocol 3: Representation Matters",
@@ -665,8 +666,8 @@ MODULES = [
             <div class="scenario-box">
                 <div class="slide-body">
 
-                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(139, 92, 246, 0.08); border:2px solid #8b5cf6; border-radius:12px; margin-bottom:20px;">
-                        <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🌍</div>
+                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(139, 92, 246, 0.1); border:2px solid #8b5cf6; border-radius:12px; margin-bottom:20px;">
+                        <div style="font-size:1.8rem; background:var(--background-fill-primary); width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🌍</div>
                         <div style="flex-grow:1;">
                             <div style="font-weight:800; font-size:1.05rem; color:#7c3aed; letter-spacing:0.05em;">
                                 PROTOCOL 3: REPRESENTATION
@@ -677,7 +678,7 @@ MODULES = [
                         </div>
                         <div style="text-align:right;">
                             <div style="font-weight:800; font-size:0.85rem; color:#7c3aed;">STEP 1 OF 2</div>
-                            <div style="height:4px; width:60px; background:#ddd6fe; border-radius:2px; margin-top:4px;">
+                            <div style="height:4px; width:60px; background:rgba(139, 92, 246, 0.3); border-radius:2px; margin-top:4px;">
                                 <div style="height:100%; width:50%; background:#8b5cf6; border-radius:2px;"></div>
                             </div>
                         </div>
@@ -691,9 +692,9 @@ MODULES = [
                         We fixed the <strong>variables</strong> (the columns). Now we must check the <strong>environment</strong> (the rows).
                     </p>
 
-                    <div style="background:linear-gradient(to right, #f8fafc, #f1f5f9); border:2px dashed #94a3b8; border-radius:12px; padding:20px; text-align:center; margin-bottom:25px;">
+                    <div style="background:var(--background-fill-secondary); border:2px dashed #94a3b8; border-radius:12px; padding:20px; text-align:center; margin-bottom:25px;">
                         <div style="font-weight:700; color:#64748b; font-size:0.9rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">THE SCENARIO</div>
-                        <p style="font-size:1.15rem; font-weight:600; color:#334155; margin:0; line-height:1.5;">
+                        <p style="font-size:1.15rem; font-weight:600; color:var(--body-text-color); margin:0; line-height:1.5;">
                             This dataset was built using historical data from <span style="color:#ef4444;">Broward County, Florida (USA)</span>.
                             <br><br>
                             Imagine taking this Florida model and forcing it to judge people in a completely different justice system—like <span style="color:#3b82f6;">Barcelona</span> (or your own hometown).
@@ -702,28 +703,28 @@ MODULES = [
 
                     <div class="ai-risk-container" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
 
-                        <div class="hint-box" style="margin:0; border-left:4px solid #ef4444; background:#fef2f2;">
-                            <div style="font-weight:800; color:#b91c1c; margin-bottom:6px;">
+                        <div class="hint-box" style="margin:0; border-left:4px solid #ef4444; background:rgba(239, 68, 68, 0.1);">
+                            <div style="font-weight:800; color:#ef4444; margin-bottom:6px;">
                                 🇺🇸 THE SOURCE: FLORIDA
                             </div>
-                            <div style="font-size:0.85rem; font-weight:700; color:#7f1d1d;">
+                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color);">
                                 Training Context: US Justice System
                             </div>
-                            <ul style="font-size:0.85rem; margin-top:8px; padding-left:16px; line-height:1.4;">
+                            <ul style="font-size:0.85rem; margin-top:8px; padding-left:16px; line-height:1.4; color:var(--body-text-color);">
                                 <li><strong>Demographic categories:</strong> Defined using US-specific labels and groupings.</li>
                                 <li><strong>Crime & law:</strong> Different laws and justice processes (for example, bail and pretrial rules).</li>
                                 <li><strong>Geography:</strong> Car-centric cities and suburban sprawl.</li>
                             </ul>
                         </div>
 
-                        <div class="hint-box" style="margin:0; border-left:4px solid #3b82f6; background:#eff6ff;">
-                            <div style="font-weight:800; color:#1e40af; margin-bottom:6px;">
+                        <div class="hint-box" style="margin:0; border-left:4px solid #3b82f6; background:rgba(59, 130, 246, 0.1);">
+                            <div style="font-weight:800; color:#3b82f6; margin-bottom:6px;">
                                 📍 THE TARGET: BARCELONA
                             </div>
-                            <div style="font-size:0.85rem; font-weight:700; color:#1e3a8a;">
+                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color);">
                                 Deployment Context: EU Justice System
                             </div>
-                            <ul style="font-size:0.85rem; margin-top:8px; padding-left:16px; line-height:1.4;">
+                            <ul style="font-size:0.85rem; margin-top:8px; padding-left:16px; line-height:1.4; color:var(--body-text-color);">
                                 <li><strong>Demographic categories:</strong> Defined differently than in US datasets.</li>
                                 <li><strong>Crime & law:</strong> Different legal rules, policing practices, and common offense types.</li>
                                 <li><strong>Geography:</strong> Dense, walkable urban environment.</li>
@@ -731,8 +732,8 @@ MODULES = [
                         </div>
                     </div>
 
-                    <div class="hint-box" style="border-left:4px solid #8b5cf6;">
-                        <div style="font-weight:700; color:#6d28d9;">
+                    <div class="hint-box" style="border-left:4px solid #8b5cf6; background:transparent;">
+                        <div style="font-weight:700; color:#8b5cf6;">
                             Why this fails
                         </div>
                         <p style="margin-top:6px;">
@@ -742,7 +743,7 @@ MODULES = [
                             <br>
                             On AI engineering teams, this is called a <strong>dataset (or domain) shift</strong>.
                             <br>
-                            It’s like trying to find La Sagrada Família using a map of Miami.
+                            It’s like trying to find La Sagrada Família in Barcelona using a map of Miami.
                         </p>
                     </div>
 
@@ -767,15 +768,15 @@ MODULES = [
             <div class="scenario-box">
                 <div class="slide-body">
 
-                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(139, 92, 246, 0.08); border:2px solid #8b5cf6; border-radius:12px; margin-bottom:20px;">
-                        <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🌍</div>
+                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(139, 92, 246, 0.1); border:2px solid #8b5cf6; border-radius:12px; margin-bottom:20px;">
+                        <div style="font-size:1.8rem; background:var(--background-fill-primary); width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🌍</div>
                         <div style="flex-grow:1;">
                             <div style="font-weight:800; font-size:1.05rem; color:#7c3aed; letter-spacing:0.05em;">PROTOCOL 3: REPRESENTATION</div>
                             <div style="font-size:0.9rem; color:var(--body-text-color);">Mission: Replace "Shortcut Data" with "Local Data."</div>
                         </div>
                         <div style="text-align:right;">
                             <div style="font-weight:800; font-size:0.85rem; color:#7c3aed;">STEP 2 OF 2</div>
-                            <div style="height:4px; width:60px; background:#ddd6fe; border-radius:2px; margin-top:4px;">
+                            <div style="height:4px; width:60px; background:rgba(139, 92, 246, 0.3); border-radius:2px; margin-top:4px;">
                                 <div style="height:100%; width:100%; background:#8b5cf6; border-radius:2px;"></div>
                             </div>
                         </div>
@@ -791,10 +792,10 @@ MODULES = [
                         We must collect <strong>Local Data</strong> that reflects the actual reality of that place.
                     </p>
 
-                    <div class="ai-risk-container" style="text-align:center; border:2px solid #ef4444; background:#fef2f2; padding:16px; margin-bottom:20px;">
-                        <div style="font-weight:800; color:#b91c1c; font-size:1.1rem; margin-bottom:8px;">⚠️ CURRENT DATASET: FLORIDA (INVALID)</div>
+                    <div class="ai-risk-container" style="text-align:center; border:2px solid #ef4444; background:rgba(239, 68, 68, 0.1); padding:16px; margin-bottom:20px;">
+                        <div style="font-weight:800; color:#ef4444; font-size:1.1rem; margin-bottom:8px;">⚠️ CURRENT DATASET: FLORIDA (INVALID)</div>
 
-                        <p style="font-size:0.9rem; margin:0;">
+                        <p style="font-size:0.9rem; margin:0; color:var(--body-text-color);">
                             Dataset does not match local context where model will be used.
                         </p>
                     </div>
@@ -812,21 +813,21 @@ MODULES = [
                             list-style:none;
                             box-shadow:0 4px 12px rgba(124, 58, 237, 0.3);
                             transition:transform 0.1s ease;">
-                            🔄 CLICK TO IMPORT LOCAL BARCELONA DATA
+                            🔄 CLICK TO IMPORT LOCAL DATA
                         </summary>
 
                         <div style="margin-top:24px; animation: fadeIn 0.6s ease-in-out;">
 
                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-                                <div style="padding:12px; border:1px solid #22c55e; background:#f0fdf4; border-radius:8px; text-align:center;">
+                                <div style="padding:12px; border:1px solid #22c55e; background:rgba(34, 197, 94, 0.1); border-radius:8px; text-align:center;">
                                     <div style="font-size:2rem;">📍</div>
-                                    <div style="font-weight:700; color:#15803d; font-size:0.9rem;">GEOGRAPHY MATCHED</div>
-                                    <div style="font-size:0.8rem;">Data source: Catalonia Justice Dept</div>
+                                    <div style="font-weight:700; color:#22c55e; font-size:0.9rem;">GEOGRAPHY MATCHED</div>
+                                    <div style="font-size:0.8rem; color:var(--body-text-color);">Data source: Local Justice Dept</div>
                                 </div>
-                                <div style="padding:12px; border:1px solid #22c55e; background:#f0fdf4; border-radius:8px; text-align:center;">
+                                <div style="padding:12px; border:1px solid #22c55e; background:rgba(34, 197, 94, 0.1); border-radius:8px; text-align:center;">
                                     <div style="font-size:2rem;">⚖️</div>
-                                    <div style="font-weight:700; color:#15803d; font-size:0.9rem;">LAWS SYNCED</div>
-                                    <div style="font-size:0.8rem;">Removed US-specific offenses</div>
+                                    <div style="font-weight:700; color:#22c55e; font-size:0.9rem;">LAWS SYNCED</div>
+                                    <div style="font-size:0.8rem; color:var(--body-text-color);">Removed irrelevant US-specific offenses</div>
                                 </div>
                             </div>
 
@@ -836,6 +837,9 @@ MODULES = [
                                     The model is now learning from the people it will actually affect. Accuracy is now meaningful because it reflects local truth.
                                 </p>
                             </div>
+
+                        </div>
+                    </details>
 
             <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
@@ -853,22 +857,21 @@ MODULES = [
                     from { opacity: 0; transform: translateY(-10px); }
                     to { opacity: 1; transform: translateY(0); }
                 }
-                /* Hide default arrow */
                 details > summary { list-style: none; }
                 details > summary::-webkit-details-marker { display: none; }
             </style>
         """,
     },
     # --- MODULE 8: FINAL REPORT (Before & After) ---
-    {
+{
         "id": 8,
         "title": "Final Fairness Report",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
 
-                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(34, 197, 94, 0.08); border:2px solid #22c55e; border-radius:12px; margin-bottom:20px;">
-                        <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🏁</div>
+                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(34, 197, 94, 0.1); border:2px solid #22c55e; border-radius:12px; margin-bottom:20px;">
+                        <div style="font-size:1.8rem; background:var(--background-fill-primary); width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🏁</div>
                         <div style="flex-grow:1;">
                             <div style="font-weight:800; font-size:1.05rem; color:#15803d; letter-spacing:0.05em;">AUDIT COMPLETE</div>
                             <div style="font-size:0.9rem; color:var(--body-text-color);">System Status: READY FOR CERTIFICATION.</div>
@@ -884,22 +887,22 @@ MODULES = [
 
                     <div class="ai-risk-container" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
 
-                        <div style="opacity:0.6; filter:grayscale(100%);">
+                        <div>
                             <div style="font-weight:800; color:#ef4444; margin-bottom:8px; text-transform:uppercase;">🚫 The Original Model</div>
 
-                            <div style="padding:10px; border-bottom:1px solid #e5e7eb;">
-                                <div style="font-size:0.8rem; font-weight:700;">INPUTS</div>
-                                <div style="color:#b91c1c;">Race, Gender, Zip Code</div>
+                            <div style="padding:10px; border-bottom:1px solid var(--border-color-primary);">
+                                <div style="font-size:0.8rem; font-weight:700; color:var(--body-text-color);">INPUTS</div>
+                                <div style="color:var(--body-text-color);">Race, Gender, Zip Code</div>
                             </div>
-                            <div style="padding:10px; border-bottom:1px solid #e5e7eb;">
-                                <div style="font-size:0.8rem; font-weight:700;">LOGIC</div>
-                                <div style="color:#b91c1c;">Status & Stereotypes</div>
+                            <div style="padding:10px; border-bottom:1px solid var(--border-color-primary);">
+                                <div style="font-size:0.8rem; font-weight:700; color:var(--body-text-color);">LOGIC</div>
+                                <div style="color:var(--body-text-color);">Status & Stereotypes</div>
                             </div>
-                            <div style="padding:10px; border-bottom:1px solid #e5e7eb;">
-                                <div style="font-size:0.8rem; font-weight:700;">CONTEXT</div>
-                                <div style="color:#b91c1c;">Florida (Wrong Map)</div>
+                            <div style="padding:10px; border-bottom:1px solid var(--border-color-primary);">
+                                <div style="font-size:0.8rem; font-weight:700; color:var(--body-text-color);">CONTEXT</div>
+                                <div style="color:var(--body-text-color);">Florida (Wrong Map)</div>
                             </div>
-                            <div style="padding:10px; background:#fee2e2; margin-top:10px; border-radius:6px; color:#b91c1c; font-weight:700; text-align:center;">
+                            <div style="padding:10px; background:rgba(239, 68, 68, 0.2); margin-top:10px; border-radius:6px; color:#ef4444; font-weight:700; text-align:center;">
                                 BIAS RISK: CRITICAL
                             </div>
                         </div>
@@ -907,19 +910,19 @@ MODULES = [
                         <div style="transform:scale(1.02); box-shadow:0 4px 12px rgba(0,0,0,0.1); border:2px solid #22c55e; border-radius:8px; overflow:hidden;">
                             <div style="background:#22c55e; color:white; padding:6px; font-weight:800; text-align:center; text-transform:uppercase;">✅ Your Engineered Model</div>
 
-                            <div style="padding:10px; border-bottom:1px solid #f0fdf4; background:white;">
+                            <div style="padding:10px; border-bottom:1px solid var(--border-color-primary); background:var(--background-fill-primary);">
                                 <div style="font-size:0.8rem; font-weight:700; color:#15803d;">INPUTS</div>
-                                <div>Behavior Only</div>
+                                <div style="color:var(--body-text-color);">Behavior Only</div>
                             </div>
-                            <div style="padding:10px; border-bottom:1px solid #f0fdf4; background:white;">
+                            <div style="padding:10px; border-bottom:1px solid var(--border-color-primary); background:var(--background-fill-primary);">
                                 <div style="font-size:0.8rem; font-weight:700; color:#15803d;">LOGIC</div>
-                                <div>Causal Conduct</div>
+                                <div style="color:var(--body-text-color);">Causal Conduct</div>
                             </div>
-                            <div style="padding:10px; border-bottom:1px solid #f0fdf4; background:white;">
+                            <div style="padding:10px; border-bottom:1px solid var(--border-color-primary); background:var(--background-fill-primary);">
                                 <div style="font-size:0.8rem; font-weight:700; color:#15803d;">CONTEXT</div>
-                                <div>Barcelona (Local)</div>
+                                <div style="color:var(--body-text-color);">Local </div>
                             </div>
-                            <div style="padding:10px; background:#dcfce7; margin-top:0; color:#15803d; font-weight:700; text-align:center;">
+                            <div style="padding:10px; background:rgba(34, 197, 94, 0.2); margin-top:0; color:#15803d; font-weight:700; text-align:center;">
                                 BIAS RISK: MINIMIZED
                             </div>
                         </div>
@@ -949,7 +952,6 @@ MODULES = [
         """,
     },
     # --- MODULE 9: CERTIFICATION ---
-# --- MODULE 9: TRANSITION TO CERTIFICATION ---
     {
         "id": 9,
         "title": "Protocol Complete: Ethics Secured",
@@ -959,11 +961,12 @@ MODULES = [
 
                     <div style="text-align:center; margin-bottom:25px;">
                         <h2 class="slide-title" style="margin-bottom:10px; color:#15803d;">🚀 ETHICAL ARCHITECTURE VERIFIED</h2>
-                        <p style="font-size:1.1rem; max-width:700px; margin:0 auto; color:#334155;">
+                        <p style="font-size:1.1rem; max-width:700px; margin:0 auto; color:var(--body-text-color);">
                             You have successfully refactored the AI. It no longer relies on <strong>hidden proxies and unfair shortcuts</strong>—it is now a transparent tool built on fair principles.
                         </p>
                     </div>
-                    <div class="ai-risk-container" style="background:#f0fdf4; border:2px solid #22c55e; padding:25px; border-radius:12px; box-shadow:0 4px 20px rgba(34, 197, 94, 0.15);">
+                    
+                    <div class="ai-risk-container" style="background:rgba(34, 197, 94, 0.1); border:2px solid #22c55e; padding:25px; border-radius:12px; box-shadow:0 4px 20px rgba(34, 197, 94, 0.15);">
                         
                         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #bbf7d0; padding-bottom:15px; margin-bottom:20px;">
                             <div style="font-weight:900; font-size:1.3rem; color:#15803d; letter-spacing:0.05em;">SYSTEM DIAGNOSTIC</div>
@@ -974,40 +977,40 @@ MODULES = [
                             <div style="display:flex; align-items:center; gap:12px;">
                                 <div style="font-size:1.5rem; color:#16a34a;">✅</div>
                                 <div>
-                                    <div style="font-weight:800; color:#14532d;">INPUTS</div>
-                                    <div style="font-size:0.9rem; color:#166534;">Sanitized</div>
+                                    <div style="font-weight:800; color:#15803d;">INPUTS</div>
+                                    <div style="font-size:0.9rem; color:var(--body-text-color);">Sanitized</div>
                                 </div>
                             </div>
                             <div style="display:flex; align-items:center; gap:12px;">
                                 <div style="font-size:1.5rem; color:#16a34a;">✅</div>
                                 <div>
-                                    <div style="font-weight:800; color:#14532d;">LOGIC</div>
-                                    <div style="font-size:0.9rem; color:#166534;">Causal</div>
+                                    <div style="font-weight:800; color:#15803d;">LOGIC</div>
+                                    <div style="font-size:0.9rem; color:var(--body-text-color);">Causal</div>
                                 </div>
                             </div>
                             <div style="display:flex; align-items:center; gap:12px;">
                                 <div style="font-size:1.5rem; color:#16a34a;">✅</div>
                                 <div>
-                                    <div style="font-weight:800; color:#14532d;">CONTEXT</div>
-                                    <div style="font-size:0.9rem; color:#166534;">Localized</div>
+                                    <div style="font-weight:800; color:#15803d;">CONTEXT</div>
+                                    <div style="font-size:0.9rem; color:var(--body-text-color);">Localized</div>
                                 </div>
                             </div>
                             <div style="display:flex; align-items:center; gap:12px;">
                                 <div style="font-size:1.5rem; color:#16a34a;">✅</div>
                                 <div>
-                                    <div style="font-weight:800; color:#14532d;">STATUS</div>
-                                    <div style="font-size:0.9rem; color:#166534;">Ethical</div>
+                                    <div style="font-weight:800; color:#15803d;">STATUS</div>
+                                    <div style="font-size:0.9rem; color:var(--body-text-color);">Ethical</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div style="margin-top:30px; padding:20px; background:linear-gradient(to right, #fffbeb, #fff); border:2px solid #fcd34d; border-radius:12px;">
+                    <div style="margin-top:30px; padding:20px; background:rgba(245, 158, 11, 0.1); border:2px solid #fcd34d; border-radius:12px;">
                         <div style="display:flex; gap:15px;">
                             <div style="font-size:2.5rem;">🎓</div>
                             <div>
-                                <h3 style="margin:0; color:#92400e;">Next Objective: Certification & Performance</h3>
-                                <p style="font-size:1.05rem; line-height:1.5; color:#78350f; margin-top:8px;">
+                                <h3 style="margin:0; color:#b45309;">Next Objective: Certification & Performance</h3>
+                                <p style="font-size:1.05rem; line-height:1.5; color:var(--body-text-color); margin-top:8px;">
                                     Now that you have made your model <strong>ethical</strong>, you can continue to improve your model’s <strong>accuracy</strong> in the final activity below.
                                     <br><br>
                                     But before you optimize for power, you must secure your credentials.
@@ -1017,7 +1020,7 @@ MODULES = [
                     </div>
 
                     <div style="text-align:center; margin-top:25px;">
-                        <p style="font-size:1.1rem; font-weight:600; color:#475569; margin-bottom:15px;">
+                        <p style="font-size:1.1rem; font-weight:600; color:var(--body-text-color); margin-bottom:15px;">
                             ⬇️ <strong>Immediate Next Step</strong> ⬇️
                         </p>
                         
@@ -1103,7 +1106,7 @@ QUIZ_CONFIG = {
 
     7: {
         "t": "t17",
-        "q": "You just rejected a massive, free dataset (Florida) for a smaller, harder-to-get one (Barcelona). Why was this the right engineering choice?",
+        "q": "You just rejected a massive, free dataset (Florida) for a smaller, harder-to-get one (Locally relevant). Why was this the right engineering choice?",
         "o": [
             "A) It wasn't. More data is always better, regardless of where it comes from.",
             "B) Because 'Relevance' is more important than 'Volume.' A small, accurate map is better than a huge, wrong map.",
@@ -1126,7 +1129,7 @@ QUIZ_CONFIG = {
         "t": "t19",
         "q": "You have sanitized inputs, filtered for causality, and reweighted for representation. Are you ready to approve this repaired AI system?",
         "o": [
-            "A) Yes, The model is now safe and I authorize the use of this AI system.",
+            "A) Yes, The model is now safe and I authorize the use of this repaired AI system.",
             "B) No, wait for a perfect model.",
         ],
         "a": "A) Yes, The model is now safe and I authorize the use of this repaired AI system.",
