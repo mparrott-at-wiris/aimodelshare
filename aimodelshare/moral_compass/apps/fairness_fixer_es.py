@@ -84,7 +84,7 @@ MODULES = [
     # --- MODULE 0: THE PROMOTION ---
     {
         "id": 0,
-        "title": "Module 0: The Fairness Engineer's Workbench",
+        "title": "Módulo 0: El Banco de Trabajo del Ingeniero de Equidad",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
@@ -104,32 +104,32 @@ MODULES = [
                             font-weight:700;
                             color:#065f46;">
                             <span style="font-size:1.1rem;">🎓</span>
-                            <span>PROMOTION: FAIRNESS ENGINEER</span>
+                            <span>PROMOCIÓN: INGENIERO DE EQUIDAD</span>
                         </div>
                     </div>
 
-                    <h2 class="slide-title" style="text-align:center;">🔧 Final Phase: The Fix</h2>
+                    <h2 class="slide-title" style="text-align:center;">🔧 Fase Final: La Corrección</h2>
 
                     <p style="font-size:1.05rem; max-width:800px; margin:0 auto 20px auto; text-align:center;">
-                        <strong>Welcome back.</strong> You successfully exposed the bias in the COMPAS model and blocked its deployment. Good work.
+                        <strong>Bienvenido de nuevo.</strong> Has expuesto con éxito el sesgo en el sistema de IA de predicción de riesgo COMPAS y has bloqueado su despliegue. Buen trabajo.
                     </p>
 
                     <p style="font-size:1.05rem; max-width:800px; margin:0 auto 24px auto; text-align:center;">
-                        But the court is still waiting for a tool to help manage the backlog. Your new mission is to take that broken model and <strong>fix it</strong> so it is safe to use.
+                        Pero el tribunal todavía espera una herramienta para ayudar a gestionar el retraso de casos. Tu nueva misión es tomar ese modelo roto y <strong>arreglarlo</strong> para que sea seguro de usar.
                     </p>
 
                     <div class="ai-risk-container" style="border-left:4px solid var(--color-accent);">
-                        <h4 style="margin-top:0; font-size:1.15rem;">The Challenge: "Sticky Bias"</h4>
+                        <h4 style="margin-top:0; font-size:1.15rem;">El Desafío: "Sesgo Persistente"</h4>
                         <p style="font-size:1.0rem; margin-bottom:0;">
-                            You can't just delete the "Race" column and walk away. Bias hides in <strong>Proxy Variables</strong>—data like <em>ZIP Code</em> or <em>Income</em>
-                            that correlate with race. If you delete the label but keep the proxies, the model learns the bias anyway.
+                            No puedes simplemente eliminar la columna "Raza" y marcharte. El sesgo se esconde en <strong>Variables Proxy</strong>—datos como el <em>Código Postal</em> o los <em>Ingresos</em>
+                            que se correlacionan con la raza. Si eliminas la etiqueta pero mantienes los proxies, el modelo aprende el sesgo de todos modos.
                         </p>
                     </div>
 
                     <div class="ai-risk-container" style="margin-top:16px;">
-                        <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">📋 Engineering Work Order</h4>
+                        <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">📋 Orden de Trabajo de Ingeniería</h4>
                         <p style="text-align:center; margin-bottom:12px; font-size:0.95rem; color:var(--body-text-color-subdued);">
-                            You must complete these three protocols to certify the model for release:
+                            Debes completar estos tres protocolos para certificar el modelo para su lanzamiento:
                         </p>
 
                         <div style="display:grid; gap:10px; margin-top:12px;">
@@ -137,28 +137,28 @@ MODULES = [
                             <div style="display:flex; align-items:center; gap:12px; padding:10px; background:var(--background-fill-secondary); border-radius:8px; opacity:0.7;">
                                 <div style="font-size:1.4rem;">✂️</div>
                                 <div>
-                                    <div style="font-weight:700;">Protocol 1: Sanitize Inputs</div>
-                                    <div style="font-size:0.9rem;">Remove protected classes and hunt down hidden proxies.</div>
+                                    <div style="font-weight:700;">Protocolo 1: Sanear Entradas</div>
+                                    <div style="font-size:0.9rem;">Eliminar clases protegidas y cazar proxies ocultos.</div>
                                 </div>
-                                <div style="margin-left:auto; font-weight:700; font-size:0.8rem; text-transform:uppercase; color:var(--body-text-color-subdued);">Pending</div>
+                                <div style="margin-left:auto; font-weight:700; font-size:0.8rem; text-transform:uppercase; color:var(--body-text-color-subdued);">Pendiente</div>
                             </div>
 
                             <div style="display:flex; align-items:center; gap:12px; padding:10px; background:var(--background-fill-secondary); border-radius:8px; opacity:0.7;">
                                 <div style="font-size:1.4rem;">🔗</div>
                                 <div>
-                                    <div style="font-weight:700;">Protocol 2: Cause Versus Correlation</div>
-                                    <div style="font-size:0.9rem;">Filter data for actual behavior, not just correlation.</div>
+                                    <div style="font-weight:700;">Protocolo 2: Causa versus Correlación</div>
+                                    <div style="font-size:0.9rem;">Filtrar datos por comportamiento real, no solo correlación.</div>
                                 </div>
-                                <div style="margin-left:auto; font-weight:700; font-size:0.8rem; text-transform:uppercase; color:var(--body-text-color-subdued);">Locked</div>
+                                <div style="margin-left:auto; font-weight:700; font-size:0.8rem; text-transform:uppercase; color:var(--body-text-color-subdued);">Bloqueado</div>
                             </div>
 
                             <div style="display:flex; align-items:center; gap:12px; padding:10px; background:var(--background-fill-secondary); border-radius:8px; opacity:0.7;">
                                 <div style="font-size:1.4rem;">⚖️</div>
                                 <div>
-                                    <div style="font-weight:700;">Protocol 3: Representation & Sampling</div>
-                                    <div style="font-size:0.9rem;">Balance the data to match the local population.</div>
+                                    <div style="font-weight:700;">Protocolo 3: Representación y Muestreo</div>
+                                    <div style="font-size:0.9rem;">Equilibrar los datos para coincidir con la población local.</div>
                                 </div>
-                                <div style="margin-left:auto; font-weight:700; font-size:0.8rem; text-transform:uppercase; color:var(--body-text-color-subdued);">Locked</div>
+                                <div style="margin-left:auto; font-weight:700; font-size:0.8rem; text-transform:uppercase; color:var(--body-text-color-subdued);">Bloqueado</div>
                             </div>
 
                         </div>
@@ -166,10 +166,10 @@ MODULES = [
 
                    <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 READY TO START THE FIX?
+                            🚀 ¿LISTO PARA COMENZAR LA CORRECCIÓN?
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
-                            Click <strong>Next</strong> to start fixing the model.
+                            Haz clic en <strong>Siguiente</strong> para comenzar a arreglar el modelo.
                         </p>
                     </div>
                 </div>
@@ -179,19 +179,19 @@ MODULES = [
     # --- MODULE 1: SANITIZE INPUTS (Protected Classes) ---
     {
         "id": 1,
-        "title": "Protocol 1: Sanitize Inputs",
+        "title": "Protocolo 1: Sanear Entradas",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
 
                     <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(59,130,246,0.08); border:2px solid var(--color-accent); border-radius:12px; margin-bottom:20px;">
-                        <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">✂️</div>
+                        <div style="font-size:1.8rem; background:var(--background-fill-primary); width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">✂️</div>
                         <div style="flex-grow:1;">
-                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); letter-spacing:0.05em;">PROTOCOL 1: SANITIZE INPUTS</div>
-                            <div style="font-size:0.9rem; color:var(--body-text-color);">Mission: Remove protected classes & hidden proxies.</div>
+                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); letter-spacing:0.05em;">PROTOCOLO 1: SANEAR ENTRADAS</div>
+                            <div style="font-size:0.9rem; color:var(--body-text-color);">Misión: Eliminar clases protegidas y proxies ocultos.</div>
                         </div>
                         <div style="text-align:right;">
-                            <div style="font-weight:800; font-size:0.85rem; color:var(--color-accent);">STEP 1 OF 2</div>
+                            <div style="font-weight:800; font-size:0.85rem; color:var(--color-accent);">PASO 1 DE 3</div>
                             <div style="height:4px; width:60px; background:#bfdbfe; border-radius:2px; margin-top:4px;">
                                 <div style="height:100%; width:50%; background:var(--color-accent); border-radius:2px;"></div>
                             </div>
@@ -199,46 +199,46 @@ MODULES = [
                     </div>
 
                     <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
-                        <strong>Fairness Through Blindness.</strong>
-                        Legally and ethically, we cannot use <strong>Protected Classes</strong> (features you are born with, like race or age) to calculate someone's risk score.
+                        <strong>Equidad a través de la Ceguera.</strong>
+                        Legal y éticamente, no podemos usar <strong>Clases Protegidas</strong> (características con las que naces, como raza o edad) para calcular la puntuación de riesgo de alguien.
                     </p>
 
                     <div class="ai-risk-container">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                            <h4 style="margin:0;">📂 Dataset Column Inspector</h4>
-                            <div style="font-size:0.8rem; font-weight:700; color:#ef4444;">⚠ CONTAINS ILLEGAL FEATURES</div>
+                            <h4 style="margin:0;">📂 Inspector de Columnas del Dataset</h4>
+                            <div style="font-size:0.8rem; font-weight:700; color:#ef4444;">⚠ CONTIENE CARACTERÍSTICAS ILEGALES</div>
                         </div>
 
                         <p style="font-size:0.95rem; margin-bottom:12px;">
-                            Review the raw headers below. Identify the columns that violate fairness laws.
+                            Revisa los encabezados a continuación. Identifica las columnas que violan las leyes de equidad.
                         </p>
 
                         <div style="display:flex; gap:8px; flex-wrap:wrap; background:rgba(0,0,0,0.05); padding:12px; border-radius:8px; border:1px solid var(--border-color-primary);">
 
                             <div style="padding:6px 12px; background:#fee2e2; border:1px solid #ef4444; border-radius:6px; font-weight:700; color:#b91c1c;">
-                                ⚠️ Race
+                                ⚠️ Raza
                             </div>
                             <div style="padding:6px 12px; background:#fee2e2; border:1px solid #ef4444; border-radius:6px; font-weight:700; color:#b91c1c;">
-                                ⚠️ Gender
+                                ⚠️ Género
                             </div>
                             <div style="padding:6px 12px; background:#fee2e2; border:1px solid #ef4444; border-radius:6px; font-weight:700; color:#b91c1c;">
-                                ⚠️ Age
+                                ⚠️ Edad
                             </div>
 
-                            <div style="padding:6px 12px; background:white; border:1px solid var(--border-color-primary); border-radius:6px;">Prior Convictions</div>
-                            <div style="padding:6px 12px; background:white; border:1px solid var(--border-color-primary); border-radius:6px;">Employment Status</div>
-                            <div style="padding:6px 12px; background:white; border:1px solid var(--border-color-primary); border-radius:6px;">Zip Code</div>
+                            <div style="padding:6px 12px; background:var(--background-fill-primary); color:var(--body-text-color); border:1px solid var(--border-color-primary); border-radius:6px;">Condenas Previas</div>
+                            <div style="padding:6px 12px; background:var(--background-fill-primary); color:var(--body-text-color); border:1px solid var(--border-color-primary); border-radius:6px;">Estado Laboral</div>
+                            <div style="padding:6px 12px; background:var(--background-fill-primary); color:var(--body-text-color); border:1px solid var(--border-color-primary); border-radius:6px;">Código Postal</div>
                         </div>
                     </div>
 
 
             <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 ACTION REQUIRED: DELETE PROTECTED INPUT DATA
+                            🚀 ACCIÓN REQUERIDA: ELIMINAR DATOS DE ENTRADA PROTEGIDOS
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
-                            Use the Command Panel below to execute deletion.
-                            Then click <strong>Next</strong> to continue fixing the model.
+                            Usa el Panel de Comandos a continuación para ejecutar la eliminación.
+                            Luego haz clic en <strong>Siguiente</strong> para continuar arreglando el modelo.
                         </p>
                     </div>
                 </div>
@@ -248,19 +248,19 @@ MODULES = [
     # --- MODULE 2: SANITIZE INPUTS (Proxy Variables) ---
     {
         "id": 2,
-        "title": "Protocol 1: Hunting Proxies",
+        "title": "Protocolo 1: Cazando Proxies",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
 
                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(59,130,246,0.08); border:2px solid var(--color-accent); border-radius:12px; margin-bottom:20px;">
-                        <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">✂️</div>
+                        <div style="font-size:1.8rem; background:var(--background-fill-primary); width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">✂️</div>
                         <div style="flex-grow:1;">
-                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); letter-spacing:0.05em;">PROTOCOL 1: SANITIZE INPUTS</div>
-                            <div style="font-size:0.9rem; color:var(--body-text-color);">Mission: Remove protected classes & hidden proxies.</div>
+                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); letter-spacing:0.05em;">PROTOCOLO 1: SANEAR ENTRADAS</div>
+                            <div style="font-size:0.9rem; color:var(--body-text-color);">Misión: Eliminar clases protegidas y proxies ocultos.</div>
                         </div>
                         <div style="text-align:right;">
-                            <div style="font-weight:800; font-size:0.85rem; color:var(--color-accent);">STEP 2 OF 2</div>
+                            <div style="font-weight:800; font-size:0.85rem; color:var(--color-accent);">PASO 2 DE 3</div>
                             <div style="height:4px; width:60px; background:#bfdbfe; border-radius:2px; margin-top:4px;">
                                 <div style="height:100%; width:100%; background:var(--color-accent); border-radius:2px;"></div>
                             </div>
@@ -268,48 +268,48 @@ MODULES = [
                     </div>
 
                     <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
-                        <strong>The "Sticky Bias" Problem.</strong>
-                        You removed Race and Gender. Great. But bias often hides in <strong>Proxy Variables</strong>—neutral data points that act as a secret substitute for race.
+                        <strong>El Problema del "Sesgo Persistente".</strong>
+                        Has eliminado Raza y Género. Genial. Pero el sesgo a menudo se esconde en <strong>Variables Proxy</strong>—puntos de datos neutrales que actúan como un sustituto secreto de la raza.
                     </p>
 
                     <div class="hint-box" style="border-left:4px solid #f97316;">
-                        <div style="font-weight:700;">Why "Zip Code" is a Proxy</div>
+                        <div style="font-weight:700;">Por qué el "Código Postal" es un Proxy</div>
 
                         <p style="margin:6px 0 0 0;">
-                            Historically, many cities were segregated by law or class. Even today, <strong>Zip Code</strong> often correlates strongly with background.
+                            Históricamente, muchas ciudades fueron segregadas por ley o clase. Incluso hoy, el <strong>Código Postal</strong> a menudo se correlaciona fuertemente con el origen.
                             </p>
                         <p style="margin-top:8px; font-weight:600; color:#c2410c;">
-                            🚨 The Risk: If you give the AI location data, it can "guess" a person's race with high accuracy, re-learning the exact bias you just tried to delete.
+                            🚨 El Riesgo: Si das datos de ubicación a la IA, puede "adivinar" la raza de una persona con alta precisión, re-aprendiendo el sesgo exacto que acabas de intentar borrar.
                         </p>
                     </div>
 
                     <div class="ai-risk-container" style="margin-top:16px;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <h4 style="margin:0;">📂 Dataset Column Inspector</h4>
-                            <div style="font-size:0.8rem; font-weight:700; color:#f97316;">⚠️ 1 PROXY DETECTED</div>
+                            <h4 style="margin:0;">📂 Inspector de Columnas del Dataset</h4>
+                            <div style="font-size:0.8rem; font-weight:700; color:#f97316;">⚠️ 1 PROXY DETECTADO</div>
                         </div>
 
                         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; padding:12px; background:rgba(0,0,0,0.05); border-radius:8px;">
-                            <div style="padding:6px 12px; background:#e5e7eb; color:#9ca3af; text-decoration:line-through; border-radius:6px;">Race</div>
-                            <div style="padding:6px 12px; background:#e5e7eb; color:#9ca3af; text-decoration:line-through; border-radius:6px;">Gender</div>
+                            <div style="padding:6px 12px; background:#e5e7eb; color:#9ca3af; text-decoration:line-through; border-radius:6px;">Raza</div>
+                            <div style="padding:6px 12px; background:#e5e7eb; color:#9ca3af; text-decoration:line-through; border-radius:6px;">Género</div>
 
                             <div style="padding:6px 12px; background:#ffedd5; border:1px solid #f97316; border-radius:6px; font-weight:700; color:#9a3412;">
-                                ⚠️ Zip Code
+                                ⚠️ Código Postal
                             </div>
 
-                            <div style="padding:6px 12px; background:white; border:1px solid var(--border-color-primary); border-radius:6px;">Prior Convictions</div>
-                            <div style="padding:6px 12px; background:white; border:1px solid var(--border-color-primary); border-radius:6px;">Employment</div>
+                            <div style="padding:6px 12px; background:var(--background-fill-primary); color:var(--body-text-color); border:1px solid var(--border-color-primary); border-radius:6px;">Condenas Previas</div>
+                            <div style="padding:6px 12px; background:var(--background-fill-primary); color:var(--body-text-color); border:1px solid var(--border-color-primary); border-radius:6px;">Empleo</div>
                         </div>
                     </div>
 
 
               <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 ACTION REQUIRED: DELETE PROXY INPUT DATA
+                            🚀 ACCIÓN REQUERIDA: ELIMINAR DATOS DE ENTRADA PROXY
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
-                            Select the Proxy Variable below to scrub it.
-                            Then click <strong>Next</strong> to continue fixing the model.
+                            Selecciona la Variable Proxy a continuación para borrarla.
+                            Luego haz clic en <strong>Siguiente</strong> para continuar arreglando el modelo.
                         </p>
                     </div>
                 </div>
@@ -319,7 +319,7 @@ MODULES = [
     # --- MODULE 3: THE ACCURACY CRASH (The Pivot) ---
     {
         "id": 3,
-        "title": "System Alert: Model Verification",
+        "title": "Alerta del Sistema: Verificación del Modelo",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
@@ -327,22 +327,22 @@ MODULES = [
                     <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(59,130,246,0.08); border:2px solid var(--color-accent); border-radius:12px; margin-bottom:20px;">
                         <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">✂️</div>
                         <div style="flex-grow:1;">
-                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); letter-spacing:0.05em;">PROTOCOL 1: SANITIZE INPUTS</div>
-                            <div style="font-size:0.9rem; color:var(--body-text-color);">Phase: Verification & Model Retraining</div>
+                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); letter-spacing:0.05em;">PROTOCOLO 1: SANEAR ENTRADAS</div>
+                            <div style="font-size:0.9rem; color:var(--body-text-color);">Fase: Verificación y Reentrenamiento del Modelo</div>
                         </div>
                         <div style="text-align:right;">
-                            <div style="font-weight:800; font-size:0.85rem; color:var(--color-accent);">STEP 3 OF 3</div>
+                            <div style="font-weight:800; font-size:0.85rem; color:var(--color-accent);">PASO 3 DE 3</div>
                             <div style="height:4px; width:60px; background:#bfdbfe; border-radius:2px; margin-top:4px;">
                                 <div style="height:100%; width:100%; background:var(--color-accent); border-radius:2px;"></div>
                             </div>
                         </div>
                     </div>
 
-                    <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">🤖 The Verification Run</h2>
+                    <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">🤖 La Ejecución de Verificación</h2>
 
                     <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
-                        You have successfully deleted <strong>Race, Gender, Age, and Zip Code</strong>.
-                        The dataset is "sanitized" (stripped of all demographic labels). Now we run the simulation to see if the model still works.
+                        Has eliminado con éxito <strong>Raza, Género, Edad y Código Postal</strong>.
+                        El dataset está "saneado" (sin etiquetas demográficas). Ahora ejecutamos la simulación para ver si el modelo todavía funciona.
                     </p>
 
                     <details style="border:none; margin-top:20px;">
@@ -358,7 +358,7 @@ MODULES = [
                             list-style:none;
                             box-shadow:0 4px 12px rgba(59,130,246,0.3);
                             transition:transform 0.1s ease;">
-                            ▶️ CLICK TO FIX MODEL USING REPAIRED DATASET
+                            ▶️ CLIC PARA ARREGLAR EL MODELO CON DATASET REPARADO
                         </summary>
 
                         <div style="margin-top:24px; animation: fadeIn 0.6s ease-in-out;">
@@ -367,26 +367,26 @@ MODULES = [
 
                                 <div style="text-align:center; padding:10px; border-right:1px solid var(--border-color-primary);">
                                     <div style="font-size:2.2rem; font-weight:800; color:#ef4444;">📉 78%</div>
-                                    <div style="font-weight:bold; font-size:0.9rem; text-transform:uppercase; color:var(--body-text-color-subdued); margin-bottom:6px;">Accuracy (CRASHED)</div>
+                                    <div style="font-weight:bold; font-size:0.9rem; text-transform:uppercase; color:var(--body-text-color-subdued); margin-bottom:6px;">Precisión (COLAPSADA)</div>
                                     <div style="font-size:0.9rem; line-height:1.4;">
-                                        <strong>Diagnosis:</strong> The model lost its "shortcuts" (like Zip Code). It is confused and struggling to predict risk accurately.
+                                        <strong>Diagnóstico:</strong> El modelo ha perdido sus "atajos" (como el Código Postal). Está confundido y tiene problemas para predecir el riesgo con precisión.
                                     </div>
                                 </div>
 
                                 <div style="text-align:center; padding:10px;">
-                                    <div style="font-size:2.2rem; font-weight:800; color:#f59e0b;">🧩 MISSING</div>
-                                    <div style="font-weight:bold; font-size:0.9rem; text-transform:uppercase; color:var(--body-text-color-subdued); margin-bottom:6px;">Meaningful Data</div>
+                                    <div style="font-size:2.2rem; font-weight:800; color:#f59e0b;">🧩 FALTAN</div>
+                                    <div style="font-weight:bold; font-size:0.9rem; text-transform:uppercase; color:var(--body-text-color-subdued); margin-bottom:6px;">Datos Significativos</div>
                                     <div style="font-size:0.9rem; line-height:1.4;">
-                                        <strong>Diagnosis:</strong> We cleaned the bad data, but we didn't replace it with <strong>Meaningful Data</strong>. The model needs better signals to learn from.
+                                        <strong>Diagnóstico:</strong> Hemos limpiado los datos malos, pero no los hemos reemplazado por <strong>Datos Significativos</strong>. El modelo necesita mejores señales para aprender.
                                     </div>
                                 </div>
                             </div>
 
                             <div class="hint-box" style="margin-top:20px; border-left:4px solid var(--color-accent);">
-                                <div style="font-weight:700; font-size:1.05rem;">💡 The Engineering Pivot</div>
+                                <div style="font-weight:700; font-size:1.05rem;">💡 El Pivote de Ingeniería</div>
                                 <p style="margin:6px 0 0 0;">
-                                    A model that knows <em>nothing</em> is fair, but useless.
-                                    To fix the accuracy safely, we need to stop deleting and start <strong>finding valid patterns</strong>: meaningful data that explains <em>why</em> crime happens.
+                                    Un modelo que no sabe <em>nada</em> es justo, pero inútil.
+                                    Para arreglar la precisión con seguridad, debemos dejar de eliminar y comenzar a <strong>encontrar patrones válidos</strong>: datos significativos que expliquen <em>por qué</em> ocurre el delito.
                                 </p>
                             </div>
 
@@ -395,11 +395,11 @@ MODULES = [
 
                           <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 ACTION REQUIRED: Find Meaningful Data
+                            🚀 ACCIÓN REQUERIDA: Encontrar Datos Significativos
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
-                            Answer the below question to receive Moral Compass Points.
-                            Then click <strong>Next</strong> to continue fixing the model.
+                            Responde la pregunta a continuación para recibir Puntos de Brújula Moral.
+                            Luego haz clic en <strong>Siguiente</strong> para continuar arreglando el modelo.
                         </p>
                     </div>
                 </div>
@@ -418,48 +418,48 @@ MODULES = [
     # --- MODULE 4: CAUSAL VALIDITY (Big Foot) ---
     {
         "id": 4,
-        "title": "Protocol 2: Causal Validity",
+        "title": "Protocolo 2: Validez Causal",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
 
-                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(16, 185, 129, 0.08); border:2px solid #10b981; border-radius:12px; margin-bottom:20px;">
-                        <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🔗</div>
+                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(16, 185, 129, 0.1); border:2px solid #10b981; border-radius:12px; margin-bottom:20px;">
+                        <div style="font-size:1.8rem; background:var(--background-fill-primary); width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🔗</div>
                         <div style="flex-grow:1;">
-                            <div style="font-weight:800; font-size:1.05rem; color:#065f46; letter-spacing:0.05em;">
-                                PROTOCOL 2: CAUSE VS. CORRELATION
+                            <div style="font-weight:800; font-size:1.05rem; color:#10b981; letter-spacing:0.05em;">
+                                PROTOCOLO 2: CAUSA VS. CORRELACIÓN
                             </div>
                             <div style="font-size:0.9rem; color:var(--body-text-color);">
-                                Mission: Learn how to tell when a pattern <strong>actually causes</strong> an outcome — and when it’s just a coincidence.
+                                Misión: Aprender a distinguir cuándo un patrón <strong>causa realmente</strong> un resultado — y cuándo es solo una coincidencia.
                             </div>
                         </div>
                         <div style="text-align:right;">
-                            <div style="font-weight:800; font-size:0.85rem; color:#059669;">STEP 1 OF 2</div>
-                            <div style="height:4px; width:60px; background:#a7f3d0; border-radius:2px; margin-top:4px;">
+                            <div style="font-weight:800; font-size:0.85rem; color:#10b981;">PASO 1 DE 2</div>
+                            <div style="height:4px; width:60px; background:rgba(16, 185, 129, 0.3); border-radius:2px; margin-top:4px;">
                                 <div style="height:100%; width:50%; background:#10b981; border-radius:2px;"></div>
                             </div>
                         </div>
                     </div>
 
                     <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">
-                        🧠 The “Big Foot” Trap: When Correlation Tricks You
+                        🧠 La Trampa de "Pie Grande": Cuando la Correlación Te Engaña
                     </h2>
 
                     <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
-                        To improve a model, we often add more data.
+                        Para mejorar un modelo, a menudo añadimos más datos.
                         <br>
-                        But here’s the problem: the model finds <strong>Correlations</strong> (a relationship between two data variables) and wrongly assumes one <strong>Causes</strong> the other.
+                        Pero aquí está el problema: el modelo encuentra <strong>Correlaciones</strong> (una relación entre dos variables de datos) y asume erróneamente que una <strong>Causa</strong> la otra.
                         <br>
-                        Consider this real statistical pattern:
+                        Considera este patrón estadístico real:
                     </p>
 
-                    <div class="ai-risk-container" style="text-align:center; padding:20px; border:2px solid #ef4444; background:#fef2f2;">
+                    <div class="ai-risk-container" style="text-align:center; padding:20px; border:2px solid #ef4444; background:rgba(239, 68, 68, 0.1);">
                         <div style="font-size:3rem; margin-bottom:10px;">🦶 📈 📖</div>
-                        <h3 style="margin:0; color:#b91c1c;">
-                            The Data: “People with bigger feet have higher reading scores.”
+                        <h3 style="margin:0; color:#ef4444;">
+                            El Dato: "La gente con pies más grandes tiene mejores puntuaciones de lectura."
                         </h3>
-                        <p style="font-size:1.0rem; margin-top:8px;">
-                            On average, people with <strong>large feet</strong> score much higher on reading tests than people with <strong>small feet</strong>.
+                        <p style="font-size:1.0rem; margin-top:8px; color:var(--body-text-color);">
+                            En promedio, la gente con <strong>pies grandes</strong> obtiene puntuaciones mucho más altas en tests de lectura que la gente con <strong>pies pequeños</strong>.
                         </p>
                     </div>
 
@@ -476,34 +476,35 @@ MODULES = [
                             width:fit-content;
                             margin:0 auto;
                             box-shadow:0 4px 6px rgba(0,0,0,0.1);">
-                            🤔 Why does this happen? (Click to reveal)
+                            🤔 ¿Por qué pasa esto? (Haz clic para revelar)
                         </summary>
 
                         <div style="margin-top:20px; animation: fadeIn 0.5s ease-in-out;">
-                            <div class="hint-box" style="border-left:4px solid #16a34a;">
-                                <div style="font-weight:800; font-size:1.1rem; color:#166534;">
-                                    The Hidden Third Variable: AGE
+                            
+                            <div class="hint-box" style="border-left:4px solid #16a34a; background:rgba(22, 163, 74, 0.1);">
+                                <div style="font-weight:800; font-size:1.1rem; color:#16a34a;">
+                                    La Tercera Variable Oculta: EDAD
                                 </div>
-                                <p style="margin-top:8px;">
-                                    Do bigger feet <em>cause</em> people to read better? <strong>No.</strong>
+                                <p style="margin-top:8px; color:var(--body-text-color);">
+                                    ¿Tener los pies más grandes <em>causa</em> que la gente lea mejor? <strong>No.</strong>
                                     <br>
-                                    Children have smaller feet and are still learning to read.
+                                    Los niños tienen pies más pequeños y aún están aprendiendo a leer.
                                     <br>
-                                    Adults have bigger feet and have had many more years of reading practice.
+                                    Los adultos tienen pies más grandes y han tenido muchos más años de práctica lectora.
                                 </p>
-                                <p style="margin-bottom:0;">
-                                    <strong>The Key Idea:</strong> Age causes <em>both</em> foot size and reading ability.
+                                <p style="margin-bottom:0; color:var(--body-text-color);">
+                                    <strong>La Idea Clave:</strong> La edad causa <em>ambas cosas</em>: el tamaño del pie y la capacidad lectora.
                                     <br>
-                                    Shoe size is a <em>correlated signal</em>, not a cause.
+                                    La talla de zapatos es una <em>señal correlacionada</em>, no una causa.
                                 </p>
                             </div>
 
                             <p style="font-size:1.05rem; text-align:center; margin-top:20px;">
-                                <strong>Why this matters:</strong>
+                                <strong>Por qué esto importa:</strong>
                                 <br>
-                                In many real-world datasets, some variables look predictive only because they are linked to deeper causes.
+                                En muchos datasets reales, algunas variables parecen predictivas solo porque están vinculadas a causas más profundas.
                                 <br>
-                                Good models focus on <strong>what actually causes outcomes</strong>, not just what happens to move together.
+                                Los buenos modelos se centran en <strong>lo que realmente causa los resultados</strong>, no solo en lo que sucede al mismo tiempo.
                             </p>
                         </div>
                     </details>
@@ -511,11 +512,11 @@ MODULES = [
 
               <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 ACTION REQUIRED: Can you spot the next “Big Foot” trap in the data below?
+                            🚀 ACCIÓN REQUERIDA: ¿Puedes detectar la siguiente trampa de "Pie Grande" en los datos a continuación?
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
-                            Answer this question to boost your Moral Compass score.
-                            Then click <strong>Next</strong> to continue fixing the model.
+                            Responde esta pregunta para aumentar tu puntuación de Brújula Moral.
+                            Luego haz clic en <strong>Siguiente</strong> para continuar arreglando el modelo.
                         </p>
                     </div>
                 </div>
@@ -531,228 +532,228 @@ MODULES = [
         """,
     },
     # --- MODULE 5: APPLYING RESEARCH ---
-# --- MODULE 5: APPLYING RESEARCH (Stylized Candidates) ---
     {
         "id": 5,
-        "title": "Protocol 2: Cause vs. Correlation",
+        "title": "Protocolo 2: Causa vs. Correlación",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
 
-                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(16, 185, 129, 0.08); border:2px solid #10b981; border-radius:12px; margin-bottom:20px;">
-                        <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🔗</div>
+                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(16, 185, 129, 0.1); border:2px solid #10b981; border-radius:12px; margin-bottom:20px;">
+                        <div style="font-size:1.8rem; background:var(--background-fill-primary); width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🔗</div>
                         <div style="flex-grow:1;">
-                            <div style="font-weight:800; font-size:1.05rem; color:#065f46; letter-spacing:0.05em;">
-                                PROTOCOL 2: CAUSE VS. CORRELATION
+                            <div style="font-weight:800; font-size:1.05rem; color:#10b981; letter-spacing:0.05em;">
+                                PROTOCOLO 2: CAUSA VS. CORRELACIÓN
                             </div>
                             <div style="font-size:0.9rem; color:var(--body-text-color);">
-                                Mission: Remove variables that <strong>correlate</strong> with outcomes but do not <strong>cause</strong> them.
+                                Misión: Eliminar variables que <strong>correlacionan</strong> con los resultados pero no los <strong>causan</strong>.
                             </div>
                         </div>
                         <div style="text-align:right;">
-                            <div style="font-weight:800; font-size:0.85rem; color:#059669;">STEP 2 OF 2</div>
-                            <div style="height:4px; width:60px; background:#a7f3d0; border-radius:2px; margin-top:4px;">
+                            <div style="font-weight:800; font-size:0.85rem; color:#10b981;">PASO 2 DE 2</div>
+                            <div style="height:4px; width:60px; background:rgba(16, 185, 129, 0.3); border-radius:2px; margin-top:4px;">
                                 <div style="height:100%; width:100%; background:#10b981; border-radius:2px;"></div>
                             </div>
                         </div>
                     </div>
 
                     <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">
-                        🔬 Research Check: Choosing Fair Features
+                        🔬 Verificación de Investigación: Eligiendo Características Justas
                     </h2>
 
                     <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
-                        You are ready to continue to build a more just version of the model. Here are four variables to consider.
+                        Estás listo para continuar construyendo una versión más justa del modelo. Aquí hay cuatro variables a considerar.
                         <br>
-                        Use the rule below to discover which variables represent <strong>actual causes</strong> of behavior — and which are just circumstantial correlations.
+                        Usa la regla a continuación para descubrir qué variables representan <strong>causas reales</strong> de comportamiento — y cuáles son solo correlaciones circunstanciales.
                     </p>
 
-                    <div class="hint-box" style="border-left:4px solid var(--color-accent); background:white; border:1px solid var(--border-color-primary);">
+                    <div class="hint-box" style="border-left:4px solid var(--color-accent); background:var(--background-fill-secondary); border:1px solid var(--border-color-primary);">
                         <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
                             <div style="font-size:1.2rem;">📋</div>
                             <div style="font-weight:800; color:var(--color-accent); text-transform:uppercase; letter-spacing:0.05em;">
-                                The Engineering Rule
+                                La Regla de Ingeniería
                             </div>
                         </div>
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                            <div style="padding:10px; background:#fef2f2; border-radius:6px; border:1px solid #fee2e2;">
-                                <div style="font-weight:700; color:#b91c1c; font-size:0.9rem; margin-bottom:4px;">
-                                    🚫 REJECT: BACKGROUND
+                            
+                            <div style="padding:10px; background:rgba(239, 68, 68, 0.1); border-radius:6px; border:1px solid rgba(239, 68, 68, 0.3);">
+                                <div style="font-weight:700; color:#ef4444; font-size:0.9rem; margin-bottom:4px;">
+                                    🚫 RECHAZAR: ENTORNO
                                 </div>
-                                <div style="font-size:0.85rem; line-height:1.4; color:#7f1d1d;">
-                                    Variables describing a person's situation or environment (e.g., wealth, neighborhood).
-                                    <br><strong>These correlate with crime but do not cause it.</strong>
+                                <div style="font-size:0.85rem; line-height:1.4; color:var(--body-text-color);">
+                                    Variables que describen la situación o entorno de una persona (ej: riqueza, vecindario).
+                                    <br><strong>Estas correlacionan con el delito pero no lo causan.</strong>
                                 </div>
                             </div>
-                            <div style="padding:10px; background:#f0fdf4; border-radius:6px; border:1px solid #dcfce7;">
-                                <div style="font-weight:700; color:#15803d; font-size:0.9rem; margin-bottom:4px;">
-                                    ✅ KEEP: CONDUCT
+                            
+                            <div style="padding:10px; background:rgba(22, 163, 74, 0.1); border-radius:6px; border:1px solid rgba(22, 163, 74, 0.3);">
+                                <div style="font-weight:700; color:#16a34a; font-size:0.9rem; margin-bottom:4px;">
+                                    ✅ MANTENER: CONDUCTA
                                 </div>
-                                <div style="font-size:0.85rem; line-height:1.4; color:#14532d;">
-                                    Variables describing documented actions taken by the person (e.g., missed court dates).
-                                    <br><strong>These reflect actual behavior.</strong>
+                                <div style="font-size:0.85rem; line-height:1.4; color:var(--body-text-color);">
+                                    Variables que describen acciones documentadas tomadas por la persona (ej: incomparecencia judicial).
+                                    <br><strong>Estas reflejan comportamiento real.</strong>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="ai-risk-container" style="margin-top:20px; background:#f8fafc; border:1px solid #e2e8f0;">
-                        <h4 style="margin:0 0 12px 0; color:#334155; text-align:center; font-size:1.1rem;">📂 Input Data Candidates</h4>
+                    <div class="ai-risk-container" style="margin-top:20px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary);">
+                        <h4 style="margin:0 0 12px 0; color:var(--body-text-color); text-align:center; font-size:1.1rem;">📂 Candidatos de Datos de Entrada</h4>
 
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
 
-                            <div style="background:white; border:1px solid #cbd5e1; border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
-                                <div style="font-weight:700; font-size:1rem; color:#1e293b; margin-bottom:6px;">Employment Status</div>
-                                <div style="font-size:0.85rem; background:#f1f5f9; padding:4px 8px; border-radius:4px; color:#475569; display:inline-block;">
-                                    Category: <strong>Background Condition</strong>
+                            <div style="background:var(--background-fill-primary); border:1px solid var(--border-color-primary); border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
+                                <div style="font-weight:700; font-size:1rem; color:var(--body-text-color); margin-bottom:6px;">Estado Laboral</div>
+                                <div style="font-size:0.85rem; background:var(--background-fill-secondary); padding:4px 8px; border-radius:4px; color:var(--body-text-color); display:inline-block;">
+                                    Categoría: <strong>Condición de Entorno</strong>
                                 </div>
                             </div>
 
-                            <div style="background:white; border:1px solid #cbd5e1; border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
-                                <div style="font-weight:700; font-size:1rem; color:#1e293b; margin-bottom:6px;">Prior Convictions</div>
-                                <div style="font-size:0.85rem; background:#dcfce7; padding:4px 8px; border-radius:4px; color:#166534; display:inline-block;">
-                                    Category: <strong>Conduct History</strong>
+                            <div style="background:var(--background-fill-primary); border:1px solid var(--border-color-primary); border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
+                                <div style="font-weight:700; font-size:1rem; color:var(--body-text-color); margin-bottom:6px;">Condenas Previas</div>
+                                <div style="font-size:0.85rem; background:rgba(22, 163, 74, 0.1); padding:4px 8px; border-radius:4px; color:#16a34a; display:inline-block;">
+                                    Categoría: <strong>Historial de Conducta</strong>
                                 </div>
                             </div>
 
-                            <div style="background:white; border:1px solid #cbd5e1; border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
-                                <div style="font-weight:700; font-size:1rem; color:#1e293b; margin-bottom:6px;">Neighborhood Score</div>
-                                <div style="font-size:0.85rem; background:#f1f5f9; padding:4px 8px; border-radius:4px; color:#475569; display:inline-block;">
-                                    Category: <strong>Environment</strong>
+                            <div style="background:var(--background-fill-primary); border:1px solid var(--border-color-primary); border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
+                                <div style="font-weight:700; font-size:1rem; color:var(--body-text-color); margin-bottom:6px;">Puntuación del Vecindario</div>
+                                <div style="font-size:0.85rem; background:var(--background-fill-secondary); padding:4px 8px; border-radius:4px; color:var(--body-text-color); display:inline-block;">
+                                    Categoría: <strong>Entorno</strong>
                                 </div>
                             </div>
 
-                            <div style="background:white; border:1px solid #cbd5e1; border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
-                                <div style="font-weight:700; font-size:1rem; color:#1e293b; margin-bottom:6px;">Failure to Appear</div>
-                                <div style="font-size:0.85rem; background:#dcfce7; padding:4px 8px; border-radius:4px; color:#166534; display:inline-block;">
-                                    Category: <strong>Conduct History</strong>
+                            <div style="background:var(--background-fill-primary); border:1px solid var(--border-color-primary); border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
+                                <div style="font-weight:700; font-size:1rem; color:var(--body-text-color); margin-bottom:6px;">Incomparecencia</div>
+                                <div style="font-size:0.85rem; background:rgba(22, 163, 74, 0.1); padding:4px 8px; border-radius:4px; color:#16a34a; display:inline-block;">
+                                    Categoría: <strong>Historial de Conducta</strong>
                                 </div>
                             </div>
 
                         </div>
                     </div>
 
-                    <div class="hint-box" style="margin-top:20px; border-left:4px solid #8b5cf6; background:linear-gradient(to right, #f5f3ff, white);">
-                        <div style="font-weight:700; color:#6d28d9; font-size:1.05rem;">💡 Why this matters for Fairness</div>
+                    <div class="hint-box" style="margin-top:20px; border-left:4px solid #8b5cf6; background:linear-gradient(to right, rgba(139, 92, 246, 0.05), var(--background-fill-primary)); color:var(--body-text-color);">
+                        <div style="font-weight:700; color:#8b5cf6; font-size:1.05rem;">💡 Por qué esto importa para la Equidad</div>
                         <p style="margin:8px 0 0 0; font-size:0.95rem; line-height:1.5;">
-                            When an AI judges people based on <strong>Correlations</strong> (like neighborhood or poverty), it punishes them for their <strong>circumstances</strong>—things they often cannot control.
+                            Cuando una IA juzga a las personas basándose en <strong>Correlaciones</strong> (como el vecindario o la pobreza), las castiga por sus <strong>circunstancias</strong>—cosas que a menudo no pueden controlar.
                             <br><br>
-                            When an AI judges based on <strong>Causes</strong> (like Conduct), it holds them accountable for their <strong>actions</strong>.
+                            Cuando una IA juzga basándose en <strong>Causas</strong> (como la Conducta), las hace responsables de sus <strong>acciones</strong>.
                             <br>
-                            <strong>True Fairness = Being judged on your choices, not your background.</strong>
+                            <strong>Equidad Real = Ser juzgado por tus elecciones, no por tu entorno.</strong>
                         </p>
                     </div>
 
 
               <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 ACTION REQUIRED: 
+                            🚀 ACCIÓN REQUERIDA: 
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
-                            Select the variables that represent true <strong>Conduct</strong> to build the fair model..
-                            Then click <strong>Next</strong> to continue fixing the model.
+                            Selecciona las variables que representan <strong>Conducta</strong> real para construir el modelo justo.
+                            Luego haz clic en <strong>Siguiente</strong> para continuar arreglando el modelo.
                         </p>
                     </div>
                 </div>
             </div>
         """,
     },
-# --- MODULE 6: REPRESENTATION (Intro) ---
     {
         "id": 6,
-        "title": "Protocol 3: Representation Matters",
+        "title": "Protocolo 3: La Representación Importa",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
 
-                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(139, 92, 246, 0.08); border:2px solid #8b5cf6; border-radius:12px; margin-bottom:20px;">
-                        <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🌍</div>
+                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(139, 92, 246, 0.1); border:2px solid #8b5cf6; border-radius:12px; margin-bottom:20px;">
+                        <div style="font-size:1.8rem; background:var(--background-fill-primary); width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🌍</div>
                         <div style="flex-grow:1;">
                             <div style="font-weight:800; font-size:1.05rem; color:#7c3aed; letter-spacing:0.05em;">
-                                PROTOCOL 3: REPRESENTATION
+                                PROTOCOLO 3: REPRESENTACIÓN
                             </div>
                             <div style="font-size:0.9rem; color:var(--body-text-color);">
-                                Mission: Make sure the training data matches the place where the model will be used.
+                                Misión: Asegurarse de que los datos de entrenamiento coinciden con el lugar donde se utilizará el modelo.
                             </div>
                         </div>
                         <div style="text-align:right;">
-                            <div style="font-weight:800; font-size:0.85rem; color:#7c3aed;">STEP 1 OF 2</div>
-                            <div style="height:4px; width:60px; background:#ddd6fe; border-radius:2px; margin-top:4px;">
+                            <div style="font-weight:800; font-size:0.85rem; color:#7c3aed;">PASO 1 DE 2</div>
+                            <div style="height:4px; width:60px; background:rgba(139, 92, 246, 0.3); border-radius:2px; margin-top:4px;">
                                 <div style="height:100%; width:50%; background:#8b5cf6; border-radius:2px;"></div>
                             </div>
                         </div>
                     </div>
 
                     <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">
-                        🗺️ The “Wrong Map” Problem
+                        🗺️ El Problema del "Mapa Incorrecto"
                     </h2>
 
                     <p style="font-size:1.05rem; text-align:center; max-width:820px; margin:0 auto 15px auto;">
-                        We fixed the <strong>variables</strong> (the columns). Now we must check the <strong>environment</strong> (the rows).
+                        Hemos arreglado las <strong>variables</strong> (las columnas). Ahora debemos comprobar el <strong>entorno</strong> (las filas).
                     </p>
 
-                    <div style="background:linear-gradient(to right, #f8fafc, #f1f5f9); border:2px dashed #94a3b8; border-radius:12px; padding:20px; text-align:center; margin-bottom:25px;">
-                        <div style="font-weight:700; color:#64748b; font-size:0.9rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">THE SCENARIO</div>
-                        <p style="font-size:1.15rem; font-weight:600; color:#334155; margin:0; line-height:1.5;">
-                            This dataset was built using historical data from <span style="color:#ef4444;">Broward County, Florida (USA)</span>.
+                    <div style="background:var(--background-fill-secondary); border:2px dashed #94a3b8; border-radius:12px; padding:20px; text-align:center; margin-bottom:25px;">
+                        <div style="font-weight:700; color:#64748b; font-size:0.9rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">EL ESCENARIO</div>
+                        <p style="font-size:1.15rem; font-weight:600; color:var(--body-text-color); margin:0; line-height:1.5;">
+                            Este dataset se construyó utilizando datos históricos del <span style="color:#ef4444;">Condado de Broward, Florida (EE. UU.)</span>.
                             <br><br>
-                            Imagine taking this Florida model and forcing it to judge people in a completely different justice system—like <span style="color:#3b82f6;">Barcelona</span> (or your own hometown).
+                            Imagina tomar este modelo de Florida y forzarlo a juzgar personas en un sistema judicial completamente diferente—como <span style="color:#3b82f6;">Barcelona</span> (o tu propia ciudad).
                         </p>
                     </div>
 
                     <div class="ai-risk-container" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
 
-                        <div class="hint-box" style="margin:0; border-left:4px solid #ef4444; background:#fef2f2;">
-                            <div style="font-weight:800; color:#b91c1c; margin-bottom:6px;">
-                                🇺🇸 THE SOURCE: FLORIDA
+                        <div class="hint-box" style="margin:0; border-left:4px solid #ef4444; background:rgba(239, 68, 68, 0.1);">
+                            <div style="font-weight:800; color:#ef4444; margin-bottom:6px;">
+                                🇺🇸 EL ORIGEN: FLORIDA
                             </div>
-                            <div style="font-size:0.85rem; font-weight:700; color:#7f1d1d;">
-                                Training Context: US Justice System
+                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color);">
+                                Contexto de Entrenamiento: Sistema Judicial EE. UU.
                             </div>
-                            <ul style="font-size:0.85rem; margin-top:8px; padding-left:16px; line-height:1.4;">
-                                <li><strong>Demographic categories:</strong> Defined using US-specific labels and groupings.</li>
-                                <li><strong>Crime & law:</strong> Different laws and justice processes (for example, bail and pretrial rules).</li>
-                                <li><strong>Geography:</strong> Car-centric cities and suburban sprawl.</li>
+                            <ul style="font-size:0.85rem; margin-top:8px; padding-left:16px; line-height:1.4; color:var(--body-text-color);">
+                                <li><strong>Categorías demográficas:</strong> Definidas usando etiquetas y agrupaciones específicas de EE. UU.</li>
+                                <li><strong>Crimen y ley:</strong> Leyes y procesos judiciales diferentes (por ejemplo, reglas de fianza).</li>
+                                <li><strong>Geografía:</strong> Ciudades centradas en el coche y expansión suburbana.</li>
                             </ul>
                         </div>
 
-                        <div class="hint-box" style="margin:0; border-left:4px solid #3b82f6; background:#eff6ff;">
-                            <div style="font-weight:800; color:#1e40af; margin-bottom:6px;">
-                                📍 THE TARGET: BARCELONA
+                        <div class="hint-box" style="margin:0; border-left:4px solid #3b82f6; background:rgba(59, 130, 246, 0.1);">
+                            <div style="font-weight:800; color:#3b82f6; margin-bottom:6px;">
+                                📍 EL OBJETIVO: BARCELONA
                             </div>
-                            <div style="font-size:0.85rem; font-weight:700; color:#1e3a8a;">
-                                Deployment Context: EU Justice System
+                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color);">
+                                Contexto de Despliegue: Sistema Judicial UE
                             </div>
-                            <ul style="font-size:0.85rem; margin-top:8px; padding-left:16px; line-height:1.4;">
-                                <li><strong>Demographic categories:</strong> Defined differently than in US datasets.</li>
-                                <li><strong>Crime & law:</strong> Different legal rules, policing practices, and common offense types.</li>
-                                <li><strong>Geography:</strong> Dense, walkable urban environment.</li>
+                            <ul style="font-size:0.85rem; margin-top:8px; padding-left:16px; line-height:1.4; color:var(--body-text-color);">
+                                <li><strong>Categorías demográficas:</strong> Definidas diferente que en los datasets de EE. UU.</li>
+                                <li><strong>Crimen y ley:</strong> Reglas legales diferentes, prácticas policiales y tipos de delitos comunes.</li>
+                                <li><strong>Geografía:</strong> Entorno urbano denso y transitable.</li>
                             </ul>
                         </div>
                     </div>
 
-                    <div class="hint-box" style="border-left:4px solid #8b5cf6;">
-                        <div style="font-weight:700; color:#6d28d9;">
-                            Why this fails
+                    <div class="hint-box" style="border-left:4px solid #8b5cf6; background:transparent;">
+                        <div style="font-weight:700; color:#8b5cf6;">
+                            Por qué esto falla
                         </div>
                         <p style="margin-top:6px;">
-                            The model learned patterns from Florida.
+                            El modelo aprendió patrones de Florida.
                             <br>
-                            When the real-world environment is different, the model can make <strong>more errors</strong> — and those errors can be <strong>uneven across groups</strong>.
+                            Cuando el entorno del mundo real es diferente, el modelo puede cometer <strong>más errores</strong> — y esos errores pueden ser <strong>desiguales entre grupos</strong>.
                             <br>
-                            On AI engineering teams, this is called a <strong>dataset (or domain) shift</strong>.
+                            En equipos de ingeniería de IA, a esto se le llama un <strong>desplazamiento del dataset (o dominio)</strong>.
                             <br>
-                            It’s like trying to find La Sagrada Família using a map of Miami.
+                            Es como intentar encontrar la Sagrada Familia usando un mapa de Miami.
                         </p>
                     </div>
 
                     <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 ACTION REQUIRED:
+                            🚀 ACCIÓN REQUERIDA:
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
-                            Answer the below question to boost your Moral Compass leaderboard score.
-                            Then click <strong>Next</strong> to continue fixing the data representation problem.
+                            Responde la pregunta a continuación para aumentar tu puntuación de Brújula Moral.
+                            Luego haz clic en <strong>Siguiente</strong> para continuar arreglando el problema de representación de datos.
                         </p>
                     </div>
                 </div>
@@ -762,40 +763,40 @@ MODULES = [
     # --- MODULE 7: THE DATA SWAP ---
     {
         "id": 7,
-        "title": "Protocol 3: Fixing the Representation",
+        "title": "Protocolo 3: Arreglando la Representación",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
 
-                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(139, 92, 246, 0.08); border:2px solid #8b5cf6; border-radius:12px; margin-bottom:20px;">
-                        <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🌍</div>
+                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(139, 92, 246, 0.1); border:2px solid #8b5cf6; border-radius:12px; margin-bottom:20px;">
+                        <div style="font-size:1.8rem; background:var(--background-fill-primary); width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🌍</div>
                         <div style="flex-grow:1;">
-                            <div style="font-weight:800; font-size:1.05rem; color:#7c3aed; letter-spacing:0.05em;">PROTOCOL 3: REPRESENTATION</div>
-                            <div style="font-size:0.9rem; color:var(--body-text-color);">Mission: Replace "Shortcut Data" with "Local Data."</div>
+                            <div style="font-weight:800; font-size:1.05rem; color:#7c3aed; letter-spacing:0.05em;">PROTOCOLO 3: REPRESENTACIÓN</div>
+                            <div style="font-size:0.9rem; color:var(--body-text-color);">Misión: Reemplazar "Datos Atajo" con "Datos Locales".</div>
                         </div>
                         <div style="text-align:right;">
-                            <div style="font-weight:800; font-size:0.85rem; color:#7c3aed;">STEP 2 OF 2</div>
-                            <div style="height:4px; width:60px; background:#ddd6fe; border-radius:2px; margin-top:4px;">
+                            <div style="font-weight:800; font-size:0.85rem; color:#7c3aed;">PASO 2 DE 2</div>
+                            <div style="height:4px; width:60px; background:rgba(139, 92, 246, 0.3); border-radius:2px; margin-top:4px;">
                                 <div style="height:100%; width:100%; background:#8b5cf6; border-radius:2px;"></div>
                             </div>
                         </div>
                     </div>
 
-                    <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">🔄 The Data Swap</h2>
+                    <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">🔄 El Intercambio de Datos</h2>
 
                     <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
-                        We cannot use the Florida dataset. It is <strong>"Shortcut Data"</strong>—chosen just because it was easy to find.
+                        No podemos usar el dataset de Florida. Son <strong>"Datos Atajo"</strong>—elegidos solo porque eran fáciles de encontrar.
                         <br>
-                        To build a fair model for <strong>Any Location</strong> (whether it's Barcelona, Berlin, or Boston), we must reject the easy path.
+                        Para construir un modelo justo para <strong>Cualquier Ubicación</strong> (sea Barcelona, Berlín o Boston), debemos rechazar el camino fácil.
                         <br>
-                        We must collect <strong>Local Data</strong> that reflects the actual reality of that place.
+                        Debemos recopilar <strong>Datos Locales</strong> que reflejen la realidad real de ese lugar.
                     </p>
 
-                    <div class="ai-risk-container" style="text-align:center; border:2px solid #ef4444; background:#fef2f2; padding:16px; margin-bottom:20px;">
-                        <div style="font-weight:800; color:#b91c1c; font-size:1.1rem; margin-bottom:8px;">⚠️ CURRENT DATASET: FLORIDA (INVALID)</div>
+                    <div class="ai-risk-container" style="text-align:center; border:2px solid #ef4444; background:rgba(239, 68, 68, 0.1); padding:16px; margin-bottom:20px;">
+                        <div style="font-weight:800; color:#ef4444; font-size:1.1rem; margin-bottom:8px;">⚠️ DATASET ACTUAL: FLORIDA (INVÁLIDO)</div>
 
-                        <p style="font-size:0.9rem; margin:0;">
-                            Dataset does not match local context where model will be used.
+                        <p style="font-size:0.9rem; margin:0; color:var(--body-text-color);">
+                            El dataset no coincide con el contexto local donde se usará el modelo.
                         </p>
                     </div>
 
@@ -812,38 +813,41 @@ MODULES = [
                             list-style:none;
                             box-shadow:0 4px 12px rgba(124, 58, 237, 0.3);
                             transition:transform 0.1s ease;">
-                            🔄 CLICK TO IMPORT LOCAL BARCELONA DATA
+                            🔄 CLIC PARA IMPORTAR DATOS LOCALES DE BARCELONA
                         </summary>
 
                         <div style="margin-top:24px; animation: fadeIn 0.6s ease-in-out;">
 
                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-                                <div style="padding:12px; border:1px solid #22c55e; background:#f0fdf4; border-radius:8px; text-align:center;">
+                                <div style="padding:12px; border:1px solid #22c55e; background:rgba(34, 197, 94, 0.1); border-radius:8px; text-align:center;">
                                     <div style="font-size:2rem;">📍</div>
-                                    <div style="font-weight:700; color:#15803d; font-size:0.9rem;">GEOGRAPHY MATCHED</div>
-                                    <div style="font-size:0.8rem;">Data source: Catalonia Justice Dept</div>
+                                    <div style="font-weight:700; color:#22c55e; font-size:0.9rem;">GEOGRAFÍA COINCIDENTE</div>
+                                    <div style="font-size:0.8rem; color:var(--body-text-color);">Fuente de datos: Dept. de Justicia Local</div>
                                 </div>
-                                <div style="padding:12px; border:1px solid #22c55e; background:#f0fdf4; border-radius:8px; text-align:center;">
+                                <div style="padding:12px; border:1px solid #22c55e; background:rgba(34, 197, 94, 0.1); border-radius:8px; text-align:center;">
                                     <div style="font-size:2rem;">⚖️</div>
-                                    <div style="font-weight:700; color:#15803d; font-size:0.9rem;">LAWS SYNCED</div>
-                                    <div style="font-size:0.8rem;">Removed US-specific offenses</div>
+                                    <div style="font-weight:700; color:#22c55e; font-size:0.9rem;">LEYES SINCRONIZADAS</div>
+                                    <div style="font-size:0.8rem; color:var(--body-text-color);">Eliminados delitos específicos de EE. UU.</div>
                                 </div>
                             </div>
 
                             <div class="hint-box" style="border-left:4px solid #22c55e;">
-                                <div style="font-weight:700; color:#15803d;">System Update Complete</div>
+                                <div style="font-weight:700; color:#15803d;">Actualización del Sistema Completada</div>
                                 <p style="margin-top:6px;">
-                                    The model is now learning from the people it will actually affect. Accuracy is now meaningful because it reflects local truth.
+                                    El modelo ahora está aprendiendo de la gente a la que realmente afectará. La precisión ahora es significativa porque refleja la verdad local.
                                 </p>
                             </div>
 
+                        </div>
+                    </details>
+
             <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 ACTION REQUIRED:
+                            🚀 ACCIÓN REQUERIDA:
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
-                            Answer the below question to boost your Moral Compass score.
-                            Then click <strong>Next</strong> to review and certify that the model is fixed!
+                            Responde la pregunta a continuación para aumentar tu puntuación de Brújula Moral.
+                            Luego haz clic en <strong>Siguiente</strong> para revisar y certificar que el modelo está arreglado!
                         </p>
                     </div>
                 </div>
@@ -853,7 +857,6 @@ MODULES = [
                     from { opacity: 0; transform: translateY(-10px); }
                     to { opacity: 1; transform: translateY(0); }
                 }
-                /* Hide default arrow */
                 details > summary { list-style: none; }
                 details > summary::-webkit-details-marker { display: none; }
             </style>
@@ -862,86 +865,86 @@ MODULES = [
     # --- MODULE 8: FINAL REPORT (Before & After) ---
     {
         "id": 8,
-        "title": "Final Fairness Report",
+        "title": "Informe Final de Equidad",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
 
-                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(34, 197, 94, 0.08); border:2px solid #22c55e; border-radius:12px; margin-bottom:20px;">
-                        <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🏁</div>
+                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(34, 197, 94, 0.1); border:2px solid #22c55e; border-radius:12px; margin-bottom:20px;">
+                        <div style="font-size:1.8rem; background:var(--background-fill-primary); width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🏁</div>
                         <div style="flex-grow:1;">
-                            <div style="font-weight:800; font-size:1.05rem; color:#15803d; letter-spacing:0.05em;">AUDIT COMPLETE</div>
-                            <div style="font-size:0.9rem; color:var(--body-text-color);">System Status: READY FOR CERTIFICATION.</div>
+                            <div style="font-weight:800; font-size:1.05rem; color:#15803d; letter-spacing:0.05em;">AUDITORÍA COMPLETADA</div>
+                            <div style="font-size:0.9rem; color:var(--body-text-color);">Estado del Sistema: LISTO PARA CERTIFICACIÓN.</div>
                         </div>
                     </div>
 
-                    <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">📊 The "Before & After" Report</h2>
+                    <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">📊 El Informe "Antes y Después"</h2>
 
                     <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
-                        You have successfully scrubbed the data, filtered for causality, and localized the context.
-                        <br>Let's compare your new model to the original model to review what has changed.
+                        Has saneado los datos con éxito, filtrado por causalidad y localizado el contexto.
+                        <br>Comparemos tu nuevo modelo con el modelo original para revisar qué ha cambiado.
                     </p>
 
                     <div class="ai-risk-container" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
 
-                        <div style="opacity:0.6; filter:grayscale(100%);">
-                            <div style="font-weight:800; color:#ef4444; margin-bottom:8px; text-transform:uppercase;">🚫 The Original Model</div>
+                        <div>
+                            <div style="font-weight:800; color:#ef4444; margin-bottom:8px; text-transform:uppercase;">🚫 El Modelo Original</div>
 
-                            <div style="padding:10px; border-bottom:1px solid #e5e7eb;">
-                                <div style="font-size:0.8rem; font-weight:700;">INPUTS</div>
-                                <div style="color:#b91c1c;">Race, Gender, Zip Code</div>
+                            <div style="padding:10px; border-bottom:1px solid var(--border-color-primary);">
+                                <div style="font-size:0.8rem; font-weight:700; color:var(--body-text-color);">ENTRADAS</div>
+                                <div style="color:var(--body-text-color);">Raza, Género, Código Postal</div>
                             </div>
-                            <div style="padding:10px; border-bottom:1px solid #e5e7eb;">
-                                <div style="font-size:0.8rem; font-weight:700;">LOGIC</div>
-                                <div style="color:#b91c1c;">Status & Stereotypes</div>
+                            <div style="padding:10px; border-bottom:1px solid var(--border-color-primary);">
+                                <div style="font-size:0.8rem; font-weight:700; color:var(--body-text-color);">LÓGICA</div>
+                                <div style="color:var(--body-text-color);">Estatus y Estereotipos</div>
                             </div>
-                            <div style="padding:10px; border-bottom:1px solid #e5e7eb;">
-                                <div style="font-size:0.8rem; font-weight:700;">CONTEXT</div>
-                                <div style="color:#b91c1c;">Florida (Wrong Map)</div>
+                            <div style="padding:10px; border-bottom:1px solid var(--border-color-primary);">
+                                <div style="font-size:0.8rem; font-weight:700; color:var(--body-text-color);">CONTEXTO</div>
+                                <div style="color:var(--body-text-color);">Florida (Mapa Equivocado)</div>
                             </div>
-                            <div style="padding:10px; background:#fee2e2; margin-top:10px; border-radius:6px; color:#b91c1c; font-weight:700; text-align:center;">
-                                BIAS RISK: CRITICAL
+                            <div style="padding:10px; background:rgba(239, 68, 68, 0.2); margin-top:10px; border-radius:6px; color:#ef4444; font-weight:700; text-align:center;">
+                                RIESGO DE SESGO: CRÍTICO
                             </div>
                         </div>
 
                         <div style="transform:scale(1.02); box-shadow:0 4px 12px rgba(0,0,0,0.1); border:2px solid #22c55e; border-radius:8px; overflow:hidden;">
-                            <div style="background:#22c55e; color:white; padding:6px; font-weight:800; text-align:center; text-transform:uppercase;">✅ Your Engineered Model</div>
+                            <div style="background:#22c55e; color:white; padding:6px; font-weight:800; text-align:center; text-transform:uppercase;">✅ Tu Modelo Diseñado</div>
 
-                            <div style="padding:10px; border-bottom:1px solid #f0fdf4; background:white;">
-                                <div style="font-size:0.8rem; font-weight:700; color:#15803d;">INPUTS</div>
-                                <div>Behavior Only</div>
+                            <div style="padding:10px; border-bottom:1px solid var(--border-color-primary); background:var(--background-fill-primary);">
+                                <div style="font-size:0.8rem; font-weight:700; color:#15803d;">ENTRADAS</div>
+                                <div style="color:var(--body-text-color);">Solo Comportamiento</div>
                             </div>
-                            <div style="padding:10px; border-bottom:1px solid #f0fdf4; background:white;">
-                                <div style="font-size:0.8rem; font-weight:700; color:#15803d;">LOGIC</div>
-                                <div>Causal Conduct</div>
+                            <div style="padding:10px; border-bottom:1px solid var(--border-color-primary); background:var(--background-fill-primary);">
+                                <div style="font-size:0.8rem; font-weight:700; color:#15803d;">LÓGICA</div>
+                                <div style="color:var(--body-text-color);">Conducta Causal</div>
                             </div>
-                            <div style="padding:10px; border-bottom:1px solid #f0fdf4; background:white;">
-                                <div style="font-size:0.8rem; font-weight:700; color:#15803d;">CONTEXT</div>
-                                <div>Barcelona (Local)</div>
+                            <div style="padding:10px; border-bottom:1px solid var(--border-color-primary); background:var(--background-fill-primary);">
+                                <div style="font-size:0.8rem; font-weight:700; color:#15803d;">CONTEXTO</div>
+                                <div style="color:var(--body-text-color);">Barcelona (Local)</div>
                             </div>
-                            <div style="padding:10px; background:#dcfce7; margin-top:0; color:#15803d; font-weight:700; text-align:center;">
-                                BIAS RISK: MINIMIZED
+                            <div style="padding:10px; background:rgba(34, 197, 94, 0.2); margin-top:0; color:#15803d; font-weight:700; text-align:center;">
+                                RIESGO DE SESGO: MINIMIZADO
                             </div>
                         </div>
                     </div>
 
                     <div class="hint-box" style="border-left:4px solid #f59e0b;">
-                        <div style="font-weight:700; color:#b45309;">🚧 A Note on "Perfection"</div>
+                        <div style="font-weight:700; color:#b45309;">🚧 Una Nota sobre la "Perfección"</div>
                         <p style="margin-top:6px;">
-                            Is this model perfect? <strong>No.</strong>
-                            <br>Real-world data (like arrests) can still have hidden biases from human history.
-                            But you have moved from a system that <em>amplifies</em> prejudice to one that <em>measures fairness</em> using Conduct and Local Context.
+                            ¿Es este modelo perfecto? <strong>No.</strong>
+                            <br>Los datos del mundo real (como las detenciones) aún pueden tener sesgos ocultos de la historia humana.
+                            Pero has pasado de un sistema que <em>amplifica</em> el prejuicio a uno que <em>mide la equidad</em> utilizando Conducta y Contexto Local.
                         </p>
                     </div>
 
             <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 ALMOST FINISHED!
+                            🚀 ¡CASI TERMINADO!
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
-                            Answer the below question to boost your Moral Compass Score.
+                            Responde la pregunta a continuación para aumentar tu Puntuación de Brújula Moral.
                             <br>
-                            Click <strong>Next</strong> complete your final model approvals to certify the model.
+                            Haz clic en <strong>Siguiente</strong> para completar las aprobaciones finales del modelo y certificarlo.
                         </p>
                     </div>
                 </div>
@@ -949,80 +952,80 @@ MODULES = [
         """,
     },
     # --- MODULE 9: CERTIFICATION ---
-# --- MODULE 9: TRANSITION TO CERTIFICATION ---
     {
         "id": 9,
-        "title": "Protocol Complete: Ethics Secured",
+        "title": "Protocolo Completo: Ética Asegurada",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
 
                     <div style="text-align:center; margin-bottom:25px;">
-                        <h2 class="slide-title" style="margin-bottom:10px; color:#15803d;">🚀 ETHICAL ARCHITECTURE VERIFIED</h2>
-                        <p style="font-size:1.1rem; max-width:700px; margin:0 auto; color:#334155;">
-                            You have successfully refactored the AI. It no longer relies on <strong>hidden proxies and unfair shortcuts</strong>—it is now a transparent tool built on fair principles.
+                        <h2 class="slide-title" style="margin-bottom:10px; color:#15803d;">🚀 ARQUITECTURA ÉTICA VERIFICADA</h2>
+                        <p style="font-size:1.1rem; max-width:700px; margin:0 auto; color:var(--body-text-color);">
+                            Has refactorizado la IA con éxito. Ya no depende de <strong>proxies ocultos y atajos injustos</strong>—ahora es una herramienta transparente construida sobre principios justos.
                         </p>
                     </div>
-                    <div class="ai-risk-container" style="background:#f0fdf4; border:2px solid #22c55e; padding:25px; border-radius:12px; box-shadow:0 4px 20px rgba(34, 197, 94, 0.15);">
+                    
+                    <div class="ai-risk-container" style="background:rgba(34, 197, 94, 0.1); border:2px solid #22c55e; padding:25px; border-radius:12px; box-shadow:0 4px 20px rgba(34, 197, 94, 0.15);">
                         
                         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #bbf7d0; padding-bottom:15px; margin-bottom:20px;">
-                            <div style="font-weight:900; font-size:1.3rem; color:#15803d; letter-spacing:0.05em;">SYSTEM DIAGNOSTIC</div>
-                            <div style="background:#22c55e; color:white; font-weight:800; padding:6px 12px; border-radius:6px;">SAFETY: 100%</div>
+                            <div style="font-weight:900; font-size:1.3rem; color:#15803d; letter-spacing:0.05em;">DIAGNÓSTICO DEL SISTEMA</div>
+                            <div style="background:#22c55e; color:white; font-weight:800; padding:6px 12px; border-radius:6px;">SEGURIDAD: 100%</div>
                         </div>
 
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
                             <div style="display:flex; align-items:center; gap:12px;">
                                 <div style="font-size:1.5rem; color:#16a34a;">✅</div>
                                 <div>
-                                    <div style="font-weight:800; color:#14532d;">INPUTS</div>
-                                    <div style="font-size:0.9rem; color:#166534;">Sanitized</div>
+                                    <div style="font-weight:800; color:#15803d;">ENTRADAS</div>
+                                    <div style="font-size:0.9rem; color:var(--body-text-color);">Saneadas</div>
                                 </div>
                             </div>
                             <div style="display:flex; align-items:center; gap:12px;">
                                 <div style="font-size:1.5rem; color:#16a34a;">✅</div>
                                 <div>
-                                    <div style="font-weight:800; color:#14532d;">LOGIC</div>
-                                    <div style="font-size:0.9rem; color:#166534;">Causal</div>
+                                    <div style="font-weight:800; color:#15803d;">LÓGICA</div>
+                                    <div style="font-size:0.9rem; color:var(--body-text-color);">Causal</div>
                                 </div>
                             </div>
                             <div style="display:flex; align-items:center; gap:12px;">
                                 <div style="font-size:1.5rem; color:#16a34a;">✅</div>
                                 <div>
-                                    <div style="font-weight:800; color:#14532d;">CONTEXT</div>
-                                    <div style="font-size:0.9rem; color:#166534;">Localized</div>
+                                    <div style="font-weight:800; color:#15803d;">CONTEXTO</div>
+                                    <div style="font-size:0.9rem; color:var(--body-text-color);">Localizado</div>
                                 </div>
                             </div>
                             <div style="display:flex; align-items:center; gap:12px;">
                                 <div style="font-size:1.5rem; color:#16a34a;">✅</div>
                                 <div>
-                                    <div style="font-weight:800; color:#14532d;">STATUS</div>
-                                    <div style="font-size:0.9rem; color:#166534;">Ethical</div>
+                                    <div style="font-weight:800; color:#15803d;">ESTADO</div>
+                                    <div style="font-size:0.9rem; color:var(--body-text-color);">Ético</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div style="margin-top:30px; padding:20px; background:linear-gradient(to right, #fffbeb, #fff); border:2px solid #fcd34d; border-radius:12px;">
+                    <div style="margin-top:30px; padding:20px; background:rgba(245, 158, 11, 0.1); border:2px solid #fcd34d; border-radius:12px;">
                         <div style="display:flex; gap:15px;">
                             <div style="font-size:2.5rem;">🎓</div>
                             <div>
-                                <h3 style="margin:0; color:#92400e;">Next Objective: Certification & Performance</h3>
-                                <p style="font-size:1.05rem; line-height:1.5; color:#78350f; margin-top:8px;">
-                                    Now that you have made your model <strong>ethical</strong>, you can continue to improve your model’s <strong>accuracy</strong> in the final activity below.
+                                <h3 style="margin:0; color:#b45309;">Siguiente Objetivo: Certificación y Rendimiento</h3>
+                                <p style="font-size:1.05rem; line-height:1.5; color:var(--body-text-color); margin-top:8px;">
+                                    Ahora que has hecho tu modelo <strong>ético</strong>, puedes continuar mejorando la <strong>precisión</strong> del modelo en la actividad final de abajo.
                                     <br><br>
-                                    But before you optimize for power, you must secure your credentials.
+                                    Pero antes de optimizar la potencia, debes asegurar tus credenciales.
                                 </p>
                             </div>
                         </div>
                     </div>
 
                     <div style="text-align:center; margin-top:25px;">
-                        <p style="font-size:1.1rem; font-weight:600; color:#475569; margin-bottom:15px;">
-                            ⬇️ <strong>Immediate Next Step</strong> ⬇️
+                        <p style="font-size:1.1rem; font-weight:600; color:var(--body-text-color); margin-bottom:15px;">
+                            ⬇️ <strong>Paso Siguiente Inmediato</strong> ⬇️
                         </p>
                         
                         <div style="display:inline-block; padding:15px 30px; background:linear-gradient(to right, #f59e0b, #d97706); border-radius:50px; color:white; font-weight:800; font-size:1.1rem; box-shadow:0 4px 15px rgba(245, 158, 11, 0.4);">
-                            Claim your official "Ethics at Play" Certificate in the next activity.
+                            Reclama tu Certificado oficial "Ethics at Play" en la siguiente actividad.
                         </div>
                     </div>
 
@@ -1036,101 +1039,101 @@ MODULES = [
 QUIZ_CONFIG = {
     1: {
         "t": "t11",
-        "q": "Action: Select the variables that must be deleted immediately because they are Protected Classes.",
+        "q": "Acción: Selecciona las variables que deben borrarse inmediatamente porque son Clases Protegidas.",
         "o": [
-            "A) Zip Code & Neighborhood",
-            "B) Race, Gender, Age",
-            "C) Prior Convictions",
+            "A) Código Postal y Vecindario",
+            "B) Raza, Género, Edad",
+            "C) Condenas Previas",
         ],
-        "a": "B) Race, Gender, Age",
-        "success": "Task Complete. Columns dropped. The model is now blinded to explicit demographics.",
+        "a": "B) Raza, Género, Edad",
+        "success": "Tarea Completada. Columnas eliminadas. El modelo ahora es ciego a datos demográficos explícitos.",
     },
     2: {
         "t": "t12",
-        "q": "Why must we also remove 'Zip Code' if we already removed 'Race'?",
+        "q": "¿Por qué debemos eliminar también el 'Código Postal' si ya hemos eliminado la 'Raza'?",
         "o": [
-            "A) Because Zip Codes take up too much memory.",
-            "B) It is a Proxy Variable that re-introduces racial bias due to historical segregation.",
-            "C) Zip Codes are not accurate.",
+            "A) Porque los Códigos Postales ocupan demasiada memoria.",
+            "B) Es una Variable Proxy que reintroduce el sesgo racial debido a la segregación histórica.",
+            "C) Los Códigos Postales no son precisos.",
         ],
-        "a": "B) It is a Proxy Variable that re-introduces racial bias due to historical segregation.",
-        "success": "Proxy Identified. Location data removed to prevent 'Redlining' bias.",
+        "a": "B) Es una Variable Proxy que reintroduce el sesgo racial debido a la segregación histórica.",
+        "success": "Proxy Identificado. Datos de ubicación eliminados para prevenir el sesgo de segregación.",
     },
     3: {
         "t": "t13",
-        "q": "After removing Race and Zip Code, the model is fair but accuracy dropped. Why?",
+        "q": "Después de eliminar Raza y Código Postal, el modelo es justo pero la precisión ha caído. ¿Por qué?",
         "o": [
-            "A) The model is broken.",
-            "B) A model that knows nothing is fair but useless. We need better data, not just less data.",
-            "C) We should put the Race column back.",
+            "A) El modelo está roto.",
+            "B) Un modelo que no sabe nada es justo pero inútil. Necesitamos mejores datos, no solo menos datos.",
+            "C) Deberíamos volver a poner la columna de Raza.",
         ],
-        "a": "B) A model that knows nothing is fair but useless. We need better data, not just less data.",
-        "success": "Pivot Confirmed. We must move from 'Deleting' to 'Selecting' better features.",
+        "a": "B) Un modelo que no sabe nada es justo pero inútil. Necesitamos mejores datos, no solo menos datos.",
+        "success": "Giro Confirmado. Debemos pasar de 'Eliminar' a 'Seleccionar' mejores características.",
     },
     4: {
         "t": "t14",
-        "q": "Based on the “Big Foot” example, why can it be misleading to let an AI rely on variables like shoe size?",
+        "q": "Basado en el ejemplo de “Pie Grande”, ¿por qué puede ser engañoso dejar que una IA dependa de variables como la talla de zapatos?",
         "o": [
-            "A) Because they are physically hard to measure.",
-            "B) Because they often only correlate with outcomes and are caused by a hidden third factor, rather than causing the outcome themselves."
+            "A) Porque son físicamente difíciles de medir.",
+            "B) Porque a menudo solo se correlacionan con resultados y son causadas por un tercer factor oculto, en lugar de causar el resultado ellas mismas."
         ],
-        "a": "B) Because they often only correlate with outcomes and are caused by a hidden third factor, rather than causing the outcome themselves.",
-        "success": "Filter Calibrated. You are now checking whether a pattern is caused by a hidden third variable — not confusing correlation for causation."
+        "a": "B) Porque a menudo solo se correlacionan con resultados y son causadas por un tercer factor oculto, en lugar de causar el resultado ellas mismas.",
+        "success": "Filtro Calibrado. Ahora estás comprobando si un patrón es causado por una tercera variable oculta — no confundiendo correlación con causalidad."
     },
 
     5: {
         "t": "t15",
-        "q": "Which of these remaining features is a Valid Causal Predictor of criminal conduct?",
+        "q": "¿Cuál de estas características restantes es un Predictor Causal Válido de conducta criminal?",
         "o": [
-            "A) Employment (Background Condition)",
-            "B) Marital Status (Lifestyle)",
-            "C) Failure to Appear in Court (Conduct)",
+            "A) Empleo (Condición de Entorno)",
+            "B) Estado Civil (Estilo de vida)",
+            "C) Incomparecencia ante el Tribunal (Conducta)",
         ],
-        "a": "C) Failure to Appear in Court (Conduct)",
-        "success": "Feature Selected. 'Failure to Appear' reflects a specific action relevant to flight risk.",
+        "a": "C) Incomparecencia ante el Tribunal (Conducta)",
+        "success": "Característica Seleccionada. 'Incomparecencia' refleja una acción específica relevante para el riesgo de fuga.",
     },
     6: {
         "t": "t16",
-        "q": "Why can a model trained in Florida make unreliable predictions when used in Barcelona?",
+        "q": "¿Por qué un modelo entrenado en Florida puede hacer predicciones poco fiables cuando se usa en Barcelona?",
         "o": [
-            "A) Because the software is in English and needs to be translated.",
-            "B) Context mismatch: the model learned patterns tied to US laws, systems, and environments that don’t match Barcelona’s reality.",
-            "C) Because the number of people in Barcelona is different from the training dataset size."
+            "A) Porque el software está en inglés y debe traducirse.",
+            "B) Desajuste de contexto: el modelo aprendió patrones ligados a leyes, sistemas y entornos de EE. UU. que no coinciden con la realidad de Barcelona.",
+            "C) Porque el número de personas en Barcelona es diferente del tamaño del dataset de entrenamiento."
         ],
-        "a": "B) Context mismatch: the model learned patterns tied to US laws, systems, and environments that don’t match Barcelona’s reality.",
-        "success": "Correct! This is a dataset (or domain) shift. When training data doesn’t match where a model is used, predictions become less accurate and can fail unevenly across groups."
+        "a": "B) Desajuste de contexto: el modelo aprendió patrones ligados a leyes, sistemas y entornos de EE. UU. que no coinciden con la realidad de Barcelona.",
+        "success": "¡Correcto! Esto es un desplazamiento de dataset (o dominio). Cuando los datos de entrenamiento no coinciden con dónde se usa un modelo, las predicciones se vuelven menos precisas y pueden fallar de manera desigual entre grupos."
     },
 
     7: {
         "t": "t17",
-        "q": "You just rejected a massive, free dataset (Florida) for a smaller, harder-to-get one (Barcelona). Why was this the right engineering choice?",
+        "q": "Acabas de rechazar un dataset masivo y gratuito (Florida) por uno más pequeño y difícil de conseguir (Localmente relevante). ¿Por qué ha sido la elección de ingeniería correcta?",
         "o": [
-            "A) It wasn't. More data is always better, regardless of where it comes from.",
-            "B) Because 'Relevance' is more important than 'Volume.' A small, accurate map is better than a huge, wrong map.",
-            "C) Because the Florida dataset was too expensive.",
+            "A) No lo era. Más datos siempre es mejor, independientemente de dónde vengan.",
+            "B) Porque la 'Relevancia' es más importante que el 'Volumen'. Un mapa pequeño y preciso es mejor que un mapa enorme y equivocado.",
+            "C) Porque el dataset de Florida era demasiado caro.",
         ],
-        "a": "B) Because 'Relevance' is more important than 'Volume.' A small, accurate map is better than a huge, wrong map.",
-        "success": "Workshop Complete! You have successfully audited, filtered, and localized the AI model.",
+        "a": "B) Porque la 'Relevancia' es más importante que el 'Volumen'. Un mapa pequeño y preciso es mejor que un mapa enorme y equivocado.",
+        "success": "¡Taller Completado! Has auditado, filtrado y localizado el modelo de IA con éxito.",
     },
     8: {
         "t": "t18",
-        "q": "You have fixed the Inputs, the Logic, and the Context. Is your new model now 100% perfectly fair?",
+        "q": "Has arreglado las Entradas, la Lógica y el Contexto. ¿Tu nuevo modelo es ahora 100% perfectamente justo?",
         "o": [
-            "A) Yes. Math is objective, so if the data is clean, the model is perfect.",
-            "B) No. It is safer because we prioritized 'Conduct' over 'Status' and 'Local Reality' over 'Easy Data,' but we must always remain vigilant.",
+            "A) Sí. Las matemáticas son objetivas, así que si los datos están limpios, el modelo es perfecto.",
+            "B) No. Es más seguro porque hemos priorizado 'Conducta' sobre 'Estatus' y 'Realidad Local' sobre 'Datos Fáciles', pero siempre debemos estar vigilantes.",
         ],
-        "a": "B) No. It is safer because we prioritized 'Conduct' over 'Status' and 'Local Reality' over 'Easy Data,' but we must always remain vigilant.",
-        "success": "Great work.  Next you can officially review this model for use.",
+        "a": "B) No. Es más seguro porque hemos priorizado 'Conducta' sobre 'Estatus' y 'Realidad Local' sobre 'Datos Fáciles', pero siempre debemos estar vigilantes.",
+        "success": "Buen trabajo. A continuación puedes revisar oficialmente este modelo para su uso.",
     },
     9: {
         "t": "t19",
-        "q": "You have sanitized inputs, filtered for causality, and reweighted for representation. Are you ready to approve this repaired AI system?",
+        "q": "Has saneado entradas, filtrado por causalidad y reponderado por representación. ¿Estás listo para aprobar este sistema de IA reparado?",
         "o": [
-            "A) Yes, The model is now safe and I authorize the use of this AI system.",
-            "B) No, wait for a perfect model.",
+            "A) Sí, el modelo ahora es seguro y autorizo el uso de este sistema de IA reparado.",
+            "B) No, espera un modelo perfecto.",
         ],
-        "a": "A) Yes, The model is now safe and I authorize the use of this repaired AI system.",
-        "success": "Mission Accomplished. You have engineered a safer, fairer system.",
+        "a": "A) Sí, el modelo ahora es seguro y autorizo el uso de este sistema de IA reparado.",
+        "success": "Misión Conseguida. Has diseñado un sistema más seguro y justo.",
     },
 }
 
@@ -1601,7 +1604,7 @@ def render_leaderboard_card(data, username, team_name):
     """
 
 # --- 9. APP FACTORY (FAIRNESS FIXER) ---
-def create_fairness_fixer_es_app(theme_primary_hue: str = "indigo"):
+def create_fairness_fixer_en_app(theme_primary_hue: str = "indigo"):
     with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
         # States
         username_state = gr.State(value=None)
@@ -1853,17 +1856,17 @@ def create_fairness_fixer_es_app(theme_primary_hue: str = "indigo"):
     return demo
 
 # --- 10. LAUNCHER ---
-def launch_fairness_fixer_es_app(
+def launch_fairness_fixer_en_app(
     share: bool = False,
     server_name: str = "0.0.0.0",
     server_port: int = 8080,
     theme_primary_hue: str = "indigo",
     **kwargs
 ) -> None:
-    app = create_fairness_fixer_es_app(theme_primary_hue=theme_primary_hue)
+    app = create_fairness_fixer_en_app(theme_primary_hue=theme_primary_hue)
     app.launch(share=share, server_name=server_name,
                server_port=server_port,
                **kwargs)
 
 if __name__ == "__main__":
-    launch_fairness_fixer_es_app(share=False, debug=True, height=1000)
+    launch_fairness_fixer_en_app(share=False, debug=True, height=1000)
