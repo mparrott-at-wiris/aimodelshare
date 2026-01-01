@@ -34,6 +34,9 @@ except ImportError:
     from aimodelshare.moral_compass import MoralcompassApiClient
     from aimodelshare.aws import get_token_from_session, _get_username_from_token
 
+# Import team name translation utilities
+from .team_name_i18n import translate_team_name_for_display
+
 # --- 3. AUTH & HISTORY HELPERS ---
 def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str], Optional[str]]:
     try:
@@ -1968,9 +1971,11 @@ def render_leaderboard_card(data, username, team_name):
     if data and data.get("all_teams"):
         for i, t in enumerate(data["all_teams"]):
             cls = "row-highlight-team" if t["team"] == team_name else "row-normal"
+            # Translate team name for display
+            team_label = translate_team_name_for_display(t['team'], lang='ca')
             team_rows += (
                 f"<tr class='{cls}'><td style='padding:8px;text-align:center;'>{i+1}</td>"
-                f"<td style='padding:8px;'>{t['team']}</td>"
+                f"<td style='padding:8px;'>{team_label}</td>"
                 f"<td style='padding:8px;text-align:right;'>{t['avg']:.3f}</td></tr>"
             )
     if data and data.get("all_users"):

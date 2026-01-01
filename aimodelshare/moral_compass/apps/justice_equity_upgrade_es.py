@@ -47,6 +47,9 @@ except ImportError:
     from aimodelshare.moral_compass import MoralcompassApiClient
     from aimodelshare.aws import get_token_from_session, _get_username_from_token
 
+# Import team name translation utilities
+from .team_name_i18n import translate_team_name_for_display
+
 # --- 3. AUTH & HISTORY HELPERS ---
 def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str], Optional[str]]:
     try:
@@ -210,9 +213,11 @@ def render_leaderboard_card(data, username, team_name):
         for i, t in enumerate(data["all_teams"]):
             # Highlight the user's team
             cls = "row-highlight-team" if t["team"] == team_name else "row-normal"
+            # Translate team name for display
+            team_label = translate_team_name_for_display(t['team'], lang='es')
             team_rows += (
                 f"<tr class='{cls}'><td style='padding:8px;text-align:center;'>{i+1}</td>"
-                f"<td style='padding:8px;'>{t['team']}</td>"
+                f"<td style='padding:8px;'>{team_label}</td>"
                 f"<td style='padding:8px;text-align:right;'>{t['avg']:.3f}</td></tr>"
             )
 
@@ -270,6 +275,9 @@ def render_leaderboard_card(data, username, team_name):
 def generate_html_certificate(name, score, team_name):
     date_str = datetime.date.today().strftime("%B %d, %Y")
     cert_id = int(time.time())
+    
+    # Translate team name for display
+    team_display = translate_team_name_for_display(team_name, lang='es')
 
     # BRAND COLORS
     c_primary = "#5a46cc"    # Deep Indigo
@@ -365,7 +373,7 @@ def generate_html_certificate(name, score, team_name):
                     font-weight: 700;
                 ">{name}</h2>
                 <p style="font-size: 1.1rem; color: #475569; margin: 5px 0 0 0;">
-                    Miembro de <strong>{team_name}</strong>
+                    Miembro de <strong>{team_display}</strong>
                 </p>
             </div>
 
