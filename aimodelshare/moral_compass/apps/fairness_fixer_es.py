@@ -1041,7 +1041,7 @@ MODULES = [
 # --- 5. INTERACTIVE CONTENT CONFIGURATION (APP 2) ---
 QUIZ_CONFIG = {
     1: {
-        "t": "t11",
+        "t": "t12",
         "q": "Acción: Selecciona las variables que deben borrarse inmediatamente porque son Clases Protegidas.",
         "o": [
             "A) Código Postal y Vecindario",
@@ -1052,7 +1052,7 @@ QUIZ_CONFIG = {
         "success": "Tarea Completada. Columnas eliminadas. El modelo ahora es ciego a datos demográficos explícitos.",
     },
     2: {
-        "t": "t12",
+        "t": "t13",
         "q": "¿Por qué debemos eliminar también el 'Código Postal' si ya hemos eliminado la 'Raza'?",
         "o": [
             "A) Porque los Códigos Postales ocupan demasiada memoria.",
@@ -1063,7 +1063,7 @@ QUIZ_CONFIG = {
         "success": "Proxy Identificado. Datos de ubicación eliminados para prevenir el sesgo de segregación.",
     },
     3: {
-        "t": "t13",
+        "t": "t14",
         "q": "Después de eliminar Raza y Código Postal, el modelo es justo pero la precisión ha caído. ¿Por qué?",
         "o": [
             "A) El modelo está roto.",
@@ -1074,7 +1074,7 @@ QUIZ_CONFIG = {
         "success": "Giro Confirmado. Debemos pasar de 'Eliminar' a 'Seleccionar' mejores características.",
     },
     4: {
-        "t": "t14",
+        "t": "t15",
         "q": "Basado en el ejemplo de “Pie Grande”, ¿por qué puede ser engañoso dejar que una IA dependa de variables como la talla de zapatos?",
         "o": [
             "A) Porque son físicamente difíciles de medir.",
@@ -1085,7 +1085,7 @@ QUIZ_CONFIG = {
     },
 
     5: {
-        "t": "t15",
+        "t": "t16",
         "q": "¿Cuál de estas características restantes es un Predictor Causal Válido de conducta criminal?",
         "o": [
             "A) Empleo (Condición de Entorno)",
@@ -1096,7 +1096,7 @@ QUIZ_CONFIG = {
         "success": "Característica Seleccionada. 'Incomparecencia' refleja una acción específica relevante para el riesgo de fuga.",
     },
     6: {
-        "t": "t16",
+        "t": "t17",
         "q": "¿Por qué un modelo entrenado en Florida puede hacer predicciones poco fiables cuando se usa en Barcelona?",
         "o": [
             "A) Porque el software está en inglés y debe traducirse.",
@@ -1108,7 +1108,7 @@ QUIZ_CONFIG = {
     },
 
     7: {
-        "t": "t17",
+        "t": "t18",
         "q": "Acabas de rechazar un dataset masivo y gratuito (Florida) por uno más pequeño y difícil de conseguir (Localmente relevante). ¿Por qué ha sido la elección de ingeniería correcta?",
         "o": [
             "A) No lo era. Más datos siempre es mejor, independientemente de dónde vengan.",
@@ -1119,7 +1119,7 @@ QUIZ_CONFIG = {
         "success": "¡Taller Completado! Has auditado, filtrado y localizado el modelo de IA con éxito.",
     },
     8: {
-        "t": "t18",
+        "t": "t19",
         "q": "Has arreglado las Entradas, la Lógica y el Contexto. ¿Tu nuevo modelo es ahora 100% perfectamente justo?",
         "o": [
             "A) Sí. Las matemáticas son objetivas, así que si los datos están limpios, el modelo es perfecto.",
@@ -1129,7 +1129,7 @@ QUIZ_CONFIG = {
         "success": "Buen trabajo. A continuación puedes revisar oficialmente este modelo para su uso.",
     },
     9: {
-        "t": "t19",
+        "t": "t20",
         "q": "Has saneado entradas, filtrado por causalidad y reponderado por representación. ¿Estás listo para aprobar este sistema de IA reparado?",
         "o": [
             "A) Sí, el modelo ahora es seguro y autorizo el uso de este sistema de IA reparado.",
