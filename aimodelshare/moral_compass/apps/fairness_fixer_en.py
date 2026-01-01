@@ -1038,7 +1038,7 @@ MODULES = [
 # --- 5. INTERACTIVE CONTENT CONFIGURATION (APP 2) ---
 QUIZ_CONFIG = {
     1: {
-        "t": "t11",
+        "t": "t12",
         "q": "Action: Select the variables that must be deleted immediately because they are Protected Classes.",
         "o": [
             "A) Zip Code & Neighborhood",
@@ -1049,7 +1049,7 @@ QUIZ_CONFIG = {
         "success": "Task Complete. Columns dropped. The model is now blinded to explicit demographics.",
     },
     2: {
-        "t": "t12",
+        "t": "t13",
         "q": "Why must we also remove 'Zip Code' if we already removed 'Race'?",
         "o": [
             "A) Because Zip Codes take up too much memory.",
@@ -1060,7 +1060,7 @@ QUIZ_CONFIG = {
         "success": "Proxy Identified. Location data removed to prevent 'Redlining' bias.",
     },
     3: {
-        "t": "t13",
+        "t": "t14",
         "q": "After removing Race and Zip Code, the model is fair but accuracy dropped. Why?",
         "o": [
             "A) The model is broken.",
@@ -1071,7 +1071,7 @@ QUIZ_CONFIG = {
         "success": "Pivot Confirmed. We must move from 'Deleting' to 'Selecting' better features.",
     },
     4: {
-        "t": "t14",
+        "t": "t15",
         "q": "Based on the “Big Foot” example, why can it be misleading to let an AI rely on variables like shoe size?",
         "o": [
             "A) Because they are physically hard to measure.",
@@ -1082,7 +1082,7 @@ QUIZ_CONFIG = {
     },
 
     5: {
-        "t": "t15",
+        "t": "t16",
         "q": "Which of these remaining features is a Valid Causal Predictor of criminal conduct?",
         "o": [
             "A) Employment (Background Condition)",
@@ -1093,7 +1093,7 @@ QUIZ_CONFIG = {
         "success": "Feature Selected. 'Failure to Appear' reflects a specific action relevant to flight risk.",
     },
     6: {
-        "t": "t16",
+        "t": "t17",
         "q": "Why can a model trained in Florida make unreliable predictions when used in Barcelona?",
         "o": [
             "A) Because the software is in English and needs to be translated.",
@@ -1105,7 +1105,7 @@ QUIZ_CONFIG = {
     },
 
     7: {
-        "t": "t17",
+        "t": "t18",
         "q": "You just rejected a massive, free dataset (Florida) for a smaller, harder-to-get one (Locally relevant). Why was this the right engineering choice?",
         "o": [
             "A) It wasn't. More data is always better, regardless of where it comes from.",
@@ -1116,7 +1116,7 @@ QUIZ_CONFIG = {
         "success": "Workshop Complete! You have successfully audited, filtered, and localized the AI model.",
     },
     8: {
-        "t": "t18",
+        "t": "t19",
         "q": "You have fixed the Inputs, the Logic, and the Context. Is your new model now 100% perfectly fair?",
         "o": [
             "A) Yes. Math is objective, so if the data is clean, the model is perfect.",
@@ -1126,7 +1126,7 @@ QUIZ_CONFIG = {
         "success": "Great work.  Next you can officially review this model for use.",
     },
     9: {
-        "t": "t19",
+        "t": "t20",
         "q": "You have sanitized inputs, filtered for causality, and reweighted for representation. Are you ready to approve this repaired AI system?",
         "o": [
             "A) Yes, The model is now safe and I authorize the use of this repaired AI system.",
