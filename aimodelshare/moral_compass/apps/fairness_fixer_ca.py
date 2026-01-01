@@ -1041,7 +1041,7 @@ MODULES = [
 # --- 5. INTERACTIVE CONTENT CONFIGURATION (APP 2) ---
 QUIZ_CONFIG = {
     1: {
-        "t": "t11",
+        "t": "t12",
         "q": "Acció: Selecciona les variables que s'han d'esborrar immediatament perquè són Classes Protegides.",
         "o": [
             "A) Codi Postal i Veïnat",
@@ -1052,7 +1052,7 @@ QUIZ_CONFIG = {
         "success": "Tasca Completada. Columnes eliminades. El model ara és cec a dades demogràfiques explícites.",
     },
     2: {
-        "t": "t12",
+        "t": "t13",
         "q": "Per què hem d'eliminar també el 'Codi Postal' si ja hem eliminat la 'Raça'?",
         "o": [
             "A) Perquè els Codis Postals ocupen massa memòria.",
@@ -1063,7 +1063,7 @@ QUIZ_CONFIG = {
         "success": "Proxy Identificat. Dades d'ubicació eliminades per prevenir el biaix de segregació.",
     },
     3: {
-        "t": "t13",
+        "t": "t14",
         "q": "Després d'eliminar Raça i Codi Postal, el model és just però la precisió ha caigut. Per què?",
         "o": [
             "A) El model està trencat.",
@@ -1074,7 +1074,7 @@ QUIZ_CONFIG = {
         "success": "Gir Confirmat. Hem de passar d' 'Eliminar' a 'Seleccionar' millors característiques.",
     },
     4: {
-        "t": "t14",
+        "t": "t15",
         "q": "Basat en l'exemple del “Peu Gran”, per què pot ser enganyós deixar que una IA depengui de variables com la talla de sabates?",
         "o": [
             "A) Perquè són físicament difícils de mesurar.",
@@ -1085,7 +1085,7 @@ QUIZ_CONFIG = {
     },
 
     5: {
-        "t": "t15",
+        "t": "t16",
         "q": "Quina d'aquestes característiques restants és un Predictor Causal Vàlid de conducta criminal?",
         "o": [
             "A) Ocupació (Condició de Rerefons)",
@@ -1096,7 +1096,7 @@ QUIZ_CONFIG = {
         "success": "Característica Seleccionada. 'Incompareixença' reflecteix una acció específica rellevant per al risc de fuga.",
     },
     6: {
-        "t": "t16",
+        "t": "t17",
         "q": "Per què un model entrenat a Florida pot fer prediccions poc fiables quan s'utilitza a Barcelona?",
         "o": [
             "A) Perquè el software està en anglès i s'ha de traduir.",
@@ -1108,7 +1108,7 @@ QUIZ_CONFIG = {
     },
 
     7: {
-        "t": "t17",
+        "t": "t18",
         "q": "Acabes de rebutjar un dataset massiu i gratuït (Florida) per un de més petit i difícil d'aconseguir (Localment rellevant). Per què ha estat l'elecció d'enginyeria correcta?",
         "o": [
             "A) No ho era. Més dades sempre és millor, independentment d'on vinguin.",
@@ -1119,7 +1119,7 @@ QUIZ_CONFIG = {
         "success": "Taller Completat! Has auditat, filtrat i localitzat el model d'IA amb èxit.",
     },
     8: {
-        "t": "t18",
+        "t": "t19",
         "q": "Has arreglat les Entrades, la Lògica i el Context. El teu nou model és ara 100% perfectament just?",
         "o": [
             "A) Sí. Les matemàtiques són objectives, així que si les dades estan netes, el model és perfecte.",
@@ -1129,7 +1129,7 @@ QUIZ_CONFIG = {
         "success": "Bona feina. A continuació pots revisar oficialment aquest model per al seu ús.",
     },
     9: {
-        "t": "t19",
+        "t": "t20",
         "q": "Has sanejat entrades, filtrat per causalitat i reponderat per representació. Estàs llest per aprovar aquest sistema d'IA reparat?",
         "o": [
             "A) Sí, el model ara és segur i autoritzo l'ús d'aquest sistema d'IA reparat.",
