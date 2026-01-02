@@ -2356,73 +2356,71 @@ def on_initial_load(username, token=None, team_name=""):
 # -------------------------------------------------------------------------
 def build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set):
     """
-    Build the final conclusion HTML with performance summary.
-    Colors are handled via CSS classes so that light/dark mode work correctly.
+    Build the FINAL certification slide.
+    Reflects the end of the course, the Barcelona competition, and the certification.
     """
-    unlocked_tiers = min(3, max(0, submissions - 1))  # 0..3
-    tier_names = ["Trainee", "Junior", "Senior", "Lead"]
-    reached = tier_names[: unlocked_tiers + 1]
-    tier_line = " → ".join([f"{t}{' ✅' if t in reached else ''}" for t in tier_names])
-
+    # Calculate improvement if valid
     improvement = (best_score - first_score) if (first_score is not None and submissions > 1) else 0.0
-    strong_predictors = {"age", "length_of_stay", "priors_count", "age_cat"}
-    strong_used = [f for f in feature_set if f in strong_predictors]
 
-    ethical_note = (
-        "You unlocked powerful predictors. Consider: Would removing demographic fields change fairness? "
-        "In the next section we will begin to investigate this question further."
-    )
-
-    # Tailor message for very few submissions
+    # 1. Logic for the "Attempt Cap" (Modified to be final)
+    attempt_msg = ""
+    
+    # 2. Logic for a "Low Submission" nudge (Optional, but kept for feedback)
     tip_html = ""
-    if submissions < 2:
-        tip_html = """
-        <div class="final-conclusion-tip">
-          <b>Tip:</b> Try at least 2–3 submissions changing ONE setting at a time to see clear cause/effect.
-        </div>
-        """
 
-    # Add note if user reached the attempt cap
-    attempt_cap_html = ""
-    if submissions >= ATTEMPT_LIMIT:
-        attempt_cap_html = f"""
-        <div class="final-conclusion-attempt-cap">
-          <p style="margin:0;">
-            <b>📊 Attempt Limit Reached:</b> You used all {ATTEMPT_LIMIT} allowed submission attempts for this session.
-            We will open up submissions again after you complete some new activities next.
-          </p>
-        </div>
-        """
-
+    # 3. Construct the HTML
     return f"""
     <div class="final-conclusion-root">
-      <h1 class="final-conclusion-title">🎉 Engineering Phase Complete</h1>
+      
+      <h1 class="final-conclusion-title">🎓 Certification Earned</h1>
+      <h2 style="margin-top:0; color:var(--text-muted);">Ethics at Play: Justice and Equity</h2>
+
       <div class="final-conclusion-card">
-        <h2 class="final-conclusion-subtitle">Your Performance Snapshot</h2>
+        
+        <h3 class="final-conclusion-subtitle">🏆 The Final Challenge Results</h3>
+        <p style="text-align:left; margin-bottom: 15px;">
+            Your final AI system has been entered into the registry for the <b>EdTech Congress Barcelona 2026</b>.
+        </p>
+
         <ul class="final-conclusion-list">
-          <li>🏁 <b>Best Accuracy:</b> {(best_score * 100):.2f}%</li>
-          <li>📊 <b>Rank Achieved:</b> {('#' + str(rank)) if rank > 0 else '—'}</li>
-          <li>🔁 <b>Submissions Made This Session:</b> {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li>
-          <li>🧗 <b>Improvement Over First Score This Session:</b> {(improvement * 100):+.2f}</li>
-          <li>🎖️ <b>Tier Progress:</b> {tier_line}</li>
-          <li>🧪 <b>Strong Predictors Used:</b> {len(strong_used)} ({', '.join(strong_used) if strong_used else 'None yet'})</li>
+          <li>🏁 <b>Final Accuracy:</b> {(best_score * 100):.2f}%</li>
+          <li>🌍 <b>Global Rank:</b> {('#' + str(rank)) if rank > 0 else 'Pending'}</li>
+          <li>📈 <b>Improvement Session:</b> {(improvement * 100):+.2f}% accuracy gain</li>
+          <li>🔢 <b>Total Iterations:</b> {submissions} model versions tested</li>
         </ul>
 
         {tip_html}
-
-        <div class="final-conclusion-ethics">
-          <p style="margin:0;"><b>Ethical Reflection:</b> {ethical_note}</p>
-        </div>
-
-        {attempt_cap_html}
+        {attempt_msg}
 
         <hr class="final-conclusion-divider" />
 
         <div class="final-conclusion-next">
-          <h2>➡️ Next: Real-World Consequences</h2>
-          <p>Scroll below this app to continue. You'll examine how models like yours shape judicial outcomes.</p>
-          <h1 class="final-conclusion-scroll">👇 SCROLL DOWN 👇</h1>
+          <h2>The Journey Continues</h2>
+          
+          <div style="text-align: left; margin-top: 15px;">
+              <p>Congratulations! You have completed the <b>Ethics at Play Certification in Justice and Equity</b> and seen how AI can affect real-world decisions.</p>
+              
+              <p>Through this challenge, you have learned to:</p>
+              <ul style="margin-bottom: 15px;">
+                  <li>Check data for bias</li>
+                  <li>Understand the impact of AI decisions</li>
+                  <li>Build AI systems that are fair, not just accurate</li>
+                  <li>Explain the balance between efficiency and equity</li>
+              </ul>
+
+              <div class="final-conclusion-ethics">
+                <p style="margin:0;">
+                    <b>Final Thought:</b> As you move forward, remember that ethics is not a one-time task. 
+                    It is something you must consider at every step. You've shown how to build AI that doesn't just work, but works for everyone.
+                </p>
+              </div>
+
+              <p style="text-align:center; margin-top: 25px; font-weight:bold; font-size:1.1rem;">
+                Thank you for playing, and good luck with your future challenges.
+              </p>
+          </div>
         </div>
+
       </div>
     </div>
     """
