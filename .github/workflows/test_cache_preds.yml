@@ -1,0 +1,45 @@
+name: Test Cache Prediction Type Integrity
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'tests/verify_cache_integrity.py'
+      - 'convert_db.py'
+
+jobs:
+  verify-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Download the pre-computed JSON cache
+      - name: Download Prediction Cache
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: build_model_cache.yml
+          name: prediction-cache-file
+          path: .
+          search_artifacts: true
+          if_no_artifact_found: warn
+
+      # Convert JSON -> SQLite (Simulates Docker build)
+      - name: Convert to SQLite
+        run: |
+          if [ -f "prediction_cache.json.gz" ]; then
+            echo "✅ found cache file, converting..."
+            python convert_db.py
+          else
+            echo "❌ Cache file missing, skipping test."
+            exit 1
+          fi
+
+      # Run the verification
+      - name: Run Verification Script
+        run: python tests/verify_cache_integrity.py
