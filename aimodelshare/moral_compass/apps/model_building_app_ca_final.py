@@ -1927,57 +1927,27 @@ def run_experiment(
             
             
         else:
-            # === SLOW PATH (Fallback Training) ===
-            _log(f"🐢 CACHE MISS: {cache_key} (Training for real...)")
+            # === CACHE MISS (Training Disabled) ===
+            # This ensures we NEVER run heavy training code in production.
+            msg = f"❌ CACHE MISS: {cache_key}"
+            _log(msg)
+            
+            # User-friendly error message
+            error_html = f"""
+            <div style='background:#fee2e2; padding:16px; border-radius:8px; border:2px solid #ef4444; color:#991b1b; text-align:center;'>
+                <h3 style='margin:0;'>⚠️ Configuration Not Found</h3>
+                <p style='margin:8px 0;'>This specific combination of settings was not found in our pre-computed database.</p>
+                <p style='font-size:0.9em;'>To ensure system stability, real-time training is disabled. Please adjust your settings (e.g., change the Data Size or Model Strategy) and try again.</p>
+            </div>
+            """
+            
             yield { 
-                submission_feedback_display: gr.update(value=get_status_html(2, "Training Model", "The machine is learning from history..."), visible=True),
+                submission_feedback_display: gr.update(value=error_html, visible=True),
+                submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
                 login_error: gr.update(visible=False)
             }
+            return # <--- CRITICAL: Stop execution here.
 
-            # A. Get pre-sampled data
-            sample_frac = DATA_SIZE_MAP.get(data_size_str, 0.2)
-            X_train_sampled = X_TRAIN_SAMPLES_MAP[data_size_str]
-            y_train_sampled = Y_TRAIN_SAMPLES_MAP[data_size_str]
-            log_output += f"Using {int(sample_frac * 100)}% data.\n"
-
-            # B. Determine features...
-            numeric_cols = [f for f in feature_set if f in ALL_NUMERIC_COLS]
-            categorical_cols = [f for f in feature_set if f in ALL_CATEGORICAL_COLS]
-            for feat in feature_set:
-                if feat in ALL_NUMERIC_COLS: numeric_cols.append(feat)
-                elif feat in ALL_CATEGORICAL_COLS: categorical_cols.append(feat)
-            
-            # De-dupe logic just in case (though loop above covers it, ensuring lists are clean)
-            numeric_cols = sorted(list(set([f for f in feature_set if f in ALL_NUMERIC_COLS])))
-            categorical_cols = sorted(list(set([f for f in feature_set if f in ALL_CATEGORICAL_COLS])))
-
-            if not numeric_cols and not categorical_cols:
-                raise ValueError("No features selected for modeling.")
-
-            # C. Preprocessing (uses memoized preprocessor builder)
-            preprocessor, selected_cols = build_preprocessor(numeric_cols, categorical_cols)
-
-            X_train_processed = preprocessor.fit_transform(X_train_sampled[selected_cols])
-            X_test_processed = preprocessor.transform(X_TEST_RAW[selected_cols])
-
-            # D. Model build & tune
-            base_model = MODEL_TYPES[model_name_key]["model_builder"]()
-            tuned_model = tune_model_complexity(base_model, complexity_level)
-
-            # E. Train
-            # Concurrency Note: DecisionTree and RandomForest require dense arrays.
-            if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
-                X_train_for_fit = _ensure_dense(X_train_processed)
-                X_test_for_predict = _ensure_dense(X_test_processed)
-            else:
-                X_train_for_fit = X_train_processed
-                X_test_for_predict = X_test_processed
-            
-            tuned_model.fit(X_train_for_fit, y_train_sampled)
-            log_output += "Training done.\n"
-            
-            # F. Predict
-            predictions = tuned_model.predict(X_test_for_predict)
 
         # --- Stage 3: Submit (API Call 1) ---
         # AUTHENTICATION GATE: Check for token before submission
@@ -2386,73 +2356,71 @@ def on_initial_load(username, token=None, team_name=""):
 # -------------------------------------------------------------------------
 def build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set):
     """
-    Build the final conclusion HTML with performance summary.
-    Colors are handled via CSS classes so that light/dark mode work correctly.
+    Build the FINAL certification slide.
+    Reflects the end of the course, the Barcelona competition, and the certification.
     """
-    unlocked_tiers = min(3, max(0, submissions - 1))  # 0..3
-    tier_names = ["Trainee", "Junior", "Senior", "Lead"]
-    reached = tier_names[: unlocked_tiers + 1]
-    tier_line = " → ".join([f"{t}{' ✅' if t in reached else ''}" for t in tier_names])
-
+    # Calculate improvement if valid
     improvement = (best_score - first_score) if (first_score is not None and submissions > 1) else 0.0
-    strong_predictors = {"age", "length_of_stay", "priors_count", "age_cat"}
-    strong_used = [f for f in feature_set if f in strong_predictors]
 
-    ethical_note = (
-        "You unlocked powerful predictors. Consider: Would removing demographic fields change fairness? "
-        "In the next section we will begin to investigate this question further."
-    )
-
-    # Tailor message for very few submissions
+    # 1. Logic for the "Attempt Cap" (Modified to be final)
+    attempt_msg = ""
+    
+    # 2. Logic for a "Low Submission" nudge (Optional, but kept for feedback)
     tip_html = ""
-    if submissions < 2:
-        tip_html = """
-        <div class="final-conclusion-tip">
-          <b>Tip:</b> Try at least 2–3 submissions changing ONE setting at a time to see clear cause/effect.
-        </div>
-        """
 
-    # Add note if user reached the attempt cap
-    attempt_cap_html = ""
-    if submissions >= ATTEMPT_LIMIT:
-        attempt_cap_html = f"""
-        <div class="final-conclusion-attempt-cap">
-          <p style="margin:0;">
-            <b>📊 Attempt Limit Reached:</b> You used all {ATTEMPT_LIMIT} allowed submission attempts for this session.
-            We will open up submissions again after you complete some new activities next.
-          </p>
-        </div>
-        """
-
+    # 3. Construct the HTML
     return f"""
     <div class="final-conclusion-root">
-      <h1 class="final-conclusion-title">🎉 Engineering Phase Complete</h1>
+      
+      <h1 class="final-conclusion-title">🎓 Certification Earned</h1>
+      <h2 style="margin-top:0; color:var(--text-muted);">Ethics at Play: Justice and Equity</h2>
+
       <div class="final-conclusion-card">
-        <h2 class="final-conclusion-subtitle">Your Performance Snapshot</h2>
+        
+        <h3 class="final-conclusion-subtitle">🏆 The Final Challenge Results</h3>
+        <p style="text-align:left; margin-bottom: 15px;">
+            Your final AI system has been entered into the registry for the <b>EdTech Congress Barcelona 2026</b>.
+        </p>
+
         <ul class="final-conclusion-list">
-          <li>🏁 <b>Best Accuracy:</b> {(best_score * 100):.2f}%</li>
-          <li>📊 <b>Rank Achieved:</b> {('#' + str(rank)) if rank > 0 else '—'}</li>
-          <li>🔁 <b>Submissions Made This Session:</b> {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li>
-          <li>🧗 <b>Improvement Over First Score This Session:</b> {(improvement * 100):+.2f}</li>
-          <li>🎖️ <b>Tier Progress:</b> {tier_line}</li>
-          <li>🧪 <b>Strong Predictors Used:</b> {len(strong_used)} ({', '.join(strong_used) if strong_used else 'None yet'})</li>
+          <li>🏁 <b>Final Accuracy:</b> {(best_score * 100):.2f}%</li>
+          <li>🌍 <b>Global Rank:</b> {('#' + str(rank)) if rank > 0 else 'Pending'}</li>
+          <li>📈 <b>Improvement Session:</b> {(improvement * 100):+.2f}% accuracy gain</li>
+          <li>🔢 <b>Total Iterations:</b> {submissions} model versions tested</li>
         </ul>
 
         {tip_html}
-
-        <div class="final-conclusion-ethics">
-          <p style="margin:0;"><b>Ethical Reflection:</b> {ethical_note}</p>
-        </div>
-
-        {attempt_cap_html}
+        {attempt_msg}
 
         <hr class="final-conclusion-divider" />
 
         <div class="final-conclusion-next">
-          <h2>➡️ Next: Real-World Consequences</h2>
-          <p>Scroll below this app to continue. You'll examine how models like yours shape judicial outcomes.</p>
-          <h1 class="final-conclusion-scroll">👇 SCROLL DOWN 👇</h1>
+          <h2>The Journey Continues</h2>
+          
+          <div style="text-align: left; margin-top: 15px;">
+              <p>Congratulations! You have completed the <b>Ethics at Play Certification in Justice and Equity</b> and seen how AI can affect real-world decisions.</p>
+              
+              <p>Through this challenge, you have learned to:</p>
+              <ul style="margin-bottom: 15px;">
+                  <li>Check data for bias</li>
+                  <li>Understand the impact of AI decisions</li>
+                  <li>Build AI systems that are fair, not just accurate</li>
+                  <li>Explain the balance between efficiency and equity</li>
+              </ul>
+
+              <div class="final-conclusion-ethics">
+                <p style="margin:0;">
+                    <b>Final Thought:</b> As you move forward, remember that ethics is not a one-time task. 
+                    It is something you must consider at every step. You've shown how to build AI that doesn't just work, but works for everyone.
+                </p>
+              </div>
+
+              <p style="text-align:center; margin-top: 25px; font-weight:bold; font-size:1.1rem;">
+                Thank you for playing, and good luck with your future challenges.
+              </p>
+          </div>
         </div>
+
       </div>
     </div>
     """
@@ -3283,6 +3251,68 @@ def create_model_building_game_ca_final_app(theme_primary_hue: str = "indigo") -
             color: color-mix(in srgb, var(--color-accent) 75%, var(--body-text-color) 25%);
         }
     }
+    /* ------------------------------------------------------------------
+   FIX: Final Challenge Slide Classes
+   ------------------------------------------------------------------ */
+
+    .final-intro-wrapper {
+        text-align: center; 
+        margin-bottom: 25px;
+    }
+    
+    .final-intro-text {
+        font-size: 1.15rem; 
+        line-height: 1.6;
+        color: var(--text-main); /* Adapts to Dark Mode */
+    }
+    
+    .final-mission-card {
+        /* Replaces the hardcoded #eff6ff gradient */
+        background: linear-gradient(to right, var(--card-bg-soft), var(--block-background-fill));
+        /* Replaces hardcoded #3b82f6 border */
+        border: 2px solid var(--accent-strong);
+        border-radius: 12px; 
+        padding: 24px; 
+        margin-bottom: 25px;
+    }
+
+.final-mission-title {
+    margin-top: 0; 
+    /* Replaces #1e40af */
+    color: var(--accent-strong); 
+    text-align: center; 
+    font-size: 1.4rem;
+}
+
+.final-mission-body {
+    font-size: 1.1rem; 
+    line-height: 1.6; 
+    /* Replaces #1f2937 - Critical fix for invisibility */
+    color: var(--text-main); 
+}
+
+.final-cta-wrapper {
+    text-align: center; 
+    margin-top: 20px; 
+    padding-top: 10px; 
+    /* Replaces #e5e7eb */
+    border-top: 1px solid var(--card-border-subtle);
+}
+
+.final-cta-head {
+    font-size: 1.2rem; 
+    font-weight: 700; 
+    /* Replaces #4b5563 */
+    color: var(--text-main); 
+    margin-bottom: 5px;
+}
+
+.final-cta-sub {
+    font-size: 1rem; 
+    /* Replaces #6b7280 */
+    color: var(--text-muted); 
+    margin-top: 0;
+}
     """
 
 
@@ -3325,38 +3355,40 @@ def create_model_building_game_ca_final_app(theme_primary_hue: str = "indigo") -
         # --- Briefing Slideshow (Updated with New Cards) ---
 
         # Slide 7: The Final Transition
-        with gr.Column(visible=True, elem_id="intro-slide") as intro_slide:
+        with gr.Column(visible=True, elem_id="intro-slide") as intro_slide:            
             gr.Markdown("<h1 style='text-align:center;'>🚀 The Final Challenge</h1>")
             
             gr.HTML(
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <div style="text-align:center; margin-bottom: 25px;">
-                            <p style="font-size:1.15rem; line-height:1.6;">
+                        
+                        <div class="final-intro-wrapper">
+                            <p class="final-intro-text">
                                 You’ve explored the ethics. You’ve identified and fixed bias.
                                 <br>
                                 Now it’s time to put everything together.
                             </p>
                         </div>
-
-                        <div style="background:linear-gradient(to right, #eff6ff, white); border:2px solid #3b82f6; border-radius:12px; padding:24px; margin-bottom: 25px;">
-                            <h3 style="margin-top:0; color:#1e40af; text-align:center; font-size:1.4rem;">🛠️ The Ethical AI Competition</h3>
-                            <div style="font-size:1.1rem; line-height:1.6; color:#1f2937;">
+            
+                        <div class="final-mission-card">
+                            <h3 class="final-mission-title">🛠️ The Ethical AI Competition</h3>
+                            <div class="final-mission-body">
                                 <p>Your final mission is to compete again against your peers by building the <strong>most accurate AI system within ethical standards</strong>. With bias addressed, accuracy is back in focus.</p>
                                 
                                 <p>Use what you’ve learned to climb the leaderboard responsibly—because performance matters, but so do the consequences of your choices.</p>
                             </div>
                         </div>
-
-                        <div style="text-align:center; margin-top:20px; padding-top:10px; border-top: 1px solid #e5e7eb;">
-                            <p style="font-size:1.2rem; font-weight:700; color:#4b5563; margin-bottom:5px;">
+            
+                        <div class="final-cta-wrapper">
+                            <p class="final-cta-head">
                                 Ready to begin?
                             </p>
-                            <p style="font-size:1rem; color:#6b7280; margin-top:0;">
+                            <p class="final-cta-sub">
                                 👇 Click <b>“Enter the Arena”</b> to start.
                             </p>
                         </div>
+            
                     </div>
                 </div>
                 """
