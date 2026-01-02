@@ -64,11 +64,25 @@ def test_live_submission(predictions):
     """Submits the retrieved predictions to the actual AIModelShare playground."""
     print("\n🔬 TEST 2: Live Submission (submit_model)")
 
+    # --- UPDATED IMPORT LOGIC ---
     try:
         from aimodelshare.playground import Competition
-    except ImportError:
-        print("   ❌ FAIL: 'aimodelshare' library not installed.")
+    except ImportError as e:
+        print(f"   ❌ FAIL: Could not import 'aimodelshare.playground.Competition'.")
+        print(f"      Error details: {e}")
+        print("      HINT: Check if optional dependencies like 'Jinja2' are installed.")
         sys.exit(1)
+    # ----------------------------
+
+    # 1. Initialize Competition
+    try:
+        playground = Competition(PLAYGROUND_URL)
+        print("   ✅ Connected to Playground.")
+    except Exception as e:
+        print(f"   ❌ FAIL: Could not connect to playground: {e}")
+        sys.exit(1)
+
+    # ... (Rest of the function remains the same)
 
     # --- NEW LOGIC: EXTRACT TOKEN FROM SESSION ID ---
     session_id = os.environ.get("SESSION_ID")
