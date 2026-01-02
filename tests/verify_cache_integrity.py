@@ -2,27 +2,22 @@ import sqlite3
 import os
 import sys
 import json
+import time
+import pandas as pd
+import numpy as np
 
-# Configuration
+# --- 1. CONFIGURATION (Must match Gradio App exactly) ---
 DB_PATH = "prediction_cache.sqlite"
+PLAYGROUND_URL = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m" # From your app code
 
-# --- MOCK DATA FROM YOUR APP CONFIGURATION ---
-# These must match the constants in your Gradio app exactly
-MODEL_TYPES = [
-    "The Balanced Generalist", 
-    "The Rule-Maker", 
-    "The 'Nearest Neighbor'", 
-    "The Deep Pattern-Finder"
-]
-DATA_SIZES = ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"]
-COMPLEXITY_LEVELS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
-# Feature Groups (from your app logic)
+# Mock Data Constants
+MODEL_NAME = "The Balanced Generalist"
+COMPLEXITY = 2
+DATA_SIZE = "Small (20%)"
 FEATURE_SET_GROUP_1_VALS = [
     "juv_fel_count", "juv_misd_count", "juv_other_count", "race", "sex",
     "c_charge_degree", "days_b_screening_arrest"
 ]
-DEFAULT_FEATURE_SET = FEATURE_SET_GROUP_1_VALS
 
 def get_db_connection():
     if not os.path.exists(DB_PATH):
@@ -30,100 +25,120 @@ def get_db_connection():
         sys.exit(1)
     return sqlite3.connect(DB_PATH)
 
-def test_specific_key_construction(conn):
-    """
-    Tests if constructing a key using APP LOGIC actually finds a row in the DB.
-    """
-    print("\n🔬 TEST 1: Key Construction & Retrieval")
+def test_cache_retrieval(conn):
+    """Retrieves prediction list from SQLite using App logic."""
+    print("\n🔬 TEST 1: Cache Retrieval")
     
-    # 1. Simulate App Logic for Key Construction
-    # Logic from run_experiment: 
-    # sanitized_features = sorted([str(f) for f in feature_set])
-    # feature_key = ",".join(sanitized_features)
-    # cache_key = f"{model_name_key}|{complexity_level}|{data_size_str}|{feature_key}"
-
-    model = "The Balanced Generalist"
-    complexity = 2
-    data_size = "Small (20%)"
-    
-    # Use the default feature set logic
-    feature_set = DEFAULT_FEATURE_SET
-    sanitized_features = sorted([str(f) for f in feature_set])
+    # 1. Construct Key
+    sanitized_features = sorted([str(f) for f in FEATURE_SET_GROUP_1_VALS])
     feature_key = ",".join(sanitized_features)
-    
-    expected_key = f"{model}|{complexity}|{data_size}|{feature_key}"
-    
-    print(f"   ℹ️ Constructed Key: '{expected_key}'")
+    cache_key = f"{MODEL_NAME}|{COMPLEXITY}|{DATA_SIZE}|{feature_key}"
+    print(f"   ℹ️  Lookup Key: '{cache_key}'")
 
-    # 2. Query DB
+    # 2. Query
     cursor = conn.cursor()
-    cursor.execute("SELECT value FROM cache WHERE key=?", (expected_key,))
+    cursor.execute("SELECT value FROM cache WHERE key=?", (cache_key,))
     row = cursor.fetchone()
 
-    if row:
-        print("   ✅ SUCCESS: Key found in database.")
-        return row[0] # Return value for next test
-    else:
-        print("   ❌ FAIL: Key NOT found.")
-        print("      Possible causes:")
-        print("      1. Feature sorting order differs between Cache Builder and App.")
-        print("      2. Complexity stored as float (2.0) instead of int (2).")
-        print("      3. Spacing in Model Name or Data Size strings.")
-        
-        # Debug helper: print similar keys
-        print("\n      🔎 Closest matches in DB:")
-        cursor.execute("SELECT key FROM cache WHERE key LIKE ? LIMIT 3", (f"{model}%",))
-        for r in cursor.fetchall():
-            print(f"      Found: {r[0]}")
+    if not row:
+        print("   ❌ FAIL: Key not found in DB.")
         sys.exit(1)
 
-def test_value_format(value):
+    # 3. Parse
+    raw_val = row[0]
+    try:
+        if isinstance(raw_val, str):
+            if raw_val.startswith("["):
+                predictions = json.loads(raw_val)
+            else:
+                predictions = [int(c) for c in raw_val]
+        else:
+            predictions = raw_val
+            
+        print(f"   ✅ SUCCESS: Retrieved {len(predictions)} predictions.")
+        return predictions
+    except Exception as e:
+        print(f"   ❌ FAIL: Parsing error: {e}")
+        sys.exit(1)
+
+def test_live_submission(predictions):
     """
-    Tests if the retrieved value is formatted correctly for submit_model.
+    Submits the retrieved predictions to the actual AIModelShare playground.
+    Mimics the 'submit_model' call in 'run_experiment'.
     """
-    print("\n🔬 TEST 2: Value Formatting & Parsing")
+    print("\n🔬 TEST 2: Live Submission (submit_model)")
+
+    try:
+        from aimodelshare.playground import Competition
+    except ImportError:
+        print("   ❌ FAIL: 'aimodelshare' library not installed.")
+        print("      Run: pip install aimodelshare")
+        sys.exit(1)
+
+    # 1. Initialize Competition
+    try:
+        playground = Competition(PLAYGROUND_URL)
+        print("   ✅ Connected to Playground.")
+    except Exception as e:
+        print(f"   ❌ FAIL: Could not connect to playground: {e}")
+        sys.exit(1)
+
+    # 2. Prepare Submission Metadata
+    # Note: We pass None for model/preprocessor because we are submitting pre-calculated predictions
+    description = "CI/CD Integrity Test"
+    tags = "test:cache_verification"
+    team_name = "Test_Bot"
+
+    print("   ℹ️  Submitting predictions to server...")
     
     try:
-        # Simulate App Decompression Logic
-        if isinstance(value, str):
-            if value.startswith("["):
-                print("   ℹ️ Format: JSON String")
-                predictions = json.loads(value)
-            else:
-                print("   ℹ️ Format: Compact String")
-                predictions = [int(c) for c in value]
-        else:
-            print(f"   ℹ️ Format: Raw {type(value)}")
-            predictions = value
-
-        # Validation
-        if not isinstance(predictions, list):
-            print(f"   ❌ FAIL: Result is {type(predictions)}, expected list.")
-            sys.exit(1)
+        # 3. Call submit_model
+        # We assume anonymous submission (token=None) for this test
+        # to avoid needing secrets in this specific workflow step.
+        result = playground.submit_model(
+            model=None, 
+            preprocessor=None, 
+            prediction_submission=predictions,
+            input_dict={'description': description, 'tags': tags},
+            custom_metadata={'Team': team_name}, 
+            token=None,
+            return_metrics=["accuracy"] 
+        )
         
-        if len(predictions) == 0:
-            print("   ⚠️ WARNING: Prediction list is empty.")
-        elif not isinstance(predictions[0], int):
-            print(f"   ❌ FAIL: Elements are {type(predictions[0])}, expected int.")
-            sys.exit(1)
-            
-        print(f"   ✅ SUCCESS: Parsed {len(predictions)} predictions correctly.")
-        print(f"   Preview: {predictions[:10]}...")
+        # 4. Verify Return Structure
+        # submit_model returns a tuple: (model_version, training_duration, metrics)
+        if isinstance(result, tuple) and len(result) >= 3:
+            metrics = result[2]
+            if metrics and "accuracy" in metrics:
+                acc = metrics["accuracy"]
+                print(f"   ✅ SUCCESS: Submission accepted!")
+                print(f"   📊 Returned Accuracy: {acc}")
+                
+                if not isinstance(acc, (int, float)):
+                     print(f"   ⚠️ WARNING: Accuracy is {type(acc)}, expected float/int.")
+            else:
+                print(f"   ❌ FAIL: Metrics dict missing or 'accuracy' key not found: {metrics}")
+                sys.exit(1)
+        else:
+             print(f"   ❌ FAIL: Unexpected return format from submit_model: {result}")
+             sys.exit(1)
 
     except Exception as e:
-        print(f"   ❌ FAIL: Exception during parsing: {e}")
+        print(f"   ❌ FAIL: Submission crashed: {e}")
         sys.exit(1)
 
 def main():
-    print("--- 🚀 STARTING INTEGRITY TEST ---")
+    print("--- 🚀 STARTING LIVE INTEGRATION TEST ---")
+    
+    # Step 1: Get Data
     conn = get_db_connection()
-    
-    # Run Tests
-    value = test_specific_key_construction(conn)
-    test_value_format(value)
-    
+    predictions = test_cache_retrieval(conn)
     conn.close()
-    print("\n--- ✅ ALL TESTS PASSED ---")
+
+    # Step 2: Submit Data
+    test_live_submission(predictions)
+
+    print("\n--- ✅ ALL SYSTEM CHECKS PASSED ---")
 
 if __name__ == "__main__":
     main()
