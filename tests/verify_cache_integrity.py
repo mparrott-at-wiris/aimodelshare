@@ -115,7 +115,7 @@ def test_live_submission(predictions):
 
     description = "CI/CD Integrity Test"
     tags = "test:cache_verification"
-    team_name = "Test_Bot"
+    team_name = "The Fairness Finders"
 
     print("   ℹ️  Submitting predictions to server...")
     
