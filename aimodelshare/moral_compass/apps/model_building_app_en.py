@@ -2130,8 +2130,8 @@ def run_experiment(
 
         # 2. SUBMIT & CAPTURE ACCURACY with submission_ok flag
         submission_ok = False
-        this_submission_score = None
-        submission_error = None
+        this_submission_score = local_test_accuracy  # Initialize with local score
+        submission_error = ""  # Initialize with empty string
         
         def _submit():
             # If using cache (tuned_model is None), we pass None for model/preprocessor
@@ -2148,19 +2148,21 @@ def run_experiment(
         
         try:
             submit_result = _retry_with_backoff(_submit, description="model submission")
+            # Parse submission result to get server-side accuracy
             if isinstance(submit_result, tuple) and len(submit_result) == 3:
                 _, _, metrics = submit_result
                 if metrics and "accuracy" in metrics and metrics["accuracy"] is not None:
                     this_submission_score = float(metrics["accuracy"])
-                else:
-                    this_submission_score = local_test_accuracy
-            else:
-                this_submission_score = local_test_accuracy
+                # else: keep local_test_accuracy as fallback (already initialized above)
+            # else: keep local_test_accuracy as fallback (already initialized above)
+            
+            # If we reach here without exception, submission succeeded
             submission_ok = True
             _log(f"Submission successful. Server Score: {this_submission_score}")
         except Exception as e:
             submission_ok = False
             submission_error = str(e)
+            # this_submission_score keeps its local_test_accuracy value (for error display if needed)
             _log(f"Submission FAILED: {e}")
         
         # 3. HANDLE SUBMISSION FAILURE - show error card and do NOT increment attempts
@@ -2236,6 +2238,7 @@ def run_experiment(
         # Poll leaderboard until user's rows change or timeout
         poll_detected_change = False
         poll_iterations = 0
+        updated_leaderboard_df = None  # Will hold the fresh leaderboard if polling succeeds
         
         for attempt in range(LEADERBOARD_POLL_TRIES):
             poll_iterations = attempt + 1
@@ -2251,7 +2254,7 @@ def run_experiment(
             ):
                 _log(f"User rows changed detected after {poll_iterations} polls")
                 poll_detected_change = True
-                baseline_leaderboard_df = refreshed_leaderboard  # Update baseline for final rendering
+                updated_leaderboard_df = refreshed_leaderboard  # Store updated leaderboard
                 break
             
             time.sleep(LEADERBOARD_POLL_SLEEP)
@@ -2269,11 +2272,14 @@ def run_experiment(
             new_first_submission_score = this_submission_score
         
         # Use polled leaderboard if available, else simulate with baseline
-        if poll_detected_change and baseline_leaderboard_df is not None:
-            # Real data from polling
-            final_leaderboard_df = baseline_leaderboard_df
+        if poll_detected_change and updated_leaderboard_df is not None:
+            # Real data from polling - use the updated leaderboard
+            final_leaderboard_df = updated_leaderboard_df
         else:
-            # Optimistic fallback: simulate the new row
+            # Optimistic fallback: simulate the new row using baseline snapshot
+            # Note: We use pd.Timestamp.now() as an approximation. This may not match
+            # the exact backend timestamp, but it's acceptable for the fallback case
+            # since the real leaderboard will eventually be consistent.
             simulated_df = baseline_leaderboard_df.copy() if baseline_leaderboard_df is not None else pd.DataFrame()
             new_row = pd.DataFrame([{
                 "username": username,
