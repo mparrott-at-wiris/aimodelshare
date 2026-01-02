@@ -2137,8 +2137,8 @@ def run_experiment(
             # If using cache (tuned_model is None), we pass None for model/preprocessor
             # and explicitly pass predictions.
             return playground.submit_model(
-                model=tuned_model, 
-                preprocessor=preprocessor, 
+                model=None, 
+                preprocessor=None, 
                 prediction_submission=predictions,
                 input_dict={'description': description, 'tags': tags},
                 custom_metadata={'Team': team_name, 'Moral_Compass': 0}, 
