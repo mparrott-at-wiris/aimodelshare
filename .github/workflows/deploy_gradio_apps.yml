@@ -2,11 +2,6 @@ name: Deploy Moral Compass Apps to Production
 
 on:
   workflow_dispatch:
-    inputs:
-      apps:
-        description: 'JSON array of apps to deploy, e.g., ["tutorial","judge"] or ["all"] for every app'
-        required: true
-        default: '["all"]'
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
@@ -62,10 +57,8 @@ jobs:
 
   # ------------------------------------------------------------
   # Parallel deploy jobs (each exposes its URL as an output)
-  # Use 'if' to selectively deploy based on input array
   # ------------------------------------------------------------
   deploy-tutorial:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'tutorial') }}
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -96,7 +89,6 @@ jobs:
             --set-env-vars=APP_NAME=tutorial,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-judge:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'judge') }}
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -125,7 +117,6 @@ jobs:
             --set-env-vars=APP_NAME=judge,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-ai-consequences:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'ai-consequences') }}
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -154,7 +145,6 @@ jobs:
             --set-env-vars=APP_NAME=ai-consequences,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-what-is-ai:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'what-is-ai') }}
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -182,39 +172,8 @@ jobs:
             --timeout=3000
             --set-env-vars=APP_NAME=what-is-ai,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
-  # NEW: Base Model Building Game (non-variant)
-  deploy-model-building-game:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'model-building-game') }}
-    runs-on: ubuntu-latest
-    needs: build-and-push
-    outputs:
-      url: ${{ steps.deploy.outputs.url }}
-    steps:
-      - uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-      - uses: google-github-actions/setup-gcloud@v2
-      - name: Deploy model-building-game
-        id: deploy
-        uses: google-github-actions/deploy-cloudrun@v2
-        with:
-          service: model-building-game
-          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
-          region: ${{ env.REGION }}
-          flags: >-
-            --allow-unauthenticated
-            --memory=4Gi
-            --cpu=2
-            --session-affinity
-            --concurrency=40
-            --min-instances=0
-            --max-instances=100
-            --timeout=3000
-            --set-env-vars=APP_NAME=model-building-game,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
-
   # Language-specific model building game deployments
   deploy-model-building-game-en:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'model-building-game-en') }}
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -243,7 +202,6 @@ jobs:
             --set-env-vars=APP_NAME=model-building-game-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
             
   deploy-model-building-game-ca:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'model-building-game-ca') }}
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -272,7 +230,6 @@ jobs:
             --set-env-vars=APP_NAME=model-building-game-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
             
   deploy-model-building-game-es:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'model-building-game-es') }}
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -302,7 +259,6 @@ jobs:
 
   # Final variants for EN, ES, CA
   deploy-model-building-game-en-final:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'model-building-game-en-final') }}
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -331,7 +287,6 @@ jobs:
             --set-env-vars=APP_NAME=model-building-game-en-final,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
             
   deploy-model-building-game-es-final:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'model-building-game-es-final') }}
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -360,7 +315,6 @@ jobs:
             --set-env-vars=APP_NAME=model-building-game-es-final,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
             
   deploy-model-building-game-ca-final:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'model-building-game-ca-final') }}
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -389,7 +343,6 @@ jobs:
             --set-env-vars=APP_NAME=model-building-game-ca-final,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
 
   deploy-ethical-revelation:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'ethical-revelation') }}
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -418,7 +371,6 @@ jobs:
             --set-env-vars=APP_NAME=ethical-revelation,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-moral-compass-challenge:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'moral-compass-challenge') }}
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -448,7 +400,6 @@ jobs:
 
   # Bias Detective split apps
   deploy-bias-detective-part1:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'bias-detective-part1') }}
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -477,7 +428,6 @@ jobs:
             --set-env-vars=APP_NAME=bias-detective-part1,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-bias-detective-part2:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'bias-detective-part2') }}
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -507,7 +457,6 @@ jobs:
 
   # Language-specific Bias Detective variants
   deploy-bias-detective-en:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'bias-detective-en') }}
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -536,7 +485,6 @@ jobs:
             --set-env-vars=APP_NAME=bias-detective-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-bias-detective-es:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'bias-detective-es') }}
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -565,7 +513,6 @@ jobs:
             --set-env-vars=APP_NAME=bias-detective-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-bias-detective-ca:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'bias-detective-ca') }}
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -595,7 +542,6 @@ jobs:
 
   # Existing generic fairness-fixer and justice-equity-upgrade
   deploy-fairness-fixer:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'fairness-fixer') }}
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -624,7 +570,6 @@ jobs:
             --set-env-vars=APP_NAME=fairness-fixer,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-justice-equity-upgrade:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'justice-equity-upgrade') }}
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -654,7 +599,6 @@ jobs:
 
   # NEW: Language-specific Fairness Fixer variants
   deploy-fairness-fixer-en:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'fairness-fixer-en') }}
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -683,7 +627,6 @@ jobs:
             --set-env-vars=APP_NAME=fairness-fixer-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-fairness-fixer-es:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'fairness-fixer-es') }}
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -712,7 +655,6 @@ jobs:
             --set-env-vars=APP_NAME=fairness-fixer-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-fairness-fixer-ca:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'fairness-fixer-ca') }}
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -742,7 +684,6 @@ jobs:
 
   # NEW: Language-specific Justice & Equity Upgrade variants
   deploy-justice-equity-upgrade-en:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'justice-equity-upgrade-en') }}
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -771,7 +712,6 @@ jobs:
             --set-env-vars=APP_NAME=justice-equity-upgrade-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-justice-equity-upgrade-es:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'justice-equity-upgrade-es') }}
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -800,7 +740,6 @@ jobs:
             --set-env-vars=APP_NAME=justice-equity-upgrade-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-justice-equity-upgrade-ca:
-    if: ${{ contains(fromJSON(github.event.inputs.apps), 'all') || contains(fromJSON(github.event.inputs.apps), 'justice-equity-upgrade-ca') }}
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
@@ -838,7 +777,6 @@ jobs:
       - deploy-judge
       - deploy-ai-consequences
       - deploy-what-is-ai
-      - deploy-model-building-game
       - deploy-model-building-game-en
       - deploy-model-building-game-ca
       - deploy-model-building-game-es
@@ -869,7 +807,6 @@ jobs:
             "judge": "${{ needs.deploy-judge.outputs.url }}",
             "ai-consequences": "${{ needs.deploy-ai-consequences.outputs.url }}",
             "what-is-ai": "${{ needs.deploy-what-is-ai.outputs.url }}",
-            "model-building-game": "${{ needs.deploy-model-building-game.outputs.url }}",
             "model-building-game-en": "${{ needs.deploy-model-building-game-en.outputs.url }}",
             "model-building-game-ca": "${{ needs.deploy-model-building-game-ca.outputs.url }}",
             "model-building-game-es": "${{ needs.deploy-model-building-game-es.outputs.url }}",
