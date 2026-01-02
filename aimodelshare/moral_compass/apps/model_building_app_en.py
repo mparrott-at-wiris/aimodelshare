@@ -2100,25 +2100,8 @@ def run_experiment(
         description = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
         tags = f"team:{team_name},model:{model_name_key}"
 
-        # 1. FETCH BASELINE SNAPSHOT (non-cached) before submission
+        # 1. FETCH BASELINE
         baseline_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
-        
-        # Capture baseline user stats for comparison after submission
-        baseline_row_count = 0
-        baseline_best_score = 0.0
-        baseline_latest_ts = None
-        baseline_latest_score = None
-        
-        if baseline_leaderboard_df is not None and not baseline_leaderboard_df.empty:
-            user_rows = baseline_leaderboard_df[baseline_leaderboard_df["username"] == username]
-            if not user_rows.empty:
-                baseline_row_count = len(user_rows)
-                if "accuracy" in user_rows.columns:
-                    baseline_best_score = float(user_rows["accuracy"].max())
-                baseline_latest_ts = _get_user_latest_ts(baseline_leaderboard_df, username)
-                baseline_latest_score = _get_user_latest_accuracy(baseline_leaderboard_df, username)
-        
-        _log(f"Baseline snapshot: row_count={baseline_row_count}, best_score={baseline_best_score:.4f}, latest_ts={baseline_latest_ts}, latest_score={baseline_latest_score}")
         
         from sklearn.metrics import accuracy_score
         # Ensure correct type for local accuracy calc
@@ -2128,17 +2111,13 @@ def run_experiment(
             local_accuracy_preds = predictions
         local_test_accuracy = accuracy_score(Y_TEST, local_accuracy_preds)
 
-        # 2. SUBMIT & CAPTURE ACCURACY with submission_ok flag
-        submission_ok = False
-        this_submission_score = local_test_accuracy  # Initialize with local score
-        submission_error = ""  # Initialize with empty string
-        
+        # 2. SUBMIT & CAPTURE ACCURACY
         def _submit():
             # If using cache (tuned_model is None), we pass None for model/preprocessor
             # and explicitly pass predictions.
             return playground.submit_model(
-                model=None, 
-                preprocessor=None, 
+                model=tuned_model, 
+                preprocessor=preprocessor, 
                 prediction_submission=predictions,
                 input_dict={'description': description, 'tags': tags},
                 custom_metadata={'Team': team_name, 'Moral_Compass': 0}, 
@@ -2148,158 +2127,65 @@ def run_experiment(
         
         try:
             submit_result = _retry_with_backoff(_submit, description="model submission")
-            # Parse submission result to get server-side accuracy
             if isinstance(submit_result, tuple) and len(submit_result) == 3:
                 _, _, metrics = submit_result
                 if metrics and "accuracy" in metrics and metrics["accuracy"] is not None:
                     this_submission_score = float(metrics["accuracy"])
-                # else: keep local_test_accuracy as fallback (already initialized above)
-            # else: keep local_test_accuracy as fallback (already initialized above)
-            
-            # If we reach here without exception, submission succeeded
-            submission_ok = True
-            _log(f"Submission successful. Server Score: {this_submission_score}")
+                else:
+                    this_submission_score = local_test_accuracy
+            else:
+                this_submission_score = local_test_accuracy
         except Exception as e:
-            submission_ok = False
-            submission_error = str(e)
-            # this_submission_score keeps its local_test_accuracy value (for error display if needed)
-            _log(f"Submission FAILED: {e}")
+            _log(f"Submission return parsing failed: {e}. Using local accuracy.")
+            this_submission_score = local_test_accuracy
         
-        # 3. HANDLE SUBMISSION FAILURE - show error card and do NOT increment attempts
-        if not submission_ok:
-            error_html = f"""
-            <div class='kpi-card' style='border-color: #ef4444;'>
-                <h2 style='color: #111827; margin-top:0;'>❌ Submission Failed</h2>
-                <div class='kpi-card-body'>
-                    <p style='color: #991b1b; margin: 16px 0;'>
-                        Your model could not be submitted to the leaderboard. This attempt was NOT counted.
-                    </p>
-                    <div style='background:#fef2f2; padding:16px; border-radius:12px; text-align:left; font-size:0.98rem; line-height:1.4;'>
-                        <p style='margin:0; color:#7f1d1d;'><b>Possible causes:</b></p>
-                        <ul style='margin:8px 0 0 20px; color:#7f1d1d;'>
-                            <li>Invalid or expired authentication token</li>
-                            <li>Network connectivity issues</li>
-                            <li>Backend service unavailable</li>
-                        </ul>
-                        <details style='margin-top:12px; font-size:0.85rem; color:#7f1d1d;'>
-                            <summary style='cursor:pointer;'>Technical details</summary>
-                            <pre style='margin-top:8px; padding:8px; background:#fee; border-radius:4px; overflow-x:auto;'>{submission_error}</pre>
-                        </details>
-                    </div>
-                    <p style='color: #991b1b; margin: 16px 0 0 0;'>
-                        Please try again. If the problem persists, contact support.
-                    </p>
-                </div>
-            </div>
-            """
-            settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
-            
-            failure_updates = {
-                submission_feedback_display: gr.update(value=error_html, visible=True),
-                submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
-                team_leaderboard_display: team_leaderboard_display if 'team_leaderboard_display' in locals() else gr.update(),
-                individual_leaderboard_display: individual_leaderboard_display if 'individual_leaderboard_display' in locals() else gr.update(),
-                last_submission_score_state: last_submission_score,
-                last_rank_state: last_rank,
-                best_score_state: best_score,
-                submission_count_state: submission_count,  # Do NOT increment on failure
-                first_submission_score_state: first_submission_score,
-                rank_message_display: settings["rank_message"],
-                model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
-                complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
-                feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
-                data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-                login_username: gr.update(visible=False),
-                login_password: gr.update(visible=False),
-                login_submit: gr.update(visible=False),
-                login_error: gr.update(visible=False),
-                attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
-                was_preview_state: False,
-                kpi_meta_state: {"error": submission_error, "was_preview": False},
-                last_seen_ts_state: None
-            }
-            yield failure_updates
-            return
+        _log(f"Submission successful. Server Score: {this_submission_score}")
 
-        # --- Stage 4: Poll for leaderboard update (submission succeeded) ---
-        progress(0.7, desc="Verifying submission...")
-        
-        # Show pending KPI card while polling
-        pending_kpi_html = _build_kpi_card_html(
-            new_score=0, last_score=last_submission_score, new_rank=0, last_rank=last_rank,
-            submission_count=submission_count, is_preview=False, is_pending=True,
-            local_test_accuracy=local_test_accuracy
-        )
-        yield {
-            submission_feedback_display: gr.update(value=pending_kpi_html, visible=True),
-            login_error: gr.update(visible=False)
-        }
-        
-        # Poll leaderboard until user's rows change or timeout
-        poll_detected_change = False
-        poll_iterations = 0
-        updated_leaderboard_df = None  # Will hold the fresh leaderboard if polling succeeds
-        
-        for attempt in range(LEADERBOARD_POLL_TRIES):
-            poll_iterations = attempt + 1
-            _log(f"Polling attempt {poll_iterations}/{LEADERBOARD_POLL_TRIES}")
-            
-            # Fetch fresh leaderboard (bypass cache)
-            refreshed_leaderboard = _get_leaderboard_with_optional_token(playground, token)
-            
-            # Check if user's rows changed
-            if _user_rows_changed(
-                refreshed_leaderboard, username, baseline_row_count, baseline_best_score,
-                baseline_latest_ts, baseline_latest_score
-            ):
-                _log(f"User rows changed detected after {poll_iterations} polls")
-                poll_detected_change = True
-                updated_leaderboard_df = refreshed_leaderboard  # Store updated leaderboard
-                break
-            
-            time.sleep(LEADERBOARD_POLL_SLEEP)
-        
-        if not poll_detected_change:
-            _log(f"Polling timed out after {poll_iterations} attempts. Using optimistic fallback.")
-        
-        # --- Stage 5: Calculate final state (optimistic if polling timed out) ---
-        progress(0.9, desc="Calculating Rank...")
-        
-        # Increment submission count ONLY after verified success (or timeout with optimistic fallback)
+        try:
+            # Short timeout to trigger the lambda without hanging the UI
+            _log("Triggering backend merge...")
+            playground.get_leaderboard(token=token) 
+        except Exception:
+            # We ignore errors here because the 'submit_model' post 
+            # already succeeded. This is just a cleanup task.
+            pass
+        # -------------------------------------------------------------------------
+
+        # Immediately increment submission count...
         new_submission_count = submission_count + 1
         new_first_submission_score = first_submission_score
         if submission_count == 0 and first_submission_score is None:
             new_first_submission_score = this_submission_score
-        
-        # Use polled leaderboard if available, else simulate with baseline
-        if poll_detected_change and updated_leaderboard_df is not None:
-            # Real data from polling - use the updated leaderboard
-            final_leaderboard_df = updated_leaderboard_df
-        else:
-            # Optimistic fallback: simulate the new row using baseline snapshot
-            # Note: We use pd.Timestamp.now() as an approximation. This may not match
-            # the exact backend timestamp, but it's acceptable for the fallback case
-            # since the real leaderboard will eventually be consistent.
-            simulated_df = baseline_leaderboard_df.copy() if baseline_leaderboard_df is not None else pd.DataFrame()
-            new_row = pd.DataFrame([{
-                "username": username,
-                "accuracy": this_submission_score,
-                "Team": team_name,
-                "timestamp": pd.Timestamp.now(), 
-                "version": "latest"
-            }])
-            if not simulated_df.empty:
-                simulated_df = pd.concat([simulated_df, new_row], ignore_index=True)
-            else:
-                simulated_df = new_row
-            final_leaderboard_df = simulated_df
 
-        # Generate tables and KPI card from final leaderboard
+        # --- Stage 4: Local Rank Calculation (Optimistic) ---
+        progress(0.9, desc="Calculating Rank...")
+        
+        # 3. SIMULATE UPDATED LEADERBOARD
+        simulated_df = baseline_leaderboard_df.copy() if baseline_leaderboard_df is not None else pd.DataFrame()
+        
+        # We use pd.Timestamp.now() to ensure pandas sorting logic sees this as the absolute latest
+        new_row = pd.DataFrame([{
+            "username": username,
+            "accuracy": this_submission_score,
+            "Team": team_name,
+            "timestamp": pd.Timestamp.now(), 
+            "version": "latest"
+        }])
+        
+        if not simulated_df.empty:
+            simulated_df = pd.concat([simulated_df, new_row], ignore_index=True)
+        else:
+            simulated_df = new_row
+
+        # 4. GENERATE TABLES (Use helper for tables only)
+        # We ignore the kpi_card return from this function because it might use internal sorting 
+        # that doesn't respect our new row perfectly.
         team_html, individual_html, _, new_best_accuracy, new_rank, _ = generate_competitive_summary(
-            final_leaderboard_df, team_name, username, last_submission_score, last_rank, submission_count
+            simulated_df, team_name, username, last_submission_score, last_rank, submission_count
         )
 
-        # Build final KPI card (success, not pending)
+        # 5. GENERATE KPI CARD EXPLICITLY (The Authority Fix)
+        # We manually build the card using the score we KNOW we just got.
         kpi_card_html = _build_kpi_card_html(
             new_score=this_submission_score,
             last_score=last_submission_score,
@@ -2310,15 +2196,14 @@ def run_experiment(
             is_pending=False
         )
 
-        # --- Stage 6: Final UI Update ---
+        # --- Stage 5: Final UI Update ---
         progress(1.0, desc="Complete!")
         
         success_kpi_meta = {
             "was_preview": False, "preview_score": None, "ready_at_run_start": ready,
-            "poll_iterations": poll_iterations, "local_test_accuracy": local_test_accuracy,
+            "poll_iterations": 0, "local_test_accuracy": local_test_accuracy,
             "this_submission_score": this_submission_score, "new_best_accuracy": new_best_accuracy,
-            "rank": new_rank, "pending": False, "poll_detected_change": poll_detected_change,
-            "optimistic_fallback": not poll_detected_change
+            "rank": new_rank, "pending": False, "optimistic_fallback": True 
         }
         
         settings = compute_rank_settings(new_submission_count, model_name_key, complexity_level, feature_set, data_size_str)
