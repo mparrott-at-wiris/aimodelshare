@@ -3253,6 +3253,68 @@ def create_model_building_game_en_final_app(theme_primary_hue: str = "indigo") -
             color: color-mix(in srgb, var(--color-accent) 75%, var(--body-text-color) 25%);
         }
     }
+    /* ------------------------------------------------------------------
+   FIX: Final Challenge Slide Classes
+   ------------------------------------------------------------------ */
+
+    .final-intro-wrapper {
+        text-align: center; 
+        margin-bottom: 25px;
+    }
+    
+    .final-intro-text {
+        font-size: 1.15rem; 
+        line-height: 1.6;
+        color: var(--text-main); /* Adapts to Dark Mode */
+    }
+    
+    .final-mission-card {
+        /* Replaces the hardcoded #eff6ff gradient */
+        background: linear-gradient(to right, var(--card-bg-soft), var(--block-background-fill));
+        /* Replaces hardcoded #3b82f6 border */
+        border: 2px solid var(--accent-strong);
+        border-radius: 12px; 
+        padding: 24px; 
+        margin-bottom: 25px;
+    }
+
+.final-mission-title {
+    margin-top: 0; 
+    /* Replaces #1e40af */
+    color: var(--accent-strong); 
+    text-align: center; 
+    font-size: 1.4rem;
+}
+
+.final-mission-body {
+    font-size: 1.1rem; 
+    line-height: 1.6; 
+    /* Replaces #1f2937 - Critical fix for invisibility */
+    color: var(--text-main); 
+}
+
+.final-cta-wrapper {
+    text-align: center; 
+    margin-top: 20px; 
+    padding-top: 10px; 
+    /* Replaces #e5e7eb */
+    border-top: 1px solid var(--card-border-subtle);
+}
+
+.final-cta-head {
+    font-size: 1.2rem; 
+    font-weight: 700; 
+    /* Replaces #4b5563 */
+    color: var(--text-main); 
+    margin-bottom: 5px;
+}
+
+.final-cta-sub {
+    font-size: 1rem; 
+    /* Replaces #6b7280 */
+    color: var(--text-muted); 
+    margin-top: 0;
+}
     """
 
 
@@ -3302,31 +3364,33 @@ def create_model_building_game_en_final_app(theme_primary_hue: str = "indigo") -
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <div style="text-align:center; margin-bottom: 25px;">
-                            <p style="font-size:1.15rem; line-height:1.6;">
+                        
+                        <div class="final-intro-wrapper">
+                            <p class="final-intro-text">
                                 You’ve explored the ethics. You’ve identified and fixed bias.
                                 <br>
                                 Now it’s time to put everything together.
                             </p>
                         </div>
-
-                        <div style="background:linear-gradient(to right, #eff6ff, white); border:2px solid #3b82f6; border-radius:12px; padding:24px; margin-bottom: 25px;">
-                            <h3 style="margin-top:0; color:#1e40af; text-align:center; font-size:1.4rem;">🛠️ The Ethical AI Competition</h3>
-                            <div style="font-size:1.1rem; line-height:1.6; color:#1f2937;">
+            
+                        <div class="final-mission-card">
+                            <h3 class="final-mission-title">🛠️ The Ethical AI Competition</h3>
+                            <div class="final-mission-body">
                                 <p>Your final mission is to compete again against your peers by building the <strong>most accurate AI system within ethical standards</strong>. With bias addressed, accuracy is back in focus.</p>
                                 
                                 <p>Use what you’ve learned to climb the leaderboard responsibly—because performance matters, but so do the consequences of your choices.</p>
                             </div>
                         </div>
-
-                        <div style="text-align:center; margin-top:20px; padding-top:10px; border-top: 1px solid #e5e7eb;">
-                            <p style="font-size:1.2rem; font-weight:700; color:#4b5563; margin-bottom:5px;">
+            
+                        <div class="final-cta-wrapper">
+                            <p class="final-cta-head">
                                 Ready to begin?
                             </p>
-                            <p style="font-size:1rem; color:#6b7280; margin-top:0;">
+                            <p class="final-cta-sub">
                                 👇 Click <b>“Enter the Arena”</b> to start.
                             </p>
                         </div>
+            
                     </div>
                 </div>
                 """
