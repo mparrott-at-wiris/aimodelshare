@@ -3326,7 +3326,7 @@ def create_model_building_game_ca_final_app(theme_primary_hue: str = "indigo") -
 
         # Slide 7: The Final Transition
         with gr.Column(visible=True, elem_id="intro-slide") as intro_slide:
-            gr.Markdown("<h1 style='text-align:center;'>🚀 The Final Frontier</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🚀 The Final Challenge</h1>")
             
             gr.HTML(
                 """
@@ -3334,21 +3334,18 @@ def create_model_building_game_ca_final_app(theme_primary_hue: str = "indigo") -
                     <div class='panel-box'>
                         <div style="text-align:center; margin-bottom: 25px;">
                             <p style="font-size:1.15rem; line-height:1.6;">
-                                You have explored the ethics. You understand the risks.
+                                You’ve explored the ethics. You’ve identified and fixed bias.
                                 <br>
-                                Now, it is time to prove you have the technical <strong>Skill</strong>.
+                                Now it’s time to put everything together.
                             </p>
                         </div>
 
                         <div style="background:linear-gradient(to right, #eff6ff, white); border:2px solid #3b82f6; border-radius:12px; padding:24px; margin-bottom: 25px;">
-                            <h3 style="margin-top:0; color:#1e40af; text-align:center; font-size:1.4rem;">🛠️ The Accuracy Competition</h3>
+                            <h3 style="margin-top:0; color:#1e40af; text-align:center; font-size:1.4rem;">🛠️ The Ethical AI Competition</h3>
                             <div style="font-size:1.1rem; line-height:1.6; color:#1f2937;">
-                                <p>Your <strong>final mission</strong> is to compete against your peers to build the <strong>most accurate model possible</strong>.</p>
+                                <p>Your final mission is to compete again against your peers by building the <strong>most accurate AI system within ethical standards</strong>. With bias addressed, accuracy is back in focus.</p>
                                 
-                                <p>✨ <strong>Unrestricted Access:</strong> You are now a Lead Engineer. All data inputs and modeling tools are <strong>unlocked immediately</strong>.</p>
-                                
-                                <p>Use every tool at your disposal to climb the leaderboard, but remember the lessons you just learned: 
-                                <em>Accuracy is the goal, but data choices have consequences.</em></p>
+                                <p>Use what you’ve learned to climb the leaderboard responsibly—because performance matters, but so do the consequences of your choices.</p>
                             </div>
                         </div>
 
@@ -3357,7 +3354,7 @@ def create_model_building_game_ca_final_app(theme_primary_hue: str = "indigo") -
                                 Ready to begin?
                             </p>
                             <p style="font-size:1rem; color:#6b7280; margin-top:0;">
-                                👇 Click the <b>"Enter the Arena"</b> button below.
+                                👇 Click <b>“Enter the Arena”</b> to start.
                             </p>
                         </div>
                     </div>
