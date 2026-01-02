@@ -1,0 +1,154 @@
+name: Deploy Single Moral Compass Apps to Production
+
+on:
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: us-central1
+  REPO_NAME: moral-compass-apps
+
+jobs:
+  # ------------------------------------------------------------
+  # Build the universal image
+  # ------------------------------------------------------------
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # --- NEW STEP: Download the pre-computed cache ---
+      - name: Download Prediction Cache
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: build_model_cache.yml
+          name: prediction-cache-file
+          path: .
+          search_artifacts: true
+          if_no_artifact_found: warn
+
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker Auth
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+
+      - name: Build and Push Docker Image
+        run: |
+          IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}"
+          echo "Building image: $IMAGE"
+          if [ -f "prediction_cache.json.gz" ]; then
+            echo "✅ Cache file found! Embedding into Docker image."
+          else
+            echo "⚠️ Cache file NOT found. App will run in slow training mode."
+          fi
+          docker build --pull -t "$IMAGE" .
+          docker push "$IMAGE"
+          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+
+  # ------------------------------------------------------------
+  # Parallel deploy jobs (each exposes its URL as an output)
+  # ------------------------------------------------------------
+  deploy-tutorial:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - name: Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy tutorial
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: tutorial
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=40
+            --min-instances=0
+            --max-instances=50
+            --timeout=3000
+            --set-env-vars=APP_NAME=tutorial,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+
+  # Language-specific model building game deployments
+  deploy-model-building-game:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy model-building-game
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: model-building-game
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=4Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=40
+            --min-instances=0
+            --max-instances=100
+            --timeout=3000
+            --set-env-vars=APP_NAME=model-building-game,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
+
+  # ------------------------------------------------------------
+  # Collect and publish all deployed service URLs
+  # ------------------------------------------------------------
+  collect-urls:
+    runs-on: ubuntu-latest
+    needs:
+      - deploy-model-building-game-en
+
+    steps:
+      - name: Generate JSON of deployed URLs
+        run: |
+          cat > deployed_urls.json <<'EOF'
+          {
+
+            "model-building-game": "${{ needs.deploy-model-building-game.outputs.url }}",
+
+          }
+          EOF
+          echo "Deployed service URLs JSON:"
+          cat deployed_urls.json
+      - name: Upload deployed_urls.json artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployed-urls
+          path: deployed_urls.json
+      - name: Append URLs to summary
+        run: |
+          {
+            echo "### Deployed Cloud Run Service URLs"
+            echo ""
+            echo '```json'
+            cat deployed_urls.json
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
