@@ -61,6 +61,49 @@ except ImportError:
 # Configuration & Caching Infrastructure
 # -------------------------------------------------------------------------
 
+
+# -------------------------------------------------------------------------
+# CACHE CONFIGURATION (Optimized: Thread-Safe SQLite)
+# -------------------------------------------------------------------------
+import sqlite3
+
+CACHE_DB_FILE = "prediction_cache.sqlite"
+
+def get_cached_prediction(key):
+    """
+    Lightning-fast lookup from SQLite database.
+    THREAD-SAFE FIX: Opens a new connection for every lookup.
+    """
+    # 1. Check if DB exists
+    if not os.path.exists(CACHE_DB_FILE):
+        return None
+
+    try:
+        # Use a context manager ('with') to ensure the connection 
+        # is ALWAYS closed, releasing file locks immediately.
+        # timeout=10 ensures we don't wait forever if the file is busy.
+        with sqlite3.connect(CACHE_DB_FILE, timeout=10.0) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT value FROM cache WHERE key=?", (key,))
+            result = cursor.fetchone()
+            
+            if result:
+                return result[0] 
+            else:
+                return None
+            
+    except sqlite3.OperationalError as e:
+        # Handle locking errors gracefully
+        print(f"⚠️ CACHE LOCK ERROR: {e}. Falling back to training.", flush=True)
+        return None
+        
+    except Exception as e:
+        print(f"⚠️ DB READ ERROR: {e}", flush=True)
+        return None
+
+print("✅ App configured for Thread-Safe SQLite Cache.")
+
+
 LEADERBOARD_CACHE_SECONDS = int(os.environ.get("LEADERBOARD_CACHE_SECONDS", "45"))
 MAX_LEADERBOARD_ENTRIES = os.environ.get("MAX_LEADERBOARD_ENTRIES")
 MAX_LEADERBOARD_ENTRIES = int(MAX_LEADERBOARD_ENTRIES) if MAX_LEADERBOARD_ENTRIES else None
@@ -1230,7 +1273,7 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
 
     return f"""
     <div class='kpi-card' style='border-color: {border_color};'>
-        <h2 style='color: #111827; margin-top:0;'>{title}</h2>
+        <h2 style='color: #eef2ff; margin-top:0;'>{title}</h2>
         <div class='kpi-card-body'>
             <div class='kpi-metric-box'>
                 <p class='kpi-label'>New Accuracy</p>
@@ -1771,31 +1814,7 @@ def run_experiment(
 ):
     """
     Core experiment: Uses 'yield' for visual updates and progress bar.
-    
-    Concurrency Note: Authentication is determined SOLELY from the passed-in
-    username and token parameters (from gr.State). This function does NOT
-    read from os.environ for per-user credentials, preventing cross-user
-    data leakage under concurrent requests.
-    
-    Args:
-        model_name_key: Selected model type
-        complexity_level: Model complexity slider value
-        feature_set: List of selected features
-        data_size_str: Data size selection
-        team_name: User's team name (from gr.State)
-        last_submission_score: Previous submission score
-        last_rank: Previous rank
-        submission_count: Number of submissions made
-        first_submission_score: Score from first submission
-        best_score: Best score achieved
-        username: User's username (from gr.State, not os.environ)
-        token: Authentication token (from gr.State, not os.environ)
-        readiness_flag: System readiness flag (from gr.State, renamed to avoid shadowing)
-        was_preview_prev: Whether last run was preview (from gr.State, renamed to avoid shadowing)
-        progress: Gradio progress tracker
-    
-    Returns:
-        Updates for all output components including new state variables
+    Updated with "Look-Before-You-Leap" caching strategy.
     """
     # --- COLLISION GUARDS ---
     # Log types of potentially shadowed names to ensure they refer to component objects, not dicts
@@ -1868,113 +1887,13 @@ def run_experiment(
 
     if not model_name_key or model_name_key not in MODEL_TYPES:
         model_name_key = DEFAULT_MODEL
-    feature_set = feature_set or []
     complexity_level = safe_int(complexity_level, 2)
 
     log_output = f"▶ New Experiment\nModel: {model_name_key}\n..."
 
     # Check readiness
-    with INIT_LOCK:
-        flags = INIT_FLAGS.copy()
-    
-    # Normalize variable name for consistency
-    ready_for_submission = ready
-    
-    # If not ready but warm mini available, run preview
-    if not ready_for_submission and flags["warm_mini"] and X_TRAIN_WARM is not None:
-        _log("Running warm mini preview (not ready yet)")
-        progress(0.5, desc="Running Preview...")
-        yield { 
-            submission_feedback_display: gr.update(value=get_status_html("Preview", "Warm-up Run", "Testing on mini-dataset..."), visible=True),
-            login_error: gr.update(visible=False)
-        }
-        
-        try:
-            # Run preview on warm mini dataset
-            numeric_cols = [f for f in feature_set if f in ALL_NUMERIC_COLS]
-            categorical_cols = [f for f in feature_set if f in ALL_CATEGORICAL_COLS]
-            
-            if not numeric_cols and not categorical_cols:
-                raise ValueError("No features selected for modeling.")
-            
-            # Quick preprocessing and training on warm mini (uses memoized preprocessor)
-            preprocessor, selected_cols = build_preprocessor(numeric_cols, categorical_cols)
-            
-            X_warm_processed = preprocessor.fit_transform(X_TRAIN_WARM[selected_cols])
-            X_test_processed = preprocessor.transform(X_TEST_RAW[selected_cols])
-            
-            base_model = MODEL_TYPES[model_name_key]["model_builder"]()
-            tuned_model = tune_model_complexity(base_model, complexity_level)
-            
-            # Handle sparse arrays for models that require dense input
-            if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
-                X_warm_for_fit = _ensure_dense(X_warm_processed)
-                X_test_for_predict = _ensure_dense(X_test_processed)
-            else:
-                X_warm_for_fit = X_warm_processed
-                X_test_for_predict = X_test_processed
-            
-            tuned_model.fit(X_warm_for_fit, Y_TRAIN_WARM)
-            
-            # Get preview score
-            from sklearn.metrics import accuracy_score
-            predictions = tuned_model.predict(X_test_for_predict)
-            preview_score = accuracy_score(Y_TEST, predictions)
-            
-            # Update metadata state
-            new_kpi_meta = {
-                "was_preview": True,
-                "preview_score": preview_score,
-                "ready_at_run_start": False,
-                "poll_iterations": 0,
-                "local_test_accuracy": preview_score,
-                "this_submission_score": None,
-                "new_best_accuracy": None,
-                "rank": None
-            }
-            
-            # Show preview card
-            preview_html = _build_kpi_card_html(
-                preview_score, 0, 0, 0, -1, 
-                is_preview=True, is_pending=False, local_test_accuracy=None
-            )
-            
-            settings = compute_rank_settings(
-                 submission_count, model_name_key, complexity_level, feature_set, data_size_str
-            )
-            
-            final_updates = {
-                submission_feedback_display: gr.update(value=preview_html, visible=True),
-                team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
-                individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
-                last_submission_score_state: last_submission_score,
-                last_rank_state: last_rank,
-                best_score_state: best_score,
-                submission_count_state: submission_count,
-                first_submission_score_state: first_submission_score,
-                rank_message_display: settings["rank_message"],
-                model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
-                complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
-                feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
-                data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-                submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
-                login_username: gr.update(visible=False),
-                login_password: gr.update(visible=False),
-                login_submit: gr.update(visible=False),
-                login_error: gr.update(visible=False),
-                attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
-                was_preview_state: True,
-                kpi_meta_state: new_kpi_meta,
-                last_seen_ts_state: None  # No timestamp for preview
-            }
-            yield final_updates
-            return
-            
-        except Exception as e:
-            _log(f"Preview failed: {e}")
-            # Fall through to error handling
-    
-    if playground is None or not ready_for_submission:
+    # If playground is None or not ready, fallback error
+    if playground is None or not ready:
         settings = compute_rank_settings(
              submission_count, model_name_key, complexity_level, feature_set, data_size_str
         )
@@ -1987,14 +1906,9 @@ def run_experiment(
         error_msg += "</p>"
         
         error_kpi_meta = {
-            "was_preview": False,
-            "preview_score": None,
-            "ready_at_run_start": False,
-            "poll_iterations": 0,
-            "local_test_accuracy": None,
-            "this_submission_score": None,
-            "new_best_accuracy": None,
-            "rank": None
+            "was_preview": False, "preview_score": None, "ready_at_run_start": False,
+            "poll_iterations": 0, "local_test_accuracy": None, "this_submission_score": None,
+            "new_best_accuracy": None, "rank": None
         }
         
         error_updates = {
@@ -2025,64 +1939,81 @@ def run_experiment(
         return
 
     try:
-        # --- Stage 2: Train Model (Local) ---
-        progress(0.3, desc="Training Model...")
-        yield { 
-            submission_feedback_display: gr.update(value=get_status_html(2, "Training Model", "The machine is learning from history..."), visible=True),
-            login_error: gr.update(visible=False)
-        }
-
-        # A. Get pre-sampled data
-        sample_frac = DATA_SIZE_MAP.get(data_size_str, 0.2)
-        X_train_sampled = X_TRAIN_SAMPLES_MAP[data_size_str]
-        y_train_sampled = Y_TRAIN_SAMPLES_MAP[data_size_str]
-        log_output += f"Using {int(sample_frac * 100)}% data.\n"
-
-        # B. Determine features...
-        numeric_cols = []
-        categorical_cols = []
-        for feat in feature_set:
-            if feat in ALL_NUMERIC_COLS: numeric_cols.append(feat)
-            elif feat in ALL_CATEGORICAL_COLS: categorical_cols.append(feat)
-
-        if not numeric_cols and not categorical_cols:
-            raise ValueError("No features selected for modeling.")
-
-        # C. Preprocessing (uses memoized preprocessor builder)
-        preprocessor, selected_cols = build_preprocessor(numeric_cols, categorical_cols)
-
-        X_train_processed = preprocessor.fit_transform(X_train_sampled[selected_cols])
-        X_test_processed = preprocessor.transform(X_TEST_RAW[selected_cols])
-
-        # D. Model build & tune
-        base_model = MODEL_TYPES[model_name_key]["model_builder"]()
-        tuned_model = tune_model_complexity(base_model, complexity_level)
-
-        # E. Train
-        # Concurrency Note: DecisionTree and RandomForest require dense arrays.
-        # LogisticRegression and KNN handle sparse matrices natively.
-        if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
-            X_train_for_fit = _ensure_dense(X_train_processed)
-        else:
-            X_train_for_fit = X_train_processed
+        # --- Stage 2: Smart Build (Cache vs Train) ---
+        progress(0.3, desc="Building Model...")
         
-        tuned_model.fit(X_train_for_fit, y_train_sampled)
-        log_output += "Training done.\n"
+        # 1. Generate Cache Key (Matches format in precompute_cache.py)
+        # Key: "ModelName|Complexity|DataSize|SortedFeatures"
+        sanitized_features = sorted([str(f) for f in feature_set])
+        feature_key = ",".join(sanitized_features)
+        cache_key = f"{model_name_key}|{complexity_level}|{data_size_str}|{feature_key}"
+        
+        # 2. Check Cache
+        cached_predictions = get_cached_prediction(cache_key)
+        
+        # Initialize submission variables
+        predictions = None
+        tuned_model = None
+        preprocessor = None
+        
+        if cached_predictions:
+            # === FAST PATH (Zero CPU) ===
+            _log(f"⚡ CACHE HIT: {cache_key}")
+            yield { 
+                submission_feedback_display: gr.update(value=get_status_html(2, "Training Model", "⚡ The machine is learning from history..."), visible=True),
+                login_error: gr.update(visible=False)
+            }
 
-# --- Stage 3: Submit (API Call 1) ---
+            # --- DECOMPRESSION STEP (Vital) ---
+            # If string "01010...", convert to [0, 1, 0, 1...]
+            if isinstance(cached_predictions, str):
+                predictions = [int(c) for c in cached_predictions]
+            else:
+                predictions = cached_predictions
+
+            # Pass None to submit_model to skip training overhead validation
+            tuned_model = None
+            preprocessor = None
+            
+            
+        else:
+            # === CACHE MISS (Training Disabled) ===
+            # This ensures we NEVER run heavy training code in production.
+            msg = f"❌ CACHE MISS: {cache_key}"
+            _log(msg)
+            
+            # User-friendly error message
+            error_html = f"""
+            <div style='background:#fee2e2; padding:16px; border-radius:8px; border:2px solid #ef4444; color:#991b1b; text-align:center;'>
+                <h3 style='margin:0;'>⚠️ Configuration Not Found</h3>
+                <p style='margin:8px 0;'>This specific combination of settings was not found in our pre-computed database.</p>
+                <p style='font-size:0.9em;'>To ensure system stability, real-time training is disabled. Please adjust your settings (e.g., change the Data Size or Model Strategy) and try again.</p>
+            </div>
+            """
+            
+            yield { 
+                submission_feedback_display: gr.update(value=error_html, visible=True),
+                submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
+                login_error: gr.update(visible=False)
+            }
+            return # <--- CRITICAL: Stop execution here.
+
+        # --- Stage 3: Submit (API Call 1) ---
         # AUTHENTICATION GATE: Check for token before submission
         if token is None:
             # User not authenticated - compute preview score and show login prompt
             progress(0.6, desc="Computing Preview Score...")
             
-            if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
-                X_test_for_predict = _ensure_dense(X_test_processed)
-            else:
-                X_test_for_predict = X_test_processed
-            
-            predictions = tuned_model.predict(X_test_for_predict)
+            # We need to calculate accuracy for the preview card
             from sklearn.metrics import accuracy_score
-            preview_score = accuracy_score(Y_TEST, predictions)
+            # Ensure predictions are in correct format (list or array)
+            if isinstance(predictions, list):
+                # Cached predictions are lists
+                preds_array = np.array(predictions)
+            else:
+                preds_array = predictions
+                
+            preview_score = accuracy_score(Y_TEST, preds_array)
             
             preview_kpi_meta = {
                 "was_preview": True, "preview_score": preview_score, "ready_at_run_start": ready,
@@ -2166,25 +2097,49 @@ def run_experiment(
             login_error: gr.update(visible=False)
         }
 
-        if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
-            X_test_for_predict = _ensure_dense(X_test_processed)
-        else:
-            X_test_for_predict = X_test_processed
-        
-        predictions = tuned_model.predict(X_test_for_predict)
         description = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
         tags = f"team:{team_name},model:{model_name_key}"
 
-        # 1. FETCH BASELINE
+        # 1. FETCH BASELINE SNAPSHOT (non-cached) before submission
         baseline_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
         
+        # Capture baseline user stats for comparison after submission
+        baseline_row_count = 0
+        baseline_best_score = 0.0
+        baseline_latest_ts = None
+        baseline_latest_score = None
+        
+        if baseline_leaderboard_df is not None and not baseline_leaderboard_df.empty:
+            user_rows = baseline_leaderboard_df[baseline_leaderboard_df["username"] == username]
+            if not user_rows.empty:
+                baseline_row_count = len(user_rows)
+                if "accuracy" in user_rows.columns:
+                    baseline_best_score = float(user_rows["accuracy"].max())
+                baseline_latest_ts = _get_user_latest_ts(baseline_leaderboard_df, username)
+                baseline_latest_score = _get_user_latest_accuracy(baseline_leaderboard_df, username)
+        
+        _log(f"Baseline snapshot: row_count={baseline_row_count}, best_score={baseline_best_score:.4f}, latest_ts={baseline_latest_ts}, latest_score={baseline_latest_score}")
+        
         from sklearn.metrics import accuracy_score
-        local_test_accuracy = accuracy_score(Y_TEST, predictions)
+        # Ensure correct type for local accuracy calc
+        if isinstance(predictions, list):
+            local_accuracy_preds = np.array(predictions)
+        else:
+            local_accuracy_preds = predictions
+        local_test_accuracy = accuracy_score(Y_TEST, local_accuracy_preds)
 
-# 2. SUBMIT & CAPTURE ACCURACY
+        # 2. SUBMIT & CAPTURE ACCURACY with submission_ok flag
+        submission_ok = False
+        this_submission_score = local_test_accuracy  # Initialize with local score
+        submission_error = ""  # Initialize with empty string
+        
         def _submit():
+            # If using cache (tuned_model is None), we pass None for model/preprocessor
+            # and explicitly pass predictions.
             return playground.submit_model(
-                model=tuned_model, preprocessor=preprocessor, prediction_submission=predictions,
+                model=tuned_model, 
+                preprocessor=preprocessor, 
+                prediction_submission=predictions,
                 input_dict={'description': description, 'tags': tags},
                 custom_metadata={'Team': team_name, 'Moral_Compass': 0}, 
                 token=token,
@@ -2193,65 +2148,158 @@ def run_experiment(
         
         try:
             submit_result = _retry_with_backoff(_submit, description="model submission")
+            # Parse submission result to get server-side accuracy
             if isinstance(submit_result, tuple) and len(submit_result) == 3:
                 _, _, metrics = submit_result
                 if metrics and "accuracy" in metrics and metrics["accuracy"] is not None:
                     this_submission_score = float(metrics["accuracy"])
-                else:
-                    this_submission_score = local_test_accuracy
-            else:
-                this_submission_score = local_test_accuracy
+                # else: keep local_test_accuracy as fallback (already initialized above)
+            # else: keep local_test_accuracy as fallback (already initialized above)
+            
+            # If we reach here without exception, submission succeeded
+            submission_ok = True
+            _log(f"Submission successful. Server Score: {this_submission_score}")
         except Exception as e:
-            _log(f"Submission return parsing failed: {e}. Using local accuracy.")
-            this_submission_score = local_test_accuracy
+            submission_ok = False
+            submission_error = str(e)
+            # this_submission_score keeps its local_test_accuracy value (for error display if needed)
+            _log(f"Submission FAILED: {e}")
         
-        _log(f"Submission successful. Server Score: {this_submission_score}")
+        # 3. HANDLE SUBMISSION FAILURE - show error card and do NOT increment attempts
+        if not submission_ok:
+            error_html = f"""
+            <div class='kpi-card' style='border-color: #ef4444;'>
+                <h2 style='color: #111827; margin-top:0;'>❌ Submission Failed</h2>
+                <div class='kpi-card-body'>
+                    <p style='color: #991b1b; margin: 16px 0;'>
+                        Your model could not be submitted to the leaderboard. This attempt was NOT counted.
+                    </p>
+                    <div style='background:#fef2f2; padding:16px; border-radius:12px; text-align:left; font-size:0.98rem; line-height:1.4;'>
+                        <p style='margin:0; color:#7f1d1d;'><b>Possible causes:</b></p>
+                        <ul style='margin:8px 0 0 20px; color:#7f1d1d;'>
+                            <li>Invalid or expired authentication token</li>
+                            <li>Network connectivity issues</li>
+                            <li>Backend service unavailable</li>
+                        </ul>
+                        <details style='margin-top:12px; font-size:0.85rem; color:#7f1d1d;'>
+                            <summary style='cursor:pointer;'>Technical details</summary>
+                            <pre style='margin-top:8px; padding:8px; background:#fee; border-radius:4px; overflow-x:auto;'>{submission_error}</pre>
+                        </details>
+                    </div>
+                    <p style='color: #991b1b; margin: 16px 0 0 0;'>
+                        Please try again. If the problem persists, contact support.
+                    </p>
+                </div>
+            </div>
+            """
+            settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
+            
+            failure_updates = {
+                submission_feedback_display: gr.update(value=error_html, visible=True),
+                submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
+                team_leaderboard_display: team_leaderboard_display if 'team_leaderboard_display' in locals() else gr.update(),
+                individual_leaderboard_display: individual_leaderboard_display if 'individual_leaderboard_display' in locals() else gr.update(),
+                last_submission_score_state: last_submission_score,
+                last_rank_state: last_rank,
+                best_score_state: best_score,
+                submission_count_state: submission_count,  # Do NOT increment on failure
+                first_submission_score_state: first_submission_score,
+                rank_message_display: settings["rank_message"],
+                model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
+                complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
+                feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
+                data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
+                login_username: gr.update(visible=False),
+                login_password: gr.update(visible=False),
+                login_submit: gr.update(visible=False),
+                login_error: gr.update(visible=False),
+                attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
+                was_preview_state: False,
+                kpi_meta_state: {"error": submission_error, "was_preview": False},
+                last_seen_ts_state: None
+            }
+            yield failure_updates
+            return
 
-        try:
-            # Short timeout to trigger the lambda without hanging the UI
-            _log("Triggering backend merge...")
-            playground.get_leaderboard(token=token) 
-        except Exception:
-            # We ignore errors here because the 'submit_model' post 
-            # already succeeded. This is just a cleanup task.
-            pass
-        # -------------------------------------------------------------------------
-
-        # Immediately increment submission count...
+        # --- Stage 4: Poll for leaderboard update (submission succeeded) ---
+        progress(0.7, desc="Verifying submission...")
+        
+        # Show pending KPI card while polling
+        pending_kpi_html = _build_kpi_card_html(
+            new_score=0, last_score=last_submission_score, new_rank=0, last_rank=last_rank,
+            submission_count=submission_count, is_preview=False, is_pending=True,
+            local_test_accuracy=local_test_accuracy
+        )
+        yield {
+            submission_feedback_display: gr.update(value=pending_kpi_html, visible=True),
+            login_error: gr.update(visible=False)
+        }
+        
+        # Poll leaderboard until user's rows change or timeout
+        poll_detected_change = False
+        poll_iterations = 0
+        updated_leaderboard_df = None  # Will hold the fresh leaderboard if polling succeeds
+        
+        for attempt in range(LEADERBOARD_POLL_TRIES):
+            poll_iterations = attempt + 1
+            _log(f"Polling attempt {poll_iterations}/{LEADERBOARD_POLL_TRIES}")
+            
+            # Fetch fresh leaderboard (bypass cache)
+            refreshed_leaderboard = _get_leaderboard_with_optional_token(playground, token)
+            
+            # Check if user's rows changed
+            if _user_rows_changed(
+                refreshed_leaderboard, username, baseline_row_count, baseline_best_score,
+                baseline_latest_ts, baseline_latest_score
+            ):
+                _log(f"User rows changed detected after {poll_iterations} polls")
+                poll_detected_change = True
+                updated_leaderboard_df = refreshed_leaderboard  # Store updated leaderboard
+                break
+            
+            time.sleep(LEADERBOARD_POLL_SLEEP)
+        
+        if not poll_detected_change:
+            _log(f"Polling timed out after {poll_iterations} attempts. Using optimistic fallback.")
+        
+        # --- Stage 5: Calculate final state (optimistic if polling timed out) ---
+        progress(0.9, desc="Calculating Rank...")
+        
+        # Increment submission count ONLY after verified success (or timeout with optimistic fallback)
         new_submission_count = submission_count + 1
         new_first_submission_score = first_submission_score
         if submission_count == 0 and first_submission_score is None:
             new_first_submission_score = this_submission_score
-
-        # --- Stage 4: Local Rank Calculation (Optimistic) ---
-        progress(0.9, desc="Calculating Rank...")
         
-        # 3. SIMULATE UPDATED LEADERBOARD
-        simulated_df = baseline_leaderboard_df.copy() if baseline_leaderboard_df is not None else pd.DataFrame()
-        
-        # We use pd.Timestamp.now() to ensure pandas sorting logic sees this as the absolute latest
-        new_row = pd.DataFrame([{
-            "username": username,
-            "accuracy": this_submission_score,
-            "Team": team_name,
-            "timestamp": pd.Timestamp.now(), 
-            "version": "latest"
-        }])
-        
-        if not simulated_df.empty:
-            simulated_df = pd.concat([simulated_df, new_row], ignore_index=True)
+        # Use polled leaderboard if available, else simulate with baseline
+        if poll_detected_change and updated_leaderboard_df is not None:
+            # Real data from polling - use the updated leaderboard
+            final_leaderboard_df = updated_leaderboard_df
         else:
-            simulated_df = new_row
+            # Optimistic fallback: simulate the new row using baseline snapshot
+            # Note: We use pd.Timestamp.now() as an approximation. This may not match
+            # the exact backend timestamp, but it's acceptable for the fallback case
+            # since the real leaderboard will eventually be consistent.
+            simulated_df = baseline_leaderboard_df.copy() if baseline_leaderboard_df is not None else pd.DataFrame()
+            new_row = pd.DataFrame([{
+                "username": username,
+                "accuracy": this_submission_score,
+                "Team": team_name,
+                "timestamp": pd.Timestamp.now(), 
+                "version": "latest"
+            }])
+            if not simulated_df.empty:
+                simulated_df = pd.concat([simulated_df, new_row], ignore_index=True)
+            else:
+                simulated_df = new_row
+            final_leaderboard_df = simulated_df
 
-        # 4. GENERATE TABLES (Use helper for tables only)
-        # We ignore the kpi_card return from this function because it might use internal sorting 
-        # that doesn't respect our new row perfectly.
+        # Generate tables and KPI card from final leaderboard
         team_html, individual_html, _, new_best_accuracy, new_rank, _ = generate_competitive_summary(
-            simulated_df, team_name, username, last_submission_score, last_rank, submission_count
+            final_leaderboard_df, team_name, username, last_submission_score, last_rank, submission_count
         )
 
-        # 5. GENERATE KPI CARD EXPLICITLY (The Authority Fix)
-        # We manually build the card using the score we KNOW we just got.
+        # Build final KPI card (success, not pending)
         kpi_card_html = _build_kpi_card_html(
             new_score=this_submission_score,
             last_score=last_submission_score,
@@ -2262,16 +2310,15 @@ def run_experiment(
             is_pending=False
         )
 
-# ... (Previous Stage 1-4 logic remains unchanged) ...
-
-        # --- Stage 5: Final UI Update ---
+        # --- Stage 6: Final UI Update ---
         progress(1.0, desc="Complete!")
         
         success_kpi_meta = {
             "was_preview": False, "preview_score": None, "ready_at_run_start": ready,
-            "poll_iterations": 0, "local_test_accuracy": local_test_accuracy,
+            "poll_iterations": poll_iterations, "local_test_accuracy": local_test_accuracy,
             "this_submission_score": this_submission_score, "new_best_accuracy": new_best_accuracy,
-            "rank": new_rank, "pending": False, "optimistic_fallback": True 
+            "rank": new_rank, "pending": False, "poll_detected_change": poll_detected_change,
+            "optimistic_fallback": not poll_detected_change
         }
         
         settings = compute_rank_settings(new_submission_count, model_name_key, complexity_level, feature_set, data_size_str)
@@ -2345,15 +2392,9 @@ def run_experiment(
         )
         
         exception_kpi_meta = {
-            "was_preview": False,
-            "preview_score": None,
-            "ready_at_run_start": ready if 'ready' in locals() else False,
-            "poll_iterations": 0,
-            "local_test_accuracy": None,
-            "this_submission_score": None,
-            "new_best_accuracy": None,
-            "rank": None,
-            "error": str(e)
+            "was_preview": False, "preview_score": None, "ready_at_run_start": ready if 'ready' in locals() else False,
+            "poll_iterations": 0, "local_test_accuracy": None, "this_submission_score": None,
+            "new_best_accuracy": None, "rank": None, "error": str(e)
         }
         
         error_updates = {
@@ -2383,7 +2424,6 @@ def run_experiment(
             last_seen_ts_state: None
         }
         yield error_updates
-
 
 def on_initial_load(username, token=None, team_name=""):
     """
@@ -2473,8 +2513,6 @@ def on_initial_load(username, token=None, team_name=""):
         gr.update(choices=initial_ui["feature_set_choices"], value=initial_ui["feature_set_value"], interactive=initial_ui["feature_set_interactive"]),
         gr.update(choices=initial_ui["data_size_choices"], value=initial_ui["data_size_value"], interactive=initial_ui["data_size_interactive"]),
     )
-
-
 # -------------------------------------------------------------------------
 # Conclusion helpers (dark/light mode aware)
 # -------------------------------------------------------------------------
@@ -2555,8 +2593,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
 
 def build_conclusion_from_state(best_score, submissions, rank, first_score, feature_set):
     return build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set)
-              
-def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
+def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """
     Create (but do not launch) the model building game app.
     """
@@ -3378,6 +3415,148 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             color: color-mix(in srgb, var(--color-accent) 75%, var(--body-text-color) 25%);
         }
     }
+    /* ---------- NEW: Countdown & Interactive Slide Styles ---------- */
+
+    /* 1. Launch Banner (Slide 1) */
+    .launch-banner {
+        background: #111827;
+        color: #4ade80;
+        font-family: monospace;
+        text-align: center;
+        padding: 8px;
+        font-size: 0.9rem;
+        letter-spacing: 2px;
+        margin: -24px -24px 24px -24px; /* Stretch to edges of panel */
+        border-bottom: 2px solid #4ade80;
+        border-radius: var(--slide-radius-lg) var(--slide-radius-lg) 0 0;
+    }
+
+    /* 2. T-Minus Headers */
+    .t-minus-header {
+        text-align: center;
+        margin-bottom: 24px;
+        border-bottom: 2px solid var(--card-border-subtle);
+        padding-bottom: 16px;
+    }
+    
+    .t-minus-badge {
+        display: inline-block;
+        background: var(--text-main);
+        color: var(--body-background-fill);
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-weight: 800;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 8px;
+    }
+
+    .t-minus-title {
+        margin: 0;
+        font-size: 2.2rem;
+        color: var(--accent-strong);
+        font-weight: 800;
+    }
+
+    /* 3. Styled Details/Summary (Click-to-reveal) */
+    details.styled-details {
+        margin-bottom: 12px;
+        background: var(--block-background-fill);
+        border-radius: 10px;
+        border: 1px solid var(--card-border-subtle);
+        overflow: hidden;
+    }
+
+    details.styled-details > summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 16px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--prose-background-fill);
+        transition: background 0.2s;
+        color: var(--text-main);
+    }
+
+    details.styled-details > summary:hover {
+        background: var(--block-background-fill);
+        color: var(--accent-strong);
+    }
+
+    /* Hide default triangle */
+    details.styled-details > summary::-webkit-details-marker {
+        display: none;
+    }
+
+    /* Custom +/- indicator */
+    details.styled-details > summary::after {
+        content: '+';
+        font-size: 1.5rem;
+        font-weight: 400;
+        color: var(--text-muted);
+    }
+
+    details.styled-details[open] > summary::after {
+        content: '−';
+        color: var(--accent-strong);
+    }
+
+    details.styled-details > div.content {
+        padding: 16px;
+        border-top: 1px solid var(--card-border-subtle);
+        background: var(--block-background-fill);
+        color: var(--text-main);
+    }
+
+    /* 4. Mock UI Widgets (for Slide 4) */
+    .widget-row { display: flex; align-items: center; margin-bottom: 8px; color: var(--text-main); font-size: 1rem; }
+    
+    .radio-circle { 
+        width: 16px; height: 16px; border-radius: 50%; 
+        border: 2px solid var(--text-muted); margin-right: 10px; display: inline-block; 
+    }
+    .radio-circle.selected { 
+        border-color: var(--accent-strong); 
+        background: radial-gradient(circle, var(--accent-strong) 40%, transparent 50%); 
+    }
+    
+    .check-square { 
+        width: 16px; height: 16px; border-radius: 4px; 
+        border: 2px solid var(--text-muted); margin-right: 10px; display: inline-block; 
+    }
+    .check-square.checked { 
+        background: var(--accent-strong); border-color: var(--accent-strong); position: relative; 
+    }
+    
+    .slider-track { 
+        height: 6px; background: var(--border-color-primary); border-radius: 3px; 
+        width: 100%; position: relative; margin: 12px 0; 
+    }
+    .slider-thumb { 
+        width: 18px; height: 18px; background: var(--accent-strong); 
+        border-radius: 50%; position: absolute; left: 20%; top: -6px; 
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3); 
+    }
+    
+    .risk-tag { 
+        background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; 
+        font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; 
+        margin-left: 8px; vertical-align: middle; font-weight: 700; 
+    }
+    
+    /* Pop-up info box inside details */
+    .info-popup {
+        background: color-mix(in srgb, var(--color-accent) 5%, transparent);
+        border-left: 4px solid var(--color-accent);
+        padding: 12px;
+        margin-top: 12px;
+        border-radius: 4px;
+        font-size: 0.95rem;
+        color: var(--text-main);
+    }
     """
 
 
@@ -3419,323 +3598,240 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
 
         # --- Briefing Slideshow (Updated with New Cards) ---
 
-        # Slide 1: From Understanding to Building (Retained as transition)
+        # Slide 1: Intro
         with gr.Column(visible=True, elem_id="slide-1") as briefing_slide_1:
             gr.Markdown("<h1 style='text-align:center;'>🔄 From Understanding to Building</h1>")
-            gr.HTML(
-                """
+            gr.HTML("""
                 <div class='slide-content'>
                 <div class='panel-box'>
                 <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>Great progress! You've now:</h3>
-
                 <ul style='list-style: none; padding-left: 0; margin-top: 24px; margin-bottom: 24px;'>
-                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
-                        <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Made tough decisions as a judge using AI predictions
-                    </li>
-                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
-                        <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Learned about false positives and false negatives
-                    </li>
-                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>
-                        <span style='font-size: 1.5rem; vertical-align: middle;'>✅</span>
-                        Understood how AI works:
-                    </li>
+                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Made tough decisions as a judge</li>
+                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Learned about false positives and negatives</li>
+                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Understood how AI works</li>
                 </ul>
-
                 <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
-                    <div style='display:inline-block; background:#dbeafe; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#0369a1;'>INPUT</h3>
-                    </div>
-                    <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
-                    <div style='display:inline-block; background:#fef3c7; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#92400e;'>MODEL</h3>
-                    </div>
-                    <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
-                    <div style='display:inline-block; background:#f0fdf4; padding:12px 16px; border-radius:8px; margin:4px;'>
-                        <h3 style='margin:0; color:#15803d;'>OUTPUT</h3>
-                    </div>
+                    <span style='background:#dbeafe; padding:8px; border-radius:4px; color:#0369a1; font-weight:bold;'>INPUT</span> → 
+                    <span style='background:#fef3c7; padding:8px; border-radius:4px; color:#92400e; font-weight:bold;'>MODEL</span> → 
+                    <span style='background:#f0fdf4; padding:8px; border-radius:4px; color:#15803d; font-weight:bold;'>OUTPUT</span>
                 </div>
-
-                <hr style='margin: 24px 0; border-top: 2px solid #c7d2fe;'>
-
-                <h3 style='font-size: 1.5rem; text-align:center;'>Now it's time to step into the shoes of an AI Engineer.</h3>
-                <p style='font-size: 1.1rem; text-align:center; margin-top: 12px;'>
-                    <strong>Your New Challenge:</strong> Build AI models that are more accurate than the one you used as a judge.
-                </p>
-                <p style='font-size: 1.1rem; text-align:center; margin-top: 12px;'>
-                    Remember: You experienced firsthand how AI predictions affect real people's lives. Use that knowledge to build something better.
-                </p>
+                <h3 style='font-size: 1.5rem; text-align:center;'>Now: Step into the shoes of an AI Engineer.</h3>
                 </div>
                 </div>
-                """
-            )
+            """)
             briefing_1_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
-        # Slide 2: Card 1 (Your Engineering Mission)
+        # Slide 2: Mission
+# Slide 2: Mission
         with gr.Column(visible=False, elem_id="slide-2") as briefing_slide_2:
-            gr.Markdown("<h1 style='text-align:center;'>📋 Your Mission - Build Better AI</h1>")
-            
-            gr.HTML(
-                """
+            gr.Markdown("<h1 style='text-align:center;'>📋 Your Mission – Build Better AI</h1>")
+            gr.HTML("""
                 <div class='slide-content'>
                     <div class='panel-box'>
                         <h3>The Mission</h3>
-                        <p>Build an AI model that helps judges make better decisions. The model you used previously gave you imperfect advice. Your job now is to build a new model that predicts risk more accurately, providing judges with the reliable insights they need to be fair.</p>
+                        <p>Build an AI model that helps judges make better decisions. Your job is to predict re-offending risk more accurately than the previous model.</p>
                         
                         <h3>The Competition</h3>
-                        <p>To do this, you will compete against other engineers! To help you in your mission, you will join an engineering team. Your results will be tracked both individually and as a group in the Live Standings Leaderboards.</p>
-                    </div>
+                        <p>To do this, you’ll compete with other engineers! You’ll join a team, with scores tracked for both individual and team performance on live leaderboards.</p>
+                        <div style="background:var(--background-fill-secondary); padding:8px 12px; border-radius:8px; margin-bottom:12px; border:1px solid var(--border-color-primary);">
+                             You’ll join a team such as… <b>🛡️ The Ethical Explorers</b>
+                        </div>
 
-                    <div class='leaderboard-box' style='max-width: 600px; margin: 16px auto; text-align: center; padding: 16px;'>
-                        <p style='font-size: 1.1rem; margin:0;'>You will join a team like...</p>
-                        <h3 style='font-size: 1.75rem; color: #6b7280; margin: 8px 0;'>
-                            🛡️ The Ethical Explorers
-                        </h3>
-                    </div>
-
-                    <div class='mock-ui-box'>
                         <h3>The Data Challenge</h3>
-                        <p>To compete, you have access to thousands of old case files. You have two distinct types of information:</p>
-                        <ol style='list-style-position: inside; padding-left: 20px;'>
-                            <li><strong>Defendant Profiles:</strong> This is like what the judge saw at the time of arrest.
-                                <ul style='margin-left: 20px; list-style-type: disc;'>
-                                    <li><em>Age, Number of Prior Offenses, Type of Charge.</em></li>
-                                </ul>
-                            </li>
-                            <li><strong>Historical Outcomes:</strong> This is what actually happened to those people later.
-                                <ul style='margin-left: 20px; list-style-type: disc;'>
-                                    <li><em>Did they re-offend within 2 years? (Yes/No)</em></li>
-                                </ul>
-                            </li>
-                        </ol>
-                        
-                        <h3>The Core Task</h3>
-                        <p>You need to teach your AI to look at the "Profiles" and accurately predict the "Outcome."</p>
-                        <p><strong>Ready to build something that could change how justice works?</strong></p>
+                        <p>To compete, you’ll have access to thousands of old case files containing <b>Defendant Profiles</b> (Age, History) and <b>Historical Outcomes</b> (Did they re-offend?).</p>
+                        <p>Your task is to train an AI system that learns from the profiles and accurately predicts the outcome. Ready to build something that could change how justice works?</p>
                     </div>
                 </div>
-                """
-            )
-            
+            """)
             with gr.Row():
                 briefing_2_back = gr.Button("◀️ Back", size="lg")
                 briefing_2_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
-        # Slide 3: Card 2 (What is a "Model"?)
+        # Slide 3: Concept
         with gr.Column(visible=False, elem_id="slide-3") as briefing_slide_3:
-            gr.Markdown("<h1 style='text-align:center;'>🧠 What is a \"Model\"?</h1>")
-            
-            # --- FIX FOR SLIDE 3 ---
-            # Combined all content into single gr.HTML()
-            gr.HTML(
-                """
+            gr.Markdown("<h1 style='text-align:center;'>🧠 What is an AI System?</h1>")
+            gr.HTML("""
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <p>Before we start competing, let's break down exactly what you are building.</p>
-                        <h3>Think of a Model as a "Prediction Machine."</h3>
-                        <p>You already know the flow:</p>
-                        
-                        <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
-                            <div style='display:inline-block; background:#dbeafe; padding:12px 16px; border-radius:8px; margin:4px;'>
-                                <h3 style='margin:0; color:#0369a1;'>INPUT</h3>
-                            </div>
-                            <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
-                            <div style='display:inline-block; background:#fef3c7; padding:12px 16px; border-radius:8px; margin:4px;'>
-                                <h3 style='margin:0; color:#92400e;'>MODEL</h3>
-                            </div>
-                            <div style='display:inline-block; font-size:1.5rem; margin:0 8px; color:#6b7280;'>→</div>
-                            <div style='display:inline-block; background:#f0fdf4; padding:12px 16px; border-radius:8px; margin:4px;'>
-                                <h3 style='margin:0; color:#15803d;'>OUTPUT</h3>
-                            </div>
-                        </div>
-                        
-                        <p>As an engineer, you don't need to write complex code from scratch. Instead, you assemble this machine using three main components.</p>
-                    </div>
-
-                    <div class='mock-ui-box'>
-                        <h3>The 3 Components:</h3>
-                        <p><strong>1. The Inputs (Data)</strong><br>
-                        The information you feed the machine.<br>
-                        <em>* Examples: Age, Prior Crimes, Charge Details.</em></p>
-
-                        <p><strong>2. The Model (Prediction Machine)</strong><br>
-                        The mathematical "brain" that looks for patterns in the inputs.<br>
-                        <em>* Examples: You will choose different "brains" that learn in different ways (e.g., simple rules vs. deep patterns).</em></p>
-
-                        <p><strong>3. The Output (Prediction)</strong><br>
-                        The model's best guess.<br>
-                        <em>* Example: Risk Level: High or Low.</em></p>
-
-                        <hr>
-                        
-                        <p><strong>How it learns:</strong> You show the model thousands of old cases (Inputs) + what actually happened (Outcomes). It studies them to find the rules, so it can make predictions on new cases it hasn't seen before.</p>
+                        <p>Think of an AI System as a "Prediction Machine." You assemble it using three main components:</p>
+                        <p><strong>1. The Inputs:</strong> The data you feed it (eg: Age, Crimes).</p>
+                        <p><strong>2. The Model ("The Brain"):</strong> The math (algorithm) that finds patterns.</p>
+                        <p><strong>3. The Output:</strong> The prediction (eg: Risk Level)</p>
                     </div>
                 </div>
-                """
-            )
-            # --- END FIX ---
-            
+            """)
             with gr.Row():
                 briefing_3_back = gr.Button("◀️ Back", size="lg")
                 briefing_3_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
-        # Slide 4: Card 3 (How Engineers Work — The Loop)
+        # Slide 4: The Loop
         with gr.Column(visible=False, elem_id="slide-4") as briefing_slide_4:
             gr.Markdown("<h1 style='text-align:center;'>🔁 How Engineers Work — The Loop</h1>")
-
-            # --- FIX FOR SLIDE 4 ---
-            # Combined all content into single gr.HTML()
-            gr.HTML(
-                """
+            gr.HTML("""
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <p>Now that you know the components of a model, how do you build a better one?</p>
-                        <h3>Here is the secret:</h3>
-                        <p>Real AI teams almost never get it right on the first try. Instead, they follow a continuous loop of experimentation: <strong>Try, Test, Learn, Repeat.</strong></p>
-                        
-                        <h3>The Experiment Loop:</h3>
-                        <ol style='list-style-position: inside;'>
-                            <li><strong>Build a Model:</strong> Assemble your components and get a starting prediction accuracy score.</li>
-                            <li><strong>Ask a Question:</strong> (e.g., "What happens if I change the 'Brain' type?")</li>
-                            <li><strong>Test & Compare:</strong> Did the score get better... or did it get worse?</li>
-                        </ol>
-                    </div>
-
-                    <h3>You will do the exact same thing in a competition!</h3>
-                    
-                    <div class='step-visual'>
-                        <div class='step-visual-box'><b>1. Configure</b><br/>Use Control Knobs to select Strategy and Data.</div>
-                        <div class='step-visual-arrow'>→</div>
-                        <div class='step-visual-box'><b>2. Submit</b><br/>Click "Build & Submit" to train your model.</div>
-                        <div class='step-visual-arrow'>→</div>
-                        <div class='step-visual-box'><b>3. Analyze</b><br/>Check your rank on the Live Leaderboard.</div>
-                        <div class='step-visual-arrow'>→</div>
-                        <div class='step-visual-box'><b>4. Refine</b><br/>Change one setting and submit again!</div>
-                    </div>
-                    
-                    <div class='leaderboard-box' style='text-align:center;'>
-                        <p><strong>Pro Tip:</strong> Try to change only one thing at a time. If you change too many things at once, you won't know what made your model better or worse!</p>
+                        <p>Real AI teams never get it right on the first try. They follow a loop: <strong>Try, Test, Learn, Repeat.</strong></p>
+                        <p>You’ll do exactly the same in this competition:</p>
+                        <div class='step-visual'>
+                            <div class='step-visual-box'><b>1. Configure</b><br><span style='font-size:0.85rem'>choose model & data</span></div>→
+                            <div class='step-visual-box'><b>2. Submit</b><br><span style='font-size:0.85rem'>train your system</span></div>→
+                            <div class='step-visual-box'><b>3. Analyze</b><br><span style='font-size:0.85rem'>check ranking</span></div>→
+                            <div class='step-visual-box'><b>4. Refine</b><br><span style='font-size:0.85rem'>tweak & try again</span></div>
+                        </div>
                     </div>
                 </div>
-                """
-            )
-            # --- END FIX ---
+            """)
             
             with gr.Row():
                 briefing_4_back = gr.Button("◀️ Back", size="lg")
                 briefing_4_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
-        # Slide 5: Card 4 (Control Knobs — The "Brain" Settings)
+        # Slide 5: Systems Check (Controls)
         with gr.Column(visible=False, elem_id="slide-5") as briefing_slide_5:
-            gr.Markdown("<h1 style='text-align:center;'>🎛️ Control Knobs — The \"Brain\" Settings</h1>")
-            
-            # --- FIX FOR SLIDE 5 ---
-            # Combined all content into single gr.HTML()
             gr.HTML(
                 """
                 <div class='slide-content'>
-                    <div class='mock-ui-inner'>
-                        <p>To build your model, you will use Control Knobs to configure your Prediction Machine. The first two knobs allow you to choose a type of model and adjust how it learns patterns in data.</p>
-                        <hr style='margin: 16px 0;'>
-
-                        <h3 style='margin-top:0;'>1. Model Strategy (Type of Model)</h3>
-                        <div style='font-size: 1rem; margin-bottom:12px;'>
-                            <b>What it is:</b> The specific mathematical method the machine uses to find patterns.
+                    <div class='panel-box'>
+                        <div class='t-minus-header'>
+                            <h2 class='t-minus-title' style='color: var(--body-text-color);'>🔧 Engineering Systems Check</h2>
                         </div>
-                        <div class='mock-ui-control-box'>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-on'>◉</span>
-                                <b>The Balanced Generalist:</b> A reliable, all-purpose algorithm. It provides stable results across most data.
-                            </p>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-off'>○</span>
-                                <b>The Rule-Maker:</b> Creates strict "If... Then..." logic (e.g., If prior crimes > 2, then High Risk).
-                            </p>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-off'>○</span>
-                                <b>The Deep Pattern-Finder:</b> A complex algorithm designed to detect subtle, hidden connections in the data.
+            
+                        <div style='background: color-mix(in srgb, var(--color-accent) 10%, transparent); border:1px solid var(--color-accent); padding:16px; border-radius:10px; text-align:center; margin-bottom:24px;'>
+                            <strong style='color: var(--color-accent); font-size:1.1rem;'>⚠️ SIMULATION MODE ACTIVE</strong>
+                            <p style='margin:8px 0 0 0; color: var(--body-text-color); font-size:1.05rem; line-height:1.4;'>
+                                Below are the <b>exact 4 controls</b> you will use to build your model in the next step.<br>
+                                <b>Click each one now</b> to learn what they do before the competition starts.
                             </p>
                         </div>
-
-                        <hr style='margin: 24px 0;'>
-
-                        <h3>2. Model Complexity (Fitting Level)</h3>
-                        <div class='mock-ui-control-box' style='text-align: center;'>
-                            <p style='font-size: 1.1rem; margin:0;'>Range: Level 1 ─── ● ─── 10</p>
-                        </div>
-                        
-                        <div style='margin-top: 16px; font-size: 1rem;'>
-                            <ul style='list-style-position: inside;'>
-                                <li><b>What it is:</b> Tunes how tightly the machine fits its logic to find patterns in the data.</li>
-                                <li><b>The Trade-off:</b>
-                                    <ul style='list-style-position: inside; margin-left: 20px;'>
-                                    <li><b>Low (Level 1):</b> Captures only the broad, obvious trends.</li>
-                                    <li><b>High (Level 5):</b> Captures every tiny detail and variation.</li>
-                                    </ul>
-                                </li>
-                            </ul>
-                            <p style='color:#b91c1c; font-weight:bold; margin-top:10px;'>Warning: Setting this too high causes the machine to "memorize" random, irrelevant details or random coincidences (noise) in the past data rather than learning the general rule.</p>
-                        </div>
+            
+                        <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px; margin-bottom: 8px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">1. Model Strategy (The ‘brain’)</summary>
+                            <div class="content" style="padding-top: 12px; padding-left: 12px;">
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);"><span class="radio-circle selected" style="display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--color-accent); margin-right:8px;"></span> <b>The Balanced Generalist</b></div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> The Rule-Maker</div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> The Deep Pattern-Finder</div>
+                                
+                                <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
+                                    <b style="color: var(--body-text-color);">In the Game:</b> <span style="color: var(--body-text-color);">You will choose one of these model strategies. Each strategy enables your model to learn from input data in a unique way.</span><br>
+                                    <i style="color: var(--body-text-color-subdued);">Tip: Start with "Balanced Generalist" for a safe, reliable baseline score.</i>
+                                </div>
+                            </div>
+                        </details>
+            
+                        <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px; margin-bottom: 8px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">2. Model Complexity (Focus Level)</summary>
+                            <div class="content" style="padding-top: 12px; padding-left: 12px;">
+                                <div class="slider-track" style="height: 4px; background: var(--neutral-200); margin: 16px 0; position: relative;"><div class="slider-thumb" style="width: 16px; height: 16px; background: var(--color-accent); border-radius: 50%; position: absolute; left: 50%; top: -6px;"></div></div>
+                                <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--body-text-color-subdued);">
+                                    <span>Level 1 (General)</span>
+                                    <span>Level 10 (Specific)</span>
+                                </div>
+                                
+                                <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
+                                    <b style="color: var(--body-text-color);">In the Game:</b> <span style="color: var(--body-text-color);">Think of this like <b>Studying vs. Memorizing</b>.</span><br>
+                                    <span style="color: var(--body-text-color);">• <b>Low Complexity:</b> The AI learns general concepts (Good for new cases).</span><br>
+                                    <span style="color: var(--body-text-color);">• <b>High Complexity:</b> The AI memorizes the answer key (Bad for new cases).</span><br>
+                                    <strong style="color:#ef4444;">⚠️ The Trap:</strong> <span style="color: var(--body-text-color);">A high setting looks perfect on the practice test, but fails in the real world because the AI just memorized the answers!</span>
+                                </div>
+                            </div>
+                        </details>
+            
+                        <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px; margin-bottom: 8px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">3. Data Ingredients (The inputs)</summary>
+                            <div class="content" style="padding-top: 12px; padding-left: 12px;">
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);">
+                                    <span style="color:var(--color-accent); font-weight:bold;">☑</span> <b>Prior Crimes</b>
+                                </div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);">
+                                    <span style="color:var(--color-accent); font-weight:bold;">☑</span> <b>Charge Degree</b>
+                                </div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);">
+                                    <span style="color:var(--neutral-400); font-weight:bold;">☐</span> <b>Demographics (Race/Sex)</b> <span class="risk-tag" style="background:#fef2f2; color:#b91c1c; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold;">⚠️ RISK</span>
+                                </div>
+                                
+                                <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
+                                    <b style="color: var(--body-text-color);">In the Game:</b> <span style="color: var(--body-text-color);">You will check boxes to decide what raw input data the AI is allowed to use to learn new patterns.</span><br>
+                                    <strong style="color:#ef4444;">⚠️ Ethical Risk:</strong> <span style="color: var(--body-text-color);">You <i>can</i> use demographics to boost your score, but is it fair?</span>
+                                </div>
+                            </div>
+                        </details>
+            
+                        <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">4. Data Size (Volume)</summary>
+                            <div class="content" style="padding-top: 12px; padding-left: 12px;">
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);"><span class="radio-circle selected" style="display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--color-accent); margin-right:8px;"></span> <b>Small (20%)</b> - AI Learns fast, but sees less data.</div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> <b>Full (100%)</b> - AI sees more data and learns more slowly.</div>
+                                
+                                <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
+                                    <b style="color: var(--body-text-color);">In the Game:</b> <span style="color: var(--body-text-color);">You choose how much history the model reads.</span><br>
+                                    <i style="color: var(--body-text-color-subdued);">Tip: Use "Small" to test ideas quickly. Use "Full" when you think you have a winning strategy.</i>
+                                </div>
+                            </div>
+                        </details>
                     </div>
                 </div>
                 """
             )
-            # --- END FIX ---
+            
             
             with gr.Row():
                 briefing_5_back = gr.Button("◀️ Back", size="lg")
                 briefing_5_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
-        # Slide 6: Card 5 (Control Knobs — The "Data" Settings)
-        with gr.Column(visible=False, elem_id="slide-6") as briefing_slide_6:
-            gr.Markdown("<h1 style='text-align:center;'>🎛️ Control Knobs — The \"Data\" Settings</h1>")
-
-            # --- FIX FOR SLIDE 6 ---
-            # Combined all content into single gr.HTML()
+        # Slide 6: Final Score
+        with gr.Column(visible=False, elem_id="slide-6") as briefing_slide_6:            
             gr.HTML(
                 """
                 <div class='slide-content'>
-                    <div class='mock-ui-inner'>
-                        <p>Now that you have set up your prediction machine, you must decide what information the machine processes. These next knobs control the Inputs (Data).</p>
-                        <hr style='margin: 16px 0;'>
-
-                        <h3 style='margin-top:0;'>3. Data Ingredients</h3>
-                        <div style='font-size: 1rem; margin-bottom:12px;'>
-                            <b>What it is:</b> The specific data points the machine is allowed to access.
-                            <br><b>Why it matters:</b> The machine's output depends largely on its input.
+                    <div class='panel-box'>
+                        <div class='t-minus-header'>
+                            <h2 class='t-minus-title'>🚀 Mission Briefing: The Final Score</h2>
                         </div>
                         
-                        <div class='mock-ui-control-box'>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-on'>☑</span>
-                                <b>Behavioral Inputs:</b> Data like <i>Juvenile Felony Count</i> may help the logic find valid risk patterns.
+                        <p style='font-size: 1.15rem; text-align:center; margin-bottom: 24px;'>
+                            Your access is granted. Here is how your work will be judged.
+                        </p>
+            
+                        <!-- How to Win Section -->
+                        <div style='background:var(--prose-background-fill); padding:20px; border-radius:12px; text-align:left; margin-bottom:24px;'>
+                            <div style='display:flex; align-items:center; gap:8px; margin-bottom:12px;'>
+                                <span style='font-size:1.5rem;'>🔐</span>
+                                <strong style='font-size:1.2rem; color:#eef2ff;'>How to Win</strong>
+                            </div>
+                            
+                            <p style='margin-bottom:12px;'>
+                                In the real world, we don't know the future. To simulate this, we have hidden 20% of the case files (data) in a "Vault."
                             </p>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-off'>☐</span>
-                                <b>Demographic Inputs:</b> Data like <i>Race</i> may help the model learn, but they may also replicate human bias.
-                            </p>
+                            
+                            <ul style='margin:0; padding-left:24px; color:var(--text-muted); line-height:1.6;'>
+                                <li style='margin-bottom:8px;'>
+                                    Your AI will learn from the input data you give it, but it will be tested on the hidden data in the Vault.
+                                </li>
+                                <li>
+                                    <b>Your Score:</b> You are scored using prediction accuracy. If you get a 50%, your AI is essentially guessing (like a coin flip). Your goal is to engineer a system that predicts much higher!
+                                </li>
+                            </ul>
                         </div>
-                        <p style='margin-top:10px;'><b>Your Job:</b> Check ☑ or uncheck ☐ the boxes to select the inputs to feed your model.</p>
-
-                        <hr style='margin: 24px 0;'>
-
-                        <h3>4. Data Size (Training Volume)</h3>
-                        <div style='font-size: 1rem; margin-bottom:12px;'>
-                            <b>What it is:</b> The amount of historical cases the machine uses to learn patterns.
+            
+                        <!-- Ranks Section -->
+                        <div style='text-align:center; border-top:1px solid var(--card-border-subtle); padding-top:20px; margin-bottom:30px;'>
+                            <h3 style='margin:0 0 8px 0; font-size:1.2rem;'>Unlockable Ranks</h3>
+                            <p style='margin-bottom:16px; font-size:0.95rem; color:var(--text-muted);'>
+                                As you refine your model and climb the leaderboard, you will earn new ranks:
+                            </p>
+                            <div style='display:inline-flex; gap:12px; flex-wrap:wrap; justify-content:center;'>
+                                <span style='padding:6px 12px; background:#064e3b; border-radius:20px; font-size:0.9rem;'>⭐ Rookie</span>
+                                <span style='padding:6px 12px; background:#e0e7ff; border-radius:20px; font-size:0.9rem; color:#4338ca;'>⭐⭐ Junior</span>
+                                <span style='padding:6px 12px; background:#fae8ff; border-radius:20px; font-size:0.9rem; color:#86198f;'>⭐⭐⭐ Lead Engineer</span>
+                            </div>
                         </div>
                         
-                        <div class='mock-ui-control-box'>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-on'>◉</span>
-                                <b>Small (20%):</b> Fast processing. Great for running quick tests to check your settings.
-                            </p>
-                            <p style='font-size: 1.1rem; margin: 8px 0;'>
-                                <span class='mock-ui-radio-off'>○</span>
-                                <b>Full (100%):</b> Maximum data processing. It takes longer to build, but gives the machine the best chance to calibrate its accuracy.
-                            </p>
+                        <!-- CTA Section -->
+                        <div style='text-align:center; background: color-mix(in srgb, var(--color-accent) 10%, transparent); padding: 20px; border-radius: 12px; border: 2px solid var(--color-accent);'>
+                            <p style='margin:0 0 8px 0; font-size: 1.1rem; color: var(--text-muted);'>To start the competition:</p>
+                            <b style='color:var(--accent-strong); font-size:1.3rem;'>Click "Begin", then "Build & Submit Model"</b>
+                            <p style='margin:8px 0 0 0; font-size: 1rem;'>This will make your first submission to the leaderboard.</p>
                         </div>
-
                     </div>
                 </div>
                 """
@@ -3744,48 +3840,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             
             with gr.Row():
                 briefing_6_back = gr.Button("◀️ Back", size="lg")
-                briefing_6_next = gr.Button("Next ▶️", variant="primary", size="lg")
-
-        # Slide 7: Card 6 (Your Score as an Engineer)
-        with gr.Column(visible=False, elem_id="slide-7") as briefing_slide_7:
-            gr.Markdown("<h1 style='text-align:center;'>🏆 Your Score as an Engineer</h1>")
-            
-            # --- FIX FOR SLIDE 7 ---
-            # Combined all content into single gr.HTML()
-            gr.HTML(
-                """
-                <div class='slide-content'>
-                    <div class='panel-box'>
-                        <p>You now know more about how to build a model. But how do we know if it works?</p>
-
-                        <h3>How You Are Scored</h3>
-                        <ul style='list-style-position: inside;'>
-                            <li><strong>Prediction Accuracy:</strong> Your model is tested on <strong>Hidden Data</strong> (cases kept in a "secret vault" that your model has never seen). This simulates predicting the future to ensure you get a real-world prediction accuracy score.</li>
-                            <li><strong>The Leaderboard:</strong> Live Standings track your progress individually and as a team.</li>
-                        </ul>
-
-                        <h3>How You Improve: The Game</h3>
-                        <ul style='list-style-position: inside;'>
-                            <li><strong>Compete to Improve:</strong> Refine your model to beat your personal best score.</li>
-                            <li><strong>Get Promoted as an Engineer & Unlock Tools:</strong> As you submit more models, you rise in rank and unlock better analysis tools:</li>
-                        </ul>
-                        
-                        <div style='text-align:center; font-weight:bold; font-size:1.2rem; color:#4f46e5; margin:16px 0;'>
-                        Trainee → Junior → Senior → Lead Engineer
-                        </div>
-
-                        <h3>Begin Your Mission</h3>
-                        <p>You are now ready. Use the experiment loop, get promoted, unlock all the tools, and find the best combination to get the highest score.</p>
-                        <p><strong>Remember: You've seen how these predictions affect real life decisions. Build accordingly.</strong></p>
-                    </div>
-                </div>
-                """
-            )
-            # --- END FIX ---
-            
-            with gr.Row():
-                briefing_7_back = gr.Button("◀️ Back", size="lg")
-                briefing_7_next = gr.Button("Begin Model Building ▶️", variant="primary", size="lg")
+                briefing_6_next = gr.Button("Begin Model Building ▶️", variant="primary", size="lg")
 
         # --- End Briefing Slideshow ---
 
@@ -3840,8 +3895,9 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
 
                     model_type_radio = gr.Radio(
                         label="1. Model Strategy",
-                        choices=[],
-                        value=None,
+                        # Initialize with all possible keys so validation passes even if browser caches a high-rank selection
+                        choices=list(MODEL_TYPES.keys()), 
+                        value=DEFAULT_MODEL,
                         interactive=False
                     )
                     model_card_display = gr.Markdown(get_model_card(DEFAULT_MODEL))
@@ -3948,7 +4004,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         # --- Navigation Logic ---
         all_steps_nav = [
             briefing_slide_1, briefing_slide_2, briefing_slide_3,
-            briefing_slide_4, briefing_slide_5, briefing_slide_6, briefing_slide_7,
+            briefing_slide_4, briefing_slide_5,  briefing_slide_6, 
             model_building_step, conclusion_step, loading_screen
         ]
 
@@ -4100,31 +4156,20 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
         briefing_5_back.click(
             fn=create_nav(briefing_slide_5, briefing_slide_4),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-4", "Revisiting the loop...")
+            js=nav_js("slide-4", "System check...")
         )
         briefing_5_next.click(
-            fn=create_nav(briefing_slide_5, briefing_slide_6),
+            fn=create_nav(briefing_slide_5,briefing_slide_6),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-6", "Configuring data inputs...")
+            js=nav_js("slide-6", "Final Clearance...")
         )
         briefing_6_back.click(
             fn=create_nav(briefing_slide_6, briefing_slide_5),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-5", "Adjusting model strategy...")
+            js=nav_js("slide-5", "Configuring brain settings...")
         )
         briefing_6_next.click(
-            fn=create_nav(briefing_slide_6, briefing_slide_7),
-            inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-7", "Preparing scoring overview...")
-        )
-        briefing_7_back.click(
-            fn=create_nav(briefing_slide_7, briefing_slide_6),
-            inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-6", "Reviewing data knobs...")
-        )
-        # Slide 7 -> App
-        briefing_7_next.click(
-            fn=create_nav(briefing_slide_7, model_building_step),
+            fn=create_nav(briefing_slide_6, model_building_step),
             inputs=None, outputs=all_steps_nav,
             js=nav_js("model-step", "Entering model arena...")
         )
@@ -4241,7 +4286,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             js=nav_js("model-step", "Running experiment...", 500)
         )
 
-        # Timer for polling initialization status
+       # Timer for polling initialization status
         status_timer = gr.Timer(value=0.5, active=True)  # Poll every 0.5 seconds
         
         def update_init_status():
@@ -4282,7 +4327,6 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
             inputs=None,
             outputs=[init_status_display, init_banner, submit_button, data_size_radio, status_timer, readiness_state]
         )
-
         # Handle session-based authentication on page load
         def handle_load_with_session_auth(request: "gr.Request"):
             """
@@ -4360,7 +4404,7 @@ def create_model_building_game_app(theme_primary_hue: str = "indigo") -> "gr.Blo
 # 4. Convenience Launcher
 # -------------------------------------------------------------------------
 
-def launch_model_building_game_app(height: int = 1200, share: bool = False, debug: bool = False) -> None:
+def launch_model_building_game_en_app(height: int = 1200, share: bool = False, debug: bool = False) -> None:
     """
     Create and directly launch the Model Building Game app inline (e.g., in notebooks).
     """
@@ -4375,6 +4419,7 @@ def launch_model_building_game_app(height: int = 1200, share: bool = False, debu
     if X_TRAIN_RAW is None:
         X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data()
 
-    demo = create_model_building_game_app()
+    demo = create_model_building_game_en_app()
+
     port = int(os.environ.get("PORT", 8080))
     demo.launch(share=share, inline=True, debug=debug, height=height, server_port=port)
