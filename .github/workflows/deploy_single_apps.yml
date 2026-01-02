@@ -124,7 +124,7 @@ jobs:
   collect-urls:
     runs-on: ubuntu-latest
     needs:
-      - deploy-model-building-game-en
+      - deploy-model-building-game
 
     steps:
       - name: Generate JSON of deployed URLs
