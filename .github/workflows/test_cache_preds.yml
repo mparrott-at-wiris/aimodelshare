@@ -47,5 +47,5 @@ jobs:
       - name: Run Verification Script
         env:
           # Inject the secret here so Python can read os.environ["SESSION_ID"]
-          SESSION_ID: ${{ secrets.SESSION_ID }}
+          SESSION_ID: ${{ secrets.MC_TEST_SESSIONID }}
         run: python tests/verify_cache_integrity.py
