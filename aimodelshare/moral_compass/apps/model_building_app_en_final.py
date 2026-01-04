@@ -1551,7 +1551,7 @@ def run_experiment(
     if readiness_flag is not None:
         ready = readiness_flag
     else:
-        ready = _is_ready()
+        ready = True  # App is always ready with cached predictions
     _log(f"run_experiment: ready={ready}, username={username}, token_present={token is not None}")
     
     # Add debug log (optional)
@@ -1638,6 +1638,10 @@ def run_experiment(
         # --- Stage 2: Smart Build (Cache vs Train) ---
         progress(0.3, desc="Building Model...")
         
+        # Ensure test labels are loaded
+        _ensure_y_test_loaded()
+        
+        
         # 1. Generate Cache Key (Matches format in precompute_cache.py)
         # Key: "ModelName|Complexity|DataSize|SortedFeatures"
         sanitized_features = sorted([str(f) for f in feature_set])
@@ -1710,7 +1714,7 @@ def run_experiment(
             else:
                 preds_array = predictions
                 
-            preview_score = accuracy_score(Y_TEST, preds_array)
+            preview_score = accuracy_score(_Y_TEST, preds_array)
             
             preview_kpi_meta = {
                 "was_preview": True, "preview_score": preview_score, "ready_at_run_start": ready,
@@ -1806,7 +1810,7 @@ def run_experiment(
             local_accuracy_preds = np.array(predictions)
         else:
             local_accuracy_preds = predictions
-        local_test_accuracy = accuracy_score(Y_TEST, local_accuracy_preds)
+        local_test_accuracy = accuracy_score(_Y_TEST, local_accuracy_preds)
 
         # 2. SUBMIT & CAPTURE ACCURACY
         def _submit():
@@ -2009,6 +2013,9 @@ def run_experiment(
 
 def on_initial_load(username, token=None, team_name=""):
     """
+    # Load test labels immediately (lightweight)
+    _ensure_y_test_loaded()
+    
     Updated to show "Welcome & CTA" if the SPECIFIC USER has 0 submissions,
     even if the leaderboard/team already has data from others.
     """
@@ -3658,7 +3665,7 @@ def launch_model_building_game_en_final_app(height: int = 1200, share: bool = Fa
     """
     Create and directly launch the Model Building Game app inline (e.g., in notebooks).
     """
-    global playground, X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST
+    global playground
     if playground is None:
         try:
             playground = Competition(MY_PLAYGROUND_ID)
