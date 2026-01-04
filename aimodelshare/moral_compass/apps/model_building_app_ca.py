@@ -1675,10 +1675,10 @@ def perform_inline_login(username_input, password_input):
         }
 
 def run_experiment(
-    model_name_key,      # Recieves ENGLISH KEY (e.g., "The Balanced Generalist") from the updated Radio Tuples
+    model_name_key,
     complexity_level,
     feature_set,
-    data_size_str,       # Recieves CATALAN LABEL (e.g., "Petita (20%)")
+    data_size_str,
     team_name,
     last_submission_score,
     last_rank,
@@ -1692,620 +1692,219 @@ def run_experiment(
     progress=gr.Progress()
 ):
     """
-    Core experiment: Uses 'yield' for visual updates and progress bar.
-    Updated to translate Catalan inputs to English keys for Cache/DB lookup.
+    Core experiment using precomputed predictions.
+    No runtime training or feature transformation.
     """
-    # --- COLLISION GUARDS ---
-    # Log types of potentially shadowed names to ensure they refer to component objects, not dicts
-    _log(f"DEBUG guard: types — submit_button={type(submit_button)} submission_feedback_display={type(submission_feedback_display)} kpi_meta_state={type(kpi_meta_state)} was_preview_state={type(was_preview_state)} readiness_flag_param={type(readiness_flag)}")
-    
-    # If any of the component names are found as dicts (indicating parameter shadowing), short-circuit
-    if isinstance(submit_button, dict) or isinstance(submission_feedback_display, dict) or isinstance(kpi_meta_state, dict) or isinstance(was_preview_state, dict):
-        error_html = """
-        <div class='kpi-card' style='border-color: #ef4444;'>
-            <h2 style='color: #111827; margin-top:0;'>⚠️ Configuration Error</h2>
-            <div class='kpi-card-body'>
-                <p style='color: #991b1b;'>Parameter shadowing detected. Global component variables were shadowed by local parameters.</p>
-                <p style='color: #7f1d1d; margin-top: 8px;'>Please refresh the page and try again. If the issue persists, contact support.</p>
-            </div>
-        </div>
-        """
-        yield {
-            submission_feedback_display: gr.update(value=error_html, visible=True),
-            submit_button: gr.update(value="🔬 Construir i enviar el model", interactive=True)
-        }
-        return
-    
-    # --- TRANSLATION LOGIC (THE FIX) ---
-    # 1. Translate Data Size to English for DB/Cache Lookup
-    # Example: "Petita (20%)" -> "Small (20%)"
-    # Fallback to the input string if not found in map
-    db_data_size = DATA_SIZE_DB_MAP.get(data_size_str, "Small (20%)")
-    
-    # Sanitize feature_set: convert dicts/tuples to their string values
-    sanitized_feature_set = []
-    for feat in (feature_set or []):
-        if isinstance(feat, dict):
-            sanitized_feature_set.append(feat.get("value", str(feat)))
-        elif isinstance(feat, tuple):
-            sanitized_feature_set.append(feat[1] if len(feat) > 1 else str(feat))
-        else:
-            sanitized_feature_set.append(str(feat))
-    feature_set = sanitized_feature_set
-    
-    # Use readiness_flag parameter if provided, otherwise check readiness
-    if readiness_flag is not None:
-        ready = readiness_flag
-    else:
-        ready = _is_ready()
-    _log(f"run_experiment: ready={ready}, username={username}, token_present={token is not None}")
-    
-    # Default to "Unknown_User" only if no username provided via state.
-    if not username:
-        username = "Unknown_User"
-    
-    # Helper to generate the animated HTML
+    progress(0.1, desc="Iniciant l'experiment...")
     def get_status_html(step_num, title, subtitle):
         return f"""
         <div class='processing-status'>
             <span class='processing-icon'>⚙️</span>
-            <div class='processing-text'>Step {step_num}/5: {title}</div>
+            <div class='processing-text'>Pas {step_num}/5: {title}</div>
             <div class='processing-subtext'>{subtitle}</div>
         </div>
         """
-
-    # --- Stage 1: Lock UI and give initial feedback ---
-    progress(0.1, desc="Iniciant l'experiment...")
-    initial_updates = {
+    yield {
         submit_button: gr.update(value="⏳ Experiment en curs...", interactive=False),
-        submission_feedback_display: gr.update(value=get_status_html(1, "Iniciant", "Preparant les variables de dades..."), visible=True), # Make sure it's visible
-        login_error: gr.update(visible=False), # Hide login success/error message
+        submission_feedback_display: gr.update(value=get_status_html(1, "Iniciant", "Preparant les variables de dades..."), visible=True),
+        login_error: gr.update(visible=False),
         attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))
     }
-    yield initial_updates
 
-    # Ensure model key is valid (It should already be English from the Radio Tuple)
     if not model_name_key or model_name_key not in MODEL_TYPES:
         model_name_key = DEFAULT_MODEL
-        
     complexity_level = safe_int(complexity_level, 2)
+    if not username:
+        username = "Unknown_User"
 
-    log_output = f"▶ New Experiment\nModel: {model_name_key}\n..."
-
-    # Check readiness
-    with INIT_LOCK:
-        flags = INIT_FLAGS.copy()
-    
-    # Normalize variable name for consistency
-    ready_for_submission = ready
-    
-    # If not ready but warm mini available, run preview
-    if not ready_for_submission and flags["warm_mini"] and X_TRAIN_WARM is not None:
-        _log("Running warm mini preview (not ready yet)")
-        progress(0.5, desc="Executant la vista prèvia...")
-        yield { 
-            submission_feedback_display: gr.update(value=get_status_html("Vista prèvia", "Prova d'escalfament", "Provant amb un conjunt de dades reduït..."), visible=True),
-            login_error: gr.update(visible=False)
-        }
-        
-        try:
-            # Run preview on warm mini dataset
-            numeric_cols = [f for f in feature_set if f in ALL_NUMERIC_COLS]
-            categorical_cols = [f for f in feature_set if f in ALL_CATEGORICAL_COLS]
-            
-            if not numeric_cols and not categorical_cols:
-                raise ValueError("No features selected for modeling.")
-            
-            # Quick preprocessing and training on warm mini (uses memoized preprocessor)
-            preprocessor, selected_cols = build_preprocessor(numeric_cols, categorical_cols)
-            
-            X_warm_processed = preprocessor.fit_transform(X_TRAIN_WARM[selected_cols])
-            X_test_processed = preprocessor.transform(X_TEST_RAW[selected_cols])
-            
-            base_model = MODEL_TYPES[model_name_key]["model_builder"]()
-            tuned_model = tune_model_complexity(base_model, complexity_level)
-            
-            # Handle sparse arrays for models that require dense input
-            if isinstance(tuned_model, (DecisionTreeClassifier, RandomForestClassifier)):
-                X_warm_for_fit = _ensure_dense(X_warm_processed)
-                X_test_for_predict = _ensure_dense(X_test_processed)
-            else:
-                X_warm_for_fit = X_warm_processed
-                X_test_for_predict = X_test_processed
-            
-            tuned_model.fit(X_warm_for_fit, Y_TRAIN_WARM)
-            
-            # Get preview score
-            from sklearn.metrics import accuracy_score
-            predictions = tuned_model.predict(X_test_for_predict)
-            preview_score = accuracy_score(Y_TEST, predictions)
-            
-            # Update metadata state
-            new_kpi_meta = {
-                "was_preview": True,
-                "preview_score": preview_score,
-                "ready_at_run_start": False,
-                "poll_iterations": 0,
-                "local_test_accuracy": preview_score,
-                "this_submission_score": None,
-                "new_best_accuracy": None,
-                "rank": None
-            }
-            
-            # Show preview card
-            preview_html = _build_kpi_card_html(
-                preview_score, 0, 0, 0, -1, 
-                is_preview=True, is_pending=False, local_test_accuracy=None
-            )
-            
-            settings = compute_rank_settings(
-                 submission_count, model_name_key, complexity_level, feature_set, data_size_str
-            )
-            
-            final_updates = {
-                submission_feedback_display: gr.update(value=preview_html, visible=True),
-                team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
-                individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
-                last_submission_score_state: last_submission_score,
-                last_rank_state: last_rank,
-                best_score_state: best_score,
-                submission_count_state: submission_count,
-                first_submission_score_state: first_submission_score,
-                rank_message_display: settings["rank_message"],
-                model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
-                complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
-                feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
-                data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-                submit_button: gr.update(value="🔬 Construir i enviar el model", interactive=True),
-                login_username: gr.update(visible=False),
-                login_password: gr.update(visible=False),
-                login_submit: gr.update(visible=False),
-                login_error: gr.update(visible=False),
-                attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
-                was_preview_state: True,
-                kpi_meta_state: new_kpi_meta,
-                last_seen_ts_state: None  # No timestamp for preview
-            }
-            yield final_updates
-            return
-            
-        except Exception as e:
-            _log(f"Preview failed: {e}")
-            # Fall through to error handling
-    
-    if playground is None or not ready_for_submission:
-        settings = compute_rank_settings(
-             submission_count, model_name_key, complexity_level, feature_set, data_size_str
-        )
-        
-        error_msg = "<p style='text-align:center; color:red; padding:20px 0;'>"
-        if playground is None:
-            error_msg += "Playground not connected. Please try again later."
+    sanitized_features = []
+    for f in (feature_set or []):
+        if isinstance(f, dict):
+            sanitized_features.append(f.get("value", str(f)))
+        elif isinstance(f, tuple):
+            sanitized_features.append(f[1] if len(f) > 1 else str(f))
         else:
-            error_msg += "Data still initializing. Please wait a moment and try again."
-        error_msg += "</p>"
-        
-        error_kpi_meta = {
-            "was_preview": False,
-            "preview_score": None,
-            "ready_at_run_start": False,
-            "poll_iterations": 0,
-            "local_test_accuracy": None,
-            "this_submission_score": None,
-            "new_best_accuracy": None,
-            "rank": None
-        }
-        
-        error_updates = {
-            submission_feedback_display: gr.update(value=error_msg, visible=True),
+            sanitized_features.append(str(f))
+    sanitized_features = sorted(sanitized_features)
+
+    db_data_size = DATA_SIZE_DB_MAP.get(data_size_str, "Small (20%)")
+    feature_key = ",".join(sanitized_features)
+    cache_key = f"{model_name_key}|{complexity_level}|{db_data_size}|{feature_key}"
+
+    _ensure_y_test_loaded()
+
+    progress(0.3, desc="Carregant les prediccions...")
+    yield {submission_feedback_display: gr.update(value=get_status_html(2, "Carregant prediccions", "⚡ Recuperant resultats precomputats..."), visible=True)}
+    cached_predictions = get_cached_prediction(cache_key)
+    if not cached_predictions:
+        error_html = f"""
+        <div style='background:#fee2e2; padding:16px; border-radius:8px; border:2px solid #ef4444; color:#991b1b; text-align:center;'>
+            <h3 style='margin:0;'>⚠️ Configuració no trobada</h3>
+            <p style='margin:8px 0;'>Aquesta combinació específica de paràmetres no s'ha trobat a la nostra base de dades.</p>
+            <p style='font-size:0.9em;'>Si us plau, ajusta la configuració (per exemple, canvia la mida de les dades o l'estratègia del model) i torna-ho a provar.</p>
+        </div>
+        """
+        settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
+        yield {
+            submission_feedback_display: gr.update(value=error_html, visible=True),
             submit_button: gr.update(value="🔬 Construir i enviar el model", interactive=True),
-            team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
-            individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
-            last_submission_score_state: last_submission_score,
-            last_rank_state: last_rank,
-            best_score_state: best_score,
-            submission_count_state: submission_count,
-            first_submission_score_state: first_submission_score,
             rank_message_display: settings["rank_message"],
             model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
             complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
             feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
             data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-            login_username: gr.update(visible=False),
-            login_password: gr.update(visible=False),
-            login_submit: gr.update(visible=False),
-            login_error: gr.update(visible=False),
-            attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
-            was_preview_state: False,
-            kpi_meta_state: error_kpi_meta,
-            last_seen_ts_state: None
         }
-        yield error_updates
         return
 
-    try:
-        # --- Stage 2: Smart Build (Cache vs Train) ---
-        progress(0.3, desc="Creant model...")
-        
-        # 1. Generate Cache Key (Matches format in precompute_cache.py)
-        # Uses ENGLISH keys: "The Balanced Generalist|2|Small (20%)|age,race"
-        sanitized_features = sorted([str(f) for f in feature_set])
-        feature_key = ",".join(sanitized_features)
-        
-        cache_key = f"{model_name_key}|{complexity_level}|{db_data_size}|{feature_key}"
-        
-        _log(f"Generated Key: {cache_key}") # Debug Log
+    predictions = np.array([int(c) for c in cached_predictions], dtype=np.uint8)
+    from sklearn.metrics import accuracy_score
+    local_test_accuracy = accuracy_score(_Y_TEST, predictions)
 
-        # 2. Check Cache
-        cached_predictions = get_cached_prediction(cache_key)
-        
-        # Initialize submission variables
-        predictions = None
-        tuned_model = None
-        preprocessor = None
-        
-        if cached_predictions:
-            # === FAST PATH (Zero CPU) ===
-            _log(f"⚡ CACHE HIT: {cache_key}")
-            yield { 
-                submission_feedback_display: gr.update(value=get_status_html(2, "Training Model", "⚡ The machine is learning from history..."), visible=True),
-                login_error: gr.update(visible=False)
-            }
-
-            # --- DECOMPRESSION STEP ---
-            if isinstance(cached_predictions, str):
-                predictions = [int(c) for c in cached_predictions]
-            else:
-                predictions = cached_predictions
-
-            tuned_model = None
-            preprocessor = None
-            
-        else:
-            # === CACHE MISS (Training Disabled) ===
-            # This ensures we NEVER run heavy training code in production.
-            msg = f"❌ CACHE MISS: {cache_key}"
-            _log(msg)
-            
-            # User-friendly error message (Catalan)
-            error_html = f"""
-            <div style='background:#fee2e2; padding:16px; border-radius:8px; border:2px solid #ef4444; color:#991b1b; text-align:center;'>
-                <h3 style='margin:0;'>⚠️ Configuració no trobada</h3>
-                <p style='margin:8px 0;'>Aquesta combinació específica de paràmetres no s'ha trobat a la nostra base de dades.</p>
-                <p style='font-size:0.9em;'>Per garantir l'estabilitat del sistema, l'entrenament en temps real està desactivat. Si us plau, ajusta la configuració (per exemple, canvia la "Mida de les dades" o l'"Estratègia del model") i torna-ho a provar.</p>
-            </div>
-            """
-            
-            yield { 
-                submission_feedback_display: gr.update(value=error_html, visible=True),
-                submit_button: gr.update(value="🔬 Construir i enviar el model", interactive=True),
-                login_error: gr.update(visible=False)
-            }
-            return # <--- CRITICAL: Stop execution here.
-
-
-        # --- Stage 3: Submit (API Call 1) ---
-        # AUTHENTICATION GATE: Check for token before submission
-        if token is None:
-            # User not authenticated - compute preview score
-            progress(0.6, desc="Computing Preview Score...")
-            
-            # NOTE: Logic updated to handle cached predictions
-            from sklearn.metrics import accuracy_score
-            
-            # Ensure format is correct (list vs array)
-            if isinstance(predictions, list):
-                preds_for_metric = np.array(predictions)
-            else:
-                preds_for_metric = predictions
-                
-            preview_score = accuracy_score(Y_TEST, preds_for_metric)
-            
-            # ... (Rest of preview logic remains the same) ...
-            
-            preview_kpi_meta = {
-                "was_preview": True, "preview_score": preview_score, "ready_at_run_start": ready,
-                "poll_iterations": 0, "local_test_accuracy": preview_score,
-                "this_submission_score": None, "new_best_accuracy": None, "rank": None
-            }
-            
-            # 1. Generate the styled preview card
-            preview_card_html = _build_kpi_card_html(
-                new_score=preview_score, last_score=0, new_rank=0, last_rank=0,
-                submission_count=-1, is_preview=True, is_pending=False, local_test_accuracy=None
-            )
-            
-            # 2. Inject login text
-            login_prompt_text_html = build_login_prompt_html() 
-            closing_div_index = preview_card_html.rfind("</div>")
-            if closing_div_index != -1:
-                combined_html = preview_card_html[:closing_div_index] + login_prompt_text_html + "</div>"
-            else:
-                combined_html = preview_card_html + login_prompt_text_html 
-                
-            settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
-            
-            gate_updates = {
-                submission_feedback_display: gr.update(value=combined_html, visible=True),
-                submit_button: gr.update(value="Sign In Required", interactive=False),
-                login_username: gr.update(visible=True), login_password: gr.update(visible=True),
-                login_submit: gr.update(visible=True), login_error: gr.update(value="", visible=False),
-                team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
-                individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
-                last_submission_score_state: last_submission_score, last_rank_state: last_rank,
-                best_score_state: best_score, submission_count_state: submission_count,
-                first_submission_score_state: first_submission_score,
-                rank_message_display: settings["rank_message"],
-                model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
-                complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
-                feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
-                data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-                attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
-                was_preview_state: True, kpi_meta_state: preview_kpi_meta, last_seen_ts_state: None
-            }
-            yield gate_updates
-            return  # Stop here
-        
-        # --- ATTEMPT LIMIT CHECK ---
-        if submission_count >= ATTEMPT_LIMIT:
-            limit_warning_html = f"""
-            <div class='kpi-card' style='border-color: #ef4444;'>
-                <h2 style='color: #111827; margin-top:0;'>🛑 Límit d'enviaments assolit</h2>
-                <div class='kpi-card-body'>
-                    <div class='kpi-metric-box'>
-                        <p class='kpi-label'>Attempts Used</p>
-                        <p class='kpi-score' style='color: #ef4444;'>{ATTEMPT_LIMIT} / {ATTEMPT_LIMIT}</p>
-                    </div>
-                </div>
-                <div style='margin-top: 16px; background:#fef2f2; padding:16px; border-radius:12px; text-align:left; font-size:0.98rem; line-height:1.4;'>
-                    <p style='margin:0; color:#991b1b;'><b>Nice Work!</b> Scroll down to "Finish and Reflect".</p>
-                </div>
-            </div>"""
-            settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
-            limit_reached_updates = {
-                submission_feedback_display: gr.update(value=limit_warning_html, visible=True),
-                submit_button: gr.update(value="🛑 Límit d'enviaments assolit", interactive=False),
-                model_type_radio: gr.update(interactive=False), complexity_slider: gr.update(interactive=False),
-                feature_set_checkbox: gr.update(interactive=False), data_size_radio: gr.update(interactive=False),
-                attempts_tracker_display: gr.update(value=f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'><p style='margin:0; color:#991b1b; font-weight:600;'>🛑 Intents utilitzats: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT}</p></div>"),
-                team_leaderboard_display: team_leaderboard_display, individual_leaderboard_display: individual_leaderboard_display,
-                last_submission_score_state: last_submission_score, last_rank_state: last_rank,
-                best_score_state: best_score, submission_count_state: submission_count,
-                first_submission_score_state: first_submission_score, rank_message_display: settings["rank_message"],
-                login_username: gr.update(visible=False), login_password: gr.update(visible=False),
-                login_submit: gr.update(visible=False), login_error: gr.update(visible=False),
-                was_preview_state: False, kpi_meta_state: {}, last_seen_ts_state: None
-            }
-            yield limit_reached_updates
-            return
-        
-        progress(0.5, desc="S'està enviant al núvol...")
-        yield { 
-            submission_feedback_display: gr.update(value=get_status_html(3, "Enviament en curs", "S'està enviant el model al servidor de la competició..."), visible=True),
-            login_error: gr.update(visible=False)
-        }
-
-        
-        description = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
-        tags = f"team:{team_name},model:{model_name_key}"
-
-        # 1. FETCH BASELINE
-        baseline_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
-        
-        from sklearn.metrics import accuracy_score
-        local_test_accuracy = accuracy_score(Y_TEST, predictions)
-
-        # 2. SUBMIT & CAPTURE ACCURACY
-        def _submit():
-            return playground.submit_model(
-                model=tuned_model,  # This can now be None!
-                preprocessor=preprocessor, # This can now be None!
-                prediction_submission=predictions, # We explicitly send predictions
-                input_dict={'description': description, 'tags': tags},
-                custom_metadata={'Team': team_name, 'Moral_Compass': 0}, 
-                token=token,
-                return_metrics=["accuracy"] 
-            )
-        
-        try:
-            submit_result = _retry_with_backoff(_submit, description="model submission")
-            if isinstance(submit_result, tuple) and len(submit_result) == 3:
-                _, _, metrics = submit_result
-                if metrics and "accuracy" in metrics and metrics["accuracy"] is not None:
-                    this_submission_score = float(metrics["accuracy"])
-                else:
-                    this_submission_score = local_test_accuracy
-            else:
-                this_submission_score = local_test_accuracy
-        except Exception as e:
-            _log(f"Submission return parsing failed: {e}. Using local accuracy.")
-            this_submission_score = local_test_accuracy
-        
-        _log(f"Submission successful. Server Score: {this_submission_score}")
-
-        try:
-            # Short timeout to trigger the lambda without hanging the UI
-            _log("Triggering backend merge...")
-            playground.get_leaderboard(token=token) 
-        except Exception:
-            # We ignore errors here because the 'submit_model' post 
-            # already succeeded. This is just a cleanup task.
-            pass
-        # -------------------------------------------------------------------------
-
-        # Immediately increment submission count...
-        new_submission_count = submission_count + 1
-        new_first_submission_score = first_submission_score
-        if submission_count == 0 and first_submission_score is None:
-            new_first_submission_score = this_submission_score
-
-        # --- Stage 4: Local Rank Calculation (Optimistic) ---
-        progress(0.9, desc="Calculating Rank...")
-        
-        # 3. SIMULATE UPDATED LEADERBOARD
-        simulated_df = baseline_leaderboard_df.copy() if baseline_leaderboard_df is not None else pd.DataFrame()
-        
-        # We use pd.Timestamp.now() to ensure pandas sorting logic sees this as the absolute latest
-        new_row = pd.DataFrame([{
-            "username": username,
-            "accuracy": this_submission_score,
-            "Team": team_name,
-            "timestamp": pd.Timestamp.now(), 
-            "version": "latest"
-        }])
-        
-        if not simulated_df.empty:
-            simulated_df = pd.concat([simulated_df, new_row], ignore_index=True)
-        else:
-            simulated_df = new_row
-
-        # 4. GENERATE TABLES (Use helper for tables only)
-        # We ignore the kpi_card return from this function because it might use internal sorting 
-        # that doesn't respect our new row perfectly.
-        team_html, individual_html, _, new_best_accuracy, new_rank, _ = generate_competitive_summary(
-            simulated_df, team_name, username, last_submission_score, last_rank, submission_count
+    if token is None:
+        progress(0.6, desc="Calculant la vista prèvia...")
+        preview_card_html = _build_kpi_card_html(
+            new_score=local_test_accuracy, last_score=0, new_rank=0, last_rank=0,
+            submission_count=-1, is_preview=True, is_pending=False, local_test_accuracy=None
         )
-
-        # 5. GENERATE KPI CARD EXPLICITLY (The Authority Fix)
-        # We manually build the card using the score we KNOW we just got.
-        kpi_card_html = _build_kpi_card_html(
-            new_score=this_submission_score,
-            last_score=last_submission_score,
-            new_rank=new_rank,
-            last_rank=last_rank,
-            submission_count=submission_count, 
-            is_preview=False,
-            is_pending=False
-        )
-
-# ... (Previous Stage 1-4 logic remains unchanged) ...
-
-        # --- Stage 5: Final UI Update ---
-        progress(1.0, desc="Complete!")
-        
-        success_kpi_meta = {
-            "was_preview": False, "preview_score": None, "ready_at_run_start": ready,
-            "poll_iterations": 0, "local_test_accuracy": local_test_accuracy,
-            "this_submission_score": this_submission_score, "new_best_accuracy": new_best_accuracy,
-            "rank": new_rank, "pending": False, "optimistic_fallback": True 
-        }
-        
-        settings = compute_rank_settings(new_submission_count, model_name_key, complexity_level, feature_set, data_size_str)
-
-        # -------------------------------------------------------------------------
-        # NEW LOGIC: Check for Limit Reached immediately AFTER this submission
-        # -------------------------------------------------------------------------
-        limit_reached = new_submission_count >= ATTEMPT_LIMIT
-        
-        # Prepare the UI state based on whether limit is reached
-        if limit_reached:
-            # 1. Append the Limit Warning HTML *below* the Result Card
-            limit_html = f"""
-            <div style='margin-top: 16px; border: 2px solid #ef4444; background:#fef2f2; padding:16px; border-radius:12px; text-align:left;'>
-                <h3 style='margin:0 0 8px 0; color:#991b1b;'>🛑 Límit d'enviaments assolit ({ATTEMPT_LIMIT}/{ATTEMPT_LIMIT})</h3>
-                <p style='margin:0; color:#7f1d1d; line-height:1.4;'>
-                    <b>You have used all your attempts for this session.</b><br>
-                    Revisa els teus resultats finals a dalt i després baixa fins a "Finalitzar i reflexionar" per continuar.
-                </p>
-            </div>
-            """
-            final_html_display = kpi_card_html + limit_html
-            
-            # 2. Disable all controls
-            button_update = gr.update(value="🛑 Límit assolit", interactive=False)
-            interactive_state = False
-            tracker_html = f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'><p style='margin:0; color:#991b1b; font-weight:600;'>🛑 Intents utilitzats: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT} (Max)</p></div>"
-        
-        else:
-            # Normal State: Show just the result card and keep controls active
-            final_html_display = kpi_card_html
-            button_update = gr.update(value="🔬 Construir i enviar model", interactive=True)
-            interactive_state = True
-            tracker_html = _build_attempts_tracker_html(new_submission_count)
-
-        # -------------------------------------------------------------------------
-
-        final_updates = {
-            submission_feedback_display: gr.update(value=final_html_display, visible=True),
-            team_leaderboard_display: team_html,
-            individual_leaderboard_display: individual_html,
-            last_submission_score_state: this_submission_score, 
-            last_rank_state: new_rank, 
-            best_score_state: new_best_accuracy,
-            submission_count_state: new_submission_count,
-            first_submission_score_state: new_first_submission_score,
-            rank_message_display: settings["rank_message"],
-            
-            # Apply the interactive state calculated above
-            model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=(settings["model_interactive"] and interactive_state)),
-            complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"], interactive=interactive_state),
-            feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=(settings["feature_set_interactive"] and interactive_state)),
-            data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=(settings["data_size_interactive"] and interactive_state)),
-            
-            submit_button: button_update,
-            
-            login_username: gr.update(visible=False), login_password: gr.update(visible=False),
-            login_submit: gr.update(visible=False), login_error: gr.update(visible=False),
-            attempts_tracker_display: gr.update(value=tracker_html),
-            was_preview_state: False,
-            kpi_meta_state: success_kpi_meta,
-            last_seen_ts_state: time.time()
-        }
-        yield final_updates
-      
-    except Exception as e:
-        error_msg = f"ERROR: {e}"
-        _log(f"Exception in run_experiment: {error_msg}")
-        settings = compute_rank_settings(
-             submission_count, model_name_key, complexity_level, feature_set, data_size_str
-        )
-        
-        exception_kpi_meta = {
-            "was_preview": False,
-            "preview_score": None,
-            "ready_at_run_start": ready if 'ready' in locals() else False,
-            "poll_iterations": 0,
-            "local_test_accuracy": None,
-            "this_submission_score": None,
-            "new_best_accuracy": None,
-            "rank": None,
-            "error": str(e)
-        }
-        
-        error_updates = {
-            submission_feedback_display: gr.update(
-                f"<p style='text-align:center; color:red; padding:20px 0;'>An error occurred: {error_msg}</p>", visible=True
-            ),
-            team_leaderboard_display: f"<p style='text-align:center; color:red; padding-top:20px;'>An error occurred: {error_msg}</p>",
-            individual_leaderboard_display: f"<p style='text-align:center; color:red; padding-top:20px;'>An error occurred: {error_msg}</p>",
-            last_submission_score_state: last_submission_score,
-            last_rank_state: last_rank,
-            best_score_state: best_score,
-            submission_count_state: submission_count,
+        login_prompt_text_html = build_login_prompt_html()
+        closing_div_index = preview_card_html.rfind("</div>")
+        combined_html = preview_card_html[:closing_div_index] + login_prompt_text_html + "</div>" if closing_div_index != -1 else preview_card_html + login_prompt_text_html
+        settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
+        yield {
+            submission_feedback_display: gr.update(value=combined_html, visible=True),
+            submit_button: gr.update(value="Sign In Required", interactive=False),
+            login_username: gr.update(visible=True), login_password: gr.update(visible=True),
+            login_submit: gr.update(visible=True), login_error: gr.update(value="", visible=False),
+            team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
+            individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
+            last_submission_score_state: last_submission_score, last_rank_state: last_rank,
+            best_score_state: best_score, submission_count_state: submission_count,
             first_submission_score_state: first_submission_score,
             rank_message_display: settings["rank_message"],
             model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
             complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
             feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
             data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-            submit_button: gr.update(value="🔬 Construir i enviar model", interactive=True),
-            login_username: gr.update(visible=False),
-            login_password: gr.update(visible=False),
-            login_submit: gr.update(visible=False),
-            login_error: gr.update(visible=False),
             attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
-            was_preview_state: False,
-            kpi_meta_state: exception_kpi_meta,
-            last_seen_ts_state: None
+            was_preview_state: True, kpi_meta_state: {"was_preview": True, "preview_score": local_test_accuracy, "local_test_accuracy": local_test_accuracy}, last_seen_ts_state: None
         }
-        yield error_updates
+        return
+
+    if submission_count >= ATTEMPT_LIMIT:
+        limit_warning_html = f"""
+        <div class='kpi-card' style='border-color: #ef4444;'>
+            <h2 style='color: #111827; margin-top:0;'>🛑 Límit d'enviaments assolit</h2>
+            <div class='kpi-card-body'>
+                <div class='kpi-metric-box'>
+                    <p class='kpi-label'>Intents utilitzats</p>
+                    <p class='kpi-score' style='color: #ef4444;'>{ATTEMPT_LIMIT} / {ATTEMPT_LIMIT}</p>
+                </div>
+            </div>
+            <div style='margin-top: 16px; background:#fef2f2; padding:16px; border-radius:12px; text-align:left; font-size:0.98rem; line-height:1.4;'>
+                <p style='margin:0; color:#991b1b;'><b>Molt bona feina!</b> Baixa fins a «Finalitzar i reflexionar».</p>
+            </div>
+        </div>"""
+        settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
+        yield {
+            submission_feedback_display: gr.update(value=limit_warning_html, visible=True),
+            submit_button: gr.update(value="🛑 Límit d'enviaments assolit", interactive=False),
+            model_type_radio: gr.update(interactive=False), complexity_slider: gr.update(interactive=False),
+            feature_set_checkbox: gr.update(interactive=False), data_size_radio: gr.update(interactive=False),
+            attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
+            team_leaderboard_display: team_leaderboard_display, individual_leaderboard_display: individual_leaderboard_display,
+            last_submission_score_state: last_submission_score, last_rank_state: last_rank,
+            best_score_state: best_score, submission_count_state: submission_count,
+            first_submission_score_state: first_submission_score, rank_message_display: settings["rank_message"],
+            login_username: gr.update(visible=False), login_password: gr.update(visible=False),
+            login_submit: gr.update(visible=False), login_error: gr.update(visible=False),
+            was_preview_state: False, kpi_meta_state: {}, last_seen_ts_state: None
+        }
+        return
+
+    progress(0.5, desc="S'està enviant al núvol...")
+    yield {submission_feedback_display: gr.update(value=get_status_html(3, "Enviament en curs", "S'està enviant el model al servidor de la competició..."), visible=True)}
+    baseline_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
+
+    def _submit():
+        return playground.submit_model(
+            model=None,
+            preprocessor=None,
+            prediction_submission=predictions.tolist(),
+            input_dict={'description': f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})", 'tags': f"team:{team_name},model:{model_name_key}"},
+            custom_metadata={'Team': team_name, 'Moral_Compass': 0},
+            token=token,
+            return_metrics=["accuracy"]
+        )
+
+    try:
+        submit_result = _retry_with_backoff(_submit, description="model submission")
+        if isinstance(submit_result, tuple) and len(submit_result) == 3:
+            _, _, metrics = submit_result
+            this_submission_score = float(metrics.get("accuracy", local_test_accuracy)) if metrics else local_test_accuracy
+        else:
+            this_submission_score = local_test_accuracy
+    except Exception:
+        this_submission_score = local_test_accuracy
+
+    new_submission_count = submission_count + 1
+    new_first_submission_score = first_submission_score if first_submission_score is not None else this_submission_score if submission_count == 0 else first_submission_score
+
+    simulated_df = baseline_leaderboard_df.copy() if baseline_leaderboard_df is not None else pd.DataFrame()
+    new_row = pd.DataFrame([{"username": username, "accuracy": this_submission_score, "Team": team_name, "timestamp": pd.Timestamp.now(), "version": "latest"}])
+    simulated_df = pd.concat([simulated_df, new_row], ignore_index=True) if not simulated_df.empty else new_row
+
+    team_html, individual_html, _, new_best_accuracy, new_rank, _ = generate_competitive_summary(simulated_df, team_name, username, last_submission_score, last_rank, submission_count)
+    kpi_card_html = _build_kpi_card_html(new_score=this_submission_score, last_score=last_submission_score, new_rank=new_rank, last_rank=last_rank, submission_count=submission_count, is_preview=False, is_pending=False)
+
+    progress(1.0, desc="Complet!")
+    limit_reached = new_submission_count >= ATTEMPT_LIMIT
+    if limit_reached:
+        limit_html = f"""
+        <div style='margin-top: 16px; border: 2px solid #ef4444; background:#fef2f2; padding:16px; border-radius:12px; text-align:left;'>
+            <h3 style='margin:0 0 8px 0; color:#991b1b;'>🛑 Límit d'enviaments assolit ({ATTEMPT_LIMIT}/{ATTEMPT_LIMIT})</h3>
+            <p style='margin:0; color:#7f1d1d; line-height:1.4;'>Revisa els teus resultats finals a dalt i baixa fins a «Finalitzar i reflexionar» per continuar.</p>
+        </div>"""
+        final_html_display = kpi_card_html + limit_html
+        button_update = gr.update(value="🛑 Límit assolit", interactive=False)
+        interactive_state = False
+        tracker_html = _build_attempts_tracker_html(new_submission_count)
+    else:
+        final_html_display = kpi_card_html
+        button_update = gr.update(value="🔬 Construir i enviar model", interactive=True)
+        interactive_state = True
+        tracker_html = _build_attempts_tracker_html(new_submission_count)
+
+    settings = compute_rank_settings(new_submission_count, model_name_key, complexity_level, feature_set, data_size_str)
+    yield {
+        submission_feedback_display: gr.update(value=final_html_display, visible=True),
+        team_leaderboard_display: team_html,
+        individual_leaderboard_display: individual_html,
+        last_submission_score_state: this_submission_score,
+        last_rank_state: new_rank,
+        best_score_state: new_best_accuracy,
+        submission_count_state: new_submission_count,
+        first_submission_score_state: new_first_submission_score,
+        rank_message_display: settings["rank_message"],
+        model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=(settings["model_interactive"] and interactive_state)),
+        complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"], interactive=interactive_state),
+        feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=(settings["feature_set_interactive"] and interactive_state)),
+        data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=(settings["data_size_interactive"] and interactive_state)),
+        submit_button: button_update,
+        login_username: gr.update(visible=False), login_password: gr.update(visible=False),
+        login_submit: gr.update(visible=False), login_error: gr.update(visible=False),
+        attempts_tracker_display: gr.update(value=tracker_html),
+        was_preview_state: False,
+        kpi_meta_state: {"was_preview": False, "preview_score": None, "local_test_accuracy": local_test_accuracy, "this_submission_score": this_submission_score, "new_best_accuracy": new_best_accuracy, "rank": new_rank},
+        last_seen_ts_state: time.time()
+    }
 
 
 def on_initial_load(username, token=None, team_name=""):
     """
-    Updated to show "Welcome & CTA" if the SPECIFIC USER has 0 submissions,
-    even if the leaderboard/team already has data from others.
+    Load initial UI state. Immediately ready since predictions are precomputed.
     """
+    _ensure_y_test_loaded()
+    
     initial_ui = compute_rank_settings(
         0, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE
     )
@@ -2324,26 +1923,19 @@ def on_initial_load(username, token=None, team_name=""):
         
         <div style='background:#eff6ff; padding:16px; border-radius:12px; border:2px solid #bfdbfe; display:inline-block;'>
             <p style='margin:0; color:#1e40af; font-weight:bold; font-size:1.1rem;'>
-                👈 Fes clic al botó 'Construir i enviar model' per començar a jugar!
+                👈 Fes clic a 'Construir i enviar model' per començar!
             </p>
         </div>
     </div>
     """
 
-    # Check background init
-    with INIT_LOCK:
-        background_ready = INIT_FLAGS["leaderboard"]
-    
-    should_attempt_fetch = background_ready or (token is not None)
     full_leaderboard_df = None
-    
-    if should_attempt_fetch:
-        try:
-            if playground:
-                full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
-        except Exception as e:
-            print(f"Error on initial load fetch: {e}")
-            full_leaderboard_df = None
+    try:
+        if playground:
+            full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
+    except Exception as e:
+        print(f"Error on initial load fetch: {e}")
+        full_leaderboard_df = None
 
     # -------------------------------------------------------------------------
     # LOGIC UPDATE: Check if THIS user has submitted anything
@@ -2476,7 +2068,15 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
     """
     Create (but do not launch) the model building game app.
     """
-    start_background_init()
+    # Initialize Competition once at startup
+    global playground
+    if playground is None:
+        try:
+            playground = Competition(MY_PLAYGROUND_ID)
+            print("✅ Competition connection initialized successfully")
+        except Exception as e:
+            print(f"⚠️ WARNING: Could not connect to playground: {e}")
+            playground = None
 
     # Add missing globals (FIX)
     global submit_button, submission_feedback_display, team_leaderboard_display
@@ -4030,48 +3630,6 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
             js=nav_js("model-step", "Executant l'experiment...", 500)
         )
 
-        # Timer for polling initialization status
-        status_timer = gr.Timer(value=0.5, active=True)  # Poll every 0.5 seconds
-        
-        def update_init_status():
-            """
-            Poll initialization status and update UI elements.
-            Returns status HTML, banner visibility, submit button state, data size choices, and readiness_state.
-            """
-            status_html, ready = poll_init_status()
-            
-            # Update banner visibility - hide when ready
-            banner_visible = not ready
-            
-            # Update submit button
-            if ready:
-                submit_label = "5. 🔬 Construir i enviar el model"
-                submit_interactive = True
-            else:
-                submit_label = "⏳ Esperant les dades..."
-                submit_interactive = False
-            
-            # Get available data sizes based on init progress
-            available_sizes = get_available_data_sizes()
-            
-            # Stop timer once fully initialized
-            timer_active = not (ready and INIT_FLAGS.get("pre_samples_full", False))
-            
-            return (
-                status_html,
-                gr.update(visible=banner_visible),
-                gr.update(value=submit_label, interactive=submit_interactive),
-                gr.update(choices=available_sizes),
-                timer_active,
-                ready  # readiness_state
-            )
-        
-        status_timer.tick(
-            fn=update_init_status,
-            inputs=None,
-            outputs=[init_status_display, init_banner, submit_button, data_size_radio, status_timer, readiness_state]
-        )
-
         # Handle session-based authentication on page load
         def handle_load_with_session_auth(request: "gr.Request"):
             """
@@ -4153,16 +3711,13 @@ def launch_model_building_game_ca_app(height: int = 1200, share: bool = False, d
     """
     Create and directly launch the Model Building Game app inline (e.g., in notebooks).
     """
-    global playground, X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST
+    global playground
     if playground is None:
         try:
             playground = Competition(MY_PLAYGROUND_ID)
         except Exception as e:
             print(f"WARNING: Could not connect to playground: {e}")
             playground = None
-
-    if X_TRAIN_RAW is None:
-        X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data()
 
     demo = create_model_building_game_ca_app()
     port = int(os.environ.get("PORT", 8080))
