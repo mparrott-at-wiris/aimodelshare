@@ -103,73 +103,6 @@ def get_cached_prediction(key):
 
 print("✅ App configured for Thread-Safe SQLite Cache.")
 
-# -------------------------------------------------------------------------
-# Lightweight Label Loader (No Training, Only Test Accuracy Computation)
-# -------------------------------------------------------------------------
-_Y_TEST = None
-_Y_TEST_LOCK = threading.Lock()
-
-def get_test_labels(csv_path: str = "compas.csv") -> pd.Series:
-    """
-    Load test labels from CSV file for local accuracy computation.
-    Matches the exact sampling and splitting logic from precompute_cache.py.
-    
-    Args:
-        csv_path: Path to compas.csv (downloaded at build time)
-    
-    Returns:
-        pd.Series: Test labels (y_test)
-    """
-    # Load data
-    df = pd.read_csv(csv_path)
-    
-    # Calculate length_of_stay
-    try:
-        df['c_jail_in'] = pd.to_datetime(df['c_jail_in'])
-        df['c_jail_out'] = pd.to_datetime(df['c_jail_out'])
-        df['length_of_stay'] = (df['c_jail_out'] - df['c_jail_in']).dt.total_seconds() / (24 * 60 * 60)
-    except Exception:
-        df['length_of_stay'] = np.nan
-    
-    # Sample MAX_ROWS
-    if df.shape[0] > 4000:  # MAX_ROWS = 4000
-        df = df.sample(n=4000, random_state=42)
-    
-    # Extract features and target (matching precompute_cache.py)
-    all_numeric_cols = ["juv_fel_count", "juv_misd_count", "juv_other_count", 
-                        "days_b_screening_arrest", "age", "length_of_stay", "priors_count"]
-    all_categorical_cols = ["race", "sex", "c_charge_degree", "c_charge_desc"]
-    feature_columns = all_numeric_cols + all_categorical_cols
-    
-    # Ensure all columns exist
-    for col in feature_columns:
-        if col not in df.columns:
-            df[col] = np.nan
-    
-    # Process c_charge_desc
-    if "c_charge_desc" in df.columns:
-        top_charges = df["c_charge_desc"].value_counts().head(50).index
-        df["c_charge_desc"] = df["c_charge_desc"].apply(
-            lambda x: x if pd.notna(x) and x in top_charges else "OTHER"
-        )
-    
-    X = df[feature_columns].copy()
-    y = df["two_year_recid"].copy()
-    
-    # Split (matching precompute_cache.py: test_size=0.25, random_state=42, stratify=y)
-    _, _, _, y_test = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y)
-    
-    return y_test
-
-def _ensure_y_test_loaded():
-    """Ensure test labels are loaded into memory (thread-safe, cached)."""
-    global _Y_TEST
-    with _Y_TEST_LOCK:
-        if _Y_TEST is None:
-            print("Loading test labels for local accuracy computation...", flush=True)
-            _Y_TEST = get_test_labels()
-            print(f"✅ Test labels loaded: {len(_Y_TEST)} samples", flush=True)
-
 
 LEADERBOARD_CACHE_SECONDS = int(os.environ.get("LEADERBOARD_CACHE_SECONDS", "45"))
 MAX_LEADERBOARD_ENTRIES = os.environ.get("MAX_LEADERBOARD_ENTRIES")
@@ -616,15 +549,77 @@ DEFAULT_DATA_SIZE = "Small (20%)"
 
 MAX_ROWS = 4000
 TOP_N_CHARGE_CATEGORICAL = 50
+WARM_MINI_ROWS = 300  # Small warm dataset for instant preview
 CACHE_MAX_AGE_HOURS = 24  # Cache validity duration
 np.random.seed(42)
 
-# Global state container for playground instance
+# Global state containers (populated during initialization)
 playground = None
+X_TRAIN_RAW = None # Keep this for 100%
+X_TEST_RAW = None
+Y_TRAIN = None
+Y_TEST = None
+# Add a container for our pre-sampled data
+X_TRAIN_SAMPLES_MAP = {}
+Y_TRAIN_SAMPLES_MAP = {}
+
+# Warm mini dataset for instant preview
+X_TRAIN_WARM = None
+Y_TRAIN_WARM = None
+
+# Cache for transformed test sets (for future performance improvements)
+TEST_CACHE = {}
+
+# Initialization flags to track readiness state
+INIT_FLAGS = {
+    "competition": False,
+    "dataset_core": False,
+    "pre_samples_small": False,
+    "pre_samples_medium": False,
+    "pre_samples_large": False,
+    "pre_samples_full": False,
+    "leaderboard": False,
+    "default_preprocessor": False,
+    "warm_mini": False,
+    "errors": []
+}
+
+# Lock for thread-safe flag updates
+INIT_LOCK = threading.Lock()
 
 # -------------------------------------------------------------------------
 # 2. Data & Backend Utilities
 # -------------------------------------------------------------------------
+
+def _get_cache_dir():
+    """Get or create the cache directory for datasets."""
+    cache_dir = Path.home() / ".aimodelshare_cache"
+    cache_dir.mkdir(exist_ok=True)
+    return cache_dir
+
+def _safe_request_csv(url, cache_filename="compas.csv"):
+    """
+    Request CSV from URL with local caching.
+    Reuses cached file if it exists and is less than CACHE_MAX_AGE_HOURS old.
+    """
+    cache_dir = _get_cache_dir()
+    cache_path = cache_dir / cache_filename
+    
+    # Check if cache exists and is fresh
+    if cache_path.exists():
+        file_time = datetime.fromtimestamp(cache_path.stat().st_mtime)
+        if datetime.now() - file_time < timedelta(hours=CACHE_MAX_AGE_HOURS):
+            return pd.read_csv(cache_path)
+    
+    # Download fresh data
+    response = requests.get(url, timeout=30)
+    response.raise_for_status()
+    df = pd.read_csv(StringIO(response.text))
+    
+    # Save to cache
+    df.to_csv(cache_path, index=False)
+    
+    return df
 
 def safe_int(value, default=1):
     """
@@ -637,6 +632,265 @@ def safe_int(value, default=1):
         return int(value)
     except (ValueError, TypeError):
         return default
+
+def load_and_prep_data(use_cache=True):
+    """
+    Load, sample, and prepare raw COMPAS dataset.
+    NOW PRE-SAMPLES ALL DATA SIZES and creates warm mini dataset.
+    """
+    url = "https://raw.githubusercontent.com/propublica/compas-analysis/master/compas-scores-two-years.csv"
+
+    # Use cached version if available
+    if use_cache:
+        try:
+            df = _safe_request_csv(url)
+        except Exception as e:
+            print(f"Cache failed, fetching directly: {e}")
+            response = requests.get(url)
+            df = pd.read_csv(StringIO(response.text))
+    else:
+        response = requests.get(url)
+        df = pd.read_csv(StringIO(response.text))
+
+    # Calculate length_of_stay
+    try:
+        df['c_jail_in'] = pd.to_datetime(df['c_jail_in'])
+        df['c_jail_out'] = pd.to_datetime(df['c_jail_out'])
+        df['length_of_stay'] = (df['c_jail_out'] - df['c_jail_in']).dt.total_seconds() / (24 * 60 * 60) # in days
+    except Exception:
+        df['length_of_stay'] = np.nan
+
+    if df.shape[0] > MAX_ROWS:
+        df = df.sample(n=MAX_ROWS, random_state=42)
+
+    feature_columns = ALL_NUMERIC_COLS + ALL_CATEGORICAL_COLS
+    feature_columns = sorted(list(set(feature_columns)))
+
+    target_column = "two_year_recid"
+
+    if "c_charge_desc" in df.columns:
+        top_charges = df["c_charge_desc"].value_counts().head(TOP_N_CHARGE_CATEGORICAL).index
+        df["c_charge_desc"] = df["c_charge_desc"].apply(
+            lambda x: x if pd.notna(x) and x in top_charges else "OTHER"
+        )
+
+    for col in feature_columns:
+        if col not in df.columns:
+            if col == 'length_of_stay' and 'length_of_stay' in df.columns:
+                continue
+            df[col] = np.nan
+
+    X = df[feature_columns].copy()
+    y = df[target_column].copy()
+
+    X_train_raw, X_test_raw, y_train, y_test = train_test_split(
+        X, y, test_size=0.25, random_state=42, stratify=y
+    )
+
+    # Pre-sample all data sizes
+    global X_TRAIN_SAMPLES_MAP, Y_TRAIN_SAMPLES_MAP, X_TRAIN_WARM, Y_TRAIN_WARM
+
+    X_TRAIN_SAMPLES_MAP["Full (100%)"] = X_train_raw
+    Y_TRAIN_SAMPLES_MAP["Full (100%)"] = y_train
+
+    for label, frac in DATA_SIZE_MAP.items():
+        if frac < 1.0:
+            X_train_sampled = X_train_raw.sample(frac=frac, random_state=42)
+            y_train_sampled = y_train.loc[X_train_sampled.index]
+            X_TRAIN_SAMPLES_MAP[label] = X_train_sampled
+            Y_TRAIN_SAMPLES_MAP[label] = y_train_sampled
+
+    # Create warm mini dataset for instant preview
+    warm_size = min(WARM_MINI_ROWS, len(X_train_raw))
+    X_TRAIN_WARM = X_train_raw.sample(n=warm_size, random_state=42)
+    Y_TRAIN_WARM = y_train.loc[X_TRAIN_WARM.index]
+
+
+
+    return X_train_raw, X_test_raw, y_train, y_test
+
+def _background_initializer():
+    """
+    Background thread that performs sequential initialization tasks.
+    Updates INIT_FLAGS dict with readiness booleans and captures errors.
+    
+    Initialization sequence:
+    1. Competition object connection
+    2. Dataset cached download and core split
+    3. Warm mini dataset creation
+    4. Progressive sampling: small -> medium -> large -> full
+    5. Leaderboard prefetch
+    6. Default preprocessor fit on small sample
+    """
+    global playground, X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST
+    
+    try:
+        # Step 1: Connect to competition
+        with INIT_LOCK:
+            if playground is None:
+                playground = Competition(MY_PLAYGROUND_ID)
+            INIT_FLAGS["competition"] = True
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Competition connection failed: {str(e)}")
+    
+    try:
+        # Step 2: Load dataset core (train/test split)
+        X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data(use_cache=True)
+        with INIT_LOCK:
+            INIT_FLAGS["dataset_core"] = True
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Dataset loading failed: {str(e)}")
+        return  # Cannot proceed without data
+    
+    try:
+        # Step 3: Warm mini dataset (already created in load_and_prep_data)
+        if X_TRAIN_WARM is not None and len(X_TRAIN_WARM) > 0:
+            with INIT_LOCK:
+                INIT_FLAGS["warm_mini"] = True
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Warm mini dataset failed: {str(e)}")
+    
+    # Progressive sampling - samples are already created in load_and_prep_data
+    # Just mark them as ready sequentially with delays to simulate progressive loading
+    
+    try:
+        # Step 4a: Small sample (20%)
+        time.sleep(0.5)  # Simulate processing
+        with INIT_LOCK:
+            INIT_FLAGS["pre_samples_small"] = True
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Small sample failed: {str(e)}")
+    
+    try:
+        # Step 4b: Medium sample (60%)
+        time.sleep(0.5)
+        with INIT_LOCK:
+            INIT_FLAGS["pre_samples_medium"] = True
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Medium sample failed: {str(e)}")
+    
+    try:
+        # Step 4c: Large sample (80%)
+        time.sleep(0.5)
+        with INIT_LOCK:
+            INIT_FLAGS["pre_samples_large"] = True
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Large sample failed: {str(e)}")
+        print(f"✗ Large sample failed: {e}")
+    
+    try:
+        # Step 4d: Full sample (100%)
+        print("Background init: Full sample (100%)...")
+        time.sleep(0.5)
+        with INIT_LOCK:
+            INIT_FLAGS["pre_samples_full"] = True
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Full sample failed: {str(e)}")
+    
+    try:
+        # Step 5: Leaderboard prefetch (best-effort, unauthenticated)
+        # Concurrency Note: Do NOT use os.environ for ambient token - prefetch
+        # anonymously to warm the cache for initial page loads.
+        if playground is not None:
+            _ = _get_leaderboard_with_optional_token(playground, None)
+            with INIT_LOCK:
+                INIT_FLAGS["leaderboard"] = True
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Leaderboard prefetch failed: {str(e)}")
+    
+    try:
+        # Step 6: Default preprocessor on small sample
+        _fit_default_preprocessor()
+        with INIT_LOCK:
+            INIT_FLAGS["default_preprocessor"] = True
+    except Exception as e:
+        with INIT_LOCK:
+            INIT_FLAGS["errors"].append(f"Default preprocessor failed: {str(e)}")
+        print(f"✗ Default preprocessor failed: {e}")
+    
+
+def _fit_default_preprocessor():
+    """
+    Pre-fit a default preprocessor on the small sample with default features.
+    Uses memoized preprocessor builder for efficiency.
+    """
+    if "Small (20%)" not in X_TRAIN_SAMPLES_MAP:
+        return
+    
+    X_sample = X_TRAIN_SAMPLES_MAP["Small (20%)"]
+    
+    # Use default feature set
+    numeric_cols = [f for f in DEFAULT_FEATURE_SET if f in ALL_NUMERIC_COLS]
+    categorical_cols = [f for f in DEFAULT_FEATURE_SET if f in ALL_CATEGORICAL_COLS]
+    
+    if not numeric_cols and not categorical_cols:
+        return
+    
+    # Use memoized builder
+    preprocessor, selected_cols = build_preprocessor(numeric_cols, categorical_cols)
+    preprocessor.fit(X_sample[selected_cols])
+
+def start_background_init():
+    """
+    Start the background initialization thread.
+    Should be called once at app creation.
+    """
+    thread = threading.Thread(target=_background_initializer, daemon=True)
+    thread.start()
+
+def poll_init_status():
+    """
+    Poll the initialization status and return readiness bool.
+    Returns empty string for HTML so users don't see the checklist.
+    
+    Returns:
+        tuple: (status_html, ready_bool)
+    """
+    with INIT_LOCK:
+        flags = INIT_FLAGS.copy()
+    
+    # Determine if minimum requirements met
+    ready = flags["competition"] and flags["dataset_core"] and flags["pre_samples_small"]
+    
+    return "", ready
+
+def get_available_data_sizes():
+    """
+    Return list of data sizes that are currently available based on init flags.
+    """
+    with INIT_LOCK:
+        flags = INIT_FLAGS.copy()
+    
+    available = []
+    if flags["pre_samples_small"]:
+        available.append("Small (20%)")
+    if flags["pre_samples_medium"]:
+        available.append("Medium (60%)")
+    if flags["pre_samples_large"]:
+        available.append("Large (80%)")
+    if flags["pre_samples_full"]:
+        available.append("Full (100%)")
+    
+    return available if available else ["Small (20%)"]  # Fallback
+
+def _is_ready() -> bool:
+    """
+    Check if initialization is complete and system is ready for real submissions.
+    
+    Returns:
+        bool: True if competition, dataset, and small sample are initialized
+    """
+    with INIT_LOCK:
+        flags = INIT_FLAGS.copy()
+    return flags["competition"] and flags["dataset_core"] and flags["pre_samples_small"]
 
 def _get_user_latest_accuracy(df: Optional[pd.DataFrame], username: str) -> Optional[float]:
     """
@@ -1551,7 +1805,7 @@ def run_experiment(
     if readiness_flag is not None:
         ready = readiness_flag
     else:
-        ready = True  # App is always ready with cached predictions
+        ready = _is_ready()
     _log(f"run_experiment: ready={ready}, username={username}, token_present={token is not None}")
     
     # Add debug log (optional)
@@ -1638,10 +1892,6 @@ def run_experiment(
         # --- Stage 2: Smart Build (Cache vs Train) ---
         progress(0.3, desc="Building Model...")
         
-        # Ensure test labels are loaded
-        _ensure_y_test_loaded()
-        
-        
         # 1. Generate Cache Key (Matches format in precompute_cache.py)
         # Key: "ModelName|Complexity|DataSize|SortedFeatures"
         sanitized_features = sorted([str(f) for f in feature_set])
@@ -1714,7 +1964,7 @@ def run_experiment(
             else:
                 preds_array = predictions
                 
-            preview_score = accuracy_score(_Y_TEST, preds_array)
+            preview_score = accuracy_score(Y_TEST, preds_array)
             
             preview_kpi_meta = {
                 "was_preview": True, "preview_score": preview_score, "ready_at_run_start": ready,
@@ -1810,7 +2060,7 @@ def run_experiment(
             local_accuracy_preds = np.array(predictions)
         else:
             local_accuracy_preds = predictions
-        local_test_accuracy = accuracy_score(_Y_TEST, local_accuracy_preds)
+        local_test_accuracy = accuracy_score(Y_TEST, local_accuracy_preds)
 
         # 2. SUBMIT & CAPTURE ACCURACY
         def _submit():
@@ -2013,9 +2263,6 @@ def run_experiment(
 
 def on_initial_load(username, token=None, team_name=""):
     """
-    # Load test labels immediately (lightweight)
-    _ensure_y_test_loaded()
-    
     Updated to show "Welcome & CTA" if the SPECIFIC USER has 0 submissions,
     even if the leaderboard/team already has data from others.
     """
@@ -3665,7 +3912,7 @@ def launch_model_building_game_ca_final_app(height: int = 1200, share: bool = Fa
     """
     Create and directly launch the Model Building Game app inline (e.g., in notebooks).
     """
-    global playground
+    global playground, X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST
     if playground is None:
         try:
             playground = Competition(MY_PLAYGROUND_ID)
