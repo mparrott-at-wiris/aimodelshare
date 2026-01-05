@@ -491,7 +491,7 @@ def check_attempt_limit(submission_count: int, limit: int = None) -> Tuple[bool,
         limit = ATTEMPT_LIMIT
     
     if submission_count >= limit:
-        msg = f"⚠️ Límit d’intents assolit ({submission_count}/{limit})"
+        msg = f"⚠️ Límite de intentos alcanzado ({submission_count}/{limit})"
         return False, msg
     return True, f"Intentos: {submission_count}/{limit}"
 
@@ -1005,7 +1005,7 @@ def _build_skeleton_leaderboard(rows=6, is_team=True, submit_button_label="5. �
         <div class='lb-placeholder-title'>{context_label} · Clasificación pendiente</div>
         <div class='lb-placeholder-sub'>
             <p style='margin:0 0 6px 0;'>¡Envía tu primer modelo para desbloquear la clasificación!</p>
-            <p style='margin:0;'><strong>Haz clic en «{submit_button_label}» (a baix a l’esquerra)</strong> para comenzar!</p>
+            <p style='margin:0;'><strong>Haz clic en «{submit_button_label}» (abajo a la izquierda)</strong> para comenzar!</p>
         </div>
     </div>
     """
@@ -1016,7 +1016,7 @@ def build_login_prompt_html():
     The styled preview card will be prepended to this.
     """
     return f"""
-    <h2 style='color: #111827; margin-top:20px; border-top: 2px solid #e5e7eb; padding-top: 20px;'>🔐 Inicia sessió per enviar i classificar-te</h2>
+    <h2 style='color: #111827; margin-top:20px; border-top: 2px solid #e5e7eb; padding-top: 20px;'>🔐 Inicia sesión para enviar y clasificarte</h2>
     <div style='margin-top:16px; text-align:left; font-size:1rem; line-height:1.6; color:#374151;'>
         <p style='margin:12px 0;'>
             This is a preview run only. Sign in to publish your score to the live leaderboard, 
@@ -1154,7 +1154,7 @@ def _build_team_html(team_summary_df, team_name):
     <table class='leaderboard-html-table'>
         <thead>
             <tr>
-                <th>Posició</th>
+                <th>Posición</th>
                 <th>Equipo</th>
                 <th>Mejor Puntuación</th>
                 <th>Medio</th>
@@ -1196,7 +1196,7 @@ def _build_individual_html(individual_summary_df, username):
     <table class='leaderboard-html-table'>
         <thead>
             <tr>
-                <th>Posició</th>
+                <th>Posición</th>
                 <th>Ingeniero/a</th>
                 <th>Mejor Puntuación</th>
                 <th>Envíos</th>
@@ -1241,8 +1241,8 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
 
     if leaderboard_df is None or leaderboard_df.empty or "accuracy" not in leaderboard_df.columns:
         return (
-            "<p style='text-align:center; color:#6b7280; padding-top:20px;'>La classificació està buida.</p>",
-            "<p style='text-align:center; color:#6b7280; padding-top:20px;'>La classificació està buida.</p>",
+            "<p style='text-align:center; color:#6b7280; padding-top:20px;'>La clasificación está vacía.</p>",
+            "<p style='text-align:center; color:#6b7280; padding-top:20px;'>La clasificación está vacía.</p>",
             _build_kpi_card_html(0, 0, 0, 0, 0, is_preview=False, is_pending=False, local_test_accuracy=None), 
             0.0, 0, 0.0
         )
@@ -1387,7 +1387,7 @@ def compute_rank_settings(
         avail_keys = list(MODEL_TYPES.keys()) # All models
         
         return {
-            "rank_message": "# 🌟 ¡Has subido de nivel! Ingeniero/a sénior\n<p style='font-size:24px; line-height:1.4;'>¡Variables más potentes desbloqueadas! Los predictores más fuertes (com 'Edad' i 'Número de delitos previos') ya están disponibles en tu lista. Probablemente mejorarán tu precisión, pero recuerda que a menudo conllevan más sesgos sociales.</p>",
+            "rank_message": "# 🌟 ¡Has subido de nivel! Ingeniero/a sénior\n<p style='font-size:24px; line-height:1.4;'>¡Variables más potentes desbloqueadas! Los predictores más fuertes (como 'Edad' y 'Número de delitos previos') ya están disponibles en tu lista. Probablemente mejorarán tu precisión, pero recuerda que a menudo conllevan más sesgos sociales.</p>",
             "model_choices": get_model_tuples(avail_keys),
             "model_value": current_model if current_model in avail_keys else "The Deep Pattern-Finder",
             "model_interactive": True,
@@ -1612,9 +1612,9 @@ def perform_inline_login(username_input, password_input):
         
         # Build success message based on whether team is new or existing
         if is_new_team:
-            team_message = f"T'hem assignat a un nou equip: <b>{display_team_name}</b> 🎉"
+            team_message = f"Te hemos asignado a un nuevo equipo: <b>{display_team_name}</b> 🎉"
         else:
-            team_message = f"Hola de nou! Continues a l'equip: <b>{display_team_name}</b> ✅"
+            team_message = f"¡Hola de nuevo! Continúas en el equipo: <b>{display_team_name}</b> ✅"
         
         # Success: hide login form, show success message with team info, enable submit button
         success_html = f"""
@@ -1695,18 +1695,18 @@ def run_experiment(
     Core experiment using precomputed predictions.
     No runtime training or feature transformation.
     """
-    progress(0.1, desc="Iniciant l'experiment...")
+    progress(0.1, desc="Iniciando el experimento...")
     def get_status_html(step_num, title, subtitle):
         return f"""
         <div class='processing-status'>
             <span class='processing-icon'>⚙️</span>
-            <div class='processing-text'>Pas {step_num}/5: {title}</div>
+            <div class='processing-text'>Paso {step_num}/5: {title}</div>
             <div class='processing-subtext'>{subtitle}</div>
         </div>
         """
     yield {
-        submit_button: gr.update(value="⏳ Experiment en curs...", interactive=False),
-        submission_feedback_display: gr.update(value=get_status_html(1, "Iniciant", "Preparant les variables de dades..."), visible=True),
+        submit_button: gr.update(value="⏳ Experimento en curso...", interactive=False),
+        submission_feedback_display: gr.update(value=get_status_html(1, "Iniciando", "Preparando las variables de datos..."), visible=True),
         login_error: gr.update(visible=False),
         attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))
     }
@@ -1739,9 +1739,9 @@ def run_experiment(
     if not cached_predictions:
         error_html = f"""
         <div style='background:#fee2e2; padding:16px; border-radius:8px; border:2px solid #ef4444; color:#991b1b; text-align:center;'>
-            <h3 style='margin:0;'>⚠️ Configuració no trobada</h3>
-            <p style='margin:8px 0;'>Estea combinació específica de paràmetres no s'ha trobat a la nostra base de dades.</p>
-            <p style='font-size:0.9em;'>Si us plau, ajusta la configuració (per exemple, canvia la mida de les dades o l'estratègia del model) i torna-ho a provar.</p>
+            <h3 style='margin:0;'>⚠️ Configuración no encontrada</h3>
+            <p style='margin:8px 0;'>Esta combinación específica de parámetros no se ha encontrado en nuestra base de datos.</p>
+            <p style='font-size:0.9em;'>Por favor, ajusta la configuración (por ejemplo, cambia el tamaño de los datos o la estrategia del modelo) y vuelve a intentarlo.</p>
         </div>
         """
         settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
@@ -1761,7 +1761,7 @@ def run_experiment(
     local_test_accuracy = accuracy_score(_Y_TEST, predictions)
 
     if token is None:
-        progress(0.6, desc="Calculant la vista prèvia...")
+        progress(0.6, desc="Calculando la vista previa...")
         preview_card_html = _build_kpi_card_html(
             new_score=local_test_accuracy, last_score=0, new_rank=0, last_rank=0,
             submission_count=-1, is_preview=True, is_pending=False, local_test_accuracy=None
@@ -1793,7 +1793,7 @@ def run_experiment(
     if submission_count >= ATTEMPT_LIMIT:
         limit_warning_html = f"""
         <div class='kpi-card' style='border-color: #ef4444;'>
-            <h2 style='color: #111827; margin-top:0;'>🛑 Límit d'enviaments assolit</h2>
+            <h2 style='color: #111827; margin-top:0;'>🛑 Límite de envíos alcanzado</h2>
             <div class='kpi-card-body'>
                 <div class='kpi-metric-box'>
                     <p class='kpi-label'>Intentos usados</p>
@@ -1807,7 +1807,7 @@ def run_experiment(
         settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
         yield {
             submission_feedback_display: gr.update(value=limit_warning_html, visible=True),
-            submit_button: gr.update(value="🛑 Límit d'enviaments assolit", interactive=False),
+            submit_button: gr.update(value="🛑 Límite de envíos alcanzado", interactive=False),
             model_type_radio: gr.update(interactive=False), complexity_slider: gr.update(interactive=False),
             feature_set_checkbox: gr.update(interactive=False), data_size_radio: gr.update(interactive=False),
             attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
@@ -1821,8 +1821,8 @@ def run_experiment(
         }
         return
 
-    progress(0.5, desc="S'està enviant al núvol...")
-    yield {submission_feedback_display: gr.update(value=get_status_html(3, "Enviament en curs", "S'està enviant el model al servidor de la competició..."), visible=True)}
+    progress(0.5, desc="Enviando a la nube...")
+    yield {submission_feedback_display: gr.update(value=get_status_html(3, "Envío en curso", "Enviando el modelo al servidor de la competición..."), visible=True)}
     baseline_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
 
     def _submit():
@@ -1856,16 +1856,16 @@ def run_experiment(
     team_html, individual_html, _, new_best_accuracy, new_rank, _ = generate_competitive_summary(simulated_df, team_name, username, last_submission_score, last_rank, submission_count)
     kpi_card_html = _build_kpi_card_html(new_score=this_submission_score, last_score=last_submission_score, new_rank=new_rank, last_rank=last_rank, submission_count=submission_count, is_preview=False, is_pending=False)
 
-    progress(1.0, desc="Complet!")
+    progress(1.0, desc="¡Completado!")
     limit_reached = new_submission_count >= ATTEMPT_LIMIT
     if limit_reached:
         limit_html = f"""
         <div style='margin-top: 16px; border: 2px solid #ef4444; background:#fef2f2; padding:16px; border-radius:12px; text-align:left;'>
-            <h3 style='margin:0 0 8px 0; color:#991b1b;'>🛑 Límit d'enviaments assolit ({ATTEMPT_LIMIT}/{ATTEMPT_LIMIT})</h3>
-            <p style='margin:0; color:#7f1d1d; line-height:1.4;'>Revisa els teus resultats finals a dalt i baixa fins a «Finalizar y reflexionar» per continuar.</p>
+            <h3 style='margin:0 0 8px 0; color:#991b1b;'>🛑 Límite de envíos alcanzado ({ATTEMPT_LIMIT}/{ATTEMPT_LIMIT})</h3>
+            <p style='margin:0; color:#7f1d1d; line-height:1.4;'>Revisa tus resultados finales arriba y baja hasta «Finalizar y reflexionar» para continuar.</p>
         </div>"""
         final_html_display = kpi_card_html + limit_html
-        button_update = gr.update(value="🛑 Límit assolit", interactive=False)
+        button_update = gr.update(value="🛑 Límite alcanzado", interactive=False)
         interactive_state = False
         tracker_html = _build_attempts_tracker_html(new_submission_count)
     else:
@@ -1916,7 +1916,7 @@ def on_initial_load(username, token=None, team_name=""):
     welcome_html = f"""
     <div style='text-align:center; padding: 30px 20px;'>
         <div style='font-size: 3rem; margin-bottom: 10px;'>👋</div>
-        <h3 style='margin: 0 0 8px 0; color: #111827; font-size: 1.5rem;'>Ja formes part de l'equip: <b>{display_team}</b>!</h3>
+        <h3 style='margin: 0 0 8px 0; color: #111827; font-size: 1.5rem;'>¡Ya formas parte del equipo: <b>{display_team}</b>!</h3>
         <p style='font-size: 1.1rem; color: #4b5563; margin: 0 0 20px 0;'>
             Tu equipo necesita tu ayuda para mejorar la IA.
         </p>
@@ -1969,8 +1969,8 @@ def on_initial_load(username, token=None, team_name=""):
             )
         except Exception as e:
             print(f"Error generating summary HTML: {e}")
-            team_html = "<p style='text-align:center; color:red; padding-top:20px;'>S'ha produït un error en carregar la classificació.</p>"
-            individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>S'ha produït un error en mostrar la classificació.</p>"
+            team_html = "<p style='text-align:center; color:red; padding-top:20px;'>Se ha producido un error al cargar la clasificación.</p>"
+            individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>Se ha producido un error al cargar la clasificación.</p>"
 
     return (
         get_model_card(DEFAULT_MODEL),
@@ -2021,7 +2021,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
         attempt_cap_html = f"""
         <div class="final-conclusion-attempt-cap">
           <p style="margin:0;">
-            <b>📊 Límit d’intents assolit:</b> Has utilizado todos los {ATTEMPT_LIMIT} intents d’enviament permesos per a aquesta sessió.
+            <b>📊 Límite de intentos alcanzado:</b> Has utilizado todos los {ATTEMPT_LIMIT} intentos de envío permitidos para esta sesión.
             Podrás enviar más modelos una vez hayas completado algunas actividades nuevas.
           </p>
         </div>
@@ -2033,18 +2033,18 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
       <div class="final-conclusion-card">
         <h2 class="final-conclusion-subtitle">Resumen de tu rendimiento</h2>
         <ul class="final-conclusion-list">
-          <li>🏁 <b>Millor precisió:</b> {(best_score * 100):.2f}%</li>
-          <li>📊 <b>Posició aconseguida:</b> {('#' + str(rank)) if rank > 0 else '—'}</li>
+          <li>🏁 <b>Mejor precisión:</b> {(best_score * 100):.2f}%</li>
+          <li>📊 <b>Posición conseguida:</b> {('#' + str(rank)) if rank > 0 else '—'}</li>
           <li>🔁 <b>Envíos en esta sesión:</b> {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li>
-          <li>🧗 <b>Millora respecte a la primera puntuació d’aquesta sessió:</b> {(improvement * 100):+.2f}</li>
-          <li>🎖️ <b>Progrés de nivel:</b> {tier_line}</li>
-          <li>🧪 <b>Variables clau utilitzades:</b> {len(strong_used)} ({', '.join(strong_used) if strong_used else 'Encara cap'})</li>
+          <li>🧗 <b>Mejora respecto a la primera puntuación de esta sesión:</b> {(improvement * 100):+.2f}</li>
+          <li>🎖️ <b>Progreso de nivel:</b> {tier_line}</li>
+          <li>🧪 <b>Variables clave utilizadas:</b> {len(strong_used)} ({', '.join(strong_used) if strong_used else 'Todavía ninguna'})</li>
         </ul>
 
         {tip_html}
 
         <div class="final-conclusion-ethics">
-          <p style="margin:0;"><b>Reflexió ètica:</b> {ethical_note}</p>
+          <p style="margin:0;"><b>Reflexión ética:</b> {ethical_note}</p>
         </div>
 
         {attempt_cap_html}
@@ -2052,7 +2052,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
         <hr class="final-conclusion-divider" />
 
         <div class="final-conclusion-next">
-          <h2>➡️ Siguiente: Conseqüències al món real</h2>
+          <h2>➡️ Siguiente: Consecuencias en el mundo real</h2>
           <p>Desplaça’t cap avall sota aquesta aplicació per continuar. Analitzaràs com models com el teu influeixen en els resultats judicials.</p>
           <h1 class="final-conclusion-scroll">👇 DESPLAÇA’T CAP AVALL 👇</h1>
         </div>
@@ -2968,9 +2968,9 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                         <p>Construye un sistema de IA que ayude a mejorar las decisiones judiciales. Tu objetivo es predecir el riesgo de reincidencia con mayor precisión que el sistema anterior.</p>
                         
                         <h3>La competició</h3>
-                        <p>Per fer-ho, competiràs amb altres professionals d'enginyeria! T'uniràs a un equip i podràs seguir tant el rendiment individual com el d’equip a les classificacions en temps real.</p>
+                        <p>Para hacerlo, competirás con otros profesionales de ingeniería! Te unirás a un equipo y podrás seguir tanto el rendimiento individual como el de equipo en las clasificaciones en tiempo real.</p>
                         <div style="background:var(--background-fill-secondary); padding:8px 12px; border-radius:8px; margin-bottom:12px; border:1px solid var(--border-color-primary);">
-                             T'uniràs a un equip com ara… <b>🛡️ Los Exploradores Éticos</b>
+                             Te unirás a un equipo como… <b>🛡️ Los Exploradores Éticos</b>
                         </div>
   
                         <h3>El repte de les dades</h3>
@@ -3011,8 +3011,8 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                         <div class='step-visual'>
                             <div class='step-visual-box'><b>1. Configura</b><br><span style='font-size:0.85rem'>tria el model i les dades</span></div>→
                             <div class='step-visual-box'><b>2. Envia</b><br><span style='font-size:0.85rem'>entrena tu sistema</span></div>→
-                            <div class='step-visual-box'><b>3. Analitza</b><br><span style='font-size:0.85rem'>consulta la classificació</span></div>→
-                            <div class='step-visual-box'><b>4. Refina</b><br><span style='font-size:0.85rem'>ajusta i torna-ho a provar</span></div>
+                            <div class='step-visual-box'><b>3. Analitza</b><br><span style='font-size:0.85rem'>consulta la clasificación</span></div>→
+                            <div class='step-visual-box'><b>4. Refina</b><br><span style='font-size:0.85rem'>ajusta y vuelve a intentar</span></div>
                         </div>
                     </div>
                 </div>
@@ -3269,7 +3269,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                     gr.HTML(
                         """
                         <div class='leaderboard-box'>
-                            <h3 style='margin-top:0;'>🏆 Classificació en directe</h3>
+                            <h3 style='margin-top:0;'>🏆 Clasificación en directo</h3>
                             <p style='margin:0;'>Envía un modelo para ver tu posición.</p>
                         </div>
                         """
@@ -3305,11 +3305,11 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                     with gr.Tabs():
                         with gr.TabItem("Clasificación por equipos"):
                             team_leaderboard_display = gr.HTML(
-                                "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Envia un model per veure la classificació dels equips.</p>"
+                                "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Envía un modelo para ver la clasificación por equipos.</p>"
                             )
                         with gr.TabItem("Clasificación individual"):
                             individual_leaderboard_display = gr.HTML(
-                                "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Envia un model per veure la classificació individual.</p>"
+                                "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Envía un modelo para ver la clasificación individual.</p>"
                             )
 
             # REMOVED: Ethical Reminder HTML Block
@@ -3318,7 +3318,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
         # Conclusion Step
         with gr.Column(visible=False, elem_id="conclusion-step") as conclusion_step:
             gr.Markdown("<h1 style='text-align:center;'>✅ Sección completada</h1>")
-            final_score_display = gr.HTML(value="<p>Preparant el resum final...</p>")
+            final_score_display = gr.HTML(value="<p>Preparando el resumen final...</p>")
             step_3_back = gr.Button("◀️ Volver al experimento")
 
         # --- Navigation Logic ---
