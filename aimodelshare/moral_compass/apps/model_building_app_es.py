@@ -557,11 +557,11 @@ MODEL_TYPES = {
         "model_builder": lambda: DecisionTreeClassifier(
             random_state=42, class_weight="balanced"
         ),
-        "card_es": "Este model aprèn regles simples de tipus «si/aleshores». Fàcil d’interpretar, però li costa captar patrons complexos."
+        "card_es": "Este modelo aprende reglas simples del tipo «si/entonces». Fácil de entender, pero le cuesta captar patrones complejos."
     },
     "The 'Nearest Neighbor'": {
         "model_builder": lambda: KNeighborsClassifier(),
-        "card_es": "Este model es basa en exemples semblants del passat. «Si t’assembles a aquests casos, prediré el mateix resultat»."
+        "card_es": "Este modelo se basa en los ejemplos más parecidos del pasado. «Si te pareces a estos casos, prediré el mismo resultado»."
     },
     "The Deep Pattern-Finder": {
         "model_builder": lambda: RandomForestClassifier(
@@ -1367,7 +1367,7 @@ def compute_rank_settings(
         avail_keys = ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"]
         
         return {
-            "rank_message": "# 🎉 Has subido de nivell! Ingeniero/a júnior\n<p style='font-size:24px; line-height:1.4;'>Nous models, mides de dades i variables desbloquejats!</p>",
+            "rank_message": "# 🎉 ¡Has subido de nivel! Ingeniero/a júnior\n<p style='font-size:24px; line-height:1.4;'>¡Nuevos modelos, tamaños de datos y variables desbloqueados!</p>",
             "model_choices": get_model_tuples(avail_keys),
             # Ensure current selection is valid for this rank, else reset to default
             "model_value": current_model if current_model in avail_keys else "The Balanced Generalist",
@@ -1387,7 +1387,7 @@ def compute_rank_settings(
         avail_keys = list(MODEL_TYPES.keys()) # All models
         
         return {
-            "rank_message": "# 🌟 Has subido de nivell! Ingeniero/a sènior\n<p style='font-size:24px; line-height:1.4;'>Variables més potents desbloquejades! Els predictors més forts (com 'Edad' i 'Número de delitos previos') ja estan disponibles a la teva llista. Probablement milloraran la teva precisió, però recorda que sovint comporten més biaixos socials.</p>",
+            "rank_message": "# 🌟 ¡Has subido de nivel! Ingeniero/a sénior\n<p style='font-size:24px; line-height:1.4;'>¡Variables más potentes desbloqueadas! Los predictores más fuertes (com 'Edad' i 'Número de delitos previos') ya están disponibles en tu lista. Probablemente mejorarán tu precisión, pero recuerda que a menudo conllevan más sesgos sociales.</p>",
             "model_choices": get_model_tuples(avail_keys),
             "model_value": current_model if current_model in avail_keys else "The Deep Pattern-Finder",
             "model_interactive": True,
@@ -2037,7 +2037,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
           <li>📊 <b>Posició aconseguida:</b> {('#' + str(rank)) if rank > 0 else '—'}</li>
           <li>🔁 <b>Envíos en esta sesión:</b> {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li>
           <li>🧗 <b>Millora respecte a la primera puntuació d’aquesta sessió:</b> {(improvement * 100):+.2f}</li>
-          <li>🎖️ <b>Progrés de nivell:</b> {tier_line}</li>
+          <li>🎖️ <b>Progrés de nivel:</b> {tier_line}</li>
           <li>🧪 <b>Variables clau utilitzades:</b> {len(strong_used)} ({', '.join(strong_used) if strong_used else 'Encara cap'})</li>
         </ul>
 
@@ -2974,7 +2974,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                         </div>
   
                         <h3>El repte de les dades</h3>
-                        <p>Per competir, tindràs accés a milers d'arxius de casos antics que contenen <b>perfils de persones acusades</b> (edat, historial) i <b>resultats històrics</b> (hi ha reincidència o no).</p>
+                        <p>Para competir, tendrás acceso a miles de archivos de casos antiguos que contienen <b>perfils de persones acusades</b> (edat, historial) i <b>resultats històrics</b> (si hay reincidencia o no).</p>
                         <p>Tu tarea es crear un sistema de IA que aprenda de los perfiles y prediga el resultado con precisión. ¿Te atreves a construir algo que podría cambiar el funcionamiento de la justicia?</p>
                     </div>
                 </div>
@@ -2992,7 +2992,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                         <p>Imagina't un sistema d'IA com una "màquina de predicció". Es construeix amb tres components principals:</p>
                         <p><strong>1. Les entrades:</strong> Les dades que li subministres (ex: edat, delictes).</p>
                         <p><strong>2. El model (el "cervell"):</strong> Les matemàtiques (algorisme) que troben patrons.</p>
-                        <p><strong>3. La sortida:</strong> La predicció (ex: nivell de risc).</p>
+                        <p><strong>3. La sortida:</strong> La predicció (ex: nivel de risc).</p>
                     </div>
                 </div>
             """)
@@ -3055,7 +3055,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                         </details>
             
                         <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px; margin-bottom: 8px;">
-                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">2. Complexitat del model (nivell de focus)</summary>
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">2. Complexitat del model (nivel de focus)</summary>
                             <div class="content" style="padding-top: 12px; padding-left: 12px;">
                                 <div class="slider-track" style="height: 4px; background: var(--neutral-200); margin: 16px 0; position: relative;"><div class="slider-thumb" style="width: 16px; height: 16px; background: var(--color-accent); border-radius: 50%; position: absolute; left: 50%; top: -6px;"></div></div>
                                 <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--body-text-color-subdued);">
@@ -3065,9 +3065,9 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                                 
                                 <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
                                     <b style="color: var(--body-text-color);">En el joc:</b> <span style="color: var(--body-text-color);">Pensa-hi com <b>estudiar vs. memoritzar</b>.</span><br>
-                                    <span style="color: var(--body-text-color);">• <b>Complexitat baixa:</b> La IA aprende conceptos generales (bueno para casos nuevos).</span><br>
-                                    <span style="color: var(--body-text-color);">• <b>Complexitat alta:</b> La IA memoriza las respuestas (malo para casos nuevos).</span><br>
-                                    <strong style="color:#ef4444;">⚠️ El parany:</strong> <span style="color: var(--body-text-color);">un nivell alt pot semblar perfecte a la prova pràctica, però falla al món real perquè la IA només ha memoritzat les respostes.</span>
+                                    <span style="color: var(--body-text-color);">• <b>Complejidad baja:</b> La IA aprende conceptos generales (bueno para casos nuevos).</span><br>
+                                    <span style="color: var(--body-text-color);">• <b>Complejidad alta:</b> La IA memoriza las respuestas (malo para casos nuevos).</span><br>
+                                    <strong style="color:#ef4444;">⚠️ La trampa:</strong> <span style="color: var(--body-text-color);">un nivel alto puede parecer perfecto en la prueba práctica, pero falla en el mundo real porque la IA solo ha memorizado las respuestas.</span>
                                 </div>
                             </div>
                         </details>
@@ -3095,8 +3095,8 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                         <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px;">
                             <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">4. Tamaño de los datos (volum)</summary>
                             <div class="content" style="padding-top: 12px; padding-left: 12px;">
-                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);"><span class="radio-circle selected" style="display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--color-accent); margin-right:8px;"></span> <b>Pequeño (20%)</b> - La IA aprèn ràpid, però veu menys dades.</div>
-                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> <b>Completo (100%)</b> - La IA veu més dades, però aprèn més lentament.</div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);"><span class="radio-circle selected" style="display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--color-accent); margin-right:8px;"></span> <b>Pequeño (20%)</b> - La IA aprende rápido, pero ve menos datos.</div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> <b>Completo (100%)</b> - La IA ve más datos, pero aprende más despacio.</div>
                                 
                                 <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
                                     <b style="color: var(--body-text-color);">En el joc:</b> <span style="color: var(--body-text-color);">Decideixes quina quantitat d’historial de dades llegeix el model.</span><br>
@@ -3135,7 +3135,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                             </div>
                             
                             <p style='margin-bottom:12px;'>
-                                Al món real, no coneixem el futur. Per simular-ho, hem amagat el 20% dels arxius de casos (dades) en una "caixa forta".
+                                En el mundo real, no conocemos el futuro. Para simular esto, hemos ocultado el 20% de los archivos de casos (datos) en una "caja fuerte".
                             </p>
                             
                             <ul style='margin:0; padding-left:24px; color:var(--text-muted); line-height:1.6;'>
@@ -3149,7 +3149,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                         </div>
             
                         <div style='text-align:center; border-top:1px solid var(--card-border-subtle); padding-top:20px; margin-bottom:30px;'>
-                            <h3 style='margin:0 0 8px 0; font-size:1.2rem;'>Desbloqueja rangs</h3>
+                            <h3 style='margin:0 0 8px 0; font-size:1.2rem;'>Desbloquea rangos</h3>
                             <p style='margin-bottom:16px; font-size:0.95rem; color:var(--text-muted);'>
                                 A medida que refines tu modelo y subas en la clasificación, ganarás nuevos rangos:
                             </p>
@@ -3227,7 +3227,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                     complexity_slider = gr.Slider(
                         label="2. Complexitat del model (1–10)",
                         minimum=1, maximum=3, step=1, value=2,
-                        info="Valors més alts aprenen més, però un excés pot empitjorar els resultats."
+                        info="Valores más altos permiten aprender patrones más complejos, pero si son demasiado altos pueden empeorar los resultados."
                     )
 
                     gr.Markdown("---") # Separator
@@ -3237,7 +3237,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                         choices=FEATURE_SET_ALL_OPTIONS,
                         value=DEFAULT_FEATURE_SET,
                         interactive=False,
-                        info="Desbloqueja més variables a mesura que puges de posició!"
+                        info="¡Se desbloquean más variables según tu posición en la clasificación!"
                     )
 
                     gr.Markdown("---") # Separator
