@@ -3184,17 +3184,6 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
             # Status panel for initialization progress - HIDDEN
             init_status_display = gr.HTML(value="", visible=False)
             
-            # Banner for UI state
-
-            init_banner = gr.HTML(
-              value=(
-                  "<div class='init-banner'>"
-                  "<p class='init-banner__text'>"
-                  "⏳ Carregant les dades i la classificació… pots explorar, però has d’esperar que estigui llest per enviar."
-                  "</p>"
-                  "</div>"
-              ),
-              visible=True)
 
             # Session-based authentication state objects
             # Concurrency Note: These are initialized to None/empty and populated
