@@ -3059,8 +3059,8 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                             <div class="content" style="padding-top: 12px; padding-left: 12px;">
                                 <div class="slider-track" style="height: 4px; background: var(--neutral-200); margin: 16px 0; position: relative;"><div class="slider-thumb" style="width: 16px; height: 16px; background: var(--color-accent); border-radius: 50%; position: absolute; left: 50%; top: -6px;"></div></div>
                                 <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--body-text-color-subdued);">
-                                    <span>Nivell 1 (general)</span>
-                                    <span>Nivell 10 (específic)</span>
+                                    <span>Nivel 1 (general)</span>
+                                    <span>Nivel 10 (específico)</span>
                                 </div>
                                 
                                 <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
