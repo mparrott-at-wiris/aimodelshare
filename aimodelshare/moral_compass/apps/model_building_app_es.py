@@ -102,6 +102,73 @@ def get_cached_prediction(key):
 
 print("✅ App configured for Thread-Safe SQLite Cache.")
 
+# -------------------------------------------------------------------------
+# Lightweight Label Loader (No Training, Only Test Accuracy Computation)
+# -------------------------------------------------------------------------
+_Y_TEST = None
+_Y_TEST_LOCK = threading.Lock()
+
+def get_test_labels(csv_path: str = "compas.csv") -> pd.Series:
+    """
+    Load test labels from CSV file for local accuracy computation.
+    Matches the exact sampling and splitting logic from precompute_cache.py.
+    
+    Args:
+        csv_path: Path to compas.csv (downloaded at build time)
+    
+    Returns:
+        pd.Series: Test labels (y_test)
+    """
+    # Load data
+    df = pd.read_csv(csv_path)
+    
+    # Calculate length_of_stay
+    try:
+        df['c_jail_in'] = pd.to_datetime(df['c_jail_in'])
+        df['c_jail_out'] = pd.to_datetime(df['c_jail_out'])
+        df['length_of_stay'] = (df['c_jail_out'] - df['c_jail_in']).dt.total_seconds() / (24 * 60 * 60)
+    except Exception:
+        df['length_of_stay'] = np.nan
+    
+    # Sample MAX_ROWS
+    if df.shape[0] > 4000:  # MAX_ROWS = 4000
+        df = df.sample(n=4000, random_state=42)
+    
+    # Extract features and target (matching precompute_cache.py)
+    all_numeric_cols = ["juv_fel_count", "juv_misd_count", "juv_other_count", 
+                        "days_b_screening_arrest", "age", "length_of_stay", "priors_count"]
+    all_categorical_cols = ["race", "sex", "c_charge_degree", "c_charge_desc"]
+    feature_columns = all_numeric_cols + all_categorical_cols
+    
+    # Ensure all columns exist
+    for col in feature_columns:
+        if col not in df.columns:
+            df[col] = np.nan
+    
+    # Process c_charge_desc
+    if "c_charge_desc" in df.columns:
+        top_charges = df["c_charge_desc"].value_counts().head(50).index
+        df["c_charge_desc"] = df["c_charge_desc"].apply(
+            lambda x: x if pd.notna(x) and x in top_charges else "OTHER"
+        )
+    
+    X = df[feature_columns].copy()
+    y = df["two_year_recid"].copy()
+    
+    # Split (matching precompute_cache.py: test_size=0.25, random_state=42, stratify=y)
+    _, _, _, y_test = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y)
+    
+    return y_test
+
+def _ensure_y_test_loaded():
+    """Ensure test labels are loaded into memory (thread-safe, cached)."""
+    global _Y_TEST
+    with _Y_TEST_LOCK:
+        if _Y_TEST is None:
+            print("Loading test labels for local accuracy computation...", flush=True)
+            _Y_TEST = get_test_labels()
+            print(f"✅ Test labels loaded: {len(_Y_TEST)} samples", flush=True)
+
 LEADERBOARD_CACHE_SECONDS = int(os.environ.get("LEADERBOARD_CACHE_SECONDS", "45"))
 MAX_LEADERBOARD_ENTRIES = os.environ.get("MAX_LEADERBOARD_ENTRIES")
 MAX_LEADERBOARD_ENTRIES = int(MAX_LEADERBOARD_ENTRIES) if MAX_LEADERBOARD_ENTRIES else None
@@ -603,43 +670,11 @@ DEFAULT_DATA_SIZE = "Pequeño (20%)"
 
 MAX_ROWS = 4000
 TOP_N_CHARGE_CATEGORICAL = 50
-WARM_MINI_ROWS = 300  # Small warm dataset for instant preview
 CACHE_MAX_AGE_HOURS = 24  # Cache validity duration
 np.random.seed(42)
 
-# Global state containers (populated during initialization)
+# Global state containers (initialized at startup, no background training)
 playground = None
-X_TRAIN_RAW = None # Keep this for 100%
-X_TEST_RAW = None
-Y_TRAIN = None
-Y_TEST = None
-# Add a container for our pre-sampled data
-X_TRAIN_SAMPLES_MAP = {}
-Y_TRAIN_SAMPLES_MAP = {}
-
-# Warm mini dataset for instant preview
-X_TRAIN_WARM = None
-Y_TRAIN_WARM = None
-
-# Cache for transformed test sets (for future performance improvements)
-TEST_CACHE = {}
-
-# Initialization flags to track readiness state
-INIT_FLAGS = {
-    "competition": False,
-    "dataset_core": False,
-    "pre_samples_small": False,
-    "pre_samples_medium": False,
-    "pre_samples_large": False,
-    "pre_samples_full": False,
-    "leaderboard": False,
-    "default_preprocessor": False,
-    "warm_mini": False,
-    "errors": []
-}
-
-# Lock for thread-safe flag updates
-INIT_LOCK = threading.Lock()
 
 # -------------------------------------------------------------------------
 # 2. Data & Backend Utilities
@@ -686,265 +721,6 @@ def safe_int(value, default=1):
         return int(value)
     except (ValueError, TypeError):
         return default
-
-def load_and_prep_data(use_cache=True):
-    """
-    Load, sample, and prepare raw COMPAS dataset.
-    NOW PRE-SAMPLES ALL DATA SIZES and creates warm mini dataset.
-    """
-    url = "https://raw.githubusercontent.com/propublica/compas-analysis/master/compas-scores-two-years.csv"
-
-    # Use cached version if available
-    if use_cache:
-        try:
-            df = _safe_request_csv(url)
-        except Exception as e:
-            print(f"Cache failed, fetching directly: {e}")
-            response = requests.get(url)
-            df = pd.read_csv(StringIO(response.text))
-    else:
-        response = requests.get(url)
-        df = pd.read_csv(StringIO(response.text))
-
-    # Calculate length_of_stay
-    try:
-        df['c_jail_in'] = pd.to_datetime(df['c_jail_in'])
-        df['c_jail_out'] = pd.to_datetime(df['c_jail_out'])
-        df['length_of_stay'] = (df['c_jail_out'] - df['c_jail_in']).dt.total_seconds() / (24 * 60 * 60) # in days
-    except Exception:
-        df['length_of_stay'] = np.nan
-
-    if df.shape[0] > MAX_ROWS:
-        df = df.sample(n=MAX_ROWS, random_state=42)
-
-    feature_columns = ALL_NUMERIC_COLS + ALL_CATEGORICAL_COLS
-    feature_columns = sorted(list(set(feature_columns)))
-
-    target_column = "two_year_recid"
-
-    if "c_charge_desc" in df.columns:
-        top_charges = df["c_charge_desc"].value_counts().head(TOP_N_CHARGE_CATEGORICAL).index
-        df["c_charge_desc"] = df["c_charge_desc"].apply(
-            lambda x: x if pd.notna(x) and x in top_charges else "OTHER"
-        )
-
-    for col in feature_columns:
-        if col not in df.columns:
-            if col == 'length_of_stay' and 'length_of_stay' in df.columns:
-                continue
-            df[col] = np.nan
-
-    X = df[feature_columns].copy()
-    y = df[target_column].copy()
-
-    X_train_raw, X_test_raw, y_train, y_test = train_test_split(
-        X, y, test_size=0.25, random_state=42, stratify=y
-    )
-
-    # Pre-sample all data sizes
-    global X_TRAIN_SAMPLES_MAP, Y_TRAIN_SAMPLES_MAP, X_TRAIN_WARM, Y_TRAIN_WARM
-
-    X_TRAIN_SAMPLES_MAP["Completo (100%)"] = X_train_raw
-    Y_TRAIN_SAMPLES_MAP["Completo (100%)"] = y_train
-
-    for label, frac in DATA_SIZE_MAP.items():
-        if frac < 1.0:
-            X_train_sampled = X_train_raw.sample(frac=frac, random_state=42)
-            y_train_sampled = y_train.loc[X_train_sampled.index]
-            X_TRAIN_SAMPLES_MAP[label] = X_train_sampled
-            Y_TRAIN_SAMPLES_MAP[label] = y_train_sampled
-
-    # Create warm mini dataset for instant preview
-    warm_size = min(WARM_MINI_ROWS, len(X_train_raw))
-    X_TRAIN_WARM = X_train_raw.sample(n=warm_size, random_state=42)
-    Y_TRAIN_WARM = y_train.loc[X_TRAIN_WARM.index]
-
-
-
-    return X_train_raw, X_test_raw, y_train, y_test
-
-def _background_initializer():
-    """
-    Background thread that performs sequential initialization tasks.
-    Updates INIT_FLAGS dict with readiness booleans and captures errors.
-    
-    Initialization sequence:
-    1. Competition object connection
-    2. Dataset cached download and core split
-    3. Warm mini dataset creation
-    4. Progressive sampling: small -> medium -> large -> full
-    5. Leaderboard prefetch
-    6. Default preprocessor fit on small sample
-    """
-    global playground, X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST
-    
-    try:
-        # Step 1: Connect to competition
-        with INIT_LOCK:
-            if playground is None:
-                playground = Competition(MY_PLAYGROUND_ID)
-            INIT_FLAGS["competition"] = True
-    except Exception as e:
-        with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Fallo en la conexión con la competición: {str(e)}")
-    
-    try:
-        # Step 2: Load dataset core (train/test split)
-        X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data(use_cache=True)
-        with INIT_LOCK:
-            INIT_FLAGS["dataset_core"] = True
-    except Exception as e:
-        with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Error al cargar el conjunto de datos principal: {str(e)}")
-        return  # Cannot proceed without data
-    
-    try:
-        # Step 3: Warm mini dataset (already created in load_and_prep_data)
-        if X_TRAIN_WARM is not None and len(X_TRAIN_WARM) > 0:
-            with INIT_LOCK:
-                INIT_FLAGS["warm_mini"] = True
-    except Exception as e:
-        with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Error al generar la vista previa instantánea: {str(e)}")
-    
-    # Progressive sampling - samples are already created in load_and_prep_data
-    # Just mark them as ready sequentially with delays to simulate progressive loading
-    
-    try:
-        # Step 4a: Small sample (20%)
-        time.sleep(0.5)  # Simulate processing
-        with INIT_LOCK:
-            INIT_FLAGS["pre_samples_small"] = True
-    except Exception as e:
-        with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Error en la muestra pequeña: {str(e)}")
-    
-    try:
-        # Step 4b: Medium sample (60%)
-        time.sleep(0.5)
-        with INIT_LOCK:
-            INIT_FLAGS["pre_samples_medium"] = True
-    except Exception as e:
-        with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Error en la muestra mediana: {str(e)}")
-    
-    try:
-        # Step 4c: Large sample (80%)
-        time.sleep(0.5)
-        with INIT_LOCK:
-            INIT_FLAGS["pre_samples_large"] = True
-    except Exception as e:
-        with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Error en la muestra grande: {str(e)}")
-        print(f"✗ Large sample failed: {e}")
-    
-    try:
-        # Step 4d: Full sample (100%)
-        print("Background init: Full sample (100%)...")
-        time.sleep(0.5)
-        with INIT_LOCK:
-            INIT_FLAGS["pre_samples_full"] = True
-    except Exception as e:
-        with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Error en la muestra completa: {str(e)}")
-    
-    try:
-        # Step 5: Leaderboard prefetch (best-effort, unauthenticated)
-        # Concurrency Note: Do NOT use os.environ for ambient token - prefetch
-        # anonymously to warm the cache for initial page loads.
-        if playground is not None:
-            _ = _get_leaderboard_with_optional_token(playground, None)
-            with INIT_LOCK:
-                INIT_FLAGS["leaderboard"] = True
-    except Exception as e:
-        with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Error al obtener la tabla de clasificación: {str(e)}")
-    
-    try:
-        # Step 6: Default preprocessor on small sample
-        _fit_default_preprocessor()
-        with INIT_LOCK:
-            INIT_FLAGS["default_preprocessor"] = True
-    except Exception as e:
-        with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Error en el sistema de preprocesamiento: {str(e)}")
-        print(f"✗ Default preprocessor failed: {e}")
-    
-
-def _fit_default_preprocessor():
-    """
-    Pre-fit a default preprocessor on the small sample with default features.
-    Uses memoized preprocessor builder for efficiency.
-    """
-    if "Pequeño (20%)" not in X_TRAIN_SAMPLES_MAP:
-        return
-    
-    X_sample = X_TRAIN_SAMPLES_MAP["Pequeño (20%)"]
-    
-    # Use default feature set
-    numeric_cols = [f for f in DEFAULT_FEATURE_SET if f in ALL_NUMERIC_COLS]
-    categorical_cols = [f for f in DEFAULT_FEATURE_SET if f in ALL_CATEGORICAL_COLS]
-    
-    if not numeric_cols and not categorical_cols:
-        return
-    
-    # Use memoized builder
-    preprocessor, selected_cols = build_preprocessor(numeric_cols, categorical_cols)
-    preprocessor.fit(X_sample[selected_cols])
-
-def start_background_init():
-    """
-    Start the background initialization thread.
-    Should be called once at app creation.
-    """
-    thread = threading.Thread(target=_background_initializer, daemon=True)
-    thread.start()
-
-def poll_init_status():
-    """
-    Poll the initialization status and return readiness bool.
-    Returns empty string for HTML so users don't see the checklist.
-    
-    Returns:
-        tuple: (status_html, ready_bool)
-    """
-    with INIT_LOCK:
-        flags = INIT_FLAGS.copy()
-    
-    # Determine if minimum requirements met
-    ready = flags["competition"] and flags["dataset_core"] and flags["pre_samples_small"]
-    
-    return "", ready
-
-def get_available_data_sizes():
-    """
-    Return list of data sizes that are currently available based on init flags.
-    """
-    with INIT_LOCK:
-        flags = INIT_FLAGS.copy()
-    
-    available = []
-    if flags["pre_samples_small"]:
-        available.append("Pequeño (20%)")
-    if flags["pre_samples_medium"]:
-        available.append("Medio (60%)")
-    if flags["pre_samples_large"]:
-        available.append("Grande (80%)")
-    if flags["pre_samples_full"]:
-        available.append("Completo (100%)")
-    
-    return available if available else ["Pequeño (20%)"]  # Fallback
-
-def _is_ready() -> bool:
-    """
-    Check if initialization is complete and system is ready for real submissions.
-    
-    Returns:
-        bool: True if competition, dataset, and small sample are initialized
-    """
-    with INIT_LOCK:
-        flags = INIT_FLAGS.copy()
-    return flags["competition"] and flags["dataset_core"] and flags["pre_samples_small"]
 
 def _get_user_latest_accuracy(df: Optional[pd.DataFrame], username: str) -> Optional[float]:
     """
@@ -1974,8 +1750,11 @@ def run_experiment(
         sanitized_feature_set.append(feat.get("value", str(feat)) if isinstance(feat, dict) else (feat[1] if isinstance(feat, tuple) else str(feat)))
     feature_set = sanitized_feature_set
     
-    if readiness_flag is not None: ready = readiness_flag
-    else: ready = _is_ready()
+    # App is always ready with cached predictions (no runtime training)
+    if readiness_flag is not None:
+        ready = readiness_flag
+    else:
+        ready = True
     
     if not username: username = "Unknown_User"
     
@@ -1986,91 +1765,82 @@ def run_experiment(
     progress(0.1, desc="Iniciando experimento...")
     initial_updates = {
         submit_button: gr.update(value="⏳ Experimento en marcha...", interactive=False),
-        submission_feedback_display: gr.update(value=get_status_html(1, "Iniciando", "Preparando las variables de tu data..."), visible=True), # Make sure it's visible
-        login_error: gr.update(visible=False), # Hide login success/error message
+        submission_feedback_display: gr.update(value=get_status_html(1, "Iniciando", "Preparando las variables de tu data..."), visible=True),
+        login_error: gr.update(visible=False),
         attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))
     }
+    yield initial_updates
 
     if not model_name_key or model_name_key not in MODEL_TYPES:
         model_name_key = DEFAULT_MODEL
     complexity_level = safe_int(complexity_level, 2)
 
-    # Check readiness
-    if playground is None or not ready:
+    # Check playground connection
+    if playground is None:
         settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
-        error_msg = "<p style='text-align:center; color:red; padding:20px 0;'>Los datos aún se están inicializando. Por favor, espera un momento y vuelve a intentarlo.</p>"
+        error_msg = "<p style='text-align:center; color:red; padding:20px 0;'>Playground no conectado. Por favor, inténtalo de nuevo más tarde.</p>"
         yield { submission_feedback_display: gr.update(value=error_msg, visible=True), submit_button: gr.update(value="🔬 Construir y Enviar Modelo", interactive=True) }
         return
 
     try:
-        # --- Stage 2: Smart Build (Cache vs Train) ---
-        progress(0.3, desc="Construyendo el modelo...")
+        # --- Stage 2: Fetch Cached Predictions ---
+        progress(0.3, desc="Recuperando predicciones...")
         
-        # 1. Generate Cache Key (ENGLISH KEYS)
+        # Ensure test labels are loaded
+        _ensure_y_test_loaded()
+        
+        # Build cache key (ENGLISH KEYS)
         sanitized_features = sorted([str(f) for f in feature_set])
         feature_key = ",".join(sanitized_features)
         cache_key = f"{model_name_key}|{complexity_level}|{db_data_size}|{feature_key}"
         
         _log(f"Clave generada: {cache_key}")
 
-        # 2. Check Cache
+        yield { 
+            submission_feedback_display: gr.update(value=get_status_html(2, "Cargando predicciones", "⚡ Obteniendo resultados precomputados..."), visible=True),
+            login_error: gr.update(visible=False)
+        }
+
+        # Fetch from cache
         cached_predictions = get_cached_prediction(cache_key)
         
-        predictions = None
-        tuned_model = None
-        preprocessor = None
-        
-        if cached_predictions:
-            # === FAST PATH (Zero CPU) ===
-            _log(f"⚡ CACHE HIT: {cache_key}")
-            yield { 
-                submission_feedback_display: gr.update(value=get_status_html(2, "Entrenando Modelo", "⚡ La máquina está aprendiendo de la historia..."), visible=True),
-                login_error: gr.update(visible=False)
-            }
-            if isinstance(cached_predictions, str):
-                predictions = [int(c) for c in cached_predictions]
-            else:
-                predictions = cached_predictions
-            tuned_model = None
-            preprocessor = None
-            
-        else:
-            # === CACHE MISS (Training Disabled for Safety) ===
-            msg = f"❌ CACHE MISS: {cache_key}"
-            _log(msg)
-            
+        if not cached_predictions:
+            # Cache miss - show user-friendly error
+            _log(f"❌ CACHE MISS: {cache_key}")
             error_html = f"""
             <div style='background:#fee2e2; padding:16px; border-radius:8px; border:2px solid #ef4444; color:#991b1b; text-align:center;'>
                 <h3 style='margin:0;'>⚠️ Configuración no encontrada</h3>
                 <p style='margin:8px 0;'>Esta combinación específica de parámetros no se ha encontrado en nuestra base de datos.</p>
-                <p style='font-size:0.9em;'>Para garantizar la estabilidad del sistema, el entrenamiento en tiempo real está desactivado. Por favor, ajusta la configuración (por ejemplo, cambia el "Tamaño de datos" o la "Estrategia del modelo") y vuelve a intentarlo.</p>
+                <p style='font-size:0.9em;'>Por favor, ajusta la configuración (por ejemplo, cambia el "Tamaño de datos" o la "Estrategia del modelo") y vuelve a intentarlo.</p>
             </div>
             """
-            
+            settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
             yield { 
                 submission_feedback_display: gr.update(value=error_html, visible=True),
                 submit_button: gr.update(value="🔬 Construir y Enviar Modelo", interactive=True),
                 login_error: gr.update(visible=False)
             }
             return
+        
+        # Convert cached prediction string to numpy array
+        _log(f"⚡ CACHE HIT: {cache_key}")
+        predictions = np.array([int(c) for c in cached_predictions], dtype=np.uint8)
+        
+        # Compute local test accuracy
+        from sklearn.metrics import accuracy_score
+        local_test_accuracy = accuracy_score(_Y_TEST, predictions)
+        _log(f"Precisión local del test: {local_test_accuracy:.4f}")
 
         # --- Stage 3: Submit (API Call 1) ---
         # AUTHENTICATION GATE: Check for token before submission
 
         if token is None:
             # User not authenticated - compute preview score
-            progress(0.6, desc="Computing Preview Score...")
+            progress(0.6, desc="Calculando puntaje de vista previa...")
             
-            # NOTE: Logic updated to handle cached predictions
+            # Calculate accuracy using cached predictions and preloaded test labels
             from sklearn.metrics import accuracy_score
-            
-            # Ensure format is correct (list vs array)
-            if isinstance(predictions, list):
-                preds_for_metric = np.array(predictions)
-            else:
-                preds_for_metric = predictions
-                
-            preview_score = accuracy_score(Y_TEST, preds_for_metric)
+            preview_score = accuracy_score(_Y_TEST, predictions)
             
             # ... (Rest of preview logic remains the same) ...
             preview_kpi_meta = {
@@ -2161,16 +1931,13 @@ def run_experiment(
 
         # 1. FETCH BASELINE
         baseline_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
-        
-        from sklearn.metrics import accuracy_score
-        local_test_accuracy = accuracy_score(Y_TEST, predictions)
 
-        # 2. SUBMIT & CAPTURE ACCURACY
+        # 2. SUBMIT & CAPTURE ACCURACY (using cached predictions, no model/preprocessor)
         def _submit():
             return playground.submit_model(
-                model=tuned_model,  # This can now be None!
-                preprocessor=preprocessor, # This can now be None!
-                prediction_submission=predictions, # We explicitly send predictions
+                model=None,
+                preprocessor=None,
+                prediction_submission=predictions.tolist(),
                 input_dict={'description': description, 'tags': tags},
                 custom_metadata={'Team': team_name, 'Moral_Compass': 0}, 
                 token=token,
@@ -2373,9 +2140,11 @@ def run_experiment(
 
 def on_initial_load(username, token=None, team_name=""):
     """
-    Updated to show "Welcome & CTA" if the SPECIFIC USER has 0 submissions,
-    even if the leaderboard/team already has data from others.
+    Updated: App is immediately ready. Load test labels and render welcome/leaderboards.
     """
+    # Ensure test labels are loaded
+    _ensure_y_test_loaded()
+    
     initial_ui = compute_rank_settings(
         0, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE
     )
@@ -2400,17 +2169,11 @@ def on_initial_load(username, token=None, team_name=""):
     </div>
     """
 
-    # Check background init
-    with INIT_LOCK:
-        background_ready = INIT_FLAGS["leaderboard"]
-    
-    should_attempt_fetch = background_ready or (token is not None)
+    # Fetch leaderboard
     full_leaderboard_df = None
-    
-    if should_attempt_fetch:
+    if playground:
         try:
-            if playground:
-                full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
+            full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
         except Exception as e:
             print(f"Error on initial load fetch: {e}")
             full_leaderboard_df = None
@@ -2542,12 +2305,12 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
 
 def build_conclusion_from_state(best_score, submissions, rank, first_score, feature_set):
     return build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set)
+
 def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """
     Create (but do not launch) the model building game app.
+    App is immediately ready with cached predictions (no background initialization).
     """
-    start_background_init()
-
     # Add missing globals (FIX)
     global submit_button, submission_feedback_display, team_leaderboard_display
     global individual_leaderboard_display, last_submission_score_state, last_rank_state
@@ -3652,21 +3415,6 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
         with gr.Column(visible=False, elem_id="model-step") as model_building_step:
             gr.Markdown("<h1 style='text-align:center;'>🛠️ Área de construcción de modelos</h1>")
             
-            # Status panel for initialization progress - HIDDEN
-            init_status_display = gr.HTML(value="", visible=False)
-            
-            # Banner for UI state
-
-            init_banner = gr.HTML(
-              value=(
-                  "<div class='init-banner'>"
-                  "<p class='init-banner__text'>"
-                  "⏳ Inicializando datos y clasificación… puedes explorar, pero debes esperar a que esté listo para enviar."
-                  "</p>"
-                  "</div>"
-              ),
-              visible=True)
-
             # Session-based authentication state objects
             # Concurrency Note: These are initialized to None/empty and populated
             # during handle_load_with_session_auth. Do NOT use os.environ here.
@@ -4103,48 +3851,6 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
             js=nav_js("model-step", "Ejecutando el experimento...", 500)
         )
 
-        # Timer for polling initialization status
-        status_timer = gr.Timer(value=0.5, active=True)  # Poll every 0.5 seconds
-        
-        def update_init_status():
-            """
-            Poll initialization status and update UI elements.
-            Returns status HTML, banner visibility, submit button state, data size choices, and readiness_state.
-            """
-            status_html, ready = poll_init_status()
-            
-            # Update banner visibility - hide when ready
-            banner_visible = not ready
-            
-            # Update submit button
-            if ready:
-                submit_label = "5. 🔬 Construir y enviar el modelo"
-                submit_interactive = True
-            else:
-                submit_label = "⏳ Esperando datos..."
-                submit_interactive = False
-            
-            # Get available data sizes based on init progress
-            available_sizes = get_available_data_sizes()
-            
-            # Stop timer once fully initialized
-            timer_active = not (ready and INIT_FLAGS.get("pre_samples_full", False))
-            
-            return (
-                status_html,
-                gr.update(visible=banner_visible),
-                gr.update(value=submit_label, interactive=submit_interactive),
-                gr.update(choices=available_sizes),
-                timer_active,
-                ready  # readiness_state
-            )
-        
-        status_timer.tick(
-            fn=update_init_status,
-            inputs=None,
-            outputs=[init_status_display, init_banner, submit_button, data_size_radio, status_timer, readiness_state]
-        )
-
         # Handle session-based authentication on page load
         def handle_load_with_session_auth(request: "gr.Request"):
             """
@@ -4225,17 +3931,15 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
 def launch_model_building_game_es_app(height: int = 1200, share: bool = False, debug: bool = False) -> None:
     """
     Create and directly launch the Model Building Game app inline (e.g., in notebooks).
+    App is immediately ready with cached predictions (no data loading required).
     """
-    global playground, X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST
+    global playground
     if playground is None:
         try:
             playground = Competition(MY_PLAYGROUND_ID)
         except Exception as e:
             print(f"WARNING: Could not connect to playground: {e}")
             playground = None
-
-    if X_TRAIN_RAW is None:
-        X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data()
 
     demo = create_model_building_game_es_app()
     port = int(os.environ.get("PORT", 8080))
