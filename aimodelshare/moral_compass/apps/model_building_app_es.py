@@ -2970,7 +2970,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                         <h3>La competició</h3>
                         <p>Para hacerlo, competirás con otros profesionales de ingeniería! Te unirás a un equipo y podrás seguir tanto el rendimiento individual como el de equipo en las clasificaciones en tiempo real.</p>
                         <div style="background:var(--background-fill-secondary); padding:8px 12px; border-radius:8px; margin-bottom:12px; border:1px solid var(--border-color-primary);">
-                             T'uniràs a un equip com ara… <b>🛡️ Los Exploradores Éticos</b>
+                             Te unirás a un equipo como… <b>🛡️ Los Exploradores Éticos</b>
                         </div>
   
                         <h3>El repte de les dades</h3>
@@ -3011,8 +3011,8 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                         <div class='step-visual'>
                             <div class='step-visual-box'><b>1. Configura</b><br><span style='font-size:0.85rem'>tria el model i les dades</span></div>→
                             <div class='step-visual-box'><b>2. Envia</b><br><span style='font-size:0.85rem'>entrena tu sistema</span></div>→
-                            <div class='step-visual-box'><b>3. Analitza</b><br><span style='font-size:0.85rem'>consulta la classificació</span></div>→
-                            <div class='step-visual-box'><b>4. Refina</b><br><span style='font-size:0.85rem'>ajusta i torna-ho a provar</span></div>
+                            <div class='step-visual-box'><b>3. Analitza</b><br><span style='font-size:0.85rem'>consulta la clasificación</span></div>→
+                            <div class='step-visual-box'><b>4. Refina</b><br><span style='font-size:0.85rem'>ajusta y vuelve a intentar</span></div>
                         </div>
                     </div>
                 </div>
@@ -3269,7 +3269,7 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                     gr.HTML(
                         """
                         <div class='leaderboard-box'>
-                            <h3 style='margin-top:0;'>🏆 Classificació en directe</h3>
+                            <h3 style='margin-top:0;'>🏆 Clasificación en directo</h3>
                             <p style='margin:0;'>Envía un modelo para ver tu posición.</p>
                         </div>
                         """
