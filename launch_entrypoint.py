@@ -119,7 +119,7 @@ def build_model_building_game_router():
         # --- ENABLE QUEUE FOR ALL ROUTED APPS ---
         # Ensures 20-person concurrency limit for standard AND final versions
         logger.info(f"Starting queue for {lang} blocks (limit=20)...")
-        blocks.queue(default_concurrency_limit=20)
+        blocks.queue(default_concurrency_limit=40)
         # ----------------------------------------
 
         blocks_cache[lang] = blocks
@@ -215,7 +215,7 @@ def main():
             demo = build_standard_app(app_name)
             
             # --- ENABLE QUEUE ---
-            demo.queue(default_concurrency_limit=20) 
+            demo.queue(default_concurrency_limit=40) 
             # --------------------
             
             demo.launch(
