@@ -1329,13 +1329,15 @@ def compute_rank_settings(
         return [(MODEL_DISPLAY_MAP[k], k) for k in available_english_keys if k in MODEL_DISPLAY_MAP]
 
         
+    avail_keys = list(MODEL_TYPES.keys()) # All models
+
     return {
-        "rank_message": "# 👑 Rang: Enginyer en Cap\n<p style='font-size:24px; line-height:1.4;'>Totes les eines desbloquejades: optimitza lliurement!</p>",
+        "rank_message": "# 👑 Rang: Enginyer/a principal\n<p style='font-size:24px; line-height:1.4;'>Totes les eines desbloquejades — optimitza amb llibertat!</p>",
         "model_choices": get_model_tuples(avail_keys),
-        "model_value": current_model if current_model in avail_keys else "The Deep Pattern-Finder",
+        "model_value": current_model if current_model in avail_keys else "The Balanced Generalist",
         "model_interactive": True,
         "complexity_max": 10,
-        "complexity_value": min(current_complexity, 10),
+        "complexity_value": current_complexity,
         "feature_set_choices": get_choices_for_rank(3),
         "feature_set_value": current_feature_set,
         "feature_set_interactive": True,
@@ -1343,25 +1345,6 @@ def compute_rank_settings(
         "data_size_value": current_data_size if current_data_size in DATA_SIZE_DB_MAP else "Petita (20%)",
         "data_size_interactive": True,
     }
-        
-    # Rank 3+: Lead
-    else:
-        avail_keys = list(MODEL_TYPES.keys()) # All models
-
-        return {
-            "rank_message": "# 👑 Rang: Enginyer/a principal\n<p style='font-size:24px; line-height:1.4;'>Totes les eines desbloquejades — optimitza amb llibertat!</p>",
-            "model_choices": get_model_tuples(avail_keys),
-            "model_value": current_model if current_model in avail_keys else "The Balanced Generalist",
-            "model_interactive": True,
-            "complexity_max": 10,
-            "complexity_value": current_complexity,
-            "feature_set_choices": get_choices_for_rank(3),
-            "feature_set_value": current_feature_set,
-            "feature_set_interactive": True,
-            "data_size_choices": ["Petita (20%)", "Mitjana (60%)", "Gran (80%)", "Completa (100%)"],
-            "data_size_value": current_data_size if current_data_size in DATA_SIZE_DB_MAP else "Petita (20%)",
-            "data_size_interactive": True,
-        }
 # Find components by name to yield updates
 # --- Existing global component placeholders ---
 submit_button = None
