@@ -967,17 +967,6 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
         rank_text = "N/A" # Placeholder
         rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0;'>Not ranked (preview)</p>" # Neutral color
     
-    # 1. Handle First Submission
-    elif submission_count == 0:
-        title = "🎉 First Model Submitted!"
-        acc_color = "#16a34a" # green
-        acc_text = f"{(new_score * 100):.2f}%"
-        acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>(Your first score!)</p>"
-
-        rank_color = "#3b82f6" # blue
-        rank_text = f"#{new_rank}"
-        rank_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #3b82f6; margin:0;'>You're on the board!</p>"
-        border_color = acc_color
 
     else:
         # 2. Handle Score Changes
