@@ -2045,28 +2045,28 @@ def check_audit_report_selection(selected_biases: List[str]) -> Tuple[str, str]:
     # --- Generate Feedback ---
     feedback_html = ""
     if incorrectly_selected:
-        feedback_html = f"<div class='hint-box' style='border-left:4px solid #ef4444; color:#b91c1c;'>❌ ERROR: The statement '{INCORRECT_FINDING.split(':')[0]}' is NOT a true finding. Check your lab results and try again.</div>"
+        feedback_html = f"<div class='hint-box' style='border-left:4px solid #ef4444; color:#b91c1c;'>❌ ERROR: La afirmación '{INCORRECT_FINDING.split(':')[0]}' NO es un hallazgo verdadero. Comprueba los resultados de tu laboratorio e inténtalo de nuevo.</div>"
     elif missed_correct:
-        feedback_html = f"<div class='hint-box' style='border-left:4px solid #f97316; color:#f97316;'>⚠️ INCOMPLETE: You missed {len(missed_correct)} piece(s) of key evidence. Your final report must be complete.</div>"
+        feedback_html = f"<div class='hint-box' style='border-left:4px solid #f97316; color:#f97316;'>⚠️ INCOMPLETO: Te falta {len(missed_correct)} pieza(s) de evidencia clave. Tu informe final debe estar completo.</div>"
     elif len(selected_biases) == len(CORRECT_FINDINGS):
-        feedback_html = "<div class='hint-box' style='border-left:4px solid #22c55e; color:#16a34a;'>✅ EVIDENCE SECURED: This is a complete and accurate diagnosis of the model's systematic failure.</div>"
+        feedback_html = "<div class='hint-box' style='border-left:4px solid #22c55e; color:#16a34a;'>✅ EVIDENCIA ASEGURADA: Este es un diagnóstico completo y preciso del fallo sistemático del modelo.</div>"
     else:
-        feedback_html = "<div class='hint-box' style='border-left:4px solid var(--color-accent);'>Gathering evidence...</div>"
+        feedback_html = "<div class='hint-box' style='border-left:4px solid var(--color-accent);'>Recopilando evidencia...</div>"
 
     # --- Build Markdown Report Preview ---
     if not correctly_selected:
-        report_markdown = "Select the evidence cards above to start drafting your report. (The draft report will appear here.)"
+        report_markdown = "Selecciona las tarjetas de evidencia de arriba para comenzar a redactar tu informe. (El borrador del informe aparecerá aquí.)"
     else:
         lines = []
-        lines.append("### 🧾 Draft Audit Report")
-        lines.append("\n**Findings of Systemic Error:**")
+        lines.append("### 🧾 Borrador de Informe de Auditoría")
+        lines.append("\n**Hallazgos de Error Sistemático:**")
 
         # Map short findings to the markdown report
         finding_map = {
-            "Choice A": "Punitive Bias (Race): The model is twice as harsh on AA defendants.",
-            "Choice B": "Generalization (Gender): Higher False Alarm errors for women.",
-            "Choice C": "Leniency Pattern (Race): More missed warnings for White defendants.",
-            "Choice E": "Proxy Bias (Geography): Location acts as a stand-in for race/class.",
+            "Choice A": "Sesgo Punitivo (Raza): El modelo es el doble de severo con los acusados AA.",
+            "Choice B": "Generalización (Género): Errores de Falsa Alarma más altos para mujeres.",
+            "Choice C": "Patrón de Indulgencia (Raza): Más advertencias omitidas para acusados blancos.",
+            "Choice E": "Sesgo de Proxy (Geografía): La ubicación actúa como sustituto de raza/clase.",
         }
 
         for i, choice in enumerate(CORRECT_FINDINGS):
@@ -2075,7 +2075,7 @@ def check_audit_report_selection(selected_biases: List[str]) -> Tuple[str, str]:
                 lines.append(f"{i+1}. {finding_map[short_key]}")
 
         if len(correctly_selected) == len(CORRECT_FINDINGS) and not incorrectly_selected:
-             lines.append("\n**CONCLUSION:** The evidence proves the system creates unequal harm and violates Justice & Equity.")
+             lines.append("\n**CONCLUSIÓN:** La evidencia demuestra que el sistema crea daño desigual y viola la Justicia y la Equidad.")
 
         report_markdown = "\n".join(lines)
 
