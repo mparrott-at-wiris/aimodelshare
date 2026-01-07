@@ -302,7 +302,7 @@ TRANSLATIONS = {
         "s5_li1": "Les <b>dades d'entrada</b> poden contenir biaixos històrics",
         "s5_li2": "El <b>model</b> aprèn patrons de decisions passades potencialment injustes",
         "s5_li3": "Les <b>prediccions de sortida</b> poden perpetuar la discriminació",
-        "s5_final": "<b>Entendre com funciona la IA és el primer pas per construir sistemes més justos.</b><br><br>Ara que saps què és la IA, estàs llest per ajudar a dissenyar models que siguin més ètics i menys esbiaixats!",
+        "s5_final": "<b>Entendre com funciona la IA és el primer pas per construir sistemes més justos.</b><br><br>Ara que saps què és la IA, estàs a punt per ajudar a dissenyar models que siguin més ètics i menys esbiaixats!",
         "btn_complete": "Completar aquesta secció ▶️",
         # Step 6
         "s6_title": "🎓 Ara ja entens els conceptes bàsics de la IA!",

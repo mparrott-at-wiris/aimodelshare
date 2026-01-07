@@ -192,7 +192,7 @@ TRANSLATIONS = {
         "btn_show_summary": "📊 Mostrar resum de decisions",
         "btn_complete": "Completar aquesta secció ▶️",
         "completion_title": "✅ Decisions completades!",
-        "completion_box_pre": "Ya has pres les teves decisions basant-te en les recomanacions de la IA.<br><br>Ara bé, sorgeix una pregunta clau:<br><br>",
+        "completion_box_pre": "Ja has pres les teves decisions basant-te en les recomanacions de la IA.<br><br>Ara bé, sorgeix una pregunta clau:<br><br>",
         "completion_question": "I si la IA s'hagués equivocat?",
         "completion_box_post": """
             <p style='font-size:1.1rem;'>

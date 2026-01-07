@@ -164,7 +164,7 @@ TRANSLATIONS = {
         "s1_p2": "<b>Però què passa si aquestes prediccions eren incorrectes?</b>",
         "s1_p3": "Els sistemes d'IA cometen dos tipus d'errors que tenen conseqüències molt diferents:",
         "s1_li1": "<b>Falsos positius</b> - Predir incorrectament ALT risc",
-        "s1_li2": "<b>Falsos Negatius</b> - Predir incorrectament BAIX risc",
+        "s1_li2": "<b>Falsos negatius</b> - Predir incorrectament BAIX risc",
         "s1_p4": "Examinem cada tipus d'error i el seu impacte en el món real.",
         "btn_next_fp": "Següent: Falsos positius ▶️",
         # Step 2
