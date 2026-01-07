@@ -3294,7 +3294,11 @@ def create_model_building_game_en_final_app(theme_primary_hue: str = "indigo") -
                     submission_feedback_display = gr.HTML(
                         "<p style='text-align:center; color:#6b7280; padding:20px 0;'>Submit your first model to get feedback!</p>"
                     )
-                    
+                    # Replace the tracker instantiation with a hidden, empty component
+                    attempts_tracker_display = gr.HTML(
+                        value="",  # keep empty
+                        visible=False  # keep hidden
+                    )
                     # Inline Login Components (initially hidden)
                     login_username = gr.Textbox(
                         label="Username",
