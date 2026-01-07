@@ -3338,7 +3338,7 @@ def create_model_building_game_en_final_app(theme_primary_hue: str = "indigo") -
 
         # --- Navigation Logic ---
         all_steps_nav = [
-            briefing_slide_7, 
+            intro_slide, 
             model_building_step, conclusion_step, loading_screen
         ]
 
@@ -3452,8 +3452,8 @@ def create_model_building_game_en_final_app(theme_primary_hue: str = "indigo") -
 
 
 
-        briefing_7_next.click(
-            fn=create_nav(briefing_slide_6, model_building_step),
+        intro_next_btn.click(
+            fn=create_nav(intro_slide, model_building_step),
             inputs=None, outputs=all_steps_nav,
             js=nav_js("model-step", "Entering model arena...")
         )
