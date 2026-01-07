@@ -1733,36 +1733,6 @@ def run_experiment(
         }
         return
 
-    if submission_count >= ATTEMPT_LIMIT:
-        limit_warning_html = f"""
-        <div class='kpi-card' style='border-color: #ef4444;'>
-            <h2 style='color: #111827; margin-top:0;'>🛑 Límit d'enviaments assolit</h2>
-            <div class='kpi-card-body'>
-                <div class='kpi-metric-box'>
-                    <p class='kpi-label'>Intents utilitzats</p>
-                    <p class='kpi-score' style='color: #ef4444;'>{ATTEMPT_LIMIT} / {ATTEMPT_LIMIT}</p>
-                </div>
-            </div>
-            <div style='margin-top: 16px; background:#fef2f2; padding:16px; border-radius:12px; text-align:left; font-size:0.98rem; line-height:1.4;'>
-                <p style='margin:0; color:#991b1b;'><b>Molt bona feina!</b> Baixa fins a «Finalitzar i reflexionar».</p>
-            </div>
-        </div>"""
-        settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
-        yield {
-            submission_feedback_display: gr.update(value=limit_warning_html, visible=True),
-            submit_button: gr.update(value="🛑 Límit d'enviaments assolit", interactive=False),
-            model_type_radio: gr.update(interactive=False), complexity_slider: gr.update(interactive=False),
-            feature_set_checkbox: gr.update(interactive=False), data_size_radio: gr.update(interactive=False),
-            attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
-            team_leaderboard_display: team_leaderboard_display, individual_leaderboard_display: individual_leaderboard_display,
-            last_submission_score_state: last_submission_score, last_rank_state: last_rank,
-            best_score_state: best_score, submission_count_state: submission_count,
-            first_submission_score_state: first_submission_score, rank_message_display: settings["rank_message"],
-            login_username: gr.update(visible=False), login_password: gr.update(visible=False),
-            login_submit: gr.update(visible=False), login_error: gr.update(visible=False),
-            was_preview_state: False, kpi_meta_state: {}, last_seen_ts_state: None
-        }
-        return
 
     progress(0.5, desc="S'està enviant al núvol...")
     yield {submission_feedback_display: gr.update(value=get_status_html(3, "Enviament en curs", "S'està enviant el model al servidor de la competició..."), visible=True)}
@@ -1800,7 +1770,7 @@ def run_experiment(
     kpi_card_html = _build_kpi_card_html(new_score=this_submission_score, last_score=last_submission_score, new_rank=new_rank, last_rank=last_rank, submission_count=submission_count, is_preview=False, is_pending=False)
 
     progress(1.0, desc="Complet!")
-    limit_reached = new_submission_count >= ATTEMPT_LIMIT
+    limit_reached = False
     if limit_reached:
         limit_html = f"""
         <div style='margin-top: 16px; border: 2px solid #ef4444; background:#fef2f2; padding:16px; border-radius:12px; text-align:left;'>
