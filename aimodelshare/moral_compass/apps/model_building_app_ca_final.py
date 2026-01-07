@@ -1958,7 +1958,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
 
 def build_conclusion_from_state(best_score, submissions, rank, first_score, feature_set):
     return build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set)
-def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
+def create_model_building_game_ca_final_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """
     Create (but do not launch) the model building game app.
     """
@@ -3542,7 +3542,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
 # 4. Convenience Launcher
 # -------------------------------------------------------------------------
 
-def launch_model_building_game_ca_app(height: int = 1200, share: bool = False, debug: bool = False) -> None:
+def launch_model_building_game_ca_final_app(height: int = 1200, share: bool = False, debug: bool = False) -> None:
     """
     Create and directly launch the Model Building Game app inline (e.g., in notebooks).
     """
@@ -3554,6 +3554,6 @@ def launch_model_building_game_ca_app(height: int = 1200, share: bool = False, d
             print(f"WARNING: Could not connect to playground: {e}")
             playground = None
 
-    demo = create_model_building_game_ca_app()
+    demo = create_model_building_game_ca_final_app()
     port = int(os.environ.get("PORT", 8080))
     demo.launch(share=share, inline=True, debug=debug, height=height, server_port=port)
