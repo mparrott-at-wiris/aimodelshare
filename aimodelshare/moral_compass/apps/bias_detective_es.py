@@ -1558,25 +1558,25 @@ QUIZ_CONFIG = {
 
 # --- 6. SCENARIO CONFIG (for Module 0) ---
 SCENARIO_CONFIG = {
-    "Criminal risk prediction": {
+    "Predicción de riesgo criminal": {
         "q": (
             "A system predicts who might reoffend.\n"
             "Why isn’t accuracy alone enough?"
         ),
-        "summary": "Even tiny bias can repeat across thousands of bail/sentencing calls — real lives, real impact.",
-        "a": "Accuracy can look good overall while still being unfair to specific groups affected by the model.",
-        "rationale": "Bias at scale means one pattern can hurt many people quickly. We must check subgroup fairness, not just the top-line score."
+        "summary": "Incluso un sesgo pequeño puede repetirse en miles de decisiones de fianza/sentencia — vidas reales, impacto real.",
+        "a": "La exactitud puede parecer buena en general mientras sigue siendo injusta para grupos específicos afectados por el modelo.",
+        "rationale": "El sesgo a escala significa que un patrón puede dañar a muchas personas rápidamente. Debemos comprobar la equidad por subgrupos, no solo la puntuación general."
     },
-    "Loan approval system": {
+    "Sistema de aprobación de préstamos": {
         "q": (
             "A model decides who gets a loan.\n"
             "What’s the biggest risk if it learns from biased history?"
         ),
-        "summary": "Some groups get blocked over and over, shutting down chances for housing, school, and stability.",
-        "a": "It can repeatedly deny the same groups, copying old patterns and locking out opportunity.",
-        "rationale": "If past approvals were unfair, the model can mirror that and keep doors closed — not just once, but repeatedly."
+        "summary": "Algunos grupos son bloqueados una y otra vez, cerrando oportunidades de vivienda, educación y estabilidad.",
+        "a": "Puede negar repetidamente a los mismos grupos, copiando viejos patrones y bloqueando oportunidades.",
+        "rationale": "Si las aprobaciones pasadas fueron injustas, el modelo puede reflejarlo y mantener puertas cerradas — no solo una vez, sino repetidamente."
     },
-    "College admissions screening": {
+    "Selección de admisiones universitarias": {
         "q": (
             "A tool ranks college applicants using past admissions data.\n"
             "What’s the main fairness risk?"
@@ -1596,29 +1596,29 @@ def simulate_ripple_effect_cases(cases_per_year):
     c_int = int(c)
     if c_int <= 0:
         message = (
-            "If the system isn't used on any cases, its bias can't hurt anyone yet — "
-            "but once it goes live, each biased decision can scale quickly."
+            "Si el sistema no se usa en ningún caso, su sesgo no puede dañar a nadie todavía — "
+            "pero una vez que se ponga en marcha, cada decisión sesgada puede escalar rápidamente."
         )
     elif c_int < 5000:
         message = (
-            f"Even at <strong>{c_int}</strong> cases per year, a biased model can quietly "
-            "affect hundreds of people over time."
+            f"Incluso con <strong>{c_int}</strong> casos por año, un modelo sesgado puede afectar silenciosamente "
+            "a cientos de personas con el tiempo."
         )
     elif c_int < 15000:
         message = (
-            f"At around <strong>{c_int}</strong> cases per year, a biased model could unfairly label "
-            "thousands of people as 'high risk.'"
+            f"Con alrededor de <strong>{c_int}</strong> casos por año, un modelo sesgado podría etiquetar injustamente "
+            "a miles de personas como 'alto riesgo'."
         )
     else:
         message = (
-            f"At <strong>{c_int}</strong> cases per year, one flawed algorithm can shape the futures "
-            "of an entire region — turning hidden bias into thousands of unfair decisions."
+            f"Con <strong>{c_int}</strong> casos por año, un algoritmo defectuoso puede moldear los futuros "
+            "de toda una región — convirtiendo el sesgo oculto en miles de decisiones injustas."
         )
 
     return f"""
     <div class="hint-box interactive-block">
         <p style="margin-bottom:4px; font-size:1.05rem;">
-            <strong>Estimated cases processed per year:</strong> {c_int}
+            <strong>Casos estimados procesados por año:</strong> {c_int}
         </p>
         <p style="margin-bottom:0; font-size:1.05rem;">
             {message}
@@ -1635,7 +1635,7 @@ def render_static_scenarios():
             <div class="hint-box" style="margin-top:12px;">
                 <div style="font-weight:700; font-size:1.05rem;">📘 {name}</div>
                 <p style="margin:8px 0 6px 0;">{q_html}</p>
-                <p style="margin:0;"><strong>Key takeaway:</strong> {cfg["a"]}</p>
+                <p style="margin:0;"><strong>Conclusión clave:</strong> {cfg["a"]}</p>
                 <p style="margin:6px 0 0 0; color:var(--body-text-color-subdued);">{cfg["f_correct"]}</p>
             </div>
         """)
@@ -1644,7 +1644,7 @@ def render_static_scenarios():
 def render_scenario_card(name: str):
     cfg = SCENARIO_CONFIG.get(name)
     if not cfg:
-        return "<div class='hint-box'>Select a scenario to view details.</div>"
+        return "<div class='hint-box'>Selecciona un escenario para ver detalles.</div>"
     q_html = cfg["q"].replace("\n", "<br>")
     return f"""
     <div class="scenario-box">
@@ -1652,7 +1652,7 @@ def render_scenario_card(name: str):
         <div class="slide-body">
             <div class="hint-box">
                 <p style="margin:0 0 6px 0; font-size:1.05rem;">{q_html}</p>
-                <p style="margin:0 0 6px 0;"><strong>Key takeaway:</strong> {cfg['a']}</p>
+                <p style="margin:0 0 6px 0;"><strong>Conclusión clave:</strong> {cfg['a']}</p>
                 <p style="margin:0; color:var(--body-text-color-subdued);">{cfg['rationale']}</p>
             </div>
         </div>
@@ -1837,66 +1837,66 @@ def generate_success_message(prev, curr, specific_text):
     if style_key == "first":
         card_class += " first-score"
         header_emoji = "🎉"
-        header_title = "You're Officially on the Board!"
+        header_title = "¡Estás Oficialmente en la Clasificación!"
         summary_line = (
-            "You just earned your first Moral Compass Score — you're now part of the global rankings."
+            "Acabas de ganar tu primera Puntuación de Brújula Moral — ahora eres parte de la clasificación global."
         )
-        cta_line = "Scroll down to take your next step and start climbing."
+        cta_line = "Desplázate hacia abajo para dar tu próximo paso y comenzar a escalar."
     elif style_key == "major":
         header_emoji = "🔥"
-        header_title = "Major Moral Compass Boost!"
+        header_title = "¡Gran Impulso de Brújula Moral!"
         summary_line = (
-            "Your decision made a big impact — you just moved ahead of other participants."
+            "Tu decisión tuvo un gran impacto — acabas de adelantar a otros participantes."
         )
-        cta_line = "Scroll down to take on your next challenge and keep the boost going."
+        cta_line = "Desplázate hacia abajo para enfrentar tu próximo desafío y mantener el impulso."
     elif style_key == "climb":
         header_emoji = "🚀"
-        header_title = "You're Climbing the Leaderboard"
-        summary_line = "Nice work — you edged out a few other participants."
-        cta_line = "Scroll down to continue your investigation and push even higher."
+        header_title = "Estás Escalando en la Clasificación"
+        summary_line = "Buen trabajo — has superado a algunos otros participantes."
+        cta_line = "Desplázate hacia abajo para continuar tu investigación y llegar aún más alto."
     elif style_key == "tight":
         header_emoji = "📊"
-        header_title = "The Leaderboard Is Shifting"
+        header_title = "La Clasificación Está Cambiando"
         summary_line = (
-            "Other teams are moving too. You'll need a few more strong decisions to stand out."
+            "Otros equipos también se están moviendo. Necesitarás algunas decisiones más fuertes para destacar."
         )
-        cta_line = "Take on the next question to strengthen your position."
+        cta_line = "Responde la siguiente pregunta para fortalecer tu posición."
     else:  # "solid"
         header_emoji = "✅"
-        header_title = "Progress Logged"
-        summary_line = "Your ethical insight increased your Moral Compass Score."
-        cta_line = "Try the next scenario to break into the next tier."
+        header_title = "Progreso Registrado"
+        summary_line = "Tu perspectiva ética aumentó tu Puntuación de Brújula Moral."
+        cta_line = "Prueba el siguiente escenario para alcanzar el próximo nivel."
 
     # --- SCORE / RANK LINES ---------------------------------------------
 
     # First-time: different wording (no previous score)
     if style_key == "first":
-        score_line = f"🧭 Score: <strong>{new_score:.3f}</strong>"
+        score_line = f"🧭 Puntuación: <strong>{new_score:.3f}</strong>"
         if ranks_are_int:
-            rank_line = f"🏅 Initial Rank: <strong>#{new_rank}</strong>"
+            rank_line = f"🏅 Rango Inicial: <strong>#{new_rank}</strong>"
         else:
-            rank_line = f"🏅 Initial Rank: <strong>#{new_rank}</strong>"
+            rank_line = f"🏅 Rango Inicial: <strong>#{new_rank}</strong>"
     else:
         score_line = (
-            f"🧭 Score: {old_score:.3f} → <strong>{new_score:.3f}</strong> "
+            f"🧭 Puntuación: {old_score:.3f} → <strong>{new_score:.3f}</strong> "
             f"(+{diff_score:.3f})"
         )
 
         if ranks_are_int:
             if old_rank == new_rank:
-                rank_line = f"📊 Rank: <strong>#{new_rank}</strong> (holding steady)"
+                rank_line = f"📊 Rango: <strong>#{new_rank}</strong> (manteniéndose estable)"
             elif rank_diff > 0:
                 rank_line = (
-                    f"📈 Rank: #{old_rank} → <strong>#{new_rank}</strong> "
-                    f"(+{rank_diff} places)"
+                    f"📈 Rango: #{old_rank} → <strong>#{new_rank}</strong> "
+                    f"(+{rank_diff} posiciones)"
                 )
             else:
                 rank_line = (
-                    f"🔻 Rank: #{old_rank} → <strong>#{new_rank}</strong> "
-                    f"({rank_diff} places)"
+                    f"🔻 Rango: #{old_rank} → <strong>#{new_rank}</strong> "
+                    f"({rank_diff} posiciones)"
                 )
         else:
-            rank_line = f"📊 Rank: <strong>#{new_rank}</strong>"
+            rank_line = f"📊 Rango: <strong>#{new_rank}</strong>"
 
     # --- HTML COMPOSITION -----------------------------------------------
     return f"""
@@ -1940,22 +1940,22 @@ def render_top_dashboard(data, module_id):
         <div class="summary-box-inner">
             <div class="summary-metrics">
                 <div style="text-align:center;">
-                    <div class="label-text">Moral Compass Score</div>
+                    <div class="label-text">Puntuación de Brújula Moral</div>
                     <div class="score-text-primary">🧭 {display_score:.3f}</div>
                 </div>
                 <div class="divider-vertical"></div>
                 <div style="text-align:center;">
-                    <div class="label-text">Team Rank</div>
+                    <div class="label-text">Rango de Equipo</div>
                     <div class="score-text-team">{team_rank_display}</div>
                 </div>
                 <div class="divider-vertical"></div>
                 <div style="text-align:center;">
-                    <div class="label-text">Global Rank</div>
+                    <div class="label-text">Rango Global</div>
                     <div class="score-text-global">{rank_display}</div>
                 </div>
             </div>
             <div class="summary-progress">
-                <div class="progress-label">Mission Progress: {progress_pct}%</div>
+                <div class="progress-label">Progreso de la Misión: {progress_pct}%</div>
                 <div class="progress-bar-bg">
                     <div class="progress-bar-fill" style="width:{progress_pct}%;"></div>
                 </div>
@@ -1991,10 +1991,10 @@ def render_leaderboard_card(data, username, team_name):
             )
     return f"""
     <div class="scenario-box leaderboard-card">
-        <h3 class="slide-title" style="margin-bottom:10px;">📊 Live Standings</h3>
+        <h3 class="slide-title" style="margin-bottom:10px;">📊 Clasificación en Vivo</h3>
         <div class="lb-tabs">
             <input type="radio" id="lb-tab-team" name="lb-tabs" checked>
-            <label for="lb-tab-team" class="lb-tab-label">🏆 Team</label>
+            <label for="lb-tab-team" class="lb-tab-label">🏆 Equipo</label>
             <input type="radio" id="lb-tab-user" name="lb-tabs">
             <label for="lb-tab-user" class="lb-tab-label">👤 Individual</label>
             <div class="lb-tab-panels">
@@ -2002,7 +2002,7 @@ def render_leaderboard_card(data, username, team_name):
                     <div class='table-container'>
                         <table class='leaderboard-table'>
                             <thead>
-                                <tr><th>Rank</th><th>Team</th><th style='text-align:right;'>Avg 🧭</th></tr>
+                                <tr><th>Rango</th><th>Equipo</th><th style='text-align:right;'>Promedio 🧭</th></tr>
                             </thead>
                             <tbody>{team_rows}</tbody>
                         </table>
@@ -2012,7 +2012,7 @@ def render_leaderboard_card(data, username, team_name):
                     <div class='table-container'>
                         <table class='leaderboard-table'>
                             <thead>
-                                <tr><th>Rank</th><th>Agent</th><th style='text-align:right;'>Score 🧭</th></tr>
+                                <tr><th>Rango</th><th>Agente</th><th style='text-align:right;'>Puntuación 🧭</th></tr>
                             </thead>
                             <tbody>{user_rows}</tbody>
                         </table>
@@ -2430,14 +2430,14 @@ def create_bias_detective_es_app(theme_primary_hue: str = "indigo"):
 
         # --- TOP ANCHOR & LOADING OVERLAY FOR NAVIGATION ---
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
-        gr.HTML("<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>Loading...</span></div>")
+        gr.HTML("<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>Cargando...</span></div>")
 
         # --- LOADING VIEW ---
         with gr.Column(visible=True, elem_id="app-loader") as loader_col:
             gr.HTML(
                 "<div style='text-align:center; padding:100px;'>"
-                "<h2>🕵️‍♀️ Authenticating...</h2>"
-                "<p>Syncing Moral Compass Data...</p>"
+                "<h2>🕵️‍♀️ Autenticando...</h2>"
+                "<p>Sincronizando Datos de Brújula Moral...</p>"
                 "</div>"
             )
 
@@ -2471,7 +2471,7 @@ def create_bias_detective_es_app(theme_primary_hue: str = "indigo"):
                         gr.Markdown(f"### 🧠 {q_data['q']}")
                         radio = gr.Radio(
                             choices=q_data["o"],
-                            label="Select Answer:",
+                            label="Selecciona una Respuesta:",
                             elem_classes=["quiz-radio-large"],
                         )
                         feedback = gr.HTML("")
@@ -2521,7 +2521,7 @@ def create_bias_detective_es_app(theme_primary_hue: str = "indigo"):
                             gr.update(),
                             gr.update(),
                             "<div class='hint-box' style='border-color:red;'>"
-                            "❌ Incorrect. Review the evidence above.</div>",
+                            "❌ Incorrecto. Revisa la evidencia anterior.</div>",
                             task_list,
                         )
 
@@ -2624,7 +2624,7 @@ def create_bias_detective_es_app(theme_primary_hue: str = "indigo"):
                 None,
                 None,
                 False,
-                "<div class='hint-box'>⚠️ Auth Failed. Please launch from the course link.</div>",
+                "<div class='hint-box'>⚠️ Error de Autenticación. Por favor, inicia desde el enlace del curso.</div>",
                 "",
                 0.0,
                 [],
@@ -2706,7 +2706,7 @@ def create_bias_detective_es_app(theme_primary_hue: str = "indigo"):
                 prev_btn.click(
                     fn=make_prev_handler(prev_col, curr_col, prev_target_id),
                     outputs=[prev_col, curr_col],
-                    js=nav_js(prev_target_id, "Loading..."),
+                    js=nav_js(prev_target_id, "Cargando..."),
                 )
 
             # Next button
@@ -2733,7 +2733,7 @@ def create_bias_detective_es_app(theme_primary_hue: str = "indigo"):
                     fn=make_next_handler(curr_col, next_col, i + 1),
                     inputs=[username_state, token_state, team_state, task_list_state],
                     outputs=[out_top],
-                    js=nav_js(next_target_id, "Loading..."),
+                    js=nav_js(next_target_id, "Cargando..."),
                 ).then(
                     fn=make_nav_generator(curr_col, next_col),
                     outputs=[curr_col, next_col],
