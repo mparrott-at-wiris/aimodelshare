@@ -61,7 +61,6 @@ except ImportError:
 # Configuration & Caching Infrastructure
 # -------------------------------------------------------------------------
 
-
 # -------------------------------------------------------------------------
 # CACHE CONFIGURATION (Optimized: Thread-Safe SQLite)
 # -------------------------------------------------------------------------
@@ -103,6 +102,72 @@ def get_cached_prediction(key):
 
 print("✅ App configured for Thread-Safe SQLite Cache.")
 
+# -------------------------------------------------------------------------
+# Lightweight Label Loader (No Training, Only Test Accuracy Computation)
+# -------------------------------------------------------------------------
+_Y_TEST = None
+_Y_TEST_LOCK = threading.Lock()
+
+def get_test_labels(csv_path: str = "compas.csv") -> pd.Series:
+    """
+    Load test labels from CSV file for local accuracy computation.
+    Matches the exact sampling and splitting logic from precompute_cache.py.
+    
+    Args:
+        csv_path: Path to compas.csv (downloaded at build time)
+    
+    Returns:
+        pd.Series: Test labels (y_test)
+    """
+    # Load data
+    df = pd.read_csv(csv_path)
+    
+    # Calculate length_of_stay
+    try:
+        df['c_jail_in'] = pd.to_datetime(df['c_jail_in'])
+        df['c_jail_out'] = pd.to_datetime(df['c_jail_out'])
+        df['length_of_stay'] = (df['c_jail_out'] - df['c_jail_in']).dt.total_seconds() / (24 * 60 * 60)
+    except Exception:
+        df['length_of_stay'] = np.nan
+    
+    # Sample MAX_ROWS
+    if df.shape[0] > 4000:  # MAX_ROWS = 4000
+        df = df.sample(n=4000, random_state=42)
+    
+    # Extract features and target (matching precompute_cache.py)
+    all_numeric_cols = ["juv_fel_count", "juv_misd_count", "juv_other_count", 
+                        "days_b_screening_arrest", "age", "length_of_stay", "priors_count"]
+    all_categorical_cols = ["race", "sex", "c_charge_degree", "c_charge_desc"]
+    feature_columns = all_numeric_cols + all_categorical_cols
+    
+    # Ensure all columns exist
+    for col in feature_columns:
+        if col not in df.columns:
+            df[col] = np.nan
+    
+    # Process c_charge_desc
+    if "c_charge_desc" in df.columns:
+        top_charges = df["c_charge_desc"].value_counts().head(50).index
+        df["c_charge_desc"] = df["c_charge_desc"].apply(
+            lambda x: x if pd.notna(x) and x in top_charges else "OTHER"
+        )
+    
+    X = df[feature_columns].copy()
+    y = df["two_year_recid"].copy()
+    
+    # Split (matching precompute_cache.py: test_size=0.25, random_state=42, stratify=y)
+    _, _, _, y_test = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y)
+    
+    return y_test
+
+def _ensure_y_test_loaded():
+    """Ensure test labels are loaded into memory (thread-safe, cached)."""
+    global _Y_TEST
+    with _Y_TEST_LOCK:
+        if _Y_TEST is None:
+            print("Loading test labels for local accuracy computation...", flush=True)
+            _Y_TEST = get_test_labels()
+            print(f"✅ Test labels loaded: {len(_Y_TEST)} samples", flush=True)
 
 LEADERBOARD_CACHE_SECONDS = int(os.environ.get("LEADERBOARD_CACHE_SECONDS", "45"))
 MAX_LEADERBOARD_ENTRIES = os.environ.get("MAX_LEADERBOARD_ENTRIES")
@@ -317,6 +382,10 @@ def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str],
         _log(f"Session auth failed: {e}")
         return False, None, None
 
+
+# -------------------------------------------------------------------------
+# UPDATED FUNCTION
+# -------------------------------------------------------------------------
 def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
     """
     Compute user statistics with caching.
@@ -383,7 +452,8 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
         _user_stats_cache[username] = stats
     _log(f"Stats for {username}: {stats}")
     return stats
-def _build_attempts_tracker_html(current_count, limit=10):
+  
+def _build_attempts_tracker_html(current_count, limit=1000000000000):
     """
     Generate HTML for the attempts tracker display.
     Shows current attempt count vs limit with color coding.
@@ -401,14 +471,14 @@ def _build_attempts_tracker_html(current_count, limit=10):
         border_color = "#bae6fd"
         text_color = "#0369a1"
         icon = "🛑"
-        label = f"Last chance (for now) to boost your score!: {current_count}/{limit}"
+        label = f"Última oportunidad (por ahora) para mejorar tu puntuación: {current_count}/{limit}"
     else:
         # Normal - blue styling
         bg_color = "#f0f9ff"
         border_color = "#bae6fd"
         text_color = "#0369a1"
         icon = "📊"
-        label = f"Attempts used: {current_count}/{limit}"
+        label = f"Intentos usados: {current_count}/{limit}"
 
     return f"""<div style='text-align:center; padding:8px; margin:8px 0; background:{bg_color}; border-radius:8px; border:1px solid {border_color};'>
         <p style='margin:0; color:{text_color}; font-weight:600; font-size:1rem;'>{icon} {label}</p>
@@ -421,9 +491,9 @@ def check_attempt_limit(submission_count: int, limit: int = None) -> Tuple[bool,
         limit = ATTEMPT_LIMIT
     
     if submission_count >= limit:
-        msg = f"⚠️ Attempt limit reached ({submission_count}/{limit})"
+        msg = f"⚠️ Límite de intentos alcanzado ({submission_count}/{limit})"
         return False, msg
-    return True, f"Attempts: {submission_count}/{limit}"
+    return True, f"Intentos: {submission_count}/{limit}"
 
 # -------------------------------------------------------------------------
 # Future: Fairness Metrics
@@ -463,7 +533,7 @@ MY_PLAYGROUND_ID = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/
 # by refreshing the browser. For production use with 100+ concurrent users,
 # consider implementing server-side persistence via Redis or Firestore to track
 # attempt counts per user across sessions.
-ATTEMPT_LIMIT = 1000000000
+ATTEMPT_LIMIT = 1000000000000
 
 # --- Leaderboard Polling Configuration ---
 # After a real authenticated submission, we poll the leaderboard to detect eventual consistency.
@@ -474,32 +544,57 @@ LEADERBOARD_POLL_TRIES = 60  # Number of polling attempts (increased to handle b
 LEADERBOARD_POLL_SLEEP = 1.0  # Sleep duration between polls (seconds)
 ENABLE_AUTO_RESUBMIT_AFTER_READY = False  # Future feature flag for auto-resubmit
 
+# --- 1. MODEL CONFIGURATION (Keys match Database) ---
 MODEL_TYPES = {
     "The Balanced Generalist": {
         "model_builder": lambda: LogisticRegression(
             max_iter=500, random_state=42, class_weight="balanced"
         ),
-        "card": "A fast, reliable, well-rounded model. Good starting point; less prone to overfitting."
+        # Store the Spanish description here for the UI
+        "card_es": "Este modelo es rápido, fiable y equilibrado. Buen punto de partida; suele dar resultados estables en muchos casos."
     },
     "The Rule-Maker": {
         "model_builder": lambda: DecisionTreeClassifier(
             random_state=42, class_weight="balanced"
         ),
-        "card": "Learns simple 'if/then' rules. Easy to interpret, but can miss subtle patterns."
+        "card_es": "Este modelo aprende reglas simples del tipo «si/entonces». Fácil de entender, pero le cuesta captar patrones complejos."
     },
     "The 'Nearest Neighbor'": {
         "model_builder": lambda: KNeighborsClassifier(),
-        "card": "Looks at the closest past examples. 'You look like these others; I'll predict like they behave.'"
+        "card_es": "Este modelo se basa en los ejemplos más parecidos del pasado. «Si te pareces a estos casos, prediré el mismo resultado»."
     },
     "The Deep Pattern-Finder": {
         "model_builder": lambda: RandomForestClassifier(
             random_state=42, class_weight="balanced"
         ),
-        "card": "An ensemble of many decision trees. Powerful, can capture deep patterns; watch complexity."
+        "card_es": "Este modelo combina muchos árboles de decisión para encontrar patrones complejos. Es potente, pero conviene no pasarse con la complejidad."
     }
 }
 
-DEFAULT_MODEL = "The Balanced Generalist"
+DEFAULT_MODEL = "The Balanced Generalist"  # Now using the English key
+
+# --- 2. TRANSLATION MAPS (UI Display -> Database Key) ---
+
+# Map English Keys to Catalan Display Names for the Radio Button
+MODEL_DISPLAY_MAP = {
+    "The Balanced Generalist": "El Generalista Equilibrado",
+    "The Rule-Maker": "El Creador de Reglas",
+    "The 'Nearest Neighbor'": "El 'Vecino Más Cercano'",
+    "The Deep Pattern-Finder": "El Buscador de Patrones Profundo"
+}
+
+# Create the Choices List as Tuples: [(Catalan Label, English Value)]
+# This tells Gradio: "Show the user Catalan, but send Python the English key"
+MODEL_RADIO_CHOICES = [(label, key) for key, label in MODEL_DISPLAY_MAP.items()]
+
+# Map Spanish Data Sizes (UI) to English Keys (Database)
+DATA_SIZE_DB_MAP = {
+    "Pequeño (20%)": "Small (20%)",
+    "Medio (60%)": "Medium (60%)",
+    "Grande (80%)": "Large (80%)",
+    "Completo (100%)": "Full (100%)"
+}
+
 
 TEAM_NAMES = [
     "The Moral Champions", "The Justice League", "The Data Detectives",
@@ -507,19 +602,43 @@ TEAM_NAMES = [
 ]
 CURRENT_TEAM_NAME = random.choice(TEAM_NAMES)
 
+# Team name translations for UI display only (Spanish)
+# Internal logic (ranking, caching, grouping) always uses canonical English names
+TEAM_NAME_TRANSLATIONS = {
+    "en": {
+        "The Justice League": "The Justice League",
+        "The Moral Champions": "The Moral Champions",
+        "The Data Detectives": "The Data Detectives",
+        "The Ethical Explorers": "The Ethical Explorers",
+        "The Fairness Finders": "The Fairness Finders",
+        "The Accuracy Avengers": "The Accuracy Avengers"
+    },
+    "es": {
+        "The Justice League": "La Liga de la Justicia",
+        "The Moral Champions": "Los Campeones Morales",
+        "The Data Detectives": "Los Detectives de Datos",
+        "The Ethical Explorers": "Los Exploradores Éticos",
+        "The Fairness Finders": "Los Buscadores de Equidad",
+        "The Accuracy Avengers": "Los Vengadores de Precisión"
+    }
+}
+
+# UI language for team name display
+UI_TEAM_LANG = "es"
+
 
 # --- Feature groups for scaffolding (Weak -> Medium -> Strong) ---
 FEATURE_SET_ALL_OPTIONS = [
-    ("Juvenile Felony Count", "juv_fel_count"),
-    ("Juvenile Misdemeanor Count", "juv_misd_count"),
-    ("Other Juvenile Count", "juv_other_count"),
-    ("Race", "race"),
-    ("Sex", "sex"),
-    ("Charge Severity (M/F)", "c_charge_degree"),
-    ("Days Before Arrest", "days_b_screening_arrest"),
-    ("Age", "age"),
-    ("Length of Stay", "length_of_stay"),
-    ("Prior Crimes Count", "priors_count"),
+    ("Número de delitos graves juveniles", "juv_fel_count"),
+    ("Número de delitos leves juveniles", "juv_misd_count"),
+    ("Otros delitos juveniles", "juv_other_count"),
+    ("Origen étnico", "race"),
+    ("Sexo", "sex"),
+    ("Gravedad del cargo (leve / grave)", "c_charge_degree"),
+    ("Días antes del arresto", "days_b_screening_arrest"),
+    ("Edad", "age"),
+    ("Días en prisión", "length_of_stay"),
+    ("Número de delitos previos", "priors_count"),
 ]
 FEATURE_SET_GROUP_1_VALS = [
     "juv_fel_count", "juv_misd_count", "juv_other_count", "race", "sex",
@@ -539,87 +658,24 @@ DEFAULT_FEATURE_SET = FEATURE_SET_GROUP_1_VALS
 
 # --- Data Size config ---
 DATA_SIZE_MAP = {
-    "Small (20%)": 0.2,
-    "Medium (60%)": 0.6,
-    "Large (80%)": 0.8,
-    "Full (100%)": 1.0
+    "Pequeño (20%)": 0.2,
+    "Medio (60%)": 0.6,
+    "Grande (80%)": 0.8,
+    "Completo (100%)": 1.0
 }
-DEFAULT_DATA_SIZE = "Small (20%)"
+DEFAULT_DATA_SIZE = "Pequeño (20%)"
 
 
 MAX_ROWS = 4000
 TOP_N_CHARGE_CATEGORICAL = 50
-WARM_MINI_ROWS = 300  # Small warm dataset for instant preview
-CACHE_MAX_AGE_HOURS = 24  # Cache validity duration
 np.random.seed(42)
 
-# Global state containers (populated during initialization)
+# Global state containers
 playground = None
-X_TRAIN_RAW = None # Keep this for 100%
-X_TEST_RAW = None
-Y_TRAIN = None
-Y_TEST = None
-# Add a container for our pre-sampled data
-X_TRAIN_SAMPLES_MAP = {}
-Y_TRAIN_SAMPLES_MAP = {}
-
-# Warm mini dataset for instant preview
-X_TRAIN_WARM = None
-Y_TRAIN_WARM = None
-
-# Cache for transformed test sets (for future performance improvements)
-TEST_CACHE = {}
-
-# Initialization flags to track readiness state
-INIT_FLAGS = {
-    "competition": False,
-    "dataset_core": False,
-    "pre_samples_small": False,
-    "pre_samples_medium": False,
-    "pre_samples_large": False,
-    "pre_samples_full": False,
-    "leaderboard": False,
-    "default_preprocessor": False,
-    "warm_mini": False,
-    "errors": []
-}
-
-# Lock for thread-safe flag updates
-INIT_LOCK = threading.Lock()
 
 # -------------------------------------------------------------------------
 # 2. Data & Backend Utilities
 # -------------------------------------------------------------------------
-
-def _get_cache_dir():
-    """Get or create the cache directory for datasets."""
-    cache_dir = Path.home() / ".aimodelshare_cache"
-    cache_dir.mkdir(exist_ok=True)
-    return cache_dir
-
-def _safe_request_csv(url, cache_filename="compas.csv"):
-    """
-    Request CSV from URL with local caching.
-    Reuses cached file if it exists and is less than CACHE_MAX_AGE_HOURS old.
-    """
-    cache_dir = _get_cache_dir()
-    cache_path = cache_dir / cache_filename
-    
-    # Check if cache exists and is fresh
-    if cache_path.exists():
-        file_time = datetime.fromtimestamp(cache_path.stat().st_mtime)
-        if datetime.now() - file_time < timedelta(hours=CACHE_MAX_AGE_HOURS):
-            return pd.read_csv(cache_path)
-    
-    # Download fresh data
-    response = requests.get(url, timeout=30)
-    response.raise_for_status()
-    df = pd.read_csv(StringIO(response.text))
-    
-    # Save to cache
-    df.to_csv(cache_path, index=False)
-    
-    return df
 
 def safe_int(value, default=1):
     """
@@ -632,265 +688,6 @@ def safe_int(value, default=1):
         return int(value)
     except (ValueError, TypeError):
         return default
-
-def load_and_prep_data(use_cache=True):
-    """
-    Load, sample, and prepare raw COMPAS dataset.
-    NOW PRE-SAMPLES ALL DATA SIZES and creates warm mini dataset.
-    """
-    url = "https://raw.githubusercontent.com/propublica/compas-analysis/master/compas-scores-two-years.csv"
-
-    # Use cached version if available
-    if use_cache:
-        try:
-            df = _safe_request_csv(url)
-        except Exception as e:
-            print(f"Cache failed, fetching directly: {e}")
-            response = requests.get(url)
-            df = pd.read_csv(StringIO(response.text))
-    else:
-        response = requests.get(url)
-        df = pd.read_csv(StringIO(response.text))
-
-    # Calculate length_of_stay
-    try:
-        df['c_jail_in'] = pd.to_datetime(df['c_jail_in'])
-        df['c_jail_out'] = pd.to_datetime(df['c_jail_out'])
-        df['length_of_stay'] = (df['c_jail_out'] - df['c_jail_in']).dt.total_seconds() / (24 * 60 * 60) # in days
-    except Exception:
-        df['length_of_stay'] = np.nan
-
-    if df.shape[0] > MAX_ROWS:
-        df = df.sample(n=MAX_ROWS, random_state=42)
-
-    feature_columns = ALL_NUMERIC_COLS + ALL_CATEGORICAL_COLS
-    feature_columns = sorted(list(set(feature_columns)))
-
-    target_column = "two_year_recid"
-
-    if "c_charge_desc" in df.columns:
-        top_charges = df["c_charge_desc"].value_counts().head(TOP_N_CHARGE_CATEGORICAL).index
-        df["c_charge_desc"] = df["c_charge_desc"].apply(
-            lambda x: x if pd.notna(x) and x in top_charges else "OTHER"
-        )
-
-    for col in feature_columns:
-        if col not in df.columns:
-            if col == 'length_of_stay' and 'length_of_stay' in df.columns:
-                continue
-            df[col] = np.nan
-
-    X = df[feature_columns].copy()
-    y = df[target_column].copy()
-
-    X_train_raw, X_test_raw, y_train, y_test = train_test_split(
-        X, y, test_size=0.25, random_state=42, stratify=y
-    )
-
-    # Pre-sample all data sizes
-    global X_TRAIN_SAMPLES_MAP, Y_TRAIN_SAMPLES_MAP, X_TRAIN_WARM, Y_TRAIN_WARM
-
-    X_TRAIN_SAMPLES_MAP["Full (100%)"] = X_train_raw
-    Y_TRAIN_SAMPLES_MAP["Full (100%)"] = y_train
-
-    for label, frac in DATA_SIZE_MAP.items():
-        if frac < 1.0:
-            X_train_sampled = X_train_raw.sample(frac=frac, random_state=42)
-            y_train_sampled = y_train.loc[X_train_sampled.index]
-            X_TRAIN_SAMPLES_MAP[label] = X_train_sampled
-            Y_TRAIN_SAMPLES_MAP[label] = y_train_sampled
-
-    # Create warm mini dataset for instant preview
-    warm_size = min(WARM_MINI_ROWS, len(X_train_raw))
-    X_TRAIN_WARM = X_train_raw.sample(n=warm_size, random_state=42)
-    Y_TRAIN_WARM = y_train.loc[X_TRAIN_WARM.index]
-
-
-
-    return X_train_raw, X_test_raw, y_train, y_test
-
-def _background_initializer():
-    """
-    Background thread that performs sequential initialization tasks.
-    Updates INIT_FLAGS dict with readiness booleans and captures errors.
-    
-    Initialization sequence:
-    1. Competition object connection
-    2. Dataset cached download and core split
-    3. Warm mini dataset creation
-    4. Progressive sampling: small -> medium -> large -> full
-    5. Leaderboard prefetch
-    6. Default preprocessor fit on small sample
-    """
-    global playground, X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST
-    
-    try:
-        # Step 1: Connect to competition
-        with INIT_LOCK:
-            if playground is None:
-                playground = Competition(MY_PLAYGROUND_ID)
-            INIT_FLAGS["competition"] = True
-    except Exception as e:
-        with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Competition connection failed: {str(e)}")
-    
-    try:
-        # Step 2: Load dataset core (train/test split)
-        X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data(use_cache=True)
-        with INIT_LOCK:
-            INIT_FLAGS["dataset_core"] = True
-    except Exception as e:
-        with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Dataset loading failed: {str(e)}")
-        return  # Cannot proceed without data
-    
-    try:
-        # Step 3: Warm mini dataset (already created in load_and_prep_data)
-        if X_TRAIN_WARM is not None and len(X_TRAIN_WARM) > 0:
-            with INIT_LOCK:
-                INIT_FLAGS["warm_mini"] = True
-    except Exception as e:
-        with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Warm mini dataset failed: {str(e)}")
-    
-    # Progressive sampling - samples are already created in load_and_prep_data
-    # Just mark them as ready sequentially with delays to simulate progressive loading
-    
-    try:
-        # Step 4a: Small sample (20%)
-        time.sleep(0.5)  # Simulate processing
-        with INIT_LOCK:
-            INIT_FLAGS["pre_samples_small"] = True
-    except Exception as e:
-        with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Small sample failed: {str(e)}")
-    
-    try:
-        # Step 4b: Medium sample (60%)
-        time.sleep(0.5)
-        with INIT_LOCK:
-            INIT_FLAGS["pre_samples_medium"] = True
-    except Exception as e:
-        with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Medium sample failed: {str(e)}")
-    
-    try:
-        # Step 4c: Large sample (80%)
-        time.sleep(0.5)
-        with INIT_LOCK:
-            INIT_FLAGS["pre_samples_large"] = True
-    except Exception as e:
-        with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Large sample failed: {str(e)}")
-        print(f"✗ Large sample failed: {e}")
-    
-    try:
-        # Step 4d: Full sample (100%)
-        print("Background init: Full sample (100%)...")
-        time.sleep(0.5)
-        with INIT_LOCK:
-            INIT_FLAGS["pre_samples_full"] = True
-    except Exception as e:
-        with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Full sample failed: {str(e)}")
-    
-    try:
-        # Step 5: Leaderboard prefetch (best-effort, unauthenticated)
-        # Concurrency Note: Do NOT use os.environ for ambient token - prefetch
-        # anonymously to warm the cache for initial page loads.
-        if playground is not None:
-            _ = _get_leaderboard_with_optional_token(playground, None)
-            with INIT_LOCK:
-                INIT_FLAGS["leaderboard"] = True
-    except Exception as e:
-        with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Leaderboard prefetch failed: {str(e)}")
-    
-    try:
-        # Step 6: Default preprocessor on small sample
-        _fit_default_preprocessor()
-        with INIT_LOCK:
-            INIT_FLAGS["default_preprocessor"] = True
-    except Exception as e:
-        with INIT_LOCK:
-            INIT_FLAGS["errors"].append(f"Default preprocessor failed: {str(e)}")
-        print(f"✗ Default preprocessor failed: {e}")
-    
-
-def _fit_default_preprocessor():
-    """
-    Pre-fit a default preprocessor on the small sample with default features.
-    Uses memoized preprocessor builder for efficiency.
-    """
-    if "Small (20%)" not in X_TRAIN_SAMPLES_MAP:
-        return
-    
-    X_sample = X_TRAIN_SAMPLES_MAP["Small (20%)"]
-    
-    # Use default feature set
-    numeric_cols = [f for f in DEFAULT_FEATURE_SET if f in ALL_NUMERIC_COLS]
-    categorical_cols = [f for f in DEFAULT_FEATURE_SET if f in ALL_CATEGORICAL_COLS]
-    
-    if not numeric_cols and not categorical_cols:
-        return
-    
-    # Use memoized builder
-    preprocessor, selected_cols = build_preprocessor(numeric_cols, categorical_cols)
-    preprocessor.fit(X_sample[selected_cols])
-
-def start_background_init():
-    """
-    Start the background initialization thread.
-    Should be called once at app creation.
-    """
-    thread = threading.Thread(target=_background_initializer, daemon=True)
-    thread.start()
-
-def poll_init_status():
-    """
-    Poll the initialization status and return readiness bool.
-    Returns empty string for HTML so users don't see the checklist.
-    
-    Returns:
-        tuple: (status_html, ready_bool)
-    """
-    with INIT_LOCK:
-        flags = INIT_FLAGS.copy()
-    
-    # Determine if minimum requirements met
-    ready = flags["competition"] and flags["dataset_core"] and flags["pre_samples_small"]
-    
-    return "", ready
-
-def get_available_data_sizes():
-    """
-    Return list of data sizes that are currently available based on init flags.
-    """
-    with INIT_LOCK:
-        flags = INIT_FLAGS.copy()
-    
-    available = []
-    if flags["pre_samples_small"]:
-        available.append("Small (20%)")
-    if flags["pre_samples_medium"]:
-        available.append("Medium (60%)")
-    if flags["pre_samples_large"]:
-        available.append("Large (80%)")
-    if flags["pre_samples_full"]:
-        available.append("Full (100%)")
-    
-    return available if available else ["Small (20%)"]  # Fallback
-
-def _is_ready() -> bool:
-    """
-    Check if initialization is complete and system is ready for real submissions.
-    
-    Returns:
-        bool: True if competition, dataset, and small sample are initialized
-    """
-    with INIT_LOCK:
-        flags = INIT_FLAGS.copy()
-    return flags["competition"] and flags["dataset_core"] and flags["pre_samples_small"]
 
 def _get_user_latest_accuracy(df: Optional[pd.DataFrame], username: str) -> Optional[float]:
     """
@@ -1152,15 +949,63 @@ def _normalize_team_name(name: str) -> str:
     return " ".join(str(name).strip().split())
 
 
+# Team name translation helpers for UI display (Catalan)
+def translate_team_name_for_display(team_en: str, lang: str = "ca") -> str:
+    """
+    Translate a canonical English team name to the specified language for UI display.
+    Fallback to English if translation not found.
+    
+    Internal logic always uses canonical English names. This is only for UI display.
+    """
+    if lang not in TEAM_NAME_TRANSLATIONS:
+        lang = "en"
+    return TEAM_NAME_TRANSLATIONS[lang].get(team_en, team_en)
 
-def _build_skeleton_leaderboard(rows=6, is_team=True, submit_button_label="5. 🔬 Build & Submit Model"):
-    context_label = "Team" if is_team else "Individual"
+
+def translate_team_name_to_english(display_name: str, lang: str = "ca") -> str:
+    """
+    Reverse lookup: given a localized team name, return the canonical English name.
+    Returns the original display_name if not found.
+    
+    For future use if user input needs to be normalized back to English.
+    """
+    if lang not in TEAM_NAME_TRANSLATIONS:
+        return display_name  # Already English or unknown
+    
+    translations = TEAM_NAME_TRANSLATIONS[lang]
+    for english_name, localized_name in translations.items():
+        if localized_name == display_name:
+            return english_name
+    return display_name
+
+
+def _format_leaderboard_for_display(df: Optional[pd.DataFrame], lang: str = "ca") -> Optional[pd.DataFrame]:
+    """
+    Create a copy of the leaderboard DataFrame with team names translated for display.
+    Does not mutate the original DataFrame.
+    
+    For potential future use when displaying full leaderboard.
+    Internal logic should always use the original DataFrame with English team names.
+    """
+    if df is None:
+        return None
+    
+    if df.empty or "Team" not in df.columns:
+        return df.copy()
+    
+    df_display = df.copy()
+    df_display["Team"] = df_display["Team"].apply(lambda t: translate_team_name_for_display(t, lang))
+    return df_display
+
+
+def _build_skeleton_leaderboard(rows=6, is_team=True, submit_button_label="5. 🔬 Construir y enviar el modelo"):
+    context_label = "Equipo" if is_team else "Individual"
     return f"""
     <div class='lb-placeholder' aria-live='polite'>
-        <div class='lb-placeholder-title'>{context_label} Standings Pending</div>
+        <div class='lb-placeholder-title'>{context_label} · Clasificación pendiente</div>
         <div class='lb-placeholder-sub'>
-            <p style='margin:0 0 6px 0;'>Submit your first model to populate this table.</p>
-            <p style='margin:0;'><strong>Click “{submit_button_label}” (bottom-left)</strong> to begin!</p>
+            <p style='margin:0 0 6px 0;'>¡Envía tu primer modelo para desbloquear la clasificación!</p>
+            <p style='margin:0;'><strong>Haz clic en «{submit_button_label}» (abajo a la izquierda)</strong> para comenzar!</p>
         </div>
     </div>
     """
@@ -1171,7 +1016,7 @@ def build_login_prompt_html():
     The styled preview card will be prepended to this.
     """
     return f"""
-    <h2 style='color: #111827; margin-top:20px; border-top: 2px solid #e5e7eb; padding-top: 20px;'>🔐 Sign in to submit & rank</h2>
+    <h2 style='color: #111827; margin-top:20px; border-top: 2px solid #e5e7eb; padding-top: 20px;'>🔐 Inicia sesión para enviar y clasificarte</h2>
     <div style='margin-top:16px; text-align:left; font-size:1rem; line-height:1.6; color:#374151;'>
         <p style='margin:12px 0;'>
             This is a preview run only. Sign in to publish your score to the live leaderboard, 
@@ -1191,7 +1036,7 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
 
     # Handle pending state - show processing message with provisional diff
     if is_pending:
-        title = "⏳ Submission Processing"
+        title = "⏳ Procesando el envío"
         acc_color = "#3b82f6"  # Blue
         acc_text = f"{(local_test_accuracy * 100):.2f}%" if local_test_accuracy is not None else "N/A"
         
@@ -1199,60 +1044,60 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
         if local_test_accuracy is not None and last_score is not None and last_score > 0:
             score_diff = local_test_accuracy - last_score
             if abs(score_diff) < 0.0001:
-                acc_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #6b7280; margin:0;'>No Change (↔) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
+                acc_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #6b7280; margin:0;'>Sin cambios (↔) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Actualización de la clasificación pendiente...</p>"
             elif score_diff > 0:
-                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>+{(score_diff * 100):.2f} (⬆️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
+                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>+{(score_diff * 100):.2f} (⬆️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Actualización de la clasificación pendiente...</p>"
             else:
-                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>{(score_diff * 100):.2f} (⬇️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
+                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>{(score_diff * 100):.2f} (⬇️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Actualización de la clasificación pendiente...</p>"
         else:
             # No last score available - just show pending message
             acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
         
         border_color = acc_color
         rank_color = "#6b7280"  # Gray
-        rank_text = "Pending"
-        rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0;'>Calculating rank...</p>"
+        rank_text = "Pendiente"
+        rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0;'>Calculando la posición...</p>"
         
     # Handle preview mode - Styled to match "success" card
     elif is_preview:
-        title = "🔬 Successful Preview Run!"
+        title = "🔬 Prueba de vista previa finalizada!"
         acc_color = "#16a34a"  # Green (like success)
         acc_text = f"{(new_score * 100):.2f}%" if new_score > 0 else "N/A"
-        acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>(Preview only - not submitted)</p>" # Neutral color
+        acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>(Solo vista previa - no se ha enviado)</p>" # Neutral color
         border_color = acc_color # Green border
         rank_color = "#3b82f6" # Blue (like rank)
         rank_text = "N/A" # Placeholder
-        rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0;'>Not ranked (preview)</p>" # Neutral color
+        rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0;'>Sin posición (vista previa)</p>" # Neutral color
     
     # 1. Handle First Submission
     elif submission_count == 0:
-        title = "🎉 First Model Submitted!"
+        title = "🎉 ¡Primer modelo enviado!"
         acc_color = "#16a34a" # green
         acc_text = f"{(new_score * 100):.2f}%"
-        acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>(Your first score!)</p>"
+        acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>(¡Tu primera puntuación!)</p>"
 
         rank_color = "#3b82f6" # blue
         rank_text = f"#{new_rank}"
-        rank_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #3b82f6; margin:0;'>You're on the board!</p>"
+        rank_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #3b82f6; margin:0;'>¡¡Ya estás en la tabla!!</p>"
         border_color = acc_color
 
     else:
         # 2. Handle Score Changes
         score_diff = new_score - last_score
         if abs(score_diff) < 0.0001:
-            title = "✅ Submission Successful"
+            title = "✅ Envío completado!"
             acc_color = "#6b7280" # gray
             acc_text = f"{(new_score * 100):.2f}%"
-            acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>No Change (↔)</p>"
+            acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>Sin cambios (↔)</p>"
             border_color = acc_color
         elif score_diff > 0:
-            title = "✅ Submission Successful!"
+            title = "✅ Envío completado!"
             acc_color = "#16a34a" # green
             acc_text = f"{(new_score * 100):.2f}%"
             acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>+{(score_diff * 100):.2f} (⬆️)</p>"
             border_color = acc_color
         else:
-            title = "📉 Score Dropped"
+            title = "📉 La puntuación ha bajado"
             acc_color = "#ef4444" # red
             acc_text = f"{(new_score * 100):.2f}%"
             acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>{(score_diff * 100):.2f} (⬇️)</p>"
@@ -1263,25 +1108,25 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
         rank_color = "#3b82f6" # blue
         rank_text = f"#{new_rank}"
         if last_rank == 0: # Handle first rank
-             rank_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #3b82f6; margin:0;'>You're on the board!</p>"
+             rank_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #3b82f6; margin:0;'>¡¡Ya estás en la tabla!!</p>"
         elif rank_diff > 0:
-            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>🚀 Moved up {rank_diff} spot{'s' if rank_diff > 1 else ''}!</p>"
+            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>🚀 ¡Has subido {rank_diff} posición/es!</p>"
         elif rank_diff < 0:
-            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>🔻 Dropped {abs(rank_diff)} spot{'s' if abs(rank_diff) > 1 else ''}</p>"
+            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>🔻 Has bajado {abs(rank_diff)} posición/es!</p>"
         else:
-            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {rank_color}; margin:0;'>No Change (↔)</p>"
+            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {rank_color}; margin:0;'>Mantienes tu posición (↔)</p>"
 
     return f"""
     <div class='kpi-card' style='border-color: {border_color};'>
-        <h2 style='color: #111827; margin-top:0;'>{title}</h2>
+        <h2 style='color: #eef2ff; margin-top:0;'>{title}</h2>
         <div class='kpi-card-body'>
             <div class='kpi-metric-box'>
-                <p class='kpi-label'>New Accuracy</p>
+                <p class='kpi-label'>Nueva precisión</p>
                 <p class='kpi-score' style='color: {acc_color};'>{acc_text}</p>
                 {acc_diff_html}
             </div>
             <div class='kpi-metric-box'>
-                <p class='kpi-label'>Your Rank</p>
+                <p class='kpi-label'>Tu posición</p>
                 <p class='kpi-score' style='color: {rank_color};'>{rank_text}</p>
                 {rank_diff_html}
             </div>
@@ -1295,22 +1140,25 @@ def _build_team_html(team_summary_df, team_name):
     
     Uses normalized, case-insensitive comparison to highlight the user's team row,
     ensuring reliable highlighting even with whitespace or casing variations.
+    
+    Team names are translated to Catalan for display only. Internal comparisons
+    use the unmodified English team names from the DataFrame.
     """
     if team_summary_df is None or team_summary_df.empty:
-        return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>No team submissions yet.</p>"
+        return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Todavía no hay envíos por equipos.</p>"
 
-    # Normalize the current user's team name for comparison
+    # Normalize the current user's team name for comparison (using English names)
     normalized_user_team = _normalize_team_name(team_name).lower()
 
     header = """
     <table class='leaderboard-html-table'>
         <thead>
             <tr>
-                <th>Rank</th>
-                <th>Team</th>
-                <th>Best_Score</th>
-                <th>Avg_Score</th>
-                <th>Submissions</th>
+                <th>Posición</th>
+                <th>Equipo</th>
+                <th>Mejor Puntuación</th>
+                <th>Medio</th>
+                <th>Envíos</th>
             </tr>
         </thead>
         <tbody>
@@ -1318,14 +1166,18 @@ def _build_team_html(team_summary_df, team_name):
 
     body = ""
     for index, row in team_summary_df.iterrows():
-        # Normalize the row's team name and compare case-insensitively
+        # Normalize the row's team name and compare case-insensitively (using English names)
         normalized_row_team = _normalize_team_name(row["Team"]).lower()
         is_user_team = normalized_row_team == normalized_user_team
         row_class = "class='user-row-highlight'" if is_user_team else ""
+        
+        # Translate team name to Catalan for display only
+        display_team_name = translate_team_name_for_display(row["Team"], UI_TEAM_LANG)
+        
         body += f"""
         <tr {row_class}>
             <td>{index}</td>
-            <td>{row['Team']}</td>
+            <td>{display_team_name}</td>
             <td>{(row['Best_Score'] * 100):.2f}%</td>
             <td>{(row['Avg_Score'] * 100):.2f}%</td>
             <td>{row['Submissions']}</td>
@@ -1338,16 +1190,16 @@ def _build_team_html(team_summary_df, team_name):
 def _build_individual_html(individual_summary_df, username):
     """Generates the HTML for the individual leaderboard."""
     if individual_summary_df is None or individual_summary_df.empty:
-        return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>No individual submissions yet.</p>"
+        return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Todavía no hay envíos individuales.</p>"
 
     header = """
     <table class='leaderboard-html-table'>
         <thead>
             <tr>
-                <th>Rank</th>
-                <th>Engineer</th>
-                <th>Best_Score</th>
-                <th>Submissions</th>
+                <th>Posición</th>
+                <th>Ingeniero/a</th>
+                <th>Mejor Puntuación</th>
+                <th>Envíos</th>
             </tr>
         </thead>
         <tbody>
@@ -1389,8 +1241,8 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
 
     if leaderboard_df is None or leaderboard_df.empty or "accuracy" not in leaderboard_df.columns:
         return (
-            "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Leaderboard empty.</p>",
-            "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Leaderboard empty.</p>",
+            "<p style='text-align:center; color:#6b7280; padding-top:20px;'>La clasificación está vacía.</p>",
+            "<p style='text-align:center; color:#6b7280; padding-top:20px;'>La clasificación está vacía.</p>",
             _build_kpi_card_html(0, 0, 0, 0, 0, is_preview=False, is_pending=False, local_test_accuracy=None), 
             0.0, 0, 0.0
         )
@@ -1464,7 +1316,7 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
 
 
 def get_model_card(model_name):
-    return MODEL_TYPES.get(model_name, {}).get("card", "No description available.")
+    return MODEL_TYPES.get(model_name, {}).get("card_es", "Descripción no disponible.")
 
 def compute_rank_settings(
     submission_count,
@@ -1473,26 +1325,37 @@ def compute_rank_settings(
     current_feature_set,
     current_data_size
 ):
-    """Returns rank gating settings (updated for 1–10 complexity scale)."""
+    """
+    Returns rank gating settings (updated for 1–10 complexity scale).
+    Adapted for Catalan UI: Returns Tuple choices [(Display, Value)]
+    """
+
+    # Helper to generate feature choices (unchanged logic)
+    def get_choices_for_rank(rank):
+        return FEATURE_SET_ALL_OPTIONS # Senior+
+
+    # Helper to generate Model Radio Tuples [(Catalan, English)]
+    def get_model_tuples(available_english_keys):
+        # FIX: Use MODEL_DISPLAY_MAP
+        return [(MODEL_DISPLAY_MAP[k], k) for k in available_english_keys if k in MODEL_DISPLAY_MAP]
 
 
-    # Always allow all options
+    avail_keys = list(MODEL_TYPES.keys()) # All models
+
     return {
-        "rank_message": "# 👑 Rank: Lead Engineer\n<p style='font-size:24px; line-height:1.4;'>All tools unlocked — optimize freely!</p>",
-        "model_choices": list(MODEL_TYPES.keys()),
-        "model_value": current_model if current_model in MODEL_TYPES else "The Balanced Generalist",
+        "rank_message": "# 👑 Rango: Ingeniero/a principal\n<p style='font-size:24px; line-height:1.4;'>¡Todas las herramientas desbloqueadas — optimiza con libertad!</p>",
+        "model_choices": get_model_tuples(avail_keys),
+        "model_value": current_model if current_model in avail_keys else "The Balanced Generalist",
         "model_interactive": True,
         "complexity_max": 10,
         "complexity_value": current_complexity,
-        "feature_set_choices": FEATURE_SET_ALL_OPTIONS, 
+        "feature_set_choices": get_choices_for_rank(3),
         "feature_set_value": current_feature_set,
         "feature_set_interactive": True,
-        "data_size_choices": ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"],
-        "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Small (20%)",
+        "data_size_choices": ["Pequeño (20%)", "Medio (60%)", "Grande (80%)", "Completo (100%)"],
+        "data_size_value": current_data_size if current_data_size in DATA_SIZE_DB_MAP else "Pequeño (20%)",
         "data_size_interactive": True,
     }
-
-
 # Find components by name to yield updates
 # --- Existing global component placeholders ---
 submit_button = None
@@ -1681,11 +1544,14 @@ def perform_inline_login(username_input, password_input):
         # Normalize team name before storing (defensive - already normalized by get_or_assign_team)
         team_name = _normalize_team_name(team_name)
         
+        # Translate team name for display only (keep team_name_state in English)
+        display_team_name = translate_team_name_for_display(team_name, UI_TEAM_LANG)
+        
         # Build success message based on whether team is new or existing
         if is_new_team:
-            team_message = f"You have been assigned to a new team: <b>{team_name}</b> 🎉"
+            team_message = f"Te hemos asignado a un nuevo equipo: <b>{display_team_name}</b> 🎉"
         else:
-            team_message = f"Welcome back! You remain on team: <b>{team_name}</b> ✅"
+            team_message = f"¡Hola de nuevo! Continúas en el equipo: <b>{display_team_name}</b> ✅"
         
         # Success: hide login form, show success message with team info, enable submit button
         success_html = f"""
@@ -1695,7 +1561,7 @@ def perform_inline_login(username_input, password_input):
                 {team_message}
             </p>
             <p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>
-                Click "Build & Submit Model" again to publish your score.
+                Haz clic en "Construir y enviar el modelo" una vez más para publicar tu puntuación.
             </p>
         </div>
         """
@@ -1704,7 +1570,7 @@ def perform_inline_login(username_input, password_input):
             login_password: gr.update(visible=False),
             login_submit: gr.update(visible=False),
             login_error: gr.update(value=success_html, visible=True),
-            submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
+            submit_button: gr.update(value="🔬 Construir y enviar el modelo", interactive=True),
             submission_feedback_display: gr.update(visible=False),
             team_name_state: gr.update(value=team_name),
             username_state: gr.update(value=username_clean),
@@ -1763,546 +1629,220 @@ def run_experiment(
     progress=gr.Progress()
 ):
     """
-    Core experiment: Uses 'yield' for visual updates and progress bar.
-    Updated with "Look-Before-You-Leap" caching strategy.
+    Core experiment using precomputed predictions.
+    No runtime training or feature transformation.
     """
-    # --- COLLISION GUARDS ---
-    # Log types of potentially shadowed names to ensure they refer to component objects, not dicts
-    _log(f"DEBUG guard: types — submit_button={type(submit_button)} submission_feedback_display={type(submission_feedback_display)} kpi_meta_state={type(kpi_meta_state)} was_preview_state={type(was_preview_state)} readiness_flag_param={type(readiness_flag)}")
-    
-    # If any of the component names are found as dicts (indicating parameter shadowing), short-circuit
-    if isinstance(submit_button, dict) or isinstance(submission_feedback_display, dict) or isinstance(kpi_meta_state, dict) or isinstance(was_preview_state, dict):
-        error_html = """
-        <div class='kpi-card' style='border-color: #ef4444;'>
-            <h2 style='color: #111827; margin-top:0;'>⚠️ Configuration Error</h2>
-            <div class='kpi-card-body'>
-                <p style='color: #991b1b;'>Parameter shadowing detected. Global component variables were shadowed by local parameters.</p>
-                <p style='color: #7f1d1d; margin-top: 8px;'>Please refresh the page and try again. If the issue persists, contact support.</p>
-            </div>
-        </div>
-        """
-        yield {
-            submission_feedback_display: gr.update(value=error_html, visible=True),
-            submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True)
-        }
-        return
-    
-    # Sanitize feature_set: convert dicts/tuples to their string values
-    sanitized_feature_set = []
-    for feat in (feature_set or []):
-        if isinstance(feat, dict):
-            # Extract 'value' key if present, otherwise use string representation
-            sanitized_feature_set.append(feat.get("value", str(feat)))
-        elif isinstance(feat, tuple):
-            # For tuples like ("Label", "value"), take the second element
-            sanitized_feature_set.append(feat[1] if len(feat) > 1 else str(feat))
-        else:
-            # Already a string
-            sanitized_feature_set.append(str(feat))
-    feature_set = sanitized_feature_set
-    
-    # Use readiness_flag parameter if provided, otherwise check readiness
-    if readiness_flag is not None:
-        ready = readiness_flag
-    else:
-        ready = _is_ready()
-    _log(f"run_experiment: ready={ready}, username={username}, token_present={token is not None}")
-    
-    # Add debug log (optional)
-    _log(f"run_experiment received username={username} token_present={token is not None}")    
-    # Concurrency Note: Use provided parameters exclusively, not os.environ.
-    # Default to "Unknown_User" only if no username provided via state.
-    if not username:
-        username = "Unknown_User"
-    
-    # Helper to generate the animated HTML
+    progress(0.1, desc="Iniciando el experimento...")
     def get_status_html(step_num, title, subtitle):
         return f"""
         <div class='processing-status'>
             <span class='processing-icon'>⚙️</span>
-            <div class='processing-text'>Step {step_num}/5: {title}</div>
+            <div class='processing-text'>Paso {step_num}/5: {title}</div>
             <div class='processing-subtext'>{subtitle}</div>
         </div>
         """
-
-    # --- Stage 1: Lock UI and give initial feedback ---
-    progress(0.1, desc="Starting Experiment...")
-    initial_updates = {
-        submit_button: gr.update(value="⏳ Experiment Running...", interactive=False),
-        submission_feedback_display: gr.update(value=get_status_html(1, "Initializing", "Preparing your data ingredients..."), visible=True), # Make sure it's visible
-        login_error: gr.update(visible=False), # Hide login success/error message
+    yield {
+        submit_button: gr.update(value="⏳ Experimento en curso...", interactive=False),
+        submission_feedback_display: gr.update(value=get_status_html(1, "Iniciando", "Preparando las variables de datos..."), visible=True),
+        login_error: gr.update(visible=False),
         attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))
     }
-    yield initial_updates
 
     if not model_name_key or model_name_key not in MODEL_TYPES:
         model_name_key = DEFAULT_MODEL
     complexity_level = safe_int(complexity_level, 2)
+    if not username:
+        username = "Unknown_User"
 
-    log_output = f"▶ New Experiment\nModel: {model_name_key}\n..."
-
-    # Check readiness
-    # If playground is None or not ready, fallback error
-    if playground is None or not ready:
-        settings = compute_rank_settings(
-             submission_count, model_name_key, complexity_level, feature_set, data_size_str
-        )
-        
-        error_msg = "<p style='text-align:center; color:red; padding:20px 0;'>"
-        if playground is None:
-            error_msg += "Playground not connected. Please try again later."
+    sanitized_features = []
+    for f in (feature_set or []):
+        if isinstance(f, dict):
+            sanitized_features.append(f.get("value", str(f)))
+        elif isinstance(f, tuple):
+            sanitized_features.append(f[1] if len(f) > 1 else str(f))
         else:
-            error_msg += "Data still initializing. Please wait a moment and try again."
-        error_msg += "</p>"
-        
-        error_kpi_meta = {
-            "was_preview": False, "preview_score": None, "ready_at_run_start": False,
-            "poll_iterations": 0, "local_test_accuracy": None, "this_submission_score": None,
-            "new_best_accuracy": None, "rank": None
-        }
-        
-        error_updates = {
-            submission_feedback_display: gr.update(value=error_msg, visible=True),
-            submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
-            team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
-            individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
-            last_submission_score_state: last_submission_score,
-            last_rank_state: last_rank,
-            best_score_state: best_score,
-            submission_count_state: submission_count,
-            first_submission_score_state: first_submission_score,
+            sanitized_features.append(str(f))
+    sanitized_features = sorted(sanitized_features)
+
+    db_data_size = DATA_SIZE_DB_MAP.get(data_size_str, "Small (20%)")
+    feature_key = ",".join(sanitized_features)
+    cache_key = f"{model_name_key}|{complexity_level}|{db_data_size}|{feature_key}"
+
+    _ensure_y_test_loaded()
+
+    progress(0.3, desc="Cargando las predicciones...")
+    yield {submission_feedback_display: gr.update(value=get_status_html(2, "Cargando predicciones", "⚡ Recuperando resultados precomputados..."), visible=True)}
+    cached_predictions = get_cached_prediction(cache_key)
+    if not cached_predictions:
+        error_html = f"""
+        <div style='background:#fee2e2; padding:16px; border-radius:8px; border:2px solid #ef4444; color:#991b1b; text-align:center;'>
+            <h3 style='margin:0;'>⚠️ Configuración no encontrada</h3>
+            <p style='margin:8px 0;'>Esta combinación específica de parámetros no se ha encontrado en nuestra base de datos.</p>
+            <p style='font-size:0.9em;'>Por favor, ajusta la configuración (por ejemplo, cambia el tamaño de los datos o la estrategia del modelo) y vuelve a intentarlo.</p>
+        </div>
+        """
+        settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
+        yield {
+            submission_feedback_display: gr.update(value=error_html, visible=True),
+            submit_button: gr.update(value="🔬 Construir y enviar el modelo", interactive=True),
             rank_message_display: settings["rank_message"],
             model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
             complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
             feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
             data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-            login_username: gr.update(visible=False),
-            login_password: gr.update(visible=False),
-            login_submit: gr.update(visible=False),
-            login_error: gr.update(visible=False),
-            attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
-            was_preview_state: False,
-            kpi_meta_state: error_kpi_meta,
-            last_seen_ts_state: None
         }
-        yield error_updates
         return
 
-    try:
-        # --- Stage 2: Smart Build (Cache vs Train) ---
-        progress(0.3, desc="Building Model...")
-        
-        # 1. Generate Cache Key (Matches format in precompute_cache.py)
-        # Key: "ModelName|Complexity|DataSize|SortedFeatures"
-        sanitized_features = sorted([str(f) for f in feature_set])
-        feature_key = ",".join(sanitized_features)
-        cache_key = f"{model_name_key}|{complexity_level}|{data_size_str}|{feature_key}"
-        
-        # 2. Check Cache
-        cached_predictions = get_cached_prediction(cache_key)
-        
-        # Initialize submission variables
-        predictions = None
-        tuned_model = None
-        preprocessor = None
-        
-        if cached_predictions:
-            # === FAST PATH (Zero CPU) ===
-            _log(f"⚡ CACHE HIT: {cache_key}")
-            yield { 
-                submission_feedback_display: gr.update(value=get_status_html(2, "Training Model", "⚡ The machine is learning from history..."), visible=True),
-                login_error: gr.update(visible=False)
-            }
+    predictions = np.array([int(c) for c in cached_predictions], dtype=np.uint8)
+    from sklearn.metrics import accuracy_score
+    local_test_accuracy = accuracy_score(_Y_TEST, predictions)
 
-            # --- DECOMPRESSION STEP (Vital) ---
-            # If string "01010...", convert to [0, 1, 0, 1...]
-            if isinstance(cached_predictions, str):
-                predictions = [int(c) for c in cached_predictions]
-            else:
-                predictions = cached_predictions
-
-            # Pass None to submit_model to skip training overhead validation
-            tuned_model = None
-            preprocessor = None
-            
-            
-        else:
-            # === CACHE MISS (Training Disabled) ===
-            # This ensures we NEVER run heavy training code in production.
-            msg = f"❌ CACHE MISS: {cache_key}"
-            _log(msg)
-            
-            # User-friendly error message
-            error_html = f"""
-            <div style='background:#fee2e2; padding:16px; border-radius:8px; border:2px solid #ef4444; color:#991b1b; text-align:center;'>
-                <h3 style='margin:0;'>⚠️ Configuration Not Found</h3>
-                <p style='margin:8px 0;'>This specific combination of settings was not found in our pre-computed database.</p>
-                <p style='font-size:0.9em;'>To ensure system stability, real-time training is disabled. Please adjust your settings (e.g., change the Data Size or Model Strategy) and try again.</p>
-            </div>
-            """
-            
-            yield { 
-                submission_feedback_display: gr.update(value=error_html, visible=True),
-                submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
-                login_error: gr.update(visible=False)
-            }
-            return # <--- CRITICAL: Stop execution here.
-
-
-        # --- Stage 3: Submit (API Call 1) ---
-        # AUTHENTICATION GATE: Check for token before submission
-        if token is None:
-            # User not authenticated - compute preview score and show login prompt
-            progress(0.6, desc="Computing Preview Score...")
-            
-            # We need to calculate accuracy for the preview card
-            from sklearn.metrics import accuracy_score
-            # Ensure predictions are in correct format (list or array)
-            if isinstance(predictions, list):
-                # Cached predictions are lists
-                preds_array = np.array(predictions)
-            else:
-                preds_array = predictions
-                
-            preview_score = accuracy_score(Y_TEST, preds_array)
-            
-            preview_kpi_meta = {
-                "was_preview": True, "preview_score": preview_score, "ready_at_run_start": ready,
-                "poll_iterations": 0, "local_test_accuracy": preview_score,
-                "this_submission_score": None, "new_best_accuracy": None, "rank": None
-            }
-            
-            # 1. Generate the styled preview card
-            preview_card_html = _build_kpi_card_html(
-                new_score=preview_score, last_score=0, new_rank=0, last_rank=0,
-                submission_count=-1, is_preview=True, is_pending=False, local_test_accuracy=None
-            )
-            
-            # 2. Inject login text
-            login_prompt_text_html = build_login_prompt_html() 
-            closing_div_index = preview_card_html.rfind("</div>")
-            if closing_div_index != -1:
-                combined_html = preview_card_html[:closing_div_index] + login_prompt_text_html + "</div>"
-            else:
-                combined_html = preview_card_html + login_prompt_text_html 
-                
-            settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
-            
-            gate_updates = {
-                submission_feedback_display: gr.update(value=combined_html, visible=True),
-                submit_button: gr.update(value="Sign In Required", interactive=False),
-                login_username: gr.update(visible=True), login_password: gr.update(visible=True),
-                login_submit: gr.update(visible=True), login_error: gr.update(value="", visible=False),
-                team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
-                individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
-                last_submission_score_state: last_submission_score, last_rank_state: last_rank,
-                best_score_state: best_score, submission_count_state: submission_count,
-                first_submission_score_state: first_submission_score,
-                rank_message_display: settings["rank_message"],
-                model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
-                complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
-                feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
-                data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-                attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
-                was_preview_state: True, kpi_meta_state: preview_kpi_meta, last_seen_ts_state: None
-            }
-            yield gate_updates
-            return  # Stop here
-        
-        # --- ATTEMPT LIMIT CHECK ---
-        if submission_count >= ATTEMPT_LIMIT:
-            limit_warning_html = f"""
-            <div class='kpi-card' style='border-color: #ef4444;'>
-                <h2 style='color: #111827; margin-top:0;'>🛑 Submission Limit Reached</h2>
-                <div class='kpi-card-body'>
-                    <div class='kpi-metric-box'>
-                        <p class='kpi-label'>Attempts Used</p>
-                        <p class='kpi-score' style='color: #ef4444;'>{ATTEMPT_LIMIT} / {ATTEMPT_LIMIT}</p>
-                    </div>
-                </div>
-                <div style='margin-top: 16px; background:#fef2f2; padding:16px; border-radius:12px; text-align:left; font-size:0.98rem; line-height:1.4;'>
-                    <p style='margin:0; color:#991b1b;'><b>Nice Work!</b> Scroll down to "Finish and Reflect".</p>
-                </div>
-            </div>"""
-            settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
-            limit_reached_updates = {
-                submission_feedback_display: gr.update(value=limit_warning_html, visible=True),
-                submit_button: gr.update(value="🛑 Submission Limit Reached", interactive=False),
-                model_type_radio: gr.update(interactive=False), complexity_slider: gr.update(interactive=False),
-                feature_set_checkbox: gr.update(interactive=False), data_size_radio: gr.update(interactive=False),
-                attempts_tracker_display: gr.update(value=f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'><p style='margin:0; color:#991b1b; font-weight:600;'>🛑 Attempts used: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT}</p></div>"),
-                team_leaderboard_display: team_leaderboard_display, individual_leaderboard_display: individual_leaderboard_display,
-                last_submission_score_state: last_submission_score, last_rank_state: last_rank,
-                best_score_state: best_score, submission_count_state: submission_count,
-                first_submission_score_state: first_submission_score, rank_message_display: settings["rank_message"],
-                login_username: gr.update(visible=False), login_password: gr.update(visible=False),
-                login_submit: gr.update(visible=False), login_error: gr.update(visible=False),
-                was_preview_state: False, kpi_meta_state: {}, last_seen_ts_state: None
-            }
-            yield limit_reached_updates
-            return
-        
-        progress(0.5, desc="Submitting to Cloud...")
-        yield { 
-            submission_feedback_display: gr.update(value=get_status_html(3, "Submitting", "Sending model to the competition server..."), visible=True),
-            login_error: gr.update(visible=False)
-        }
-
-        description = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
-        tags = f"team:{team_name},model:{model_name_key}"
-
-        # 1. FETCH BASELINE
-        baseline_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
-        
-        from sklearn.metrics import accuracy_score
-        # Ensure correct type for local accuracy calc
-        if isinstance(predictions, list):
-            local_accuracy_preds = np.array(predictions)
-        else:
-            local_accuracy_preds = predictions
-        local_test_accuracy = accuracy_score(Y_TEST, local_accuracy_preds)
-
-        # 2. SUBMIT & CAPTURE ACCURACY
-        def _submit():
-            # If using cache (tuned_model is None), we pass None for model/preprocessor
-            # and explicitly pass predictions.
-            return playground.submit_model(
-                model=tuned_model, 
-                preprocessor=preprocessor, 
-                prediction_submission=predictions,
-                input_dict={'description': description, 'tags': tags},
-                custom_metadata={'Team': team_name, 'Moral_Compass': 0}, 
-                token=token,
-                return_metrics=["accuracy"] 
-            )
-        
-        try:
-            submit_result = _retry_with_backoff(_submit, description="model submission")
-            if isinstance(submit_result, tuple) and len(submit_result) == 3:
-                _, _, metrics = submit_result
-                if metrics and "accuracy" in metrics and metrics["accuracy"] is not None:
-                    this_submission_score = float(metrics["accuracy"])
-                else:
-                    this_submission_score = local_test_accuracy
-            else:
-                this_submission_score = local_test_accuracy
-        except Exception as e:
-            _log(f"Submission return parsing failed: {e}. Using local accuracy.")
-            this_submission_score = local_test_accuracy
-        
-        _log(f"Submission successful. Server Score: {this_submission_score}")
-
-        try:
-            # Short timeout to trigger the lambda without hanging the UI
-            _log("Triggering backend merge...")
-            playground.get_leaderboard(token=token) 
-        except Exception:
-            # We ignore errors here because the 'submit_model' post 
-            # already succeeded. This is just a cleanup task.
-            pass
-        # -------------------------------------------------------------------------
-
-        # Immediately increment submission count...
-        new_submission_count = submission_count + 1
-        new_first_submission_score = first_submission_score
-        if submission_count == 0 and first_submission_score is None:
-            new_first_submission_score = this_submission_score
-
-        # --- Stage 4: Local Rank Calculation (Optimistic) ---
-        progress(0.9, desc="Calculating Rank...")
-        
-        # 3. SIMULATE UPDATED LEADERBOARD
-        simulated_df = baseline_leaderboard_df.copy() if baseline_leaderboard_df is not None else pd.DataFrame()
-        
-        # We use pd.Timestamp.now() to ensure pandas sorting logic sees this as the absolute latest
-        new_row = pd.DataFrame([{
-            "username": username,
-            "accuracy": this_submission_score,
-            "Team": team_name,
-            "timestamp": pd.Timestamp.now(), 
-            "version": "latest"
-        }])
-        
-        if not simulated_df.empty:
-            simulated_df = pd.concat([simulated_df, new_row], ignore_index=True)
-        else:
-            simulated_df = new_row
-
-        # 4. GENERATE TABLES (Use helper for tables only)
-        # We ignore the kpi_card return from this function because it might use internal sorting 
-        # that doesn't respect our new row perfectly.
-        team_html, individual_html, _, new_best_accuracy, new_rank, _ = generate_competitive_summary(
-            simulated_df, team_name, username, last_submission_score, last_rank, submission_count
+    if token is None:
+        progress(0.6, desc="Calculando la vista previa...")
+        preview_card_html = _build_kpi_card_html(
+            new_score=local_test_accuracy, last_score=0, new_rank=0, last_rank=0,
+            submission_count=-1, is_preview=True, is_pending=False, local_test_accuracy=None
         )
-
-        # 5. GENERATE KPI CARD EXPLICITLY (The Authority Fix)
-        # We manually build the card using the score we KNOW we just got.
-        kpi_card_html = _build_kpi_card_html(
-            new_score=this_submission_score,
-            last_score=last_submission_score,
-            new_rank=new_rank,
-            last_rank=last_rank,
-            submission_count=submission_count, 
-            is_preview=False,
-            is_pending=False
-        )
-
-        # --- Stage 5: Final UI Update ---
-        progress(1.0, desc="Complete!")
-        
-        success_kpi_meta = {
-            "was_preview": False, "preview_score": None, "ready_at_run_start": ready,
-            "poll_iterations": 0, "local_test_accuracy": local_test_accuracy,
-            "this_submission_score": this_submission_score, "new_best_accuracy": new_best_accuracy,
-            "rank": new_rank, "pending": False, "optimistic_fallback": True 
-        }
-        
-        settings = compute_rank_settings(new_submission_count, model_name_key, complexity_level, feature_set, data_size_str)
-
-        # -------------------------------------------------------------------------
-        # NEW LOGIC: Check for Limit Reached immediately AFTER this submission
-        # -------------------------------------------------------------------------
-        limit_reached = new_submission_count >= ATTEMPT_LIMIT
-        
-        # Prepare the UI state based on whether limit is reached
-        if limit_reached:
-            # 1. Append the Limit Warning HTML *below* the Result Card
-            limit_html = f"""
-            <div style='margin-top: 16px; border: 2px solid #ef4444; background:#fef2f2; padding:16px; border-radius:12px; text-align:left;'>
-                <h3 style='margin:0 0 8px 0; color:#991b1b;'>🛑 Submission Limit Reached ({ATTEMPT_LIMIT}/{ATTEMPT_LIMIT})</h3>
-                <p style='margin:0; color:#7f1d1d; line-height:1.4;'>
-                    <b>You have used all your attempts for this session.</b><br>
-                    Review your final results above, then scroll down to "Finish and Reflect" to continue.
-                </p>
-            </div>
-            """
-            final_html_display = kpi_card_html + limit_html
-            
-            # 2. Disable all controls
-            button_update = gr.update(value="🛑 Limit Reached", interactive=False)
-            interactive_state = False
-            tracker_html = f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'><p style='margin:0; color:#991b1b; font-weight:600;'>🛑 Attempts used: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT} (Max)</p></div>"
-        
-        else:
-            # Normal State: Show just the result card and keep controls active
-            final_html_display = kpi_card_html
-            button_update = gr.update(value="🔬 Build & Submit Model", interactive=True)
-            interactive_state = True
-            tracker_html = _build_attempts_tracker_html(new_submission_count)
-
-        # -------------------------------------------------------------------------
-
-        final_updates = {
-            submission_feedback_display: gr.update(value=final_html_display, visible=True),
-            team_leaderboard_display: team_html,
-            individual_leaderboard_display: individual_html,
-            last_submission_score_state: this_submission_score, 
-            last_rank_state: new_rank, 
-            best_score_state: new_best_accuracy,
-            submission_count_state: new_submission_count,
-            first_submission_score_state: new_first_submission_score,
-            rank_message_display: settings["rank_message"],
-            
-            # Apply the interactive state calculated above
-            model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=(settings["model_interactive"] and interactive_state)),
-            complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"], interactive=interactive_state),
-            feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=(settings["feature_set_interactive"] and interactive_state)),
-            data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=(settings["data_size_interactive"] and interactive_state)),
-            
-            submit_button: button_update,
-            
-            login_username: gr.update(visible=False), login_password: gr.update(visible=False),
-            login_submit: gr.update(visible=False), login_error: gr.update(visible=False),
-            attempts_tracker_display: gr.update(value=tracker_html),
-            was_preview_state: False,
-            kpi_meta_state: success_kpi_meta,
-            last_seen_ts_state: time.time()
-        }
-        yield final_updates
-      
-    except Exception as e:
-        error_msg = f"ERROR: {e}"
-        _log(f"Exception in run_experiment: {error_msg}")
-        settings = compute_rank_settings(
-             submission_count, model_name_key, complexity_level, feature_set, data_size_str
-        )
-        
-        exception_kpi_meta = {
-            "was_preview": False, "preview_score": None, "ready_at_run_start": ready if 'ready' in locals() else False,
-            "poll_iterations": 0, "local_test_accuracy": None, "this_submission_score": None,
-            "new_best_accuracy": None, "rank": None, "error": str(e)
-        }
-        
-        error_updates = {
-            submission_feedback_display: gr.update(
-                f"<p style='text-align:center; color:red; padding:20px 0;'>An error occurred: {error_msg}</p>", visible=True
-            ),
-            team_leaderboard_display: f"<p style='text-align:center; color:red; padding-top:20px;'>An error occurred: {error_msg}</p>",
-            individual_leaderboard_display: f"<p style='text-align:center; color:red; padding-top:20px;'>An error occurred: {error_msg}</p>",
-            last_submission_score_state: last_submission_score,
-            last_rank_state: last_rank,
-            best_score_state: best_score,
-            submission_count_state: submission_count,
+        login_prompt_text_html = build_login_prompt_html()
+        closing_div_index = preview_card_html.rfind("</div>")
+        combined_html = preview_card_html[:closing_div_index] + login_prompt_text_html + "</div>" if closing_div_index != -1 else preview_card_html + login_prompt_text_html
+        settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
+        yield {
+            submission_feedback_display: gr.update(value=combined_html, visible=True),
+            submit_button: gr.update(value="Sign In Required", interactive=False),
+            login_username: gr.update(visible=True), login_password: gr.update(visible=True),
+            login_submit: gr.update(visible=True), login_error: gr.update(value="", visible=False),
+            team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
+            individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
+            last_submission_score_state: last_submission_score, last_rank_state: last_rank,
+            best_score_state: best_score, submission_count_state: submission_count,
             first_submission_score_state: first_submission_score,
             rank_message_display: settings["rank_message"],
             model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
             complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
             feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
             data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-            submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
-            login_username: gr.update(visible=False),
-            login_password: gr.update(visible=False),
-            login_submit: gr.update(visible=False),
-            login_error: gr.update(visible=False),
             attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
-            was_preview_state: False,
-            kpi_meta_state: exception_kpi_meta,
-            last_seen_ts_state: None
+            was_preview_state: True, kpi_meta_state: {"was_preview": True, "preview_score": local_test_accuracy, "local_test_accuracy": local_test_accuracy}, last_seen_ts_state: None
         }
-        yield error_updates
+        return
+
+
+    progress(0.5, desc="Enviando a la nube...")
+    yield {submission_feedback_display: gr.update(value=get_status_html(3, "Envío en curso", "Enviando el modelo al servidor de la competición..."), visible=True)}
+    baseline_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
+
+    def _submit():
+        return playground.submit_model(
+            model=None,
+            preprocessor=None,
+            prediction_submission=predictions.tolist(),
+            input_dict={'description': f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})", 'tags': f"team:{team_name},model:{model_name_key}"},
+            custom_metadata={'Team': team_name, 'Moral_Compass': 0},
+            token=token,
+            return_metrics=["accuracy"]
+        )
+
+    try:
+        submit_result = _retry_with_backoff(_submit, description="model submission")
+        if isinstance(submit_result, tuple) and len(submit_result) == 3:
+            _, _, metrics = submit_result
+            this_submission_score = float(metrics.get("accuracy", local_test_accuracy)) if metrics else local_test_accuracy
+        else:
+            this_submission_score = local_test_accuracy
+    except Exception:
+        this_submission_score = local_test_accuracy
+
+    new_submission_count = submission_count + 1
+    new_first_submission_score = first_submission_score if first_submission_score is not None else this_submission_score if submission_count == 0 else first_submission_score
+
+    simulated_df = baseline_leaderboard_df.copy() if baseline_leaderboard_df is not None else pd.DataFrame()
+    new_row = pd.DataFrame([{"username": username, "accuracy": this_submission_score, "Team": team_name, "timestamp": pd.Timestamp.now(), "version": "latest"}])
+    simulated_df = pd.concat([simulated_df, new_row], ignore_index=True) if not simulated_df.empty else new_row
+
+    team_html, individual_html, _, new_best_accuracy, new_rank, _ = generate_competitive_summary(simulated_df, team_name, username, last_submission_score, last_rank, submission_count)
+    kpi_card_html = _build_kpi_card_html(new_score=this_submission_score, last_score=last_submission_score, new_rank=new_rank, last_rank=last_rank, submission_count=submission_count, is_preview=False, is_pending=False)
+
+    progress(1.0, desc="¡Completado!")
+    limit_reached = new_submission_count >= ATTEMPT_LIMIT
+    if limit_reached:
+        limit_html = f"""
+        <div style='margin-top: 16px; border: 2px solid #ef4444; background:#fef2f2; padding:16px; border-radius:12px; text-align:left;'>
+            <h3 style='margin:0 0 8px 0; color:#991b1b;'>🛑 Límite de envíos alcanzado ({ATTEMPT_LIMIT}/{ATTEMPT_LIMIT})</h3>
+            <p style='margin:0; color:#7f1d1d; line-height:1.4;'>Revisa tus resultados finales arriba y baja hasta «Finalizar y reflexionar» para continuar.</p>
+        </div>"""
+        final_html_display = kpi_card_html + limit_html
+        button_update = gr.update(value="🛑 Límite alcanzado", interactive=False)
+        interactive_state = False
+        tracker_html = _build_attempts_tracker_html(new_submission_count)
+    else:
+        final_html_display = kpi_card_html
+        button_update = gr.update(value="🔬 Construir y enviar modelo", interactive=True)
+        interactive_state = True
+        tracker_html = _build_attempts_tracker_html(new_submission_count)
+
+    settings = compute_rank_settings(new_submission_count, model_name_key, complexity_level, feature_set, data_size_str)
+    yield {
+        submission_feedback_display: gr.update(value=final_html_display, visible=True),
+        team_leaderboard_display: team_html,
+        individual_leaderboard_display: individual_html,
+        last_submission_score_state: this_submission_score,
+        last_rank_state: new_rank,
+        best_score_state: new_best_accuracy,
+        submission_count_state: new_submission_count,
+        first_submission_score_state: new_first_submission_score,
+        rank_message_display: settings["rank_message"],
+        model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=(settings["model_interactive"] and interactive_state)),
+        complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"], interactive=interactive_state),
+        feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=(settings["feature_set_interactive"] and interactive_state)),
+        data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=(settings["data_size_interactive"] and interactive_state)),
+        submit_button: button_update,
+        login_username: gr.update(visible=False), login_password: gr.update(visible=False),
+        login_submit: gr.update(visible=False), login_error: gr.update(visible=False),
+        attempts_tracker_display: gr.update(value=tracker_html),
+        was_preview_state: False,
+        kpi_meta_state: {"was_preview": False, "preview_score": None, "local_test_accuracy": local_test_accuracy, "this_submission_score": this_submission_score, "new_best_accuracy": new_best_accuracy, "rank": new_rank},
+        last_seen_ts_state: time.time()
+    }
+
 
 def on_initial_load(username, token=None, team_name=""):
     """
-    Updated to show "Welcome & CTA" if the SPECIFIC USER has 0 submissions,
-    even if the leaderboard/team already has data from others.
+    Load initial UI state. Immediately ready since predictions are precomputed.
     """
+    _ensure_y_test_loaded()
+    
     initial_ui = compute_rank_settings(
         0, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE
     )
 
     # 1. Prepare the Welcome HTML
-    display_team = team_name if team_name else "Your Team"
+    # Translate team name to Catalan for display only (keep team_name in English for logic)
+    display_team = translate_team_name_for_display(team_name, UI_TEAM_LANG) if team_name else "Tu equipo"
     
     welcome_html = f"""
     <div style='text-align:center; padding: 30px 20px;'>
         <div style='font-size: 3rem; margin-bottom: 10px;'>👋</div>
-        <h3 style='margin: 0 0 8px 0; color: #111827; font-size: 1.5rem;'>Welcome to <b>{display_team}</b>!</h3>
+        <h3 style='margin: 0 0 8px 0; color: #111827; font-size: 1.5rem;'>¡Ya formas parte del equipo: <b>{display_team}</b>!</h3>
         <p style='font-size: 1.1rem; color: #4b5563; margin: 0 0 20px 0;'>
-            Your team is waiting for your help to improve the AI.
+            Tu equipo necesita tu ayuda para mejorar la IA.
         </p>
         
         <div style='background:#eff6ff; padding:16px; border-radius:12px; border:2px solid #bfdbfe; display:inline-block;'>
             <p style='margin:0; color:#1e40af; font-weight:bold; font-size:1.1rem;'>
-                👈 Click "Build & Submit Model" to Start Playing!
+                👈 Haz clic en 'Construir y enviar modelo' para comenzar!
             </p>
         </div>
     </div>
     """
 
-    # Check background init
-    with INIT_LOCK:
-        background_ready = INIT_FLAGS["leaderboard"]
-    
-    should_attempt_fetch = background_ready or (token is not None)
     full_leaderboard_df = None
-    
-    if should_attempt_fetch:
-        try:
-            if playground:
-                full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
-        except Exception as e:
-            print(f"Error on initial load fetch: {e}")
-            full_leaderboard_df = None
+    try:
+        if playground:
+            full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
+    except Exception as e:
+        print(f"Error on initial load fetch: {e}")
+        full_leaderboard_df = None
 
     # -------------------------------------------------------------------------
     # LOGIC UPDATE: Check if THIS user has submitted anything
@@ -2318,7 +1858,7 @@ def on_initial_load(username, token=None, team_name=""):
         # CASE 1: New User (or first time loading session) -> FORCE WELCOME
         # regardless of whether the leaderboard has other people's data.
         team_html = welcome_html
-        individual_html = "<p style='text-align:center; color:#6b7280; padding-top:40px;'>Submit your model to see where you rank!</p>"
+        individual_html = "<p style='text-align:center; color:#6b7280; padding-top:40px;'>¡Envía tu modelo para ver tu posición en la clasificación!</p>"
         
     elif full_leaderboard_df is None or full_leaderboard_df.empty:
         # CASE 2: Returning user, but data fetch failed -> Show Skeleton
@@ -2336,8 +1876,8 @@ def on_initial_load(username, token=None, team_name=""):
             )
         except Exception as e:
             print(f"Error generating summary HTML: {e}")
-            team_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
-            individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
+            team_html = "<p style='text-align:center; color:red; padding-top:20px;'>Se ha producido un error al cargar la clasificación.</p>"
+            individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>Se ha producido un error al cargar la clasificación.</p>"
 
     return (
         get_model_card(DEFAULT_MODEL),
@@ -2372,21 +1912,21 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     return f"""
     <div class="final-conclusion-root">
       
-      <h1 class="final-conclusion-title">🎓 Certification Earned</h1>
-      <h2 style="margin-top:0; color:var(--text-muted);">Ethics at Play: Justice and Equity</h2>
+      <h1 class="final-conclusion-title">🎓 Certificación Obtenida</h1>
+      <h2 style="margin-top:0; color:var(--text-muted);">Ethics at Play: Justicia y Equidad</h2>
 
       <div class="final-conclusion-card">
         
-        <h3 class="final-conclusion-subtitle">🏆 The Final Challenge Results</h3>
+        <h3 class="final-conclusion-subtitle">🏆 Resultados del Desafío Final</h3>
         <p style="text-align:left; margin-bottom: 15px;">
-            Your final AI system has been entered into the registry for the <b>EdTech Congress Barcelona 2026</b>.
+            Tu sistema final de IA ha sido inscrito en el registro para el <b>EdTech Congress Barcelona 2026</b>.
         </p>
 
         <ul class="final-conclusion-list">
-          <li>🏁 <b>Final Accuracy:</b> {(best_score * 100):.2f}%</li>
-          <li>🌍 <b>Global Rank:</b> {('#' + str(rank)) if rank > 0 else 'Pending'}</li>
-          <li>📈 <b>Improvement Session:</b> {(improvement * 100):+.2f}% accuracy gain</li>
-          <li>🔢 <b>Total Iterations:</b> {submissions} model versions tested</li>
+          <li>🏁 <b>Precisión Final:</b> {(best_score * 100):.2f}%</li>
+          <li>🌍 <b>Ranking Global:</b> {('#' + str(rank)) if rank > 0 else 'Pendiente'}</li>
+          <li>📈 <b>Mejora en esta sesión:</b> {(improvement * 100):+.2f}% ganancia de precisión</li>
+          <li>🔢 <b>Iteraciones Totales:</b> {submissions} versiones del modelo probadas</li>
         </ul>
 
         {tip_html}
@@ -2395,28 +1935,28 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
         <hr class="final-conclusion-divider" />
 
         <div class="final-conclusion-next">
-          <h2>The Journey Continues</h2>
+          <h2>El Viaje Continúa</h2>
           
           <div style="text-align: left; margin-top: 15px;">
-              <p>Congratulations! You have completed the <b>Ethics at Play Certification in Justice and Equity</b> and seen how AI can affect real-world decisions.</p>
+              <p>¡Felicidades! Has completado la <b>Certificación Ethics at Play en Justicia y Equidad</b> y has visto cómo la IA puede afectar las decisiones del mundo real.</p>
               
-              <p>Through this challenge, you have learned to:</p>
+              <p>A través de este desafío, has aprendido a:</p>
               <ul style="margin-bottom: 15px;">
-                  <li>Check data for bias</li>
-                  <li>Understand the impact of AI decisions</li>
-                  <li>Build AI systems that are fair, not just accurate</li>
-                  <li>Explain the balance between efficiency and equity</li>
+                  <li>Revisar datos para detectar sesgos</li>
+                  <li>Entender el impacto de las decisiones de la IA</li>
+                  <li>Construir sistemas de IA que sean justos, no solo precisos</li>
+                  <li>Explicar el equilibrio entre eficiencia y equidad</li>
               </ul>
 
               <div class="final-conclusion-ethics">
                 <p style="margin:0;">
-                    <b>Final Thought:</b> As you move forward, remember that ethics is not a one-time task. 
-                    It is something you must consider at every step. You've shown how to build AI that doesn't just work, but works for everyone.
+                    <b>Reflexión Final:</b> A medida que avanzas, recuerda que la ética no es una tarea de una sola vez. 
+                    Es algo que debes considerar en cada paso. Has demostrado cómo construir una IA que no solo funciona, sino que funciona para todos.
                 </p>
               </div>
 
               <p style="text-align:center; margin-top: 25px; font-weight:bold; font-size:1.1rem;">
-                Thank you for playing, and good luck with your future challenges.
+                Gracias por jugar, y buena suerte con tus futuros desafíos.
               </p>
           </div>
         </div>
@@ -2433,7 +1973,15 @@ def create_model_building_game_es_final_app(theme_primary_hue: str = "indigo") -
     """
     Create (but do not launch) the model building game app.
     """
-    start_background_init()
+    # Initialize Competition once at startup
+    global playground
+    if playground is None:
+        try:
+            playground = Competition(MY_PLAYGROUND_ID)
+            print("✅ Competition connection initialized successfully")
+        except Exception as e:
+            print(f"⚠️ WARNING: Could not connect to playground: {e}")
+            playground = None
 
     # Add missing globals (FIX)
     global submit_button, submission_feedback_display, team_leaderboard_display
@@ -3251,68 +2799,6 @@ def create_model_building_game_es_final_app(theme_primary_hue: str = "indigo") -
             color: color-mix(in srgb, var(--color-accent) 75%, var(--body-text-color) 25%);
         }
     }
-    /* ------------------------------------------------------------------
-   FIX: Final Challenge Slide Classes
-   ------------------------------------------------------------------ */
-
-    .final-intro-wrapper {
-        text-align: center; 
-        margin-bottom: 25px;
-    }
-    
-    .final-intro-text {
-        font-size: 1.15rem; 
-        line-height: 1.6;
-        color: var(--text-main); /* Adapts to Dark Mode */
-    }
-    
-    .final-mission-card {
-        /* Replaces the hardcoded #eff6ff gradient */
-        background: linear-gradient(to right, var(--card-bg-soft), var(--block-background-fill));
-        /* Replaces hardcoded #3b82f6 border */
-        border: 2px solid var(--accent-strong);
-        border-radius: 12px; 
-        padding: 24px; 
-        margin-bottom: 25px;
-    }
-
-.final-mission-title {
-    margin-top: 0; 
-    /* Replaces #1e40af */
-    color: var(--accent-strong); 
-    text-align: center; 
-    font-size: 1.4rem;
-}
-
-.final-mission-body {
-    font-size: 1.1rem; 
-    line-height: 1.6; 
-    /* Replaces #1f2937 - Critical fix for invisibility */
-    color: var(--text-main); 
-}
-
-.final-cta-wrapper {
-    text-align: center; 
-    margin-top: 20px; 
-    padding-top: 10px; 
-    /* Replaces #e5e7eb */
-    border-top: 1px solid var(--card-border-subtle);
-}
-
-.final-cta-head {
-    font-size: 1.2rem; 
-    font-weight: 700; 
-    /* Replaces #4b5563 */
-    color: var(--text-main); 
-    margin-bottom: 5px;
-}
-
-.final-cta-sub {
-    font-size: 1rem; 
-    /* Replaces #6b7280 */
-    color: var(--text-muted); 
-    margin-top: 0;
-}
     """
 
 
@@ -3347,16 +2833,16 @@ def create_model_building_game_es_final_app(theme_primary_hue: str = "indigo") -
             gr.Markdown(
                 """
                 <div style='text-align:center; padding:100px 0;'>
-                    <h2 style='font-size:2rem; color:#6b7280;'>⏳ Loading...</h2>
+                    <h2 style='font-size:2rem; color:#6b7280;'>⏳ Cargando...</h2>
                 </div>
                 """
             )
 
         # --- Briefing Slideshow (Updated with New Cards) ---
-
-        # Slide 7: The Final Transition
-        with gr.Column(visible=True, elem_id="intro-slide") as intro_slide:            
-            gr.Markdown("<h1 style='text-align:center;'>🚀 The Final Challenge</h1>")
+  
+        # Slide 1: From Understanding to Building (Retained as transition)
+        with gr.Column(visible=True, elem_id="intro-slide") as intro_slide:
+            gr.Markdown("<h1 style='text-align:center;'>🚀 El Desafío Final</h1>")
             
             gr.HTML(
                 """
@@ -3365,27 +2851,27 @@ def create_model_building_game_es_final_app(theme_primary_hue: str = "indigo") -
                         
                         <div class="final-intro-wrapper">
                             <p class="final-intro-text">
-                                You’ve explored the ethics. You’ve identified and fixed bias.
+                                Has explorado la ética. Has identificado y corregido el sesgo.
                                 <br>
-                                Now it’s time to put everything together.
+                                Ahora es el momento de ponerlo todo en práctica.
                             </p>
                         </div>
             
                         <div class="final-mission-card">
-                            <h3 class="final-mission-title">🛠️ The Ethical AI Competition</h3>
+                            <h3 class="final-mission-title">🛠️ La Competición de IA Ética</h3>
                             <div class="final-mission-body">
-                                <p>Your final mission is to compete again against your peers by building the <strong>most accurate AI system within ethical standards</strong>. With bias addressed, accuracy is back in focus.</p>
+                                <p>Tu misión final es competir de nuevo contra tus compañeros construyendo el <strong>sistema de IA más preciso dentro de los estándares éticos</strong>. Una vez abordado el sesgo, la precisión vuelve a ser el foco.</p>
                                 
-                                <p>Use what you’ve learned to climb the leaderboard responsibly—because performance matters, but so do the consequences of your choices.</p>
+                                <p>Usa lo que has aprendido para escalar en la clasificación de manera responsable; porque el rendimiento importa, pero también las consecuencias de tus elecciones.</p>
                             </div>
                         </div>
             
                         <div class="final-cta-wrapper">
                             <p class="final-cta-head">
-                                Ready to begin?
+                                ¿Listo para empezar?
                             </p>
                             <p class="final-cta-sub">
-                                👇 Click <b>“Enter the Arena”</b> to start.
+                                👇 Haz clic en <b>“Entrar a la Arena”</b> para comenzar.
                             </p>
                         </div>
             
@@ -3395,29 +2881,19 @@ def create_model_building_game_es_final_app(theme_primary_hue: str = "indigo") -
             )
             
             # Only ONE button needed now
-            intro_next_btn = gr.Button("Enter the Arena ▶️", variant="primary", size="lg")
+            intro_next_btn = gr.Button("Entrar a la Arena ▶️", variant="primary", size="lg")
+
 
         # --- End Briefing Slideshow ---
 
 
         # Model Building App (Main Interface)
         with gr.Column(visible=False, elem_id="model-step") as model_building_step:
-            gr.Markdown("<h1 style='text-align:center;'>🛠️ Model Building Arena</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🛠️ Área de construcción de modelos</h1>")
             
             # Status panel for initialization progress - HIDDEN
             init_status_display = gr.HTML(value="", visible=False)
             
-            # Banner for UI state
-
-            init_banner = gr.HTML(
-              value=(
-                  "<div class='init-banner'>"
-                  "<p class='init-banner__text'>"
-                  "⏳ Initializing data & leaderboard… you can explore but must wait for readiness to submit."
-                  "</p>"
-                  "</div>"
-              ),
-              visible=True)
 
             # Session-based authentication state objects
             # Concurrency Note: These are initialized to None/empty and populated
@@ -3444,14 +2920,14 @@ def create_model_building_game_es_final_app(theme_primary_hue: str = "indigo") -
             feature_set_state = gr.State(DEFAULT_FEATURE_SET)
             data_size_state = gr.State(DEFAULT_DATA_SIZE)
 
-            rank_message_display = gr.Markdown("### Rank loading...")
+            rank_message_display = gr.Markdown("### Cargando la clasificación...")
             with gr.Row():
                 with gr.Column(scale=1):
 
                     model_type_radio = gr.Radio(
-                        label="1. Model Strategy",
-                        choices=[],
-                        value=None,
+                        label="1. Estrategia del modelo",
+                        choices=MODEL_RADIO_CHOICES, # Uses the list of tuples [(Cat, En), ...]
+                        value=DEFAULT_MODEL,         # "The Balanced Generalist"
                         interactive=False
                     )
                     model_card_display = gr.Markdown(get_model_card(DEFAULT_MODEL))
@@ -3459,25 +2935,25 @@ def create_model_building_game_es_final_app(theme_primary_hue: str = "indigo") -
                     gr.Markdown("---") # Separator
 
                     complexity_slider = gr.Slider(
-                        label="2. Model Complexity (1–10)",
+                        label="2. Complexitat del model (1–10)",
                         minimum=1, maximum=3, step=1, value=2,
-                        info="Higher values allow deeper pattern learning; very high values may overfit."
+                        info="Valores más altos permiten aprender patrones más complejos, pero si son demasiado altos pueden empeorar los resultados."
                     )
 
                     gr.Markdown("---") # Separator
 
                     feature_set_checkbox = gr.CheckboxGroup(
-                        label="3. Select Data Ingredients",
+                        label="3. Selecciona las variables de datos",
                         choices=FEATURE_SET_ALL_OPTIONS,
                         value=DEFAULT_FEATURE_SET,
                         interactive=False,
-                        info="More ingredients unlock as you rank up!"
+                        info="¡Se desbloquean más variables según tu posición en la clasificación!"
                     )
 
                     gr.Markdown("---") # Separator
 
                     data_size_radio = gr.Radio(
-                        label="4. Data Size",
+                        label="4. Tamaño de los datos",
                         choices=[DEFAULT_DATA_SIZE],
                         value=DEFAULT_DATA_SIZE,
                         interactive=False
@@ -3485,16 +2961,13 @@ def create_model_building_game_es_final_app(theme_primary_hue: str = "indigo") -
 
                     gr.Markdown("---") # Separator
 
-                    # Attempt tracker display
                     attempts_tracker_display = gr.HTML(
-                        value="<div style='text-align:center; padding:8px; margin:8px 0; background:#f0f9ff; border-radius:8px; border:1px solid #bae6fd;'>"
-                        "<p style='margin:0; color:#0369a1; font-weight:600; font-size:1rem;'>📊 Attempts used: 0/10</p>"
-                        "</div>",
-                        visible=True
+                        value="",  # keep empty
+                        visible=False  # keep hidden
                     )
 
                     submit_button = gr.Button(
-                        value="5. 🔬 Build & Submit Model",
+                        value="5. 🔬 Construir y enviar el modelo",
                         variant="primary",
                         size="lg"
                     )
@@ -3503,15 +2976,15 @@ def create_model_building_game_es_final_app(theme_primary_hue: str = "indigo") -
                     gr.HTML(
                         """
                         <div class='leaderboard-box'>
-                            <h3 style='margin-top:0;'>🏆 Live Standings</h3>
-                            <p style='margin:0;'>Submit a model to see your rank.</p>
+                            <h3 style='margin-top:0;'>🏆 Clasificación en directo</h3>
+                            <p style='margin:0;'>Envía un modelo para ver tu posición.</p>
                         </div>
                         """
                     )
 
                     # KPI Card
                     submission_feedback_display = gr.HTML(
-                        "<p style='text-align:center; color:#6b7280; padding:20px 0;'>Submit your first model to get feedback!</p>"
+                        "<p style='text-align:center; color:#6b7280; padding:20px 0;'>¡Envía tu primer modelo para recibir una valoración!</p>"
                     )
                     
                     # Inline Login Components (initially hidden)
@@ -3537,30 +3010,28 @@ def create_model_building_game_es_final_app(theme_primary_hue: str = "indigo") -
                     )
 
                     with gr.Tabs():
-                        with gr.TabItem("Team Standings"):
+                        with gr.TabItem("Clasificación por equipos"):
                             team_leaderboard_display = gr.HTML(
-                                "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Submit a model to see team rankings.</p>"
+                                "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Envía un modelo para ver la clasificación por equipos.</p>"
                             )
-                        with gr.TabItem("Individual Standings"):
+                        with gr.TabItem("Clasificación individual"):
                             individual_leaderboard_display = gr.HTML(
-                                "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Submit a model to see individual rankings.</p>"
+                                "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Envía un modelo para ver la clasificación individual.</p>"
                             )
 
             # REMOVED: Ethical Reminder HTML Block
-            step_2_next = gr.Button("Finish & Reflect ▶️", variant="secondary")
+            step_2_next = gr.Button("Finalizar y reflexionar ▶️", variant="secondary")
 
         # Conclusion Step
         with gr.Column(visible=False, elem_id="conclusion-step") as conclusion_step:
-            gr.Markdown("<h1 style='text-align:center;'>✅ Section Complete</h1>")
-            final_score_display = gr.HTML(value="<p>Preparing final summary...</p>")
-            step_3_back = gr.Button("◀️ Back to Experiment")
+            gr.Markdown("<h1 style='text-align:center;'>✅ Sección completada</h1>")
+            final_score_display = gr.HTML(value="<p>Preparando el resumen final...</p>")
+            step_3_back = gr.Button("◀️ Volver al experimento")
 
         # --- Navigation Logic ---
         all_steps_nav = [
             intro_slide, 
-            model_building_step, 
-            conclusion_step, 
-            loading_screen
+            model_building_step, conclusion_step, loading_screen
         ]
 
         def create_nav(current_step, next_step):
@@ -3670,14 +3141,19 @@ def create_model_building_game_es_final_app(theme_primary_hue: str = "indigo") -
   }} catch(e) {{ console.warn('nav-js error', e); }}
 }}
 """
-        # Final wiring
+
+
+        # --- Wire up slide buttons with enhanced navigation ---
+
+        # Slide 1 -> 2
+        # Final Step: intro slide -> Model Building Interface
         intro_next_btn.click(
             fn=create_nav(intro_slide, model_building_step),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("model-step", "Entering model arena...")
+            js=nav_js("model-step", "Inicializando el entorno de construcción...")
         )
 
-        # App -> Conclusion (unchanged)
+        # App -> Conclusion
         step_2_next.click(
             fn=finalize_and_show_conclusion,
             inputs=[
@@ -3688,14 +3164,14 @@ def create_model_building_game_es_final_app(theme_primary_hue: str = "indigo") -
                 feature_set_state
             ],
             outputs=all_steps_nav + [final_score_display],
-            js=nav_js("conclusion-step", "Generating performance summary...")
+            js=nav_js("conclusion-step", "Generando el resumen de rendiment...")
         )
 
-        # Conclusion -> App (unchanged)
+        # Conclusion -> App
         step_3_back.click(
             fn=create_nav(conclusion_step, model_building_step),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("model-step", "Returning to experiment workspace...")
+            js=nav_js("model-step", "Volviendo al área de construcción del modelo...")
         )
 
         # Events
@@ -3786,49 +3262,7 @@ def create_model_building_game_es_final_app(theme_primary_hue: str = "indigo") -
             ],
             outputs=all_outputs,
             show_progress="full",
-            js=nav_js("model-step", "Running experiment...", 500)
-        )
-
-        # Timer for polling initialization status
-        status_timer = gr.Timer(value=0.5, active=True)  # Poll every 0.5 seconds
-        
-        def update_init_status():
-            """
-            Poll initialization status and update UI elements.
-            Returns status HTML, banner visibility, submit button state, data size choices, and readiness_state.
-            """
-            status_html, ready = poll_init_status()
-            
-            # Update banner visibility - hide when ready
-            banner_visible = not ready
-            
-            # Update submit button
-            if ready:
-                submit_label = "5. 🔬 Build & Submit Model"
-                submit_interactive = True
-            else:
-                submit_label = "⏳ Waiting for data..."
-                submit_interactive = False
-            
-            # Get available data sizes based on init progress
-            available_sizes = get_available_data_sizes()
-            
-            # Stop timer once fully initialized
-            timer_active = not (ready and INIT_FLAGS.get("pre_samples_full", False))
-            
-            return (
-                status_html,
-                gr.update(visible=banner_visible),
-                gr.update(value=submit_label, interactive=submit_interactive),
-                gr.update(choices=available_sizes),
-                timer_active,
-                ready  # readiness_state
-            )
-        
-        status_timer.tick(
-            fn=update_init_status,
-            inputs=None,
-            outputs=[init_status_display, init_banner, submit_button, data_size_radio, status_timer, readiness_state]
+            js=nav_js("model-step", "Ejecutando el experimento...", 500)
         )
 
         # Handle session-based authentication on page load
@@ -3912,16 +3346,13 @@ def launch_model_building_game_es_final_app(height: int = 1200, share: bool = Fa
     """
     Create and directly launch the Model Building Game app inline (e.g., in notebooks).
     """
-    global playground, X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST
+    global playground
     if playground is None:
         try:
             playground = Competition(MY_PLAYGROUND_ID)
         except Exception as e:
             print(f"WARNING: Could not connect to playground: {e}")
             playground = None
-
-    if X_TRAIN_RAW is None:
-        X_TRAIN_RAW, X_TEST_RAW, Y_TRAIN, Y_TEST = load_and_prep_data()
 
     demo = create_model_building_game_es_final_app()
     port = int(os.environ.get("PORT", 8080))
