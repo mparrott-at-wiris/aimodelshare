@@ -1596,23 +1596,23 @@ def simulate_ripple_effect_cases(cases_per_year):
     c_int = int(c)
     if c_int <= 0:
         message = (
-            "If the system isn't used on any cases, its bias can't hurt anyone yet — "
-            "but once it goes live, each biased decision can scale quickly."
+            "Si el sistema no s'utilitza en cap cas, el seu biaix no pot fer mal a ningú encara — "
+            "però un cop entri en funcionament, cada decisió esbiaixada pot escalar ràpidament."
         )
     elif c_int < 5000:
         message = (
-            f"Even at <strong>{c_int}</strong> cases per year, a biased model can quietly "
-            "affect hundreds of people over time."
+            f"Fins i tot amb <strong>{c_int}</strong> casos per any, un model esbiaixat pot afectar "
+            "silenciosament centenars de persones amb el temps."
         )
     elif c_int < 15000:
         message = (
-            f"At around <strong>{c_int}</strong> cases per year, a biased model could unfairly label "
-            "thousands of people as 'high risk.'"
+            f"Amb al voltant de <strong>{c_int}</strong> casos per any, un model esbiaixat podria etiquetar injustament "
+            "milers de persones com a 'alt risc'."
         )
     else:
         message = (
-            f"At <strong>{c_int}</strong> cases per year, one flawed algorithm can shape the futures "
-            "of an entire region — turning hidden bias into thousands of unfair decisions."
+            f"Amb <strong>{c_int}</strong> casos per any, un algoritme defectuós pot donar forma al futur "
+            "de tota una regió — convertint el biaix ocult en milers de decisions injustes."
         )
 
     return f"""
@@ -1644,7 +1644,7 @@ def render_static_scenarios():
 def render_scenario_card(name: str):
     cfg = SCENARIO_CONFIG.get(name)
     if not cfg:
-        return "<div class='hint-box'>Select a scenario to view details.</div>"
+        return "<div class='hint-box'>Selecciona un escenari per veure els detalls.</div>"
     q_html = cfg["q"].replace("\n", "<br>")
     return f"""
     <div class="scenario-box">
@@ -1837,66 +1837,66 @@ def generate_success_message(prev, curr, specific_text):
     if style_key == "first":
         card_class += " first-score"
         header_emoji = "🎉"
-        header_title = "You're Officially on the Board!"
+        header_title = "Estàs Oficialment a la Classificació!"
         summary_line = (
-            "You just earned your first Moral Compass Score — you're now part of the global rankings."
+            "Acabes de guanyar la teva primera Puntuació de Brúixola Moral — ara ets part de la classificació global."
         )
-        cta_line = "Scroll down to take your next step and start climbing."
+        cta_line = "Desplaça't cap avall per fer el teu proper pas i començar a escalar."
     elif style_key == "major":
         header_emoji = "🔥"
-        header_title = "Major Moral Compass Boost!"
+        header_title = "Gran Impuls de Brúixola Moral!"
         summary_line = (
-            "Your decision made a big impact — you just moved ahead of other participants."
+            "La teva decisió ha tingut un gran impacte — acabes d'avançar altres participants."
         )
-        cta_line = "Scroll down to take on your next challenge and keep the boost going."
+        cta_line = "Desplaça't cap avall per enfrontar el teu proper repte i mantenir l'impuls."
     elif style_key == "climb":
         header_emoji = "🚀"
-        header_title = "You're Climbing the Leaderboard"
-        summary_line = "Nice work — you edged out a few other participants."
-        cta_line = "Scroll down to continue your investigation and push even higher."
+        header_title = "Estàs Escalant la Classificació"
+        summary_line = "Bona feina — has superat alguns altres participants."
+        cta_line = "Desplaça't cap avall per continuar la teva investigació i pujar encara més."
     elif style_key == "tight":
         header_emoji = "📊"
-        header_title = "The Leaderboard Is Shifting"
+        header_title = "La Classificació està Canviant"
         summary_line = (
-            "Other teams are moving too. You'll need a few more strong decisions to stand out."
+            "Altres equips també es mouen. Necessitaràs unes quantes decisions més fortes per destacar."
         )
-        cta_line = "Take on the next question to strengthen your position."
+        cta_line = "Respon la següent pregunta per enfortir la teva posició."
     else:  # "solid"
         header_emoji = "✅"
-        header_title = "Progress Logged"
-        summary_line = "Your ethical insight increased your Moral Compass Score."
-        cta_line = "Try the next scenario to break into the next tier."
+        header_title = "Progrés Registrat"
+        summary_line = "La teva perspectiva ètica ha augmentat la teva Puntuació de Brúixola Moral."
+        cta_line = "Prova el següent escenari per arribar al següent nivell."
 
     # --- SCORE / RANK LINES ---------------------------------------------
 
     # First-time: different wording (no previous score)
     if style_key == "first":
-        score_line = f"🧭 Score: <strong>{new_score:.3f}</strong>"
+        score_line = f"🧭 Puntuació: <strong>{new_score:.3f}</strong>"
         if ranks_are_int:
-            rank_line = f"🏅 Initial Rank: <strong>#{new_rank}</strong>"
+            rank_line = f"🏅 Rang Inicial: <strong>#{new_rank}</strong>"
         else:
-            rank_line = f"🏅 Initial Rank: <strong>#{new_rank}</strong>"
+            rank_line = f"🏅 Rang Inicial: <strong>#{new_rank}</strong>"
     else:
         score_line = (
-            f"🧭 Score: {old_score:.3f} → <strong>{new_score:.3f}</strong> "
+            f"🧭 Puntuació: {old_score:.3f} → <strong>{new_score:.3f}</strong> "
             f"(+{diff_score:.3f})"
         )
 
         if ranks_are_int:
             if old_rank == new_rank:
-                rank_line = f"📊 Rank: <strong>#{new_rank}</strong> (holding steady)"
+                rank_line = f"📊 Rang: <strong>#{new_rank}</strong> (mantenint-se estable)"
             elif rank_diff > 0:
                 rank_line = (
-                    f"📈 Rank: #{old_rank} → <strong>#{new_rank}</strong> "
-                    f"(+{rank_diff} places)"
+                    f"📈 Rang: #{old_rank} → <strong>#{new_rank}</strong> "
+                    f"(+{rank_diff} posicions)"
                 )
             else:
                 rank_line = (
-                    f"🔻 Rank: #{old_rank} → <strong>#{new_rank}</strong> "
-                    f"({rank_diff} places)"
+                    f"🔻 Rang: #{old_rank} → <strong>#{new_rank}</strong> "
+                    f"({rank_diff} posicions)"
                 )
         else:
-            rank_line = f"📊 Rank: <strong>#{new_rank}</strong>"
+            rank_line = f"📊 Rang: <strong>#{new_rank}</strong>"
 
     # --- HTML COMPOSITION -----------------------------------------------
     return f"""
@@ -2045,21 +2045,21 @@ def check_audit_report_selection(selected_biases: List[str]) -> Tuple[str, str]:
     # --- Generate Feedback ---
     feedback_html = ""
     if incorrectly_selected:
-        feedback_html = f"<div class='hint-box' style='border-left:4px solid #ef4444; color:#b91c1c;'>❌ ERROR: The statement '{INCORRECT_FINDING.split(':')[0]}' is NOT a true finding. Check your lab results and try again.</div>"
+        feedback_html = f"<div class='hint-box' style='border-left:4px solid #ef4444; color:#b91c1c;'>❌ ERROR: L'afirmació '{INCORRECT_FINDING.split(':')[0]}' NO és una troballa veritable. Comprova els resultats del teu laboratori i torna-ho a intentar.</div>"
     elif missed_correct:
-        feedback_html = f"<div class='hint-box' style='border-left:4px solid #f97316; color:#f97316;'>⚠️ INCOMPLETE: You missed {len(missed_correct)} piece(s) of key evidence. Your final report must be complete.</div>"
+        feedback_html = f"<div class='hint-box' style='border-left:4px solid #f97316; color:#f97316;'>⚠️ INCOMPLET: T'has perdut {len(missed_correct)} peça/es d'evidència clau. El teu informe final ha d'estar complet.</div>"
     elif len(selected_biases) == len(CORRECT_FINDINGS):
-        feedback_html = "<div class='hint-box' style='border-left:4px solid #22c55e; color:#16a34a;'>✅ EVIDENCE SECURED: This is a complete and accurate diagnosis of the model's systematic failure.</div>"
+        feedback_html = "<div class='hint-box' style='border-left:4px solid #22c55e; color:#16a34a;'>✅ EVIDÈNCIA ASSEGURADA: Aquest és un diagnòstic complet i precís de l'error sistemàtic del model.</div>"
     else:
-        feedback_html = "<div class='hint-box' style='border-left:4px solid var(--color-accent);'>Gathering evidence...</div>"
+        feedback_html = "<div class='hint-box' style='border-left:4px solid var(--color-accent);'>Recopilant evidència...</div>"
 
     # --- Build Markdown Report Preview ---
     if not correctly_selected:
-        report_markdown = "Select the evidence cards above to start drafting your report. (The draft report will appear here.)"
+        report_markdown = "Selecciona les targetes d'evidència de dalt per començar a redactar el teu informe. (L'esborrany de l'informe apareixerà aquí.)"
     else:
         lines = []
-        lines.append("### 🧾 Draft Audit Report")
-        lines.append("\n**Findings of Systemic Error:**")
+        lines.append("### 🧾 Esborrany de l'Informe d'Auditoria")
+        lines.append("\n**Troballes d'Error Sistemàtic:**")
 
         # Map short findings to the markdown report
         finding_map = {
@@ -2430,14 +2430,14 @@ def create_bias_detective_ca_app(theme_primary_hue: str = "indigo"):
 
         # --- TOP ANCHOR & LOADING OVERLAY FOR NAVIGATION ---
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
-        gr.HTML("<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>Loading...</span></div>")
+        gr.HTML("<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>Carregant...</span></div>")
 
         # --- LOADING VIEW ---
         with gr.Column(visible=True, elem_id="app-loader") as loader_col:
             gr.HTML(
                 "<div style='text-align:center; padding:100px;'>"
-                "<h2>🕵️‍♀️ Authenticating...</h2>"
-                "<p>Syncing Moral Compass Data...</p>"
+                "<h2>🕵️‍♀️ Autenticant...</h2>"
+                "<p>Sincronitzant Dades de Brúixola Moral...</p>"
                 "</div>"
             )
 
@@ -2471,7 +2471,7 @@ def create_bias_detective_ca_app(theme_primary_hue: str = "indigo"):
                         gr.Markdown(f"### 🧠 {q_data['q']}")
                         radio = gr.Radio(
                             choices=q_data["o"],
-                            label="Select Answer:",
+                            label="Selecciona una Resposta:",
                             elem_classes=["quiz-radio-large"],
                         )
                         feedback = gr.HTML("")
@@ -2479,11 +2479,11 @@ def create_bias_detective_ca_app(theme_primary_hue: str = "indigo"):
 
                     # --- NAVIGATION BUTTONS ---
                     with gr.Row():
-                        btn_prev = gr.Button("⬅️ Previous", visible=(i > 0))
+                        btn_prev = gr.Button("⬅️ Anterior", visible=(i > 0))
                         next_label = (
-                            "Next ▶️"
+                            "Següent ▶️"
                             if i < len(MODULES) - 1
-                            else "🎉 You Have Completed Part 1!! (Please Proceed to the Next Activity)"
+                            else "🎉 Has Completat la Part 1!! (Si us plau, Passa a la Següent Activitat)"
                         )
                         btn_next = gr.Button(next_label, variant="primary")
 
@@ -2521,7 +2521,7 @@ def create_bias_detective_ca_app(theme_primary_hue: str = "indigo"):
                             gr.update(),
                             gr.update(),
                             "<div class='hint-box' style='border-color:red;'>"
-                            "❌ Incorrect. Review the evidence above.</div>",
+                            "❌ Incorrecte. Revisa l'evidència anterior.</div>",
                             task_list,
                         )
 
@@ -2706,7 +2706,7 @@ def create_bias_detective_ca_app(theme_primary_hue: str = "indigo"):
                 prev_btn.click(
                     fn=make_prev_handler(prev_col, curr_col, prev_target_id),
                     outputs=[prev_col, curr_col],
-                    js=nav_js(prev_target_id, "Loading..."),
+                    js=nav_js(prev_target_id, "Carregant..."),
                 )
 
             # Next button
@@ -2733,7 +2733,7 @@ def create_bias_detective_ca_app(theme_primary_hue: str = "indigo"):
                     fn=make_next_handler(curr_col, next_col, i + 1),
                     inputs=[username_state, token_state, team_state, task_list_state],
                     outputs=[out_top],
-                    js=nav_js(next_target_id, "Loading..."),
+                    js=nav_js(next_target_id, "Carregant..."),
                 ).then(
                     fn=make_nav_generator(curr_col, next_col),
                     outputs=[curr_col, next_col],
