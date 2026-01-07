@@ -481,11 +481,9 @@ def _build_attempts_tracker_html(current_count, limit=10):
     </div>"""
     
 def check_attempt_limit(submission_count: int, limit: int = None) -> Tuple[bool, str]:
-    """Check if submission count exceeds limit."""
-    # ATTEMPT_LIMIT is defined in configuration section below
+    """Check if submission count exceeds limit. None = unlimited."""
     if limit is None:
-        limit = ATTEMPT_LIMIT
-    
+        return True, f"Attempts: {submission_count} (unlimited)"
     if submission_count >= limit:
         msg = f"⚠️ Attempt limit reached ({submission_count}/{limit})"
         return False, msg
@@ -1218,75 +1216,31 @@ def compute_rank_settings(
     current_feature_set,
     current_data_size
 ):
-    """Returns rank gating settings (updated for 1–10 complexity scale)."""
+    """All tools unlocked from the start."""
+    all_models = list(MODEL_TYPES.keys())
+    all_features = FEATURE_SET_ALL_OPTIONS
+    all_data_sizes = list(DATA_SIZE_MAP.keys())  # ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"]
 
-    def get_choices_for_rank(rank):
-        if rank == 0: # Trainee
-            return [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in FEATURE_SET_GROUP_1_VALS]
-        if rank == 1: # Junior
-            return [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in (FEATURE_SET_GROUP_1_VALS + FEATURE_SET_GROUP_2_VALS)]
-        return FEATURE_SET_ALL_OPTIONS # Senior+
+    # Safe current selections
+    model_value = current_model if current_model in all_models else DEFAULT_MODEL
+    complexity_value = min(max(int(current_complexity or 2), 1), 10)
+    feature_set_value = current_feature_set if current_feature_set else DEFAULT_FEATURE_SET
+    data_size_value = current_data_size if current_data_size in all_data_sizes else DEFAULT_DATA_SIZE
 
-    if submission_count == 0:
-        return {
-            "rank_message": "# 🧑‍🎓 Rank: Trainee Engineer\n<p style='font-size:24px; line-height:1.4;'>For your first submission, just click the big '🔬 Build & Submit Model' button below!</p>",
-            "model_choices": ["The Balanced Generalist"],
-            "model_value": "The Balanced Generalist",
-            "model_interactive": False,
-            "complexity_max": 3,
-            "complexity_value": min(current_complexity, 3),
-            "feature_set_choices": get_choices_for_rank(0),
-            "feature_set_value": FEATURE_SET_GROUP_1_VALS,
-            "feature_set_interactive": False,
-            "data_size_choices": ["Small (20%)"],
-            "data_size_value": "Small (20%)",
-            "data_size_interactive": False,
-        }
-    elif submission_count == 1:
-        return {
-            "rank_message": "# 🎉 Rank Up! Junior Engineer\n<p style='font-size:24px; line-height:1.4;'>New models, data sizes, and data ingredients unlocked!</p>",
-            "model_choices": ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"],
-            "model_value": current_model if current_model in ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"] else "The Balanced Generalist",
-            "model_interactive": True,
-            "complexity_max": 6,
-            "complexity_value": min(current_complexity, 6),
-            "feature_set_choices": get_choices_for_rank(1),
-            "feature_set_value": current_feature_set,
-            "feature_set_interactive": True,
-            "data_size_choices": ["Small (20%)", "Medium (60%)"],
-            "data_size_value": current_data_size if current_data_size in ["Small (20%)", "Medium (60%)"] else "Small (20%)",
-            "data_size_interactive": True,
-        }
-    elif submission_count == 2:
-        return {
-            "rank_message": "# 🌟 Rank Up! Senior Engineer\n<p style='font-size:24px; line-height:1.4;'>Strongest Data Ingredients Unlocked! The most powerful predictors (like 'Age' and 'Prior Crimes Count') are now available in your list. These will likely boost your accuracy, but remember they often carry the most societal bias.</p>",
-            "model_choices": list(MODEL_TYPES.keys()),
-            "model_value": current_model if current_model in MODEL_TYPES else "The Deep Pattern-Finder",
-            "model_interactive": True,
-            "complexity_max": 8,
-            "complexity_value": min(current_complexity, 8),
-            "feature_set_choices": get_choices_for_rank(2),
-            "feature_set_value": current_feature_set,
-            "feature_set_interactive": True,
-            "data_size_choices": ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"],
-            "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Small (20%)",
-            "data_size_interactive": True,
-        }
-    else:
-        return {
-            "rank_message": "# 👑 Rank: Lead Engineer\n<p style='font-size:24px; line-height:1.4;'>All tools unlocked — optimize freely!</p>",
-            "model_choices": list(MODEL_TYPES.keys()),
-            "model_value": current_model if current_model in MODEL_TYPES else "The Balanced Generalist",
-            "model_interactive": True,
-            "complexity_max": 10,
-            "complexity_value": current_complexity,
-            "feature_set_choices": get_choices_for_rank(3),
-            "feature_set_value": current_feature_set,
-            "feature_set_interactive": True,
-            "data_size_choices": ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"],
-            "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Small (20%)",
-            "data_size_interactive": True,
-        }
+    return {
+        "rank_message": "# 👑 Rank: Lead Engineer\n<p style='font-size:24px; line-height:1.4;'>All tools unlocked — optimize freely!</p>",
+        "model_choices": all_models,
+        "model_value": model_value,
+        "model_interactive": True,
+        "complexity_max": 10,
+        "complexity_value": complexity_value,
+        "feature_set_choices": all_features,
+        "feature_set_value": feature_set_value,
+        "feature_set_interactive": True,
+        "data_size_choices": all_data_sizes,
+        "data_size_value": data_size_value,
+        "data_size_interactive": True,
+    }
 
 # Find components by name to yield updates
 # --- Existing global component placeholders ---
@@ -3319,13 +3273,6 @@ def create_model_building_game_en_final_app(theme_primary_hue: str = "indigo") -
 
                     gr.Markdown("---") # Separator
 
-                    # Attempt tracker display
-                    attempts_tracker_display = gr.HTML(
-                        value="<div style='text-align:center; padding:8px; margin:8px 0; background:#f0f9ff; border-radius:8px; border:1px solid #bae6fd;'>"
-                        "<p style='margin:0; color:#0369a1; font-weight:600; font-size:1rem;'>📊 Attempts used: 0/10</p>"
-                        "</div>",
-                        visible=True
-                    )
 
                     submit_button = gr.Button(
                         value="5. 🔬 Build & Submit Model",
