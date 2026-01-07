@@ -163,44 +163,42 @@ def render_top_dashboard(data):
         display_score = float(data.get("score", 0.0))
         rank_display = f"#{data.get('rank', '–')}"
         team_rank_display = f"#{data.get('team_rank', '–')}"
-
-    # Since this is the final certificate app, we assume 100% completion
     
     return f"""
-    <div class="summary-box" style="text-align:center; padding-bottom: 20px;">
-        <div class="summary-box-inner">
-            
-            <div style="margin-bottom: 20px;">
-                <h3 style="margin:0; color: var(--color-accent); text-transform: uppercase; letter-spacing: 2px;">
-                    🎉 Certificació Completada 🎉
-                </h3>
-            </div>
-
-            <div style="margin-bottom: 25px; background: linear-gradient(to bottom, #f9fafb, #f3f4f6); border-radius: 12px; padding: 20px; border: 1px solid #e5e7eb;">
-                <div class="label-text" style="font-size: 1.1em; color: #6b7280;">Puntuació Final de Brúixola Moral</div>
-                <div style="font-size: 4em; font-weight: 800; color: var(--color-primary); line-height: 1.1; margin-top: 10px;">
-                    🧭 {display_score:.3f}
-                </div>
-            </div>
-
-            <div style="display: flex; justify-content: center; gap: 40px; border-top: 1px solid #e5e7eb; padding-top: 20px;">
-                <div style="text-align:center;">
-                    <div class="label-text" style="margin-bottom:5px;">Rànquing d'Equip</div>
-                    <div class="score-text-team" style="font-size: 1.8em;">{team_rank_display}</div>
-                </div>
-                <div style="text-align:center;">
-                    <div class="label-text" style="margin-bottom:5px;">Rànquing Global</div>
-                    <div class="score-text-global" style="font-size: 1.8em;">{rank_display}</div>
-                </div>
-            </div>
-
-            <div style="margin-top: 25px;">
-                <span style="background-color: #d1fae5; color: #065f46; padding: 8px 16px; border-radius: 99px; font-weight: 700; font-size: 0.9em;">
-                    ✅ Certificat Oficial Preparat
-                </span>
-            </div>
-
+    <div class="summary-box" style="text-align:center; padding: 30px; max-width: 800px; margin: 0 auto 20px auto; background: var(--block-background-fill);">
+        
+        <div style="border-bottom: 2px solid var(--border-color-primary); padding-bottom: 20px; margin-bottom: 25px;">
+            <h3 style="margin:0; color: var(--color-accent); font-size: 1.3rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 800;">
+                🎉 Certificació Completada 🎉
+            </h3>
         </div>
+
+        <div style="background: var(--background-fill-secondary); border-radius: 16px; border: 1px solid var(--border-color-primary); padding: 30px; margin-bottom: 20px;">
+            <div class="label-text" style="color: var(--body-text-color-subdued); font-size: 1.0rem; margin-bottom: 10px;">Puntuació Final de Brúixola Moral</div>
+            <div style="font-size: 4.5rem; font-weight: 800; color: var(--color-primary); line-height: 1;">
+                {display_score:.3f}
+            </div>
+            <div style="font-size: 0.9rem; color: var(--body-text-color-subdued); margin-top: 5px;">(Escala: 0.0 - 1.0)</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div style="background: var(--background-fill-primary); border: 1px solid var(--border-color-primary); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <div class="label-text" style="color: var(--body-text-color-subdued); font-size: 0.85rem; margin-bottom: 5px;">Rànquing d'Equip</div>
+                <div class="score-text-team" style="font-size: 2.0rem; margin: 0;">{team_rank_display}</div>
+            </div>
+
+            <div style="background: var(--background-fill-primary); border: 1px solid var(--border-color-primary); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <div class="label-text" style="color: var(--body-text-color-subdued); font-size: 0.85rem; margin-bottom: 5px;">Rànquing Global</div>
+                <div class="score-text-global" style="font-size: 2.0rem; margin: 0; color: var(--body-text-color);">{rank_display}</div>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px;">
+            <span style="background-color: rgba(16, 185, 129, 0.15); color: var(--color-accent); padding: 10px 24px; border-radius: 99px; font-weight: 700; font-size: 0.95rem; border: 1px solid var(--color-accent);">
+                ✅ Certificat Oficial Preparat
+            </span>
+        </div>
+
     </div>
     """
 
