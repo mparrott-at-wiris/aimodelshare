@@ -1726,39 +1726,6 @@ def run_experiment(
             yield gate_updates
             return  # Stop here
         
-        # --- ATTEMPT LIMIT CHECK ---
-        if submission_count >= ATTEMPT_LIMIT:
-            limit_warning_html = f"""
-            <div class='kpi-card' style='border-color: #ef4444;'>
-                <h2 style='color: #111827; margin-top:0;'>🛑 Submission Limit Reached</h2>
-                <div class='kpi-card-body'>
-                    <div class='kpi-metric-box'>
-                        <p class='kpi-label'>Attempts Used</p>
-                        <p class='kpi-score' style='color: #ef4444;'>{ATTEMPT_LIMIT} / {ATTEMPT_LIMIT}</p>
-                    </div>
-                </div>
-                <div style='margin-top: 16px; background:#fef2f2; padding:16px; border-radius:12px; text-align:left; font-size:0.98rem; line-height:1.4;'>
-                    <p style='margin:0; color:#991b1b;'><b>Nice Work!</b> Scroll down to "Finish and Reflect".</p>
-                </div>
-            </div>"""
-            settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
-            limit_reached_updates = {
-                submission_feedback_display: gr.update(value=limit_warning_html, visible=True),
-                submit_button: gr.update(value="🛑 Submission Limit Reached", interactive=False),
-                model_type_radio: gr.update(interactive=False), complexity_slider: gr.update(interactive=False),
-                feature_set_checkbox: gr.update(interactive=False), data_size_radio: gr.update(interactive=False),
-                attempts_tracker_display: gr.update(value=f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'><p style='margin:0; color:#991b1b; font-weight:600;'>🛑 Attempts used: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT}</p></div>"),
-                team_leaderboard_display: team_leaderboard_display, individual_leaderboard_display: individual_leaderboard_display,
-                last_submission_score_state: last_submission_score, last_rank_state: last_rank,
-                best_score_state: best_score, submission_count_state: submission_count,
-                first_submission_score_state: first_submission_score, rank_message_display: settings["rank_message"],
-                login_username: gr.update(visible=False), login_password: gr.update(visible=False),
-                login_submit: gr.update(visible=False), login_error: gr.update(visible=False),
-                was_preview_state: False, kpi_meta_state: {}, last_seen_ts_state: None
-            }
-            yield limit_reached_updates
-            return
-        
         progress(0.5, desc="Submitting to Cloud...")
         yield { 
             submission_feedback_display: gr.update(value=get_status_html(3, "Submitting", "Sending model to the competition server..."), visible=True),
@@ -1870,7 +1837,7 @@ def run_experiment(
         # -------------------------------------------------------------------------
         # NEW LOGIC: Check for Limit Reached immediately AFTER this submission
         # -------------------------------------------------------------------------
-        limit_reached = new_submission_count >= ATTEMPT_LIMIT
+        limit_reached = False
         
         # Prepare the UI state based on whether limit is reached
         if limit_reached:
