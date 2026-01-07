@@ -3362,11 +3362,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
   }} catch(e) {{ console.warn('nav-js error', e); }}
 }}
 """
-
-
-        # --- Wire up slide buttons with enhanced navigation ---
-
-        )
+        
         # Final Step: Slide 6 -> Model Building Interface
         intro_next_btn.click(
             fn=create_nav(intro_slide, model_building_step),
