@@ -449,7 +449,7 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
         _user_stats_cache[username] = stats
     _log(f"Stats for {username}: {stats}")
     return stats
-def _build_attempts_tracker_html(current_count, limit=10):
+def _build_attempts_tracker_html(current_count, limit=1000000000):
     """
     Generate HTML for the attempts tracker display.
     Shows current attempt count vs limit with color coding.
@@ -527,7 +527,7 @@ MY_PLAYGROUND_ID = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/
 # by refreshing the browser. For production use with 100+ concurrent users,
 # consider implementing server-side persistence via Redis or Firestore to track
 # attempt counts per user across sessions.
-ATTEMPT_LIMIT = 10
+ATTEMPT_LIMIT = 10000000000
 
 # --- Leaderboard Polling Configuration ---
 # After a real authenticated submission, we poll the leaderboard to detect eventual consistency.
