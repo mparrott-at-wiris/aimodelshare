@@ -2052,7 +2052,6 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
         <hr class="final-conclusion-divider" />
 
         <div class="final-conclusion-next">
-          <h2>➡️ Siguiente: Consecuencias en el mundo real</h2>
           <h1 class="final-instruction">
             👇 Continúa con la siguiente actividad abajo — o haz clic en <span style="white-space:nowrap;">Next (barra superior)</span> en vista ampliada ➡️
           </h1>
