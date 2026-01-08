@@ -2861,6 +2861,14 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
             background-color: rgba(248, 113, 113, 0.26);
         }
     }
+    /* CTA sizing for the new class */
+    .final-conclusion-next .final-instruction {
+      font-size: clamp(1.5rem, 2vw + 0.6rem, 2rem);
+      line-height: 1.25;
+      margin: 16px 0;
+      /* Optional: keep the pulse animation from the old class */
+      /* animation: pulseArrow 2.5s infinite; */
+    }
     /* ---------------------------------------------------- */
     /* Slide 3: INPUT → MODEL → OUTPUT flow (theme-aware)   */
     /* ---------------------------------------------------- */
