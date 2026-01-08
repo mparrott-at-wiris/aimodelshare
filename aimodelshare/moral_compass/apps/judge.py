@@ -425,15 +425,13 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         border: 1px solid var(--border-color-primary);
     }
 
-    .complete-box {
-        font-size: 1.3rem;
-        padding: 28px;
-        border-radius: 16px;
-
-        background-color: var(--block-background-fill);
-        color: var(--body-text-color);
-        border: 2px solid var(--color-accent);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    /* Compact, responsive CTA sizing in completion sections */
+    .complete-box h1,
+    .completion-box h1,
+    .final-instruction {
+      font-size: clamp(1.5rem, 2vw + 0.6rem, 2rem) !important;
+      line-height: 1.25;
+      margin: 16px 0;
     }
 
     .loading-title {
