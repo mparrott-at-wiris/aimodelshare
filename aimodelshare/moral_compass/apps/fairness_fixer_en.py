@@ -1270,6 +1270,36 @@ css = """
   #nav-loading-overlay { background: rgba(15, 23, 42, 0.9); }
   .nav-spinner { border-color: rgba(148, 163, 184, 0.4); border-top-color: var(--color-accent); }
 }
+
+/* --- COMPACT CTA STYLES FOR QUIZ SLIDES --- */
+.points-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.8rem;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
+}
+.quiz-cta {
+  margin: 8px 0 10px 0;
+  font-size: 0.9rem;
+  color: var(--body-text-color-subdued);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.quiz-submit { 
+  min-width: 200px; 
+}
+/* Hide gradient CTA banners for slides > 0, keep slide 0 Mission CTA */
+.module-container[id^="module-"]:not(#module-0) div[style*="linear-gradient(to right"] {
+  display: none !important;
+}
 """
 
 # --- 7. LEADERBOARD & API LOGIC (Reused) ---
@@ -1648,6 +1678,15 @@ def create_fairness_fixer_en_app(theme_primary_hue: str = "indigo"):
                     # --- QUIZ CONTENT ---
                     if i in QUIZ_CONFIG:
                         q_data = QUIZ_CONFIG[i]
+
+                        # Compact points chip and hint above the question
+                        gr.HTML(
+                            "<div class='quiz-cta'>"
+                            "<span class='points-chip'>🧭 Moral Compass points available</span>"
+                            "<span>Answer to boost your score</span>"
+                            "</div>"
+                        )
+
                         gr.Markdown(f"### 🧠 {q_data['q']}")
                         radio = gr.Radio(
                             choices=q_data["o"],
