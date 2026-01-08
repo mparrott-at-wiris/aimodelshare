@@ -404,8 +404,8 @@ MODULES = [
 
                 <h2 class="slide-title header-accent" style="margin-top:10px;">The Hunt for Biased Demographic Patterns</h2>
                 <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                    An AI is only as fair as the data it learns from. If the input data distorts reality, the AI will likely distort justice.
-                    <br>The first step is to hunt for patterns that reveal <strong>Representation Bias.</strong>  To find representation bias we must inspect the <strong>Demographics.</strong>.
+                    AI systems learn from data. If the data is biased, the AI will be biased too.
+                    <br>Your first task is to look for <strong>Representation Bias,</strong> by checking which <strong>demographic</strong> groups appear more or less often in the data.
                 </p>
             </div>
 
@@ -423,15 +423,15 @@ MODULES = [
                     
                     <div style="color: var(--body-text-color);">
                         <p style="font-size:1rem; line-height:1.6;">
-                            <strong>The Concept:</strong> Ideally, a dataset should look like a "Mirror" of the real population. 
-                            If a group makes up 50% of the population, they should generally make up ~50% of the data.
+                            <strong>The Mirror Concept:</strong> Ideally, a dataset should look like a "mirror" of the real population. 
+                            If a group makes up 50% of the population, it should appear at about the same level in the data.
                         </p>
                         <p style="font-size:1rem; line-height:1.6;">
-                            <strong>The Red Flag:</strong> Look for <strong>Drastic Imbalances</strong> in Protected Characteristics (Race, Gender, Age).
+                            <strong>The Red Flag:</strong> Look for <strong>imbalances</strong> in protected characteristics such race, gender, or age.
                         </p>
                         <ul style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:10px; padding-left:20px; line-height:1.5;">
-                            <li><strong>Over-Representation:</strong> One group has a "Giant Bar" (e.g., 80% of arrest records are Men). The AI learns to target this group.</li>
-                            <li><strong>Under-Representation:</strong> One group is missing or tiny. The AI fails to learn accurate patterns for them.</li>
+                            <li><strong>Over-Representation:</strong> One group dominates the data (for example, 80% of arrest records are men). The AI may learn to target this group.</li>
+                            <li><strong>Under-Representation:</strong> One group is missing or tiny. The AI cannot learn reliable patterns for them.</li>
                         </ul>
                     </div>
 
@@ -464,7 +464,7 @@ MODULES = [
 
             <div style="margin-bottom: 25px; padding: 0 10px;">
                 <p style="font-size:1.1rem; line-height:1.5; color:var(--body-text-color);">
-                    <strong>🕵️ Your Next Step:</strong> You must enter the Data Forensics Lab and check the data for specific demographic categories. If the patterns look like the "Distorted Mirror" above, the data is likely unsafe.
+                    <strong>🕵️ Your Next Step:</strong> Check the demographic data in the Data Forensics Lab. If you see a distorted mirror, the data is likely biased.
                 </p>
             </div>
 
