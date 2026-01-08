@@ -426,14 +426,13 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     }
 
     /* Compact, responsive CTA sizing in completion sections */
-    .complete-box h1,
     .completion-box h1,
     .final-instruction {
       font-size: clamp(1.5rem, 2vw + 0.6rem, 2rem) !important;
       line-height: 1.25;
       margin: 16px 0;
     }
-
+    .complete-box h1 { font-size: clamp(1.5rem, 2vw + 0.6rem, 2rem) !important; line-height: 1.25; margin: 16px 0; }
     .loading-title {
         font-size: 2rem;
         color: var(--secondary-text-color);
