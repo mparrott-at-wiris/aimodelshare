@@ -567,7 +567,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
                 </ul>
                 <p style='margin-top:32px;'><b>{t(lang, 's6_next')}</b></p>
                 <p>{t(lang, 's6_next_desc')}</p>
-                <h1 style='margin:20px 0; font-size: 3rem;'>{t(lang, 's6_scroll')}</h1>
+                <h1 class='final-instruction' style='margin:20px 0;'>{t(lang, 's6_scroll')}</h1>
                 <p style='font-size:1.1rem;'>{t(lang, 's6_find')}</p>
             </div>
         </div>
@@ -598,6 +598,11 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     .inner-card-wide { background-color: var(--body-background-fill); color: var(--body-text-color); padding: 20px; border-radius: 8px; margin: 16px 0; border: 1px solid var(--border-color-primary); }
     .keypoint-box { background-color: var(--block-background-fill); color: var(--body-text-color); padding: 24px; border-radius: 12px; margin-top: 20px; border-left: 6px solid #dc2626; }
     .highlight-soft { background-color: var(--block-background-fill); color: var(--body-text-color); padding: 20px; border-radius: 12px; font-size: 18px; border: 1px solid var(--border-color-primary); }
+    .final-instruction {
+      font-size: clamp(1.5rem, 2vw + 0.6rem, 2rem);
+      line-height: 1.25;
+      margin: 16px 0;
+    }
     .completion-box { font-size: 1.3rem; padding: 28px; border-radius: 16px; background-color: var(--block-background-fill); color: var(--body-text-color); border: 2px solid #0284c7; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); }
     .prediction-card { background-color: var(--block-background-fill); color: var(--body-text-color); padding: 24px; border-radius: 12px; border: 3px solid var(--border-color-primary); text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
     .prediction-title { margin: 0; font-size: 2.5rem; }
