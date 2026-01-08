@@ -299,20 +299,20 @@ MODULES = [
 
                     <div style="background:rgba(59, 130, 246, 0.1); border-left:4px solid #3b82f6; padding:15px; margin-bottom:20px; border-radius:4px; color: var(--body-text-color);">
                         <p style="margin:0; font-size:1.05rem; line-height:1.5;">
-                            <strong style="color:var(--color-accent);">Justícia i Equitat: La Teva Regla Principal.</strong><br>
-                            L'ètica no és abstracta aquí, és la nostra guia de camp per a l'acció. Confiem en l'assessorament expert de l'Observatori d'Ètica en Intel·ligència Artificial de Catalunya <strong>OEIAC (UdG)</strong> per assegurar que els sistemes d'IA siguin justos.
-                            Tot i que han definit 7 principis bàsics d'IA segura, la nostra informació suggereix que aquest cas específic implica una violació de <strong>Justícia i Equitat</strong>.
+                            <strong style="color:var(--color-accent);">Justícia i Equitat: La teva regla principal.</strong><br>
+                            L’ètica guia les nostres accions. Seguim l’assessorament expert de l'Observatori d'Ètica en Intel·ligència Artificial de Catalunya <strong>OEIAC (UdG)</strong> per garantir que els sistemes d’IA siguin justos.
+                            Dels seus set principis clau per a una IA segura, aquest cas se centra en una possible vulneració de la <strong>Justícia i Equitat</strong>.
                         </p>
                     </div>
 
                     <div style="text-align:center; margin-bottom:20px;">
                         <p style="font-size:1rem; font-weight:700; color:var(--color-accent); background:rgba(59, 130, 246, 0.1); display:inline-block; padding:6px 16px; border-radius:20px; border:1px solid var(--border-color-primary);">
-                            👇 Fes clic a cada targeta per revelar què compta com a biaix
+                            👇 Fes clic a cada targeta per revelar què es considera biaix
                         </p>
                     </div>
 
                     <p style="text-align:center; font-weight:700; color:var(--body-text-color-subdued); margin-bottom:10px; font-size:0.9rem; letter-spacing:1px;">
-                        🧩 JUSTÍCIA I EQUITAT: QUÈ COMPTA COM A BIAIX?
+                        🧩 JUSTÍCIA I EQUITAT: QUÈ ES CONSIDERA BIAIX?
                     </p>
 
                     <div class="ai-risk-container" style="background:transparent; border:none; padding:0;">
@@ -321,36 +321,36 @@ MODULES = [
                             <details style="cursor:pointer; background:var(--background-fill-secondary); padding:15px; border-radius:10px; border:1px solid #3b82f6; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                                 <summary style="list-style:none; font-weight:800; color:#3b82f6; text-align:center; font-size:1.0rem;">
                                     <div style="font-size:2rem; margin-bottom:5px;">📊</div>
-                                    Biaix de Representació
+                                    Biaix de representació
                                 </summary>
                                 <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); border-top:1px solid var(--border-color-primary); padding-top:10px; line-height:1.4;">
-                                    <strong>Definició:</strong> Compara la distribució del conjunt de dades amb la distribució real del món real.
+                                    <strong>Què comprova:</strong> Si el conjunt de dades reflecteix la població real.
                                     <br><br>
-                                    Si un grup apareix molt menys (p. ex., només el 10% dels casos són del Grup A, però són el 71% de la població) o molt més que la realitat, la IA probablement aprendrà patrons esbiaixats.
+                                    Si un grup apareix molt més o molt menys (p. ex., només el 10% dels casos són del Grup A, però són el 71% de la població) que la realitat, la IA probablement aprendrà patrons esbiaixats.
                                 </div>
                             </details>
 
                             <details style="cursor:pointer; background:var(--background-fill-secondary); padding:15px; border-radius:10px; border:1px solid #ef4444; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                                 <summary style="list-style:none; font-weight:800; color:#ef4444; text-align:center; font-size:1.0rem;">
                                     <div style="font-size:2rem; margin-bottom:5px;">🎯</div>
-                                    Bretxes d'Error
+                                    Diferències d'error
                                 </summary>
                                 <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); border-top:1px solid var(--border-color-primary); padding-top:10px; line-height:1.4;">
-                                    <strong>Definició:</strong> Comprova els errors de predicció de la IA per subgrup (p. ex., Taxa de Falsos Positius per al Grup A vs. Grup B).
+                                    <strong>Què comprova:</strong> Si la IA comet més errors amb un grup que amb un altre.
                                     <br><br>
-                                    Un error més alt per a un grup indica risc de tracte injust, mostrant que el model pot ser menys fiable per a aquest grup específic.
+                                    Taxes d’error més altes per a un grup (com ara falsos positius) indiquen que el model pot ser menys just o fiable per a aquest grup.
                                 </div>
                             </details>
 
                             <details style="cursor:pointer; background:var(--background-fill-secondary); padding:15px; border-radius:10px; border:1px solid #22c55e; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                                 <summary style="list-style:none; font-weight:800; color:#22c55e; text-align:center; font-size:1.0rem;">
                                     <div style="font-size:2rem; margin-bottom:5px;">⛓️</div>
-                                    Disparitats de Resultats
+                                    Desigualtats en els resultats
                                 </summary>
                                 <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); border-top:1px solid var(--border-color-primary); padding-top:10px; line-height:1.4;">
-                                    <strong>Definició:</strong> Busca pitjors resultats al món real després de les prediccions de la IA (p. ex., sentències més dures).
+                                    <strong>Què comprova:</strong> Si les decisions de la IA provoquen pitjors resultats reals per a determinats grups (per exemple, sentències més severes).
                                     <br><br>
-                                    El biaix no són només números: canvia els resultats del món real per a les persones.
+                                    El biaix no és només una qüestió de dades: afecta la vida de les persones.
                                 </div>
                             </details>
                         </div>
@@ -359,12 +359,12 @@ MODULES = [
                     <hr style="opacity:0.2; margin:25px 0; border-color:var(--body-text-color);">
 
                     <details class="hint-box" style="margin-top:0; cursor:pointer;">
-                        <summary style="font-weight:700; color:var(--body-text-color-subdued);">🧭 Referència: Altres Principis d'Ètica en IA (OEIAC)</summary>
+                        <summary style="font-weight:700; color:var(--body-text-color-subdued);">🧭 Referència: Altres principis d'ètica en IA (OEIAC)</summary>
                         <div style="margin-top:15px; font-size:0.9rem; display:grid; grid-template-columns: 1fr 1fr; gap:15px; color:var(--body-text-color);">
                             <div>
-                                <strong>Transparència i Explicabilitat</strong><br>Assegurar que el raonament de la IA i el judici final siguin clars perquè les decisions es puguin inspeccionar i la gent pugui apel·lar.<br>
-                                <strong>Seguretat i No-maleficència</strong><br>Minimitzar els errors nocius i tenir sempre un pla sòlid per a fallades del sistema.<br>
-                                <strong>Responsabilitat i Rendició de Comptes</strong><br>Assignar propietaris clars per a la IA i mantenir un registre detallat de les decisions (rastre d'auditoria).
+                                <strong>Transparència i explicabilitat</strong><br>Assegurar que el raonament de la IA i el judici final siguin clars perquè les decisions es puguin inspeccionar i la gent pugui apel·lar.<br>
+                                <strong>Seguretat i no-maleficència</strong><br>Minimitzar els errors nocius i tenir sempre un pla sòlid per a fallades del sistema.<br>
+                                <strong>Responsabilitat i rendició de comptes</strong><br>Assignar propietaris clars per a la IA i mantenir un registre detallat de les decisions (rastre d'auditoria).
                             </div>
                             <div>
                                 <strong>Autonomia</strong><br>Proporcionar als individus processos clars d'apel·lació i alternatives a la decisió de la IA.<br>
