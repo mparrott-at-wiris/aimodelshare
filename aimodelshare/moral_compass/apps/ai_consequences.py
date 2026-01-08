@@ -150,7 +150,7 @@ TRANSLATIONS = {
         "s5_p1": "Ahora entiendes las consecuencias de los errores de la IA en decisiones de alto riesgo.",
         "s5_p2": "<b>A continuación:</b> Aprende qué es realmente la IA y cómo funcionan estos sistemas de predicción.",
         "s5_p3": "Este conocimiento te ayudará a entender cómo construir sistemas de IA mejores y más éticos.",
-        "s5_scroll": "👇 Continúa con la siguiente actividad abajo — o haz clic en <span style='white-space:nowrap;'>Next (barra superior)</span> en vista ampliada ➡️",
+        "s5_scroll": "👇 Continúa con la siguiente actividad abajo — o haz clic en <span style='white-space:nowrap;'>Siguiente (barra superior)</span> en vista ampliada ➡️",
         "s5_find": "Si no estás en vista ampliada, desplázate para encontrar la siguiente actividad.",
         "btn_review": "◀️ Volver a revisar"
     },
@@ -221,7 +221,7 @@ TRANSLATIONS = {
         "s5_p1": "Ara entens les conseqüències dels errors de la IA en decisions d'alt risc.",
         "s5_p2": "<b>A continuació:</b> Aprèn què és realment la IA i com funcionen aquests sistemes de predicció.",
         "s5_p3": "Aquest coneixement t'ajudarà a entendre com construir sistemes d'IA millors i més ètics.",
-        "s5_scroll": "👇 Continua amb la següent activitat a sota — o fes clic a <span style='white-space:nowrap;'>Next (barra superior)</span> en vista ampliada ➡️",
+        "s5_scroll": "👇 Continua amb la següent activitat a sota — o fes clic a <span style='white-space:nowrap;'>Següent (barra superior)</span> en vista ampliada ➡️",
         "s5_find": "Si no estàs en vista ampliada, desplaça’t per trobar la següent activitat.",
         "btn_review": "◀️ Tornar a revisar"
     }
