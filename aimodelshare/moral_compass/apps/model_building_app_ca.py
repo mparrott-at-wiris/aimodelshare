@@ -2053,8 +2053,9 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
 
         <div class="final-conclusion-next">
           <h2>➡️ Següent: Conseqüències al món real</h2>
-          <p>Desplaça’t cap avall sota aquesta aplicació per continuar. Analitzaràs com models com el teu influeixen en els resultats judicials.</p>
-          <h1 class="final-conclusion-scroll">👇 DESPLAÇA’T CAP AVALL 👇</h1>
+          <h1 class="final-instruction">
+            👇 Continua amb la següent activitat a sota — o fes clic a <span style="white-space:nowrap;">Next (barra superior)</span> en vista ampliada ➡️
+          </h1>
         </div>
       </div>
     </div>
