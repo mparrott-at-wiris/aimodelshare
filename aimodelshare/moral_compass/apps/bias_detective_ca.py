@@ -113,7 +113,7 @@ MODULES = [
                             <div style="font-size:1.15rem; font-weight:600; line-height:1.4; color:var(--body-text-color);">
                                 El model té un 92% d'exactitud, però sospitem que hi ha un <strong style="color:#ef4444;">biaix sistemàtic ocult</strong>.
                                 <br><br>
-                                El teu objectiu: Exposar els defectes abans que aquest model es desplegui a nivell nacional.
+                                El teu objectiu: Exposar els defectes abans que aquest model es desplegui a tot el país.
                             </div>
                         </div>
                     </div>
@@ -138,7 +138,7 @@ MODULES = [
                                     <div style="font-size:3.5rem; line-height:1;">🌊</div>
                                     <div>
                                         <div style="font-weight:900; font-size:2.0rem; color:#ef4444; line-height:1;">15.000+</div>
-                                        <div style="font-weight:700; font-size:1.1rem; color:var(--body-text-color); margin-bottom:5px;">Casos Processats per Any</div>
+                                        <div style="font-weight:700; font-size:1.1rem; color:var(--body-text-color); margin-bottom:5px;">Casos processats per any</div>
                                         <div style="font-size:1.1rem; color:var(--body-text-color-subdued); line-height:1.5;">
                                             Un humà comet un error una vegada. Aquesta IA repetirà el mateix biaix <strong style="color:var(--body-text-color);">15.000+ vegades a l'any</strong>.
                                             <br>Si no ho arreglem, automatitzarem la injustícia a gran escala.
@@ -152,7 +152,7 @@ MODULES = [
                             <summary style="padding:20px; font-weight:800; font-size:1.2rem; color:var(--body-text-color); cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between; background:rgba(34,197,94,0.1);">
                                 <div style="display:flex; align-items:center; gap:15px;">
                                     <span style="font-size:1.8rem;">🧭</span>
-                                    <span>OBJECTIU: Com Guanyar</span>
+                                    <span>OBJECTIU: Com guanyar</span>
                                 </div>
                                 <span style="font-size:0.9rem; color:#22c55e; text-transform:uppercase;">Fes clic per calcular</span>
                             </summary>
@@ -161,27 +161,27 @@ MODULES = [
                                     <div style="font-size:1.4rem; font-weight:800; background:var(--background-fill-primary); border:1px solid var(--border-color-primary); padding:15px; border-radius:10px; display:inline-block; color:var(--body-text-color);">
                                         <span style="color:#6366f1;">[ Exactitud ]</span>
                                         <span style="color:var(--body-text-color-subdued); margin:0 10px;">×</span>
-                                        <span style="color:#22c55e;">[ % Progrés Ètic ]</span>
+                                        <span style="color:#22c55e;">[ % Progrés ètic ]</span>
                                         <span style="color:var(--body-text-color-subdued); margin:0 10px;">=</span>
                                         PUNTUACIÓ
                                     </div>
                                 </div>
                                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
                                     <div style="padding:15px; background:rgba(254,226,226,0.1); border:2px solid #fecaca; border-radius:10px; text-align:center;">
-                                        <div style="font-weight:700; color:#ef4444; margin-bottom:5px;">Escenari A: Ètica Ignorada</div>
-                                        <div style="font-size:0.95rem; color:var(--body-text-color);">Alta Exactitud (92%)</div>
+                                        <div style="font-weight:700; color:#ef4444; margin-bottom:5px;">Escenari A: Ètica ignorada</div>
+                                        <div style="font-size:0.95rem; color:var(--body-text-color);">Alta exactitud (92%)</div>
                                         <div style="font-size:0.95rem; color:var(--body-text-color);">0% Ètica</div>
                                         <div style="margin-top:10px; border-top:1px solid #fecaca; padding-top:5px;">
-                                            <div style="font-size:0.8rem; text-transform:uppercase; color:#ef4444;">Puntuació Final</div>
+                                            <div style="font-size:0.8rem; text-transform:uppercase; color:#ef4444;">Puntuació final</div>
                                             <div style="font-size:2.5rem; font-weight:900; color:#ef4444;">0</div>
                                         </div>
                                     </div>
                                     <div style="padding:15px; background:rgba(220,252,231,0.1); border:2px solid #bbf7d0; border-radius:10px; text-align:center;">
-                                        <div style="font-weight:700; color:#22c55e; margin-bottom:5px;">Escenari B: Veritable Detectiu</div>
-                                        <div style="font-size:0.95rem; color:var(--body-text-color);">Alta Exactitud (92%)</div>
+                                        <div style="font-weight:700; color:#22c55e; margin-bottom:5px;">Escenari B: Veritable detectiu</div>
+                                        <div style="font-size:0.95rem; color:var(--body-text-color);">Alta exactitud (92%)</div>
                                         <div style="font-size:0.95rem; color:var(--body-text-color);">100% Ètica</div>
                                         <div style="margin-top:10px; border-top:1px solid #bbf7d0; padding-top:5px;">
-                                            <div style="font-size:0.8rem; text-transform:uppercase; color:#15803d;">Puntuació Final</div>
+                                            <div style="font-size:0.8rem; text-transform:uppercase; color:#15803d;">Puntuació final</div>
                                             <div style="font-size:2.5rem; font-weight:900; color:#22c55e;">92</div>
                                         </div>
                                     </div>
@@ -207,7 +207,7 @@ MODULES = [
     # --- MODULE 1: THE MAP (Mission Roadmap) ---
     {
         "id": 1,
-        "title": "Full de Ruta de la Missió",
+        "title": "Full de ruta de la missió",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
@@ -216,7 +216,7 @@ MODULES = [
 
                     <p style="font-size:1.1rem; max-width:800px; margin:0 auto 25px auto; text-align:center; color:var(--body-text-color);">
                         <strong>La teva missió és clara:</strong> Descobrir el biaix amagat dins del 
-                        sistema d'IA abans que faci mal a persones reals. Si no pots trobar el biaix, no el podem arreglar.
+                        sistema d'IA abans que faci mal a persones reals. Si no pots trobar el biaix, no el podem corregir.
                     </p>
 
                     <div class="ai-risk-container" style="background:transparent; border:none; padding:0;">
@@ -226,36 +226,36 @@ MODULES = [
                             <div style="border: 3px solid #3b82f6; background: rgba(59, 130, 246, 0.1); border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                                 <div style="position:absolute; top:-15px; left:15px; background:#3b82f6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PAS 1: REGLES</div>
                                 <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">📜</div>
-                                <div style="font-weight:800; font-size:1.2rem; color:#3b82f6; margin-bottom:5px;">Establir les Regles</div>
+                                <div style="font-weight:800; font-size:1.2rem; color:#3b82f6; margin-bottom:5px;">Establir les regles</div>
                                 <div style="font-size:1.0rem; color:var(--body-text-color); font-weight:500; line-height:1.4;">
-                                    Defineix l'estàndard ètic: <strong>Justícia i Equitat</strong>. Què compta específicament com a biaix en aquesta investigació?
+                                    Defineix l'estàndard ètic: <strong>Justícia i Equitat</strong>. Què es considera exactament biaix en aquesta investigació?
                                 </div>
                             </div>
 
                             <div style="border: 3px solid #14b8a6; background: rgba(20, 184, 166, 0.1); border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                                <div style="position:absolute; top:-15px; left:15px; background:#14b8a6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PAS 2: EVIDÈNCIA DE DADES</div>
+                                <div style="position:absolute; top:-15px; left:15px; background:#14b8a6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PAS 2: EVIDÈNCIES EN LES DADES</div>
                                 <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">🔍</div>
-                                <div style="font-weight:800; font-size:1.2rem; color:#14b8a6; margin-bottom:5px;">Forensia de Dades d'Entrada</div>
+                                <div style="font-weight:800; font-size:1.2rem; color:#14b8a6; margin-bottom:5px;">Anàlisi forense de les dades d'entrada</div>
                                 <div style="font-size:1.0rem; color:var(--body-text-color); font-weight:500; line-height:1.4;">
-                                    Escaneja les <strong>Dades d'Entrada</strong> per trobar injustícies històriques, buits de representació i biaixos d'exclusió.
+                                    Escaneja les <strong>dades d'entrada</strong> per trobar injustícies històriques, buits de representació i biaixos d'exclusió.
                                 </div>
                             </div>
 
                             <div style="border: 3px solid #8b5cf6; background: rgba(139, 92, 246, 0.1); border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                                <div style="position:absolute; top:-15px; left:15px; background:#8b5cf6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PAS 3: PROVAR ERROR</div>
+                                <div style="position:absolute; top:-15px; left:15px; background:#8b5cf6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PAS 3: PROVES D'ERROR</div>
                                 <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">🎯</div>
-                                <div style="font-weight:800; font-size:1.2rem; color:#8b5cf6; margin-bottom:5px;">Proves d'Error de Sortida</div>
+                                <div style="font-weight:800; font-size:1.2rem; color:#8b5cf6; margin-bottom:5px;">Proves dels errors de sortida</div>
                                 <div style="font-size:1.0rem; color:var(--body-text-color); font-weight:500; line-height:1.4;">
-                                    Prova les prediccions del model. Demostra que els errors (Falses Alarmes) són <strong>desiguals</strong> entre grups.
+                                    Posa a prova les prediccions del model. Demostra que els errors (falses alarmes) són <strong>desiguals</strong> entre grups.
                                 </div>
                             </div>
 
                             <div style="border: 3px solid #f97316; background: rgba(249, 115, 22, 0.1); border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                                <div style="position:absolute; top:-15px; left:15px; background:#f97316; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PAS 4: REPORTAR IMPACTE</div>
+                                <div style="position:absolute; top:-15px; left:15px; background:#f97316; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PAS 4: INFORME D'IMPACTE</div>
                                 <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">⚖️</div>
-                                <div style="font-weight:800; font-size:1.2rem; color:#f97316; margin-bottom:5px;">L'Informe Final</div>
+                                <div style="font-weight:800; font-size:1.2rem; color:#f97316; margin-bottom:5px;">Informe final</div>
                                 <div style="font-size:1.0rem; color:var(--body-text-color); font-weight:500; line-height:1.4;">
-                                    Diagnostica el dany sistemàtic i emet la teva recomanació final al tribunal: <strong>Desplegar el Sistema d'IA o Pausar per Reparar.</strong>
+                                    Diagnostica el dany sistemàtic i emet la teva recomanació final al tribunal: <strong>desplegar el sistema d'IA o aturar-lo per repararar-lo.</strong>
                                 </div>
                             </div>
 
