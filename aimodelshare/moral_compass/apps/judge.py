@@ -596,12 +596,6 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
         # Title
         c_main_title = gr.Markdown("<h1 style='text-align:center;'>⚖️ You Be the Judge</h1>")
         
-        # Intro - CHANGED TO HTML to fix broken visuals
-        c_intro_html = gr.HTML(
-            f"""<div class="judge-intro-box">{t('en', 'intro_role')}</div>"""
-        )
-        
-        gr.HTML("<hr style='margin:24px 0;'>")
 
         # --- Loading screen ---
         with gr.Column(visible=False) as loading_screen:
@@ -611,6 +605,8 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
 
         # --- Introduction Section ---
         with gr.Column(visible=True, elem_id="intro") as intro_section:
+            c_intro_html = gr.HTML(f"""<div class="judge-intro-box">{t('en', 'intro_role')}</div>""")
+            gr.HTML("<hr style='margin:24px 0;'>")
             c_scenario_title = gr.Markdown(f"<h2 style='text-align:center;'>{t('en', 'scenario_title')}</h2>")
             # CHANGED TO HTML
             c_scenario_box = gr.HTML(f"""<div class="scenario-box">{t('en', 'scenario_box')}</div>""")
