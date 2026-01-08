@@ -2836,6 +2836,14 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
         font-size: 3rem;
         animation: pulseArrow 2.5s infinite;
     }
+    /* CTA sizing for the new class */
+    .final-conclusion-next .final-instruction {
+      font-size: clamp(1.5rem, 2vw + 0.6rem, 2rem);
+      line-height: 1.25;
+      margin: 16px 0;
+      /* Optional: keep the pulse animation from the old class */
+      /* animation: pulseArrow 2.5s infinite; */
+    }
 
     /* ---------------------------------------------------- */
     /* Dark Mode Overrides for Final Slide                  */
