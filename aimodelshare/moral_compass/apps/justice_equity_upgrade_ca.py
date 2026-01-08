@@ -539,18 +539,17 @@ MODULES = [
                         </p>
                     </div>
 
-                <div style="text-align:center; margin-top:30px;">
-                  <a href="#next-activity" style="text-decoration:none;">
-                    <div style="display:inline-block; padding:16px 32px; background:var(--color-accent); color:var(--button-text-color); border-radius:50px; font-weight:800; font-size:1.2rem; box-shadow:0 4px 15px color-mix(in srgb, var(--color-accent) 40%, transparent);">
-                      Entra en la Arena ▶️
+                    <div style="text-align:center; margin-top:30px;">
+                      <a href="#next-activity" style="text-decoration:none;">
+                        <div style="display:inline-block; padding:16px 32px; background:var(--color-accent); color:var(--button-text-color); border-radius:50px; font-weight:800; font-size:1.2rem; box-shadow:0 4px 15px color-mix(in srgb, var(--color-accent) 40%, transparent);">
+                          Entra a l'Arena ▶️
+                        </div>
+                      </a>
+                      <p style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:10px;">
+                        <strong>Continua amb la següent activitat a sota</strong> — o fes clic a
+                        <span style="white-space:nowrap;">Següent (barra superior)</span> en vista ampliada ➡️
+                      </p>
                     </div>
-                  </a>
-                  <p style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:10px;">
-                    <strong>Continúa con la siguiente actividad abajo</strong> — o haz clic en
-                    <span style="white-space:nowrap;">Siguiente (barra superior)</span> en vista ampliada ➡️
-                  </p>
-                </div>
-                </div>
             </div>
         """
     }
