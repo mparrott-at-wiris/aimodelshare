@@ -2179,10 +2179,10 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
 
         <div class="final-conclusion-next">
           <h2>➡️ Next: Real-World Consequences</h2>
-          <p>Scroll below this app to continue. You'll examine how models like yours shape judicial outcomes.</p>
-          <h1 class="final-conclusion-scroll">👇 SCROLL DOWN 👇</h1>
+          <h1 class="final-instruction">
+            👇 Continue to the next activity below — or click <span style="white-space:nowrap;">Next (top bar)</span> in expanded view ➡️
+          </h1>
         </div>
-      </div>
     </div>
     """
 
