@@ -122,7 +122,7 @@ TRANSLATIONS = {
             Continúa en la siguiente sección para explorar las consecuencias de 
             confiar en las predicciones de la IA en situaciones de alto riesgo.
             </p>
-            <h1 style='margin:20px 0; font-size: 2.4rem;'>👇 Desplázate hacia abajo — o haz clic en <span style="white-space:nowrap;">Next (barra superior)</span> en vista ampliada ➡️</h1>
+            <h1 style='margin:20px 0; font-size: 2.4rem;'>👇 Desplázate hacia abajo — o haz clic en <span style="white-space:nowrap;">Siguiente (barra superior)</span> en vista ampliada ➡️</h1>
         """,
         "btn_back": "◀️ Volver a revisar decisiones",
         "decision_release": "Liberar",
@@ -193,7 +193,7 @@ TRANSLATIONS = {
             Continua a la següent secció per explorar les conseqüències de 
             confiar en les prediccions de la IA en situacions d'alt risc.
             </p>
-            <h1 style='margin:20px 0; font-size: 2.4rem;'>👇 Desplaça't cap avall — o fes clic a <span style="white-space:nowrap;">Next (barra superior)</span> en vista ampliada ➡️</h1>
+            <h1 style='margin:20px 0; font-size: 2.4rem;'>👇 Desplaça't cap avall — o fes clic a <span style="white-space:nowrap;">Següent (barra superior)</span> en vista ampliada ➡️</h1>
         """,
         "btn_back": "◀️ Tornar a revisar decisions",
         "decision_release": "Alliberar",
