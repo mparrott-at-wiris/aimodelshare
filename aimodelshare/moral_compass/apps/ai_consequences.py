@@ -365,7 +365,14 @@ def create_ai_consequences_app(theme_primary_hue: str = "indigo") -> "gr.Blocks"
     .inner-card-wide { background-color: var(--body-background-fill); color: var(--body-text-color); padding: 24px; border-radius: 12px; margin: 24px 0; border: 1px solid var(--border-color-primary); }
     .keypoint-box { background-color: var(--block-background-fill); color: var(--body-text-color); padding: 16px; border-radius: 8px; margin-top: 20px; border-left: 6px solid #dc2626; }
     .highlight-soft { background-color: var(--block-background-fill); color: var(--body-text-color); padding: 16px; border-radius: 8px; margin-top: 20px; border: 1px solid var(--border-color-primary); }
-    .completion-box { font-size: 1.3rem; padding: 28px; border-radius: 16px; background-color: var(--block-background-fill); color: var(--body-text-color); border: 2px solid var(--color-accent); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); }
+    /* Compact, responsive CTA sizing in completion sections */
+    .complete-box h1,
+    .completion-box h1,
+    .final-instruction {
+      font-size: clamp(1.5rem, 2vw + 0.6rem, 2rem) !important;
+      line-height: 1.25;
+      margin: 16px 0;
+    }
     #nav-loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: color-mix(in srgb, var(--body-background-fill) 95%, transparent); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; }
     .nav-spinner { width: 50px; height: 50px; border: 5px solid var(--border-color-primary); border-top: 5px solid var(--color-accent); border-radius: 50%; animation: nav-spin 1s linear infinite; margin-bottom: 20px; }
     @keyframes nav-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
