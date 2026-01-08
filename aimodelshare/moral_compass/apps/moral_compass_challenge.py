@@ -208,7 +208,7 @@ TRANSLATIONS = {
         "s6_li4": "📊 Equilibrar rendimiento y ética",
         "s6_ach_head": "🏆 Logro",
         "s6_ach_text": "Mejora tu Puntuación de Brújula Moral para obtener la certificación.",
-        "s6_scroll": "👇 Continúa con la siguiente actividad abajo — o haz clic en <span style='white-space:nowrap;'>Next (barra superior)</span> en vista ampliada ➡️",
+        "s6_scroll": "👇 Continúa con la siguiente actividad abajo — o haz clic en <span style='white-space:nowrap;'>Siguiente (barra superior)</span> en vista ampliada ➡️",
         "s6_proceed": "Proceder a herramientas y evaluación ética."
     },
     "ca": {
@@ -274,7 +274,7 @@ TRANSLATIONS = {
         "s6_li4": "📊 Equilibrar rendiment i ètica",
         "s6_ach_head": "🏆 Assoliment",
         "s6_ach_text": "Millora la teva Puntuació de Brúixola Moral per obtenir la certificació.",
-        "s6_scroll": "👇 Continua amb la següent activitat a sota — o fes clic a <span style='white-space:nowrap;'>Next (barra superior)</span> en vista ampliada ➡️",
+        "s6_scroll": "👇 Continua amb la següent activitat a sota — o fes clic a <span style='white-space:nowrap;'>Següent (barra superior)</span> en vista ampliada ➡️",
         "s6_proceed": "Procedir a eines i avaluació ètica."
     }
 }
