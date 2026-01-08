@@ -142,7 +142,7 @@ TRANSLATIONS = {
         "s6_li4": "📊 Balance performance & ethics",
         "s6_ach_head": "🏆 Achievement",
         "s6_ach_text": "Improve your Moral Compass Score to earn certification.",
-        "s6_scroll": "👇 CONTINUE 👇",
+        "s6_scroll": "👇 Continue to the next activity below — or click <span style='white-space:nowrap;'>Next (top bar)</span> in expanded view ➡️",
         "s6_proceed": "Proceed to ethical tooling & evaluation modules."
     },
     "es": {
@@ -208,7 +208,7 @@ TRANSLATIONS = {
         "s6_li4": "📊 Equilibrar rendimiento y ética",
         "s6_ach_head": "🏆 Logro",
         "s6_ach_text": "Mejora tu Puntuación de Brújula Moral para obtener la certificación.",
-        "s6_scroll": "👇 CONTINUAR 👇",
+        "s6_scroll": "👇 Continúa con la siguiente actividad abajo — o haz clic en <span style='white-space:nowrap;'>Next (barra superior)</span> en vista ampliada ➡️",
         "s6_proceed": "Proceder a herramientas y evaluación ética."
     },
     "ca": {
@@ -274,7 +274,7 @@ TRANSLATIONS = {
         "s6_li4": "📊 Equilibrar rendiment i ètica",
         "s6_ach_head": "🏆 Assoliment",
         "s6_ach_text": "Millora la teva Puntuació de Brúixola Moral per obtenir la certificació.",
-        "s6_scroll": "👇 CONTINUAR 👇",
+        "s6_scroll": "👇 Continua amb la següent activitat a sota — o fes clic a <span style='white-space:nowrap;'>Next (barra superior)</span> en vista ampliada ➡️",
         "s6_proceed": "Procedir a eines i avaluació ètica."
     }
 }
@@ -661,6 +661,8 @@ def build_step6_html(user_stats, lang="en"):
     else:
         position_msg = t(lang, 's6_pos_guest')
 
+    proceed_line = t(lang, 's6_proceed')
+
     return f"""
     <div class='slide-shell slide-shell--info'>
         <h3 class='slide-shell__title'>{t(lang, 's6_title')}</h3>
@@ -688,8 +690,8 @@ def build_step6_html(user_stats, lang="en"):
             </p>
             <p>{t(lang, 's6_ach_text')}</p>
         </div>
-        <h1 style='margin:32px 0 16px 0; font-size:2.5rem; text-align:center;'>{t(lang, 's6_scroll')}</h1>
-        <p style='text-align:center;'>{t(lang, 's6_proceed')}</p>
+        <h1 class='final-instruction' style='margin:32px 0 16px 0;'>{t(lang, 's6_scroll')}</h1>
+        {f"<p style='text-align:center;'>{proceed_line}</p>" if proceed_line else ""}
     </div>
     """
 
@@ -769,6 +771,12 @@ CSS = """
 @keyframes gauge-drop {
   0% { background: conic-gradient(from 180deg,#16a34a 0%,#16a34a 75%,var(--border-color-primary) 75%,var(--border-color-primary) 100%); }
   100% { background: conic-gradient(from 180deg,#dc2626 0%,#dc2626 0%,var(--border-color-primary) 0%,var(--border-color-primary) 100%); }
+}
+/* Compact, responsive CTA sizing */
+.final-instruction {
+  font-size: clamp(1.5rem, 2vw + 0.6rem, 2rem);
+  line-height: 1.25;
+  margin: 16px 0;
 }
 .gauge-dropped { animation: gauge-drop 2s ease-out forwards; }
 /* Navigation overlay */
