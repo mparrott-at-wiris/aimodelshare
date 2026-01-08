@@ -1649,7 +1649,7 @@ def create_fairness_fixer_es_app(theme_primary_hue: str = "indigo"):
                 ) as mod_col:
                     # Core slide HTML
                     gr.HTML(mod["html"])
-
+            
                     # --- QUIZ CONTENT ---
                     if i in QUIZ_CONFIG:
                         q_data = QUIZ_CONFIG[i]
@@ -1661,17 +1661,17 @@ def create_fairness_fixer_es_app(theme_primary_hue: str = "indigo"):
                         )
                         feedback = gr.HTML("")
                         quiz_wiring_queue.append((i, radio, feedback))
-
+            
                     # --- NAVIGATION BUTTONS ---
                     with gr.Row():
-                        btn_prev = gr.Button("⬅️ Previous", visible=(i > 0))
+                        btn_prev = gr.Button("⬅️ Anterior", visible=(i > 0))
                         next_label = (
-                            "Next ▶️"
+                            "Siguiente ▶️"
                             if i < len(MODULES) - 1
-                            else "🎉 Model Authorized!  Scroll Down to Receive your official 'Ethics at Play' Certificate!"
+                            else "🎉 ¡Modelo autorizado! Desplázate hacia abajo para recibir tu certificado oficial de 'Ethics at Play'."
                         )
                         btn_next = gr.Button(next_label, variant="primary")
-
+            
                     module_ui_elements[i] = (mod_col, btn_prev, btn_next)
 
             # Leaderboard card
