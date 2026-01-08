@@ -151,8 +151,8 @@ TRANSLATIONS = {
         "s5_p1": "In the next section, you'll be introduced to a <strong class='emph-key'>new way of measuring success</strong>—one that balances performance with fairness and ethics.",
         "s5_p2": "You'll learn techniques to <strong class='emph-key'>detect bias</strong> in your models, <strong class='emph-key'>measure fairness</strong> across different groups, and <strong class='emph-key'>redesign your AI</strong> to minimize harm.",
         "s5_mission": "🎯 Your new mission: Build AI that is not just accurate, but also <strong class='emph-key'>fair, equitable, and ethically sound</strong>.",
-        "s5_scroll": "👇 SCROLL DOWN 👇",
-        "s5_continue": "Continue to the next section below to begin your ethical AI journey.",
+        "s5_scroll": "👇 Continue to the next activity below — or click <span style='white-space:nowrap;'>Next (top bar)</span> in expanded view ➡️",
+        "s5_continue": "",
         "btn_review": "◀️ Review the Investigation"
     },
     "es": {
@@ -227,8 +227,8 @@ TRANSLATIONS = {
         "s5_p1": "En la siguiente sección, se te presentará una <strong class='emph-key'>nueva forma de medir el éxito</strong>, una que equilibra el rendimiento con la equidad y la ética.",
         "s5_p2": "Aprenderás técnicas para <strong class='emph-key'>detectar sesgos</strong> en tus modelos, <strong class='emph-key'>medir la equidad</strong> en diferentes grupos y <strong class='emph-key'>rediseñar tu IA</strong> para minimizar el daño.",
         "s5_mission": "🎯 Tu nueva misión: Construir una IA que no solo sea precisa, sino también <strong class='emph-key'>justa, equitativa y éticamente sólida</strong>.",
-        "s5_scroll": "👇 DESPLÁZATE HACIA ABAJO 👇",
-        "s5_continue": "Continúa en la siguiente sección para comenzar tu viaje de IA ética.",
+        "s5_scroll": "👇 Continúa con la siguiente actividad abajo — o haz clic en <span style='white-space:nowrap;'>Next (barra superior)</span> en vista ampliada ➡️",
+        "s5_continue": "",
         "btn_review": "◀️ Revisar la Investigación"
     },
     "ca": {
@@ -303,8 +303,8 @@ TRANSLATIONS = {
         "s5_p1": "En la següent secció, se't presentarà una <strong class='emph-key'>nova manera de mesurar l'èxit</strong>, una que equilibra el rendiment amb l'equitat i l'ètica.",
         "s5_p2": "Aprendràs tècniques per <strong class='emph-key'>detectar biaixos</strong> en els teus models, <strong class='emph-key'>mesurar l'equitat</strong> en diferents grups i <strong class='emph-key'>redissenyar la teva IA</strong> per minimitzar el dany.",
         "s5_mission": "🎯 La teva nova missió: Construir una IA que no només sigui precisa, sinó també <strong class='emph-key'>justa, equitativa i èticament sòlida</strong>.",
-        "s5_scroll": "👇 DESPLAÇA'T CAP AVALL 👇",
-        "s5_continue": "Continua amb la següent secció per iniciar el teu recorregut cap a una IA ètica.",
+        "s5_scroll": "👇 Continua amb la següent activitat a sota — o fes clic a <span style='white-space:nowrap;'>Next (barra superior)</span> en vista ampliada ➡️",
+        "s5_continue": "",
         "btn_review": "◀️ Revisar la Investigació"
     }
 }
@@ -732,7 +732,7 @@ def _get_step5_html(lang):
                     {t(lang, 's5_mission')}
                 </p>
             </div>
-            <h1 style='margin:32px 0 16px 0; font-size: 3rem;'>{t(lang, 's5_scroll')}</h1>
+            <h1 class='final-instruction' style='margin:32px 0 16px 0;'>{t(lang, 's5_scroll')}</h1>
             <p style='font-size:1.2rem;'>{t(lang, 's5_continue')}</p>
         </div>
     </div>
@@ -776,6 +776,12 @@ CSS = """
 .bg-eu-soft { background-color: color-mix(in srgb, var(--color-accent) 15%, transparent); border-radius: 8px; padding: 16px; margin: 20px 0; }
 .emph-eu { color: var(--color-accent); font-weight: 700; }
 .emph-harm { color: #b91c1c; font-weight: 700; }
+/* Compact, responsive CTA sizing for Step 5 */
+.final-instruction {
+  font-size: clamp(1.5rem, 2vw + 0.6rem, 2rem);
+  line-height: 1.25;
+  margin: 16px 0;
+}
 @media (prefers-color-scheme: dark) {
     .bg-danger-soft { background-color: #450a0a; border-color: #dc2626; }
     .emph-danger { color: #f87171; }
