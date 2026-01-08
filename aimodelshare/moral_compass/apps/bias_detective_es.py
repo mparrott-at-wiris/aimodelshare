@@ -113,7 +113,7 @@ MODULES = [
                             <div style="font-size:1.15rem; font-weight:600; line-height:1.4; color:var(--body-text-color);">
                                 El modelo tiene un 92% de exactitud, pero sospechamos que hay un <strong style="color:#ef4444;">sesgo sistemático oculto</strong>.
                                 <br><br>
-                                Tu meta: Exponer los fallos antes de que este modelo se despliegue a nivel nacional.
+                                Tu objetivo: Exponer los fallos antes de que este modelo se despliegue en todo el país.
                             </div>
                         </div>
                     </div>
@@ -129,7 +129,7 @@ MODULES = [
                             <summary style="padding:20px; font-weight:800; font-size:1.2rem; color:var(--body-text-color); cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between; background:rgba(239,68,68,0.1);">
                                 <div style="display:flex; align-items:center; gap:15px;">
                                     <span style="font-size:1.8rem;">⚠️</span>
-                                    <span>RIESGO: El "Efecto Onda"</span>
+                                    <span>RIESGO: El "efecto onda"</span>
                                 </div>
                                 <span style="font-size:0.9rem; color:#ef4444; text-transform:uppercase;">Haz clic para simular</span>
                             </summary>
@@ -138,7 +138,7 @@ MODULES = [
                                     <div style="font-size:3.5rem; line-height:1;">🌊</div>
                                     <div>
                                         <div style="font-weight:900; font-size:2.0rem; color:#ef4444; line-height:1;">15.000+</div>
-                                        <div style="font-weight:700; font-size:1.1rem; color:var(--body-text-color); margin-bottom:5px;">Casos Procesados por Año</div>
+                                        <div style="font-weight:700; font-size:1.1rem; color:var(--body-text-color); margin-bottom:5px;">Casos procesados por año</div>
                                         <div style="font-size:1.1rem; color:var(--body-text-color-subdued); line-height:1.5;">
                                             Un humano comete un error una vez. Esta IA repetirá el mismo sesgo <strong style="color:var(--body-text-color);">15.000+ veces al año</strong>.
                                             <br>Si no lo arreglamos, automatizaremos la injusticia a gran escala.
@@ -152,7 +152,7 @@ MODULES = [
                             <summary style="padding:20px; font-weight:800; font-size:1.2rem; color:var(--body-text-color); cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between; background:rgba(34,197,94,0.1);">
                                 <div style="display:flex; align-items:center; gap:15px;">
                                     <span style="font-size:1.8rem;">🧭</span>
-                                    <span>OBJETIVO: Cómo Ganar</span>
+                                    <span>OBJETIVO: Cómo ganar</span>
                                 </div>
                                 <span style="font-size:0.9rem; color:#22c55e; text-transform:uppercase;">Haz clic para calcular</span>
                             </summary>
@@ -161,27 +161,27 @@ MODULES = [
                                     <div style="font-size:1.4rem; font-weight:800; background:var(--background-fill-primary); border:1px solid var(--border-color-primary); padding:15px; border-radius:10px; display:inline-block; color:var(--body-text-color);">
                                         <span style="color:#6366f1;">[ Exactitud ]</span>
                                         <span style="color:var(--body-text-color-subdued); margin:0 10px;">×</span>
-                                        <span style="color:#22c55e;">[ % Progreso Ético ]</span>
+                                        <span style="color:#22c55e;">[ % Progreso ético ]</span>
                                         <span style="color:var(--body-text-color-subdued); margin:0 10px;">=</span>
                                         PUNTUACIÓN
                                     </div>
                                 </div>
                                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
                                     <div style="padding:15px; background:rgba(254,226,226,0.1); border:2px solid #fecaca; border-radius:10px; text-align:center;">
-                                        <div style="font-weight:700; color:#ef4444; margin-bottom:5px;">Escenario A: Ética Ignorada</div>
-                                        <div style="font-size:0.95rem; color:var(--body-text-color);">Alta Exactitud (92%)</div>
+                                        <div style="font-weight:700; color:#ef4444; margin-bottom:5px;">Escenario A: Ética ignorada</div>
+                                        <div style="font-size:0.95rem; color:var(--body-text-color);">Alta exactitud (92%)</div>
                                         <div style="font-size:0.95rem; color:var(--body-text-color);">0% Ética</div>
                                         <div style="margin-top:10px; border-top:1px solid #fecaca; padding-top:5px;">
-                                            <div style="font-size:0.8rem; text-transform:uppercase; color:#ef4444;">Puntuación Final</div>
+                                            <div style="font-size:0.8rem; text-transform:uppercase; color:#ef4444;">Puntuación final</div>
                                             <div style="font-size:2.5rem; font-weight:900; color:#ef4444;">0</div>
                                         </div>
                                     </div>
                                     <div style="padding:15px; background:rgba(220,252,231,0.1); border:2px solid #bbf7d0; border-radius:10px; text-align:center;">
-                                        <div style="font-weight:700; color:#22c55e; margin-bottom:5px;">Escenario B: Verdadero Detective</div>
+                                        <div style="font-weight:700; color:#22c55e; margin-bottom:5px;">Escenario B: Detective rigoroso</div>
                                         <div style="font-size:0.95rem; color:var(--body-text-color);">Alta Exactitud (92%)</div>
                                         <div style="font-size:0.95rem; color:var(--body-text-color);">100% Ética</div>
                                         <div style="margin-top:10px; border-top:1px solid #bbf7d0; padding-top:5px;">
-                                            <div style="font-size:0.8rem; text-transform:uppercase; color:#15803d;">Puntuación Final</div>
+                                            <div style="font-size:0.8rem; text-transform:uppercase; color:#15803d;">Puntuación final</div>
                                             <div style="font-size:2.5rem; font-weight:900; color:#22c55e;">92</div>
                                         </div>
                                     </div>
@@ -207,7 +207,7 @@ MODULES = [
     # --- MODULE 1: THE MAP (Mission Roadmap) ---
     {
         "id": 1,
-        "title": "Hoja de Ruta de la Misión",
+        "title": "Hoja de ruta de la misión",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
@@ -216,7 +216,7 @@ MODULES = [
 
                     <p style="font-size:1.1rem; max-width:800px; margin:0 auto 25px auto; text-align:center; color:var(--body-text-color);">
                         <strong>Tu misión es clara:</strong> Descubrir el sesgo escondido dentro del 
-                        sistema de IA antes de que dañe a personas reales. Si no puedes encontrar el sesgo, no podemos arreglarlo.
+                        sistema de IA antes de que dañe a personas reales. Si no puedes encontrar el sesgo, no podemos corregirlo.
                     </p>
 
                     <div class="ai-risk-container" style="background:transparent; border:none; padding:0;">
@@ -226,36 +226,36 @@ MODULES = [
                             <div style="border: 3px solid #3b82f6; background: rgba(59, 130, 246, 0.1); border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                                 <div style="position:absolute; top:-15px; left:15px; background:#3b82f6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PASO 1: REGLAS</div>
                                 <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">📜</div>
-                                <div style="font-weight:800; font-size:1.2rem; color:#3b82f6; margin-bottom:5px;">Establecer las Reglas</div>
+                                <div style="font-weight:800; font-size:1.2rem; color:#3b82f6; margin-bottom:5px;">Establecer las reglas</div>
                                 <div style="font-size:1.0rem; color:var(--body-text-color); font-weight:500; line-height:1.4;">
-                                    Define el estándar ético: <strong>Justicia y Equidad</strong>. ¿Qué cuenta específicamente como sesgo en esta investigación?
+                                    Define el estándar ético: <strong>Justicia y Equidad</strong>. ¿Qué se considera exactamente sesgo en esta investigación?
                                 </div>
                             </div>
 
                             <div style="border: 3px solid #14b8a6; background: rgba(20, 184, 166, 0.1); border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                                <div style="position:absolute; top:-15px; left:15px; background:#14b8a6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PASO 2: EVIDENCIA DE DATOS</div>
+                                <div style="position:absolute; top:-15px; left:15px; background:#14b8a6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PASO 2: EVIDENCIAS EN LOS DATOS</div>
                                 <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">🔍</div>
-                                <div style="font-weight:800; font-size:1.2rem; color:#14b8a6; margin-bottom:5px;">Forense de Datos de Entrada</div>
+                                <div style="font-weight:800; font-size:1.2rem; color:#14b8a6; margin-bottom:5px;">Análisis forense de los datos de entrada</div>
                                 <div style="font-size:1.0rem; color:var(--body-text-color); font-weight:500; line-height:1.4;">
-                                    Escanea los <strong>Datos de Entrada</strong> en busca de injusticia histórica, brechas de representación y sesgos de exclusión.
+                                    Escanea los <strong>datos de entrada</strong> para detectar injusticias históricas, brechas de representación y sesgos de exclusión.
                                 </div>
                             </div>
 
                             <div style="border: 3px solid #8b5cf6; background: rgba(139, 92, 246, 0.1); border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                                <div style="position:absolute; top:-15px; left:15px; background:#8b5cf6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PASO 3: PROBAR ERROR</div>
+                                <div style="position:absolute; top:-15px; left:15px; background:#8b5cf6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PASO 3: PRUEBAS DE ERROR</div>
                                 <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">🎯</div>
-                                <div style="font-weight:800; font-size:1.2rem; color:#8b5cf6; margin-bottom:5px;">Pruebas de Error de Salida</div>
+                                <div style="font-weight:800; font-size:1.2rem; color:#8b5cf6; margin-bottom:5px;">Pruebas de errores de salida</div>
                                 <div style="font-size:1.0rem; color:var(--body-text-color); font-weight:500; line-height:1.4;">
-                                    Prueba las predicciones del Modelo. Demuestra que los errores (Falsas Alarmas) son <strong>desiguales</strong> entre grupos.
+                                    Pon a prueba las predicciones del modelo. Demuestra que los errores (falsas alarmas) son <strong>desiguales</strong> entre grupos.
                                 </div>
                             </div>
 
                             <div style="border: 3px solid #f97316; background: rgba(249, 115, 22, 0.1); border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                                <div style="position:absolute; top:-15px; left:15px; background:#f97316; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PASO 4: REPORTAR IMPACTO</div>
+                                <div style="position:absolute; top:-15px; left:15px; background:#f97316; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PASO 4: INFORME DE IMPACTO</div>
                                 <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">⚖️</div>
-                                <div style="font-weight:800; font-size:1.2rem; color:#f97316; margin-bottom:5px;">El Informe Final</div>
+                                <div style="font-weight:800; font-size:1.2rem; color:#f97316; margin-bottom:5px;">Informe final</div>
                                 <div style="font-size:1.0rem; color:var(--body-text-color); font-weight:500; line-height:1.4;">
-                                    Diagnostica el daño sistemático y emite tu recomendación final al tribunal: <strong>Desplegar Sistema de IA o Pausar para Reparar.</strong>
+                                    Diagnostica el daño sistemático y emite tu recomendación final al tribunal: <strong>desplegar Sistema de IA o pausar para reparar.</strong>
                                 </div>
                             </div>
 
@@ -291,7 +291,7 @@ MODULES = [
                 </div>
 
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <h2 class="slide-title" style="margin:0;">PASO 1: APRENDER LAS REGLAS</h2>
+                    <h2 class="slide-title" style="margin:0;">PASO 1: APRENDE LAS REGLAS</h2>
                     <div style="font-size:2rem;">⚖️</div>
                 </div>
 
@@ -299,20 +299,20 @@ MODULES = [
 
                     <div style="background:rgba(59, 130, 246, 0.1); border-left:4px solid #3b82f6; padding:15px; margin-bottom:20px; border-radius:4px; color: var(--body-text-color);">
                         <p style="margin:0; font-size:1.05rem; line-height:1.5;">
-                            <strong style="color:var(--color-accent);">Justicia y Equidad: Tu Regla Principal.</strong><br>
-                            La ética no es abstracta aquí, es nuestra guía de campo para la acción. Confiamos en el asesoramiento experto del Observatorio de Ética en Inteligencia Artificial de Cataluña <strong>OEIAC (UdG)</strong> para asegurar que los sistemas de IA sean justos.
-                            Aunque han definido 7 principios básicos de IA segura, nuestra información sugiere que este caso específico implica una violación de <strong>Justicia y Equidad</strong>.
+                            <strong style="color:var(--color-accent);">Justicia y Equidad: Tu regla principal.</strong><br>
+                            La ética guía nuestras acciones. Seguimos el asesoramiento experto del Observatorio de Ética en Inteligencia Artificial de Cataluña <strong>OEIAC (UdG)</strong> para asegurar que los sistemas de IA sean justos.
+                            De sus siete principios clave para una IA segura, este caso se centra en una posible vulneración de la <strong>Justicia y Equidad</strong>.
                         </p>
                     </div>
 
                     <div style="text-align:center; margin-bottom:20px;">
                         <p style="font-size:1rem; font-weight:700; color:var(--color-accent); background:rgba(59, 130, 246, 0.1); display:inline-block; padding:6px 16px; border-radius:20px; border:1px solid var(--border-color-primary);">
-                            👇 Haz clic en cada tarjeta para revelar qué cuenta como sesgo
+                            👇 Haz clic en cada tarjeta para revelar qué se considera sesgo
                         </p>
                     </div>
 
                     <p style="text-align:center; font-weight:700; color:var(--body-text-color-subdued); margin-bottom:10px; font-size:0.9rem; letter-spacing:1px;">
-                        🧩 JUSTICIA Y EQUIDAD: ¿QUÉ CUENTA COMO SESGO?
+                        🧩 JUSTICIA Y EQUIDAD: ¿QUÉ SE CONSIDERA SESGO?
                     </p>
 
                     <div class="ai-risk-container" style="background:transparent; border:none; padding:0;">
@@ -324,33 +324,33 @@ MODULES = [
                                     Sesgo de Representación
                                 </summary>
                                 <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); border-top:1px solid var(--border-color-primary); padding-top:10px; line-height:1.4;">
-                                    <strong>Definición:</strong> Compara la distribución del conjunto de datos con la distribución real del mundo real.
+                                    <strong>Qué comprueba:</strong> si el conjunto de datos refleja a la población real.
                                     <br><br>
-                                    Si un grupo aparece mucho menos (ej. solo el 10% de los casos son del Grupo A, pero son el 71% de la población) o mucho más que la realidad, la IA probablemente aprenderá patrones sesgados.
+                                    Si un grupo aparece mucho más o mucho menos de lo que corresponde a la realidad (p. ej. solo el 10% de los casos son del Grupo A, pero son el 71% de la población), la IA probablemente aprenderá patrones sesgados.
                                 </div>
                             </details>
 
                             <details style="cursor:pointer; background:var(--background-fill-secondary); padding:15px; border-radius:10px; border:1px solid #ef4444; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                                 <summary style="list-style:none; font-weight:800; color:#ef4444; text-align:center; font-size:1.0rem;">
                                     <div style="font-size:2rem; margin-bottom:5px;">🎯</div>
-                                    Brechas de Error
+                                    Brechas de error
                                 </summary>
                                 <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); border-top:1px solid var(--border-color-primary); padding-top:10px; line-height:1.4;">
-                                    <strong>Definición:</strong> Comprueba los errores de predicción de la IA por subgrupo (ej. Tasa de Falsos Positivos para el Grupo A vs. Grupo B).
+                                    <strong>Qué comprueba:</strong> si la IA comete más errores con un grupo que con otro.
                                     <br><br>
-                                    Un error más alto para un grupo indica riesgo de trato injusto, mostrando que el modelo puede ser menos fiable para ese grupo específico.
+                                    Tasas de error más altas para un grupo (como las falsas alarmas) indican que el modelo puede ser menos justo o fiable para ese grupo.
                                 </div>
                             </details>
 
                             <details style="cursor:pointer; background:var(--background-fill-secondary); padding:15px; border-radius:10px; border:1px solid #22c55e; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                                 <summary style="list-style:none; font-weight:800; color:#22c55e; text-align:center; font-size:1.0rem;">
                                     <div style="font-size:2rem; margin-bottom:5px;">⛓️</div>
-                                    Disparidades de Resultados
+                                    Desigualdades en los resultados
                                 </summary>
                                 <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); border-top:1px solid var(--border-color-primary); padding-top:10px; line-height:1.4;">
-                                    <strong>Definición:</strong> Busca peores resultados en el mundo real después de las predicciones de la IA (ej. sentencias más duras).
+                                    <strong>Qué comprueba:</strong> Si las decisiones de la IA provocan peores resultados en el mundo real para ciertos grupos (por ejemplo, sentencias más duras).
                                     <br><br>
-                                    El sesgo no son solo números: cambia los resultados del mundo real para las personas.
+                                    El sesgo no es solo una cuestión de datos: afecta a la vida de las personas.
                                 </div>
                             </details>
                         </div>
@@ -359,17 +359,17 @@ MODULES = [
                     <hr style="opacity:0.2; margin:25px 0; border-color:var(--body-text-color);">
 
                     <details class="hint-box" style="margin-top:0; cursor:pointer;">
-                        <summary style="font-weight:700; color:var(--body-text-color-subdued);">🧭 Referencia: Otros Principios de Ética en IA (OEIAC)</summary>
+                        <summary style="font-weight:700; color:var(--body-text-color-subdued);">🧭 Referencia: Otros principios de ética en IA (OEIAC)</summary>
                         <div style="margin-top:15px; font-size:0.9rem; display:grid; grid-template-columns: 1fr 1fr; gap:15px; color:var(--body-text-color);">
                             <div>
-                                <strong>Transparencia y Explicabilidad</strong><br>Asegurar que el razonamiento de la IA y el juicio final sean claros para que las decisiones puedan ser inspeccionadas y las personas puedan apelar.<br>
-                                <strong>Seguridad y No maleficencia</strong><br>Minimizar los errores dañinos y tener siempre un plan sólido para fallos del sistema.<br>
-                                <strong>Responsabilidad y Rendición de Cuentas</strong><br>Asignar propietarios claros para la IA y mantener un registro detallado de las decisiones (rastro de auditoría).
+                                <strong>Transparencia y explicabilidad</strong><br>Asegurar que el razonamiento de la IA y el juicio final sean claros para que las decisiones puedan ser inspeccionadas y las personas puedan apelar.<br>
+                                <strong>Seguridad y no maleficencia</strong><br>Minimizar los errores dañinos y tener siempre un plan sólido para fallos del sistema.<br>
+                                <strong>Responsabilidad y rendición de Cuentas</strong><br>Asignar propietarios claros para la IA y mantener un registro detallado de las decisiones (rastro de auditoría).
                             </div>
                             <div>
                                 <strong>Autonomía</strong><br>Proporcionar a los individuos procesos claros de apelación y alternativas a la decisión de la IA.<br>
                                 <strong>Privacidad</strong><br>Utilizar solo los datos necesarios y justificar siempre cualquier necesidad de usar atributos sensibles.<br>
-                                <strong>Sostenibilidad</strong><br>Evitar daños a largo plazo a la sociedad o al medio ambiente (ej. uso masivo de energía o desestabilización del mercado).
+                                <strong>Sostenibilidad</strong><br>Evitar daños a largo plazo a la sociedad o al medio ambiente (p. ej. uso masivo de energía o desestabilización del mercado).
                             </div>
                         </div>
                     </details>
@@ -390,7 +390,7 @@ MODULES = [
 
     {
         "id": 3,
-        "title": "Paso 2: Reconocimiento de Patrones",
+        "title": "Paso 2: Reconocimiento de patrones",
         "html": """
             <div class="scenario-box">
                 <div class="tracker-container">
