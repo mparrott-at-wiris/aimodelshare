@@ -227,7 +227,7 @@ TRANSLATIONS = {
         "s5_p1": "En la siguiente sección, se te presentará una <strong class='emph-key'>nueva forma de medir el éxito</strong>, una que equilibra el rendimiento con la equidad y la ética.",
         "s5_p2": "Aprenderás técnicas para <strong class='emph-key'>detectar sesgos</strong> en tus modelos, <strong class='emph-key'>medir la equidad</strong> en diferentes grupos y <strong class='emph-key'>rediseñar tu IA</strong> para minimizar el daño.",
         "s5_mission": "🎯 Tu nueva misión: Construir una IA que no solo sea precisa, sino también <strong class='emph-key'>justa, equitativa y éticamente sólida</strong>.",
-        "s5_scroll": "👇 Continúa con la siguiente actividad abajo — o haz clic en <span style='white-space:nowrap;'>Next (barra superior)</span> en vista ampliada ➡️",
+        "s5_scroll": "👇 Continúa con la siguiente actividad abajo — o haz clic en <span style='white-space:nowrap;'>Siguiente (barra superior)</span> en vista ampliada ➡️",
         "s5_continue": "",
         "btn_review": "◀️ Revisar la Investigación"
     },
@@ -303,7 +303,7 @@ TRANSLATIONS = {
         "s5_p1": "En la següent secció, se't presentarà una <strong class='emph-key'>nova manera de mesurar l'èxit</strong>, una que equilibra el rendiment amb l'equitat i l'ètica.",
         "s5_p2": "Aprendràs tècniques per <strong class='emph-key'>detectar biaixos</strong> en els teus models, <strong class='emph-key'>mesurar l'equitat</strong> en diferents grups i <strong class='emph-key'>redissenyar la teva IA</strong> per minimitzar el dany.",
         "s5_mission": "🎯 La teva nova missió: Construir una IA que no només sigui precisa, sinó també <strong class='emph-key'>justa, equitativa i èticament sòlida</strong>.",
-        "s5_scroll": "👇 Continua amb la següent activitat a sota — o fes clic a <span style='white-space:nowrap;'>Next (barra superior)</span> en vista ampliada ➡️",
+        "s5_scroll": "👇 Continua amb la següent activitat a sota — o fes clic a <span style='white-space:nowrap;'>Següent (barra superior)</span> en vista ampliada ➡️",
         "s5_continue": "",
         "btn_review": "◀️ Revisar la Investigació"
     }
