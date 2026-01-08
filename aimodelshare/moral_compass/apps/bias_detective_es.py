@@ -1412,7 +1412,9 @@ MODULES = [
                         <p style="font-size:1.1rem; font-weight:600; color:var(--body-text-color);">
                             👉 Tu próxima misión comienza en la <strong>Actividad 8: El Reparador de Equidad</strong>.
                             <br>
-                            <span style="font-size:0.95rem; font-weight:400; color:var(--body-text-color-subdued);"><strong>Haz scroll hacia abajo a la siguiente aplicación</strong> para concluir esta auditoría y comenzar las reparaciones.</span>
+                            <span style="font-size:0.95rem; font-weight:400; color:var(--body-text-color-subdued);">
+                              <strong>Continúa con la siguiente actividad abajo</strong> para concluir esta auditoría y comenzar las reparaciones — o haz clic en <span style="white-space:nowrap;">Next (barra superior)</span> en vista ampliada ➡️
+                            </span>
                         </p>
                     </div>
 
