@@ -1412,7 +1412,9 @@ MODULES = [
                         <p style="font-size:1.1rem; font-weight:600; color:var(--body-text-color);">
                             👉 La teva propera missió comença a l'<strong>Activitat 8: El Reparador d'Equitat</strong>.
                             <br>
-                            <span style="font-size:0.95rem; font-weight:400; color:var(--body-text-color-subdued);"><strong>Fes scroll cap avall a la següent aplicació</strong> per concloure aquesta auditoria i començar les reparacions.</span>
+                            <span style="font-size:0.95rem; font-weight:400; color:var(--body-text-color-subdued);">
+                              <strong>Continua amb la següent activitat a sota</strong> per concloure aquesta auditoria i començar les reparacions — o fes clic a <span style="white-space:nowrap;">Next (barra superior)</span> en vista ampliada ➡️
+                            </span>
                         </p>
                     </div>
 
