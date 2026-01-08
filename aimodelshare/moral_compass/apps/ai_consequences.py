@@ -79,8 +79,8 @@ TRANSLATIONS = {
         "s5_p1": "You now understand the consequences of AI errors in high-stakes decisions.",
         "s5_p2": "<b>Next up:</b> Learn what AI actually is and how these prediction systems work.",
         "s5_p3": "This knowledge will help you understand how to build better, more ethical AI systems.",
-        "s5_scroll": "👇 SCROLL DOWN 👇",
-        "s5_find": "Find the next section below to continue your journey.",
+        "s5_scroll": "👇 Continue to the next activity below — or click <span style='white-space:nowrap;'>Next (top bar)</span> in expanded view ➡️",
+        "s5_find": "If you’re not in expanded view, scroll to find the next activity.",
         "btn_review": "◀️ Back to Review"
     },
     "es": {
@@ -150,8 +150,8 @@ TRANSLATIONS = {
         "s5_p1": "Ahora entiendes las consecuencias de los errores de la IA en decisiones de alto riesgo.",
         "s5_p2": "<b>A continuación:</b> Aprende qué es realmente la IA y cómo funcionan estos sistemas de predicción.",
         "s5_p3": "Este conocimiento te ayudará a entender cómo construir sistemas de IA mejores y más éticos.",
-        "s5_scroll": "👇 DESPLÁZATE HACIA ABAJO 👇",
-        "s5_find": "Encuentra la siguiente sección abajo para continuar tu viaje.",
+        "s5_scroll": "👇 Continúa con la siguiente actividad abajo — o haz clic en <span style='white-space:nowrap;'>Next (barra superior)</span> en vista ampliada ➡️",
+        "s5_find": "Si no estás en vista ampliada, desplázate para encontrar la siguiente actividad.",
         "btn_review": "◀️ Volver a revisar"
     },
     "ca": {
@@ -221,8 +221,8 @@ TRANSLATIONS = {
         "s5_p1": "Ara entens les conseqüències dels errors de la IA en decisions d'alt risc.",
         "s5_p2": "<b>A continuació:</b> Aprèn què és realment la IA i com funcionen aquests sistemes de predicció.",
         "s5_p3": "Aquest coneixement t'ajudarà a entendre com construir sistemes d'IA millors i més ètics.",
-        "s5_scroll": "👇 DESPLAÇA'T CAP AVALL 👇",
-        "s5_find": "Troba la següent secció a sota per continuar el teu viatge.",
+        "s5_scroll": "👇 Continua amb la següent activitat a sota — o fes clic a <span style='white-space:nowrap;'>Next (barra superior)</span> en vista ampliada ➡️",
+        "s5_find": "Si no estàs en vista ampliada, desplaça’t per trobar la següent activitat.",
         "btn_review": "◀️ Tornar a revisar"
     }
 }
