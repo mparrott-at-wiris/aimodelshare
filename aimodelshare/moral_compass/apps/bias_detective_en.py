@@ -297,7 +297,7 @@ MODULES = [
                     <div style="background:rgba(59, 130, 246, 0.1); border-left:4px solid #3b82f6; padding:15px; margin-bottom:20px; border-radius:4px; color: var(--body-text-color);">
                         <p style="margin:0; font-size:1.05rem; line-height:1.5;">
                             <strong style="color:var(--color-accent);">Justice & Equity: Your Primary Rule.</strong><br>
-                            Ethics isn't abstract here—it’s our field guide for action. We rely on expert advice from the Catalan Observatory for Ethics in AI <strong>OEIAC (UdG)</strong> to ensure AI systems are fair.
+                            Ethics guide our actions. We follow expert advice from the Catalan Observatory for Ethics in AI <strong>OEIAC (UdG)</strong> to ensure AI systems are fair.
                             While they have defined 7 core principles of safe AI, our intel suggests this specific case involves a violation of <strong>Justice and Equity</strong>.
                         </p>
                     </div>
@@ -321,9 +321,9 @@ MODULES = [
                                     Representation Bias
                                 </summary>
                                 <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); border-top:1px solid var(--border-color-primary); padding-top:10px; line-height:1.4;">
-                                    <strong>Definition:</strong> Compares the dataset distribution to the actual real-world distribution.
+                                    <strong>What it checks:</strong> Whether the dataset reflects the real population.
                                     <br><br>
-                                    If one group appears far less (e.g., only 10% of cases are Group A, but they are 71% of the population) or far more than reality, the AI likely learns biased patterns.
+                                    If one group appears far more or far less (e.g., only 10% of cases are Group A, but they are 71% of the population) than reality, the AI likely learns biased patterns.
                                 </div>
                             </details>
 
@@ -333,9 +333,9 @@ MODULES = [
                                     Error Gaps
                                 </summary>
                                 <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); border-top:1px solid var(--border-color-primary); padding-top:10px; line-height:1.4;">
-                                    <strong>Definition:</strong> Checks for AI prediction mistakes by subgroup (e.g., False Positive Rate for Group A vs. Group B).
+                                    <strong>What it checks:</strong> Whether the AI makes more mistakes for one group than another.
                                     <br><br>
-                                    Higher error for a group indicates risk for unfair treatment, showing the model may be less trustworthy for that specific group.
+                                    Higher error rates for a group (such as false positives) suggest the model is less fair or reliable for them.
                                 </div>
                             </details>
 
@@ -345,9 +345,9 @@ MODULES = [
                                     Outcome Disparities
                                 </summary>
                                 <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); border-top:1px solid var(--border-color-primary); padding-top:10px; line-height:1.4;">
-                                    <strong>Definition:</strong> Looks for worse real-world results after AI predictions (e.g., harsher sentencing).
+                                    <strong>What it checks:</strong> Whether AI decisions lead to worse real-world outcomes for certain groups (e.g., harsher sentencing).
                                     <br><br>
-                                    Bias isn’t just numbers—it changes real-world outcomes for people.
+                                    Bias isn’t just about data—it affects people’s lives.
                                 </div>
                             </details>
                         </div>
