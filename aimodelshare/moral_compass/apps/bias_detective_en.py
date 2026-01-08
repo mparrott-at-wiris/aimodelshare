@@ -1409,7 +1409,9 @@ MODULES = [
                         <p style="font-size:1.1rem; font-weight:600; color:var(--body-text-color);">
                             👉 Your next mission starts in <strong>Activity 8: The Fairness Fixer</strong>.
                             <br>
-                            <span style="font-size:0.95rem; font-weight:400; color:var(--body-text-color-subdued);"><strong>Scroll down to the next app</strong> to conclude this audit and begin the repairs.</span>
+                            <span style="font-size:0.95rem; font-weight:400; color:var(--body-text-color-subdued);">
+                              <strong>Continue to the next activity below</strong> — or click <span style="white-space:nowrap;">Next (top bar)</span> in expanded view ➡️
+                            </span>
                         </p>
                     </div>
 
