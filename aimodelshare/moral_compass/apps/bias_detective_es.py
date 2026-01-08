@@ -2481,11 +2481,11 @@ def create_bias_detective_es_app(theme_primary_hue: str = "indigo"):
 
                     # --- NAVIGATION BUTTONS ---
                     with gr.Row():
-                        btn_prev = gr.Button("⬅️ Previous", visible=(i > 0))
+                        btn_prev = gr.Button("⬅️ Anterior", visible=(i > 0))
                         next_label = (
-                            "Next ▶️"
+                            "Siguiente ▶️"
                             if i < len(MODULES) - 1
-                            else "🎉 You Have Completed Part 1!! (Please Proceed to the Next Activity)"
+                            else "🎉 ¡Has completado la Parte 1! (Por favor, continúa con la siguiente actividad)"
                         )
                         btn_next = gr.Button(next_label, variant="primary")
 
