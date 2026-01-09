@@ -287,7 +287,7 @@ MODULES = [
                     <div class="tracker-step active">1. REGLES</div>
                     <div class="tracker-step">2. EVIDÈNCIA</div>
                     <div class="tracker-step">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICTE</div>
+                    <div class="tracker-step">4. VEREDICTE</div>
                 </div>
 
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -401,14 +401,14 @@ MODULES = [
                 </div>
 
         <div class="slide-body">
-            <h2 class="slide-title" style="margin:0;">PAS 2: CERCA DE L'EVIDÈNCIA</h2>
+            <h2 class="slide-title" style="margin:0;">PAS 2: BUSCA EVIDÈNCIES</h2>
 
             <div style="text-align:center; margin-bottom:20px;">
 
-                <h2 class="slide-title header-accent" style="margin-top:10px;">La Recerca de Patrons Demogràfics Esbiaixats</h2>
+                <h2 class="slide-title header-accent" style="margin-top:10px;">A la recerca de patrons demogràfics esbiaixats</h2>
                 <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                    Una IA només és tan justa com les dades de les quals aprèn. Si les dades d'entrada distorsionen la realitat, la IA probablement distorsionarà la justícia.
-                    <br>El primer pas és buscar patrons que revelin <strong>Biaix de Representació.</strong>  Per trobar biaix de representació hem d'inspeccionar la <strong>Demografia.</strong>.
+                    Els sistemes d’IA aprenen a partir de les dades. Si les dades són esbiaixades, el sistema també ho serà.
+                    <br>La primera tasca és identificar el <strong>biaix de representació,</strong> comprovant quins grups <strong>demogràfics</strong> apareixen més o menys sovint en les dades.
                 </p>
             </div>
 
@@ -418,7 +418,7 @@ MODULES = [
                     <div style="font-size:1.5rem;">🚩</div>
                     <div>
                         <strong style="color:#0ea5e9; font-size:1.1rem; text-transform:uppercase; letter-spacing:1px;">PATRÓ: "EL MIRALL DISTORSIONAT"</strong>
-                        <div style="font-size:0.9rem; color:var(--body-text-color-subdued);">(Biaix de Representació en Grups Protegits)</div>
+                        <div style="font-size:0.9rem; color:var(--body-text-color-subdued);">(Biaix de representació en grups protegits)</div>
                     </div>
                 </div>
 
@@ -426,22 +426,22 @@ MODULES = [
                     
                     <div style="color: var(--body-text-color);">
                         <p style="font-size:1rem; line-height:1.6;">
-                            <strong>El Concepte:</strong> Idealment, un conjunt de dades hauria de semblar un "Mirall" de la població real. 
-                            Si un grup constitueix el 50% de la població, generalment hauria de constituir ~50% de les dades.
+                            <strong>El concepte del mirall:</strong> Idealment, un conjunt de dades hauria de ser un "mirall" de la població real. 
+                            Si un grup constitueix el 50% de la població, hauria d’aparèixer en una proporció similar en les dades.
                         </p>
                         <p style="font-size:1rem; line-height:1.6;">
-                            <strong>La Bandera Vermella:</strong> Busca <strong>Desequilibris Dràstics</strong> en Característiques Protegides (Raça, Gènere, Edat).
+                            <strong>Senyal d'alerta:</strong> Busca <strong>grans desequilibris</strong> en característiques protegides com l'origen ètnic, el gènere o l'edat.
                         </p>
                         <ul style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:10px; padding-left:20px; line-height:1.5;">
-                            <li><strong>Sobrerrepresentació:</strong> Un grup té una "Barra Gegant" (p. ex., el 80% dels registres d'arrest són Homes). La IA aprèn a apuntar a aquest grup.</li>
-                            <li><strong>Infrarrepresentació:</strong> Un grup falta o és petit. La IA no aconsegueix aprendre patrons precisos per a ells.</li>
+                            <li><strong>Sobrerrepresentació:</strong> Un grup domina les dades (p. ex., el 80% dels registres d'arrest són Homes). El sistema pot acabar tractant aquest grup de manera injusta.</li>
+                            <li><strong>Infrarrepresentació:</strong> Un grup és molt petit o no apareix. El sistema no pot aprendre patrons fiables per a aquest grup.</li>
                         </ul>
                     </div>
 
                     <div style="background:var(--background-fill-primary); padding:20px; border-radius:12px; border:1px solid var(--border-color-primary); display:flex; flex-direction:column; justify-content:center;">
                         
                         <div style="margin-bottom:20px;">
-                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color-subdued); margin-bottom:5px;">REALITAT (La Població)</div>
+                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color-subdued); margin-bottom:5px;">REALITAT (La població)</div>
                             <div style="display:flex; width:100%; height:24px; border-radius:4px; overflow:hidden;">
                                 <div style="width:33%; background:#94a3b8; display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem;">Grup A</div>
                                 <div style="width:34%; background:#64748b; display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem;">Grup B</div>
@@ -450,7 +450,7 @@ MODULES = [
                         </div>
 
                         <div>
-                            <div style="font-size:0.85rem; font-weight:700; color:#0ea5e9; margin-bottom:5px;">LES DADES D'ENTRENAMENT (El Mirall Distorsionat)</div>
+                            <div style="font-size:0.85rem; font-weight:700; color:#0ea5e9; margin-bottom:5px;">LES DADES D'ENTRENAMENT (El mirall distorsionat)</div>
                             <div style="display:flex; width:100%; height:24px; border-radius:4px; overflow:hidden;">
                                 <div style="width:80%; background:linear-gradient(90deg, #f43f5e, #be123c); display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem; font-weight:700;">GRUP A (80%)</div>
                                 <div style="width:10%; background:#cbd5e1;"></div>
@@ -467,7 +467,7 @@ MODULES = [
 
             <div style="margin-bottom: 25px; padding: 0 10px;">
                 <p style="font-size:1.1rem; line-height:1.5; color:var(--body-text-color);">
-                    <strong>🕵️ El Teu Proper Pas:</strong> Has d'entrar al Laboratori Forense de Dades i comprovar les dades per a categories demogràfiques específiques. Si els patrons s'assemblen al "Mirall Distorsionat" de dalt, les dades probablement són insegures.
+                    <strong>🕵️ El següent pas:</strong> Revisa les dades demogràfiques al laboratori d’anàlisi forense de dades. Si veus un mirall distorsionat, les dades probablement són esbiaixades.
                 </p>
             </div>
 
