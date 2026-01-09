@@ -3139,7 +3139,7 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
                         <div style='background:var(--prose-background-fill); padding:20px; border-radius:12px; text-align:left; margin-bottom:24px;'>
                             <div style='display:flex; align-items:center; gap:8px; margin-bottom:12px;'>
                                 <span style='font-size:1.5rem;'>🔐</span>
-                                <strong style='font-size:1.2rem; color:#eef2ff;'>Com guanyar</strong>
+                                <strong style='font-size:1.2rem; color:var(--body-text-color);'>Com guanyar</strong>
                             </div>
                             
                             <p style='margin-bottom:12px;'>
