@@ -90,7 +90,7 @@ MODULES = [
     # --- MODULE 0: THE HOOK (Mission Dossier) ---
   {
         "id": 0,
-        "title": "Expediente de la Misión",
+        "title": "Expediente de la misión",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
@@ -105,7 +105,7 @@ MODULES = [
                             <div>
                                 <div style="font-size:0.9rem; font-weight:800; color:var(--body-text-color-subdued); letter-spacing:1px;">TU OBJETIVO</div>
                                 <div style="font-size:1.3rem; font-weight:700;">Algoritmo de IA "Compas"</div>
-                                <div style="font-size:1.0rem; margin-top:5px; opacity:0.8;">Utilizado por jueces para decidir fianzas.</div>
+                                <div style="font-size:1.0rem; margin-top:5px; opacity:0.8;">Utilizado por tribunales para decidir la libertad bajo fianza.</div>
                             </div>
                         </div>
                         <div style="background:rgba(239,68,68,0.1); padding:20px; border-radius:12px; border:2px solid #fca5a5; display:flex; flex-direction:column; justify-content:center;">
@@ -255,7 +255,7 @@ MODULES = [
                                 <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">⚖️</div>
                                 <div style="font-weight:800; font-size:1.2rem; color:#f97316; margin-bottom:5px;">Informe final</div>
                                 <div style="font-size:1.0rem; color:var(--body-text-color); font-weight:500; line-height:1.4;">
-                                    Diagnostica el daño sistemático y emite tu recomendación final al tribunal: <strong>desplegar Sistema de IA o pausar para reparar.</strong>
+                                    Diagnostica el daño sistemático y emite tu recomendación final al tribunal: <strong>desplegar sistema de IA o pausar para reparar.</strong>
                                 </div>
                             </div>
 
@@ -285,7 +285,7 @@ MODULES = [
             <div class="scenario-box">
                 <div class="tracker-container">
                     <div class="tracker-step active">1. REGLAS</div>
-                    <div class="tracker-step">2. EVIDENCIA</div>
+                    <div class="tracker-step">2. EVIDENCIAS</div>
                     <div class="tracker-step">3. ERROR</div>
                     <div class="tracker-step">4. VEREDICTO</div>
                 </div>
@@ -395,7 +395,7 @@ MODULES = [
             <div class="scenario-box">
                 <div class="tracker-container">
                     <div class="tracker-step completed">1. REGLAS</div>
-                    <div class="tracker-step active">2. EVIDENCIA</div>
+                    <div class="tracker-step active">2. EVIDENCIAS</div>
                     <div class="tracker-step">3. ERROR</div>
                     <div class="tracker-step">4. VEREDICTO</div>
                 </div>
@@ -497,12 +497,12 @@ MODULES = [
     # --- MODULE 4: DATA FORENSICS LAB (The Action) ---
     {
         "id": 4, 
-        "title": "Paso 2: Laboratorio Forense de Datos",
+        "title": "Paso 2: Laboratorio forense de datos",
         "html": """
             <div class="scenario-box">
                 <div class="tracker-container">
                     <div class="tracker-step completed">1. REGLAS</div>
-                    <div class="tracker-step active">2. EVIDENCIA</div>
+                    <div class="tracker-step active">2. EVIDENCIAS</div>
                     <div class="tracker-step">3. ERROR</div>
                     <div class="tracker-step">4. VEREDICTO</div>
                 </div>
@@ -576,7 +576,7 @@ MODULES = [
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
                                     <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDENCIA REGISTRADA: Sesgo de Representación Racial</div>
                                     <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        La IA está **sobre-expuesta** a este grupo (51% vs 28%). Puede aprender a asociar "Alto Riesgo" con esta demografía simplemente porque los ve más a menudo en los registros de arresto.
+                                        El sistema de la IA ve a este grupo étnico demasiado a menudo (51% vs 28%). Podría asociar "Alto Riesgo" con las personas de este grupo solo porque aparecen más en los registros de arrestos.
                                     </div>
                                 </div>
                             </div>
@@ -591,7 +591,7 @@ MODULES = [
                                         <div style="font-size:4rem; line-height:1;">♂️</div>
                                         <div style="font-size:2.2rem; font-weight:900; color:#3b82f6;">81%</div>
                                         <div style="font-weight:700; color:var(--body-text-color-subdued);">HOMBRES</div>
-                                        <div style="font-size:0.85rem; color:#16a34a; font-weight:600; margin-top:5px;">✅ Bien Representados</div>
+                                        <div style="font-size:0.85rem; color:#16a34a; font-weight:600; margin-top:5px;">✅ Bien representados</div>
                                     </div>
                                     <div style="text-align:center; padding:20px; background:rgba(225, 29, 72, 0.1); border-radius:8px; border:2px solid #fda4af;">
                                         <div style="font-size:4rem; line-height:1; opacity:0.5;">♀️</div>
@@ -603,7 +603,7 @@ MODULES = [
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
                                     <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDENCIA REGISTRADA: Sesgo de Representación de Género</div>
                                     <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        Las mujeres son una "clase minoritaria" en este conjunto de datos aunque típicamente constituyen el 50% de la población real. El modelo probablemente tendrá dificultades para aprender patrones precisos para ellas, dando lugar a **tasas de error más altas** para las acusadas.
+                                        Las mujeres son una en este conjunto de datos, aunque representan aproximadamente el 50% de la población real. El modelo probablemente tendrá dificultades para aprender patrones precisos para ellas, lo que llevará a **tasas de error mayores** para mujeres presas.
                                     </div>
                                 </div>
                             </div>
@@ -637,9 +637,9 @@ MODULES = [
                                 </div>
 
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
-                                    <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDENCIA REGISTRADA: Sesgo de Representación de Edad</div>
+                                    <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDENCIA REGISTRADA: Sesgo de representación de edad</div>
                                     <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        Los datos se concentran en la "Burbuja" de edad de 25-45. El modelo tiene un **punto ciego** para personas más jóvenes y mayores, lo que significa que las predicciones para esos grupos serán poco fiables (Error de Generalización).
+                                        Los datos están concentrados principalmente en personas de 25 a 45 años, la “burbuja de edad.” El modelo tiene un **punto ciego** con los más jóvenes y los mayores, por lo que sus predicciones para estos grupos probablemente no serán fiables (error de generalización).
                                     </div>
                                 </div>
                             </div>
@@ -673,9 +673,9 @@ MODULES = [
                     <div class="tracker-step active">3. ERROR</div>
                     <div class="tracker-step">4. VEREDICTO</div>
                 </div>
-                <h2 class="slide-title" style="font-size:1.6rem; text-align:center; margin-bottom:15px;">Informe Forense de Datos: Fallos de Entrada</h2>
+                <h2 class="slide-title" style="font-size:1.6rem; text-align:center; margin-bottom:15px;">Informe forense de datos: fallos de entrada</h2>
                 <div class="ai-risk-container" style="border: 2px solid #ef4444; background: rgba(239,68,68,0.05); padding: 20px;">
-                    <h4 style="margin-top:0; font-size:1.2rem; color:#b91c1c; text-align:center;">📋 RESUMEN DE EVIDENCIA</h4>
+                    <h4 style="margin-top:0; font-size:1.2rem; color:#b91c1c; text-align:center;">📋 RESUMEN DE EVIDENCIAS</h4>
                     <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
                         <thead>
                             <tr style="background: rgba(239,68,68,0.1); border-bottom: 2px solid #ef4444;">
@@ -686,19 +686,19 @@ MODULES = [
                         </thead>
                         <tbody>
                             <tr style="border-bottom: 1px solid var(--border-color-primary);">
-                                <td style="padding: 8px; font-weight:700;">Raza</td>
+                                <td style="padding: 8px; font-weight:700;">Etnia</td>
                                 <td style="padding: 8px;">Sobrerrepresentada (51%)</td>
-                                <td style="padding: 8px; color:#b91c1c;">Riesgo de Aumento de Error de Predicción</td>
+                                <td style="padding: 8px; color:#b91c1c;">Riesgo de aumento de error de predicción</td>
                             </tr>
                             <tr style="border-bottom: 1px solid var(--border-color-primary);">
                                 <td style="padding: 8px; font-weight:700;">Género</td>
                                 <td style="padding: 8px;">Infrarrepresentado (19%)</td>
-                                <td style="padding: 8px; color:#b91c1c;">Riesgo de Aumento de Error de Predicción</td>
+                                <td style="padding: 8px; color:#b91c1c;">Riesgo de aumento de error de predicción</td>
                             </tr>
                             <tr>
                                 <td style="padding: 8px; font-weight:700;">Edad</td>
                                 <td style="padding: 8px;">Grupos Excluidos (Menos de 25/Más de 45)</td>
-                                <td style="padding: 8px; color:#b91c1c;">Riesgo de Aumento de Error de Predicción</td>
+                                <td style="padding: 8px; color:#b91c1c;">Riesgo de aumento de error de predicción</td>
                             </tr>
                         </tbody>
                     </table>
