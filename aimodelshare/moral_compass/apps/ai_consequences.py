@@ -1,9 +1,7 @@
 """
 AI Consequences - Gradio application for the Justice & Equity Challenge.
-Updated with i18n support for English (en), Spanish (es), and Catalan (ca).
+Refined Design: Matches 'Bias Detective' UI (Scenario Boxes, Click Reveals).
 """
-import contextlib
-import os
 import gradio as gr
 from functools import lru_cache
 
@@ -13,10 +11,10 @@ from functools import lru_cache
 
 TRANSLATIONS = {
     "en": {
-        "title": "⚠️ What If the AI Was Wrong?",
-        "intro_box": "You just made decisions based on an AI's predictions.<br>But AI systems are not perfect. Let's explore what happens when they make mistakes.",
+        "app_title": "⚠️ AI Consequences",
         "loading": "⏳ Loading...",
-        # Step 1
+        
+        # SLIDE 1: ORIGINAL TEXT (Preserved)
         "s1_title": "The Stakes of AI Predictions",
         "s1_p1": "In the previous exercise, you relied on an AI system to predict which defendants were at <b>High</b>, <b>Medium</b>, or <b>Low</b> risk of re-offending.",
         "s1_p2": "<b>But what if those predictions were incorrect?</b>",
@@ -24,522 +22,549 @@ TRANSLATIONS = {
         "s1_li1": "<b>False Positives</b> - Incorrectly predicting HIGH risk",
         "s1_li2": "<b>False Negatives</b> - Incorrectly predicting LOW risk",
         "s1_p4": "Let's examine each type of error and its real-world impact.",
-        "btn_next_fp": "Next: False Positives ▶️",
-        # Step 2 (False Positives)
-        "s2_title": "🔴 False Positives: Predicting Danger Where None Exists",
-        "s2_card_title": "What is a False Positive?",
-        "s2_def": "A <b>false positive</b> occurs when the AI predicts someone is <b style='color:#dc2626;'>HIGH RISK</b>, but they would NOT have actually re-offended if released.",
-        "s2_ex_title": "Example Scenario:",
-        "s2_ex_li1": "• Sarah was flagged as <b style='color:#dc2626;'>HIGH RISK</b>",
-        "s2_ex_li2": "• Based on this, the judge kept her in prison",
-        "s2_ex_li3": "• In reality, Sarah would have rebuilt her life and never committed another crime",
-        "s2_cost_title": "The Human Cost:",
-        "s2_cost_li1": "People who would not re-offend spend unnecessary time in prison",
-        "s2_cost_li2": "Families are separated for longer than needed",
-        "s2_cost_li3": "Job opportunities and rehabilitation are delayed",
-        "s2_cost_li4": "Trust in the justice system erodes",
-        "s2_cost_li5": "Disproportionate impact on marginalized communities",
-        "s2_key": "<b>Key Point:</b> False positives mean the AI is being <b>too cautious</b>, keeping people locked up who should be free.",
-        "btn_back": "◀️ Back",
-        "btn_next_fn": "Next: False Negatives ▶️",
-        # Step 3 (False Negatives)
-        "s3_title": "🔵 False Negatives: Missing Real Danger",
-        "s3_card_title": "What is a False Negative?",
-        "s3_def": "A <b>false negative</b> occurs when the AI predicts someone is <b style='color:#16a34a;'>LOW RISK</b>, but they DO actually re-offend after being released.",
-        "s3_ex_title": "Example Scenario:",
-        "s3_ex_li1": "• James was flagged as <b style='color:#16a34a;'>LOW RISK</b>",
-        "s3_ex_li2": "• Based on this, the judge released him on parole",
-        "s3_ex_li3": "• Unfortunately, James did commit another serious crime",
-        "s3_cost_title": "The Human Cost:",
-        "s3_cost_li1": "New victims of preventable crimes",
-        "s3_cost_li2": "Loss of public trust in the justice system",
-        "s3_cost_li3": "Media scrutiny and backlash against judges",
-        "s3_cost_li4": "Political pressure to be 'tough on crime'",
-        "s3_cost_li5": "Potential harm to communities and families",
-        "s3_key": "<b>Key Point:</b> False negatives mean the AI is being <b>too lenient</b>, releasing people who pose a real danger to society.",
-        "btn_next_dil": "Next: The Dilemma ▶️",
-        # Step 4 (Dilemma)
+        "s1_btn": "Start Investigation ▶️",
+
+        # SLIDE 2: SARAH (False Positive)
+        "s2_title": "🔴 Case File: Sarah",
+        "s2_card_label": "CASE #892",
+        "s2_ai_pred": "AI PREDICTION: <span style='color:#dc2626'>HIGH RISK 🔴</span>",
+        "s2_desc": "Sarah was flagged by the AI as dangerous. Based on this, the judge denied bail and kept her in prison awaiting trial.",
+        "s2_reveal_btn": "🔍 Reveal Reality (Click Here)",
+        "s2_reveal_title": "THE REALITY:",
+        "s2_reveal_text": "Sarah was eventually released. <b>She never committed another crime.</b>",
+        "s2_analysis_title": "DIAGNOSIS: FALSE POSITIVE",
+        "s2_analysis_text": "This is a 'False Alarm.' The AI saw danger where there was none.<br><b>The Cost:</b> An innocent person lost their freedom, job, and time with family.",
+        "s2_btn": "Next Case ▶️",
+
+        # SLIDE 3: JAMES (False Negative)
+        "s3_title": "🔵 Case File: James",
+        "s3_card_label": "CASE #893",
+        "s3_ai_pred": "AI PREDICTION: <span style='color:#16a34a'>LOW RISK 🟢</span>",
+        "s3_desc": "James was flagged as safe. The judge released him on parole based on this low-risk score.",
+        "s3_reveal_btn": "🔍 Reveal Reality (Click Here)",
+        "s3_reveal_title": "THE REALITY:",
+        "s3_reveal_text": "One month later, <b>James committed a serious robbery.</b>",
+        "s3_analysis_title": "DIAGNOSIS: FALSE NEGATIVE",
+        "s3_analysis_text": "The AI 'Missed' the warning.<br><b>The Cost:</b> Public safety was compromised, creating new victims and eroding trust in the justice system.",
+        "s3_btn": "Next: The Dilemma ▶️",
+
+        # SLIDE 4: THE TRADE-OFF (Slider)
         "s4_title": "⚖️ The Impossible Balance",
-        "s4_card_title": "Every AI System Makes Trade-offs",
-        "s4_p1": "Here's the harsh reality: <b>No AI system can eliminate both types of errors.</b>",
-        "s4_sub1": "<b>If you make the AI more cautious:</b>",
-        "s4_sub1_li1": "✓ Fewer false negatives (fewer people who pose a real risk are released)",
-        "s4_sub1_li2": "✗ More false positives (more people who would not re-offend kept in prison)",
-        "s4_sub2": "<b>If you make the AI more lenient:</b>",
-        "s4_sub2_li1": "✓ Fewer false positives (more people who would not re-offend are released)",
-        "s4_sub2_li2": "✗ More false negatives (more people who pose a real risk released)",
-        "s4_eth_title": "The Ethical Question:",
-        "s4_q1": "Which mistake is worse?",
-        "s4_q2": "• Keeping people who would not re-offend in prison?<br>• Or releasing individuals who pose a real risk?",
-        "s4_conc": "<b>There is no universally 'correct' answer.</b> Different societies, legal systems, and ethical frameworks weigh these trade-offs differently.",
-        "s4_final": "<b>This is why understanding AI is crucial.</b> We need to know how these systems work so we can make informed decisions about when and how to use them.",
-        "btn_cont": "Continue to Learn About AI ▶️",
-        # Step 5 (Completion)
+        "s4_intro": "Can you fix the AI? Try to adjust the strictness to get <b>Zero Errors</b>.",
+        "s4_label": "AI Strictness Setting",
+        "s4_fp_label": "Innocents Jailed (False Warnings)",
+        "s4_fn_label": "Criminals Released (Missed Warnings)",
+        "s4_feed_lenient": "⚠️ <b>Too Lenient!</b> You reduced False Warnings (False Positives), but now <b>crime has spiked</b> (High Missed Warnings/False Negatives).",
+        "s4_feed_strict": "⚠️ <b>Too Strict!</b> You stopped crime, but now you are <b>locking up innocent people</b> (High False Warnings/False Positives).",
+        "s4_feed_tradeoff": "⚖️ <b>The Hard Truth:</b> You cannot make both errors zero. As one goes down, the other goes up.",
+        "s4_btn": "I Understand - Finish ▶️",
+
+        # SLIDE 5: ORIGINAL COMPLETION (Preserved)
         "s5_title": "✅ Section Complete!",
         "s5_p1": "You now understand the consequences of AI errors in high-stakes decisions.",
         "s5_p2": "<b>Next up:</b> Learn what AI actually is and how these prediction systems work.",
         "s5_p3": "This knowledge will help you understand how to build better, more ethical AI systems.",
         "s5_scroll": "👇 Continue to the next activity below — or click <span style='white-space:nowrap;'>Next (top bar)</span> in expanded view ➡️",
         "s5_find": "If you’re not in expanded view, scroll to find the next activity.",
-        "btn_review": "◀️ Back to Review"
+        "s5_btn": "◀️ Review Cases"
     },
     "es": {
-        "title": "⚠️ ¿Y si la IA estuviera equivocada?",
-        "intro_box": "Acabas de tomar decisiones basadas en las predicciones de una IA.<br>Pero los sistemas de IA no son perfectos. Exploremos qué sucede cuando cometen errores.",
+        "app_title": "⚠️ Consecuencias de la IA",
         "loading": "⏳ Cargando...",
-        # Step 1
         "s1_title": "Los riesgos de las predicciones de IA",
-        "s1_p1": "En el ejercicio anterior, confiaste en un sistema de IA para predecir qué personas presas tenían un riesgo <b>alto</b>, <b>medio</b> o <b>bajo</b> de reincidir.",
+        "s1_p1": "En el ejercicio anterior, confiaste en un sistema de IA para predecir qué personas tenían un riesgo <b>Alto</b>, <b>Medio</b> o <b>Bajo</b> de reincidir.",
         "s1_p2": "<b>¿Pero qué pasa si esas predicciones eran incorrectas?</b>",
-        "s1_p3": "Los sistemas de IA cometen dos tipos de errores que tienen consecuencias muy diferentes:",
-        "s1_li1": "<b>Falsos positivos</b> - Predecir incorrectamente ALTO riesgo",
-        "s1_li2": "<b>Falsos negativos</b> - Predecir incorrectamente BAJO riesgo",
-        "s1_p4": "Examinemos cada tipo de error y su impacto en el mundo real.",
-        "btn_next_fp": "Siguiente: Falsos positivos ▶️",
-        # Step 2
-        "s2_title": "🔴 Falsos positivos: El riesgo inexistente",
-        "s2_card_title": "¿Qué es un falso positivo?",
-        "s2_def": "Un <b>falso positivo</b> ocurre cuando la IA predice que alguien es de <b style='color:#dc2626;'>ALTO RIESGO</b>, pero en realidad NO habría reincidido si hubiera sido puesto en libertad.",
-        "s2_ex_title": "Escenario de ejemplo:",
-        "s2_ex_li1": "• Sarah fue marcada como <b style='color:#dc2626;'>ALTO RIESGO</b>",
-        "s2_ex_li2": "• Basado en esto, el tribunal la mantuvo en prisión",
-        "s2_ex_li3": "• En realidad, Sarah habría rehecho su vida y nunca habría cometido otro delito",
-        "s2_cost_title": "El coste humano:",
-        "s2_cost_li1": "Personas que no reincidirían pasan tiempo innecesario en prisión",
-        "s2_cost_li2": "Las familias son separadas por más tiempo del necesario",
-        "s2_cost_li3": "Las oportunidades laborales y la rehabilitación se retrasan",
-        "s2_cost_li4": "La confianza en el sistema judicial se erosiona",
-        "s2_cost_li5": "Impacto desproporcionado en comunidades marginadas",
-        "s2_key": "<b>Punto clave:</b> Los falsos positivos significan que la IA está siendo <b>demasiado cautelosa</b>, manteniendo en prisión a personas que deberían ser puestas en libertad.",
-        "btn_back": "◀️ Atrás",
-        "btn_next_fn": "Siguiente: Falsos negativos ▶️",
-        # Step 3
-        "s3_title": "🔵 Falsos negativos: El riesgo no detectado",
-        "s3_card_title": "¿Qué es un falso negativo?",
-        "s3_def": "Un <b>falso negativo</b> ocurre cuando la IA predice que alguien es de <b style='color:#16a34a;'>BAJO RIESGO</b>, pero SÍ vuelve a cometer un delito después de ser liberado.",
-        "s3_ex_title": "Escenario de ejemplo:",
-        "s3_ex_li1": "• James fue marcado como <b style='color:#16a34a;'>BAJO RIESGO</b>",
-        "s3_ex_li2": "• Basado en esto, el tribunal le concedió la libertad condicional",
-        "s3_ex_li3": "• Desafortunadamente, James cometió otro delito grave",
-        "s3_cost_title": "El coste humano:",
-        "s3_cost_li1": "Nuevas víctimas de delitos prevenibles",
-        "s3_cost_li2": "Pérdida de confianza pública en el sistema judicial",
-        "s3_cost_li3": "Escrutinio mediático y reacciones contra los tribunales",
-        "s3_cost_li4": "Presión política para adoptar medidas severas contra la delincuencia.",
-        "s3_cost_li5": "Daño potencial a comunidades y familias",
-        "s3_key": "<b>Punto clave:</b> Los falsos negativos significan que la IA está siendo <b>demasiado indulgente</b>, poniendo en libertad a personas que representan un peligro real para la sociedad.",
-        "btn_next_dil": "Siguiente: El dilema ▶️",
-        # Step 4
-        "s4_title": "⚖️ El equilibrio imposible",
-        "s4_card_title": "Todo sistema de IA presenta un dilema",
-        "s4_p1": "Esta es la dura realidad: <b>Ningún sistema de IA puede eliminar ambos tipos de errores.</b>",
-        "s4_sub1": "<b>Si haces que la IA sea más cautelosa:</b>",
-        "s4_sub1_li1": "✓ Menos falsos negativos (menos personas que representan un peligro real liberadas)",
-        "s4_sub1_li2": "✗ Más falsos positivos (más personas que no reincidirían permanecen en prisión)",
-        "s4_sub2": "<b>Si haces que la IA sea más indulgente:</b>",
-        "s4_sub2_li1": "✓ Menos falsos positivos (más personas que no reincidirían son puestas en libertad)",
-        "s4_sub2_li2": "✗ Más falsos negativos (más personas que representan un peligro real liberadas son puestas en libertad)",
-        "s4_eth_title": "La pregunta ética:",
-        "s4_q1": "¿Qué error es peor?",
-        "s4_q2": "• ¿Mantener a personas que no reincidirían en prisión?<br>• ¿O poner en libertad a personas que representan un peligro real?",
-        "s4_conc": "<b>No hay una respuesta universalmente 'correcta'.</b> Diferentes sociedades, sistemas legales y marcos éticos sopesan estos dilemas de manera diferente.",
-        "s4_final": "<b>Por eso es crucial entender la IA.</b> Necesitamos saber cómo funcionan estos sistemas para tomar decisiones informadas sobre cuándo y cómo usarlos.",
-        "btn_cont": "Continuar Aprendiendo sobre la IA ▶️",
-        # Step 5
-        "s5_title": "✅ Sección completada",
+        "s1_p3": "Los sistemas de IA cometen dos tipos de errores con consecuencias muy diferentes:",
+        "s1_li1": "<b>Falsos Positivos</b> - Predecir incorrectamente ALTO riesgo",
+        "s1_li2": "<b>Falsos Negativos</b> - Predecir incorrectamente BAJO riesgo",
+        "s1_p4": "Examinemos cada tipo de error y su impacto real.",
+        "s1_btn": "Iniciar Investigación ▶️",
+
+        "s2_title": "🔴 Expediente: Sarah",
+        "s2_card_label": "CASO #892",
+        "s2_ai_pred": "PREDICCIÓN IA: <span style='color:#dc2626'>ALTO RIESGO 🔴</span>",
+        "s2_desc": "Sarah fue marcada como peligrosa. El juez le denegó la fianza y la mantuvo en prisión.",
+        "s2_reveal_btn": "🔍 Revelar Realidad",
+        "s2_reveal_title": "LA REALIDAD:",
+        "s2_reveal_text": "Sarah fue liberada finalmente. <b>Nunca cometió otro delito.</b>",
+        "s2_analysis_title": "DIAGNÓSTICO: FALSO POSITIVO",
+        "s2_analysis_text": "Es una 'Falsa Alarma'. La IA vio peligro donde no lo había.<br><b>El Coste:</b> Una persona inocente perdió su libertad y tiempo con su familia.",
+        "s2_btn": "Siguiente Caso ▶️",
+
+        "s3_title": "🔵 Expediente: James",
+        "s3_card_label": "CASO #893",
+        "s3_ai_pred": "PREDICCIÓN IA: <span style='color:#16a34a'>BAJO RIESGO 🟢</span>",
+        "s3_desc": "James fue marcado como seguro. El juez lo liberó bajo palabra basándose en esto.",
+        "s3_reveal_btn": "🔍 Revelar Realidad",
+        "s3_reveal_title": "LA REALIDAD:",
+        "s3_reveal_text": "Un mes después, <b>James cometió un robo grave.</b>",
+        "s3_analysis_title": "DIAGNÓSTICO: FALSO NEGATIVO",
+        "s3_analysis_text": "La IA 'perdió' la amenaza.<br><b>El Coste:</b> La seguridad pública se vio comprometida, creando nuevas víctimas.",
+        "s3_btn": "Siguiente: El Dilema ▶️",
+
+        "s4_title": "⚖️ El Equilibrio Imposible",
+        "s4_intro": "¿Puedes arreglar la IA? Intenta ajustar la estrictez para obtener <b>Cero Errores</b>.",
+        "s4_label": "Nivel de Estrictez",
+        "s4_fp_label": "Inocentes en Prisión (Falsos Positivos)",
+        "s4_fn_label": "Criminales Liberados (Falsos Negativos)",
+        "s4_feed_lenient": "⚠️ <b>¡Demasiado Indulgente!</b> Redujiste los Falsos Positivos, pero <b>el crimen aumentó</b> (Falsos Negativos).",
+        "s4_feed_strict": "⚠️ <b>¡Demasiado Estricto!</b> Detuviste el crimen, pero estás <b>encarcelando a inocentes</b> (Falsos Positivos).",
+        "s4_feed_tradeoff": "⚖️ <b>La Dura Verdad:</b> No puedes eliminar ambos errores. Si uno baja, el otro sube.",
+        "s4_btn": "Entiendo - Finalizar ▶️",
+
+        "s5_title": "✅ Sección Completada",
         "s5_p1": "Ahora entiendes las consecuencias de los errores de la IA en decisiones de alto riesgo.",
-        "s5_p2": "<b>A continuación:</b> Aprende qué es realmente la IA y cómo funcionan estos sistemas de predicción.",
+        "s5_p2": "<b>A continuación:</b> Aprende qué es realmente la IA y cómo funcionan estos sistemas.",
         "s5_p3": "Este conocimiento te ayudará a entender cómo construir sistemas de IA mejores y más éticos.",
-        "s5_scroll": "👇 Continúa con la siguiente actividad abajo — o haz clic en <span style='white-space:nowrap;'>Siguiente (barra superior)</span> en vista ampliada ➡️",
+        "s5_scroll": "👇 Continúa con la siguiente actividad abajo — o haz clic en <span style='white-space:nowrap;'>Siguiente</span> en la barra superior ➡️",
         "s5_find": "Si no estás en vista ampliada, desplázate para encontrar la siguiente actividad.",
-        "btn_review": "◀️ Volver a revisar"
+        "s5_btn": "◀️ Revisar Casos"
     },
     "ca": {
-        "title": "⚠️ I si la IA s'hagués equivocat?",
-        "intro_box": "Acabes de prendre decisions basades en les prediccions d'una IA.<br>Però els sistemes d'IA no són perfectes. Explorem què passa quan cometen errors.",
+        "app_title": "⚠️ Conseqüències de la IA",
         "loading": "⏳ Carregant...",
-        # Step 1
         "s1_title": "Els riscos de les prediccions d'IA",
-        "s1_p1": "En l'exercici anterior, has confiat en un sistema d'IA per predir quines persones preses tenien un risc <b>Alt</b>, <b>Mitjà</b> o <b>Baix</b> de reincidir.",
+        "s1_p1": "En l'exercici anterior, has confiat en un sistema d'IA per predir quines persones tenien un risc <b>Alt</b>, <b>Mitjà</b> o <b>Baix</b> de reincidir.",
         "s1_p2": "<b>Però què passa si aquestes prediccions eren incorrectes?</b>",
-        "s1_p3": "Els sistemes d'IA cometen dos tipus d'errors que tenen conseqüències molt diferents:",
-        "s1_li1": "<b>Falsos positius</b> - Predir incorrectament ALT risc",
-        "s1_li2": "<b>Falsos negatius</b> - Predir incorrectament BAIX risc",
-        "s1_p4": "Examinem cada tipus d'error i el seu impacte en el món real.",
-        "btn_next_fp": "Següent: Falsos positius ▶️",
-        # Step 2
-        "s2_title": "🔴 Falsos positius: El risc inexistent",
-        "s2_card_title": "Què és un fals positiu?",
-        "s2_def": "Un <b>fals positiu</b> es produeix quan la IA prediu que algú és d'<b style='color:#dc2626;'>ALT RISC</b>, però en realitat NO hauria reincidit si hagués estat posat en llibertat.",
-        "s2_ex_title": "Escenari d'exemple:",
-        "s2_ex_li1": "• La Sarah va ser marcada com d'<b style='color:#dc2626;'>ALT RISC</b>",
-        "s2_ex_li2": "• Basat en això, el tribunal la va mantenir a la presó",
-        "s2_ex_li3": "• En realitat, la Sarah hauria refet la seva vida i mai hauria comès un altre delicte",
-        "s2_cost_title": "El cost humà:",
-        "s2_cost_li1": "Persones innocents passen temps innecessari a la presó",
-        "s2_cost_li2": "Les famílies són separades per més temps del necessari",
-        "s2_cost_li3": "Les oportunitats laborals i la rehabilitació es retarden",
-        "s2_cost_li4": "La confiança en el sistema judicial s'erosiona",
-        "s2_cost_li5": "Impacte desproporcionat en comunitats marginades",
-        "s2_key": "<b>Punt clau:</b> Els falsos positius signifiquen que la IA està sent <b>massa cautelosa</b>, mantenint a la presó a persones que haurien de ser posades en llibertat.",
-        "btn_back": "◀️ Enrere",
-        "btn_next_fn": "Següent: Falsos negatius ▶️",
-        # Step 3
-        "s3_title": "🔵 Falsos negatius: El risc no detectat",
-        "s3_card_title": "Què és un fals negatiu?",
-        "s3_def": "Un <b>fals negatiu</b> es produeix quan la IA prediu que algú és de <b style='color:#16a34a;'>BAIX RISC</b>, però SÍ torna a cometre un delicte després de ser posat en llibertat.",
-        "s3_ex_title": "Escenari d'exemple:",
-        "s3_ex_li1": "• En James va ser marcat com de <b style='color:#16a34a;'>BAIX RISC</b>",
-        "s3_ex_li2": "• Basat en això, el tribunal li va concedir la llibertat condicional",
-        "s3_ex_li3": "• Malauradament, en James va cometre un altre delicte greu",
-        "s3_cost_title": "El cost humà:",
-        "s3_cost_li1": "Noves víctimes de delictes prevenibles",
-        "s3_cost_li2": "Pèrdua de confiança pública en el sistema judicial",
-        "s3_cost_li3": "Escrutini mediàtic i reaccions contra els tribunals",
-        "s3_cost_li4": "Pressió política per adoptar mesures severes contra la delinqüència",
-        "s3_cost_li5": "Dany potencial a comunitats i famílies",
-        "s3_key": "<b>Punt clau:</b> Els falsos negatius signifiquen que la IA està sent <b>massa indulgent</b>, posant en llibertat persones que representen un perill real per a la societat.",
-        "btn_next_dil": "Següent: El dilema ▶️",
-        # Step 4
-        "s4_title": "⚖️ L'equilibri impossible",
-        "s4_card_title": "Tot sistema d'IA presenta un dilema",
-        "s4_p1": "Aquesta és la dura realitat: <b>Cap sistema d'IA pot eliminar els dos tipus d'errors.</b>",
-        "s4_sub1": "<b>Si fas que la IA sigui més cautelosa:</b>",
-        "s4_sub1_li1": "✓ Menys falsos negatius (menys persones que representen un perill real són posades en llibertat)",
-        "s4_sub1_li2": "✗ Més falsos positius (més persones que no reincidirien es mantenen a la presó)",
-        "s4_sub2": "<b>Si fas que la IA sigui més indulgent:</b>",
-        "s4_sub2_li1": "✓ Menys falsos positius (més persones que no reincidirien són posades en llibertat)",
-        "s4_sub2_li2": "✗ Més falsos negatius (més persones que representen un perill real són posades en llibertat)",
-        "s4_eth_title": "La pregunta ètica:",
-        "s4_q1": "Quin error és pitjor?",
-        "s4_q2": "• Mantenir a la presó persones que no reincidirien?<br>• O posar en llibertat persones que representen un perill real?",
-        "s4_conc": "<b>No hi ha una resposta universalment 'correcta'.</b> Diferents societats, sistemes legals i marcs ètics sospesen aquests dilemes de manera diferent.",
-        "s4_final": "<b>Per això és crucial entendre la IA.</b> Necessitem saber com funcionen aquests sistemes per prendre decisions informades sobre quan i com utilitzar-los.",
-        "btn_cont": "Continuar aprenent sobre la IA ▶️",
-        # Step 5
-        "s5_title": "✅ Secció completada",
+        "s1_p3": "Els sistemes d'IA cometen dos tipus d'errors amb conseqüències molt diferents:",
+        "s1_li1": "<b>Falsos Positius</b> - Predir incorrectament ALT risc",
+        "s1_li2": "<b>Falsos Negatius</b> - Predir incorrectament BAIX risc",
+        "s1_p4": "Examinem cada tipus d'error i el seu impacte real.",
+        "s1_btn": "Iniciar Investigació ▶️",
+
+        "s2_title": "🔴 Expedient: Sarah",
+        "s2_card_label": "CAS #892",
+        "s2_ai_pred": "PREDICCIÓ IA: <span style='color:#dc2626'>ALT RISC 🔴</span>",
+        "s2_desc": "La Sarah va ser marcada com a perillosa. El jutge li va denegar la fiança i la va mantenir a la presó.",
+        "s2_reveal_btn": "🔍 Revelar Realitat",
+        "s2_reveal_title": "LA REALITAT:",
+        "s2_reveal_text": "La Sarah va ser alliberada finalment. <b>Mai va cometre un altre delicte.</b>",
+        "s2_analysis_title": "DIAGNÒSTIC: FALS POSITIU",
+        "s2_analysis_text": "És una 'Falsa Alarma'. La IA va veure perill on no n'hi havia.<br><b>El Cost:</b> Una persona innocent va perdre la llibertat i temps amb la seva família.",
+        "s2_btn": "Següent Cas ▶️",
+
+        "s3_title": "🔵 Expedient: James",
+        "s3_card_label": "CAS #893",
+        "s3_ai_pred": "PREDICCIÓ IA: <span style='color:#16a34a'>BAIX RISC 🟢</span>",
+        "s3_desc": "En James va ser marcat com a segur. El jutge el va alliberar sota paraula basant-se en això.",
+        "s3_reveal_btn": "🔍 Revelar Realitat",
+        "s3_reveal_title": "LA REALITAT:",
+        "s3_reveal_text": "Un mes després, <b>en James va cometre un robatori greu.</b>",
+        "s3_analysis_title": "DIAGNÒSTIC: FALS NEGATIU",
+        "s3_analysis_text": "La IA va 'perdre' l'amenaça.<br><b>El Cost:</b> La seguretat pública es va veure compromesa, creant noves víctimes.",
+        "s3_btn": "Següent: El Dilema ▶️",
+
+        "s4_title": "⚖️ L'Equilibri Impossible",
+        "s4_intro": "Pots arreglar la IA? Intenta ajustar l'estricte per obtenir <b>Zero Errors</b>.",
+        "s4_label": "Nivell d'Estricte",
+        "s4_fp_label": "Innocents a la Presó (Falsos Positius)",
+        "s4_fn_label": "Criminals Alliberats (Falsos Negatius)",
+        "s4_feed_lenient": "⚠️ <b>Massa Indulgent!</b> Has reduït els Falsos Positius, però <b>el crim ha augmentat</b> (Falsos Negatius).",
+        "s4_feed_strict": "⚠️ <b>Massa Estricte!</b> Has aturat el crim, però estàs <b>empresonant innocents</b> (Falsos Positius).",
+        "s4_feed_tradeoff": "⚖️ <b>La Dura Veritat:</b> No pots eliminar els dos errors. Si un baixa, l'altre puja.",
+        "s4_btn": "Entès - Finalitzar ▶️",
+
+        "s5_title": "✅ Secció Completada",
         "s5_p1": "Ara entens les conseqüències dels errors de la IA en decisions d'alt risc.",
-        "s5_p2": "<b>A continuació:</b> Aprèn què és realment la IA i com funcionen aquests sistemes de predicció.",
+        "s5_p2": "<b>A continuació:</b> Aprèn què és realment la IA i com funcionen aquests sistemes.",
         "s5_p3": "Aquest coneixement t'ajudarà a entendre com construir sistemes d'IA millors i més ètics.",
-        "s5_scroll": "👇 Continua amb la següent activitat a sota — o fes clic a <span style='white-space:nowrap;'>Següent (barra superior)</span> en vista ampliada ➡️",
+        "s5_scroll": "👇 Continua amb la següent activitat a sota — o fes clic a <span style='white-space:nowrap;'>Següent</span> a la barra superior ➡️",
         "s5_find": "Si no estàs en vista ampliada, desplaça’t per trobar la següent activitat.",
-        "btn_review": "◀️ Tornar a revisar"
+        "s5_btn": "◀️ Revisar Casos"
     }
 }
 
 def create_ai_consequences_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
-    """Create the AI Consequences Gradio Blocks app."""
-    try:
-        import gradio as gr
-        gr.close_all(verbose=False)
-    except ImportError as e:
-        raise ImportError("Gradio is required.") from e
-
-    # --- HTML Generator Helpers for i18n ---
+    
+    # --- Helpers ---
     def t(lang, key):
+        if not isinstance(lang, str): lang = "en"
         return TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(key, key)
 
-    def _get_step1_html(lang):
-        return f"""
-        <div class='step-card'>
-          <p>{t(lang, 's1_p1')}</p>
-          <p style='margin-top:20px;'>{t(lang, 's1_p2')}</p>
-          <p style='margin-top:20px;'>{t(lang, 's1_p3')}</p>
-          <ul style='font-size:18px; margin-top:12px;'>
-              <li>{t(lang, 's1_li1')}</li>
-              <li>{t(lang, 's1_li2')}</li>
-          </ul>
-          <p style='margin-top:20px;'>{t(lang, 's1_p4')}</p>
-        </div>
-        """
-
-    def _get_step2_html(lang):
-        return f"""
-        <div class='step-card step-card-warning'>
-          <h3 style='color:#b45309; margin-top:0;'>{t(lang, 's2_card_title')}</h3>
-          <p>{t(lang, 's2_def')}</p>
-          <div class='inner-card'>
-              <h4 style='margin-top:0;'>{t(lang, 's2_ex_title')}</h4>
-              <p style='font-size:18px;'>
-              {t(lang, 's2_ex_li1')}<br>
-              {t(lang, 's2_ex_li2')}<br>
-              {t(lang, 's2_ex_li3')}
-              </p>
-          </div>
-          <h3 style='color:#b45309;'>{t(lang, 's2_cost_title')}</h3>
-          <ul style='font-size:18px;'>
-              <li>{t(lang, 's2_cost_li1')}</li>
-              <li>{t(lang, 's2_cost_li2')}</li>
-              <li>{t(lang, 's2_cost_li3')}</li>
-              <li>{t(lang, 's2_cost_li4')}</li>
-              <li>{t(lang, 's2_cost_li5')}</li>
-          </ul>
-          <div class='keypoint-box'>
-              <p style='font-size:18px; margin:0;'>{t(lang, 's2_key')}</p>
-          </div>
-        </div>
-        """
-
-    def _get_step3_html(lang):
-        return f"""
-        <div class='step-card step-card-success'>
-          <h3 style='color:#15803d; margin-top:0;'>{t(lang, 's3_card_title')}</h3>
-          <p>{t(lang, 's3_def')}</p>
-          <div class='inner-card'>
-              <h4 style='margin-top:0;'>{t(lang, 's3_ex_title')}</h4>
-              <p style='font-size:18px;'>
-              {t(lang, 's3_ex_li1')}<br>
-              {t(lang, 's3_ex_li2')}<br>
-              {t(lang, 's3_ex_li3')}
-              </p>
-          </div>
-          <h3 style='color:#15803d;'>{t(lang, 's3_cost_title')}</h3>
-          <ul style='font-size:18px;'>
-              <li>{t(lang, 's3_cost_li1')}</li>
-              <li>{t(lang, 's3_cost_li2')}</li>
-              <li>{t(lang, 's3_cost_li3')}</li>
-              <li>{t(lang, 's3_cost_li4')}</li>
-              <li>{t(lang, 's3_cost_li5')}</li>
-          </ul>
-          <div class='keypoint-box'>
-              <p style='font-size:18px; margin:0;'>{t(lang, 's3_key')}</p>
-          </div>
-        </div>
-        """
-
-    def _get_step4_html(lang):
-        return f"""
-        <div class='step-card step-card-balance'>
-          <h3 style='color:#7e22ce; margin-top:0;'>{t(lang, 's4_card_title')}</h3>
-          <p>{t(lang, 's4_p1')}</p>
-          <div class='inner-card-wide'>
-              <p style='font-size:18px; margin-bottom:16px;'>{t(lang, 's4_sub1')}</p>
-              <ul style='font-size:18px;'>
-                  <li>{t(lang, 's4_sub1_li1')}</li>
-                  <li>{t(lang, 's4_sub1_li2')}</li>
-              </ul>
-              <hr style='margin:20px 0;'>
-              <p style='font-size:18px; margin-bottom:16px;'>{t(lang, 's4_sub2')}</p>
-              <ul style='font-size:18px;'>
-                  <li>{t(lang, 's4_sub2_li1')}</li>
-                  <li>{t(lang, 's4_sub2_li2')}</li>
-              </ul>
-          </div>
-          <h3 style='color:#7e22ce;'>{t(lang, 's4_eth_title')}</h3>
-          <div class='keypoint-box'>
-              <p style='font-size:20px; font-weight:bold; margin:0;'>{t(lang, 's4_q1')}</p>
-              <p style='font-size:18px; margin-top:12px; margin-bottom:0;'>{t(lang, 's4_q2')}</p>
-          </div>
-          <p style='margin-top:24px; font-size:18px;'>{t(lang, 's4_conc')}</p>
-          <div class='highlight-soft'>
-              <p style='font-size:18px; margin:0;'>{t(lang, 's4_final')}</p>
-          </div>
-        </div>
-        """
-
-    def _get_step5_html(lang):
-        return f"""
-        <div style='text-align:center;'>
-            <h2 style='font-size: 2.5rem;'>{t(lang, 's5_title')}</h2>
-            <div class='completion-box'>
-                <p>{t(lang, 's5_p1')}</p>
-                <p style='margin-top:24px;'>{t(lang, 's5_p2')}</p>
-                <p style='margin-top:24px;'>{t(lang, 's5_p3')}</p>
-                <h1 style='margin:20px 0; font-size: 3rem;'>{t(lang, 's5_scroll')}</h1>
-                <p style='font-size:1.1rem;'>{t(lang, 's5_find')}</p>
-            </div>
-        </div>
-        """
-
+    # --- CSS Adapted from Bias Detective ---
     css = """
-    /* (CSS remains exactly as provided in the previous snippet) */
-    .large-text { font-size: 20px !important; }
-    .loading-title { font-size: 2rem; color: var(--secondary-text-color); }
-    .warning-box { background-color: var(--block-background-fill) !important; border-left: 6px solid #dc2626 !important; color: var(--body-text-color); }
-    .consequences-intro-box { text-align: center; font-size: 18px; max-width: 900px; margin: auto; padding: 20px; border-radius: 12px; background-color: var(--block-background-fill); color: var(--body-text-color); border: 2px solid #dc2626; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); }
-    .step-card { font-size: 20px; padding: 28px; border-radius: 16px; background-color: var(--block-background-fill); color: var(--body-text-color); border: 1px solid var(--border-color-primary); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06); }
-    .step-card-warning { border-width: 3px; border-color: #f59e0b; }
-    .step-card-success { border-width: 3px; border-color: #16a34a; }
-    .step-card-balance { border-width: 3px; border-color: #9333ea; }
-    .inner-card { background-color: var(--body-background-fill); color: var(--body-text-color); padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid var(--border-color-primary); }
-    .inner-card-wide { background-color: var(--body-background-fill); color: var(--body-text-color); padding: 24px; border-radius: 12px; margin: 24px 0; border: 1px solid var(--border-color-primary); }
-    .keypoint-box { background-color: var(--block-background-fill); color: var(--body-text-color); padding: 16px; border-radius: 8px; margin-top: 20px; border-left: 6px solid #dc2626; }
-    .highlight-soft { background-color: var(--block-background-fill); color: var(--body-text-color); padding: 16px; border-radius: 8px; margin-top: 20px; border: 1px solid var(--border-color-primary); }
-    /* Compact, responsive CTA sizing in completion sections */
-    .completion-box h1 { font-size: clamp(1.5rem, 2vw + 0.6rem, 2rem) !important; line-height: 1.25; margin: 16px 0; }
-    #nav-loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: color-mix(in srgb, var(--body-background-fill) 95%, transparent); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; }
-    .nav-spinner { width: 50px; height: 50px; border: 5px solid var(--border-color-primary); border-top: 5px solid var(--color-accent); border-radius: 50%; animation: nav-spin 1s linear infinite; margin-bottom: 20px; }
+    /* --- LAYOUT CONTAINERS --- */
+    .scenario-box {
+        padding: 24px;
+        border-radius: 14px;
+        background: var(--block-background-fill);
+        border: 1px solid var(--border-color-primary);
+        margin-bottom: 22px;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    }
+    .slide-title { margin-top: 0; font-size: 1.8rem; font-weight: 800; text-align: center; margin-bottom: 20px; }
+    .slide-body { font-size: 1.1rem; line-height: 1.6; }
+    
+    /* --- CONTENT BOXES --- */
+    .hint-box {
+        padding: 16px;
+        border-radius: 10px;
+        background: var(--background-fill-secondary);
+        border: 1px solid var(--border-color-primary);
+        margin-top: 15px;
+        font-size: 1rem;
+    }
+    .ai-risk-container { 
+        margin-top: 16px; 
+        padding: 20px; 
+        background: var(--body-background-fill); 
+        border-radius: 10px; 
+        border: 1px solid var(--border-color-primary); 
+    }
+    
+    /* --- SPECIFIC CARDS (Sarah/James) --- */
+    .case-card {
+        background: var(--background-fill-secondary);
+        border-radius: 12px;
+        border: 1px solid var(--border-color-primary);
+        padding: 0;
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+    .case-header {
+        padding: 15px;
+        background: var(--background-fill-primary);
+        border-bottom: 1px solid var(--border-color-primary);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 700;
+    }
+    .case-body { padding: 20px; }
+    
+    /* --- BAR CHART --- */
+    .bar-container { display: flex; align-items: center; margin-bottom: 12px; }
+    .bar-label { width: 140px; font-weight: bold; font-size: 0.9rem; }
+    .bar-track { flex-grow: 1; background: #e5e7eb; height: 24px; border-radius: 4px; overflow: hidden; position: relative; }
+    .bar-fill { height: 100%; transition: width 0.3s ease; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; color: white; font-size: 0.8rem; font-weight: bold; }
+
+    /* --- LOADING OVERLAY --- */
+    #nav-loading-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: color-mix(in srgb, var(--body-background-fill) 95%, transparent);
+        z-index: 9999; display: none; flex-direction: column; align-items: center;
+        justify-content: center; opacity: 0; transition: opacity 0.3s ease;
+    }
+    .nav-spinner {
+        width: 50px; height: 50px; border: 5px solid var(--border-color-primary);
+        border-top: 5px solid var(--color-accent); border-radius: 50%;
+        animation: nav-spin 1s linear infinite; margin-bottom: 20px;
+    }
     @keyframes nav-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     #nav-loading-text { font-size: 1.3rem; font-weight: 600; color: var(--color-accent); }
-    @media (prefers-color-scheme: dark) { .consequences-intro-box, .step-card, .inner-card, .inner-card-wide, .keypoint-box, .highlight-soft, .completion-box { background-color: #2D323E; color: white; border-color: #555555; box-shadow: none; } .inner-card, .inner-card-wide { background-color: #181B22; } #nav-loading-overlay { background: rgba(15, 23, 42, 0.9); } .nav-spinner { border-color: rgba(148, 163, 184, 0.4); border-top-color: var(--color-accent); } }
     """
 
     with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
+        
+        # --- State ---
+        lang_state = gr.State("en")
+        
+        # --- Loading Overlay ---
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
         gr.HTML("<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>Loading...</span></div>")
 
-        # --- Dynamic Text Components ---
-        # We assign them to variables so we can return them in the update function
-        
-        c_main_title = gr.Markdown("<h1 style='text-align:center;'>⚠️ What If the AI Was Wrong?</h1>")
+        # --- SLIDE 1: INTRO (Original Text, New Style) ---
+        with gr.Group(elem_id="step-1") as step_1:
+            with gr.Column(elem_classes=["scenario-box"]):
+                s1_title = gr.Markdown(f"## {t('en', 's1_title')}", elem_classes=["slide-title"])
+                s1_content = gr.HTML(f"""
+                <div class='slide-body'>
+                    <p>{t('en', 's1_p1')}</p>
+                    <p style='margin-top:15px; font-size:1.2rem; text-align:center;'>{t('en', 's1_p2')}</p>
+                    <div class='ai-risk-container'>
+                        <p>{t('en', 's1_p3')}</p>
+                        <ul>
+                            <li style='margin-bottom:8px;'>{t('en', 's1_li1')}</li>
+                            <li>{t('en', 's1_li2')}</li>
+                        </ul>
+                    </div>
+                    <p style='margin-top:20px; font-weight:bold; text-align:center;'>{t('en', 's1_p4')}</p>
+                </div>
+                """)
+                s1_next = gr.Button(t('en', 's1_btn'), variant="primary", size="lg")
 
-        with gr.Column(visible=False) as loading_screen:
-            c_loading_title = gr.Markdown(f"<div style='text-align:center; padding: 100px 0;'><h2 class='loading-title'>{t('en', 'loading')}</h2></div>")
+        # --- SLIDE 2: SARAH (Reveal Interaction) ---
+        with gr.Group(visible=False, elem_id="step-2") as step_2:
+            with gr.Column(elem_classes=["scenario-box"]):
+                s2_title = gr.Markdown(f"## {t('en', 's2_title')}", elem_classes=["slide-title"])
+                
+                # Case File Visual
+                s2_case_html = gr.HTML(f"""
+                <div class='case-card' style='border-left: 6px solid #dc2626;'>
+                    <div class='case-header'>
+                        <span>{t('en', 's2_card_label')}</span>
+                        <span>👤 Sarah</span>
+                    </div>
+                    <div class='case-body'>
+                        <div style='font-size:1.2rem; font-weight:800; margin-bottom:10px;'>{t('en', 's2_ai_pred')}</div>
+                        <p>{t('en', 's2_desc')}</p>
+                    </div>
+                </div>
+                """)
+                
+                s2_reveal_btn = gr.Button(t('en', 's2_reveal_btn'), variant="secondary")
+                
+                # Reveal Box (Hidden initially)
+                s2_outcome_box = gr.HTML(visible=False) 
+                
+                s2_next = gr.Button(t('en', 's2_btn'), visible=False, variant="primary")
 
-        # Step 1
-        with gr.Column(visible=True, elem_id="step-1") as step_1:
-            c_intro_box = gr.Markdown(f"<div class='consequences-intro-box'>{t('en', 'intro_box')}</div>")
-            gr.HTML("<hr style='margin:24px 0;'>")
-            c_s1_title = gr.Markdown(f"<h2 style='text-align:center;'>{t('en', 's1_title')}</h2>")
-            c_s1_html = gr.HTML(_get_step1_html("en"))
-            step_1_next = gr.Button(t('en', 'btn_next_fp'), variant="primary", size="lg")
+        # --- SLIDE 3: JAMES (Reveal Interaction) ---
+        with gr.Group(visible=False, elem_id="step-3") as step_3:
+            with gr.Column(elem_classes=["scenario-box"]):
+                s3_title = gr.Markdown(f"## {t('en', 's3_title')}", elem_classes=["slide-title"])
+                
+                s3_case_html = gr.HTML(f"""
+                <div class='case-card' style='border-left: 6px solid #16a34a;'>
+                    <div class='case-header'>
+                        <span>{t('en', 's3_card_label')}</span>
+                        <span>👤 James</span>
+                    </div>
+                    <div class='case-body'>
+                        <div style='font-size:1.2rem; font-weight:800; margin-bottom:10px;'>{t('en', 's3_ai_pred')}</div>
+                        <p>{t('en', 's3_desc')}</p>
+                    </div>
+                </div>
+                """)
+                
+                s3_reveal_btn = gr.Button(t('en', 's3_reveal_btn'), variant="secondary")
+                s3_outcome_box = gr.HTML(visible=False)
+                s3_next = gr.Button(t('en', 's3_btn'), visible=False, variant="primary")
 
-        # Step 2
-        with gr.Column(visible=False, elem_id="step-2") as step_2:
-            c_s2_title = gr.Markdown(f"<h2 style='text-align:center;'>{t('en', 's2_title')}</h2>")
-            c_s2_html = gr.HTML(_get_step2_html("en"))
-            with gr.Row():
-                step_2_back = gr.Button(t('en', 'btn_back'), size="lg")
-                step_2_next = gr.Button(t('en', 'btn_next_fn'), variant="primary", size="lg")
+        # --- SLIDE 4: THE DILEMMA (Slider) ---
+        with gr.Group(visible=False, elem_id="step-4") as step_4:
+            with gr.Column(elem_classes=["scenario-box"]):
+                s4_title = gr.Markdown(f"## {t('en', 's4_title')}", elem_classes=["slide-title"])
+                s4_intro = gr.Markdown(f"### {t('en', 's4_intro')}")
+                
+                s4_slider = gr.Slider(minimum=0, maximum=100, value=50, step=5, label=t('en', 's4_label'))
+                s4_bars_html = gr.HTML() # Dynamic output
+                s4_feed_text = gr.HTML() # Dynamic output
+                
+                s4_next = gr.Button(t('en', 's4_btn'), variant="primary")
 
-        # Step 3
-        with gr.Column(visible=False, elem_id="step-3") as step_3:
-            c_s3_title = gr.Markdown(f"<h2 style='text-align:center;'>{t('en', 's3_title')}</h2>")
-            c_s3_html = gr.HTML(_get_step3_html("en"))
-            with gr.Row():
-                step_3_back = gr.Button(t('en', 'btn_back'), size="lg")
-                step_3_next = gr.Button(t('en', 'btn_next_dil'), variant="primary", size="lg")
+        # --- SLIDE 5: CONCLUSION (Original Text, New Style) ---
+        with gr.Group(visible=False, elem_id="step-5") as step_5:
+            with gr.Column(elem_classes=["scenario-box"]):
+                s5_title = gr.Markdown(f"## {t('en', 's5_title')}", elem_classes=["slide-title"])
+                s5_content = gr.HTML(f"""
+                <div class='slide-body' style='text-align:center;'>
+                    <p style='font-size:1.2rem;'>{t('en', 's5_p1')}</p>
+                    <div class='hint-box' style='margin: 30px 0; text-align:left;'>
+                        <p>{t('en', 's5_p2')}</p>
+                        <p>{t('en', 's5_p3')}</p>
+                    </div>
+                    <div style='background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); padding:20px; border-radius:12px; border:2px solid var(--color-accent);'>
+                        <h2 style='margin:0; font-size:1.5rem;'>{t('en', 's5_scroll')}</h2>
+                        <p>{t('en', 's5_find')}</p>
+                    </div>
+                </div>
+                """)
+                s5_restart = gr.Button(t('en', 's5_btn'), variant="secondary")
 
-        # Step 4
-        with gr.Column(visible=False, elem_id="step-4") as step_4:
-            c_s4_title = gr.Markdown(f"<h2 style='text-align:center;'>{t('en', 's4_title')}</h2>")
-            c_s4_html = gr.HTML(_get_step4_html("en"))
-            with gr.Row():
-                step_4_back = gr.Button(t('en', 'btn_back'), size="lg")
-                step_4_next = gr.Button(t('en', 'btn_cont'), variant="primary", size="lg")
-
-        # Step 5
-        with gr.Column(visible=False, elem_id="step-5") as step_5:
-            c_s5_html = gr.HTML(_get_step5_html("en"))
-            back_to_dilemma_btn = gr.Button(t('en', 'btn_review'))
-
-        # --- I18N UPDATE LOGIC (CACHED) ---
-        
-        update_targets = [
-            c_main_title, c_intro_box, c_loading_title,
-            c_s1_title, c_s1_html, step_1_next,
-            c_s2_title, c_s2_html, step_2_back, step_2_next,
-            c_s3_title, c_s3_html, step_3_back, step_3_next,
-            c_s4_title, c_s4_html, step_4_back, step_4_next,
-            c_s5_html, back_to_dilemma_btn
-        ]
-
-        @lru_cache(maxsize=16) 
-        def get_cached_ui_updates(lang):
-            """
-            Generates the UI updates once per language. 
-            Subsequent calls return the pre-calculated list instantly.
-            """
-            return [
-                f"<h1 style='text-align:center;'>{t(lang, 'title')}</h1>",
-                f"<div class='consequences-intro-box'>{t(lang, 'intro_box')}</div>",
-                f"<div style='text-align:center; padding: 100px 0;'><h2 class='loading-title'>{t(lang, 'loading')}</h2></div>",
-                # Step 1
-                f"<h2 style='text-align:center;'>{t(lang, 's1_title')}</h2>",
-                _get_step1_html(lang),
-                gr.Button(value=t(lang, 'btn_next_fp')),
-                # Step 2
-                f"<h2 style='text-align:center;'>{t(lang, 's2_title')}</h2>",
-                _get_step2_html(lang),
-                gr.Button(value=t(lang, 'btn_back')),
-                gr.Button(value=t(lang, 'btn_next_fn')),
-                # Step 3
-                f"<h2 style='text-align:center;'>{t(lang, 's3_title')}</h2>",
-                _get_step3_html(lang),
-                gr.Button(value=t(lang, 'btn_back')),
-                gr.Button(value=t(lang, 'btn_next_dil')),
-                # Step 4
-                f"<h2 style='text-align:center;'>{t(lang, 's4_title')}</h2>",
-                _get_step4_html(lang),
-                gr.Button(value=t(lang, 'btn_back')),
-                gr.Button(value=t(lang, 'btn_cont')),
-                # Step 5
-                _get_step5_html(lang),
-                gr.Button(value=t(lang, 'btn_review')),
-            ]
-
-        def update_language(request: gr.Request):
-            params = request.query_params
-            lang = params.get("lang", "en")
-            if lang not in TRANSLATIONS:
-                lang = "en"
-            
-            # This call is now instant for repeat visitors
-            return get_cached_ui_updates(lang)
-
-        demo.load(update_language, inputs=None, outputs=update_targets)
-
-        # --- NAVIGATION LOGIC ---
-        
-        all_steps = [step_1, step_2, step_3, step_4, step_5, loading_screen]
-
-        def create_nav_generator(current_step, next_step):
-            def navigate():
-                updates = {loading_screen: gr.update(visible=True)}
-                for step in all_steps:
-                    if step != loading_screen:
-                        updates[step] = gr.update(visible=False)
-                yield updates
-
-                updates = {next_step: gr.update(visible=True)}
-                for step in all_steps:
-                    if step != next_step:
-                        updates[step] = gr.update(visible=False)
-                yield updates
-            return navigate
-
-        def nav_js(target_id: str, message: str) -> str:
+        # --- JS Navigation Helper ---
+        def nav_js(target_id):
             return f"""
             ()=>{{
-              try {{
-                const overlay = document.getElementById('nav-loading-overlay');
-                const messageEl = document.getElementById('nav-loading-text');
-                if(overlay && messageEl) {{
-                  messageEl.textContent = '{message}';
-                  overlay.style.display = 'flex';
-                  setTimeout(() => {{ overlay.style.opacity = '1'; }}, 10);
-                }}
-                const startTime = Date.now();
+                document.getElementById('nav-loading-overlay').style.display = 'flex';
+                setTimeout(() => {{ document.getElementById('nav-loading-overlay').style.opacity = '1'; }}, 10);
                 setTimeout(() => {{
-                  const anchor = document.getElementById('app_top_anchor');
-                  if(anchor) anchor.scrollIntoView({{behavior:'smooth', block:'start'}});
-                }}, 40);
-                const targetId = '{target_id}';
-                const pollInterval = setInterval(() => {{
-                  const elapsed = Date.now() - startTime;
-                  const target = document.getElementById(targetId);
-                  const isVisible = target && target.offsetParent !== null && 
-                                   window.getComputedStyle(target).display !== 'none';
-                  if((isVisible && elapsed >= 1200) || elapsed > 7000) {{
-                    clearInterval(pollInterval);
-                    if(overlay) {{
-                      overlay.style.opacity = '0';
-                      setTimeout(() => {{ overlay.style.display = 'none'; }}, 300);
-                    }}
-                  }}
-                }}, 90);
-              }} catch(e) {{ console.warn('nav-js error', e); }}
+                    const anchor = document.getElementById('app_top_anchor');
+                    if(anchor) anchor.scrollIntoView({{behavior:'smooth', block:'start'}});
+                    document.getElementById('nav-loading-overlay').style.opacity = '0';
+                    setTimeout(() => {{ document.getElementById('nav-loading-overlay').style.display = 'none'; }}, 300);
+                }}, 600);
             }}
             """
 
-        step_1_next.click(fn=create_nav_generator(step_1, step_2), outputs=all_steps, js=nav_js("step-2", "Loading..."))
-        step_2_back.click(fn=create_nav_generator(step_2, step_1), outputs=all_steps, js=nav_js("step-1", "Loading..."))
-        step_2_next.click(fn=create_nav_generator(step_2, step_3), outputs=all_steps, js=nav_js("step-3", "Loading..."))
-        step_3_back.click(fn=create_nav_generator(step_3, step_2), outputs=all_steps, js=nav_js("step-2", "Loading..."))
-        step_3_next.click(fn=create_nav_generator(step_3, step_4), outputs=all_steps, js=nav_js("step-4", "Loading..."))
-        step_4_back.click(fn=create_nav_generator(step_4, step_3), outputs=all_steps, js=nav_js("step-3", "Loading..."))
-        step_4_next.click(fn=create_nav_generator(step_4, step_5), outputs=all_steps, js=nav_js("step-5", "Loading..."))
-        back_to_dilemma_btn.click(fn=create_nav_generator(step_5, step_4), outputs=all_steps, js=nav_js("step-4", "Loading..."))
+        # --- Event Handlers ---
+
+        # Reveal Logic (Slide 2)
+        def reveal_s2(lang):
+            html = f"""
+            <div class='hint-box' style='border-left: 4px solid #dc2626; background: rgba(220, 38, 38, 0.05);'>
+                <div style='font-weight:800; color:#dc2626; font-size:1.1rem; margin-bottom:5px;'>{t(lang, 's2_reveal_title')}</div>
+                <div style='margin-bottom:15px; font-size:1.1rem;'>{t(lang, 's2_reveal_text')}</div>
+                <div style='border-top:1px solid #fecaca; padding-top:10px;'>
+                    <div style='font-weight:700; color:#b91c1c;'>{t(lang, 's2_analysis_title')}</div>
+                    <div style='font-size:0.95rem; color:var(--body-text-color);'>{t(lang, 's2_analysis_text')}</div>
+                </div>
+            </div>
+            """
+            return gr.HTML(value=html, visible=True), gr.Button(visible=True), gr.Button(visible=False)
+
+        s2_reveal_btn.click(reveal_s2, inputs=[lang_state], outputs=[s2_outcome_box, s2_next, s2_reveal_btn])
+
+        # Reveal Logic (Slide 3)
+        def reveal_s3(lang):
+            html = f"""
+            <div class='hint-box' style='border-left: 4px solid #16a34a; background: rgba(22, 163, 74, 0.05);'>
+                <div style='font-weight:800; color:#16a34a; font-size:1.1rem; margin-bottom:5px;'>{t(lang, 's3_reveal_title')}</div>
+                <div style='margin-bottom:15px; font-size:1.1rem;'>{t(lang, 's3_reveal_text')}</div>
+                <div style='border-top:1px solid #bbf7d0; padding-top:10px;'>
+                    <div style='font-weight:700; color:#15803d;'>{t(lang, 's3_analysis_title')}</div>
+                    <div style='font-size:0.95rem; color:var(--body-text-color);'>{t(lang, 's3_analysis_text')}</div>
+                </div>
+            </div>
+            """
+            return gr.HTML(value=html, visible=True), gr.Button(visible=True), gr.Button(visible=False)
+
+        s3_reveal_btn.click(reveal_s3, inputs=[lang_state], outputs=[s3_outcome_box, s3_next, s3_reveal_btn])
+
+        # Slider Logic (Slide 4)
+        def update_bars(lang, val):
+            # Guard against invalid inputs that could cause a crash
+            if val is None: val = 50
+            try:
+                val = int(val)
+            except (ValueError, TypeError):
+                val = 50
+
+            fp_count = val
+            fn_count = 100 - val
+            
+            fp_label = t(lang, 's4_fp_label')
+            fn_label = t(lang, 's4_fn_label')
+            
+            html = f"""
+            <div style='margin-top:20px; padding:15px; border:1px solid var(--border-color-primary); border-radius:8px; background:var(--body-background-fill);'>
+                <div class='bar-container'>
+                    <div class='bar-label' style='color:#dc2626;'>{fp_label}</div>
+                    <div class='bar-track'>
+                        <div class='bar-fill' style='width:{fp_count}%; background:#dc2626;'>{fp_count}</div>
+                    </div>
+                </div>
+                <div class='bar-container'>
+                    <div class='bar-label' style='color:#16a34a;'>{fn_label}</div>
+                    <div class='bar-track'>
+                        <div class='bar-fill' style='width:{fn_count}%; background:#16a34a;'>{fn_count}</div>
+                    </div>
+                </div>
+            </div>
+            """
+            
+            msg = ""
+            bg_color = "var(--background-fill-secondary)"
+            border_color = "var(--border-color-primary)"
+            
+            if val < 20:
+                msg = t(lang, 's4_feed_lenient')
+                bg_color = "rgba(22, 163, 74, 0.1)"
+                border_color = "#16a34a"
+            elif val > 80:
+                msg = t(lang, 's4_feed_strict')
+                bg_color = "rgba(220, 38, 38, 0.1)"
+                border_color = "#dc2626"
+            else:
+                msg = t(lang, 's4_feed_tradeoff')
+                
+            feed_html = f"<div class='hint-box' style='text-align:center; background:{bg_color}; border:1px solid {border_color}; margin-top:20px;'>{msg}</div>"
+            return html, feed_html
+
+        # Init slider
+        demo.load(update_bars, inputs=[lang_state, s4_slider], outputs=[s4_bars_html, s4_feed_text])
+        s4_slider.change(update_bars, inputs=[lang_state, s4_slider], outputs=[s4_bars_html, s4_feed_text])
+
+        # Navigation
+        def nav(target):
+            return {
+                step_1: gr.update(visible=target==1),
+                step_2: gr.update(visible=target==2),
+                step_3: gr.update(visible=target==3),
+                step_4: gr.update(visible=target==4),
+                step_5: gr.update(visible=target==5)
+            }
+
+        s1_next.click(lambda: nav(2), outputs=[step_1, step_2, step_3, step_4, step_5], js=nav_js("step-2"))
+        s2_next.click(lambda: nav(3), outputs=[step_1, step_2, step_3, step_4, step_5], js=nav_js("step-3"))
+        s3_next.click(lambda: nav(4), outputs=[step_1, step_2, step_3, step_4, step_5], js=nav_js("step-4"))
+        s4_next.click(lambda: nav(5), outputs=[step_1, step_2, step_3, step_4, step_5], js=nav_js("step-5"))
+        s5_restart.click(lambda: nav(1), outputs=[step_1, step_2, step_3, step_4, step_5], js=nav_js("step-1"))
+
+        # Language Update
+        def update_language(request: gr.Request):
+            params = request.query_params
+            lang = params.get("lang", "en")
+            if lang not in TRANSLATIONS: lang = "en"
+            
+            # Helper for S1 content reconstruction
+            s1_html = f"""
+            <div class='slide-body'>
+                <p>{t(lang, 's1_p1')}</p>
+                <p style='margin-top:15px; font-size:1.2rem; text-align:center;'>{t(lang, 's1_p2')}</p>
+                <div class='ai-risk-container'>
+                    <p>{t(lang, 's1_p3')}</p>
+                    <ul>
+                        <li style='margin-bottom:8px;'>{t(lang, 's1_li1')}</li>
+                        <li>{t(lang, 's1_li2')}</li>
+                    </ul>
+                </div>
+                <p style='margin-top:20px; font-weight:bold; text-align:center;'>{t(lang, 's1_p4')}</p>
+            </div>
+            """
+            
+            # Helper for S2 Case
+            s2_html = f"""
+            <div class='case-card' style='border-left: 6px solid #dc2626;'>
+                <div class='case-header'>
+                    <span>{t(lang, 's2_card_label')}</span>
+                    <span>👤 Sarah</span>
+                </div>
+                <div class='case-body'>
+                    <div style='font-size:1.2rem; font-weight:800; margin-bottom:10px;'>{t(lang, 's2_ai_pred')}</div>
+                    <p>{t(lang, 's2_desc')}</p>
+                </div>
+            </div>
+            """
+
+            # Helper for S3 Case
+            s3_html = f"""
+            <div class='case-card' style='border-left: 6px solid #16a34a;'>
+                <div class='case-header'>
+                    <span>{t(lang, 's3_card_label')}</span>
+                    <span>👤 James</span>
+                </div>
+                <div class='case-body'>
+                    <div style='font-size:1.2rem; font-weight:800; margin-bottom:10px;'>{t(lang, 's3_ai_pred')}</div>
+                    <p>{t(lang, 's3_desc')}</p>
+                </div>
+            </div>
+            """
+
+            # Helper for S5 Content
+            s5_html = f"""
+            <div class='slide-body' style='text-align:center;'>
+                <p style='font-size:1.2rem;'>{t(lang, 's5_p1')}</p>
+                <div class='hint-box' style='margin: 30px 0; text-align:left;'>
+                    <p>{t(lang, 's5_p2')}</p>
+                    <p>{t(lang, 's5_p3')}</p>
+                </div>
+                <div style='background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); padding:20px; border-radius:12px; border:2px solid var(--color-accent);'>
+                    <h2 style='margin:0; font-size:1.5rem;'>{t(lang, 's5_scroll')}</h2>
+                    <p>{t(lang, 's5_find')}</p>
+                </div>
+            </div>
+            """
+
+            return [
+                lang,
+                f"## {t(lang, 's1_title')}", s1_html, t(lang, 's1_btn'),
+                f"## {t(lang, 's2_title')}", s2_html, t(lang, 's2_reveal_btn'), t(lang, 's2_btn'),
+                f"## {t(lang, 's3_title')}", s3_html, t(lang, 's3_reveal_btn'), t(lang, 's3_btn'),
+                f"## {t(lang, 's4_title')}", f"### {t(lang, 's4_intro')}", 
+                gr.update(label=t(lang, 's4_label')), # FIX: Safely update label without changing value
+                t(lang, 's4_btn'),
+                f"## {t(lang, 's5_title')}", s5_html, t(lang, 's5_btn')
+            ]
+
+        demo.load(update_language, inputs=None, outputs=[
+            lang_state,
+            s1_title, s1_content, s1_next,
+            s2_title, s2_case_html, s2_reveal_btn, s2_next,
+            s3_title, s3_case_html, s3_reveal_btn, s3_next,
+            s4_title, s4_intro, s4_slider, s4_next,
+            s5_title, s5_content, s5_restart
+        ])
 
     return demo
 
