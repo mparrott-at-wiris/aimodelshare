@@ -513,8 +513,8 @@ MODULES = [
 
                     <p style="text-align:center; max-width:700px; margin:0 auto 15px auto; font-size:1.1rem; color:var(--body-text-color);">
                         Search for evidence of Representation Bias.
-                        Compare the **Real World** population against the AI's **Input Data**.
-                        <br>Does the AI "see" the world as it truly is or do you see evidence of distorted representation?
+                        Compare the <strong>real-world</strong> population with the AI system’s <strong>input</strong> data.
+                        <br>Does the AI system "see" the world as it really is, or do you notice signs of distorted representation?
                     </p>
 
                 <div style="text-align:center; margin-bottom:20px;">
@@ -573,7 +573,7 @@ MODULES = [
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
                                     <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDENCE LOGGED: Race Representation Bias</div>
                                     <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        The AI is **over-exposed** to this group (51% vs 28%). It may learn to associate "High Risk" with this demographic simply because it sees them more often in arrest records.
+                                        The AI system sees this racial group too often (51% vs 28%). It might link “high risk” to people from this group just because they appear more in arrest records.
                                     </div>
                                 </div>
                             </div>
@@ -600,7 +600,7 @@ MODULES = [
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
                                     <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDENCE LOGGED: Gender Representation Bias</div>
                                     <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        Women are a "minority class" in this dataset even though they typically make up 50% of the true population. The model will likely struggle to learn accurate patterns for them, leading to **higher error rates** for female defendants.
+                                        Women are a minority in this dataset, even though they make up about 50% of the real population. The model will probably struggle to learn accurate patterns for them, leading to **higher error rates** for female defendants.
                                     </div>
                                 </div>
                             </div>
@@ -636,7 +636,7 @@ MODULES = [
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
                                     <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDENCE LOGGED: Age Representation Bias</div>
                                     <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        The data is concentrated in the 25-45 age "Bubble." The model has a **blind spot** for younger and older people, meaning predictions for those groups will be unreliable (Generalization Error).
+                                        The data is mostly focused on people aged 25–45, the “age bubble.” The model has a blind spot for younger and older people, so its predictions for them are likely unreliable (Generalization Error).
                                     </div>
                                 </div>
                             </div>
