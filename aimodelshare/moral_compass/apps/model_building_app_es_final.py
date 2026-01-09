@@ -3061,86 +3061,86 @@ def create_model_building_game_es_final_app(theme_primary_hue: str = "indigo") -
             return [updates[s] if s in updates else gr.update() for s in all_steps_nav] + [html]
 
         # Helper function to generate navigation JS with loading overlay
-        def nav_js(target_id: str, message: str, min_show_ms: int = 1200) -> str:
+        def nav_js(target_id: str, message: str, min_show_ms: int = 1200, notify_parent: bool = False) -> str:
             """
             Generate JavaScript for enhanced slide navigation with loading overlay.
-            
-            Args:
-                target_id: Element ID of the target slide (e.g., 'slide-2', 'model-step')
-                message: Loading message to display during transition
-                min_show_ms: Minimum time to show overlay (prevents flicker)
-            
-            Returns:
-                JavaScript arrow function string for Gradio's js parameter
             """
+            
+            # CHANGE 2: Prepare the notification code
+            notification_code = ""
+            if notify_parent:
+                notification_code = "try { window.parent.postMessage('model-updated', '*'); } catch(e) { console.warn(e); }"
+
             return f"""
-()=>{{
-  try {{
-    // Show overlay immediately
-    const overlay = document.getElementById('nav-loading-overlay');
-    const messageEl = document.getElementById('nav-loading-text');
-    if(overlay && messageEl) {{
-      messageEl.textContent = '{message}';
-      overlay.style.display = 'flex';
-      setTimeout(() => {{ overlay.style.opacity = '1'; }}, 10);
-    }}
-    
-    const startTime = Date.now();
-    
-    // Scroll to top after brief delay
-    setTimeout(() => {{
-      const anchor = document.getElementById('app_top_anchor');
-      const container = document.querySelector('.gradio-container') || document.scrollingElement || document.documentElement;
-      
-      function doScroll() {{
-        if(anchor) {{ anchor.scrollIntoView({{behavior:'smooth', block:'start'}}); }}
-        else {{ container.scrollTo({{top:0, behavior:'smooth'}}); }}
-        
-        // Best-effort Colab iframe scroll
-        try {{
-          if(window.parent && window.parent !== window && window.frameElement) {{
-            const top = window.frameElement.getBoundingClientRect().top + window.parent.scrollY;
-            window.parent.scrollTo({{top: Math.max(top - 10, 0), behavior:'smooth'}});
-          }}
-        }} catch(e2) {{}}
-      }}
-      
-      doScroll();
-      // Retry scroll to combat layout shifts
-      let scrollAttempts = 0;
-      const scrollInterval = setInterval(() => {{
-        scrollAttempts++;
-        doScroll();
-        if(scrollAttempts >= 3) clearInterval(scrollInterval);
-      }}, 130);
-    }}, 40);
-    
-    // Poll for target visibility and minimum display time
-    const targetId = '{target_id}';
-    const minShowMs = {min_show_ms};
-    let pollCount = 0;
-    const maxPolls = 77; // ~7 seconds max
-    
-    const pollInterval = setInterval(() => {{
-      pollCount++;
-      const elapsed = Date.now() - startTime;
-      const target = document.getElementById(targetId);
-      const isVisible = target && target.offsetParent !== null && 
-                       window.getComputedStyle(target).display !== 'none';
-      
-      // Hide overlay when target is visible AND minimum time elapsed
-      if((isVisible && elapsed >= minShowMs) || pollCount >= maxPolls) {{
-        clearInterval(pollInterval);
-        if(overlay) {{
-          overlay.style.opacity = '0';
-          setTimeout(() => {{ overlay.style.display = 'none'; }}, 300);
-        }}
-      }}
-    }}, 90);
-    
-  }} catch(e) {{ console.warn('nav-js error', e); }}
-}}
-"""
+            ()=>{{
+              {notification_code} 
+              try {{
+                // Show overlay immediately
+                const overlay = document.getElementById('nav-loading-overlay');
+                const messageEl = document.getElementById('nav-loading-text');
+                
+                // ... (Keep the rest of your existing JS logic exactly the same) ...
+                
+                if(overlay && messageEl) {{
+                  messageEl.textContent = '{message}';
+                  overlay.style.display = 'flex';
+                  setTimeout(() => {{ overlay.style.opacity = '1'; }}, 10);
+                }}
+                
+                const startTime = Date.now();
+                
+                // Scroll to top after brief delay
+                setTimeout(() => {{
+                  const anchor = document.getElementById('app_top_anchor');
+                  // ... (rest of scroll logic) ...
+                  const container = document.querySelector('.gradio-container') || document.scrollingElement || document.documentElement;
+                  
+                  function doScroll() {{
+                    if(anchor) {{ anchor.scrollIntoView({{behavior:'smooth', block:'start'}}); }}
+                    else {{ container.scrollTo({{top:0, behavior:'smooth'}}); }}
+                    
+                    try {{
+                      if(window.parent && window.parent !== window && window.frameElement) {{
+                        const top = window.frameElement.getBoundingClientRect().top + window.parent.scrollY;
+                        window.parent.scrollTo({{top: Math.max(top - 10, 0), behavior:'smooth'}});
+                      }}
+                    }} catch(e2) {{}}
+                  }}
+                  
+                  doScroll();
+                  let scrollAttempts = 0;
+                  const scrollInterval = setInterval(() => {{
+                    scrollAttempts++;
+                    doScroll();
+                    if(scrollAttempts >= 3) clearInterval(scrollInterval);
+                  }}, 130);
+                }}, 40);
+                
+                // Poll for target visibility
+                const targetId = '{target_id}';
+                const minShowMs = {min_show_ms};
+                let pollCount = 0;
+                const maxPolls = 77;
+                
+                const pollInterval = setInterval(() => {{
+                  pollCount++;
+                  const elapsed = Date.now() - startTime;
+                  const target = document.getElementById(targetId);
+                  const isVisible = target && target.offsetParent !== null && 
+                                       window.getComputedStyle(target).display !== 'none';
+                  
+                  if((isVisible && elapsed >= minShowMs) || pollCount >= maxPolls) {{
+                    clearInterval(pollInterval);
+                    if(overlay) {{
+                      overlay.style.opacity = '0';
+                      setTimeout(() => {{ overlay.style.display = 'none'; }}, 300);
+                    }}
+                  }}
+                }}, 90);
+                
+              }} catch(e) {{ console.warn('nav-js error', e); }}
+            }}
+            """
 
 
         # --- Wire up slide buttons with enhanced navigation ---
@@ -3262,8 +3262,15 @@ def create_model_building_game_es_final_app(theme_primary_hue: str = "indigo") -
             ],
             outputs=all_outputs,
             show_progress="full",
-            js=nav_js("model-step", "Ejecutando el experimento...", 500)
-        )
+            js=nav_js("model-step", "Ejecutando el experimento...", 500, notify_parent=False)
+            
+            ).then(
+                # CHANGE 2: Send the notification ONLY after Python is done (20s later)
+                fn=None,
+                inputs=None,
+                outputs=None,
+                js="() => { try { window.parent.postMessage('model-updated', '*'); console.log('Submission complete. Notifying parent.'); } catch(e) { console.warn(e); } }"
+            )
 
         # Handle session-based authentication on page load
         def handle_load_with_session_auth(request: "gr.Request"):
