@@ -401,14 +401,14 @@ MODULES = [
                 </div>
 
         <div class="slide-body">
-            <h2 class="slide-title" style="margin:0;">PASO 2: BÚSQUEDA DE LA EVIDENCIA</h2>
+            <h2 class="slide-title" style="margin:0;">PASO 2: BUSCA EVIDENCIAS</h2>
 
             <div style="text-align:center; margin-bottom:20px;">
 
-                <h2 class="slide-title header-accent" style="margin-top:10px;">La Búsqueda de Patrones Demográficos Sesgados</h2>
+                <h2 class="slide-title header-accent" style="margin-top:10px;">A la búsqueda de patrones demográficos sesgados</h2>
                 <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                    Una IA solo es tan justa como los datos de los que aprende. Si los datos de entrada distorsionan la realidad, la IA probablemente distorsionará la justicia.
-                    <br>El primer paso es buscar patrones que revelen <strong>Sesgo de Representación.</strong>  Para encontrar sesgo de representación debemos inspeccionar la <strong>Demografía.</strong>.
+                    Los sistemas de IA aprenden a partir de los datos. Si los datos están sesgados, el sistema también lo estará.
+                    <br>La primera tarea es identificar el <strong>sesgo de representación</strong> comprobando qué <strong>grupos demográficos</strong>aparecen con mayor o menor frecuencia en los datos.
                 </p>
             </div>
 
@@ -418,7 +418,7 @@ MODULES = [
                     <div style="font-size:1.5rem;">🚩</div>
                     <div>
                         <strong style="color:#0ea5e9; font-size:1.1rem; text-transform:uppercase; letter-spacing:1px;">PATRÓN: "EL ESPEJO DISTORSIONADO"</strong>
-                        <div style="font-size:0.9rem; color:var(--body-text-color-subdued);">(Sesgo de Representación en Grupos Protegidos)</div>
+                        <div style="font-size:0.9rem; color:var(--body-text-color-subdued);">(Sesgo de representación en grupos protegidos)</div>
                     </div>
                 </div>
 
@@ -426,15 +426,15 @@ MODULES = [
                     
                     <div style="color: var(--body-text-color);">
                         <p style="font-size:1rem; line-height:1.6;">
-                            <strong>El Concepto:</strong> Idealmente, un conjunto de datos debería parecerse a un "Espejo" de la población real. 
-                            Si un grupo constituye el 50% de la población, generalmente debería constituir ~50% de los datos.
+                            <strong>El concepto del espejo:</strong> Idealmente, un conjunto de datos debería ser un "espejo" de la población real. 
+                            Si un grupo constituye el 50% de la población, debería aparecer en una proporción similar en los datos.
                         </p>
                         <p style="font-size:1rem; line-height:1.6;">
-                            <strong>La Bandera Roja:</strong> Busca <strong>Desequilibrios Drásticos</strong> en Características Protegidas (Raza, Género, Edad).
+                            <strong>Señal de alerta:</strong> Busca <strong>grandes desequilibrios</strong> en características protegidas como el origen étnico, el género o la edad.
                         </p>
                         <ul style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:10px; padding-left:20px; line-height:1.5;">
-                            <li><strong>Sobrerrepresentación:</strong> Un grupo tiene una "Barra Gigante" (ej. el 80% de los registros de arresto son Hombres). La IA aprende a señalar a este grupo.</li>
-                            <li><strong>Infrarrepresentación:</strong> Un grupo falta o es diminuto. La IA no logra aprender patrones precisos para ellos.</li>
+                            <li><strong>Sobrerrepresentación:</strong> Un grupo domina los datos (ej. el 80% de los registros de arresto son Hombres). El sistema de IA puede acabar tratando a este grupo de forma injusta.</li>
+                            <li><strong>Infrarrepresentación:</strong> Un grupo es muy pequeño o no aparece. El sistema no puede aprender patrones fiables para ese grupo.</li>
                         </ul>
                     </div>
 
@@ -467,7 +467,7 @@ MODULES = [
 
             <div style="margin-bottom: 25px; padding: 0 10px;">
                 <p style="font-size:1.1rem; line-height:1.5; color:var(--body-text-color);">
-                    <strong>🕵️ Tu Próximo Paso:</strong> Debes entrar al Laboratorio Forense de Datos y comprobar los datos para categorías demográficas específicas. Si los patrones se parecen al "Espejo Distorsionado" de arriba, los datos probablemente son inseguros.
+                    <strong>🕵️ El siguiente paso:</strong> Revisa los datos demográficos en el laboratorio de análisis forense de datos. Si ves un espejo distorsionado, los datos probablemente estén sesgados.
                 </p>
             </div>
 
