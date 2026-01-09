@@ -516,7 +516,7 @@ MODULES = [
 
                     <p style="text-align:center; max-width:700px; margin:0 auto 15px auto; font-size:1.1rem; color:var(--body-text-color);">
                         Busca evidències de biaix de representació.
-                        Compara la població del **món real** amb les **dades d'entrada** del sistema de la IA.
+                        Compara la població del <strong>món real</strong> amb les dades d’<strong>entrada</strong> del sistema d’IA.
                         <br>El sistema "veu" el món tal com és realment o veus evidències de representació distorsionada?
                     </p>
 
@@ -550,7 +550,7 @@ MODULES = [
                                     <div style="text-align:center; background:var(--background-fill-secondary); padding:15px; border-radius:8px; border:1px solid var(--border-color-primary);">
                                         <div style="font-size:0.9rem; font-weight:700; color:var(--body-text-color-subdued); letter-spacing:1px;">MÓN REAL</div>
                                         <div style="font-size:2rem; font-weight:900; color:#3b82f6; margin:5px 0;">28%</div>
-                                        <div style="font-size:0.9rem; margin-bottom:10px; color: var(--body-text-color);">Població Afroamericana</div>
+                                        <div style="font-size:0.9rem; margin-bottom:10px; color: var(--body-text-color);">Població afroamericana</div>
                                         <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:4px; max-width:80px; margin:0 auto;">
                                             <span style="color:#3b82f6;">●</span><span style="color:#3b82f6;">●</span><span style="color:#3b82f6;">●</span><span style="color:var(--border-color-primary);">●</span>
                                             <span style="color:var(--border-color-primary);">●</span><span style="color:var(--border-color-primary);">●</span><span style="color:var(--border-color-primary);">●</span><span style="color:var(--border-color-primary);">●</span>
@@ -563,7 +563,7 @@ MODULES = [
                                     <div style="text-align:center; background:rgba(239, 68, 68, 0.1); padding:15px; border-radius:8px; border:2px solid #ef4444;">
                                         <div style="font-size:0.9rem; font-weight:700; color:#ef4444; letter-spacing:1px;">DADES D'ENTRADA</div>
                                         <div style="font-size:2rem; font-weight:900; color:#ef4444; margin:5px 0;">51%</div>
-                                        <div style="font-size:0.9rem; margin-bottom:10px; color: var(--body-text-color);">Registres Afroamericans</div>
+                                        <div style="font-size:0.9rem; margin-bottom:10px; color: var(--body-text-color);">Registres afroamericans</div>
                                         <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:4px; max-width:80px; margin:0 auto;">
                                             <span style="color:#ef4444;">●</span><span style="color:#ef4444;">●</span><span style="color:#ef4444;">●</span><span style="color:#ef4444;">●</span>
                                             <span style="color:#ef4444;">●</span><span style="color:#ef4444;">●</span><span style="color:rgba(239, 68, 68, 0.3);">●</span><span style="color:rgba(239, 68, 68, 0.3);">●</span>
@@ -576,7 +576,7 @@ MODULES = [
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
                                     <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDÈNCIA REGISTRADA: Biaix de representació d'origen ètnic</div>
                                     <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        El sistema d'IA està **sobre-exposada** a aquest grup (51% vs 28%). Pot aprendre a associar "Alt Risc" amb aquest grup demogràfic simplement perquè apareix amb més freqüència als registres d’arrest.
+                                        El sistema d’IA veu aquest grup racial massa sovint (51% vs 28%). Pot associar “alt risc” amb les persones d’aquest grup només perquè apareixen més en els registres d’arrestos.
                                     </div>
                                 </div>
                             </div>
@@ -603,7 +603,7 @@ MODULES = [
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
                                     <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDÈNCIA REGISTRADA: Biaix de representació de gènere</div>
                                     <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        Les dones són una "classe minoritària" en aquest conjunt de dades tot i que típicament constitueixen el 50% de la població real. El model probablement tindrà dificultats per aprendre patrons precisos per a elles, donant lloc a **taxes d'error més altes** per a les acusades.
+                                        Les dones són una minoria en aquest conjunt de dades, tot i que representen aproximadament el 50 % de la població real. El model probablement tindrà dificultats per aprendre patrons precisos per a aquest grup, fet que comportarà **taxes d'error més altes** en les prediccions sobre dones preses.s.
                                     </div>
                                 </div>
                             </div>
@@ -639,7 +639,7 @@ MODULES = [
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
                                     <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDÈNCIA REGISTRADA: Biaix de representació d'edat</div>
                                     <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        Les dades es concentren en la "bombolla" d'edat de 25-45. El model té un **punt cec** per a persones més joves i més grans, el que significa que les prediccions per a aquests grups seran poc fiables (Error de generalització).
+                                        Les dades estan concentrades principalment en persones de 25 a 45 anys, la “bombolla d’edat.” El model té un punt cec amb els més joves i els més grans, així que les prediccions per a aquests grups probablement no seran fiables (error de generalització).
                                     </div>
                                 </div>
                             </div>
@@ -669,13 +669,13 @@ MODULES = [
             <div class="scenario-box">
                 <div class="tracker-container">
                     <div class="tracker-step completed">✓ REGLES</div>
-                    <div class="tracker-step completed">✓ EVIDÈNCIA</div>
-                    <div class="tracker-step active">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICTE</div>
+                    <div class="tracker-step completed">✓ EVIDÈNCIES</div>
+                    <div class="tracker-step active">3. ERRORS</div>
+                    <div class="tracker-step">4. VEREDICTE</div>
                 </div>
-                <h2 class="slide-title" style="font-size:1.6rem; text-align:center; margin-bottom:15px;">Informe Forense de Dades: Defectes d'Entrada</h2>
+                <h2 class="slide-title" style="font-size:1.6rem; text-align:center; margin-bottom:15px;">Informe forense de dades: Defectes d'entrada</h2>
                 <div class="ai-risk-container" style="border: 2px solid #ef4444; background: rgba(239,68,68,0.05); padding: 20px;">
-                    <h4 style="margin-top:0; font-size:1.2rem; color:#b91c1c; text-align:center;">📋 RESUM D'EVIDÈNCIA</h4>
+                    <h4 style="margin-top:0; font-size:1.2rem; color:#b91c1c; text-align:center;">📋 RESUM D'EVIDÈNCIES</h4>
                     <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
                         <thead>
                             <tr style="background: rgba(239,68,68,0.1); border-bottom: 2px solid #ef4444;">
@@ -686,19 +686,19 @@ MODULES = [
                         </thead>
                         <tbody>
                             <tr style="border-bottom: 1px solid var(--border-color-primary);">
-                                <td style="padding: 8px; font-weight:700;">Raça</td>
+                                <td style="padding: 8px; font-weight:700;">Ètnia</td>
                                 <td style="padding: 8px;">Sobrerrepresentada (51%)</td>
-                                <td style="padding: 8px; color:#b91c1c;">Risc d'Augment de l'Error de Predicció</td>
+                                <td style="padding: 8px; color:#b91c1c;">Risc d'augment de l'error de predicció</td>
                             </tr>
                             <tr style="border-bottom: 1px solid var(--border-color-primary);">
                                 <td style="padding: 8px; font-weight:700;">Gènere</td>
                                 <td style="padding: 8px;">Infrarrepresentat (19%)</td>
-                                <td style="padding: 8px; color:#b91c1c;">Risc d'Augment de l'Error de Predicció</td>
+                                <td style="padding: 8px; color:#b91c1c;">Risc d'augment de l'error de predicció</td>
                             </tr>
                             <tr>
                                 <td style="padding: 8px; font-weight:700;">Edat</td>
                                 <td style="padding: 8px;">Grups Exclosos (Menys de 25/Més de 45)</td>
-                                <td style="padding: 8px; color:#b91c1c;">Risc d'Augment de l'Error de Predicció</td>
+                                <td style="padding: 8px; color:#b91c1c;">Risc d'augment de l'error de predicció</td>
                             </tr>
                         </tbody>
                     </table>
