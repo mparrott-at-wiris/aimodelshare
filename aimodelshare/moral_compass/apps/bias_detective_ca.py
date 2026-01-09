@@ -407,8 +407,8 @@ MODULES = [
 
                 <h2 class="slide-title header-accent" style="margin-top:10px;">A la recerca de patrons demogràfics esbiaixats</h2>
                 <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                    Els sistemes d’IA aprenen a partir de les dades. Si les dades són esbiaixades, el sistema també ho serà.
-                    <br>La primera tasca és identificar el <strong>biaix de representació,</strong> comprovant quins grups <strong>demogràfics</strong> apareixen més o menys sovint en les dades.
+                    Els sistemes d’IA aprenen a partir de les dades. Si les dades estan esbiaixades, el sistema també ho estarà.
+                    <br>La primera tasca és identificar el <strong>biaix de representació,</strong> comprovant quins <strong>grups demogràfics</strong> apareixen més o menys sovint en les dades.
                 </p>
             </div>
 
@@ -426,7 +426,7 @@ MODULES = [
                     
                     <div style="color: var(--body-text-color);">
                         <p style="font-size:1rem; line-height:1.6;">
-                            <strong>El concepte del mirall:</strong> Idealment, un conjunt de dades hauria de ser un "mirall" de la població real. 
+                            <strong>El concepte del mirall:</strong> Idealment, un conjunt de dades hauria de ser com un "mirall" de la població real. 
                             Si un grup constitueix el 50% de la població, hauria d’aparèixer en una proporció similar en les dades.
                         </p>
                         <p style="font-size:1rem; line-height:1.6;">
@@ -467,7 +467,7 @@ MODULES = [
 
             <div style="margin-bottom: 25px; padding: 0 10px;">
                 <p style="font-size:1.1rem; line-height:1.5; color:var(--body-text-color);">
-                    <strong>🕵️ El següent pas:</strong> Revisa les dades demogràfiques al laboratori d’anàlisi forense de dades. Si veus un mirall distorsionat, les dades probablement són esbiaixades.
+                    <strong>🕵️ El següent pas:</strong> Revisa les dades demogràfiques al laboratori d’anàlisi forense de dades. Si veus un "mirall distorsionat", les dades probablement estan esbiaixades.
                 </p>
             </div>
 
