@@ -623,14 +623,14 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
 
         # --- Variables for dynamic updating ---
         c_title = gr.Markdown("<h1 style='text-align:center;'>🤖 What is AI, Anyway?</h1>")
-        c_intro = gr.HTML(f"<div class='ai-intro-box'>{t('en', 'intro_box')}</div>")
-        gr.HTML("<hr style='margin:24px 0;'>")
 
         with gr.Column(visible=False) as loading_screen:
             c_load = gr.Markdown(f"<div style='text-align:center; padding: 100px 0;'><h2 class='loading-title'>{t('en', 'loading')}</h2></div>")
 
         # Step 1
         with gr.Column(visible=True, elem_id="step-1") as step_1:
+            c_intro = gr.HTML(f"<div class='ai-intro-box'>{t('en', 'intro_box')}</div>")
+            gr.HTML("<hr style='margin:24px 0;'>")
             c_s1_title = gr.Markdown(f"<h2 style='text-align:center;'>{t('en', 's1_title')}</h2>")
             c_s1_html = gr.HTML(_get_step1_html("en"))
             step_1_next = gr.Button(t('en', 'btn_next_formula'), variant="primary", size="lg")
