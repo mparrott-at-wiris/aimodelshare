@@ -427,7 +427,7 @@ MODULES = [
                             If a group makes up 50% of the population, it should appear at about the same level in the data.
                         </p>
                         <p style="font-size:1rem; line-height:1.6;">
-                            <strong>The Red Flag:</strong> Look for <strong>imbalances</strong> in protected characteristics such race, gender, or age.
+                            <strong>The Red Flag:</strong> Look for <strong>big imbalances</strong> in protected characteristics such race, gender, or age.
                         </p>
                         <ul style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:10px; padding-left:20px; line-height:1.5;">
                             <li><strong>Over-Representation:</strong> One group dominates the data (for example, 80% of arrest records are men). The AI may learn to target this group.</li>
