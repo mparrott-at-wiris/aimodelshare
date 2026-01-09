@@ -129,7 +129,7 @@ MODULES = [
                             <summary style="padding:20px; font-weight:800; font-size:1.2rem; color:var(--body-text-color); cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between; background:rgba(239,68,68,0.1);">
                                 <div style="display:flex; align-items:center; gap:15px;">
                                     <span style="font-size:1.8rem;">⚠️</span>
-                                    <span>RISC: L'"Efecte Ona"</span>
+                                    <span>RISC: L'"efecte ona"</span>
                                 </div>
                                 <span style="font-size:0.9rem; color:#ef4444; text-transform:uppercase;">Fes clic per simular</span>
                             </summary>
@@ -140,7 +140,7 @@ MODULES = [
                                         <div style="font-weight:900; font-size:2.0rem; color:#ef4444; line-height:1;">15.000+</div>
                                         <div style="font-weight:700; font-size:1.1rem; color:var(--body-text-color); margin-bottom:5px;">Casos processats per any</div>
                                         <div style="font-size:1.1rem; color:var(--body-text-color-subdued); line-height:1.5;">
-                                            Un humà comet un error una vegada. Aquesta IA repetirà el mateix biaix <strong style="color:var(--body-text-color);">15.000+ vegades a l'any</strong>.
+                                            Un humà comet un error una vegada. Un sistema d'IA repetirà el mateix biaix <strong style="color:var(--body-text-color);">15.000+ vegades a l'any</strong>.
                                             <br>Si no ho arreglem, automatitzarem la injustícia a gran escala.
                                         </div>
                                     </div>
@@ -159,7 +159,7 @@ MODULES = [
                             <div style="padding:25px; border-top:1px solid var(--border-color-primary);">
                                 <div style="text-align:center; margin-bottom:20px;">
                                     <div style="font-size:1.4rem; font-weight:800; background:var(--background-fill-primary); border:1px solid var(--border-color-primary); padding:15px; border-radius:10px; display:inline-block; color:var(--body-text-color);">
-                                        <span style="color:#6366f1;">[ Exactitud ]</span>
+                                        <span style="color:#6366f1;">[ Precisió ]</span>
                                         <span style="color:var(--body-text-color-subdued); margin:0 10px;">×</span>
                                         <span style="color:#22c55e;">[ % Progrés ètic ]</span>
                                         <span style="color:var(--body-text-color-subdued); margin:0 10px;">=</span>
@@ -169,7 +169,7 @@ MODULES = [
                                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
                                     <div style="padding:15px; background:rgba(254,226,226,0.1); border:2px solid #fecaca; border-radius:10px; text-align:center;">
                                         <div style="font-weight:700; color:#ef4444; margin-bottom:5px;">Escenari A: Ètica ignorada</div>
-                                        <div style="font-size:0.95rem; color:var(--body-text-color);">Alta exactitud (92%)</div>
+                                        <div style="font-size:0.95rem; color:var(--body-text-color);">Alta precisió (92%)</div>
                                         <div style="font-size:0.95rem; color:var(--body-text-color);">0% Ètica</div>
                                         <div style="margin-top:10px; border-top:1px solid #fecaca; padding-top:5px;">
                                             <div style="font-size:0.8rem; text-transform:uppercase; color:#ef4444;">Puntuació final</div>
@@ -177,8 +177,8 @@ MODULES = [
                                         </div>
                                     </div>
                                     <div style="padding:15px; background:rgba(220,252,231,0.1); border:2px solid #bbf7d0; border-radius:10px; text-align:center;">
-                                        <div style="font-weight:700; color:#22c55e; margin-bottom:5px;">Escenari B: Veritable detectiu</div>
-                                        <div style="font-size:0.95rem; color:var(--body-text-color);">Alta exactitud (92%)</div>
+                                        <div style="font-weight:700; color:#22c55e; margin-bottom:5px;">Escenari B: Detectiu rigorós</div>
+                                        <div style="font-size:0.95rem; color:var(--body-text-color);">Alta precisió (92%)</div>
                                         <div style="font-size:0.95rem; color:var(--body-text-color);">100% Ètica</div>
                                         <div style="margin-top:10px; border-top:1px solid #bbf7d0; padding-top:5px;">
                                             <div style="font-size:0.8rem; text-transform:uppercase; color:#15803d;">Puntuació final</div>
@@ -285,8 +285,8 @@ MODULES = [
             <div class="scenario-box">
                 <div class="tracker-container">
                     <div class="tracker-step active">1. REGLES</div>
-                    <div class="tracker-step">2. EVIDÈNCIA</div>
-                    <div class="tracker-step">3. ERROR</div>
+                    <div class="tracker-step">2. EVIDENCIES</div>
+                    <div class="tracker-step">3. ERRORS</div>
                     <div class="tracker-step">4. VEREDICTE</div>
                 </div>
 
@@ -1427,13 +1427,13 @@ QUIZ_CONFIG = {
       0: {
         "t": "t1",
         # Added bold incentive text to the question
-        "q": "🚀 **Primera Oportunitat de Puntuació:** Per què multipliquem la teva Exactitud pel Progrés Ètic? (Respon correctament per guanyar el teu primer augment de Puntuació de Brúixola Moral!)",
+        "q": "🚀 **Primera oportunitat de puntuació:** Per què multipliquem la teva precisió pel progrés ètic? (Respon correctament per guanyar el teu primer augment de Puntuació de Brúixola Moral!)",
         "o": [
-            "A) Perquè la simple exactitud ignora el biaix potencial i el dany.",
+            "A) Perquè la simple precisió ignora el biaix potencial i el dany que pot causar.",
             "B) Per fer les matemàtiques de la classificació més complicades.",
-            "C) L'exactitud és l'única mètrica que realment importa.",
+            "C) La precisió és l'única mètrica que realment importa.",
         ],
-        "a": "A) Perquè la simple exactitud ignora el biaix potencial i el dany.",
+        "a": "A) Perquè la simple precisió ignora el biaix potencial i el dany que pot causar.",
         # Updated success message to confirm the 'win'
         "success": "<strong>Puntuació Desbloquejada!</strong> Calibratge complet. Ara estàs oficialment a la classificació.",
     },
@@ -1461,98 +1461,98 @@ QUIZ_CONFIG = {
     },
     3: {
         "t": "t4",
-        "q": "Detectiu, sospitem que les dades d'entrada són un 'Mirall Distorsionat' de la realitat. Per confirmar si existeix Biaix de Representació, quin és el teu objectiu forense principal?",
+        "q": "Detectiu, sospitem que les dades d'entrada són un 'mirall distorsionat' de la realitat. Per confirmar si existeix biaix de representació, quin és el teu objectiu forense principal?",
         "o": [
             "A) Necessito llegir les entrades del diari personal del jutge.",
             "B) Necessito comprovar si l'ordinador està endollat correctament.",
-            "C) Necessito comparar les Distribucions Demogràfiques (Raça/Gènere) de les dades amb les estadístiques de població del món real.",
+            "C) Necessito comparar les distribucions demogràfiques (origen ètnic/gènere) de les dades amb les estadístiques de la població real.",
         ],
-        "a": "C) Necessito comparar les Distribucions Demogràfiques (Raça/Gènere) de les dades amb les estadístiques de població del món real.",
+        "a": "C) Necessito comparar les Distribucions Demogràfiques (Raça/Gènere) de les dades amb les estadístiques de la població real.",
         "success": "Objectiu Adquirit. Estàs preparat per entrar al Laboratori Forense de Dades.",
     },
     4: {
         "t": "t5",
-        "q": "Revisió de l'Anàlisi Forense: Has marcat les dades de Gènere com un 'Buit de Dades' (només 19% Dones). Segons el teu registre d'evidències, quin és el risc tècnic específic per a aquest grup?",
+        "q": "Revisió de l'anàlisi forense: Has marcat les dades de gènere com un 'buit de dades' (només 19% dones). Segons el teu registre d'evidències, quin és el risc tècnic específic per a aquest grup?",
         "o": [
-            "A) El model tindrà un 'Punt Cec' perquè no ha vist prou exemples per aprendre patrons precisos.",
+            "A) El model tindrà un 'punt cec' perquè no ha vist prou exemples per aprendre patrons precisos.",
             "B) La IA apuntarà automàticament a aquest grup a causa de l'excés de vigilància històrica.",
-            "C) El model utilitzarà per defecte les estadístiques del 'Món Real' per omplir els números que falten.",
+            "C) El model utilitzarà per defecte les estadístiques del 'món real' per omplir els números que falten.",
         ],
-        "a": "A) El model tindrà un 'Punt Cec' perquè no ha vist prou exemples per aprendre patrons precisos.",
-        "success": "Evidència Bloquejada. Entens que les 'Dades que Falten' creen punts cecs, fent que les prediccions per a aquest grup siguin menys fiables.",
+        "a": "A) El model tindrà un 'punt cec' perquè no ha vist prou exemples per aprendre patrons precisos.",
+        "success": "Evidència Bloquejada. Entens que les dades que falten creen punts cecs, fent que les prediccions per a aquest grup siguin menys fiables.",
     },
     # --- QUESTION 4 (Evidence Report Summary) ---
     5: {
         "t": "t6",
-        "q": "Detectiu, revisa la teva taula de Resum d'Evidència. Has trobat casos tant de Sobrerrepresentació (Raça) com d'Infrarrepresentació (Gènere/Edat). Quina és la teva conclusió general sobre com el Biaix de Representació afecta la IA?",
+        "q": "Detectiu, revisa la teva taula de resum d'evidències. Has trobat casos tant de sobrerrepresentació (origen ètnic) com d'infrarrepresentació (gènere/edat). Quina és la teva conclusió general sobre com el biaix de representació afecta un sistema d'IA?",
         "o": [
             "A) Confirma que el conjunt de dades és neutral, ja que les categories 'Sobre' i 'Infra' es cancel·len matemàticament entre si.",
-            "B) Crea un 'Risc d'Augment de l'Error de Predicció' en AMBDUES direccions: tant si un grup s'exagera com si s'ignora, la visió de la realitat de la IA es deforma.",
+            "B) Crea un 'risc d'augment de l'error de predicció' en AMBDUES direccions: tant si un grup s'exagera com si s'ignora, la visió de la realitat del sistema de l'IA es deforma.",
             "C) Només crea risc quan falten dades (Infrarrepresentació); tenir dades extra (Sobrerrepresentació) en realitat fa que el model sigui més precís.",
         ],
-        "a": "B) Crea un 'Risc d'Augment de l'Error de Predicció' en AMBDUES direccions: tant si un grup s'exagera com si s'ignora, la visió de la realitat de la IA es deforma.",
+        "a": "B) Crea un 'risc d'augment de l'error de predicció' en AMBDUES direccions: tant si un grup s'exagera com si s'ignora, la visió de la realitat del sistema de l'IA es deforma.",
         "success": "Conclusió Verificada. Les dades distorsionades, tant si estan inflades com si falten, poden portar a una justícia distorsionada.",
     },
     6: {
         "t": "t7",
-        "q": "Detectiu, estàs caçant el patró del 'Doble Estàndard'. Quina peça específica d'evidència representa aquesta Bandera Vermella?",
+        "q": "Detectiu, has trobat el patró del 'doble estàndard'. Quina peça específica d'evidència representa aquesta senyal d'alerta?",
         "o": [
             "A) El model comet zero errors per a cap grup.",
-            "B) Un grup pateix una taxa de 'Falses Alarmes' significativament més alta que un altre grup.",
+            "B) Un grup pateix una taxa de 'falses alarmes' significativament més alta que un altre grup.",
             "C) Les dades d'entrada contenen més homes que dones.",
         ],
-        "a": "B) Un grup pateix una taxa de 'Falses Alarmes' significativament més alta que un altre grup.",
+        "a": "B) Un grup pateix una taxa de 'falses alarmes' significativament més alta que un altre grup.",
         "success": "Patró Confirmat. Quan la taxa d'error està desequilibrada, és un Doble Estàndard.",
     },
     # --- QUESTION 6 (Race Error Gap) ---
     7: {
         "t": "t8",
-        "q": "Revisa el teu registre de dades. Què va revelar l'escaneig de 'Falses Alarmes' sobre el tractament dels acusats afroamericans?",
+        "q": "Revisa el teu registre de dades. Què ha revelat l'escaneig de 'falses alarmes' sobre el tractament dels acusats afroamericans?",
         "o": [
             "A) Són tractats exactament igual que els acusats blancs.",
-            "B) Són omesos pel sistema més sovint (Biaix de Benevolència).",
-            "C) Tenen gairebé el doble de probabilitats de ser marcats erròniament com a 'Alt Risc' (Biaix Punitiu).",
+            "B) Són omesos pel sistema més sovint (biaix de benevolència).",
+            "C) Tenen gairebé el doble de probabilitats de ser marcats erròniament com a 'Alt Risc' (biaix punitiu).",
         ],
-        "a": "C) Tenen gairebé el doble de probabilitats de ser marcats erròniament com a 'Alt Risc' (Biaix Punitiu).",
-        "success": "Evidència Registrada. El sistema està castigant persones innocents basant-se en la raça.",
+        "a": "C) Tenen gairebé el doble de probabilitats de ser marcats erròniament com a 'Alt Risc' (biaix punitiu).",
+        "success": "Evidència Registrada. El sistema està castigant persones innocents basant-se en l'origen ètnic.",
     },
 
     # --- QUESTION 7 (Generalization & Proxy Scan) ---
     8: {
         "t": "t9",
-        "q": "L'Escaneig de Geografia va mostrar una taxa d'error massiva a les Zones Urbanes. Què demostra això sobre els 'Codis Postals'?",
+        "q": "L'escaneig geogràfic ha mostrat una taxa d'error massiva a les zones urbanes. Què revela això sobre els 'codis postals'?",
         "o": [
-            "A) Els Codis Postals actuen com una 'Variable Proxy' per apuntar a grups específics, fins i tot si variables com la Raça s'eliminen del conjunt de dades.",
+            "A) Els codis postals actuen com una variable proxy (indicadors indirectes d’altres característiques), fins i tot quan variables com l'origen ètnic s'han eliminat del conjunt de dades.",
             "B) La IA és simplement dolenta llegint mapes i dades d'ubicació.",
             "C) La gent a les ciutats genera naturalment més errors informàtics que la gent a les zones rurals.",
         ],
-        "a": "A) Els Codis Postals actuen com una 'Variable Proxy' per apuntar a grups específics, fins i tot si variables com la Raça s'eliminen del conjunt de dades.",
+        "a": "A) Els codis postals actuen com una variable proxy (indicadors indirectes d’altres característiques), fins i tot quan variables com l'origen ètnic s'han eliminat del conjunt de dades.",
         "success": "Proxy Identificat. Amagar una variable no funciona si deixes un proxy enrere.",
     },
 
     # --- QUESTION 8 (Audit Summary) ---
     9: {
         "t": "t10",
-        "q": "Has tancat l'expedient del cas. Quina de les següents opcions està CONFIRMADA com l''Amenaça Principal' al teu informe final?",
+        "q": "Has tancat l'expedient del cas. Quina de les següents opcions està CONFIRMADA com l''amenaça principal' al teu informe final?",
         "o": [
-            "A) Un Doble Estàndard Racial on els acusats negres innocents són penalitzats el doble de vegades.",
+            "A) Un doble estàndard d'origen ètnic on els acusats negres innocents són penalitzats el doble de vegades.",
             "B) Codi maliciós escrit per hackers per trencar el sistema.",
             "C) Una fallada de hardware a la sala de servidors causant errors matemàtics aleatoris.",
         ],
-        "a": "A) Un Doble Estàndard Racial on els acusats negres innocents són penalitzats el doble de vegades.",
-        "success": "Amenaça Avaluada. El biaix està confirmat i documentat.",
+        "a": "A) Un doble estàndard d'origen ètnic on els acusats negres innocents són penalitzats el doble de vegades.",
+        "success": "Amenaça avaluada. El biaix està confirmat i documentat.",
     },
 
     # --- QUESTION 9 (Final Verdict) ---
     10: {
         "t": "t11",
-        "q": "Basant-te en les greus violacions de Justícia i Equitat trobades a la teva auditoria, quina és la teva recomanació final al tribunal?",
+        "q": "Basant-te en les violacions de Justícia i Equitat trobades a la teva auditoria, quina és la teva recomanació final al tribunal?",
         "o": [
             "A) CERTIFICAR: El sistema està majoritàriament bé, els errors menors són acceptables.",
-            "B) AVÍS VERMELL: Pausar el sistema per a reparacions immediatament perquè és insegur i esbiaixat.",
-            "C) ADVERTÈNCIA: Utilitzar la IA només els caps de setmana quan el crim és més baix.",
+            "B) AVÍS VERMELL: Pausar immediatament el sistema per fer-hi reparacions, ja que és insegur i esbiaixat.",
+            "C) ADVERTÈNCIA: Utilitzar el sistema d'IA només els caps de setmana quan el crim és més baix.",
         ],
-        "a": "B) AVÍS VERMELL: Pausar el sistema per a reparacions immediatament perquè és insegur i esbiaixat.",
+        "a": "B) AVÍS VERMELL: Pausar immediatament el sistema per fer-hi reparacions, ja que és insegur i esbiaixat.",
         "success": "Veredicte Lliurat. Has aturat amb èxit un sistema nociu.",
     },
 }
