@@ -3881,7 +3881,15 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             ],
             outputs=all_outputs,
             show_progress="full",
-            js=nav_js("model-step", "Running experiment...", 500, notify_parent=True))
+            js=nav_js("model-step", "Running experiment...", 500, notify_parent=False)
+            
+            ).then(
+                # CHANGE 2: Send the notification ONLY after Python is done (20s later)
+                fn=None,
+                inputs=None,
+                outputs=None,
+                js="() => { try { window.parent.postMessage('model-updated', '*'); console.log('Submission complete. Notifying parent.'); } catch(e) { console.warn(e); } }"
+            )
         
 
         # Handle session-based authentication on page load
