@@ -497,32 +497,32 @@ MODULES = [
     # --- MODULE 4: DATA FORENSICS LAB (The Action) ---
     {
         "id": 4, 
-        "title": "Pas 2: Laboratori Forense de Dades",
+        "title": "Pas 2: Laboratori forense de dades",
         "html": """
             <div class="scenario-box">
                 <div class="tracker-container">
                     <div class="tracker-step completed">1. REGLES</div>
-                    <div class="tracker-step active">2. EVIDÈNCIA</div>
-                    <div class="tracker-step">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICTE</div>
+                    <div class="tracker-step active">2. EVIDENCIES</div>
+                    <div class="tracker-step">3. ERRORS</div>
+                    <div class="tracker-step">4. VEREDICTE</div>
                 </div>
 
-           <h2 class="slide-title" style="margin:0;">PAS 2: CERCA DE L'EVIDÈNCIA</h2>
+           <h2 class="slide-title" style="margin:0;">PAS 2: BUSCA EVIDÈNCIES</h2>
 
             <div style="text-align:center; margin-bottom:20px;">
 
-                <h2 class="slide-title header-accent" style="margin-top:10px;">El Laboratori Forense de Dades</h2>                
+                <h2 class="slide-title header-accent" style="margin-top:10px;">El laboratori forense de dades</h2>                
                 <div class="slide-body">
 
                     <p style="text-align:center; max-width:700px; margin:0 auto 15px auto; font-size:1.1rem; color:var(--body-text-color);">
-                        Busca evidències de Biaix de Representació.
-                        Compara la població del **Món Real** amb les **Dades d'Entrada** de la IA.
-                        <br>La IA "veu" el món tal com és realment o veus evidència de representació distorsionada?
+                        Busca evidències de biaix de representació.
+                        Compara la població del **món real** amb les **dades d'entrada** del sistema de la IA.
+                        <br>El sistema "veu" el món tal com és realment o veus evidències de representació distorsionada?
                     </p>
 
                 <div style="text-align:center; margin-bottom:20px;">
                     <p style="font-size:1rem; font-weight:700; color:var(--color-accent); background:rgba(59, 130, 246, 0.1); display:inline-block; padding:6px 16px; border-radius:20px; border:1px solid var(--border-color-primary);">
-                        👇 Fes clic per escanejar cada categoria demogràfica i revelar l'evidència
+                        👇 Fes clic per escanejar cada categoria demogràfica i revelar evidències
                     </p>
                </div>
 
@@ -532,16 +532,16 @@ MODULES = [
                         <input type="radio" id="scan-age" name="scan-tabs" class="scan-radio">
 
                         <div class="forensic-tabs" style="display:flex; justify-content:center; gap:10px; margin-bottom:0;">
-                            <label for="scan-race" class="tab-label-styled" style="flex:1; text-align:center;">ESCAN: RAÇA</label>
-                            <label for="scan-gender" class="tab-label-styled" style="flex:1; text-align:center;">ESCAN: GÈNERE</label>
-                            <label for="scan-age" class="tab-label-styled" style="flex:1; text-align:center;">ESCAN: EDAT</label>
+                            <label for="scan-race" class="tab-label-styled" style="flex:1; text-align:center;">ESCANEIG: ÈTNIA</label>
+                            <label for="scan-gender" class="tab-label-styled" style="flex:1; text-align:center;">ESCANEIG: GÈNERE</label>
+                            <label for="scan-age" class="tab-label-styled" style="flex:1; text-align:center;">ESCANEIG: EDAT</label>
                         </div>
 
                         <div class="scan-content" style="border-top: 3px solid var(--color-accent);">
 
                             <div class="scan-pane pane-race">
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; background:#1e293b; color:white; padding:10px 15px; border-radius:6px;">
-                                    <span style="font-family:monospace; letter-spacing:1px;">ESCANEJANT: DISTRIBUCIÓ RACIAL</span>
+                                    <span style="font-family:monospace; letter-spacing:1px;">ESCANEJANT: DISTRIBUCIÓ ÈTNICA</span>
                                     <span style="color:#ef4444; font-weight:bold; animation: blink 1.5s infinite;">⚠️ ANOMALIA DETECTADA</span>
                                 </div>
 
@@ -574,9 +574,9 @@ MODULES = [
                                 </div>
 
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
-                                    <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDÈNCIA REGISTRADA: Biaix de Representació Racial</div>
+                                    <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDÈNCIA REGISTRADA: Biaix de representació d'origen ètnic</div>
                                     <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        La IA està **sobre-exposada** a aquest grup (51% vs 28%). Pot aprendre a associar "Alt Risc" amb aquesta demografia simplement perquè els veu més sovint als registres d'arrest.
+                                        El sistema d'IA està **sobre-exposada** a aquest grup (51% vs 28%). Pot aprendre a associar "Alt Risc" amb aquest grup demogràfic simplement perquè apareix amb més freqüència als registres d’arrest.
                                     </div>
                                 </div>
                             </div>
@@ -584,24 +584,24 @@ MODULES = [
                             <div class="scan-pane pane-gender">
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; background:#1e293b; color:white; padding:10px 15px; border-radius:6px;">
                                     <span style="font-family:monospace; letter-spacing:1px;">ESCANEJANT: EQUILIBRI DE GÈNERE</span>
-                                    <span style="color:#ef4444; font-weight:bold; animation: blink 1.5s infinite;">⚠️ BUID DE DADES TROBAT</span>
+                                    <span style="color:#ef4444; font-weight:bold; animation: blink 1.5s infinite;">⚠️ ABSÈNCIA DE DADES TROBAT</span>
                                 </div>
                                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
                                     <div style="text-align:center; padding:20px; background:var(--background-fill-secondary); border-radius:8px; border:1px solid var(--border-color-primary);">
                                         <div style="font-size:4rem; line-height:1;">♂️</div>
                                         <div style="font-size:2.2rem; font-weight:900; color:#3b82f6;">81%</div>
                                         <div style="font-weight:700; color:var(--body-text-color-subdued);">HOMES</div>
-                                        <div style="font-size:0.85rem; color:#16a34a; font-weight:600; margin-top:5px;">✅ Ben Representats</div>
+                                        <div style="font-size:0.85rem; color:#16a34a; font-weight:600; margin-top:5px;">✅ Ben representats</div>
                                     </div>
                                     <div style="text-align:center; padding:20px; background:rgba(225, 29, 72, 0.1); border-radius:8px; border:2px solid #fda4af;">
                                         <div style="font-size:4rem; line-height:1; opacity:0.5;">♀️</div>
                                         <div style="font-size:2.2rem; font-weight:900; color:#e11d48;">19%</div>
                                         <div style="font-weight:700; color:#fb7185;">DONES</div>
-                                        <div style="font-size:0.85rem; color:#e11d48; font-weight:600; margin-top:5px;">⚠️ Dades Insuficients</div>
+                                        <div style="font-size:0.85rem; color:#e11d48; font-weight:600; margin-top:5px;">⚠️ Dades insuficients</div>
                                     </div>
                                 </div>
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
-                                    <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDÈNCIA REGISTRADA: Biaix de Representació de Gènere</div>
+                                    <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDÈNCIA REGISTRADA: Biaix de representació de gènere</div>
                                     <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
                                         Les dones són una "classe minoritària" en aquest conjunt de dades tot i que típicament constitueixen el 50% de la població real. El model probablement tindrà dificultats per aprendre patrons precisos per a elles, donant lloc a **taxes d'error més altes** per a les acusades.
                                     </div>
@@ -637,9 +637,9 @@ MODULES = [
                                 </div>
 
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
-                                    <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDÈNCIA REGISTRADA: Biaix de Representació d'Edat</div>
+                                    <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDÈNCIA REGISTRADA: Biaix de representació d'edat</div>
                                     <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        Les dades es concentren en la "Bombolla" d'edat de 25-45. El model té un **punt cec** per a persones més joves i més grans, el que significa que les prediccions per a aquests grups seran poc fiables (Error de Generalització).
+                                        Les dades es concentren en la "bombolla" d'edat de 25-45. El model té un **punt cec** per a persones més joves i més grans, el que significa que les prediccions per a aquests grups seran poc fiables (Error de generalització).
                                     </div>
                                 </div>
                             </div>
