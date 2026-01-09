@@ -730,13 +730,13 @@ MODULES = [
                 </div>
 
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">STEP 3: EVALUATE PREDICTION ERRORS</h2>
+                    <h2 class="slide-title" style="margin:0;">STEP 3: EVALUATE ERRORS</h2>
 
                     <div style="text-align:center; margin-bottom:20px;">
                         <h2 class="slide-title header-accent" style="margin-top:10px;">The Hunt For Prediction Errors</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                            We found evidence that the Input Data is biased. Now we must investigate if this bias has influenced the <strong>Model's Decisions</strong>.
-                            <br>We are looking for the second Red Flag from our Rulebook: <strong>Error Gaps</strong>.
+                            We found evidence that the input data is biased. Now we must investigate if this bias has influenced the <strong>model's decisions</strong>.
+                            <br>We are looking for the second red flag from our rulebook: <strong>error gaps</strong>.
                         </p>
                     </div>
 
@@ -754,18 +754,18 @@ MODULES = [
                             
                             <div>
                                 <p style="font-size:1rem; line-height:1.6; margin-top:0; color:var(--body-text-color);">
-                                    <strong>The Concept:</strong> A model's prediction shapes a person's future. When it makes a mistake, real people suffer.
+                                    <strong>The Concept:</strong> The "double standard" means mistakes by the AI system affect some people more than others, and real people cna be harmed.
                                 </p>
 
                                 <div style="margin-top:15px; margin-bottom:15px;">
                                     <div style="background:rgba(255, 241, 242, 0.1); padding:12px; border-radius:8px; border:1px solid #fda4af; margin-bottom:10px;">
-                                        <div style="font-weight:700; color:#fb7185; margin-bottom:4px; font-size:0.95rem;">⚠️ TYPE 1: FALSE ALARMS</div>
+                                        <div style="font-weight:700; color:#fb7185; margin-bottom:4px; font-size:0.95rem;">⚠️ TYPE 1: FALSE ALARMS (False Positives)</div>
                                         <div style="font-size:0.9rem; color:var(--body-text-color); line-height:1.4;">Labeling a low-risk person as <strong>High Risk</strong>.</div>
                                         <div style="font-size:0.85rem; font-weight:700; color:#f43f5e; margin-top:4px;">Harm: Unfair Detention.</div>
                                     </div>
 
                                     <div style="background:rgba(240, 249, 255, 0.1); padding:12px; border-radius:8px; border:1px solid #bae6fd;">
-                                        <div style="font-weight:700; color:#38bdf8; margin-bottom:4px; font-size:0.95rem;">⚠️ TYPE 2: MISSED WARNINGS</div>
+                                        <div style="font-weight:700; color:#38bdf8; margin-bottom:4px; font-size:0.95rem;">⚠️ TYPE 2: MISSED WARNINGS (False Negatives)</div>
                                         <div style="font-size:0.9rem; color:var(--body-text-color); line-height:1.4;">Labeling a high-risk person as <strong>Low Risk</strong>.</div>
                                         <div style="font-size:0.85rem; font-weight:700; color:#0ea5e9; margin-top:4px;">Harm: Public Safety Risk.</div>
                                     </div>
@@ -811,7 +811,7 @@ MODULES = [
                     </div>
 
                     <details style="margin-bottom:25px; cursor:pointer; background:rgba(255, 241, 242, 0.1); border:1px solid #fda4af; border-radius:8px; padding:12px;">
-                        <summary style="font-weight:700; color:#fb7185; font-size:0.95rem;">🔬 The Hypothesis: How is Representation Bias connected to Prediction Error?</summary>
+                        <summary style="font-weight:700; color:#fb7185; font-size:0.95rem;">🔬 How Representation Bias leads to to Prediction Errors</summary>
                         <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); line-height:1.5; padding:0 5px;">
                             <p style="margin-bottom:10px;"><strong>Connect the dots:</strong> In Step 2, we found that the input data overrepresented specific groups.</p>
                             <p><strong>The Theory:</strong> Because the AI saw these groups more often in arrest records, the data structure may lead the model to make group-specific prediction mistakes. The model may generate more <strong>False Alarms</strong> for innocent people from these groups at a much higher rate.</p>
@@ -847,12 +847,12 @@ MODULES = [
                 </div>
 
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">STEP 3: ANALYZE THE PREDICTION ERROR GAP</h2>
+                    <h2 class="slide-title" style="margin:0;">STEP 3: EVALUATE ERRORS</h2>
 
                     <div style="text-align:center; margin-bottom:20px;">
                         <h2 class="slide-title header-accent" style="margin-top:10px;">The Prediction Error Lab - Race Analysis</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                            We suspected the model is generating unfair amounts of prediction errors for specific groups. Now, we run the analysis.
+                            We suspect the model is generating unfair prediction errors. Now, we test this claim.
                             <br>Click to reveal the error rates below. Do AI mistakes fall equally across white and black defendants?
                         </p>
                     </div>
@@ -959,13 +959,13 @@ MODULES = [
                 </div>
 
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">STEP 3: ANALYZE THE PREDICTION ERROR GAP</h2>
+                    <h2 class="slide-title" style="margin:0;">STEP 3: EVALUATE ERRORS</h2>
 
                     <div style="text-align:center; margin-bottom:20px;">
-                        <h2 class="slide-title header-accent" style="margin-top:10px;">Gender, Age, and Geography Error Scans</h2>
+                        <h2 class="slide-title header-accent" style="margin-top:10px;">The Prediction Error Lab – Gender, Age, and Geography</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
                             We revealed the Racial Error Gap. But bias hides in other places too.
-                            <br>Use the scanner below to check for gender and age <strong>Representation Errors</strong> (due to data gaps) and <strong>Proxy Bias</strong> (hidden variables).
+                            <br>Use the scanner below to check for gender and age <strong>representation errors</strong> (due to data gaps) and <strong>proxy bias</strong> (that occurs when neutral-looking data replaces sensitive information and leads to unfair results).
                         </p>
                     </div>
 
