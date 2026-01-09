@@ -475,7 +475,7 @@ MODULES = [
                 <summary style="font-weight:700; color:var(--body-text-color-subdued); font-size:0.95rem;">🧭 Referència: Com esdevenen esbiaixats els conjunts de dades d'IA?</summary>
                 <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color-subdued); line-height:1.5; padding:0 5px;">
                     <p style="margin-bottom:10px;"><strong>Exemple:</strong> Quan un conjunt de dades es construeix a partir de <strong>registres històrics d'arrests</strong>.</p>
-                    <p>L'excés de vigilància policial sistèmic en barris específics podria distorsionar els recomptes en el conjunt de dades per atributs com <strong>Raça o Ingressos</strong>.
+                    <p>L'excés de vigilància policial sistèmic en barris específics podria distorsionar els recomptes en el conjunt de dades per atributs com <strong>Orígen ètnic o ingressos</strong>.
                      La IA llavors aprèn aquesta distorsió com a "veritat".</p>
                 </div>
             </details>
@@ -576,7 +576,7 @@ MODULES = [
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
                                     <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDÈNCIA REGISTRADA: Biaix de representació d'origen ètnic</div>
                                     <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        El sistema d’IA veu aquest grup racial massa sovint (51% vs 28%). Pot associar “alt risc” amb les persones d’aquest grup només perquè apareixen més en els registres d’arrestos.
+                                        El sistema d’IA veu aquest grup ètnic massa sovint (51% vs 28%). Pot associar “alt risc” amb les persones d’aquest grup només perquè apareixen més en els registres d’arrestos.
                                     </div>
                                 </div>
                             </div>
