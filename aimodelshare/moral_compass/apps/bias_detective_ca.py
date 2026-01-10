@@ -1148,7 +1148,7 @@ MODULES = [
                     <h2 class="slide-title" style="margin:0;">PAS 3: AVALUAR ERRORS</h2>
 
                     <div style="text-align:center; margin-bottom:25px;">
-                        <h2 class="slide-title header-accent" style="margin-top:10px;">Anàlisi final d'errors de predicció</h2>
+                        <h2 class="slide-title header-accent" style="margin-top:10px;">Informe d'errors de predicció</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
                             Revisa els teus registres forenses. Has descobert fallades sistemàtiques en múltiples dimensions.
                             <br>Aquesta evidència mostra que el model viola el principi bàsic de <strong>Justícia i Equitat</strong>.
