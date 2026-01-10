@@ -110,9 +110,9 @@ jobs:
             --memory=2Gi
             --cpu=2
             --session-affinity
-            --concurrency=40
-            --min-instances=0
-            --max-instances=50
+            --concurrency=20
+            --min-instances=1
+            --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=judge,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
@@ -138,9 +138,9 @@ jobs:
             --memory=2Gi
             --cpu=2
             --session-affinity
-            --concurrency=40
-            --min-instances=0
-            --max-instances=50
+            --concurrency=20
+            --min-instances=1
+            --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=ai-consequences,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
@@ -168,7 +168,7 @@ jobs:
             --session-affinity
             --concurrency=20
             --min-instances=1
-            --max-instances=100
+            --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=what-is-ai,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
@@ -364,9 +364,9 @@ jobs:
             --memory=2Gi
             --cpu=2
             --session-affinity
-            --concurrency=40
-            --min-instances=0
-            --max-instances=50
+            --concurrency=20
+            --min-instances=1
+            --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=ethical-revelation,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
@@ -392,9 +392,9 @@ jobs:
             --memory=2Gi
             --cpu=2
             --session-affinity
-            --concurrency=40
-            --min-instances=0
-            --max-instances=50
+            --concurrency=20
+            --min-instances=1
+            --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=moral-compass-challenge,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
@@ -479,8 +479,8 @@ jobs:
             --cpu=2
             --session-affinity
             --concurrency=20
-            --min-instances=0
-            --max-instances=50
+            --min-instances=1
+            --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=bias-detective-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
@@ -507,8 +507,8 @@ jobs:
             --cpu=2
             --session-affinity
             --concurrency=20
-            --min-instances=0
-            --max-instances=50
+            --min-instances=1
+            --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=bias-detective-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
@@ -535,8 +535,8 @@ jobs:
             --cpu=2
             --session-affinity
             --concurrency=20
-            --min-instances=0
-            --max-instances=50
+            --min-instances=1
+            --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=bias-detective-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
@@ -564,8 +564,8 @@ jobs:
             --cpu=2
             --session-affinity
             --concurrency=20
-            --min-instances=0
-            --max-instances=50
+            --min-instances=1
+            --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=fairness-fixer,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
@@ -592,8 +592,8 @@ jobs:
             --cpu=2
             --session-affinity
             --concurrency=20
-            --min-instances=0
-            --max-instances=50
+            --min-instances=1
+            --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=justice-equity-upgrade,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
@@ -621,8 +621,8 @@ jobs:
             --cpu=2
             --session-affinity
             --concurrency=20
-            --min-instances=0
-            --max-instances=50
+            --min-instances=1
+            --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=fairness-fixer-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
@@ -649,8 +649,8 @@ jobs:
             --cpu=2
             --session-affinity
             --concurrency=20
-            --min-instances=0
-            --max-instances=50
+            --min-instances=1
+            --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=fairness-fixer-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
@@ -677,8 +677,8 @@ jobs:
             --cpu=2
             --session-affinity
             --concurrency=20
-            --min-instances=0
-            --max-instances=50
+            --min-instances=1
+            --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=fairness-fixer-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
@@ -706,8 +706,8 @@ jobs:
             --cpu=2
             --session-affinity
             --concurrency=20
-            --min-instances=0
-            --max-instances=50
+            --min-instances=1
+            --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=justice-equity-upgrade-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
@@ -734,8 +734,8 @@ jobs:
             --cpu=2
             --session-affinity
             --concurrency=20
-            --min-instances=0
-            --max-instances=50
+            --min-instances=1
+            --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=justice-equity-upgrade-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
@@ -762,8 +762,8 @@ jobs:
             --cpu=2
             --session-affinity
             --concurrency=20
-            --min-instances=0
-            --max-instances=50
+            --min-instances=1
+            --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=justice-equity-upgrade-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
