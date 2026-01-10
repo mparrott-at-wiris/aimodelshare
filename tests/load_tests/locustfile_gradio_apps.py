@@ -17,9 +17,14 @@ Usage:
     locust -f locustfile_gradio_apps.py --host=https://judge-HASH-uc.a.run.app \
         --users 100 --spawn-rate 10 --run-time 5m --headless
     
-    # Test from environment variable
-    export GRADIO_APP_URL=https://judge-HASH-uc.a.run.app
+    # Test using environment variables (Locust supports LOCUST_* env vars)
+    export LOCUST_HOST=https://judge-HASH-uc.a.run.app
+    export LOAD_TEST_SESSION_ID=your-session-id-here
     locust -f locustfile_gradio_apps.py --users 100 --spawn-rate 10 --run-time 5m
+
+    # Selecting a specific user class (CLI positional argument)
+    locust -f locustfile_gradio_apps.py GradioAppUser --host=https://judge-HASH-uc.a.run.app ...
+    locust -f locustfile_gradio_apps.py ModelBuildingGameUser --host=https://model-building-game-en-... ...
 """
 
 import os
@@ -94,8 +99,6 @@ class GradioAppUser(HttpUser):
         Simulate intensive button clicks that trigger backend processing.
         This tests CPU usage from user interactions like decision buttons, navigation, etc.
         """
-        # Gradio uses WebSocket or HTTP for component interactions
-        # Simulate button clicks with fn_index (function index in the app)
         fn_indices = [0, 1, 2, 3]  # Different functions in the app
         
         with self.client.post(
@@ -111,7 +114,6 @@ class GradioAppUser(HttpUser):
             if response.status_code in [200, 201]:
                 response.success()
             elif response.status_code == 404:
-                # API endpoint might be structured differently, still valid
                 response.success()
             else:
                 response.failure(f"Button interaction failed: {response.status_code}")
@@ -122,7 +124,6 @@ class GradioAppUser(HttpUser):
         Simulate slider/dropdown interactions that trigger real-time processing.
         These are CPU-intensive as they may trigger predictions or calculations.
         """
-        # Simulate slider changes (e.g., age, risk scores)
         slider_values = {
             "age": random.randint(18, 65),
             "priors": random.randint(0, 10),
@@ -159,9 +160,8 @@ class GradioAppUser(HttpUser):
             ) as response:
                 if response.status_code == 200:
                     response.success()
-                    break  # One successful health check is enough
+                    break
                 elif response.status_code == 404:
-                    # Endpoint might not exist, that's okay
                     pass
                 else:
                     response.failure(f"Health check failed: {response.status_code}")
@@ -180,7 +180,6 @@ class ModelBuildingGameUser(HttpUser):
     
     def on_start(self):
         """Initialize session with parameters for ML apps."""
-        # Use provided session ID from environment variable (for auth), or generate unique one
         self.session_id = os.environ.get('LOAD_TEST_SESSION_ID', str(uuid.uuid4()))
         self.lang = random.choice(['en', 'es', 'ca'])
         
@@ -218,7 +217,6 @@ class ModelBuildingGameUser(HttpUser):
         Simulate model training selections (CPU/memory intensive).
         Tests the most demanding operations in model building apps.
         """
-        # Simulate training with various model configurations
         training_params = {
             "model_type": random.choice(["linear", "tree", "neural_net"]),
             "features": random.sample(["age", "race", "gender", "priors"], k=random.randint(2, 4)),
@@ -234,7 +232,7 @@ class ModelBuildingGameUser(HttpUser):
             },
             catch_response=True,
             name="Model Training (Very CPU-intensive)",
-            timeout=45  # Training can take longer
+            timeout=45
         ) as response:
             if response.status_code in [200, 201]:
                 response.success()
@@ -254,7 +252,7 @@ class ModelBuildingGameUser(HttpUser):
             json={
                 "data": [
                     random.sample(["feature1", "feature2", "feature3", "feature4"], k=3),
-                    random.uniform(0.1, 0.9)  # threshold/parameter
+                    random.uniform(0.1, 0.9)
                 ],
                 "fn_index": random.randint(6, 10),
                 "session_hash": self.session_id
@@ -305,7 +303,6 @@ def on_test_stop(environment, **kwargs):
     print(f"  Requests/sec: {stats.total.total_rps:.2f}")
     print("="*80 + "\n")
     
-    # Success criteria based on our requirements
     success_rate = ((stats.total.num_requests - stats.total.num_failures) / stats.total.num_requests * 100) if stats.total.num_requests > 0 else 0
     p95_latency = stats.total.get_response_time_percentile(0.95)
     
@@ -320,6 +317,8 @@ def on_test_stop(environment, **kwargs):
         print("\n⚠️  Some criteria not met. Review configuration and resource allocation.\n")
 
 
-# Default user class (can be overridden with --user-class flag)
-# Use GradioAppUser for standard apps
-# Use ModelBuildingGameUser for model building game apps
+# Note on selecting user classes:
+# Locust does not support a --user-class flag. Select a specific class by
+# passing the class name as a positional argument in the CLI:
+#   locust -f locustfile_gradio_apps.py GradioAppUser ...
+#   locust -f locustfile_gradio_apps.py ModelBuildingGameUser ...
