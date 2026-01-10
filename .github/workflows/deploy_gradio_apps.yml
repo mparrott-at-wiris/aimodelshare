@@ -85,7 +85,10 @@ jobs:
             --concurrency=40
             --min-instances=0
             --max-instances=50
-            --timeout=3000
+            --timeout=300
+            --cpu-throttling
+            --max-surge-upgrade=3
+            --startup-cpu-boost
             --set-env-vars=APP_NAME=tutorial,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-judge:
@@ -113,7 +116,10 @@ jobs:
             --concurrency=40
             --min-instances=0
             --max-instances=50
-            --timeout=3000
+            --timeout=300
+            --cpu-throttling
+            --max-surge-upgrade=3
+            --startup-cpu-boost
             --set-env-vars=APP_NAME=judge,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-ai-consequences:
@@ -141,7 +147,10 @@ jobs:
             --concurrency=40
             --min-instances=0
             --max-instances=50
-            --timeout=3000
+            --timeout=300
+            --cpu-throttling
+            --max-surge-upgrade=3
+            --startup-cpu-boost
             --set-env-vars=APP_NAME=ai-consequences,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-what-is-ai:
@@ -169,7 +178,10 @@ jobs:
             --concurrency=40
             --min-instances=0
             --max-instances=50
-            --timeout=3000
+            --timeout=300
+            --cpu-throttling
+            --max-surge-upgrade=3
+            --startup-cpu-boost
             --set-env-vars=APP_NAME=what-is-ai,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   # Language-specific model building game deployments
@@ -198,7 +210,10 @@ jobs:
             --concurrency=40
             --min-instances=0
             --max-instances=100
-            --timeout=3000
+            --timeout=300
+            --cpu-throttling
+            --max-surge-upgrade=5
+            --startup-cpu-boost
             --set-env-vars=APP_NAME=model-building-game-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
             
   deploy-model-building-game-ca:
@@ -226,7 +241,10 @@ jobs:
             --concurrency=40
             --min-instances=0
             --max-instances=100
-            --timeout=3000
+            --timeout=300
+            --cpu-throttling
+            --max-surge-upgrade=5
+            --startup-cpu-boost
             --set-env-vars=APP_NAME=model-building-game-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
             
   deploy-model-building-game-es:
@@ -254,7 +272,10 @@ jobs:
             --concurrency=40
             --min-instances=0
             --max-instances=100
-            --timeout=3000
+            --timeout=300
+            --cpu-throttling
+            --max-surge-upgrade=5
+            --startup-cpu-boost
             --set-env-vars=APP_NAME=model-building-game-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
 
   # Final variants for EN, ES, CA
@@ -283,7 +304,10 @@ jobs:
             --concurrency=40
             --min-instances=0
             --max-instances=100
-            --timeout=3000
+            --timeout=300
+            --cpu-throttling
+            --max-surge-upgrade=5
+            --startup-cpu-boost
             --set-env-vars=APP_NAME=model-building-game-en-final,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
             
   deploy-model-building-game-es-final:
@@ -311,7 +335,10 @@ jobs:
             --concurrency=40
             --min-instances=0
             --max-instances=100
-            --timeout=3000
+            --timeout=300
+            --cpu-throttling
+            --max-surge-upgrade=5
+            --startup-cpu-boost
             --set-env-vars=APP_NAME=model-building-game-es-final,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
             
   deploy-model-building-game-ca-final:
@@ -339,7 +366,10 @@ jobs:
             --concurrency=40
             --min-instances=0
             --max-instances=100
-            --timeout=3000
+            --timeout=300
+            --cpu-throttling
+            --max-surge-upgrade=5
+            --startup-cpu-boost
             --set-env-vars=APP_NAME=model-building-game-ca-final,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
 
   deploy-ethical-revelation:
@@ -367,7 +397,10 @@ jobs:
             --concurrency=40
             --min-instances=0
             --max-instances=50
-            --timeout=3000
+            --timeout=300
+            --cpu-throttling
+            --max-surge-upgrade=3
+            --startup-cpu-boost
             --set-env-vars=APP_NAME=ethical-revelation,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-moral-compass-challenge:
@@ -395,7 +428,10 @@ jobs:
             --concurrency=40
             --min-instances=0
             --max-instances=50
-            --timeout=3000
+            --timeout=300
+            --cpu-throttling
+            --max-surge-upgrade=3
+            --startup-cpu-boost
             --set-env-vars=APP_NAME=moral-compass-challenge,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   # Bias Detective split apps
@@ -424,7 +460,10 @@ jobs:
             --concurrency=20
             --min-instances=0
             --max-instances=50
-            --timeout=3000
+            --timeout=300
+            --cpu-throttling
+            --max-surge-upgrade=3
+            --startup-cpu-boost
             --set-env-vars=APP_NAME=bias-detective-part1,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-bias-detective-part2:
@@ -452,7 +491,10 @@ jobs:
             --concurrency=20
             --min-instances=0
             --max-instances=50
-            --timeout=3000
+            --timeout=300
+            --cpu-throttling
+            --max-surge-upgrade=3
+            --startup-cpu-boost
             --set-env-vars=APP_NAME=bias-detective-part2,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   # Language-specific Bias Detective variants
@@ -481,7 +523,10 @@ jobs:
             --concurrency=20
             --min-instances=0
             --max-instances=50
-            --timeout=3000
+            --timeout=300
+            --cpu-throttling
+            --max-surge-upgrade=3
+            --startup-cpu-boost
             --set-env-vars=APP_NAME=bias-detective-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-bias-detective-es:
@@ -509,7 +554,10 @@ jobs:
             --concurrency=20
             --min-instances=0
             --max-instances=50
-            --timeout=3000
+            --timeout=300
+            --cpu-throttling
+            --max-surge-upgrade=3
+            --startup-cpu-boost
             --set-env-vars=APP_NAME=bias-detective-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-bias-detective-ca:
@@ -537,7 +585,10 @@ jobs:
             --concurrency=20
             --min-instances=0
             --max-instances=50
-            --timeout=3000
+            --timeout=300
+            --cpu-throttling
+            --max-surge-upgrade=3
+            --startup-cpu-boost
             --set-env-vars=APP_NAME=bias-detective-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   # Existing generic fairness-fixer and justice-equity-upgrade
@@ -566,7 +617,10 @@ jobs:
             --concurrency=20
             --min-instances=0
             --max-instances=50
-            --timeout=3000
+            --timeout=300
+            --cpu-throttling
+            --max-surge-upgrade=3
+            --startup-cpu-boost
             --set-env-vars=APP_NAME=fairness-fixer,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-justice-equity-upgrade:
@@ -594,7 +648,10 @@ jobs:
             --concurrency=20
             --min-instances=0
             --max-instances=50
-            --timeout=3000
+            --timeout=300
+            --cpu-throttling
+            --max-surge-upgrade=3
+            --startup-cpu-boost
             --set-env-vars=APP_NAME=justice-equity-upgrade,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   # NEW: Language-specific Fairness Fixer variants
@@ -623,7 +680,10 @@ jobs:
             --concurrency=20
             --min-instances=0
             --max-instances=50
-            --timeout=3000
+            --timeout=300
+            --cpu-throttling
+            --max-surge-upgrade=3
+            --startup-cpu-boost
             --set-env-vars=APP_NAME=fairness-fixer-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-fairness-fixer-es:
@@ -651,7 +711,10 @@ jobs:
             --concurrency=20
             --min-instances=0
             --max-instances=50
-            --timeout=3000
+            --timeout=300
+            --cpu-throttling
+            --max-surge-upgrade=3
+            --startup-cpu-boost
             --set-env-vars=APP_NAME=fairness-fixer-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-fairness-fixer-ca:
@@ -679,7 +742,10 @@ jobs:
             --concurrency=20
             --min-instances=0
             --max-instances=50
-            --timeout=3000
+            --timeout=300
+            --cpu-throttling
+            --max-surge-upgrade=3
+            --startup-cpu-boost
             --set-env-vars=APP_NAME=fairness-fixer-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   # NEW: Language-specific Justice & Equity Upgrade variants
@@ -708,7 +774,10 @@ jobs:
             --concurrency=20
             --min-instances=0
             --max-instances=50
-            --timeout=3000
+            --timeout=300
+            --cpu-throttling
+            --max-surge-upgrade=3
+            --startup-cpu-boost
             --set-env-vars=APP_NAME=justice-equity-upgrade-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-justice-equity-upgrade-es:
@@ -736,7 +805,10 @@ jobs:
             --concurrency=20
             --min-instances=0
             --max-instances=50
-            --timeout=3000
+            --timeout=300
+            --cpu-throttling
+            --max-surge-upgrade=3
+            --startup-cpu-boost
             --set-env-vars=APP_NAME=justice-equity-upgrade-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   deploy-justice-equity-upgrade-ca:
@@ -764,7 +836,10 @@ jobs:
             --concurrency=20
             --min-instances=0
             --max-instances=50
-            --timeout=3000
+            --timeout=300
+            --cpu-throttling
+            --max-surge-upgrade=3
+            --startup-cpu-boost
             --set-env-vars=APP_NAME=justice-equity-upgrade-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
 
   # ------------------------------------------------------------

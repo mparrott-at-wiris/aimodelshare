@@ -167,13 +167,40 @@ Each service uses these environment variables:
 - `GRADIO_ANALYTICS_ENABLED`: Set to "False" for privacy and performance
 - `GRADIO_NUM_PORTS`: Set to "1" for single-port operation
 
+### Scalability Optimizations
+
+The deployment includes several optimizations for handling 100+ concurrent users:
+
+1. **Reduced Timeout**: 300 seconds (5 minutes) instead of 3000 seconds for better resource management
+2. **CPU Throttling**: Enabled to reduce costs during idle periods
+3. **Startup CPU Boost**: Enabled for faster cold starts (~20-30% improvement)
+4. **Optimized Surge Upgrades**: 3-5 instances at a time for smoother scaling
+
+For detailed information about scalability optimizations, see [CLOUD_RUN_SCALABILITY_OPTIMIZATIONS.md](CLOUD_RUN_SCALABILITY_OPTIMIZATIONS.md).
+
 ### Resource Limits
 
-- **Memory**: 1 GiB (sufficient for UI apps without heavy ML)
-- **CPU**: 1 vCPU
-- **Concurrency**: 80 requests per instance
+**Standard Apps (judge, tutorial, ai-consequences, what-is-ai, etc.):**
+- **Memory**: 2 GiB
+- **CPU**: 2 vCPU
+- **Concurrency**: 40 requests per instance
 - **Min Instances**: 0 (scales to zero)
-- **Max Instances**: 50 (handles 4000 concurrent users)
+- **Max Instances**: 50 (handles 2,000 concurrent users)
+- **Timeout**: 300 seconds (5 minutes)
+- **CPU Throttling**: Enabled (cost optimization)
+- **Startup CPU Boost**: Enabled (faster cold starts)
+- **Max Surge Upgrade**: 3 instances at a time
+
+**Model Building Game Apps (all language variants):**
+- **Memory**: 4 GiB (higher for ML operations)
+- **CPU**: 2 vCPU
+- **Concurrency**: 40 requests per instance
+- **Min Instances**: 0 (scales to zero)
+- **Max Instances**: 100 (handles 4,000 concurrent users)
+- **Timeout**: 300 seconds (5 minutes)
+- **CPU Throttling**: Enabled (cost optimization)
+- **Startup CPU Boost**: Enabled (faster cold starts)
+- **Max Surge Upgrade**: 5 instances at a time
 
 ## Monitoring
 
