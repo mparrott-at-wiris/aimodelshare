@@ -600,7 +600,7 @@ MODULES = [
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
                                     <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDENCE LOGGED: Gender Representation Bias</div>
                                     <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        Women are a minority in this dataset, even though they make up about 50% of the real population. The model will probably struggle to learn accurate patterns for them, leading to **higher error rates** for female defendants.
+                                        Women are a minority class in this dataset, even though they make up about 50% of the real population. The model will probably struggle to learn accurate patterns for them, leading to **higher error rates** for female defendants.
                                     </div>
                                 </div>
                             </div>
