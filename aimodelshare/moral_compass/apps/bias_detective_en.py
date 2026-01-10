@@ -1142,10 +1142,10 @@ MODULES = [
                 </div>
 
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">STEP 3: AUDIT REPORT SUMMARY</h2>
+                    <h2 class="slide-title" style="margin:0;">STEP 3: EVALUATE ERRORS</h2>
 
                     <div style="text-align:center; margin-bottom:25px;">
-                        <h2 class="slide-title header-accent" style="margin-top:10px;">Final Prediction Analysis</h2>
+                        <h2 class="slide-title header-accent" style="margin-top:10px;">Prediction Error Report</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
                             Review your forensic logs. You have uncovered systemic failures across multiple dimensions.
                             <br>This evidence shows the model violates the core principle of <strong>Justice & Fairness</strong>.
@@ -1367,7 +1367,7 @@ MODULES = [
                             ✅ DECISION VALIDATED
                         </div>
                         <p style="font-size:1.05rem; color:var(--body-text-color); margin:10px 0 0 0;">
-                            You chose the responsible path. That decision required evidence, judgment, and a deep commitment to the principle of <strong>Justice & Equity</strong>.
+                            Your analysis was supported by evidence and clear reasoning, aligned with the principles of <strong>Justice & Equity</strong>.
                         </p>
                     </div>
 
@@ -1380,7 +1380,7 @@ MODULES = [
 
                         <div style="padding:25px;">
                             <p style="text-align:center; font-size:1.1rem; margin-bottom:20px; color:var(--body-text-color);">
-                                Exposing bias is only the first half of the mission. Now that you have the evidence, the real work begins.
+                                Identifying bias is the first step. With the findings in place, the focus now shifts to improvement and redesign.
                                 <br><strong>You are trading your Magnifying Glass for a Wrench.</strong>
                             </p>
 
@@ -1390,15 +1390,15 @@ MODULES = [
                                 <ul style="list-style:none; padding:0; margin:0; font-size:1rem; color:var(--body-text-color);">
                                     <li style="margin-bottom:12px; display:flex; gap:10px; align-items:start;">
                                         <span>🔧</span>
-                                        <span><strong style="color:#38bdf8;">Your Task 1:</strong> Dismantle the "Proxy Variables" (Remove Zip Code bias).</span>
+                                        <span><strong style="color:#38bdf8;">Your Task 1:</strong> Address proxy variables (e.g. location-based bias).</span>
                                     </li>
                                     <li style="margin-bottom:12px; display:flex; gap:10px; align-items:start;">
                                         <span>📊</span>
-                                        <span><strong style="color:#38bdf8;">Your Task 2:</strong> Fix the "Distorted Mirror" by redesigning the data strategy.</span>
+                                        <span><strong style="color:#38bdf8;">Your Task 2:</strong> Improve data representation and coverage.</span>
                                     </li>
                                     <li style="display:flex; gap:10px; align-items:start;">
                                         <span>🗺️</span>
-                                        <span><strong style="color:#38bdf8;">Your Task 3:</strong> Build an ethical roadmap for continuous monitoring.</span>
+                                        <span><strong style="color:#38bdf8;">Your Task 3:</strong> Define a roadmap for ongoing monitoring.</span>
                                     </li>
                                 </ul>
                             </div>
