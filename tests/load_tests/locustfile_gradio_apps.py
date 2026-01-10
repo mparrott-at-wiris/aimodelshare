@@ -14,6 +14,22 @@ Usage:
     locust -f locustfile_gradio_apps.py --host=https://judge-HASH-uc.a.run.app
 
     # Test with 100 concurrent users
+    locust -f locustfile_gradio_apps.py --host=https://judge-HASH-uc.a.run.app \"""
+Load tests for Gradio Cloud Run applications.
+
+This load test suite validates the scalability of Gradio apps deployed to Cloud Run,
+ensuring they can handle 100+ concurrent users as specified in the requirements.
+
+The tests simulate realistic user behavior including:
+- Session ID and language query parameters (matching production usage)
+- Interactive element usage (buttons, sliders, dropdowns)
+- CPU-intensive operations (predictions, model runs)
+
+Usage:
+    # Test specific app
+    locust -f locustfile_gradio_apps.py --host=https://judge-HASH-uc.a.run.app
+
+    # Test with 100 concurrent users
     locust -f locustfile_gradio_apps.py --host=https://judge-HASH-uc.a.run.app \
         --users 100 --spawn-rate 10 --run-time 5m --headless
 
@@ -132,12 +148,28 @@ def _find_nav_fn_index(cfg):
     return None, 0
 
 
-def _severity_options_for_lang(lang):
-    return {
-        'en': ["Minor", "Moderate", "Serious"],
-        'es': ["Menor", "Moderado", "Grave"],
-        'ca': ["Menor", "Moderat", "Greu"],
-    }.get(lang, ["Minor", "Moderate", "Serious"])
+def _severity_en_options():
+    return ["Minor", "Moderate", "Serious"]
+
+
+def _to_en_severity(val):
+    """
+    Normalize any localized severity value to English to match server-side Dropdown choices.
+    """
+    mapping = {
+        # English
+        "Minor": "Minor",
+        "Moderate": "Moderate",
+        "Serious": "Serious",
+        # Spanish → English
+        "Menor": "Minor",
+        "Moderado": "Moderate",
+        "Grave": "Serious",
+        # Catalan → English
+        "Moderat": "Moderate",
+        "Greu": "Serious",
+    }
+    return mapping.get(val, "Moderate")  # safe fallback
 
 
 class GradioAppUser(HttpUser):
@@ -202,7 +234,8 @@ class GradioAppUser(HttpUser):
 
         age = random.randint(18, 65)
         priors = random.randint(0, 10)
-        severity = random.choice(_severity_options_for_lang(lang))
+        # Always normalize to English before sending
+        severity = _to_en_severity(random.choice(_severity_en_options()))
         predict_url = f"/gradio_api/call/predict?sessionid={sessionid}&lang={lang}"
 
         payload = {
@@ -263,7 +296,7 @@ class GradioAppUser(HttpUser):
 
         age = random.randint(18, 65)
         priors = random.randint(0, 10)
-        severity = random.choice(_severity_options_for_lang(lang))
+        severity = _to_en_severity(random.choice(_severity_en_options()))
 
         with self.client.post(
             url,
@@ -481,7 +514,8 @@ class WhatIsAIAppUser(HttpUser):
         age = random.randint(18, 65)
         priors = random.randint(0, 10)
         lang = self.lang
-        severity = random.choice(_severity_options_for_lang(lang))
+        # Always English severity regardless of session language
+        severity = _to_en_severity(random.choice(_severity_en_options()))
 
         predict_url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={lang}"
 
@@ -546,7 +580,8 @@ class WhatIsAIAppUser(HttpUser):
 
         age = random.randint(18, 65)
         priors = random.randint(0, 10)
-        severity = random.choice(_severity_options_for_lang(lang))
+        # Always English severity regardless of session language
+        severity = _to_en_severity(random.choice(_severity_en_options()))
 
         with self.client.post(
             url,
