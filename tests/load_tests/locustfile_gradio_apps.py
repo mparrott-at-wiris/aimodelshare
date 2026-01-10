@@ -25,6 +25,7 @@ Usage:
     # Selecting a specific user class (CLI positional argument)
     locust -f locustfile_gradio_apps.py GradioAppUser --host=https://judge-HASH-uc.a.run.app ...
     locust -f locustfile_gradio_apps.py ModelBuildingGameUser --host=https://model-building-game-en-... ...
+    locust -f locustfile_gradio_apps.py WhatIsAIAppUser --host=https://what-is-ai-... ...
 """
 
 import os
@@ -92,6 +93,71 @@ class GradioAppUser(HttpUser):
                     response.failure("Invalid JSON in config response")
             else:
                 response.failure(f"Failed to load config: {response.status_code}")
+    
+    @task(8)
+    def run_ai_prediction(self):
+        """
+        Reliably exercise a risk prediction path like the What is AI app by:
+        - Discovering the correct fn_index from /config (via heuristics)
+        - Posting a payload shaped [age, priors, severity, lang] with session_hash
+        Only 200/201 count as success; others are failures.
+        """
+        # 1) Discover correct fn_index from /config
+        fn_index = None
+        try:
+            cfg_resp = self.client.get("/config", name="Load Config (for fn_index)")
+            if cfg_resp.status_code == 200:
+                cfg = cfg_resp.json()
+                deps = cfg.get("dependencies", []) or cfg.get("deps", [])
+                comps = {c.get("id"): c for c in cfg.get("components", [])}
+                # Try to find by button label for multiple locales
+                button_labels = [
+                    "Run AI Prediction",  # en
+                    "Ejecutar predicción de la IA",  # es
+                    "Executar predicció de la IA",  # ca
+                ]
+                for d in deps:
+                    trig_ids = d.get("trigger", []) or d.get("triggers", [])
+                    labels = [comps.get(t, {}).get("label") for t in trig_ids if t in comps]
+                    if any(label and any(bl in str(label) for bl in button_labels) for label in labels):
+                        fn_index = d.get("fn_index")
+                        break
+                # Fallback: first dependency whose outputs include an HTML component
+                if fn_index is None:
+                    for d in deps:
+                        outs = d.get("outputs", [])
+                        if any(comps.get(o, {}).get("type") == "html" for o in outs):
+                            fn_index = d.get("fn_index")
+                            break
+        except Exception:
+            pass
+
+        if fn_index is None:
+            # If not found, avoid spamming wrong endpoints
+            return
+
+        # 2) Build payload that matches predict_outcome(age, priors, severity, lang)
+        age = random.randint(18, 65)
+        priors = random.randint(0, 10)
+        severity = random.choice(["Minor", "Moderate", "Serious"])  # mapping supports locales
+        lang = self.lang  # ['en','es','ca']
+
+        payload = {
+            "data": [age, priors, severity, lang],
+            "fn_index": fn_index,
+            "session_hash": self.session_id
+        }
+
+        with self.client.post(
+            "/api/predict",
+            json=payload,
+            catch_response=True,
+            name="Run AI Prediction (What is AI)"
+        ) as response:
+            if response.status_code in [200, 201]:
+                response.success()
+            else:
+                response.failure(f"Prediction failed: {response.status_code}")
     
     @task(5)
     def simulate_button_clicks(self):
@@ -269,6 +335,116 @@ class ModelBuildingGameUser(HttpUser):
                 response.failure(f"Feature selection failed: {response.status_code}")
 
 
+class WhatIsAIAppUser(HttpUser):
+    """
+    Dedicated user class for the 'What is AI' educational app.
+    Focuses traffic on the prediction button path while keeping UI/config/health coverage.
+    """
+
+    wait_time = between(1, 3)
+
+    def on_start(self):
+        self.session_id = os.environ.get('LOAD_TEST_SESSION_ID', str(uuid.uuid4()))
+        self.lang = random.choice(['en', 'es', 'ca'])
+        params = {
+            'sessionid': self.session_id,
+            'lang': self.lang
+        }
+        self.client.get("/", params=params, name="Initial Load with Session")
+
+    @task(6)
+    def load_app_ui(self):
+        params = {
+            'sessionid': self.session_id,
+            'lang': self.lang
+        }
+        with self.client.get("/", params=params, catch_response=True, name="Load UI") as response:
+            if response.status_code == 200:
+                response.success()
+            else:
+                response.failure(f"Failed to load UI: {response.status_code}")
+
+    @task(4)
+    def load_gradio_config(self):
+        with self.client.get("/config", catch_response=True, name="Load Config") as response:
+            if response.status_code == 200:
+                try:
+                    _ = response.json()
+                    response.success()
+                except json.JSONDecodeError:
+                    response.failure("Invalid JSON in config response")
+            else:
+                response.failure(f"Failed to load config: {response.status_code}")
+
+    @task(12)
+    def run_ai_prediction(self):
+        # Reuse GradioAppUser logic by instantiating a minimal helper
+        fn_index = None
+        try:
+            cfg_resp = self.client.get("/config", name="Load Config (for fn_index)")
+            if cfg_resp.status_code == 200:
+                cfg = cfg_resp.json()
+                deps = cfg.get("dependencies", []) or cfg.get("deps", [])
+                comps = {c.get("id"): c for c in cfg.get("components", [])}
+                button_labels = [
+                    "Run AI Prediction",
+                    "Ejecutar predicción de la IA",
+                    "Executar predicció de la IA",
+                ]
+                for d in deps:
+                    trig_ids = d.get("trigger", []) or d.get("triggers", [])
+                    labels = [comps.get(t, {}).get("label") for t in trig_ids if t in comps]
+                    if any(label and any(bl in str(label) for bl in button_labels) for label in labels):
+                        fn_index = d.get("fn_index")
+                        break
+                if fn_index is None:
+                    for d in deps:
+                        outs = d.get("outputs", [])
+                        if any(comps.get(o, {}).get("type") == "html" for o in outs):
+                            fn_index = d.get("fn_index")
+                            break
+        except Exception:
+            pass
+
+        if fn_index is None:
+            return
+
+        age = random.randint(18, 65)
+        priors = random.randint(0, 10)
+        severity = random.choice(["Minor", "Moderate", "Serious"])  # mapping supports locales
+        lang = self.lang
+
+        payload = {
+            "data": [age, priors, severity, lang],
+            "fn_index": fn_index,
+            "session_hash": self.session_id
+        }
+
+        with self.client.post(
+            "/api/predict",
+            json=payload,
+            catch_response=True,
+            name="Run AI Prediction (What is AI)"
+        ) as response:
+            if response.status_code in [200, 201]:
+                response.success()
+            else:
+                response.failure(f"Prediction failed: {response.status_code}")
+
+    @task(2)
+    def check_health(self):
+        endpoints_to_check = ["/", "/healthz", "/health"]
+        for endpoint in endpoints_to_check:
+            with self.client.get(endpoint, catch_response=True, name=f"Health Check ({endpoint})") as response:
+                if response.status_code == 200:
+                    response.success()
+                    break
+                elif response.status_code == 404:
+                    pass
+                else:
+                    response.failure(f"Health check failed: {response.status_code}")
+
+
 # Event handlers for reporting
 @events.test_start.add_listener
 def on_test_start(environment, **kwargs):
@@ -322,3 +498,4 @@ def on_test_stop(environment, **kwargs):
 # passing the class name as a positional argument in the CLI:
 #   locust -f locustfile_gradio_apps.py GradioAppUser ...
 #   locust -f locustfile_gradio_apps.py ModelBuildingGameUser ...
+#   locust -f locustfile_gradio_apps.py WhatIsAIAppUser ...

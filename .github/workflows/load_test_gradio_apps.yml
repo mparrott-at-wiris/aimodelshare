@@ -105,6 +105,9 @@ jobs:
           if [[ "$APP_URL" == *"model-building-game"* ]]; then
             USER_CLASS="ModelBuildingGameUser"
           fi
+          if [[ "$APP_URL" == *"what_is_ai"* || "$APP_URL" == *"what-is-ai"* ]]; then
+            USER_CLASS="WhatIsAIAppUser"
+          fi
           
           # Export session ID as environment variable for the load test
           export LOAD_TEST_SESSION_ID="$SESSION_ID"
