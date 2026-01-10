@@ -3881,8 +3881,8 @@ def create_model_building_game_en_app(theme_primary_hue: str = "indigo") -> "gr.
             ],
             outputs=all_outputs,
             show_progress="full",
-            js=nav_js("model-step", "Running experiment...", 500, notify_parent=False)
-            
+            js=nav_js("model-step", "Running experiment...", 500, notify_parent=False),
+            api_name="predict"
             ).then(
                 # CHANGE 2: Send the notification ONLY after Python is done (20s later)
                 fn=None,
