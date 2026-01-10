@@ -14,22 +14,6 @@ Usage:
     locust -f locustfile_gradio_apps.py --host=https://judge-HASH-uc.a.run.app
 
     # Test with 100 concurrent users
-    locust -f locustfile_gradio_apps.py --host=https://judge-HASH-uc.a.run.app \"""
-Load tests for Gradio Cloud Run applications.
-
-This load test suite validates the scalability of Gradio apps deployed to Cloud Run,
-ensuring they can handle 100+ concurrent users as specified in the requirements.
-
-The tests simulate realistic user behavior including:
-- Session ID and language query parameters (matching production usage)
-- Interactive element usage (buttons, sliders, dropdowns)
-- CPU-intensive operations (predictions, model runs)
-
-Usage:
-    # Test specific app
-    locust -f locustfile_gradio_apps.py --host=https://judge-HASH-uc.a.run.app
-
-    # Test with 100 concurrent users
     locust -f locustfile_gradio_apps.py --host=https://judge-HASH-uc.a.run.app \
         --users 100 --spawn-rate 10 --run-time 5m --headless
 
@@ -48,6 +32,7 @@ import os
 import json
 import random
 import uuid
+import time
 from locust import HttpUser, task, between, events
 
 
@@ -152,26 +137,6 @@ def _severity_en_options():
     return ["Minor", "Moderate", "Serious"]
 
 
-def _to_en_severity(val):
-    """
-    Normalize any localized severity value to English to match server-side Dropdown choices.
-    """
-    mapping = {
-        # English
-        "Minor": "Minor",
-        "Moderate": "Moderate",
-        "Serious": "Serious",
-        # Spanish → English
-        "Menor": "Minor",
-        "Moderado": "Moderate",
-        "Grave": "Serious",
-        # Catalan → English
-        "Moderat": "Moderate",
-        "Greu": "Serious",
-    }
-    return mapping.get(val, "Moderate")  # safe fallback
-
-
 class GradioAppUser(HttpUser):
     """
     Simulates a user interacting with a Gradio application.
@@ -193,6 +158,9 @@ class GradioAppUser(HttpUser):
         # Initialize session with query parameters (as used in production)
         params = {'sessionid': self.session_id, 'lang': self.lang}
         self.client.get("/", params=params, name="Initial Load with Session")
+
+        # Allow server to finalize session setup before heavy POST traffic
+        time.sleep(random.uniform(0.15, 0.35))
 
         # Discover indices from /config (best effort)
         cfg = _fetch_config(self.client, self.session_id, self.lang)
@@ -234,14 +202,13 @@ class GradioAppUser(HttpUser):
 
         age = random.randint(18, 65)
         priors = random.randint(0, 10)
-        # Always normalize to English before sending
-        severity = _to_en_severity(random.choice(_severity_en_options()))
+        severity = random.choice(_severity_en_options())
         predict_url = f"/gradio_api/call/predict?sessionid={sessionid}&lang={lang}"
 
         payload = {
             "fn_index": fn_index,
             "data": [age, priors, severity, lang],
-            "session_hash": str(uuid.uuid4())
+            "session_hash": self.session_id  # stable hash to avoid Gradio KeyError
         }
         with self.client.post(
             predict_url,
@@ -272,7 +239,7 @@ class GradioAppUser(HttpUser):
             json={
                 "data": data,
                 "fn_index": self.nav_fn_index,
-                "session_hash": str(uuid.uuid4())
+                "session_hash": self.session_id  # stable
             },
             catch_response=True,
             name="Button Click (CPU-intensive)"
@@ -296,14 +263,14 @@ class GradioAppUser(HttpUser):
 
         age = random.randint(18, 65)
         priors = random.randint(0, 10)
-        severity = _to_en_severity(random.choice(_severity_en_options()))
+        severity = random.choice(_severity_en_options())
 
         with self.client.post(
             url,
             json={
                 "data": [age, priors, severity, lang],
                 "fn_index": fn_index,
-                "session_hash": str(uuid.uuid4())
+                "session_hash": self.session_id  # stable
             },
             catch_response=True,
             name="Slider/Dropdown Change (CPU-intensive)"
@@ -355,6 +322,9 @@ class ModelBuildingGameUser(HttpUser):
 
         params = {'sessionid': self.session_id, 'lang': self.lang}
         self.client.get("/", params=params, name="Initial Load with Session")
+
+        # Allow server to finalize session setup before heavy POST traffic
+        time.sleep(random.uniform(0.15, 0.35))
 
         # Discover indices
         cfg = _fetch_config(self.client, self.session_id, self.lang)
@@ -415,7 +385,7 @@ class ModelBuildingGameUser(HttpUser):
             json={
                 "data": data,
                 "fn_index": fn_index,
-                "session_hash": str(uuid.uuid4())
+                "session_hash": self.session_id  # stable
             },
             catch_response=True,
             name="Model Training (Very CPU-intensive)",
@@ -449,7 +419,7 @@ class ModelBuildingGameUser(HttpUser):
             json={
                 "data": data,
                 "fn_index": fn_index,
-                "session_hash": str(uuid.uuid4())
+                "session_hash": self.session_id  # stable
             },
             catch_response=True,
             name="Feature Selection (CPU-intensive)",
@@ -476,6 +446,9 @@ class WhatIsAIAppUser(HttpUser):
         self.lang = random.choice(['en', 'es', 'ca'])
         params = {'sessionid': self.session_id, 'lang': self.lang}
         self.client.get("/", params=params, name="Initial Load with Session")
+
+        # Allow server to finalize session setup before heavy POST traffic
+        time.sleep(random.uniform(0.15, 0.35))
 
         # Discover indices
         cfg = _fetch_config(self.client, self.session_id, self.lang)
@@ -514,15 +487,14 @@ class WhatIsAIAppUser(HttpUser):
         age = random.randint(18, 65)
         priors = random.randint(0, 10)
         lang = self.lang
-        # Always English severity regardless of session language
-        severity = _to_en_severity(random.choice(_severity_en_options()))
+        severity = random.choice(_severity_en_options())  # ALWAYS English
 
         predict_url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={lang}"
 
         payload = {
             "data": [age, priors, severity, lang],
             "fn_index": fn_index,
-            "session_hash": str(uuid.uuid4())
+            "session_hash": self.session_id  # stable
         }
 
         with self.client.post(
@@ -554,7 +526,7 @@ class WhatIsAIAppUser(HttpUser):
             json={
                 "data": data,
                 "fn_index": fn_index,
-                "session_hash": str(uuid.uuid4())
+                "session_hash": self.session_id  # stable
             },
             catch_response=True,
             name="Button Click (Navigation/UI)"
@@ -580,15 +552,14 @@ class WhatIsAIAppUser(HttpUser):
 
         age = random.randint(18, 65)
         priors = random.randint(0, 10)
-        # Always English severity regardless of session language
-        severity = _to_en_severity(random.choice(_severity_en_options()))
+        severity = random.choice(_severity_en_options())  # ALWAYS English
 
         with self.client.post(
             url,
             json={
                 "data": [age, priors, severity, lang],
                 "fn_index": fn_index,
-                "session_hash": str(uuid.uuid4())
+                "session_hash": self.session_id  # stable
             },
             catch_response=True,
             name="Slider/Dropdown Change (UI)"
