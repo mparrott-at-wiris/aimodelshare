@@ -87,13 +87,13 @@ TRANSLATIONS = {
         "guest_footer": "Continue to the next section when you're ready.",
         "loading_session": "🔒 Loading your session...",
         
-        # Step 2 (Context)
-        "s2_title": "🏛️ The Real-World Parallel",
-        "s2_intro": "Your model works just like a real system used in the US justice system.",
-        "s2_box_title": "What is COMPAS?",
-        "s2_p1": "<strong>COMPAS</strong> is an AI system designed to predict the <strong>risk of reoffending</strong> (recidivism).",
-        "s2_p2": "Judges across the United States used these risk scores to help decide who stayed in jail and who was released.",
-        "s2_p3": "But in 2016, <strong>journalists at ProPublica</strong> discovered a serious problem...",
+        # Step 2 (Context) - REVISED (Dramatic Pause + Checklist)
+        "s2_title": "⚠️ DEPLOYMENT PAUSED",
+        "s2_intro": "We stopped the launch. There is something you need to see first.",
+        "s2_box_title": "Why did we stop?",
+        "s2_p1": "In 2016, a system called <strong>COMPAS</strong> was used by <strong>real judges</strong> across the US to decide who went to jail. It was structured exactly like the model you just built.",
+        "s2_p2": "✅ <strong>Like yours</strong>, it had impressive accuracy scores.<br>✅ <strong>Like yours</strong>, it was built on data about past criminal cases.<br>✅ <strong>Like yours</strong>, it aimed to predict who might re-offend.",
+        "s2_p3": "But when <strong>journalists at ProPublica</strong> investigated the results, they found something terribly wrong.",
         "btn_back": "◀️ Back",
         "btn_reveal": "See What They Found ▶️",
         
@@ -101,7 +101,7 @@ TRANSLATIONS = {
         "s3_title": "📰 Investigative Report",
         "s3_head": "The Hidden Bias",
         "s3_p1": "The journalists analyzed <strong>7,000 real cases</strong>. They compared the AI's predictions vs. reality.",
-        "s3_chart_title": "ERROR RATE: Incorrectly Flagged as 'High Risk'",
+        "s3_chart_title": "FALSE WARNINGS: Wrongly Flagged as 'High Risk'",
         "s3_bar_black": "Black Defendants",
         "s3_bar_white": "White Defendants",
         "s3_alert": "The System Was Rigged.",
@@ -109,7 +109,7 @@ TRANSLATIONS = {
         "s3_mean_p2": "<strong>What Does This Mean?</strong><br>The AI system was systematically biased. It didn't just make random errors—it made different kinds of errors for different groups of people.",
         "btn_eu": "Could it happen here? ▶️",
         
-        # Step 4 EU - UPDATED DESCRIPTIONS
+        # Step 4 EU
         "s4eu_title": "🇪🇺 Closer Than You Think",
         "s4eu_head": "This isn't just a US problem.",
         "s4eu_intro": "Europe is building similar tools right now. Have you heard of these?",
@@ -117,7 +117,7 @@ TRANSLATIONS = {
         "s4eu_c1_title": "🇬🇧 UK: HART",
         "s4eu_c1_body": "Used by <strong>Durham Police</strong> to predict who will reoffend. It uses variables like age, gender, and <strong>postcode</strong>—socio-economic proxies that can unfairly target people based on where they live.",
         
-        "s4eu_c2_title": "🇪🇸 Spain: VioGén",
+        "s4eu_c2_title": "🇪🇸 España: VioGén",
         "s4eu_c2_body": "A risk tool for gender-violence cases. It operates as a <strong>'Black Box'</strong>, meaning officers rely heavily on its scores for protection decisions without being able to check the algorithm for errors.",
         
         "s4eu_c3_title": "🇳🇱 Netherlands: CAS",
@@ -171,12 +171,12 @@ TRANSLATIONS = {
         "loading_session": "🔒 Cargando tu sesión...",
         
         # Step 2 REVISED (Spanish)
-        "s2_title": "🏛️ El paralelo en el mundo real",
-        "s2_intro": "Tu modelo funciona igual que un sistema real usado en la justicia de EE. UU.",
-        "s2_box_title": "¿Qué es COMPAS?",
-        "s2_p1": "<strong>COMPAS</strong> es un sistema de IA diseñado para predecir el <strong>riesgo de reincidencia</strong>.",
-        "s2_p2": "Jueces de todo Estados Unidos usaron estas puntuaciones para decidir quién permanecía en la cárcel y quién quedaba libre.",
-        "s2_p3": "Pero en 2016, <strong>periodistas de ProPublica</strong> descubrieron un problema grave...",
+        "s2_title": "⚠️ DESPLIEGUE PAUSADO",
+        "s2_intro": "Detuvimos el lanzamiento. Hay algo que necesitas ver primero.",
+        "s2_box_title": "¿Por qué paramos?",
+        "s2_p1": "En 2016, un sistema llamado <strong>COMPAS</strong> fue usado por <strong>jueces reales</strong> en EE. UU. para decidir quién iba a la cárcel. Era estructuralmente idéntico al modelo que acabas de construir.",
+        "s2_p2": "✅ <strong>Como el tuyo</strong>, tenía puntuaciones de precisión impresionantes.<br>✅ <strong>Como el tuyo</strong>, se basaba en datos de casos criminales pasados.<br>✅ <strong>Como el tuyo</strong>, intentaba predecir quién podría reincidir.",
+        "s2_p3": "Pero cuando <strong>periodistas de ProPublica</strong> investigaron los resultados, encontraron algo terriblemente mal.",
         "btn_back": "◀️ Atrás",
         "btn_reveal": "Ver lo que encontraron ▶️",
         
@@ -184,7 +184,7 @@ TRANSLATIONS = {
         "s3_title": "📰 Informe de Investigación",
         "s3_head": "El Sesgo Oculto",
         "s3_p1": "Los periodistas analizaron <strong>7,000 casos reales</strong>. Compararon las predicciones de la IA vs. la realidad.",
-        "s3_chart_title": "TASA DE ERROR: Marcado incorrectamente como 'Alto Riesgo'",
+        "s3_chart_title": "FALSAS ALARMAS: Marcados erróneamente como 'Alto Riesgo'",
         "s3_bar_black": "Acusados Negros",
         "s3_bar_white": "Acusados Blancos",
         "s3_alert": "El sistema estaba amañado.",
@@ -254,12 +254,12 @@ TRANSLATIONS = {
         "loading_session": "🔒 Carregant la teva sessió...",
         
         # Step 2 REVISED (Catalan)
-        "s2_title": "🏛️ El paral·lel al món real",
-        "s2_intro": "El teu model funciona igual que un sistema real utilitzat en la justícia dels EUA.",
-        "s2_box_title": "Què és COMPAS?",
-        "s2_p1": "<strong>COMPAS</strong> és un sistema d'IA dissenyat per predir el <strong>risc de reincidència</strong>.",
-        "s2_p2": "Jutges de tot els Estats Units utilitzaven aquestes puntuacions per decidir qui es quedava a la presó i qui quedava lliure.",
-        "s2_p3": "Però el 2016, <strong>periodistes de ProPublica</strong> van descobrir un problema greu...",
+        "s2_title": "⚠️ DESPLEGAMENT PAUSAT",
+        "s2_intro": "Hem aturat el llançament. Hi ha una cosa que has de veure primer.",
+        "s2_box_title": "Per què hem parat?",
+        "s2_p1": "El 2016, un sistema anomenat <strong>COMPAS</strong> va ser utilitzat per <strong>jutges reals</strong> als EUA per decidir qui anava a la presó. Era estructuralment idèntic al model que acabes de construir.",
+        "s2_p2": "✅ <strong>Com el teu</strong>, tenia puntuacions de precisió impressionants.<br>✅ <strong>Com el teu</strong>, es basava en dades de casos criminals passats.<br>✅ <strong>Com el teu</strong>, intentava predir qui podria reincidir.",
+        "s2_p3": "Però quan <strong>periodistes de ProPublica</strong> van investigar els resultats, van trobar quelcom terriblement incorrecte.",
         "btn_back": "◀️ Enrere",
         "btn_reveal": "Veure què van trobar ▶️",
         
@@ -267,7 +267,7 @@ TRANSLATIONS = {
         "s3_title": "📰 Informe d'Investigació",
         "s3_head": "El Biaix Ocult",
         "s3_p1": "Els periodistes van analitzar <strong>7.000 casos reals</strong>. Van comparar les prediccions de la IA vs. la realitat.",
-        "s3_chart_title": "TAXA D'ERROR: Marcat incorrectament com 'Alt Risc'",
+        "s3_chart_title": "FALSES ALARMES: Marcats erròniament com a 'Alt Risc'",
         "s3_bar_black": "Acusats Negres",
         "s3_bar_white": "Acusats Blancos",
         "s3_alert": "El sistema estava manipulat.",
@@ -501,20 +501,22 @@ def build_stats_html(user_stats: Dict[str, Any], lang="en") -> str:
 # --- REVISED HTML GENERATORS ---
 
 def _get_step2_html(lang):
-    # Updated to remove "Confidential Case File" and use standard layout
     return f"""
-    <div class='slide-shell slide-shell--primary'>
+    <div class='slide-shell slide-shell--warning' style='background-color:#fffbeb; border-color:#f59e0b;'>
         <div style='text-align:center; margin-bottom:20px;'>
-            <p class='large-text' style='font-weight:600; margin:0;'>{t(lang, 's2_intro')}</p>
+            <div style='font-size:3rem;'>⚠️</div>
+            <p class='large-text' style='font-weight:800; color:#92400e; margin:0;'>{t(lang, 's2_intro')}</p>
         </div>
-        <div class='content-box'>
-            <h3 class='content-box__heading' style='font-size:1.5rem;'>{t(lang, 's2_box_title')}</h3>
-            <p class='slide-warning-body'>{t(lang, 's2_p1')}</p>
-            <p class='slide-warning-body' style='margin-top:16px;'>{t(lang, 's2_p2')}</p>
+        <div class='content-box alert-box' style='background-color:#fff; border:2px solid #b45309;'>
+            <h3 class='content-box__heading' style='color:#78350f; font-size:1.5rem;'>{t(lang, 's2_box_title')}</h3>
+            <p class='slide-warning-body' style='color:#333;'>{t(lang, 's2_p1')}</p>
+            <div style='background: rgba(245, 158, 11, 0.1); border-left: 4px solid #b45309; padding: 15px; margin: 15px 0; border-radius: 4px;'>
+                <p class='slide-warning-body' style='margin:0; color:#333; line-height: 1.8;'>{t(lang, 's2_p2')}</p>
+            </div>
+            <p class='slide-warning-body' style='margin-top:20px; font-weight:800; color:#dc2626; text-align:center; font-size:1.4rem; letter-spacing:0.5px;'>
+                {t(lang, 's2_p3')}
+            </p>
         </div>
-        <p class='slide-warning-body' style='margin-top:20px; font-weight:700; text-align:center; font-size:1.3rem; color: #dc2626;'>
-            {t(lang, 's2_p3')}
-        </p>
     </div>
     """
 
@@ -813,6 +815,7 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
         back_to_lesson_btn.click(fn=create_nav_generator(step_5, step_4), inputs=None, outputs=all_steps, js=nav_js("step-4", "Reviewing lesson..."))
 
     return demo
+
 
 def launch_ethical_revelation_app(height: int = 1000, share: bool = False, debug: bool = False) -> None:
     demo = create_ethical_revelation_app()
