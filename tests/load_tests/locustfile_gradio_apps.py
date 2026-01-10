@@ -47,8 +47,8 @@ class GradioAppUser(HttpUser):
     
     def on_start(self):
         """Called when a simulated user starts."""
-        # Generate unique session ID for this user (matches production usage)
-        self.session_id = str(uuid.uuid4())
+        # Use provided session ID from environment variable (for auth), or generate unique one
+        self.session_id = os.environ.get('LOAD_TEST_SESSION_ID', str(uuid.uuid4()))
         # Random language selection (en, es, ca)
         self.lang = random.choice(['en', 'es', 'ca'])
         
@@ -180,7 +180,8 @@ class ModelBuildingGameUser(HttpUser):
     
     def on_start(self):
         """Initialize session with parameters for ML apps."""
-        self.session_id = str(uuid.uuid4())
+        # Use provided session ID from environment variable (for auth), or generate unique one
+        self.session_id = os.environ.get('LOAD_TEST_SESSION_ID', str(uuid.uuid4()))
         self.lang = random.choice(['en', 'es', 'ca'])
         
         params = {

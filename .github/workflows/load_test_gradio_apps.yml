@@ -3,22 +3,14 @@ name: Load Test Gradio Apps
 on:
   workflow_dispatch:
     inputs:
-      target_app:
-        description: 'App to test (or "all" for all apps)'
+      app_url:
+        description: 'App URL to test (e.g., https://judge-abc123-uc.a.run.app)'
         required: true
-        default: 'judge'
-        type: choice
-        options:
-          - all
-          - judge
-          - ai-consequences
-          - what-is-ai
-          - tutorial
-          - model-building-game-en
-          - model-building-game-es
-          - model-building-game-ca
-          - ethical-revelation
-          - moral-compass-challenge
+        type: string
+      session_id:
+        description: 'Session ID / Auth token for the app'
+        required: true
+        type: string
       num_users:
         description: 'Number of concurrent users'
         required: true
@@ -38,8 +30,12 @@ on:
   # Allow triggering after deployment
   workflow_call:
     inputs:
-      target_app:
-        description: 'App to test'
+      app_url:
+        description: 'App URL to test'
+        required: true
+        type: string
+      session_id:
+        description: 'Session ID / Auth token for the app'
         required: true
         type: string
       num_users:
@@ -58,18 +54,9 @@ on:
         default: '3m'
         type: string
 
-env:
-  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  REGION: us-central1
-
 jobs:
   load-test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # If 'all' is selected, test multiple key apps
-        # Otherwise, test just the selected app
-        app: ${{ github.event.inputs.target_app == 'all' && fromJSON('["judge", "ai-consequences", "what-is-ai", "model-building-game-en"]') || fromJSON(format('["{0}"]', github.event.inputs.target_app)) }}
     
     steps:
       - name: Checkout Code
@@ -85,79 +72,71 @@ jobs:
           pip install --upgrade pip
           pip install -r tests/load_tests/requirements.txt
       
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-      
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-      
-      - name: Get App URL
-        id: get-url
+      - name: Validate App URL
+        id: validate-url
         run: |
-          # Get the Cloud Run service URL
-          SERVICE_NAME="${{ matrix.app }}"
-          URL=$(gcloud run services describe "$SERVICE_NAME" \
-            --region=${{ env.REGION }} \
-            --format='value(status.url)' 2>/dev/null || echo "")
+          APP_URL="${{ github.event.inputs.app_url }}"
           
-          if [ -z "$URL" ]; then
-            echo "❌ Service $SERVICE_NAME not found or not deployed"
-            echo "url=" >> $GITHUB_OUTPUT
-            echo "deployed=false" >> $GITHUB_OUTPUT
-          else
-            echo "✅ Found service URL: $URL"
-            echo "url=$URL" >> $GITHUB_OUTPUT
-            echo "deployed=true" >> $GITHUB_OUTPUT
+          # Validate URL format
+          if [[ ! "$APP_URL" =~ ^https?:// ]]; then
+            echo "❌ Invalid URL format. Must start with http:// or https://"
+            exit 1
           fi
+          
+          echo "✅ Testing URL: $APP_URL"
+          echo "url=$APP_URL" >> $GITHUB_OUTPUT
       
       - name: Run Load Test
-        if: steps.get-url.outputs.deployed == 'true'
         run: |
           cd tests/load_tests
           
-          echo "🚀 Starting load test for ${{ matrix.app }}"
-          echo "  URL: ${{ steps.get-url.outputs.url }}"
+          APP_URL="${{ github.event.inputs.app_url }}"
+          SESSION_ID="${{ github.event.inputs.session_id }}"
+          
+          echo "🚀 Starting load test"
+          echo "  URL: $APP_URL"
+          echo "  Session ID: ${SESSION_ID:0:8}..." # Show only first 8 chars for security
           echo "  Users: ${{ github.event.inputs.num_users || '50' }}"
           echo "  Spawn Rate: ${{ github.event.inputs.spawn_rate || '5' }}"
           echo "  Duration: ${{ github.event.inputs.run_time || '3m' }}"
           
-          # Determine user class based on app type
+          # Determine user class based on URL pattern
           USER_CLASS="GradioAppUser"
-          if [[ "${{ matrix.app }}" == model-building-game-* ]]; then
+          if [[ "$APP_URL" == *"model-building-game"* ]]; then
             USER_CLASS="ModelBuildingGameUser"
           fi
           
+          # Export session ID as environment variable for the load test
+          export LOAD_TEST_SESSION_ID="$SESSION_ID"
+          
           # Run locust in headless mode
           locust -f locustfile_gradio_apps.py \
-            --host=${{ steps.get-url.outputs.url }} \
+            --host="$APP_URL" \
             --users ${{ github.event.inputs.num_users || '50' }} \
             --spawn-rate ${{ github.event.inputs.spawn_rate || '5' }} \
             --run-time ${{ github.event.inputs.run_time || '3m' }} \
             --headless \
-            --html=load_test_report_${{ matrix.app }}.html \
-            --csv=load_test_results_${{ matrix.app }} \
+            --html=load_test_report.html \
+            --csv=load_test_results \
             --user-class $USER_CLASS \
             || true  # Don't fail workflow on test failures
           
           echo "✅ Load test complete"
       
       - name: Parse Test Results
-        if: steps.get-url.outputs.deployed == 'true'
         id: parse-results
         run: |
           cd tests/load_tests
           
           # Check if CSV results exist
-          if [ ! -f "load_test_results_${{ matrix.app }}_stats.csv" ]; then
+          if [ ! -f "load_test_results_stats.csv" ]; then
             echo "⚠️  No results file found"
             echo "success=false" >> $GITHUB_OUTPUT
             exit 0
           fi
           
           # Parse CSV results (skip header, get totals)
-          STATS=$(tail -n 1 "load_test_results_${{ matrix.app }}_stats.csv")
+          STATS=$(tail -n 1 "load_test_results_stats.csv")
           
           # Extract metrics (CSV format: Type,Name,Request Count,Failure Count,...)
           TOTAL_REQUESTS=$(echo "$STATS" | cut -d',' -f3)
@@ -186,21 +165,21 @@ jobs:
           echo "pass=$PASS" >> $GITHUB_OUTPUT
       
       - name: Upload Test Report
-        if: steps.get-url.outputs.deployed == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: load-test-report-${{ matrix.app }}
+          name: load-test-report
           path: |
-            tests/load_tests/load_test_report_${{ matrix.app }}.html
-            tests/load_tests/load_test_results_${{ matrix.app }}_*.csv
+            tests/load_tests/load_test_report.html
+            tests/load_tests/load_test_results_*.csv
           retention-days: 30
       
       - name: Comment Results Summary
-        if: steps.get-url.outputs.deployed == 'true' && github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch'
         run: |
-          echo "## 📊 Load Test Results - ${{ matrix.app }}" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 Load Test Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Configuration:**" >> $GITHUB_STEP_SUMMARY
+          echo "- URL: ${{ github.event.inputs.app_url }}" >> $GITHUB_STEP_SUMMARY
           echo "- Users: ${{ github.event.inputs.num_users || '50' }}" >> $GITHUB_STEP_SUMMARY
           echo "- Spawn Rate: ${{ github.event.inputs.spawn_rate || '5' }}/sec" >> $GITHUB_STEP_SUMMARY
           echo "- Duration: ${{ github.event.inputs.run_time || '3m' }}" >> $GITHUB_STEP_SUMMARY
@@ -220,28 +199,3 @@ jobs:
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "📄 Download the full HTML report from artifacts for detailed analysis." >> $GITHUB_STEP_SUMMARY
-      
-      - name: Skip Test Notice
-        if: steps.get-url.outputs.deployed == 'false'
-        run: |
-          echo "## ⚠️  Load Test Skipped - ${{ matrix.app }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Service not found or not deployed. Please deploy the app first." >> $GITHUB_STEP_SUMMARY
-
-  summary:
-    runs-on: ubuntu-latest
-    needs: load-test
-    if: always()
-    steps:
-      - name: Generate Summary
-        run: |
-          echo "## 🎯 Load Test Campaign Complete" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Target: **${{ github.event.inputs.target_app || 'N/A' }}**" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "All test results are available in the artifacts section above." >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
-          echo "1. Review individual app reports in artifacts" >> $GITHUB_STEP_SUMMARY
-          echo "2. Check Cloud Run metrics for resource utilization" >> $GITHUB_STEP_SUMMARY
-          echo "3. Adjust configuration if needed (memory, CPU, concurrency)" >> $GITHUB_STEP_SUMMARY

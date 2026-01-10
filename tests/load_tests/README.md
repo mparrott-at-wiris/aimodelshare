@@ -20,6 +20,40 @@ The load tests ensure that the Cloud Run apps can handle 100+ concurrent users a
 pip install -r requirements.txt
 ```
 
+## Live App URLs
+
+Here are the deployed Cloud Run app URLs you can test:
+
+```json
+{
+  "tutorial": "https://tutorial-pvrljp4aja-uc.a.run.app",
+  "judge": "https://judge-pvrljp4aja-uc.a.run.app",
+  "ai-consequences": "https://ai-consequences-pvrljp4aja-uc.a.run.app",
+  "what-is-ai": "https://what-is-ai-pvrljp4aja-uc.a.run.app",
+  "model-building-game-en": "https://model-building-game-en-pvrljp4aja-uc.a.run.app",
+  "model-building-game-ca": "https://model-building-game-ca-pvrljp4aja-uc.a.run.app",
+  "model-building-game-es": "https://model-building-game-es-pvrljp4aja-uc.a.run.app",
+  "model-building-game-en-final": "https://model-building-game-en-final-pvrljp4aja-uc.a.run.app",
+  "model-building-game-es-final": "https://model-building-game-es-final-pvrljp4aja-uc.a.run.app",
+  "model-building-game-ca-final": "https://model-building-game-ca-final-pvrljp4aja-uc.a.run.app",
+  "ethical-revelation": "https://ethical-revelation-pvrljp4aja-uc.a.run.app",
+  "moral-compass-challenge": "https://moral-compass-challenge-pvrljp4aja-uc.a.run.app",
+  "bias-detective-part1": "https://bias-detective-part1-pvrljp4aja-uc.a.run.app",
+  "bias-detective-part2": "https://bias-detective-part2-pvrljp4aja-uc.a.run.app",
+  "bias-detective-en": "https://bias-detective-en-pvrljp4aja-uc.a.run.app",
+  "bias-detective-es": "https://bias-detective-es-pvrljp4aja-uc.a.run.app",
+  "bias-detective-ca": "https://bias-detective-ca-pvrljp4aja-uc.a.run.app",
+  "fairness-fixer": "https://fairness-fixer-pvrljp4aja-uc.a.run.app",
+  "justice-equity-upgrade": "https://justice-equity-upgrade-pvrljp4aja-uc.a.run.app",
+  "fairness-fixer-en": "https://fairness-fixer-en-pvrljp4aja-uc.a.run.app",
+  "fairness-fixer-es": "https://fairness-fixer-es-pvrljp4aja-uc.a.run.app",
+  "fairness-fixer-ca": "https://fairness-fixer-ca-pvrljp4aja-uc.a.run.app",
+  "justice-equity-upgrade-en": "https://justice-equity-upgrade-en-pvrljp4aja-uc.a.run.app",
+  "justice-equity-upgrade-es": "https://justice-equity-upgrade-es-pvrljp4aja-uc.a.run.app",
+  "justice-equity-upgrade-ca": "https://justice-equity-upgrade-ca-pvrljp4aja-uc.a.run.app"
+}
+```
+
 ## Running Load Tests
 
 ### Quick Test (Local)
@@ -28,8 +62,13 @@ Test with a small number of users:
 
 ```bash
 cd tests/load_tests
+
+# Set your session ID (required for auth)
+export LOAD_TEST_SESSION_ID="your-session-id-here"
+
+# Run the test
 locust -f locustfile_gradio_apps.py \
-  --host=https://your-app-hash-uc.a.run.app \
+  --host=https://judge-pvrljp4aja-uc.a.run.app \
   --users 10 \
   --spawn-rate 2 \
   --run-time 1m \
@@ -40,8 +79,13 @@ locust -f locustfile_gradio_apps.py \
 
 ```bash
 cd tests/load_tests
+
+# Set your session ID (required for auth)
+export LOAD_TEST_SESSION_ID="your-session-id-here"
+
+# Run the test
 locust -f locustfile_gradio_apps.py \
-  --host=https://your-app-hash-uc.a.run.app \
+  --host=https://judge-pvrljp4aja-uc.a.run.app \
   --users 100 \
   --spawn-rate 10 \
   --run-time 5m \
@@ -53,8 +97,10 @@ locust -f locustfile_gradio_apps.py \
 
 **Standard Apps (judge, tutorial, ai-consequences, what-is-ai, etc.):**
 ```bash
+export LOAD_TEST_SESSION_ID="your-session-id-here"
+
 locust -f locustfile_gradio_apps.py \
-  --host=https://judge-HASH-uc.a.run.app \
+  --host=https://judge-pvrljp4aja-uc.a.run.app \
   --users 100 \
   --spawn-rate 10 \
   --run-time 5m \
@@ -63,8 +109,10 @@ locust -f locustfile_gradio_apps.py \
 
 **Model Building Game Apps (higher resource usage):**
 ```bash
+export LOAD_TEST_SESSION_ID="your-session-id-here"
+
 locust -f locustfile_gradio_apps.py \
-  --host=https://model-building-game-en-HASH-uc.a.run.app \
+  --host=https://model-building-game-en-pvrljp4aja-uc.a.run.app \
   --users 100 \
   --spawn-rate 10 \
   --run-time 5m \
@@ -77,8 +125,10 @@ locust -f locustfile_gradio_apps.py \
 To run with Locust's web interface:
 
 ```bash
+export LOAD_TEST_SESSION_ID="your-session-id-here"
+
 locust -f locustfile_gradio_apps.py \
-  --host=https://your-app-hash-uc.a.run.app
+  --host=https://judge-pvrljp4aja-uc.a.run.app
 ```
 
 Then open http://localhost:8089 in your browser to control the test.
@@ -198,6 +248,19 @@ Requests/sec: > 10
 ## Automated Testing (CI/CD)
 
 Load tests can be run automatically in GitHub Actions. See `.github/workflows/load_test_gradio_apps.yml` for the workflow configuration.
+
+**To run via GitHub Actions:**
+
+1. Go to **Actions** → **Load Test Gradio Apps**
+2. Click **Run workflow**
+3. Fill in the inputs:
+   - **App URL**: Select from live URLs above (e.g., `https://judge-pvrljp4aja-uc.a.run.app`)
+   - **Session ID**: Your auth token/session ID for the app
+   - **Number of users**: Default 100
+   - **Spawn rate**: Default 10/sec
+   - **Duration**: Default 5m
+4. Click **Run workflow**
+5. Download HTML reports from artifacts when complete
 
 ## Example Output
 
