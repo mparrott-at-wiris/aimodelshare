@@ -334,7 +334,7 @@ class WhatIsAIAppUser(HttpUser):
 
     @task(12)
     def run_ai_prediction(self):
-        # Reuse GradioAppUser logic by instantiating a minimal helper
+        # Discover fn_index as before (no change)
         fn_index = None
         try:
             cfg_resp = self.client.get("/config", name="Load Config (for fn_index)")
@@ -367,17 +367,26 @@ class WhatIsAIAppUser(HttpUser):
 
         age = random.randint(18, 65)
         priors = random.randint(0, 10)
-        severity = random.choice(["Minor", "Moderate", "Serious"])  # mapping supports locales
+        severity_options = {
+            'en': ["Minor", "Moderate", "Serious"],
+            'es': ["Menor", "Moderado", "Grave"],
+            'ca': ["Menor", "Moderat", "Greu"],
+        }
         lang = self.lang
+        severity = random.choice(severity_options.get(lang, ["Minor", "Moderate", "Serious"]))
+
+        # Construct new prediction endpoint for new Gradio style
+        predict_url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={lang}"
 
         payload = {
             "data": [age, priors, severity, lang],
             "fn_index": fn_index,
-            "session_hash": self.session_id
+            # session_hash can be anything, can use a new uuid to mimic real web clients
+            "session_hash": str(uuid.uuid4())
         }
 
         with self.client.post(
-            "/api/predict",
+            predict_url,
             json=payload,
             catch_response=True,
             name="Run AI Prediction (What is AI)"
@@ -391,16 +400,16 @@ class WhatIsAIAppUser(HttpUser):
     def simulate_button_clicks(self):
         """
         Simulate navigation and button interactions in What is AI app.
-        Tests backend processing from user interactions like navigation buttons, etc.
+        If these trigger prediction-like events, target /gradio_api/call/predict.
         """
-        fn_indices = [0, 1, 2, 3]  # Different functions in the app
-        
+        fn_indices = [0, 1, 2, 3]
+        url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={self.lang}"
         with self.client.post(
-            "/api/predict",
+            url,
             json={
                 "data": [random.choice(["Next", "Complete", "Continue"])],
                 "fn_index": random.choice(fn_indices),
-                "session_hash": self.session_id
+                "session_hash": str(uuid.uuid4())
             },
             catch_response=True,
             name="Button Click (Navigation/UI)"
@@ -411,25 +420,25 @@ class WhatIsAIAppUser(HttpUser):
                 response.success()
             else:
                 response.failure(f"Button interaction failed: {response.status_code}")
-    
+
     @task(2)
     def simulate_slider_interactions(self):
         """
         Simulate slider/dropdown interactions for parameter adjustments.
-        Tests real-time UI updates from input changes.
+        If these are supposed to go through Gradio predict, use the new endpoint.
         """
         slider_values = {
             "age": random.randint(18, 65),
             "priors": random.randint(0, 10),
             "severity": random.choice(["Minor", "Moderate", "Serious"])
         }
-        
+        url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={self.lang}"
         with self.client.post(
-            "/api/predict",
+            url,
             json={
                 "data": list(slider_values.values()),
                 "fn_index": random.randint(4, 7),
-                "session_hash": self.session_id
+                "session_hash": str(uuid.uuid4())
             },
             catch_response=True,
             name="Slider/Dropdown Change (UI)"
@@ -453,6 +462,7 @@ class WhatIsAIAppUser(HttpUser):
                     pass
                 else:
                     response.failure(f"Health check failed: {response.status_code}")
+
 
 
 # Event handlers for reporting
