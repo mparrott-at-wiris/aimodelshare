@@ -603,7 +603,7 @@ MODULES = [
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
                                     <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDÈNCIA REGISTRADA: Biaix de representació de gènere</div>
                                     <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        Les dones són una minoria en aquest conjunt de dades, tot i que representen aproximadament el 50 % de la població real. El model probablement tindrà dificultats per aprendre patrons precisos per a aquest grup, fet que comportarà **taxes d'error més altes** en les prediccions sobre dones preses.s.
+                                        Les dones són una classe minoritària en aquest conjunt de dades, tot i que representen aproximadament el 50 % de la població real. El model probablement tindrà dificultats per aprendre patrons precisos per a aquest grup, fet que comportarà **taxes d'error més altes** en les prediccions sobre dones preses.s.
                                     </div>
                                 </div>
                             </div>
@@ -664,7 +664,7 @@ MODULES = [
     # --- MODULE 4: EVIDENCE REPORT (Input Flaws) ---
     {
         "id":5,
-        "title": "Informe d'Evidència: Defectes d'Entrada",
+        "title": "Informe d'evidències: Defectes d'entrada",
         "html": """
             <div class="scenario-box">
                 <div class="tracker-container">
@@ -733,13 +733,13 @@ MODULES = [
                 </div>
 
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">PAS 3: AVALUAR ERRORS DE PREDICCIÓ</h2>
+                    <h2 class="slide-title" style="margin:0;">PAS 3: AVALUAR ERRORS</h2>
 
                     <div style="text-align:center; margin-bottom:20px;">
-                        <h2 class="slide-title header-accent" style="margin-top:10px;">La Recerca d'Errors de Predicció</h2>
+                        <h2 class="slide-title header-accent" style="margin-top:10px;">A la recerca d'errors de predicció</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                            Hem trobat proves que les Dades d'Entrada estan esbiaixades. Ara hem d'investigar si aquest biaix ha influït en les <strong>Decisions del Model</strong>.
-                            <br>Estem buscant la segona Bandera Vermella del nostre Reglament: <strong>Bretxes d'Error</strong>.
+                            Hem trobat evidències que les dades d'entrada estan esbiaixades. Ara hem d'investigar si aquest biaix ha influït en les <strong>decisions del model</strong>.
+                            <br>Busquem la segona senyal d’alerta del nostre manual: les <strong>bretxes d'error</strong>.
                         </p>
                     </div>
 
@@ -748,8 +748,8 @@ MODULES = [
                         <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px; border-bottom:1px solid var(--border-color-primary); padding-bottom:10px;">
                             <div style="font-size:1.5rem;">🚩</div>
                             <div>
-                                <strong style="color:#f43f5e; font-size:1.1rem; text-transform:uppercase; letter-spacing:1px;">PATRÓ: "EL DOBLE ESTÀNDARD"</strong>
-                                <div style="font-size:0.9rem; color:var(--body-text-color-subdued);">(Impacte Desigual dels Errors)</div>
+                                <strong style="color:#f43f5e; font-size:1.1rem; text-transform:uppercase; letter-spacing:1px;">PATRÓ: "EL DOBLE RASER"</strong>
+                                <div style="font-size:0.9rem; color:var(--body-text-color-subdued);">(Impacte desigual dels errors)</div>
                             </div>
                         </div>
 
@@ -757,20 +757,20 @@ MODULES = [
                             
                             <div>
                                 <p style="font-size:1rem; line-height:1.6; margin-top:0; color:var(--body-text-color);">
-                                    <strong>El Concepte:</strong> La predicció d'un model dóna forma al futur d'una persona. Quan comet un error, la gent real pateix.
+                                    <strong>El concepte:</strong> El “doble raser” vol dir que els errors del sistema d’IA afecten algunes persones més que d’altres, i que persones reals poden resultar perjudicades.
                                 </p>
 
                                 <div style="margin-top:15px; margin-bottom:15px;">
                                     <div style="background:rgba(255, 241, 242, 0.1); padding:12px; border-radius:8px; border:1px solid #fda4af; margin-bottom:10px;">
-                                        <div style="font-weight:700; color:#fb7185; margin-bottom:4px; font-size:0.95rem;">⚠️ TIPUS 1: FALSES ALARMES</div>
-                                        <div style="font-size:0.9rem; color:var(--body-text-color); line-height:1.4;">Etiquetar una persona de baix risc com a <strong>Alt Risc</strong>.</div>
-                                        <div style="font-size:0.85rem; font-weight:700; color:#f43f5e; margin-top:4px;">Dany: Detenció Injusta.</div>
+                                        <div style="font-weight:700; color:#fb7185; margin-bottom:4px; font-size:0.95rem;">⚠️ TIPUS 1: FALSES ALARMES (falsos positius)</div>
+                                        <div style="font-size:0.9rem; color:var(--body-text-color); line-height:1.4;">Classificar una persona de baix risc com a <strong>Alt Risc</strong>.</div>
+                                        <div style="font-size:0.85rem; font-weight:700; color:#f43f5e; margin-top:4px;">Dany: Detenció injusta.</div>
                                     </div>
 
                                     <div style="background:rgba(240, 249, 255, 0.1); padding:12px; border-radius:8px; border:1px solid #bae6fd;">
-                                        <div style="font-weight:700; color:#38bdf8; margin-bottom:4px; font-size:0.95rem;">⚠️ TIPUS 2: ADVERTÈNCIES OMESES</div>
-                                        <div style="font-size:0.9rem; color:var(--body-text-color); line-height:1.4;">Etiquetar una persona d'alt risc com a <strong>Baix Risc</strong>.</div>
-                                        <div style="font-size:0.85rem; font-weight:700; color:#0ea5e9; margin-top:4px;">Dany: Risc per a la Seguretat Pública.</div>
+                                        <div style="font-weight:700; color:#38bdf8; margin-bottom:4px; font-size:0.95rem;">⚠️ TIPUS 2: ALERTES NO DETECTADES (Falsos negatius)</div>
+                                        <div style="font-size:0.9rem; color:var(--body-text-color); line-height:1.4;">Classificar una persona d'alt risc com a <strong>Baix Risc</strong>.</div>
+                                        <div style="font-size:0.85rem; font-weight:700; color:#0ea5e9; margin-top:4px;">Dany: Risc per a la seguretat pública.</div>
                                     </div>
                                 </div>
 
