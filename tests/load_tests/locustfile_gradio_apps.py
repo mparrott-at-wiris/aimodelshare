@@ -37,6 +37,111 @@ from locust import HttpUser, task, between, events
 from locust.runners import MasterRunner
 
 
+# ---------- Helpers to discover fn_index safely from /config ----------
+
+def _fetch_config(client):
+    try:
+        resp = client.get("/config", name="Load Config (helper)")
+        if resp.status_code == 200:
+            return resp.json()
+    except Exception:
+        pass
+    return None
+
+
+def _components_map(cfg):
+    return {c.get("id"): c for c in (cfg.get("components", []) if cfg else [])}
+
+
+def _dependencies(cfg):
+    return cfg.get("dependencies", []) or cfg.get("deps", []) if cfg else []
+
+
+def _find_pred_fn_index(cfg):
+    """
+    Heuristics to find the prediction fn_index:
+    - Prefer dependencies triggered by a button whose label matches "Run AI Prediction" in any locale
+    - Fallback: dependency whose outputs include an HTML component and expects 4 inputs
+    """
+    if not cfg:
+        return None
+    deps = _dependencies(cfg)
+    comps = _components_map(cfg)
+
+    # Labels in multiple locales
+    button_labels = [
+        "Run AI Prediction",
+        "Ejecutar predicción de la IA",
+        "Executar predicció de la IA",
+    ]
+
+    # Pass 1: match by button label
+    for d in deps:
+        trig_ids = d.get("trigger", []) or d.get("triggers", [])
+        labels = [comps.get(t, {}).get("label") for t in trig_ids if t in comps]
+        if any(label and any(bl in str(label) for bl in button_labels) for label in labels):
+            return d.get("fn_index")
+
+    # Pass 2: outputs include HTML and inputs length >= 4
+    for d in deps:
+        outs = d.get("outputs", [])
+        ins = d.get("inputs", [])
+        if any(comps.get(o, {}).get("type") == "html" for o in outs) and len(ins) >= 4:
+            return d.get("fn_index")
+
+    # Pass 3: any dep with HTML output
+    for d in deps:
+        outs = d.get("outputs", [])
+        if any(comps.get(o, {}).get("type") == "html" for o in outs):
+            return d.get("fn_index")
+
+    return None
+
+
+def _find_nav_fn_index(cfg):
+    """
+    Find a navigation-like dependency:
+    - Triggered by a button
+    - With <= 1 input (common for simple next/complete buttons)
+    """
+    if not cfg:
+        return None, 0
+    deps = _dependencies(cfg)
+    comps = _components_map(cfg)
+
+    # Prefer a button-triggered dep with exactly 1 input
+    for d in deps:
+        trig_ids = d.get("trigger", []) or d.get("triggers", [])
+        if any(comps.get(t, {}).get("type") == "button" for t in trig_ids if t in comps):
+            ins = d.get("inputs", [])
+            if len(ins) == 1:
+                return d.get("fn_index"), 1
+
+    # Fallback: any button-triggered dep with 0 inputs
+    for d in deps:
+        trig_ids = d.get("trigger", []) or d.get("triggers", [])
+        if any(comps.get(t, {}).get("type") == "button" for t in trig_ids if t in comps):
+            ins = d.get("inputs", [])
+            if len(ins) == 0:
+                return d.get("fn_index"), 0
+
+    # Fallback: any dep with 1 input
+    for d in deps:
+        ins = d.get("inputs", [])
+        if len(ins) == 1:
+            return d.get("fn_index"), 1
+
+    return None, 0
+
+
+def _severity_options_for_lang(lang):
+    return {
+        'en': ["Minor", "Moderate", "Serious"],
+        'es': ["Menor", "Moderado", "Grave"],
+        'ca': ["Menor", "Moderat", "Greu"],
+    }.get(lang, ["Minor", "Moderate", "Serious"])
+
+
 class GradioAppUser(HttpUser):
     """
     Simulates a user interacting with a Gradio application.
@@ -61,6 +166,11 @@ class GradioAppUser(HttpUser):
             'lang': self.lang
         }
         self.client.get("/", params=params, name="Initial Load with Session")
+
+        # Discover indices from /config (best effort)
+        cfg = _fetch_config(self.client)
+        self.pred_fn_index = _find_pred_fn_index(cfg)
+        self.nav_fn_index, self.nav_inputs_count = _find_nav_fn_index(cfg)
 
     @task(10)
     def load_app_ui(self):
@@ -95,16 +205,11 @@ class GradioAppUser(HttpUser):
     def run_ai_prediction(self):
         sessionid = self.session_id
         lang = self.lang
-        # Optionally, discover fn_index dynamically from config as in WhatIsAIAppUser, here assume example fn_index=1
-        fn_index = 1
+        fn_index = self.pred_fn_index or 1  # Fallback if discovery failed
+
         age = random.randint(18, 65)
         priors = random.randint(0, 10)
-        severity_options = {
-            'en': ["Minor", "Moderate", "Serious"],
-            'es': ["Menor", "Moderado", "Grave"],
-            'ca': ["Menor", "Moderat", "Greu"],
-        }
-        severity = random.choice(severity_options.get(lang, ["Minor", "Moderate", "Serious"]))
+        severity = random.choice(_severity_options_for_lang(lang))
         predict_url = f"/gradio_api/call/predict?sessionid={sessionid}&lang={lang}"
 
         payload = {
@@ -127,15 +232,24 @@ class GradioAppUser(HttpUser):
     def simulate_button_clicks(self):
         """
         Simulate button clicks that trigger backend processing.
-        e.g. decision buttons, navigation, etc.
+        Ensure we send the correct number of inputs for the chosen fn_index.
         """
-        fn_indices = [0, 1, 2, 3]
         url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={self.lang}"
+        fn_index = self.nav_fn_index
+        if not fn_index:
+            return  # avoid random calls that may break
+
+        # Build data based on expected input count
+        if self.nav_inputs_count == 1:
+            data = [random.choice(["Next", "Complete", "Continue"])]
+        else:
+            data = []
+
         with self.client.post(
             url,
             json={
-                "data": [random.choice(["Release", "Keep in Prison", "Next", "Complete"])],
-                "fn_index": random.choice(fn_indices),
+                "data": data,
+                "fn_index": fn_index,
                 "session_hash": str(uuid.uuid4())
             },
             catch_response=True,
@@ -152,19 +266,21 @@ class GradioAppUser(HttpUser):
     def simulate_slider_interactions(self):
         """
         Simulate slider/dropdown interactions for parameter adjustments.
-        These are CPU-intensive as they may trigger predictions or calculations.
+        To avoid input count mismatches, we reuse the prediction endpoint with 4 inputs.
         """
-        slider_values = {
-            "age": random.randint(18, 65),
-            "priors": random.randint(0, 10),
-            "severity": random.choice(["Minor", "Moderate", "Serious"])
-        }
-        url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={self.lang}"
+        lang = self.lang
+        url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={lang}"
+        fn_index = self.pred_fn_index or 1
+
+        age = random.randint(18, 65)
+        priors = random.randint(0, 10)
+        severity = random.choice(_severity_options_for_lang(lang))
+
         with self.client.post(
             url,
             json={
-                "data": list(slider_values.values()),
-                "fn_index": random.randint(4, 7),
+                "data": [age, priors, severity, lang],
+                "fn_index": fn_index,
                 "session_hash": str(uuid.uuid4())
             },
             catch_response=True,
@@ -219,6 +335,23 @@ class ModelBuildingGameUser(HttpUser):
         }
         self.client.get("/", params=params, name="Initial Load with Session")
 
+        # Discover indices
+        cfg = _fetch_config(self.client)
+        # Training often expects a single JSON param; pick any 1-input dep
+        self.train_fn_index, self.train_inputs_count = _find_nav_fn_index(cfg)
+        # For feature selection, prefer 2-input dependency if available
+        self.feature_fn_index = None
+        self.feature_inputs_count = 0
+        if cfg:
+            deps = _dependencies(cfg)
+            comps = _components_map(cfg)
+            for d in deps:
+                ins = d.get("inputs", [])
+                if len(ins) == 2:
+                    self.feature_fn_index = d.get("fn_index")
+                    self.feature_inputs_count = 2
+                    break
+
     @task(8)
     def load_game_ui(self):
         """Load the model building game interface with session parameters."""
@@ -253,11 +386,17 @@ class ModelBuildingGameUser(HttpUser):
             "fairness_constraint": random.choice(["none", "demographic_parity", "equal_opportunity"])
         }
         url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={self.lang}"
+        fn_index = self.train_fn_index or 1
+        inputs_count = self.train_inputs_count
+
+        # Build data matching expected input count (prefer single JSON param)
+        data = [json.dumps(training_params)] if inputs_count <= 1 else [json.dumps(training_params), random.uniform(0.1, 0.9)]
+
         with self.client.post(
             url,
             json={
-                "data": [json.dumps(training_params)],
-                "fn_index": random.randint(0, 5),
+                "data": data,
+                "fn_index": fn_index,
                 "session_hash": str(uuid.uuid4())
             },
             catch_response=True,
@@ -278,14 +417,21 @@ class ModelBuildingGameUser(HttpUser):
         These operations trigger recalculations and model updates.
         """
         url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={self.lang}"
+        fn_index = self.feature_fn_index or (self.train_fn_index or 1)
+        inputs_count = self.feature_inputs_count or 2
+
+        # Build data list of length 2 by default
+        data = [
+            random.sample(["feature1", "feature2", "feature3", "feature4"], k=3),
+            random.uniform(0.1, 0.9)
+        ]
+        data = data[:inputs_count]
+
         with self.client.post(
             url,
             json={
-                "data": [
-                    random.sample(["feature1", "feature2", "feature3", "feature4"], k=3),
-                    random.uniform(0.1, 0.9)
-                ],
-                "fn_index": random.randint(6, 10),
+                "data": data,
+                "fn_index": fn_index,
                 "session_hash": str(uuid.uuid4())
             },
             catch_response=True,
@@ -317,6 +463,11 @@ class WhatIsAIAppUser(HttpUser):
         }
         self.client.get("/", params=params, name="Initial Load with Session")
 
+        # Discover indices
+        cfg = _fetch_config(self.client)
+        self.pred_fn_index = _find_pred_fn_index(cfg)
+        self.nav_fn_index, self.nav_inputs_count = _find_nav_fn_index(cfg)
+
     @task(6)
     def load_app_ui(self):
         params = {
@@ -343,54 +494,24 @@ class WhatIsAIAppUser(HttpUser):
 
     @task(12)
     def run_ai_prediction(self):
-        # Discover fn_index as before (no change)
-        fn_index = None
-        try:
-            cfg_resp = self.client.get("/config", name="Load Config (for fn_index)")
-            if cfg_resp.status_code == 200:
-                cfg = cfg_resp.json()
-                deps = cfg.get("dependencies", []) or cfg.get("deps", [])
-                comps = {c.get("id"): c for c in cfg.get("components", [])}
-                button_labels = [
-                    "Run AI Prediction",
-                    "Ejecutar predicción de la IA",
-                    "Executar predicció de la IA",
-                ]
-                for d in deps:
-                    trig_ids = d.get("trigger", []) or d.get("triggers", [])
-                    labels = [comps.get(t, {}).get("label") for t in trig_ids if t in comps]
-                    if any(label and any(bl in str(label) for bl in button_labels) for label in labels):
-                        fn_index = d.get("fn_index")
-                        break
-                if fn_index is None:
-                    for d in deps:
-                        outs = d.get("outputs", [])
-                        if any(comps.get(o, {}).get("type") == "html" for o in outs):
-                            fn_index = d.get("fn_index")
-                            break
-        except Exception:
-            pass
-
+        fn_index = self.pred_fn_index
         if fn_index is None:
-            return
+            # Attempt to rediscover if initial discovery failed
+            cfg = _fetch_config(self.client)
+            fn_index = _find_pred_fn_index(cfg)
+            if fn_index is None:
+                return
 
         age = random.randint(18, 65)
         priors = random.randint(0, 10)
-        severity_options = {
-            'en': ["Minor", "Moderate", "Serious"],
-            'es': ["Menor", "Moderado", "Grave"],
-            'ca': ["Menor", "Moderat", "Greu"],
-        }
         lang = self.lang
-        severity = random.choice(severity_options.get(lang, ["Minor", "Moderate", "Serious"]))
+        severity = random.choice(_severity_options_for_lang(lang))
 
-        # Construct new prediction endpoint for new Gradio style
         predict_url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={lang}"
 
         payload = {
             "data": [age, priors, severity, lang],
             "fn_index": fn_index,
-            # session_hash can be anything, can use a new uuid to mimic real web clients
             "session_hash": str(uuid.uuid4())
         }
 
@@ -409,15 +530,20 @@ class WhatIsAIAppUser(HttpUser):
     def simulate_button_clicks(self):
         """
         Simulate navigation and button interactions in What is AI app.
-        If these trigger prediction-like events, target /gradio_api/call/predict.
+        Send correct input count to avoid ValueErrors.
         """
-        fn_indices = [0, 1, 2, 3]
+        fn_index = self.nav_fn_index
+        if fn_index is None:
+            return
         url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={self.lang}"
+
+        data = [random.choice(["Next", "Complete", "Continue"])] if self.nav_inputs_count == 1 else []
+
         with self.client.post(
             url,
             json={
-                "data": [random.choice(["Next", "Complete", "Continue"])],
-                "fn_index": random.choice(fn_indices),
+                "data": data,
+                "fn_index": fn_index,
                 "session_hash": str(uuid.uuid4())
             },
             catch_response=True,
@@ -434,19 +560,23 @@ class WhatIsAIAppUser(HttpUser):
     def simulate_slider_interactions(self):
         """
         Simulate slider/dropdown interactions for parameter adjustments.
-        If these are supposed to go through Gradio predict, use the new endpoint.
+        Use the prediction endpoint with 4 inputs to avoid mismatches.
         """
-        slider_values = {
-            "age": random.randint(18, 65),
-            "priors": random.randint(0, 10),
-            "severity": random.choice(["Minor", "Moderate", "Serious"])
-        }
-        url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={self.lang}"
+        lang = self.lang
+        url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={lang}"
+        fn_index = self.pred_fn_index
+        if fn_index is None:
+            return
+
+        age = random.randint(18, 65)
+        priors = random.randint(0, 10)
+        severity = random.choice(_severity_options_for_lang(lang))
+
         with self.client.post(
             url,
             json={
-                "data": list(slider_values.values()),
-                "fn_index": random.randint(4, 7),
+                "data": [age, priors, severity, lang],
+                "fn_index": fn_index,
                 "session_hash": str(uuid.uuid4())
             },
             catch_response=True,
