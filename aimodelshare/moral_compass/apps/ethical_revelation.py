@@ -17,8 +17,6 @@ try:
     from aimodelshare.playground import Competition
     from aimodelshare.aws import get_token_from_session, _get_username_from_token
 except ImportError:
-    # For local dev without aimodelshare installed, mock these if needed or raise error
-    # raise ImportError("The 'aimodelshare' library is required. Install with: pip install aimodelshare")
     pass
 
 # ---------------------------------------------------------------------------
@@ -34,8 +32,6 @@ TEAM_NAMES = [
     "The Ethical Explorers", "The Fairness Finders", "The Accuracy Avengers"
 ]
 
-# NEW: Team name translations for UI display only
-# Internal logic (ranking, caching, grouping) always uses canonical English names
 TEAM_NAME_TRANSLATIONS = {
     "en": {
         "The Justice League": "The Justice League",
@@ -90,56 +86,58 @@ TRANSLATIONS = {
         "guest_body": "Once you submit a model in the Model Building Game, your accuracy and ranking will appear here.",
         "guest_footer": "Continue to the next section when you're ready.",
         "loading_session": "🔒 Loading your session...",
-        # Step 2 (Warning)
-        "s2_title": "⚠️ But Wait...",
-        "s2_intro": "Before we share the model, there's something you need to know...",
-        "s2_box_title": "A Real-World Story",
-        "s2_p1": "A model similar to yours was actually used in the real world. It was used by judges across the United States to determine whether to grant parole to people in prison.",
-        "s2_p2": "Like yours, it had impressive accuracy scores. Like yours, it was built on data about past criminal cases. Like yours, it aimed to predict who might re-offend.",
-        "s2_p3": "But something was terribly wrong...",
+        
+        # Step 2 (Context)
+        "s2_title": "🏛️ The Real-World Parallel",
+        "s2_intro": "Your model works just like a real system used in the US justice system.",
+        "s2_box_title": "What is COMPAS?",
+        "s2_p1": "<strong>COMPAS</strong> is an AI system designed to predict the <strong>risk of reoffending</strong> (recidivism).",
+        "s2_p2": "Judges across the United States used these risk scores to help decide who stayed in jail and who was released.",
+        "s2_p3": "But in 2016, <strong>journalists at ProPublica</strong> discovered a serious problem...",
         "btn_back": "◀️ Back",
-        "btn_reveal": "Reveal the Truth ▶️",
+        "btn_reveal": "See What They Found ▶️",
+        
         # Step 3 (ProPublica)
-        "s3_title": "📰 The ProPublica Investigation",
-        "s3_head": "\"Machine Bias\" - A Landmark Investigation",
-        "s3_p1": "In 2016, journalists at <strong>ProPublica</strong> investigated a widely-used criminal risk assessment algorithm called <strong>COMPAS</strong>. They analyzed over <strong>7,000 actual cases</strong> to see if the AI's predictions came true.",
-        "s3_box_title": "Their Shocking Findings:",
-        "s3_alert": "⚠️ Black defendants were labeled \"high-risk\" at nearly <u>TWICE</u> the rate of white defendants.",
-        "s3_spec": "<strong>Specifically:</strong>",
-        "s3_li1_pre": "<strong>Black defendants</strong> who <em>did NOT re-offend</em>, were incorrectly labeled as <strong>\"high-risk\"</strong> at a rate of about <strong>45%</strong>",
-        "s3_li2_pre": "<strong>White defendants</strong> who <em>did NOT re-offend</em> were incorrectly labeled as <strong>\"high-risk\"</strong> at a rate of only <strong>24%</strong>",
-        "s3_li3": "Meanwhile, <strong>white defendants</strong> who <em>DID re-offend</em> were <strong>more likely to be labeled \"low-risk\"</strong> compared to Black defendants",
-        "s3_box2_title": "What Does This Mean?",
-        "s3_mean_p1": "The AI system was <strong class='emph-danger'>systematically biased</strong>. It didn't just make random errors—it made <strong>different kinds of errors for different groups of people</strong>.",
-        "s3_mean_p2": "Black defendants faced a much higher risk of being <strong class='emph-danger'>unfairly labeled as dangerous</strong>, potentially leading to longer prison sentences or denied parole—even when they would not have re-offended.",
-        "btn_eu": "See This in Europe ▶️",
-        "lbl_black": "Black", # Used in dynamic construction if needed
-        # Step 4 EU
-        "s4eu_title": "🇪🇺 This Isn’t Just a US Problem",
-        "s4eu_head": "Europe Is Already Using AI to Predict Reoffending Risk",
-        "s4eu_intro": "The COMPAS story is not just an American warning. Across Europe, public authorities have experimented with <strong>very similar tools</strong> designed to predict who might reoffend or which areas are considered “high risk”.",
-        "s4eu_li1_title": "United Kingdom – HART (Harm Assessment Risk Tool)",
-        "s4eu_li1_body": "A machine-learning model used by Durham Police to predict who will reoffend within two years. It uses variables like age, gender, <em>postcode</em>, housing and job instability – socio-economic proxies that can reproduce the same kinds of biased patterns exposed in COMPAS.",
-        "s4eu_li2_title": "Spain – VioGén",
-        "s4eu_li2_body": "A risk tool for gender-violence cases whose inner workings are largely a <em>\"black box\"</em>. Officers rely heavily on its scores to decide protection measures, even though the algorithm cannot easily be audited for bias or errors.",
-        "s4eu_li3_title": "Netherlands & Denmark – Predictive profiling",
-        "s4eu_li3_body": "Systems like the Dutch <em>Crime Anticipation System (CAS)</em> and Denmark’s algorithmic <em>“ghetto”</em> classifications use demographic and socio-economic data to steer policing and penalties, risking feedback loops that target certain communities again and again.",
-        "s4eu_box_title": "Ongoing European Debate",
-        "s4eu_box_body": "The Barcelona Prosecuter's office has proposed an \"electronic repeat-offense calculator\". Courts, regulators and researchers are actively examining how these tools affect fundamental rights such as non-discrimination, fair trial and data protection.",
-        "s4eu_note": "<strong>Key point:</strong> The risks you saw with COMPAS are not far away in another country. <strong class='emph-key'>They are live questions in both Europe and the U.S. right now.</strong>",
-        "btn_back_invest": "◀️ Back to the Investigation",
-        "btn_zoom": "Zoom Out to the Lesson ▶️",
+        "s3_title": "📰 Investigative Report",
+        "s3_head": "The Hidden Bias",
+        "s3_p1": "The journalists analyzed <strong>7,000 real cases</strong>. They compared the AI's predictions vs. reality.",
+        "s3_chart_title": "ERROR RATE: Incorrectly Flagged as 'High Risk'",
+        "s3_bar_black": "Black Defendants",
+        "s3_bar_white": "White Defendants",
+        "s3_alert": "The System Was Rigged.",
+        "s3_mean_p1": "The AI was <strong>twice as likely</strong> to falsely accuse Black defendants of being dangerous.",
+        "s3_mean_p2": "<strong>What Does This Mean?</strong><br>The AI system was systematically biased. It didn't just make random errors—it made different kinds of errors for different groups of people.",
+        "btn_eu": "Could it happen here? ▶️",
+        
+        # Step 4 EU - UPDATED DESCRIPTIONS
+        "s4eu_title": "🇪🇺 Closer Than You Think",
+        "s4eu_head": "This isn't just a US problem.",
+        "s4eu_intro": "Europe is building similar tools right now. Have you heard of these?",
+        
+        "s4eu_c1_title": "🇬🇧 UK: HART",
+        "s4eu_c1_body": "Used by <strong>Durham Police</strong> to predict who will reoffend. It uses variables like age, gender, and <strong>postcode</strong>—socio-economic proxies that can unfairly target people based on where they live.",
+        
+        "s4eu_c2_title": "🇪🇸 Spain: VioGén",
+        "s4eu_c2_body": "A risk tool for gender-violence cases. It operates as a <strong>'Black Box'</strong>, meaning officers rely heavily on its scores for protection decisions without being able to check the algorithm for errors.",
+        
+        "s4eu_c3_title": "🇳🇱 Netherlands: CAS",
+        "s4eu_c3_body": "The <em>Crime Anticipation System</em> uses demographic data to predict crime hotspots. This risks creating <strong>feedback loops</strong> that steer policing toward specific communities again and again.",
+        
+        "s4eu_note": "<strong>Reality Check:</strong> These systems are being debated in our courts and parliaments <em>today</em>.",
+        "btn_back_invest": "◀️ Back",
+        "btn_zoom": "The Critical Lesson ▶️",
+        
         # Step 4 Lesson
-        "s4_title": "💡 The Critical Lesson",
-        "s4_box_title": "Why This Matters:",
-        "s4_li1_title": "A model’s overall accuracy can hide group-specific harm",
-        "s4_li1_body": "A model might be 70% accurate overall — but the remaining 30% of errors can fall disproportionately on <span class='emph-harm'>specific groups</span>, resulting in real harm even when the total accuracy appears “good”.",
-        "s4_li2_title": "Historical bias in training data gets amplified",
-        "s4_li2_body": "If past policing or judicial decisions were biased, the AI system will <span class='emph-harm'>learn and reinforce</span> those inequities — often making them worse at scale.",
-        "s4_li3_title": "Real people's lives are affected",
-        "s4_li3_body": "Each <strong class='emph-harm'>\"false positive\"</strong> represents a person who may lose years of freedom, employment, housing, or family connection — all due to a single <strong class='emph-harm'>biased prediction</strong>.",
+        "s4_title": "💡 The Reality Check",
+        "s4_c1_title": "The Accuracy Trap",
+        "s4_c1_body": "90% accuracy sounds good. But if the 10% errors all hit one specific group, it's <strong>discrimination</strong>.",
+        "s4_c2_title": "The Echo Chamber",
+        "s4_c2_body": "AI learns from the past. If history was unfair, the AI will <strong>repeat it</strong>—faster and at scale.",
+        "s4_c3_title": "Real Human Cost",
+        "s4_c3_body": "A 'False Warning' isn't just a number. It's a person losing their job, their home, or their freedom.",
         "btn_back_eu": "◀️ Back",
         "btn_what_do": "What Can We Do? ▶️",
+        
         # Step 5 Path
         "s5_title": "🛤️ The Path Forward",
         "s5_head": "From Accuracy to Ethics",
@@ -171,52 +169,59 @@ TRANSLATIONS = {
         "guest_body": "Una vez que envíes un modelo en el Juego de Construcción de Modelos, tu precisión y clasificación aparecerán aquí.",
         "guest_footer": "Continúa a la siguiente sección cuando estés listo.",
         "loading_session": "🔒 Cargando tu sesión...",
-        "s2_title": "⚠️ Pero espera...",
-        "s2_intro": "Antes de compartir el modelo, hay algo que necesitas saber...",
-        "s2_box_title": "Una historia del mundo real",
-        "s2_p1": "Un modelo similar al tuyo se empleó en situaciones reales. Jueces de todo Estados Unidos lo usaron para determinar si conceder la libertad condicional a personas presas.",
-        "s2_p2": "Como el tuyo, tenía puntuaciones de precisión impresionantes. Como el tuyo, se construyó con datos de casos criminales pasados. Como el tuyo, su objetivo era predecir quíen podría volver a cometer un delito..",
-        "s2_p3": "Pero algo iba muy mal...",
+        
+        # Step 2 REVISED (Spanish)
+        "s2_title": "🏛️ El paralelo en el mundo real",
+        "s2_intro": "Tu modelo funciona igual que un sistema real usado en la justicia de EE. UU.",
+        "s2_box_title": "¿Qué es COMPAS?",
+        "s2_p1": "<strong>COMPAS</strong> es un sistema de IA diseñado para predecir el <strong>riesgo de reincidencia</strong>.",
+        "s2_p2": "Jueces de todo Estados Unidos usaron estas puntuaciones para decidir quién permanecía en la cárcel y quién quedaba libre.",
+        "s2_p3": "Pero en 2016, <strong>periodistas de ProPublica</strong> descubrieron un problema grave...",
         "btn_back": "◀️ Atrás",
-        "btn_reveal": "Revelar la verdad ▶️",
-        "s3_title": "📰 La investigación de ProPublica",
-        "s3_head": "\"Machine Bias\" - Una investigación de referencia sobre los sesgos algorítmicos",
-        "s3_p1": "En 2016, periodistas de <strong>ProPublica</strong> investigaron un algoritmo de evaluación de riesgo criminal ampliamente utilizado llamado <strong>COMPAS</strong>. Analizaron más de <strong>7,000 casos reales</strong> para ver si las predicciones de la IA se cumplían.",
-        "s3_box_title": "Sus hallazgos impactantes:",
-        "s3_alert": "⚠️ Las personas negras presas fueron clasificadas como \"alto riesgo\" casi el <u>DOBLE</u> que las personas blancas presas.",
-        "s3_spec": "<strong>Específicamente:</strong>",
-        "s3_li1_pre": "Las <span class='emph-danger'>personas negras presas</span> que <em>NO volvieron a cometer un delito</em> fueron clasificadas incorrectamente como <strong>\"alto riesgo\"</strong> en aproximadamente un <strong>45%</strong> de los casos",
-        "s3_li2_pre": "Las <strong>personas blancas presas</strong> que <em>NO reincidieron</em> fueron clasificadas incorrectamente como <strong>\"alto riesgo\"</strong> solo en un <strong>24%</strong> de los casos",
-        "s3_li3": "En cambio, las <strong>personas blancas presas</strong> que <em>SÍ reincidieron</em> tenían <strong>más probabilidades de ser clasificadas como de \"bajo riesgo\"</strong> en comparación con las personas negras presas",
-        "s3_box2_title": "¿Qué significa esto?",
-        "s3_mean_p1": "El sistema de IA mostraba <strong class='emph-danger'>un sesgo sistemático</strong>. No solo cometía errores al azar; también hacía <strong>errores distintos según el grupo de personas</strong>.",
-        "s3_mean_p2": "Las personas negras presas enfrentaban un riesgo mucho mayor de ser <strong class='emph-danger'>injustamente classificadas como peligrosas</strong>, lo que potencialmente conducía a sentencias de prisión más largas o libertad condicional denegada, incluso cuando no habrían vuelto a cometer un delito.",
-        "btn_eu": "Ver esto en Europa ▶️",
-        "lbl_black": "Negros",
-        "s4eu_title": "🇪🇺 Esto no es solo un problema de EE. UU.",
-        "s4eu_head": "Europa ya utiliza IA para evaluar el riesgo de reincidencia",
-        "s4eu_intro": "La historia de COMPAS no es solo una advertencia estadounidense. En toda Europa, las autoridades públicas han experimentado con <strong>herramientas muy similares</strong> que pretenden predecir quién reincidirá o qué áreas son de \"alto riesgo\".",
-        "s4eu_li1_title": "Reino Unido – HART (Harm Assessment Risk Tool)",
-        "s4eu_li1_body": "Un modelo de aprendizaje automático utilizado por la Policía de Durham para predecir quién reincidirá en dos años. Utiliza variables como edad, género, <em>código postal</em>, vivienda e inestabilidad laboral: indicadores socioeconómicos que pueden reproducir los mismos tipos de patrones sesgados expuestos en COMPAS.",
-        "s4eu_li2_title": "España – VioGén",
-        "s4eu_li2_body": "Una herramienta de riesgo para casos de violencia de género cuyo funcionamiento interno es en gran medida una <em>\"caja negra\"</em>. Los oficiales dependen en gran medida de sus puntuaciones para decidir medidas de protección, aunque no se puede auditar fácilmente el algoritmo en busca de sesgos o errores.",
-        "s4eu_li3_title": "Países Bajos y Dinamarca – Perfiles predictivos",
-        "s4eu_li3_body": "Sistemas como el <em>Crime Anticipation System (CAS)</em> holandés y las clasificaciones algorítmicas de <em>\"guetos\"</em> de Dinamarca utilizan datos demográficos y socioeconómicos para orientar la vigilancia i las sanciones, con el riesgo de generar bucles de retroalimentación que señalen una y otra vez a las mismas comunidades.",
-        "s4eu_box_title": "Debate europeo en curso",
-        "s4eu_box_body": "La Fiscalía de Barcelona ha propuesto una \"calculadora electrónica de reincidencia\". Tribunales, reguladores e investigadores están examinando activamente cómo estas herramientas afectan los derechos fundamentales como la no discriminación, el juicio justo y la protección de datos.",
-        "s4eu_note": "<strong>Idea clave:</strong> Los riesgos que viste con COMPAS no están lejos ni son ajenos. <strong class='emph-key'>Son cuestiones pleanmente actuales tanto en Europa como en los EE. UU.</strong>",
-        "btn_back_invest": "◀️ Volver a la investigación",
-        "btn_zoom": "Vista general de la lección ▶️",
-        "s4_title": "💡 La lección fundamental",
-        "s4_box_title": "Por qué importa esto:",
-        "s4_li1_title": "La precisión global de un modelo puede ocultar daños específicos por grupo",
-        "s4_li1_body": "Un modelo puede tener un 70% de precisión global, pero el 30% restante de errores puede concentrarse de manera desproporcionada en <span class='emph-harm'>grupos concretos</span>, causando daños reales incluso cuando la precisión global parece \"buena\".",
-        "s4_li2_title": "El sesgo histórico en los datos de entrenamiento se amplifica",
-        "s4_li2_body": "Si las decisiones policiales o judiciales pasadas fueron sesgadas, el sistema de IA <span class='emph-harm'>aprenderá y reforzará</span> esas desigualdades, y a menudo las amplificará a gran escala.",
-        "s4_li3_title": "Las vidas de personas reales se ven afectadas",
-        "s4_li3_body": "Cada <strong class='emph-harm'>\"falso positivo\"</strong> representa a una persona que puede perder años de libertad, empleo, vivienda o conexión familiar, todo a causa de una sola <strong class='emph-harm'>predicción sesgada</strong>.",
+        "btn_reveal": "Ver lo que encontraron ▶️",
+        
+        # Step 3 REVISED
+        "s3_title": "📰 Informe de Investigación",
+        "s3_head": "El Sesgo Oculto",
+        "s3_p1": "Los periodistas analizaron <strong>7,000 casos reales</strong>. Compararon las predicciones de la IA vs. la realidad.",
+        "s3_chart_title": "TASA DE ERROR: Marcado incorrectamente como 'Alto Riesgo'",
+        "s3_bar_black": "Acusados Negros",
+        "s3_bar_white": "Acusados Blancos",
+        "s3_alert": "El sistema estaba amañado.",
+        "s3_mean_p1": "La IA tenía <strong>el doble de probabilidades</strong> de acusar falsamente a los acusados negros.",
+        "s3_mean_p2": "<strong>¿Qué significa esto?</strong><br>El sistema de IA estaba sistemáticamente sesgado. No solo cometía errores aleatorios, sino que cometía diferentes tipos de errores para diferentes grupos de personas.",
+        "btn_eu": "¿Podría pasar aquí? ▶️",
+        
+        # Step 4 EU - UPDATED DESCRIPTIONS
+        "s4eu_title": "🇪🇺 Más cerca de lo que crees",
+        "s4eu_head": "No es solo un problema de EE. UU.",
+        "s4eu_intro": "Europa está construyendo herramientas similares ahora mismo. ¿Te suenan?",
+        
+        "s4eu_c1_title": "🇬🇧 Reino Unido: HART",
+        "s4eu_c1_body": "Usado por la <strong>Policía de Durham</strong> para predecir la reincidencia. Utiliza variables como el <strong>código postal</strong>, lo que puede perjudicar injustamente a las personas según dónde vivan.",
+        
+        "s4eu_c2_title": "🇪🇸 España: VioGén",
+        "s4eu_c2_body": "Herramienta para casos de violencia de género. Funciona como una <strong>'Caja Negra'</strong>: la policía confía en sus puntuaciones para decidir medidas de protección sin poder auditar el algoritmo.",
+        
+        "s4eu_c3_title": "🇳🇱 Países Bajos: CAS",
+        "s4eu_c3_body": "El sistema <em>CAS</em> usa datos demográficos para predecir zonas de crimen. Esto crea <strong>bucles de retroalimentación</strong> que dirigen la vigilancia policial hacia comunidades específicas una y otra vez.",
+        
+        "s4eu_note": "<strong>Realidad:</strong> Estos sistemas se están debatiendo en nuestros tribunales y parlamentos <em>hoy</em>.",
+        "btn_back_invest": "◀️ Atrás",
+        "btn_zoom": "La Lección Crítica ▶️",
+        
+        # Step 4 Lesson REVISED
+        "s4_title": "💡 La Realidad",
+        "s4_c1_title": "La Trampa de la Precisión",
+        "s4_c1_body": "90% de precisión suena bien. Pero si el 10% de errores golpea a un solo grupo, es <strong>discriminación</strong>.",
+        "s4_c2_title": "La Cámara de Eco",
+        "s4_c2_body": "La IA aprende del pasado. Si la historia fue injusta, la IA lo <strong>repetirá</strong>, más rápido y a gran escala.",
+        "s4_c3_title": "Coste Humano Real",
+        "s4_c3_body": "Una 'Falsa Alarma' no es solo un número. Es una persona perdiendo su trabajo, su hogar o su libertad.",
         "btn_back_eu": "◀️ Atrás",
         "btn_what_do": "¿Qué podemos hacer? ▶️",
+        
+        # Step 5 Path
         "s5_title": "🛤️ El camino a seguir",
         "s5_head": "De la precisión a la ética",
         "s5_intro": "Ya has visto los dos lados de la IA:",
@@ -247,52 +252,59 @@ TRANSLATIONS = {
         "guest_body": "Un cop enviïs un model al Joc de Construcció de Models, la teva precisió i classificació apareixeran aquí.",
         "guest_footer": "Continua a la següent secció quan estiguis a punt.",
         "loading_session": "🔒 Carregant la teva sessió...",
-        "s2_title": "⚠️ Però espera...",
-        "s2_intro": "Abans de compartir el model, hi ha una cosa que hauries de saber...",
-        "s2_box_title": "Una història del món real",
-        "s2_p1": "Un model similar al teu es va utilitzar en situacions reals. Jutges d’arreu dels Estats Units el van fer servir per determinar si concedir la llibertat condicional a persones preses.",
-        "s2_p2": "Com el teu, tenia puntuacions de precisió impressionants. Com el teu, es va construir amb dades de casos criminals passats. Com el teu, el seu objectiu era predir qui podria tornar a cometre un delicte.",
-        "s2_p3": "Però alguna cosa no anava bé...",
+        
+        # Step 2 REVISED (Catalan)
+        "s2_title": "🏛️ El paral·lel al món real",
+        "s2_intro": "El teu model funciona igual que un sistema real utilitzat en la justícia dels EUA.",
+        "s2_box_title": "Què és COMPAS?",
+        "s2_p1": "<strong>COMPAS</strong> és un sistema d'IA dissenyat per predir el <strong>risc de reincidència</strong>.",
+        "s2_p2": "Jutges de tot els Estats Units utilitzaven aquestes puntuacions per decidir qui es quedava a la presó i qui quedava lliure.",
+        "s2_p3": "Però el 2016, <strong>periodistes de ProPublica</strong> van descobrir un problema greu...",
         "btn_back": "◀️ Enrere",
-        "btn_reveal": "Revelar la veritat ▶️",
-        "s3_title": "📰 La investigació de ProPublica",
-        "s3_head": "\"Machine Bias\" - Una investigació de referència sobre els biaixos algorítmics",
-        "s3_p1": "El 2016, periodistes de <strong>ProPublica</strong> van analitzar un algoritme d’avaluació del risc penal molt estès anomenat <strong>COMPAS</strong>. Van estudiar més de <strong>7.000 casos reals</strong> per veure si les prediccions de la IA es complien.",
-        "s3_box_title": "Les seves troballes més impactants:",
-        "s3_alert": "⚠️ Les persones negres preses eren classificades com a \"alt risc\" gairebé el <u>DOBLE</u> que les persones blanques preses.",
-        "s3_spec": "<strong>En concret:</strong>",
-        "s3_li1_pre": "Les <span class='emph-danger'>persones negres preses</span> que <em>NO van tornar a cometre un delicte</em> van ser classificades incorrectament com a <strong>\"alt risc\"</strong> en aproximadament el <strong>45%</strong> dels casos.",
-        "s3_li2_pre": "Les <strong>persones blanques preses</strong> que <em>NO van reincidir</em> van ser classificades incorrectament com a <strong>\"alt risc\"</strong> en només el <strong>24%</strong> dels casos.",
-        "s3_li3": "En canvi, les <strong>persones blanques preses</strong> que <em>SÍ van reincidir</em> tenien <strong>més probabilitats de ser classificades com a \"baix risc\"</strong> en comparació amb les persones negres preses.",
-        "s3_box2_title": "Què significa això?",
-        "s3_mean_p1": "El sistema d'IA estava <strong class='emph-danger'>sistemàticament esbiaixat</strong>. No només cometia errors aleatoris, cometia <strong>diferents tipus d'errors segons el grup de persones</strong>.",
-        "s3_mean_p2": "Les persones negres preses s'enfrontaven a un risc molt més gran de ser <strong class='emph-danger'>injustament classificats com a perillosos</strong>, la qual cosa que podia comportar penes de presó més llargues o que se’ls denegués la llibertat condicional, fins i tot quan no haurien tornat a cometre un delicte.",
-        "btn_eu": "Veure això a Europa ▶️",
-        "lbl_black": "Negres",
-        "s4eu_title": "🇪🇺 Això no és només un problema dels EUA",
-        "s4eu_head": "Europa ja utilitza IA per avaluar el risc de reincidència",
-        "s4eu_intro": "La història de COMPAS no és només una advertència nord-americana. A tota Europa, les autoritats públiques han experimentat amb <strong>eines molt similars</strong> que pretenen predir qui reincidirà o quines àrees són d'\"alt risc\".",
-        "s4eu_li1_title": "Regne Unit – HART (Harm Assessment Risk Tool)",
-        "s4eu_li1_body": "Un model d'aprenentatge automàtic utilitzat per la Policia de Durham per predir qui reincidirà en dos anys. Utilitza variables com edat, gènere, <em>codi postal</em>, habitatge i inestabilitat laboral: indicadors socioeconòmics que poden reproduir els mateixos tipus de patrons esbiaixats exposats a COMPAS.",
-        "s4eu_li2_title": "Espanya – VioGén",
-        "s4eu_li2_body": "Una eina de risc per a casos de violència de gènere, amb processos interns que són, en gran part, una <em>\"caixa negra\"</em>. Les autoritats depenen àmpliament de les seves puntuacions per decidir mesures de protecció, tot i que l’algoritme no es pot auditar fàcilment per detectar biaixos o errors.",
-        "s4eu_li3_title": "Països Baixos i Dinamarca – Perfils predictius",
-        "s4eu_li3_body": "Sistemes com el <em>Crime Anticipation System (CAS)</em> holandès i les classificacions algorítmiques de <em>\"guetos\"</em> de Dinamarca utilitzen dades demogràfiques i socioeconòmiques per orientar la vigilància i les sancions, amb el risc de generar bucles de retroalimentació que assenyalen una i altra vegada les mateixes comunitats.",
-        "s4eu_box_title": "Debat europeu en curs",
-        "s4eu_box_body": "La Fiscalia de Barcelona ha proposat una \"calculadora electrònica de reincidència\". Tribunals, reguladors i investigadors estan examinant activament com aquestes eines afecten els drets fonamentals com la no discriminació, el judici just i la protecció de dades.",
-        "s4eu_note": "<strong>Punt clau:</strong> Els riscos que vas veure amb COMPAS no són lluny ni aliens. <strong class='emph-key'>Són qüestions plenament actuals tant a Europa com als EUA.</strong>",
-        "btn_back_invest": "◀️ Tornar a la investigació",
-        "btn_zoom": "Vista general de la Lliçó ▶️",
-        "s4_title": "💡 La lliçó crítica",
-        "s4_box_title": "Per què és important això:",
-        "s4_li1_title": "La precisió global d'un model pot amagar danys específics a grups concrets",
-        "s4_li1_body": "Un model pot tenir un 70% de precisió global, però el 30% restant d'errors pot recaure desproporcionadament en <span class='emph-harm'>determinats grups</span>, provocant danys reals fins i tot quan la precisió global sembla \"bona\".",
-        "s4_li2_title": "El biaix històric en les dades d'entrenament s'amplifica",
-        "s4_li2_body": "Si les decisions policials o judicials passades van ser esbiaixades, el sistema d'IA <span class='emph-harm'>aprendrà i reforçarà</span> aquestes desigualtats, i sovint les amplificarà.",
-        "s4_li3_title": "Les vides de persones reals es veuen afectades",
-        "s4_li3_body": "Cada <strong class='emph-harm'>\"fals positiu\"</strong> representa una persona que pot perdre anys de llibertat, feina, habitatge o connexió familiar, tot per una única <strong class='emph-harm'>predicció esbiaixada</strong>.",
+        "btn_reveal": "Veure què van trobar ▶️",
+        
+        # Step 3 REVISED
+        "s3_title": "📰 Informe d'Investigació",
+        "s3_head": "El Biaix Ocult",
+        "s3_p1": "Els periodistes van analitzar <strong>7.000 casos reals</strong>. Van comparar les prediccions de la IA vs. la realitat.",
+        "s3_chart_title": "TAXA D'ERROR: Marcat incorrectament com 'Alt Risc'",
+        "s3_bar_black": "Acusats Negres",
+        "s3_bar_white": "Acusats Blancos",
+        "s3_alert": "El sistema estava manipulat.",
+        "s3_mean_p1": "La IA tenia <strong>el doble de probabilitats</strong> d'acusar falsament els acusats negres.",
+        "s3_mean_p2": "<strong>Què significa això?</strong><br>El sistema d'IA estava sistemàticament esbiaixat. No només cometia errors aleatoris, sinó que cometia diferents tipus d'errors per a diferents grups de persones.",
+        "btn_eu": "Podria passar aquí? ▶️",
+        
+        # Step 4 EU - UPDATED DESCRIPTIONS
+        "s4eu_title": "🇪🇺 Més a prop del que creus",
+        "s4eu_head": "No és només un problema dels EUA.",
+        "s4eu_intro": "Europa està construint eines similars ara mateix. Et sonen?",
+        
+        "s4eu_c1_title": "🇬🇧 Regne Unit: HART",
+        "s4eu_c1_body": "Utilitzat per la <strong>Policia de Durham</strong> per predir la reincidència. Fa servir variables com el <strong>codi postal</strong>, cosa que pot perjudicar injustament les persones segons on visquin.",
+        
+        "s4eu_c2_title": "🇪🇸 Espanya: VioGén",
+        "s4eu_c2_body": "Eina per a casos de violència de gènere. Funciona com una <strong>'Caixa Negra'</strong>: la policia confia en les seves puntuacions per decidir la protecció sense poder auditar l'algoritme.",
+        
+        "s4eu_c3_title": "🇳🇱 Països Baixos: CAS",
+        "s4eu_c3_body": "El sistema <em>CAS</em> utilitza dades demogràfiques per predir zones de risc. Això crea <strong>bucles de retroalimentació</strong> que dirigeixen la vigilància policial cap a comunitats específiques una vegada i una altra.",
+        
+        "s4eu_note": "<strong>Realitat:</strong> Aquests sistemes s'estan debatent als nostres tribunals i parlaments <em>avui</em>.",
+        "btn_back_invest": "◀️ Enrere",
+        "btn_zoom": "La Lliçó Crítica ▶️",
+        
+        # Step 4 Lesson REVISED
+        "s4_title": "💡 La Realitat",
+        "s4_c1_title": "La Trampa de la Precisió",
+        "s4_c1_body": "90% de precisió sona bé. Però si el 10% d'errors colpeja un sol grup, és <strong>discriminació</strong>.",
+        "s4_c2_title": "La Cambra d'Eco",
+        "s4_c2_body": "La IA aprèn del passat. Si la història va ser injusta, la IA ho <strong>repetirà</strong>, més ràpid i a gran escala.",
+        "s4_c3_title": "Cost Humà Real",
+        "s4_c3_body": "Una 'Falsa Alarma' no és només un número. És una persona perdent la seva feina, la seva llar o la seva llibertat.",
         "btn_back_eu": "◀️ Enrere",
         "btn_what_do": "Què podem fer? ▶️",
+        
+        # Step 5 Path
         "s5_title": "🛤️ El camí a seguir",
         "s5_head": "De la precisió a l'ètica",
         "s5_intro": "Ara ja has vist els dos costats de la IA:",
@@ -322,44 +334,23 @@ def _normalize_team_name(name: str) -> str:
         return ""
     return " ".join(str(name).strip().split())
 
-# NEW: Team name translation helpers for UI display
 def translate_team_name_for_display(team_en: str, lang: str = "en") -> str:
-    """
-    Translate a canonical English team name to the specified language for UI display.
-    Fallback to English if translation not found.
-    """
     if lang not in TEAM_NAME_TRANSLATIONS:
         lang = "en"
     return TEAM_NAME_TRANSLATIONS[lang].get(team_en, team_en)
 
-# NEW: Reverse lookup for future use (e.g., if user input needs to be normalized back to English)
 def translate_team_name_to_english(display_name: str, lang: str = "en") -> str:
-    """
-    Reverse lookup: given a localized team name, return the canonical English name.
-    Returns the original display_name if not found.
-    """
     if lang not in TEAM_NAME_TRANSLATIONS:
-        return display_name  # Already English or unknown
-    
+        return display_name
     translations = TEAM_NAME_TRANSLATIONS[lang]
     for english_name, localized_name in translations.items():
         if localized_name == display_name:
             return english_name
-    return display_name  # UPDATED: Return display_name instead of None for consistency
+    return display_name
 
-# NEW: Format leaderboard DataFrame with localized team names (non-destructive copy)
 def _format_leaderboard_for_display(df: Optional[pd.DataFrame], lang: str = "en") -> Optional[pd.DataFrame]:
-    """
-    Create a copy of the leaderboard DataFrame with team names translated for display.
-    Does not mutate the original DataFrame.
-    For potential future use when displaying full leaderboard.
-    """
-    if df is None:
-        return None  # UPDATED: Handle None explicitly
-    
-    if df.empty or "Team" not in df.columns:
-        return df.copy()  # UPDATED: Return copy for empty or missing Team column
-    
+    if df is None: return None
+    if df.empty or "Team" not in df.columns: return df.copy()
     df_display = df.copy()
     df_display["Team"] = df_display["Team"].apply(lambda t: translate_team_name_for_display(t, lang))
     return df_display
@@ -367,10 +358,7 @@ def _format_leaderboard_for_display(df: Optional[pd.DataFrame], lang: str = "en"
 def _fetch_leaderboard(token: str) -> Optional[pd.DataFrame]:
     now = time.time()
     with _cache_lock:
-        if (
-            _leaderboard_cache["data"] is not None
-            and now - _leaderboard_cache["timestamp"] < LEADERBOARD_CACHE_SECONDS
-        ):
+        if (_leaderboard_cache["data"] is not None and now - _leaderboard_cache["timestamp"] < LEADERBOARD_CACHE_SECONDS):
             return _leaderboard_cache["data"]
 
     try:
@@ -396,9 +384,7 @@ def _get_or_assign_team(username: str, leaderboard_df: Optional[pd.DataFrame]) -
                 if "timestamp" in user_submissions.columns:
                     try:
                         user_submissions = user_submissions.copy()
-                        user_submissions["timestamp"] = pd.to_datetime(
-                            user_submissions["timestamp"], errors="coerce"
-                        )
+                        user_submissions["timestamp"] = pd.to_datetime(user_submissions["timestamp"], errors="coerce")
                         user_submissions = user_submissions.sort_values("timestamp", ascending=False)
                     except Exception as ts_err:
                         _log(f"Timestamp sort error: {ts_err}")
@@ -413,14 +399,11 @@ def _get_or_assign_team(username: str, leaderboard_df: Optional[pd.DataFrame]) -
 def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str], Optional[str]]:
     try:
         session_id = request.query_params.get("sessionid") if request else None
-        if not session_id:
-            return False, None, None
+        if not session_id: return False, None, None
         token = get_token_from_session(session_id)
-        if not token:
-            return False, None, None
+        if not token: return False, None, None
         username = _get_username_from_token(token)
-        if not username:
-            return False, None, None
+        if not username: return False, None, None
         return True, username, token
     except Exception as e:
         _log(f"Session auth failed: {e}")
@@ -444,8 +427,6 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
                 user_submissions = leaderboard_df[leaderboard_df["username"] == username]
                 if not user_submissions.empty:
                     best_score = user_submissions["accuracy"].max()
-
-                # Individual rank
                 user_bests = leaderboard_df.groupby("username")["accuracy"].max()
                 summary_df = user_bests.reset_index()
                 summary_df.columns = ["Engineer", "Best_Score"]
@@ -454,16 +435,8 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
                 my_row = summary_df[summary_df["Engineer"] == username]
                 if not my_row.empty:
                     rank = my_row.index[0]
-
-                # Team rank
                 if "Team" in leaderboard_df.columns and team_name:
-                    team_summary_df = (
-                        leaderboard_df.groupby("Team")["accuracy"]
-                        .agg(Best_Score="max")
-                        .reset_index()
-                        .sort_values("Best_Score", ascending=False)
-                        .reset_index(drop=True)
-                    )
+                    team_summary_df = (leaderboard_df.groupby("Team")["accuracy"].agg(Best_Score="max").reset_index().sort_values("Best_Score", ascending=False).reset_index(drop=True))
                     team_summary_df.index = team_summary_df.index + 1
                     my_team_row = team_summary_df[team_summary_df["Team"] == team_name]
                     if not my_team_row.empty:
@@ -471,15 +444,7 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
     except Exception as e:
         _log(f"User stats error for {username}: {e}")
 
-    stats = {
-        "username": username,
-        "best_score": best_score,
-        "rank": rank,
-        "team_name": team_name,
-        "team_rank": team_rank,
-        "is_signed_in": True,
-        "_ts": now
-    }
+    stats = { "username": username, "best_score": best_score, "rank": rank, "team_name": team_name, "team_rank": team_rank, "is_signed_in": True, "_ts": now }
     _user_stats_cache[username] = stats
     return stats
 
@@ -494,211 +459,152 @@ def build_stats_html(user_stats: Dict[str, Any], lang="en") -> str:
     if user_stats.get("best_score") is not None:
         best_score_pct = f"{(user_stats['best_score'] * 100):.1f}%"
         rank_text = f"#{user_stats['rank']}" if user_stats['rank'] else "N/A"
-        # UPDATED: Translate team name for display based on selected language
         team_text = translate_team_name_for_display(user_stats['team_name'], lang) if user_stats['team_name'] else "N/A"
         return f"""
         <div class='slide-shell slide-shell--primary'>
             <div style='text-align:center;'>
-                <h2 class='slide-shell__title'>
-                    {t(lang, 'stats_title')}
-                </h2>
-                <p class='slide-shell__subtitle'>
-                    {t(lang, 'stats_subtitle')}
-                </p>
-
+                <h2 class='slide-shell__title'>{t(lang, 'stats_title')}</h2>
+                <p class='slide-shell__subtitle'>{t(lang, 'stats_subtitle')}</p>
                 <div class='content-box'>
                     <h3 class='content-box__heading'>{t(lang, 'stats_heading')}</h3>
-
                     <div class='stat-grid'>
                         <div class='stat-card'>
                             <p class='stat-card__label'>{t(lang, 'lbl_accuracy')}</p>
-                            <p class='stat-card__value'>
-                                {best_score_pct}
-                            </p>
+                            <p class='stat-card__value'>{best_score_pct}</p>
                         </div>
-
                         <div class='stat-card'>
                             <p class='stat-card__label'>{t(lang, 'lbl_rank')}</p>
-                            <p class='stat-card__value'>
-                                {rank_text}
-                            </p>
+                            <p class='stat-card__value'>{rank_text}</p>
                         </div>
                     </div>
-
                     <div class='team-card'>
                         <p class='team-card__label'>{t(lang, 'lbl_team')}</p>
-                        <p class='team-card__value'>
-                            🛡️ {team_text}
-                        </p>
+                        <p class='team-card__value'>🛡️ {team_text}</p>
                     </div>
                 </div>
-
-                <p class='slide-shell__subtitle' style='font-weight:500;'>
-                    {t(lang, 'stats_footer')}
-                </p>
+                <p class='slide-shell__subtitle' style='font-weight:500;'>{t(lang, 'stats_footer')}</p>
             </div>
         </div>
         """
     else:
-        # Authenticated but no submission
         return f"""
         <div class='slide-shell slide-shell--primary'>
             <div style='text-align:center;'>
-                <h2 class='slide-shell__title'>
-                    {t(lang, 'guest_title')}
-                </h2>
-                <p class='slide-shell__subtitle'>
-                    {t(lang, 'guest_subtitle')}
-                </p>
-
-                <div class='content-box'>
-                    <p style='margin:0;'>
-                        {t(lang, 'guest_body')}
-                    </p>
-                </div>
-
-                <p class='slide-shell__subtitle' style='font-weight:500;'>
-                    {t(lang, 'guest_footer')}
-                </p>
+                <h2 class='slide-shell__title'>{t(lang, 'guest_title')}</h2>
+                <p class='slide-shell__subtitle'>{t(lang, 'guest_subtitle')}</p>
+                <div class='content-box'><p style='margin:0;'>{t(lang, 'guest_body')}</p></div>
+                <p class='slide-shell__subtitle' style='font-weight:500;'>{t(lang, 'guest_footer')}</p>
             </div>
         </div>
         """
 
-def _get_step2_html(lang):
-    return f"""
-    <div class='slide-shell slide-shell--warning'>
-        <p class='large-text' style='text-align:center; font-weight:600; margin:0;'>
-            {t(lang, 's2_intro')}
-        </p>
+# --- REVISED HTML GENERATORS ---
 
-        <div class='content-box'>
-            <h3 class='content-box__heading'>{t(lang, 's2_box_title')}</h3>
-            <p class='slide-warning-body'>
-                {t(lang, 's2_p1')}
-            </p>
-            <p class='slide-warning-body' style='margin-top:16px;'>
-                {t(lang, 's2_p2')}
-            </p>
-            <p class='slide-warning-body' style='margin-top:16px; font-weight:600;'>
-                {t(lang, 's2_p3')}
-            </p>
+def _get_step2_html(lang):
+    # Updated to remove "Confidential Case File" and use standard layout
+    return f"""
+    <div class='slide-shell slide-shell--primary'>
+        <div style='text-align:center; margin-bottom:20px;'>
+            <p class='large-text' style='font-weight:600; margin:0;'>{t(lang, 's2_intro')}</p>
         </div>
+        <div class='content-box'>
+            <h3 class='content-box__heading' style='font-size:1.5rem;'>{t(lang, 's2_box_title')}</h3>
+            <p class='slide-warning-body'>{t(lang, 's2_p1')}</p>
+            <p class='slide-warning-body' style='margin-top:16px;'>{t(lang, 's2_p2')}</p>
+        </div>
+        <p class='slide-warning-body' style='margin-top:20px; font-weight:700; text-align:center; font-size:1.3rem; color: #dc2626;'>
+            {t(lang, 's2_p3')}
+        </p>
     </div>
     """
 
 def _get_step3_html(lang):
     return f"""
-    <div class='revelation-box'>
-        <h3 style='margin-top:0; font-size:1.8rem;'>
-            {t(lang, 's3_head')}
-        </h3>
-        <p style='font-size:1.1rem; line-height:1.6;'>
-            {t(lang, 's3_p1')}
-        </p>
-        <div class='content-box content-box--emphasis'>
-            <h4 class='content-box__heading'>{t(lang, 's3_box_title')}</h4>
-            <div class='bg-danger-soft' style='margin:20px 0;'>
-                <p class='emph-danger' style='font-size:1.15rem; margin:0;'>
-                    {t(lang, 's3_alert')}
-                </p>
-            </div>
-            <p style='font-size:1.05rem; margin-top:20px;'>
-                {t(lang, 's3_spec')}
-            </p>
-            <ul style='font-size:1.05rem; line-height:1.8;'>
-                <li>
-                    {t(lang, 's3_li1_pre')}
-                </li>
-                <li>
-                    {t(lang, 's3_li2_pre')}
-                </li>
-                <li style='margin-top:12px;'>
-                    {t(lang, 's3_li3')}
-                </li>
-            </ul>
+    <div class='revelation-box' style='border-left:none; padding:0;'>
+        <div style='text-align:center; margin-bottom:30px;'>
+            <h3 style='margin:0; font-size:2rem; font-weight:800;'>{t(lang, 's3_head')}</h3>
+            <p style='font-size:1.2rem; margin-top:10px;'>{t(lang, 's3_p1')}</p>
         </div>
+        
+        <div class='content-box content-box--emphasis' style='border-left:none; border-top:6px solid var(--color-accent);'>
+            <h4 class='content-box__heading' style='text-align:center; margin-bottom:25px;'>{t(lang, 's3_chart_title')}</h4>
+            
+            <div style='margin-bottom:25px;'>
+                <div style='display:flex; justify-content:space-between; margin-bottom:5px; font-weight:bold; color:#b91c1c;'>
+                    <span>{t(lang, 's3_bar_black')}</span>
+                    <span>45%</span>
+                </div>
+                <div style='background:#fee2e2; border-radius:10px; height:30px; width:100%;'>
+                    <div style='background:#dc2626; width:45%; height:100%; border-radius:10px;'></div>
+                </div>
+            </div>
 
-        <div class='content-box content-box--emphasis'>
-            <h4 class='content-box__heading'>{t(lang, 's3_box2_title')}</h4>
-            <p style='font-size:1.05rem; margin:0; line-height:1.6;'>
-                {t(lang, 's3_mean_p1')}
-            </p>
-            <p style='font-size:1.05rem; margin-top:12px; line-height:1.6;'>
-                {t(lang, 's3_mean_p2')}
-            </p>
+            <div style='margin-bottom:30px;'>
+                <div style='display:flex; justify-content:space-between; margin-bottom:5px; font-weight:bold; color:#1e293b;'>
+                    <span>{t(lang, 's3_bar_white')}</span>
+                    <span>24%</span>
+                </div>
+                <div style='background:#f1f5f9; border-radius:10px; height:30px; width:100%;'>
+                    <div style='background:#64748b; width:24%; height:100%; border-radius:10px;'></div>
+                </div>
+            </div>
+
+            <div class='bg-danger-soft' style='text-align:center;'>
+                <h3 class='emph-danger' style='margin:0; font-size:1.4rem;'>{t(lang, 's3_alert')}</h3>
+                <p style='margin:10px 0 0 0; font-size:1.1rem;'>{t(lang, 's3_mean_p1')}</p>
+                <p style='margin:10px 0 0 0; font-size:1.1rem;'>{t(lang, 's3_mean_p2')}</p>
+            </div>
         </div>
     </div>
     """
 
 def _get_step4_eu_html(lang):
     return f"""
-    <div class='eu-panel'>
-        <h3 class='emph-eu' style='font-size:1.9rem; text-align:center;'>
-            {t(lang, 's4eu_head')}
-        </h3>
-        <p style='line-height:1.8;'>
-            {t(lang, 's4eu_intro')}
-        </p>
-        <ul style='line-height:1.9; font-size:1.05rem; margin:20px 0;'>
-            <li>
-                <strong class='emph-eu'>{t(lang, 's4eu_li1_title')}</strong><br>
-                {t(lang, 's4eu_li1_body')}
-            </li>
-            <li style='margin-top:14px;'>
-                <strong class='emph-eu'>{t(lang, 's4eu_li2_title')}</strong><br>
-                {t(lang, 's4eu_li2_body')}
-            </li>
-            <li style='margin-top:14px;'>
-                <strong class='emph-eu'>{t(lang, 's4eu_li3_title')}</strong><br>
-                {t(lang, 's4eu_li3_body')}
-            </li>
-        </ul>
-        <div class='bg-eu-soft eu-panel__highlight'>
-            <h4 class='emph-eu'>{t(lang, 's4eu_box_title')}</h4>
-            <p style='margin:0; line-height:1.7; font-size:1.05rem;'>
-                {t(lang, 's4eu_box_body')}
-            </p>
+    <div class='eu-panel' style='background:transparent; border:none; padding:0;'>
+        <div style='text-align:center; margin-bottom:30px;'>
+            <h3 class='emph-eu' style='font-size:2.2rem;'>{t(lang, 's4eu_head')}</h3>
+            <p style='font-size:1.2rem;'>{t(lang, 's4eu_intro')}</p>
         </div>
-        <div class='eu-panel__note'>
-            <p style='margin:0; line-height:1.8; font-size:1.1rem;'>
-                {t(lang, 's4eu_note')}
-            </p>
+        
+        <div class='grid-3-col'>
+            <div class='stat-card' style='text-align:left; border-top:4px solid #2563eb;'>
+                <h4 style='margin:0 0 10px 0; font-size:1.2rem;'>{t(lang, 's4eu_c1_title')}</h4>
+                <p style='font-size:1rem; margin:0;'>{t(lang, 's4eu_c1_body')}</p>
+            </div>
+            <div class='stat-card' style='text-align:left; border-top:4px solid #db2777;'>
+                <h4 style='margin:0 0 10px 0; font-size:1.2rem;'>{t(lang, 's4eu_c2_title')}</h4>
+                <p style='font-size:1rem; margin:0;'>{t(lang, 's4eu_c2_body')}</p>
+            </div>
+            <div class='stat-card' style='text-align:left; border-top:4px solid #ea580c;'>
+                <h4 style='margin:0 0 10px 0; font-size:1.2rem;'>{t(lang, 's4eu_c3_title')}</h4>
+                <p style='font-size:1rem; margin:0;'>{t(lang, 's4eu_c3_body')}</p>
+            </div>
+        </div>
+
+        <div class='eu-panel__note' style='background:#f0f9ff; padding:20px; border-radius:12px; border-left:5px solid #0ea5e9; margin-top:30px;'>
+            <p style='margin:0; font-size:1.1rem;'>{t(lang, 's4eu_note')}</p>
         </div>
     </div>
     """
 
 def _get_step4_lesson_html(lang):
     return f"""
-    <div class='content-box'>
-        <h4 class='content-box__heading emph-key' style='font-size:1.5rem;'>
-            {t(lang, 's4_box_title')}
-        </h4>
-        <div class='lesson-emphasis-box'>
-            <span class='lesson-item-title'>
-                <span class='lesson-badge'>1</span>
-                {t(lang, 's4_li1_title')}
-            </span>
-            <p class='slide-teaching-body'>
-                {t(lang, 's4_li1_body')}
-            </p>
-        </div>
-        <div class='lesson-emphasis-box'>
-            <span class='lesson-item-title'>
-                <span class='lesson-badge'>2</span>
-                {t(lang, 's4_li2_title')}
-            </span>
-            <p class='slide-teaching-body'>
-                {t(lang, 's4_li2_body')}
-            </p>
-        </div>
-        <div class='lesson-emphasis-box'>
-            <span class='lesson-item-title'>
-                <span class='lesson-badge'>3</span>
-                {t(lang, 's4_li3_title')}
-            </span>
-            <p class='slide-teaching-body'>
-                {t(lang, 's4_li3_body')}
-            </p>
+    <div style='max-width:900px; margin:auto;'>
+        <h2 style='text-align:center; font-size:2.2rem; margin-bottom:30px;'>{t(lang, 's4_title')}</h2>
+        
+        <div class='grid-3-col'>
+            <div class='lesson-emphasis-box' style='margin-top:0; border-left:none; border-top:6px solid #8b5cf6;'>
+                <span class='lesson-item-title' style='color:#7c3aed;'>1. {t(lang, 's4_c1_title')}</span>
+                <p style='margin-top:10px; font-size:1rem; line-height:1.5;'>{t(lang, 's4_c1_body')}</p>
+            </div>
+            <div class='lesson-emphasis-box' style='margin-top:0; border-left:none; border-top:6px solid #ec4899;'>
+                <span class='lesson-item-title' style='color:#db2777;'>2. {t(lang, 's4_c2_title')}</span>
+                <p style='margin-top:10px; font-size:1rem; line-height:1.5;'>{t(lang, 's4_c2_body')}</p>
+            </div>
+            <div class='lesson-emphasis-box' style='margin-top:0; border-left:none; border-top:6px solid #ef4444;'>
+                <span class='lesson-item-title' style='color:#dc2626;'>3. {t(lang, 's4_c3_title')}</span>
+                <p style='margin-top:10px; font-size:1rem; line-height:1.5;'>{t(lang, 's4_c3_body')}</p>
+            </div>
         </div>
     </div>
     """
@@ -707,12 +613,8 @@ def _get_step5_html(lang):
     return f"""
     <div style='text-align:center;'>
         <div class='slide-shell slide-shell--info'>
-            <h3 class='slide-shell__title'>
-                {t(lang, 's5_head')}
-            </h3>
-            <p style='line-height:1.8; text-align:left;'>
-                {t(lang, 's5_intro')}
-            </p>
+            <h3 class='slide-shell__title'>{t(lang, 's5_head')}</h3>
+            <p style='line-height:1.8; text-align:left;'>{t(lang, 's5_intro')}</p>
             <ul style='text-align:left; line-height:2; font-size:1.1rem; margin:24px 0;'>
                 <li>{t(lang, 's5_li1')}</li>
                 <li>{t(lang, 's5_li2')}</li>
@@ -720,17 +622,11 @@ def _get_step5_html(lang):
             </ul>
             <div class='content-box'>
                 <h4 class='content-box__heading'>{t(lang, 's5_box_title')}</h4>
-                <p style='font-size:1.1rem; line-height:1.8;'>
-                    {t(lang, 's5_p1')}
-                </p>
-                <p style='font-size:1.1rem; line-height:1.8; margin-top:16px;'>
-                    {t(lang, 's5_p2')}
-                </p>
+                <p style='font-size:1.1rem; line-height:1.8;'>{t(lang, 's5_p1')}</p>
+                <p style='font-size:1.1rem; line-height:1.8; margin-top:16px;'>{t(lang, 's5_p2')}</p>
             </div>
             <div class='content-box content-box--emphasis'>
-                <p style='font-size:1.15rem; font-weight:600; margin:0;'>
-                    {t(lang, 's5_mission')}
-                </p>
+                <p style='font-size:1.15rem; font-weight:600; margin:0;'>{t(lang, 's5_mission')}</p>
             </div>
             <h1 class='final-instruction' style='margin:32px 0 16px 0;'>{t(lang, 's5_scroll')}</h1>
             <p style='font-size:1.2rem;'>{t(lang, 's5_continue')}</p>
@@ -772,15 +668,24 @@ CSS = """
 #nav-loading-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background-color: var(--body-background-fill); z-index:9999; display:none; flex-direction:column; align-items:center; justify-content:center; opacity:0; transition:opacity .3s ease; }
 .nav-spinner { width:50px; height:50px; border:5px solid var(--block-background-fill); border-top:5px solid var(--color-accent); border-radius:50%; animation: nav-spin 1s linear infinite; margin-bottom:20px; }
 @keyframes nav-spin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
-/* EU Panel Highlighting */
 .bg-eu-soft { background-color: color-mix(in srgb, var(--color-accent) 15%, transparent); border-radius: 8px; padding: 16px; margin: 20px 0; }
 .emph-eu { color: var(--color-accent); font-weight: 700; }
 .emph-harm { color: #b91c1c; font-weight: 700; }
-/* Compact, responsive CTA sizing for Step 5 */
 .final-instruction {
   font-size: clamp(1.5rem, 2vw + 0.6rem, 2rem);
   line-height: 1.25;
   margin: 16px 0;
+}
+/* New CSS for Cards */
+.grid-3-col {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+@media (max-width: 768px) {
+    .grid-3-col {
+        grid-template-columns: 1fr;
+    }
 }
 @media (prefers-color-scheme: dark) {
     .bg-danger-soft { background-color: #450a0a; border-color: #dc2626; }
@@ -789,9 +694,6 @@ CSS = """
 }
 """
 
-# ---------------------------------------------------------------------------
-# App
-# ---------------------------------------------------------------------------
 def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=CSS) as demo:
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
@@ -802,16 +704,13 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
             </div>
         """)
         
-        # Components needing dynamic updates
         c_title = gr.Markdown("<h1 style='text-align:center;'>🚀 The Ethical Revelation: Real-World Impact</h1>")
 
-        # Loading placeholder
         with gr.Column(visible=True, elem_id="initial-loading") as initial_loading:
             c_loading_text = gr.Markdown("<div style='text-align:center; padding:80px 0;'><h2>⏳ Loading...</h2></div>")
 
-        # Steps
         with gr.Column(visible=False, elem_id="step-1") as step_1:
-            stats_display = gr.HTML() # Content built dynamically
+            stats_display = gr.HTML()
             deploy_button = gr.Button(t('en', 'btn_deploy'), variant="primary", size="lg", scale=1)
 
         with gr.Column(visible=False, elem_id="step-2") as step_2:
@@ -850,11 +749,6 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
         loading_screen = gr.Column(visible=False)
         all_steps = [step_1, step_2, step_3, step_4_eu, step_4, step_5, loading_screen, initial_loading]
 
-        # -------------------------------------------------------------------------
-        # HYBRID CACHING LOGIC
-        # -------------------------------------------------------------------------
-
-        # 1. Define all targets that need updating
         update_targets = [
             initial_loading, step_1, stats_display, c_title, c_loading_text,
             deploy_button,
@@ -865,81 +759,33 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
             c_s5_title, c_s5_html, back_to_lesson_btn
         ]
 
-        # 2. Cached Generator for Static Content (Steps 2-5)
         @lru_cache(maxsize=16)
         def get_cached_static_content(lang):
-            """
-            Generates the heavy HTML for Steps 2, 3, 4, and 5 once per language.
-            """
             return [
-                # Step 1 Button (Static Text)
                 gr.Button(value=t(lang, 'btn_deploy')),
-                
-                # Step 2
-                f"<h2 style='text-align:center;'>{t(lang, 's2_title')}</h2>",
-                _get_step2_html(lang),
-                gr.Button(value=t(lang, 'btn_back')),
-                gr.Button(value=t(lang, 'btn_reveal')),
-                
-                # Step 3
-                f"<h2 style='text-align:center;'>{t(lang, 's3_title')}</h2>",
-                _get_step3_html(lang),
-                gr.Button(value=t(lang, 'btn_back')),
-                gr.Button(value=t(lang, 'btn_eu')),
-                
-                # Step 4 EU
-                f"<h2 style='text-align:center;'>{t(lang, 's4eu_title')}</h2>",
-                _get_step4_eu_html(lang),
-                gr.Button(value=t(lang, 'btn_back_invest')),
-                gr.Button(value=t(lang, 'btn_zoom')),
-                
-                # Step 4 Lesson
-                f"<h2 style='text-align:center;'>{t(lang, 's4_title')}</h2>",
-                _get_step4_lesson_html(lang),
-                gr.Button(value=t(lang, 'btn_back_eu')),
-                gr.Button(value=t(lang, 'btn_what_do')),
-                
-                # Step 5
-                f"<h2 style='text-align:center;'>{t(lang, 's5_title')}</h2>",
-                _get_step5_html(lang),
-                gr.Button(value=t(lang, 'btn_review'))
+                f"<h2 style='text-align:center;'>{t(lang, 's2_title')}</h2>", _get_step2_html(lang), gr.Button(value=t(lang, 'btn_back')), gr.Button(value=t(lang, 'btn_reveal')),
+                f"<h2 style='text-align:center;'>{t(lang, 's3_title')}</h2>", _get_step3_html(lang), gr.Button(value=t(lang, 'btn_back')), gr.Button(value=t(lang, 'btn_eu')),
+                f"<h2 style='text-align:center;'>{t(lang, 's4eu_title')}</h2>", _get_step4_eu_html(lang), gr.Button(value=t(lang, 'btn_back_invest')), gr.Button(value=t(lang, 'btn_zoom')),
+                f"<h2 style='text-align:center;'>{t(lang, 's4_title')}</h2>", _get_step4_lesson_html(lang), gr.Button(value=t(lang, 'btn_back_eu')), gr.Button(value=t(lang, 'btn_what_do')),
+                f"<h2 style='text-align:center;'>{t(lang, 's5_title')}</h2>", _get_step5_html(lang), gr.Button(value=t(lang, 'btn_review'))
             ]
 
-        # 3. Hybrid Load Function
         def initial_load(request: gr.Request):
             params = request.query_params
             lang = params.get("lang", "en")
             if lang not in TRANSLATIONS: lang = "en"
-            
-            # --- DYNAMIC PART (Runs every time) ---
             success, username, token = _try_session_based_auth(request)
-            
             stats_html = ""
             if success and username:
                 stats = _compute_user_stats(username, token)
                 stats_html = build_stats_html(stats, lang)
             else:
-                stats_html = f"""
-                <div class='slide-shell slide-shell--primary' style='text-align:center;'>
-                    <h2 class='slide-shell__title'>{t(lang, 'loading_session')}</h2>
-                </div>
-                """
-            
-            # --- STATIC PART (Fetched from Cache) ---
+                stats_html = f"<div class='slide-shell slide-shell--primary' style='text-align:center;'><h2 class='slide-shell__title'>{t(lang, 'loading_session')}</h2></div>"
             static_updates = get_cached_static_content(lang)
-
-            # Combine: Dynamic + Static
-            return [
-                gr.update(visible=False),    # initial_loading
-                gr.update(visible=True),     # step_1
-                gr.update(value=stats_html), # stats_display (DYNAMIC)
-                f"<h1 style='text-align:center;'>{t(lang, 'title')}</h1>", # Title
-                f"<div style='text-align:center; padding:80px 0;'><h2>{t(lang, 'loading_personal')}</h2></div>", # Loading Text
-            ] + static_updates
+            return [gr.update(visible=False), gr.update(visible=True), gr.update(value=stats_html), f"<h1 style='text-align:center;'>{t(lang, 'title')}</h1>", f"<div style='text-align:center; padding:80px 0;'><h2>{t(lang, 'loading_personal')}</h2></div>"] + static_updates
 
         demo.load(fn=initial_load, inputs=None, outputs=update_targets)
 
-        # --- Navigation Logic ---
         def create_nav_generator(current_step, next_step):
             def navigate():
                 updates = {loading_screen: gr.update(visible=True)}
@@ -953,26 +799,7 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
             return navigate
 
         def nav_js(target_id: str, message: str, min_show_ms: int = 900) -> str:
-            return f"""
-            ()=>{{
-              try {{
-                const overlay=document.getElementById('nav-loading-overlay');
-                const msg=document.getElementById('nav-loading-text');
-                if(overlay && msg){{ msg.textContent='{message}'; overlay.style.display='flex'; setTimeout(()=>overlay.style.opacity='1',10); }}
-                const start=Date.now();
-                setTimeout(()=>{{ window.scrollTo({{top:0, behavior:'smooth'}}); }},40);
-                const poll=setInterval(()=>{{
-                  const elapsed=Date.now()-start;
-                  const target=document.getElementById('{target_id}');
-                  const visible=target && target.offsetParent!==null;
-                  if((visible && elapsed>={min_show_ms}) || elapsed>6000){{
-                    clearInterval(poll);
-                    if(overlay){{ overlay.style.opacity='0'; setTimeout(()=>overlay.style.display='none',320); }}
-                  }}
-                }},100);
-              }} catch(e){{}}
-            }}
-            """
+            return f"()=>{{ try {{ const overlay=document.getElementById('nav-loading-overlay'); const msg=document.getElementById('nav-loading-text'); if(overlay && msg){{ msg.textContent='{message}'; overlay.style.display='flex'; setTimeout(()=>overlay.style.opacity='1',10); }} const start=Date.now(); setTimeout(()=>{{ window.scrollTo({{top:0, behavior:'smooth'}}); }},40); const poll=setInterval(()=>{{ const elapsed=Date.now()-start; const target=document.getElementById('{target_id}'); const visible=target && target.offsetParent!==null; if((visible && elapsed>={min_show_ms}) || elapsed>6000){{ clearInterval(poll); if(overlay){{ overlay.style.opacity='0'; setTimeout(()=>overlay.style.display='none',320); }} }} }},100); }} catch(e){{}} }}"
 
         deploy_button.click(fn=create_nav_generator(step_1, step_2), inputs=None, outputs=all_steps, js=nav_js("step-2", "Sharing model..."))
         step_2_back.click(fn=create_nav_generator(step_2, step_1), inputs=None, outputs=all_steps, js=nav_js("step-1", "Returning..."))
