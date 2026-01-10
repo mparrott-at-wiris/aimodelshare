@@ -1151,7 +1151,7 @@ MODULES = [
                         <h2 class="slide-title header-accent" style="margin-top:10px;">Informe d'errors de predicció</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
                             Revisa els teus registres forenses. Has descobert fallades sistemàtiques en múltiples dimensions.
-                            <br>Aquestes evidències mostra que el model vulnera el principi bàsic de <strong>Justícia i Equitat</strong>.
+                            <br>Aquestes evidències mostren que el model vulnera el principi bàsic de <strong>Justícia i Equitat</strong>.
                         </p>
                     </div>
 
@@ -1168,7 +1168,7 @@ MODULES = [
                             </p>
                             <div style="background:var(--background-fill-secondary); padding:10px; border-radius:6px; border:1px solid #fda4af; margin-top:10px;">
                                 <strong style="color:#ef4444; font-size:0.9rem;">L'Impacte:</strong> 
-                                <span style="font-size:0.9rem; color:var(--body-text-color);">Biaix Punitiu. Persones innocents són classificades erròniament com d’alt risc i sotmeses a gairebé el doble de la taxa que altres grups.</span>
+                                <span style="font-size:0.9rem; color:var(--body-text-color);">Biaix Punitiu. Persones innocents són classificades erròniament com d’alt risc gairebé el doble de vegades que altres grups.</span>
                             </div>
                         </div>
 
@@ -1326,7 +1326,7 @@ MODULES = [
                             <div style="background:var(--background-fill-secondary); border:2px solid #ef4444; padding:15px 25px; border-radius:8px; cursor:pointer; max-width:250px; box-shadow:0 4px 12px rgba(239,68,68,0.2);">
                                 <div style="font-size:2rem; margin-bottom:10px;">🚨</div>
                                 <div style="font-weight:700; color:#ef4444; margin-bottom:5px;">SENYAL D'ALERTA: PAUSAR I REPARAR</div>
-                                <div style="font-size:0.85rem; color:#ef4444;">El sistema vulnera els principi de Justícia i Equitat. Aturar immediatament.</div>
+                                <div style="font-size:0.85rem; color:#ef4444;">El sistema vulnera el principi de Justícia i Equitat. Aturar immediatament.</div>
                             </div>
                         </div>
                     </div>
