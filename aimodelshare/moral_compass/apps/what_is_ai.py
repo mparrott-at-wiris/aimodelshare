@@ -792,7 +792,7 @@ def create_what_is_ai_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             inputs=[age_slider, priors_slider, severity_dropdown, lang_state],
             outputs=prediction_output,
             show_progress="full",
-            scroll_to_output=True,,
+            scroll_to_output=True,
             api_name="predict")
 
         # --- NAVIGATION LOGIC ---
