@@ -29,21 +29,17 @@ Usage:
 """
 
 import os
-import time
 import json
 import random
 import uuid
 from locust import HttpUser, task, between, events
-from locust.runners import MasterRunner
 
 
 # ---------- Helpers to discover fn_index safely from /config ----------
 
 def _fetch_config(client, session_id=None, lang=None):
     try:
-        params = None
-        if session_id and lang:
-            params = {"sessionid": session_id, "lang": lang}
+        params = {"sessionid": session_id, "lang": lang} if session_id and lang else None
         resp = client.get("/config", params=params, name="Load Config (helper)")
         if resp.status_code == 200:
             return resp.json()
@@ -64,14 +60,13 @@ def _find_pred_fn_index(cfg):
     """
     Heuristics to find the prediction fn_index:
     - Prefer dependencies triggered by a button whose label matches "Run AI Prediction" in any locale
-    - Fallback: dependency whose outputs include an HTML component and expects 4 inputs
+    - Fallback: dependency whose outputs include an HTML component and expects >= 4 inputs
     """
     if not cfg:
         return None
     deps = _dependencies(cfg)
     comps = _components_map(cfg)
 
-    # Labels in multiple locales
     button_labels = [
         "Run AI Prediction",
         "Ejecutar predicción de la IA",
@@ -164,37 +159,28 @@ class GradioAppUser(HttpUser):
         self.lang = random.choice(['en', 'es', 'ca'])
 
         # Initialize session with query parameters (as used in production)
-        params = {
-            'sessionid': self.session_id,
-            'lang': self.lang
-        }
+        params = {'sessionid': self.session_id, 'lang': self.lang}
         self.client.get("/", params=params, name="Initial Load with Session")
 
         # Discover indices from /config (best effort)
         cfg = _fetch_config(self.client, self.session_id, self.lang)
-        self.pred_fn_index = _find_pred_fn_index(cfg)
+        self.pred_fn_index = _find_pred_fn_index(cfg) or 1
         self.nav_fn_index, self.nav_inputs_count = _find_nav_fn_index(cfg)
 
-    @task(10)
+    @task(4)
     def load_app_ui(self):
         """Load the main Gradio application interface with session parameters."""
-        params = {
-            'sessionid': self.session_id,
-            'lang': self.lang
-        }
+        params = {'sessionid': self.session_id, 'lang': self.lang}
         with self.client.get("/", params=params, catch_response=True, name="Load UI") as response:
             if response.status_code == 200:
                 response.success()
             else:
                 response.failure(f"Failed to load UI: {response.status_code}")
 
-    @task(5)
+    @task(2)
     def load_gradio_config(self):
         """Load Gradio configuration (required for app initialization)."""
-        params = {
-            'sessionid': self.session_id,
-            'lang': self.lang
-        }
+        params = {'sessionid': self.session_id, 'lang': self.lang}
         with self.client.get("/config", params=params, catch_response=True, name="Load Config") as response:
             if response.status_code == 200:
                 try:
@@ -208,11 +194,11 @@ class GradioAppUser(HttpUser):
             else:
                 response.failure(f"Failed to load config: {response.status_code}")
 
-    @task(8)
+    @task(12)
     def run_ai_prediction(self):
         sessionid = self.session_id
         lang = self.lang
-        fn_index = self.pred_fn_index or 1  # Fallback if discovery failed
+        fn_index = self.pred_fn_index
 
         age = random.randint(18, 65)
         priors = random.randint(0, 10)
@@ -235,28 +221,24 @@ class GradioAppUser(HttpUser):
             else:
                 response.failure(f"Prediction failed: {response.status_code}")
 
-    @task(5)
+    @task(3)
     def simulate_button_clicks(self):
         """
         Simulate button clicks that trigger backend processing.
         Ensure we send the correct number of inputs for the chosen fn_index.
         """
-        url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={self.lang}"
-        fn_index = self.nav_fn_index
-        if not fn_index:
+        if not self.nav_fn_index:
             return  # avoid random calls that may break
+        url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={self.lang}"
 
-        # Build data based on expected input count
-        if self.nav_inputs_count == 1:
-            data = [random.choice(["Release", "Keep in Prison", "Next", "Complete"])]
-        else:
-            data = []
+        # Build data based on expected input count (only 0 or 1 for nav)
+        data = [random.choice(["Release", "Keep in Prison", "Next", "Complete"])] if self.nav_inputs_count == 1 else []
 
         with self.client.post(
             url,
             json={
                 "data": data,
-                "fn_index": fn_index,
+                "fn_index": self.nav_fn_index,
                 "session_hash": str(uuid.uuid4())
             },
             catch_response=True,
@@ -269,7 +251,7 @@ class GradioAppUser(HttpUser):
             else:
                 response.failure(f"Button interaction failed: {response.status_code}")
 
-    @task(3)
+    @task(6)
     def simulate_slider_interactions(self):
         """
         Simulate slider/dropdown interactions for parameter adjustments.
@@ -277,7 +259,7 @@ class GradioAppUser(HttpUser):
         """
         lang = self.lang
         url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={lang}"
-        fn_index = self.pred_fn_index or 1
+        fn_index = self.pred_fn_index
 
         age = random.randint(18, 65)
         priors = random.randint(0, 10)
@@ -300,17 +282,13 @@ class GradioAppUser(HttpUser):
             else:
                 response.failure(f"Slider interaction failed: {response.status_code}")
 
-    @task(2)
+    @task(1)
     def check_health(self):
         """Check application health/readiness."""
-        # Include params for "/" only; health endpoints typically don't need session context
         endpoints_to_check = ["/", "/healthz", "/health"]
 
         for endpoint in endpoints_to_check:
-            if endpoint == "/":
-                params = {"sessionid": self.session_id, "lang": self.lang}
-            else:
-                params = None
+            params = {"sessionid": self.session_id, "lang": self.lang} if endpoint == "/" else None
             with self.client.get(
                 endpoint,
                 params=params,
@@ -342,10 +320,7 @@ class ModelBuildingGameUser(HttpUser):
         self.session_id = os.environ.get('LOAD_TEST_SESSION_ID', str(uuid.uuid4()))
         self.lang = random.choice(['en', 'es', 'ca'])
 
-        params = {
-            'sessionid': self.session_id,
-            'lang': self.lang
-        }
+        params = {'sessionid': self.session_id, 'lang': self.lang}
         self.client.get("/", params=params, name="Initial Load with Session")
 
         # Discover indices
@@ -365,33 +340,27 @@ class ModelBuildingGameUser(HttpUser):
                     self.feature_inputs_count = 2
                     break
 
-    @task(8)
+    @task(4)
     def load_game_ui(self):
         """Load the model building game interface with session parameters."""
-        params = {
-            'sessionid': self.session_id,
-            'lang': self.lang
-        }
+        params = {'sessionid': self.session_id, 'lang': self.lang}
         with self.client.get("/", params=params, catch_response=True, name="Load Game UI") as response:
             if response.status_code == 200:
                 response.success()
             else:
                 response.failure(f"Failed to load game: {response.status_code}")
 
-    @task(5)
+    @task(2)
     def load_game_data(self):
         """Load game configuration and data."""
-        params = {
-            'sessionid': self.session_id,
-            'lang': self.lang
-        }
+        params = {'sessionid': self.session_id, 'lang': self.lang}
         with self.client.get("/config", params=params, catch_response=True, name="Load Game Config") as response:
             if response.status_code == 200:
                 response.success()
             else:
                 response.failure(f"Failed to load game config: {response.status_code}")
 
-    @task(4)
+    @task(6)
     def simulate_model_training(self):
         """
         Simulate model training selections (CPU/memory intensive).
@@ -406,7 +375,6 @@ class ModelBuildingGameUser(HttpUser):
         fn_index = self.train_fn_index or 1
         inputs_count = self.train_inputs_count
 
-        # Build data matching expected input count (prefer single JSON param)
         data = [json.dumps(training_params)] if inputs_count <= 1 else [json.dumps(training_params), random.uniform(0.1, 0.9)]
 
         with self.client.post(
@@ -427,7 +395,7 @@ class ModelBuildingGameUser(HttpUser):
             else:
                 response.failure(f"Training failed: {response.status_code}")
 
-    @task(3)
+    @task(5)
     def simulate_feature_selection(self):
         """
         Simulate feature selection and parameter tuning (CPU-intensive).
@@ -437,7 +405,6 @@ class ModelBuildingGameUser(HttpUser):
         fn_index = self.feature_fn_index or (self.train_fn_index or 1)
         inputs_count = self.feature_inputs_count or 2
 
-        # Build data list of length 2 by default
         data = [
             random.sample(["feature1", "feature2", "feature3", "feature4"], k=3),
             random.uniform(0.1, 0.9)
@@ -474,35 +441,26 @@ class WhatIsAIAppUser(HttpUser):
     def on_start(self):
         self.session_id = os.environ.get('LOAD_TEST_SESSION_ID', str(uuid.uuid4()))
         self.lang = random.choice(['en', 'es', 'ca'])
-        params = {
-            'sessionid': self.session_id,
-            'lang': self.lang
-        }
+        params = {'sessionid': self.session_id, 'lang': self.lang}
         self.client.get("/", params=params, name="Initial Load with Session")
 
         # Discover indices
         cfg = _fetch_config(self.client, self.session_id, self.lang)
-        self.pred_fn_index = _find_pred_fn_index(cfg)
+        self.pred_fn_index = _find_pred_fn_index(cfg) or 1
         self.nav_fn_index, self.nav_inputs_count = _find_nav_fn_index(cfg)
 
-    @task(6)
+    @task(4)
     def load_app_ui(self):
-        params = {
-            'sessionid': self.session_id,
-            'lang': self.lang
-        }
+        params = {'sessionid': self.session_id, 'lang': self.lang}
         with self.client.get("/", params=params, catch_response=True, name="Load UI") as response:
             if response.status_code == 200:
                 response.success()
             else:
                 response.failure(f"Failed to load UI: {response.status_code}")
 
-    @task(4)
+    @task(2)
     def load_gradio_config(self):
-        params = {
-            'sessionid': self.session_id,
-            'lang': self.lang
-        }
+        params = {'sessionid': self.session_id, 'lang': self.lang}
         with self.client.get("/config", params=params, catch_response=True, name="Load Config") as response:
             if response.status_code == 200:
                 try:
@@ -513,15 +471,12 @@ class WhatIsAIAppUser(HttpUser):
             else:
                 response.failure(f"Failed to load config: {response.status_code}")
 
-    @task(12)
+    @task(20)
     def run_ai_prediction(self):
         fn_index = self.pred_fn_index
         if fn_index is None:
-            # Attempt to rediscover if initial discovery failed
             cfg = _fetch_config(self.client, self.session_id, self.lang)
-            fn_index = _find_pred_fn_index(cfg)
-            if fn_index is None:
-                return
+            fn_index = _find_pred_fn_index(cfg) or 1
 
         age = random.randint(18, 65)
         priors = random.randint(0, 10)
@@ -577,7 +532,7 @@ class WhatIsAIAppUser(HttpUser):
             else:
                 response.failure(f"Button interaction failed: {response.status_code}")
 
-    @task(2)
+    @task(6)
     def simulate_slider_interactions(self):
         """
         Simulate slider/dropdown interactions for parameter adjustments.
@@ -612,7 +567,6 @@ class WhatIsAIAppUser(HttpUser):
 
     @task(1)
     def check_health(self):
-        # Include params for "/" only; health endpoints typically don't need session context
         endpoints_to_check = ["/", "/healthz", "/health"]
         for endpoint in endpoints_to_check:
             params = {"sessionid": self.session_id, "lang": self.lang} if endpoint == "/" else None
@@ -652,7 +606,7 @@ def on_test_stop(environment, **kwargs):
     print(f"  Failed Requests: {stats.total.num_failures}")
     print(f"  Success Rate: {((stats.total.num_requests - stats.total.num_failures) / stats.total.num_requests * 100) if stats.total.num_requests > 0 else 0:.2f}%")
     print(f"  Median Response Time: {stats.total.median_response_time:.0f}ms")
-    print(f"  95th Percentile: {stats.total.get_response_time_percentile(0.95)::.0f}ms")
+    print(f"  95th Percentile: {stats.total.get_response_time_percentile(0.95):.0f}ms")
     print(f"  99th Percentile: {stats.total.get_response_time_percentile(0.99):.0f}ms")
     print(f"  Average Response Time: {stats.total.avg_response_time:.0f}ms")
     print(f"  Min Response Time: {stats.total.min_response_time:.0f}ms")
