@@ -39,9 +39,12 @@ from locust.runners import MasterRunner
 
 # ---------- Helpers to discover fn_index safely from /config ----------
 
-def _fetch_config(client):
+def _fetch_config(client, session_id=None, lang=None):
     try:
-        resp = client.get("/config", name="Load Config (helper)")
+        params = None
+        if session_id and lang:
+            params = {"sessionid": session_id, "lang": lang}
+        resp = client.get("/config", params=params, name="Load Config (helper)")
         if resp.status_code == 200:
             return resp.json()
     except Exception:
@@ -168,7 +171,7 @@ class GradioAppUser(HttpUser):
         self.client.get("/", params=params, name="Initial Load with Session")
 
         # Discover indices from /config (best effort)
-        cfg = _fetch_config(self.client)
+        cfg = _fetch_config(self.client, self.session_id, self.lang)
         self.pred_fn_index = _find_pred_fn_index(cfg)
         self.nav_fn_index, self.nav_inputs_count = _find_nav_fn_index(cfg)
 
@@ -188,7 +191,11 @@ class GradioAppUser(HttpUser):
     @task(5)
     def load_gradio_config(self):
         """Load Gradio configuration (required for app initialization)."""
-        with self.client.get("/config", catch_response=True, name="Load Config") as response:
+        params = {
+            'sessionid': self.session_id,
+            'lang': self.lang
+        }
+        with self.client.get("/config", params=params, catch_response=True, name="Load Config") as response:
             if response.status_code == 200:
                 try:
                     config = response.json()
@@ -241,7 +248,7 @@ class GradioAppUser(HttpUser):
 
         # Build data based on expected input count
         if self.nav_inputs_count == 1:
-            data = [random.choice(["Next", "Complete", "Continue"])]
+            data = [random.choice(["Release", "Keep in Prison", "Next", "Complete"])]
         else:
             data = []
 
@@ -296,11 +303,17 @@ class GradioAppUser(HttpUser):
     @task(2)
     def check_health(self):
         """Check application health/readiness."""
+        # Include params for "/" only; health endpoints typically don't need session context
         endpoints_to_check = ["/", "/healthz", "/health"]
 
         for endpoint in endpoints_to_check:
+            if endpoint == "/":
+                params = {"sessionid": self.session_id, "lang": self.lang}
+            else:
+                params = None
             with self.client.get(
                 endpoint,
+                params=params,
                 catch_response=True,
                 name=f"Health Check ({endpoint})"
             ) as response:
@@ -336,7 +349,7 @@ class ModelBuildingGameUser(HttpUser):
         self.client.get("/", params=params, name="Initial Load with Session")
 
         # Discover indices
-        cfg = _fetch_config(self.client)
+        cfg = _fetch_config(self.client, self.session_id, self.lang)
         # Training often expects a single JSON param; pick any 1-input dep
         self.train_fn_index, self.train_inputs_count = _find_nav_fn_index(cfg)
         # For feature selection, prefer 2-input dependency if available
@@ -368,7 +381,11 @@ class ModelBuildingGameUser(HttpUser):
     @task(5)
     def load_game_data(self):
         """Load game configuration and data."""
-        with self.client.get("/config", catch_response=True, name="Load Game Config") as response:
+        params = {
+            'sessionid': self.session_id,
+            'lang': self.lang
+        }
+        with self.client.get("/config", params=params, catch_response=True, name="Load Game Config") as response:
             if response.status_code == 200:
                 response.success()
             else:
@@ -464,7 +481,7 @@ class WhatIsAIAppUser(HttpUser):
         self.client.get("/", params=params, name="Initial Load with Session")
 
         # Discover indices
-        cfg = _fetch_config(self.client)
+        cfg = _fetch_config(self.client, self.session_id, self.lang)
         self.pred_fn_index = _find_pred_fn_index(cfg)
         self.nav_fn_index, self.nav_inputs_count = _find_nav_fn_index(cfg)
 
@@ -482,7 +499,11 @@ class WhatIsAIAppUser(HttpUser):
 
     @task(4)
     def load_gradio_config(self):
-        with self.client.get("/config", catch_response=True, name="Load Config") as response:
+        params = {
+            'sessionid': self.session_id,
+            'lang': self.lang
+        }
+        with self.client.get("/config", params=params, catch_response=True, name="Load Config") as response:
             if response.status_code == 200:
                 try:
                     _ = response.json()
@@ -497,7 +518,7 @@ class WhatIsAIAppUser(HttpUser):
         fn_index = self.pred_fn_index
         if fn_index is None:
             # Attempt to rediscover if initial discovery failed
-            cfg = _fetch_config(self.client)
+            cfg = _fetch_config(self.client, self.session_id, self.lang)
             fn_index = _find_pred_fn_index(cfg)
             if fn_index is None:
                 return
@@ -591,9 +612,11 @@ class WhatIsAIAppUser(HttpUser):
 
     @task(1)
     def check_health(self):
+        # Include params for "/" only; health endpoints typically don't need session context
         endpoints_to_check = ["/", "/healthz", "/health"]
         for endpoint in endpoints_to_check:
-            with self.client.get(endpoint, catch_response=True, name=f"Health Check ({endpoint})") as response:
+            params = {"sessionid": self.session_id, "lang": self.lang} if endpoint == "/" else None
+            with self.client.get(endpoint, params=params, catch_response=True, name=f"Health Check ({endpoint})") as response:
                 if response.status_code == 200:
                     response.success()
                     break
@@ -629,7 +652,7 @@ def on_test_stop(environment, **kwargs):
     print(f"  Failed Requests: {stats.total.num_failures}")
     print(f"  Success Rate: {((stats.total.num_requests - stats.total.num_failures) / stats.total.num_requests * 100) if stats.total.num_requests > 0 else 0:.2f}%")
     print(f"  Median Response Time: {stats.total.median_response_time:.0f}ms")
-    print(f"  95th Percentile: {stats.total.get_response_time_percentile(0.95):.0f}ms")
+    print(f"  95th Percentile: {stats.total.get_response_time_percentile(0.95)::.0f}ms")
     print(f"  99th Percentile: {stats.total.get_response_time_percentile(0.99):.0f}ms")
     print(f"  Average Response Time: {stats.total.avg_response_time:.0f}ms")
     print(f"  Min Response Time: {stats.total.min_response_time:.0f}ms")
