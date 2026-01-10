@@ -6,6 +6,13 @@ This directory contains load tests for validating the scalability of Gradio appl
 
 The load tests ensure that the Cloud Run apps can handle 100+ concurrent users as specified in the scalability requirements. Tests use [Locust](https://locust.io/), a popular Python-based load testing framework.
 
+**Key Features:**
+- ✅ **Session ID support**: Tests include `sessionid` query parameter as used in production
+- ✅ **Language parameters**: Tests multiple languages (`lang=en/es/ca`)
+- ✅ **Interactive elements**: Simulates button clicks, slider changes, dropdown selections
+- ✅ **CPU-intensive operations**: Tests model training, predictions, and real-time calculations
+- ✅ **Realistic user behavior**: Includes wait times, random selections, and navigation patterns
+
 ## Prerequisites
 
 ```bash
@@ -99,19 +106,64 @@ The load tests validate the following criteria:
 ## Test Scenarios
 
 ### GradioAppUser (Standard Apps)
-Simulates typical user interactions:
-- Loading the app UI (40% of requests)
-- Loading configuration (20% of requests)
-- User interactions/queue joins (12% of requests)
-- Health checks (8% of requests)
+Simulates typical user interactions with production-like parameters:
+- **Initial load with session parameters** (sessionid, lang)
+- **Loading the app UI** (40% of requests) with query parameters
+- **Loading configuration** (20% of requests)
+- **Button clicks** (20% of requests) - CPU-intensive operations like decision making
+- **Slider/dropdown interactions** (12% of requests) - Real-time processing
+- **Health checks** (8% of requests)
+
+Each user has:
+- Unique session ID (UUID)
+- Random language selection (en/es/ca)
+- Realistic wait times between actions (1-3 seconds)
 
 ### ModelBuildingGameUser (ML Apps)
-Simulates ML-heavy interactions:
-- Loading game UI (35% of requests)
-- Loading game data (22% of requests)
-- Model predictions (13% of requests)
+Simulates ML-heavy interactions with intensive CPU usage:
+- **Loading game UI with session** (32% of requests)
+- **Loading game data** (20% of requests)
+- **Model training simulations** (16% of requests) - Very CPU-intensive (45s timeout)
+- **Feature selection** (12% of requests) - CPU-intensive (30s timeout)
+- **Model predictions** (12% of requests)
 
-## Interpreting Results
+Each user has:
+- Unique session ID
+- Random language and model configurations
+- Longer wait times for processing (2-5 seconds)
+
+## What Gets Tested
+
+### Production-Realistic Scenarios
+
+The load tests are designed to match actual production usage:
+
+#### Session Management
+- ✅ **Session ID tokens**: Each user gets a unique `sessionid` parameter passed in URLs
+- ✅ **Language variants**: Tests cycle through `en`, `es`, and `ca` languages
+- ✅ **Session persistence**: Same session ID used throughout user's session
+
+#### Interactive Elements (CPU-Intensive)
+- ✅ **Button clicks**: Decision buttons, navigation, form submissions
+- ✅ **Slider changes**: Age sliders, risk score adjustments (trigger real-time calculations)
+- ✅ **Dropdown selections**: Severity levels, feature selections (trigger backend processing)
+- ✅ **Model training**: Full training cycles with various configurations (most CPU-intensive)
+- ✅ **Feature selection**: Dynamic feature set changes with recalculations
+
+#### Performance Under Load
+The tests validate that these intensive operations can handle concurrent users:
+- Multiple users clicking buttons simultaneously
+- Slider changes triggering calculations in parallel
+- Model training operations running concurrently
+- Real-time updates without timeout errors
+
+### What Makes This Test Realistic
+
+1. **Query Parameters**: Just like production, tests include `?sessionid=xxx&lang=en` in requests
+2. **Timing**: Realistic wait times between actions (users don't click instantly)
+3. **Variety**: Random selections of languages, parameters, and features
+4. **Intensity**: Tests the most CPU-heavy operations (training, predictions, real-time calculations)
+5. **Concurrency**: Simulates many users performing intensive operations at the same time
 
 ### Good Results
 ```

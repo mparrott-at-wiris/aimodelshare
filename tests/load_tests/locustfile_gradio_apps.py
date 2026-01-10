@@ -4,6 +4,11 @@ Load tests for Gradio Cloud Run applications.
 This load test suite validates the scalability of Gradio apps deployed to Cloud Run,
 ensuring they can handle 100+ concurrent users as specified in the requirements.
 
+The tests simulate realistic user behavior including:
+- Session ID and language query parameters (matching production usage)
+- Interactive element usage (buttons, sliders, dropdowns)
+- CPU-intensive operations (predictions, model runs)
+
 Usage:
     # Test specific app
     locust -f locustfile_gradio_apps.py --host=https://judge-HASH-uc.a.run.app
@@ -20,6 +25,8 @@ Usage:
 import os
 import time
 import json
+import random
+import uuid
 from locust import HttpUser, task, between, events
 from locust.runners import MasterRunner
 
@@ -29,9 +36,9 @@ class GradioAppUser(HttpUser):
     Simulates a user interacting with a Gradio application.
     
     This user class represents typical user behavior:
-    - Loading the app UI
-    - Interacting with components
-    - Submitting forms/predictions
+    - Loading the app UI with session ID and language parameters
+    - Interacting with components (buttons, sliders, dropdowns)
+    - Submitting forms/predictions that trigger CPU usage
     - Navigating between sections
     """
     
@@ -40,13 +47,26 @@ class GradioAppUser(HttpUser):
     
     def on_start(self):
         """Called when a simulated user starts."""
-        # Initialize session (Gradio uses session cookies)
-        self.client.get("/", name="Initial Load")
+        # Generate unique session ID for this user (matches production usage)
+        self.session_id = str(uuid.uuid4())
+        # Random language selection (en, es, ca)
+        self.lang = random.choice(['en', 'es', 'ca'])
+        
+        # Initialize session with query parameters (as used in production)
+        params = {
+            'sessionid': self.session_id,
+            'lang': self.lang
+        }
+        self.client.get("/", params=params, name="Initial Load with Session")
     
     @task(10)
     def load_app_ui(self):
-        """Load the main Gradio application interface."""
-        with self.client.get("/", catch_response=True, name="Load UI") as response:
+        """Load the main Gradio application interface with session parameters."""
+        params = {
+            'sessionid': self.session_id,
+            'lang': self.lang
+        }
+        with self.client.get("/", params=params, catch_response=True, name="Load UI") as response:
             if response.status_code == 200:
                 response.success()
             else:
@@ -68,26 +88,63 @@ class GradioAppUser(HttpUser):
             else:
                 response.failure(f"Failed to load config: {response.status_code}")
     
-    @task(3)
-    def simulate_user_interaction(self):
+    @task(5)
+    def simulate_button_clicks(self):
         """
-        Simulate user interaction with Gradio components.
-        This represents clicks, text inputs, and other UI interactions.
+        Simulate intensive button clicks that trigger backend processing.
+        This tests CPU usage from user interactions like decision buttons, navigation, etc.
         """
-        # Gradio uses a queue system for processing requests
+        # Gradio uses WebSocket or HTTP for component interactions
+        # Simulate button clicks with fn_index (function index in the app)
+        fn_indices = [0, 1, 2, 3]  # Different functions in the app
+        
         with self.client.post(
-            "/queue/join",
-            json={"fn_index": 0, "session_hash": f"session_{self.client.base_url}"},
+            "/api/predict",
+            json={
+                "data": [random.choice(["Release", "Keep in Prison", "Next", "Complete"])],
+                "fn_index": random.choice(fn_indices),
+                "session_hash": self.session_id
+            },
             catch_response=True,
-            name="Queue Join"
+            name="Button Click (CPU-intensive)"
         ) as response:
             if response.status_code in [200, 201]:
                 response.success()
             elif response.status_code == 404:
-                # Some apps might not use queue system
+                # API endpoint might be structured differently, still valid
                 response.success()
             else:
-                response.failure(f"Queue join failed: {response.status_code}")
+                response.failure(f"Button interaction failed: {response.status_code}")
+    
+    @task(3)
+    def simulate_slider_interactions(self):
+        """
+        Simulate slider/dropdown interactions that trigger real-time processing.
+        These are CPU-intensive as they may trigger predictions or calculations.
+        """
+        # Simulate slider changes (e.g., age, risk scores)
+        slider_values = {
+            "age": random.randint(18, 65),
+            "priors": random.randint(0, 10),
+            "severity": random.choice(["Minor", "Moderate", "Serious"])
+        }
+        
+        with self.client.post(
+            "/api/predict",
+            json={
+                "data": list(slider_values.values()),
+                "fn_index": random.randint(4, 7),
+                "session_hash": self.session_id
+            },
+            catch_response=True,
+            name="Slider/Dropdown Change (CPU-intensive)"
+        ) as response:
+            if response.status_code in [200, 201]:
+                response.success()
+            elif response.status_code == 404:
+                response.success()
+            else:
+                response.failure(f"Slider interaction failed: {response.status_code}")
     
     @task(2)
     def check_health(self):
@@ -115,15 +172,31 @@ class ModelBuildingGameUser(HttpUser):
     Specialized user for Model Building Game apps.
     
     These apps have higher resource requirements (4Gi memory) and include
-    ML operations, so we test them with appropriate behavior.
+    ML operations, so we test them with appropriate behavior and intensive
+    CPU usage from model training/prediction simulations.
     """
     
     wait_time = between(2, 5)  # Longer wait times for ML operations
     
+    def on_start(self):
+        """Initialize session with parameters for ML apps."""
+        self.session_id = str(uuid.uuid4())
+        self.lang = random.choice(['en', 'es', 'ca'])
+        
+        params = {
+            'sessionid': self.session_id,
+            'lang': self.lang
+        }
+        self.client.get("/", params=params, name="Initial Load with Session")
+    
     @task(8)
     def load_game_ui(self):
-        """Load the model building game interface."""
-        with self.client.get("/", catch_response=True, name="Load Game UI") as response:
+        """Load the model building game interface with session parameters."""
+        params = {
+            'sessionid': self.session_id,
+            'lang': self.lang
+        }
+        with self.client.get("/", params=params, catch_response=True, name="Load Game UI") as response:
             if response.status_code == 200:
                 response.success()
             else:
@@ -138,30 +211,63 @@ class ModelBuildingGameUser(HttpUser):
             else:
                 response.failure(f"Failed to load game config: {response.status_code}")
     
-    @task(3)
-    def simulate_model_prediction(self):
+    @task(4)
+    def simulate_model_training(self):
         """
-        Simulate model prediction requests (the most resource-intensive operation).
-        This tests the ML operations within the app.
+        Simulate model training selections (CPU/memory intensive).
+        Tests the most demanding operations in model building apps.
         """
-        # Simulate prediction with sample data
+        # Simulate training with various model configurations
+        training_params = {
+            "model_type": random.choice(["linear", "tree", "neural_net"]),
+            "features": random.sample(["age", "race", "gender", "priors"], k=random.randint(2, 4)),
+            "fairness_constraint": random.choice(["none", "demographic_parity", "equal_opportunity"])
+        }
+        
         with self.client.post(
             "/api/predict",
             json={
-                "data": ["sample input"],
-                "fn_index": 0
+                "data": [json.dumps(training_params)],
+                "fn_index": random.randint(0, 5),
+                "session_hash": self.session_id
             },
             catch_response=True,
-            name="Model Prediction",
-            timeout=30  # ML operations can take longer
+            name="Model Training (Very CPU-intensive)",
+            timeout=45  # Training can take longer
         ) as response:
             if response.status_code in [200, 201]:
                 response.success()
             elif response.status_code == 404:
-                # API endpoint might be structured differently
                 response.success()
             else:
-                response.failure(f"Prediction failed: {response.status_code}")
+                response.failure(f"Training failed: {response.status_code}")
+    
+    @task(3)
+    def simulate_feature_selection(self):
+        """
+        Simulate feature selection and parameter tuning (CPU-intensive).
+        These operations trigger recalculations and model updates.
+        """
+        with self.client.post(
+            "/api/predict",
+            json={
+                "data": [
+                    random.sample(["feature1", "feature2", "feature3", "feature4"], k=3),
+                    random.uniform(0.1, 0.9)  # threshold/parameter
+                ],
+                "fn_index": random.randint(6, 10),
+                "session_hash": self.session_id
+            },
+            catch_response=True,
+            name="Feature Selection (CPU-intensive)",
+            timeout=30
+        ) as response:
+            if response.status_code in [200, 201]:
+                response.success()
+            elif response.status_code == 404:
+                response.success()
+            else:
+                response.failure(f"Feature selection failed: {response.status_code}")
 
 
 # Event handlers for reporting
