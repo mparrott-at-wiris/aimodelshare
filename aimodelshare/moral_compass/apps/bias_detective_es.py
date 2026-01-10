@@ -664,7 +664,7 @@ MODULES = [
     # --- MODULE 4: EVIDENCE REPORT (Input Flaws) ---
     {
         "id":5,
-        "title": "Informe de Evidencia: Fallos de Entrada",
+        "title": "Informe de evidencia: Fallos de Entrada",
         "html": """
             <div class="scenario-box">
                 <div class="tracker-container">
@@ -887,7 +887,7 @@ MODULES = [
                                     </div>
 
                                     <div class="hint-box" style="border-left:4px solid #ef4444; background:rgba(239, 68, 68, 0.1); text-align:left;">
-                                        <div style="font-weight:800; color:#ef4444; font-size:0.95rem;">❌ VERDICTO: SESGO PUNITIVO</div>
+                                        <div style="font-weight:800; color:#ef4444; font-size:0.95rem;">❌ VEREDICTO: SESGO PUNITIVO</div>
                                         <div style="font-size:0.9rem; color:var(--body-text-color); margin-top:3px;">
                                             Las personas detenidas afroamericanas tienen casi <strong style="color:#ef4444;">el doble de probabilidades</strong> de ser clasificadas erróneamente como peligrosos en comparación con las personas blancas detenidas.
                                         </div>
@@ -922,7 +922,7 @@ MODULES = [
                                     </div>
 
                                     <div class="hint-box" style="border-left:4px solid #3b82f6; background:rgba(59, 130, 246, 0.1); text-align:left;">
-                                        <div style="font-weight:800; color:#3b82f6; font-size:0.95rem;">❌ VERDICTO: SESGO DE INDULGENCIA</div>
+                                        <div style="font-weight:800; color:#3b82f6; font-size:0.95rem;">❌ VEREDICTO: SESGO DE INDULGENCIA</div>
                                         <div style="font-size:0.9rem; color:var(--body-text-color); margin-top:3px;">
                                             Las personas blancas que reinciden tienen muchas más probabilidades de no ser detectadas por el sistema.
                                         </div>
@@ -1139,19 +1139,19 @@ MODULES = [
             <div class="scenario-box">
                 <div class="tracker-container">
                     <div class="tracker-step completed">1. REGLAS</div>
-                    <div class="tracker-step completed">2. EVIDENCIA</div>
-                    <div class="tracker-step active">3. ERROR</div>
+                    <div class="tracker-step completed">2. EVIDENCIAS</div>
+                    <div class="tracker-step active">3. ERRORES</div>
                     <div class="tracker-step">4. VEREDICTO</div>
                 </div>
 
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">PASO 3: RESUMEN DEL INFORME DE AUDITORÍA</h2>
+                    <h2 class="slide-title" style="margin:0;">PASO 3: EVALUAR ERRORES</h2>
 
                     <div style="text-align:center; margin-bottom:25px;">
-                        <h2 class="slide-title header-accent" style="margin-top:10px;">Análisis Final de Predicción</h2>
+                        <h2 class="slide-title header-accent" style="margin-top:10px;">Informe final de errores de predicción</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
                             Revisa tus registros forenses. Has descubierto fallos sistemáticos en múltiples dimensiones.
-                            <br>Esta evidencia muestra que el modelo viola el principio básico de <strong>Justicia y Equidad</strong>.
+                            <br>Estas evidencias muestra que el modelo viola el principio básico de <strong>Justicia y Equidad</strong>.
                         </p>
                     </div>
 
