@@ -87,7 +87,7 @@ TRANSLATIONS = {
         "guest_footer": "Continue to the next section when you're ready.",
         "loading_session": "🔒 Loading your session...",
         
-        # Step 2 (Context) - REVISED (Dramatic Pause + Checklist)
+        # Step 2 (Context)
         "s2_title": "⚠️ DEPLOYMENT PAUSED",
         "s2_intro": "We stopped the launch. There is something you need to see first.",
         "s2_box_title": "Why did we stop?",
@@ -104,7 +104,7 @@ TRANSLATIONS = {
         "s3_chart_title": "FALSE WARNINGS: Wrongly Flagged as 'High Risk'",
         "s3_bar_black": "Black Defendants",
         "s3_bar_white": "White Defendants",
-        "s3_alert": "The System Was Rigged.",
+        "s3_alert": "The System Was Biased.",
         "s3_mean_p1": "The AI was <strong>twice as likely</strong> to falsely accuse Black defendants of being dangerous.",
         "s3_mean_p2": "<strong>What Does This Mean?</strong><br>The AI system was systematically biased. It didn't just make random errors—it made different kinds of errors for different groups of people.",
         "btn_eu": "Could it happen here? ▶️",
@@ -113,22 +113,18 @@ TRANSLATIONS = {
         "s4eu_title": "🇪🇺 Closer Than You Think",
         "s4eu_head": "This isn't just a US problem.",
         "s4eu_intro": "Europe is building similar tools right now. Have you heard of these?",
-        
-        "s4eu_c1_title": "🇬🇧 UK: HART",
+        "s4eu_c1_title": "UK: HART",
         "s4eu_c1_body": "Used by <strong>Durham Police</strong> to predict who will reoffend. It uses variables like age, gender, and <strong>postcode</strong>—socio-economic proxies that can unfairly target people based on where they live.",
-        
-        "s4eu_c2_title": "🇪🇸 España: VioGén",
+        "s4eu_c2_title": "Spain: VioGén",
         "s4eu_c2_body": "A risk tool for gender-violence cases. It operates as a <strong>'Black Box'</strong>, meaning officers rely heavily on its scores for protection decisions without being able to check the algorithm for errors.",
-        
-        "s4eu_c3_title": "🇳🇱 Netherlands: CAS",
+        "s4eu_c3_title": "Netherlands: CAS",
         "s4eu_c3_body": "The <em>Crime Anticipation System</em> uses demographic data to predict crime hotspots. This risks creating <strong>feedback loops</strong> that steer policing toward specific communities again and again.",
-        
         "s4eu_note": "<strong>Reality Check:</strong> These systems are being debated in our courts and parliaments <em>today</em>.",
         "btn_back_invest": "◀️ Back",
         "btn_zoom": "The Critical Lesson ▶️",
         
         # Step 4 Lesson
-        "s4_title": "💡 The Reality Check",
+        "s4_title": "💡 The Critical Lesson",
         "s4_c1_title": "The Accuracy Trap",
         "s4_c1_body": "90% accuracy sounds good. But if the 10% errors all hit one specific group, it's <strong>discrimination</strong>.",
         "s4_c2_title": "The Echo Chamber",
@@ -138,19 +134,17 @@ TRANSLATIONS = {
         "btn_back_eu": "◀️ Back",
         "btn_what_do": "What Can We Do? ▶️",
         
-        # Step 5 Path
+        # Step 5 Path - COMPLETELY REVISED
         "s5_title": "🛤️ The Path Forward",
         "s5_head": "From Accuracy to Ethics",
-        "s5_intro": "You've now seen both sides of the AI story:",
-        "s5_li1": "✅ You built models that achieved higher accuracy scores",
-        "s5_li2": "⚠️ You learned how similar models caused real-world harm",
-        "s5_li3": "🤔 You understand that accuracy alone is not enough",
-        "s5_box_title": "What You'll Do Next:",
-        "s5_p1": "In the next section, you'll be introduced to a <strong class='emph-key'>new way of measuring success</strong>—one that balances performance with fairness and ethics.",
-        "s5_p2": "You'll learn techniques to <strong class='emph-key'>detect bias</strong> in your models, <strong class='emph-key'>measure fairness</strong> across different groups, and <strong class='emph-key'>redesign your AI</strong> to minimize harm.",
-        "s5_mission": "🎯 Your new mission: Build AI that is not just accurate, but also <strong class='emph-key'>fair, equitable, and ethically sound</strong>.",
+        "s5_recap_title": "✅ Phase 1 Complete",
+        "s5_recap_body": "You built a high-accuracy model, but discovered it caused real-world harm.",
+        "s5_next_title": "🚀 Phase 2 Unlocked",
+        "s5_mission": "Your New Mission: Build AI that is Fair, Equitable, and Ethical.",
+        "s5_action_1": "🔍 Detect Bias",
+        "s5_action_2": "⚖️ Measure Fairness",
+        "s5_action_3": "🛠️ Redesign AI",
         "s5_scroll": "👇 Continue to the next activity below — or click <span style='white-space:nowrap;'>Next (top bar)</span> in expanded view ➡️",
-        "s5_continue": "",
         "btn_review": "◀️ Review the Investigation"
     },
     "es": {
@@ -170,7 +164,7 @@ TRANSLATIONS = {
         "guest_footer": "Continúa a la siguiente sección cuando estés listo.",
         "loading_session": "🔒 Cargando tu sesión...",
         
-        # Step 2 REVISED (Spanish)
+        # Step 2 REVISED
         "s2_title": "⚠️ DESPLIEGUE PAUSADO",
         "s2_intro": "Detuvimos el lanzamiento. Hay algo que necesitas ver primero.",
         "s2_box_title": "¿Por qué paramos?",
@@ -187,53 +181,47 @@ TRANSLATIONS = {
         "s3_chart_title": "FALSAS ALARMAS: Marcados erróneamente como 'Alto Riesgo'",
         "s3_bar_black": "Acusados Negros",
         "s3_bar_white": "Acusados Blancos",
-        "s3_alert": "El sistema estaba amañado.",
+        "s3_alert": "El sistema estaba sesgado.",
         "s3_mean_p1": "La IA tenía <strong>el doble de probabilidades</strong> de acusar falsamente a los acusados negros.",
         "s3_mean_p2": "<strong>¿Qué significa esto?</strong><br>El sistema de IA estaba sistemáticamente sesgado. No solo cometía errores aleatorios, sino que cometía diferentes tipos de errores para diferentes grupos de personas.",
         "btn_eu": "¿Podría pasar aquí? ▶️",
         
-        # Step 4 EU - UPDATED DESCRIPTIONS
+        # Step 4 EU
         "s4eu_title": "🇪🇺 Más cerca de lo que crees",
         "s4eu_head": "No es solo un problema de EE. UU.",
         "s4eu_intro": "Europa está construyendo herramientas similares ahora mismo. ¿Te suenan?",
-        
-        "s4eu_c1_title": "🇬🇧 Reino Unido: HART",
+        "s4eu_c1_title": "Reino Unido: HART",
         "s4eu_c1_body": "Usado por la <strong>Policía de Durham</strong> para predecir la reincidencia. Utiliza variables como el <strong>código postal</strong>, lo que puede perjudicar injustamente a las personas según dónde vivan.",
-        
-        "s4eu_c2_title": "🇪🇸 España: VioGén",
+        "s4eu_c2_title": "España: VioGén",
         "s4eu_c2_body": "Herramienta para casos de violencia de género. Funciona como una <strong>'Caja Negra'</strong>: la policía confía en sus puntuaciones para decidir medidas de protección sin poder auditar el algoritmo.",
-        
-        "s4eu_c3_title": "🇳🇱 Países Bajos: CAS",
+        "s4eu_c3_title": "Países Bajos: CAS",
         "s4eu_c3_body": "El sistema <em>CAS</em> usa datos demográficos para predecir zonas de crimen. Esto crea <strong>bucles de retroalimentación</strong> que dirigen la vigilancia policial hacia comunidades específicas una y otra vez.",
-        
         "s4eu_note": "<strong>Realidad:</strong> Estos sistemas se están debatiendo en nuestros tribunales y parlamentos <em>hoy</em>.",
         "btn_back_invest": "◀️ Atrás",
         "btn_zoom": "La Lección Crítica ▶️",
         
-        # Step 4 Lesson REVISED
-        "s4_title": "💡 La Realidad",
+        # Step 4 Lesson
+        "s4_title": "💡 La Lección Crítica",
         "s4_c1_title": "La Trampa de la Precisión",
         "s4_c1_body": "90% de precisión suena bien. Pero si el 10% de errores golpea a un solo grupo, es <strong>discriminación</strong>.",
         "s4_c2_title": "La Cámara de Eco",
-        "s4_c2_body": "La IA aprende del pasado. Si la historia fue injusta, la IA lo <strong>repetirá</strong>, más rápido y a gran escala.",
+        "s4_c2_body": "La IA aprende del pasado. Si la historia fue injusta, la IA lo <strong>repetirà</strong>, más rápido y a gran escala.",
         "s4_c3_title": "Coste Humano Real",
         "s4_c3_body": "Una 'Falsa Alarma' no es solo un número. Es una persona perdiendo su trabajo, su hogar o su libertad.",
         "btn_back_eu": "◀️ Atrás",
         "btn_what_do": "¿Qué podemos hacer? ▶️",
         
-        # Step 5 Path
+        # Step 5 Path - REVISED
         "s5_title": "🛤️ El camino a seguir",
         "s5_head": "De la precisión a la ética",
-        "s5_intro": "Ya has visto los dos lados de la IA:",
-        "s5_li1": "✅ Has construido modelos con altos niveles de precisión",
-        "s5_li2": "⚠️ Has aprendido cómo modelos similares han causado daños reales",
-        "s5_li3": "🤔 Entiendes que la precisión por sí sola no es suficiente",
-        "s5_box_title": "Lo que harás a continuación:",
-        "s5_p1": "En la siguiente sección, se te presentará una <strong class='emph-key'>nueva forma de medir el éxito</strong>, una que equilibra el rendimiento con la equidad y la ética.",
-        "s5_p2": "Aprenderás técnicas para <strong class='emph-key'>detectar sesgos</strong> en tus modelos, <strong class='emph-key'>medir la equidad</strong> en diferentes grupos y <strong class='emph-key'>rediseñar tu IA</strong> para minimizar el daño.",
-        "s5_mission": "🎯 Tu nueva misión: Construir una IA que no solo sea precisa, sino también <strong class='emph-key'>justa, equitativa y éticamente sólida</strong>.",
-        "s5_scroll": "👇 Continúa con la siguiente actividad abajo — o haz clic en <span style='white-space:nowrap;'>Siguiente (barra superior)</span> en vista ampliada ➡️",
-        "s5_continue": "",
+        "s5_recap_title": "✅ Fase 1 Completada",
+        "s5_recap_body": "Construiste un modelo preciso, pero descubriste que causaba daños reales.",
+        "s5_next_title": "🚀 Fase 2 Desbloqueada",
+        "s5_mission": "Tu nueva misión: Construir una IA justa, equitativa y ética.",
+        "s5_action_1": "🔍 Detectar Sesgos",
+        "s5_action_2": "⚖️ Medir Equidad",
+        "s5_action_3": "🛠️ Rediseñar la IA",
+        "s5_scroll": "👇 Desplázate hacia abajo para comenzar",
         "btn_review": "◀️ Revisar la Investigación"
     },
     "ca": {
@@ -253,7 +241,7 @@ TRANSLATIONS = {
         "guest_footer": "Continua a la següent secció quan estiguis a punt.",
         "loading_session": "🔒 Carregant la teva sessió...",
         
-        # Step 2 REVISED (Catalan)
+        # Step 2 REVISED
         "s2_title": "⚠️ DESPLEGAMENT PAUSAT",
         "s2_intro": "Hem aturat el llançament. Hi ha una cosa que has de veure primer.",
         "s2_box_title": "Per què hem parat?",
@@ -270,31 +258,27 @@ TRANSLATIONS = {
         "s3_chart_title": "FALSES ALARMES: Marcats erròniament com a 'Alt Risc'",
         "s3_bar_black": "Acusats Negres",
         "s3_bar_white": "Acusats Blancos",
-        "s3_alert": "El sistema estava manipulat.",
+        "s3_alert": "El sistema estava esbiaixat.",
         "s3_mean_p1": "La IA tenia <strong>el doble de probabilitats</strong> d'acusar falsament els acusats negres.",
         "s3_mean_p2": "<strong>Què significa això?</strong><br>El sistema d'IA estava sistemàticament esbiaixat. No només cometia errors aleatoris, sinó que cometia diferents tipus d'errors per a diferents grups de persones.",
         "btn_eu": "Podria passar aquí? ▶️",
         
-        # Step 4 EU - UPDATED DESCRIPTIONS
+        # Step 4 EU
         "s4eu_title": "🇪🇺 Més a prop del que creus",
         "s4eu_head": "No és només un problema dels EUA.",
         "s4eu_intro": "Europa està construint eines similars ara mateix. Et sonen?",
-        
-        "s4eu_c1_title": "🇬🇧 Regne Unit: HART",
+        "s4eu_c1_title": "Regne Unit: HART",
         "s4eu_c1_body": "Utilitzat per la <strong>Policia de Durham</strong> per predir la reincidència. Fa servir variables com el <strong>codi postal</strong>, cosa que pot perjudicar injustament les persones segons on visquin.",
-        
-        "s4eu_c2_title": "🇪🇸 Espanya: VioGén",
+        "s4eu_c2_title": "Espanya: VioGén",
         "s4eu_c2_body": "Eina per a casos de violència de gènere. Funciona com una <strong>'Caixa Negra'</strong>: la policia confia en les seves puntuacions per decidir la protecció sense poder auditar l'algoritme.",
-        
-        "s4eu_c3_title": "🇳🇱 Països Baixos: CAS",
+        "s4eu_c3_title": "Països Baixos: CAS",
         "s4eu_c3_body": "El sistema <em>CAS</em> utilitza dades demogràfiques per predir zones de risc. Això crea <strong>bucles de retroalimentació</strong> que dirigeixen la vigilància policial cap a comunitats específiques una vegada i una altra.",
-        
         "s4eu_note": "<strong>Realitat:</strong> Aquests sistemes s'estan debatent als nostres tribunals i parlaments <em>avui</em>.",
         "btn_back_invest": "◀️ Enrere",
         "btn_zoom": "La Lliçó Crítica ▶️",
         
-        # Step 4 Lesson REVISED
-        "s4_title": "💡 La Realitat",
+        # Step 4 Lesson
+        "s4_title": "💡 La Lliçó Crítica",
         "s4_c1_title": "La Trampa de la Precisió",
         "s4_c1_body": "90% de precisió sona bé. Però si el 10% d'errors colpeja un sol grup, és <strong>discriminació</strong>.",
         "s4_c2_title": "La Cambra d'Eco",
@@ -304,19 +288,17 @@ TRANSLATIONS = {
         "btn_back_eu": "◀️ Enrere",
         "btn_what_do": "Què podem fer? ▶️",
         
-        # Step 5 Path
+        # Step 5 Path - REVISED
         "s5_title": "🛤️ El camí a seguir",
         "s5_head": "De la precisió a l'ètica",
-        "s5_intro": "Ara ja has vist els dos costats de la IA:",
-        "s5_li1": "✅ Has construït models amb alts nivells de precisió",
-        "s5_li2": "⚠️ Has après com models similars han causat danys reals",
-        "s5_li3": "🤔 Entens que la precisió per si sola no és suficient",
-        "s5_box_title": "Què faràs a continuació:",
-        "s5_p1": "En la següent secció, se't presentarà una <strong class='emph-key'>nova manera de mesurar l'èxit</strong>, una que equilibra el rendiment amb l'equitat i l'ètica.",
-        "s5_p2": "Aprendràs tècniques per <strong class='emph-key'>detectar biaixos</strong> en els teus models, <strong class='emph-key'>mesurar l'equitat</strong> en diferents grups i <strong class='emph-key'>redissenyar la teva IA</strong> per minimitzar el dany.",
-        "s5_mission": "🎯 La teva nova missió: Construir una IA que no només sigui precisa, sinó també <strong class='emph-key'>justa, equitativa i èticament sòlida</strong>.",
-        "s5_scroll": "👇 Continua amb la següent activitat a sota — o fes clic a <span style='white-space:nowrap;'>Següent (barra superior)</span> en vista ampliada ➡️",
-        "s5_continue": "",
+        "s5_recap_title": "✅ Fase 1 Completada",
+        "s5_recap_body": "Has construït un model precís, però has descobert que causava danys reals.",
+        "s5_next_title": "🚀 Fase 2 Desbloquejada",
+        "s5_mission": "La teva nova missió: Construir una IA justa, equitativa i ètica.",
+        "s5_action_1": "🔍 Detectar Biaixos",
+        "s5_action_2": "⚖️ Mesurar l'Equitat",
+        "s5_action_3": "🛠️ Redissenyar la IA",
+        "s5_scroll": "👇 Desplaça't cap avall per començar",
         "btn_review": "◀️ Revisar la Investigació"
     }
 }
@@ -502,18 +484,18 @@ def build_stats_html(user_stats: Dict[str, Any], lang="en") -> str:
 
 def _get_step2_html(lang):
     return f"""
-    <div class='slide-shell slide-shell--warning' style='background-color:#fffbeb; border-color:#f59e0b;'>
+    <div class='slide-shell slide-shell--warning' style='background-color: var(--block-background-fill); border-color: var(--color-accent);'>
         <div style='text-align:center; margin-bottom:20px;'>
             <div style='font-size:3rem;'>⚠️</div>
-            <p class='large-text' style='font-weight:800; color:#92400e; margin:0;'>{t(lang, 's2_intro')}</p>
+            <p class='large-text' style='font-weight:800; color: var(--color-accent); margin:0;'>{t(lang, 's2_intro')}</p>
         </div>
-        <div class='content-box alert-box' style='background-color:#fff; border:2px solid #b45309;'>
-            <h3 class='content-box__heading' style='color:#78350f; font-size:1.5rem;'>{t(lang, 's2_box_title')}</h3>
-            <p class='slide-warning-body' style='color:#333;'>{t(lang, 's2_p1')}</p>
-            <div style='background: rgba(245, 158, 11, 0.1); border-left: 4px solid #b45309; padding: 15px; margin: 15px 0; border-radius: 4px;'>
-                <p class='slide-warning-body' style='margin:0; color:#333; line-height: 1.8;'>{t(lang, 's2_p2')}</p>
+        <div class='content-box alert-box' style='background-color: var(--background-fill-secondary); border: 2px solid var(--border-color-primary);'>
+            <h3 class='content-box__heading' style='color: var(--body-text-color); font-size:1.5rem;'>{t(lang, 's2_box_title')}</h3>
+            <p class='slide-warning-body' style='color: var(--body-text-color);'>{t(lang, 's2_p1')}</p>
+            <div style='background: var(--background-fill-primary); border-left: 4px solid var(--color-accent); padding: 15px; margin: 15px 0; border-radius: 4px;'>
+                <p class='slide-warning-body' style='margin:0; color: var(--body-text-color); line-height: 1.8;'>{t(lang, 's2_p2')}</p>
             </div>
-            <p class='slide-warning-body' style='margin-top:20px; font-weight:800; color:#dc2626; text-align:center; font-size:1.4rem; letter-spacing:0.5px;'>
+            <p class='slide-warning-body' style='margin-top:20px; font-weight:800; color: var(--error-text-color); text-align:center; font-size:1.4rem; letter-spacing:0.5px;'>
                 {t(lang, 's2_p3')}
             </p>
         </div>
@@ -532,29 +514,29 @@ def _get_step3_html(lang):
             <h4 class='content-box__heading' style='text-align:center; margin-bottom:25px;'>{t(lang, 's3_chart_title')}</h4>
             
             <div style='margin-bottom:25px;'>
-                <div style='display:flex; justify-content:space-between; margin-bottom:5px; font-weight:bold; color:#b91c1c;'>
+                <div style='display:flex; justify-content:space-between; margin-bottom:5px; font-weight:bold; color: var(--error-text-color);'>
                     <span>{t(lang, 's3_bar_black')}</span>
                     <span>45%</span>
                 </div>
-                <div style='background:#fee2e2; border-radius:10px; height:30px; width:100%;'>
-                    <div style='background:#dc2626; width:45%; height:100%; border-radius:10px;'></div>
+                <div style='background: var(--background-fill-primary); border-radius:10px; height:30px; width:100%; border: 1px solid var(--border-color-primary);'>
+                    <div style='background: var(--error-text-color); width:45%; height:100%; border-radius:9px;'></div>
                 </div>
             </div>
 
             <div style='margin-bottom:30px;'>
-                <div style='display:flex; justify-content:space-between; margin-bottom:5px; font-weight:bold; color:#1e293b;'>
+                <div style='display:flex; justify-content:space-between; margin-bottom:5px; font-weight:bold; color: var(--body-text-color);'>
                     <span>{t(lang, 's3_bar_white')}</span>
                     <span>24%</span>
                 </div>
-                <div style='background:#f1f5f9; border-radius:10px; height:30px; width:100%;'>
-                    <div style='background:#64748b; width:24%; height:100%; border-radius:10px;'></div>
+                <div style='background: var(--background-fill-primary); border-radius:10px; height:30px; width:100%; border: 1px solid var(--border-color-primary);'>
+                    <div style='background: var(--neutral-text-color); width:24%; height:100%; border-radius:9px;'></div>
                 </div>
             </div>
 
-            <div class='bg-danger-soft' style='text-align:center;'>
-                <h3 class='emph-danger' style='margin:0; font-size:1.4rem;'>{t(lang, 's3_alert')}</h3>
-                <p style='margin:10px 0 0 0; font-size:1.1rem;'>{t(lang, 's3_mean_p1')}</p>
-                <p style='margin:10px 0 0 0; font-size:1.1rem;'>{t(lang, 's3_mean_p2')}</p>
+            <div class='bg-danger-soft' style='text-align:center; background-color: var(--background-fill-secondary); border: 1px solid var(--border-color-primary);'>
+                <h3 class='emph-danger' style='margin:0; font-size:1.4rem; color: var(--error-text-color);'>{t(lang, 's3_alert')}</h3>
+                <p style='margin:10px 0 0 0; font-size:1.1rem; color: var(--body-text-color);'>{t(lang, 's3_mean_p1')}</p>
+                <p style='margin:10px 0 0 0; font-size:1.1rem; color: var(--body-text-color);'>{t(lang, 's3_mean_p2')}</p>
             </div>
         </div>
     </div>
@@ -583,7 +565,7 @@ def _get_step4_eu_html(lang):
             </div>
         </div>
 
-        <div class='eu-panel__note' style='background:#f0f9ff; padding:20px; border-radius:12px; border-left:5px solid #0ea5e9; margin-top:30px;'>
+        <div class='eu-panel__note' style='background: var(--background-fill-secondary); padding:20px; border-radius:12px; border-left:5px solid var(--color-accent); margin-top:30px; border: 1px solid var(--border-color-primary);'>
             <p style='margin:0; font-size:1.1rem;'>{t(lang, 's4eu_note')}</p>
         </div>
     </div>
@@ -616,22 +598,36 @@ def _get_step5_html(lang):
     <div style='text-align:center;'>
         <div class='slide-shell slide-shell--info'>
             <h3 class='slide-shell__title'>{t(lang, 's5_head')}</h3>
-            <p style='line-height:1.8; text-align:left;'>{t(lang, 's5_intro')}</p>
-            <ul style='text-align:left; line-height:2; font-size:1.1rem; margin:24px 0;'>
-                <li>{t(lang, 's5_li1')}</li>
-                <li>{t(lang, 's5_li2')}</li>
-                <li>{t(lang, 's5_li3')}</li>
-            </ul>
-            <div class='content-box'>
-                <h4 class='content-box__heading'>{t(lang, 's5_box_title')}</h4>
-                <p style='font-size:1.1rem; line-height:1.8;'>{t(lang, 's5_p1')}</p>
-                <p style='font-size:1.1rem; line-height:1.8; margin-top:16px;'>{t(lang, 's5_p2')}</p>
+            
+            <!-- Phase 1 Recap -->
+            <div style='margin-top:30px; opacity:0.8; text-align:left; border-bottom:1px solid var(--border-color-primary); padding-bottom:20px;'>
+                <h4 style='margin:0; color:var(--secondary-text-color); text-transform:uppercase; font-size:0.9rem; letter-spacing:1px;'>{t(lang, 's5_recap_title')}</h4>
+                <p style='margin:5px 0 0 0; font-size:1.1rem;'>{t(lang, 's5_recap_body')}</p>
             </div>
-            <div class='content-box content-box--emphasis'>
-                <p style='font-size:1.15rem; font-weight:600; margin:0;'>{t(lang, 's5_mission')}</p>
+
+            <!-- Phase 2 Mission Hero -->
+            <div style='margin:40px 0; padding:30px; background:linear-gradient(135deg, var(--color-accent), #4f46e5); color:white; border-radius:16px; box-shadow:0 10px 25px -5px rgba(79, 70, 229, 0.4);'>
+                <div style='font-size:0.9rem; text-transform:uppercase; letter-spacing:2px; font-weight:bold; opacity:0.9; margin-bottom:10px;'>{t(lang, 's5_next_title')}</div>
+                <div style='font-size:1.8rem; font-weight:800; line-height:1.3;'>{t(lang, 's5_mission')}</div>
             </div>
+
+            <!-- Action Grid -->
+            <div class='grid-3-col' style='margin-bottom:30px;'>
+                <div class='stat-card' style='background:var(--background-fill-secondary);'>
+                    <div style='font-size:2rem; margin-bottom:10px;'>🔍</div>
+                    <div style='font-weight:700; font-size:1.1rem;'>{t(lang, 's5_action_1')}</div>
+                </div>
+                <div class='stat-card' style='background:var(--background-fill-secondary);'>
+                    <div style='font-size:2rem; margin-bottom:10px;'>⚖️</div>
+                    <div style='font-weight:700; font-size:1.1rem;'>{t(lang, 's5_action_2')}</div>
+                </div>
+                <div class='stat-card' style='background:var(--background-fill-secondary);'>
+                    <div style='font-size:2rem; margin-bottom:10px;'>🛠️</div>
+                    <div style='font-weight:700; font-size:1.1rem;'>{t(lang, 's5_action_3')}</div>
+                </div>
+            </div>
+
             <h1 class='final-instruction' style='margin:32px 0 16px 0;'>{t(lang, 's5_scroll')}</h1>
-            <p style='font-size:1.2rem;'>{t(lang, 's5_continue')}</p>
         </div>
     </div>
     """
@@ -640,6 +636,10 @@ def _get_step5_html(lang):
 # CSS
 # ---------------------------------------------------------------------------
 CSS = """
+:root {
+    --neutral-text-color: #64748b;
+    --error-text-color: #dc2626;
+}
 .large-text { font-size: 20px !important; }
 .slide-shell, .celebration-box {
   padding:24px; border-radius:16px;
@@ -693,6 +693,10 @@ CSS = """
     .bg-danger-soft { background-color: #450a0a; border-color: #dc2626; }
     .emph-danger { color: #f87171; }
     .emph-harm { color: #f87171; }
+    :root {
+        --neutral-text-color: #94a3b8;
+        --error-text-color: #f87171;
+    }
 }
 """
 
