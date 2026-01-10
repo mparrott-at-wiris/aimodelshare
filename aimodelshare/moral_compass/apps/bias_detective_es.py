@@ -935,7 +935,7 @@ MODULES = [
 
                     <div style="text-align:center; margin-top:20px; padding:20px; background:linear-gradient(to right, rgba(219,39,119,0.1), rgba(251,113,133,0.1)); border-radius:12px; border:2px solid #fecdd3;">
                         <p style="font-size:1.15rem; font-weight:800; margin-bottom:5px; color:#ef4444;">
-                            🚀 BRECHA DE ERROR DE ORIGEN ÉTNICO CONFIRMADA
+                            🚀 BRECHA DE ERROR POR ORIGEN ÉTNICO CONFIRMADA
                         </p>
                         <p style="font-size:1.05rem; margin:0; color:var(--body-text-color);">
                             Hemos demostrado que el modelo tiene un "Doble rasero" por origen étnico. 
@@ -1148,10 +1148,10 @@ MODULES = [
                     <h2 class="slide-title" style="margin:0;">PASO 3: EVALUAR ERRORES</h2>
 
                     <div style="text-align:center; margin-bottom:25px;">
-                        <h2 class="slide-title header-accent" style="margin-top:10px;">Informe final de errores de predicción</h2>
+                        <h2 class="slide-title header-accent" style="margin-top:10px;">Informe de errores de predicción</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
                             Revisa tus registros forenses. Has descubierto fallos sistemáticos en múltiples dimensiones.
-                            <br>Estas evidencias muestra que el modelo viola el principio básico de <strong>Justicia y Equidad</strong>.
+                            <br>Estas evidencias muestra que el modelo vulnera el principio básico de <strong>Justicia y Equidad</strong>.
                         </p>
                     </div>
 
