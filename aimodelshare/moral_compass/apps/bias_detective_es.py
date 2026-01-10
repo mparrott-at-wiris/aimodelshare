@@ -475,7 +475,7 @@ MODULES = [
                 <summary style="font-weight:700; color:var(--body-text-color-subdued); font-size:0.95rem;">🧭 Referencia: ¿Cómo se sesgan los conjuntos de datos de IA?</summary>
                 <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color-subdued); line-height:1.5; padding:0 5px;">
                     <p style="margin-bottom:10px;"><strong>Ejemplo:</strong> Cuando un conjunto de datos se construye a partir de <strong>registros históricos de arrestos</strong>.</p>
-                    <p>El exceso de vigilancia policial sistémico en barrios específicos podría distorsionar los recuentos en el conjunto de datos para atributos como <strong>Raza o Ingresos</strong>.
+                    <p>El exceso de vigilancia policial sistémico en barrios específicos podría distorsionar los recuentos en el conjunto de datos para atributos como <strong>origen étnico o ingresos</strong>.
                      La IA entonces aprende esta distorsión como "verdad".</p>
                 </div>
             </details>
@@ -1151,7 +1151,7 @@ MODULES = [
                         <h2 class="slide-title header-accent" style="margin-top:10px;">Informe de errores de predicción</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
                             Revisa tus registros forenses. Has descubierto fallos sistemáticos en múltiples dimensiones.
-                            <br>Estas evidencias muestra que el modelo vulnera el principio básico de <strong>Justicia y Equidad</strong>.
+                            <br>Estas evidencias muestran que el modelo vulnera el principio básico de <strong>Justicia y Equidad</strong>.
                         </p>
                     </div>
 
@@ -1160,15 +1160,15 @@ MODULES = [
                         <div style="background:rgba(239, 68, 68, 0.1); border:2px solid #ef4444; border-radius:12px; padding:20px; box-shadow: 0 4px 10px rgba(239,68,68,0.1);">
                             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #fda4af; padding-bottom:10px; margin-bottom:15px;">
                                 <strong style="color:#ef4444; font-size:1.1rem;">🚨 AMENAZA PRINCIPAL</strong>
-                                <span style="background:#ef4444; color:white; font-size:0.75rem; font-weight:800; padding:4px 8px; border-radius:4px;">CONFIRMADO</span>
+                                <span style="background:#ef4444; color:white; font-size:0.75rem; font-weight:800; padding:4px 8px; border-radius:4px;">CONFIRMADA</span>
                             </div>
-                            <h3 style="margin:0 0 10px 0; color:#f87171; font-size:1.25rem;">Doble Estándar Racial</h3>
+                            <h3 style="margin:0 0 10px 0; color:#f87171; font-size:1.25rem;">Doble rasero étnico</h3>
                             <p style="font-size:0.95rem; line-height:1.5; color:var(--body-text-color);">
-                                <strong>La Evidencia:</strong> Los acusados afroamericanos se enfrentan a una <strong style="color:#ef4444;">Tasa de Falsas Alarmas del 45%</strong> (vs. 23% para los acusados blancos).
+                                <strong>La Evidencia:</strong> Las personas presas afroamericanas se enfrentan a una <strong style="color:#ef4444;">tasa de falsas alarmas del 45%</strong> (vs. 23% para las personas presas blancas).
                             </p>
                             <div style="background:var(--background-fill-secondary); padding:10px; border-radius:6px; border:1px solid #fda4af; margin-top:10px;">
                                 <strong style="color:#ef4444; font-size:0.9rem;">El Impacto:</strong> 
-                                <span style="font-size:0.9rem; color:var(--body-text-color);">Sesgo Punitivo. Personas inocentes están siendo marcadas erróneamente para detención al doble de la tasa que otras.</span>
+                                <span style="font-size:0.9rem; color:var(--body-text-color);">Sesgo punitivo. Personas inocentes están siendo clasificadas erróneamente como de alto riesgo casi el doble de veces que otros grupos.</span>
                             </div>
                         </div>
 
@@ -1177,25 +1177,25 @@ MODULES = [
                                 <strong style="color:var(--body-text-color-subdued); font-size:1.1rem;">📍 FALLO DE PROXY</strong>
                                 <span style="background:#f59e0b; color:white; font-size:0.75rem; font-weight:800; padding:4px 8px; border-radius:4px;">DETECTADO</span>
                             </div>
-                            <h3 style="margin:0 0 10px 0; color:var(--body-text-color); font-size:1.25rem;">Discriminación Geográfica</h3>
+                            <h3 style="margin:0 0 10px 0; color:var(--body-text-color); font-size:1.25rem;">Discriminación geográfica</h3>
                             <p style="font-size:0.95rem; line-height:1.5; color:var(--body-text-color);">
-                                <strong>La Evidencia:</strong> Las Zonas Urbanas muestran una masiva <strong style="color:#f59e0b;">Tasa de Error del 58%</strong>.
+                                <strong>La Evidencia:</strong> Las zonas urbanas muestran una elevada <strong style="color:#f59e0b;">tasa de error (el 58%)</strong>.
                             </p>
                             <div style="background:var(--background-fill-primary); padding:10px; border-radius:6px; border:1px solid var(--border-color-primary); margin-top:10px;">
-                                <strong style="color:var(--body-text-color-subdued); font-size:0.9rem;">El Mecanismo:</strong> 
-                                <span style="font-size:0.9rem; color:var(--body-text-color);">Aunque "Raza" estaba oculta, la IA utilizó el "Código Postal" como una brecha para señalar a las mismas comunidades.</span>
+                                <strong style="color:var(--body-text-color-subdued); font-size:0.9rem;">El mecanismo:</strong> 
+                                <span style="font-size:0.9rem; color:var(--body-text-color);">Aunque se eliminó la variable de origen étnico, el sistema de IA utiliza la ubicación geográfica (código postal) como un sustituto indirecto, reproduciendo los mismos patrones discriminatorios sobre las mismas comunidades.</span>
                             </div>
                         </div>
 
                         <div style="grid-column: span 2; background:rgba(14, 165, 233, 0.1); border:2px solid #38bdf8; border-radius:12px; padding:20px;">
                             <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
                                 <span style="font-size:1.5rem;">📉</span>
-                                <h3 style="margin:0; color:#38bdf8; font-size:1.2rem;">Fallo Secundario: Errores de Predicción Debidos al Sesgo de Representación</h3>
+                                <h3 style="margin:0; color:#38bdf8; font-size:1.2rem;">Fallo Secundario: Errores de predicción debidos al sesgo de representación</h3>
                             </div>
                             <p style="font-size:1rem; margin-bottom:0; color:var(--body-text-color);">
-                                <strong>La Evidencia:</strong> Alta inestabilidad en las predicciones para <strong style="color:#38bdf8;">Mujeres y Grupos de Edad Más Jóvenes/Mayores</strong>.
+                                <strong>La Evidencia:</strong> Alta inestabilidad en las predicciones para <strong style="color:#38bdf8;">Mujeres y grupos de edad más jóvenes/mayores</strong>.
                                 <br>
-                                <span style="color:var(--body-text-color-subdued); font-size:0.95rem;"><strong>¿Por qué?</strong> Los datos de entrada carecían de ejemplos suficientes para estos grupos (El Espejo Distorsionado), haciendo que el modelo "adivine" en lugar de aprender.</span>
+                                <span style="color:var(--body-text-color-subdued); font-size:0.95rem;"><strong>¿Por qué pasa?</strong> Los datos de entrada no incluían ejemplos suficientes para estos grupos (el espejo distorsionado), lo que impide que el modelo aprenda patrones fiables y lo lleva a “adivinar” en lugar de predecir.</span>
                             </p>
                         </div>
 
@@ -1230,13 +1230,13 @@ MODULES = [
                 </div>
 
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">PASO 4: PRESENTA TU INFORME FINAL</h2>
+                    <h2 class="slide-title" style="margin:0;">PASO 4: PRESENTA EL INFORME FINAL</h2>
 
                     <div style="text-align:center; margin-bottom:20px;">
-                        <h2 class="slide-title header-accent" style="margin-top:10px;">Arma el Expediente del Caso</h2>
+                        <h2 class="slide-title header-accent" style="margin-top:10px;">Construye el expediente del caso</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                            Has completado la auditoría. Ahora debes construir el informe final para el tribunal y otras partes interesadas.
-                            <br><strong>Selecciona los hallazgos válidos a continuación</strong> para añadirlos al registro oficial. Ten cuidado: no incluyas pruebas falsas.
+                            Has completado la auditoría. Ahora debes elaborar el informe final para el tribunal y otras partes interesadas.
+                            <br><strong>Selecciona los hallazgos válidos a continuación</strong> para añadirlos al registro oficial. Atención: no todas las hipótesis están respaldadas por evidencia.
                         </p>
                     </div>
 
@@ -1245,44 +1245,44 @@ MODULES = [
                         <details style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                             <summary style="list-style:none; padding:15px; font-weight:700; color:var(--body-text-color); display:flex; align-items:center; gap:10px;">
                                 <div style="background:var(--background-fill-primary); width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">+</div>
-                                Hallazgo: "El Espejo Distorsionado"
+                                Hallazgo: "El espejo distorsionado"
                             </summary>
                             <div style="background:rgba(34, 197, 94, 0.1); padding:15px; border-top:1px solid #bbf7d0; color:var(--body-text-color);">
                                 <strong style="color:#22c55e;">✅ AÑADIDO AL INFORME</strong>
-                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmado: Los Datos de Entrada sobrerrepresentan incorrectamente grupos demográficos específicos probablemente debido en parte a un sesgo histórico.</p>
+                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmado: Los datos de entrada no reflejan correctamente la población real. Algunos grupos aparecen claramente sobrerrepresentados, probablemente como consecuencia de sesgos históricos.</p>
                             </div>
                         </details>
 
                         <details style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                             <summary style="list-style:none; padding:15px; font-weight:700; color:var(--body-text-color); display:flex; align-items:center; gap:10px;">
                                 <div style="background:var(--background-fill-primary); width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">+</div>
-                                Hallazgo: "Intención Maliciosa del Programador"
+                                Hallazgo: "Intención maliciosa del programador"
                             </summary>
                             <div style="background:rgba(239, 68, 68, 0.1); padding:15px; border-top:1px solid #fecaca; color:var(--body-text-color);">
                                 <strong style="color:#ef4444;">❌ RECHAZADO</strong>
-                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Incorrecto. No encontramos evidencia de código malicioso. El sesgo provenía de los <em>datos</em> y los <em>proxies</em>, no de la personalidad del programador.</p>
+                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Incorrecto. No encontramos evidencia de código malicioso. El sesgo provenía de los <em>datos</em> y los <em>proxies</em>, no de la persona que desarrolló el sistema.</p>
                             </div>
                         </details>
 
                         <details style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                             <summary style="list-style:none; padding:15px; font-weight:700; color:var(--body-text-color); display:flex; align-items:center; gap:10px;">
                                 <div style="background:var(--background-fill-primary); width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">+</div>
-                                Hallazgo: "Doble Estándar Racial"
+                                Hallazgo: "Doble rasero étnico"
                             </summary>
                             <div style="background:rgba(34, 197, 94, 0.1); padding:15px; border-top:1px solid #bbf7d0; color:var(--body-text-color);">
                                 <strong style="color:#22c55e;">✅ AÑADIDO AL INFORME</strong>
-                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmado: Los acusados afroamericanos sufren una tasa de Falsas Alarmas 2x más alta que los acusados blancos.</p>
+                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmado: Los personas presas afroamericanas sufren una tasa de falsas alarmas 2x más alta que las personas presas blancas.</p>
                             </div>
                         </details>
 
                         <details style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                             <summary style="list-style:none; padding:15px; font-weight:700; color:var(--body-text-color); display:flex; align-items:center; gap:10px;">
                                 <div style="background:var(--background-fill-primary); width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">+</div>
-                                Hallazgo: "Fuga de Variable Proxy"
+                                Hallazgo: "Fuga de variable proxy"
                             </summary>
                             <div style="background:rgba(34, 197, 94, 0.1); padding:15px; border-top:1px solid #bbf7d0; color:var(--body-text-color);">
                                 <strong style="color:#22c55e;">✅ AÑADIDO AL INFORME</strong>
-                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmado: "Código Postal" está funcionando como un proxy para la Raza, reintroduciendo el sesgo incluso cuando variables como la Raza se eliminan.</p>
+                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmado: Aunque se ha eliminado la variable de origen étnico, el sistema utiliza el código postal como un sustituto indirecto, reintroduciendo el mismo sesgo en los resultados.</p>
                             </div>
                         </details>
 
@@ -1293,25 +1293,25 @@ MODULES = [
                             </summary>
                             <div style="background:rgba(239, 68, 68, 0.1); padding:15px; border-top:1px solid #fecaca; color:var(--body-text-color);">
                                 <strong style="color:#ef4444;">❌ RECHAZADO</strong>
-                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Irrelevante. Los servidores funcionan bien. Las matemáticas son correctas; los <em>patrones</em> que ha aprendido son injustos.</p>
+                                <p style="margin:5px 0 0 0; font-size:0.9rem;">rrelevante. Los sistemas funcionan correctamente y los cálculos son consistentes. El problema no es técnico: los <em>patrones</em> que ha aprendido el modelo son injustos.</p>
                             </div>
                         </details>
 
                         <details style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                             <summary style="list-style:none; padding:15px; font-weight:700; color:var(--body-text-color); display:flex; align-items:center; gap:10px;">
                                 <div style="background:var(--background-fill-primary); width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">+</div>
-                                Hallazgo: "Puntos Ciegos de Generalización"
+                                Hallazgo: "Puntos ciegos de generalización"
                             </summary>
                             <div style="background:rgba(34, 197, 94, 0.1); padding:15px; border-top:1px solid #bbf7d0; color:var(--body-text-color);">
                                 <strong style="color:#22c55e;">✅ AÑADIDO AL INFORME</strong>
-                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmado: La falta de datos para Mujeres, y acusados más Jóvenes y Mayores crea predicciones poco fiables.</p>
+                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmado: La falta de datos para mujeres y personas más jóvenes y mayor de edad genera predicciones poco fiables para estos grupos.</p>
                             </div>
                         </details>
 
                     </div>
 
                     <div style="background:var(--background-fill-primary); border-top:2px solid var(--border-color-primary); padding:25px; text-align:center; border-radius:0 0 12px 12px; margin-top:-15px;">
-                        <h3 style="margin-top:0; color:var(--body-text-color);">⚖️ ENVÍA TU RECOMENDACIÓN (Utilizando la Pregunta de Brújula Moral debajo de estas tarjetas.)</h3>
+                        <h3 style="margin-top:0; color:var(--body-text-color);">⚖️ ENVÍA TU RECOMENDACIÓN (respondiendo a la pregunta de Brújula Moral de a continuación)</h3>
                         <p style="font-size:1.05rem; margin-bottom:20px; color:var(--body-text-color-subdued);">
                             Basándote en la evidencia archivada anteriormente, ¿cuál es tu recomendación oficial respecto a este sistema de IA?
                         </p>
@@ -1325,8 +1325,8 @@ MODULES = [
 
                             <div style="background:var(--background-fill-secondary); border:2px solid #ef4444; padding:15px 25px; border-radius:8px; cursor:pointer; max-width:250px; box-shadow:0 4px 12px rgba(239,68,68,0.2);">
                                 <div style="font-size:2rem; margin-bottom:10px;">🚨</div>
-                                <div style="font-weight:700; color:#ef4444; margin-bottom:5px;">ALERTA ROJA: PAUSAR Y REPARAR</div>
-                                <div style="font-size:0.85rem; color:#ef4444;">El sistema viola los principios de Justicia y Equidad. Detener inmediatamente.</div>
+                                <div style="font-weight:700; color:#ef4444; margin-bottom:5px;">SEÑAL DE ALERTA: PAUSAR Y REPARAR</div>
+                                <div style="font-size:0.85rem; color:#ef4444;">El sistema vulnera el principio de Justicia y Equidad. Detener inmediatamente.</div>
                             </div>
                         </div>
                     </div>
@@ -1361,7 +1361,7 @@ MODULES = [
                     <div style="text-align:center; margin-bottom:25px;">
                         <h2 class="slide-title" style="margin-top:10px; color:#22c55e;">🎉 MISIÓN CUMPLIDA</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                            Informe Presentado. El tribunal ha aceptado tu recomendación de <strong>PAUSAR</strong> el sistema.
+                            Informe presentado. El tribunal ha aceptado tu recomendación de poner en <strong>PAUSA</strong> el sistema.
                         </p>
                     </div>
 
@@ -1370,7 +1370,7 @@ MODULES = [
                             ✅ DECISIÓN VALIDADA
                         </div>
                         <p style="font-size:1.05rem; color:var(--body-text-color); margin:10px 0 0 0;">
-                            Elegiste el camino responsable. Esa decisión requería evidencia, juicio y un profundo compromiso con el principio de <strong>Justicia y Equidad</strong>.
+                            Tu decisión se apoya en evidencia y razonamiento, de acuerdo con el principio de <strong>Justicia y Equidad</strong>.
                         </p>
                     </div>
 
@@ -1383,25 +1383,25 @@ MODULES = [
 
                         <div style="padding:25px;">
                             <p style="text-align:center; font-size:1.1rem; margin-bottom:20px; color:var(--body-text-color);">
-                                Exponer el sesgo es solo la primera mitad de la misión. Ahora que tienes la evidencia, comienza el trabajo real.
-                                <br><strong>Estás cambiando tu Lupa por una Llave Inglesa.</strong>
+                                Detectar el sesgo es solo el primer paso. Con la evidencia recopilada, el foco pasa ahora a la mejora del sistema.
+                                <br><strong>Ahora cambias tu lupa por una llave inglesa.</strong>
                             </p>
 
                             <div style="background:var(--background-fill-secondary); border-radius:12px; padding:20px; border:1px solid #bae6fd;">
-                                <h4 style="margin-top:0; color:#38bdf8; text-align:center; margin-bottom:15px;">🎓 NUEVO ROL: INGENIERO DE EQUIDAD</h4>
+                                <h4 style="margin-top:0; color:#38bdf8; text-align:center; margin-bottom:15px;">🎓 NUEVO ROL: INGENIERO/A DE EQUIDAD</h4>
                                 
                                 <ul style="list-style:none; padding:0; margin:0; font-size:1rem; color:var(--body-text-color);">
                                     <li style="margin-bottom:12px; display:flex; gap:10px; align-items:start;">
                                         <span>🔧</span>
-                                        <span><strong style="color:#38bdf8;">Tu Tarea 1:</strong> Desmantelar las "Variables Proxy" (Eliminar el sesgo de Código Postal).</span>
+                                        <span><strong style="color:#38bdf8;">Tarea 1:</strong> Identificar y reducir el uso de variables proxy (como el código postal).</span>
                                     </li>
                                     <li style="margin-bottom:12px; display:flex; gap:10px; align-items:start;">
                                         <span>📊</span>
-                                        <span><strong style="color:#38bdf8;">Tu Tarea 2:</strong> Arreglar el "Espejo Distorsionado" rediseñando la estrategia de datos.</span>
+                                        <span><strong style="color:#38bdf8;">Tarea 2:</strong> Mejorar la representación de los datos y su cobertura.</span>
                                     </li>
                                     <li style="display:flex; gap:10px; align-items:start;">
                                         <span>🗺️</span>
-                                        <span><strong style="color:#38bdf8;">Tu Tarea 3:</strong> Construir una hoja de ruta ética para el monitoreo continuo.</span>
+                                        <span><strong style="color:#38bdf8;">Tarea 3:</strong> Definir una hoja de ruta para el monitoreo continuo del sistema.</span>
                                     </li>
                                 </ul>
                             </div>
@@ -1410,10 +1410,10 @@ MODULES = [
 
                     <div style="text-align:center; margin-top:30px;">
                         <p style="font-size:1.1rem; font-weight:600; color:var(--body-text-color);">
-                            👉 Tu próxima misión comienza en la <strong>Actividad 8: El Reparador de Equidad</strong>.
+                            👉 Tu próxima misión comienza en la <strong>Actividad 8: El ingeniero/a de la equidad en acción</strong>.
                             <br>
                             <span style="font-size:0.95rem; font-weight:400; color:var(--body-text-color-subdued);">
-                              <strong>Continúa con la siguiente actividad abajo</strong> para concluir esta auditoría y comenzar las reparaciones — o haz clic en <span style="white-space:nowrap;">Siguiente (barra superior)</span> en vista ampliada ➡️
+                              <strong>Continúa con la siguiente actividad abajo</strong> para concluir esta auditoría e iniciar las mejoras — o haz clic en <span style="white-space:nowrap;">Siguiente (barra superior)</span> en vista ampliada ➡️
                             </span>
                         </p>
                     </div>
@@ -1457,52 +1457,52 @@ QUIZ_CONFIG = {
             "Minimizar la tasa de error",
         ],
         "a": "Comprobar los errores de predicción a nivel de grupo para prevenir daños sistemáticos",
-        "success": "Protocolo Activo. Ahora estás auditando para Justicia y Equidad.",
+        "success": "Protocolo activo. Ahora estás auditando para Justicia y Equidad.",
     },
     3: {
         "t": "t4",
-        "q": "Detective, sospechamos que los datos de entrada son un 'Espejo Distorsionado' de la realidad. Para confirmar si existe Sesgo de Representación, ¿cuál es tu objetivo forense principal?",
+        "q": "Detective, sospechamos que los datos de entrada son un 'espejo distorsionado' de la realidad. Para confirmar si existe Sesgo de Representación, ¿cuál es tu objetivo forense principal?",
         "o": [
             "A) Necesito leer las entradas del diario personal del juez.",
             "B) Necesito comprobar si la computadora está enchufada correctamente.",
-            "C) Necesito comparar las Distribuciones Demográficas (Raza/Género) de los datos con las estadísticas de población del mundo real.",
+            "C) Necesito comparar las distribuciones demográficas (origen étnico/género) de los datos con las estadísticas de población del mundo real.",
         ],
-        "a": "C) Necesito comparar las Distribuciones Demográficas (Raza/Género) de los datos con las estadísticas de población del mundo real.",
-        "success": "Objetivo Adquirido. Estás preparado para entrar al Laboratorio Forense de Datos.",
+        "a": "C) Necesito comparar las Distribuciones Demográficas (origen étnico/género) de los datos con las estadísticas de población del mundo real.",
+        "success": "Objetivo Adquirido. Estás preparado para entrar al laboratorio forense de datos.",
     },
     4: {
         "t": "t5",
-        "q": "Revisión del Análisis Forense: Has marcado los datos de Género como una 'Brecha de Datos' (solo 19% Mujeres). Según tu registro de evidencias, ¿cuál es el riesgo técnico específico para este grupo?",
+        "q": "Revisión del análisis forense: Has marcado los datos de género como una 'brecha de datos' (solo 19% mujeres). Según tu registro de evidencias, ¿cuál es el riesgo técnico específico para este grupo?",
         "o": [
-            "A) El modelo tendrá un 'Punto Ciego' porque no ha visto suficientes ejemplos para aprender patrones precisos.",
+            "A) El modelo tendrá un 'punto ciego' porque no ha visto suficientes ejemplos para aprender patrones precisos.",
             "B) La IA apuntará automáticamente a este grupo debido al exceso de vigilancia histórica.",
-            "C) El modelo utilizará por defecto las estadísticas del 'Mundo Real' para llenar los números que faltan.",
+            "C) El modelo utilizará por defecto las estadísticas del 'mundo Real' para llenar los números que faltan.",
         ],
-        "a": "A) El modelo tendrá un 'Punto Ciego' porque no ha visto suficientes ejemplos para aprender patrones precisos.",
+        "a": "A) El modelo tendrá un 'punto ciego' porque no ha visto suficientes ejemplos para aprender patrones precisos.",
         "success": "Evidencia Bloqueada. Entiendes que la 'Falta de Datos' crea puntos ciegos, haciendo que las predicciones para este grupo sean menos fiables.",
     },
     # --- QUESTION 4 (Evidence Report Summary) ---
     5: {
         "t": "t6",
-        "q": "Detective, revisa tu tabla de Resumen de Evidencia. Has encontrado casos tanto de Sobrerrepresentación (Raza) como de Infrarrepresentación (Género/Edad). ¿Cuál es tu conclusión general sobre cómo el Sesgo de Representación afecta a la IA?",
+        "q": "Detective, revisa tu tabla de Resumen de Evidencia. Has encontrado casos tanto de sobrerrepresentación (origen étnico) como de infrarrepresentación (género/edad). ¿Cuál es tu conclusión general sobre cómo el sesgo de representación afecta a la IA?",
         "o": [
-            "A) Confirma que el conjunto de datos es neutral, ya que las categorías 'Sobre' e 'Infra' se cancelan matemáticamente entre sí.",
-            "B) Crea un 'Riesgo de Aumento de Error de Predicción' en AMBAS direcciones: tanto si un grupo se exagera como si se ignora, la visión de la realidad de la IA se deforma.",
-            "C) Solo crea riesgo cuando faltan datos (Infrarrepresentación); tener datos extra (Sobrerrepresentación) en realidad hace que el modelo sea más preciso.",
+            "A) Confirma que el conjunto de datos es neutral, ya que las categorías 'sobre' e 'infra' se cancelan matemáticamente entre sí.",
+            "B) Crea un 'riesgo de aumento de error de predicción' en AMBAS direcciones: tanto si un grupo se exagera como si se ignora, la visión de la realidad de la IA se deforma.",
+            "C) Solo crea riesgo cuando faltan datos (infrarrepresentación); tener datos extra (sobrerrepresentación) en realidad hace que el modelo sea más preciso.",
         ],
-        "a": "B) Crea un 'Riesgo de Aumento de Error de Predicción' en AMBAS direcciones: tanto si un grupo se exagera como si se ignora, la visión de la realidad de la IA se deforma.",
-        "success": "Conclusión Verificada. Los datos distorsionados, tanto si están inflados como si faltan, pueden llevar a una justicia distorsionada.",
+        "a": "B) Crea un 'riesgo de aumento de error de predicción' en AMBAS direcciones: tanto si un grupo se exagera como si se ignora, la visión de la realidad de la IA se deforma.",
+        "success": "conclusión verificada. Los datos distorsionados, tanto si están inflados como si faltan, pueden llevar a una justicia distorsionada.",
     },
     6: {
         "t": "t7",
-        "q": "Detective, estás cazando el patrón del 'Doble Estándar'. ¿Qué pieza específica de evidencia representa esta Bandera Roja?",
+        "q": "Detective, estás cazando el patrón del 'doble rasero'. ¿Qué pieza específica de evidencia representa esta señal de alerta?",
         "o": [
             "A) El modelo comete cero errores para ningún grupo.",
-            "B) Un grupo sufre una tasa de 'Falsas Alarmas' significativamente más alta que otro grupo.",
+            "B) Un grupo sufre una tasa de 'falsas alarmas' significativamente más alta que otro grupo.",
             "C) Los datos de entrada contienen más hombres que mujeres.",
         ],
-        "a": "B) Un grupo sufre una tasa de 'Falsas Alarmas' significativamente más alta que otro grupo.",
-        "success": "Patrón Confirmado. Cuando la tasa de error está desequilibrada, es un Doble Estándar.",
+        "a": "B) Un grupo sufre una tasa de 'falsas alarmas' significativamente más alta que otro grupo.",
+        "success": "Patrón confirmado. Cuando la tasa de error está desequilibrada, es un doble rasero.",
     },
     # --- QUESTION 6 (Race Error Gap) ---
     7: {
@@ -1511,23 +1511,23 @@ QUIZ_CONFIG = {
         "o": [
             "A) Son tratados exactamente igual que los acusados blancos.",
             "B) Son omitidos por el sistema más a menudo (Sesgo de Indulgencia).",
-            "C) Tienen casi el doble de probabilidades de ser marcados erróneamente como de 'Alto Riesgo' (Sesgo Punitivo).",
+            "C) Tienen casi el doble de probabilidades de ser marcados erróneamente como de 'Alto Riesgo' (Sesgo punitivo).",
         ],
-        "a": "C) Tienen casi el doble de probabilidades de ser marcados erróneamente como de 'Alto Riesgo' (Sesgo Punitivo).",
-        "success": "Evidencia Registrada. El sistema está castigando a personas inocentes basándose en la raza.",
+        "a": "C) Tienen casi el doble de probabilidades de ser marcados erróneamente como de 'Alto Riesgo' (Sesgo punitivo).",
+        "success": "Evidencia registrada. El sistema está castigando a personas inocentes basándose en el origen étnico.",
     },
 
     # --- QUESTION 7 (Generalization & Proxy Scan) ---
     8: {
         "t": "t9",
-        "q": "El Escaneo de Geografía mostró una tasa de error masiva en las Zonas Urbanas. ¿Qué demuestra esto sobre los 'Códigos Postales'?",
+        "q": "El escaneo de geografía mostró una tasa de error muy elevada en las zonas Urbanas. ¿Qué demuestra esto sobre los 'códigos Postales'?",
         "o": [
-            "A) Los Códigos Postales actúan como una 'Variable Proxy' para apuntar a grupos específicos, incluso si variables como la Raza se eliminan del conjunto de datos.",
+            "A) Los Códigos Postales actúan como una 'Variable Proxy' para apuntar a grupos específicos, incluso si variables como el origen étnico se eliminan del conjunto de datos.",
             "B) La IA es simplemente mala leyendo mapas y datos de ubicación.",
             "C) La gente en las ciudades genera naturalmente más errores informáticos que la gente en las zonas rurales.",
         ],
-        "a": "A) Los Códigos Postales actúan como una 'Variable Proxy' para apuntar a grupos específicos, incluso si variables como la Raza se eliminan del conjunto de datos.",
-        "success": "Proxy Identificado. Esconder una variable no funciona si dejas un proxy atrás.",
+        "a": "A) Los Códigos Postales actúan como una 'Variable Proxy' para apuntar a grupos específicos, incluso si variables como el origen étnico se eliminan del conjunto de datos.",
+        "success": "Proxy identificado. Esconder una variable no funciona si dejas un proxy atrás.",
     },
 
     # --- QUESTION 8 (Audit Summary) ---
@@ -1535,24 +1535,24 @@ QUIZ_CONFIG = {
         "t": "t10",
         "q": "Has cerrado el expediente del caso. ¿Cuál de las siguientes opciones está CONFIRMADA como la 'Amenaza Principal' en tu informe final?",
         "o": [
-            "A) Un Doble Estándar Racial donde los acusados negros inocentes son penalizados el doble de veces.",
+            "A) Un doble rasero por origen étnico donde las personas presas afroamericanas inocentes son penalizadas el doble de veces.",
             "B) Código malicioso escrito por hackers para romper el sistema.",
             "C) Un fallo de hardware en la sala de servidores causando errores matemáticos aleatorios.",
         ],
-        "a": "A) Un Doble Estándar Racial donde los acusados negros inocentes son penalizados el doble de veces.",
+        "a": "A) Un doble rasero por origen étnico donde las personas presas afroamericanas inocentes son penalizadas el doble de veces.",
         "success": "Amenaza Evaluada. El sesgo está confirmado y documentado.",
     },
 
     # --- QUESTION 9 (Final Verdict) ---
     10: {
         "t": "t11",
-        "q": "Basándote en las graves violaciones de Justicia y Equidad encontradas en tu auditoría, ¿cuál es tu recomendación final al tribunal?",
+        "q": "Basándote en las graves vulneraciones de Justicia y Equidad encontradas en tu auditoría, ¿cuál es tu recomendación final al tribunal?",
         "o": [
             "A) CERTIFICAR: El sistema está mayoritariamente bien, los errores menores son aceptables.",
-            "B) ALERTA ROJA: Pausar el sistema para reparaciones inmediatamente porque es inseguro y sesgado.",
-            "C) ADVERTENCIA: Utilizar la IA solo los fines de semana cuando el crimen es más bajo.",
+            "B) SEÑAL DE ALERTA: Poner en pausa el sistema inmediatamente porque es inseguro y sesgado y para repararlo.",
+            "C) ADVERTENCIA: Utilizar el sistema de IA solo los fines de semana cuando el crimen es más bajo.",
         ],
-        "a": "B) ALERTA ROJA: Pausar el sistema para reparaciones inmediatamente porque es inseguro y sesgado.",
+        "a": "B) SEÑAL DE ALERTA: Poner en pausa el sistema inmediatamente porque es inseguro y sesgado y para repararlo.",
         "success": "Veredicto Entregado. Has detenido con éxito un sistema dañino.",
     },
 }
@@ -2065,10 +2065,10 @@ def check_audit_report_selection(selected_biases: List[str]) -> Tuple[str, str]:
 
         # Map short findings to the markdown report
         finding_map = {
-            "Choice A": "Sesgo Punitivo (Raza): El modelo es el doble de severo con los acusados AA.",
-            "Choice B": "Generalización (Género): Errores de Falsa Alarma más altos para mujeres.",
-            "Choice C": "Patrón de Indulgencia (Raza): Más advertencias omitidas para acusados blancos.",
-            "Choice E": "Sesgo de Proxy (Geografía): La ubicación actúa como sustituto de raza/clase.",
+            "Choice A": "Sesgo Punitivo (Origen étnico): El modelo es el doble de severo con los acusados AA.",
+            "Choice B": "Generalización (Género): Errores de falsa Alarma más altos para mujeres.",
+            "Choice C": "Patrón de indulgencia (Origen étnico): Más advertencias omitidas para acusados blancos.",
+            "Choice E": "Sesgo de proxy (Geografía): La ubicación actúa como sustituto de origen étnico/clase.",
         }
 
         for i, choice in enumerate(CORRECT_FINDINGS):
