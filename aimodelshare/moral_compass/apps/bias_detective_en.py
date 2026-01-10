@@ -213,7 +213,7 @@ MODULES = [
 
                     <p style="font-size:1.1rem; max-width:800px; margin:0 auto 25px auto; text-align:center; color:var(--body-text-color);">
                         <strong>Your mission is clear:</strong> Uncover the bias hiding inside the 
-                        AI system before it hurts real people. If you cannot find bias, we cannot fix it.
+                        AI system before it hurts real people. If we cannot find bias, we cannot fix it.
                     </p>
 
                     <div class="ai-risk-container" style="background:transparent; border:none; padding:0;">
@@ -243,7 +243,7 @@ MODULES = [
                                 <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">🎯</div>
                                 <div style="font-weight:800; font-size:1.2rem; color:#8b5cf6; margin-bottom:5px;">Output Error Testing</div>
                                 <div style="font-size:1.0rem; color:var(--body-text-color); font-weight:500; line-height:1.4;">
-                                    Test the Model's predictions. Prove that mistakes (False Alarms) are <strong>unequal</strong> across groups.
+                                    Test the Model's predictions. Prove that mistakes (false alarms) are <strong>unequal</strong> across groups.
                                 </div>
                             </div>
 
@@ -323,7 +323,7 @@ MODULES = [
                                 <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); border-top:1px solid var(--border-color-primary); padding-top:10px; line-height:1.4;">
                                     <strong>What it checks:</strong> Whether the dataset reflects the real population.
                                     <br><br>
-                                    If one group appears far more or far less (e.g., only 10% of cases are Group A, but they are 71% of the population) than reality, the AI likely learns biased patterns.
+                                    If one group appears far more or far less often (e.g., only 10% of cases are Group A, but they are 71% of the population), the AI likely learns biased patterns.
                                 </div>
                             </details>
 
@@ -427,7 +427,7 @@ MODULES = [
                             If a group makes up 50% of the population, it should appear at about the same level in the data.
                         </p>
                         <p style="font-size:1rem; line-height:1.6;">
-                            <strong>The Red Flag:</strong> Look for <strong>big imbalances</strong> in protected characteristics such race, gender, or age.
+                            <strong>The Red Flag:</strong> Look for <strong>big imbalances</strong> in protected characteristics such as race, gender, or age.
                         </p>
                         <ul style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:10px; padding-left:20px; line-height:1.5;">
                             <li><strong>Over-Representation:</strong> One group dominates the data (for example, 80% of arrest records are men). The AI may learn to target this group.</li>
@@ -754,7 +754,7 @@ MODULES = [
                             
                             <div>
                                 <p style="font-size:1rem; line-height:1.6; margin-top:0; color:var(--body-text-color);">
-                                    <strong>The Concept:</strong> The "double standard" means mistakes by the AI system affect some people more than others, and real people cna be harmed.
+                                    <strong>The Concept:</strong> The "double standard" means mistakes by the AI system affect some people more than others, and real people can be harmed.
                                 </p>
 
                                 <div style="margin-top:15px; margin-bottom:15px;">
@@ -811,7 +811,7 @@ MODULES = [
                     </div>
 
                     <details style="margin-bottom:25px; cursor:pointer; background:rgba(255, 241, 242, 0.1); border:1px solid #fda4af; border-radius:8px; padding:12px;">
-                        <summary style="font-weight:700; color:#fb7185; font-size:0.95rem;">🔬 How Representation Bias leads to to Prediction Errors</summary>
+                        <summary style="font-weight:700; color:#fb7185; font-size:0.95rem;">🔬 How Representation Bias leads to Prediction Errors</summary>
                         <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); line-height:1.5; padding:0 5px;">
                             <p style="margin-bottom:10px;"><strong>Connect the dots:</strong> In Step 2, we found that the input data overrepresented specific groups.</p>
                             <p><strong>The Theory:</strong> Because the AI saw these groups more often in arrest records, the data structure may lead the model to make group-specific prediction mistakes. The model may generate more <strong>False Alarms</strong> for innocent people from these groups at a much higher rate.</p>
@@ -1101,9 +1101,9 @@ MODULES = [
                                         <div class="hint-box" style="border-left:4px solid #db2777; background:rgba(255, 241, 242, 0.1);">
                                             <div style="font-weight:800; color:#f43f5e;">❌ VERDICT: PROXY (HIDDEN RELATIONSHIP) BIAS CONFIRMED</div>
                                             <div style="font-size:0.95rem; margin-top:5px; color:var(--body-text-color);">
-                                                The error rate in Urban Zones is massive (58%). 
-                                                Even if "Race" was removed, the model is using <strong>Location</strong> to target the same groups. 
-                                                It is treating "City Resident" as a synonym for "High Risk."
+                                                The error rate in Urban Zones is extremely high (58%). 
+                                                Even if "Race" was removed, the model uses <strong>location</strong> as an indirect proxy, reproducing the same unequal outcomes. 
+                                                As a result, being a “City Resident” is effectively interpreted as "High Risk."
                                             </div>
                                         </div>
                                     </div>
