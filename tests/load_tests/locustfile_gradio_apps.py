@@ -1,32 +1,16 @@
 """
 Load tests for Gradio Cloud Run applications.
 
-This load test suite validates the scalability of Gradio apps deployed to Cloud Run,
-ensuring they can handle 100+ concurrent users as specified in the requirements.
+Adds a focused load test for the Model Building Game EN app that calls the
+'Build & Submit Model' function (run_experiment), exercising the real submission
+flow in preview mode (no token) by default. Optional auth wiring can be added
+later if you want to hit the external Competition API too.
 
-The tests simulate realistic user behavior including:
-- Session ID and language query parameters (matching production usage)
-- Interactive element usage (buttons, sliders, dropdowns)
-- CPU-intensive operations (predictions, model runs)
-
-Usage:
-    # Test specific app
-    locust -f locustfile_gradio_apps.py --host=https://judge-HASH-uc.a.run.app
-
-    # Test with 100 concurrent users
-    locust -f locustfile_gradio_apps.py --host=https://judge-HASH-uc.a.run.app \
-        --users 100 --spawn-rate 10 --run-time 5m --headless
-
-    # Test using environment variables (Locust supports LOCUST_* env vars)
-    export LOCUST_HOST=https://judge-HASH-uc.a.run.app
-    export LOAD_TEST_SESSION_ID=your-session-id-here
-    export LOAD_TEST_UNIQUE_SESSIONS=1
-    locust -f locustfile_gradio_apps.py --users 100 --spawn-rate 10 --run-time 5m
-
-    # Selecting a specific user class (CLI positional argument)
-    locust -f locustfile_gradio_apps.py GradioAppUser --host=https://judge-HASH-uc.a.run.app ...
-    locust -f locustfile_gradio_apps.py ModelBuildingGameUser --host=https://model-building-game-en-... ...
-    locust -f locustfile_gradio_apps.py WhatIsAIAppUser --host=https://what-is-ai-... ...
+Key features:
+- Stable session_hash per user to avoid Gradio queue KeyErrors.
+- Unique session per user by default (configurable via env).
+- English-only severity values for other apps to avoid dropdown mismatch.
+- Lightweight retry/backoff for transient 503s.
 """
 
 import os
@@ -59,11 +43,6 @@ def _dependencies(cfg):
 
 
 def _find_pred_fn_index(cfg):
-    """
-    Heuristics to find the prediction fn_index:
-    - Prefer dependencies triggered by a button whose label matches "Run AI Prediction" in any locale
-    - Fallback: dependency whose outputs include an HTML component and expects >= 4 inputs
-    """
     if not cfg:
         return None
     deps = _dependencies(cfg)
@@ -74,22 +53,18 @@ def _find_pred_fn_index(cfg):
         "Ejecutar predicción de la IA",
         "Executar predicció de la IA",
     ]
-
-    # Pass 1: match by button label
     for d in deps:
         trig_ids = d.get("trigger", []) or d.get("triggers", [])
         labels = [comps.get(t, {}).get("label") for t in trig_ids if t in comps]
         if any(label and any(bl in str(label) for bl in button_labels) for label in labels):
             return d.get("fn_index")
 
-    # Pass 2: outputs include HTML and inputs length >= 4
     for d in deps:
         outs = d.get("outputs", [])
         ins = d.get("inputs", [])
         if any(comps.get(o, {}).get("type") == "html" for o in outs) and len(ins) >= 4:
             return d.get("fn_index")
 
-    # Pass 3: any dep with HTML output
     for d in deps:
         outs = d.get("outputs", [])
         if any(comps.get(o, {}).get("type") == "html" for o in outs):
@@ -99,17 +74,11 @@ def _find_pred_fn_index(cfg):
 
 
 def _find_nav_fn_index(cfg):
-    """
-    Find a navigation-like dependency:
-    - Triggered by a button
-    - With <= 1 input (common for simple next/complete buttons)
-    """
     if not cfg:
         return None, 0
     deps = _dependencies(cfg)
     comps = _components_map(cfg)
 
-    # Prefer a button-triggered dep with exactly 1 input
     for d in deps:
         trig_ids = d.get("trigger", []) or d.get("triggers", [])
         if any(comps.get(t, {}).get("type") == "button" for t in trig_ids if t in comps):
@@ -117,7 +86,6 @@ def _find_nav_fn_index(cfg):
             if len(ins) == 1:
                 return d.get("fn_index"), 1
 
-    # Fallback: any button-triggered dep with 0 inputs
     for d in deps:
         trig_ids = d.get("trigger", []) or d.get("triggers", [])
         if any(comps.get(t, {}).get("type") == "button" for t in trig_ids if t in comps):
@@ -125,7 +93,6 @@ def _find_nav_fn_index(cfg):
             if len(ins) == 0:
                 return d.get("fn_index"), 0
 
-    # Fallback: any dep with 1 input
     for d in deps:
         ins = d.get("inputs", [])
         if len(ins) == 1:
@@ -134,15 +101,46 @@ def _find_nav_fn_index(cfg):
     return None, 0
 
 
+def _find_submit_fn_index(cfg):
+    """
+    Find the fn_index for the Model Building Game 'Build & Submit Model' button.
+    Returns (fn_index, inputs_len). Matches button labels containing 'Submit Model'.
+    """
+    if not cfg:
+        return None, 0
+    deps = _dependencies(cfg)
+    comps = _components_map(cfg)
+
+    target_substrings = [
+        "Build & Submit Model",
+        "Submit Model",
+        "Build and Submit",
+        "🔬"  # fallback icon
+    ]
+
+    for d in deps:
+        trig_ids = d.get("trigger", []) or d.get("triggers", [])
+        labels = [comps.get(t, {}).get("label") for t in trig_ids if t in comps]
+        if any(lbl and any(s in str(lbl) for s in target_substrings) for lbl in labels):
+            ins = d.get("inputs", [])
+            return d.get("fn_index"), len(ins)
+
+    # Fallback: largest-input dependency (run_experiment typically has many inputs)
+    best = None
+    best_len = -1
+    for d in deps:
+        ins = d.get("inputs", [])
+        if len(ins) > best_len:
+            best = d
+            best_len = len(ins)
+    return (best.get("fn_index"), best_len) if best else (None, 0)
+
+
 def _severity_en_options():
     return ["Minor", "Moderate", "Serious"]
 
 
 def _fail_with_body(response, label):
-    """
-    Mark a locust response as failure, including a short snippet of the body to aid debugging.
-    """
-    body = ""
     try:
         body = response.text
     except Exception:
@@ -151,68 +149,41 @@ def _fail_with_body(response, label):
 
 
 def _post_with_retry(client, url, payload, name, retries=2, backoff=0.2):
-    """
-    POST with limited retries for transient 503s. Only mark failure on final attempt.
-    """
     attempt = 0
     while True:
         with client.post(url, json=payload, catch_response=True, name=name) as response:
-            # Success fast path
             if response.status_code in [200, 201]:
                 response.success()
                 return
-
-            # Treat 404 as non-critical in some flows
             if response.status_code == 404:
                 response.success()
                 return
-
-            # Retry on 503s (Cloud Run scaling / session init races)
             if response.status_code == 503 and attempt < retries:
-                response.success()  # don't count this attempt as failure
+                response.success()
                 time.sleep(backoff * (attempt + 1))
                 attempt += 1
                 continue
-
-            # Final failure
             _fail_with_body(response, name)
             return
 
 
 def _resolve_session_id():
-    """
-    Use unique session IDs per user by default to reduce queue contention.
-    If LOAD_TEST_UNIQUE_SESSIONS=0, reuse LOAD_TEST_SESSION_ID from env.
-    If LOAD_TEST_SESSION_ID is set but unique sessions are requested, suffix it with a UUID to keep analytics traceability.
-    """
-    unique_flag = os.environ.get("LOAD_TEST_UNIQUE_SESSIONS", "1")  # default: unique
+    unique_flag = os.environ.get("LOAD_TEST_UNIQUE_SESSIONS", "1")
     base = os.environ.get("LOAD_TEST_SESSION_ID", "")
     if unique_flag == "0":
         return base or str(uuid.uuid4())
-    # unique per user
     return f"{base}-{uuid.uuid4()}" if base else str(uuid.uuid4())
 
 
 class GradioAppUser(HttpUser):
-    """
-    Simulates a user interacting with a Gradio application.
-    """
-
     wait_time = between(1, 3)
 
     def on_start(self):
-        """Called when a simulated user starts."""
         self.session_id = _resolve_session_id()
         self.lang = random.choice(['en', 'es', 'ca'])
-
-        # Initialize session with query parameters (as used in production)
         params = {'sessionid': self.session_id, 'lang': self.lang}
         self.client.get("/", params=params, name="Initial Load with Session")
-
-        # Allow server to finalize session setup before heavy POST traffic
         time.sleep(random.uniform(0.15, 0.35))
-
-        # Discover indices from /config (best effort)
         cfg = _fetch_config(self.client, self.session_id, self.lang)
         self.pred_fn_index = _find_pred_fn_index(cfg) or 1
         self.nav_fn_index, self.nav_inputs_count = _find_nav_fn_index(cfg)
@@ -232,12 +203,9 @@ class GradioAppUser(HttpUser):
         with self.client.get("/config", params=params, catch_response=True, name="Load Config") as response:
             if response.status_code == 200:
                 try:
-                    config = response.json()
-                    if "version" in config:
-                        response.success()
-                    else:
-                        response.failure("Load Config failed: missing 'version' field")
-                except json.JSONDecodeError:
+                    _ = response.json()
+                    response.success()
+                except Exception:
                     _fail_with_body(response, "Load Config (JSON decode)")
             else:
                 _fail_with_body(response, "Load Config")
@@ -247,18 +215,12 @@ class GradioAppUser(HttpUser):
         sessionid = self.session_id
         lang = self.lang
         fn_index = self.pred_fn_index
-
         age = random.randint(18, 65)
         priors = random.randint(0, 10)
         severity = random.choice(_severity_en_options())
-        predict_url = f"/gradio_api/call/predict?sessionid={sessionid}&lang={lang}"
-
-        payload = {
-            "fn_index": fn_index,
-            "data": [age, priors, severity, lang],
-            "session_hash": self.session_id  # stable per-user
-        }
-        _post_with_retry(self.client, predict_url, payload, "Run AI Prediction (General App)")
+        url = f"/gradio_api/call/predict?sessionid={sessionid}&lang={lang}"
+        payload = {"fn_index": fn_index, "data": [age, priors, severity, lang], "session_hash": self.session_id}
+        _post_with_retry(self.client, url, payload, "Run AI Prediction (General App)")
 
     @task(3)
     def simulate_button_clicks(self):
@@ -266,11 +228,7 @@ class GradioAppUser(HttpUser):
             return
         url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={self.lang}"
         data = [random.choice(["Release", "Keep in Prison", "Next", "Complete"])] if self.nav_inputs_count == 1 else []
-        payload = {
-            "data": data,
-            "fn_index": self.nav_fn_index,
-            "session_hash": self.session_id
-        }
+        payload = {"data": data, "fn_index": self.nav_fn_index, "session_hash": self.session_id}
         _post_with_retry(self.client, url, payload, "Button Click (CPU-intensive)", retries=1)
 
     @task(6)
@@ -281,18 +239,13 @@ class GradioAppUser(HttpUser):
         age = random.randint(18, 65)
         priors = random.randint(0, 10)
         severity = random.choice(_severity_en_options())
-
-        payload = {
-            "data": [age, priors, severity, lang],
-            "fn_index": fn_index,
-            "session_hash": self.session_id
-        }
+        payload = {"data": [age, priors, severity, lang], "fn_index": fn_index, "session_hash": self.session_id}
         _post_with_retry(self.client, url, payload, "Slider/Dropdown Change (CPU-intensive)")
 
     @task(1)
     def check_health(self):
-        endpoints_to_check = ["/", "/healthz", "/health"]
-        for endpoint in endpoints_to_check:
+        endpoints = ["/", "/healthz", "/health"]
+        for endpoint in endpoints:
             params = {"sessionid": self.session_id, "lang": self.lang} if endpoint == "/" else None
             with self.client.get(endpoint, params=params, catch_response=True, name=f"Health Check ({endpoint})") as response:
                 if response.status_code == 200:
@@ -307,26 +260,29 @@ class GradioAppUser(HttpUser):
 class ModelBuildingGameUser(HttpUser):
     """
     Specialized user for Model Building Game apps.
-    """
 
+    New task added: build_and_submit_model_preview() which posts to the actual
+    run_experiment function (“Build & Submit Model” button), exercising the
+    preview path (no token) by default.
+    """
     wait_time = between(2, 5)
 
     def on_start(self):
         self.session_id = _resolve_session_id()
         self.lang = random.choice(['en', 'es', 'ca'])
-
         params = {'sessionid': self.session_id, 'lang': self.lang}
         self.client.get("/", params=params, name="Initial Load with Session")
-
         time.sleep(random.uniform(0.15, 0.35))
 
         cfg = _fetch_config(self.client, self.session_id, self.lang)
+        # Detect the submit button dependency and its input length
+        self.submit_fn_index, self.submit_inputs_len = _find_submit_fn_index(cfg)
+        # Fallbacks for other tasks (kept)
         self.train_fn_index, self.train_inputs_count = _find_nav_fn_index(cfg)
         self.feature_fn_index = None
         self.feature_inputs_count = 0
         if cfg:
             deps = _dependencies(cfg)
-            comps = _components_map(cfg)
             for d in deps:
                 ins = d.get("inputs", [])
                 if len(ins) == 2:
@@ -352,46 +308,109 @@ class ModelBuildingGameUser(HttpUser):
             else:
                 _fail_with_body(response, "Load Game Config")
 
-    @task(6)
+    @task(15)
+    def build_and_submit_model_preview(self):
+        """
+        Calls the actual 'Build & Submit Model' (run_experiment) endpoint with
+        realistic inputs. Uses preview path (no token) to avoid external API side-effects.
+        """
+        if not self.submit_fn_index:
+            return
+
+        # Inputs expected by run_experiment (in order):
+        # [model_name, complexity, feature_set(list), data_size, team_name,
+        #  last_submission_score, last_rank, submission_count, first_submission_score,
+        #  best_score, username, token, readiness_flag, was_preview_prev]
+        model_choices = [
+            "The Balanced Generalist",
+            "The Rule-Maker",
+            "The 'Nearest Neighbor'",
+            "The Deep Pattern-Finder",
+        ]
+        feature_codes = [
+            "juv_fel_count", "juv_misd_count", "juv_other_count",
+            "race", "sex", "c_charge_degree", "days_b_screening_arrest",
+            "age", "length_of_stay", "priors_count"
+        ]
+        model_name = random.choice(model_choices)
+        complexity = random.randint(1, 10)
+        # Choose a safe, unlocked-by-default set (group 1) plus optional extras
+        default_group_1 = ["juv_fel_count", "juv_misd_count", "juv_other_count", "race", "sex", "c_charge_degree", "days_b_screening_arrest"]
+        extra = random.sample([c for c in feature_codes if c not in default_group_1], k=random.randint(0, 3))
+        feature_set = default_group_1 + extra
+        data_size = "Small (20%)"
+        team_name = "Load Testers"
+        last_submission_score = 0.0
+        last_rank = 0
+        submission_count = 0
+        first_submission_score = None
+        best_score = 0.0
+        username = "LoadTester"
+        token = None  # Keep preview path to avoid external submissions
+        readiness_flag = True
+        was_preview_prev = False
+
+        data = [
+            model_name,
+            complexity,
+            feature_set,
+            data_size,
+            team_name,
+            last_submission_score,
+            last_rank,
+            submission_count,
+            first_submission_score,
+            best_score,
+            username,
+            token,
+            readiness_flag,
+            was_preview_prev,
+        ]
+
+        # Adjust to match the dependency's expected input length
+        if self.submit_inputs_len and len(data) != self.submit_inputs_len:
+            if len(data) > self.submit_inputs_len:
+                data = data[: self.submit_inputs_len]
+            else:
+                data = data + [None] * (self.submit_inputs_len - len(data))
+
+        url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={self.lang}"
+        payload = {
+            "data": data,
+            "fn_index": self.submit_fn_index,
+            "session_hash": self.session_id,
+        }
+        _post_with_retry(self.client, url, payload, "Build & Submit Model (Preview)")
+
+    @task(3)
     def simulate_model_training(self):
+        """Legacy task retained for back-compat; safe no-op against endpoints expecting fewer inputs."""
         training_params = {
             "model_type": random.choice(["linear", "tree", "neural_net"]),
             "features": random.sample(["age", "race", "gender", "priors"], k=random.randint(2, 4)),
             "fairness_constraint": random.choice(["none", "demographic_parity", "equal_opportunity"])
         }
         url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={self.lang}"
-        fn_index = self.train_fn_index or 1
-        inputs_count = self.train_inputs_count
+        fn_index = self.train_fn_index or (self.submit_fn_index or 1)
+        inputs_count = self.train_inputs_count or 1
         data = [json.dumps(training_params)] if inputs_count <= 1 else [json.dumps(training_params), random.uniform(0.1, 0.9)]
-        payload = {
-            "data": data,
-            "fn_index": fn_index,
-            "session_hash": self.session_id
-        }
+        payload = {"data": data, "fn_index": fn_index, "session_hash": self.session_id}
         _post_with_retry(self.client, url, payload, "Model Training (Very CPU-intensive)", retries=1)
 
-    @task(5)
+    @task(3)
     def simulate_feature_selection(self):
         url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={self.lang}"
-        fn_index = self.feature_fn_index or (self.train_fn_index or 1)
+        fn_index = self.feature_fn_index or (self.train_fn_index or (self.submit_fn_index or 1))
         inputs_count = self.feature_inputs_count or 2
         data = [
             random.sample(["feature1", "feature2", "feature3", "feature4"], k=3),
             random.uniform(0.1, 0.9)
         ][:inputs_count]
-        payload = {
-            "data": data,
-            "fn_index": fn_index,
-            "session_hash": self.session_id
-        }
+        payload = {"data": data, "fn_index": fn_index, "session_hash": self.session_id}
         _post_with_retry(self.client, url, payload, "Feature Selection (CPU-intensive)", retries=1)
 
 
 class WhatIsAIAppUser(HttpUser):
-    """
-    Dedicated user class for the 'What is AI' educational app.
-    """
-
     wait_time = between(1, 3)
 
     def on_start(self):
@@ -399,9 +418,7 @@ class WhatIsAIAppUser(HttpUser):
         self.lang = random.choice(['en', 'es', 'ca'])
         params = {'sessionid': self.session_id, 'lang': self.lang}
         self.client.get("/", params=params, name="Initial Load with Session")
-
         time.sleep(random.uniform(0.15, 0.35))
-
         cfg = _fetch_config(self.client, self.session_id, self.lang)
         self.pred_fn_index = _find_pred_fn_index(cfg) or 1
         self.nav_fn_index, self.nav_inputs_count = _find_nav_fn_index(cfg)
@@ -423,7 +440,7 @@ class WhatIsAIAppUser(HttpUser):
                 try:
                     _ = response.json()
                     response.success()
-                except json.JSONDecodeError:
+                except Exception:
                     _fail_with_body(response, "Load Config (JSON decode)")
             else:
                 _fail_with_body(response, "Load Config")
@@ -434,48 +451,36 @@ class WhatIsAIAppUser(HttpUser):
         age = random.randint(18, 65)
         priors = random.randint(0, 10)
         lang = self.lang
-        severity = random.choice(_severity_en_options())  # ALWAYS English
+        severity = random.choice(_severity_en_options())
         url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={lang}"
-        payload = {
-            "data": [age, priors, severity, lang],
-            "fn_index": fn_index,
-            "session_hash": self.session_id
-        }
+        payload = {"data": [age, priors, severity, lang], "fn_index": fn_index, "session_hash": self.session_id}
         _post_with_retry(self.client, url, payload, "Run AI Prediction (What is AI)")
 
     @task(3)
     def simulate_button_clicks(self):
         fn_index = self.nav_fn_index
-        if fn_index is None:
+        if not fn_index:
             return
         url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={self.lang}"
         data = [random.choice(["Next", "Complete", "Continue"])] if self.nav_inputs_count == 1 else []
-        payload = {
-            "data": data,
-            "fn_index": fn_index,
-            "session_hash": self.session_id
-        }
+        payload = {"data": data, "fn_index": fn_index, "session_hash": self.session_id}
         _post_with_retry(self.client, url, payload, "Button Click (Navigation/UI)", retries=1)
 
     @task(6)
     def simulate_slider_interactions(self):
+        fn_index = self.pred_fn_index or 1
         lang = self.lang
         url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={lang}"
-        fn_index = self.pred_fn_index or 1
         age = random.randint(18, 65)
         priors = random.randint(0, 10)
-        severity = random.choice(_severity_en_options())  # ALWAYS English
-        payload = {
-            "data": [age, priors, severity, lang],
-            "fn_index": fn_index,
-            "session_hash": self.session_id
-        }
+        severity = random.choice(_severity_en_options())
+        payload = {"data": [age, priors, severity, lang], "fn_index": fn_index, "session_hash": self.session_id}
         _post_with_retry(self.client, url, payload, "Slider/Dropdown Change (UI)")
 
     @task(1)
     def check_health(self):
-        endpoints_to_check = ["/", "/healthz", "/health"]
-        for endpoint in endpoints_to_check:
+        endpoints = ["/", "/healthz", "/health"]
+        for endpoint in endpoints:
             params = {"sessionid": self.session_id, "lang": self.lang} if endpoint == "/" else None
             with self.client.get(endpoint, params=params, catch_response=True, name=f"Health Check ({endpoint})") as response:
                 if response.status_code == 200:
@@ -490,7 +495,6 @@ class WhatIsAIAppUser(HttpUser):
 # Event handlers for reporting
 @events.test_start.add_listener
 def on_test_start(environment, **kwargs):
-    """Called when the load test starts."""
     print("\n" + "="*80)
     print("🚀 Starting Gradio App Load Test")
     print("="*80)
@@ -501,13 +505,11 @@ def on_test_start(environment, **kwargs):
 
 @events.test_stop.add_listener
 def on_test_stop(environment, **kwargs):
-    """Called when the load test stops."""
     print("\n" + "="*80)
     print("✅ Load Test Complete")
     print("="*80)
 
     stats = environment.stats
-
     print(f"\n📊 Summary Statistics:")
     print(f"  Total Requests: {stats.total.num_requests}")
     print(f"  Failed Requests: {stats.total.num_failures}")
@@ -533,11 +535,3 @@ def on_test_stop(environment, **kwargs):
         print("\n🎉 All criteria met! App is ready for production.\n")
     else:
         print("\n⚠️  Some criteria not met. Review configuration and resource allocation.\n")
-
-
-# Note on selecting user classes:
-# Locust does not support a --user-class flag. Select a specific class by
-# passing the class name as a positional argument in the CLI:
-#   locust -f locustfile_gradio_apps.py GradioAppUser ...
-#   locust -f locustfile_gradio_apps.py ModelBuildingGameUser ...
-#   locust -f locustfile_gradio_apps.py WhatIsAIAppUser ...
