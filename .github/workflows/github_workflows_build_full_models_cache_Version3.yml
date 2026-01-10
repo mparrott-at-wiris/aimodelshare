@@ -1,0 +1,103 @@
+name: Build Full-Dataset Prediction Cache Artifact (Resumable)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+jobs:
+  build-full-cache-chunk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360  # Max for GitHub-hosted runners (6 hours)
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pandas numpy scikit-learn joblib
+
+      # Prefer finalized base cache to merge with
+      - name: Download Base Prediction Cache (final)
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: build_model_cache.yml
+          name: prediction-cache-file
+          path: .
+          search_artifacts: true
+          if_no_artifact_found: warn
+        continue-on-error: true
+
+      # Fallback to checkpoint if final artifact isn't present
+      - name: Download Base Checkpoint (fallback)
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          name: cache-checkpoint
+          path: .
+          search_artifacts: true
+          workflow_conclusion: ""
+          if_no_artifact_found: warn
+        continue-on-error: true
+
+      # Restore new full-dataset checkpoint (resumable)
+      - name: Restore Full-Models Checkpoint
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          name: full-models-cache-checkpoint
+          path: .
+          search_artifacts: true
+          workflow_conclusion: ""
+          if_no_artifact_found: warn
+        continue-on-error: true
+
+      - name: Debug Artifacts
+        run: |
+          ls -lh || true
+          if [ -f "prediction_cache.json.gz" ]; then
+            echo "✅ Found base prediction_cache.json.gz"
+          elif [ -f "cache_checkpoint.jsonl" ]; then
+            echo "✅ Found base cache_checkpoint.jsonl (will reconstruct mapping)"
+          else
+            echo "ℹ️ No prior base cache artifacts found. Will build a new file with only full-dataset keys."
+          fi
+          if [ -f "full_models_cache_checkpoint.jsonl" ]; then
+            echo "✅ Found full-models checkpoint"
+          else
+            echo "ℹ️ No full-models checkpoint found (first run)"
+          fi
+
+      - name: Compute Full-Dataset Cache Chunk
+        env:
+          MAX_RUNTIME_SEC: "21500"  # ~6h minus buffer; script reads this env
+        run: |
+          export OMP_NUM_THREADS=1
+          export OPENBLAS_NUM_THREADS=1
+          python precompute_full_models_cache.py
+
+      # Always save checkpoint so we can resume next run
+      - name: Save Full-Models Checkpoint
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-models-cache-checkpoint
+          path: full_models_cache_checkpoint.jsonl
+          retention-days: 7
+
+      # Upload final artifact only when the script produced it
+      - name: Save Final Full-Models Artifact
+        if: hashFiles('prediction_cache_full_models.json.gz') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: prediction-cache-full-models-file
+          path: prediction_cache_full_models.json.gz
+          retention-days: 90
