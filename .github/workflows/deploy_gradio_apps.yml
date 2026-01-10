@@ -195,9 +195,9 @@ jobs:
             --memory=4Gi
             --cpu=2
             --session-affinity
-            --concurrency=40
-            --min-instances=0
-            --max-instances=100
+            --concurrency=20
+            --min-instances=1
+            --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
             
@@ -223,9 +223,9 @@ jobs:
             --memory=4Gi
             --cpu=2
             --session-affinity
-            --concurrency=40
-            --min-instances=0
-            --max-instances=100
+            --concurrency=20
+            --min-instances=1
+            --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
             
@@ -251,9 +251,9 @@ jobs:
             --memory=4Gi
             --cpu=2
             --session-affinity
-            --concurrency=40
-            --min-instances=0
-            --max-instances=100
+            --concurrency=20
+            --min-instances=1
+            --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
 
@@ -280,9 +280,9 @@ jobs:
             --memory=4Gi
             --cpu=2
             --session-affinity
-            --concurrency=40
-            --min-instances=0
-            --max-instances=100
+            --concurrency=20
+            --min-instances=1
+            --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-en-final,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
             
@@ -308,9 +308,9 @@ jobs:
             --memory=4Gi
             --cpu=2
             --session-affinity
-            --concurrency=40
-            --min-instances=0
-            --max-instances=100
+            --concurrency=20
+            --min-instances=1
+            --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-es-final,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
             
@@ -336,9 +336,9 @@ jobs:
             --memory=4Gi
             --cpu=2
             --session-affinity
-            --concurrency=40
-            --min-instances=0
-            --max-instances=100
+            --concurrency=20
+            --min-instances=1
+            --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-ca-final,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
 
