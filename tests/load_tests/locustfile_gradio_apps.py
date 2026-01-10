@@ -96,93 +96,49 @@ class GradioAppUser(HttpUser):
     
     @task(8)
     def run_ai_prediction(self):
-        """
-        Reliably exercise a risk prediction path like the What is AI app by:
-        - Discovering the correct fn_index from /config (via heuristics)
-        - Posting a payload shaped [age, priors, severity, lang] with session_hash
-        Only 200/201 count as success; others are failures.
-        """
-        # 1) Discover correct fn_index from /config
-        fn_index = None
-        try:
-            cfg_resp = self.client.get("/config", name="Load Config (for fn_index)")
-            if cfg_resp.status_code == 200:
-                cfg = cfg_resp.json()
-                deps = cfg.get("dependencies", []) or cfg.get("deps", [])
-                comps = {c.get("id"): c for c in cfg.get("components", [])}
-                # Try to find by button label for multiple locales
-                button_labels = [
-                    "Run AI Prediction",  # en
-                    "Ejecutar predicción de la IA",  # es
-                    "Executar predicció de la IA",  # ca
-                ]
-                for d in deps:
-                    trig_ids = d.get("trigger", []) or d.get("triggers", [])
-                    labels = [comps.get(t, {}).get("label") for t in trig_ids if t in comps]
-                    if any(label and any(bl in str(label) for bl in button_labels) for label in labels):
-                        fn_index = d.get("fn_index")
-                        break
-                # Fallback: first dependency whose outputs include an HTML component
-                if fn_index is None:
-                    for d in deps:
-                        outs = d.get("outputs", [])
-                        if any(comps.get(o, {}).get("type") == "html" for o in outs):
-                            fn_index = d.get("fn_index")
-                            break
-        except Exception:
-            pass
-
-        if fn_index is None:
-            # If not found, avoid spamming wrong endpoints
-            return
-
-        # 2) Build payload that matches predict_outcome(age, priors, severity, lang)
+        sessionid = self.session_id  # or generate new str(uuid4())
+        lang = self.lang
+        fn_index = 1   # or your discovered value
         age = random.randint(18, 65)
         priors = random.randint(0, 10)
-        severity = random.choice(["Minor", "Moderate", "Serious"])  # mapping supports locales
-        lang = self.lang  # ['en','es','ca']
-
-        payload = {
-            "data": [age, priors, severity, lang],
-            "fn_index": fn_index,
-            "session_hash": self.session_id
+        severity_options = {
+            'en': ["Minor", "Moderate", "Serious"],
+            'es': ["Menor", "Moderado", "Grave"],
+            'ca': ["Menor", "Moderat", "Greu"],
         }
-
-        with self.client.post(
-            "/api/predict",
-            json=payload,
-            catch_response=True,
-            name="Run AI Prediction (What is AI)"
-        ) as response:
-            if response.status_code in [200, 201]:
-                response.success()
-            else:
-                response.failure(f"Prediction failed: {response.status_code}")
+        severity = random.choice(severity_options.get(lang, ["Minor", "Moderate", "Serious"]))
+        url = f"/gradio_api/call/predict?sessionid={sessionid}&lang={lang}"
     
-    @task(5)
-    def simulate_button_clicks(self):
-        """
-        Simulate intensive button clicks that trigger backend processing.
-        This tests CPU usage from user interactions like decision buttons, navigation, etc.
-        """
-        fn_indices = [0, 1, 2, 3]  # Different functions in the app
-        
-        with self.client.post(
-            "/api/predict",
-            json={
-                "data": [random.choice(["Release", "Keep in Prison", "Next", "Complete"])],
-                "fn_index": random.choice(fn_indices),
-                "session_hash": self.session_id
-            },
-            catch_response=True,
-            name="Button Click (CPU-intensive)"
-        ) as response:
-            if response.status_code in [200, 201]:
-                response.success()
-            elif response.status_code == 404:
-                response.success()
-            else:
-                response.failure(f"Button interaction failed: {response.status_code}")
+        payload = {
+            "fn_index": fn_index,
+            "data": [age, priors, severity, lang],
+            "session_hash": "random-hash-123"
+        }
+        self.client.post(url, json=payload, name="Run AI Prediction (What is AI)")
+        @task(5)
+        def simulate_button_clicks(self):
+            """
+            Simulate intensive button clicks that trigger backend processing.
+            This tests CPU usage from user interactions like decision buttons, navigation, etc.
+            """
+            fn_indices = [0, 1, 2, 3]  # Different functions in the app
+            
+            with self.client.post(
+                "/api/predict",
+                json={
+                    "data": [random.choice(["Release", "Keep in Prison", "Next", "Complete"])],
+                    "fn_index": random.choice(fn_indices),
+                    "session_hash": self.session_id
+                },
+                catch_response=True,
+                name="Button Click (CPU-intensive)"
+            ) as response:
+                if response.status_code in [200, 201]:
+                    response.success()
+                elif response.status_code == 404:
+                    response.success()
+                else:
+                    response.failure(f"Button interaction failed: {response.status_code}")
     
     @task(3)
     def simulate_slider_interactions(self):
