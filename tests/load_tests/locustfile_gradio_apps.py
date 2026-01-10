@@ -431,7 +431,61 @@ class WhatIsAIAppUser(HttpUser):
             else:
                 response.failure(f"Prediction failed: {response.status_code}")
 
+    @task(3)
+    def simulate_button_clicks(self):
+        """
+        Simulate navigation and button interactions in What is AI app.
+        Tests backend processing from user interactions like navigation buttons, etc.
+        """
+        fn_indices = [0, 1, 2, 3]  # Different functions in the app
+        
+        with self.client.post(
+            "/api/predict",
+            json={
+                "data": [random.choice(["Next", "Complete", "Continue"])],
+                "fn_index": random.choice(fn_indices),
+                "session_hash": self.session_id
+            },
+            catch_response=True,
+            name="Button Click (Navigation/UI)"
+        ) as response:
+            if response.status_code in [200, 201]:
+                response.success()
+            elif response.status_code == 404:
+                response.success()
+            else:
+                response.failure(f"Button interaction failed: {response.status_code}")
+    
     @task(2)
+    def simulate_slider_interactions(self):
+        """
+        Simulate slider/dropdown interactions for parameter adjustments.
+        Tests real-time UI updates from input changes.
+        """
+        slider_values = {
+            "age": random.randint(18, 65),
+            "priors": random.randint(0, 10),
+            "severity": random.choice(["Minor", "Moderate", "Serious"])
+        }
+        
+        with self.client.post(
+            "/api/predict",
+            json={
+                "data": list(slider_values.values()),
+                "fn_index": random.randint(4, 7),
+                "session_hash": self.session_id
+            },
+            catch_response=True,
+            name="Slider/Dropdown Change (UI)"
+        ) as response:
+            if response.status_code in [200, 201]:
+                response.success()
+            elif response.status_code == 404:
+                response.success()
+            else:
+                response.failure(f"Slider interaction failed: {response.status_code}")
+
+    @task(1)
     def check_health(self):
         endpoints_to_check = ["/", "/healthz", "/health"]
         for endpoint in endpoints_to_check:
