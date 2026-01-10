@@ -110,7 +110,8 @@ jobs:
           export LOAD_TEST_SESSION_ID="$SESSION_ID"
           
           # Run locust in headless mode
-          locust -f locustfile_gradio_apps.py \
+          # NOTE: Select user class via positional argument (no --user-class flag).
+          locust -f locustfile_gradio_apps.py "$USER_CLASS" \
             --host="$APP_URL" \
             --users ${{ github.event.inputs.num_users || '50' }} \
             --spawn-rate ${{ github.event.inputs.spawn_rate || '5' }} \
@@ -118,7 +119,6 @@ jobs:
             --headless \
             --html=load_test_report.html \
             --csv=load_test_results \
-            --user-class $USER_CLASS \
             || true  # Don't fail workflow on test failures
           
           echo "✅ Load test complete"
