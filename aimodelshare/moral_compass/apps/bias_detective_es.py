@@ -255,7 +255,7 @@ MODULES = [
                                 <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">⚖️</div>
                                 <div style="font-weight:800; font-size:1.2rem; color:#f97316; margin-bottom:5px;">Informe final</div>
                                 <div style="font-size:1.0rem; color:var(--body-text-color); font-weight:500; line-height:1.4;">
-                                    Diagnostica el daño sistemático y emite tu recomendación final al tribunal: <strong>desplegar sistema de IA o pausar para reparar.</strong>
+                                    Diagnostica el daño sistemático y emite tu recomendación final al tribunal: <strong>desplegar el sistema de IA o pausar para reparar.</strong>
                                 </div>
                             </div>
 
@@ -286,7 +286,7 @@ MODULES = [
                 <div class="tracker-container">
                     <div class="tracker-step active">1. REGLAS</div>
                     <div class="tracker-step">2. EVIDENCIAS</div>
-                    <div class="tracker-step">3. ERROR</div>
+                    <div class="tracker-step">3. ERRORES</div>
                     <div class="tracker-step">4. VEREDICTO</div>
                 </div>
 
@@ -396,7 +396,7 @@ MODULES = [
                 <div class="tracker-container">
                     <div class="tracker-step completed">1. REGLAS</div>
                     <div class="tracker-step active">2. EVIDENCIAS</div>
-                    <div class="tracker-step">3. ERROR</div>
+                    <div class="tracker-step">3. ERRORES</div>
                     <div class="tracker-step">4. VEREDICTO</div>
                 </div>
 
@@ -441,7 +441,7 @@ MODULES = [
                     <div style="background:var(--background-fill-primary); padding:20px; border-radius:12px; border:1px solid var(--border-color-primary); display:flex; flex-direction:column; justify-content:center;">
                         
                         <div style="margin-bottom:20px;">
-                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color-subdued); margin-bottom:5px;">REALIDAD (La Población)</div>
+                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color-subdued); margin-bottom:5px;">REALIDAD (la población)</div>
                             <div style="display:flex; width:100%; height:24px; border-radius:4px; overflow:hidden;">
                                 <div style="width:33%; background:#94a3b8; display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem;">Grupo A</div>
                                 <div style="width:34%; background:#64748b; display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem;">Grupo B</div>
