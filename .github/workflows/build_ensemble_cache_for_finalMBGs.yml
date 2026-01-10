@@ -1,4 +1,4 @@
-name: Build Ensemble Prediction Cache Artifact (Resumable, Full Train, Original X_TEST)
+name: Build Ensemble Prediction Cache Artifact (for final mbgs)
 
 on:
   workflow_dispatch:
