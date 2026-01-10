@@ -259,68 +259,71 @@ class GradioAppUser(HttpUser):
 
 class ModelBuildingGameUser(HttpUser):
     """
-    Specialized user for Model Building Game apps.
-
-    New task added: build_and_submit_model_preview() which posts to the actual
-    run_experiment function (“Build & Submit Model” button), exercising the
-    preview path (no token) by default.
+    Model Building Game user that:
+    - Submits exactly N models per user (default 10)
+    - Spaces submissions by a fixed interval (default 30 seconds)
+    - Exercises the cache-backed submission path in run_experiment by default (token provided)
+    - Browses UI/config lightly between submissions
     """
-    wait_time = between(2, 5)
+
+    wait_time = between(1, 3)
 
     def on_start(self):
+        # Per-user session identity
         self.session_id = _resolve_session_id()
         self.lang = random.choice(['en', 'es', 'ca'])
+
+        # Submission schedule/config
+        self.submissions_target = int(os.environ.get("LOAD_TEST_SUBMISSIONS_PER_USER", "10"))
+        self.submit_interval_sec = int(os.environ.get("LOAD_TEST_SUBMISSION_INTERVAL_SECONDS", "30"))
+        self.submissions_done = 0
+
+        # Auth control: exercise cache-backed submission branch (token != None) by default
+        self.use_auth = os.environ.get("LOAD_TEST_USE_AUTH", "true").lower() in ("1", "true", "yes")
+        self.auth_token = os.environ.get("LOAD_TEST_AUTH_TOKEN")
+
+        # Stagger the very first submission to avoid instant herd behavior
+        self.next_submit_at = time.time() + random.uniform(10, 25)
+
+        # Warm the session
         params = {'sessionid': self.session_id, 'lang': self.lang}
         self.client.get("/", params=params, name="Initial Load with Session")
         time.sleep(random.uniform(0.15, 0.35))
 
+        # Discover dependency indices
         cfg = _fetch_config(self.client, self.session_id, self.lang)
-        # Detect the submit button dependency and its input length
+        # run_experiment ("Build & Submit Model") dependency
         self.submit_fn_index, self.submit_inputs_len = _find_submit_fn_index(cfg)
-        # Fallbacks for other tasks (kept)
-        self.train_fn_index, self.train_inputs_count = _find_nav_fn_index(cfg)
+
+        # Optional small-input deps for light interactions
         self.feature_fn_index = None
         self.feature_inputs_count = 0
+        self.train_fn_index, self.train_inputs_count = _find_nav_fn_index(cfg)
+
+        # Try to find any 2-input dep (low impact feature tweak)
         if cfg:
-            deps = _dependencies(cfg)
-            for d in deps:
+            for d in _dependencies(cfg):
                 ins = d.get("inputs", [])
-                if len(ins) == 2:
+                if len(ins) == 2 and self.feature_fn_index is None:
                     self.feature_fn_index = d.get("fn_index")
                     self.feature_inputs_count = 2
                     break
 
-    @task(4)
-    def load_game_ui(self):
-        params = {'sessionid': self.session_id, 'lang': self.lang}
-        with self.client.get("/", params=params, catch_response=True, name="Load Game UI") as response:
-            if response.status_code == 200:
-                response.success()
-            else:
-                _fail_with_body(response, "Load Game UI")
-
-    @task(2)
-    def load_game_data(self):
-        params = {'sessionid': self.session_id, 'lang': self.lang}
-        with self.client.get("/config", params=params, catch_response=True, name="Load Game Config") as response:
-            if response.status_code == 200:
-                response.success()
-            else:
-                _fail_with_body(response, "Load Game Config")
-
-    @task(15)
-    def build_and_submit_model_preview(self):
+    @task(8)
+    def maybe_submit_model_cache_backed(self):
         """
-        Calls the actual 'Build & Submit Model' (run_experiment) endpoint with
-        realistic inputs. Uses preview path (no token) to avoid external API side-effects.
+        Submit a model only when due (every submit_interval_sec), up to submissions_target per user.
+        Exercises the cache-backed branch in run_experiment by passing a token when LOAD_TEST_USE_AUTH=true.
+        If no token is provided, falls back to preview mode but still uses cached predictions (set LOAD_TEST_USE_AUTH=false explicitly to do that).
         """
         if not self.submit_fn_index:
             return
 
-        # Inputs expected by run_experiment (in order):
-        # [model_name, complexity, feature_set(list), data_size, team_name,
-        #  last_submission_score, last_rank, submission_count, first_submission_score,
-        #  best_score, username, token, readiness_flag, was_preview_prev]
+        now = time.time()
+        if self.submissions_done >= self.submissions_target or now < self.next_submit_at:
+            return  # Not time yet or we've hit the cap
+
+        # Configurations likely present in cache (safe defaults)
         model_choices = [
             "The Balanced Generalist",
             "The Rule-Maker",
@@ -332,21 +335,26 @@ class ModelBuildingGameUser(HttpUser):
             "race", "sex", "c_charge_degree", "days_b_screening_arrest",
             "age", "length_of_stay", "priors_count"
         ]
+
+        # Stick to cache-friendly defaults; vary minimally for realism
         model_name = random.choice(model_choices)
-        complexity = random.randint(1, 10)
-        # Choose a safe, unlocked-by-default set (group 1) plus optional extras
+        complexity = random.choice([2, 4, 6])  # common levels that are typically cached
         default_group_1 = ["juv_fel_count", "juv_misd_count", "juv_other_count", "race", "sex", "c_charge_degree", "days_b_screening_arrest"]
-        extra = random.sample([c for c in feature_codes if c not in default_group_1], k=random.randint(0, 3))
+        extra = random.sample([c for c in feature_codes if c not in default_group_1], k=random.randint(0, 2))
         feature_set = default_group_1 + extra
-        data_size = "Small (20%)"
+        data_size = "Small (20%)"  # fastest path, typically cached
+
+        # Keep team/user metadata tame
         team_name = "Load Testers"
         last_submission_score = 0.0
         last_rank = 0
-        submission_count = 0
-        first_submission_score = None
+        submission_count = self.submissions_done
+        first_submission_score = None if self.submissions_done == 0 else 0.0
         best_score = 0.0
         username = "LoadTester"
-        token = None  # Keep preview path to avoid external submissions
+
+        # Auth toggle: default to token path to exercise cache-backed submission branch
+        token = self.auth_token if self.use_auth else None
         readiness_flag = True
         was_preview_prev = False
 
@@ -362,12 +370,12 @@ class ModelBuildingGameUser(HttpUser):
             first_submission_score,
             best_score,
             username,
-            token,
+            token,            # token != None → submission branch still uses cached predictions under the hood
             readiness_flag,
             was_preview_prev,
         ]
 
-        # Adjust to match the dependency's expected input length
+        # Match expected input count
         if self.submit_inputs_len and len(data) != self.submit_inputs_len:
             if len(data) > self.submit_inputs_len:
                 data = data[: self.submit_inputs_len]
@@ -380,34 +388,72 @@ class ModelBuildingGameUser(HttpUser):
             "fn_index": self.submit_fn_index,
             "session_hash": self.session_id,
         }
-        _post_with_retry(self.client, url, payload, "Build & Submit Model (Preview)")
+        _post_with_retry(self.client, url, payload, "Build & Submit Model (Cache-backed)")
+
+        # Schedule the next submission
+        self.submissions_done += 1
+        self.next_submit_at = now + self.submit_interval_sec
 
     @task(3)
-    def simulate_model_training(self):
-        """Legacy task retained for back-compat; safe no-op against endpoints expecting fewer inputs."""
-        training_params = {
-            "model_type": random.choice(["linear", "tree", "neural_net"]),
-            "features": random.sample(["age", "race", "gender", "priors"], k=random.randint(2, 4)),
-            "fairness_constraint": random.choice(["none", "demographic_parity", "equal_opportunity"])
-        }
-        url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={self.lang}"
-        fn_index = self.train_fn_index or (self.submit_fn_index or 1)
-        inputs_count = self.train_inputs_count or 1
-        data = [json.dumps(training_params)] if inputs_count <= 1 else [json.dumps(training_params), random.uniform(0.1, 0.9)]
-        payload = {"data": data, "fn_index": fn_index, "session_hash": self.session_id}
-        _post_with_retry(self.client, url, payload, "Model Training (Very CPU-intensive)", retries=1)
+    def browse_app_ui(self):
+        """
+        Light browsing between submissions:
+        - Load UI shell
+        - Load config
+        """
+        params = {'sessionid': self.session_id, 'lang': self.lang}
+        with self.client.get("/", params=params, catch_response=True, name="Load Game UI") as resp:
+            if resp.status_code == 200:
+                resp.success()
+            else:
+                _fail_with_body(resp, "Load Game UI")
 
-    @task(3)
-    def simulate_feature_selection(self):
+        with self.client.get("/config", params=params, catch_response=True, name="Load Game Config") as resp:
+            if resp.status_code == 200:
+                resp.success()
+            else:
+                _fail_with_body(resp, "Load Game Config")
+
+    @task(1)
+    def occasional_feature_tweak(self):
+        """
+        Rare, low-impact interaction to keep the app busy between submissions.
+        Uses a 2-input dependency if available; otherwise a simple small-input dep.
+        """
         url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={self.lang}"
-        fn_index = self.feature_fn_index or (self.train_fn_index or (self.submit_fn_index or 1))
-        inputs_count = self.feature_inputs_count or 2
-        data = [
-            random.sample(["feature1", "feature2", "feature3", "feature4"], k=3),
-            random.uniform(0.1, 0.9)
-        ][:inputs_count]
-        payload = {"data": data, "fn_index": fn_index, "session_hash": self.session_id}
-        _post_with_retry(self.client, url, payload, "Feature Selection (CPU-intensive)", retries=1)
+        fn_index = self.feature_fn_index or (self.train_fn_index or self.submit_fn_index or 1)
+        inputs_count = self.feature_inputs_count or self.train_inputs_count or 1
+
+        # Minimal payload according to inputs_count
+        if inputs_count == 2:
+            data = [
+                random.sample(["feature1", "feature2", "feature3", "feature4"], k=3),
+                random.uniform(0.1, 0.9)
+            ]
+        elif inputs_count == 1:
+            data = [random.choice(["Next", "Complete", "Continue"])]
+        else:
+            data = []
+
+        payload = {"data": data[:inputs_count], "fn_index": fn_index, "session_hash": self.session_id}
+        _post_with_retry(self.client, url, payload, "Occasional Feature Tweak", retries=1)
+
+    @task(1)
+    def check_health(self):
+        """
+        Health checks; treat 404 for /health(/z) as non-critical if not implemented.
+        """
+        for endpoint in ["/", "/health", "/healthz"]:
+            params = {"sessionid": self.session_id, "lang": self.lang} if endpoint == "/" else None
+            with self.client.get(endpoint, params=params, catch_response=True, name=f"Health Check ({endpoint})") as resp:
+                if resp.status_code == 200:
+                    resp.success()
+                    break
+                elif resp.status_code == 404:
+                    resp.success()
+                    break
+                else:
+                    _fail_with_body(resp, f"Health Check ({endpoint})")
 
 
 class WhatIsAIAppUser(HttpUser):
