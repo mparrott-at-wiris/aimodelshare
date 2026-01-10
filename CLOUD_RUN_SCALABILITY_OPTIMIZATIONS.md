@@ -209,37 +209,36 @@ gcloud monitoring policies create \
 
 ## Load Testing Recommendations
 
-### Before Production Launch
+### Automated Load Tests Available
 
-Run load tests to validate scalability:
+Comprehensive load tests are now available in `tests/load_tests/`. See the [Load Tests README](tests/load_tests/README.md) for detailed documentation.
+
+### Quick Start - Manual Testing
 
 ```bash
-# Install load testing tool
-pip install locust
+# Install dependencies
+pip install -r tests/load_tests/requirements.txt
 
 # Run test with 100 concurrent users
-locust -f loadtest.py --host=https://judge-HASH-uc.a.run.app \
-  --users 100 --spawn-rate 10 --run-time 5m
+cd tests/load_tests
+locust -f locustfile_gradio_apps.py \
+  --host=https://judge-HASH-uc.a.run.app \
+  --users 100 \
+  --spawn-rate 10 \
+  --run-time 5m \
+  --headless \
+  --html=load_test_report.html
 ```
 
-**Sample loadtest.py:**
-```python
-from locust import HttpUser, task, between
+### Automated Testing via GitHub Actions
 
-class GradioUser(HttpUser):
-    wait_time = between(1, 3)
-    
-    @task
-    def visit_app(self):
-        self.client.get("/")
-    
-    @task(2)
-    def interact(self):
-        # Simulate user interaction
-        self.client.post("/api/predict", json={
-            "data": ["test input"]
-        })
-```
+Use the workflow to test deployed apps:
+
+1. Go to **Actions** → **Load Test Gradio Apps**
+2. Click **Run workflow**
+3. Select target app (or "all")
+4. Configure users, spawn rate, and duration
+5. Review results and download HTML reports
 
 ### Expected Results
 - **Success rate**: > 99%
