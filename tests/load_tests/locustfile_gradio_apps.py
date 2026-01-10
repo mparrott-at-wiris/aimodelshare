@@ -20,6 +20,7 @@ Usage:
     # Test using environment variables (Locust supports LOCUST_* env vars)
     export LOCUST_HOST=https://judge-HASH-uc.a.run.app
     export LOAD_TEST_SESSION_ID=your-session-id-here
+    export LOAD_TEST_UNIQUE_SESSIONS=1
     locust -f locustfile_gradio_apps.py --users 100 --spawn-rate 10 --run-time 5m
 
     # Selecting a specific user class (CLI positional argument)
@@ -137,22 +138,71 @@ def _severity_en_options():
     return ["Minor", "Moderate", "Serious"]
 
 
+def _fail_with_body(response, label):
+    """
+    Mark a locust response as failure, including a short snippet of the body to aid debugging.
+    """
+    body = ""
+    try:
+        body = response.text
+    except Exception:
+        body = "<no-body>"
+    response.failure(f"{label} failed: status={response.status_code}, body={body[:300]}")
+
+
+def _post_with_retry(client, url, payload, name, retries=2, backoff=0.2):
+    """
+    POST with limited retries for transient 503s. Only mark failure on final attempt.
+    """
+    attempt = 0
+    while True:
+        with client.post(url, json=payload, catch_response=True, name=name) as response:
+            # Success fast path
+            if response.status_code in [200, 201]:
+                response.success()
+                return
+
+            # Treat 404 as non-critical in some flows
+            if response.status_code == 404:
+                response.success()
+                return
+
+            # Retry on 503s (Cloud Run scaling / session init races)
+            if response.status_code == 503 and attempt < retries:
+                response.success()  # don't count this attempt as failure
+                time.sleep(backoff * (attempt + 1))
+                attempt += 1
+                continue
+
+            # Final failure
+            _fail_with_body(response, name)
+            return
+
+
+def _resolve_session_id():
+    """
+    Use unique session IDs per user by default to reduce queue contention.
+    If LOAD_TEST_UNIQUE_SESSIONS=0, reuse LOAD_TEST_SESSION_ID from env.
+    If LOAD_TEST_SESSION_ID is set but unique sessions are requested, suffix it with a UUID to keep analytics traceability.
+    """
+    unique_flag = os.environ.get("LOAD_TEST_UNIQUE_SESSIONS", "1")  # default: unique
+    base = os.environ.get("LOAD_TEST_SESSION_ID", "")
+    if unique_flag == "0":
+        return base or str(uuid.uuid4())
+    # unique per user
+    return f"{base}-{uuid.uuid4()}" if base else str(uuid.uuid4())
+
+
 class GradioAppUser(HttpUser):
     """
     Simulates a user interacting with a Gradio application.
-
-    This user class represents typical user behavior:
-    - Loading the app UI with session ID and language parameters
-    - Interacting with components (buttons, sliders, dropdowns)
-    - Submitting forms/predictions that trigger CPU usage
-    - Navigating between sections
     """
 
     wait_time = between(1, 3)
 
     def on_start(self):
         """Called when a simulated user starts."""
-        self.session_id = os.environ.get('LOAD_TEST_SESSION_ID', str(uuid.uuid4()))
+        self.session_id = _resolve_session_id()
         self.lang = random.choice(['en', 'es', 'ca'])
 
         # Initialize session with query parameters (as used in production)
@@ -169,17 +219,15 @@ class GradioAppUser(HttpUser):
 
     @task(4)
     def load_app_ui(self):
-        """Load the main Gradio application interface with session parameters."""
         params = {'sessionid': self.session_id, 'lang': self.lang}
         with self.client.get("/", params=params, catch_response=True, name="Load UI") as response:
             if response.status_code == 200:
                 response.success()
             else:
-                response.failure(f"Failed to load UI: {response.status_code}")
+                _fail_with_body(response, "Load UI")
 
     @task(2)
     def load_gradio_config(self):
-        """Load Gradio configuration (required for app initialization)."""
         params = {'sessionid': self.session_id, 'lang': self.lang}
         with self.client.get("/config", params=params, catch_response=True, name="Load Config") as response:
             if response.status_code == 200:
@@ -188,11 +236,11 @@ class GradioAppUser(HttpUser):
                     if "version" in config:
                         response.success()
                     else:
-                        response.failure("Config missing version field")
+                        response.failure("Load Config failed: missing 'version' field")
                 except json.JSONDecodeError:
-                    response.failure("Invalid JSON in config response")
+                    _fail_with_body(response, "Load Config (JSON decode)")
             else:
-                response.failure(f"Failed to load config: {response.status_code}")
+                _fail_with_body(response, "Load Config")
 
     @task(12)
     def run_ai_prediction(self):
@@ -208,129 +256,72 @@ class GradioAppUser(HttpUser):
         payload = {
             "fn_index": fn_index,
             "data": [age, priors, severity, lang],
-            "session_hash": self.session_id  # stable hash to avoid Gradio KeyError
+            "session_hash": self.session_id  # stable per-user
         }
-        with self.client.post(
-            predict_url,
-            json=payload,
-            catch_response=True,
-            name="Run AI Prediction (General App)"
-        ) as response:
-            if response.status_code in [200, 201]:
-                response.success()
-            else:
-                response.failure(f"Prediction failed: {response.status_code}")
+        _post_with_retry(self.client, predict_url, payload, "Run AI Prediction (General App)")
 
     @task(3)
     def simulate_button_clicks(self):
-        """
-        Simulate button clicks that trigger backend processing.
-        Ensure we send the correct number of inputs for the chosen fn_index.
-        """
         if not self.nav_fn_index:
-            return  # avoid random calls that may break
+            return
         url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={self.lang}"
-
-        # Build data based on expected input count (only 0 or 1 for nav)
         data = [random.choice(["Release", "Keep in Prison", "Next", "Complete"])] if self.nav_inputs_count == 1 else []
-
-        with self.client.post(
-            url,
-            json={
-                "data": data,
-                "fn_index": self.nav_fn_index,
-                "session_hash": self.session_id  # stable
-            },
-            catch_response=True,
-            name="Button Click (CPU-intensive)"
-        ) as response:
-            if response.status_code in [200, 201]:
-                response.success()
-            elif response.status_code == 404:
-                response.success()
-            else:
-                response.failure(f"Button interaction failed: {response.status_code}")
+        payload = {
+            "data": data,
+            "fn_index": self.nav_fn_index,
+            "session_hash": self.session_id
+        }
+        _post_with_retry(self.client, url, payload, "Button Click (CPU-intensive)", retries=1)
 
     @task(6)
     def simulate_slider_interactions(self):
-        """
-        Simulate slider/dropdown interactions for parameter adjustments.
-        To avoid input count mismatches, we reuse the prediction endpoint with 4 inputs.
-        """
         lang = self.lang
         url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={lang}"
         fn_index = self.pred_fn_index
-
         age = random.randint(18, 65)
         priors = random.randint(0, 10)
         severity = random.choice(_severity_en_options())
 
-        with self.client.post(
-            url,
-            json={
-                "data": [age, priors, severity, lang],
-                "fn_index": fn_index,
-                "session_hash": self.session_id  # stable
-            },
-            catch_response=True,
-            name="Slider/Dropdown Change (CPU-intensive)"
-        ) as response:
-            if response.status_code in [200, 201]:
-                response.success()
-            elif response.status_code == 404:
-                response.success()
-            else:
-                response.failure(f"Slider interaction failed: {response.status_code}")
+        payload = {
+            "data": [age, priors, severity, lang],
+            "fn_index": fn_index,
+            "session_hash": self.session_id
+        }
+        _post_with_retry(self.client, url, payload, "Slider/Dropdown Change (CPU-intensive)")
 
     @task(1)
     def check_health(self):
-        """Check application health/readiness."""
         endpoints_to_check = ["/", "/healthz", "/health"]
-
         for endpoint in endpoints_to_check:
             params = {"sessionid": self.session_id, "lang": self.lang} if endpoint == "/" else None
-            with self.client.get(
-                endpoint,
-                params=params,
-                catch_response=True,
-                name=f"Health Check ({endpoint})"
-            ) as response:
+            with self.client.get(endpoint, params=params, catch_response=True, name=f"Health Check ({endpoint})") as response:
                 if response.status_code == 200:
                     response.success()
                     break
                 elif response.status_code == 404:
                     pass
                 else:
-                    response.failure(f"Health check failed: {response.status_code}")
+                    _fail_with_body(response, f"Health Check ({endpoint})")
 
 
 class ModelBuildingGameUser(HttpUser):
     """
     Specialized user for Model Building Game apps.
-
-    These apps have higher resource requirements (4Gi memory) and include
-    ML operations, so we test them with appropriate behavior and intensive
-    CPU usage from model training/prediction simulations.
     """
 
     wait_time = between(2, 5)
 
     def on_start(self):
-        """Initialize session with parameters for ML apps."""
-        self.session_id = os.environ.get('LOAD_TEST_SESSION_ID', str(uuid.uuid4()))
+        self.session_id = _resolve_session_id()
         self.lang = random.choice(['en', 'es', 'ca'])
 
         params = {'sessionid': self.session_id, 'lang': self.lang}
         self.client.get("/", params=params, name="Initial Load with Session")
 
-        # Allow server to finalize session setup before heavy POST traffic
         time.sleep(random.uniform(0.15, 0.35))
 
-        # Discover indices
         cfg = _fetch_config(self.client, self.session_id, self.lang)
-        # Training often expects a single JSON param; pick any 1-input dep
         self.train_fn_index, self.train_inputs_count = _find_nav_fn_index(cfg)
-        # For feature selection, prefer 2-input dependency if available
         self.feature_fn_index = None
         self.feature_inputs_count = 0
         if cfg:
@@ -345,30 +336,24 @@ class ModelBuildingGameUser(HttpUser):
 
     @task(4)
     def load_game_ui(self):
-        """Load the model building game interface with session parameters."""
         params = {'sessionid': self.session_id, 'lang': self.lang}
         with self.client.get("/", params=params, catch_response=True, name="Load Game UI") as response:
             if response.status_code == 200:
                 response.success()
             else:
-                response.failure(f"Failed to load game: {response.status_code}")
+                _fail_with_body(response, "Load Game UI")
 
     @task(2)
     def load_game_data(self):
-        """Load game configuration and data."""
         params = {'sessionid': self.session_id, 'lang': self.lang}
         with self.client.get("/config", params=params, catch_response=True, name="Load Game Config") as response:
             if response.status_code == 200:
                 response.success()
             else:
-                response.failure(f"Failed to load game config: {response.status_code}")
+                _fail_with_body(response, "Load Game Config")
 
     @task(6)
     def simulate_model_training(self):
-        """
-        Simulate model training selections (CPU/memory intensive).
-        Tests the most demanding operations in model building apps.
-        """
         training_params = {
             "model_type": random.choice(["linear", "tree", "neural_net"]),
             "features": random.sample(["age", "race", "gender", "priors"], k=random.randint(2, 4)),
@@ -377,80 +362,46 @@ class ModelBuildingGameUser(HttpUser):
         url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={self.lang}"
         fn_index = self.train_fn_index or 1
         inputs_count = self.train_inputs_count
-
         data = [json.dumps(training_params)] if inputs_count <= 1 else [json.dumps(training_params), random.uniform(0.1, 0.9)]
-
-        with self.client.post(
-            url,
-            json={
-                "data": data,
-                "fn_index": fn_index,
-                "session_hash": self.session_id  # stable
-            },
-            catch_response=True,
-            name="Model Training (Very CPU-intensive)",
-            timeout=45
-        ) as response:
-            if response.status_code in [200, 201]:
-                response.success()
-            elif response.status_code == 404:
-                response.success()
-            else:
-                response.failure(f"Training failed: {response.status_code}")
+        payload = {
+            "data": data,
+            "fn_index": fn_index,
+            "session_hash": self.session_id
+        }
+        _post_with_retry(self.client, url, payload, "Model Training (Very CPU-intensive)", retries=1)
 
     @task(5)
     def simulate_feature_selection(self):
-        """
-        Simulate feature selection and parameter tuning (CPU-intensive).
-        These operations trigger recalculations and model updates.
-        """
         url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={self.lang}"
         fn_index = self.feature_fn_index or (self.train_fn_index or 1)
         inputs_count = self.feature_inputs_count or 2
-
         data = [
             random.sample(["feature1", "feature2", "feature3", "feature4"], k=3),
             random.uniform(0.1, 0.9)
-        ]
-        data = data[:inputs_count]
-
-        with self.client.post(
-            url,
-            json={
-                "data": data,
-                "fn_index": fn_index,
-                "session_hash": self.session_id  # stable
-            },
-            catch_response=True,
-            name="Feature Selection (CPU-intensive)",
-            timeout=30
-        ) as response:
-            if response.status_code in [200, 201]:
-                response.success()
-            elif response.status_code == 404:
-                response.success()
-            else:
-                response.failure(f"Feature selection failed: {response.status_code}")
+        ][:inputs_count]
+        payload = {
+            "data": data,
+            "fn_index": fn_index,
+            "session_hash": self.session_id
+        }
+        _post_with_retry(self.client, url, payload, "Feature Selection (CPU-intensive)", retries=1)
 
 
 class WhatIsAIAppUser(HttpUser):
     """
     Dedicated user class for the 'What is AI' educational app.
-    Focuses traffic on the prediction button path while keeping UI/config/health coverage.
     """
 
     wait_time = between(1, 3)
 
     def on_start(self):
-        self.session_id = os.environ.get('LOAD_TEST_SESSION_ID', str(uuid.uuid4()))
+        self.session_id = _resolve_session_id()
         self.lang = random.choice(['en', 'es', 'ca'])
         params = {'sessionid': self.session_id, 'lang': self.lang}
         self.client.get("/", params=params, name="Initial Load with Session")
 
-        # Allow server to finalize session setup before heavy POST traffic
         time.sleep(random.uniform(0.15, 0.35))
 
-        # Discover indices
         cfg = _fetch_config(self.client, self.session_id, self.lang)
         self.pred_fn_index = _find_pred_fn_index(cfg) or 1
         self.nav_fn_index, self.nav_inputs_count = _find_nav_fn_index(cfg)
@@ -462,7 +413,7 @@ class WhatIsAIAppUser(HttpUser):
             if response.status_code == 200:
                 response.success()
             else:
-                response.failure(f"Failed to load UI: {response.status_code}")
+                _fail_with_body(response, "Load UI (What is AI)")
 
     @task(2)
     def load_gradio_config(self):
@@ -473,103 +424,53 @@ class WhatIsAIAppUser(HttpUser):
                     _ = response.json()
                     response.success()
                 except json.JSONDecodeError:
-                    response.failure("Invalid JSON in config response")
+                    _fail_with_body(response, "Load Config (JSON decode)")
             else:
-                response.failure(f"Failed to load config: {response.status_code}")
+                _fail_with_body(response, "Load Config")
 
     @task(20)
     def run_ai_prediction(self):
-        fn_index = self.pred_fn_index
-        if fn_index is None:
-            cfg = _fetch_config(self.client, self.session_id, self.lang)
-            fn_index = _find_pred_fn_index(cfg) or 1
-
+        fn_index = self.pred_fn_index or 1
         age = random.randint(18, 65)
         priors = random.randint(0, 10)
         lang = self.lang
         severity = random.choice(_severity_en_options())  # ALWAYS English
-
-        predict_url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={lang}"
-
+        url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={lang}"
         payload = {
             "data": [age, priors, severity, lang],
             "fn_index": fn_index,
-            "session_hash": self.session_id  # stable
+            "session_hash": self.session_id
         }
-
-        with self.client.post(
-            predict_url,
-            json=payload,
-            catch_response=True,
-            name="Run AI Prediction (What is AI)"
-        ) as response:
-            if response.status_code in [200, 201]:
-                response.success()
-            else:
-                response.failure(f"Prediction failed: {response.status_code}")
+        _post_with_retry(self.client, url, payload, "Run AI Prediction (What is AI)")
 
     @task(3)
     def simulate_button_clicks(self):
-        """
-        Simulate navigation and button interactions in What is AI app.
-        Send correct input count to avoid ValueErrors.
-        """
         fn_index = self.nav_fn_index
         if fn_index is None:
             return
         url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={self.lang}"
-
         data = [random.choice(["Next", "Complete", "Continue"])] if self.nav_inputs_count == 1 else []
-
-        with self.client.post(
-            url,
-            json={
-                "data": data,
-                "fn_index": fn_index,
-                "session_hash": self.session_id  # stable
-            },
-            catch_response=True,
-            name="Button Click (Navigation/UI)"
-        ) as response:
-            if response.status_code in [200, 201]:
-                response.success()
-            elif response.status_code == 404:
-                response.success()
-            else:
-                response.failure(f"Button interaction failed: {response.status_code}")
+        payload = {
+            "data": data,
+            "fn_index": fn_index,
+            "session_hash": self.session_id
+        }
+        _post_with_retry(self.client, url, payload, "Button Click (Navigation/UI)", retries=1)
 
     @task(6)
     def simulate_slider_interactions(self):
-        """
-        Simulate slider/dropdown interactions for parameter adjustments.
-        Use the prediction endpoint with 4 inputs to avoid mismatches.
-        """
         lang = self.lang
         url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={lang}"
-        fn_index = self.pred_fn_index
-        if fn_index is None:
-            return
-
+        fn_index = self.pred_fn_index or 1
         age = random.randint(18, 65)
         priors = random.randint(0, 10)
         severity = random.choice(_severity_en_options())  # ALWAYS English
-
-        with self.client.post(
-            url,
-            json={
-                "data": [age, priors, severity, lang],
-                "fn_index": fn_index,
-                "session_hash": self.session_id  # stable
-            },
-            catch_response=True,
-            name="Slider/Dropdown Change (UI)"
-        ) as response:
-            if response.status_code in [200, 201]:
-                response.success()
-            elif response.status_code == 404:
-                response.success()
-            else:
-                response.failure(f"Slider interaction failed: {response.status_code}")
+        payload = {
+            "data": [age, priors, severity, lang],
+            "fn_index": fn_index,
+            "session_hash": self.session_id
+        }
+        _post_with_retry(self.client, url, payload, "Slider/Dropdown Change (UI)")
 
     @task(1)
     def check_health(self):
@@ -583,7 +484,7 @@ class WhatIsAIAppUser(HttpUser):
                 elif response.status_code == 404:
                     pass
                 else:
-                    response.failure(f"Health check failed: {response.status_code}")
+                    _fail_with_body(response, f"Health Check ({endpoint})")
 
 
 # Event handlers for reporting
