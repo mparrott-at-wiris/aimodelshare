@@ -136,125 +136,21 @@ def _find_submit_fn_index(cfg):
     return (best.get("fn_index"), best_len) if best else (None, 0)
 
 
-def _severity_en_options():
-    return ["Minor", "Moderate", "Serious"]
-
-
-def _fail_with_body(response, label):
-    try:
-        body = response.text
-    except Exception:
-        body = "<no-body>"
-    response.failure(f"{label} failed: status={response.status_code}, body={body[:300]}")
-
-
-def _post_with_retry(client, url, payload, name, retries=2, backoff=0.2):
-    attempt = 0
-    while True:
-        with client.post(url, json=payload, catch_response=True, name=name) as response:
-            if response.status_code in [200, 201]:
-                response.success()
-                return
-            if response.status_code == 404:
-                response.success()
-                return
-            if response.status_code == 503 and attempt < retries:
-                response.success()
-                time.sleep(backoff * (attempt + 1))
-                attempt += 1
-                continue
-            _fail_with_body(response, name)
-            return
-
-
-def _resolve_session_id():
-    unique_flag = os.environ.get("LOAD_TEST_UNIQUE_SESSIONS", "1")
-    base = os.environ.get("LOAD_TEST_SESSION_ID", "")
-    if unique_flag == "0":
-        return base or str(uuid.uuid4())
-    return f"{base}-{uuid.uuid4()}" if base else str(uuid.uuid4())
-
-
-class GradioAppUser(HttpUser):
-    wait_time = between(1, 3)
-
-    def on_start(self):
-        self.session_id = _resolve_session_id()
-        self.lang = random.choice(['en', 'es', 'ca'])
-        params = {'sessionid': self.session_id, 'lang': self.lang}
-        self.client.get("/", params=params, name="Initial Load with Session")
-        time.sleep(random.uniform(0.15, 0.35))
-        cfg = _fetch_config(self.client, self.session_id, self.lang)
-        self.pred_fn_index = _find_pred_fn_index(cfg) or 1
-        self.nav_fn_index, self.nav_inputs_count = _find_nav_fn_index(cfg)
-
-    @task(4)
-    def load_app_ui(self):
-        params = {'sessionid': self.session_id, 'lang': self.lang}
-        with self.client.get("/", params=params, catch_response=True, name="Load UI") as response:
-            if response.status_code == 200:
-                response.success()
-            else:
-                _fail_with_body(response, "Load UI")
-
-    @task(2)
-    def load_gradio_config(self):
-        params = {'sessionid': self.session_id, 'lang': self.lang}
-        with self.client.get("/config", params=params, catch_response=True, name="Load Config") as response:
-            if response.status_code == 200:
-                try:
-                    _ = response.json()
-                    response.success()
-                except Exception:
-                    _fail_with_body(response, "Load Config (JSON decode)")
-            else:
-                _fail_with_body(response, "Load Config")
-
-    @task(12)
-    def run_ai_prediction(self):
-        sessionid = self.session_id
-        lang = self.lang
-        fn_index = self.pred_fn_index
-        age = random.randint(18, 65)
-        priors = random.randint(0, 10)
-        severity = random.choice(_severity_en_options())
-        url = f"/gradio_api/call/predict?sessionid={sessionid}&lang={lang}"
-        payload = {"fn_index": fn_index, "data": [age, priors, severity, lang], "session_hash": self.session_id}
-        _post_with_retry(self.client, url, payload, "Run AI Prediction (General App)")
-
-    @task(3)
-    def simulate_button_clicks(self):
-        if not self.nav_fn_index:
-            return
-        url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={self.lang}"
-        data = [random.choice(["Release", "Keep in Prison", "Next", "Complete"])] if self.nav_inputs_count == 1 else []
-        payload = {"data": data, "fn_index": self.nav_fn_index, "session_hash": self.session_id}
-        _post_with_retry(self.client, url, payload, "Button Click (CPU-intensive)", retries=1)
-
-    @task(6)
-    def simulate_slider_interactions(self):
-        lang = self.lang
-        url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={lang}"
-        fn_index = self.pred_fn_index
-        age = random.randint(18, 65)
-        priors = random.randint(0, 10)
-        severity = random.choice(_severity_en_options())
-        payload = {"data": [age, priors, severity, lang], "fn_index": fn_index, "session_hash": self.session_id}
-        _post_with_retry(self.client, url, payload, "Slider/Dropdown Change (CPU-intensive)")
-
-    @task(1)
-    def check_health(self):
-        endpoints = ["/", "/healthz", "/health"]
-        for endpoint in endpoints:
-            params = {"sessionid": self.session_id, "lang": self.lang} if endpoint == "/" else None
-            with self.client.get(endpoint, params=params, catch_response=True, name=f"Health Check ({endpoint})") as response:
-                if response.status_code == 200:
-                    response.success()
-                    break
-                elif response.status_code == 404:
-                    pass
-                else:
-                    _fail_with_body(response, f"Health Check ({endpoint})")
+def _find_small_input_dep(cfg, max_inputs=2, exclude_fn_index=None):
+    """
+    Find a safe small-input dependency (<= max_inputs) that is NOT the submit/run_experiment dep.
+    Returns (fn_index, inputs_len). If none found, returns (None, 0).
+    """
+    if not cfg:
+        return None, 0
+    for d in _dependencies(cfg):
+        ins = d.get("inputs", [])
+        fn = d.get("fn_index")
+        if fn == exclude_fn_index:
+            continue
+        if len(ins) <= max_inputs:
+            return fn, len(ins)
+    return None, 0
 
 
 class ModelBuildingGameUser(HttpUser):
@@ -262,14 +158,14 @@ class ModelBuildingGameUser(HttpUser):
     Model Building Game user that:
     - Submits exactly N models per user (default 10)
     - Spaces submissions by a fixed interval (default 30 seconds)
-    - Exercises the cache-backed submission path in run_experiment by default (token provided)
+    - Exercises the cache-backed submission path in run_experiment by default (token provided if configured)
     - Browses UI/config lightly between submissions
+    - Ensures small interactions NEVER call run_experiment
     """
 
     wait_time = between(1, 3)
 
     def on_start(self):
-        # Per-user session identity
         self.session_id = _resolve_session_id()
         self.lang = random.choice(['en', 'es', 'ca'])
 
@@ -278,11 +174,11 @@ class ModelBuildingGameUser(HttpUser):
         self.submit_interval_sec = int(os.environ.get("LOAD_TEST_SUBMISSION_INTERVAL_SECONDS", "30"))
         self.submissions_done = 0
 
-        # Auth control: exercise cache-backed submission branch (token != None) by default
+        # Auth control: exercise cache-backed submission branch (token != None) if desired
         self.use_auth = os.environ.get("LOAD_TEST_USE_AUTH", "true").lower() in ("1", "true", "yes")
         self.auth_token = os.environ.get("LOAD_TEST_AUTH_TOKEN")
 
-        # Stagger the very first submission to avoid instant herd behavior
+        # Stagger the first submission
         self.next_submit_at = time.time() + random.uniform(10, 25)
 
         # Warm the session
@@ -292,29 +188,18 @@ class ModelBuildingGameUser(HttpUser):
 
         # Discover dependency indices
         cfg = _fetch_config(self.client, self.session_id, self.lang)
-        # run_experiment ("Build & Submit Model") dependency
+
+        # run_experiment ("Build & Submit Model")
         self.submit_fn_index, self.submit_inputs_len = _find_submit_fn_index(cfg)
 
-        # Optional small-input deps for light interactions
-        self.feature_fn_index = None
-        self.feature_inputs_count = 0
-        self.train_fn_index, self.train_inputs_count = _find_nav_fn_index(cfg)
-
-        # Try to find any 2-input dep (low impact feature tweak)
-        if cfg:
-            for d in _dependencies(cfg):
-                ins = d.get("inputs", [])
-                if len(ins) == 2 and self.feature_fn_index is None:
-                    self.feature_fn_index = d.get("fn_index")
-                    self.feature_inputs_count = 2
-                    break
+        # Find a safe small-input dependency (<=2 inputs), explicitly excluding run_experiment
+        self.small_fn_index, self.small_inputs_count = _find_small_input_dep(cfg, max_inputs=2, exclude_fn_index=self.submit_fn_index)
 
     @task(8)
     def maybe_submit_model_cache_backed(self):
         """
-        Submit a model only when due (every submit_interval_sec), up to submissions_target per user.
-        Exercises the cache-backed branch in run_experiment by passing a token when LOAD_TEST_USE_AUTH=true.
-        If no token is provided, falls back to preview mode but still uses cached predictions (set LOAD_TEST_USE_AUTH=false explicitly to do that).
+        Submit a model only when due, up to submissions_target per user.
+        Sends the full input list expected by run_experiment (typically 14).
         """
         if not self.submit_fn_index:
             return
@@ -323,7 +208,7 @@ class ModelBuildingGameUser(HttpUser):
         if self.submissions_done >= self.submissions_target or now < self.next_submit_at:
             return  # Not time yet or we've hit the cap
 
-        # Configurations likely present in cache (safe defaults)
+        # Cache-friendly defaults
         model_choices = [
             "The Balanced Generalist",
             "The Rule-Maker",
@@ -335,16 +220,13 @@ class ModelBuildingGameUser(HttpUser):
             "race", "sex", "c_charge_degree", "days_b_screening_arrest",
             "age", "length_of_stay", "priors_count"
         ]
-
-        # Stick to cache-friendly defaults; vary minimally for realism
         model_name = random.choice(model_choices)
-        complexity = random.choice([2, 4, 6])  # common levels that are typically cached
+        complexity = random.choice([2, 4, 6])
         default_group_1 = ["juv_fel_count", "juv_misd_count", "juv_other_count", "race", "sex", "c_charge_degree", "days_b_screening_arrest"]
         extra = random.sample([c for c in feature_codes if c not in default_group_1], k=random.randint(0, 2))
         feature_set = default_group_1 + extra
-        data_size = "Small (20%)"  # fastest path, typically cached
+        data_size = "Small (20%)"
 
-        # Keep team/user metadata tame
         team_name = "Load Testers"
         last_submission_score = 0.0
         last_rank = 0
@@ -353,7 +235,6 @@ class ModelBuildingGameUser(HttpUser):
         best_score = 0.0
         username = "LoadTester"
 
-        # Auth toggle: default to token path to exercise cache-backed submission branch
         token = self.auth_token if self.use_auth else None
         readiness_flag = True
         was_preview_prev = False
@@ -370,12 +251,12 @@ class ModelBuildingGameUser(HttpUser):
             first_submission_score,
             best_score,
             username,
-            token,            # token != None → submission branch still uses cached predictions under the hood
+            token,
             readiness_flag,
             was_preview_prev,
         ]
 
-        # Match expected input count
+        # Ensure we send the full expected count
         if self.submit_inputs_len and len(data) != self.submit_inputs_len:
             if len(data) > self.submit_inputs_len:
                 data = data[: self.submit_inputs_len]
@@ -418,11 +299,14 @@ class ModelBuildingGameUser(HttpUser):
     def occasional_feature_tweak(self):
         """
         Rare, low-impact interaction to keep the app busy between submissions.
-        Uses a 2-input dependency if available; otherwise a simple small-input dep.
+        Uses a safe small-input dependency only. Skips if none found.
         """
+        if not self.small_fn_index or self.small_inputs_count == 0:
+            return  # No safe small dep discovered; skip
+
         url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={self.lang}"
-        fn_index = self.feature_fn_index or (self.train_fn_index or self.submit_fn_index or 1)
-        inputs_count = self.feature_inputs_count or self.train_inputs_count or 1
+        fn_index = self.small_fn_index
+        inputs_count = self.small_inputs_count
 
         # Minimal payload according to inputs_count
         if inputs_count == 2:
@@ -454,88 +338,6 @@ class ModelBuildingGameUser(HttpUser):
                     break
                 else:
                     _fail_with_body(resp, f"Health Check ({endpoint})")
-
-
-class WhatIsAIAppUser(HttpUser):
-    wait_time = between(1, 3)
-
-    def on_start(self):
-        self.session_id = _resolve_session_id()
-        self.lang = random.choice(['en', 'es', 'ca'])
-        params = {'sessionid': self.session_id, 'lang': self.lang}
-        self.client.get("/", params=params, name="Initial Load with Session")
-        time.sleep(random.uniform(0.15, 0.35))
-        cfg = _fetch_config(self.client, self.session_id, self.lang)
-        self.pred_fn_index = _find_pred_fn_index(cfg) or 1
-        self.nav_fn_index, self.nav_inputs_count = _find_nav_fn_index(cfg)
-
-    @task(4)
-    def load_app_ui(self):
-        params = {'sessionid': self.session_id, 'lang': self.lang}
-        with self.client.get("/", params=params, catch_response=True, name="Load UI") as response:
-            if response.status_code == 200:
-                response.success()
-            else:
-                _fail_with_body(response, "Load UI (What is AI)")
-
-    @task(2)
-    def load_gradio_config(self):
-        params = {'sessionid': self.session_id, 'lang': self.lang}
-        with self.client.get("/config", params=params, catch_response=True, name="Load Config") as response:
-            if response.status_code == 200:
-                try:
-                    _ = response.json()
-                    response.success()
-                except Exception:
-                    _fail_with_body(response, "Load Config (JSON decode)")
-            else:
-                _fail_with_body(response, "Load Config")
-
-    @task(20)
-    def run_ai_prediction(self):
-        fn_index = self.pred_fn_index or 1
-        age = random.randint(18, 65)
-        priors = random.randint(0, 10)
-        lang = self.lang
-        severity = random.choice(_severity_en_options())
-        url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={lang}"
-        payload = {"data": [age, priors, severity, lang], "fn_index": fn_index, "session_hash": self.session_id}
-        _post_with_retry(self.client, url, payload, "Run AI Prediction (What is AI)")
-
-    @task(3)
-    def simulate_button_clicks(self):
-        fn_index = self.nav_fn_index
-        if not fn_index:
-            return
-        url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={self.lang}"
-        data = [random.choice(["Next", "Complete", "Continue"])] if self.nav_inputs_count == 1 else []
-        payload = {"data": data, "fn_index": fn_index, "session_hash": self.session_id}
-        _post_with_retry(self.client, url, payload, "Button Click (Navigation/UI)", retries=1)
-
-    @task(6)
-    def simulate_slider_interactions(self):
-        fn_index = self.pred_fn_index or 1
-        lang = self.lang
-        url = f"/gradio_api/call/predict?sessionid={self.session_id}&lang={lang}"
-        age = random.randint(18, 65)
-        priors = random.randint(0, 10)
-        severity = random.choice(_severity_en_options())
-        payload = {"data": [age, priors, severity, lang], "fn_index": fn_index, "session_hash": self.session_id}
-        _post_with_retry(self.client, url, payload, "Slider/Dropdown Change (UI)")
-
-    @task(1)
-    def check_health(self):
-        endpoints = ["/", "/healthz", "/health"]
-        for endpoint in endpoints:
-            params = {"sessionid": self.session_id, "lang": self.lang} if endpoint == "/" else None
-            with self.client.get(endpoint, params=params, catch_response=True, name=f"Health Check ({endpoint})") as response:
-                if response.status_code == 200:
-                    response.success()
-                    break
-                elif response.status_code == 404:
-                    pass
-                else:
-                    _fail_with_body(response, f"Health Check ({endpoint})")
 
 
 # Event handlers for reporting
