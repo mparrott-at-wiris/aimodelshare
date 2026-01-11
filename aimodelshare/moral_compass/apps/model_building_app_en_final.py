@@ -2159,7 +2159,7 @@ def run_experiment(
             # 2) If we still don't have completedTaskIds, try get_user (direct)
             if existing_completed_task_ids is None:
                 try:
-                    user_obj = mc_client.get_user(TABLE_ID, username)
+                    user_obj = mc_client.get_user(table_id=TABLE_ID, username=username)
                     if user_obj and getattr(user_obj, "username", None):
                         user_found = True
                         existing_completed_task_ids = user_obj.completed_task_ids or []
@@ -2167,7 +2167,8 @@ def run_experiment(
                     _log(f"get_user fallback failed (tasks unavailable): {e}")
 
             # Decide whether it's safe and necessary to update
-            progress_known = (existing_tasks_completed is not None) or (existing_completed_task_ids is not None)
+            # Note: We only check task progress here because questions are optional and not used in score calculation
+            task_progress_known = (existing_tasks_completed is not None) or (existing_completed_task_ids is not None)
 
             # Improvement rule:
             # - If metrics exist, only update if new accuracy > existing accuracy
@@ -2186,9 +2187,9 @@ def run_experiment(
                 # New user record
                 improved = True
 
-            do_update = improved and progress_known
+            should_update_moral_compass = improved and task_progress_known
 
-            if do_update:
+            if should_update_moral_compass:
                 # Prepare preserved progress
                 tasks_completed = existing_tasks_completed
                 total_tasks = existing_total_tasks
@@ -2237,7 +2238,7 @@ def run_experiment(
                 _log(
                     f"Skipping moral compass update "
                     f"(user_found={user_found}, metrics_present={existing_metrics_present}, "
-                    f"existing_accuracy={existing_accuracy}, progress_known={progress_known}, "
+                    f"existing_accuracy={existing_accuracy}, task_progress_known={task_progress_known}, "
                     f"submission={this_submission_score})"
                 )
 
