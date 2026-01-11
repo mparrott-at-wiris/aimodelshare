@@ -1334,7 +1334,7 @@ def ensure_table_and_get_data(username, token, team_name):
             client.create_table(
                 table_id=TABLE_ID,
                 display_name="LMS",
-                playground_url="https://example.com",
+                playground_url=ORIGINAL_PLAYGROUND_URL,
             )
         except Exception:
             pass
