@@ -62,45 +62,63 @@ except ImportError:
 # -------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------
-# CACHE CONFIGURATION (Optimized: Thread-Safe SQLite)
+# CACHE CONFIGURATION (Optimized: Thread-Safe SQLite with Dual-DB Support)
 # -------------------------------------------------------------------------
 import sqlite3
 
-CACHE_DB_FILE = "prediction_cache.sqlite"
+CACHE_DB_FILE_BASE = "prediction_cache.sqlite"
+CACHE_DB_FILE_FULL = "prediction_cache_full.sqlite"
 
-def get_cached_prediction(key):
+def _get_cached_prediction_from(db_file: str, key: str) -> Optional[str]:
     """
-    Lightning-fast lookup from SQLite database.
-    THREAD-SAFE FIX: Opens a new connection for every lookup.
+    Lightning-fast lookup from specified SQLite database.
+    THREAD-SAFE: Opens a new connection for every lookup.
+    
+    Args:
+        db_file: Path to the SQLite database file
+        key: Cache key to lookup
+    
+    Returns:
+        Cached prediction string or None if not found
     """
-    # 1. Check if DB exists
-    if not os.path.exists(CACHE_DB_FILE):
+    if not os.path.exists(db_file):
         return None
 
     try:
         # Use a context manager ('with') to ensure the connection 
         # is ALWAYS closed, releasing file locks immediately.
         # timeout=10 ensures we don't wait forever if the file is busy.
-        with sqlite3.connect(CACHE_DB_FILE, timeout=10.0) as conn:
+        with sqlite3.connect(db_file, timeout=10.0) as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT value FROM cache WHERE key=?", (key,))
             result = cursor.fetchone()
-            
-            if result:
-                return result[0] 
-            else:
-                return None
+            return result[0] if result else None
             
     except sqlite3.OperationalError as e:
         # Handle locking errors gracefully
-        print(f"⚠️ CACHE LOCK ERROR: {e}. Falling back to training.", flush=True)
+        print(f"⚠️ CACHE LOCK ERROR ({db_file}): {e}", flush=True)
         return None
         
     except Exception as e:
-        print(f"⚠️ DB READ ERROR: {e}", flush=True)
+        print(f"⚠️ DB READ ERROR ({db_file}): {e}", flush=True)
         return None
 
-print("✅ App configured for Thread-Safe SQLite Cache.")
+def get_cached_prediction(key: str, data_size_str: str) -> Optional[str]:
+    """
+    Lookup prediction from appropriate database based on data size.
+    Routes Full (100%) to prediction_cache_full.sqlite, others to prediction_cache.sqlite.
+    
+    Args:
+        key: Cache key to lookup
+        data_size_str: Data size label (e.g., "Small (20%)", "Full (100%)")
+    
+    Returns:
+        Cached prediction string or None if not found
+    """
+    db_file = CACHE_DB_FILE_FULL if data_size_str == "Full (100%)" else CACHE_DB_FILE_BASE
+    return _get_cached_prediction_from(db_file, key)
+
+print("✅ App configured for Thread-Safe Dual-DB SQLite Cache.")
 
 # -------------------------------------------------------------------------
 # Lightweight Label Loader (No Training, Only Test Accuracy Computation)
@@ -594,6 +612,109 @@ DATA_SIZE_DB_MAP = {
     "Gran (80%)": "Large (80%)",
     "Completa (100%)": "Full (100%)"
 }
+
+# Constants for cache key building and majority vote
+FULL_DATA_SIZE_LABEL = "Full (100%)"
+MAJORITY_MODEL_NAME = "The Majority Vote"
+
+# Base model names for majority vote fallback
+BASE_MODEL_NAMES = [
+    "The Balanced Generalist",
+    "The Rule-Maker",
+    "The Deep Pattern-Finder",
+    "The 'Nearest Neighbor'",
+]
+
+def build_cache_key(model_name: str, complexity: int, feature_set: list, data_size_str: str = None) -> str:
+    """
+    Build cache key matching full-models cache format.
+    
+    Args:
+        model_name: Model name (e.g., "The Balanced Generalist", "The Majority Vote")
+        complexity: Complexity level (1-10)
+        feature_set: List of feature names
+        data_size_str: Data size label (defaults to FULL_DATA_SIZE_LABEL if not provided)
+    
+    Returns:
+        Cache key string in format: model_name|complexity|data_size|feature_key
+    """
+    if data_size_str is None:
+        data_size_str = FULL_DATA_SIZE_LABEL
+    feature_key = ",".join(sorted(feature_set))
+    return f"{model_name}|{complexity}|{data_size_str}|{feature_key}"
+
+def _compute_majority_string(pred_strings: list, tie_break: str = "random", rng_seed: int = 42) -> str:
+    """
+    Compute majority vote over four base model prediction strings (matching generator logic).
+    
+    Args:
+        pred_strings: List of 4 prediction strings from base models
+        tie_break: Tie-breaking strategy ("random" or "zero")
+        rng_seed: Random seed for deterministic tie-breaking (default: 42)
+    
+    Returns:
+        Majority vote prediction string
+    
+    Raises:
+        ValueError: If pred_strings doesn't contain exactly 4 strings or lengths mismatch
+    """
+    if len(pred_strings) != 4:
+        raise ValueError(f"Expected 4 base model strings, got {len(pred_strings)}")
+    lengths = {len(s) for s in pred_strings}
+    if len(lengths) != 1:
+        raise ValueError("Prediction strings have mismatched lengths.")
+    n = lengths.pop()
+    rng = np.random.default_rng(rng_seed)
+    out = []
+    for i in range(n):
+        votes = [int(s[i]) for s in pred_strings]
+        zeros = votes.count(0)
+        ones = votes.count(1)
+        if zeros > ones:
+            out.append("0")
+        elif ones > zeros:
+            out.append("1")
+        else:
+            out.append(str(rng.choice([0, 1])) if tie_break == "random" else "0")
+    return "".join(out)
+
+def _fetch_base_pred_strings_for_majority(complexity: int, feature_set: list, data_size_str: str) -> Optional[list]:
+    """
+    Fetch the four base model predictions from cache for given settings.
+    Implements cross-DB fallback for Full (100%) data size.
+    
+    Args:
+        complexity: Complexity level (1-10)
+        feature_set: List of feature names
+        data_size_str: Data size label
+    
+    Returns:
+        List of 4 prediction strings if all found, None if any missing
+    """
+    # First try: fetch from the primary database for this data size
+    pred_strings = []
+    for m in BASE_MODEL_NAMES:
+        k = build_cache_key(m, complexity, feature_set, data_size_str)
+        s = get_cached_prediction(k, data_size_str)
+        if s is None:
+            break
+        pred_strings.append(s)
+    
+    if pred_strings and len(pred_strings) == 4:
+        return pred_strings
+    
+    # Fallback for Full (100%): try base DB if full-models DB is missing any base model
+    if data_size_str == "Full (100%)":
+        pred_strings = []
+        for m in BASE_MODEL_NAMES:
+            k = build_cache_key(m, complexity, feature_set, data_size_str)
+            s = _get_cached_prediction_from(CACHE_DB_FILE_BASE, k)
+            if s is None:
+                return None
+            pred_strings.append(s)
+        return pred_strings
+    
+    return None
 
 
 TEAM_NAMES = [
@@ -1654,14 +1775,25 @@ def run_experiment(
     sanitized_features = sorted(sanitized_features)
 
     db_data_size = DATA_SIZE_DB_MAP.get(data_size_str, "Small (20%)")
-    feature_key = ",".join(sanitized_features)
-    cache_key = f"{model_name_key}|{complexity_level}|{db_data_size}|{feature_key}"
-
+    
     _ensure_y_test_loaded()
 
     progress(0.3, desc="Carregant les prediccions...")
+    
+    # Build cache key using helper function for consistency
+    cache_key = build_cache_key(model_name_key, complexity_level, sanitized_features, db_data_size)
+    
     yield {submission_feedback_display: gr.update(value=get_status_html(2, "Carregant prediccions", "⚡ Recuperant resultats precomputats..."), visible=True)}
-    cached_predictions = get_cached_prediction(cache_key)
+    
+    # Fetch from cache
+    cached_predictions = get_cached_prediction(cache_key, db_data_size)
+    
+    # Fallback: derive majority vote if selected and missing
+    if model_name_key == MAJORITY_MODEL_NAME and not cached_predictions:
+        base_strings = _fetch_base_pred_strings_for_majority(complexity_level, sanitized_features, db_data_size)
+        if base_strings:
+            cached_predictions = _compute_majority_string(base_strings, tie_break="random", rng_seed=42)
+    
     if not cached_predictions:
         error_html = f"""
         <div style='background:#fee2e2; padding:16px; border-radius:8px; border:2px solid #ef4444; color:#991b1b; text-align:center;'>
