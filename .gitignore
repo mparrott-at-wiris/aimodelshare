@@ -65,6 +65,7 @@ db.sqlite3-journal
 prediction_cache.json.gz
 prediction_cache_full_models.json.gz
 prediction_cache.sqlite
+prediction_cache_full.sqlite
 cache_checkpoint.jsonl
 full_models_cache_checkpoint.jsonl
 

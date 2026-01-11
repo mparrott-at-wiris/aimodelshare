@@ -2,14 +2,21 @@
 
 ## Overview
 
-The `convert_db.py` script and the Dockerfile have been updated to support dual prediction cache files. This allows for more flexible cache management and merging of different cache sources.
+The `convert_db.py` script and the Dockerfile have been updated to support dual prediction cache files and create two separate SQLite databases.
 
 ## Supported Cache Files
 
 The system now supports two cache files:
 
 1. **`prediction_cache.json.gz`** - Base cache file (original)
-2. **`prediction_cache_full_models.json.gz`** - Full models cache file (new)
+2. **`prediction_cache_full_models.json.gz`** - Full models cache file
+
+## Output Databases
+
+The conversion process creates **two separate SQLite databases**:
+
+1. **`prediction_cache.sqlite`** - Contains ONLY data from `prediction_cache.json.gz` (original behavior preserved)
+2. **`prediction_cache_full.sqlite`** - Contains merged data from both cache files (with full_models taking precedence on conflicts)
 
 ## Behavior
 
@@ -17,25 +24,32 @@ The system now supports two cache files:
 
 The conversion process handles the following scenarios:
 
-- ✅ **Both files present**: Loads and merges both caches with full_models taking precedence on key conflicts
-- ✅ **Only base cache present**: Processes as before (backward compatible)
-- ✅ **Only full_models cache present**: Processes only the full_models cache
+- ✅ **Both files present**: Creates both databases
+  - `prediction_cache.sqlite` with base cache only
+  - `prediction_cache_full.sqlite` with merged data (full_models takes precedence)
+- ✅ **Only base cache present**: Creates both databases with same data from base cache
+- ✅ **Only full_models cache present**: Creates only `prediction_cache_full.sqlite`
 - ❌ **Neither file present**: Raises `FileNotFoundError` with clear error message
 
-### Merge Strategy
+### Database Creation Strategy
 
-When both cache files are present:
+**Database 1: `prediction_cache.sqlite`**
+- Created ONLY when `prediction_cache.json.gz` is present
+- Contains exclusively data from the base cache
+- Preserves original behavior for backward compatibility
+- Existing consumers continue to work unchanged
 
-1. Base cache is loaded first
-2. Full models cache is loaded second
-3. Keys from full_models **override** keys from base cache
-4. The resulting merged cache is written to SQLite
-
-This ensures that full_models predictions take precedence over base predictions for any overlapping keys.
+**Database 2: `prediction_cache_full.sqlite`**
+- Always created when at least one cache file is present
+- Merge strategy when both caches exist:
+  1. Start with base cache data
+  2. Add/override with full_models cache data
+  3. Full_models keys take precedence on conflicts
+- When only one cache exists, contains that cache's data
 
 ## Database Structure
 
-The SQLite database structure remains **unchanged** for backward compatibility:
+Both SQLite databases have **identical structure** for compatibility:
 
 ```sql
 CREATE TABLE cache (
@@ -44,7 +58,7 @@ CREATE TABLE cache (
 )
 ```
 
-This ensures existing consumers continue to work without modifications.
+This ensures existing consumers can use either database without modifications.
 
 ## Usage
 
@@ -95,15 +109,36 @@ The script provides detailed status messages:
    ✅ Loaded 500 entries from prediction_cache_full_models.json.gz
 
 📦 Full models cache loaded: 500 entries
-   ℹ️  Merged with precedence: 50 keys from full_models override base
 
-📊 Merge Summary:
-   • Total unique entries: 1450
-   • Merge strategy: full_models takes precedence on conflicts
+============================================================
+DATABASE 1: Original Base Cache
+============================================================
 
 💾 Converting to SQLite database: prediction_cache.sqlite
-✅ Success! Created prediction_cache.sqlite with 1450 entries
+✅ Success! Created prediction_cache.sqlite with 1000 entries
+   • Source: prediction_cache.json.gz only
    • Table structure: cache(key TEXT PRIMARY KEY, value TEXT)
+
+============================================================
+DATABASE 2: Combined Full Cache
+============================================================
+   • Added 1000 entries from base cache
+   • Added 500 entries from full_models cache
+   • Merged with precedence: 50 keys from full_models override base
+
+📊 Combined Cache Summary:
+   • Total unique entries: 1450
+
+💾 Converting to SQLite database: prediction_cache_full.sqlite
+✅ Success! Created prediction_cache_full.sqlite with 1450 entries
+   • Source: merged from both caches (full_models takes precedence)
+   • Table structure: cache(key TEXT PRIMARY KEY, value TEXT)
+============================================================
+✅ CONVERSION COMPLETE
+============================================================
+Created databases:
+   • prediction_cache.sqlite - Original base cache (1000 entries)
+   • prediction_cache_full.sqlite - Combined cache (1450 entries)
 ============================================================
 ```
 
@@ -117,11 +152,11 @@ python tests/test_convert_db.py
 
 The test suite covers:
 
-1. ✅ Both cache files present (merge with precedence)
-2. ✅ Only base cache present
-3. ✅ Only full_models cache present
+1. ✅ Both cache files present (creates both databases with proper merge)
+2. ✅ Only base cache present (creates both databases with same data)
+3. ✅ Only full_models cache present (creates only full database)
 4. ✅ Neither cache present (error handling)
-5. ✅ Backward compatibility with existing consumers
+5. ✅ Backward compatibility with existing consumers using base database
 
 ## Cache Key Format
 
@@ -140,10 +175,12 @@ The Balanced Generalist|5|Small (20%)|age,c_charge_degree,race,sex
 
 The implementation maintains full backward compatibility:
 
-- Existing consumers using `prediction_cache.sqlite` continue to work unchanged
-- The SQLite table structure is identical
+- **Original database** (`prediction_cache.sqlite`) contains only base cache data, exactly as before
+- The SQLite table structure is identical in both databases
 - Single cache file usage works exactly as before
 - Query patterns remain the same
+- Existing consumers using `prediction_cache.sqlite` continue to work unchanged
+- **New feature**: Applications can optionally use `prediction_cache_full.sqlite` for access to merged/full model data
 
 ## Troubleshooting
 
