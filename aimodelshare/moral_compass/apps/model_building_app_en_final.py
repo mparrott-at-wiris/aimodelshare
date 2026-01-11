@@ -52,6 +52,8 @@ from sklearn.neighbors import KNeighborsClassifier
 # --- AI Model Share Imports ---
 try:
     from aimodelshare.playground import Competition
+    from aimodelshare.moral_compass import MoralcompassApiClient
+    from aimodelshare.aws import get_token_from_session, _get_username_from_token
 except ImportError:
     raise ImportError(
         "The 'aimodelshare' library is required. Install with: pip install aimodelshare"
@@ -61,6 +63,11 @@ except ImportError:
 # Configuration & Caching Infrastructure
 # -------------------------------------------------------------------------
 
+# --- Moral Compass API Configuration ---
+DEFAULT_API_URL = "https://b22q73wp50.execute-api.us-east-1.amazonaws.com/dev"
+ORIGINAL_PLAYGROUND_URL = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+TABLE_ID = "m-mc"
+TOTAL_COURSE_TASKS = 20  # Score calculated against full course
 
 # -------------------------------------------------------------------------
 # CACHE CONFIGURATION (Optimized: Thread-Safe SQLite with Dual-DB Support)
@@ -1228,6 +1235,178 @@ def _build_individual_html(individual_summary_df, username):
     return header + body + footer
 
 
+# --- Moral Compass Leaderboard Helper Functions ---
+
+def get_leaderboard_data(client, username, team_name, local_task_list=None, override_score=None):
+    """
+    Fetch and process moral compass leaderboard data.
+    
+    Args:
+        client: MoralcompassApiClient instance
+        username: Current user's username
+        team_name: Current user's team name
+        local_task_list: Optional list of completed task IDs
+        override_score: Optional score override for optimistic updates
+    
+    Returns:
+        Dictionary with score, rank, team_rank, all_users, all_teams, completed_task_ids
+    """
+    try:
+        resp = client.list_users(table_id=TABLE_ID, limit=500)
+        users = resp.get("users", [])
+
+        # 1. OPTIMISTIC UPDATE
+        if override_score is not None:
+            found = False
+            for u in users:
+                if u.get("username") == username:
+                    u["moralCompassScore"] = override_score
+                    found = True
+                    break
+            if not found:
+                users.append(
+                    {"username": username, "moralCompassScore": override_score, "teamName": team_name}
+                )
+
+        # 2. SORT with new score
+        users_sorted = sorted(
+            users, key=lambda x: float(x.get("moralCompassScore", 0) or 0), reverse=True
+        )
+
+        my_user = next((u for u in users_sorted if u.get("username") == username), None)
+        score = float(my_user.get("moralCompassScore", 0) or 0) if my_user else 0.0
+        rank = users_sorted.index(my_user) + 1 if my_user else 0
+
+        completed_task_ids = (
+            local_task_list
+            if local_task_list is not None
+            else (my_user.get("completedTaskIds", []) if my_user else [])
+        )
+
+        team_map = {}
+        for u in users:
+            t = u.get("teamName")
+            s = float(u.get("moralCompassScore", 0) or 0)
+            if t:
+                if t not in team_map:
+                    team_map[t] = {"sum": 0, "count": 0}
+                team_map[t]["sum"] += s
+                team_map[t]["count"] += 1
+        teams_sorted = []
+        for t, d in team_map.items():
+            teams_sorted.append({"team": t, "avg": d["sum"] / d["count"]})
+        teams_sorted.sort(key=lambda x: x["avg"], reverse=True)
+        my_team = next((t for t in teams_sorted if t["team"] == team_name), None)
+        team_rank = teams_sorted.index(my_team) + 1 if my_team else 0
+        return {
+            "score": score,
+            "rank": rank,
+            "team_rank": team_rank,
+            "all_users": users_sorted,
+            "all_teams": teams_sorted,
+            "completed_task_ids": completed_task_ids,
+        }
+    except Exception as e:
+        _log(f"Error getting leaderboard data: {e}")
+        return None
+
+
+def ensure_table_and_get_data(username, token, team_name):
+    """
+    Ensure moral compass table exists and fetch leaderboard data.
+    
+    Args:
+        username: Current user's username
+        token: Authentication token
+        team_name: Current user's team name
+    
+    Returns:
+        Tuple of (leaderboard_data, username)
+    """
+    if not username or not token:
+        return None, username
+    os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
+    client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
+    try:
+        client.get_table(TABLE_ID)
+    except Exception:
+        try:
+            client.create_table(
+                table_id=TABLE_ID,
+                display_name="LMS",
+                playground_url=ORIGINAL_PLAYGROUND_URL,
+            )
+        except Exception:
+            pass
+    return get_leaderboard_data(client, username, team_name), username
+
+
+def render_moral_compass_leaderboard_card(data, username, team_name):
+    """
+    Render leaderboard HTML card with team and individual tabs using moral compass scores.
+    
+    Args:
+        data: Leaderboard data dictionary from get_leaderboard_data
+        username: Current user's username
+        team_name: Current user's team name
+    
+    Returns:
+        HTML string for leaderboard display
+    """
+    team_rows = ""
+    user_rows = ""
+    if data and data.get("all_teams"):
+        for i, t in enumerate(data["all_teams"]):
+            cls = "row-highlight-team" if t["team"] == team_name else "row-normal"
+            team_rows += (
+                f"<tr class='{cls}'><td style='padding:8px;text-align:center;'>{i+1}</td>"
+                f"<td style='padding:8px;'>{t['team']}</td>"
+                f"<td style='padding:8px;text-align:right;'>{t['avg']:.3f}</td></tr>"
+            )
+    if data and data.get("all_users"):
+        for i, u in enumerate(data["all_users"]):
+            cls = "row-highlight-me" if u.get("username") == username else "row-normal"
+            sc = float(u.get("moralCompassScore", 0))
+            if u.get("username") == username and data.get("score") != sc:
+                sc = data.get("score")
+            user_rows += (
+                f"<tr class='{cls}'><td style='padding:8px;text-align:center;'>{i+1}</td>"
+                f"<td style='padding:8px;'>{u.get('username','')}</td>"
+                f"<td style='padding:8px;text-align:right;'>{sc:.3f}</td></tr>"
+            )
+    return f"""
+    <div class="scenario-box leaderboard-card">
+        <h3 class="slide-title" style="margin-bottom:10px;">📊 Live Standings</h3>
+        <div class="lb-tabs">
+            <input type="radio" id="lb-tab-team" name="lb-tabs" checked>
+            <label for="lb-tab-team" class="lb-tab-label">🏆 Team</label>
+            <input type="radio" id="lb-tab-user" name="lb-tabs">
+            <label for="lb-tab-user" class="lb-tab-label">👤 Individual</label>
+            <div class="lb-tab-panels">
+                <div class="lb-panel panel-team">
+                    <div class='table-container'>
+                        <table class='leaderboard-table'>
+                            <thead>
+                                <tr><th>Rank</th><th>Team</th><th style='text-align:right;'>Avg 🧭</th></tr>
+                            </thead>
+                            <tbody>{team_rows}</tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="lb-panel panel-user">
+                    <div class='table-container'>
+                        <table class='leaderboard-table'>
+                            <thead>
+                                <tr><th>Rank</th><th>Agent</th><th style='text-align:right;'>Score 🧭</th></tr>
+                            </thead>
+                            <tbody>{user_rows}</tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    """
 
 
 # --- End Helper Functions ---
@@ -1910,38 +2089,213 @@ def run_experiment(
             pass
         # -------------------------------------------------------------------------
 
+        # -------------------------------------------------------------------------
+        # UPDATE MORAL COMPASS SCORE AFTER SUBMISSION (HARDENED: accuracy-only, preserve tasks)
+        # -------------------------------------------------------------------------
+        _log("Updating moral compass score...")
+        mc_client = None
+        user_found = False
+
+        # Cache of existing MC fields (only used if successfully fetched)
+        existing_accuracy = None
+        existing_metrics_present = False
+        existing_tasks_completed = None
+        existing_total_tasks = None
+        existing_questions_correct = None
+        existing_total_questions = None
+        existing_completed_task_ids = None
+        existing_team_name = None
+
+        try:
+            os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
+            mc_client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
+
+            # Ensure table exists (best effort)
+            try:
+                mc_client.get_table(TABLE_ID)
+            except Exception:
+                try:
+                    mc_client.create_table(
+                        table_id=TABLE_ID,
+                        display_name="LMS",
+                        playground_url=ORIGINAL_PLAYGROUND_URL,
+                    )
+                except Exception:
+                    pass
+
+            # 1) Try list_users to get metrics and progress
+            try:
+                resp = mc_client.list_users(table_id=TABLE_ID, limit=500)
+                users = resp.get("users", [])
+                my_user = next((u for u in users if u.get("username") == username), None)
+                if my_user:
+                    user_found = True
+                    existing_team_name = my_user.get("teamName")
+
+                    metrics = my_user.get("metrics") or {}
+                    if isinstance(metrics, dict) and metrics:
+                        existing_metrics_present = True
+                        try:
+                            existing_accuracy = float(metrics.get("accuracy", 0.0))
+                        except Exception:
+                            existing_accuracy = None
+
+                    # Prefer server-provided progress counters
+                    if "tasksCompleted" in my_user:
+                        existing_tasks_completed = my_user.get("tasksCompleted")
+                    if "totalTasks" in my_user:
+                        existing_total_tasks = my_user.get("totalTasks")
+                    if "questionsCorrect" in my_user:
+                        existing_questions_correct = my_user.get("questionsCorrect")
+                    if "totalQuestions" in my_user:
+                        existing_total_questions = my_user.get("totalQuestions")
+
+                    # list_users may include completedTaskIds; capture if present
+                    if "completedTaskIds" in my_user:
+                        existing_completed_task_ids = my_user.get("completedTaskIds")
+            except Exception as e:
+                _log(f"list_users failed while checking moral compass: {e}")
+
+            # 2) If we still don't have completedTaskIds, try get_user (direct)
+            if existing_completed_task_ids is None:
+                try:
+                    user_obj = mc_client.get_user(table_id=TABLE_ID, username=username)
+                    if user_obj and getattr(user_obj, "username", None):
+                        user_found = True
+                        existing_completed_task_ids = user_obj.completed_task_ids or []
+                except Exception as e:
+                    _log(f"get_user fallback failed (tasks unavailable): {e}")
+
+            # Decide whether it's safe and necessary to update
+            # Note: We only check task progress here because questions are optional and not used in score calculation
+            task_progress_known = (existing_tasks_completed is not None) or (existing_completed_task_ids is not None)
+
+            # Improvement rule:
+            # - If metrics exist, only update if new accuracy > existing accuracy
+            # - If no metrics exist and user exists, it's a first accuracy set; allowed
+            # - If user does not exist, allowed (new record)
+            improved = False
+            if user_found and existing_metrics_present and (existing_accuracy is not None):
+                try:
+                    improved = float(this_submission_score) > float(existing_accuracy)
+                except Exception:
+                    improved = False
+            elif user_found and not existing_metrics_present:
+                # First write of accuracy for existing user (no prior metrics)
+                improved = True
+            elif not user_found:
+                # New user record
+                improved = True
+
+            should_update_moral_compass = improved and task_progress_known
+
+            if should_update_moral_compass:
+                # Prepare preserved progress
+                tasks_completed = existing_tasks_completed
+                total_tasks = existing_total_tasks
+                questions_correct = existing_questions_correct
+                total_questions = existing_total_questions
+
+                # If counters are missing but we have the list, derive tasksCompleted
+                if tasks_completed is None and existing_completed_task_ids is not None:
+                    tasks_completed = len(existing_completed_task_ids)
+
+                # Fallbacks: use course total if total_tasks unknown; leave Q counters 0 if unknown
+                if total_tasks is None:
+                    total_tasks = TOTAL_COURSE_TASKS
+                if questions_correct is None:
+                    questions_correct = 0
+                if total_questions is None:
+                    total_questions = 0
+
+                update_kwargs = dict(
+                    table_id=TABLE_ID,
+                    username=username,
+                    team_name=team_name or existing_team_name,
+                    metrics={"accuracy": this_submission_score},
+                    tasks_completed=tasks_completed,
+                    total_tasks=total_tasks,
+                    questions_correct=questions_correct,
+                    total_questions=total_questions,
+                    primary_metric="accuracy",
+                )
+
+                # Only include completed_task_ids if we actually fetched them
+                if existing_completed_task_ids is not None:
+                    update_kwargs["completed_task_ids"] = existing_completed_task_ids
+
+                try:
+                    mc_client.update_moral_compass(**update_kwargs)
+                    _log(
+                        f"Moral compass updated: accuracy={this_submission_score}, "
+                        f"tasksCompleted={tasks_completed}, totalTasks={total_tasks}, "
+                        f"questionsCorrect={questions_correct}, totalQuestions={total_questions}, "
+                        f"tasks_preserved={'yes' if existing_completed_task_ids is not None else 'unknown'}"
+                    )
+                except Exception as e:
+                    _log(f"Warning: Failed to update moral compass score: {e}")
+            else:
+                _log(
+                    f"Skipping moral compass update "
+                    f"(user_found={user_found}, metrics_present={existing_metrics_present}, "
+                    f"existing_accuracy={existing_accuracy}, task_progress_known={task_progress_known}, "
+                    f"submission={this_submission_score})"
+                )
+
+        except Exception as e:
+            _log(f"Warning: Failed to initialize moral compass client or perform checks: {e}")
+            mc_client = None  # Continue app flow even if MC update fails
+        # -------------------------------------------------------------------------
+
         # Immediately increment submission count...
         new_submission_count = submission_count + 1
         new_first_submission_score = first_submission_score
         if submission_count == 0 and first_submission_score is None:
             new_first_submission_score = this_submission_score
 
-        # --- Stage 4: Local Rank Calculation (Optimistic) ---
-        progress(0.9, desc="Calculating Rank...")
+        # --- Stage 4: Fetch Moral Compass Leaderboards ---
+        progress(0.9, desc="Updating Leaderboards...")
         
-        # 3. SIMULATE UPDATED LEADERBOARD
-        simulated_df = baseline_leaderboard_df.copy() if baseline_leaderboard_df is not None else pd.DataFrame()
+        # Initialize variables for fallback
+        new_best_accuracy = this_submission_score
+        new_rank = 0
         
-        # We use pd.Timestamp.now() to ensure pandas sorting logic sees this as the absolute latest
-        new_row = pd.DataFrame([{
-            "username": username,
-            "accuracy": this_submission_score,
-            "Team": team_name,
-            "timestamp": pd.Timestamp.now(), 
-            "version": "latest"
-        }])
+        # Fetch moral compass leaderboard data
+        if mc_client:
+            try:
+                mc_leaderboard_data = get_leaderboard_data(mc_client, username, team_name)
+                if mc_leaderboard_data:
+                    # Generate moral compass leaderboard HTML
+                    team_html = render_moral_compass_leaderboard_card(mc_leaderboard_data, username, team_name)
+                    individual_html = team_html  # Same HTML contains both tabs
+                    new_rank = mc_leaderboard_data.get("rank", 0)
+                    _log(f"Moral compass leaderboard: rank={new_rank}, score={mc_leaderboard_data.get('score', 0)}")
+                else:
+                    # Fallback to old accuracy-based leaderboard if moral compass data fetch returns None
+                    _log("Warning: Moral compass leaderboard fetch returned None, using accuracy-based fallback")
+                    mc_client = None  # Trigger fallback below
+            except Exception as e:
+                _log(f"Error fetching moral compass leaderboard: {e}")
+                mc_client = None  # Trigger fallback below
         
-        if not simulated_df.empty:
-            simulated_df = pd.concat([simulated_df, new_row], ignore_index=True)
-        else:
-            simulated_df = new_row
-
-        # 4. GENERATE TABLES (Use helper for tables only)
-        # We ignore the kpi_card return from this function because it might use internal sorting 
-        # that doesn't respect our new row perfectly.
-        team_html, individual_html, _, new_best_accuracy, new_rank, _ = generate_competitive_summary(
-            simulated_df, team_name, username, last_submission_score, last_rank, submission_count
-        )
+        # Fallback to accuracy-based leaderboard if moral compass client is not available
+        if not mc_client:
+            _log("Using accuracy-based leaderboard fallback")
+            simulated_df = baseline_leaderboard_df.copy() if baseline_leaderboard_df is not None else pd.DataFrame()
+            new_row = pd.DataFrame([{
+                "username": username,
+                "accuracy": this_submission_score,
+                "Team": team_name,
+                "timestamp": pd.Timestamp.now(), 
+                "version": "latest"
+            }])
+            if not simulated_df.empty:
+                simulated_df = pd.concat([simulated_df, new_row], ignore_index=True)
+            else:
+                simulated_df = new_row
+            team_html, individual_html, _, new_best_accuracy, new_rank, _ = generate_competitive_summary(
+                simulated_df, team_name, username, last_submission_score, last_rank, submission_count
+            )
 
         # 5. GENERATE KPI CARD EXPLICITLY (The Authority Fix)
         # We manually build the card using the score we KNOW we just got.
@@ -3205,6 +3559,37 @@ def create_model_building_game_en_final_app(theme_primary_hue: str = "indigo") -
         font-size: 0.95rem;
         color: var(--text-main);
     }
+
+    /* ---------------------------------------------------- */
+    /* Moral Compass Leaderboard Styles                     */
+    /* ---------------------------------------------------- */
+    .leaderboard-card input[type="radio"] { display: none; }
+    .lb-tabs { margin-top: 12px; }
+    .lb-tab-label {
+        display: inline-block; padding: 8px 20px; cursor: pointer;
+        border-radius: 8px 8px 0 0; margin-right: 4px;
+        background: var(--background-fill-secondary);
+        color: var(--body-text-color);
+        transition: all 0.2s;
+    }
+    #lb-tab-team:checked ~ .lb-tab-panels .panel-team,
+    #lb-tab-user:checked ~ .lb-tab-panels .panel-user { display: block; }
+    #lb-tab-team:checked ~ label[for="lb-tab-team"],
+    #lb-tab-user:checked ~ label[for="lb-tab-user"] {
+        background: var(--color-accent); color: white; font-weight: 600;
+    }
+    .lb-panel { display: none; padding: 16px; border-radius: 0 8px 8px 8px;
+                background: var(--block-background-fill);
+                border: 1px solid var(--border-color-primary); }
+    .leaderboard-table { width: 100%; border-collapse: collapse; }
+    .leaderboard-table th {
+        background: var(--background-fill-secondary); padding: 10px;
+        font-weight: 600; border-bottom: 2px solid var(--border-color-primary);
+    }
+    .leaderboard-table td { padding: 10px; border-bottom: 1px solid var(--border-color-primary); }
+    .row-highlight-team { background: rgba(99, 102, 241, 0.1); font-weight: 600; }
+    .row-highlight-me { background: rgba(34, 197, 94, 0.15); font-weight: 600; }
+    .row-normal { background: transparent; }
     """
 
 
