@@ -603,6 +603,7 @@ FEATURE_SET_ALL_OPTIONS = [
     ("Race", "race"),
     ("Sex", "sex"),
     ("Charge Severity (M/F)", "c_charge_degree"),
+    ("Charge Description", "c_charge_desc"),
     ("Days Before Arrest", "days_b_screening_arrest"),
     ("Age", "age"),
     ("Length of Stay", "length_of_stay"),
