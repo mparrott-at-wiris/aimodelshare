@@ -2979,7 +2979,7 @@ def create_model_building_game_es_final_app(theme_primary_hue: str = "indigo") -
   
         # Slide 1: From Understanding to Building (Retained as transition)
         with gr.Column(visible=True, elem_id="intro-slide") as intro_slide:
-            gr.Markdown("<h1 style='text-align:center;'>🚀 El Desafío Final</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🚀 El desafío final</h1>")
             
             gr.HTML(
                 """
@@ -2995,7 +2995,7 @@ def create_model_building_game_es_final_app(theme_primary_hue: str = "indigo") -
                         </div>
         
                         <div class="final-mission-card">
-                            <h3 class="final-mission-title">🛠️ La Competición de IA Ética</h3>
+                            <h3 class="final-mission-title">🛠️ La competición de IA ética</h3>
                             <div class="final-mission-body">
                                 <p>Tu misión final es competir de nuevo contra tus compañeros construyendo el <strong>sistema de IA más preciso dentro de los estándares éticos</strong>. Una vez abordado el sesgo, la precisión vuelve a ser el foco.</p>
                                 
@@ -3009,7 +3009,7 @@ def create_model_building_game_es_final_app(theme_primary_hue: str = "indigo") -
                         </div>
                         <ul style="margin:0 0 12px 0;">
                             <li><b>Completo (100%)</b> ahora incluye <b>más de 3.000 casos adicionales</b>.</li>
-                            <li>Estrategia de modelo de <b>Voto Mayoritario</b> (Un voto mayoritario elige la mejor predicción de entre las predicciones de los cuatro modelos base).</li>
+                            <li>Estrategia de modelo de <b>Voto mayoritario</b> (Un voto mayoritario elige la mejor predicción de entre las predicciones de los cuatro modelos base).</li>
                         </ul>
         
                         <div class="final-cta-wrapper">
