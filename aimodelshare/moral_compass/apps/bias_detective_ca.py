@@ -113,7 +113,7 @@ MODULES = [
                             <div style="font-size:1.15rem; font-weight:600; line-height:1.4; color:var(--body-text-color);">
                                 El model té un 92% d'exactitud, però sospitem que hi ha un <strong style="color:#ef4444;">biaix sistemàtic ocult</strong>.
                                 <br><br>
-                                El teu objectiu: Exposar els defectes abans que aquest model es desplegui a nivell nacional.
+                                El teu objectiu: Exposar els defectes abans que aquest model es desplegui a tot el país.
                             </div>
                         </div>
                     </div>
@@ -129,7 +129,7 @@ MODULES = [
                             <summary style="padding:20px; font-weight:800; font-size:1.2rem; color:var(--body-text-color); cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between; background:rgba(239,68,68,0.1);">
                                 <div style="display:flex; align-items:center; gap:15px;">
                                     <span style="font-size:1.8rem;">⚠️</span>
-                                    <span>RISC: L'"Efecte Ona"</span>
+                                    <span>RISC: L'"efecte ona"</span>
                                 </div>
                                 <span style="font-size:0.9rem; color:#ef4444; text-transform:uppercase;">Fes clic per simular</span>
                             </summary>
@@ -138,9 +138,9 @@ MODULES = [
                                     <div style="font-size:3.5rem; line-height:1;">🌊</div>
                                     <div>
                                         <div style="font-weight:900; font-size:2.0rem; color:#ef4444; line-height:1;">15.000+</div>
-                                        <div style="font-weight:700; font-size:1.1rem; color:var(--body-text-color); margin-bottom:5px;">Casos Processats per Any</div>
+                                        <div style="font-weight:700; font-size:1.1rem; color:var(--body-text-color); margin-bottom:5px;">Casos processats per any</div>
                                         <div style="font-size:1.1rem; color:var(--body-text-color-subdued); line-height:1.5;">
-                                            Un humà comet un error una vegada. Aquesta IA repetirà el mateix biaix <strong style="color:var(--body-text-color);">15.000+ vegades a l'any</strong>.
+                                            Un humà comet un error una vegada. Un sistema d'IA repetirà el mateix biaix <strong style="color:var(--body-text-color);">15.000+ vegades a l'any</strong>.
                                             <br>Si no ho arreglem, automatitzarem la injustícia a gran escala.
                                         </div>
                                     </div>
@@ -152,36 +152,36 @@ MODULES = [
                             <summary style="padding:20px; font-weight:800; font-size:1.2rem; color:var(--body-text-color); cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between; background:rgba(34,197,94,0.1);">
                                 <div style="display:flex; align-items:center; gap:15px;">
                                     <span style="font-size:1.8rem;">🧭</span>
-                                    <span>OBJECTIU: Com Guanyar</span>
+                                    <span>OBJECTIU: Com guanyar</span>
                                 </div>
                                 <span style="font-size:0.9rem; color:#22c55e; text-transform:uppercase;">Fes clic per calcular</span>
                             </summary>
                             <div style="padding:25px; border-top:1px solid var(--border-color-primary);">
                                 <div style="text-align:center; margin-bottom:20px;">
                                     <div style="font-size:1.4rem; font-weight:800; background:var(--background-fill-primary); border:1px solid var(--border-color-primary); padding:15px; border-radius:10px; display:inline-block; color:var(--body-text-color);">
-                                        <span style="color:#6366f1;">[ Exactitud ]</span>
+                                        <span style="color:#6366f1;">[ Precisió ]</span>
                                         <span style="color:var(--body-text-color-subdued); margin:0 10px;">×</span>
-                                        <span style="color:#22c55e;">[ % Progrés Ètic ]</span>
+                                        <span style="color:#22c55e;">[ % Progrés ètic ]</span>
                                         <span style="color:var(--body-text-color-subdued); margin:0 10px;">=</span>
                                         PUNTUACIÓ
                                     </div>
                                 </div>
                                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
                                     <div style="padding:15px; background:rgba(254,226,226,0.1); border:2px solid #fecaca; border-radius:10px; text-align:center;">
-                                        <div style="font-weight:700; color:#ef4444; margin-bottom:5px;">Escenari A: Ètica Ignorada</div>
-                                        <div style="font-size:0.95rem; color:var(--body-text-color);">Alta Exactitud (92%)</div>
+                                        <div style="font-weight:700; color:#ef4444; margin-bottom:5px;">Escenari A: Ètica ignorada</div>
+                                        <div style="font-size:0.95rem; color:var(--body-text-color);">Alta precisió (92%)</div>
                                         <div style="font-size:0.95rem; color:var(--body-text-color);">0% Ètica</div>
                                         <div style="margin-top:10px; border-top:1px solid #fecaca; padding-top:5px;">
-                                            <div style="font-size:0.8rem; text-transform:uppercase; color:#ef4444;">Puntuació Final</div>
+                                            <div style="font-size:0.8rem; text-transform:uppercase; color:#ef4444;">Puntuació final</div>
                                             <div style="font-size:2.5rem; font-weight:900; color:#ef4444;">0</div>
                                         </div>
                                     </div>
                                     <div style="padding:15px; background:rgba(220,252,231,0.1); border:2px solid #bbf7d0; border-radius:10px; text-align:center;">
-                                        <div style="font-weight:700; color:#22c55e; margin-bottom:5px;">Escenari B: Veritable Detectiu</div>
-                                        <div style="font-size:0.95rem; color:var(--body-text-color);">Alta Exactitud (92%)</div>
+                                        <div style="font-weight:700; color:#22c55e; margin-bottom:5px;">Escenari B: Detectiu rigorós</div>
+                                        <div style="font-size:0.95rem; color:var(--body-text-color);">Alta precisió (92%)</div>
                                         <div style="font-size:0.95rem; color:var(--body-text-color);">100% Ètica</div>
                                         <div style="margin-top:10px; border-top:1px solid #bbf7d0; padding-top:5px;">
-                                            <div style="font-size:0.8rem; text-transform:uppercase; color:#15803d;">Puntuació Final</div>
+                                            <div style="font-size:0.8rem; text-transform:uppercase; color:#15803d;">Puntuació final</div>
                                             <div style="font-size:2.5rem; font-weight:900; color:#22c55e;">92</div>
                                         </div>
                                     </div>
@@ -207,7 +207,7 @@ MODULES = [
     # --- MODULE 1: THE MAP (Mission Roadmap) ---
     {
         "id": 1,
-        "title": "Full de Ruta de la Missió",
+        "title": "Full de ruta de la missió",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
@@ -216,7 +216,7 @@ MODULES = [
 
                     <p style="font-size:1.1rem; max-width:800px; margin:0 auto 25px auto; text-align:center; color:var(--body-text-color);">
                         <strong>La teva missió és clara:</strong> Descobrir el biaix amagat dins del 
-                        sistema d'IA abans que faci mal a persones reals. Si no pots trobar el biaix, no el podem arreglar.
+                        sistema d'IA abans que faci mal a persones reals. Si no pots trobar el biaix, no el podem corregir.
                     </p>
 
                     <div class="ai-risk-container" style="background:transparent; border:none; padding:0;">
@@ -226,36 +226,36 @@ MODULES = [
                             <div style="border: 3px solid #3b82f6; background: rgba(59, 130, 246, 0.1); border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                                 <div style="position:absolute; top:-15px; left:15px; background:#3b82f6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PAS 1: REGLES</div>
                                 <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">📜</div>
-                                <div style="font-weight:800; font-size:1.2rem; color:#3b82f6; margin-bottom:5px;">Establir les Regles</div>
+                                <div style="font-weight:800; font-size:1.2rem; color:#3b82f6; margin-bottom:5px;">Establir les regles</div>
                                 <div style="font-size:1.0rem; color:var(--body-text-color); font-weight:500; line-height:1.4;">
-                                    Defineix l'estàndard ètic: <strong>Justícia i Equitat</strong>. Què compta específicament com a biaix en aquesta investigació?
+                                    Defineix l'estàndard ètic: <strong>Justícia i Equitat</strong>. Què es considera exactament biaix en aquesta investigació?
                                 </div>
                             </div>
 
                             <div style="border: 3px solid #14b8a6; background: rgba(20, 184, 166, 0.1); border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                                <div style="position:absolute; top:-15px; left:15px; background:#14b8a6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PAS 2: EVIDÈNCIA DE DADES</div>
+                                <div style="position:absolute; top:-15px; left:15px; background:#14b8a6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PAS 2: EVIDÈNCIES EN LES DADES</div>
                                 <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">🔍</div>
-                                <div style="font-weight:800; font-size:1.2rem; color:#14b8a6; margin-bottom:5px;">Forensia de Dades d'Entrada</div>
+                                <div style="font-weight:800; font-size:1.2rem; color:#14b8a6; margin-bottom:5px;">Anàlisi forense de les dades d'entrada</div>
                                 <div style="font-size:1.0rem; color:var(--body-text-color); font-weight:500; line-height:1.4;">
-                                    Escaneja les <strong>Dades d'Entrada</strong> per trobar injustícies històriques, buits de representació i biaixos d'exclusió.
+                                    Escaneja les <strong>dades d'entrada</strong> per trobar injustícies històriques, buits de representació i biaixos d'exclusió.
                                 </div>
                             </div>
 
                             <div style="border: 3px solid #8b5cf6; background: rgba(139, 92, 246, 0.1); border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                                <div style="position:absolute; top:-15px; left:15px; background:#8b5cf6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PAS 3: PROVAR ERROR</div>
+                                <div style="position:absolute; top:-15px; left:15px; background:#8b5cf6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PAS 3: PROVES D'ERROR</div>
                                 <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">🎯</div>
-                                <div style="font-weight:800; font-size:1.2rem; color:#8b5cf6; margin-bottom:5px;">Proves d'Error de Sortida</div>
+                                <div style="font-weight:800; font-size:1.2rem; color:#8b5cf6; margin-bottom:5px;">Proves dels errors de sortida</div>
                                 <div style="font-size:1.0rem; color:var(--body-text-color); font-weight:500; line-height:1.4;">
-                                    Prova les prediccions del model. Demostra que els errors (Falses Alarmes) són <strong>desiguals</strong> entre grups.
+                                    Posa a prova les prediccions del model. Demostra que els errors (com les falses alarmes) són <strong>desiguals</strong> entre grups.
                                 </div>
                             </div>
 
                             <div style="border: 3px solid #f97316; background: rgba(249, 115, 22, 0.1); border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                                <div style="position:absolute; top:-15px; left:15px; background:#f97316; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PAS 4: REPORTAR IMPACTE</div>
+                                <div style="position:absolute; top:-15px; left:15px; background:#f97316; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">PAS 4: INFORME D'IMPACTE</div>
                                 <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">⚖️</div>
-                                <div style="font-weight:800; font-size:1.2rem; color:#f97316; margin-bottom:5px;">L'Informe Final</div>
+                                <div style="font-weight:800; font-size:1.2rem; color:#f97316; margin-bottom:5px;">Informe final</div>
                                 <div style="font-size:1.0rem; color:var(--body-text-color); font-weight:500; line-height:1.4;">
-                                    Diagnostica el dany sistemàtic i emet la teva recomanació final al tribunal: <strong>Desplegar el Sistema d'IA o Pausar per Reparar.</strong>
+                                    Diagnostica el dany sistemàtic i emet la teva recomanació final al tribunal: <strong>desplegar el sistema d'IA o aturar-lo per reparar-lo.</strong>
                                 </div>
                             </div>
 
@@ -285,9 +285,9 @@ MODULES = [
             <div class="scenario-box">
                 <div class="tracker-container">
                     <div class="tracker-step active">1. REGLES</div>
-                    <div class="tracker-step">2. EVIDÈNCIA</div>
-                    <div class="tracker-step">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICTE</div>
+                    <div class="tracker-step">2. EVIDÈNCIES</div>
+                    <div class="tracker-step">3. ERRORS</div>
+                    <div class="tracker-step">4. VEREDICTE</div>
                 </div>
 
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -299,20 +299,20 @@ MODULES = [
 
                     <div style="background:rgba(59, 130, 246, 0.1); border-left:4px solid #3b82f6; padding:15px; margin-bottom:20px; border-radius:4px; color: var(--body-text-color);">
                         <p style="margin:0; font-size:1.05rem; line-height:1.5;">
-                            <strong style="color:var(--color-accent);">Justícia i Equitat: La Teva Regla Principal.</strong><br>
-                            L'ètica no és abstracta aquí, és la nostra guia de camp per a l'acció. Confiem en l'assessorament expert de l'Observatori d'Ètica en Intel·ligència Artificial de Catalunya <strong>OEIAC (UdG)</strong> per assegurar que els sistemes d'IA siguin justos.
-                            Tot i que han definit 7 principis bàsics d'IA segura, la nostra informació suggereix que aquest cas específic implica una violació de <strong>Justícia i Equitat</strong>.
+                            <strong style="color:var(--color-accent);">Justícia i Equitat: La teva regla principal.</strong><br>
+                            L’ètica guia les nostres accions. Seguim l’assessorament expert de l'Observatori d'Ètica en Intel·ligència Artificial de Catalunya <strong>OEIAC (UdG)</strong> per garantir que els sistemes d’IA siguin justos.
+                            Dels seus set principis clau per a una IA segura, aquest cas se centra en una possible vulneració de la <strong>Justícia i Equitat</strong>.
                         </p>
                     </div>
 
                     <div style="text-align:center; margin-bottom:20px;">
                         <p style="font-size:1rem; font-weight:700; color:var(--color-accent); background:rgba(59, 130, 246, 0.1); display:inline-block; padding:6px 16px; border-radius:20px; border:1px solid var(--border-color-primary);">
-                            👇 Fes clic a cada targeta per revelar què compta com a biaix
+                            👇 Fes clic a cada targeta per revelar què es considera biaix
                         </p>
                     </div>
 
                     <p style="text-align:center; font-weight:700; color:var(--body-text-color-subdued); margin-bottom:10px; font-size:0.9rem; letter-spacing:1px;">
-                        🧩 JUSTÍCIA I EQUITAT: QUÈ COMPTA COM A BIAIX?
+                        🧩 JUSTÍCIA I EQUITAT: QUÈ ES CONSIDERA BIAIX?
                     </p>
 
                     <div class="ai-risk-container" style="background:transparent; border:none; padding:0;">
@@ -321,36 +321,36 @@ MODULES = [
                             <details style="cursor:pointer; background:var(--background-fill-secondary); padding:15px; border-radius:10px; border:1px solid #3b82f6; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                                 <summary style="list-style:none; font-weight:800; color:#3b82f6; text-align:center; font-size:1.0rem;">
                                     <div style="font-size:2rem; margin-bottom:5px;">📊</div>
-                                    Biaix de Representació
+                                    Biaix de representació
                                 </summary>
                                 <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); border-top:1px solid var(--border-color-primary); padding-top:10px; line-height:1.4;">
-                                    <strong>Definició:</strong> Compara la distribució del conjunt de dades amb la distribució real del món real.
+                                    <strong>Què comprova:</strong> Si el conjunt de dades reflecteix la població real.
                                     <br><br>
-                                    Si un grup apareix molt menys (p. ex., només el 10% dels casos són del Grup A, però són el 71% de la població) o molt més que la realitat, la IA probablement aprendrà patrons esbiaixats.
+                                    Si un grup apareix molt més o molt menys (p. ex., només el 10% dels casos són del Grup A, però són el 71% de la població) que la realitat, la IA probablement aprendrà patrons esbiaixats.
                                 </div>
                             </details>
 
                             <details style="cursor:pointer; background:var(--background-fill-secondary); padding:15px; border-radius:10px; border:1px solid #ef4444; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                                 <summary style="list-style:none; font-weight:800; color:#ef4444; text-align:center; font-size:1.0rem;">
                                     <div style="font-size:2rem; margin-bottom:5px;">🎯</div>
-                                    Bretxes d'Error
+                                    Diferències d'error
                                 </summary>
                                 <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); border-top:1px solid var(--border-color-primary); padding-top:10px; line-height:1.4;">
-                                    <strong>Definició:</strong> Comprova els errors de predicció de la IA per subgrup (p. ex., Taxa de Falsos Positius per al Grup A vs. Grup B).
+                                    <strong>Què comprova:</strong> Si la IA comet més errors amb un grup que amb un altre.
                                     <br><br>
-                                    Un error més alt per a un grup indica risc de tracte injust, mostrant que el model pot ser menys fiable per a aquest grup específic.
+                                    Taxes d’error més altes per a un grup (com ara falsos positius) indiquen que el model pot ser menys just o fiable per a aquest grup.
                                 </div>
                             </details>
 
                             <details style="cursor:pointer; background:var(--background-fill-secondary); padding:15px; border-radius:10px; border:1px solid #22c55e; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                                 <summary style="list-style:none; font-weight:800; color:#22c55e; text-align:center; font-size:1.0rem;">
                                     <div style="font-size:2rem; margin-bottom:5px;">⛓️</div>
-                                    Disparitats de Resultats
+                                    Desigualtats en els resultats
                                 </summary>
                                 <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); border-top:1px solid var(--border-color-primary); padding-top:10px; line-height:1.4;">
-                                    <strong>Definició:</strong> Busca pitjors resultats al món real després de les prediccions de la IA (p. ex., sentències més dures).
+                                    <strong>Què comprova:</strong> Si les decisions de la IA provoquen pitjors resultats reals per a determinats grups (per exemple, sentències més severes).
                                     <br><br>
-                                    El biaix no són només números: canvia els resultats del món real per a les persones.
+                                    El biaix no és només una qüestió de dades: afecta la vida de les persones.
                                 </div>
                             </details>
                         </div>
@@ -359,12 +359,12 @@ MODULES = [
                     <hr style="opacity:0.2; margin:25px 0; border-color:var(--body-text-color);">
 
                     <details class="hint-box" style="margin-top:0; cursor:pointer;">
-                        <summary style="font-weight:700; color:var(--body-text-color-subdued);">🧭 Referència: Altres Principis d'Ètica en IA (OEIAC)</summary>
+                        <summary style="font-weight:700; color:var(--body-text-color-subdued);">🧭 Referència: Altres principis d'ètica en IA (OEIAC)</summary>
                         <div style="margin-top:15px; font-size:0.9rem; display:grid; grid-template-columns: 1fr 1fr; gap:15px; color:var(--body-text-color);">
                             <div>
-                                <strong>Transparència i Explicabilitat</strong><br>Assegurar que el raonament de la IA i el judici final siguin clars perquè les decisions es puguin inspeccionar i la gent pugui apel·lar.<br>
-                                <strong>Seguretat i No-maleficència</strong><br>Minimitzar els errors nocius i tenir sempre un pla sòlid per a fallades del sistema.<br>
-                                <strong>Responsabilitat i Rendició de Comptes</strong><br>Assignar propietaris clars per a la IA i mantenir un registre detallat de les decisions (rastre d'auditoria).
+                                <strong>Transparència i explicabilitat</strong><br>Assegurar que el raonament de la IA i el judici final siguin clars perquè les decisions es puguin inspeccionar i la gent pugui apel·lar.<br>
+                                <strong>Seguretat i no-maleficència</strong><br>Minimitzar els errors nocius i tenir sempre un pla sòlid per a fallades del sistema.<br>
+                                <strong>Responsabilitat i rendició de comptes</strong><br>Assignar propietaris clars per a la IA i mantenir un registre detallat de les decisions (rastre d'auditoria).
                             </div>
                             <div>
                                 <strong>Autonomia</strong><br>Proporcionar als individus processos clars d'apel·lació i alternatives a la decisió de la IA.<br>
@@ -395,20 +395,20 @@ MODULES = [
             <div class="scenario-box">
                 <div class="tracker-container">
                     <div class="tracker-step completed">1. REGLES</div>
-                    <div class="tracker-step active">2. EVIDÈNCIA</div>
-                    <div class="tracker-step">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICTE</div>
+                    <div class="tracker-step active">2. EVIDÈNCIES</div>
+                    <div class="tracker-step">3. ERRORS</div>
+                    <div class="tracker-step">4. VEREDICTE</div>
                 </div>
 
         <div class="slide-body">
-            <h2 class="slide-title" style="margin:0;">PAS 2: CERCA DE L'EVIDÈNCIA</h2>
+            <h2 class="slide-title" style="margin:0;">PAS 2: BUSCA EVIDÈNCIES</h2>
 
             <div style="text-align:center; margin-bottom:20px;">
 
-                <h2 class="slide-title header-accent" style="margin-top:10px;">La Recerca de Patrons Demogràfics Esbiaixats</h2>
+                <h2 class="slide-title header-accent" style="margin-top:10px;">A la recerca de patrons demogràfics esbiaixats</h2>
                 <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                    Una IA només és tan justa com les dades de les quals aprèn. Si les dades d'entrada distorsionen la realitat, la IA probablement distorsionarà la justícia.
-                    <br>El primer pas és buscar patrons que revelin <strong>Biaix de Representació.</strong>  Per trobar biaix de representació hem d'inspeccionar la <strong>Demografia.</strong>.
+                    Els sistemes d’IA aprenen a partir de les dades. Si les dades estan esbiaixades, el sistema també ho estarà.
+                    <br>La primera tasca és identificar el <strong>biaix de representació,</strong> comprovant quins <strong>grups demogràfics</strong> apareixen més o menys sovint en les dades.
                 </p>
             </div>
 
@@ -418,7 +418,7 @@ MODULES = [
                     <div style="font-size:1.5rem;">🚩</div>
                     <div>
                         <strong style="color:#0ea5e9; font-size:1.1rem; text-transform:uppercase; letter-spacing:1px;">PATRÓ: "EL MIRALL DISTORSIONAT"</strong>
-                        <div style="font-size:0.9rem; color:var(--body-text-color-subdued);">(Biaix de Representació en Grups Protegits)</div>
+                        <div style="font-size:0.9rem; color:var(--body-text-color-subdued);">(Biaix de representació en grups protegits)</div>
                     </div>
                 </div>
 
@@ -426,22 +426,22 @@ MODULES = [
                     
                     <div style="color: var(--body-text-color);">
                         <p style="font-size:1rem; line-height:1.6;">
-                            <strong>El Concepte:</strong> Idealment, un conjunt de dades hauria de semblar un "Mirall" de la població real. 
-                            Si un grup constitueix el 50% de la població, generalment hauria de constituir ~50% de les dades.
+                            <strong>El concepte del mirall:</strong> Idealment, un conjunt de dades hauria de ser com un "mirall" de la població real. 
+                            Si un grup constitueix el 50% de la població, hauria d’aparèixer en una proporció similar en les dades.
                         </p>
                         <p style="font-size:1rem; line-height:1.6;">
-                            <strong>La Bandera Vermella:</strong> Busca <strong>Desequilibris Dràstics</strong> en Característiques Protegides (Raça, Gènere, Edat).
+                            <strong>Senyal d'alerta:</strong> Busca <strong>grans desequilibris</strong> en característiques protegides com l'origen ètnic, el gènere o l'edat.
                         </p>
                         <ul style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:10px; padding-left:20px; line-height:1.5;">
-                            <li><strong>Sobrerrepresentació:</strong> Un grup té una "Barra Gegant" (p. ex., el 80% dels registres d'arrest són Homes). La IA aprèn a apuntar a aquest grup.</li>
-                            <li><strong>Infrarrepresentació:</strong> Un grup falta o és petit. La IA no aconsegueix aprendre patrons precisos per a ells.</li>
+                            <li><strong>Sobrerrepresentació:</strong> Un grup domina les dades (p. ex., el 80% dels registres d'arrest són Homes). El sistema pot acabar tractant aquest grup de manera injusta.</li>
+                            <li><strong>Infrarrepresentació:</strong> Un grup és molt petit o no apareix. El sistema no pot aprendre patrons fiables per a aquest grup.</li>
                         </ul>
                     </div>
 
                     <div style="background:var(--background-fill-primary); padding:20px; border-radius:12px; border:1px solid var(--border-color-primary); display:flex; flex-direction:column; justify-content:center;">
                         
                         <div style="margin-bottom:20px;">
-                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color-subdued); margin-bottom:5px;">REALITAT (La Població)</div>
+                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color-subdued); margin-bottom:5px;">REALITAT (La població)</div>
                             <div style="display:flex; width:100%; height:24px; border-radius:4px; overflow:hidden;">
                                 <div style="width:33%; background:#94a3b8; display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem;">Grup A</div>
                                 <div style="width:34%; background:#64748b; display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem;">Grup B</div>
@@ -450,7 +450,7 @@ MODULES = [
                         </div>
 
                         <div>
-                            <div style="font-size:0.85rem; font-weight:700; color:#0ea5e9; margin-bottom:5px;">LES DADES D'ENTRENAMENT (El Mirall Distorsionat)</div>
+                            <div style="font-size:0.85rem; font-weight:700; color:#0ea5e9; margin-bottom:5px;">LES DADES D'ENTRENAMENT (El mirall distorsionat)</div>
                             <div style="display:flex; width:100%; height:24px; border-radius:4px; overflow:hidden;">
                                 <div style="width:80%; background:linear-gradient(90deg, #f43f5e, #be123c); display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem; font-weight:700;">GRUP A (80%)</div>
                                 <div style="width:10%; background:#cbd5e1;"></div>
@@ -467,7 +467,7 @@ MODULES = [
 
             <div style="margin-bottom: 25px; padding: 0 10px;">
                 <p style="font-size:1.1rem; line-height:1.5; color:var(--body-text-color);">
-                    <strong>🕵️ El Teu Proper Pas:</strong> Has d'entrar al Laboratori Forense de Dades i comprovar les dades per a categories demogràfiques específiques. Si els patrons s'assemblen al "Mirall Distorsionat" de dalt, les dades probablement són insegures.
+                    <strong>🕵️ El següent pas:</strong> Revisa les dades demogràfiques al laboratori d’anàlisi forense de dades. Si veus un "mirall distorsionat", les dades probablement estan esbiaixades.
                 </p>
             </div>
 
@@ -475,7 +475,7 @@ MODULES = [
                 <summary style="font-weight:700; color:var(--body-text-color-subdued); font-size:0.95rem;">🧭 Referència: Com esdevenen esbiaixats els conjunts de dades d'IA?</summary>
                 <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color-subdued); line-height:1.5; padding:0 5px;">
                     <p style="margin-bottom:10px;"><strong>Exemple:</strong> Quan un conjunt de dades es construeix a partir de <strong>registres històrics d'arrests</strong>.</p>
-                    <p>L'excés de vigilància policial sistèmic en barris específics podria distorsionar els recomptes en el conjunt de dades per atributs com <strong>Raça o Ingressos</strong>.
+                    <p>L'excés de vigilància policial sistèmic en barris específics podria distorsionar els recomptes en el conjunt de dades per atributs com <strong>Origen ètnic o ingressos</strong>.
                      La IA llavors aprèn aquesta distorsió com a "veritat".</p>
                 </div>
             </details>
@@ -497,32 +497,32 @@ MODULES = [
     # --- MODULE 4: DATA FORENSICS LAB (The Action) ---
     {
         "id": 4, 
-        "title": "Pas 2: Laboratori Forense de Dades",
+        "title": "Pas 2: Laboratori forense de dades",
         "html": """
             <div class="scenario-box">
                 <div class="tracker-container">
                     <div class="tracker-step completed">1. REGLES</div>
-                    <div class="tracker-step active">2. EVIDÈNCIA</div>
-                    <div class="tracker-step">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICTE</div>
+                    <div class="tracker-step active">2. EVIDÈNCIES</div>
+                    <div class="tracker-step">3. ERRORS</div>
+                    <div class="tracker-step">4. VEREDICTE</div>
                 </div>
 
-           <h2 class="slide-title" style="margin:0;">PAS 2: CERCA DE L'EVIDÈNCIA</h2>
+           <h2 class="slide-title" style="margin:0;">PAS 2: BUSCA EVIDÈNCIES</h2>
 
             <div style="text-align:center; margin-bottom:20px;">
 
-                <h2 class="slide-title header-accent" style="margin-top:10px;">El Laboratori Forense de Dades</h2>                
+                <h2 class="slide-title header-accent" style="margin-top:10px;">El laboratori forense de dades</h2>                
                 <div class="slide-body">
 
                     <p style="text-align:center; max-width:700px; margin:0 auto 15px auto; font-size:1.1rem; color:var(--body-text-color);">
-                        Busca evidències de Biaix de Representació.
-                        Compara la població del **Món Real** amb les **Dades d'Entrada** de la IA.
-                        <br>La IA "veu" el món tal com és realment o veus evidència de representació distorsionada?
+                        Busca evidències de biaix de representació.
+                        Compara la població del <strong>món real</strong> amb les dades d’<strong>entrada</strong> del sistema d’IA.
+                        <br>El sistema "veu" el món tal com és realment o veus evidències de representació distorsionada?
                     </p>
 
                 <div style="text-align:center; margin-bottom:20px;">
                     <p style="font-size:1rem; font-weight:700; color:var(--color-accent); background:rgba(59, 130, 246, 0.1); display:inline-block; padding:6px 16px; border-radius:20px; border:1px solid var(--border-color-primary);">
-                        👇 Fes clic per escanejar cada categoria demogràfica i revelar l'evidència
+                        👇 Fes clic per escanejar cada categoria demogràfica i revelar evidències
                     </p>
                </div>
 
@@ -532,16 +532,16 @@ MODULES = [
                         <input type="radio" id="scan-age" name="scan-tabs" class="scan-radio">
 
                         <div class="forensic-tabs" style="display:flex; justify-content:center; gap:10px; margin-bottom:0;">
-                            <label for="scan-race" class="tab-label-styled" style="flex:1; text-align:center;">ESCAN: RAÇA</label>
-                            <label for="scan-gender" class="tab-label-styled" style="flex:1; text-align:center;">ESCAN: GÈNERE</label>
-                            <label for="scan-age" class="tab-label-styled" style="flex:1; text-align:center;">ESCAN: EDAT</label>
+                            <label for="scan-race" class="tab-label-styled" style="flex:1; text-align:center;">ESCANEIG: ÈTNIA</label>
+                            <label for="scan-gender" class="tab-label-styled" style="flex:1; text-align:center;">ESCANEIG: GÈNERE</label>
+                            <label for="scan-age" class="tab-label-styled" style="flex:1; text-align:center;">ESCANEIG: EDAT</label>
                         </div>
 
                         <div class="scan-content" style="border-top: 3px solid var(--color-accent);">
 
                             <div class="scan-pane pane-race">
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; background:#1e293b; color:white; padding:10px 15px; border-radius:6px;">
-                                    <span style="font-family:monospace; letter-spacing:1px;">ESCANEJANT: DISTRIBUCIÓ RACIAL</span>
+                                    <span style="font-family:monospace; letter-spacing:1px;">ESCANEJANT: DISTRIBUCIÓ ÈTNICA</span>
                                     <span style="color:#ef4444; font-weight:bold; animation: blink 1.5s infinite;">⚠️ ANOMALIA DETECTADA</span>
                                 </div>
 
@@ -550,7 +550,7 @@ MODULES = [
                                     <div style="text-align:center; background:var(--background-fill-secondary); padding:15px; border-radius:8px; border:1px solid var(--border-color-primary);">
                                         <div style="font-size:0.9rem; font-weight:700; color:var(--body-text-color-subdued); letter-spacing:1px;">MÓN REAL</div>
                                         <div style="font-size:2rem; font-weight:900; color:#3b82f6; margin:5px 0;">28%</div>
-                                        <div style="font-size:0.9rem; margin-bottom:10px; color: var(--body-text-color);">Població Afroamericana</div>
+                                        <div style="font-size:0.9rem; margin-bottom:10px; color: var(--body-text-color);">Població afroamericana</div>
                                         <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:4px; max-width:80px; margin:0 auto;">
                                             <span style="color:#3b82f6;">●</span><span style="color:#3b82f6;">●</span><span style="color:#3b82f6;">●</span><span style="color:var(--border-color-primary);">●</span>
                                             <span style="color:var(--border-color-primary);">●</span><span style="color:var(--border-color-primary);">●</span><span style="color:var(--border-color-primary);">●</span><span style="color:var(--border-color-primary);">●</span>
@@ -563,7 +563,7 @@ MODULES = [
                                     <div style="text-align:center; background:rgba(239, 68, 68, 0.1); padding:15px; border-radius:8px; border:2px solid #ef4444;">
                                         <div style="font-size:0.9rem; font-weight:700; color:#ef4444; letter-spacing:1px;">DADES D'ENTRADA</div>
                                         <div style="font-size:2rem; font-weight:900; color:#ef4444; margin:5px 0;">51%</div>
-                                        <div style="font-size:0.9rem; margin-bottom:10px; color: var(--body-text-color);">Registres Afroamericans</div>
+                                        <div style="font-size:0.9rem; margin-bottom:10px; color: var(--body-text-color);">Registres afroamericans</div>
                                         <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:4px; max-width:80px; margin:0 auto;">
                                             <span style="color:#ef4444;">●</span><span style="color:#ef4444;">●</span><span style="color:#ef4444;">●</span><span style="color:#ef4444;">●</span>
                                             <span style="color:#ef4444;">●</span><span style="color:#ef4444;">●</span><span style="color:rgba(239, 68, 68, 0.3);">●</span><span style="color:rgba(239, 68, 68, 0.3);">●</span>
@@ -574,9 +574,9 @@ MODULES = [
                                 </div>
 
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
-                                    <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDÈNCIA REGISTRADA: Biaix de Representació Racial</div>
+                                    <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDÈNCIA REGISTRADA: Biaix de representació d'origen ètnic</div>
                                     <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        La IA està **sobre-exposada** a aquest grup (51% vs 28%). Pot aprendre a associar "Alt Risc" amb aquesta demografia simplement perquè els veu més sovint als registres d'arrest.
+                                        El sistema d’IA veu aquest grup ètnic massa sovint (51% vs 28%). Pot associar “alt risc” amb les persones d’aquest grup només perquè apareixen més en els registres d’arrestos.
                                     </div>
                                 </div>
                             </div>
@@ -584,26 +584,26 @@ MODULES = [
                             <div class="scan-pane pane-gender">
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; background:#1e293b; color:white; padding:10px 15px; border-radius:6px;">
                                     <span style="font-family:monospace; letter-spacing:1px;">ESCANEJANT: EQUILIBRI DE GÈNERE</span>
-                                    <span style="color:#ef4444; font-weight:bold; animation: blink 1.5s infinite;">⚠️ BUID DE DADES TROBAT</span>
+                                    <span style="color:#ef4444; font-weight:bold; animation: blink 1.5s infinite;">⚠️ ABSÈNCIA DE DADES TROBAT</span>
                                 </div>
                                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
                                     <div style="text-align:center; padding:20px; background:var(--background-fill-secondary); border-radius:8px; border:1px solid var(--border-color-primary);">
                                         <div style="font-size:4rem; line-height:1;">♂️</div>
                                         <div style="font-size:2.2rem; font-weight:900; color:#3b82f6;">81%</div>
                                         <div style="font-weight:700; color:var(--body-text-color-subdued);">HOMES</div>
-                                        <div style="font-size:0.85rem; color:#16a34a; font-weight:600; margin-top:5px;">✅ Ben Representats</div>
+                                        <div style="font-size:0.85rem; color:#16a34a; font-weight:600; margin-top:5px;">✅ Ben representats</div>
                                     </div>
                                     <div style="text-align:center; padding:20px; background:rgba(225, 29, 72, 0.1); border-radius:8px; border:2px solid #fda4af;">
                                         <div style="font-size:4rem; line-height:1; opacity:0.5;">♀️</div>
                                         <div style="font-size:2.2rem; font-weight:900; color:#e11d48;">19%</div>
                                         <div style="font-weight:700; color:#fb7185;">DONES</div>
-                                        <div style="font-size:0.85rem; color:#e11d48; font-weight:600; margin-top:5px;">⚠️ Dades Insuficients</div>
+                                        <div style="font-size:0.85rem; color:#e11d48; font-weight:600; margin-top:5px;">⚠️ Dades insuficients</div>
                                     </div>
                                 </div>
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
-                                    <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDÈNCIA REGISTRADA: Biaix de Representació de Gènere</div>
+                                    <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDÈNCIA REGISTRADA: Biaix de representació de gènere</div>
                                     <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        Les dones són una "classe minoritària" en aquest conjunt de dades tot i que típicament constitueixen el 50% de la població real. El model probablement tindrà dificultats per aprendre patrons precisos per a elles, donant lloc a **taxes d'error més altes** per a les acusades.
+                                        Les dones són una classe minoritària en aquest conjunt de dades, tot i que representen aproximadament el 50 % de la població real. El model probablement tindrà dificultats per aprendre patrons precisos per a aquest grup, fet que comportarà **taxes d'error més altes** en les prediccions sobre dones preses.
                                     </div>
                                 </div>
                             </div>
@@ -637,9 +637,9 @@ MODULES = [
                                 </div>
 
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
-                                    <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDÈNCIA REGISTRADA: Biaix de Representació d'Edat</div>
+                                    <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDÈNCIA REGISTRADA: Biaix de representació d'edat</div>
                                     <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        Les dades es concentren en la "Bombolla" d'edat de 25-45. El model té un **punt cec** per a persones més joves i més grans, el que significa que les prediccions per a aquests grups seran poc fiables (Error de Generalització).
+                                        Les dades estan concentrades principalment en persones de 25 a 45 anys, la “bombolla d’edat.” El model té un punt cec amb els més joves i els més grans, així que les prediccions per a aquests grups probablement no seran fiables (error de generalització).
                                     </div>
                                 </div>
                             </div>
@@ -664,18 +664,18 @@ MODULES = [
     # --- MODULE 4: EVIDENCE REPORT (Input Flaws) ---
     {
         "id":5,
-        "title": "Informe d'Evidència: Defectes d'Entrada",
+        "title": "Informe d'evidències: Defectes d'entrada",
         "html": """
             <div class="scenario-box">
                 <div class="tracker-container">
                     <div class="tracker-step completed">✓ REGLES</div>
-                    <div class="tracker-step completed">✓ EVIDÈNCIA</div>
-                    <div class="tracker-step active">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICTE</div>
+                    <div class="tracker-step completed">✓ EVIDÈNCIES</div>
+                    <div class="tracker-step active">3. ERRORS</div>
+                    <div class="tracker-step">4. VEREDICTE</div>
                 </div>
-                <h2 class="slide-title" style="font-size:1.6rem; text-align:center; margin-bottom:15px;">Informe Forense de Dades: Defectes d'Entrada</h2>
+                <h2 class="slide-title" style="font-size:1.6rem; text-align:center; margin-bottom:15px;">Informe forense de dades: Defectes d'entrada</h2>
                 <div class="ai-risk-container" style="border: 2px solid #ef4444; background: rgba(239,68,68,0.05); padding: 20px;">
-                    <h4 style="margin-top:0; font-size:1.2rem; color:#b91c1c; text-align:center;">📋 RESUM D'EVIDÈNCIA</h4>
+                    <h4 style="margin-top:0; font-size:1.2rem; color:#b91c1c; text-align:center;">📋 RESUM D'EVIDÈNCIES</h4>
                     <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
                         <thead>
                             <tr style="background: rgba(239,68,68,0.1); border-bottom: 2px solid #ef4444;">
@@ -686,19 +686,19 @@ MODULES = [
                         </thead>
                         <tbody>
                             <tr style="border-bottom: 1px solid var(--border-color-primary);">
-                                <td style="padding: 8px; font-weight:700;">Raça</td>
+                                <td style="padding: 8px; font-weight:700;">Ètnia</td>
                                 <td style="padding: 8px;">Sobrerrepresentada (51%)</td>
-                                <td style="padding: 8px; color:#b91c1c;">Risc d'Augment de l'Error de Predicció</td>
+                                <td style="padding: 8px; color:#b91c1c;">Risc d'augment de l'error de predicció</td>
                             </tr>
                             <tr style="border-bottom: 1px solid var(--border-color-primary);">
                                 <td style="padding: 8px; font-weight:700;">Gènere</td>
                                 <td style="padding: 8px;">Infrarrepresentat (19%)</td>
-                                <td style="padding: 8px; color:#b91c1c;">Risc d'Augment de l'Error de Predicció</td>
+                                <td style="padding: 8px; color:#b91c1c;">Risc d'augment de l'error de predicció</td>
                             </tr>
                             <tr>
                                 <td style="padding: 8px; font-weight:700;">Edat</td>
                                 <td style="padding: 8px;">Grups Exclosos (Menys de 25/Més de 45)</td>
-                                <td style="padding: 8px; color:#b91c1c;">Risc d'Augment de l'Error de Predicció</td>
+                                <td style="padding: 8px; color:#b91c1c;">Risc d'augment de l'error de predicció</td>
                             </tr>
                         </tbody>
                     </table>
@@ -727,19 +727,19 @@ MODULES = [
             <div class="scenario-box">
                 <div class="tracker-container">
                     <div class="tracker-step completed">1. REGLES</div>
-                    <div class="tracker-step completed">2. EVIDÈNCIA</div>
-                    <div class="tracker-step active">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICTE</div>
+                    <div class="tracker-step completed">2. EVIDÈNCIES</div>
+                    <div class="tracker-step active">3. ERRORS</div>
+                    <div class="tracker-step">4. VEREDICTE</div>
                 </div>
 
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">PAS 3: AVALUAR ERRORS DE PREDICCIÓ</h2>
+                    <h2 class="slide-title" style="margin:0;">PAS 3: AVALUAR ERRORS</h2>
 
                     <div style="text-align:center; margin-bottom:20px;">
-                        <h2 class="slide-title header-accent" style="margin-top:10px;">La Recerca d'Errors de Predicció</h2>
+                        <h2 class="slide-title header-accent" style="margin-top:10px;">A la recerca d'errors de predicció</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                            Hem trobat proves que les Dades d'Entrada estan esbiaixades. Ara hem d'investigar si aquest biaix ha influït en les <strong>Decisions del Model</strong>.
-                            <br>Estem buscant la segona Bandera Vermella del nostre Reglament: <strong>Bretxes d'Error</strong>.
+                            Hem trobat evidències que les dades d'entrada estan esbiaixades. Ara hem d'investigar si aquest biaix ha influït en les <strong>decisions del model</strong>.
+                            <br>Busquem la segona senyal d’alerta del nostre manual: les <strong>bretxes d'error</strong>.
                         </p>
                     </div>
 
@@ -748,8 +748,8 @@ MODULES = [
                         <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px; border-bottom:1px solid var(--border-color-primary); padding-bottom:10px;">
                             <div style="font-size:1.5rem;">🚩</div>
                             <div>
-                                <strong style="color:#f43f5e; font-size:1.1rem; text-transform:uppercase; letter-spacing:1px;">PATRÓ: "EL DOBLE ESTÀNDARD"</strong>
-                                <div style="font-size:0.9rem; color:var(--body-text-color-subdued);">(Impacte Desigual dels Errors)</div>
+                                <strong style="color:#f43f5e; font-size:1.1rem; text-transform:uppercase; letter-spacing:1px;">PATRÓ: "EL DOBLE RASER"</strong>
+                                <div style="font-size:0.9rem; color:var(--body-text-color-subdued);">(Impacte desigual dels errors)</div>
                             </div>
                         </div>
 
@@ -757,32 +757,32 @@ MODULES = [
                             
                             <div>
                                 <p style="font-size:1rem; line-height:1.6; margin-top:0; color:var(--body-text-color);">
-                                    <strong>El Concepte:</strong> La predicció d'un model dóna forma al futur d'una persona. Quan comet un error, la gent real pateix.
+                                    <strong>El concepte:</strong> El “doble raser” vol dir que els errors del sistema d’IA afecten algunes persones més que d’altres, i que persones reals poden resultar perjudicades.
                                 </p>
 
                                 <div style="margin-top:15px; margin-bottom:15px;">
                                     <div style="background:rgba(255, 241, 242, 0.1); padding:12px; border-radius:8px; border:1px solid #fda4af; margin-bottom:10px;">
-                                        <div style="font-weight:700; color:#fb7185; margin-bottom:4px; font-size:0.95rem;">⚠️ TIPUS 1: FALSES ALARMES</div>
-                                        <div style="font-size:0.9rem; color:var(--body-text-color); line-height:1.4;">Etiquetar una persona de baix risc com a <strong>Alt Risc</strong>.</div>
-                                        <div style="font-size:0.85rem; font-weight:700; color:#f43f5e; margin-top:4px;">Dany: Detenció Injusta.</div>
+                                        <div style="font-weight:700; color:#fb7185; margin-bottom:4px; font-size:0.95rem;">⚠️ TIPUS 1: FALSES ALARMES (falsos positius)</div>
+                                        <div style="font-size:0.9rem; color:var(--body-text-color); line-height:1.4;">Classificar una persona de baix risc com a <strong>Alt Risc</strong>.</div>
+                                        <div style="font-size:0.85rem; font-weight:700; color:#f43f5e; margin-top:4px;">Dany: Detenció injusta.</div>
                                     </div>
 
                                     <div style="background:rgba(240, 249, 255, 0.1); padding:12px; border-radius:8px; border:1px solid #bae6fd;">
-                                        <div style="font-weight:700; color:#38bdf8; margin-bottom:4px; font-size:0.95rem;">⚠️ TIPUS 2: ADVERTÈNCIES OMESES</div>
-                                        <div style="font-size:0.9rem; color:var(--body-text-color); line-height:1.4;">Etiquetar una persona d'alt risc com a <strong>Baix Risc</strong>.</div>
-                                        <div style="font-size:0.85rem; font-weight:700; color:#0ea5e9; margin-top:4px;">Dany: Risc per a la Seguretat Pública.</div>
+                                        <div style="font-weight:700; color:#38bdf8; margin-bottom:4px; font-size:0.95rem;">⚠️ TIPUS 2: ALERTES NO DETECTADES (Falsos negatius)</div>
+                                        <div style="font-size:0.9rem; color:var(--body-text-color); line-height:1.4;">Classificar una persona d'alt risc com a <strong>Baix Risc</strong>.</div>
+                                        <div style="font-size:0.85rem; font-weight:700; color:#0ea5e9; margin-top:4px;">Dany: Risc per a la seguretat pública.</div>
                                     </div>
                                 </div>
 
                                 <div style="background:rgba(255, 241, 242, 0.1); color:var(--body-text-color); padding:10px; border-radius:6px; font-size:0.9rem; border-left:4px solid #db2777; margin-top:15px;">
-                                    <strong>Pista Clau:</strong> Busca una bretxa significativa en la <strong>Taxa de Falses Alarmes</strong>. Si el Grup A és marcat incorrectament substancialment més que el Grup B, això és una Bretxa d'Error.
+                                    <strong>Pista clau:</strong> Busca una diferència significativa en la <strong>taxa de falses alarmes</strong>. Si el Grup A és assenyalat incorrectament molt més sovint que el Grup B, hi ha una bretxa d’error.
                                 </div>
                             </div>
 
                             <div style="background:var(--background-fill-primary); padding:20px; border-radius:12px; border:1px solid var(--border-color-primary); display:flex; flex-direction:column; justify-content:center;">
                                 
                                 <div style="text-align:center; margin-bottom:10px; font-weight:700; color:var(--body-text-color); font-size:0.9rem;">
-                                    "FALSES ALARMES" (Persones Innocents Marcades com a Arriscades)
+                                    "FALSES ALARMES" (Persones innocents classificades com a de risc)
                                 </div>
 
                                 <div style="margin-bottom:15px;">
@@ -806,7 +806,7 @@ MODULES = [
                                 </div>
 
                                 <div style="text-align:center; margin-top:15px; font-size:0.85rem; color:#db2777; font-weight:700; background:rgba(255, 241, 242, 0.1); padding:5px; border-radius:4px;">
-                                    ⚠️ BRETXA DETECTADA: +30 Punts Percentuals de Diferència
+                                    ⚠️ BRETXA DETECTADA: +30 punts percentuals de diferència
                                 </div>
 
                             </div>
@@ -814,10 +814,10 @@ MODULES = [
                     </div>
 
                     <details style="margin-bottom:25px; cursor:pointer; background:rgba(255, 241, 242, 0.1); border:1px solid #fda4af; border-radius:8px; padding:12px;">
-                        <summary style="font-weight:700; color:#fb7185; font-size:0.95rem;">🔬 La Hipòtesi: Com està connectat el Biaix de Representació amb l'Error de Predicció?</summary>
+                        <summary style="font-weight:700; color:#fb7185; font-size:0.95rem;">🔬 Com el biaix de representació provoca errors de predicció</summary>
                         <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); line-height:1.5; padding:0 5px;">
-                            <p style="margin-bottom:10px;"><strong>Uneix els punts:</strong> Al Pas 2, vam trobar que les dades d'entrada sobrerepresentaven grups específics.</p>
-                            <p><strong>La Teoria:</strong> Com que la IA veia aquests grups més sovint en els registres d'arrest, l'estructura de les dades pot portar el model a cometre errors de predicció específics per a grups. El model pot generar més <strong>Falses Alarmes</strong> per a persones innocents d'aquests grups a una taxa molt més alta.</p>
+                            <p style="margin-bottom:10px;"><strong>Connecta els punts:</strong> Al Pas 2, hem detectat que les dades d’entrada sobrerrepresentaven determinats grups.</p>
+                            <p><strong>La Teoria:</strong> Com que el sistema de la IA veu aquests grups amb més freqüència als registres de detencions, l’estructura de les dades pot portar el model a cometre errors de predicció específics per grup. El model pot generar moltes més <strong>falses alarmes</strong> per a persones innocents d’aquests grups.</p>
                         </div>
                     </details>
 
@@ -827,7 +827,7 @@ MODULES = [
                         </p>
                         <p class="text-body-danger-adaptive" style="font-size:1.05rem; margin:0; color:var(--body-text-color);">
                             Respon a la pregunta següent per confirmar el teu objectiu.
-                            <br>Després fes clic a <strong>Següent</strong> per obrir el <strong>Laboratori d'Error de Predicció</strong> i provar les Taxes de Falses Alarmes.
+                            <br>Després fes clic a <strong>Següent</strong> per obrir el <strong>Laboratori d'error de predicció</strong> i provar les taxes de falses alarmes.
                         </p>
                     </div>
 
@@ -844,19 +844,19 @@ MODULES = [
             <div class="scenario-box">
                 <div class="tracker-container">
                     <div class="tracker-step completed">1. REGLES</div>
-                    <div class="tracker-step completed">2. EVIDÈNCIA</div>
-                    <div class="tracker-step active">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICTE</div>
+                    <div class="tracker-step completed">2. EVIDÈNCIES</div>
+                    <div class="tracker-step active">3. ERRORS</div>
+                    <div class="tracker-step">4. VEREDICTE</div>
                 </div>
 
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">PAS 3: ANALITZAR LA BRETXA D'ERROR DE PREDICCIÓ</h2>
+                    <h2 class="slide-title" style="margin:0;">PAS 3: AVALUAR ERRORS</h2>
 
                     <div style="text-align:center; margin-bottom:20px;">
-                        <h2 class="slide-title header-accent" style="margin-top:10px;">El Laboratori d'Error de Predicció - Anàlisi de Raça</h2>
+                        <h2 class="slide-title header-accent" style="margin-top:10px;">El laboratori d'errors de predicció - Anàlisi per origen ètnic</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                            Sospitàvem que el model genera quantitats injustes d'errors de predicció per a grups específics. Ara, executem l'anàlisi.
-                            <br>Fes clic per revelar les taxes d'error a continuació. Els errors de la IA cauen igualment entre acusats blancs i negres?
+                            Sospitàvem que el model podia generar errors de predicció desiguals entre grups. Ara ho analitzarem.
+                            <br>Fes clic per revelar les taxes d'error a continuació. Els errors del sistema de la IA afecten per igual les persones preses blanques i afroamericanes?
                         </p>
                     </div>
 
@@ -865,7 +865,7 @@ MODULES = [
                         <div class="ai-risk-container" style="padding:0; border:2px solid #ef4444; overflow:hidden; border-radius:12px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1); background:transparent;">
                             <div style="background:rgba(239, 68, 68, 0.1); padding:15px; text-align:center; border-bottom:1px solid #fda4af;">
                                 <h3 style="margin:0; font-size:1.25rem; color:#ef4444;">📡 ESCAN 1: FALSES ALARMES</h3>
-                                <p style="font-size:0.9rem; margin:5px 0 0 0; color:var(--body-text-color);">(Persones innocents marcades erròniament com a "Alt Risc")</p>
+                                <p style="font-size:0.9rem; margin:5px 0 0 0; color:var(--body-text-color);">(Persones innocents classificades erròniament com a "Alt Risc")</p>
                             </div>
                             
                             <details style="cursor:pointer; background:var(--background-fill-secondary);">
@@ -887,9 +887,9 @@ MODULES = [
                                     </div>
 
                                     <div class="hint-box" style="border-left:4px solid #ef4444; background:rgba(239, 68, 68, 0.1); text-align:left;">
-                                        <div style="font-weight:800; color:#ef4444; font-size:0.95rem;">❌ VERDICTE: BIAIX PUNITIU</div>
+                                        <div style="font-weight:800; color:#ef4444; font-size:0.95rem;">❌ VEREDICTE: BIAIX PUNITIU</div>
                                         <div style="font-size:0.9rem; color:var(--body-text-color); margin-top:3px;">
-                                            Els acusats negres tenen gairebé <strong style="color:#ef4444;">el doble de probabilitats</strong> de ser etiquetats erròniament com a perillosos en comparació amb els acusats blancs.
+                                            Les persones preses afroamericanes tenen gairebé <strong style="color:#ef4444;">el doble de probabilitats</strong> de ser classificades erròniament com a perillosos en comparació amb les persones preses blanques.
                                         </div>
                                     </div>
 
@@ -899,8 +899,8 @@ MODULES = [
 
                         <div class="ai-risk-container" style="padding:0; border:2px solid #3b82f6; overflow:hidden; border-radius:12px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1); background:transparent;">
                             <div style="background:rgba(59, 130, 246, 0.1); padding:15px; text-align:center; border-bottom:1px solid #bfdbfe;">
-                                <h3 style="margin:0; font-size:1.25rem; color:#3b82f6;">📡 ESCAN 2: ADVERTÈNCIES OMESES</h3>
-                                <p style="font-size:0.9rem; margin:5px 0 0 0; color:var(--body-text-color);">(Persones arriscades marcades erròniament com a "Segures")</p>
+                                <h3 style="margin:0; font-size:1.25rem; color:#3b82f6;">📡 ESCAN 2: ALERTES NO DETECTADES</h3>
+                                <p style="font-size:0.9rem; margin:5px 0 0 0; color:var(--body-text-color);">(Persones que reincideixen classificades erròniament com a "segures")</p>
                             </div>
                             
                             <details style="cursor:pointer; background:var(--background-fill-secondary);">
@@ -922,9 +922,9 @@ MODULES = [
                                     </div>
 
                                     <div class="hint-box" style="border-left:4px solid #3b82f6; background:rgba(59, 130, 246, 0.1); text-align:left;">
-                                        <div style="font-weight:800; color:#3b82f6; font-size:0.95rem;">❌ VERDICTE: BIAIX DE BENEVOLÈNCIA</div>
+                                        <div style="font-weight:800; color:#3b82f6; font-size:0.95rem;">❌ VEREDICTE: BIAIX DE BENEVOLÈNCIA</div>
                                         <div style="font-size:0.9rem; color:var(--body-text-color); margin-top:3px;">
-                                            Els acusats blancs que reincideixen tenen moltes més probabilitats de ser <strong style="color:#3b82f6;">omesos</strong> pel sistema que els acusats negres.
+                                            Les persones preses blanques que reincideixen tenen moltes més probabilitats de <strong style="color:#3b82f6;">no ser detectades</strong> pel sistema que les persones preses afroamericanes.
                                         </div>
                                     </div>
 
@@ -935,10 +935,10 @@ MODULES = [
 
                     <div style="text-align:center; margin-top:20px; padding:20px; background:linear-gradient(to right, rgba(219,39,119,0.1), rgba(251,113,133,0.1)); border-radius:12px; border:2px solid #fecdd3;">
                         <p style="font-size:1.15rem; font-weight:800; margin-bottom:5px; color:#ef4444;">
-                            🚀 BRETXA D'ERROR RACIAL CONFIRMADA
+                            🚀 BRETXA D'ERROR ORIGEN ÈTNIC CONFIRMADA
                         </p>
                         <p style="font-size:1.05rem; margin:0; color:var(--body-text-color);">
-                            Hem demostrat que el model té un "Doble Estàndard" per raça. 
+                            Hem demostrat que el model té un "doble raser" per origen ètnic. 
                             <br>Respon a la pregunta següent per certificar les teves troballes, després procedeix al <strong>Pas 4: Analitzar Bretxes d'Error per Gènere, Edat i Geografia.</strong>
                         </p>
                     </div>
@@ -956,19 +956,19 @@ MODULES = [
             <div class="scenario-box">
                 <div class="tracker-container">
                     <div class="tracker-step completed">1. REGLES</div>
-                    <div class="tracker-step completed">2. EVIDÈNCIA</div>
-                    <div class="tracker-step active">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICTE</div>
+                    <div class="tracker-step completed">2. EVIDÈNCIES</div>
+                    <div class="tracker-step active">3. ERRORS</div>
+                    <div class="tracker-step">4. VEREDICTE</div>
                 </div>
 
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">PAS 3: ANALITZAR LA BRETXA D'ERROR DE PREDICCIÓ</h2>
+                    <h2 class="slide-title" style="margin:0;">PAS 3: AVALUAR ERRORS</h2>
 
                     <div style="text-align:center; margin-bottom:20px;">
-                        <h2 class="slide-title header-accent" style="margin-top:10px;">Escanejos d'Error de Gènere, Edat i Geografia</h2>
+                        <h2 class="slide-title header-accent" style="margin-top:10px;">El laboratori de predicció d'errors - Gènere, edat i geografia</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                            Hem revelat la Bretxa d'Error Racial. Però el biaix s'amaga també en altres llocs.
-                            <br>Utilitza l'escàner a continuació per comprovar <strong>Errors de Representació</strong> de gènere i edat (degut a buits de dades) i <strong>Biaix Proxy</strong> (variables ocultes).
+                            Hem revelat la bretxa d’error per origen ètnic. Però el biaix també pot aparèixer en altres llocs.
+                            <br>Utilitza l'escàner a continuació per comprovar <strong>errors de representació</strong> de gènere i edat (a causa de manca de dades) i <strong>biaix proxy</strong> (quan dades aparentment neutres substitueixen informació sensible i generen resultats injustos).
                         </p>
                     </div>
 
@@ -988,7 +988,7 @@ MODULES = [
                             <div class="scan-pane pane-gender-err">
                                 <div style="background:rgba(255, 241, 242, 0.1); padding:15px; text-align:center; border-bottom:1px solid #fda4af; margin-bottom:15px;">
                                     <h3 style="margin:0; font-size:1.2rem; color:#f43f5e;">📡 ESCAN GÈNERE: ERROR DE PREDICCIÓ</h3>
-                                    <p style="font-size:0.9rem; margin:5px 0 0 0; color:var(--body-text-color);">(El "Buit de Dades" condueix a més errors?)</p>
+                                    <p style="font-size:0.9rem; margin:5px 0 0 0; color:var(--body-text-color);">(La "manca de dades" condueix a més errors?)</p>
                                 </div>
 
                                 <details style="cursor:pointer; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); border-radius:8px; overflow:hidden;">
@@ -999,7 +999,7 @@ MODULES = [
                                         
                                         <div style="margin-bottom:20px;">
                                             <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                                                <span style="font-weight:700; color:#f43f5e;">DONES (La Classe Minoritària)</span>
+                                                <span style="font-weight:700; color:#f43f5e;">DONES (classe minoritària)</span>
                                                 <span style="font-weight:700; color:#f43f5e;">32% Error</span>
                                             </div>
                                             <div style="width:100%; background:var(--border-color-primary); height:18px; border-radius:4px; overflow:hidden;">
@@ -1009,7 +1009,7 @@ MODULES = [
 
                                         <div style="margin-bottom:20px;">
                                             <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                                                <span style="font-weight:700; color:var(--body-text-color-subdued);">HOMES (Ben Representats)</span>
+                                                <span style="font-weight:700; color:var(--body-text-color-subdued);">HOMES (ben representats)</span>
                                                 <span style="font-weight:700; color:var(--body-text-color-subdued);">18% Error</span>
                                             </div>
                                             <div style="width:100%; background:var(--border-color-primary); height:18px; border-radius:4px; overflow:hidden;">
@@ -1018,10 +1018,10 @@ MODULES = [
                                         </div>
 
                                         <div class="hint-box" style="border-left:4px solid #db2777; background:rgba(255, 241, 242, 0.1);">
-                                            <div style="font-weight:800; color:#f43f5e;">❌ VERDICTE: PUNT CEC CONFIRMAT</div>
+                                            <div style="font-weight:800; color:#f43f5e;">❌ VEREDICTE: PUNT CEC CONFIRMAT</div>
                                             <div style="font-size:0.95rem; margin-top:5px; color:var(--body-text-color);">
-                                                Com que el model té menys dades sobre dones, està "endevinant" més sovint. 
-                                                Aquesta alta taxa d'error és molt probablement el resultat del <strong>Buit de Dades</strong> que vam trobar al Pas 2.
+                                                Com que el model disposa de poques dades sobre aquest grup, no ha après patrons fiables i acaba equivocant-se més sovint. 
+                                                Aquesta taxa elevada d’error és molt probablement conseqüència de la <strong>manca de dades</strong> que hem detectat al Pas 2. Quan un grup està infrarrepresentat, el model té un punt cec.
                                             </div>
                                         </div>
                                     </div>
@@ -1059,10 +1059,10 @@ MODULES = [
                                         </div>
 
                                         <div class="hint-box" style="border-left:4px solid #db2777; background:rgba(255, 241, 242, 0.1);">
-                                            <div style="font-weight:800; color:#f43f5e;">❌ VERDICTE: LA FALLADA EN FORMA D'U</div>
+                                            <div style="font-weight:800; color:#f43f5e;">❌ VEREDICTE: LA FALLADA EN FORMA D'U</div>
                                             <div style="font-size:0.95rem; margin-top:5px; color:var(--body-text-color);">
-                                                El model funciona bé per a la "Bombolla" (25-45) amb més dades però falla significativament per a les categories d'edat de menys de 25 i més de 45. 
-                                                No pot predir amb precisió el risc per a grups d'edat que no ha estudiat prou.
+                                                El model funciona bé dins la bombolla d’edat amb més dades (25–45), però falla clarament fora d’aquest rang. 
+                                                Això passa perquè no pot predir amb precisió el risc per a grups d’edat que no ha estudiat prou.
                                             </div>
                                         </div>
                                     </div>
@@ -1072,7 +1072,7 @@ MODULES = [
                             <div class="scan-pane pane-geo-err">
                                 <div style="background:rgba(255, 241, 242, 0.1); padding:15px; text-align:center; border-bottom:1px solid #fda4af; margin-bottom:15px;">
                                     <h3 style="margin:0; font-size:1.2rem; color:#f43f5e;">📡 ESCAN GEOGRAFIA: LA COMPROVACIÓ PROXY</h3>
-                                    <p style="font-size:0.9rem; margin:5px 0 0 0; color:var(--body-text-color);">(Està el "Codi Postal" creant un doble estàndard racial?)</p>
+                                    <p style="font-size:0.9rem; margin:5px 0 0 0; color:var(--body-text-color);">(El "codi postal" està creant un doble raser per origen ètnic?)</p>
                                 </div>
 
                                 <details style="cursor:pointer; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); border-radius:8px; overflow:hidden;">
@@ -1083,7 +1083,7 @@ MODULES = [
                                         
                                         <div style="margin-bottom:20px;">
                                             <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                                                <span style="font-weight:700; color:#f43f5e;">ZONES URBANES (Alta Pob. Minoritària)</span>
+                                                <span style="font-weight:700; color:#f43f5e;">ZONES URBANES (Alta pob. minoritària)</span>
                                                 <span style="font-weight:700; color:#f43f5e;">58% Error</span>
                                             </div>
                                             <div style="width:100%; background:var(--border-color-primary); height:18px; border-radius:4px; overflow:hidden;">
@@ -1102,11 +1102,11 @@ MODULES = [
                                         </div>
 
                                         <div class="hint-box" style="border-left:4px solid #db2777; background:rgba(255, 241, 242, 0.1);">
-                                            <div style="font-weight:800; color:#f43f5e;">❌ VERDICTE: BIAIX PROXY (RELACIÓ OCULTA) CONFIRMAT</div>
+                                            <div style="font-weight:800; color:#f43f5e;">❌ VEREDICTE: BIAIX PROXY (RELACIÓ OCULTA) CONFIRMAT</div>
                                             <div style="font-size:0.95rem; margin-top:5px; color:var(--body-text-color);">
-                                                La taxa d'error en Zones Urbanes és massiva (58%). 
-                                                Fins i tot si es va eliminar "Raça", el model està utilitzant la <strong>Ubicació</strong> per apuntar als mateixos grups. 
-                                                Està tractant "Resident de Ciutat" com un sinònim d'"Alt Risc".
+                                                La taxa d'error a les zones urbanes és molt elevada (58%). 
+                                                Encara que s’hagi eliminat la variable d’origen ètnic, el model està utilitzant la <strong>ubicació</strong> com a substitut indirecte per aplicar el mateix criteri. 
+                                                En la pràctica, tracta el fet de viure en una zona urbana com un indicador d’alt risc, generant un doble raser per origen ètnic.
                                             </div>
                                         </div>
                                     </div>
@@ -1139,19 +1139,19 @@ MODULES = [
             <div class="scenario-box">
                 <div class="tracker-container">
                     <div class="tracker-step completed">1. REGLES</div>
-                    <div class="tracker-step completed">2. EVIDÈNCIA</div>
-                    <div class="tracker-step active">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICTE</div>
+                    <div class="tracker-step completed">2. EVIDÈNCIES</div>
+                    <div class="tracker-step active">3. ERRORS</div>
+                    <div class="tracker-step">4. VEREDICTE</div>
                 </div>
 
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">PAS 3: RESUM DE L'INFORME D'AUDITORIA</h2>
+                    <h2 class="slide-title" style="margin:0;">PAS 3: AVALUAR ERRORS</h2>
 
                     <div style="text-align:center; margin-bottom:25px;">
-                        <h2 class="slide-title header-accent" style="margin-top:10px;">Anàlisi Final de Predicció</h2>
+                        <h2 class="slide-title header-accent" style="margin-top:10px;">Informe d'errors de predicció</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
                             Revisa els teus registres forenses. Has descobert fallades sistemàtiques en múltiples dimensions.
-                            <br>Aquesta evidència mostra que el model viola el principi bàsic de <strong>Justícia i Equitat</strong>.
+                            <br>Aquestes evidències mostren que el model vulnera el principi bàsic de <strong>Justícia i Equitat</strong>.
                         </p>
                     </div>
 
@@ -1162,40 +1162,40 @@ MODULES = [
                                 <strong style="color:#ef4444; font-size:1.1rem;">🚨 AMENAÇA PRINCIPAL</strong>
                                 <span style="background:#ef4444; color:white; font-size:0.75rem; font-weight:800; padding:4px 8px; border-radius:4px;">CONFIRMAT</span>
                             </div>
-                            <h3 style="margin:0 0 10px 0; color:#f87171; font-size:1.25rem;">Doble Estàndard Racial</h3>
+                            <h3 style="margin:0 0 10px 0; color:#f87171; font-size:1.25rem;">Doble raser ètnic</h3>
                             <p style="font-size:0.95rem; line-height:1.5; color:var(--body-text-color);">
-                                <strong>L'Evidència:</strong> Els acusats afroamericans s'enfronten a una <strong style="color:#ef4444;">Taxa de Falses Alarmes del 45%</strong> (vs. 23% per als acusats blancs).
+                                <strong>L'Evidència:</strong> Les persones preses afroamericanes s'enfronten a una <strong style="color:#ef4444;">taxa de falses alarmes del 45%</strong> (vs. 23% per a les persones preses blanques).
                             </p>
                             <div style="background:var(--background-fill-secondary); padding:10px; border-radius:6px; border:1px solid #fda4af; margin-top:10px;">
                                 <strong style="color:#ef4444; font-size:0.9rem;">L'Impacte:</strong> 
-                                <span style="font-size:0.9rem; color:var(--body-text-color);">Biaix Punitiu. Persones innocents estan sent marcades erròniament per a detenció al doble de la taxa que altres.</span>
+                                <span style="font-size:0.9rem; color:var(--body-text-color);">Biaix Punitiu. Persones innocents són classificades erròniament com d’alt risc gairebé el doble de vegades que altres grups.</span>
                             </div>
                         </div>
 
                         <div style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:12px; padding:20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
                             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color-primary); padding-bottom:10px; margin-bottom:15px;">
                                 <strong style="color:var(--body-text-color-subdued); font-size:1.1rem;">📍 FALLADA PROXY</strong>
-                                <span style="background:#f59e0b; color:white; font-size:0.75rem; font-weight:800; padding:4px 8px; border-radius:4px;">DETECTAT</span>
+                                <span style="background:#f59e0b; color:white; font-size:0.75rem; font-weight:800; padding:4px 8px; border-radius:4px;">DETECTADA</span>
                             </div>
                             <h3 style="margin:0 0 10px 0; color:var(--body-text-color); font-size:1.25rem;">Discriminació Geogràfica</h3>
                             <p style="font-size:0.95rem; line-height:1.5; color:var(--body-text-color);">
-                                <strong>L'Evidència:</strong> Les Zones Urbanes mostren una massiva <strong style="color:#f59e0b;">Taxa d'Error del 58%</strong>.
+                                <strong>L'Evidència:</strong> Les zones urbanes mostren una <strong style="color:#f59e0b;">taxa d'error molt elevada (58%)</strong>.
                             </p>
                             <div style="background:var(--background-fill-primary); padding:10px; border-radius:6px; border:1px solid var(--border-color-primary); margin-top:10px;">
-                                <strong style="color:var(--body-text-color-subdued); font-size:0.9rem;">El Mecanisme:</strong> 
-                                <span style="font-size:0.9rem; color:var(--body-text-color);">Tot i que "Raça" estava oculta, la IA va utilitzar el "Codi Postal" com a escletxa per apuntar a les mateixes comunitats.</span>
+                                <strong style="color:var(--body-text-color-subdued); font-size:0.9rem;">El mecanisme:</strong> 
+                                <span style="font-size:0.9rem; color:var(--body-text-color);">Tot i haver eliminat la variable d’origen ètnic, el sistema de la IA utilitza la ubicació geogràfica (codi postal) com a substitut indirecte, reproduint els mateixos patrons discriminatoris sobre les mateixes comunitats.</span>
                             </div>
                         </div>
 
                         <div style="grid-column: span 2; background:rgba(14, 165, 233, 0.1); border:2px solid #38bdf8; border-radius:12px; padding:20px;">
                             <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
                                 <span style="font-size:1.5rem;">📉</span>
-                                <h3 style="margin:0; color:#38bdf8; font-size:1.2rem;">Fallada Secundària: Errors de Predicció Deguts al Biaix de Representació</h3>
+                                <h3 style="margin:0; color:#38bdf8; font-size:1.2rem;">Fallada secundària: Errors de predicció deguts al biaix de representació</h3>
                             </div>
                             <p style="font-size:1rem; margin-bottom:0; color:var(--body-text-color);">
-                                <strong>L'Evidència:</strong> Alta inestabilitat en les prediccions per a <strong style="color:#38bdf8;">Dones i Grups d'Edat Més Joves/Més Grans</strong>.
+                                <strong>Evidències:</strong> Alta inestabilitat en les prediccions per a <strong style="color:#38bdf8;">dones i grups d'edat més joves/més grans</strong>.
                                 <br>
-                                <span style="color:var(--body-text-color-subdued); font-size:0.95rem;"><strong>Per què?</strong> Les dades d'entrada mancaven d'exemples suficients per a aquests grups (El Mirall Distorsionat), fent que el model "endevini" en lloc d'aprendre.</span>
+                                <span style="color:var(--body-text-color-subdued); font-size:0.95rem;"><strong>Per què passa:</strong> Les dades d’entrada no contenien exemples suficients per a aquests grups (el mirall distorsionat), fet que impedeix que el model aprengui patrons fiables i el porta a “endevinar” en lloc de predir.</span>
                             </p>
                         </div>
 
@@ -1219,24 +1219,24 @@ MODULES = [
     # --- MODULE 9: FINAL VERDICT & REPORT GENERATION ---
 {
         "id": 10,
-        "title": "Pas 4: El Verdicte Final",
+        "title": "Pas 4: El veredicte final",
         "html": """
             <div class="scenario-box">
                 <div class="tracker-container">
                     <div class="tracker-step completed">1. REGLES</div>
-                    <div class="tracker-step completed">2. EVIDÈNCIA</div>
-                    <div class="tracker-step completed">3. ERROR</div>
-                    <div class="tracker-step active">4. VERDICTE</div>
+                    <div class="tracker-step completed">2. EVIDÈNCIES</div>
+                    <div class="tracker-step completed">3. ERRORS</div>
+                    <div class="tracker-step active">4. VEREDICTE</div>
                 </div>
 
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">PAS 4: PRESENTA EL TEU INFORME FINAL</h2>
+                    <h2 class="slide-title" style="margin:0;">PAS 4: PRESENTA L'INFORME FINAL</h2>
 
                     <div style="text-align:center; margin-bottom:20px;">
-                        <h2 class="slide-title header-accent" style="margin-top:10px;">Munta l'Expedient del Cas</h2>
+                        <h2 class="slide-title header-accent" style="margin-top:10px;">Construeix l'expedient del cas</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                            Has completat l'auditoria. Ara has de construir l'informe final per al tribunal i altres parts interessades.
-                            <br><strong>Selecciona les troballes vàlides a continuació</strong> per afegir-les al registre oficial. Aneu amb compte: no inclogueu proves falses.
+                            Has completat l'auditoria. Ara cal elaborar l'informe final per al tribunal i altres parts interessades.
+                            <br><strong>Selecciona les troballes que estan avalades per evidències</strong> per incorporar-les al registre oficial. Compte: no totes les hipòtesis són vàlides.
                         </p>
                     </div>
 
@@ -1249,29 +1249,29 @@ MODULES = [
                             </summary>
                             <div style="background:rgba(34, 197, 94, 0.1); padding:15px; border-top:1px solid #bbf7d0; color:var(--body-text-color);">
                                 <strong style="color:#22c55e;">✅ AFEGIT A L'INFORME</strong>
-                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmat: Les Dades d'Entrada sobrerepresenten incorrectament grups demogràfics específics probablement degut en part a un biaix històric.</p>
+                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmat: Les dades d’entrada no reflecteixen la població real. Alguns grups hi apareixen sobrerrepresentats, probablement a causa de biaixos històrics.</p>
                             </div>
                         </details>
 
                         <details style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                             <summary style="list-style:none; padding:15px; font-weight:700; color:var(--body-text-color); display:flex; align-items:center; gap:10px;">
                                 <div style="background:var(--background-fill-primary); width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">+</div>
-                                Troballa: "Intenció Maliciosa del Programador"
+                                Troballa: "Intenció maliciosa del programador"
                             </summary>
                             <div style="background:rgba(239, 68, 68, 0.1); padding:15px; border-top:1px solid #fecaca; color:var(--body-text-color);">
                                 <strong style="color:#ef4444;">❌ REBUTJAT</strong>
-                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Incorrecte. No hem trobat cap evidència de codi maliciós. El biaix provenia de les <em>dades</em> i els <em>proxies</em>, no de la personalitat del programador.</p>
+                                <p style="margin:5px 0 0 0; font-size:0.9rem;">No s’ha trobat cap evidència de codi maliciós ni d’intencionalitat individual. El biaix prové de les <em>dades</em> i els <em>proxies</em>, no de la persona que va desenvolupar el sistema.</p>
                             </div>
                         </details>
 
                         <details style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                             <summary style="list-style:none; padding:15px; font-weight:700; color:var(--body-text-color); display:flex; align-items:center; gap:10px;">
                                 <div style="background:var(--background-fill-primary); width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">+</div>
-                                Troballa: "Doble Estàndard Racial"
+                                Troballa: "Doble raser ètnic"
                             </summary>
                             <div style="background:rgba(34, 197, 94, 0.1); padding:15px; border-top:1px solid #bbf7d0; color:var(--body-text-color);">
                                 <strong style="color:#22c55e;">✅ AFEGIT A L'INFORME</strong>
-                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmat: Els acusats afroamericans pateixen una taxa de Falses Alarmes 2x més alta que els acusats blancs.</p>
+                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmat: Les persones preses afroamericanes presenten una taxa de falses alarmes aproximadament dues vegades superior a la de les persones preses blanques.</p>
                             </div>
                         </details>
 
@@ -1282,7 +1282,7 @@ MODULES = [
                             </summary>
                             <div style="background:rgba(34, 197, 94, 0.1); padding:15px; border-top:1px solid #bbf7d0; color:var(--body-text-color);">
                                 <strong style="color:#22c55e;">✅ AFEGIT A L'INFORME</strong>
-                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmat: El "Codi Postal" funciona com un proxy per a la Raça, reintroduint el biaix fins i tot quan variables com la Raça s'eliminen.</p>
+                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmat: Tot i eliminar l’origen ètnic com a variable explícita, el sistema utilitza el codi postal com a substitut indirecte, reintroduint el mateix biaix en els resultats.</p>
                             </div>
                         </details>
 
@@ -1293,7 +1293,7 @@ MODULES = [
                             </summary>
                             <div style="background:rgba(239, 68, 68, 0.1); padding:15px; border-top:1px solid #fecaca; color:var(--body-text-color);">
                                 <strong style="color:#ef4444;">❌ REBUTJAT</strong>
-                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Irrellevant. Els servidors funcionen bé. Les matemàtiques són correctes; els <em>patrons</em> que ha après són injustos.</p>
+                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Irrellevant. Els sistemes funcionen correctament i els càlculs són consistents. El problema no és tècnic, sinó que els <em>patrons</em> apresos pel model són injustos.</p>
                             </div>
                         </details>
 
@@ -1304,14 +1304,14 @@ MODULES = [
                             </summary>
                             <div style="background:rgba(34, 197, 94, 0.1); padding:15px; border-top:1px solid #bbf7d0; color:var(--body-text-color);">
                                 <strong style="color:#22c55e;">✅ AFEGIT A L'INFORME</strong>
-                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmat: La manca de dades per a Dones, i acusats més Joves i més Grans crea prediccions poc fiables.</p>
+                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmat: La manca de dades per a dones, i persones preses més joves i més grans genera prediccions poc fiables per aquests grups.</p>
                             </div>
                         </details>
 
                     </div>
 
                     <div style="background:var(--background-fill-primary); border-top:2px solid var(--border-color-primary); padding:25px; text-align:center; border-radius:0 0 12px 12px; margin-top:-15px;">
-                        <h3 style="margin-top:0; color:var(--body-text-color);">⚖️ PRESENTA LA TEVA RECOMANACIÓ (Utilitzant la Pregunta de Brúixola Moral sota aquestes targetes.)</h3>
+                        <h3 style="margin-top:0; color:var(--body-text-color);">⚖️ PRESENTA LA TEVA RECOMANACIÓ (responent la pregunta de la Brúixola Moral que trobaràs a continuació)</h3>
                         <p style="font-size:1.05rem; margin-bottom:20px; color:var(--body-text-color-subdued);">
                             Basant-te en l'evidència arxivada anteriorment, quina és la teva recomanació oficial respecte a aquest sistema d'IA?
                         </p>
@@ -1325,8 +1325,8 @@ MODULES = [
 
                             <div style="background:var(--background-fill-secondary); border:2px solid #ef4444; padding:15px 25px; border-radius:8px; cursor:pointer; max-width:250px; box-shadow:0 4px 12px rgba(239,68,68,0.2);">
                                 <div style="font-size:2rem; margin-bottom:10px;">🚨</div>
-                                <div style="font-weight:700; color:#ef4444; margin-bottom:5px;">AVÍS VERMELL: PAUSAR I REPARAR</div>
-                                <div style="font-size:0.85rem; color:#ef4444;">El sistema viola els principis de Justícia i Equitat. Aturar immediatament.</div>
+                                <div style="font-weight:700; color:#ef4444; margin-bottom:5px;">SENYAL D'ALERTA: PAUSAR I REPARAR</div>
+                                <div style="font-size:0.85rem; color:#ef4444;">El sistema vulnera el principi de Justícia i Equitat. Aturar immediatament.</div>
                             </div>
                         </div>
                     </div>
@@ -1351,17 +1351,17 @@ MODULES = [
             <div class="scenario-box">
                 <div class="tracker-container">
                     <div class="tracker-step completed">✓ REGLES</div>
-                    <div class="tracker-step completed">✓ EVIDÈNCIA</div>
-                    <div class="tracker-step completed">✓ ERROR</div>
-                    <div class="tracker-step completed">✓ VERDICTE</div>
+                    <div class="tracker-step completed">✓ EVIDÈNCIES</div>
+                    <div class="tracker-step completed">✓ ERRORS</div>
+                    <div class="tracker-step completed">✓ VEREDICTE</div>
                 </div>
 
                 <div class="slide-body">
                     
                     <div style="text-align:center; margin-bottom:25px;">
-                        <h2 class="slide-title" style="margin-top:10px; color:#22c55e;">🎉 MISSIÓ COMPLIDA</h2>
+                        <h2 class="slide-title" style="margin-top:10px; color:#22c55e;">🎉 MISSIÓ COMPLERTA</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                            Informe Presentat. El tribunal ha acceptat la teva recomanació de <strong>PAUSAR</strong> el sistema.
+                            Informe Presentat. El tribunal ha acceptat la teva recomanació de posar en <strong>PAUSA</strong> el sistema.
                         </p>
                     </div>
 
@@ -1370,7 +1370,7 @@ MODULES = [
                             ✅ DECISIÓ VALIDADA
                         </div>
                         <p style="font-size:1.05rem; color:var(--body-text-color); margin:10px 0 0 0;">
-                            Vas triar el camí responsable. Aquesta decisió requeria evidència, judici i un profund compromís amb el principi de <strong>Justícia i Equitat</strong>.
+                            La decisió està fonamentada en evidència i raonament, d’acord amb el principi de <strong>Justícia i Equitat</strong>.
                         </p>
                     </div>
 
@@ -1383,8 +1383,8 @@ MODULES = [
 
                         <div style="padding:25px;">
                             <p style="text-align:center; font-size:1.1rem; margin-bottom:20px; color:var(--body-text-color);">
-                                Exposar el biaix és només la primera meitat de la missió. Ara que tens l'evidència, comença la feina real.
-                                <br><strong>Estàs canviant la teva Lupa per una Clau Anglesa.</strong>
+                                Detectar el biaix és només el primer pas. Amb l’evidència recollida, el focus passa ara a la millora del sistema.
+                                <br><strong>Ara canvies la lupa per una clau anglesa.</strong>
                             </p>
 
                             <div style="background:var(--background-fill-secondary); border-radius:12px; padding:20px; border:1px solid #bae6fd;">
@@ -1393,15 +1393,15 @@ MODULES = [
                                 <ul style="list-style:none; padding:0; margin:0; font-size:1rem; color:var(--body-text-color);">
                                     <li style="margin-bottom:12px; display:flex; gap:10px; align-items:start;">
                                         <span>🔧</span>
-                                        <span><strong style="color:#38bdf8;">La Teva Tasca 1:</strong> Desmantellar les "Variables Proxy" (Eliminar el biaix de Codi Postal).</span>
+                                        <span><strong style="color:#38bdf8;">Tasca 1:</strong> Identificar i reduir l’ús de variables proxy (com el codi postal).</span>
                                     </li>
                                     <li style="margin-bottom:12px; display:flex; gap:10px; align-items:start;">
                                         <span>📊</span>
-                                        <span><strong style="color:#38bdf8;">La Teva Tasca 2:</strong> Arreglar el "Mirall Distorsionat" redissenyant l'estratègia de dades.</span>
+                                        <span><strong style="color:#38bdf8;">Tasca 2:</strong> Millorar la representació de les dades i la seva cobertura.</span>
                                     </li>
                                     <li style="display:flex; gap:10px; align-items:start;">
                                         <span>🗺️</span>
-                                        <span><strong style="color:#38bdf8;">La Teva Tasca 3:</strong> Construir un full de ruta ètic per al monitoratge continu.</span>
+                                        <span><strong style="color:#38bdf8;">Tasca 3:</strong> Definir un full de ruta per al monitoratge continu del sistema.</span>
                                     </li>
                                 </ul>
                             </div>
@@ -1410,10 +1410,10 @@ MODULES = [
 
                     <div style="text-align:center; margin-top:30px;">
                         <p style="font-size:1.1rem; font-weight:600; color:var(--body-text-color);">
-                            👉 La teva propera missió comença a l'<strong>Activitat 8: El Reparador d'Equitat</strong>.
+                            👉 La teva propera missió comença a l'<strong>Activitat 8: L'enginyer d'equitat en acció</strong>.
                             <br>
                             <span style="font-size:0.95rem; font-weight:400; color:var(--body-text-color-subdued);">
-                              <strong>Continua amb la següent activitat a sota</strong> per concloure aquesta auditoria i començar les reparacions — o fes clic a <span style="white-space:nowrap;">Següent (barra superior)</span> en vista ampliada ➡️
+                              <strong>Continua amb la següent activitat a sota</strong> per concloure aquesta auditoria i començar a reparar el sistema — o fes clic a <span style="white-space:nowrap;">Següent (barra superior)</span> en vista ampliada ➡️
                             </span>
                         </p>
                     </div>
@@ -1427,13 +1427,13 @@ QUIZ_CONFIG = {
       0: {
         "t": "t1",
         # Added bold incentive text to the question
-        "q": "🚀 **Primera Oportunitat de Puntuació:** Per què multipliquem la teva Exactitud pel Progrés Ètic? (Respon correctament per guanyar el teu primer augment de Puntuació de Brúixola Moral!)",
+        "q": "🚀 **Primera oportunitat de puntuació:** Per què multipliquem la teva precisió pel progrés ètic? (Respon correctament per guanyar el teu primer augment de Puntuació de Brúixola Moral!)",
         "o": [
-            "A) Perquè la simple exactitud ignora el biaix potencial i el dany.",
+            "A) Perquè la simple precisió ignora el biaix potencial i el dany que pot causar.",
             "B) Per fer les matemàtiques de la classificació més complicades.",
-            "C) L'exactitud és l'única mètrica que realment importa.",
+            "C) La precisió és l'única mètrica que realment importa.",
         ],
-        "a": "A) Perquè la simple exactitud ignora el biaix potencial i el dany.",
+        "a": "A) Perquè la simple precisió ignora el biaix potencial i el dany que pot causar.",
         # Updated success message to confirm the 'win'
         "success": "<strong>Puntuació Desbloquejada!</strong> Calibratge complet. Ara estàs oficialment a la classificació.",
     },
@@ -1461,98 +1461,98 @@ QUIZ_CONFIG = {
     },
     3: {
         "t": "t4",
-        "q": "Detectiu, sospitem que les dades d'entrada són un 'Mirall Distorsionat' de la realitat. Per confirmar si existeix Biaix de Representació, quin és el teu objectiu forense principal?",
+        "q": "Detectiu, sospitem que les dades d'entrada són un 'mirall distorsionat' de la realitat. Per confirmar si existeix biaix de representació, quin és el teu objectiu forense principal?",
         "o": [
             "A) Necessito llegir les entrades del diari personal del jutge.",
             "B) Necessito comprovar si l'ordinador està endollat correctament.",
-            "C) Necessito comparar les Distribucions Demogràfiques (Raça/Gènere) de les dades amb les estadístiques de població del món real.",
+            "C) Necessito comparar les distribucions demogràfiques (origen ètnic/gènere) de les dades amb les estadístiques de la població real.",
         ],
-        "a": "C) Necessito comparar les Distribucions Demogràfiques (Raça/Gènere) de les dades amb les estadístiques de població del món real.",
-        "success": "Objectiu Adquirit. Estàs preparat per entrar al Laboratori Forense de Dades.",
+        "a": "C) Necessito comparar les distribucions demogràfiques (origen ètnic/gènere) de les dades amb les estadístiques de la població real.",
+        "success": "Objectiu Adquirit. Estàs preparat per entrar al laboratori forense de dades.",
     },
     4: {
         "t": "t5",
-        "q": "Revisió de l'Anàlisi Forense: Has marcat les dades de Gènere com un 'Buit de Dades' (només 19% Dones). Segons el teu registre d'evidències, quin és el risc tècnic específic per a aquest grup?",
+        "q": "Revisió de l'anàlisi forense: Has marcat les dades de gènere com un 'buit de dades' (només 19% dones). Segons el teu registre d'evidències, quin és el risc tècnic específic per a aquest grup?",
         "o": [
-            "A) El model tindrà un 'Punt Cec' perquè no ha vist prou exemples per aprendre patrons precisos.",
+            "A) El model tindrà un 'punt cec' perquè no ha vist prou exemples per aprendre patrons precisos.",
             "B) La IA apuntarà automàticament a aquest grup a causa de l'excés de vigilància històrica.",
-            "C) El model utilitzarà per defecte les estadístiques del 'Món Real' per omplir els números que falten.",
+            "C) El model utilitzarà per defecte les estadístiques del 'món real' per omplir els números que falten.",
         ],
-        "a": "A) El model tindrà un 'Punt Cec' perquè no ha vist prou exemples per aprendre patrons precisos.",
-        "success": "Evidència Bloquejada. Entens que les 'Dades que Falten' creen punts cecs, fent que les prediccions per a aquest grup siguin menys fiables.",
+        "a": "A) El model tindrà un 'punt cec' perquè no ha vist prou exemples per aprendre patrons precisos.",
+        "success": "Evidència Bloquejada. Entens que les dades que falten creen punts cecs, fent que les prediccions per a aquest grup siguin menys fiables.",
     },
     # --- QUESTION 4 (Evidence Report Summary) ---
     5: {
         "t": "t6",
-        "q": "Detectiu, revisa la teva taula de Resum d'Evidència. Has trobat casos tant de Sobrerrepresentació (Raça) com d'Infrarrepresentació (Gènere/Edat). Quina és la teva conclusió general sobre com el Biaix de Representació afecta la IA?",
+        "q": "Detectiu, revisa la teva taula de resum d'evidències. Has trobat casos tant de sobrerrepresentació (origen ètnic) com d'infrarrepresentació (gènere/edat). Quina és la teva conclusió general sobre com el biaix de representació afecta un sistema d'IA?",
         "o": [
             "A) Confirma que el conjunt de dades és neutral, ja que les categories 'Sobre' i 'Infra' es cancel·len matemàticament entre si.",
-            "B) Crea un 'Risc d'Augment de l'Error de Predicció' en AMBDUES direccions: tant si un grup s'exagera com si s'ignora, la visió de la realitat de la IA es deforma.",
+            "B) Crea un 'risc d'augment de l'error de predicció' en AMBDUES direccions: tant si un grup s'exagera com si s'ignora, la visió de la realitat del sistema de l'IA es deforma.",
             "C) Només crea risc quan falten dades (Infrarrepresentació); tenir dades extra (Sobrerrepresentació) en realitat fa que el model sigui més precís.",
         ],
-        "a": "B) Crea un 'Risc d'Augment de l'Error de Predicció' en AMBDUES direccions: tant si un grup s'exagera com si s'ignora, la visió de la realitat de la IA es deforma.",
+        "a": "B) Crea un 'risc d'augment de l'error de predicció' en AMBDUES direccions: tant si un grup s'exagera com si s'ignora, la visió de la realitat del sistema de l'IA es deforma.",
         "success": "Conclusió Verificada. Les dades distorsionades, tant si estan inflades com si falten, poden portar a una justícia distorsionada.",
     },
     6: {
         "t": "t7",
-        "q": "Detectiu, estàs caçant el patró del 'Doble Estàndard'. Quina peça específica d'evidència representa aquesta Bandera Vermella?",
+        "q": "Detectiu, has trobat el patró del 'doble raser'. Quina peça específica d'evidència representa aquesta senyal d'alerta?",
         "o": [
             "A) El model comet zero errors per a cap grup.",
-            "B) Un grup pateix una taxa de 'Falses Alarmes' significativament més alta que un altre grup.",
+            "B) Un grup pateix una taxa de 'falses alarmes' significativament més alta que un altre grup.",
             "C) Les dades d'entrada contenen més homes que dones.",
         ],
-        "a": "B) Un grup pateix una taxa de 'Falses Alarmes' significativament més alta que un altre grup.",
-        "success": "Patró Confirmat. Quan la taxa d'error està desequilibrada, és un Doble Estàndard.",
+        "a": "B) Un grup pateix una taxa de 'falses alarmes' significativament més alta que un altre grup.",
+        "success": "Patró Confirmat. Quan la taxa d'error està desequilibrada, és un doble raser.",
     },
     # --- QUESTION 6 (Race Error Gap) ---
     7: {
         "t": "t8",
-        "q": "Revisa el teu registre de dades. Què va revelar l'escaneig de 'Falses Alarmes' sobre el tractament dels acusats afroamericans?",
+        "q": "Revisa el teu registre de dades. Què ha revelat l'escaneig de 'falses alarmes' sobre el tractament dels acusats afroamericans?",
         "o": [
             "A) Són tractats exactament igual que els acusats blancs.",
-            "B) Són omesos pel sistema més sovint (Biaix de Benevolència).",
-            "C) Tenen gairebé el doble de probabilitats de ser marcats erròniament com a 'Alt Risc' (Biaix Punitiu).",
+            "B) Són omesos pel sistema més sovint (biaix de benevolència).",
+            "C) Tenen gairebé el doble de probabilitats de ser marcats erròniament com a 'Alt Risc' (biaix punitiu).",
         ],
-        "a": "C) Tenen gairebé el doble de probabilitats de ser marcats erròniament com a 'Alt Risc' (Biaix Punitiu).",
-        "success": "Evidència Registrada. El sistema està castigant persones innocents basant-se en la raça.",
+        "a": "C) Tenen gairebé el doble de probabilitats de ser marcats erròniament com a 'Alt Risc' (biaix punitiu).",
+        "success": "Evidència Registrada. El sistema està castigant persones innocents basant-se en l'origen ètnic.",
     },
 
     # --- QUESTION 7 (Generalization & Proxy Scan) ---
     8: {
         "t": "t9",
-        "q": "L'Escaneig de Geografia va mostrar una taxa d'error massiva a les Zones Urbanes. Què demostra això sobre els 'Codis Postals'?",
+        "q": "L'escaneig geogràfic ha mostrat una taxa d'error massiva a les zones urbanes. Què revela això sobre els 'codis postals'?",
         "o": [
-            "A) Els Codis Postals actuen com una 'Variable Proxy' per apuntar a grups específics, fins i tot si variables com la Raça s'eliminen del conjunt de dades.",
+            "A) Els codis postals actuen com una variable proxy (indicadors indirectes d’altres característiques), fins i tot quan variables com l'origen ètnic s'han eliminat del conjunt de dades.",
             "B) La IA és simplement dolenta llegint mapes i dades d'ubicació.",
             "C) La gent a les ciutats genera naturalment més errors informàtics que la gent a les zones rurals.",
         ],
-        "a": "A) Els Codis Postals actuen com una 'Variable Proxy' per apuntar a grups específics, fins i tot si variables com la Raça s'eliminen del conjunt de dades.",
+        "a": "A) Els codis postals actuen com una variable proxy (indicadors indirectes d’altres característiques), fins i tot quan variables com l'origen ètnic s'han eliminat del conjunt de dades.",
         "success": "Proxy Identificat. Amagar una variable no funciona si deixes un proxy enrere.",
     },
 
     # --- QUESTION 8 (Audit Summary) ---
     9: {
         "t": "t10",
-        "q": "Has tancat l'expedient del cas. Quina de les següents opcions està CONFIRMADA com l''Amenaça Principal' al teu informe final?",
+        "q": "Has tancat l'expedient del cas. Quina de les següents opcions està CONFIRMADA com l''amenaça principal' al teu informe final?",
         "o": [
-            "A) Un Doble Estàndard Racial on els acusats negres innocents són penalitzats el doble de vegades.",
+            "A) Un doble raser d'origen ètnic on els acusats negres innocents són penalitzats el doble de vegades.",
             "B) Codi maliciós escrit per hackers per trencar el sistema.",
             "C) Una fallada de hardware a la sala de servidors causant errors matemàtics aleatoris.",
         ],
-        "a": "A) Un Doble Estàndard Racial on els acusats negres innocents són penalitzats el doble de vegades.",
-        "success": "Amenaça Avaluada. El biaix està confirmat i documentat.",
+        "a": "A) Un doble raser d'origen ètnic on els acusats negres innocents són penalitzats el doble de vegades.",
+        "success": "Amenaça avaluada. El biaix està confirmat i documentat.",
     },
 
     # --- QUESTION 9 (Final Verdict) ---
     10: {
         "t": "t11",
-        "q": "Basant-te en les greus violacions de Justícia i Equitat trobades a la teva auditoria, quina és la teva recomanació final al tribunal?",
+        "q": "Basant-te en les violacions de Justícia i Equitat trobades a la teva auditoria, quina és la teva recomanació final al tribunal?",
         "o": [
             "A) CERTIFICAR: El sistema està majoritàriament bé, els errors menors són acceptables.",
-            "B) AVÍS VERMELL: Pausar el sistema per a reparacions immediatament perquè és insegur i esbiaixat.",
-            "C) ADVERTÈNCIA: Utilitzar la IA només els caps de setmana quan el crim és més baix.",
+            "B) AVÍS VERMELL: Pausar immediatament el sistema per fer-hi reparacions, ja que és insegur i esbiaixat.",
+            "C) ADVERTÈNCIA: Utilitzar el sistema d'IA només els caps de setmana quan el crim és més baix.",
         ],
-        "a": "B) AVÍS VERMELL: Pausar el sistema per a reparacions immediatament perquè és insegur i esbiaixat.",
+        "a": "B) AVÍS VERMELL: Pausar immediatament el sistema per fer-hi reparacions, ja que és insegur i esbiaixat.",
         "success": "Veredicte Lliurat. Has aturat amb èxit un sistema nociu.",
     },
 }
@@ -2469,7 +2469,7 @@ def create_bias_detective_ca_app(theme_primary_hue: str = "indigo"):
             gr.HTML(
                 "<div style='text-align:center; padding:100px;'>"
                 "<h2>🕵️‍♀️ Autenticant...</h2>"
-                "<p>Sincronitzant Dades de Brúixola Moral...</p>"
+                "<p>Sincronitzant dades de Brúixola Moral...</p>"
                 "</div>"
             )
 
@@ -2512,7 +2512,7 @@ def create_bias_detective_ca_app(theme_primary_hue: str = "indigo"):
                         gr.Markdown(f"### 🧠 {q_data['q']}")
                         radio = gr.Radio(
                             choices=q_data["o"],
-                            label="Selecciona una Resposta:",
+                            label="Selecciona una resposta:",
                             elem_classes=["quiz-radio-large"],
                         )
                         feedback = gr.HTML("")
@@ -2524,7 +2524,7 @@ def create_bias_detective_ca_app(theme_primary_hue: str = "indigo"):
                         next_label = (
                             "Següent ▶️"
                             if i < len(MODULES) - 1
-                            else "🎉 Has Completat la Part 1!! (Si us plau, Passa a la Següent Activitat)"
+                            else "🎉 Has completat la part 1! (Passa a la següent activitat)"
                         )
                         btn_next = gr.Button(next_label, variant="primary")
 
@@ -2665,7 +2665,7 @@ def create_bias_detective_ca_app(theme_primary_hue: str = "indigo"):
                 None,
                 None,
                 False,
-                "<div class='hint-box'>⚠️ Auth Failed. Please launch from the course link.</div>",
+                "<div class='hint-box'>⚠️ Error d’autenticació. Inicia l’activitat des de l’enllaç del curs.</div>",
                 "",
                 0.0,
                 [],

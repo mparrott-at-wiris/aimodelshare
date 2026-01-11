@@ -213,7 +213,7 @@ MODULES = [
 
                     <p style="font-size:1.1rem; max-width:800px; margin:0 auto 25px auto; text-align:center; color:var(--body-text-color);">
                         <strong>Your mission is clear:</strong> Uncover the bias hiding inside the 
-                        AI system before it hurts real people. If you cannot find bias, we cannot fix it.
+                        AI system before it hurts real people. If we cannot find bias, we cannot fix it.
                     </p>
 
                     <div class="ai-risk-container" style="background:transparent; border:none; padding:0;">
@@ -243,7 +243,7 @@ MODULES = [
                                 <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">🎯</div>
                                 <div style="font-weight:800; font-size:1.2rem; color:#8b5cf6; margin-bottom:5px;">Output Error Testing</div>
                                 <div style="font-size:1.0rem; color:var(--body-text-color); font-weight:500; line-height:1.4;">
-                                    Test the Model's predictions. Prove that mistakes (False Alarms) are <strong>unequal</strong> across groups.
+                                    Test the Model's predictions. Prove that mistakes (false alarms) are <strong>unequal</strong> across groups.
                                 </div>
                             </div>
 
@@ -297,7 +297,7 @@ MODULES = [
                     <div style="background:rgba(59, 130, 246, 0.1); border-left:4px solid #3b82f6; padding:15px; margin-bottom:20px; border-radius:4px; color: var(--body-text-color);">
                         <p style="margin:0; font-size:1.05rem; line-height:1.5;">
                             <strong style="color:var(--color-accent);">Justice & Equity: Your Primary Rule.</strong><br>
-                            Ethics isn't abstract here—it’s our field guide for action. We rely on expert advice from the Catalan Observatory for Ethics in AI <strong>OEIAC (UdG)</strong> to ensure AI systems are fair.
+                            Ethics guide our actions. We follow expert advice from the Catalan Observatory for Ethics in AI <strong>OEIAC (UdG)</strong> to ensure AI systems are fair.
                             While they have defined 7 core principles of safe AI, our intel suggests this specific case involves a violation of <strong>Justice and Equity</strong>.
                         </p>
                     </div>
@@ -321,9 +321,9 @@ MODULES = [
                                     Representation Bias
                                 </summary>
                                 <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); border-top:1px solid var(--border-color-primary); padding-top:10px; line-height:1.4;">
-                                    <strong>Definition:</strong> Compares the dataset distribution to the actual real-world distribution.
+                                    <strong>What it checks:</strong> Whether the dataset reflects the real population.
                                     <br><br>
-                                    If one group appears far less (e.g., only 10% of cases are Group A, but they are 71% of the population) or far more than reality, the AI likely learns biased patterns.
+                                    If one group appears far more or far less often (e.g., only 10% of cases are Group A, but they are 71% of the population), the AI likely learns biased patterns.
                                 </div>
                             </details>
 
@@ -333,9 +333,9 @@ MODULES = [
                                     Error Gaps
                                 </summary>
                                 <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); border-top:1px solid var(--border-color-primary); padding-top:10px; line-height:1.4;">
-                                    <strong>Definition:</strong> Checks for AI prediction mistakes by subgroup (e.g., False Positive Rate for Group A vs. Group B).
+                                    <strong>What it checks:</strong> Whether the AI makes more mistakes for one group than another.
                                     <br><br>
-                                    Higher error for a group indicates risk for unfair treatment, showing the model may be less trustworthy for that specific group.
+                                    Higher error rates for a group (such as false positives) suggest the model is less fair or reliable for them.
                                 </div>
                             </details>
 
@@ -345,9 +345,9 @@ MODULES = [
                                     Outcome Disparities
                                 </summary>
                                 <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); border-top:1px solid var(--border-color-primary); padding-top:10px; line-height:1.4;">
-                                    <strong>Definition:</strong> Looks for worse real-world results after AI predictions (e.g., harsher sentencing).
+                                    <strong>What it checks:</strong> Whether AI decisions lead to worse real-world outcomes for certain groups (e.g., harsher sentencing).
                                     <br><br>
-                                    Bias isn’t just numbers—it changes real-world outcomes for people.
+                                    Bias isn’t just about data—it affects people’s lives.
                                 </div>
                             </details>
                         </div>
@@ -404,8 +404,8 @@ MODULES = [
 
                 <h2 class="slide-title header-accent" style="margin-top:10px;">The Hunt for Biased Demographic Patterns</h2>
                 <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                    An AI is only as fair as the data it learns from. If the input data distorts reality, the AI will likely distort justice.
-                    <br>The first step is to hunt for patterns that reveal <strong>Representation Bias.</strong>  To find representation bias we must inspect the <strong>Demographics.</strong>.
+                    AI systems learn from data. If the data is biased, the AI will be biased too.
+                    <br>Your first task is to look for <strong>Representation Bias,</strong> by checking which <strong>demographic</strong> groups appear more or less often in the data.
                 </p>
             </div>
 
@@ -423,15 +423,15 @@ MODULES = [
                     
                     <div style="color: var(--body-text-color);">
                         <p style="font-size:1rem; line-height:1.6;">
-                            <strong>The Concept:</strong> Ideally, a dataset should look like a "Mirror" of the real population. 
-                            If a group makes up 50% of the population, they should generally make up ~50% of the data.
+                            <strong>The Mirror Concept:</strong> Ideally, a dataset should look like a "mirror" of the real population. 
+                            If a group makes up 50% of the population, it should appear at about the same level in the data.
                         </p>
                         <p style="font-size:1rem; line-height:1.6;">
-                            <strong>The Red Flag:</strong> Look for <strong>Drastic Imbalances</strong> in Protected Characteristics (Race, Gender, Age).
+                            <strong>The Red Flag:</strong> Look for <strong>big imbalances</strong> in protected characteristics such as race, gender, or age.
                         </p>
                         <ul style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:10px; padding-left:20px; line-height:1.5;">
-                            <li><strong>Over-Representation:</strong> One group has a "Giant Bar" (e.g., 80% of arrest records are Men). The AI learns to target this group.</li>
-                            <li><strong>Under-Representation:</strong> One group is missing or tiny. The AI fails to learn accurate patterns for them.</li>
+                            <li><strong>Over-Representation:</strong> One group dominates the data (for example, 80% of arrest records are men). The AI may learn to target this group.</li>
+                            <li><strong>Under-Representation:</strong> One group is missing or tiny. The AI cannot learn reliable patterns for them.</li>
                         </ul>
                     </div>
 
@@ -464,7 +464,7 @@ MODULES = [
 
             <div style="margin-bottom: 25px; padding: 0 10px;">
                 <p style="font-size:1.1rem; line-height:1.5; color:var(--body-text-color);">
-                    <strong>🕵️ Your Next Step:</strong> You must enter the Data Forensics Lab and check the data for specific demographic categories. If the patterns look like the "Distorted Mirror" above, the data is likely unsafe.
+                    <strong>🕵️ Your Next Step:</strong> Check the demographic data in the Data Forensics Lab. If you see a distorted mirror, the data is likely biased.
                 </p>
             </div>
 
@@ -513,8 +513,8 @@ MODULES = [
 
                     <p style="text-align:center; max-width:700px; margin:0 auto 15px auto; font-size:1.1rem; color:var(--body-text-color);">
                         Search for evidence of Representation Bias.
-                        Compare the **Real World** population against the AI's **Input Data**.
-                        <br>Does the AI "see" the world as it truly is or do you see evidence of distorted representation?
+                        Compare the <strong>real-world</strong> population with the AI system’s <strong>input</strong> data.
+                        <br>Does the AI system "see" the world as it really is, or do you notice signs of distorted representation?
                     </p>
 
                 <div style="text-align:center; margin-bottom:20px;">
@@ -573,7 +573,7 @@ MODULES = [
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
                                     <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDENCE LOGGED: Race Representation Bias</div>
                                     <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        The AI is **over-exposed** to this group (51% vs 28%). It may learn to associate "High Risk" with this demographic simply because it sees them more often in arrest records.
+                                        The AI system sees this racial group too often (51% vs 28%). It might link “high risk” to people from this group just because they appear more in arrest records.
                                     </div>
                                 </div>
                             </div>
@@ -600,7 +600,7 @@ MODULES = [
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
                                     <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDENCE LOGGED: Gender Representation Bias</div>
                                     <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        Women are a "minority class" in this dataset even though they typically make up 50% of the true population. The model will likely struggle to learn accurate patterns for them, leading to **higher error rates** for female defendants.
+                                        Women are a minority class in this dataset, even though they make up about 50% of the real population. The model will probably struggle to learn accurate patterns for them, leading to **higher error rates** for female defendants.
                                     </div>
                                 </div>
                             </div>
@@ -636,7 +636,7 @@ MODULES = [
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
                                     <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDENCE LOGGED: Age Representation Bias</div>
                                     <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        The data is concentrated in the 25-45 age "Bubble." The model has a **blind spot** for younger and older people, meaning predictions for those groups will be unreliable (Generalization Error).
+                                        The data is mostly focused on people aged 25–45, the “age bubble.” The model has a blind spot for younger and older people, so its predictions for them are likely unreliable (Generalization Error).
                                     </div>
                                 </div>
                             </div>
@@ -730,13 +730,13 @@ MODULES = [
                 </div>
 
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">STEP 3: EVALUATE PREDICTION ERRORS</h2>
+                    <h2 class="slide-title" style="margin:0;">STEP 3: EVALUATE ERRORS</h2>
 
                     <div style="text-align:center; margin-bottom:20px;">
                         <h2 class="slide-title header-accent" style="margin-top:10px;">The Hunt For Prediction Errors</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                            We found evidence that the Input Data is biased. Now we must investigate if this bias has influenced the <strong>Model's Decisions</strong>.
-                            <br>We are looking for the second Red Flag from our Rulebook: <strong>Error Gaps</strong>.
+                            We found evidence that the input data is biased. Now we must investigate if this bias has influenced the <strong>model's decisions</strong>.
+                            <br>We are looking for the second red flag from our rulebook: <strong>error gaps</strong>.
                         </p>
                     </div>
 
@@ -754,18 +754,18 @@ MODULES = [
                             
                             <div>
                                 <p style="font-size:1rem; line-height:1.6; margin-top:0; color:var(--body-text-color);">
-                                    <strong>The Concept:</strong> A model's prediction shapes a person's future. When it makes a mistake, real people suffer.
+                                    <strong>The Concept:</strong> The "double standard" means mistakes by the AI system affect some people more than others, and real people can be harmed.
                                 </p>
 
                                 <div style="margin-top:15px; margin-bottom:15px;">
                                     <div style="background:rgba(255, 241, 242, 0.1); padding:12px; border-radius:8px; border:1px solid #fda4af; margin-bottom:10px;">
-                                        <div style="font-weight:700; color:#fb7185; margin-bottom:4px; font-size:0.95rem;">⚠️ TYPE 1: FALSE ALARMS</div>
+                                        <div style="font-weight:700; color:#fb7185; margin-bottom:4px; font-size:0.95rem;">⚠️ TYPE 1: FALSE ALARMS (False Positives)</div>
                                         <div style="font-size:0.9rem; color:var(--body-text-color); line-height:1.4;">Labeling a low-risk person as <strong>High Risk</strong>.</div>
                                         <div style="font-size:0.85rem; font-weight:700; color:#f43f5e; margin-top:4px;">Harm: Unfair Detention.</div>
                                     </div>
 
                                     <div style="background:rgba(240, 249, 255, 0.1); padding:12px; border-radius:8px; border:1px solid #bae6fd;">
-                                        <div style="font-weight:700; color:#38bdf8; margin-bottom:4px; font-size:0.95rem;">⚠️ TYPE 2: MISSED WARNINGS</div>
+                                        <div style="font-weight:700; color:#38bdf8; margin-bottom:4px; font-size:0.95rem;">⚠️ TYPE 2: MISSED WARNINGS (False Negatives)</div>
                                         <div style="font-size:0.9rem; color:var(--body-text-color); line-height:1.4;">Labeling a high-risk person as <strong>Low Risk</strong>.</div>
                                         <div style="font-size:0.85rem; font-weight:700; color:#0ea5e9; margin-top:4px;">Harm: Public Safety Risk.</div>
                                     </div>
@@ -811,7 +811,7 @@ MODULES = [
                     </div>
 
                     <details style="margin-bottom:25px; cursor:pointer; background:rgba(255, 241, 242, 0.1); border:1px solid #fda4af; border-radius:8px; padding:12px;">
-                        <summary style="font-weight:700; color:#fb7185; font-size:0.95rem;">🔬 The Hypothesis: How is Representation Bias connected to Prediction Error?</summary>
+                        <summary style="font-weight:700; color:#fb7185; font-size:0.95rem;">🔬 How Representation Bias leads to Prediction Errors</summary>
                         <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); line-height:1.5; padding:0 5px;">
                             <p style="margin-bottom:10px;"><strong>Connect the dots:</strong> In Step 2, we found that the input data overrepresented specific groups.</p>
                             <p><strong>The Theory:</strong> Because the AI saw these groups more often in arrest records, the data structure may lead the model to make group-specific prediction mistakes. The model may generate more <strong>False Alarms</strong> for innocent people from these groups at a much higher rate.</p>
@@ -847,12 +847,12 @@ MODULES = [
                 </div>
 
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">STEP 3: ANALYZE THE PREDICTION ERROR GAP</h2>
+                    <h2 class="slide-title" style="margin:0;">STEP 3: EVALUATE ERRORS</h2>
 
                     <div style="text-align:center; margin-bottom:20px;">
                         <h2 class="slide-title header-accent" style="margin-top:10px;">The Prediction Error Lab - Race Analysis</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                            We suspected the model is generating unfair amounts of prediction errors for specific groups. Now, we run the analysis.
+                            We suspect the model is generating unfair prediction errors. Now, we test this claim.
                             <br>Click to reveal the error rates below. Do AI mistakes fall equally across white and black defendants?
                         </p>
                     </div>
@@ -959,13 +959,13 @@ MODULES = [
                 </div>
 
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">STEP 3: ANALYZE THE PREDICTION ERROR GAP</h2>
+                    <h2 class="slide-title" style="margin:0;">STEP 3: EVALUATE ERRORS</h2>
 
                     <div style="text-align:center; margin-bottom:20px;">
-                        <h2 class="slide-title header-accent" style="margin-top:10px;">Gender, Age, and Geography Error Scans</h2>
+                        <h2 class="slide-title header-accent" style="margin-top:10px;">The Prediction Error Lab – Gender, Age, and Geography</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
                             We revealed the Racial Error Gap. But bias hides in other places too.
-                            <br>Use the scanner below to check for gender and age <strong>Representation Errors</strong> (due to data gaps) and <strong>Proxy Bias</strong> (hidden variables).
+                            <br>Use the scanner below to check for gender and age <strong>representation errors</strong> (due to data gaps) and <strong>proxy bias</strong> (that occurs when neutral-looking data replaces sensitive information and leads to unfair results).
                         </p>
                     </div>
 
@@ -1101,9 +1101,9 @@ MODULES = [
                                         <div class="hint-box" style="border-left:4px solid #db2777; background:rgba(255, 241, 242, 0.1);">
                                             <div style="font-weight:800; color:#f43f5e;">❌ VERDICT: PROXY (HIDDEN RELATIONSHIP) BIAS CONFIRMED</div>
                                             <div style="font-size:0.95rem; margin-top:5px; color:var(--body-text-color);">
-                                                The error rate in Urban Zones is massive (58%). 
-                                                Even if "Race" was removed, the model is using <strong>Location</strong> to target the same groups. 
-                                                It is treating "City Resident" as a synonym for "High Risk."
+                                                The error rate in Urban Zones is extremely high (58%). 
+                                                Even if "Race" was removed, the model uses <strong>location</strong> as an indirect proxy, reproducing the same unequal outcomes. 
+                                                As a result, being a “City Resident” is effectively interpreted as "High Risk."
                                             </div>
                                         </div>
                                     </div>
@@ -1142,10 +1142,10 @@ MODULES = [
                 </div>
 
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">STEP 3: AUDIT REPORT SUMMARY</h2>
+                    <h2 class="slide-title" style="margin:0;">STEP 3: EVALUATE ERRORS</h2>
 
                     <div style="text-align:center; margin-bottom:25px;">
-                        <h2 class="slide-title header-accent" style="margin-top:10px;">Final Prediction Analysis</h2>
+                        <h2 class="slide-title header-accent" style="margin-top:10px;">Prediction Error Report</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
                             Review your forensic logs. You have uncovered systemic failures across multiple dimensions.
                             <br>This evidence shows the model violates the core principle of <strong>Justice & Fairness</strong>.
@@ -1367,7 +1367,7 @@ MODULES = [
                             ✅ DECISION VALIDATED
                         </div>
                         <p style="font-size:1.05rem; color:var(--body-text-color); margin:10px 0 0 0;">
-                            You chose the responsible path. That decision required evidence, judgment, and a deep commitment to the principle of <strong>Justice & Equity</strong>.
+                            Your analysis was supported by evidence and clear reasoning, aligned with the principles of <strong>Justice & Equity</strong>.
                         </p>
                     </div>
 
@@ -1380,7 +1380,7 @@ MODULES = [
 
                         <div style="padding:25px;">
                             <p style="text-align:center; font-size:1.1rem; margin-bottom:20px; color:var(--body-text-color);">
-                                Exposing bias is only the first half of the mission. Now that you have the evidence, the real work begins.
+                                Identifying bias is the first step. With the findings in place, the focus now shifts to improvement and redesign.
                                 <br><strong>You are trading your Magnifying Glass for a Wrench.</strong>
                             </p>
 
@@ -1390,15 +1390,15 @@ MODULES = [
                                 <ul style="list-style:none; padding:0; margin:0; font-size:1rem; color:var(--body-text-color);">
                                     <li style="margin-bottom:12px; display:flex; gap:10px; align-items:start;">
                                         <span>🔧</span>
-                                        <span><strong style="color:#38bdf8;">Your Task 1:</strong> Dismantle the "Proxy Variables" (Remove Zip Code bias).</span>
+                                        <span><strong style="color:#38bdf8;">Your Task 1:</strong> Address proxy variables (e.g. location-based bias).</span>
                                     </li>
                                     <li style="margin-bottom:12px; display:flex; gap:10px; align-items:start;">
                                         <span>📊</span>
-                                        <span><strong style="color:#38bdf8;">Your Task 2:</strong> Fix the "Distorted Mirror" by redesigning the data strategy.</span>
+                                        <span><strong style="color:#38bdf8;">Your Task 2:</strong> Improve data representation and coverage.</span>
                                     </li>
                                     <li style="display:flex; gap:10px; align-items:start;">
                                         <span>🗺️</span>
-                                        <span><strong style="color:#38bdf8;">Your Task 3:</strong> Build an ethical roadmap for continuous monitoring.</span>
+                                        <span><strong style="color:#38bdf8;">Your Task 3:</strong> Define a roadmap for ongoing monitoring.</span>
                                     </li>
                                 </ul>
                             </div>
