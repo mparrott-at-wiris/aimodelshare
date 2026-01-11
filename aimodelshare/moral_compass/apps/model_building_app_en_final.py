@@ -619,11 +619,10 @@ def _fetch_base_pred_strings_for_majority(complexity: int, feature_set: list, da
         k = build_cache_key(m, complexity, feature_set, data_size_str)
         s = get_cached_prediction(k, data_size_str)
         if s is None:
-            pred_strings = []
             break
         pred_strings.append(s)
     
-    if pred_strings:
+    if pred_strings and len(pred_strings) == 4:
         return pred_strings
     
     # Fallback for Full (100%): try base DB if full-models DB is missing any base model
