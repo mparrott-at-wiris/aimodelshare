@@ -2090,12 +2090,15 @@ def run_experiment(
         # -------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------
-        # UPDATE MORAL COMPASS SCORE AFTER SUBMISSION
+        # UPDATE MORAL COMPASS SCORE AFTER SUBMISSION (HARDENED: accuracy-only, preserve tasks)
         # -------------------------------------------------------------------------
         _log("Updating moral compass score...")
-        mc_client = None  # Initialize to None for use later
-        existing_task_list = []  # Track existing tasks from server
-        existing_accuracy = 0.0  # Track existing best accuracy
+        mc_client = None
+        user_found = False
+        existing_accuracy = 0.0
+        existing_tasks = None  # Track if we successfully fetched tasks
+        tasks_completed = 0
+        
         try:
             os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
             mc_client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
@@ -2113,41 +2116,86 @@ def run_experiment(
                 except Exception:
                     pass
             
-            # Fetch existing task list and accuracy from server
+            # Step 1: Fetch existing metrics and progress via list_users
             try:
                 resp = mc_client.list_users(table_id=TABLE_ID, limit=500)
                 users = resp.get("users", [])
                 my_user = next((u for u in users if u.get("username") == username), None)
+                
                 if my_user:
-                    existing_task_list = my_user.get("completedTaskIds", [])
-                    # Get existing accuracy from metrics if available
+                    user_found = True
+                    # Extract existing accuracy from metrics
                     metrics = my_user.get("metrics", {})
                     if isinstance(metrics, dict):
                         existing_accuracy = float(metrics.get("accuracy", 0.0))
-                    _log(f"Existing data for {username}: tasks={existing_task_list}, accuracy={existing_accuracy}")
+                    
+                    # Try to get completedTaskIds from list_users response
+                    existing_tasks = my_user.get("completedTaskIds")
+                    if existing_tasks is not None:
+                        tasks_completed = len(existing_tasks) if isinstance(existing_tasks, list) else 0
+                        _log(f"Fetched user data: accuracy={existing_accuracy}, tasks={len(existing_tasks) if isinstance(existing_tasks, list) else 0}")
+                    else:
+                        # Step 2: Fall back to get_user if completedTaskIds not in list_users
+                        _log("completedTaskIds not in list_users, falling back to get_user...")
+                        try:
+                            user_detail = mc_client.get_user(table_id=TABLE_ID, username=username)
+                            existing_tasks = user_detail.get("completedTaskIds")
+                            if existing_tasks is not None:
+                                tasks_completed = len(existing_tasks) if isinstance(existing_tasks, list) else 0
+                                _log(f"Fetched tasks from get_user: {len(existing_tasks) if isinstance(existing_tasks, list) else 0}")
+                        except Exception as e:
+                            _log(f"Could not fetch user details: {e}")
+                            # existing_tasks remains None - we don't know the task state
+                else:
+                    _log(f"User {username} not found in moral compass, treating as new user")
+                    # New user: user_found=False, existing_accuracy=0.0, existing_tasks=None
+                    
             except Exception as e:
                 _log(f"Could not fetch existing user data: {e}")
+                # If we can't fetch, we don't know the state - skip update to be safe
             
-            # Only update moral compass if this submission is better than the existing accuracy
-            if this_submission_score > existing_accuracy or existing_accuracy == 0.0:
-                _log(f"New accuracy {this_submission_score} is better than existing {existing_accuracy}, updating...")
-                # Update moral compass with accuracy only (no task modification)
-                # The task list from other apps (bias detective, etc.) is preserved
-                tasks_completed = len(existing_task_list)
-                mc_client.update_moral_compass(
-                    table_id=TABLE_ID,
-                    username=username,
-                    team_name=team_name,
-                    metrics={"accuracy": this_submission_score},
-                    tasks_completed=tasks_completed,
-                    total_tasks=TOTAL_COURSE_TASKS,
-                    primary_metric="accuracy",
-                    completed_task_ids=existing_task_list,
-                )
-                
-                _log(f"Moral compass updated: accuracy={this_submission_score}, tasks={tasks_completed}/{TOTAL_COURSE_TASKS}")
+            # Step 3: Only update if new accuracy is better OR first write/new user
+            should_update = False
+            if not user_found:
+                # New user - safe to write
+                should_update = True
+                _log(f"New user - will create initial record with accuracy={this_submission_score}")
+            elif this_submission_score > existing_accuracy:
+                # Better accuracy - safe to update
+                should_update = True
+                _log(f"New accuracy {this_submission_score} > existing {existing_accuracy} - updating")
+            elif existing_accuracy == 0.0 and this_submission_score > 0.0:
+                # First non-zero accuracy - safe to update
+                should_update = True
+                _log(f"First non-zero accuracy {this_submission_score} - updating")
             else:
-                _log(f"Submission accuracy {this_submission_score} not better than existing {existing_accuracy}, skipping moral compass update")
+                _log(f"Accuracy {this_submission_score} not better than existing {existing_accuracy} - skipping update")
+            
+            # Step 4: Perform update if approved
+            if should_update:
+                # Step 5: Only include completed_task_ids if we actually fetched them
+                # Step 6: Skip update entirely if progress is unknown (existing_tasks is None and user exists)
+                if user_found and existing_tasks is None:
+                    # We found a user but couldn't fetch their tasks - risky to update
+                    _log("Warning: Could not fetch user's task list - skipping update to avoid clearing tasks")
+                else:
+                    # Build update payload
+                    update_kwargs = {
+                        "table_id": TABLE_ID,
+                        "username": username,
+                        "team_name": team_name,
+                        "metrics": {"accuracy": this_submission_score},
+                        "tasks_completed": tasks_completed,
+                        "total_tasks": TOTAL_COURSE_TASKS,
+                        "primary_metric": "accuracy",
+                    }
+                    
+                    # Only include completed_task_ids if we successfully fetched them
+                    if existing_tasks is not None:
+                        update_kwargs["completed_task_ids"] = existing_tasks if isinstance(existing_tasks, list) else []
+                    
+                    mc_client.update_moral_compass(**update_kwargs)
+                    _log(f"Moral compass updated: accuracy={this_submission_score}, tasks={tasks_completed}/{TOTAL_COURSE_TASKS}")
             
         except Exception as e:
             _log(f"Warning: Failed to update moral compass score: {e}")
