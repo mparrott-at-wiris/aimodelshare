@@ -67,7 +67,7 @@ except ImportError:
 # -------------------------------------------------------------------------
 import sqlite3
 
-CACHE_DB_FILE = "prediction_cache.sqlite"
+CACHE_DB_FILE = "prediction_cache_full.sqlite"
 
 def get_cached_prediction(key):
     """
@@ -517,6 +517,25 @@ def check_attempt_limit(submission_count: int, limit: int = None) -> Tuple[bool,
 
 MY_PLAYGROUND_ID = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
 
+# --- Model Configuration ---
+MAJORITY_MODEL_NAME = "The Majority Vote"
+FULL_DATA_SIZE_LABEL = "Full (100%)"
+
+def build_cache_key(model_name: str, complexity: int, feature_set: list) -> str:
+    """
+    Build cache key matching full-models cache format.
+    
+    Args:
+        model_name: Model name (e.g., "The Balanced Generalist", "The Majority Vote")
+        complexity: Complexity level (1-10)
+        feature_set: List of feature names
+    
+    Returns:
+        Cache key string in format: model_name|complexity|Full (100%)|feature_key
+    """
+    feature_key = ",".join(sorted(feature_set))
+    return f"{model_name}|{complexity}|{FULL_DATA_SIZE_LABEL}|{feature_key}"
+
 # --- Submission Limit Configuration ---
 # Maximum number of successful leaderboard submissions per user per session.
 # Preview runs (pre-login) and failed/invalid attempts do NOT count toward this limit.
@@ -560,6 +579,10 @@ MODEL_TYPES = {
             random_state=42, class_weight="balanced"
         ),
         "card": "An ensemble of many decision trees. Powerful, can capture deep patterns; watch complexity."
+    },
+    "The Majority Vote": {
+        "card": "Ensemble of the four base models computed via majority vote. No training required.",
+        "cache_only": True
     }
 }
 
@@ -596,19 +619,16 @@ ALL_NUMERIC_COLS = [
     "days_b_screening_arrest", "age", "length_of_stay", "priors_count"
 ]
 ALL_CATEGORICAL_COLS = [
-    "race", "sex", "c_charge_degree"
+    "race", "sex", "c_charge_degree", "c_charge_desc"
 ]
 DEFAULT_FEATURE_SET = FEATURE_SET_GROUP_1_VALS
 
 
 # --- Data Size config ---
 DATA_SIZE_MAP = {
-    "Small (20%)": 0.2,
-    "Medium (60%)": 0.6,
-    "Large (80%)": 0.8,
     "Full (100%)": 1.0
 }
-DEFAULT_DATA_SIZE = "Small (20%)"
+DEFAULT_DATA_SIZE = "Full (100%)"
 
 
 MAX_ROWS = 4000
@@ -1627,11 +1647,8 @@ def run_experiment(
         # Ensure test labels are loaded
         _ensure_y_test_loaded()
         
-        # Build cache key matching precompute_cache.py format:
-        # "ModelName|Complexity|DataSize|SortedFeatures"
-        feature_tuple = tuple(sorted(feature_set))
-        feature_key = ",".join(feature_tuple)
-        cache_key = f"{model_name_key}|{complexity_level}|{data_size_str}|{feature_key}"
+        # Build cache key using helper function for consistency
+        cache_key = build_cache_key(model_name_key, complexity_level, feature_set)
         
         yield { 
             submission_feedback_display: gr.update(value=get_status_html(2, "Loading Predictions", "⚡ Fetching precomputed results..."), visible=True),
