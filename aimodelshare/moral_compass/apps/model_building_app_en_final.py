@@ -2161,20 +2161,15 @@ def run_experiment(
                 should_update = True
                 _log(f"New user - will create initial record with accuracy={this_submission_score}")
             elif this_submission_score > existing_accuracy:
-                # Better accuracy - safe to update
+                # Better accuracy - safe to update (includes 0.0 < positive score case)
                 should_update = True
                 _log(f"New accuracy {this_submission_score} > existing {existing_accuracy} - updating")
-            elif existing_accuracy == 0.0 and this_submission_score > 0.0:
-                # First non-zero accuracy - safe to update
-                should_update = True
-                _log(f"First non-zero accuracy {this_submission_score} - updating")
             else:
                 _log(f"Accuracy {this_submission_score} not better than existing {existing_accuracy} - skipping update")
             
-            # Step 4: Perform update if approved
+            # Step 4: Perform update if approved and safe
             if should_update:
-                # Step 5: Only include completed_task_ids if we actually fetched them
-                # Step 6: Skip update entirely if progress is unknown (existing_tasks is None and user exists)
+                # Skip update entirely if progress is unknown for existing user (to avoid clearing tasks)
                 if user_found and existing_tasks is None:
                     # We found a user but couldn't fetch their tasks - risky to update
                     _log("Warning: Could not fetch user's task list - skipping update to avoid clearing tasks")
