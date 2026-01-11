@@ -544,8 +544,8 @@ def build_cache_key(model_name: str, complexity: int, feature_set: list, data_si
     """
     if data_size_str is None:
         data_size_str = FULL_DATA_SIZE_LABEL
-    feature_key = ",".join(sorted(str(f) for f in feature_set))
-    return f"{model_name}|{int(complexity)}|{data_size_str}|{feature_key}"
+    feature_key = ",".join(sorted(feature_set))
+    return f"{model_name}|{complexity}|{data_size_str}|{feature_key}"
 
 def _compute_majority_string(pred_strings: list, tie_break: str = "random", rng_seed: int = 42) -> str:
     """
@@ -598,7 +598,7 @@ def _fetch_base_pred_strings_for_majority(complexity: int, feature_set: list, da
     for m in BASE_MODEL_NAMES:
         k = build_cache_key(m, complexity, feature_set, data_size_str)
         s = get_cached_prediction(k)
-        if not s:
+        if s is None:
             return None
         pred_strings.append(s)
     return pred_strings
