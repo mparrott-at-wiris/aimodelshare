@@ -758,11 +758,8 @@ FEATURE_SET_ALL_OPTIONS = [
     ("Número de delitos graves juveniles", "juv_fel_count"),
     ("Número de delitos leves juveniles", "juv_misd_count"),
     ("Otros delitos juveniles", "juv_other_count"),
-    ("Origen étnico", "race"),
-    ("Sexo", "sex"),
     ("Gravedad del cargo (leve / grave)", "c_charge_degree"),
     ("Días antes del arresto", "days_b_screening_arrest"),
-    ("Edad", "age"),
     ("Días en prisión", "length_of_stay"),
     ("Número de delitos previos", "priors_count"),
 ]
@@ -779,7 +776,7 @@ ALL_NUMERIC_COLS = [
 ALL_CATEGORICAL_COLS = [
     "race", "sex", "c_charge_degree"
 ]
-DEFAULT_FEATURE_SET = FEATURE_SET_GROUP_1_VALS
+DEFAULT_FEATURE_SET = FEATURE_SET_ALL_OPTIONS 
 
 
 # --- Data Size config ---
