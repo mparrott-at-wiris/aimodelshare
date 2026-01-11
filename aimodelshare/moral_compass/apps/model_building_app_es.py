@@ -3370,7 +3370,9 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
                             )
 
             # REMOVED: Ethical Reminder HTML Block
-            step_2_next = gr.Button("Finalizar y reflexionar ▶️", variant="secondary")
+            with gr.Row():
+                step_2_back = gr.Button("◀️ Volver a las instrucciones", size="lg")
+                step_2_next = gr.Button("Finalizar y reflexionar ▶️", variant="secondary", size="lg")
 
         # Conclusion Step
         with gr.Column(visible=False, elem_id="conclusion-step") as conclusion_step:
@@ -3562,6 +3564,13 @@ def create_model_building_game_es_app(theme_primary_hue: str = "indigo") -> "gr.
             fn=create_nav(briefing_slide_6, model_building_step),
             inputs=None, outputs=all_steps_nav,
             js=nav_js("model-step", "Inicializando el entorno de construcción...")
+        )
+
+        # App -> Back to Instructions
+        step_2_back.click(
+            fn=create_nav(model_building_step, briefing_slide_6),
+            inputs=None, outputs=all_steps_nav,
+            js=nav_js("slide-6", "Volviendo a las instrucciones...")
         )
 
         # App -> Conclusion
