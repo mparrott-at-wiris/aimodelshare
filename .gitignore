@@ -61,6 +61,13 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
+# Prediction cache files (generated, not committed)
+prediction_cache.json.gz
+prediction_cache_full_models.json.gz
+prediction_cache.sqlite
+cache_checkpoint.jsonl
+full_models_cache_checkpoint.jsonl
+
 # Flask stuff:
 instance/
 .webassets-cache
