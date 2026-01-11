@@ -18,6 +18,15 @@ def load_cache_file(filepath):
             data = json.load(f)
         print(f"   ✅ Loaded {len(data)} entries from {filepath}")
         return data
+    except (gzip.BadGzipFile, OSError) as e:
+        print(f"   ❌ Error reading {filepath}: Invalid gzip file")
+        return None
+    except json.JSONDecodeError as e:
+        print(f"   ❌ Error reading {filepath}: Invalid JSON format")
+        return None
+    except UnicodeDecodeError as e:
+        print(f"   ❌ Error reading {filepath}: Invalid character encoding")
+        return None
     except Exception as e:
         print(f"   ❌ Error reading {filepath}: {e}")
         return None

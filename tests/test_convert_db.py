@@ -15,10 +15,11 @@ import gzip
 import sqlite3
 import tempfile
 import shutil
+import traceback
 from pathlib import Path
 
 # Add parent directory to path for imports
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 import convert_db
 
 
@@ -259,9 +260,9 @@ def test_corrupt_cache_file():
         os.chdir(tmpdir)
         
         try:
-            # Create a corrupt cache file (not valid gzip)
-            with open("prediction_cache.json.gz", "w") as f:
-                f.write("This is not valid gzip data")
+            # Create a corrupt gzip file (valid gzip but invalid JSON)
+            with gzip.open("prediction_cache.json.gz", "wt", encoding="UTF-8") as f:
+                f.write("This is not valid JSON {{{")
             
             # Run conversion - should handle gracefully
             try:
@@ -375,7 +376,6 @@ if __name__ == "__main__":
             results.append(test())
         except Exception as e:
             print(f"❌ EXCEPTION: {e}")
-            import traceback
             traceback.print_exc()
             results.append(False)
     

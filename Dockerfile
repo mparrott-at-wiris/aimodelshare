@@ -41,8 +41,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
 COPY convert_db.py .
 
 # 2. Copy available cache files (with wildcard support)
-# The asterisk after the filename makes COPY optional - if file doesn't exist, it's skipped
-# At least one cache file must be present for the build to succeed
+# Note: At least one file matching this pattern must exist in the build context
+# or the Docker build will fail. The convert_db.py script will handle cases where
+# only one of the two cache files is present.
 COPY prediction_cache*.json.gz ./
 
 # 3. RUN the conversion immediately. 
