@@ -2095,15 +2095,22 @@ def run_experiment(
         _log("Updating moral compass score...")
         mc_client = None
         user_found = False
-        existing_accuracy = 0.0
-        existing_tasks = None  # Track if we successfully fetched tasks
-        tasks_completed = 0
-        
+
+        # Cache of existing MC fields (only used if successfully fetched)
+        existing_accuracy = None
+        existing_metrics_present = False
+        existing_tasks_completed = None
+        existing_total_tasks = None
+        existing_questions_correct = None
+        existing_total_questions = None
+        existing_completed_task_ids = None
+        existing_team_name = None
+
         try:
             os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
             mc_client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
-            
-            # Ensure table exists
+
+            # Ensure table exists (best effort)
             try:
                 mc_client.get_table(TABLE_ID)
             except Exception:
@@ -2115,87 +2122,128 @@ def run_experiment(
                     )
                 except Exception:
                     pass
-            
-            # Step 1: Fetch existing metrics and progress via list_users
+
+            # 1) Try list_users to get metrics and progress
             try:
                 resp = mc_client.list_users(table_id=TABLE_ID, limit=500)
                 users = resp.get("users", [])
                 my_user = next((u for u in users if u.get("username") == username), None)
-                
                 if my_user:
                     user_found = True
-                    # Extract existing accuracy from metrics
-                    metrics = my_user.get("metrics", {})
-                    if isinstance(metrics, dict):
-                        existing_accuracy = float(metrics.get("accuracy", 0.0))
-                    
-                    # Try to get completedTaskIds from list_users response
-                    existing_tasks = my_user.get("completedTaskIds")
-                    if existing_tasks is not None:
-                        tasks_completed = len(existing_tasks) if isinstance(existing_tasks, list) else 0
-                        _log(f"Fetched user data: accuracy={existing_accuracy}, tasks={len(existing_tasks) if isinstance(existing_tasks, list) else 0}")
-                    else:
-                        # Step 2: Fall back to get_user if completedTaskIds not in list_users
-                        _log("completedTaskIds not in list_users, falling back to get_user...")
+                    existing_team_name = my_user.get("teamName")
+
+                    metrics = my_user.get("metrics") or {}
+                    if isinstance(metrics, dict) and metrics:
+                        existing_metrics_present = True
                         try:
-                            user_detail = mc_client.get_user(table_id=TABLE_ID, username=username)
-                            existing_tasks = user_detail.get("completedTaskIds")
-                            if existing_tasks is not None:
-                                tasks_completed = len(existing_tasks) if isinstance(existing_tasks, list) else 0
-                                _log(f"Fetched tasks from get_user: {len(existing_tasks) if isinstance(existing_tasks, list) else 0}")
-                        except Exception as e:
-                            _log(f"Could not fetch user details: {e}")
-                            # existing_tasks remains None - we don't know the task state
-                else:
-                    _log(f"User {username} not found in moral compass, treating as new user")
-                    # New user: user_found=False, existing_accuracy=0.0, existing_tasks=None
-                    
+                            existing_accuracy = float(metrics.get("accuracy", 0.0))
+                        except Exception:
+                            existing_accuracy = None
+
+                    # Prefer server-provided progress counters
+                    if "tasksCompleted" in my_user:
+                        existing_tasks_completed = my_user.get("tasksCompleted")
+                    if "totalTasks" in my_user:
+                        existing_total_tasks = my_user.get("totalTasks")
+                    if "questionsCorrect" in my_user:
+                        existing_questions_correct = my_user.get("questionsCorrect")
+                    if "totalQuestions" in my_user:
+                        existing_total_questions = my_user.get("totalQuestions")
+
+                    # list_users may include completedTaskIds; capture if present
+                    if "completedTaskIds" in my_user:
+                        existing_completed_task_ids = my_user.get("completedTaskIds")
             except Exception as e:
-                _log(f"Could not fetch existing user data: {e}")
-                # If we can't fetch, we don't know the state - skip update to be safe
-            
-            # Step 3: Only update if new accuracy is better OR first write/new user
-            should_update = False
-            if not user_found:
-                # New user - safe to write
-                should_update = True
-                _log(f"New user - will create initial record with accuracy={this_submission_score}")
-            elif this_submission_score > existing_accuracy:
-                # Better accuracy - safe to update (includes 0.0 < positive score case)
-                should_update = True
-                _log(f"New accuracy {this_submission_score} > existing {existing_accuracy} - updating")
-            else:
-                _log(f"Accuracy {this_submission_score} not better than existing {existing_accuracy} - skipping update")
-            
-            # Step 4: Perform update if approved and safe
-            if should_update:
-                # Skip update entirely if progress is unknown for existing user (to avoid clearing tasks)
-                if user_found and existing_tasks is None:
-                    # We found a user but couldn't fetch their tasks - risky to update
-                    _log("Warning: Could not fetch user's task list - skipping update to avoid clearing tasks")
-                else:
-                    # Build update payload
-                    update_kwargs = {
-                        "table_id": TABLE_ID,
-                        "username": username,
-                        "team_name": team_name,
-                        "metrics": {"accuracy": this_submission_score},
-                        "tasks_completed": tasks_completed,
-                        "total_tasks": TOTAL_COURSE_TASKS,
-                        "primary_metric": "accuracy",
-                    }
-                    
-                    # Only include completed_task_ids if we successfully fetched them
-                    if existing_tasks is not None:
-                        update_kwargs["completed_task_ids"] = existing_tasks if isinstance(existing_tasks, list) else []
-                    
+                _log(f"list_users failed while checking moral compass: {e}")
+
+            # 2) If we still don't have completedTaskIds, try get_user (direct)
+            if existing_completed_task_ids is None:
+                try:
+                    user_obj = mc_client.get_user(TABLE_ID, username)
+                    if user_obj and getattr(user_obj, "username", None):
+                        user_found = True
+                        existing_completed_task_ids = user_obj.completed_task_ids or []
+                except Exception as e:
+                    _log(f"get_user fallback failed (tasks unavailable): {e}")
+
+            # Decide whether it's safe and necessary to update
+            progress_known = (existing_tasks_completed is not None) or (existing_completed_task_ids is not None)
+
+            # Improvement rule:
+            # - If metrics exist, only update if new accuracy > existing accuracy
+            # - If no metrics exist and user exists, it's a first accuracy set; allowed
+            # - If user does not exist, allowed (new record)
+            improved = False
+            if user_found and existing_metrics_present and (existing_accuracy is not None):
+                try:
+                    improved = float(this_submission_score) > float(existing_accuracy)
+                except Exception:
+                    improved = False
+            elif user_found and not existing_metrics_present:
+                # First write of accuracy for existing user (no prior metrics)
+                improved = True
+            elif not user_found:
+                # New user record
+                improved = True
+
+            do_update = improved and progress_known
+
+            if do_update:
+                # Prepare preserved progress
+                tasks_completed = existing_tasks_completed
+                total_tasks = existing_total_tasks
+                questions_correct = existing_questions_correct
+                total_questions = existing_total_questions
+
+                # If counters are missing but we have the list, derive tasksCompleted
+                if tasks_completed is None and existing_completed_task_ids is not None:
+                    tasks_completed = len(existing_completed_task_ids)
+
+                # Fallbacks: use course total if total_tasks unknown; leave Q counters 0 if unknown
+                if total_tasks is None:
+                    total_tasks = TOTAL_COURSE_TASKS
+                if questions_correct is None:
+                    questions_correct = 0
+                if total_questions is None:
+                    total_questions = 0
+
+                update_kwargs = dict(
+                    table_id=TABLE_ID,
+                    username=username,
+                    team_name=team_name or existing_team_name,
+                    metrics={"accuracy": this_submission_score},
+                    tasks_completed=tasks_completed,
+                    total_tasks=total_tasks,
+                    questions_correct=questions_correct,
+                    total_questions=total_questions,
+                    primary_metric="accuracy",
+                )
+
+                # Only include completed_task_ids if we actually fetched them
+                if existing_completed_task_ids is not None:
+                    update_kwargs["completed_task_ids"] = existing_completed_task_ids
+
+                try:
                     mc_client.update_moral_compass(**update_kwargs)
-                    _log(f"Moral compass updated: accuracy={this_submission_score}, tasks={tasks_completed}/{TOTAL_COURSE_TASKS}")
-            
+                    _log(
+                        f"Moral compass updated: accuracy={this_submission_score}, "
+                        f"tasksCompleted={tasks_completed}, totalTasks={total_tasks}, "
+                        f"questionsCorrect={questions_correct}, totalQuestions={total_questions}, "
+                        f"tasks_preserved={'yes' if existing_completed_task_ids is not None else 'unknown'}"
+                    )
+                except Exception as e:
+                    _log(f"Warning: Failed to update moral compass score: {e}")
+            else:
+                _log(
+                    f"Skipping moral compass update "
+                    f"(user_found={user_found}, metrics_present={existing_metrics_present}, "
+                    f"existing_accuracy={existing_accuracy}, progress_known={progress_known}, "
+                    f"submission={this_submission_score})"
+                )
+
         except Exception as e:
-            _log(f"Warning: Failed to update moral compass score: {e}")
-            mc_client = None  # Ensure it's None if update failed
-            # Continue even if moral compass update fails
+            _log(f"Warning: Failed to initialize moral compass client or perform checks: {e}")
+            mc_client = None  # Continue app flow even if MC update fails
         # -------------------------------------------------------------------------
 
         # Immediately increment submission count...
