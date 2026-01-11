@@ -30,6 +30,16 @@ jobs:
           search_artifacts: true
           if_no_artifact_found: warn
 
+      # NEW: Download the full-models cache built on the complete dataset
+      - name: Download Full-Models Prediction Cache
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: build_full_models_cache.yml
+          name: prediction-cache-full-models-file
+          path: .
+          search_artifacts: true
+          if_no_artifact_found: warn
+
       - id: auth
         name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -47,10 +57,17 @@ jobs:
           IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}"
           echo "Building image: $IMAGE"
           if [ -f "prediction_cache.json.gz" ]; then
-            echo "✅ Cache file found! Embedding into Docker image."
+            echo "✅ Base cache file found! Will embed into Docker image."
           else
-            echo "⚠️ Cache file NOT found. App will run in slow training mode."
+            echo "⚠️ Base cache file NOT found. App may run in slow training mode."
           fi
+
+          if [ -f "prediction_cache_full_models.json.gz" ]; then
+            echo "✅ Full-models cache file found! Will embed into Docker image."
+          else
+            echo "ℹ️ Full-models cache file NOT found."
+          fi
+
           docker build --pull -t "$IMAGE" .
           docker push "$IMAGE"
           echo "IMAGE=$IMAGE" >> $GITHUB_ENV

@@ -4,7 +4,7 @@ import gzip
 import time
 import gc
 import itertools
-import importlib
+import ast
 import pandas as pd
 import numpy as np
 
@@ -142,38 +142,53 @@ def load_base_cache():
         print("No prior base cache artifacts found. Starting full-models cache from scratch.")
         return {}
 
-# --- ALLOWED FEATURE SETS (pull from app; fallback to power set of ALL_FEATURES) ---
-def get_allowed_feature_sets() -> list[tuple[str, ...]]:
+# --- ALLOWED FEATURE SETS (parse from app via AST; fallback to power set of ALL_FEATURES) ---
+def _parse_feature_sets_from_source(path="aimodelshare/moral_compass/apps/model_building_app_en.py"):
     """
-    Tries to import the app and read FEATURE_SET_ALL_OPTIONS.
-    Returns a list of sorted tuples representing feature sets.
-    Fallback: power set of ALL_FEATURES (excluding empty set).
+    Parse FEATURE_SET_ALL_OPTIONS directly from source file via AST.
+    Returns a list of feature name tuples (second element of each tuple in the list).
     """
     try:
-        mod = importlib.import_module("aimodelshare.moral_compass.apps.model_building_app_en")
-        options = getattr(mod, "FEATURE_SET_ALL_OPTIONS", None)
-        if options and isinstance(options, (list, tuple)) and len(options) > 0:
-            allowed = []
-            for opt in options:
-                # Each opt is expected to be an iterable of feature names
-                fs = tuple(sorted([str(x) for x in opt]))
-                if len(fs) > 0:
-                    allowed.append(fs)
-            # Deduplicate
-            allowed = sorted(set(allowed))
-            print(f"Loaded {len(allowed)} allowed feature sets from app.")
-            return allowed
-        else:
-            print("FEATURE_SET_ALL_OPTIONS not found or empty; falling back to power set of ALL_FEATURES.")
+        with open(path, "r", encoding="utf-8") as f:
+            src = f.read()
+        tree = ast.parse(src)
+        for node in tree.body:
+            if isinstance(node, ast.Assign):
+                for target in node.targets:
+                    if isinstance(target, ast.Name) and target.id == "FEATURE_SET_ALL_OPTIONS":
+                        # Evaluate the list literal
+                        value = ast.literal_eval(node.value)
+                        sets = []
+                        for opt in value:
+                            # Each opt is a tuple like ("Display Name", "feature_key")
+                            # We want the second element (the feature key)
+                            if isinstance(opt, tuple) and len(opt) >= 2:
+                                feature_key = str(opt[1])
+                                sets.append((feature_key,))  # Single-element tuple for each feature
+                        if sets:
+                            # Deduplicate and sort
+                            sets = sorted(set(sets))
+                            print(f"Parsed {len(sets)} feature sets from source.")
+                            return sets
+        print("FEATURE_SET_ALL_OPTIONS not found in source; falling back to power set.")
+        return None
     except Exception as e:
-        print(f"Warning: Could not import app feature sets ({e}); falling back to power set of ALL_FEATURES.")
+        print(f"Warning: Failed to parse feature sets from source ({e}); falling back to power set.")
+        return None
 
+def get_allowed_feature_sets() -> list[tuple[str, ...]]:
+    """
+    Returns a list of sorted tuples representing feature sets.
+    First tries AST parsing of app source, fallback to power set of ALL_FEATURES.
+    """
+    sets = _parse_feature_sets_from_source()
+    if sets is not None and len(sets) > 0:
+        return sets
     # Fallback: full power set of ALL_FEATURES (excluding empty set)
     all_combos = []
     for r in range(1, len(ALL_FEATURES) + 1):
         all_combos.extend(itertools.combinations(ALL_FEATURES, r))
-    allowed = [tuple(sorted(c)) for c in all_combos]
-    return allowed
+    return [tuple(sorted(c)) for c in all_combos]
 
 # --- TASK PROCESSOR (base models only) ---
 def process_task(task, X_full, y_full, X_test_raw):

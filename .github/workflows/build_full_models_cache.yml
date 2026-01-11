@@ -42,6 +42,7 @@ jobs:
       - name: Download Base Checkpoint (fallback)
         uses: dawidd6/action-download-artifact@v6
         with:
+          workflow: build_model_cache.yml
           name: cache-checkpoint
           path: .
           search_artifacts: true
@@ -53,6 +54,7 @@ jobs:
       - name: Restore Full-Models Checkpoint
         uses: dawidd6/action-download-artifact@v6
         with:
+          workflow: build_full_models_cache.yml
           name: full-models-cache-checkpoint
           path: .
           search_artifacts: true
@@ -60,21 +62,12 @@ jobs:
           if_no_artifact_found: warn
         continue-on-error: true
 
-      - name: Debug Artifacts
+      - name: Debug Artifacts (before compute)
         run: |
-          ls -lh || true
-          if [ -f "prediction_cache.json.gz" ]; then
-            echo "✅ Found base prediction_cache.json.gz"
-          elif [ -f "cache_checkpoint.jsonl" ]; then
-            echo "✅ Found base cache_checkpoint.jsonl (will reconstruct mapping)"
-          else
-            echo "ℹ️ No prior base cache artifacts found. Will build a new file with only full-dataset keys."
-          fi
-          if [ -f "full_models_cache_checkpoint.jsonl" ]; then
-            echo "✅ Found full-models checkpoint"
-          else
-            echo "ℹ️ No full-models checkpoint found (first run)"
-          fi
+          ls -lah || true
+          [ -f prediction_cache.json.gz ] && echo "✅ Found base prediction_cache.json.gz" || echo "ℹ️ Base final cache not found"
+          [ -f cache_checkpoint.jsonl ] && echo "✅ Found base cache_checkpoint.jsonl" || echo "ℹ️ Base checkpoint not found"
+          [ -f full_models_cache_checkpoint.jsonl ] && echo "✅ Found prior full_models_cache_checkpoint.jsonl" || echo "ℹ️ No prior full-models checkpoint"
 
       - name: Compute Full-Dataset Cache Chunk
         env:
@@ -82,7 +75,24 @@ jobs:
         run: |
           export OMP_NUM_THREADS=1
           export OPENBLAS_NUM_THREADS=1
-          python precompute_full_models_cache.py
+          python -u precompute_full_models_cache.py
+
+      # Verify the checkpoint exists and show basic stats
+      - name: Verify Checkpoint File
+        run: |
+          if [ -f full_models_cache_checkpoint.jsonl ]; then
+            echo "✅ Checkpoint present:"
+            ls -lh full_models_cache_checkpoint.jsonl
+            echo "Line count:"
+            wc -l full_models_cache_checkpoint.jsonl || true
+            echo "Head:"
+            head -n 3 full_models_cache_checkpoint.jsonl || true
+            echo "Tail:"
+            tail -n 3 full_models_cache_checkpoint.jsonl || true
+          else
+            echo "❌ Checkpoint file not found after compute step."
+            exit 1
+          fi
 
       # Always save checkpoint so we can resume next run
       - name: Save Full-Models Checkpoint
