@@ -37,15 +37,24 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # ---------------------------------------------------------------------
 # Cache Conversion Layer
 # ---------------------------------------------------------------------
-# 1. Copy the raw JSON cache
-COPY prediction_cache.json.gz .
-
-# 2. Copy the converter script
+# 1. Copy the converter script first
 COPY convert_db.py .
+
+# 2. Copy available cache files (with wildcard support)
+# Note: At least one file matching this pattern must exist in the build context
+# or the Docker build will fail. The convert_db.py script will handle cases where
+# only one of the two cache files is present.
+COPY prediction_cache*.json.gz ./
 
 # 3. RUN the conversion immediately. 
 # This burns the optimized SQLite DB into the image layer.
-RUN python convert_db.py && rm prediction_cache.json.gz
+# The script handles both cache files and merges them if both exist,
+# or processes just one if only one is present.
+RUN echo "=== Starting Cache Conversion ===" && \
+    python convert_db.py && \
+    echo "=== Cleaning up cache files ===" && \
+    rm -f prediction_cache.json.gz prediction_cache_full_models.json.gz && \
+    echo "=== Cache conversion complete ==="
 
 # ---------------------------------------------------------------------
 # DATA CACHING: Download raw data during build
