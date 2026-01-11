@@ -588,7 +588,7 @@ MODEL_TYPES = {
         "card_es": "Este modelo combina muchos árboles de decisión para encontrar patrones complejos. Es potente, pero conviene no pasarse con la complejidad."
     },
     "The Majority Vote": {
-        "card_es": "Este modelo combina los resultados de todos los modelos anteriores y elige la predicción mayoritaria.",
+        "card_es": "Este modelo combina los resultados de los cuatro modelos y elige la predicción más frecuente.",
         "cache_only": True
     }
 }
