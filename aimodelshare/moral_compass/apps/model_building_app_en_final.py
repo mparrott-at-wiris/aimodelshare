@@ -2093,6 +2093,7 @@ def run_experiment(
         # UPDATE MORAL COMPASS SCORE AFTER SUBMISSION
         # -------------------------------------------------------------------------
         _log("Updating moral compass score...")
+        mc_client = None  # Initialize to None for use later
         try:
             os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
             mc_client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
@@ -2105,7 +2106,7 @@ def run_experiment(
                     mc_client.create_table(
                         table_id=TABLE_ID,
                         display_name="LMS",
-                        playground_url="https://example.com",
+                        playground_url=ORIGINAL_PLAYGROUND_URL,
                     )
                 except Exception:
                     pass
@@ -2130,6 +2131,7 @@ def run_experiment(
             
         except Exception as e:
             _log(f"Warning: Failed to update moral compass score: {e}")
+            mc_client = None  # Ensure it's None if update failed
             # Continue even if moral compass update fails
         # -------------------------------------------------------------------------
 
@@ -2142,36 +2144,31 @@ def run_experiment(
         # --- Stage 4: Fetch Moral Compass Leaderboards ---
         progress(0.9, desc="Updating Leaderboards...")
         
+        # Initialize variables for fallback
+        new_best_accuracy = this_submission_score
+        new_rank = 0
+        
         # Fetch moral compass leaderboard data
-        try:
-            mc_leaderboard_data = get_leaderboard_data(mc_client, username, team_name)
-            if mc_leaderboard_data:
-                # Generate moral compass leaderboard HTML
-                team_html = render_moral_compass_leaderboard_card(mc_leaderboard_data, username, team_name)
-                individual_html = team_html  # Same HTML contains both tabs
-                new_rank = mc_leaderboard_data.get("rank", 0)
-                _log(f"Moral compass leaderboard: rank={new_rank}, score={mc_leaderboard_data.get('score', 0)}")
-            else:
-                # Fallback to old accuracy-based leaderboard if moral compass fails
-                _log("Warning: Moral compass leaderboard fetch failed, using accuracy-based fallback")
-                simulated_df = baseline_leaderboard_df.copy() if baseline_leaderboard_df is not None else pd.DataFrame()
-                new_row = pd.DataFrame([{
-                    "username": username,
-                    "accuracy": this_submission_score,
-                    "Team": team_name,
-                    "timestamp": pd.Timestamp.now(), 
-                    "version": "latest"
-                }])
-                if not simulated_df.empty:
-                    simulated_df = pd.concat([simulated_df, new_row], ignore_index=True)
+        if mc_client:
+            try:
+                mc_leaderboard_data = get_leaderboard_data(mc_client, username, team_name)
+                if mc_leaderboard_data:
+                    # Generate moral compass leaderboard HTML
+                    team_html = render_moral_compass_leaderboard_card(mc_leaderboard_data, username, team_name)
+                    individual_html = team_html  # Same HTML contains both tabs
+                    new_rank = mc_leaderboard_data.get("rank", 0)
+                    _log(f"Moral compass leaderboard: rank={new_rank}, score={mc_leaderboard_data.get('score', 0)}")
                 else:
-                    simulated_df = new_row
-                team_html, individual_html, _, new_best_accuracy, new_rank, _ = generate_competitive_summary(
-                    simulated_df, team_name, username, last_submission_score, last_rank, submission_count
-                )
-        except Exception as e:
-            _log(f"Error generating moral compass leaderboard: {e}")
-            # Fallback to old accuracy-based leaderboard
+                    # Fallback to old accuracy-based leaderboard if moral compass data fetch returns None
+                    _log("Warning: Moral compass leaderboard fetch returned None, using accuracy-based fallback")
+                    mc_client = None  # Trigger fallback below
+            except Exception as e:
+                _log(f"Error fetching moral compass leaderboard: {e}")
+                mc_client = None  # Trigger fallback below
+        
+        # Fallback to accuracy-based leaderboard if moral compass client is not available
+        if not mc_client:
+            _log("Using accuracy-based leaderboard fallback")
             simulated_df = baseline_leaderboard_df.copy() if baseline_leaderboard_df is not None else pd.DataFrame()
             new_row = pd.DataFrame([{
                 "username": username,
@@ -2187,9 +2184,6 @@ def run_experiment(
             team_html, individual_html, _, new_best_accuracy, new_rank, _ = generate_competitive_summary(
                 simulated_df, team_name, username, last_submission_score, last_rank, submission_count
             )
-        
-        # Use best accuracy from accuracy leaderboard for KPI card
-        new_best_accuracy = this_submission_score  # For simplicity, use current submission score
 
         # 5. GENERATE KPI CARD EXPLICITLY (The Authority Fix)
         # We manually build the card using the score we KNOW we just got.
