@@ -2966,9 +2966,8 @@ def create_model_building_game_ca_final_app(theme_primary_hue: str = "indigo") -
 
         # --- Briefing Slideshow (Updated with New Cards) ---
   
-        # Slide 1: From Understanding to Building (Retained as transition)
         with gr.Column(visible=True, elem_id="intro-slide") as intro_slide:
-                    gr.Markdown("<h1 style='text-align:center;'>🚀 El Repte Final</h1>")
+                    gr.Markdown("<h1 style='text-align:center;'>🚀 El repte final</h1>")
                     
                     gr.HTML(
                         """
@@ -2982,16 +2981,25 @@ def create_model_building_game_ca_final_app(theme_primary_hue: str = "indigo") -
                                         Ara és el moment de posar-ho tot en pràctica.
                                     </p>
                                 </div>
-                    
+                
                                 <div class="final-mission-card">
-                                    <h3 class="final-mission-title">🛠️ La Competició d'IA Ètica</h3>
+                                    <h3 class="final-mission-title">🛠️ La competició d'IA ètica</h3>
                                     <div class="final-mission-body">
                                         <p>La teva missió final és tornar a competir contra els teus companys construint el <strong>sistema d'IA més precís dins dels estàndards ètics</strong>. Un cop abordat el biaix, la precisió torna a ser prioritària.</p>
                                         
                                         <p>Utilitza el que has après per escalar posicions a la classificació de manera responsable, perquè el rendiment importa, però també les conseqüències de les teves decisions.</p>
                                     </div>
                                 </div>
-                    
+        
+                                <div class="t-minus-header" style="margin-top:12px;">
+                                    <span class="t-minus-badge">Novetats</span>
+                                    <h2 class="t-minus-title">Més dades i una nova estratègia de model</h2>
+                                </div>
+                                <ul style="margin:0 0 12px 0;">
+                                    <li><b>Complet (100%)</b> ara inclou <b>més de 3.000 casos addicionals</b>.</li>
+                                    <li>Estratègia de model de <b>Vot majoritari</b> (Un vot majoritari tria la millor predicció d'entre les prediccions dels quatre models base).</li>
+                                </ul>
+                
                                 <div class="final-cta-wrapper">
                                     <p class="final-cta-head">
                                         A punt per començar?
@@ -3000,7 +3008,7 @@ def create_model_building_game_ca_final_app(theme_primary_hue: str = "indigo") -
                                         👇 Fes clic a <b>“Entrar a l'Arena”</b> per començar.
                                     </p>
                                 </div>
-                    
+                
                             </div>
                         </div>
                         """
