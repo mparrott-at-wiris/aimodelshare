@@ -168,7 +168,9 @@ def _parse_feature_sets_from_source(path="aimodelshare/moral_compass/apps/model_
                             # We want the second element (the feature key)
                             if isinstance(opt, tuple) and len(opt) >= 2:
                                 feature_key = str(opt[1])
-                                sets.append((feature_key,))  # Single-element tuple for each feature
+                                # Validate that the feature exists in ALL_FEATURES
+                                if feature_key in ALL_FEATURES:
+                                    sets.append((feature_key,))  # Single-element tuple for each feature
                         if sets:
                             # Deduplicate and sort
                             sets = sorted(set(sets))
@@ -187,8 +189,12 @@ def get_allowed_feature_sets() -> list[tuple[str, ...]]:
     
     NOTE: This implementation extracts INDIVIDUAL features from FEATURE_SET_ALL_OPTIONS
     and treats each as a single-element tuple. This drastically reduces computation
-    from the full power set (2047 combinations × 4 data sizes × 10 levels × 4 models = 327,520)
-    to just individual features (10 features × 1 data size × 10 levels × 5 models = 500).
+    from the full power set:
+    - Original: 2047 combinations × 4 data sizes × 10 levels × 4 models = 327,520 tasks
+    - New: 10 individual features × 1 data size × 10 levels × 5 models = 500 tasks
+    
+    The +1 model in the new calculation is the majority vote model, which is derived
+    from the 4 base model predictions without additional training.
     
     Users can select any combination of features at runtime, but pre-computing all
     combinations would be prohibitively expensive. By caching individual features,
