@@ -683,7 +683,7 @@ MODEL_TYPES = {
         "card": "An ensemble of many decision trees. Powerful, can capture deep patterns; watch complexity."
     },
     "The Majority Vote": {
-        "card": "This model combines the predictions of the four models and selects the most frequent one.",
+        "card": "Ensemble of the four base models computed via majority vote. No training required.",
         "cache_only": True
     }
 }
@@ -702,9 +702,12 @@ FEATURE_SET_ALL_OPTIONS = [
     ("Juvenile Felony Count", "juv_fel_count"),
     ("Juvenile Misdemeanor Count", "juv_misd_count"),
     ("Other Juvenile Count", "juv_other_count"),
+    ("Race", "race"),
+    ("Sex", "sex"),
     ("Charge Severity (M/F)", "c_charge_degree"),
     ("Charge Description", "c_charge_desc"),
     ("Days Before Arrest", "days_b_screening_arrest"),
+    ("Age", "age"),
     ("Length of Stay", "length_of_stay"),
     ("Prior Crimes Count", "priors_count"),
 ]
@@ -721,7 +724,7 @@ ALL_NUMERIC_COLS = [
 ALL_CATEGORICAL_COLS = [
     "race", "sex", "c_charge_degree", "c_charge_desc"
 ]
-DEFAULT_FEATURE_SET = FEATURE_SET_ALL_OPTIONS 
+DEFAULT_FEATURE_SET = FEATURE_SET_GROUP_1_VALS
 
 
 # --- Data Size config ---
@@ -3248,45 +3251,37 @@ def create_model_building_game_en_final_app(theme_primary_hue: str = "indigo") -
         with gr.Column(visible=True, elem_id="intro-slide") as intro_slide:            
             gr.Markdown("<h1 style='text-align:center;'>🚀 The Final Challenge</h1>")
             
-            # UPDATED: concise “What’s New” placed after original intro content, before CTA
             gr.HTML(
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
                         
-                        <!-- Original intro content -->
                         <div class="final-intro-wrapper">
                             <p class="final-intro-text">
-                                You’ve explored ethical issues. You’ve identified and fixed bias.
+                                You’ve explored the ethics. You’ve identified and fixed bias.
                                 <br>
                                 Now it’s time to put everything together.
                             </p>
                         </div>
-        
+            
                         <div class="final-mission-card">
                             <h3 class="final-mission-title">🛠️ The Ethical AI Competition</h3>
                             <div class="final-mission-body">
-                                <p>Your final mission is to compete again against your peers by building the <strong>most accurate AI system within ethical standards</strong>. With bias addressed, accuracy now becomes the focal point—but fairness stays a core requirement.</p>
-                                <p>Use what you’ve learned to climb the leaderboard responsibly—because performance matters, but so do the consequences of design decisions.</p>
+                                <p>Your final mission is to compete again against your peers by building the <strong>most accurate AI system within ethical standards</strong>. With bias addressed, accuracy is back in focus.</p>
+                                
+                                <p>Use what you’ve learned to climb the leaderboard responsibly—because performance matters, but so do the consequences of your choices.</p>
                             </div>
                         </div>
-        
-                        <!-- Concise What's New -->
-                        <div class="t-minus-header" style="margin-top:12px;">
-                            <span class="t-minus-badge">What's New</span>
-                            <h2 class="t-minus-title">More Data & a New Model Strategy</h2>
-                        </div>
-                        <ul style="margin:0 0 12px 0;">
-                            <li><b>Full (100%)</b> now includes <b>3,000+ additional cases</b>.</li>
-                            <li><b>Majority Vote</b> model strategy (A majority vote chooses the best prediction from each of the predictions of the four base models).</li>
-                        </ul>
-        
-                        <!-- CTA -->
+            
                         <div class="final-cta-wrapper">
-                            <p class="final-cta-head">Ready to begin?</p>
-                            <p class="final-cta-sub">👇 Click <b>“Enter the Arena”</b> to start.</p>
+                            <p class="final-cta-head">
+                                Ready to begin?
+                            </p>
+                            <p class="final-cta-sub">
+                                👇 Click <b>“Enter the Arena”</b> to start.
+                            </p>
                         </div>
-        
+            
                     </div>
                 </div>
                 """
