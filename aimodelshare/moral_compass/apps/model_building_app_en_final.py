@@ -521,7 +521,15 @@ MY_PLAYGROUND_ID = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/
 MAJORITY_MODEL_NAME = "The Majority Vote"
 FULL_DATA_SIZE_LABEL = "Full (100%)"
 
-def build_cache_key(model_name: str, complexity: int, feature_set: list) -> str:
+# Base model names for majority vote fallback
+BASE_MODEL_NAMES = [
+    "The Balanced Generalist",
+    "The Rule-Maker",
+    "The Deep Pattern-Finder",
+    "The 'Nearest Neighbor'",
+]
+
+def build_cache_key(model_name: str, complexity: int, feature_set: list, data_size_str: str = None) -> str:
     """
     Build cache key matching full-models cache format.
     
@@ -529,12 +537,71 @@ def build_cache_key(model_name: str, complexity: int, feature_set: list) -> str:
         model_name: Model name (e.g., "The Balanced Generalist", "The Majority Vote")
         complexity: Complexity level (1-10)
         feature_set: List of feature names
+        data_size_str: Data size label (defaults to FULL_DATA_SIZE_LABEL if not provided)
     
     Returns:
-        Cache key string in format: model_name|complexity|Full (100%)|feature_key
+        Cache key string in format: model_name|complexity|data_size|feature_key
     """
+    if data_size_str is None:
+        data_size_str = FULL_DATA_SIZE_LABEL
     feature_key = ",".join(sorted(feature_set))
-    return f"{model_name}|{complexity}|{FULL_DATA_SIZE_LABEL}|{feature_key}"
+    return f"{model_name}|{complexity}|{data_size_str}|{feature_key}"
+
+def _compute_majority_string(pred_strings: list, tie_break: str = "random", rng_seed: int = 42) -> str:
+    """
+    Compute majority vote over four base model prediction strings (matching generator logic).
+    
+    Args:
+        pred_strings: List of 4 prediction strings from base models
+        tie_break: Tie-breaking strategy ("random" or "zero")
+        rng_seed: Random seed for deterministic tie-breaking (default: 42)
+    
+    Returns:
+        Majority vote prediction string
+    
+    Raises:
+        ValueError: If pred_strings doesn't contain exactly 4 strings or lengths mismatch
+    """
+    if len(pred_strings) != 4:
+        raise ValueError(f"Expected 4 base model strings, got {len(pred_strings)}")
+    lengths = {len(s) for s in pred_strings}
+    if len(lengths) != 1:
+        raise ValueError("Prediction strings have mismatched lengths.")
+    n = lengths.pop()
+    rng = np.random.default_rng(rng_seed)
+    out = []
+    for i in range(n):
+        votes = [int(s[i]) for s in pred_strings]
+        zeros = votes.count(0)
+        ones = votes.count(1)
+        if zeros > ones:
+            out.append("0")
+        elif ones > zeros:
+            out.append("1")
+        else:
+            out.append(str(rng.choice([0, 1])) if tie_break == "random" else "0")
+    return "".join(out)
+
+def _fetch_base_pred_strings_for_majority(complexity: int, feature_set: list, data_size_str: str) -> list:
+    """
+    Fetch the four base model predictions from cache for given settings.
+    
+    Args:
+        complexity: Complexity level (1-10)
+        feature_set: List of feature names
+        data_size_str: Data size label
+    
+    Returns:
+        List of 4 prediction strings if all found, None if any missing
+    """
+    pred_strings = []
+    for m in BASE_MODEL_NAMES:
+        k = build_cache_key(m, complexity, feature_set, data_size_str)
+        s = get_cached_prediction(k)
+        if s is None:
+            return None
+        pred_strings.append(s)
+    return pred_strings
 
 # --- Submission Limit Configuration ---
 # Maximum number of successful leaderboard submissions per user per session.
@@ -1649,7 +1716,7 @@ def run_experiment(
         _ensure_y_test_loaded()
         
         # Build cache key using helper function for consistency
-        cache_key = build_cache_key(model_name_key, complexity_level, feature_set)
+        cache_key = build_cache_key(model_name_key, complexity_level, feature_set, data_size_str)
         
         yield { 
             submission_feedback_display: gr.update(value=get_status_html(2, "Loading Predictions", "⚡ Fetching precomputed results..."), visible=True),
@@ -1658,6 +1725,16 @@ def run_experiment(
         
         # Fetch from cache
         cached_predictions = get_cached_prediction(cache_key)
+        
+        # Fallback: derive majority vote if selected and missing
+        if model_name_key == MAJORITY_MODEL_NAME and not cached_predictions:
+            _log(f"Attempting majority-vote fallback for key: {cache_key}")
+            base_strings = _fetch_base_pred_strings_for_majority(complexity_level, feature_set, data_size_str)
+            if base_strings:
+                _log("All base predictions found, computing majority vote")
+                cached_predictions = _compute_majority_string(base_strings, tie_break="random", rng_seed=42)
+            else:
+                _log("One or more base predictions missing, cannot compute majority vote")
         
         if not cached_predictions:
             # Cache miss - show user-friendly error
