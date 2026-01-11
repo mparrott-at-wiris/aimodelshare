@@ -248,10 +248,45 @@ def test_neither_cache_present():
             os.chdir(original_dir)
 
 
+def test_corrupt_cache_file():
+    """Test when cache file exists but is corrupt/empty - should raise error."""
+    print("\n" + "="*60)
+    print("TEST 5: Corrupt/empty cache file (should error)")
+    print("="*60)
+    
+    with tempfile.TemporaryDirectory() as tmpdir:
+        original_dir = os.getcwd()
+        os.chdir(tmpdir)
+        
+        try:
+            # Create a corrupt cache file (not valid gzip)
+            with open("prediction_cache.json.gz", "w") as f:
+                f.write("This is not valid gzip data")
+            
+            # Run conversion - should handle gracefully
+            try:
+                convert_db.convert()
+                print("❌ FAIL: Should have raised ValueError for no valid data")
+                return False
+            except ValueError as e:
+                if "No valid cache data" in str(e):
+                    print("✅ PASS: Correctly raised ValueError for corrupt data")
+                    return True
+                else:
+                    print(f"❌ FAIL: Wrong error message: {e}")
+                    return False
+            except Exception as e:
+                print(f"❌ FAIL: Wrong exception type: {type(e).__name__}: {e}")
+                return False
+            
+        finally:
+            os.chdir(original_dir)
+
+
 def test_backward_compatibility():
     """Test that existing consumers can still read the SQLite database."""
     print("\n" + "="*60)
-    print("TEST 5: Backward compatibility check")
+    print("TEST 6: Backward compatibility check")
     print("="*60)
     
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -330,6 +365,7 @@ if __name__ == "__main__":
         test_only_base_cache,
         test_only_full_models_cache,
         test_neither_cache_present,
+        test_corrupt_cache_file,
         test_backward_compatibility,
     ]
     

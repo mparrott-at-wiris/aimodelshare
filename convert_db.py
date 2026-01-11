@@ -47,20 +47,30 @@ def convert():
     # Load base cache first (if present)
     if base_exists:
         base_data = load_cache_file(CACHE_FILE)
-        if base_data:
+        if base_data is not None:
             merged_data.update(base_data)
             print(f"\n📦 Base cache loaded: {len(base_data)} entries")
+        else:
+            print(f"\n⚠️  Warning: Failed to load {CACHE_FILE}")
     
     # Load full_models cache (if present) - this takes precedence
     if full_models_exists:
         full_models_data = load_cache_file(CACHE_FILE_FULL_MODELS)
-        if full_models_data:
+        if full_models_data is not None:
             # Count conflicts for reporting
             conflicts = sum(1 for k in full_models_data if k in merged_data)
             merged_data.update(full_models_data)
             print(f"\n📦 Full models cache loaded: {len(full_models_data)} entries")
             if conflicts > 0 and base_exists:
                 print(f"   ℹ️  Merged with precedence: {conflicts} keys from full_models override base")
+        else:
+            print(f"\n⚠️  Warning: Failed to load {CACHE_FILE_FULL_MODELS}")
+    
+    # Validate that we have data to convert
+    if not merged_data:
+        print(f"\n❌ ERROR: No valid cache data found.")
+        print(f"   Cache files exist but failed to load or are empty.")
+        raise ValueError("No valid cache data available for conversion")
     
     # Final summary
     total_entries = len(merged_data)
