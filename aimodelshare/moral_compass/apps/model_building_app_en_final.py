@@ -2095,6 +2095,7 @@ def run_experiment(
         _log("Updating moral compass score...")
         mc_client = None  # Initialize to None for use later
         existing_task_list = []  # Track existing tasks from server
+        existing_accuracy = 0.0  # Track existing best accuracy
         try:
             os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
             mc_client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
@@ -2112,32 +2113,41 @@ def run_experiment(
                 except Exception:
                     pass
             
-            # Fetch existing task list from server
+            # Fetch existing task list and accuracy from server
             try:
                 resp = mc_client.list_users(table_id=TABLE_ID, limit=500)
                 users = resp.get("users", [])
                 my_user = next((u for u in users if u.get("username") == username), None)
                 if my_user:
                     existing_task_list = my_user.get("completedTaskIds", [])
-                    _log(f"Existing task list for {username}: {existing_task_list}")
+                    # Get existing accuracy from metrics if available
+                    metrics = my_user.get("metrics", {})
+                    if isinstance(metrics, dict):
+                        existing_accuracy = float(metrics.get("accuracy", 0.0))
+                    _log(f"Existing data for {username}: tasks={existing_task_list}, accuracy={existing_accuracy}")
             except Exception as e:
-                _log(f"Could not fetch existing task list: {e}")
+                _log(f"Could not fetch existing user data: {e}")
             
-            # Update moral compass with accuracy only (no task modification)
-            # The task list from other apps (bias detective, etc.) is preserved
-            tasks_completed = len(existing_task_list)
-            mc_client.update_moral_compass(
-                table_id=TABLE_ID,
-                username=username,
-                team_name=team_name,
-                metrics={"accuracy": this_submission_score},
-                tasks_completed=tasks_completed,
-                total_tasks=TOTAL_COURSE_TASKS,
-                primary_metric="accuracy",
-                completed_task_ids=existing_task_list,
-            )
-            
-            _log(f"Moral compass updated: accuracy={this_submission_score}, tasks={tasks_completed}/{TOTAL_COURSE_TASKS}")
+            # Only update moral compass if this submission is better than the existing accuracy
+            if this_submission_score > existing_accuracy or existing_accuracy == 0.0:
+                _log(f"New accuracy {this_submission_score} is better than existing {existing_accuracy}, updating...")
+                # Update moral compass with accuracy only (no task modification)
+                # The task list from other apps (bias detective, etc.) is preserved
+                tasks_completed = len(existing_task_list)
+                mc_client.update_moral_compass(
+                    table_id=TABLE_ID,
+                    username=username,
+                    team_name=team_name,
+                    metrics={"accuracy": this_submission_score},
+                    tasks_completed=tasks_completed,
+                    total_tasks=TOTAL_COURSE_TASKS,
+                    primary_metric="accuracy",
+                    completed_task_ids=existing_task_list,
+                )
+                
+                _log(f"Moral compass updated: accuracy={this_submission_score}, tasks={tasks_completed}/{TOTAL_COURSE_TASKS}")
+            else:
+                _log(f"Submission accuracy {this_submission_score} not better than existing {existing_accuracy}, skipping moral compass update")
             
         except Exception as e:
             _log(f"Warning: Failed to update moral compass score: {e}")
