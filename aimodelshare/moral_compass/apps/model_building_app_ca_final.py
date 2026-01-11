@@ -2925,6 +2925,148 @@ def create_model_building_game_ca_final_app(theme_primary_hue: str = "indigo") -
             color: color-mix(in srgb, var(--color-accent) 75%, var(--body-text-color) 25%);
         }
     }
+    /* ---------- NEW: Countdown & Interactive Slide Styles ---------- */
+
+    /* 1. Launch Banner (Slide 1) */
+    .launch-banner {
+        background: #111827;
+        color: #4ade80;
+        font-family: monospace;
+        text-align: center;
+        padding: 8px;
+        font-size: 0.9rem;
+        letter-spacing: 2px;
+        margin: -24px -24px 24px -24px; /* Stretch to edges of panel */
+        border-bottom: 2px solid #4ade80;
+        border-radius: var(--slide-radius-lg) var(--slide-radius-lg) 0 0;
+    }
+
+    /* 2. T-Minus Headers */
+    .t-minus-header {
+        text-align: center;
+        margin-bottom: 24px;
+        border-bottom: 2px solid var(--card-border-subtle);
+        padding-bottom: 16px;
+    }
+    
+    .t-minus-badge {
+        display: inline-block;
+        background: var(--text-main);
+        color: var(--body-background-fill);
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-weight: 800;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 8px;
+    }
+
+    .t-minus-title {
+        margin: 0;
+        font-size: 2.2rem;
+        color: var(--accent-strong);
+        font-weight: 800;
+    }
+
+    /* 3. Styled Details/Summary (Click-to-reveal) */
+    details.styled-details {
+        margin-bottom: 12px;
+        background: var(--block-background-fill);
+        border-radius: 10px;
+        border: 1px solid var(--card-border-subtle);
+        overflow: hidden;
+    }
+
+    details.styled-details > summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 16px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--prose-background-fill);
+        transition: background 0.2s;
+        color: var(--text-main);
+    }
+
+    details.styled-details > summary:hover {
+        background: var(--block-background-fill);
+        color: var(--accent-strong);
+    }
+
+    /* Hide default triangle */
+    details.styled-details > summary::-webkit-details-marker {
+        display: none;
+    }
+
+    /* Custom +/- indicator */
+    details.styled-details > summary::after {
+        content: '+';
+        font-size: 1.5rem;
+        font-weight: 400;
+        color: var(--text-muted);
+    }
+
+    details.styled-details[open] > summary::after {
+        content: '−';
+        color: var(--accent-strong);
+    }
+
+    details.styled-details > div.content {
+        padding: 16px;
+        border-top: 1px solid var(--card-border-subtle);
+        background: var(--block-background-fill);
+        color: var(--text-main);
+    }
+
+    /* 4. Mock UI Widgets (for Slide 4) */
+    .widget-row { display: flex; align-items: center; margin-bottom: 8px; color: var(--text-main); font-size: 1rem; }
+    
+    .radio-circle { 
+        width: 16px; height: 16px; border-radius: 50%; 
+        border: 2px solid var(--text-muted); margin-right: 10px; display: inline-block; 
+    }
+    .radio-circle.selected { 
+        border-color: var(--accent-strong); 
+        background: radial-gradient(circle, var(--accent-strong) 40%, transparent 50%); 
+    }
+    
+    .check-square { 
+        width: 16px; height: 16px; border-radius: 4px; 
+        border: 2px solid var(--text-muted); margin-right: 10px; display: inline-block; 
+    }
+    .check-square.checked { 
+        background: var(--accent-strong); border-color: var(--accent-strong); position: relative; 
+    }
+    
+    .slider-track { 
+        height: 6px; background: var(--border-color-primary); border-radius: 3px; 
+        width: 100%; position: relative; margin: 12px 0; 
+    }
+    .slider-thumb { 
+        width: 18px; height: 18px; background: var(--accent-strong); 
+        border-radius: 50%; position: absolute; left: 20%; top: -6px; 
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3); 
+    }
+    
+    .risk-tag { 
+        background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; 
+        font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; 
+        margin-left: 8px; vertical-align: middle; font-weight: 700; 
+    }
+    
+    /* Pop-up info box inside details */
+    .info-popup {
+        background: color-mix(in srgb, var(--color-accent) 5%, transparent);
+        border-left: 4px solid var(--color-accent);
+        padding: 12px;
+        margin-top: 12px;
+        border-radius: 4px;
+        font-size: 0.95rem;
+        color: var(--text-main);
+    }
     """
 
 
