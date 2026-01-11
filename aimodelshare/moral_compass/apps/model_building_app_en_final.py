@@ -683,7 +683,7 @@ MODEL_TYPES = {
         "card": "An ensemble of many decision trees. Powerful, can capture deep patterns; watch complexity."
     },
     "The Majority Vote": {
-        "card": "Ensemble of the four base models computed via majority vote. No training required.",
+        "card": "This model combines the predictions of the four models and selects the most frequent one.",
         "cache_only": True
     }
 }
@@ -3260,7 +3260,7 @@ def create_model_building_game_en_final_app(theme_primary_hue: str = "indigo") -
                         <!-- Original intro content -->
                         <div class="final-intro-wrapper">
                             <p class="final-intro-text">
-                                You’ve explored the ethics. You’ve identified and fixed bias.
+                                You’ve explored ethical issues. You’ve identified and fixed bias.
                                 <br>
                                 Now it’s time to put everything together.
                             </p>
@@ -3270,7 +3270,7 @@ def create_model_building_game_en_final_app(theme_primary_hue: str = "indigo") -
                             <h3 class="final-mission-title">🛠️ The Ethical AI Competition</h3>
                             <div class="final-mission-body">
                                 <p>Your final mission is to compete again against your peers by building the <strong>most accurate AI system within ethical standards</strong>. With bias addressed, accuracy now becomes the focal point—but fairness stays a core requirement.</p>
-                                <p>Use what you’ve learned to climb the leaderboard responsibly—because performance matters, but so do the consequences of your choices.</p>
+                                <p>Use what you’ve learned to climb the leaderboard responsibly—because performance matters, but so do the consequences of design decisions.</p>
                             </div>
                         </div>
         
