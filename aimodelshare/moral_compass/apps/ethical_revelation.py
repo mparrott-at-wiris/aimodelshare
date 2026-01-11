@@ -182,7 +182,7 @@ TRANSLATIONS = {
         "s3_bar_black": "Personas detenidas afroamericanas",
         "s3_bar_white": "Personas detenidas blancas",
         "s3_alert": "El sistema estaba sesgado",
-        "s3_mean_p1": "El sistema d'IA tenía <strong>el doble de probabilidades</strong> de clasificar falsamente como de alto riesgo a las personas detenidas afroamericanas.",
+        "s3_mean_p1": "El sistema de IA tenía <strong>el doble de probabilidades</strong> de clasificar falsamente como de alto riesgo a las personas detenidas afroamericanas.",
         "s3_mean_p2": "<strong>¿Qué significa esto?</strong><br>El sistema de IA estaba sistemáticamente sesgado. No solo cometía errores aleatorios, sino que cometía diferentes tipos de errores para diferentes grupos de personas.",
         "btn_eu": "¿Podría pasar aquí? ▶️",
         
