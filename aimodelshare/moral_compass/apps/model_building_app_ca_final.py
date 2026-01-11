@@ -2039,7 +2039,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     <div class="final-conclusion-root">
       
       <h1 class="final-conclusion-title">🎓 Certificació Assolida</h1>
-      <h2 style="margin-top:0; color:var(--text-muted);">Ethics at Play: Justícia i Equitat</h2>
+      <h2 style="margin-top:0; color:var(--text-muted);">Ètica en Joc: Justícia i Equitat</h2>
 
       <div class="final-conclusion-card">
         
@@ -2064,7 +2064,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
           <h2>El Viatge Continua</h2>
           
           <div style="text-align: left; margin-top: 15px;">
-              <p>Enhorabona! Has completat la <b>Certificació Ethics at Play en Justícia i Equitat</b> i has vist com la IA pot afectar les decisions del món real.</p>
+              <p>Enhorabona! Has completat la <b>Certificació Ètica en Joc en Justícia i Equitat</b> i has vist com la IA pot afectar les decisions del món real.</p>
               
               <p>A través d'aquest repte, has après a:</p>
               <ul style="margin-bottom: 15px;">
