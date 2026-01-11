@@ -2091,6 +2091,54 @@ def create_model_building_game_ca_app(theme_primary_hue: str = "indigo") -> "gr.
     global last_seen_ts_state  # <-- Added for timestamp tracking
     
     css = """
+    /* === Scoped Typography Upgrade: slides only (briefing + conclusion) === */
+    /* Targets: #slide-1 .. #slide-6 and #conclusion-step only */
+
+    /* Base body copy and lists in slides/conclusion */
+    :is(#slide-1, #slide-2, #slide-3, #slide-4, #slide-5, #slide-6, #conclusion-step) p,
+    :is(#slide-1, #slide-2, #slide-3, #slide-4, #slide-5, #slide-6, #conclusion-step) li,
+    :is(#slide-1, #slide-2, #slide-3, #slide-4, #slide-5, #slide-6, #conclusion-step) .panel-box,
+    :is(#slide-1, #slide-2, #slide-3, #slide-4, #slide-5, #slide-6, #conclusion-step) .leaderboard-box,
+    :is(#slide-1, #slide-2, #slide-3, #slide-4, #slide-5, #slide-6, #conclusion-step) .gradio-markdown,
+    :is(#slide-1, #slide-2, #slide-3, #slide-4, #slide-5, #slide-6, #conclusion-step) .slide-content,
+    :is(#slide-1, #slide-2, #slide-3, #slide-4, #slide-5, #slide-6, #conclusion-step) .info-popup,
+    :is(#slide-1, #slide-2, #slide-3, #slide-4, #slide-5, #slide-6, #conclusion-step) .t-minus-title,
+    :is(#conclusion-step) .final-conclusion-card,
+    :is(#conclusion-step) .final-conclusion-list {
+      font-size: 1.1rem !important;  /* ~18–19px typical */
+      line-height: 1.6 !important;
+    }
+
+    /* Headings within slides/conclusion */
+    :is(#slide-1, #slide-2, #slide-3, #slide-4, #slide-5, #slide-6, #conclusion-step) h1,
+    :is(#conclusion-step) .final-conclusion-title,
+    :is(#conclusion-step) .app-conclusion-title {
+      font-size: clamp(2.1rem, 1.8rem + 1.6vw, 3.2rem) !important;
+    }
+    :is(#slide-1, #slide-2, #slide-3, #slide-4, #slide-5, #slide-6, #conclusion-step) h2,
+    :is(#conclusion-step) .final-conclusion-subtitle,
+    :is(#conclusion-step) .app-conclusion-subtitle {
+      font-size: clamp(1.7rem, 1.4rem + 1.1vw, 2.4rem) !important;
+    }
+    :is(#slide-1, #slide-2, #slide-3, #slide-4, #slide-5, #slide-6, #conclusion-step) h3 {
+      font-size: clamp(1.4rem, 1.2rem + 0.7vw, 1.9rem) !important;
+    }
+
+    /* CTA/instruction sizing on conclusion */
+    :is(#conclusion-step) .final-instruction,
+    :is(#conclusion-step) .app-conclusion-next-title,
+    :is(#conclusion-step) .app-conclusion-next-body {
+      font-size: clamp(1.2rem, 1rem + 0.8vw, 1.6rem) !important;
+    }
+
+    /* Small badges and "t-minus" labels in slides */
+    :is(#slide-1, #slide-2, #slide-3, #slide-4, #slide-5, #slide-6) .t-minus-badge {
+      font-size: 1rem !important;
+    }
+
+    /* Keep sizes unchanged in the model-building arena */
+    #model-step { font-size: inherit; line-height: inherit; }
+
     /* ------------------------------
       Shared Design Tokens (local)
       ------------------------------ */
