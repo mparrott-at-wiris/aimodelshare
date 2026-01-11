@@ -2050,7 +2050,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     <div class="final-conclusion-root">
       
       <h1 class="final-conclusion-title">🎓 Certificación obtenida</h1>
-      <h2 style="margin-top:0; color:var(--text-muted);">Ethics at Play: Justicia y Equidad</h2>
+      <h2 style="margin-top:0; color:var(--text-muted);">Ética en Juego: Justicia y Equidad</h2>
 
       <div class="final-conclusion-card">
         
@@ -2075,7 +2075,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
           <h2>El Viaje Continúa</h2>
           
           <div style="text-align: left; margin-top: 15px;">
-              <p>¡Felicidades! Has completado la <b>Certificación Ethics at Play en Justicia y Equidad</b> y has visto cómo la IA puede afectar las decisiones del mundo real.</p>
+              <p>¡Felicidades! Has completado la <b>Certificación Ética en Juego en Justicia y Equidad</b> y has visto cómo la IA puede afectar las decisiones del mundo real.</p>
               
               <p>A través de este desafío, has aprendido a:</p>
               <ul style="margin-bottom: 15px;">
