@@ -586,6 +586,10 @@ MODEL_TYPES = {
             random_state=42, class_weight="balanced"
         ),
         "card_es": "Este modelo combina muchos árboles de decisión para encontrar patrones complejos. Es potente, pero conviene no pasarse con la complejidad."
+    },
+    "The Majority Vote": {
+        "card_es": "Conjunto de los cuatro modelos base calculado mediante voto mayoritario. No requiere entrenamiento.",
+        "cache_only": True
     }
 }
 
@@ -593,16 +597,17 @@ DEFAULT_MODEL = "The Balanced Generalist"  # Now using the English key
 
 # --- 2. TRANSLATION MAPS (UI Display -> Database Key) ---
 
-# Map English Keys to Catalan Display Names for the Radio Button
+# Map English Keys to Spanish Display Names for the Radio Button
 MODEL_DISPLAY_MAP = {
     "The Balanced Generalist": "El Generalista Equilibrado",
     "The Rule-Maker": "El Creador de Reglas",
     "The 'Nearest Neighbor'": "El 'Vecino Más Cercano'",
-    "The Deep Pattern-Finder": "El Buscador de Patrones Profundo"
+    "The Deep Pattern-Finder": "El Buscador de Patrones Profundo",
+    "The Majority Vote": "El Voto Mayoritario"
 }
 
-# Create the Choices List as Tuples: [(Catalan Label, English Value)]
-# This tells Gradio: "Show the user Catalan, but send Python the English key"
+# Create the Choices List as Tuples: [(Spanish Label, English Value)]
+# This tells Gradio: "Show the user Spanish, but send Python the English key"
 MODEL_RADIO_CHOICES = [(label, key) for key, label in MODEL_DISPLAY_MAP.items()]
 
 # Map Spanish Data Sizes (UI) to English Keys (Database)
@@ -1070,7 +1075,7 @@ def _normalize_team_name(name: str) -> str:
     return " ".join(str(name).strip().split())
 
 
-# Team name translation helpers for UI display (Catalan)
+# Team name translation helpers for UI display (Spanish)
 def translate_team_name_for_display(team_en: str, lang: str = "ca") -> str:
     """
     Translate a canonical English team name to the specified language for UI display.
@@ -1262,7 +1267,7 @@ def _build_team_html(team_summary_df, team_name):
     Uses normalized, case-insensitive comparison to highlight the user's team row,
     ensuring reliable highlighting even with whitespace or casing variations.
     
-    Team names are translated to Catalan for display only. Internal comparisons
+    Team names are translated to Spanish for display only. Internal comparisons
     use the unmodified English team names from the DataFrame.
     """
     if team_summary_df is None or team_summary_df.empty:
@@ -1292,7 +1297,7 @@ def _build_team_html(team_summary_df, team_name):
         is_user_team = normalized_row_team == normalized_user_team
         row_class = "class='user-row-highlight'" if is_user_team else ""
         
-        # Translate team name to Catalan for display only
+        # Translate team name to Spanish for display only
         display_team_name = translate_team_name_for_display(row["Team"], UI_TEAM_LANG)
         
         body += f"""
@@ -1448,14 +1453,14 @@ def compute_rank_settings(
 ):
     """
     Returns rank gating settings (updated for 1–10 complexity scale).
-    Adapted for Catalan UI: Returns Tuple choices [(Display, Value)]
+    Adapted for Spanish UI: Returns Tuple choices [(Display, Value)]
     """
 
     # Helper to generate feature choices (unchanged logic)
     def get_choices_for_rank(rank):
         return FEATURE_SET_ALL_OPTIONS # Senior+
 
-    # Helper to generate Model Radio Tuples [(Catalan, English)]
+    # Helper to generate Model Radio Tuples [(Spanish, English)]
     def get_model_tuples(available_english_keys):
         # FIX: Use MODEL_DISPLAY_MAP
         return [(MODEL_DISPLAY_MAP[k], k) for k in available_english_keys if k in MODEL_DISPLAY_MAP]
@@ -1949,7 +1954,7 @@ def on_initial_load(username, token=None, team_name=""):
     )
 
     # 1. Prepare the Welcome HTML
-    # Translate team name to Catalan for display only (keep team_name in English for logic)
+    # Translate team name to Spanish for display only (keep team_name in English for logic)
     display_team = translate_team_name_for_display(team_name, UI_TEAM_LANG) if team_name else "Tu equipo"
     
     welcome_html = f"""
