@@ -2993,7 +2993,7 @@ def create_model_building_game_es_final_app(theme_primary_hue: str = "indigo") -
                                 Ahora es el momento de ponerlo todo en práctica.
                             </p>
                         </div>
-            
+        
                         <div class="final-mission-card">
                             <h3 class="final-mission-title">🛠️ La Competición de IA Ética</h3>
                             <div class="final-mission-body">
@@ -3002,7 +3002,16 @@ def create_model_building_game_es_final_app(theme_primary_hue: str = "indigo") -
                                 <p>Usa lo que has aprendido para escalar en la clasificación de manera responsable; porque el rendimiento importa, pero también las consecuencias de tus elecciones.</p>
                             </div>
                         </div>
-            
+
+                        <div class="t-minus-header" style="margin-top:12px;">
+                            <span class="t-minus-badge">Novedades</span>
+                            <h2 class="t-minus-title">Más datos y una nueva estrategia de modelo</h2>
+                        </div>
+                        <ul style="margin:0 0 12px 0;">
+                            <li><b>Completo (100%)</b> ahora incluye <b>más de 3.000 casos adicionales</b>.</li>
+                            <li>Estrategia de modelo de <b>Voto Mayoritario</b> (Un voto mayoritario elige la mejor predicción de entre las predicciones de los cuatro modelos base).</li>
+                        </ul>
+        
                         <div class="final-cta-wrapper">
                             <p class="final-cta-head">
                                 ¿Listo para empezar?
@@ -3011,7 +3020,7 @@ def create_model_building_game_es_final_app(theme_primary_hue: str = "indigo") -
                                 👇 Haz clic en <b>“Entrar a la Arena”</b> para comenzar.
                             </p>
                         </div>
-            
+        
                     </div>
                 </div>
                 """
