@@ -63,45 +63,63 @@ except ImportError:
 
 
 # -------------------------------------------------------------------------
-# CACHE CONFIGURATION (Optimized: Thread-Safe SQLite)
+# CACHE CONFIGURATION (Optimized: Thread-Safe SQLite with Dual-DB Support)
 # -------------------------------------------------------------------------
 import sqlite3
 
-CACHE_DB_FILE = "prediction_cache_full.sqlite"
+CACHE_DB_FILE_BASE = "prediction_cache.sqlite"
+CACHE_DB_FILE_FULL = "prediction_cache_full.sqlite"
 
-def get_cached_prediction(key):
+def _get_cached_prediction_from(db_file: str, key: str) -> Optional[str]:
     """
-    Lightning-fast lookup from SQLite database.
-    THREAD-SAFE FIX: Opens a new connection for every lookup.
+    Lightning-fast lookup from specified SQLite database.
+    THREAD-SAFE: Opens a new connection for every lookup.
+    
+    Args:
+        db_file: Path to the SQLite database file
+        key: Cache key to lookup
+    
+    Returns:
+        Cached prediction string or None if not found
     """
-    # 1. Check if DB exists
-    if not os.path.exists(CACHE_DB_FILE):
+    if not os.path.exists(db_file):
         return None
 
     try:
         # Use a context manager ('with') to ensure the connection 
         # is ALWAYS closed, releasing file locks immediately.
         # timeout=10 ensures we don't wait forever if the file is busy.
-        with sqlite3.connect(CACHE_DB_FILE, timeout=10.0) as conn:
+        with sqlite3.connect(db_file, timeout=10.0) as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT value FROM cache WHERE key=?", (key,))
             result = cursor.fetchone()
-            
-            if result:
-                return result[0] 
-            else:
-                return None
+            return result[0] if result else None
             
     except sqlite3.OperationalError as e:
         # Handle locking errors gracefully
-        print(f"⚠️ CACHE LOCK ERROR: {e}. Falling back to training.", flush=True)
+        print(f"⚠️ CACHE LOCK ERROR ({db_file}): {e}", flush=True)
         return None
         
     except Exception as e:
-        print(f"⚠️ DB READ ERROR: {e}", flush=True)
+        print(f"⚠️ DB READ ERROR ({db_file}): {e}", flush=True)
         return None
 
-print("✅ App configured for Thread-Safe SQLite Cache.")
+def get_cached_prediction(key: str, data_size_str: str) -> Optional[str]:
+    """
+    Lookup prediction from appropriate database based on data size.
+    Routes Full (100%) to prediction_cache_full.sqlite, others to prediction_cache.sqlite.
+    
+    Args:
+        key: Cache key to lookup
+        data_size_str: Data size label (e.g., "Small (20%)", "Full (100%)")
+    
+    Returns:
+        Cached prediction string or None if not found
+    """
+    db_file = CACHE_DB_FILE_FULL if data_size_str == "Full (100%)" else CACHE_DB_FILE_BASE
+    return _get_cached_prediction_from(db_file, key)
+
+print("✅ App configured for Thread-Safe Dual-DB SQLite Cache.")
 
 # -------------------------------------------------------------------------
 # Lightweight Label Loader (No Training, Only Test Accuracy Computation)
@@ -582,9 +600,10 @@ def _compute_majority_string(pred_strings: list, tie_break: str = "random", rng_
             out.append(str(rng.choice([0, 1])) if tie_break == "random" else "0")
     return "".join(out)
 
-def _fetch_base_pred_strings_for_majority(complexity: int, feature_set: list, data_size_str: str) -> list:
+def _fetch_base_pred_strings_for_majority(complexity: int, feature_set: list, data_size_str: str) -> Optional[list]:
     """
     Fetch the four base model predictions from cache for given settings.
+    Implements cross-DB fallback for Full (100%) data size.
     
     Args:
         complexity: Complexity level (1-10)
@@ -594,14 +613,30 @@ def _fetch_base_pred_strings_for_majority(complexity: int, feature_set: list, da
     Returns:
         List of 4 prediction strings if all found, None if any missing
     """
+    # First try: fetch from the primary database for this data size
     pred_strings = []
     for m in BASE_MODEL_NAMES:
         k = build_cache_key(m, complexity, feature_set, data_size_str)
-        s = get_cached_prediction(k)
+        s = get_cached_prediction(k, data_size_str)
         if s is None:
-            return None
+            break
         pred_strings.append(s)
-    return pred_strings
+    
+    if pred_strings and len(pred_strings) == 4:
+        return pred_strings
+    
+    # Fallback for Full (100%): try base DB if full-models DB is missing any base model
+    if data_size_str == "Full (100%)":
+        pred_strings = []
+        for m in BASE_MODEL_NAMES:
+            k = build_cache_key(m, complexity, feature_set, data_size_str)
+            s = _get_cached_prediction_from(CACHE_DB_FILE_BASE, k)
+            if s is None:
+                return None
+            pred_strings.append(s)
+        return pred_strings
+    
+    return None
 
 # --- Submission Limit Configuration ---
 # Maximum number of successful leaderboard submissions per user per session.
@@ -694,9 +729,12 @@ DEFAULT_FEATURE_SET = FEATURE_SET_GROUP_1_VALS
 
 # --- Data Size config ---
 DATA_SIZE_MAP = {
+    "Small (20%)": 0.2,
+    "Medium (60%)": 0.6,
+    "Large (80%)": 0.8,
     "Full (100%)": 1.0
 }
-DEFAULT_DATA_SIZE = "Full (100%)"
+DEFAULT_DATA_SIZE = "Small (20%)"
 
 
 MAX_ROWS = 4000
@@ -1724,7 +1762,7 @@ def run_experiment(
         }
         
         # Fetch from cache
-        cached_predictions = get_cached_prediction(cache_key)
+        cached_predictions = get_cached_prediction(cache_key, data_size_str)
         
         # Fallback: derive majority vote if selected and missing
         if model_name_key == MAJORITY_MODEL_NAME and not cached_predictions:
@@ -3317,9 +3355,9 @@ def create_model_building_game_en_final_app(theme_primary_hue: str = "indigo") -
 
                     data_size_radio = gr.Radio(
                         label="4. Data Size",
-                        choices=[DEFAULT_DATA_SIZE],
+                        choices=list(DATA_SIZE_MAP.keys()),
                         value=DEFAULT_DATA_SIZE,
-                        interactive=False
+                        interactive=True
                     )
 
                     gr.Markdown("---") # Separator
