@@ -143,11 +143,11 @@ def load_base_cache():
         return {}
 
 # --- ALLOWED FEATURE SETS (parse from app via AST; fallback to power set of ALL_FEATURES) ---
-def _parse_feature_sets_from_source(path="aimodelshare/moral_compass/apps/model_building_app_en.py"):
+def _parse_available_features_from_source(path="aimodelshare/moral_compass/apps/model_building_app_en.py"):
     """
     Parse FEATURE_SET_ALL_OPTIONS directly from source file via AST.
-    Returns a list of single-element tuples, each containing one feature name.
-    For example: [('age',), ('race',), ('sex',), ...]
+    Returns a list of available feature names that users can select from.
+    For example: ['age', 'race', 'sex', ...]
     
     Args:
         path: Relative path from repository root to the app source file.
@@ -162,7 +162,7 @@ def _parse_feature_sets_from_source(path="aimodelshare/moral_compass/apps/model_
                     if isinstance(target, ast.Name) and target.id == "FEATURE_SET_ALL_OPTIONS":
                         # Evaluate the list literal
                         value = ast.literal_eval(node.value)
-                        sets = []
+                        features = []
                         for opt in value:
                             # Each opt is a tuple like ("Display Name", "feature_key")
                             # We want the second element (the feature key)
@@ -170,40 +170,49 @@ def _parse_feature_sets_from_source(path="aimodelshare/moral_compass/apps/model_
                                 feature_key = str(opt[1])
                                 # Validate that the feature exists in ALL_FEATURES
                                 if feature_key in ALL_FEATURES:
-                                    sets.append((feature_key,))  # Single-element tuple for each feature
-                        if sets:
-                            # Deduplicate and sort
-                            sets = sorted(set(sets))
-                            print(f"Parsed {len(sets)} feature sets from source.")
-                            return sets
-        print("FEATURE_SET_ALL_OPTIONS not found in source; falling back to power set.")
+                                    features.append(feature_key)
+                        if features:
+                            # Deduplicate
+                            features = sorted(set(features))
+                            print(f"Parsed {len(features)} available features from source.")
+                            return features
+        print("FEATURE_SET_ALL_OPTIONS not found in source; falling back to ALL_FEATURES.")
         return None
     except Exception as e:
-        print(f"Warning: Failed to parse feature sets from source ({e}); falling back to power set.")
+        print(f"Warning: Failed to parse features from source ({e}); falling back to ALL_FEATURES.")
         return None
 
 def get_allowed_feature_sets() -> list[tuple[str, ...]]:
     """
-    Returns a list of sorted tuples representing feature sets.
-    First tries AST parsing of app source, fallback to power set of ALL_FEATURES.
+    Returns a list of sorted tuples representing ALL POSSIBLE COMBINATIONS of features
+    that users can select in the app.
     
-    NOTE: This implementation extracts INDIVIDUAL features from FEATURE_SET_ALL_OPTIONS
-    and treats each as a single-element tuple. This drastically reduces computation
-    from the full power set:
-    - Original: 2047 combinations × 4 data sizes × 10 levels × 4 models = 327,520 tasks
-    - New: 10 individual features × 1 data size × 10 levels × 5 models = 500 tasks
+    First tries AST parsing of app source to get available features, then generates
+    the power set (all combinations) of those features.
+    Fallback: power set of ALL_FEATURES if parsing fails.
     
-    The +1 model in the new calculation is the majority vote model, which is derived
-    from the 4 base model predictions without additional training.
+    This generates every combination users can select from FEATURE_SET_ALL_OPTIONS:
+    - 10 features from FEATURE_SET_ALL_OPTIONS
+    - 2^10 - 1 = 1023 combinations (excluding empty set)
+    - Total tasks: 1023 combinations × 1 data size × 10 levels × 5 models = 51,150
     
-    Users can select any combination of features at runtime, but pre-computing all
-    combinations would be prohibitively expensive. By caching individual features,
-    we provide a baseline that covers single-feature models efficiently.
+    The +1 model is the majority vote model, which is derived from the 4 base model
+    predictions without additional training.
     """
-    sets = _parse_feature_sets_from_source()
-    if sets is not None and len(sets) > 0:
-        return sets
+    # Try to parse available features from the app
+    available_features = _parse_available_features_from_source()
+    
+    if available_features is not None and len(available_features) > 0:
+        # Generate power set of available features
+        all_combos = []
+        for r in range(1, len(available_features) + 1):
+            all_combos.extend(itertools.combinations(available_features, r))
+        feature_sets = [tuple(sorted(c)) for c in all_combos]
+        print(f"Generated {len(feature_sets)} feature combinations from {len(available_features)} available features.")
+        return feature_sets
+    
     # Fallback: full power set of ALL_FEATURES (excluding empty set)
+    print("Using fallback: generating power set of ALL_FEATURES.")
     all_combos = []
     for r in range(1, len(ALL_FEATURES) + 1):
         all_combos.extend(itertools.combinations(ALL_FEATURES, r))
