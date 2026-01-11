@@ -1388,7 +1388,6 @@ def render_moral_compass_leaderboard_card(data, username, team_name):
             )
     return f"""
     <div class="scenario-box leaderboard-card">
-        <h3 class="slide-title" style="margin-bottom:10px;">📊 Live Standings</h3>
         <div class="lb-tabs">
             <input type="radio" id="lb-tab-team" name="lb-tabs" checked>
             <label for="lb-tab-team" class="lb-tab-label">🏆 Team</label>
@@ -3861,14 +3860,11 @@ def create_model_building_game_en_final_app(theme_primary_hue: str = "indigo") -
                     )
 
                     with gr.Tabs():
-                        with gr.TabItem("Team Standings"):
+                        with gr.TabItem("Live Standings"):
                             team_leaderboard_display = gr.HTML(
                                 "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Submit a model to see team rankings.</p>"
                             )
-                        with gr.TabItem("Individual Standings"):
-                            individual_leaderboard_display = gr.HTML(
-                                "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Submit a model to see individual rankings.</p>"
-                            )
+                    individual_leaderboard_display = gr.HTML(visible=False)
 
             # REMOVED: Ethical Reminder HTML Block
             step_2_next = gr.Button("Finish & Reflect ▶️", variant="secondary")
