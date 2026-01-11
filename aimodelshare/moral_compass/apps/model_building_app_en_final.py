@@ -2111,8 +2111,8 @@ def run_experiment(
                 except Exception:
                     pass
             
-            # For the final app, we assume task 10 is completed (model building game task)
-            # This matches the task ID from the bias detective workflow
+            # For the final app, we mark task t10 as completed (model building game completion)
+            # This aligns with the bias detective workflow task IDs
             task_id = "t10"
             
             # Update moral compass with accuracy and task completion
@@ -2121,7 +2121,7 @@ def run_experiment(
                 username=username,
                 team_name=team_name,
                 metrics={"accuracy": this_submission_score},
-                tasks_completed=1,  # Model building game counts as 1 task
+                tasks_completed=1,  # Increment completed tasks by 1 for this game completion
                 total_tasks=TOTAL_COURSE_TASKS,
                 primary_metric="accuracy",
                 completed_task_ids=[task_id],
