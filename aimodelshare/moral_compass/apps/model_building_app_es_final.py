@@ -586,6 +586,10 @@ MODEL_TYPES = {
             random_state=42, class_weight="balanced"
         ),
         "card_es": "Este modelo combina muchos árboles de decisión para encontrar patrones complejos. Es potente, pero conviene no pasarse con la complejidad."
+    },
+    "The Majority Vote": {
+        "card_es": "Conjunto de los cuatro modelos base calculado mediante voto mayoritario. No requiere entrenamiento.",
+        "cache_only": True
     }
 }
 
@@ -598,7 +602,8 @@ MODEL_DISPLAY_MAP = {
     "The Balanced Generalist": "El Generalista Equilibrado",
     "The Rule-Maker": "El Creador de Reglas",
     "The 'Nearest Neighbor'": "El 'Vecino Más Cercano'",
-    "The Deep Pattern-Finder": "El Buscador de Patrones Profundo"
+    "The Deep Pattern-Finder": "El Buscador de Patrones Profundo",
+    "The Majority Vote": "El Voto Mayoritario"
 }
 
 # Create the Choices List as Tuples: [(Catalan Label, English Value)]
