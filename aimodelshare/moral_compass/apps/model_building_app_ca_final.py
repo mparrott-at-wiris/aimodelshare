@@ -588,7 +588,7 @@ MODEL_TYPES = {
         "card_ca": "Aquest model combina molts arbres de decisió per trobar patrons complexos. És potent, però cal vigilar no fer-lo massa complex."
     },
     "The Majority Vote": {
-        "card_ca": "Conjunt dels quatre models base calculat mitjançant vot majoritari. No requereix entrenament.",
+        "card_ca": "Aquest model combina les prediccions dels quatre models i selecciona la més freqüent.",
         "cache_only": True
     }
 }
@@ -2966,9 +2966,8 @@ def create_model_building_game_ca_final_app(theme_primary_hue: str = "indigo") -
 
         # --- Briefing Slideshow (Updated with New Cards) ---
   
-        # Slide 1: From Understanding to Building (Retained as transition)
         with gr.Column(visible=True, elem_id="intro-slide") as intro_slide:
-                    gr.Markdown("<h1 style='text-align:center;'>🚀 El Repte Final</h1>")
+                    gr.Markdown("<h1 style='text-align:center;'>🚀 El repte final</h1>")
                     
                     gr.HTML(
                         """
@@ -2977,37 +2976,46 @@ def create_model_building_game_ca_final_app(theme_primary_hue: str = "indigo") -
                                 
                                 <div class="final-intro-wrapper">
                                     <p class="final-intro-text">
-                                        Has explorat l'ètica. Has identificat i corregit el biaix.
+                                        Has analitzat els aspectes ètics del sistema. Has identificat i corregit biaixos.
                                         <br>
                                         Ara és el moment de posar-ho tot en pràctica.
                                     </p>
                                 </div>
-                    
+                
                                 <div class="final-mission-card">
-                                    <h3 class="final-mission-title">🛠️ La Competició d'IA Ètica</h3>
+                                    <h3 class="final-mission-title">🛠️ La competició d'IA ètica</h3>
                                     <div class="final-mission-body">
-                                        <p>La teva missió final és tornar a competir contra els teus companys construint el <strong>sistema d'IA més precís dins dels estàndards ètics</strong>. Un cop abordat el biaix, la precisió torna a ser prioritària.</p>
+                                        <p>La teva missió final és tornar a competir contra els teus companys construint un <strong>sistema d'IA més precís dins dels estàndards ètics</strong>. Un cop tractat el biaix, la precisió torna a ser prioritària.</p>
                                         
-                                        <p>Utilitza el que has après per escalar posicions a la classificació de manera responsable, perquè el rendiment importa, però també les conseqüències de les teves decisions.</p>
+                                        <p>Utilitza el que has après per escalar posicions a la classificació de manera responsable, perquè el rendiment importa, però també les conseqüències de les decisions de disseny.</p>
                                     </div>
                                 </div>
-                    
+        
+                                <div class="t-minus-header" style="margin-top:12px;">
+                                    <span class="t-minus-badge">Novetats</span>
+                                    <h2 class="t-minus-title">Més dades i una nova estratègia de model</h2>
+                                </div>
+                                <ul style="margin:0 0 12px 0;">
+                                    <li><b>Complet (100%)</b> ara inclou <b>més de 3.000 casos addicionals</b>.</li>
+                                    <li>Estratègia de model de <b>Vot majoritari</b> (Un model de vot majoritari selecciona la predicció majoritària entre les prediccions dels quatre models base).</li>
+                                </ul>
+                
                                 <div class="final-cta-wrapper">
                                     <p class="final-cta-head">
                                         A punt per començar?
                                     </p>
                                     <p class="final-cta-sub">
-                                        👇 Fes clic a <b>“Entrar a l'Arena”</b> per començar.
+                                        👇 Fes clic a <b>“Entrar a la competició”</b> per començar.
                                     </p>
                                 </div>
-                    
+                
                             </div>
                         </div>
                         """
                     )
                     
                     # Only ONE button needed now
-                    intro_next_btn = gr.Button("Entrar a l'Arena ▶️", variant="primary", size="lg")
+                    intro_next_btn = gr.Button("Entrar a la competició ▶️", variant="primary", size="lg")
   
         # Slide 2: Mission
         with gr.Column(visible=False, elem_id="slide-2") as briefing_slide_2:

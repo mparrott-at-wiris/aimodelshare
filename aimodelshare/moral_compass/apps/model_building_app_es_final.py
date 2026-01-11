@@ -588,7 +588,7 @@ MODEL_TYPES = {
         "card_es": "Este modelo combina muchos árboles de decisión para encontrar patrones complejos. Es potente, pero conviene no pasarse con la complejidad."
     },
     "The Majority Vote": {
-        "card_es": "Conjunto de los cuatro modelos base calculado mediante voto mayoritario. No requiere entrenamiento.",
+        "card_es": "Este modelo combina los resultados de los cuatro modelos y elige la predicción más frecuente.",
         "cache_only": True
     }
 }
@@ -2049,21 +2049,21 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     return f"""
     <div class="final-conclusion-root">
       
-      <h1 class="final-conclusion-title">🎓 Certificación Obtenida</h1>
+      <h1 class="final-conclusion-title">🎓 Certificación obtenida</h1>
       <h2 style="margin-top:0; color:var(--text-muted);">Ethics at Play: Justicia y Equidad</h2>
 
       <div class="final-conclusion-card">
         
-        <h3 class="final-conclusion-subtitle">🏆 Resultados del Desafío Final</h3>
+        <h3 class="final-conclusion-subtitle">🏆 Resultados del desafío final</h3>
         <p style="text-align:left; margin-bottom: 15px;">
             Tu sistema final de IA ha sido inscrito en el registro para el <b>EdTech Congress Barcelona 2026</b>.
         </p>
 
         <ul class="final-conclusion-list">
-          <li>🏁 <b>Precisión Final:</b> {(best_score * 100):.2f}%</li>
-          <li>🌍 <b>Ranking Global:</b> {('#' + str(rank)) if rank > 0 else 'Pendiente'}</li>
+          <li>🏁 <b>Precisión final:</b> {(best_score * 100):.2f}%</li>
+          <li>🌍 <b>Ranking global:</b> {('#' + str(rank)) if rank > 0 else 'Pendiente'}</li>
           <li>📈 <b>Mejora en esta sesión:</b> {(improvement * 100):+.2f}% ganancia de precisión</li>
-          <li>🔢 <b>Iteraciones Totales:</b> {submissions} versiones del modelo probadas</li>
+          <li>🔢 <b>Iteraciones totales:</b> {submissions} versiones del modelo probadas</li>
         </ul>
 
         {tip_html}
@@ -2979,7 +2979,7 @@ def create_model_building_game_es_final_app(theme_primary_hue: str = "indigo") -
   
         # Slide 1: From Understanding to Building (Retained as transition)
         with gr.Column(visible=True, elem_id="intro-slide") as intro_slide:
-            gr.Markdown("<h1 style='text-align:center;'>🚀 El Desafío Final</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🚀 El desafío final</h1>")
             
             gr.HTML(
                 """
@@ -2988,37 +2988,46 @@ def create_model_building_game_es_final_app(theme_primary_hue: str = "indigo") -
                         
                         <div class="final-intro-wrapper">
                             <p class="final-intro-text">
-                                Has explorado la ética. Has identificado y corregido el sesgo.
+                                Has analizado los aspectos éticos del sistema. Has identificado y corregido sesgos.
                                 <br>
                                 Ahora es el momento de ponerlo todo en práctica.
                             </p>
                         </div>
-            
+        
                         <div class="final-mission-card">
-                            <h3 class="final-mission-title">🛠️ La Competición de IA Ética</h3>
+                            <h3 class="final-mission-title">🛠️ La competición de IA ética</h3>
                             <div class="final-mission-body">
-                                <p>Tu misión final es competir de nuevo contra tus compañeros construyendo el <strong>sistema de IA más preciso dentro de los estándares éticos</strong>. Una vez abordado el sesgo, la precisión vuelve a ser el foco.</p>
+                                <p>Tu misión final es competir de nuevo contra tus compañeros construyendo un <strong>sistema de IA más preciso dentro de los estándares éticos</strong>. Una vez tratado el sesgo, la precisión vuelve a ocupar un papel central.</p>
                                 
-                                <p>Usa lo que has aprendido para escalar en la clasificación de manera responsable; porque el rendimiento importa, pero también las consecuencias de tus elecciones.</p>
+                                <p>Usa lo que has aprendido para escalar en la clasificación de manera responsable; porque el rendimiento importa, pero también las consecuencias de las decisiones de diseño.</p>
                             </div>
                         </div>
-            
+
+                        <div class="t-minus-header" style="margin-top:12px;">
+                            <span class="t-minus-badge">Novedades</span>
+                            <h2 class="t-minus-title">Más datos y una nueva estrategia de modelo</h2>
+                        </div>
+                        <ul style="margin:0 0 12px 0;">
+                            <li><b>Completo (100%)</b> ahora incluye <b>más de 3.000 casos adicionales</b>.</li>
+                            <li>Estrategia de modelo de <b>Voto mayoritario</b> (Un modelo de voto mayoritario elige la predicción mayoritaria entre las predicciones de los cuatro modelos base).</li>
+                        </ul>
+        
                         <div class="final-cta-wrapper">
                             <p class="final-cta-head">
                                 ¿Listo para empezar?
                             </p>
                             <p class="final-cta-sub">
-                                👇 Haz clic en <b>“Entrar a la Arena”</b> para comenzar.
+                                👇 Haz clic en <b>“Entrar en la competición”</b> para comenzar.
                             </p>
                         </div>
-            
+        
                     </div>
                 </div>
                 """
             )
             
             # Only ONE button needed now
-            intro_next_btn = gr.Button("Entrar a la Arena ▶️", variant="primary", size="lg")
+            intro_next_btn = gr.Button("Entrar en la competición ▶️", variant="primary", size="lg")
 
 
         # --- End Briefing Slideshow ---
