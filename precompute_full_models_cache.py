@@ -146,7 +146,11 @@ def load_base_cache():
 def _parse_feature_sets_from_source(path="aimodelshare/moral_compass/apps/model_building_app_en.py"):
     """
     Parse FEATURE_SET_ALL_OPTIONS directly from source file via AST.
-    Returns a list of feature name tuples (second element of each tuple in the list).
+    Returns a list of single-element tuples, each containing one feature name.
+    For example: [('age',), ('race',), ('sex',), ...]
+    
+    Args:
+        path: Relative path from repository root to the app source file.
     """
     try:
         with open(path, "r", encoding="utf-8") as f:
@@ -180,6 +184,15 @@ def get_allowed_feature_sets() -> list[tuple[str, ...]]:
     """
     Returns a list of sorted tuples representing feature sets.
     First tries AST parsing of app source, fallback to power set of ALL_FEATURES.
+    
+    NOTE: This implementation extracts INDIVIDUAL features from FEATURE_SET_ALL_OPTIONS
+    and treats each as a single-element tuple. This drastically reduces computation
+    from the full power set (2047 combinations × 4 data sizes × 10 levels × 4 models = 327,520)
+    to just individual features (10 features × 1 data size × 10 levels × 5 models = 500).
+    
+    Users can select any combination of features at runtime, but pre-computing all
+    combinations would be prohibitively expensive. By caching individual features,
+    we provide a baseline that covers single-feature models efficiently.
     """
     sets = _parse_feature_sets_from_source()
     if sets is not None and len(sets) > 0:
