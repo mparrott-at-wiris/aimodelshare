@@ -4,7 +4,7 @@ import gzip
 import time
 import gc
 import itertools
-import importlib
+import ast
 import pandas as pd
 import numpy as np
 
@@ -142,38 +142,81 @@ def load_base_cache():
         print("No prior base cache artifacts found. Starting full-models cache from scratch.")
         return {}
 
-# --- ALLOWED FEATURE SETS (pull from app; fallback to power set of ALL_FEATURES) ---
-def get_allowed_feature_sets() -> list[tuple[str, ...]]:
+# --- ALLOWED FEATURE SETS (parse from app via AST; fallback to power set of ALL_FEATURES) ---
+def _parse_available_features_from_source(path="aimodelshare/moral_compass/apps/model_building_app_en.py"):
     """
-    Tries to import the app and read FEATURE_SET_ALL_OPTIONS.
-    Returns a list of sorted tuples representing feature sets.
-    Fallback: power set of ALL_FEATURES (excluding empty set).
+    Parse FEATURE_SET_ALL_OPTIONS directly from source file via AST.
+    Returns a list of available feature names that users can select from.
+    For example: ['age', 'race', 'sex', ...]
+    
+    Args:
+        path: Relative path from repository root to the app source file.
     """
     try:
-        mod = importlib.import_module("aimodelshare.moral_compass.apps.model_building_app_en")
-        options = getattr(mod, "FEATURE_SET_ALL_OPTIONS", None)
-        if options and isinstance(options, (list, tuple)) and len(options) > 0:
-            allowed = []
-            for opt in options:
-                # Each opt is expected to be an iterable of feature names
-                fs = tuple(sorted([str(x) for x in opt]))
-                if len(fs) > 0:
-                    allowed.append(fs)
-            # Deduplicate
-            allowed = sorted(set(allowed))
-            print(f"Loaded {len(allowed)} allowed feature sets from app.")
-            return allowed
-        else:
-            print("FEATURE_SET_ALL_OPTIONS not found or empty; falling back to power set of ALL_FEATURES.")
+        with open(path, "r", encoding="utf-8") as f:
+            src = f.read()
+        tree = ast.parse(src)
+        for node in tree.body:
+            if isinstance(node, ast.Assign):
+                for target in node.targets:
+                    if isinstance(target, ast.Name) and target.id == "FEATURE_SET_ALL_OPTIONS":
+                        # Evaluate the list literal
+                        value = ast.literal_eval(node.value)
+                        features = []
+                        for opt in value:
+                            # Each opt is a tuple like ("Display Name", "feature_key")
+                            # We want the second element (the feature key)
+                            if isinstance(opt, tuple) and len(opt) >= 2:
+                                feature_key = str(opt[1])
+                                # Validate that the feature exists in ALL_FEATURES
+                                if feature_key in ALL_FEATURES:
+                                    features.append(feature_key)
+                        if features:
+                            # Deduplicate
+                            features = sorted(set(features))
+                            print(f"Parsed {len(features)} available features from source.")
+                            return features
+        print("FEATURE_SET_ALL_OPTIONS not found in source; falling back to ALL_FEATURES.")
+        return None
     except Exception as e:
-        print(f"Warning: Could not import app feature sets ({e}); falling back to power set of ALL_FEATURES.")
+        print(f"Warning: Failed to parse features from source ({e}); falling back to ALL_FEATURES.")
+        return None
 
+def get_allowed_feature_sets() -> list[tuple[str, ...]]:
+    """
+    Returns a list of sorted tuples representing ALL POSSIBLE COMBINATIONS of features
+    that users can select in the app.
+    
+    First tries AST parsing of app source to get available features, then generates
+    the power set (all combinations) of those features.
+    Fallback: power set of ALL_FEATURES if parsing fails.
+    
+    This generates every combination users can select from FEATURE_SET_ALL_OPTIONS:
+    - 10 features from FEATURE_SET_ALL_OPTIONS
+    - 2^10 - 1 = 1023 combinations (excluding empty set)
+    - Total tasks: 1023 combinations × 1 data size × 10 levels × 5 models = 51,150
+    
+    The +1 model is the majority vote model, which is derived from the 4 base model
+    predictions without additional training.
+    """
+    # Try to parse available features from the app
+    available_features = _parse_available_features_from_source()
+    
+    if available_features is not None and len(available_features) > 0:
+        # Generate power set of available features
+        all_combos = []
+        for r in range(1, len(available_features) + 1):
+            all_combos.extend(itertools.combinations(available_features, r))
+        feature_sets = [tuple(sorted(c)) for c in all_combos]
+        print(f"Generated {len(feature_sets)} feature combinations from {len(available_features)} available features.")
+        return feature_sets
+    
     # Fallback: full power set of ALL_FEATURES (excluding empty set)
+    print("Using fallback: generating power set of ALL_FEATURES.")
     all_combos = []
     for r in range(1, len(ALL_FEATURES) + 1):
         all_combos.extend(itertools.combinations(ALL_FEATURES, r))
-    allowed = [tuple(sorted(c)) for c in all_combos]
-    return allowed
+    return [tuple(sorted(c)) for c in all_combos]
 
 # --- TASK PROCESSOR (base models only) ---
 def process_task(task, X_full, y_full, X_test_raw):
