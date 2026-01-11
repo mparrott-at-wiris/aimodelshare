@@ -2327,11 +2327,26 @@ def run_experiment(
                     new_rank = mc_leaderboard_data.get("rank", 0)
                     mc_score = mc_leaderboard_data.get("score", 0.0)
                     
-                    # Get last moral compass score from last_submission_score
-                    # Note: In moral compass mode, last_submission_score should already be a moral compass score
-                    last_mc_score = last_submission_score if last_submission_score > 0 else 0.0
+                    # Get last moral compass score
+                    # For first submission (submission_count == 0), last_mc_score should be 0
+                    # For subsequent submissions, we can try to get the previous score from leaderboard
+                    # to ensure we're comparing like with like
+                    if submission_count == 0:
+                        last_mc_score = 0.0
+                    else:
+                        # Try to get user's previous moral compass score from the leaderboard data
+                        all_users = mc_leaderboard_data.get("all_users", [])
+                        user_entries = [u for u in all_users if u.get("username") == username]
+                        if user_entries:
+                            # The current entry might already be in all_users, but we want the previous score
+                            # Since we just updated, the score in mc_leaderboard_data should be the current one
+                            # For a more accurate comparison, we could sort by timestamp if available
+                            # For now, use last_submission_score as it was stored from previous run
+                            last_mc_score = last_submission_score if last_submission_score > 0 else 0.0
+                        else:
+                            last_mc_score = 0.0
                     
-                    _log(f"Moral compass leaderboard: rank={new_rank}, score={mc_score}, last_score={last_mc_score}")
+                    _log(f"Moral compass leaderboard: rank={new_rank}, score={mc_score}, last_score={last_mc_score}, submission_count={submission_count}")
                 else:
                     # Fallback to old accuracy-based leaderboard if moral compass data fetch returns None
                     _log("Warning: Moral compass leaderboard fetch returned None, using accuracy-based fallback")
