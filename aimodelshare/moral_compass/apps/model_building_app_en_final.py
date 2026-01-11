@@ -1062,14 +1062,22 @@ def build_login_prompt_html():
     """
 # --- END OF FIX ---
 
-def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_count, is_preview=False, is_pending=False, local_test_accuracy=None):
-    """Generates the HTML for the KPI feedback card. Supports preview mode label and pending state."""
+def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_count, is_preview=False, is_pending=False, local_test_accuracy=None, use_moral_compass=True):
+    """Generates the HTML for the KPI feedback card. Supports preview mode label, pending state, and moral compass scores."""
+
+    # Determine score label and format based on mode
+    if use_moral_compass:
+        score_label = "Moral Compass Score 🧭"
+        score_format = lambda s: f"{s:.3f}"  # Moral compass scores are raw values (not percentages)
+    else:
+        score_label = "New Accuracy"
+        score_format = lambda s: f"{(s * 100):.2f}%"  # Accuracy shown as percentage
 
     # Handle pending state - show processing message with provisional diff
     if is_pending:
         title = "⏳ Submission Processing"
         acc_color = "#3b82f6"  # Blue
-        acc_text = f"{(local_test_accuracy * 100):.2f}%" if local_test_accuracy is not None else "N/A"
+        acc_text = score_format(local_test_accuracy) if local_test_accuracy is not None else "N/A"
         
         # Compute provisional diff between local (new) and last score
         if local_test_accuracy is not None and last_score is not None and last_score > 0:
@@ -1077,9 +1085,11 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
             if abs(score_diff) < 0.0001:
                 acc_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #6b7280; margin:0;'>No Change (↔) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
             elif score_diff > 0:
-                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>+{(score_diff * 100):.2f} (⬆️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
+                diff_text = f"+{(score_diff * 100):.2f}" if not use_moral_compass else f"+{score_diff:.3f}"
+                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>{diff_text} (⬆️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
             else:
-                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>{(score_diff * 100):.2f} (⬇️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
+                diff_text = f"{(score_diff * 100):.2f}" if not use_moral_compass else f"{score_diff:.3f}"
+                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>{diff_text} (⬇️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
         else:
             # No last score available - just show pending message
             acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
@@ -1093,7 +1103,7 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
     elif is_preview:
         title = "🔬 Successful Preview Run!"
         acc_color = "#16a34a"  # Green (like success)
-        acc_text = f"{(new_score * 100):.2f}%" if new_score > 0 else "N/A"
+        acc_text = score_format(new_score) if new_score > 0 else "N/A"
         acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>(Preview only - not submitted)</p>" # Neutral color
         border_color = acc_color # Green border
         rank_color = "#3b82f6" # Blue (like rank)
@@ -1107,20 +1117,22 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
         if abs(score_diff) < 0.0001:
             title = "✅ Submission Successful"
             acc_color = "#6b7280" # gray
-            acc_text = f"{(new_score * 100):.2f}%"
+            acc_text = score_format(new_score)
             acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>No Change (↔)</p>"
             border_color = acc_color
         elif score_diff > 0:
             title = "✅ Submission Successful!"
             acc_color = "#16a34a" # green
-            acc_text = f"{(new_score * 100):.2f}%"
-            acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>+{(score_diff * 100):.2f} (⬆️)</p>"
+            acc_text = score_format(new_score)
+            diff_text = f"+{(score_diff * 100):.2f}" if not use_moral_compass else f"+{score_diff:.3f}"
+            acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>{diff_text} (⬆️)</p>"
             border_color = acc_color
         else:
             title = "📉 Score Dropped"
             acc_color = "#ef4444" # red
-            acc_text = f"{(new_score * 100):.2f}%"
-            acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>{(score_diff * 100):.2f} (⬇️)</p>"
+            acc_text = score_format(new_score)
+            diff_text = f"{(score_diff * 100):.2f}" if not use_moral_compass else f"{score_diff:.3f}"
+            acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>{diff_text} (⬇️)</p>"
             border_color = acc_color
 
         # 3. Handle Rank Changes
@@ -1141,7 +1153,7 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
         <h2 style='color: var(--body-text-color); margin-top:0;'>{title}</h2>
         <div class='kpi-card-body'>
             <div class='kpi-metric-box'>
-                <p class='kpi-label'>New Accuracy</p>
+                <p class='kpi-label'>{score_label}</p>
                 <p class='kpi-score' style='color: {acc_color};'>{acc_text}</p>
                 {acc_diff_html}
             </div>
@@ -1401,6 +1413,48 @@ def render_moral_compass_leaderboard_card(data, username, team_name):
                             </thead>
                             <tbody>{user_rows}</tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    """
+
+
+def _build_welcome_with_moral_compass_placeholder(team_name):
+    """
+    Build welcome message with moral compass leaderboard placeholder.
+    Shows empty moral compass leaderboard structure with call to action.
+    """
+    display_team = team_name if team_name else "Your Team"
+    
+    return f"""
+    <div class="scenario-box leaderboard-card">
+        <h3 class="slide-title" style="margin-bottom:10px;">📊 Live Standings</h3>
+        <div class="lb-tabs">
+            <input type="radio" id="lb-tab-team" name="lb-tabs" checked>
+            <label for="lb-tab-team" class="lb-tab-label">🏆 Team</label>
+            <input type="radio" id="lb-tab-user" name="lb-tabs">
+            <label for="lb-tab-user" class="lb-tab-label">👤 Individual</label>
+            <div class="lb-tab-panels">
+                <div class="lb-panel panel-team">
+                    <div style='text-align:center; padding: 30px 20px;'>
+                        <div style='font-size: 3rem; margin-bottom: 10px;'>👋</div>
+                        <h3 style='margin: 0 0 8px 0; color: #111827; font-size: 1.5rem;'>Welcome to <b>{display_team}</b>!</h3>
+                        <p style='font-size: 1.1rem; color: #4b5563; margin: 0 0 20px 0;'>
+                            Your team is waiting for your help to improve the AI.
+                        </p>
+                        
+                        <div style='background:#eff6ff; padding:16px; border-radius:12px; border:2px solid #bfdbfe; display:inline-block;'>
+                            <p style='margin:0; color:#1e40af; font-weight:bold; font-size:1.1rem;'>
+                                👈 Click "Build & Submit Model" to Start Playing!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="lb-panel panel-user">
+                    <div style='text-align:center; padding: 30px 20px;'>
+                        <p style='font-size: 1.1rem; color: #6b7280;'>Submit your model to see where you rank!</p>
                     </div>
                 </div>
             </div>
@@ -2022,8 +2076,8 @@ def run_experiment(
                 submit_button: gr.update(value="Sign In Required", interactive=False),
                 login_username: gr.update(visible=True), login_password: gr.update(visible=True),
                 login_submit: gr.update(visible=True), login_error: gr.update(value="", visible=False),
-                team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
-                individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
+                team_leaderboard_display: _build_welcome_with_moral_compass_placeholder(team_name),
+                individual_leaderboard_display: _build_welcome_with_moral_compass_placeholder(team_name),
                 last_submission_score_state: last_submission_score, last_rank_state: last_rank,
                 best_score_state: best_score, submission_count_state: submission_count,
                 first_submission_score_state: first_submission_score,
@@ -2261,6 +2315,8 @@ def run_experiment(
         new_rank = 0
         
         # Fetch moral compass leaderboard data
+        mc_score = None
+        last_mc_score = 0.0
         if mc_client:
             try:
                 mc_leaderboard_data = get_leaderboard_data(mc_client, username, team_name)
@@ -2269,7 +2325,28 @@ def run_experiment(
                     team_html = render_moral_compass_leaderboard_card(mc_leaderboard_data, username, team_name)
                     individual_html = team_html  # Same HTML contains both tabs
                     new_rank = mc_leaderboard_data.get("rank", 0)
-                    _log(f"Moral compass leaderboard: rank={new_rank}, score={mc_leaderboard_data.get('score', 0)}")
+                    mc_score = mc_leaderboard_data.get("score", 0.0)
+                    
+                    # Get last moral compass score
+                    # For first submission (submission_count == 0), last_mc_score should be 0
+                    # For subsequent submissions, we can try to get the previous score from leaderboard
+                    # to ensure we're comparing like with like
+                    if submission_count == 0:
+                        last_mc_score = 0.0
+                    else:
+                        # Try to get user's previous moral compass score from the leaderboard data
+                        all_users = mc_leaderboard_data.get("all_users", [])
+                        user_entries = [u for u in all_users if u.get("username") == username]
+                        if user_entries:
+                            # The current entry might already be in all_users, but we want the previous score
+                            # Since we just updated, the score in mc_leaderboard_data should be the current one
+                            # For a more accurate comparison, we could sort by timestamp if available
+                            # For now, use last_submission_score as it was stored from previous run
+                            last_mc_score = last_submission_score if last_submission_score > 0 else 0.0
+                        else:
+                            last_mc_score = 0.0
+                    
+                    _log(f"Moral compass leaderboard: rank={new_rank}, score={mc_score}, last_score={last_mc_score}, submission_count={submission_count}")
                 else:
                     # Fallback to old accuracy-based leaderboard if moral compass data fetch returns None
                     _log("Warning: Moral compass leaderboard fetch returned None, using accuracy-based fallback")
@@ -2298,16 +2375,31 @@ def run_experiment(
             )
 
         # 5. GENERATE KPI CARD EXPLICITLY (The Authority Fix)
-        # We manually build the card using the score we KNOW we just got.
-        kpi_card_html = _build_kpi_card_html(
-            new_score=this_submission_score,
-            last_score=last_submission_score,
-            new_rank=new_rank,
-            last_rank=last_rank,
-            submission_count=submission_count, 
-            is_preview=False,
-            is_pending=False
-        )
+        # Use moral compass score if available, otherwise use accuracy
+        if mc_score is not None:
+            # Show moral compass scores in KPI card
+            kpi_card_html = _build_kpi_card_html(
+                new_score=mc_score,
+                last_score=last_mc_score,
+                new_rank=new_rank,
+                last_rank=last_rank,
+                submission_count=submission_count, 
+                is_preview=False,
+                is_pending=False,
+                use_moral_compass=True
+            )
+        else:
+            # Fallback to accuracy-based KPI card
+            kpi_card_html = _build_kpi_card_html(
+                new_score=this_submission_score,
+                last_score=last_submission_score,
+                new_rank=new_rank,
+                last_rank=last_rank,
+                submission_count=submission_count, 
+                is_preview=False,
+                is_pending=False,
+                use_moral_compass=False
+            )
 
         # --- Stage 5: Final UI Update ---
         progress(1.0, desc="Complete!")
@@ -2354,11 +2446,15 @@ def run_experiment(
 
         # -------------------------------------------------------------------------
 
+        # Determine which score to store for next comparison
+        # Use moral compass score if available, otherwise use accuracy
+        score_to_store = mc_score if mc_score is not None else this_submission_score
+        
         final_updates = {
             submission_feedback_display: gr.update(value=final_html_display, visible=True),
             team_leaderboard_display: team_html,
             individual_leaderboard_display: individual_html,
-            last_submission_score_state: this_submission_score, 
+            last_submission_score_state: score_to_store,  # Store moral compass score when available
             last_rank_state: new_rank, 
             best_score_state: new_best_accuracy,
             submission_count_state: new_submission_count,
@@ -2425,7 +2521,7 @@ def run_experiment(
 
 def on_initial_load(username, token=None, team_name=""):
     """
-    Load initial UI state. Now immediately ready since predictions are precomputed.
+    Load initial UI state with moral compass leaderboards shown from the start.
     """
     # Load test labels in the background (lightweight)
     _ensure_y_test_loaded()
@@ -2434,68 +2530,37 @@ def on_initial_load(username, token=None, team_name=""):
         0, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE
     )
 
-    # 1. Prepare the Welcome HTML
-    display_team = team_name if team_name else "Your Team"
+    # -------------------------------------------------------------------------
+    # NEW: Show moral compass leaderboard from the start
+    # -------------------------------------------------------------------------
+    team_html = ""
+    individual_html = ""
     
-    welcome_html = f"""
-    <div style='text-align:center; padding: 30px 20px;'>
-        <div style='font-size: 3rem; margin-bottom: 10px;'>👋</div>
-        <h3 style='margin: 0 0 8px 0; color: #111827; font-size: 1.5rem;'>Welcome to <b>{display_team}</b>!</h3>
-        <p style='font-size: 1.1rem; color: #4b5563; margin: 0 0 20px 0;'>
-            Your team is waiting for your help to improve the AI.
-        </p>
-        
-        <div style='background:#eff6ff; padding:16px; border-radius:12px; border:2px solid #bfdbfe; display:inline-block;'>
-            <p style='margin:0; color:#1e40af; font-weight:bold; font-size:1.1rem;'>
-                👈 Click "Build & Submit Model" to Start Playing!
-            </p>
-        </div>
-    </div>
-    """
-
-    # Fetch leaderboard data
-    full_leaderboard_df = None
-    try:
-        if playground:
-            full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
-    except Exception as e:
-        print(f"Error on initial load fetch: {e}")
-        full_leaderboard_df = None
-
-    # -------------------------------------------------------------------------
-    # LOGIC UPDATE: Check if THIS user has submitted anything
-    # -------------------------------------------------------------------------
-    user_has_submitted = False
-    if full_leaderboard_df is not None and not full_leaderboard_df.empty:
-        if "username" in full_leaderboard_df.columns and username:
-            # Check if the username exists in the dataframe
-            user_has_submitted = username in full_leaderboard_df["username"].values
-
-    # Decision Logic
-    if not user_has_submitted:
-        # CASE 1: New User (or first time loading session) -> FORCE WELCOME
-        # regardless of whether the leaderboard has other people's data.
-        team_html = welcome_html
-        individual_html = "<p style='text-align:center; color:#6b7280; padding-top:40px;'>Submit your model to see where you rank!</p>"
-        
-    elif full_leaderboard_df is None or full_leaderboard_df.empty:
-        # CASE 2: Returning user, but data fetch failed -> Show Skeleton
-        team_html = _build_skeleton_leaderboard(rows=6, is_team=True)
-        individual_html = _build_skeleton_leaderboard(rows=6, is_team=False)
-        
-    else:
-        # CASE 3: Returning user WITH data -> Show Real Tables
+    # Try to fetch moral compass leaderboard data
+    if username and token and team_name:
         try:
-            team_html, individual_html, _, _, _, _ = generate_competitive_summary(
-                full_leaderboard_df,
-                team_name,
-                username,
-                0, 0, -1
-            )
+            os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
+            mc_client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
+            mc_leaderboard_data = get_leaderboard_data(mc_client, username, team_name)
+            
+            if mc_leaderboard_data:
+                # Generate moral compass leaderboard HTML (contains both team and individual tabs)
+                team_html = render_moral_compass_leaderboard_card(mc_leaderboard_data, username, team_name)
+                individual_html = team_html  # Same HTML contains both tabs
+                _log(f"Initial load: Moral compass leaderboard loaded for {username}")
+            else:
+                # No data yet, show welcome message
+                team_html = _build_welcome_with_moral_compass_placeholder(team_name)
+                individual_html = team_html
         except Exception as e:
-            print(f"Error generating summary HTML: {e}")
-            team_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
-            individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
+            _log(f"Error loading moral compass leaderboard on initial load: {e}")
+            # Fallback to welcome message
+            team_html = _build_welcome_with_moral_compass_placeholder(team_name)
+            individual_html = team_html
+    else:
+        # No authentication yet, show welcome message
+        team_html = _build_welcome_with_moral_compass_placeholder(team_name if team_name else "Your Team")
+        individual_html = team_html
 
     return (
         get_model_card(DEFAULT_MODEL),
