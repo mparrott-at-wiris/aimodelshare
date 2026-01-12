@@ -245,7 +245,7 @@ def _generate_defendant_profiles():
             "race": "Hispanic",
             "prior_offenses": 2,
             "current_charge": "Drug possession",
-            "ai_risk": "High",
+            "ai_risk": "Low",
             "ai_confidence": "85%",
         },
         {
@@ -256,7 +256,7 @@ def _generate_defendant_profiles():
             "race": "White",
             "prior_offenses": 0,
             "current_charge": "Theft",
-            "ai_risk": "Low",
+            "ai_risk": "High",
             "ai_confidence": "72%",
         },
         {
@@ -289,7 +289,7 @@ def _generate_defendant_profiles():
             "race": "White",
             "prior_offenses": 5,
             "current_charge": "Burglary",
-            "ai_risk": "High",
+            "ai_risk": "Low",
             "ai_confidence": "91%",
         },
     ]
