@@ -278,7 +278,7 @@ def _generate_defendant_profiles():
             "race": "Hispanic",
             "prior_offenses": 3,
             "current_charge": "Fraud",
-            "ai_risk": "Medium",
+            "ai_risk": "High",
             "ai_confidence": "70%",
         },
         {
