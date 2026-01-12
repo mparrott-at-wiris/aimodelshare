@@ -708,7 +708,6 @@ def create_justice_equity_upgrade_es_app(theme_primary_hue: str = "indigo"):
                     # Special Logic for Module 0 (Victory Dashboard)
                     if i == 0:
                         dash_output = gr.HTML()
-                        lb_output = gr.HTML()
 
                     # Special Logic for Module 2 (Certificate Input)
                     if i == 2:
@@ -729,6 +728,11 @@ def create_justice_equity_upgrade_es_app(theme_primary_hue: str = "indigo"):
                         btn_prev = gr.Button("⬅️ Anterior", visible=(i > 0))
                         next_txt = "Siguiente ▶️" if i < len(MODULES) - 1 else "Finalizar"
                         btn_next = gr.Button(next_txt, visible=(i < len(MODULES) - 1))
+
+                    # Special Logic for Module 0 (Leaderboard)
+                    # The leaderboard is rendered AFTER the buttons
+                    if i == 0:
+                        lb_output = gr.HTML()
 
                     module_ui_elements[i] = (mod_col, btn_prev, btn_next)
 
