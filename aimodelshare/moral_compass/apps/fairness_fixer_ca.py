@@ -140,7 +140,7 @@ MODULES = [
                             <div style="display:flex; align-items:center; gap:12px; padding:10px; background:var(--background-fill-secondary); border-radius:8px; opacity:0.7;">
                                 <div style="font-size:1.4rem;">✂️</div>
                                 <div>
-                                    <div style="font-weight:700;">Protocol 1: Sanejar les Entrades</div>
+                                    <div style="font-weight:700;">Protocol 1: Sanejament de les entrades</div>
                                     <div style="font-size:0.9rem;">Eliminar classes protegides i detectar les variables proxy ocultes.</div>
                                 </div>
                                 <div style="margin-left:auto; font-weight:700; font-size:0.8rem; text-transform:uppercase; color:var(--body-text-color-subdued);">Pendent</div>
@@ -158,7 +158,7 @@ MODULES = [
                             <div style="display:flex; align-items:center; gap:12px; padding:10px; background:var(--background-fill-secondary); border-radius:8px; opacity:0.7;">
                                 <div style="font-size:1.4rem;">⚖️</div>
                                 <div>
-                                    <div style="font-weight:700;">Protocol 3: Representació i Mostreig</div>
+                                    <div style="font-weight:700;">Protocol 3: Representació i mostreig</div>
                                     <div style="font-size:0.9rem;">Equilibrar les dades perquè reflecteixin la població local.</div>
                                 </div>
                                 <div style="margin-left:auto; font-weight:700; font-size:0.8rem; text-transform:uppercase; color:var(--body-text-color-subdued);">Bloquejat</div>
@@ -203,7 +203,7 @@ MODULES = [
 
                     <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
                         <strong>Equitat a través de la ceguesa.</strong>
-                        Legalment i èticament, no es poden utilitzar <strong>classes protegides</strong> (característiques amb què neix una persona, com la raça o l’edat) per calcular la puntuació de risc.
+                        Legalment i èticament, no es poden utilitzar <strong>classes protegides</strong> (característiques amb què neix una persona, com l'origen ètnic o l’edat) per calcular la puntuació de risc.
                     </p>
 
                     <div class="ai-risk-container">
@@ -259,7 +259,7 @@ MODULES = [
                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(59,130,246,0.08); border:2px solid var(--color-accent); border-radius:12px; margin-bottom:20px;">
                         <div style="font-size:1.8rem; background:var(--background-fill-primary); width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">✂️</div>
                         <div style="flex-grow:1;">
-                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); letter-spacing:0.05em;">PROTOCOL 1: SANEJAR ENTRADES</div>
+                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); letter-spacing:0.05em;">PROTOCOL 1: SANEJAMENT DE LES ENTRADES</div>
                             <div style="font-size:0.9rem; color:var(--body-text-color);">Missió: Eliminar classes protegides i proxies ocults.</div>
                         </div>
                         <div style="text-align:right;">
@@ -271,37 +271,37 @@ MODULES = [
                     </div>
 
                     <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
-                        <strong>El Problema del "Biaix Persistent".</strong>
-                        Has eliminat Raça i Gènere. Genial. Però el biaix sovint s'amaga en <strong>Variables Proxy</strong>—punts de dades neutrals que actuen com a substitut secret de la raça.
+                        <strong>El problema del "biaix persistent".</strong>
+                        Has eliminat origen ètnic i gènere. Perfecte. Però el biaix sovint s'amaga en <strong>variables proxy</strong>—dades aparentment neutrals que revelen indirectament informació protegida, com l’origen ètnic.
                     </p>
 
                     <div class="hint-box" style="border-left:4px solid #f97316;">
-                        <div style="font-weight:700;">Per què el "Codi Postal" és un Proxy</div>
+                        <div style="font-weight:700;">Per què el "codi postal" és un Proxy</div>
 
                         <p style="margin:6px 0 0 0;">
-                            Històricament, moltes ciutats van ser segregades per llei o classe. Fins i tot avui, el <strong>Codi Postal</strong> sovint es correlaciona fortament amb l'origen.
+                            Històricament, moltes ciutats han estat segregades per llei o per classe social. Fins i tot avui, el <strong>codi postal</strong> sovint es correlaciona fortament amb l'origen ètnic.
                             </p>
                         <p style="margin-top:8px; font-weight:600; color:#c2410c;">
-                            🚨 El Risc: Si dones dades d'ubicació a la IA, pot "endevinar" la raça d'una persona amb alta precisió, tornant a aprendre el biaix exacte que acabes d'intentar esborrar.
+                            🚨 El risc: Si proporciones dades d'ubicació a la IA, pot "endevinar", per exemple, l'origen ètnic d'una persona molta precisió i tornar a aprendre exactament el mateix biaix que acabes d’intentar eliminar.
                         </p>
                     </div>
 
                     <div class="ai-risk-container" style="margin-top:16px;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <h4 style="margin:0;">📂 Inspector de Columnes del Dataset</h4>
-                            <div style="font-size:0.8rem; font-weight:700; color:#f97316;">⚠️ 1 PROXY DETECTAT</div>
+                            <h4 style="margin:0;">📂 Inspector de columnes del conjunt de dades</h4>
+                            <div style="font-size:0.8rem; font-weight:700; color:#f97316;">⚠️ 1 VARIABLE PROXY DETECTADA</div>
                         </div>
 
                         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; padding:12px; background:rgba(0,0,0,0.05); border-radius:8px;">
-                            <div style="padding:6px 12px; background:#e5e7eb; color:#9ca3af; text-decoration:line-through; border-radius:6px;">Raça</div>
+                            <div style="padding:6px 12px; background:#e5e7eb; color:#9ca3af; text-decoration:line-through; border-radius:6px;">Origen ètnic</div>
                             <div style="padding:6px 12px; background:#e5e7eb; color:#9ca3af; text-decoration:line-through; border-radius:6px;">Gènere</div>
 
                             <div style="padding:6px 12px; background:#ffedd5; border:1px solid #f97316; border-radius:6px; font-weight:700; color:#9a3412;">
                                 ⚠️ Codi Postal
                             </div>
 
-                            <div style="padding:6px 12px; background:var(--background-fill-primary); color:var(--body-text-color); border:1px solid var(--border-color-primary); border-radius:6px;">Condemnes Prèvies</div>
-                            <div style="padding:6px 12px; background:var(--background-fill-primary); color:var(--body-text-color); border:1px solid var(--border-color-primary); border-radius:6px;">Ocupació</div>
+                            <div style="padding:6px 12px; background:var(--background-fill-primary); color:var(--body-text-color); border:1px solid var(--border-color-primary); border-radius:6px;">Condemnes prèvies</div>
+                            <div style="padding:6px 12px; background:var(--background-fill-primary); color:var(--body-text-color); border:1px solid var(--border-color-primary); border-radius:6px;">Situació laboral</div>
                         </div>
                     </div>
 
@@ -311,7 +311,7 @@ MODULES = [
                             🚀 ACCIÓ REQUERIDA: SUPRIMIR DADES D'ENTRADA PROXY
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
-                            Selecciona la Variable Proxy de sota per esborrar-la.
+                            Selecciona la variable proxy de sota per eliminar-la.
                             Després fes clic a <strong>Següent</strong> per continuar arreglant el model.
                         </p>
                     </div>
@@ -330,8 +330,8 @@ MODULES = [
                     <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(59,130,246,0.08); border:2px solid var(--color-accent); border-radius:12px; margin-bottom:20px;">
                         <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">✂️</div>
                         <div style="flex-grow:1;">
-                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); letter-spacing:0.05em;">PROTOCOL 1: SANEJAR ENTRADES</div>
-                            <div style="font-size:0.9rem; color:var(--body-text-color);">Fase: Verificació i Reentrenament del Model</div>
+                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); letter-spacing:0.05em;">PROTOCOL 1: SANEJAMENT DE LES ENTRADES</div>
+                            <div style="font-size:0.9rem; color:var(--body-text-color);">Fase: Verificació i reentrenament del model</div>
                         </div>
                         <div style="text-align:right;">
                             <div style="font-weight:800; font-size:0.85rem; color:var(--color-accent);">PAS 3 DE 3</div>
@@ -341,11 +341,11 @@ MODULES = [
                         </div>
                     </div>
 
-                    <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">🤖 L'Execució de Verificació</h2>
+                    <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">🤖 L'execució de verificació</h2>
 
                     <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
-                        Has eliminat amb èxit <strong>Raça, Gènere, Edat i Codi Postal</strong>.
-                        El dataset està "sanejat" (sense etiquetes demogràfiques). Ara executem la simulació per veure si el model encara funciona.
+                        Has eliminat amb èxit <strong>origen ètnic, gènere, edat i codi postal</strong>.
+                        Hem "sanejat" el conjunt de dades, eliminant les etiquetes demogràfiques. Ara executem la simulació per veure si el model continua funcionat.
                     </p>
 
                     <details style="border:none; margin-top:20px;">
@@ -361,7 +361,7 @@ MODULES = [
                             list-style:none;
                             box-shadow:0 4px 12px rgba(59,130,246,0.3);
                             transition:transform 0.1s ease;">
-                            ▶️ FES CLIC PER ARREGLAR EL MODEL AMB EL DATASET REPARAT
+                            ▶️ FES CLIC PER REENTRENAR EL MODEL AMB EL CONJUNT DE DADES REPARAT
                         </summary>
 
                         <div style="margin-top:24px; animation: fadeIn 0.6s ease-in-out;">
@@ -370,9 +370,9 @@ MODULES = [
 
                                 <div style="text-align:center; padding:10px; border-right:1px solid var(--border-color-primary);">
                                     <div style="font-size:2.2rem; font-weight:800; color:#ef4444;">📉 78%</div>
-                                    <div style="font-weight:bold; font-size:0.9rem; text-transform:uppercase; color:var(--body-text-color-subdued); margin-bottom:6px;">Precisió (COL·LAPSADA)</div>
+                                    <div style="font-weight:bold; font-size:0.9rem; text-transform:uppercase; color:var(--body-text-color-subdued); margin-bottom:6px;">Precisió (EN COL·LAPSE)</div>
                                     <div style="font-size:0.9rem; line-height:1.4;">
-                                        <strong>Diagnòstic:</strong> El model ha perdut les seves "dreceres" (com el Codi Postal). Està confós i té problemes per predir el risc amb precisió.
+                                        <strong>Diagnòstic:</strong> El model ha perdut les seves "dreceres" (com el codi Postal). Està confós i té problemes per predir el risc amb precisió.
                                     </div>
                                 </div>
 
@@ -380,16 +380,16 @@ MODULES = [
                                     <div style="font-size:2.2rem; font-weight:800; color:#f59e0b;">🧩 FALTEN</div>
                                     <div style="font-weight:bold; font-size:0.9rem; text-transform:uppercase; color:var(--body-text-color-subdued); margin-bottom:6px;">Dades Significatives</div>
                                     <div style="font-size:0.9rem; line-height:1.4;">
-                                        <strong>Diagnòstic:</strong> Hem netejat les dades dolentes, però no les hem substituït per <strong>Dades Significatives</strong>. El model necessita millors senyals per aprendre.
+                                        <strong>Diagnòstic:</strong> Hem netejat les dades problemàtiques, però no les hem substituït per <strong>dades significatives</strong>. El model necessita millors senyals per poder aprendre.
                                     </div>
                                 </div>
                             </div>
 
                             <div class="hint-box" style="margin-top:20px; border-left:4px solid var(--color-accent);">
-                                <div style="font-weight:700; font-size:1.05rem;">💡 El Gir d'Enginyeria</div>
+                                <div style="font-weight:700; font-size:1.05rem;">💡 El gir d'enginyeria</div>
                                 <p style="margin:6px 0 0 0;">
                                     Un model que no sap <em>res</em> és just, però inútil.
-                                    Per arreglar la precisió amb seguretat, hem de deixar d'eliminar i començar a <strong>trobar patrons vàlids</strong>: dades significatives que expliquin <em>per què</em> passa el delicte.
+                                    Per recuperar la precisió sense comprometre l’equitat, cal deixar d’eliminar dades i començar a <strong>trobar patrons vàlids</strong>: dades significatives que expliquin <em>per què</em> es produeix el delicte.
                                 </p>
                             </div>
 
@@ -398,7 +398,7 @@ MODULES = [
 
                           <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 ACCIÓ REQUERIDA: Trobar Dades Significatives
+                            🚀 ACCIÓ REQUERIDA: Trobar dades significatives
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
                             Respon la pregunta de sota per rebre Punts de Brúixola Moral.
