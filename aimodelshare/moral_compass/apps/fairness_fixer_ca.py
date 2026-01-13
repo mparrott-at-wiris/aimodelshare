@@ -87,7 +87,7 @@ MODULES = [
     # --- MODULE 0: THE PROMOTION ---
     {
         "id": 0,
-        "title": "Mòdul 0: El Banc de Treball de l'Enginyer d'Equitat",
+        "title": "Mòdul 0: El Banc de treball de l'enginyer/a d'equitat",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
@@ -107,32 +107,32 @@ MODULES = [
                             font-weight:700;
                             color:#065f46;">
                             <span style="font-size:1.1rem;">🎓</span>
-                            <span>PROMOCIÓ: ENGINYER D'EQUITAT</span>
+                            <span>PROMOCIÓ: ENGINYER/A D'EQUITAT</span>
                         </div>
                     </div>
 
-                    <h2 class="slide-title" style="text-align:center;">🔧 Fase Final: La Reparació</h2>
+                    <h2 class="slide-title" style="text-align:center;">🔧 Fase final: La reparació</h2>
 
                     <p style="font-size:1.05rem; max-width:800px; margin:0 auto 20px auto; text-align:center;">
-                        <strong>Benvingut de nou.</strong> Has exposat amb èxit el biaix en el sistema d'IA de predicció de risc COMPAS i n'has bloquejat el desplegament. Bona feina.
+                        <strong>Benvingut de nou.</strong> Has posat en evidència el biaix en el sistema d'IA de predicció de risc COMPAS i n'has impedit el desplegament. Bona feina.
                     </p>
 
                     <p style="font-size:1.05rem; max-width:800px; margin:0 auto 24px auto; text-align:center;">
-                        Però el tribunal encara espera una eina per ajudar a gestionar l'acumulació de casos. La teva nova missió és agafar aquest model trencat i <strong>arreglar-lo</strong> perquè sigui segur d'utilitzar.
+                        Però el tribunal encara espera una eina per ajudar a gestionar l'acumulació de casos. La teva nova missió és agafar aquest model defectuós i <strong>arreglar-lo</strong> perquè sigui segur d'utilitzar.
                     </p>
 
                     <div class="ai-risk-container" style="border-left:4px solid var(--color-accent);">
-                        <h4 style="margin-top:0; font-size:1.15rem;">El Repte: "Biaix Persistent"</h4>
+                        <h4 style="margin-top:0; font-size:1.15rem;">El repte: "Biaix persistent"</h4>
                         <p style="font-size:1.0rem; margin-bottom:0;">
-                            No pots simplement esborrar la columna "Raça" i marxar. El biaix s'amaga en <strong>Variables Proxy</strong>—dades com el <em>Codi Postal</em> o els <em>Ingressos</em>
-                            que es correlacionen amb la raça. Si esborres l'etiqueta però mantens els proxies, el model aprèn el biaix igualment.
+                            No pots simplement esborrar la columna "origen ètnic" i donar-ho per resolt. El biaix s'amaga en <strong>variables proxy</strong>—dades com el <em>codi postal</em> o els <em>ingressos</em>
+                            que es correlacionen amb l'origen ètnic. Si esborres l'etiqueta però mantens els proxies, el model aprèn el biaix igualment.
                         </p>
                     </div>
 
                     <div class="ai-risk-container" style="margin-top:16px;">
-                        <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">📋 Ordre de Treball d'Enginyeria</h4>
+                        <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">📋 Ordre de treball d'enginyeria</h4>
                         <p style="text-align:center; margin-bottom:12px; font-size:0.95rem; color:var(--body-text-color-subdued);">
-                            Has de completar aquests tres protocols per certificar el model per al llançament:
+                            Has de completar aquests tres protocols per certificar el model abans del llançament:
                         </p>
 
                         <div style="display:grid; gap:10px; margin-top:12px;">
@@ -141,7 +141,7 @@ MODULES = [
                                 <div style="font-size:1.4rem;">✂️</div>
                                 <div>
                                     <div style="font-weight:700;">Protocol 1: Sanejar les Entrades</div>
-                                    <div style="font-size:0.9rem;">Eliminar classes protegides i caçar els proxies ocults.</div>
+                                    <div style="font-size:0.9rem;">Eliminar classes protegides i detectar les variables proxy ocultes.</div>
                                 </div>
                                 <div style="margin-left:auto; font-weight:700; font-size:0.8rem; text-transform:uppercase; color:var(--body-text-color-subdued);">Pendent</div>
                             </div>
@@ -149,8 +149,8 @@ MODULES = [
                             <div style="display:flex; align-items:center; gap:12px; padding:10px; background:var(--background-fill-secondary); border-radius:8px; opacity:0.7;">
                                 <div style="font-size:1.4rem;">🔗</div>
                                 <div>
-                                    <div style="font-weight:700;">Protocol 2: Causa versus Correlació</div>
-                                    <div style="font-size:0.9rem;">Filtrar dades per comportament real, no només correlació.</div>
+                                    <div style="font-weight:700;">Protocol 2: Causa vs. correlació</div>
+                                    <div style="font-size:0.9rem;">Filtrar dades per comportament real, no només segons correlacions.</div>
                                 </div>
                                 <div style="margin-left:auto; font-weight:700; font-size:0.8rem; text-transform:uppercase; color:var(--body-text-color-subdued);">Bloquejat</div>
                             </div>
@@ -159,7 +159,7 @@ MODULES = [
                                 <div style="font-size:1.4rem;">⚖️</div>
                                 <div>
                                     <div style="font-weight:700;">Protocol 3: Representació i Mostreig</div>
-                                    <div style="font-size:0.9rem;">Equilibrar les dades per coincidir amb la població local.</div>
+                                    <div style="font-size:0.9rem;">Equilibrar les dades perquè reflecteixin la població local.</div>
                                 </div>
                                 <div style="margin-left:auto; font-weight:700; font-size:0.8rem; text-transform:uppercase; color:var(--body-text-color-subdued);">Bloquejat</div>
                             </div>
@@ -182,7 +182,7 @@ MODULES = [
     # --- MODULE 1: SANITIZE INPUTS (Protected Classes) ---
     {
         "id": 1,
-        "title": "Protocol 1: Sanejar les Entrades",
+        "title": "Protocol 1: Sanejar les entrades",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
@@ -202,24 +202,24 @@ MODULES = [
                     </div>
 
                     <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
-                        <strong>Equitat a través de la Ceguesa.</strong>
-                        Legalment i èticament, no podem utilitzar <strong>Classes Protegides</strong> (característiques amb les que neixes, com la raça o l'edat) per calcular la puntuació de risc d'algú.
+                        <strong>Equitat a través de la ceguesa.</strong>
+                        Legalment i èticament, no es poden utilitzar <strong>classes protegides</strong> (característiques amb què neix una persona, com la raça o l’edat) per calcular la puntuació de risc.
                     </p>
 
                     <div class="ai-risk-container">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                            <h4 style="margin:0;">📂 Inspector de Columnes del Dataset</h4>
-                            <div style="font-size:0.8rem; font-weight:700; color:#ef4444;">⚠ CONTÉ CARACTERÍSTIQUES IL·LEGALS</div>
+                            <h4 style="margin:0;">📂 Inspector de columnes del conjunt de dades</h4>
+                            <div style="font-size:0.8rem; font-weight:700; color:#ef4444;">⚠ CONTÉ CARACTERÍSTIQUES NO PERMESES</div>
                         </div>
 
                         <p style="font-size:0.95rem; margin-bottom:12px;">
-                            Revisa les capçaleres de sota. Identifica les columnes que violen les lleis d'equitat.
+                            Revisa les capçaleres següents i identifica les columnes que vulneren les lleis d'equitat.
                         </p>
 
                         <div style="display:flex; gap:8px; flex-wrap:wrap; background:rgba(0,0,0,0.05); padding:12px; border-radius:8px; border:1px solid var(--border-color-primary);">
 
                             <div style="padding:6px 12px; background:#fee2e2; border:1px solid #ef4444; border-radius:6px; font-weight:700; color:#b91c1c;">
-                                ⚠️ Raça
+                                ⚠️ Origen ètnic
                             </div>
                             <div style="padding:6px 12px; background:#fee2e2; border:1px solid #ef4444; border-radius:6px; font-weight:700; color:#b91c1c;">
                                 ⚠️ Gènere
@@ -228,9 +228,9 @@ MODULES = [
                                 ⚠️ Edat
                             </div>
 
-                            <div style="padding:6px 12px; background:var(--background-fill-primary); color:var(--body-text-color); border:1px solid var(--border-color-primary); border-radius:6px;">Condemnes Prèvies</div>
-                            <div style="padding:6px 12px; background:var(--background-fill-primary); color:var(--body-text-color); border:1px solid var(--border-color-primary); border-radius:6px;">Estat Laboral</div>
-                            <div style="padding:6px 12px; background:var(--background-fill-primary); color:var(--body-text-color); border:1px solid var(--border-color-primary); border-radius:6px;">Codi Postal</div>
+                            <div style="padding:6px 12px; background:var(--background-fill-primary); color:var(--body-text-color); border:1px solid var(--border-color-primary); border-radius:6px;">Condemnes prèvies</div>
+                            <div style="padding:6px 12px; background:var(--background-fill-primary); color:var(--body-text-color); border:1px solid var(--border-color-primary); border-radius:6px;">Situació laboral</div>
+                            <div style="padding:6px 12px; background:var(--background-fill-primary); color:var(--body-text-color); border:1px solid var(--border-color-primary); border-radius:6px;">Codi postal</div>
                         </div>
                     </div>
 
@@ -240,7 +240,7 @@ MODULES = [
                             🚀 ACCIÓ REQUERIDA: SUPRIMIR DADES D'ENTRADA PROTEGIDES
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
-                            Utilitza el Tauler de Comandament de sota per executar la supressió.
+                            Utilitza el tauler de comandament de sota per executar la supressió.
                             Després fes clic a <strong>Següent</strong> per continuar arreglant el model.
                         </p>
                     </div>
