@@ -603,7 +603,7 @@ MODULES = [
                                 <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
                                     <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDÈNCIA REGISTRADA: Biaix de representació de gènere</div>
                                     <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        Les dones són una classe minoritària en aquest conjunt de dades, tot i que representen aproximadament el 50 % de la població real. El model probablement tindrà dificultats per aprendre patrons precisos per a aquest grup, fet que comportarà **taxes d'error més altes** en les prediccions sobre dones preses.
+                                        Les dones són una classe minoritària en aquest conjunt de dades, tot i que representen aproximadament el 50 % de la població real. El model probablement tindrà dificultats per aprendre patrons precisos per a aquest grup, fet que comportarà <strong>taxes d'error més altes</strong> en les prediccions sobre dones preses.
                                     </div>
                                 </div>
                             </div>
@@ -711,7 +711,7 @@ MODULES = [
                 </p>
                 <p style="font-size:1.05rem; margin:0;">
                     Respon a la pregunta següent per rebre el teu proper <strong>augment de la Puntuació de Brúixola Moral</strong>.
-                    <br>Fes clic a <strong>Següent</strong> per procedir al **Pas 3** per trobar proves de danys reals: **Les Bretxes d'Error**.
+                    <br>Fes clic a <strong>Següent</strong> per procedir al Pas 3 per trobar proves de danys reals: Les Bretxes d'Error.
                 </p>
             </div>
                 </div>
