@@ -584,7 +584,7 @@ MODULES = [
                             <div class="scan-pane pane-gender">
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; background:#1e293b; color:white; padding:10px 15px; border-radius:6px;">
                                     <span style="font-family:monospace; letter-spacing:1px;">ESCANEJANT: EQUILIBRI DE GÈNERE</span>
-                                    <span style="color:#ef4444; font-weight:bold; animation: blink 1.5s infinite;">⚠️ ABSÈNCIA DE DADES TROBAT</span>
+                                    <span style="color:#ef4444; font-weight:bold; animation: blink 1.5s infinite;">⚠️ ABSÈNCIA DE DADAS TROBADA</span>
                                 </div>
                                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
                                     <div style="text-align:center; padding:20px; background:var(--background-fill-secondary); border-radius:8px; border:1px solid var(--border-color-primary);">
@@ -739,7 +739,7 @@ MODULES = [
                         <h2 class="slide-title header-accent" style="margin-top:10px;">A la recerca d'errors de predicció</h2>
                         <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
                             Hem trobat evidències que les dades d'entrada estan esbiaixades. Ara hem d'investigar si aquest biaix ha influït en les <strong>decisions del model</strong>.
-                            <br>Busquem la segona senyal d’alerta del nostre manual: les <strong>bretxes d'error</strong>.
+                            <br>Busquem el segon senyal d’alerta del nostre manual: les <strong>bretxes d'error</strong>.
                         </p>
                     </div>
 
