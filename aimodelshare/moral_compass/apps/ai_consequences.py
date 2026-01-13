@@ -56,7 +56,7 @@ TRANSLATIONS = {
         "s4_fn_label": "High-Risk Individuals Released (Missed Warnings)",
         "s4_feed_lenient": "⚠️ <b>Too Lenient!</b> You reduced false alarms (False Positives), but now <b>serious offenses increased</b> (High Missed Warnings/False Negatives).",
         "s4_feed_strict": "⚠️ <b>Too Strict!</b> You reduced undetected offenses, but now you are <b>locking up innocent people</b> (High False Warnings/False Positives).",
-        "s4_feed_tradeoff": "⚖️ <b>The Hard Truth:</b> You cannot eliminate both errors. Reducing one increases the other.",
+        "s4_feed_tradeoff": "⚖️ <b>The Hard Truth:</b>With this specific AI model, you cannot eliminate both errors. Reducing one increases the other.",
         "s4_btn": "I Understand - Finish ▶️",
 
         # SLIDE 5: ORIGINAL COMPLETION (Preserved)
@@ -109,7 +109,7 @@ TRANSLATIONS = {
         "s4_fn_label": "Personas de alto riesgo liberadas (Alertas no detectadas)",
         "s4_feed_lenient": "⚠️ <b>¡Demasiado indulgente!</b> Redujiste las falsas alarmas, pero aumentaron <b>los delitos no detectados</b> (falsos negativos).",
         "s4_feed_strict": "⚠️ <b>¡Demasiado estricto!</b> Redujiste los delitos no detectados, pero estás <b>encarcelando personas de bajo riesgo</b> (falsos positivos).",
-        "s4_feed_tradeoff": "⚖️ <b>La dura verdad:</b> No puedes eliminar ambos errores. Si uno baja, el otro sube.",
+        "s4_feed_tradeoff": "⚖️ <b>La dura verdad:</b> Con este modelo de IA específico, No puedes eliminar ambos errores. Si uno baja, el otro sube.",
         "s4_btn": "Entiendo - Finalizar ▶️",
 
         "s5_title": "✅ Sección completada",
@@ -161,7 +161,7 @@ TRANSLATIONS = {
         "s4_fn_label": "Persones d'alt risc alliberades (falsos negatius)",
         "s4_feed_lenient": "⚠️ <b>Massa indulgent!</b> Has reduït les falses alarmes, però han augmentat <b>els delictes no detectats</b> (falsos negatius).",
         "s4_feed_strict": "⚠️ <b>Massa estricte!</b> Has reduït els delictes no detectats, però estàs <b>empresonant persones de baix risc</b> (falsos positius).",
-        "s4_feed_tradeoff": "⚖️ <b>La dura veritat:</b> No pots eliminar els dos errors. Si un baixa, l'altre puja.",
+        "s4_feed_tradeoff": "⚖️ <b>La dura veritat:</b>Amb aquest model d'IA específic, no pots eliminar els dos errors. Si un baixa, l'altre puja.",
         "s4_btn": "Entès - Finalitzar ▶️",
 
         "s5_title": "✅ Secció completada",
