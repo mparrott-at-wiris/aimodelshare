@@ -864,7 +864,7 @@ MODULES = [
                         
                         <div class="ai-risk-container" style="padding:0; border:2px solid #ef4444; overflow:hidden; border-radius:12px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1); background:transparent;">
                             <div style="background:rgba(239, 68, 68, 0.1); padding:15px; text-align:center; border-bottom:1px solid #fda4af;">
-                                <h3 style="margin:0; font-size:1.25rem; color:#ef4444;">📡 ESCAN 1: FALSES ALARMES</h3>
+                                <h3 style="margin:0; font-size:1.25rem; color:#ef4444;">📡 ESCANEIG 1: FALSES ALARMES</h3>
                                 <p style="font-size:0.9rem; margin:5px 0 0 0; color:var(--body-text-color);">(Persones innocents classificades erròniament com a "Alt Risc")</p>
                             </div>
                             
@@ -899,7 +899,7 @@ MODULES = [
 
                         <div class="ai-risk-container" style="padding:0; border:2px solid #3b82f6; overflow:hidden; border-radius:12px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1); background:transparent;">
                             <div style="background:rgba(59, 130, 246, 0.1); padding:15px; text-align:center; border-bottom:1px solid #bfdbfe;">
-                                <h3 style="margin:0; font-size:1.25rem; color:#3b82f6;">📡 ESCAN 2: ALERTES NO DETECTADES</h3>
+                                <h3 style="margin:0; font-size:1.25rem; color:#3b82f6;">📡 ESCANEIG 2: ALERTES NO DETECTADES</h3>
                                 <p style="font-size:0.9rem; margin:5px 0 0 0; color:var(--body-text-color);">(Persones que reincideixen classificades erròniament com a "segures")</p>
                             </div>
                             
