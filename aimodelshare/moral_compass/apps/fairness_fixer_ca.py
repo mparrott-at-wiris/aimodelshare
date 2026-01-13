@@ -445,13 +445,13 @@ MODULES = [
                     </div>
 
                     <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">
-                        🧠 La Trampa del "Peu Gran": Quan la Correlació T'enganya
+                        🧠 La trampa del "peu gran": Quan la correlació t'enganya
                     </h2>
 
                     <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
                         Per millorar un model, sovint afegim més dades.
                         <br>
-                        Però aquí està el problema: el model troba <strong>Correlacions</strong> (una relació entre dues variables de dades) i assumeix erròniament que una <strong>Causa</strong> l'altra.
+                        Però aquí hi ha el problema: el model detecta <strong>correlacions</strong> (una relació entre dues variables de dades) i assumeix erròniament que una <strong>causa</strong> l'altra.
                         <br>
                         Considera aquest patró estadístic real:
                     </p>
@@ -459,7 +459,7 @@ MODULES = [
                     <div class="ai-risk-container" style="text-align:center; padding:20px; border:2px solid #ef4444; background:rgba(239, 68, 68, 0.1);">
                         <div style="font-size:3rem; margin-bottom:10px;">🦶 📈 📖</div>
                         <h3 style="margin:0; color:#ef4444;">
-                            La Dada: "La gent amb peus més grans té millors puntuacions de lectura."
+                            La dada: "La gent amb peus més grans té millors puntuacions de lectura."
                         </h3>
                         <p style="font-size:1.0rem; margin-top:8px; color:var(--body-text-color);">
                             De mitjana, la gent amb <strong>peus grans</strong> obté puntuacions molt més altes en tests de lectura que la gent amb <strong>peus petits</strong>.
@@ -616,7 +616,7 @@ MODULES = [
                             <div style="background:var(--background-fill-primary); border:1px solid var(--border-color-primary); border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
                                 <div style="font-weight:700; font-size:1rem; color:var(--body-text-color); margin-bottom:6px;">Condemnes Prèvies</div>
                                 <div style="font-size:0.85rem; background:rgba(22, 163, 74, 0.1); padding:4px 8px; border-radius:4px; color:#16a34a; display:inline-block;">
-                                    Categoria: <strong>Historial de Conducta</strong>
+                                    Categoria: <strong>Historial de conducta</strong>
                                 </div>
                             </div>
 
@@ -630,7 +630,7 @@ MODULES = [
                             <div style="background:var(--background-fill-primary); border:1px solid var(--border-color-primary); border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
                                 <div style="font-weight:700; font-size:1rem; color:var(--body-text-color); margin-bottom:6px;">Incompareixença</div>
                                 <div style="font-size:0.85rem; background:rgba(22, 163, 74, 0.1); padding:4px 8px; border-radius:4px; color:#16a34a; display:inline-block;">
-                                    Categoria: <strong>Historial de Conducta</strong>
+                                    Categoria: <strong>Historial de conducta</strong>
                                 </div>
                             </div>
 
@@ -664,7 +664,7 @@ MODULES = [
     },
     {
         "id": 6,
-        "title": "Protocol 3: La Representació Importa",
+        "title": "Protocol 3: La representació importa",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
@@ -688,7 +688,7 @@ MODULES = [
                     </div>
 
                     <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">
-                        🗺️ El Problema del "Mapa Equivocat"
+                        🗺️ El problema del "mapa equivocat"
                     </h2>
 
                     <p style="font-size:1.05rem; text-align:center; max-width:820px; margin:0 auto 15px auto;">
@@ -766,7 +766,7 @@ MODULES = [
     # --- MODULE 7: THE DATA SWAP ---
     {
         "id": 7,
-        "title": "Protocol 3: Arreglant la Representació",
+        "title": "Protocol 3: Arreglant la representació",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
@@ -868,7 +868,7 @@ MODULES = [
     # --- MODULE 8: FINAL REPORT (Before & After) ---
     {
         "id": 8,
-        "title": "Informe Final d'Equitat",
+        "title": "Informe final d'equitat",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
@@ -895,7 +895,7 @@ MODULES = [
 
                             <div style="padding:10px; border-bottom:1px solid var(--border-color-primary);">
                                 <div style="font-size:0.8rem; font-weight:700; color:var(--body-text-color);">ENTRADES</div>
-                                <div style="color:var(--body-text-color);">Raça, Gènere, Codi Postal</div>
+                                <div style="color:var(--body-text-color);">Origen ètnic, gènere, codi postal</div>
                             </div>
                             <div style="padding:10px; border-bottom:1px solid var(--border-color-primary);">
                                 <div style="font-size:0.8rem; font-weight:700; color:var(--body-text-color);">LÒGICA</div>
@@ -911,7 +911,7 @@ MODULES = [
                         </div>
 
                         <div style="transform:scale(1.02); box-shadow:0 4px 12px rgba(0,0,0,0.1); border:2px solid #22c55e; border-radius:8px; overflow:hidden;">
-                            <div style="background:#22c55e; color:white; padding:6px; font-weight:800; text-align:center; text-transform:uppercase;">✅ El Teu Model Dissenyat</div>
+                            <div style="background:#22c55e; color:white; padding:6px; font-weight:800; text-align:center; text-transform:uppercase;">✅ El teu model dissenyat</div>
 
                             <div style="padding:10px; border-bottom:1px solid var(--border-color-primary); background:var(--background-fill-primary);">
                                 <div style="font-size:0.8rem; font-weight:700; color:#15803d;">ENTRADES</div>
