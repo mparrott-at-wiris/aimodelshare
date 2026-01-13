@@ -237,7 +237,7 @@ MODULES = [
 
             <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 ACCIÓ REQUERIDA: SUPRIMIR DADES D'ENTRADA PROTEGIDES
+                            🚀 ACCIÓ NECESSÀRIA: SUPRIMIR DADES D'ENTRADA PROTEGIDES
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
                             Utilitza el tauler de comandament de sota per executar la supressió.
@@ -308,7 +308,7 @@ MODULES = [
 
               <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 ACCIÓ REQUERIDA: SUPRIMIR DADES D'ENTRADA PROXY
+                            🚀 ACCIÓ NECESSÀRIA: SUPRIMIR DADES D'ENTRADA PROXY
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
                             Selecciona la variable proxy de sota per eliminar-la.
@@ -398,7 +398,7 @@ MODULES = [
 
                           <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 ACCIÓ REQUERIDA: Trobar dades significatives
+                            🚀 ACCIÓ NECESSÀRIA: Trobar dades significatives
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
                             Respon la pregunta de sota per rebre Punts de Brúixola Moral.
@@ -445,13 +445,13 @@ MODULES = [
                     </div>
 
                     <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">
-                        🧠 La trampa del "peu gran": Quan la correlació t'enganya
+                        🧠 La trampa del "peu gran": quan la correlació t'enganya
                     </h2>
 
                     <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
                         Per millorar un model, sovint afegim més dades.
                         <br>
-                        Però aquí hi ha el problema: el model detecta <strong>correlacions</strong> (una relació entre dues variables de dades) i assumeix erròniament que una <strong>causa</strong> l'altra.
+                        Però aquí hi ha el problema: el model detecta <strong>correlacions</strong> (relacions entre dues variables) i assumeix erròniament que una <strong>causa</strong> l'altra.
                         <br>
                         Considera aquest patró estadístic real:
                     </p>
@@ -462,7 +462,7 @@ MODULES = [
                             La dada: "La gent amb peus més grans té millors puntuacions de lectura."
                         </h3>
                         <p style="font-size:1.0rem; margin-top:8px; color:var(--body-text-color);">
-                            De mitjana, la gent amb <strong>peus grans</strong> obté puntuacions molt més altes en tests de lectura que la gent amb <strong>peus petits</strong>.
+                            De mitjana, les persones amb <strong>peus grans</strong> obté puntuacions molt més altes en proves de lectura que les persones amb <strong>peus petits</strong>.
                         </p>
                     </div>
 
@@ -486,28 +486,28 @@ MODULES = [
                             
                             <div class="hint-box" style="border-left:4px solid #16a34a; background:rgba(22, 163, 74, 0.1);">
                                 <div style="font-weight:800; font-size:1.1rem; color:#16a34a;">
-                                    La Tercera Variable Oculta: EDAT
+                                    La tercera variable oculta: EDAT
                                 </div>
                                 <p style="margin-top:8px; color:var(--body-text-color);">
-                                    Tenir els peus més grans <em>causa</em> que la gent llegeixi millor? <strong>No.</strong>
+                                    Tenir els peus més grans <em>causa</em> que una persona llegeixi millor? <strong>No.</strong>
                                     <br>
-                                    Els nens tenen peus més petits i encara estan aprenent a llegir.
+                                    Els infants tenen peus més petits i encara estan aprenent a llegir.
                                     <br>
                                     Els adults tenen peus més grans i han tingut molts més anys de pràctica lectora.
                                 </p>
                                 <p style="margin-bottom:0; color:var(--body-text-color);">
-                                    <strong>La Idea Clau:</strong> L'edat causa <em>totes dues coses</em>: la mida del peu i la capacitat lectora.
+                                    <strong>La idea clau:</strong> l'edat és la causa de <em>totes dues coses</em>: la mida del peu i la capacitat lectora.
                                     <br>
-                                    La talla de sabates és un <em>senyal correlacionat</em>, no una causa.
+                                    La talla de sabates és un <em>indicador correlacionat</em>: una dada que sembla predictiva, però que no és la causa real del resultat.
                                 </p>
                             </div>
 
                             <p style="font-size:1.05rem; text-align:center; margin-top:20px;">
                                 <strong>Per què això importa:</strong>
                                 <br>
-                                En molts datasets reals, algunes variables semblen predictives només perquè estan lligades a causes més profundes.
+                                En molts conjunts de dades reals, algunes variables semblen predictives només perquè estan relacionades amb factors de fons.
                                 <br>
-                                Els bons models se centren en <strong>el que realment causa els resultats</strong>, no només en el que passa al mateix temps.
+                                Els bons models se centren en <strong>el que realment causa els resultats</strong>, no només en allò que passa al mateix temps.
                             </p>
                         </div>
                     </details>
@@ -515,10 +515,10 @@ MODULES = [
 
               <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 ACCIÓ REQUERIDA: Pots detectar la següent trampa de "Peu Gran" a les dades de sota?
+                            🚀 ACCIÓ NECESSÀRIA: Pots detectar una altra "trampa del peu gran" a les dades següents?
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
-                            Respon aquesta pregunta per augmentar la teva puntuació de Brúixola Moral.
+                            Respon aquesta pregunta per augmentar la teva puntuació de la Brúixola Moral.
                             Després fes clic a <strong>Següent</strong> per continuar arreglant el model.
                         </p>
                     </div>
@@ -537,7 +537,7 @@ MODULES = [
     # --- MODULE 5: APPLYING RESEARCH ---
     {
         "id": 5,
-        "title": "Protocol 2: Causa vs. Correlació",
+        "title": "Protocol 2: Causa vs. correlació",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
@@ -549,7 +549,7 @@ MODULES = [
                                 PROTOCOL 2: CAUSA VS. CORRELACIÓ
                             </div>
                             <div style="font-size:0.9rem; color:var(--body-text-color);">
-                                Missió: Eliminar variables que <strong>correlacionen</strong> amb els resultats però no els <strong>causen</strong>.
+                                Missió: Eliminar variables que <strong>es correlacionen</strong> amb els resultats però no en són <strong>la causa</strong>.
                             </div>
                         </div>
                         <div style="text-align:right;">
@@ -561,20 +561,20 @@ MODULES = [
                     </div>
 
                     <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">
-                        🔬 Comprovació de Recerca: Escollint Característiques Justes
+                        🔬 Comprovació amb evidència: Triant variables justes
                     </h2>
 
                     <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
-                        Estàs llest per continuar construint una versió més justa del model. Aquí hi ha quatre variables a considerar.
+                        Ja ho tens tot a punt per continuar construint una versió més justa del model. Aquí tens quatre variables a tenir en compte.
                         <br>
-                        Utilitza la regla de sota per descobrir quines variables representen <strong>causes reals</strong> de comportament — i quines són només correlacions circumstancials.
+                        Utilitza la regla següent per identificar quines variables representen <strong>causes reals</strong> de comportament — i quines són només correlacions circumstancials.
                     </p>
 
                     <div class="hint-box" style="border-left:4px solid var(--color-accent); background:var(--background-fill-secondary); border:1px solid var(--border-color-primary);">
                         <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
                             <div style="font-size:1.2rem;">📋</div>
                             <div style="font-weight:800; color:var(--color-accent); text-transform:uppercase; letter-spacing:0.05em;">
-                                La Regla d'Enginyeria
+                                La regla d'enginyeria
                             </div>
                         </div>
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
@@ -584,8 +584,8 @@ MODULES = [
                                     🚫 REBUTJAR: REREFONS
                                 </div>
                                 <div style="font-size:0.85rem; line-height:1.4; color:var(--body-text-color);">
-                                    Variables que descriuen la situació o entorn d'una persona (ex: riquesa, veïnat).
-                                    <br><strong>Aquestes correlacionen amb el delicte però no el causen.</strong>
+                                    Variables que descriuen la situació o l'entorn d'una persona (ex: riquesa, barri).
+                                    <br><strong>Es correlacionen amb el delicte però no en són la causa.</strong>
                                 </div>
                             </div>
                             
@@ -595,40 +595,40 @@ MODULES = [
                                 </div>
                                 <div style="font-size:0.85rem; line-height:1.4; color:var(--body-text-color);">
                                     Variables que descriuen accions documentades fetes per la persona (ex: incompareixença judicial).
-                                    <br><strong>Aquestes reflecteixen comportament real.</strong>
+                                    <br><strong>Reflecteixen el comportament real.</strong>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="ai-risk-container" style="margin-top:20px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary);">
-                        <h4 style="margin:0 0 12px 0; color:var(--body-text-color); text-align:center; font-size:1.1rem;">📂 Candidats de Dades d'Entrada</h4>
+                        <h4 style="margin:0 0 12px 0; color:var(--body-text-color); text-align:center; font-size:1.1rem;">📂 Variables candidates d'entrada</h4>
 
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
 
                             <div style="background:var(--background-fill-primary); border:1px solid var(--border-color-primary); border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
-                                <div style="font-weight:700; font-size:1rem; color:var(--body-text-color); margin-bottom:6px;">Estat Laboral</div>
+                                <div style="font-weight:700; font-size:1rem; color:var(--body-text-color); margin-bottom:6px;">Situació laboral</div>
                                 <div style="font-size:0.85rem; background:var(--background-fill-secondary); padding:4px 8px; border-radius:4px; color:var(--body-text-color); display:inline-block;">
-                                    Categoria: <strong>Condició de Rerefons</strong>
+                                    Categoria: <strong>Condició de rerefons</strong>
                                 </div>
                             </div>
 
                             <div style="background:var(--background-fill-primary); border:1px solid var(--border-color-primary); border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
-                                <div style="font-weight:700; font-size:1rem; color:var(--body-text-color); margin-bottom:6px;">Condemnes Prèvies</div>
+                                <div style="font-weight:700; font-size:1rem; color:var(--body-text-color); margin-bottom:6px;">Condemnes prèvies</div>
                                 <div style="font-size:0.85rem; background:rgba(22, 163, 74, 0.1); padding:4px 8px; border-radius:4px; color:#16a34a; display:inline-block;">
                                     Categoria: <strong>Historial de conducta</strong>
                                 </div>
                             </div>
 
                             <div style="background:var(--background-fill-primary); border:1px solid var(--border-color-primary); border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
-                                <div style="font-weight:700; font-size:1rem; color:var(--body-text-color); margin-bottom:6px;">Puntuació del Veïnat</div>
+                                <div style="font-weight:700; font-size:1rem; color:var(--body-text-color); margin-bottom:6px;">Índex del barri</div>
                                 <div style="font-size:0.85rem; background:var(--background-fill-secondary); padding:4px 8px; border-radius:4px; color:var(--body-text-color); display:inline-block;">
                                     Categoria: <strong>Entorn</strong>
                                 </div>
                             </div>
 
                             <div style="background:var(--background-fill-primary); border:1px solid var(--border-color-primary); border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
-                                <div style="font-weight:700; font-size:1rem; color:var(--body-text-color); margin-bottom:6px;">Incompareixença</div>
+                                <div style="font-weight:700; font-size:1rem; color:var(--body-text-color); margin-bottom:6px;">Incompareixença judicial</div>
                                 <div style="font-size:0.85rem; background:rgba(22, 163, 74, 0.1); padding:4px 8px; border-radius:4px; color:#16a34a; display:inline-block;">
                                     Categoria: <strong>Historial de conducta</strong>
                                 </div>
@@ -638,23 +638,23 @@ MODULES = [
                     </div>
 
                     <div class="hint-box" style="margin-top:20px; border-left:4px solid #8b5cf6; background:linear-gradient(to right, rgba(139, 92, 246, 0.05), var(--background-fill-primary)); color:var(--body-text-color);">
-                        <div style="font-weight:700; color:#8b5cf6; font-size:1.05rem;">💡 Per què això importa per a l'Equitat</div>
+                        <div style="font-weight:700; color:#8b5cf6; font-size:1.05rem;">💡 Per què això importa per a l'equitat</div>
                         <p style="margin:8px 0 0 0; font-size:0.95rem; line-height:1.5;">
-                            Quan una IA jutja les persones basant-se en <strong>Correlacions</strong> (com el veïnat o la pobresa), les castiga per les seves <strong>circumstàncies</strong>—coses que sovint no poden controlar.
+                            Quan una IA jutja les persones basant-se en <strong>correlacions</strong> (com el barri o la pobresa), pot acabar penalitzant-les per les seves <strong>circumstàncies</strong> que sovint no poden controlar.
                             <br><br>
-                            Quan una IA jutja basant-se en <strong>Causes</strong> (com la Conducta), les fa responsables de les seves <strong>accions</strong>.
+                            Quan una IA jutja basant-se en <strong>Causes</strong> (com la conducta), fa que les persones siguin responsables de les seves <strong>accions</strong>.
                             <br>
-                            <strong>Equitat Real = Ser jutjat per les teves eleccions, no pel teu rerefons.</strong>
+                            <strong>Equitat real = Ser jutjat per les teves eleccions, no pel teu context.</strong>
                         </p>
                     </div>
 
 
               <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 ACCIÓ REQUERIDA: 
+                            🚀 ACCIÓ NECESSÀRIA: 
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
-                            Selecciona les variables que representen <strong>Conducta</strong> real per construir el model just.
+                            Selecciona les variables que representen <strong>conducta</strong> real per construir el model just.
                             Després fes clic a <strong>Següent</strong> per continuar arreglant el model.
                         </p>
                     </div>
@@ -664,7 +664,7 @@ MODULES = [
     },
     {
         "id": 6,
-        "title": "Protocol 3: La representació importa",
+        "title": "Protocol 3: La representació és clau",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
@@ -676,7 +676,7 @@ MODULES = [
                                 PROTOCOL 3: REPRESENTACIÓ
                             </div>
                             <div style="font-size:0.9rem; color:var(--body-text-color);">
-                                Missió: Assegurar-se que les dades d'entrenament coincideixen amb el lloc on s'utilitzarà el model.
+                                Missió: Assegurar que les dades d'entrenament coincideixen amb el lloc on s'utilitzarà el model.
                             </div>
                         </div>
                         <div style="text-align:right;">
@@ -688,19 +688,19 @@ MODULES = [
                     </div>
 
                     <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">
-                        🗺️ El problema del "mapa equivocat"
+                        🗺️ El mapa correcte
                     </h2>
 
                     <p style="font-size:1.05rem; text-align:center; max-width:820px; margin:0 auto 15px auto;">
-                        Hem arreglat les <strong>variables</strong> (les columnes). Ara hem de comprovar l'<strong>entorn</strong> (les files).
+                        Hem corregit les <strong>variables</strong> (les columnes). Ara hem de comprovar l'<strong>entorn</strong> (les files).
                     </p>
 
                     <div style="background:var(--background-fill-secondary); border:2px dashed #94a3b8; border-radius:12px; padding:20px; text-align:center; margin-bottom:25px;">
                         <div style="font-weight:700; color:#64748b; font-size:0.9rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">L'ESCENARI</div>
                         <p style="font-size:1.15rem; font-weight:600; color:var(--body-text-color); margin:0; line-height:1.5;">
-                            Aquest dataset es va construir utilitzant dades històriques del <span style="color:#ef4444;">Comtat de Broward, Florida (EUA)</span>.
+                            Aquest conjunt de dades es va construir utilitzant dades històriques del <span style="color:#ef4444;">comtat de Broward, Florida (EUA)</span>.
                             <br><br>
-                            Imagina agafar aquest model de Florida i forçar-lo a jutjar persones en un sistema judicial completament diferent—com <span style="color:#3b82f6;">Barcelona</span> (o la teva pròpia ciutat).
+                            Imagina agafar aquest model de Florida i fer-lo servir en un sistema judicial completament diferent—com <span style="color:#3b82f6;">Barcelona</span> (o la teva ciutat).
                         </p>
                     </div>
 
@@ -711,12 +711,12 @@ MODULES = [
                                 🇺🇸 L'ORIGEN: FLORIDA
                             </div>
                             <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color);">
-                                Context d'Entrenament: Sistema Judicial EUA
+                                Context d'entrenament: Sistema judicial EUA
                             </div>
                             <ul style="font-size:0.85rem; margin-top:8px; padding-left:16px; line-height:1.4; color:var(--body-text-color);">
-                                <li><strong>Categories demogràfiques:</strong> Definides usant etiquetes i agrupacions específiques dels EUA.</li>
-                                <li><strong>Crim i llei:</strong> Lleis i processos judicials diferents (per exemple, regles de fiança).</li>
-                                <li><strong>Geografia:</strong> Ciutats centrades en el cotxe i expansió suburbana.</li>
+                                <li><strong>Categories demogràfiques:</strong> definides utilitzant etiquetes i agrupacions específiques dels EUA.</li>
+                                <li><strong>Crim i llei:</strong> lleis i processos judicials diferents (per exemple, normes de fiança.</li>
+                                <li><strong>Geografia:</strong> ciutats pensades per moure’s en cotxe i amb expansió suburbana.</li>
                             </ul>
                         </div>
 
@@ -725,12 +725,12 @@ MODULES = [
                                 📍 L'OBJECTIU: BARCELONA
                             </div>
                             <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color);">
-                                Context de Desplegament: Sistema Judicial UE
+                                Context de desplegament: Sistema judicial de la UE
                             </div>
                             <ul style="font-size:0.85rem; margin-top:8px; padding-left:16px; line-height:1.4; color:var(--body-text-color);">
-                                <li><strong>Categories demogràfiques:</strong> Definides diferent que als datasets dels EUA.</li>
-                                <li><strong>Crim i llei:</strong> Regles legals diferents, pràctiques policials i tipus de delictes comuns.</li>
-                                <li><strong>Geografia:</strong> Entorn urbà dens i transitable.</li>
+                                <li><strong>Categories demogràfiques:</strong> definides diferent que als conjunts de dades dels EUA.</li>
+                                <li><strong>Crim i llei:</strong> marc legal i pràctiques policials diferents, i altres tipus de delictes més habituals.</li>
+                                <li><strong>Geografia:</strong> entorn urbà dens i fàcil de recórrer a peu.</li>
                             </ul>
                         </div>
                     </div>
@@ -742,9 +742,9 @@ MODULES = [
                         <p style="margin-top:6px;">
                             El model ha après patrons de Florida.
                             <br>
-                            Quan l'entorn del món real és diferent, el model pot cometre <strong>més errors</strong> — i aquests errors poden ser <strong>desiguals entre grups</strong>.
+                            Quan l'entorn del món real és diferent, el model pot cometre <strong>més errors</strong> — i aquests errors poden afectar <strong>de manera desigual</strong> alguns grups.
                             <br>
-                            En equips d'enginyeria d'IA, d'això se'n diu un <strong>desplaçament del dataset (o domini)</strong>.
+                            En enginyeria d'IA, això s'anomena <strong>desplaçament del conjunt de dades</strong> (o <strong>canvi de domini</strong>).
                             <br>
                             És com intentar trobar la Sagrada Família utilitzant un mapa de Miami.
                         </p>
@@ -752,7 +752,7 @@ MODULES = [
 
                     <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 ACCIÓ REQUERIDA:
+                            🚀 ACCIÓ NECESSÀRIA:
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
                             Respon la pregunta de sota per augmentar la teva puntuació de Brúixola Moral.
@@ -766,7 +766,7 @@ MODULES = [
     # --- MODULE 7: THE DATA SWAP ---
     {
         "id": 7,
-        "title": "Protocol 3: Arreglant la representació",
+        "title": "Protocol 3: Corregint la representació",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
@@ -775,7 +775,7 @@ MODULES = [
                         <div style="font-size:1.8rem; background:var(--background-fill-primary); width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🌍</div>
                         <div style="flex-grow:1;">
                             <div style="font-weight:800; font-size:1.05rem; color:#7c3aed; letter-spacing:0.05em;">PROTOCOL 3: REPRESENTACIÓ</div>
-                            <div style="font-size:0.9rem; color:var(--body-text-color);">Missió: Reemplaçar "Dades Drecera" amb "Dades Locals".</div>
+                            <div style="font-size:0.9rem; color:var(--body-text-color);">Missió: Substituir les "dades drecera" amb "dades locals".</div>
                         </div>
                         <div style="text-align:right;">
                             <div style="font-weight:800; font-size:0.85rem; color:#7c3aed;">PAS 2 DE 2</div>
@@ -785,21 +785,21 @@ MODULES = [
                         </div>
                     </div>
 
-                    <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">🔄 L'Intercanvi de Dades</h2>
+                    <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">🔄 L'intercanvi de dades</h2>
 
                     <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
-                        No podem utilitzar el dataset de Florida. Són <strong>"Dades Drecera"</strong>—escollides només perquè eren fàcils de trobar.
+                        No podem utilitzar el conjunt de dades de Florida. Són <strong>"dades drecera"</strong>—escollides només perquè eren fàcils de trobar.
                         <br>
-                        Per construir un model just per a <strong>Qualsevol Ubicació</strong> (sigui Barcelona, Berlín o Boston), hem de rebutjar el camí fàcil.
+                        Per construir un model just per a <strong>qualsevol ubicació</strong> (sigui Barcelona, Berlín o Boston), hem de rebutjar el camí fàcil.
                         <br>
-                        Hem de recollir <strong>Dades Locals</strong> que reflecteixin la realitat real d'aquell lloc.
+                        Hem de recollir <strong>dades locals</strong> que reflecteixin la realitat real d'aquell lloc.
                     </p>
 
                     <div class="ai-risk-container" style="text-align:center; border:2px solid #ef4444; background:rgba(239, 68, 68, 0.1); padding:16px; margin-bottom:20px;">
-                        <div style="font-weight:800; color:#ef4444; font-size:1.1rem; margin-bottom:8px;">⚠️ DATASET ACTUAL: FLORIDA (INVÀLID)</div>
+                        <div style="font-weight:800; color:#ef4444; font-size:1.1rem; margin-bottom:8px;">⚠️ CONJUNT DE DADES ACTUAL: FLORIDA (INVÀLID)</div>
 
                         <p style="font-size:0.9rem; margin:0; color:var(--body-text-color);">
-                            El dataset no coincideix amb el context local on s'utilitzarà el model.
+                            El conjunt de dades no coincideix amb el context local on s'utilitzarà el model.
                         </p>
                     </div>
 
@@ -824,20 +824,20 @@ MODULES = [
                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
                                 <div style="padding:12px; border:1px solid #22c55e; background:rgba(34, 197, 94, 0.1); border-radius:8px; text-align:center;">
                                     <div style="font-size:2rem;">📍</div>
-                                    <div style="font-weight:700; color:#22c55e; font-size:0.9rem;">GEOGRAFIA COINCIDENT</div>
+                                    <div style="font-weight:700; color:#22c55e; font-size:0.9rem;">GEOGRAFIA COMPATIBLE</div>
                                     <div style="font-size:0.8rem; color:var(--body-text-color);">Font de dades: Dept. de Justícia de Catalunya</div>
                                 </div>
                                 <div style="padding:12px; border:1px solid #22c55e; background:rgba(34, 197, 94, 0.1); border-radius:8px; text-align:center;">
                                     <div style="font-size:2rem;">⚖️</div>
                                     <div style="font-weight:700; color:#22c55e; font-size:0.9rem;">LLEIS SINCRONITZADES</div>
-                                    <div style="font-size:0.8rem; color:var(--body-text-color);">Eliminats delictes específics dels EUA</div>
+                                    <div style="font-size:0.8rem; color:var(--body-text-color);">S'han eliminat delictes específics dels EUA</div>
                                 </div>
                             </div>
 
                             <div class="hint-box" style="border-left:4px solid #22c55e;">
-                                <div style="font-weight:700; color:#15803d;">Actualització del Sistema Completada</div>
+                                <div style="font-weight:700; color:#15803d;">Actualització del sistema completada</div>
                                 <p style="margin-top:6px;">
-                                    El model ara està aprenent de la gent a qui realment afectarà. La precisió ara és significativa perquè reflecteix la veritat local.
+                                    El model ara aprèn de les persones a qui realment afectarà. La precisió ara és útil perquè reflecteix la realitat local.
                                 </p>
                             </div>
 
@@ -846,7 +846,7 @@ MODULES = [
 
             <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
                         <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 ACCIÓ REQUERIDA:
+                            🚀 ACCIÓ NECESSÀRIA:
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
                             Respon la pregunta de sota per augmentar la teva puntuació de Brúixola Moral.
@@ -877,21 +877,21 @@ MODULES = [
                         <div style="font-size:1.8rem; background:var(--background-fill-primary); width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🏁</div>
                         <div style="flex-grow:1;">
                             <div style="font-weight:800; font-size:1.05rem; color:#15803d; letter-spacing:0.05em;">AUDITORIA COMPLETADA</div>
-                            <div style="font-size:0.9rem; color:var(--body-text-color);">Estat del Sistema: A PUNT PER A CERTIFICACIÓ.</div>
+                            <div style="font-size:0.9rem; color:var(--body-text-color);">Estat del sistema: A PUNT PER A LA CERTIFICACIÓ.</div>
                         </div>
                     </div>
 
-                    <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">📊 L'Informe "Abans i Després"</h2>
+                    <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">📊 Informe final: abans i després"</h2>
 
                     <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
-                        Has sanejat les dades amb èxit, filtrat per causalitat i localitzat el context.
+                        Has sanejat les dades amb èxit, filtrat per causalitat i has adaptat el model al context local.
                         <br>Comparem el teu nou model amb el model original per revisar què ha canviat.
                     </p>
 
                     <div class="ai-risk-container" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
 
                         <div>
-                            <div style="font-weight:800; color:#ef4444; margin-bottom:8px; text-transform:uppercase;">🚫 El Model Original</div>
+                            <div style="font-weight:800; color:#ef4444; margin-bottom:8px; text-transform:uppercase;">🚫 El model original</div>
 
                             <div style="padding:10px; border-bottom:1px solid var(--border-color-primary);">
                                 <div style="font-size:0.8rem; font-weight:700; color:var(--body-text-color);">ENTRADES</div>
@@ -899,11 +899,11 @@ MODULES = [
                             </div>
                             <div style="padding:10px; border-bottom:1px solid var(--border-color-primary);">
                                 <div style="font-size:0.8rem; font-weight:700; color:var(--body-text-color);">LÒGICA</div>
-                                <div style="color:var(--body-text-color);">Estatus i Estereotips</div>
+                                <div style="color:var(--body-text-color);">Estatus i estereotips</div>
                             </div>
                             <div style="padding:10px; border-bottom:1px solid var(--border-color-primary);">
                                 <div style="font-size:0.8rem; font-weight:700; color:var(--body-text-color);">CONTEXT</div>
-                                <div style="color:var(--body-text-color);">Florida (Mapa Equivocat)</div>
+                                <div style="color:var(--body-text-color);">Florida (Mapa equivocat)</div>
                             </div>
                             <div style="padding:10px; background:rgba(239, 68, 68, 0.2); margin-top:10px; border-radius:6px; color:#ef4444; font-weight:700; text-align:center;">
                                 RISC DE BIAIX: CRÍTIC
@@ -911,19 +911,19 @@ MODULES = [
                         </div>
 
                         <div style="transform:scale(1.02); box-shadow:0 4px 12px rgba(0,0,0,0.1); border:2px solid #22c55e; border-radius:8px; overflow:hidden;">
-                            <div style="background:#22c55e; color:white; padding:6px; font-weight:800; text-align:center; text-transform:uppercase;">✅ El teu model dissenyat</div>
+                            <div style="background:#22c55e; color:white; padding:6px; font-weight:800; text-align:center; text-transform:uppercase;">✅ El teu model millorat</div>
 
                             <div style="padding:10px; border-bottom:1px solid var(--border-color-primary); background:var(--background-fill-primary);">
                                 <div style="font-size:0.8rem; font-weight:700; color:#15803d;">ENTRADES</div>
-                                <div style="color:var(--body-text-color);">Només Comportament</div>
+                                <div style="color:var(--body-text-color);">Només variables de conducta</div>
                             </div>
                             <div style="padding:10px; border-bottom:1px solid var(--border-color-primary); background:var(--background-fill-primary);">
                                 <div style="font-size:0.8rem; font-weight:700; color:#15803d;">LÒGICA</div>
-                                <div style="color:var(--body-text-color);">Conducta Causal</div>
+                                <div style="color:var(--body-text-color);">Conducta basada en causes</div>
                             </div>
                             <div style="padding:10px; border-bottom:1px solid var(--border-color-primary); background:var(--background-fill-primary);">
                                 <div style="font-size:0.8rem; font-weight:700; color:#15803d;">CONTEXT</div>
-                                <div style="color:var(--body-text-color);">Barcelona (Local)</div>
+                                <div style="color:var(--body-text-color);">Barcelona (context local)</div>
                             </div>
                             <div style="padding:10px; background:rgba(34, 197, 94, 0.2); margin-top:0; color:#15803d; font-weight:700; text-align:center;">
                                 RISC DE BIAIX: MINIMITZAT
@@ -932,11 +932,11 @@ MODULES = [
                     </div>
 
                     <div class="hint-box" style="border-left:4px solid #f59e0b;">
-                        <div style="font-weight:700; color:#b45309;">🚧 Una Nota sobre la "Perfecció"</div>
+                        <div style="font-weight:700; color:#b45309;">🚧 Una nota sobre la perfecció"</div>
                         <p style="margin-top:6px;">
                             És perfecte aquest model? <strong>No.</strong>
-                            <br>Les dades del món real (com les detencions) encara poden tenir biaixos ocults de la història humana.
-                            Però has passat d'un sistema que <em>amplifica</em> el prejudici a un que <em>mesura l'equitat</em> utilitzant Conducta i Context Local.
+                            <br>Les dades del món real (com les detencions) encara poden arrossegar biaixos del passat.
+                            Però has passat d'un sistema que <em>amplifica</em> el prejudici a un que <em>mesura l'equitat</em> utilitzant conducta i context Local.
                         </p>
                     </div>
 
@@ -957,7 +957,7 @@ MODULES = [
     # --- MODULE 9: CERTIFICATION ---
     {
         "id": 9,
-        "title": "Protocol Complet: Ètica Assegurada",
+        "title": "Protocol complet: ètica assegurada",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
@@ -1012,7 +1012,7 @@ MODULES = [
                         <div style="display:flex; gap:15px;">
                             <div style="font-size:2.5rem;">🎓</div>
                             <div>
-                                <h3 style="margin:0; color:#b45309;">Següent Objectiu: Certificació i Rendiment</h3>
+                                <h3 style="margin:0; color:#b45309;">Següent Objectiu: certificació i rendiment</h3>
                                 <p style="font-size:1.05rem; line-height:1.5; color:var(--body-text-color); margin-top:8px;">
                                     Ara que has fet el teu model <strong>ètic</strong>, pots continuar millorant la <strong>precisió</strong> del model en l'activitat final de sota.
                                     <br><br>
@@ -1028,7 +1028,7 @@ MODULES = [
                         </p>
                         
                         <div style="display:inline-block; padding:15px 30px; background:linear-gradient(to right, #f59e0b, #d97706); border-radius:50px; color:white; font-weight:800; font-size:1.1rem; box-shadow:0 4px 15px rgba(245, 158, 11, 0.4);">
-                            Reclama el teu Certificat oficial "Ethics at Play" en la següent activitat.
+                            Reclama el teu certificat oficial d'"Ètica en joc" en la següent activitat.
                         </div>
                     </div>
 
@@ -1044,56 +1044,56 @@ QUIZ_CONFIG = {
         "t": "t12",
         "q": "Acció: Selecciona les variables que s'han d'esborrar immediatament perquè són Classes Protegides.",
         "o": [
-            "A) Codi Postal i Veïnat",
-            "B) Raça, Gènere, Edat",
-            "C) Condemnes Prèvies",
+            "A) Codi postal i barri",
+            "B) Origen ètnic, gènere, edat",
+            "C) Condemnes prèvies",
         ],
         "a": "B) Raça, Gènere, Edat",
         "success": "Tasca Completada. Columnes eliminades. El model ara és cec a dades demogràfiques explícites.",
     },
     2: {
         "t": "t13",
-        "q": "Per què hem d'eliminar també el 'Codi Postal' si ja hem eliminat la 'Raça'?",
+        "q": "Per què hem d'eliminar també el 'codi postal' si ja hem eliminat l'origen ètnic?",
         "o": [
-            "A) Perquè els Codis Postals ocupen massa memòria.",
-            "B) És una Variable Proxy que reintrodueix el biaix racial degut a la segregació històrica.",
-            "C) Els Codis Postals no són precisos.",
+            "A) Perquè els codis postals ocupen massa memòria.",
+            "B) És una Variable Proxy que reintrodueix el biaix per origen ètnic degut a la segregació històrica.",
+            "C) Els codis postals no són precisos.",
         ],
-        "a": "B) És una Variable Proxy que reintrodueix el biaix racial degut a la segregació històrica.",
-        "success": "Proxy Identificat. Dades d'ubicació eliminades per prevenir el biaix de segregació.",
+        "a": "B) És una variable proxy que reintrodueix el biaix per origen ètnic degut a la segregació històrica.",
+        "success": "Proxy identificat. Dades d'ubicació eliminades per prevenir el biaix de segregació.",
     },
     3: {
         "t": "t14",
-        "q": "Després d'eliminar Raça i Codi Postal, el model és just però la precisió ha caigut. Per què?",
+        "q": "Després d'eliminar origen ètnic i codi postal, el model és just però la precisió ha caigut. Per què?",
         "o": [
-            "A) El model està trencat.",
+            "A) El model està no funciona.",
             "B) Un model que no sap res és just però inútil. Necessitem millors dades, no només menys dades.",
-            "C) Hauríem de tornar a posar la columna de Raça.",
+            "C) Hauríem de tornar a posar la columna d'origen ètnic.",
         ],
         "a": "B) Un model que no sap res és just però inútil. Necessitem millors dades, no només menys dades.",
-        "success": "Gir Confirmat. Hem de passar d' 'Eliminar' a 'Seleccionar' millors característiques.",
+        "success": "Gir confirmat. Hem de passar d' 'eliminar' a 'seleccionar' millors característiques.",
     },
     4: {
         "t": "t15",
-        "q": "Basat en l'exemple del “Peu Gran”, per què pot ser enganyós deixar que una IA depengui de variables com la talla de sabates?",
+        "q": "Basat en l'exemple del “peu gran”, per què pot ser enganyós deixar que una IA depengui de variables com la talla de sabates?",
         "o": [
             "A) Perquè són físicament difícils de mesurar.",
             "B) Perquè sovint només es correlacionen amb resultats i són causades per un tercer factor ocult, en lloc de causar el resultat elles mateixes."
         ],
         "a": "B) Perquè sovint només es correlacionen amb resultats i són causades per un tercer factor ocult, en lloc de causar el resultat elles mateixes.",
-        "success": "Filtre Calibrat. Ara estàs comprovant si un patró és causat per una tercera variable oculta — no confonent correlació amb causalitat."
+        "success": "Filtre calibrat. Ara estàs comprovant si un patró és causat per una tercera variable oculta — no confonent correlació amb causalitat."
     },
 
     5: {
         "t": "t16",
-        "q": "Quina d'aquestes característiques restants és un Predictor Causal Vàlid de conducta criminal?",
+        "q": "Quina d’aquestes variables ajuda a predir el delicte per un motiu real (i no per coincidència)?",
         "o": [
-            "A) Ocupació (Condició de Rerefons)",
-            "B) Estat Civil (Estil de vida)",
-            "C) Incompareixença al Tribunal (Conducta)",
+            "A) Ocupació (condició de context)",
+            "B) Estat Civil (estil de vida)",
+            "C) Incompareixença al tribunal (conducta)",
         ],
-        "a": "C) Incompareixença al Tribunal (Conducta)",
-        "success": "Característica Seleccionada. 'Incompareixença' reflecteix una acció específica rellevant per al risc de fuga.",
+        "a": "C) Incompareixença al tribunal (conducta)",
+        "success": "Característica seleccionada. 'Incompareixença' reflecteix una acció específica rellevant per al risc de fuga.",
     },
     6: {
         "t": "t17",
@@ -1104,7 +1104,7 @@ QUIZ_CONFIG = {
             "C) Perquè el nombre de persones a Barcelona és diferent de la mida del dataset d'entrenament."
         ],
         "a": "B) Desajust de context: el model va aprendre patrons lligats a lleis, sistemes i entorns dels EUA que no coincideixen amb la realitat de Barcelona.",
-        "success": "Correcte! Això és un desplaçament de dataset (o domini). Quan les dades d'entrenament no coincideixen amb on s'usa un model, les prediccions es tornen menys precises i poden fallar de manera desigual entre grups."
+        "success": "Correcte! Això és un desplaçament de conjunt de dades (o domini). Quan les dades d'entrenament no coincideixen amb on s'usa un model, les prediccions es tornen menys precises i poden fallar de manera desigual entre grups."
     },
 
     7: {
@@ -1112,18 +1112,18 @@ QUIZ_CONFIG = {
         "q": "Acabes de rebutjar un dataset massiu i gratuït (Florida) per un de més petit i difícil d'aconseguir (Localment rellevant). Per què ha estat l'elecció d'enginyeria correcta?",
         "o": [
             "A) No ho era. Més dades sempre és millor, independentment d'on vinguin.",
-            "B) Perquè la 'Rellevància' és més important que el 'Volum'. Un mapa petit i precís és millor que un mapa enorme i equivocat.",
-            "C) Perquè el dataset de Florida era massa car.",
+            "B) Perquè la 'rellevància' és més important que el 'volum'. Un mapa petit i precís és millor que un mapa enorme i equivocat.",
+            "C) Perquè el conjunt de dades de Florida era massa car.",
         ],
-        "a": "B) Perquè la 'Rellevància' és més important que el 'Volum'. Un mapa petit i precís és millor que un mapa enorme i equivocat.",
-        "success": "Taller Completat! Has auditat, filtrat i localitzat el model d'IA amb èxit.",
+        "a": "B) Perquè la 'rellevància' és més important que el 'volum'. Un mapa petit i precís és millor que un mapa enorme i equivocat.",
+        "success": "Taller completat! Has auditat, filtrat i localitzat el model d'IA amb èxit.",
     },
     8: {
         "t": "t19",
-        "q": "Has arreglat les Entrades, la Lògica i el Context. El teu nou model és ara 100% perfectament just?",
+        "q": "Has arreglat les entrades, la lògica i el context. El teu nou model és ara 100% perfectament just?",
         "o": [
             "A) Sí. Les matemàtiques són objectives, així que si les dades estan netes, el model és perfecte.",
-            "B) No. És més segur perquè hem prioritzat 'Conducta' sobre 'Estatus' i 'Realitat Local' sobre 'Dades Fàcils', però sempre hem d'estar vigilants.",
+            "B) No. És més segur perquè hem prioritzat 'conducta' sobre 'estatus' i 'realitat local' sobre 'dades fàcils', però sempre hem d'estar vigilants.",
         ],
         "a": "B) No. És més segur perquè hem prioritzat 'Conducta' sobre 'Estatus' i 'Realitat Local' sobre 'Dades Fàcils', però sempre hem d'estar vigilants.",
         "success": "Bona feina. A continuació pots revisar oficialment aquest model per al seu ús.",
@@ -1136,7 +1136,7 @@ QUIZ_CONFIG = {
             "B) No, espera un model perfecte.",
         ],
         "a": "A) Sí, el model ara és segur i autoritzo l'ús d'aquest sistema d'IA reparat.",
-        "success": "Missió Aconseguida. Has dissenyat un sistema més segur i just.",
+        "success": "Missió complerta. Has dissenyat un sistema més segur i just.",
     },
 }
 
@@ -1707,7 +1707,7 @@ def create_fairness_fixer_ca_app(theme_primary_hue: str = "indigo"):
                         next_label = (
                             "Següent ▶️"
                             if i < len(MODULES) - 1
-                            else "🎉 Model Autoritzat! Desplaça't cap avall per rebre el teu Certificat oficial 'Ethics at Play'!"
+                            else "🎉 Model Autoritzat! Desplaça't cap avall per rebre el teu Certificat oficial d'Ètica en Joc!"
                         )
                         btn_next = gr.Button(next_label, variant="primary")
 
