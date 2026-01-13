@@ -1048,7 +1048,7 @@ QUIZ_CONFIG = {
             "B) Origen ètnic, gènere, edat",
             "C) Condemnes prèvies",
         ],
-        "a": "B) Raça, Gènere, Edat",
+        "a": "B) Origen ètnic, gènere, edat",
         "success": "Tasca Completada. Columnes eliminades. El model ara és cec a dades demogràfiques explícites.",
     },
     2: {
@@ -1059,7 +1059,7 @@ QUIZ_CONFIG = {
             "B) És una Variable Proxy que reintrodueix el biaix per origen ètnic degut a la segregació històrica.",
             "C) Els codis postals no són precisos.",
         ],
-        "a": "B) És una variable proxy que reintrodueix el biaix per origen ètnic degut a la segregació històrica.",
+        "a": "B) És una Variable Proxy que reintrodueix el biaix per origen ètnic degut a la segregació històrica.",
         "success": "Proxy identificat. Dades d'ubicació eliminades per prevenir el biaix de segregació.",
     },
     3: {
@@ -1125,7 +1125,7 @@ QUIZ_CONFIG = {
             "A) Sí. Les matemàtiques són objectives, així que si les dades estan netes, el model és perfecte.",
             "B) No. És més segur perquè hem prioritzat 'conducta' sobre 'estatus' i 'realitat local' sobre 'dades fàcils', però sempre hem d'estar vigilants.",
         ],
-        "a": "B) No. És més segur perquè hem prioritzat 'Conducta' sobre 'Estatus' i 'Realitat Local' sobre 'Dades Fàcils', però sempre hem d'estar vigilants.",
+        "a": "B) No. És més segur perquè hem prioritzat 'conducta' sobre 'estatus' i 'realitat local' sobre 'dades fàcils', però sempre hem d'estar vigilants.",
         "success": "Bona feina. A continuació pots revisar oficialment aquest model per al seu ús.",
     },
     9: {
