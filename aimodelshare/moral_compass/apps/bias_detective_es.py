@@ -1467,7 +1467,7 @@ QUIZ_CONFIG = {
             "B) Necesito comprobar si la computadora está enchufada correctamente.",
             "C) Necesito comparar las distribuciones demográficas (origen étnico/género) de los datos con las estadísticas de población del mundo real.",
         ],
-        "a": "C) Necesito comparar las Distribuciones Demográficas (origen étnico/género) de los datos con las estadísticas de población del mundo real.",
+        "a": "C) Necesito comparar las distribuciones demográficas (origen étnico/género) de los datos con las estadísticas de población del mundo real.",
         "success": "Objetivo Adquirido. Estás preparado para entrar al laboratorio forense de datos.",
     },
     4: {
