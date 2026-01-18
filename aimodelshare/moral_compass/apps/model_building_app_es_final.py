@@ -118,8 +118,6 @@ def get_cached_prediction(key: str, data_size_str: str) -> Optional[str]:
     db_file = CACHE_DB_FILE_FULL if data_size_str == "Full (100%)" else CACHE_DB_FILE_BASE
     return _get_cached_prediction_from(db_file, key)
 
-print("✅ App configured for Thread-Safe Dual-DB SQLite Cache.")
-
 # -------------------------------------------------------------------------
 # Lightweight Label Loader (No Training, Only Test Accuracy Computation)
 # -------------------------------------------------------------------------

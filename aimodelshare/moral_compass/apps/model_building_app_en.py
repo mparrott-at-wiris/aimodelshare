@@ -101,8 +101,6 @@ def get_cached_prediction(key):
         print(f"⚠️ DB READ ERROR: {e}", flush=True)
         return None
 
-print("✅ App configured for Thread-Safe SQLite Cache.")
-
 # -------------------------------------------------------------------------
 # Lightweight Label Loader (No Training, Only Test Accuracy Computation)
 # -------------------------------------------------------------------------

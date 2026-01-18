@@ -101,8 +101,6 @@ def get_cached_prediction(key):
         print(f"⚠️ DB READ ERROR: {e}", flush=True)
         return None
 
-print("✅ App configured for Thread-Safe SQLite Cache.")
-
 
 LEADERBOARD_CACHE_SECONDS = int(os.environ.get("LEADERBOARD_CACHE_SECONDS", "45"))
 MAX_LEADERBOARD_ENTRIES = os.environ.get("MAX_LEADERBOARD_ENTRIES")
