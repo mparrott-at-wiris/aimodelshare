@@ -76,6 +76,10 @@ _EXPORT_MAP = {
     "launch_justice_equity_upgrade_es_app": ("justice_equity_upgrade_es", "launch_justice_equity_upgrade_es_app"),
     "create_justice_equity_upgrade_ca_app": ("justice_equity_upgrade_ca", "create_justice_equity_upgrade_ca_app"),
     "launch_justice_equity_upgrade_ca_app": ("justice_equity_upgrade_ca", "launch_justice_equity_upgrade_ca_app"),
+
+    # Sustainability apps
+    "create_sustainability_pitch_app": ("sustainability.pitch", "create_sustainability_pitch_app"),
+    "launch_sustainability_pitch_app": ("sustainability.pitch", "launch_sustainability_pitch_app"),
 }
 
 __all__ = list(_EXPORT_MAP.keys())

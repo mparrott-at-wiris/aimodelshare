@@ -92,6 +92,8 @@ def test_all_apps_exported_from_init():
     assert hasattr(apps, 'launch_model_building_game_app')
     assert hasattr(apps, 'create_model_building_game_beginner_app')
     assert hasattr(apps, 'launch_model_building_game_beginner_app')
+    assert hasattr(apps, 'create_sustainability_pitch_app')
+    assert hasattr(apps, 'launch_sustainability_pitch_app')
 
 
 def test_judge_app_defendant_profiles():
@@ -145,7 +147,8 @@ def test_apps_with_custom_theme():
         create_ai_consequences_app,
         create_what_is_ai_app,
         create_model_building_game_app,
-        create_model_building_game_beginner_app
+        create_model_building_game_beginner_app,
+        create_sustainability_pitch_app
     )
     
     # Should not raise any errors
@@ -166,6 +169,9 @@ def test_apps_with_custom_theme():
     
     model_building_game_beginner = create_model_building_game_beginner_app(theme_primary_hue="teal")
     assert model_building_game_beginner is not None
+    
+    sustainability_pitch = create_sustainability_pitch_app(theme_primary_hue="green")
+    assert sustainability_pitch is not None
 
 
 def test_model_building_game_app_can_be_created():
@@ -184,6 +190,37 @@ def test_model_building_game_beginner_app_can_be_created():
     app = create_model_building_game_beginner_app()
     assert app is not None
     assert hasattr(app, 'launch')
+
+
+def test_sustainability_pitch_app_can_be_created():
+    """Test that sustainability pitch app can be instantiated."""
+    from aimodelshare.moral_compass.apps import create_sustainability_pitch_app
+    
+    app = create_sustainability_pitch_app()
+    assert app is not None
+    assert hasattr(app, 'launch')
+
+
+def test_sustainability_pitch_app_solutions():
+    """Test that sustainability pitch app generates AI solutions correctly."""
+    from aimodelshare.moral_compass.apps.sustainability.pitch import _generate_ai_solutions
+    
+    solutions = _generate_ai_solutions()
+    
+    # Check we have 5 solutions
+    assert len(solutions) == 5
+    
+    # Check each solution has required fields
+    for solution in solutions:
+        assert 'id' in solution
+        assert 'title' in solution
+        assert 'description' in solution
+        assert 'category' in solution
+    
+    # Check that one solution is about building carbon emissions
+    building_solution = next((s for s in solutions if 'Building' in s['category']), None)
+    assert building_solution is not None, "Should have at least one solution about buildings"
+    assert '40%' in building_solution['description'], "Building solution should mention 40% energy consumption"
 
 
 if __name__ == '__main__':
