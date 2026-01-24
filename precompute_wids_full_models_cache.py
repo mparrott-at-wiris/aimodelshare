@@ -265,7 +265,7 @@ if __name__ == "__main__":
                     final_keys.add(json.loads(line)["k"])
     
     # Calculate total possible tasks
-    # With 14 features: 2^14 - 1 = 16,383 feature combinations
+    # With 14 features: all combinations from size 1 to 14 = sum(C(14,r) for r=1..14) = 2^14 - 1 = 16,383
     # Total = 16,383 combos * 5 models * 10 complexity = 819,150
     total_possible = len(all_combos) * len(all_model_names) * 10
     
