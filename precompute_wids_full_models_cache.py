@@ -76,10 +76,36 @@ def load_original_test_split():
     )
     return X_train_raw, X_test_raw, y_train, y_test
 
-def load_full_train_data():
-    df = pd.read_csv(WIDS_DATASET_PATH)
-    X_full, y_full = load_and_prepare(df, max_rows=None)
-    return X_full, y_full
+def load_full_train_data_excluding_test():
+    """
+    Load the full dataset but exclude the rows that were used as test data
+    in the base cache (to prevent data leakage).
+    """
+    # First, we need to identify which rows from the full dataset ended up in the test set
+    # The base cache uses the first MAX_ROWS_TEST rows (after sampling with random_state=42)
+    # and then splits them 75/25 train/test
+    
+    # Load and prepare exactly as the original test split does
+    df_for_test_indices = pd.read_csv(WIDS_DATASET_PATH)
+    X_sampled, y_sampled = load_and_prepare(df_for_test_indices, max_rows=MAX_ROWS_TEST)
+    
+    # Perform the same split to get the test indices
+    _, X_test_for_indices, _, _ = train_test_split(
+        X_sampled, y_sampled, test_size=0.25, random_state=42, stratify=y_sampled
+    )
+    test_indices = set(X_test_for_indices.index)
+    
+    # Now load the full dataset
+    df_full = pd.read_csv(WIDS_DATASET_PATH)
+    X_full, y_full = load_and_prepare(df_full, max_rows=None)
+    
+    # Remove test indices from full dataset
+    mask = ~X_full.index.isin(test_indices)
+    X_full_train = X_full[mask]
+    y_full_train = y_full[mask]
+    
+    print(f"Full dataset size: {len(X_full)}, After excluding test: {len(X_full_train)}, Test set size was: {len(test_indices)}")
+    return X_full_train, y_full_train
 
 # --- PREPROCESSOR ---
 def get_preprocessor(features):
@@ -188,8 +214,8 @@ def process_task(task, X_full_train, y_full_train, X_test_raw, base_cache):
 if __name__ == "__main__":
     start_time = time.time()
     
-    print("Loading full training data...")
-    X_full, y_full = load_full_train_data()
+    print("Loading full training data (excluding test set)...")
+    X_full, y_full = load_full_train_data_excluding_test()
     
     print("Loading test split (for consistency with base cache)...")
     _, X_test, _, _ = load_original_test_split()
