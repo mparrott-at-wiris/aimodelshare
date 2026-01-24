@@ -242,62 +242,6 @@ jobs:
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-ca-final-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
 
-  deploy-model-building-game-sustainability:
-    runs-on: ubuntu-latest
-    needs: build-and-push
-    outputs:
-      url: ${{ steps.deploy.outputs.url }}
-    steps:
-      - uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-      - uses: google-github-actions/setup-gcloud@v2
-      - name: Deploy model-building-game-sustainability
-        id: deploy
-        uses: google-github-actions/deploy-cloudrun@v2
-        with:
-          service: model-building-game-sustainability
-          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
-          region: ${{ env.REGION }}
-          flags: >-
-            --allow-unauthenticated
-            --memory=4Gi
-            --cpu=2
-            --session-affinity
-            --concurrency=20
-            --min-instances=1
-            --max-instances=150
-            --timeout=3000
-            --set-env-vars=APP_NAME=model-building-game-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
-
-  deploy-model-building-game-beginner-sustainability:
-    runs-on: ubuntu-latest
-    needs: build-and-push
-    outputs:
-      url: ${{ steps.deploy.outputs.url }}
-    steps:
-      - uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-      - uses: google-github-actions/setup-gcloud@v2
-      - name: Deploy model-building-game-beginner-sustainability
-        id: deploy
-        uses: google-github-actions/deploy-cloudrun@v2
-        with:
-          service: model-building-game-beginner-sustainability
-          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
-          region: ${{ env.REGION }}
-          flags: >-
-            --allow-unauthenticated
-            --memory=4Gi
-            --cpu=2
-            --session-affinity
-            --concurrency=20
-            --min-instances=1
-            --max-instances=150
-            --timeout=3000
-            --set-env-vars=APP_NAME=model-building-game-beginner-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
-
   # ------------------------------------------------------------
   # Collect and publish all deployed service URLs
   # ------------------------------------------------------------
@@ -310,8 +254,6 @@ jobs:
       - deploy-model-building-game-en-final-sustainability
       - deploy-model-building-game-es-final-sustainability
       - deploy-model-building-game-ca-final-sustainability
-      - deploy-model-building-game-sustainability
-      - deploy-model-building-game-beginner-sustainability
     steps:
       - name: Generate JSON of deployed URLs
         run: |
@@ -322,9 +264,7 @@ jobs:
             "model-building-game-es-sustainability": "${{ needs.deploy-model-building-game-es-sustainability.outputs.url }}",
             "model-building-game-en-final-sustainability": "${{ needs.deploy-model-building-game-en-final-sustainability.outputs.url }}",
             "model-building-game-es-final-sustainability": "${{ needs.deploy-model-building-game-es-final-sustainability.outputs.url }}",
-            "model-building-game-ca-final-sustainability": "${{ needs.deploy-model-building-game-ca-final-sustainability.outputs.url }}",
-            "model-building-game-sustainability": "${{ needs.deploy-model-building-game-sustainability.outputs.url }}",
-            "model-building-game-beginner-sustainability": "${{ needs.deploy-model-building-game-beginner-sustainability.outputs.url }}"
+            "model-building-game-ca-final-sustainability": "${{ needs.deploy-model-building-game-ca-final-sustainability.outputs.url }}"
           }
           EOF
           echo "Deployed service URLs JSON:"

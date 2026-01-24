@@ -78,10 +78,6 @@ _EXPORT_MAP = {
     "launch_justice_equity_upgrade_ca_app": ("justice_equity_upgrade_ca", "launch_justice_equity_upgrade_ca_app"),
 
     # Sustainability model building game apps
-    "create_model_building_game_sustainability_app": ("sustainability.model_building_game_sustainability", "create_model_building_game_sustainability_app"),
-    "launch_model_building_game_sustainability_app": ("sustainability.model_building_game_sustainability", "launch_model_building_game_sustainability_app"),
-    "create_model_building_game_beginner_sustainability_app": ("sustainability.model_building_game_beginner_sustainability", "create_model_building_game_beginner_sustainability_app"),
-    "launch_model_building_game_beginner_sustainability_app": ("sustainability.model_building_game_beginner_sustainability", "launch_model_building_game_beginner_sustainability_app"),
     "create_model_building_game_en_sustainability_app": ("sustainability.model_building_app_en_sustainability", "create_model_building_game_en_sustainability_app"),
     "launch_model_building_game_en_sustainability_app": ("sustainability.model_building_app_en_sustainability", "launch_model_building_game_en_sustainability_app"),
     "create_model_building_game_ca_sustainability_app": ("sustainability.model_building_app_ca_sustainability", "create_model_building_game_ca_sustainability_app"),
