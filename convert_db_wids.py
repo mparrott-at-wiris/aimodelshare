@@ -58,7 +58,7 @@ def create_database(db_path, data, description):
 
 def convert():
     print("=" * 60)
-    print("🔄 WIDS CACHE CONVERSION TO SQLITE")
+    print("🔄 WiDS CACHE CONVERSION TO SQLITE")
     print("=" * 60)
     
     # Check for cache files
@@ -97,6 +97,7 @@ def convert():
     if base_data is None and full_models_data is None:
         print(f"\n❌ ERROR: No valid cache data found.")
         print(f"   Cache files exist but failed to load or are empty.")
+        print(f"   Possible causes: file corruption, invalid JSON format, or permission issues.")
         raise ValueError("No valid cache data available for conversion")
     
     print(f"\n{'=' * 60}")

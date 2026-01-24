@@ -61,6 +61,8 @@ RUN echo "=== Starting WiDS Cache Conversion ===" && \
 # ---------------------------------------------------------------------
 # We download the CSV once here so the app never has to fetch it at runtime.
 # This prevents GitHub rate-limiting issues on Cloud Run.
+# Note: Sustainability apps still use COMPAS dataset structure and columns,
+# though they are deployed via the sustainability workflow for different caching.
 RUN wget -O compas.csv "https://raw.githubusercontent.com/propublica/compas-analysis/master/compas-scores-two-years.csv"
 
 # ---------------------------------------------------------------------
