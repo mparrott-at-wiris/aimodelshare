@@ -1,0 +1,113 @@
+name: Build WiDS Full-Dataset Prediction Cache Artifact (Resumable)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+jobs:
+  build-wids-full-cache-chunk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360  # Max for GitHub-hosted runners (6 hours)
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pandas numpy scikit-learn joblib
+
+      # Prefer finalized base cache to merge with
+      - name: Download Base Prediction Cache (final)
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: build_wids_cache.yml
+          name: wids-prediction-cache-file
+          path: .
+          search_artifacts: true
+          if_no_artifact_found: warn
+        continue-on-error: true
+
+      # Fallback to checkpoint if final artifact isn't present
+      - name: Download Base Checkpoint (fallback)
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: build_wids_cache.yml
+          name: wids-cache-checkpoint
+          path: .
+          search_artifacts: true
+          workflow_conclusion: ""
+          if_no_artifact_found: warn
+        continue-on-error: true
+
+      # Restore new full-dataset checkpoint (resumable)
+      - name: Restore Full-Models Checkpoint
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: build_wids_full_models_cache.yml
+          name: wids-full-models-cache-checkpoint
+          path: .
+          search_artifacts: true
+          workflow_conclusion: ""
+          if_no_artifact_found: warn
+        continue-on-error: true
+
+      - name: Debug Artifacts (before compute)
+        run: |
+          ls -lah || true
+          [ -f wids_prediction_cache.json.gz ] && echo "✅ Found base wids_prediction_cache.json.gz" || echo "ℹ️ Base final cache not found"
+          [ -f wids_cache_checkpoint.jsonl ] && echo "✅ Found base wids_cache_checkpoint.jsonl" || echo "ℹ️ Base checkpoint not found"
+          [ -f wids_full_models_cache_checkpoint.jsonl ] && echo "✅ Found prior wids_full_models_cache_checkpoint.jsonl" || echo "ℹ️ No prior full-models checkpoint"
+
+      - name: Compute Full-Dataset Cache Chunk
+        env:
+          MAX_RUNTIME_SEC: "21500"  # ~6h minus buffer; script reads this env
+        run: |
+          export OMP_NUM_THREADS=1
+          export OPENBLAS_NUM_THREADS=1
+          python -u precompute_wids_full_models_cache.py
+
+      # Verify the checkpoint exists and show basic stats
+      - name: Verify Checkpoint File
+        run: |
+          if [ -f wids_full_models_cache_checkpoint.jsonl ]; then
+            echo "✅ Checkpoint present:"
+            ls -lh wids_full_models_cache_checkpoint.jsonl
+            echo "Line count:"
+            wc -l wids_full_models_cache_checkpoint.jsonl || true
+            echo "Head:"
+            head -n 3 wids_full_models_cache_checkpoint.jsonl || true
+            echo "Tail:"
+            tail -n 3 wids_full_models_cache_checkpoint.jsonl || true
+          else
+            echo "❌ Checkpoint file not found after compute step."
+            exit 1
+          fi
+
+      # Always save checkpoint so we can resume next run
+      - name: Save Full-Models Checkpoint
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wids-full-models-cache-checkpoint
+          path: wids_full_models_cache_checkpoint.jsonl
+          retention-days: 7
+
+      # Upload final artifact only when the script produced it
+      - name: Save Final Full-Models Artifact
+        if: hashFiles('wids_prediction_cache_full_models.json.gz') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: wids-prediction-cache-full-models-file
+          path: wids_prediction_cache_full_models.json.gz
+          retention-days: 90
