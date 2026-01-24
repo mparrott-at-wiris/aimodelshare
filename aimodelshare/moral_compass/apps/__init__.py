@@ -77,9 +77,19 @@ _EXPORT_MAP = {
     "create_justice_equity_upgrade_ca_app": ("justice_equity_upgrade_ca", "create_justice_equity_upgrade_ca_app"),
     "launch_justice_equity_upgrade_ca_app": ("justice_equity_upgrade_ca", "launch_justice_equity_upgrade_ca_app"),
 
-    # Sustainability apps
-    "create_sustainability_pitch_app": ("sustainability.pitch", "create_sustainability_pitch_app"),
-    "launch_sustainability_pitch_app": ("sustainability.pitch", "launch_sustainability_pitch_app"),
+    # Sustainability model building game apps
+    "create_model_building_game_en_sustainability_app": ("sustainability.model_building_app_en_sustainability", "create_model_building_game_en_sustainability_app"),
+    "launch_model_building_game_en_sustainability_app": ("sustainability.model_building_app_en_sustainability", "launch_model_building_game_en_sustainability_app"),
+    "create_model_building_game_ca_sustainability_app": ("sustainability.model_building_app_ca_sustainability", "create_model_building_game_ca_sustainability_app"),
+    "launch_model_building_game_ca_sustainability_app": ("sustainability.model_building_app_ca_sustainability", "launch_model_building_game_ca_sustainability_app"),
+    "create_model_building_game_es_sustainability_app": ("sustainability.model_building_app_es_sustainability", "create_model_building_game_es_sustainability_app"),
+    "launch_model_building_game_es_sustainability_app": ("sustainability.model_building_app_es_sustainability", "launch_model_building_game_es_sustainability_app"),
+    "create_model_building_game_en_final_sustainability_app": ("sustainability.model_building_app_en_final_sustainability", "create_model_building_game_en_final_sustainability_app"),
+    "launch_model_building_game_en_final_sustainability_app": ("sustainability.model_building_app_en_final_sustainability", "launch_model_building_game_en_final_sustainability_app"),
+    "create_model_building_game_ca_final_sustainability_app": ("sustainability.model_building_app_ca_final_sustainability", "create_model_building_game_ca_final_sustainability_app"),
+    "launch_model_building_game_ca_final_sustainability_app": ("sustainability.model_building_app_ca_final_sustainability", "launch_model_building_game_ca_final_sustainability_app"),
+    "create_model_building_game_es_final_sustainability_app": ("sustainability.model_building_app_es_final_sustainability", "create_model_building_game_es_final_sustainability_app"),
+    "launch_model_building_game_es_final_sustainability_app": ("sustainability.model_building_app_es_final_sustainability", "launch_model_building_game_es_final_sustainability_app"),
 }
 
 __all__ = list(_EXPORT_MAP.keys())

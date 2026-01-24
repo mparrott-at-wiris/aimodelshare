@@ -47,6 +47,13 @@ APP_NAME_TO_FACTORY = {
     "justice-equity-upgrade-en": "create_justice_equity_upgrade_en_app",
     "justice-equity-upgrade-es": "create_justice_equity_upgrade_es_app",
     "justice-equity-upgrade-ca": "create_justice_equity_upgrade_ca_app",
+    # Sustainability model building game apps
+    "model-building-game-en-sustainability": "create_model_building_game_en_sustainability_app",
+    "model-building-game-ca-sustainability": "create_model_building_game_ca_sustainability_app",
+    "model-building-game-es-sustainability": "create_model_building_game_es_sustainability_app",
+    "model-building-game-en-final-sustainability": "create_model_building_game_en_final_sustainability_app",
+    "model-building-game-ca-final-sustainability": "create_model_building_game_ca_final_sustainability_app",
+    "model-building-game-es-final-sustainability": "create_model_building_game_es_final_sustainability_app",
 }
 
 
