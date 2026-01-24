@@ -1,0 +1,72 @@
+name: Build WiDS Ensemble Prediction Cache Artifact (Resumable)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+jobs:
+  build-wids-ensemble-cache-chunk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pandas numpy scikit-learn joblib
+
+      # Restore previous ensemble checkpoint (resumable)
+      - name: Restore Ensemble Checkpoint
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          name: wids-ensemble-cache-checkpoint
+          path: .
+          search_artifacts: true
+          workflow_conclusion: ""
+          if_no_artifact_found: warn
+        continue-on-error: true
+
+      - name: Debug Ensemble Checkpoint
+        run: |
+          if [ -f "wids_ensemble_cache_checkpoint.jsonl" ]; then
+            echo "✅ Found ensemble checkpoint"
+            ls -lh wids_ensemble_cache_checkpoint.jsonl
+          else
+            echo "ℹ️ No ensemble checkpoint found (first run)"
+          fi
+
+      - name: Compute Ensemble Cache Chunk
+        run: |
+          export OMP_NUM_THREADS=1
+          export OPENBLAS_NUM_THREADS=1
+          python precompute_wids_ensemble_cache.py
+
+      # Always save checkpoint so we can resume next run
+      - name: Save Ensemble Checkpoint
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wids-ensemble-cache-checkpoint
+          path: wids_ensemble_cache_checkpoint.jsonl
+          retention-days: 7
+
+      # Upload final artifact only when the script produced it
+      - name: Save Final Ensemble Artifact
+        if: hashFiles('wids_prediction_cache_ensemble.json.gz') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: wids-prediction-cache-ensemble-file
+          path: wids_prediction_cache_ensemble.json.gz
+          retention-days: 90
