@@ -1,0 +1,345 @@
+name: Deploy Sustainability Apps to Production
+
+on:
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: us-central1
+  REPO_NAME: sustainability-apps
+
+jobs:
+  # ------------------------------------------------------------
+  # Build the universal image
+  # ------------------------------------------------------------
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # --- Download WiDS Base Cache (instead of compass cache) ---
+      - name: Download WiDS Base Prediction Cache
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: build_wids_cache.yml
+          name: wids-prediction-cache-file
+          path: .
+          search_artifacts: true
+          if_no_artifact_found: warn
+
+      # --- Download WiDS Full-Models Cache (instead of compass full models cache) ---
+      - name: Download WiDS Full-Models Prediction Cache
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: build_wids_full_models_cache.yml
+          name: wids-prediction-cache-full-models-file
+          path: .
+          search_artifacts: true
+          if_no_artifact_found: warn
+
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker Auth
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+
+      - name: Build and Push Docker Image
+        run: |
+          IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}"
+          echo "Building image: $IMAGE"
+          if [ -f "wids_prediction_cache.json.gz" ]; then
+            echo "✅ WiDS base cache file found! Will embed into Docker image."
+          else
+            echo "⚠️ WiDS base cache file NOT found. App may run in slow training mode."
+          fi
+
+          if [ -f "wids_prediction_cache_full_models.json.gz" ]; then
+            echo "✅ WiDS full-models cache file found! Will embed into Docker image."
+          else
+            echo "ℹ️ WiDS full-models cache file NOT found."
+          fi
+
+          docker build --pull -t "$IMAGE" .
+          docker push "$IMAGE"
+          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+
+  # Language-specific sustainability model building game deployments
+  deploy-model-building-game-en-sustainability:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy model-building-game-en-sustainability
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: model-building-game-en-sustainability
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=4Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=1
+            --max-instances=150
+            --timeout=3000
+            --set-env-vars=APP_NAME=model-building-game-en-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
+            
+  deploy-model-building-game-ca-sustainability:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy model-building-game-ca-sustainability
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: model-building-game-ca-sustainability
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=4Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=1
+            --max-instances=150
+            --timeout=3000
+            --set-env-vars=APP_NAME=model-building-game-ca-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
+            
+  deploy-model-building-game-es-sustainability:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy model-building-game-es-sustainability
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: model-building-game-es-sustainability
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=4Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=1
+            --max-instances=150
+            --timeout=3000
+            --set-env-vars=APP_NAME=model-building-game-es-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
+
+  # Final variants for EN, ES, CA - Sustainability
+  deploy-model-building-game-en-final-sustainability:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy model-building-game-en-final-sustainability
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: model-building-game-en-final-sustainability
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=4Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=1
+            --max-instances=150
+            --timeout=3000
+            --set-env-vars=APP_NAME=model-building-game-en-final-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
+            
+  deploy-model-building-game-es-final-sustainability:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy model-building-game-es-final-sustainability
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: model-building-game-es-final-sustainability
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=4Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=1
+            --max-instances=150
+            --timeout=3000
+            --set-env-vars=APP_NAME=model-building-game-es-final-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
+            
+  deploy-model-building-game-ca-final-sustainability:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy model-building-game-ca-final-sustainability
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: model-building-game-ca-final-sustainability
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=4Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=1
+            --max-instances=150
+            --timeout=3000
+            --set-env-vars=APP_NAME=model-building-game-ca-final-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
+
+  deploy-model-building-game-sustainability:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy model-building-game-sustainability
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: model-building-game-sustainability
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=4Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=1
+            --max-instances=150
+            --timeout=3000
+            --set-env-vars=APP_NAME=model-building-game-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
+
+  deploy-model-building-game-beginner-sustainability:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy model-building-game-beginner-sustainability
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: model-building-game-beginner-sustainability
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=4Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=1
+            --max-instances=150
+            --timeout=3000
+            --set-env-vars=APP_NAME=model-building-game-beginner-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
+
+  # ------------------------------------------------------------
+  # Collect and publish all deployed service URLs
+  # ------------------------------------------------------------
+  collect-urls:
+    runs-on: ubuntu-latest
+    needs:
+      - deploy-model-building-game-en-sustainability
+      - deploy-model-building-game-ca-sustainability
+      - deploy-model-building-game-es-sustainability
+      - deploy-model-building-game-en-final-sustainability
+      - deploy-model-building-game-es-final-sustainability
+      - deploy-model-building-game-ca-final-sustainability
+      - deploy-model-building-game-sustainability
+      - deploy-model-building-game-beginner-sustainability
+    steps:
+      - name: Generate JSON of deployed URLs
+        run: |
+          cat > deployed_urls.json <<'EOF'
+          {
+            "model-building-game-en-sustainability": "${{ needs.deploy-model-building-game-en-sustainability.outputs.url }}",
+            "model-building-game-ca-sustainability": "${{ needs.deploy-model-building-game-ca-sustainability.outputs.url }}",
+            "model-building-game-es-sustainability": "${{ needs.deploy-model-building-game-es-sustainability.outputs.url }}",
+            "model-building-game-en-final-sustainability": "${{ needs.deploy-model-building-game-en-final-sustainability.outputs.url }}",
+            "model-building-game-es-final-sustainability": "${{ needs.deploy-model-building-game-es-final-sustainability.outputs.url }}",
+            "model-building-game-ca-final-sustainability": "${{ needs.deploy-model-building-game-ca-final-sustainability.outputs.url }}",
+            "model-building-game-sustainability": "${{ needs.deploy-model-building-game-sustainability.outputs.url }}",
+            "model-building-game-beginner-sustainability": "${{ needs.deploy-model-building-game-beginner-sustainability.outputs.url }}"
+          }
+          EOF
+          echo "Deployed service URLs JSON:"
+          cat deployed_urls.json
+      - name: Upload deployed_urls.json artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployed-urls
+          path: deployed_urls.json
+      - name: Append URLs to summary
+        run: |
+          {
+            echo "### Deployed Sustainability App URLs"
+            echo ""
+            echo '```json'
+            cat deployed_urls.json
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
