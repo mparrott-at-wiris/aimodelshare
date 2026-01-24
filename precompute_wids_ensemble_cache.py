@@ -93,17 +93,20 @@ def get_preprocessor(features):
 
 # --- TUNING ---
 def tune_model(model, level: int):
+    level = int(level)
     if isinstance(model, GradientBoostingClassifier):
-        model.n_estimators = {1: 10, 2: 12, 3: 15, 4: 18, 5: 20, 6: 22, 7: 25, 8: 28, 9: 30, 10: 30}.get(level, 20)
-        model.learning_rate = {1: 0.01, 2: 0.025, 3: 0.05, 4: 0.075, 5: 0.1, 6: 0.125, 7: 0.15, 8: 0.175, 9: 0.2, 10: 0.25}.get(level, 0.1)
-        model.max_depth = max(1, level)
+        model.n_estimators = {1: 50, 2: 75, 3: 100, 4: 125, 5: 150, 6: 175, 7: 200, 8: 250, 9: 300, 10: 350}.get(level, 100)
+        model.max_depth   = {1: 2, 2: 2, 3: 3, 4: 3, 5: 3, 6: 4, 7: 4, 8: 4, 9: 5, 10: 5}.get(level, 3)
+        model.learning_rate = {1: 0.2, 2: 0.15, 3: 0.12, 4: 0.1, 5: 0.08, 6: 0.07, 7: 0.06, 8: 0.05, 9: 0.05, 10: 0.04}.get(level, 0.1)
     elif isinstance(model, HistGradientBoostingClassifier):
-        model.max_iter = {1: 10, 2: 12, 3: 15, 4: 18, 5: 20, 6: 22, 7: 25, 8: 28, 9: 30, 10: 30}.get(level, 20)
-        model.learning_rate = {1: 0.01, 2: 0.025, 3: 0.05, 4: 0.075, 5: 0.1, 6: 0.125, 7: 0.15, 8: 0.175, 9: 0.2, 10: 0.25}.get(level, 0.1)
-        model.max_depth = max(1, level * 2)
+        model.max_iter   = {1: 60, 2: 80, 3: 100, 4: 120, 5: 140, 6: 160, 7: 180, 8: 200, 9: 240, 10: 300}.get(level, 100)
+        model.max_depth  = {1: 2, 2: 3, 3: 3, 4: 4, 5: 4, 6: 5, 7: 6, 8: 7, 9: 8, 10: None}.get(level, None)
+        model.learning_rate = {1: 0.2, 2: 0.15, 3: 0.12, 4: 0.1, 5: 0.08, 6: 0.07, 7: 0.06, 8: 0.05, 9: 0.05, 10: 0.04}.get(level, 0.1)
+        model.l2_regularization = 0.0
     elif isinstance(model, ExtraTreesClassifier):
-        model.n_estimators = {1: 10, 2: 12, 3: 15, 4: 18, 5: 20, 6: 22, 7: 25, 8: 28, 9: 30, 10: 30}.get(level, 20)
-        model.max_depth = level * 2 + 2 if level < 9 else None
+        model.n_estimators = {1: 100, 2: 150, 3: 200, 4: 250, 5: 300, 6: 350, 7: 400, 8: 450, 9: 500, 10: 600}.get(level, 300)
+        model.max_depth    = {1: 10, 2: 12, 3: 14, 4: 16, 5: 18, 6: 20, 7: 24, 8: 28, 9: 32, 10: None}.get(level, None)
+        model.min_samples_leaf = {1: 10, 2: 8, 3: 6, 4: 5, 5: 4, 6: 3, 7: 2, 8: 2, 9: 1, 10: 1}.get(level, 2)
     return model
 
 # --- WORKER ---
@@ -129,7 +132,7 @@ def process_task(task, X_samples, Y_samples, X_test_raw):
             
             model = VotingClassifier(
                 estimators=[("gb", gb), ("hgb", hgb), ("et", et)],
-                voting="soft"
+                voting="hard"
             )
         else:
             model = NEW_MODEL_TYPES[model_name]()
@@ -236,7 +239,9 @@ if __name__ == "__main__":
                 if line.strip():
                     final_keys.add(json.loads(line)["k"])
     
-    # Total: 4 models * 10 complexity * 4 data sizes * 16383 feature combos = 2,621,120
+    # Calculate total possible tasks
+    # With 14 features: 2^14 - 1 = 16,383 feature combinations
+    # Total = 16,383 combos * 4 models * 10 complexity * 4 data sizes = 2,621,120
     total_possible = len(all_combos) * len(NEW_MODEL_TYPES) * 10 * len(DATA_SIZE_MAP)
     
     print(f"Status: {len(final_keys)} / {total_possible} complete.")

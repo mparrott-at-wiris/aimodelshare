@@ -264,7 +264,9 @@ if __name__ == "__main__":
                 if line.strip():
                     final_keys.add(json.loads(line)["k"])
     
-    # Total: 5 models * 10 complexity * 16383 feature combos = 819,150
+    # Calculate total possible tasks
+    # With 14 features: 2^14 - 1 = 16,383 feature combinations
+    # Total = 16,383 combos * 5 models * 10 complexity = 819,150
     total_possible = len(all_combos) * len(all_model_names) * 10
     
     print(f"Status: {len(final_keys)} / {total_possible} complete.")
