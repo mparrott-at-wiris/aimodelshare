@@ -36,15 +36,14 @@ jobs:
           if_no_artifact_found: warn
         continue-on-error: true
 
-      # Debug: Verify the file arrived
+      # Debug Step (Line 36 in your original)
       - name: Debug Checkpoint
         run: |
-          if [ -f "wids_cache_checkpoint.jsonl" ]; then
+          # CHANGE THIS LINE TO .gz
+          if [ -f "wids_cache_checkpoint.jsonl.gz" ]; then
             echo "✅ SUCCESS: Checkpoint found!"
-            ls -lh wids_cache_checkpoint.jsonl
           else
-            echo "⚠️ NOTE: No checkpoint found. If this is the FIRST run, this is normal."
-            echo "If this is the SECOND run, something is wrong."
+            echo "⚠️ NOTE: No checkpoint found. Normal for first run."
           fi
 
       # Run the script
@@ -56,11 +55,12 @@ jobs:
 
       # Save Checkpoint (Runs even if timeout occurs)
       - name: Save Checkpoint
-        if: always() 
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: wids-cache-checkpoint
-          path: wids_cache_checkpoint.jsonl
+          # CHANGE THIS LINE TO .gz
+          path: wids_cache_checkpoint.jsonl.gz
           retention-days: 5
 
       # Save Final Result (Only if the script finishes 100%)
