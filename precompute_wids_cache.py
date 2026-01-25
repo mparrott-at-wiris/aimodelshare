@@ -19,12 +19,12 @@ from sklearn.neighbors import KNeighborsClassifier
 
 # --- 1. CONFIGURATION ---
 MAX_ROWS = 4000
-# Stop script after 50 minutes (3000 seconds) to prevent GitHub Timeout Crash
-MAX_RUNTIME_SEC = 20000
-# UPDATED: Reduced batch size to force frequent garbage collection
+# STOP TIME: 20,000 seconds = ~5.5 hours (Leaves 30m buffer for upload)
+MAX_RUNTIME_SEC = 20000 
 BATCH_SIZE = 1000 
 
-CHECKPOINT_FILE = "wids_cache_checkpoint.jsonl"
+# UPDATED: Use compressed checkpoint to avoid 2GB GitHub Action Crash
+CHECKPOINT_FILE = "wids_cache_checkpoint.jsonl.gz"
 FINAL_FILE = "wids_prediction_cache.json.gz"
 
 # Specified columns for WiDS dataset
@@ -46,13 +46,13 @@ MODEL_TYPES = {
 # --- 2. DATA PREP ---
 def load_data():
     print("Loading WiDS dataset...")
+    # Ensure this path is correct in your repo
     dataset_path = "datasets/recreated_wids_v2_ny_10k.csv"
     df = pd.read_csv(dataset_path)
 
     if df.shape[0] > MAX_ROWS:
         df = df.sample(n=MAX_ROWS, random_state=42)
 
-    # Ensure all required columns exist
     for col in ALL_FEATURES:
         if col not in df.columns:
             df[col] = np.nan
@@ -114,7 +114,6 @@ def process(task):
         model.fit(X_tr, Y_SAMPLES[data_size])
         
         preds = model.predict(X_te)
-        # Store as lightweight string "010101"
         pred_string = "".join(preds.astype(str))
         
         return key, pred_string
@@ -130,10 +129,10 @@ if __name__ == "__main__":
     if os.path.exists(CHECKPOINT_FILE):
         print(f"Reading checkpoint {CHECKPOINT_FILE}...")
         try:
-            with open(CHECKPOINT_FILE, "r") as f:
+            # UPDATED: Use gzip 'rt' mode
+            with gzip.open(CHECKPOINT_FILE, "rt", encoding="UTF-8") as f:
                 for line in f:
                     if line.strip():
-                        # Minimal parsing to get key without loading full JSON objects
                         data = json.loads(line)
                         completed_keys.add(data["k"])
         except Exception as e:
@@ -153,7 +152,6 @@ if __name__ == "__main__":
         for c in range(1, 11):
             for d in DATA_SIZE_MAP:
                 for f_combo in all_combos:
-                    # Pre-calculate key to check against checkpoint
                     fk = ",".join(sorted(f_combo))
                     k = f"{m}|{c}|{d}|{fk}"
                     if k not in completed_keys:
@@ -164,21 +162,19 @@ if __name__ == "__main__":
     
     # 3. Processing Loop
     if total_remaining > 0:
-        # Open in APPEND mode ('a')
-        with open(CHECKPOINT_FILE, "a") as f_out:
+        # UPDATED: Open in APPEND TEXT mode ('at') with GZIP
+        with gzip.open(CHECKPOINT_FILE, "at", encoding="UTF-8") as f_out:
             
             for i in range(0, total_remaining, BATCH_SIZE):
-                # Time Check
                 elapsed = time.time() - start_time
                 if elapsed > MAX_RUNTIME_SEC:
-                    print(f"⚠️ Time limit reached ({elapsed:.0f}s). Stopping gracefully to save progress.")
+                    print(f"⚠️ Time limit reached ({elapsed:.0f}s). Stopping gracefully.")
                     break
                 
                 batch_tasks = all_tasks[i : i + BATCH_SIZE]
                 print(f"Processing Batch {i//BATCH_SIZE + 1} ({len(batch_tasks)} tasks)...")
                 
-                # UPDATED: n_jobs=1 (Serial Mode) 
-                # This prevents memory explosion with heavy Random Forest models.
+                # UPDATED: n_jobs=2 (Use 2 cores)
                 with Parallel(n_jobs=2, return_as="generator", verbose=0) as parallel:
                     for result in parallel(delayed(process)(t) for t in batch_tasks):
                         if result is None: continue
@@ -186,23 +182,18 @@ if __name__ == "__main__":
                         key, val = result
                         f_out.write(json.dumps({"k": key, "v": val}) + "\n")
                 
-                # Flush to disk & clean RAM
                 f_out.flush()
-                os.fsync(f_out.fileno())
                 gc.collect()
                 print(f"Batch saved. Time elapsed: {time.time() - start_time:.0f}s")
 
-    # 4. Finalization Check
+    # 4. Finalization
     final_keys = set()
     if os.path.exists(CHECKPOINT_FILE):
-        with open(CHECKPOINT_FILE, "r") as f:
+        with gzip.open(CHECKPOINT_FILE, "rt", encoding="UTF-8") as f:
             for line in f:
                 if line.strip():
                     final_keys.add(json.loads(line)["k"])
     
-    # Calculate total possible tasks count
-    # With 14 features: all combinations from size 1 to 14 = sum(C(14,r) for r=1..14) = 2^14 - 1 = 16,383
-    # Total = 16,383 combos * 4 models * 10 complexity * 4 data sizes = 2,621,120
     total_possible = len(all_combos) * len(MODEL_TYPES) * 10 * len(DATA_SIZE_MAP)
     
     print(f"Status: {len(final_keys)} / {total_possible} complete.")
@@ -210,9 +201,8 @@ if __name__ == "__main__":
     if len(final_keys) >= total_possible:
         print("🎉 ALL TASKS COMPLETE. Building final cache file...")
         
-        # Convert JSONL -> Standard compressed JSON dictionary
         final_cache = {}
-        with open(CHECKPOINT_FILE, "r") as f:
+        with gzip.open(CHECKPOINT_FILE, "rt", encoding="UTF-8") as f:
             for line in f:
                 if line.strip():
                     entry = json.loads(line)
