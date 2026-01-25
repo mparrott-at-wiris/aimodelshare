@@ -26,27 +26,30 @@ jobs:
         run: pip install pandas numpy scikit-learn joblib
 
       # Restore Checkpoint
+      # UPDATED: Changed name to 'v2' to avoid crashing on the old 2GB artifact
       - name: Restore Checkpoint
         uses: dawidd6/action-download-artifact@v6
         with:
-          name: wids-cache-checkpoint
+          name: wids-cache-checkpoint-v2
           path: .
           search_artifacts: true
           workflow_conclusion: "" 
           if_no_artifact_found: warn
         continue-on-error: true
 
-      # Debug Step (Line 36 in your original)
+      # Debug Step
       - name: Debug Checkpoint
         run: |
-          # CHANGE THIS LINE TO .gz
           if [ -f "wids_cache_checkpoint.jsonl.gz" ]; then
-            echo "✅ SUCCESS: Checkpoint found!"
+            echo "✅ SUCCESS: Compressed checkpoint found!"
+            ls -lh wids_cache_checkpoint.jsonl.gz
           else
-            echo "⚠️ NOTE: No checkpoint found. Normal for first run."
+            echo "⚠️ NOTE: No checkpoint found. This is normal for the first v2 run."
           fi
 
       # Run the script
+      # Note: We keep thread limits = 1 because the Python script now handles
+      # parallelism via n_jobs=2. This prevents CPU over-subscription.
       - name: Run Compute Chunk
         run: |
           export OMP_NUM_THREADS=1
@@ -54,12 +57,12 @@ jobs:
           python precompute_wids_cache.py
 
       # Save Checkpoint (Runs even if timeout occurs)
+      # UPDATED: Saves to 'v2' artifact name
       - name: Save Checkpoint
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: wids-cache-checkpoint
-          # CHANGE THIS LINE TO .gz
+          name: wids-cache-checkpoint-v2
           path: wids_cache_checkpoint.jsonl.gz
           retention-days: 5
 
