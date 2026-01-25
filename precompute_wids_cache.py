@@ -20,7 +20,7 @@ from sklearn.neighbors import KNeighborsClassifier
 # --- 1. CONFIGURATION ---
 MAX_ROWS = 4000
 # Stop script after 50 minutes (3000 seconds) to prevent GitHub Timeout Crash
-MAX_RUNTIME_SEC = 3000 
+MAX_RUNTIME_SEC = 20000
 # UPDATED: Reduced batch size to force frequent garbage collection
 BATCH_SIZE = 1000 
 
@@ -179,7 +179,7 @@ if __name__ == "__main__":
                 
                 # UPDATED: n_jobs=1 (Serial Mode) 
                 # This prevents memory explosion with heavy Random Forest models.
-                with Parallel(n_jobs=1, return_as="generator", verbose=0) as parallel:
+                with Parallel(n_jobs=2, return_as="generator", verbose=0) as parallel:
                     for result in parallel(delayed(process)(t) for t in batch_tasks):
                         if result is None: continue
                         
