@@ -1,18 +1,25 @@
 import itertools
 import json
 
-# Define the configuration
+# Configuration
+NUM_CHUNKS = 20  # Number of parallel jobs (matches `matrix.chunk_id` in the YAML workflow)
+
+# Define your input features, models, complexity levels, and data sizes
 ALL_FEATURES = [
-    "floor_area", "year_built", "ELEVATION", "heating_degree_days", 
-    "cooling_degree_days", "january_min_temp", "july_max_temp", 
-    "avg_temp", "april_avg_temp", "october_avg_temp", 
+    "floor_area", "year_built", "ELEVATION", "heating_degree_days",
+    "cooling_degree_days", "january_min_temp", "july_max_temp",
+    "avg_temp", "april_avg_temp", "october_avg_temp",
     "facility_type", "building_class", "State_Factor", "Year_Factor"
 ]
-MODEL_TYPES = ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'", "The Deep Pattern-Finder"]
-COMPLEXITIES = range(1, 11)  # 1 through 10
+MODEL_TYPES = [
+    "The Balanced Generalist", "The Rule-Maker",
+    "The 'Nearest Neighbor'", "The Deep Pattern-Finder"
+]
+COMPLEXITIES = range(1, 11)  # Complexity levels (1 through 10)
 DATA_SIZES = ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"]
 
 def generate_all_tasks():
+    """Generate all possible task combinations."""
     all_combos = []
     for r in range(1, len(ALL_FEATURES) + 1):
         all_combos.extend(itertools.combinations(ALL_FEATURES, r))
@@ -26,18 +33,19 @@ def generate_all_tasks():
                     tasks.append(task_key)
     return tasks
 
-# Split tasks into `N` chunks
 def split_tasks(tasks, num_chunks):
-    chunk_size = (len(tasks) + num_chunks - 1) // num_chunks  # Round up
+    """Split tasks into `num_chunks` parts."""
+    chunk_size = (len(tasks) + num_chunks - 1) // num_chunks  # Round up division
     return [tasks[i:i + chunk_size] for i in range(0, len(tasks), chunk_size)]
 
 if __name__ == "__main__":
+    print("Generating task splits...")
     tasks = generate_all_tasks()
-    chunks = split_tasks(tasks, num_chunks=10)  # Split into 10 chunks
+    print(f"Total tasks generated: {len(tasks)}")
 
-    # Write each chunk to a JSON file
+    chunks = split_tasks(tasks, NUM_CHUNKS)
     for i, chunk in enumerate(chunks):
         with open(f"task_chunk_{i}.json", "w") as f:
             json.dump(chunk, f)
-
-    print(f"Generated {len(chunks)} task chunks, each with approximately {len(chunks[0])} tasks.")
+        print(f"Chunk {i} saved with {len(chunk)} tasks.")
+    print(f"Successfully created {len(chunks)} task chunk files.")
