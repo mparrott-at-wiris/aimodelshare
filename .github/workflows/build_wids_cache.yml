@@ -31,7 +31,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y build-essential
 
       - name: Install Dependencies
-        run: pip install pandas numpy scikit-learn joblib
+        run: pip install pandas numpy scikit-learn joblib psutil
 
       - name: Generate Task Chunks
         run: python generate_task_splits.py
