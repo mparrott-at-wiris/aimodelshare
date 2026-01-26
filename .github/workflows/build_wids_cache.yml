@@ -1,17 +1,19 @@
-name: Build WiDS Prediction Cache Artifact (Resumable)
+name: Parallel WiDS Prediction Cache Builder
 
 on:
   workflow_dispatch:
 
 permissions:
   contents: read
-  actions: read      # Required to list/download artifacts
+  actions: read
   checks: write
 
 jobs:
-  build-wids-cache-chunk:
+  parallel-chunks:
+    strategy:
+      matrix:
+        chunk_id: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]  # 10 jobs
     runs-on: ubuntu-latest
-    timeout-minutes: 360
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -25,52 +27,39 @@ jobs:
       - name: Install Dependencies
         run: pip install pandas numpy scikit-learn joblib
 
-      # Restore Checkpoint
-      # UPDATED: Changed name to 'v2' to avoid crashing on the old 2GB artifact
-      - name: Restore Checkpoint
-        uses: dawidd6/action-download-artifact@v6
-        with:
-          name: wids-cache-checkpoint-v2
-          path: .
-          search_artifacts: true
-          workflow_conclusion: "" 
-          if_no_artifact_found: warn
-        continue-on-error: true
+      - name: Load Task Chunk
+        # Replace this with the actual path to your task split JSON files
+        run: cp task_chunk_${{ matrix.chunk_id }}.json tasks.json
 
-      # Debug Step
-      - name: Debug Checkpoint
-        run: |
-          if [ -f "wids_cache_checkpoint.jsonl.gz" ]; then
-            echo "✅ SUCCESS: Compressed checkpoint found!"
-            ls -lh wids_cache_checkpoint.jsonl.gz
-          else
-            echo "⚠️ NOTE: No checkpoint found. This is normal for the first v2 run."
-          fi
+      - name: Run Processor for Chunk
+        run: python precompute_wids_cache.py --task-file tasks.json
 
-      # Run the script
-      # Note: We keep thread limits = 1 because the Python script now handles
-      # parallelism via n_jobs=2. This prevents CPU over-subscription.
-      - name: Run Compute Chunk
-        run: |
-          export OMP_NUM_THREADS=1
-          export OPENBLAS_NUM_THREADS=1
-          python precompute_wids_cache.py
-
-      # Save Checkpoint (Runs even if timeout occurs)
-      # UPDATED: Saves to 'v2' artifact name
-      - name: Save Checkpoint
-        if: always()
+      - name: Upload Partial Results
         uses: actions/upload-artifact@v4
         with:
-          name: wids-cache-checkpoint-v2
+          name: partial-result-chunk-${{ matrix.chunk_id }}
           path: wids_cache_checkpoint.jsonl.gz
           retention-days: 5
 
-      # Save Final Result (Only if the script finishes 100%)
-      - name: Save Final Artifact
-        if: hashFiles('wids_prediction_cache.json.gz') != ''
+  combine-chunks:
+    needs: parallel-chunks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download Partial Results
+        uses: actions/download-artifact@v4
+        with:
+          name: "partial-result-*"
+          path: results
+
+      - name: Combine Results
+        run: python combine_results.py --input-dir results --output-file wids_prediction_cache.json.gz
+
+      - name: Upload Final Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: wids-prediction-cache-file
+          name: wids-final-prediction-cache
           path: wids_prediction_cache.json.gz
           retention-days: 90
