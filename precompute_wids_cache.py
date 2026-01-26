@@ -22,7 +22,7 @@ from sklearn.neighbors import KNeighborsClassifier
 MAX_ROWS = 4000
 # Time limit for execution: 20,000 seconds leaves some buffer before workflow timeout
 MAX_RUNTIME_SEC = 20000
-BATCH_SIZE = 1000
+BATCH_SIZE = 500
 CHECKPOINT_FILE = "wids_cache_checkpoint.jsonl.gz"
 FINAL_FILE = "wids_prediction_cache.json.gz"
 
