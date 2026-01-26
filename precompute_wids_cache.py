@@ -20,38 +20,39 @@ from sklearn.neighbors import KNeighborsClassifier
 
 # --- 1. CONFIGURATION ---
 MAX_ROWS = 4000
-# STOP TIME: 20,000 seconds = ~5.5 hours (Leaves 30m buffer for upload)
-MAX_RUNTIME_SEC = 20000 
-BATCH_SIZE = 1000 
-
-# UPDATED: Use compressed checkpoint to avoid 2GB GitHub Action Crash
+# Time limit for execution: 20,000 seconds leaves some buffer before workflow timeout
+MAX_RUNTIME_SEC = 20000
+BATCH_SIZE = 1000
 CHECKPOINT_FILE = "wids_cache_checkpoint.jsonl.gz"
 FINAL_FILE = "wids_prediction_cache.json.gz"
 
-# Specified columns for WiDS dataset
-ALL_NUMERIC_COLS = ["floor_area", "year_built", "ELEVATION", "heating_degree_days", 
-                    "cooling_degree_days", "january_min_temp", "july_max_temp", 
-                    "avg_temp", "april_avg_temp", "october_avg_temp"]
+# Define columns and data configuration
+ALL_NUMERIC_COLS = [
+    "floor_area", "year_built", "ELEVATION", "heating_degree_days",
+    "cooling_degree_days", "january_min_temp", "july_max_temp",
+    "avg_temp", "april_avg_temp", "october_avg_temp"
+]
 ALL_CATEGORICAL_COLS = ["facility_type", "building_class", "State_Factor", "Year_Factor"]
 ALL_FEATURES = ALL_NUMERIC_COLS + ALL_CATEGORICAL_COLS
 
-DATA_SIZE_MAP = {"Small (20%)": 0.2, "Medium (60%)": 0.6, "Large (80%)": 0.8, "Full (100%)": 1.0}
+DATA_SIZE_MAP = {
+    "Small (20%)": 0.2,
+    "Medium (60%)": 0.6,
+    "Large (80%)": 0.8,
+    "Full (100%)": 1.0
+}
 
 MODEL_TYPES = {
     "The Balanced Generalist": lambda: LogisticRegression(max_iter=200, random_state=42, class_weight="balanced"),
     "The Rule-Maker": lambda: DecisionTreeClassifier(random_state=42, class_weight="balanced"),
     "The 'Nearest Neighbor'": lambda: KNeighborsClassifier(),
-    "The Deep Pattern-Finder": lambda: RandomForestClassifier(random_state=42, class_weight="balanced")
+    "The Deep Pattern-Finder": lambda: RandomForestClassifier(random_state=42, class_weight="balanced"),
 }
 
-def load_tasks(task_file):
-    with open(task_file, "r") as f:
-        return json.load(f)
-      
-# --- 2. DATA PREP ---
+# --- 2. DATA PREPARATION ---
 def load_data():
+    """Load WiDS dataset and prepare training/test splits."""
     print("Loading WiDS dataset...")
-    # Ensure this path is correct in your repo
     dataset_path = "datasets/recreated_wids_v2_ny_10k.csv"
     df = pd.read_csv(dataset_path)
 
@@ -77,153 +78,116 @@ for label, frac in DATA_SIZE_MAP.items():
         X_SAMPLES[label] = X_TRAIN_RAW.sample(frac=frac, random_state=42)
         Y_SAMPLES[label] = Y_TRAIN.loc[X_SAMPLES[label].index]
 
-# --- 3. WORKER HELPERS ---
+# --- 3. WORKER FUNCTIONS ---
 def get_preprocessor(features):
+    """
+    Create a ColumnTransformer for selected numeric and categorical features.
+    """
     num = [f for f in features if f in ALL_NUMERIC_COLS]
     cat = [f for f in features if f in ALL_CATEGORICAL_COLS]
     steps = []
-    if num: steps.append(("num", Pipeline([("imputer", SimpleImputer(strategy="median")), ("scaler", StandardScaler())]), num))
-    if cat: steps.append(("cat", Pipeline([("imputer", SimpleImputer(strategy="constant", fill_value="missing")), ("onehot", OneHotEncoder(handle_unknown="ignore", sparse_output=True))]), cat))
+    if num:
+        steps.append(("num", Pipeline([
+            ("imputer", SimpleImputer(strategy="median")),
+            ("scaler", StandardScaler())
+        ]), num))
+    if cat:
+        steps.append(("cat", Pipeline([
+            ("imputer", SimpleImputer(strategy="constant", fill_value="missing")),
+            ("onehot", OneHotEncoder(handle_unknown="ignore", sparse_output=True))
+        ]), cat))
     return ColumnTransformer(steps, remainder="drop")
 
 def tune_model(model, level):
+    """Adjust model hyperparameters based on level."""
     level = int(level)
     if isinstance(model, LogisticRegression):
-        model.C = {1: 0.01, 2: 0.025, 3: 0.05, 4: 0.1, 5: 0.25, 6: 0.5, 7: 1.0, 8: 2.0, 9: 5.0, 10: 10.0}.get(level, 1.0)
+        model.C = {1: 0.01, 2: 0.025, 3: 0.05, 4: 0.1, 5: 0.25, 6: 0.5,
+                   7: 1.0, 8: 2.0, 9: 5.0, 10: 10.0}.get(level, 1.0)
     elif isinstance(model, RandomForestClassifier):
-        model.n_estimators = {1: 10, 2: 12, 3: 15, 4: 18, 5: 20, 6: 22, 7: 25, 8: 28, 9: 30, 10: 30}.get(level, 20)
+        model.n_estimators = {1: 10, 2: 12, 3: 15, 4: 18, 5: 20, 6: 22,
+                              7: 25, 8: 28, 9: 30, 10: 30}.get(level, 20)
         model.max_depth = level * 2 + 2 if level < 9 else None
     elif isinstance(model, DecisionTreeClassifier):
         model.max_depth = level + 1 if level < 10 else None
     elif isinstance(model, KNeighborsClassifier):
-        model.n_neighbors = {1: 100, 2: 75, 3: 60, 4: 50, 5: 40, 6: 30, 7: 25, 8: 15, 9: 7, 10: 3}.get(level, 25)
+        model.n_neighbors = {1: 100, 2: 75, 3: 60, 4: 50, 5: 40, 6: 30,
+                             7: 25, 8: 15, 9: 7, 10: 3}.get(level, 25)
     return model
 
 def process(task):
+    """Process an individual task."""
     model_name, complexity, data_size, feature_tuple = task
     feature_key = ",".join(sorted(feature_tuple))
     key = f"{model_name}|{complexity}|{data_size}|{feature_key}"
-    
     try:
-        prep = get_preprocessor(feature_tuple)
-        X_tr = prep.fit_transform(X_SAMPLES[data_size])
-        X_te = prep.transform(X_TEST_RAW)
-        
+        preprocessor = get_preprocessor(feature_tuple)
+        X_train = preprocessor.fit_transform(X_SAMPLES[data_size])
+        X_test = preprocessor.transform(X_TEST_RAW)
+
         model = MODEL_TYPES[model_name]()
         model = tune_model(model, complexity)
-        
+
         if isinstance(model, (RandomForestClassifier, DecisionTreeClassifier)):
-            X_tr = X_tr.toarray() if hasattr(X_tr, "toarray") else X_tr
-            X_te = X_te.toarray() if hasattr(X_te, "toarray") else X_te
-            
-        model.fit(X_tr, Y_SAMPLES[data_size])
-        
-        preds = model.predict(X_te)
-        pred_string = "".join(preds.astype(str))
-        
+            # Handle sparse to dense conversion
+            X_train = X_train.toarray() if hasattr(X_train, "toarray") else X_train
+            X_test = X_test.toarray() if hasattr(X_test, "toarray") else X_test
+
+        model.fit(X_train, Y_SAMPLES[data_size])
+        predictions = model.predict(X_test)
+        pred_string = "".join(predictions.astype(str))
         return key, pred_string
-    except Exception:
+
+    except Exception as e:
+        print(f"⚠️ Error processing task {key}: {e}")
         return None
 
-# --- 4. EXECUTION (RESUMABLE) ---
+# --- 4. MAIN EXECUTION ---
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--task-file", required=True, help="Path to JSON file containing task keys for this chunk")
+    parser.add_argument("--task-file", required=True, help="Path to the task JSON file")
     args = parser.parse_args()
 
-    # Load tasks for this chunk
-    task_chunk = load_tasks(args.task_file)
-    
-    # (Rest of the script remains unchanged until the processing logic)
-    
-    all_tasks = []
-    for task_key in task_chunk:
-        model, complexity, size, feature_str = task_key.split("|")
-        feature_tuple = feature_str.split(",")
-        all_tasks.append((model, int(complexity), size, feature_tuple))
-  
-    start_time = time.time()
-    
-    # 1. Load Checkpoint (Completed Keys)
+    # Load tasks for this job chunk
+    with open(args.task_file, "r") as f:
+        task_chunk = json.load(f)
+
+    # Load checkpoint if available
     completed_keys = set()
     if os.path.exists(CHECKPOINT_FILE):
-        print(f"Reading checkpoint {CHECKPOINT_FILE}...")
-        try:
-            # UPDATED: Use gzip 'rt' mode
-            with gzip.open(CHECKPOINT_FILE, "rt", encoding="UTF-8") as f:
-                for line in f:
-                    if line.strip():
-                        data = json.loads(line)
-                        completed_keys.add(data["k"])
-        except Exception as e:
-            print(f"Warning: Checkpoint corrupt ({e}). Starting fresh.")
-            completed_keys = set()
-    
-    print(f"Resuming with {len(completed_keys)} already finished.")
+        print(f"Resuming from checkpoint: {CHECKPOINT_FILE}")
+        with gzip.open(CHECKPOINT_FILE, "rt", encoding="UTF-8") as f:
+            for line in f:
+                data = json.loads(line.strip())
+                completed_keys.add(data["k"])
 
-    # 2. Generate Tasks
-    print("Generating task list...")
     all_tasks = []
-    for task_key in task_chunk:
-        model, complexity, data_size, feature_str = task_key.split("|")
-        feature_tuple = tuple(sorted(feature_str.split(",")))
-        if task_key not in completed_keys:
+    for task in task_chunk:
+        if task not in completed_keys:
+            model, complexity, data_size, feature_str = task.split("|")
+            feature_tuple = feature_str.split(",")
             all_tasks.append((model, int(complexity), data_size, feature_tuple))
-                    
-    total_remaining = len(all_tasks)
-    print(f"Models remaining to train: {total_remaining}")
-    
-    # 3. Processing Loop
-    if total_remaining > 0:
-        # UPDATED: Open in APPEND TEXT mode ('at') with GZIP
+
+    print(f"Remaining tasks to process: {len(all_tasks)}")
+    start_time = time.time()
+
+    # Process tasks in batches
+    if all_tasks:
         with gzip.open(CHECKPOINT_FILE, "at", encoding="UTF-8") as f_out:
-            
-            for i in range(0, total_remaining, BATCH_SIZE):
+            for i in range(0, len(all_tasks), BATCH_SIZE):
+                batch = all_tasks[i:i+BATCH_SIZE]
                 elapsed = time.time() - start_time
                 if elapsed > MAX_RUNTIME_SEC:
-                    print(f"⚠️ Time limit reached ({elapsed:.0f}s). Stopping gracefully.")
+                    print(f"⏰ Time limit reached. Ending gracefully.")
                     break
-                
-                batch_tasks = all_tasks[i : i + BATCH_SIZE]
-                print(f"Processing Batch {i//BATCH_SIZE + 1} ({len(batch_tasks)} tasks)...")
-                
-                # UPDATED: n_jobs=2 (Use 2 cores)
-                with Parallel(n_jobs=1, return_as="generator", verbose=0) as parallel:
-                    for result in parallel(delayed(process)(t) for t in batch_tasks):
-                        if result is None: continue
-                        
-                        key, val = result
-                        f_out.write(json.dumps({"k": key, "v": val}) + "\n")
-                
+
+                results = Parallel(n_jobs=1)(delayed(process)(task) for task in batch)
+                for result in results:
+                    if result is None:
+                        continue
+                    f_out.write(json.dumps({"k": result[0], "v": result[1]}) + "\n")
                 f_out.flush()
                 gc.collect()
-                print(f"Batch saved. Time elapsed: {time.time() - start_time:.0f}s")
+                print(f"Processed batch {i // BATCH_SIZE + 1}. Time elapsed: {elapsed:.2f}s.")
 
-    # 4. Finalization
-    final_keys = set()
-    if os.path.exists(CHECKPOINT_FILE):
-        with gzip.open(CHECKPOINT_FILE, "rt", encoding="UTF-8") as f:
-            for line in f:
-                if line.strip():
-                    final_keys.add(json.loads(line)["k"])
-    
-    total_possible = len(all_combos) * len(MODEL_TYPES) * 10 * len(DATA_SIZE_MAP)
-    
-    print(f"Status: {len(final_keys)} / {total_possible} complete.")
-    
-    if len(final_keys) >= total_possible:
-        print("🎉 ALL TASKS COMPLETE. Building final cache file...")
-        
-        final_cache = {}
-        with gzip.open(CHECKPOINT_FILE, "rt", encoding="UTF-8") as f:
-            for line in f:
-                if line.strip():
-                    entry = json.loads(line)
-                    final_cache[entry["k"]] = entry["v"]
-        
-        with gzip.open(FINAL_FILE, "wt", encoding="UTF-8") as f:
-            json.dump(final_cache, f)
-            
-        print(f"✅ Final Artifact Created: {FINAL_FILE}")
-    else:
-        print("⏳ Time limit reached. Please re-run this job to continue.")
+    print("✅ Task processing complete.")
