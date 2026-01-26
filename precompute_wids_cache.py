@@ -175,7 +175,7 @@ if __name__ == "__main__":
                 print(f"Processing Batch {i//BATCH_SIZE + 1} ({len(batch_tasks)} tasks)...")
                 
                 # UPDATED: n_jobs=2 (Use 2 cores)
-                with Parallel(n_jobs=2, return_as="generator", verbose=0) as parallel:
+                with Parallel(n_jobs=1, return_as="generator", verbose=0) as parallel:
                     for result in parallel(delayed(process)(t) for t in batch_tasks):
                         if result is None: continue
                         
