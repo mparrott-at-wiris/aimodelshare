@@ -163,19 +163,12 @@ if __name__ == "__main__":
 
     # 2. Generate Tasks
     print("Generating task list...")
-    all_combos = []
-    for r in range(1, len(ALL_FEATURES) + 1):
-        all_combos.extend(itertools.combinations(ALL_FEATURES, r))
-    
     all_tasks = []
-    for m in MODEL_TYPES:
-        for c in range(1, 11):
-            for d in DATA_SIZE_MAP:
-                for f_combo in all_combos:
-                    fk = ",".join(sorted(f_combo))
-                    k = f"{m}|{c}|{d}|{fk}"
-                    if k not in completed_keys:
-                        all_tasks.append((m, c, d, f_combo))
+    for task_key in task_chunk:
+        model, complexity, data_size, feature_str = task_key.split("|")
+        feature_tuple = tuple(sorted(feature_str.split(",")))
+        if task_key not in completed_keys:
+            all_tasks.append((model, int(complexity), data_size, feature_tuple))
                     
     total_remaining = len(all_tasks)
     print(f"Models remaining to train: {total_remaining}")
