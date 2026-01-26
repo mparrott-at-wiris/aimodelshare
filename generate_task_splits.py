@@ -2,7 +2,7 @@ import itertools
 import json
 
 # Configuration
-NUM_CHUNKS = 20  # Number of parallel jobs (matches `matrix.chunk_id` in the YAML workflow)
+NUM_CHUNKS = 40  # Number of parallel jobs (matches `matrix.chunk_id` in the YAML workflow)
 
 # Define your input features, models, complexity levels, and data sizes
 ALL_FEATURES = [
