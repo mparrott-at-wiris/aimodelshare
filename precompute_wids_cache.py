@@ -49,6 +49,12 @@ MODEL_TYPES = {
     "The Deep Pattern-Finder": lambda: RandomForestClassifier(random_state=42, class_weight="balanced"),
 }
 
+import psutil
+
+def log_resource_usage(batch_number):
+    memory = psutil.virtual_memory()
+    print(f"Batch {batch_number} memory usage: {memory.percent}% used, {memory.available // (1024 * 1024)} MB available")
+    
 # --- 2. DATA PREPARATION ---
 def load_data():
     """Load WiDS dataset and prepare training/test splits."""
@@ -189,5 +195,12 @@ if __name__ == "__main__":
                 f_out.flush()
                 gc.collect()
                 print(f"Processed batch {i // BATCH_SIZE + 1}. Time elapsed: {elapsed:.2f}s.")
+                # Calculate the total number of remaining tasks
+                total_remaining = len(all_tasks)
+                print(f"Models remaining to train: {total_remaining}")
+                for i in range(0, total_remaining, BATCH_SIZE):
+                    batch_tasks = all_tasks[i:i + BATCH_SIZE]
+                    elapsed = time.time() - start_time
+                    log_resource_usage(i // BATCH_SIZE + 1)
 
     print("✅ Task processing complete.")
