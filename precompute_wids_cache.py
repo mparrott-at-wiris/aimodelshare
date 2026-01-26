@@ -1,4 +1,5 @@
 import os
+import argparse
 import json
 import gzip
 import itertools
@@ -43,6 +44,10 @@ MODEL_TYPES = {
     "The Deep Pattern-Finder": lambda: RandomForestClassifier(random_state=42, class_weight="balanced")
 }
 
+def load_tasks(task_file):
+    with open(task_file, "r") as f:
+        return json.load(f)
+      
 # --- 2. DATA PREP ---
 def load_data():
     print("Loading WiDS dataset...")
@@ -122,6 +127,21 @@ def process(task):
 
 # --- 4. EXECUTION (RESUMABLE) ---
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--task-file", required=True, help="Path to JSON file containing task keys for this chunk")
+    args = parser.parse_args()
+
+    # Load tasks for this chunk
+    task_chunk = load_tasks(args.task_file)
+    
+    # (Rest of the script remains unchanged until the processing logic)
+    
+    all_tasks = []
+    for task_key in task_chunk:
+        model, complexity, size, feature_str = task_key.split("|")
+        feature_tuple = feature_str.split(",")
+        all_tasks.append((model, int(complexity), size, feature_tuple))
+  
     start_time = time.time()
     
     # 1. Load Checkpoint (Completed Keys)
