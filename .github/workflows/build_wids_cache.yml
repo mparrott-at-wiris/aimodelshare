@@ -72,7 +72,7 @@ jobs:
       - name: Download Partial Results
         uses: actions/download-artifact@v4
         with:
-          name: "partial-result-*"
+          name: partial-result-chunk-${{ matrix.chunk_id }}
           path: results
 
       - name: Check Number of Chunk Files
