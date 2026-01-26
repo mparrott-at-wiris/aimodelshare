@@ -25,7 +25,7 @@ jobs:
           cache: 'pip'
 
       - name: Install Dependencies
-        run: pip install -r requirements.txt
+        run: pip install pandas numpy scikit-learn joblib
 
       - name: Generate Task Chunks
         run: python generate_task_splits.py
