@@ -25,10 +25,12 @@ jobs:
           cache: 'pip'
 
       - name: Install Dependencies
-        run: pip install pandas numpy scikit-learn joblib
+        run: pip install -r requirements.txt
+
+      - name: Generate Task Chunks
+        run: python generate_task_splits.py
 
       - name: Load Task Chunk
-        # Replace this with the actual path to your task split JSON files
         run: cp task_chunk_${{ matrix.chunk_id }}.json tasks.json
 
       - name: Run Processor for Chunk
@@ -53,6 +55,15 @@ jobs:
         with:
           name: "partial-result-*"
           path: results
+
+      - name: Check Number of Chunk Files
+        run: |
+          expected_chunks=10
+          actual=$(ls results/*.jsonl.gz | wc -l)
+          if [ "$actual" -ne "$expected_chunks" ]; then
+            echo "Error: Missing chunk files. Expected $expected_chunks, found $actual."
+            exit 1
+          fi
 
       - name: Combine Results
         run: python combine_results.py --input-dir results --output-file wids_prediction_cache.json.gz
