@@ -12,8 +12,11 @@ jobs:
   parallel-chunks:
     strategy:
       matrix:
-        chunk_id: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]  # 10 jobs
+        chunk_id: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]  # 20 jobs
     runs-on: ubuntu-latest
+    timeout-minutes: 360  # Extend timeout to 6 hours per job (maximum allowed)
+    continue-on-error: true  # Allow jobs to fail independently without canceling all
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -24,6 +27,9 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
 
+      - name: Install Build Tools
+        run: sudo apt-get update && sudo apt-get install -y build-essential
+
       - name: Install Dependencies
         run: pip install pandas numpy scikit-learn joblib
 
@@ -32,6 +38,13 @@ jobs:
 
       - name: Load Task Chunk
         run: cp task_chunk_${{ matrix.chunk_id }}.json tasks.json
+
+      - name: Output System Resources
+        run: |
+          echo "Resource Usage Before Execution:"
+          vmstat -s
+          free -h
+          df -h
 
       - name: Run Processor for Chunk
         run: python precompute_wids_cache.py --task-file tasks.json
@@ -46,6 +59,7 @@ jobs:
   combine-chunks:
     needs: parallel-chunks
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -58,7 +72,7 @@ jobs:
 
       - name: Check Number of Chunk Files
         run: |
-          expected_chunks=10
+          expected_chunks=20
           actual=$(ls results/*.jsonl.gz | wc -l)
           if [ "$actual" -ne "$expected_chunks" ]; then
             echo "Error: Missing chunk files. Expected $expected_chunks, found $actual."
