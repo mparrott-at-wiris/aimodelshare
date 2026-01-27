@@ -145,7 +145,7 @@ jobs:
 
       # --- USE STREAMING SCRIPT TO AVOID OOM ---
       - name: Combine Results (Streaming)
-        run: python combine_results_streaming.py --input-dir results --output-file wids_prediction_cache_full_models.json.gz
+        run: python combine_results.py --input-dir results --output-file wids_prediction_cache_full_models.json.gz
 
       - name: Upload Final Full Models Artifact
         uses: actions/upload-artifact@v4
