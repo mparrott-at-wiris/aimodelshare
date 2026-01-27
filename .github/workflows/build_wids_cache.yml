@@ -59,12 +59,16 @@ jobs:
 
       - name: Run Processor for Chunk
         run: python precompute_wids_cache.py --task-file tasks.json
+      
+      # --- NEW STEP: RENAME TO UNIQUE FILENAME ---
+      - name: Rename Output with Chunk ID
+        run: mv wids_cache_checkpoint.jsonl.gz chunk_${{ matrix.chunk_id }}.jsonl.gz
 
       - name: Upload Partial Results
         uses: actions/upload-artifact@v4
         with:
           name: partial-result-chunk-${{ matrix.chunk_id }}
-          path: wids_cache_checkpoint.jsonl.gz
+          path: chunk_${{ matrix.chunk_id }}.jsonl.gz # <--- Upload the unique name
           retention-days: 1
           if-no-files-found: error
 
