@@ -11,24 +11,32 @@ permissions:
 jobs:
   parallel-chunks:
     strategy:
+      fail-fast: false # Ensure other chunks finish even if one fails
       matrix:
+        # Explicit list of 0-39
         chunk_id: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
     runs-on: ubuntu-latest
-    timeout-minutes: 360  # Extend timeout to 6 hours per job (maximum allowed)
-    continue-on-error: true  # Allow jobs to fail independently without canceling all
-
+    timeout-minutes: 360
+    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      # --- NEW OPTIMIZATION: ADD SWAP SPACE ---
+      # Essential for your Random Forests to avoid OOM crashes on standard runners
+      - name: Add Swap Space
+        run: |
+          sudo fallocate -l 4G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          sudo swapon --show
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.12'
           cache: 'pip'
-
-      - name: Install Build Tools
-        run: sudo apt-get update && sudo apt-get install -y build-essential
 
       - name: Install Dependencies
         run: pip install pandas numpy scikit-learn joblib psutil
@@ -39,13 +47,6 @@ jobs:
       - name: Load Task Chunk
         run: cp task_chunk_${{ matrix.chunk_id }}.json tasks.json
 
-      - name: Output System Resources
-        run: |
-          echo "Resource Usage Before Execution:"
-          vmstat -s
-          free -h
-          df -h
-
       - name: Run Processor for Chunk
         run: python precompute_wids_cache.py --task-file tasks.json
 
@@ -54,33 +55,43 @@ jobs:
         with:
           name: partial-result-chunk-${{ matrix.chunk_id }}
           path: wids_cache_checkpoint.jsonl.gz
-          retention-days: 5
+          retention-days: 1
+          if-no-files-found: error
 
   combine-chunks:
     needs: parallel-chunks
     runs-on: ubuntu-latest
+    if: always() # Run even if some chunks failed (so we can see the error report)
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: List Available Artifacts
-        run: |
-          curl -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          -X GET https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts
-          
-      - name: Download Partial Results
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      # --- FIX: USE PATTERN MATCHING ---
+      - name: Download All Partial Results
         uses: actions/download-artifact@v4
         with:
-          name: partial-result-chunk-${{ matrix.chunk_id }}
+          pattern: partial-result-chunk-*
           path: results
+          merge-multiple: true
 
-      - name: Check Number of Chunk Files
+      # --- FIX: UPDATED EXPECTED COUNT ---
+      - name: Verify Chunk Completeness
         run: |
-          expected_chunks=20
+          expected_chunks=40
+          # Look for files in the flat 'results' directory
           actual=$(ls results/*.jsonl.gz | wc -l)
+          
+          echo "Found $actual chunks out of $expected_chunks expected."
+          
           if [ "$actual" -ne "$expected_chunks" ]; then
-            echo "Error: Missing chunk files. Expected $expected_chunks, found $actual."
+            echo "::error::Missing chunk files! Expected $expected_chunks, found $actual."
+            echo "Some parallel jobs likely crashed or timed out."
             exit 1
           fi
 
