@@ -1,4 +1,4 @@
-name: Build WiDS Full-Dataset Prediction Cache Artifact (Resumable)
+name: Parallel WiDS Full-Dataset Cache Builder
 
 on:
   workflow_dispatch:
@@ -9,12 +9,28 @@ permissions:
   checks: write
 
 jobs:
-  build-wids-full-cache-chunk:
+  parallel-full-chunks:
+    strategy:
+      fail-fast: false # Allow other chunks to finish if one fails
+      matrix:
+        # 40 chunks (0-39)
+        chunk_id: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
     runs-on: ubuntu-latest
-    timeout-minutes: 360  # Max for GitHub-hosted runners (6 hours)
+    timeout-minutes: 360 # 6 hours
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      # --- CRITICAL: SWAP SPACE ---
+      # Essential for "Deep Pattern-Finder" (Random Forest) on 100% data
+      - name: Add Swap Space
+        run: |
+          sudo dd if=/dev/zero of=/swapfile_custom bs=1G count=4
+          sudo chmod 600 /swapfile_custom
+          sudo mkswap /swapfile_custom
+          sudo swapon /swapfile_custom
+          sudo swapon --show
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -23,89 +39,115 @@ jobs:
           cache: 'pip'
 
       - name: Install Dependencies
-        run: |
-          pip install --upgrade pip
-          pip install pandas numpy scikit-learn joblib
+        run: pip install pandas numpy scikit-learn joblib psutil
 
-      # Prefer finalized base cache to merge with
-      - name: Download Base Prediction Cache (final)
+      # --- INCREMENTAL BUILD LOGIC START ---
+      # 1. Try to download this specific chunk from a PREVIOUS successful run
+      - name: Check for Existing Chunk Artifact
+        id: check_old_chunk
         uses: dawidd6/action-download-artifact@v6
         with:
-          workflow: build_wids_cache.yml
-          name: wids-prediction-cache-file
-          path: .
+          workflow: Parallel WiDS Full-Dataset Cache Builder # Matches THIS file's name
+          name: partial-full-chunk-${{ matrix.chunk_id }}
+          path: existing_chunk
           search_artifacts: true
-          if_no_artifact_found: warn
+          if_no_artifact_found: ignore # Proceed silently if not found
         continue-on-error: true
 
-      # Fallback to checkpoint if final artifact isn't present
-      - name: Download Base Checkpoint (fallback)
-        uses: dawidd6/action-download-artifact@v6
-        with:
-          workflow: build_wids_cache.yml
-          name: wids-cache-checkpoint
-          path: .
-          search_artifacts: true
-          workflow_conclusion: ""
-          if_no_artifact_found: warn
-        continue-on-error: true
-
-      # Restore new full-dataset checkpoint (resumable)
-      - name: Restore Full-Models Checkpoint
-        uses: dawidd6/action-download-artifact@v6
-        with:
-          workflow: build_wids_full_models_cache.yml
-          name: wids-full-models-cache-checkpoint
-          path: .
-          search_artifacts: true
-          workflow_conclusion: ""
-          if_no_artifact_found: warn
-        continue-on-error: true
-
-      - name: Debug Artifacts (before compute)
+      # 2. Decide if we skip computation
+      - name: Determine if Skip Needed
+        id: skip_check
         run: |
-          ls -lah || true
-          [ -f wids_prediction_cache.json.gz ] && echo "✅ Found base wids_prediction_cache.json.gz" || echo "ℹ️ Base final cache not found"
-          [ -f wids_cache_checkpoint.jsonl ] && echo "✅ Found base wids_cache_checkpoint.jsonl" || echo "ℹ️ Base checkpoint not found"
-          [ -f wids_full_models_cache_checkpoint.jsonl ] && echo "✅ Found prior wids_full_models_cache_checkpoint.jsonl" || echo "ℹ️ No prior full-models checkpoint"
-
-      - name: Compute Full-Dataset Cache Chunk
-        env:
-          MAX_RUNTIME_SEC: "21500"  # ~6h minus buffer; script reads this env
-        run: |
-          export OMP_NUM_THREADS=1
-          export OPENBLAS_NUM_THREADS=1
-          python -u precompute_wids_full_models_cache.py
-
-      # Verify the checkpoint exists and show basic stats
-      - name: Verify Checkpoint File
-        run: |
-          if [ -f wids_full_models_cache_checkpoint.jsonl ]; then
-            echo "✅ Checkpoint present:"
-            ls -lh wids_full_models_cache_checkpoint.jsonl
-            echo "Line count:"
-            wc -l wids_full_models_cache_checkpoint.jsonl || true
-            echo "Head:"
-            head -n 3 wids_full_models_cache_checkpoint.jsonl || true
-            echo "Tail:"
-            tail -n 3 wids_full_models_cache_checkpoint.jsonl || true
+          if [ -f "existing_chunk/chunk_${{ matrix.chunk_id }}.jsonl.gz" ]; then
+            echo "✅ Found existing artifact from previous run! Skipping compute."
+            echo "should_compute=false" >> $GITHUB_OUTPUT
+            # Move old file to current workspace so Upload step finds it
+            mv existing_chunk/chunk_${{ matrix.chunk_id }}.jsonl.gz chunk_${{ matrix.chunk_id }}.jsonl.gz
           else
-            echo "❌ Checkpoint file not found after compute step."
-            exit 1
+            echo "⚠️ Artifact not found. Will compute from scratch."
+            echo "should_compute=true" >> $GITHUB_OUTPUT
           fi
+      # --- INCREMENTAL BUILD LOGIC END ---
 
-      # Always save checkpoint so we can resume next run
-      - name: Save Full-Models Checkpoint
-        if: always()
+      # 3. Download Base Cache (Only if computing)
+      # Required for "The Majority Vote" model logic
+      - name: Download Base Prediction Cache
+        if: steps.skip_check.outputs.should_compute == 'true'
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: Parallel WiDS Prediction Cache Builder
+          name: wids-final-prediction-cache
+          path: .
+          search_artifacts: true
+          if_no_artifact_found: warn
+        continue-on-error: true
+
+      # 4. Generate & Load Task List (Only if computing)
+      - name: Generate Full Task Chunks
+        if: steps.skip_check.outputs.should_compute == 'true'
+        run: python generate_full_task_splits.py
+
+      - name: Load Task Chunk
+        if: steps.skip_check.outputs.should_compute == 'true'
+        run: cp full_task_chunk_${{ matrix.chunk_id }}.json tasks.json
+
+      # 5. Run The Heavy Compute (Only if computing)
+      - name: Run Processor for Chunk
+        if: steps.skip_check.outputs.should_compute == 'true'
+        run: python precompute_wids_full_models_cache.py --task-file tasks.json
+
+      # 6. Rename Output (Only if computing)
+      - name: Rename Output with Chunk ID
+        if: steps.skip_check.outputs.should_compute == 'true'
+        run: mv wids_cache_checkpoint.jsonl.gz chunk_${{ matrix.chunk_id }}.jsonl.gz
+
+      # 7. Always Upload (Either the fresh file OR the old one we moved)
+      - name: Upload Partial Results
         uses: actions/upload-artifact@v4
         with:
-          name: wids-full-models-cache-checkpoint
-          path: wids_full_models_cache_checkpoint.jsonl
-          retention-days: 7
+          name: partial-full-chunk-${{ matrix.chunk_id }}
+          path: chunk_${{ matrix.chunk_id }}.jsonl.gz
+          retention-days: 2
+          if-no-files-found: error
 
-      # Upload final artifact only when the script produced it
-      - name: Save Final Full-Models Artifact
-        if: hashFiles('wids_prediction_cache_full_models.json.gz') != ''
+  combine-full-chunks:
+    needs: parallel-full-chunks
+    runs-on: ubuntu-latest
+    if: always() # Run even if some chunks fail, so we can save partial progress
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      # Download all 40 chunks (renaming handles the collisions)
+      - name: Download All Partial Results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: partial-full-chunk-*
+          path: results
+          merge-multiple: true
+
+      - name: Verify Chunk Completeness
+        run: |
+          expected_chunks=40
+          actual=$(ls results/*.jsonl.gz | wc -l)
+          echo "Found $actual chunks out of $expected_chunks expected."
+          
+          if [ "$actual" -ne "$expected_chunks" ]; then
+            echo "::warning::Missing chunk files! Expected $expected_chunks, found $actual."
+            echo "Proceeding with partial combine..."
+          fi
+
+      # --- USE STREAMING SCRIPT TO AVOID OOM ---
+      - name: Combine Results (Streaming)
+        run: python combine_results.py --input-dir results --output-file wids_prediction_cache_full_models.json.gz
+
+      - name: Upload Final Full Models Artifact
         uses: actions/upload-artifact@v4
         with:
           name: wids-prediction-cache-full-models-file
