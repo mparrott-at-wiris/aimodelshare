@@ -26,11 +26,21 @@ jobs:
       # Essential for your Random Forests to avoid OOM crashes on standard runners
       - name: Add Swap Space
         run: |
-          sudo fallocate -l 4G /swapfile
-          sudo chmod 600 /swapfile
-          sudo mkswap /swapfile
-          sudo swapon /swapfile
+          # 1. Create a 4GB file using dd (slower but safer than fallocate)
+          sudo dd if=/dev/zero of=/swapfile_custom bs=1G count=4
+          
+          # 2. Set permissions (only root can read/write)
+          sudo chmod 600 /swapfile_custom
+          
+          # 3. Mark it as swap space
+          sudo mkswap /swapfile_custom
+          
+          # 4. Enable it
+          sudo swapon /swapfile_custom
+          
+          # 5. Verify
           sudo swapon --show
+          echo "Swap created successfully"
 
       - name: Set up Python
         uses: actions/setup-python@v4
