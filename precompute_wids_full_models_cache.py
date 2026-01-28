@@ -1,69 +1,50 @@
 import os
 import json
 import gzip
-import time
-import gc
-import itertools
-import ast
+import argparse
 import pandas as pd
 import numpy as np
-
-from joblib import Parallel, delayed
 
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.impute import SimpleImputer
-
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 
 # --- CONFIGURATION ---
-MAX_ROWS_TEST = 4000                              # reproduce original X_TEST sampling
-MAX_RUNTIME_SEC = int(os.getenv("MAX_RUNTIME_SEC", "3000"))  # allow override via env
-BATCH_SIZE = 400
-
-FULL_CHECKPOINT_FILE = "wids_full_models_cache_checkpoint.jsonl"
-FULL_FINAL_FILE = "wids_prediction_cache_full_models.json.gz"
-
-BASE_FINAL_FILE = "wids_prediction_cache.json.gz"
-BASE_CHECKPOINT_FILE = "wids_cache_checkpoint.jsonl"
-
-# Specified columns for WiDS dataset
+MAX_ROWS_TEST = 4000
 ALL_NUMERIC_COLS = ["floor_area", "year_built", "ELEVATION", "heating_degree_days", 
                     "cooling_degree_days", "january_min_temp", "july_max_temp", 
                     "avg_temp", "april_avg_temp", "october_avg_temp"]
 ALL_CATEGORICAL_COLS = ["facility_type", "building_class", "State_Factor", "Year_Factor"]
 ALL_FEATURES = ALL_NUMERIC_COLS + ALL_CATEGORICAL_COLS
 
-DATA_SIZE_LABEL = "Full (100%)"  # only one data size, as requested
+DATA_SIZE_LABEL = "Full (100%)"
+MAJORITY_MODEL_NAME = "The Majority Vote"
 
-# Original four model names (exact)
+BASE_FINAL_FILE = "wids_prediction_cache.json.gz"
+WIDS_DATASET_PATH = "datasets/recreated_wids_v2_ny_10k.csv"
+
+# Model Definitions
 BASE_MODEL_TYPES = {
     "The Balanced Generalist": lambda: LogisticRegression(max_iter=200, random_state=42, class_weight="balanced"),
     "The Rule-Maker": lambda: DecisionTreeClassifier(random_state=42, class_weight="balanced"),
     "The 'Nearest Neighbor'": lambda: KNeighborsClassifier(),
     "The Deep Pattern-Finder": lambda: RandomForestClassifier(random_state=42, class_weight="balanced"),
 }
-MAJORITY_MODEL_NAME = "The Majority Vote"  # derived
 
-WIDS_DATASET_PATH = "datasets/recreated_wids_v2_ny_10k.csv"
-
-# --- DATA PREP (match original script for X_TEST) ---
+# --- DATA LOADING ---
 def load_and_prepare(df: pd.DataFrame, max_rows: int | None):
     df = df.copy()
-    
     if max_rows is not None and df.shape[0] > max_rows:
         df = df.sample(n=max_rows, random_state=42)
-
-    # Ensure all required feature columns exist
     for col in ALL_FEATURES:
         if col not in df.columns:
             df[col] = np.nan
-
     X = df[ALL_FEATURES].copy()
     y = df["high_energy_usage"].copy()
     return X, y
@@ -77,35 +58,18 @@ def load_original_test_split():
     return X_train_raw, X_test_raw, y_train, y_test
 
 def load_full_train_data_excluding_test():
-    """
-    Load the full dataset but exclude the rows that were used as test data
-    in the base cache (to prevent data leakage).
-    """
-    # First, we need to identify which rows from the full dataset ended up in the test set
-    # The base cache uses the first MAX_ROWS_TEST rows (after sampling with random_state=42)
-    # and then splits them 75/25 train/test
-    
-    # Load and prepare exactly as the original test split does
     df_for_test_indices = pd.read_csv(WIDS_DATASET_PATH)
     X_sampled, y_sampled = load_and_prepare(df_for_test_indices, max_rows=MAX_ROWS_TEST)
-    
-    # Perform the same split to get the test indices
     _, X_test_for_indices, _, _ = train_test_split(
         X_sampled, y_sampled, test_size=0.25, random_state=42, stratify=y_sampled
     )
     test_indices = set(X_test_for_indices.index)
     
-    # Now load the full dataset
     df_full = pd.read_csv(WIDS_DATASET_PATH)
     X_full, y_full = load_and_prepare(df_full, max_rows=None)
     
-    # Remove test indices from full dataset
     mask = ~X_full.index.isin(test_indices)
-    X_full_train = X_full[mask]
-    y_full_train = y_full[mask]
-    
-    print(f"Full dataset size: {len(X_full)}, After excluding test: {len(X_full_train)}, Test set size was: {len(test_indices)}")
-    return X_full_train, y_full_train
+    return X_full[mask], y_full[mask]
 
 # --- PREPROCESSOR ---
 def get_preprocessor(features):
@@ -118,7 +82,6 @@ def get_preprocessor(features):
         steps.append(("cat", Pipeline([("imputer", SimpleImputer(strategy="constant", fill_value="missing")), ("onehot", OneHotEncoder(handle_unknown="ignore", sparse_output=True))]), cat))
     return ColumnTransformer(steps, remainder="drop")
 
-# --- TUNING ---
 def tune_model(model, level: int):
     if isinstance(model, LogisticRegression):
         model.C = {1: 0.01, 2: 0.025, 3: 0.05, 4: 0.1, 5: 0.25, 6: 0.5, 7: 1.0, 8: 2.0, 9: 5.0, 10: 10.0}.get(level, 1.0)
@@ -131,66 +94,48 @@ def tune_model(model, level: int):
         model.n_neighbors = {1: 100, 2: 75, 3: 60, 4: 50, 5: 40, 6: 30, 7: 25, 8: 15, 9: 7, 10: 3}.get(level, 25)
     return model
 
-# --- LOADING BASE CACHE ---
 def load_base_cache():
-    """
-    Tries loading from the base final artifact first, 
-    then fallback to checkpoint (JSONL). Returns dict[key -> pred_string].
-    """
-    base_cache = {}
-    
-    # 1. Try final gz
     if os.path.exists(BASE_FINAL_FILE):
         print(f"Loading base cache from {BASE_FINAL_FILE}...")
         with gzip.open(BASE_FINAL_FILE, "rt", encoding="UTF-8") as f:
-            base_cache = json.load(f)
-        print(f"Loaded {len(base_cache)} entries from base final artifact.")
-        return base_cache
-    
-    # 2. Fallback to checkpoint
-    if os.path.exists(BASE_CHECKPOINT_FILE):
-        print(f"Loading base cache from {BASE_CHECKPOINT_FILE}...")
-        with open(BASE_CHECKPOINT_FILE, "r") as f:
-            for line in f:
-                if line.strip():
-                    entry = json.loads(line)
-                    base_cache[entry["k"]] = entry["v"]
-        print(f"Loaded {len(base_cache)} entries from base checkpoint.")
-        return base_cache
-    
-    print("⚠️ No base cache found. The Majority Vote model requires the base cache.")
+            return json.load(f)
+    print("⚠️ No base cache found. Majority Vote may fail.")
     return {}
 
-# --- WORKER ---
-def process_task(task, X_full_train, y_full_train, X_test_raw, base_cache):
-    model_name, complexity, feature_tuple = task
-    feature_key = ",".join(sorted(feature_tuple))
-    
-    # For Majority Vote, derive from base_cache
+def process_task(task_key, X_full_train, y_full_train, X_test_raw, base_cache):
+    # Parse key: "Model|Complexity|DataSize|Features"
+    try:
+        parts = task_key.split("|")
+        model_name = parts[0]
+        complexity = int(parts[1])
+        # data_size is parts[2] (ignored, we know it's full)
+        features = parts[3].split(",")
+    except:
+        return None
+
+    # Majority Vote Logic
     if model_name == MAJORITY_MODEL_NAME:
-        # Collect predictions from base models with the same complexity/features/data_size
         base_pred_strings = []
         for base_model_name in BASE_MODEL_TYPES.keys():
-            base_key = f"{base_model_name}|{complexity}|Full (100%)|{feature_key}"
+            # Look for pre-computed Full models in the base cache
+            # Note: This relies on the Base Cache having "Full" runs. 
+            # If the base cache only has Partial runs, this will return None.
+            base_key = f"{base_model_name}|{complexity}|{DATA_SIZE_LABEL}|{parts[3]}"
             if base_key in base_cache:
                 base_pred_strings.append(base_cache[base_key])
         
         if len(base_pred_strings) == 0:
-            return None  # can't form majority vote
+            return None 
         
-        # Convert strings to arrays
         arrays = [np.array(list(s), dtype=int) for s in base_pred_strings]
-        # Majority vote
         stacked = np.stack(arrays, axis=0)
         majority = (np.sum(stacked, axis=0) > (len(arrays) / 2)).astype(int)
         pred_string = "".join(majority.astype(str))
-        
-        key = f"{model_name}|{complexity}|{DATA_SIZE_LABEL}|{feature_key}"
-        return key, pred_string
-    
-    # Otherwise train from scratch on full data
+        return task_key, pred_string
+
+    # Standard Training Logic
     try:
-        prep = get_preprocessor(feature_tuple)
+        prep = get_preprocessor(features)
         X_tr = prep.fit_transform(X_full_train)
         X_te = prep.transform(X_test_raw)
         
@@ -205,110 +150,40 @@ def process_task(task, X_full_train, y_full_train, X_test_raw, base_cache):
         preds = model.predict(X_te)
         pred_string = "".join(preds.astype(str))
         
-        key = f"{model_name}|{complexity}|{DATA_SIZE_LABEL}|{feature_key}"
-        return key, pred_string
-    except Exception:
+        return task_key, pred_string
+    except Exception as e:
+        # print(f"Error on {task_key}: {e}") # Optional debug
         return None
 
-# --- MAIN ---
 if __name__ == "__main__":
-    start_time = time.time()
-    
-    print("Loading full training data (excluding test set)...")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--task-file", required=True, help="JSON file containing list of tasks")
+    args = parser.parse_args()
+
+    # Load Data
     X_full, y_full = load_full_train_data_excluding_test()
-    
-    print("Loading test split (for consistency with base cache)...")
     _, X_test, _, _ = load_original_test_split()
-    
-    print("Loading base cache (for Majority Vote)...")
     base_cache = load_base_cache()
+
+    # Load Tasks
+    with open(args.task_file, "r") as f:
+        tasks = json.load(f)
     
-    # Load checkpoint
-    completed_keys = set()
-    if os.path.exists(FULL_CHECKPOINT_FILE):
-        print(f"Reading checkpoint {FULL_CHECKPOINT_FILE}...")
-        try:
-            with open(FULL_CHECKPOINT_FILE, "r") as f:
-                for line in f:
-                    if line.strip():
-                        data = json.loads(line)
-                        completed_keys.add(data["k"])
-        except Exception as e:
-            print(f"Warning: Checkpoint corrupt ({e}). Starting fresh.")
-            completed_keys = set()
-    
-    print(f"Resuming with {len(completed_keys)} already finished.")
-    
-    # Generate all feature combos
-    all_combos = []
-    for r in range(1, len(ALL_FEATURES) + 1):
-        all_combos.extend(itertools.combinations(ALL_FEATURES, r))
-    
-    # Build task list: base models + majority vote, all complexities, all feature combos
-    all_model_names = list(BASE_MODEL_TYPES.keys()) + [MAJORITY_MODEL_NAME]
-    all_tasks = []
-    for m in all_model_names:
-        for c in range(1, 11):
-            for f_combo in all_combos:
-                fk = ",".join(sorted(f_combo))
-                k = f"{m}|{c}|{DATA_SIZE_LABEL}|{fk}"
-                if k not in completed_keys:
-                    all_tasks.append((m, c, f_combo))
-    
-    total_remaining = len(all_tasks)
-    print(f"Models remaining to train: {total_remaining}")
-    
-    # Process in batches
-    if total_remaining > 0:
-        with open(FULL_CHECKPOINT_FILE, "a") as f_out:
-            for i in range(0, total_remaining, BATCH_SIZE):
-                elapsed = time.time() - start_time
-                if elapsed > MAX_RUNTIME_SEC:
-                    print(f"⚠️ Time limit reached ({elapsed:.0f}s). Stopping gracefully.")
-                    break
-                
-                batch_tasks = all_tasks[i : i + BATCH_SIZE]
-                print(f"Processing Batch {i//BATCH_SIZE + 1} ({len(batch_tasks)} tasks)...")
-                
-                with Parallel(n_jobs=1, return_as="generator", verbose=0) as parallel:
-                    for result in parallel(delayed(process_task)(t, X_full, y_full, X_test, base_cache) for t in batch_tasks):
-                        if result is None:
-                            continue
-                        key, val = result
-                        f_out.write(json.dumps({"k": key, "v": val}) + "\n")
-                
-                f_out.flush()
-                os.fsync(f_out.fileno())
-                gc.collect()
-                print(f"Batch saved. Time elapsed: {time.time() - start_time:.0f}s")
-    
-    # Finalization
-    final_keys = set()
-    if os.path.exists(FULL_CHECKPOINT_FILE):
-        with open(FULL_CHECKPOINT_FILE, "r") as f:
-            for line in f:
-                if line.strip():
-                    final_keys.add(json.loads(line)["k"])
-    
-    # Calculate total possible tasks
-    # With 14 features: all combinations from size 1 to 14 = sum(C(14,r) for r=1..14) = 2^14 - 1 = 16,383
-    # Total = 16,383 combos * 5 models * 10 complexity = 819,150
-    total_possible = len(all_combos) * len(all_model_names) * 10
-    
-    print(f"Status: {len(final_keys)} / {total_possible} complete.")
-    
-    if len(final_keys) >= total_possible:
-        print("🎉 ALL TASKS COMPLETE. Building final cache file...")
-        final_cache = {}
-        with open(FULL_CHECKPOINT_FILE, "r") as f:
-            for line in f:
-                if line.strip():
-                    entry = json.loads(line)
-                    final_cache[entry["k"]] = entry["v"]
-        
-        with gzip.open(FULL_FINAL_FILE, "wt", encoding="UTF-8") as f:
-            json.dump(final_cache, f)
-        
-        print(f"✅ Final Artifact Created: {FULL_FINAL_FILE}")
-    else:
-        print("⏳ Time limit reached. Please re-run this job to continue.")
+    print(f"Processing {len(tasks)} tasks from {args.task_file}...")
+
+    # Output file
+    output_file = "wids_cache_checkpoint.jsonl.gz"
+
+    # Process sequentially (the parallelism is at the Job level, not script level)
+    # We use a simple loop because we are already running inside a parallel worker
+    with gzip.open(output_file, "wt", encoding="UTF-8") as f_out:
+        for i, task_key in enumerate(tasks):
+            result = process_task(task_key, X_full, y_full, X_test, base_cache)
+            if result:
+                k, v = result
+                f_out.write(json.dumps({"k": k, "v": v}) + "\n")
+            
+            if i % 100 == 0:
+                print(f"Progress: {i}/{len(tasks)}")
+
+    print(f"Chunk processing complete. Saved to {output_file}")

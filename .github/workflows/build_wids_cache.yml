@@ -1,20 +1,46 @@
-name: Build WiDS Prediction Cache Artifact (Resumable)
+name: Parallel WiDS Prediction Cache Builder
 
 on:
   workflow_dispatch:
 
 permissions:
   contents: read
-  actions: read      # Required to list/download artifacts
+  actions: read
   checks: write
 
 jobs:
-  build-wids-cache-chunk:
+  parallel-chunks:
+    strategy:
+      fail-fast: false # Ensure other chunks finish even if one fails
+      matrix:
+        # Explicit list of 0-39
+        chunk_id: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
     runs-on: ubuntu-latest
     timeout-minutes: 360
+    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      # --- NEW OPTIMIZATION: ADD SWAP SPACE ---
+      # Essential for your Random Forests to avoid OOM crashes on standard runners
+      - name: Add Swap Space
+        run: |
+          # 1. Create a 4GB file using dd (slower but safer than fallocate)
+          sudo dd if=/dev/zero of=/swapfile_custom bs=1G count=4
+          
+          # 2. Set permissions (only root can read/write)
+          sudo chmod 600 /swapfile_custom
+          
+          # 3. Mark it as swap space
+          sudo mkswap /swapfile_custom
+          
+          # 4. Enable it
+          sudo swapon /swapfile_custom
+          
+          # 5. Verify
+          sudo swapon --show
+          echo "Swap created successfully"
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -23,54 +49,72 @@ jobs:
           cache: 'pip'
 
       - name: Install Dependencies
-        run: pip install pandas numpy scikit-learn joblib
+        run: pip install pandas numpy scikit-learn joblib psutil
 
-      # Restore Checkpoint
-      # UPDATED: Changed name to 'v2' to avoid crashing on the old 2GB artifact
-      - name: Restore Checkpoint
-        uses: dawidd6/action-download-artifact@v6
+      - name: Generate Task Chunks
+        run: python generate_task_splits.py
+
+      - name: Load Task Chunk
+        run: cp task_chunk_${{ matrix.chunk_id }}.json tasks.json
+
+      - name: Run Processor for Chunk
+        run: python precompute_wids_cache.py --task-file tasks.json
+      
+      # --- NEW STEP: RENAME TO UNIQUE FILENAME ---
+      - name: Rename Output with Chunk ID
+        run: mv wids_cache_checkpoint.jsonl.gz chunk_${{ matrix.chunk_id }}.jsonl.gz
+
+      - name: Upload Partial Results
+        uses: actions/upload-artifact@v4
         with:
-          name: wids-cache-checkpoint-v2
-          path: .
-          search_artifacts: true
-          workflow_conclusion: "" 
-          if_no_artifact_found: warn
-        continue-on-error: true
+          name: partial-result-chunk-${{ matrix.chunk_id }}
+          path: chunk_${{ matrix.chunk_id }}.jsonl.gz # <--- Upload the unique name
+          retention-days: 1
+          if-no-files-found: error
 
-      # Debug Step
-      - name: Debug Checkpoint
+  combine-chunks:
+    needs: parallel-chunks
+    runs-on: ubuntu-latest
+    if: always() # Run even if some chunks failed (so we can see the error report)
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      # --- FIX: USE PATTERN MATCHING ---
+      - name: Download All Partial Results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: partial-result-chunk-*
+          path: results
+          merge-multiple: true
+
+      # --- FIX: UPDATED EXPECTED COUNT ---
+      - name: Verify Chunk Completeness
         run: |
-          if [ -f "wids_cache_checkpoint.jsonl.gz" ]; then
-            echo "✅ SUCCESS: Compressed checkpoint found!"
-            ls -lh wids_cache_checkpoint.jsonl.gz
-          else
-            echo "⚠️ NOTE: No checkpoint found. This is normal for the first v2 run."
+          expected_chunks=40
+          # Look for files in the flat 'results' directory
+          actual=$(ls results/*.jsonl.gz | wc -l)
+          
+          echo "Found $actual chunks out of $expected_chunks expected."
+          
+          if [ "$actual" -ne "$expected_chunks" ]; then
+            echo "::error::Missing chunk files! Expected $expected_chunks, found $actual."
+            echo "Some parallel jobs likely crashed or timed out."
+            exit 1
           fi
 
-      # Run the script
-      # Note: We keep thread limits = 1 because the Python script now handles
-      # parallelism via n_jobs=2. This prevents CPU over-subscription.
-      - name: Run Compute Chunk
-        run: |
-          export OMP_NUM_THREADS=1
-          export OPENBLAS_NUM_THREADS=1
-          python precompute_wids_cache.py
+      - name: Combine Results
+        run: python combine_results.py --input-dir results --output-file wids_prediction_cache.json.gz
 
-      # Save Checkpoint (Runs even if timeout occurs)
-      # UPDATED: Saves to 'v2' artifact name
-      - name: Save Checkpoint
-        if: always()
+      - name: Upload Final Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: wids-cache-checkpoint-v2
-          path: wids_cache_checkpoint.jsonl.gz
-          retention-days: 5
-
-      # Save Final Result (Only if the script finishes 100%)
-      - name: Save Final Artifact
-        if: hashFiles('wids_prediction_cache.json.gz') != ''
-        uses: actions/upload-artifact@v4
-        with:
-          name: wids-prediction-cache-file
+          name: wids-final-prediction-cache
           path: wids_prediction_cache.json.gz
           retention-days: 90
