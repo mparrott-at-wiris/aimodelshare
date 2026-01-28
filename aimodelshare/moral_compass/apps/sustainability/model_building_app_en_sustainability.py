@@ -107,36 +107,28 @@ def get_cached_prediction(key):
 _Y_TEST = None
 _Y_TEST_LOCK = threading.Lock()
 
-def get_test_labels(csv_path: str = "compas.csv") -> pd.Series:
+def get_test_labels(csv_path: str = "datasets/recreated_wids_v2_ny_10k.csv") -> pd.Series:
     """
     Load test labels from CSV file for local accuracy computation.
-    Matches the exact sampling and splitting logic from precompute_cache.py.
+    Matches the exact sampling and splitting logic from precompute_wids_cache.py.
     
     Args:
-        csv_path: Path to compas.csv (downloaded at build time)
-    
+        csv_path: Path to dataset csv
     Returns:
         pd.Series: Test labels (y_test)
     """
     # Load data
     df = pd.read_csv(csv_path)
     
-    # Calculate length_of_stay
-    try:
-        df['c_jail_in'] = pd.to_datetime(df['c_jail_in'])
-        df['c_jail_out'] = pd.to_datetime(df['c_jail_out'])
-        df['length_of_stay'] = (df['c_jail_out'] - df['c_jail_in']).dt.total_seconds() / (24 * 60 * 60)
-    except Exception:
-        df['length_of_stay'] = np.nan
-    
     # Sample MAX_ROWS
     if df.shape[0] > 4000:  # MAX_ROWS = 4000
         df = df.sample(n=4000, random_state=42)
     
-    # Extract features and target (matching precompute_cache.py)
-    all_numeric_cols = ["juv_fel_count", "juv_misd_count", "juv_other_count", 
-                        "days_b_screening_arrest", "age", "length_of_stay", "priors_count"]
-    all_categorical_cols = ["race", "sex", "c_charge_degree", "c_charge_desc"]
+    # Extract features and target (matching precompute_wids_cache.py)
+    all_numeric_cols = ["floor_area", "year_built", "ELEVATION", "heating_degree_days", 
+                        "cooling_degree_days", "january_min_temp", "july_max_temp", 
+                        "avg_temp", "april_avg_temp", "october_avg_temp"]
+    all_categorical_cols = ["facility_type", "building_class", "State_Factor", "Year_Factor"]
     feature_columns = all_numeric_cols + all_categorical_cols
     
     # Ensure all columns exist
@@ -144,17 +136,10 @@ def get_test_labels(csv_path: str = "compas.csv") -> pd.Series:
         if col not in df.columns:
             df[col] = np.nan
     
-    # Process c_charge_desc
-    if "c_charge_desc" in df.columns:
-        top_charges = df["c_charge_desc"].value_counts().head(50).index
-        df["c_charge_desc"] = df["c_charge_desc"].apply(
-            lambda x: x if pd.notna(x) and x in top_charges else "OTHER"
-        )
-    
     X = df[feature_columns].copy()
-    y = df["two_year_recid"].copy()
+    y = df["high_energy_usage"].copy()
     
-    # Split (matching precompute_cache.py: test_size=0.25, random_state=42, stratify=y)
+    # Split (matching precompute_wids_cache.py: test_size=0.25, random_state=42, stratify=y)
     _, _, _, y_test = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y)
     
     return y_test
@@ -305,7 +290,7 @@ def _fetch_leaderboard(token: Optional[str]) -> Optional[pd.DataFrame]:
     _log(f"Fetching fresh leaderboard ({cache_key})...")
     df = None
     try:
-        playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+        playground_id = "https://bhtrtkrbf4.execute-api.us-east-1.amazonaws.com/prod/m"
         playground_instance = Competition(playground_id)
         
         def _fetch():
@@ -515,7 +500,7 @@ def check_attempt_limit(submission_count: int, limit: int = None) -> Tuple[bool,
 # 1. Configuration
 # -------------------------------------------------------------------------
 
-MY_PLAYGROUND_ID = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+MY_PLAYGROUND_ID = "https://bhtrtkrbf4.execute-api.us-east-1.amazonaws.com/prod/m"
 
 # --- Submission Limit Configuration ---
 # Maximum number of successful leaderboard submissions per user per session.
@@ -566,37 +551,44 @@ MODEL_TYPES = {
 DEFAULT_MODEL = "The Balanced Generalist"
 
 TEAM_NAMES = [
-    "The Moral Champions", "The Justice League", "The Data Detectives",
-    "The Ethical Explorers", "The Fairness Finders", "The Accuracy Avengers"
+    "The Climate Guardians", "United Eco-Architects", "The Energy Detectives",
+    "The Sustainability League", "Green Future Engineers", "Zero Carbon Avengers"
 ]
 CURRENT_TEAM_NAME = random.choice(TEAM_NAMES)
 
 
 # --- Feature groups for scaffolding (Weak -> Medium -> Strong) ---
 FEATURE_SET_ALL_OPTIONS = [
-    ("Juvenile Felony Count", "juv_fel_count"),
-    ("Juvenile Misdemeanor Count", "juv_misd_count"),
-    ("Other Juvenile Count", "juv_other_count"),
-    ("Race", "race"),
-    ("Sex", "sex"),
-    ("Charge Severity (M/F)", "c_charge_degree"),
-    ("Days Before Arrest", "days_b_screening_arrest"),
-    ("Age", "age"),
-    ("Length of Stay", "length_of_stay"),
-    ("Prior Crimes Count", "priors_count"),
+    ("Floor Area (sq ft)", "floor_area"),
+    ("Year Built", "year_built"),
+    ("Building Class", "building_class"),
+    ("Facility Type", "facility_type"),
+    ("State Factor", "State_Factor"),
+    ("Year Factor", "Year_Factor"),
+    ("Elevation", "ELEVATION"),
+    ("Heating Degree Days", "heating_degree_days"),
+    ("Cooling Degree Days", "cooling_degree_days"),
+    ("Average Annual Temp", "avg_temp"),
+    ("January Min Temp", "january_min_temp"),
+    ("July Max Temp", "july_max_temp"),
+    ("April Avg Temp", "april_avg_temp"),
+    ("October Avg Temp", "october_avg_temp"),
 ]
 FEATURE_SET_GROUP_1_VALS = [
-    "juv_fel_count", "juv_misd_count", "juv_other_count", "race", "sex",
-    "c_charge_degree", "days_b_screening_arrest"
+    "floor_area", "year_built", "building_class", "facility_type"
 ]
-FEATURE_SET_GROUP_2_VALS = ["c_charge_desc", "age"]
-FEATURE_SET_GROUP_3_VALS = ["length_of_stay", "priors_count"]
+FEATURE_SET_GROUP_2_VALS = ["State_Factor", "Year_Factor", "ELEVATION"]
+FEATURE_SET_GROUP_3_VALS = [
+    "avg_temp", "heating_degree_days", "cooling_degree_days", 
+    "january_min_temp", "july_max_temp", "april_avg_temp", "october_avg_temp"
+]
 ALL_NUMERIC_COLS = [
-    "juv_fel_count", "juv_misd_count", "juv_other_count",
-    "days_b_screening_arrest", "age", "length_of_stay", "priors_count"
+    "floor_area", "year_built", "ELEVATION", "heating_degree_days", 
+    "cooling_degree_days", "january_min_temp", "july_max_temp", 
+    "avg_temp", "april_avg_temp", "october_avg_temp"
 ]
 ALL_CATEGORICAL_COLS = [
-    "race", "sex", "c_charge_degree"
+    "facility_type", "building_class", "State_Factor", "Year_Factor"
 ]
 DEFAULT_FEATURE_SET = FEATURE_SET_GROUP_1_VALS
 
@@ -1234,7 +1226,7 @@ def compute_rank_settings(
             "complexity_max": 3,
             "complexity_value": min(current_complexity, 3),
             "feature_set_choices": get_choices_for_rank(0),
-            "feature_set_value": FEATURE_SET_GROUP_1_VALS,
+            "feature_set_value": ["floor_area", "year_built", "building_class", "facility_type"],
             "feature_set_interactive": False,
             "data_size_choices": ["Small (20%)"],
             "data_size_value": "Small (20%)",
@@ -1257,7 +1249,7 @@ def compute_rank_settings(
         }
     elif submission_count == 2:
         return {
-            "rank_message": "# 🌟 Rank Up! Senior Engineer\n<p style='font-size:24px; line-height:1.4;'>Strongest Data Ingredients Unlocked! The most powerful predictors (like 'Age' and 'Prior Crimes Count') are now available in your list. These will likely boost your accuracy, but remember they often carry the most societal bias.</p>",
+            "rank_message": "# 🌟 Rank Up! Senior Engineer\n<p style='font-size:24px; line-height:1.4;'>Strongest Data Ingredients Unlocked! The most powerful predictors (like 'Average Annual Temp' and 'Degree Days') are now available in your list. These will likely boost your accuracy, but remember they are often tied to geographical factors outside a building's control.</p>",
             "model_choices": list(MODEL_TYPES.keys()),
             "model_value": current_model if current_model in MODEL_TYPES else "The Deep Pattern-Finder",
             "model_interactive": True,
@@ -2122,12 +2114,12 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     tier_line = " → ".join([f"{t}{' ✅' if t in reached else ''}" for t in tier_names])
 
     improvement = (best_score - first_score) if (first_score is not None and submissions > 1) else 0.0
-    strong_predictors = {"age", "length_of_stay", "priors_count", "age_cat"}
+    strong_predictors = {"avg_temp", "heating_degree_days", "cooling_degree_days", "january_min_temp"}
     strong_used = [f for f in feature_set if f in strong_predictors]
 
     ethical_note = (
-        "You unlocked powerful predictors. Consider: Would removing demographic fields change fairness? "
-        "In the next section we will begin to investigate this question further."
+        "You unlocked powerful climate predictors. Consider: How does building age and local temperature influence energy efficiency target setting?"
+        " In the next section we will begin to investigate this question further."
     )
 
     # Tailor message for very few submissions
@@ -2187,10 +2179,9 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
 
 def build_conclusion_from_state(best_score, submissions, rank, first_score, feature_set):
     return build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set)
-def create_model_building_game_en_sustainability_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
+def launch_model_building_game_en_sustainability_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """
-    Create (but do not launch) the model building game app.
-    App is immediately ready - predictions are precomputed.
+    Create (but do not launch) the model building game app v5.0.
     """
     # Initialize playground connection
     global playground
@@ -3228,7 +3219,11 @@ def create_model_building_game_en_sustainability_app(theme_primary_hue: str = "i
     global login_username, login_password, login_submit, login_error
     global attempts_tracker_display, team_name_state
 
-    with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css) as demo:
+    with gr.Blocks(
+        theme=gr.themes.Soft(primary_hue=theme_primary_hue, radius_size="lg", font=["Outfit", "sans-serif"]),
+        css=css,
+        title="Sustainable AI Challenge v5.1"
+    ) as demo:
         # Persistent top anchor for scroll-to-top navigation
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
         
@@ -3256,48 +3251,40 @@ def create_model_building_game_en_sustainability_app(theme_primary_hue: str = "i
 
         # --- Briefing Slideshow (Updated with New Cards) ---
 
-        # Slide 1: Intro
+        # Slide 1: Designation
         with gr.Column(visible=True, elem_id="slide-1") as briefing_slide_1:
-            gr.Markdown("<h1 style='text-align:center;'>🔄 From Understanding to Building</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🔄 Designation Acquired: Climate AI Architect</h1>")
             gr.HTML("""
                 <div class='slide-content'>
                 <div class='panel-box'>
-                <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>Great progress! You've now:</h3>
-                <ul style='list-style: none; padding-left: 0; margin-top: 24px; margin-bottom: 24px;'>
-                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Made tough decisions as a judge</li>
-                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Learned about false positives and negatives</li>
-                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Understood how AI works</li>
-                </ul>
-                <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
-                    <span style='background:#dbeafe; padding:8px; border-radius:4px; color:#0369a1; font-weight:bold;'>INPUT</span> → 
-                    <span style='background:#fef3c7; padding:8px; border-radius:4px; color:#92400e; font-weight:bold;'>MODEL</span> → 
-                    <span style='background:#f0fdf4; padding:8px; border-radius:4px; color:#15803d; font-weight:bold;'>OUTPUT</span>
+                <p style='text-align:center; font-size: 1.2rem;'>Congratulations on completing the Global Emissions Audit. Based on your performance, you have been promoted.</p>
+                <div style='background: linear-gradient(135deg, var(--color-accent) 10%, transparent); border: 2px solid var(--color-accent); padding: 25px; border-radius: 16px; text-align: center; margin: 20px 0;'>
+                    <div style='text-transform: uppercase; letter-spacing: 2px; color: var(--color-accent); font-weight: 800; font-size: 0.9rem; margin-bottom: 5px;'>NEW CLEARANCE LEVEL</div>
+                    <h2 style='margin: 0; font-size: 2.2rem; color: var(--text-main);'>CLIMATE AI ARCHITECT</h2>
                 </div>
-                <h3 style='font-size: 1.5rem; text-align:center;'>Now: Step into the shoes of an AI Engineer.</h3>
+                <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>Your Next Mission:</h3>
+                <p style='text-align:center;'>Use advanced machine learning to identify hidden energy waste in our cities. We can't audit every building manually—we need your AI to do it for us.</p>
                 </div>
                 </div>
             """)
             briefing_1_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
-        # Slide 2: Mission
-# Slide 2: Mission
+        # Slide 2:        # Slide 2: Grant
         with gr.Column(visible=False, elem_id="slide-2") as briefing_slide_2:
-            gr.Markdown("<h1 style='text-align:center;'>📋 Your Mission – Build Better AI</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>💰 The $500,000 Challenge</h1>")
             gr.HTML("""
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <h3>The Mission</h3>
-                        <p>Build an AI model that helps judges make better decisions. Your job is to predict re-offending risk more accurately than the previous model.</p>
-                        
-                        <h3>The Competition</h3>
-                        <p>To do this, you’ll compete with other engineers! You’ll join a team, with scores tracked for both individual and team performance on live leaderboards.</p>
-                        <div style="background:var(--background-fill-secondary); padding:8px 12px; border-radius:8px; margin-bottom:12px; border:1px solid var(--border-color-primary);">
-                             You’ll join a team such as… <b>🛡️ The Ethical Explorers</b>
+                        <div style='background: rgba(16, 185, 129, 0.1); border-left: 5px solid #10b981; padding: 20px; border-radius: 8px; margin-bottom: 25px;'>
+                            <h3 style='margin: 0; color: #059669;'>AI Innovation Grant Awarded</h3>
+                            <p style='margin: 10px 0 0 0; font-size: 1.1rem;'>The City Council has allocated <b>$500,000</b> to target energy inefficiency in the built environment.</p>
                         </div>
-
-                        <h3>The Data Challenge</h3>
-                        <p>To compete, you’ll have access to thousands of old case files containing <b>Defendant Profiles</b> (Age, History) and <b>Historical Outcomes</b> (Did they re-offend?).</p>
-                        <p>Your task is to train an AI system that learns from the profiles and accurately predicts the outcome. Ready to build something that could change how justice works?</p>
+                        
+                        <h3>🏗️ Why Buildings?</h3>
+                        <p>The built environment accounts for <b>40% of global emissions</b>. Unlike vehicles or agriculture, buildings generate consistent, measurable sensor data—making them the ideal target for AI prediction.</p>
+                        
+                        <h3>🏢 Joining a Team</h3>
+                        <p>You’ll join a team of fellow Architects, such as <b>🛡️ The Accuracy Avengers</b>. Your individual scores will contribute to your team's total standing on the live leaderboard.</p>
                     </div>
                 </div>
             """)
@@ -3305,16 +3292,22 @@ def create_model_building_game_en_sustainability_app(theme_primary_hue: str = "i
                 briefing_2_back = gr.Button("◀️ Back", size="lg")
                 briefing_2_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
-        # Slide 3: Concept
+        # Slide 3: What is AI
         with gr.Column(visible=False, elem_id="slide-3") as briefing_slide_3:
-            gr.Markdown("<h1 style='text-align:center;'>🧠 What is an AI System?</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🤖 What is Building AI?</h1>")
             gr.HTML("""
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <p>Think of an AI System as a "Prediction Machine." You assemble it using three main components:</p>
-                        <p><strong>1. The Inputs:</strong> The data you feed it (eg: Age, Crimes).</p>
-                        <p><strong>2. The Model ("The Brain"):</strong> The math (algorithm) that finds patterns.</p>
-                        <p><strong>3. The Output:</strong> The prediction (eg: Risk Level)</p>
+                        <h3 style='text-align:center;'>AI is a "Prediction Machine"</h3>
+                        <p>AI isn't magic—it's a system that makes predictions based on patterns. In our case, it follows a simple three-part formula:</p>
+                        <div style='background:var(--block-background-fill); padding:20px; border-radius:12px; margin:20px 0; display:flex; justify-content:space-around; align-items:center; text-align:center;'>
+                            <div><b style='color:#0369a1;'>INPUT</b><br><span style='font-size:0.85rem'>Building Specs</span></div>
+                            <span style='font-size:1.5rem;'>→</span>
+                            <div><b style='color:#92400e;'>MODEL</b><br><span style='font-size:0.85rem'>The AI Brain</span></div>
+                            <span style='font-size:1.5rem;'>→</span>
+                            <div><b style='color:#15803d;'>OUTPUT</b><br><span style='font-size:0.85rem'>EUI Prediction</span></div>
+                        </div>
+                        <p>Think of it like human intuition: <b>Dark Clouds (Input)</b> → <b>Experience (Model)</b> → <b>Predict Rain (Output)</b>. AI just does this with millions of rows of data.</p>
                     </div>
                 </div>
             """)
@@ -3322,20 +3315,22 @@ def create_model_building_game_en_sustainability_app(theme_primary_hue: str = "i
                 briefing_3_back = gr.Button("◀️ Back", size="lg")
                 briefing_3_next = gr.Button("Next ▶️", variant="primary", size="lg")
 
-        # Slide 4: The Loop
+        # Slide 4: Feature Engineering
         with gr.Column(visible=False, elem_id="slide-4") as briefing_slide_4:
-            gr.Markdown("<h1 style='text-align:center;'>🔁 How Engineers Work — The Loop</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🧪 Engineering Your Data</h1>")
             gr.HTML("""
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <p>Real AI teams never get it right on the first try. They follow a loop: <strong>Try, Test, Learn, Repeat.</strong></p>
-                        <p>You’ll do exactly the same in this competition:</p>
-                        <div class='step-visual'>
-                            <div class='step-visual-box'><b>1. Configure</b><br><span style='font-size:0.85rem'>choose model & data</span></div>→
-                            <div class='step-visual-box'><b>2. Submit</b><br><span style='font-size:0.85rem'>train your system</span></div>→
-                            <div class='step-visual-box'><b>3. Analyze</b><br><span style='font-size:0.85rem'>check ranking</span></div>→
-                            <div class='step-visual-box'><b>4. Refine</b><br><span style='font-size:0.85rem'>tweak & try again</span></div>
+                        <p>To predict building efficiency <b>without visiting them</b>, your AI needs specific inputs called <b>"Features."</b></p>
+                        <h3>The Success Metric: Site EUI</h3>
+                        <p>Your AI will predict <b>Energy Usage Intensity (EUI)</b>. This formula normalizes energy use by building size, allowing us to compare a skyscraper to a small house fairly:</p>
+                        <div style='background:#f1f5f9; color:#0f172a; padding:15px; border-radius:8px; text-align:center; font-family:monospace; font-weight:bold; margin:15px 0;'>
+                            (Electricity + Gas) ÷ Floor Area = Site EUI
                         </div>
+                        <ul style='margin-top:15px; color:var(--text-muted);'>
+                            <li><b>Low EUI:</b> Efficient building, priority for green certification.</li>
+                            <li><b>High EUI:</b> Inefficient building, top priority for retrofitting.</li>
+                        </ul>
                     </div>
                 </div>
             """)
@@ -3398,18 +3393,18 @@ def create_model_building_game_en_sustainability_app(theme_primary_hue: str = "i
                             <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">3. Data Ingredients (The inputs)</summary>
                             <div class="content" style="padding-top: 12px; padding-left: 12px;">
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);">
-                                    <span style="color:var(--color-accent); font-weight:bold;">☑</span> <b>Prior Crimes</b>
+                                    <span style="color:var(--color-accent); font-weight:bold;">☑</span> <b>Floor Area</b>
                                 </div>
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);">
-                                    <span style="color:var(--color-accent); font-weight:bold;">☑</span> <b>Charge Degree</b>
+                                    <span style="color:var(--color-accent); font-weight:bold;">☑</span> <b>Year Built</b>
                                 </div>
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);">
-                                    <span style="color:var(--neutral-400); font-weight:bold;">☐</span> <b>Demographics (Race/Sex)</b> <span class="risk-tag" style="background:#fef2f2; color:#b91c1c; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold;">⚠️ RISK</span>
+                                    <span style="color:var(--neutral-400); font-weight:bold;">☐</span> <b>Climate Data (Temp/Degree Days)</b> <span class="risk-tag" style="background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; font-size:0.75rem; font-weight:bold;">⛅ ADVANCED</span>
                                 </div>
                                 
                                 <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
-                                    <b style="color: var(--body-text-color);">In the Game:</b> <span style="color: var(--body-text-color);">You will check boxes to decide what raw input data the AI is allowed to use to learn new patterns.</span><br>
-                                    <strong style="color:#ef4444;">⚠️ Ethical Risk:</strong> <span style="color: var(--body-text-color);">You <i>can</i> use demographics to boost your score, but is it fair?</span>
+                                    <b style="color: var(--body-text-color);">In the Game:</b> <span style="color: var(--body-text-color);">You will select which building specs the AI is allowed to see.</span><br>
+                                    <strong style="color:var(--color-accent);">🎓 Pro Tip:</strong> <span style="color: var(--body-text-color);">Weather data is powerful but complex—unlock it as you progress.</span>
                                 </div>
                             </div>
                         </details>
@@ -3443,52 +3438,48 @@ def create_model_building_game_en_sustainability_app(theme_primary_hue: str = "i
                 <div class='slide-content'>
                     <div class='panel-box'>
                         <div class='t-minus-header'>
-                            <h2 class='t-minus-title'>🚀 Mission Briefing: The Final Score</h2>
+                            <h2 class='t-minus-title'>🚀 Mission Briefing: Clearance Granted</h2>
                         </div>
                         
                         <p style='font-size: 1.15rem; text-align:center; margin-bottom: 24px;'>
-                            Your access is granted. Here is how your work will be judged.
+                            Your training with NREL datasets is about to begin.
                         </p>
             
                         <!-- How to Win Section -->
                         <div style='background:var(--prose-background-fill); padding:20px; border-radius:12px; text-align:left; margin-bottom:24px;'>
                             <div style='display:flex; align-items:center; gap:8px; margin-bottom:12px;'>
-                                <span style='font-size:1.5rem;'>🔐</span>
-                                <strong style='font-size:1.2rem; color:var(--body-text-color);'>How to Win</strong>
+                                <span style='font-size:1.5rem;'>🎯</span>
+                                <strong style='font-size:1.2rem; color:var(--body-text-color);'>The Performance Test</strong>
                             </div>
                             
                             <p style='margin-bottom:12px;'>
-                                In the real world, we don't know the future. To simulate this, we have hidden 20% of the case files (data) in a "Vault."
+                                To verify your system, we have hidden 25% of the regional building records in a "Vault."
                             </p>
                             
                             <ul style='margin:0; padding-left:24px; color:var(--text-muted); line-height:1.6;'>
                                 <li style='margin-bottom:8px;'>
-                                    Your AI will learn from the input data you give it, but it will be tested on the hidden data in the Vault.
+                                    <b>The Objective:</b> Engineer an AI system that identifies "High Energy Usage" buildings with maximum precision.
                                 </li>
                                 <li>
-                                    <b>Your Score:</b> You are scored using prediction accuracy. If you get a 50%, your AI is essentially guessing (like a coin flip). Your goal is to engineer a system that predicts much higher!
+                                    <b>The Score:</b> You are ranked by prediction accuracy. Beating the baseline will unlock higher designations and new "Data Ingredients."
                                 </li>
                             </ul>
                         </div>
             
                         <!-- Ranks Section -->
                         <div style='text-align:center; border-top:1px solid var(--card-border-subtle); padding-top:20px; margin-bottom:30px;'>
-                            <h3 style='margin:0 0 8px 0; font-size:1.2rem;'>Unlockable Ranks</h3>
-                            <p style='margin-bottom:16px; font-size:0.95rem; color:var(--text-muted);'>
-                                As you refine your model and climb the leaderboard, you will earn new ranks:
-                            </p>
+                            <h3 style='margin:0 0 8px 0; font-size:1.2rem;'>Climate Tech Ranks</h3>
                             <div style='display:inline-flex; gap:12px; flex-wrap:wrap; justify-content:center;'>
-                                <span style='padding:6px 12px; background:#f3f4f6; border-radius:20px; font-size:0.9rem; color:#4338ca;'>⭐ Rookie</span>
-                                <span style='padding:6px 12px; background:#e0e7ff; border-radius:20px; font-size:0.9rem; color:#4338ca;'>⭐⭐ Junior</span>
-                                <span style='padding:6px 12px; background:#fae8ff; border-radius:20px; font-size:0.9rem; color:#86198f;'>⭐⭐⭐ Lead Engineer</span>
+                                <span style='padding:6px 12px; background:#f3f4f6; border-radius:20px; font-size:0.9rem; color:#1a1a1a;'>🌱 Trainee</span>
+                                <span style='padding:6px 12px; background:#e0e7ff; border-radius:20px; font-size:0.9rem; color:#4338ca;'>🏢 Junior Architect</span>
+                                <span style='padding:6px 12px; background:#fae8ff; border-radius:20px; font-size:0.9rem; color:#86198f;'>👑 Lead Architect</span>
                             </div>
                         </div>
                         
                         <!-- CTA Section -->
                         <div style='text-align:center; background: color-mix(in srgb, var(--color-accent) 10%, transparent); padding: 20px; border-radius: 12px; border: 2px solid var(--color-accent);'>
-                            <p style='margin:0 0 8px 0; font-size: 1.1rem; color: var(--text-muted);'>To start the competition:</p>
+                            <p style='margin:0 0 8px 0; font-size: 1.1rem; color: var(--text-muted);'>To begin your first deployment:</p>
                             <b style='color:var(--accent-strong); font-size:1.3rem;'>Click "Begin", then "Build & Submit Model"</b>
-                            <p style='margin:8px 0 0 0; font-size: 1rem;'>This will make your first submission to the leaderboard.</p>
                         </div>
                     </div>
                 </div>
@@ -4024,9 +4015,9 @@ def create_model_building_game_en_sustainability_app(theme_primary_hue: str = "i
 # 4. Convenience Launcher
 # -------------------------------------------------------------------------
 
-def launch_model_building_game_en_sustainability_app(height: int = 1200, share: bool = False, debug: bool = False) -> None:
+def launch_model_building_game_v5_app(height: int = 1200, share: bool = False, debug: bool = False) -> None:
     """
-    Create and directly launch the Model Building Game app inline (e.g., in notebooks).
+    Create and directly launch the Model Building Game app v5.0.
     """
     global playground
     if playground is None:
