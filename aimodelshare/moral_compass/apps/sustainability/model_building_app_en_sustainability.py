@@ -2179,7 +2179,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
 
 def build_conclusion_from_state(best_score, submissions, rank, first_score, feature_set):
     return build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set)
-def launch_model_building_game_en_sustainability_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
+def create_model_building_game_en_sustainability_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """
     Create (but do not launch) the model building game app v5.0.
     """
@@ -4015,7 +4015,7 @@ def launch_model_building_game_en_sustainability_app(theme_primary_hue: str = "i
 # 4. Convenience Launcher
 # -------------------------------------------------------------------------
 
-def launch_model_building_game_v5_app(height: int = 1200, share: bool = False, debug: bool = False) -> None:
+def launch_model_building_game_en_sustainability_app(height: int = 1200, share: bool = False, debug: bool = False) -> None:
     """
     Create and directly launch the Model Building Game app v5.0.
     """
