@@ -68,7 +68,7 @@ jobs:
             echo "ℹ️ WiDS full-models cache file NOT found."
           fi
 
-          docker build --pull -t "$IMAGE" .
+          docker build --pull -f Dockerfile.sustainability -t "$IMAGE" .
           docker push "$IMAGE"
           echo "IMAGE=$IMAGE" >> $GITHUB_ENV
 
