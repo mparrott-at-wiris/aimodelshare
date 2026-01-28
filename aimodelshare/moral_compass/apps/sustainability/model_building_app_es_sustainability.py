@@ -1552,10 +1552,14 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
 def build_conclusion_from_state(best_score, submissions, rank, first_score, feature_set):
     return build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set)
 def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
+    # Initialize playground connection
     global playground
     if playground is None:
-        try: playground = Competition(MY_PLAYGROUND_ID)
-        except: pass
+        try:
+            playground = Competition(MY_PLAYGROUND_ID)
+            print("✅ Playground connected", flush=True)
+        except Exception as e:
+            print(f"⚠️ Playground connection failed: {e}", flush=True)
 
     global submit_button, submission_feedback_display, team_leaderboard_display, individual_leaderboard_display
     global last_submission_score_state, last_rank_state, best_score_state, submission_count_state, first_submission_score_state
