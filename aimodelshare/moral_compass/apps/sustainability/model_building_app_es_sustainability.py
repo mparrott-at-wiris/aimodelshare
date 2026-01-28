@@ -1053,6 +1053,7 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
         else:
             rank_diff_html = f<p style='font-size: 1.5rem; font-weight: 600; color: {rank_color}; margin:0;'>Sin Cambios (↔)</p>"
 
+
     return f"""
     <div class='kpi-card' style='border-color: {border_color};'>
         <h2 style='color: var(--body-text-color); margin-top:0;'>{title}</h2>
