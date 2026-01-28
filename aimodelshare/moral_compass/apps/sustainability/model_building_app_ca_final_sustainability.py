@@ -1,5 +1,5 @@
 """
-Model Building Game - Gradio application for the Justice & Equity Challenge.
+Model Building Game - Gradio application for the Climate Sustainability Challenge.
 
 Session-based authentication with leaderboard caching and progressive rank unlocking.
 
@@ -124,36 +124,22 @@ def get_cached_prediction(key: str, data_size_str: str) -> Optional[str]:
 _Y_TEST = None
 _Y_TEST_LOCK = threading.Lock()
 
-def get_test_labels(csv_path: str = "compas.csv") -> pd.Series:
+def get_test_labels(csv_path: str = "datasets/recreated_wids_v2_ny_10k.csv") -> pd.Series:
     """
     Load test labels from CSV file for local accuracy computation.
-    Matches the exact sampling and splitting logic from precompute_cache.py.
-    
-    Args:
-        csv_path: Path to compas.csv (downloaded at build time)
-    
-    Returns:
-        pd.Series: Test labels (y_test)
+    Matches the exact sampling and splitting logic for the sustainability dataset.
     """
     # Load data
     df = pd.read_csv(csv_path)
-    
-    # Calculate length_of_stay
-    try:
-        df['c_jail_in'] = pd.to_datetime(df['c_jail_in'])
-        df['c_jail_out'] = pd.to_datetime(df['c_jail_out'])
-        df['length_of_stay'] = (df['c_jail_out'] - df['c_jail_in']).dt.total_seconds() / (24 * 60 * 60)
-    except Exception:
-        df['length_of_stay'] = np.nan
     
     # Sample MAX_ROWS
     if df.shape[0] > 4000:  # MAX_ROWS = 4000
         df = df.sample(n=4000, random_state=42)
     
-    # Extract features and target (matching precompute_cache.py)
-    all_numeric_cols = ["juv_fel_count", "juv_misd_count", "juv_other_count", 
-                        "days_b_screening_arrest", "age", "length_of_stay", "priors_count"]
-    all_categorical_cols = ["race", "sex", "c_charge_degree", "c_charge_desc"]
+    all_numeric_cols = ["floor_area", "year_built", "ELEVATION", "heating_degree_days", 
+                        "cooling_degree_days", "january_min_temp", "july_max_temp", 
+                        "avg_temp", "april_avg_temp", "october_avg_temp"]
+    all_categorical_cols = ["facility_type", "building_class", "State_Factor", "Year_Factor"]
     feature_columns = all_numeric_cols + all_categorical_cols
     
     # Ensure all columns exist
@@ -161,17 +147,10 @@ def get_test_labels(csv_path: str = "compas.csv") -> pd.Series:
         if col not in df.columns:
             df[col] = np.nan
     
-    # Process c_charge_desc
-    if "c_charge_desc" in df.columns:
-        top_charges = df["c_charge_desc"].value_counts().head(50).index
-        df["c_charge_desc"] = df["c_charge_desc"].apply(
-            lambda x: x if pd.notna(x) and x in top_charges else "OTHER"
-        )
-    
     X = df[feature_columns].copy()
-    y = df["two_year_recid"].copy()
+    y = df["high_energy_usage"].copy()
     
-    # Split (matching precompute_cache.py: test_size=0.25, random_state=42, stratify=y)
+    # Split (matching precompute_wids_cache.py: test_size=0.25, random_state=42, stratify=y)
     _, _, _, y_test = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y)
     
     return y_test
@@ -322,7 +301,7 @@ def _fetch_leaderboard(token: Optional[str]) -> Optional[pd.DataFrame]:
     _log(f"Fetching fresh leaderboard ({cache_key})...")
     df = None
     try:
-        playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+        playground_id = "https://bhtrtkrbf4.execute-api.us-east-1.amazonaws.com/prod/m"
         playground_instance = Competition(playground_id)
         
         def _fetch():
@@ -537,7 +516,7 @@ def check_attempt_limit(submission_count: int, limit: int = None) -> Tuple[bool,
 # 1. Configuration
 # -------------------------------------------------------------------------
 
-MY_PLAYGROUND_ID = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+MY_PLAYGROUND_ID = "https://bhtrtkrbf4.execute-api.us-east-1.amazonaws.com/prod/m"
 
 # --- Submission Limit Configuration ---
 # Maximum number of successful leaderboard submissions per user per session.
@@ -567,26 +546,26 @@ MODEL_TYPES = {
             max_iter=500, random_state=42, class_weight="balanced"
         ),
         # Store the Catalan description here for the UI
-        "card_ca": "Aquest model és ràpid, fiable i equilibrat. Bon punt de partida; sol donar resultats més estables."
+        "card_ca": "Aquest model és ràpid, fiable i equilibrat. Un punt de partida ideal per identificar tendències generals en l'ús d'energia."
     },
     "The Rule-Maker": {
         "model_builder": lambda: DecisionTreeClassifier(
             random_state=42, class_weight="balanced"
         ),
-        "card_ca": "Aquest model aprèn regles simples de tipus «si/aleshores». Fàcil d’interpretar, però li costa captar patrons complexos."
+        "card_ca": "Estableix regles lògiques basades en llindars d'energia (ex: 'Si l'edifici té > 50 anys AND la calefacció és de gas...'). Fàcil d'explicar als propietaris."
     },
     "The 'Nearest Neighbor'": {
         "model_builder": lambda: KNeighborsClassifier(),
-        "card_ca": "Aquest model es basa en exemples semblants del passat. «Si t’assembles a aquests casos, prediré el mateix resultat»."
+        "card_ca": "Compara cada edifici amb edificis similars del conjunt de dades. Si un edifici actua com un altre d'ineficient, el prediu com a tal."
     },
     "The Deep Pattern-Finder": {
         "model_builder": lambda: RandomForestClassifier(
             random_state=42, class_weight="balanced"
         ),
-        "card_ca": "Aquest model combina molts arbres de decisió per trobar patrons complexos. És potent, però cal vigilar no fer-lo massa complex."
+        "card_ca": "Analitza multitud de subgrups de dades per captar ineficiències complexes. El més potent per maximitzar l'estalvi climàtic."
     },
     "The Majority Vote": {
-        "card_ca": "Aquest model combina les prediccions dels quatre models i selecciona la més freqüent.",
+        "card_ca": "Combina les prediccions dels quatre models anteriors. Sovint més precís que qualsevol model individual per guanyar el repte!",
         "cache_only": True
     }
 }
@@ -721,8 +700,8 @@ def _fetch_base_pred_strings_for_majority(complexity: int, feature_set: list, da
 
 
 TEAM_NAMES = [
-    "The Moral Champions", "The Justice League", "The Data Detectives",
-    "The Ethical Explorers", "The Fairness Finders", "The Accuracy Avengers"
+    "The Climate Guardians", "United Eco-Architects", "The Energy Detectives",
+    "The Sustainability League", "Green Future Engineers", "Zero Carbon Avengers"
 ]
 CURRENT_TEAM_NAME = random.choice(TEAM_NAMES)
 
@@ -730,20 +709,20 @@ CURRENT_TEAM_NAME = random.choice(TEAM_NAMES)
 # Internal logic (ranking, caching, grouping) always uses canonical English names
 TEAM_NAME_TRANSLATIONS = {
     "en": {
-        "The Justice League": "The Justice League",
-        "The Moral Champions": "The Moral Champions",
-        "The Data Detectives": "The Data Detectives",
-        "The Ethical Explorers": "The Ethical Explorers",
-        "The Fairness Finders": "The Fairness Finders",
-        "The Accuracy Avengers": "The Accuracy Avengers"
+        "The Climate Guardians": "The Climate Guardians",
+        "United Eco-Architects": "United Eco-Architects",
+        "The Energy Detectives": "The Energy Detectives",
+        "The Sustainability League": "The Sustainability League",
+        "Green Future Engineers": "Green Future Engineers",
+        "Zero Carbon Avengers": "Zero Carbon Avengers"
     },
     "ca": {
-        "The Justice League": "La Lliga de la Justícia",
-        "The Moral Champions": "Els Campions Morals",
-        "The Data Detectives": "Els Detectius de Dades",
-        "The Ethical Explorers": "Els Exploradors Ètics",
-        "The Fairness Finders": "Els Cercadors d'Equitat",
-        "The Accuracy Avengers": "Els Venjadors de Precisió"
+        "The Climate Guardians": "Els Guardians del Clima",
+        "United Eco-Architects": "Eco-Arquitectes Units",
+        "The Energy Detectives": "Els Detectius de l'Energia",
+        "The Sustainability League": "La Lliga de la Sostenibilitat",
+        "Green Future Engineers": "Enginyers del Futur Verd",
+        "Zero Carbon Avengers": "Els Venjadors del Carboni Zero"
     }
 }
 
@@ -752,30 +731,38 @@ UI_TEAM_LANG = "ca"
 
 
 # --- Feature groups for scaffolding (Weak -> Medium -> Strong) ---
+# --- Feature groups for scaffolding (Weak -> Medium -> Strong) ---
 FEATURE_SET_ALL_OPTIONS = [
-    ("Nombre de delictes greus juvenils", "juv_fel_count"),
-    ("Nombre de delictes lleus juvenils", "juv_misd_count"),
-    ("Altres delictes juvenils", "juv_other_count"),
-    ("Origen ètnic", "race"),
-    ("Sexe", "sex"),
-    ("Gravetat del càrrec (lleu / greu)", "c_charge_degree"),
-    ("Dies abans de l'arrest", "days_b_screening_arrest"),
-    ("Edat", "age"),
-    ("Dies a la presó", "length_of_stay"),
-    ("Nombre de delictes previs", "priors_count"),
+    ("Superfície (peus quadrats)", "floor_area"),
+    ("Any de construcció", "year_built"),
+    ("Classe d'edifici", "building_class"),
+    ("Tipus d'instal·lació", "facility_type"),
+    ("Factor d'estat", "State_Factor"),
+    ("Factor d'any", "Year_Factor"),
+    ("Elevació", "ELEVATION"),
+    ("Dies de calefacció", "heating_degree_days"),
+    ("Dies de refrigeració", "cooling_degree_days"),
+    ("Temp. mitjana anual", "avg_temp"),
+    ("Temp. mínima de gener", "january_min_temp"),
+    ("Temp. màxima de juliol", "july_max_temp"),
+    ("Temp. mitjana d'abril", "april_avg_temp"),
+    ("Temp. mitjana d'octubre", "october_avg_temp"),
 ]
 FEATURE_SET_GROUP_1_VALS = [
-    "juv_fel_count", "juv_misd_count", "juv_other_count", "race", "sex",
-    "c_charge_degree", "days_b_screening_arrest"
+    "floor_area", "year_built", "building_class", "facility_type"
 ]
-FEATURE_SET_GROUP_2_VALS = ["c_charge_desc", "age"]
-FEATURE_SET_GROUP_3_VALS = ["length_of_stay", "priors_count"]
+FEATURE_SET_GROUP_2_VALS = ["State_Factor", "Year_Factor", "ELEVATION"]
+FEATURE_SET_GROUP_3_VALS = [
+    "avg_temp", "heating_degree_days", "cooling_degree_days", 
+    "january_min_temp", "july_max_temp", "april_avg_temp", "october_avg_temp"
+]
 ALL_NUMERIC_COLS = [
-    "juv_fel_count", "juv_misd_count", "juv_other_count",
-    "days_b_screening_arrest", "age", "length_of_stay", "priors_count"
+    "floor_area", "year_built", "ELEVATION", "heating_degree_days", 
+    "cooling_degree_days", "january_min_temp", "july_max_temp", 
+    "avg_temp", "april_avg_temp", "october_avg_temp"
 ]
 ALL_CATEGORICAL_COLS = [
-    "race", "sex", "c_charge_degree"
+    "facility_type", "building_class", "State_Factor", "Year_Factor"
 ]
 DEFAULT_FEATURE_SET = FEATURE_SET_GROUP_1_VALS
 
@@ -1456,7 +1443,7 @@ def compute_rank_settings(
     avail_keys = list(MODEL_TYPES.keys()) # All models
 
     return {
-        "rank_message": "# 👑 Rang: Enginyer/a principal\n<p style='font-size:24px; line-height:1.4;'>Totes les eines desbloquejades — optimitza amb llibertat!</p>",
+        "rank_message": "# 👑 Rang: Arquitecte/a Climàtic/a en Cap\n<p style='font-size:24px; line-height:1.4;'>Totes les eines desbloquejades — optimitza amb llibertat!</p>",
         "model_choices": get_model_tuples(avail_keys),
         "model_value": current_model if current_model in avail_keys else "The Balanced Generalist",
         "model_interactive": True,
@@ -1862,7 +1849,7 @@ def run_experiment(
             preprocessor=None,
             prediction_submission=predictions.tolist(),
             input_dict={'description': f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})", 'tags': f"team:{team_name},model:{model_name_key}"},
-            custom_metadata={'Team': team_name, 'Moral_Compass': 0},
+            custom_metadata={'Team': team_name, 'Energy_Efficiency': 0},
             token=token,
             return_metrics=["accuracy"]
         )
@@ -2037,19 +2024,19 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     <div class="final-conclusion-root">
       
       <h1 class="final-conclusion-title">🎓 Certificació Assolida</h1>
-      <h2 style="margin-top:0; color:var(--text-muted);">Ètica en Joc: Justícia i Equitat</h2>
+      <h2 style="margin-top:0; color:var(--text-muted);">IA Sostenible: Enginyeria de Vanguardia</h2>
 
       <div class="final-conclusion-card">
         
         <h3 class="final-conclusion-subtitle">🏆 Resultats del Repte Final</h3>
         <p style="text-align:left; margin-bottom: 15px;">
-            El teu sistema d'IA final ha entrat al registre per a l'<b>EdTech Congress Barcelona 2026</b>.
+            El teu sistema d'IA optimitzat ha entrat al registre per a l'<b>EdTech Congress Barcelona 2026</b>.
         </p>
 
         <ul class="final-conclusion-list">
           <li>🏁 <b>Precisió Final:</b> {(best_score * 100):.2f}%</li>
           <li>🌍 <b>Rànquing Global:</b> {('#' + str(rank)) if rank > 0 else 'Pendent'}</li>
-          <li>📈 <b>Millora en aquesta sessió:</b> {(improvement * 100):+.2f}% de guany en precisió</li>
+          <li>📈 <b>Millora en aquesta sessió:</b> {(improvement * 100):+.2f}% de guany d'optimització</li>
           <li>🔢 <b>Iteracions Totals:</b> {submissions} versions del model provades</li>
         </ul>
 
@@ -2062,25 +2049,24 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
           <h2>El Viatge Continua</h2>
           
           <div style="text-align: left; margin-top: 15px;">
-              <p>Enhorabona! Has completat la <b>Certificació Ètica en Joc en Justícia i Equitat</b> i has vist com la IA pot afectar les decisions del món real.</p>
+              <p>Enhorabona! Has completat la <b>Certificació en Enginyeria d'IA Sostenible</b> i has vist com la tecnologia pot accelerar la nostra transició cap a un futur neutre en carboni.</p>
               
               <p>A través d'aquest repte, has après a:</p>
               <ul style="margin-bottom: 15px;">
-                  <li>Revisar dades per detectar biaixos</li>
-                  <li>Entendre l'impacte de les decisions de la IA</li>
-                  <li>Construir sistemes d'IA que siguin justos, no només precisos</li>
-                  <li>Explicar l'equilibri entre eficiència i equitat</li>
+                  <li>Analitzar dades climàtiques i patrons de consum</li>
+                  <li>Entendre l'impacte de la precisió en l'eficiència real</li>
+                  <li>Construir sistemes que optimitzen recursos escassos</li>
+                  <li>Explicar per què la IA Verda és clau al segle XXI</li>
               </ul>
 
               <div class="final-conclusion-ethics">
                 <p style="margin:0;">
-                    <b>Reflexió Final:</b> A mesura que avances, recorda que l'ètica no és una tasca puntual. 
-                    És una cosa que has de tenir en compte en cada pas. Has demostrat com construir una IA que no només funcioni, sinó que funcioni per a tothom.
+                    <b>Reflexió Final:</b> A mesura que avances, recorda que la sostenibilitat no és només una característica addicional: és una necessitat. Has demostrat com construir una IA que no només és intel·ligent, sinó que també cuida el planeta.
                 </p>
               </div>
 
               <p style="text-align:center; margin-top: 25px; font-weight:bold; font-size:1.1rem;">
-                Gràcies per jugar, i molta sort amb els teus reptes futurs.
+                Gràcies per optimitzar per al futur, ens veiem a l'arena!
               </p>
           </div>
         </div>
@@ -3116,36 +3102,27 @@ def create_model_building_game_ca_final_sustainability_app(theme_primary_hue: st
                                 
                                 <div class="final-intro-wrapper">
                                     <p class="final-intro-text">
-                                        Has analitzat els aspectes ètics del sistema. Has identificat i corregit biaixos.
+                                        Has analitzat les dades. Has identificat patrons energètics.
                                         <br>
-                                        Ara és el moment de posar-ho tot en pràctica.
+                                        Ara és el moment de construir el teu model més optimitzat.
                                     </p>
                                 </div>
                 
                                 <div class="final-mission-card">
-                                    <h3 class="final-mission-title">🛠️ La competició d'IA ètica</h3>
+                                    <h3 class="final-mission-title">🛠️ El Repte de la IA Sostenible</h3>
                                     <div class="final-mission-body">
-                                        <p>La teva missió final és tornar a competir contra els teus companys construint un <strong>sistema d'IA més precís dins dels estàndards ètics</strong>. Un cop tractat el biaix, la precisió torna a ser prioritària.</p>
+                                        <p>La teva missió final és tornar a competir contra els teus companys construint un <strong>sistema d'IA més precís per identificar edificis ineficients</strong>. Amb el clima en joc, cada gram de precisió compta.</p>
                                         
-                                        <p>Utilitza el que has après per escalar posicions a la classificació de manera responsable, perquè el rendiment importa, però també les conseqüències de les decisions de disseny.</p>
+                                        <p>Fes servir el que has après sobre IA Verda i enginyeria de variables per pujar en la classificació! Ajuda'ns a prioritzar on és més necessària la rehabilitació energètica!</p>
                                     </div>
                                 </div>
-        
-                                <div class="t-minus-header" style="margin-top:12px;">
-                                    <span class="t-minus-badge">Novetats</span>
-                                    <h2 class="t-minus-title">Més dades i una nova estratègia de model</h2>
-                                </div>
-                                <ul style="margin:0 0 12px 0;">
-                                    <li><b>Complet (100%)</b> ara inclou <b>més de 3.000 casos addicionals</b>.</li>
-                                    <li>Estratègia de model de <b>Vot majoritari</b> (Un model de vot majoritari selecciona la predicció majoritària entre les prediccions dels quatre models base).</li>
-                                </ul>
-                
+
                                 <div class="final-cta-wrapper">
                                     <p class="final-cta-head">
-                                        A punt per començar?
+                                        Llest per optimitzar?
                                     </p>
                                     <p class="final-cta-sub">
-                                        👇 Fes clic a <b>“Entrar a la competició”</b> per començar.
+                                        👇 Fes clic a <b>“Entrar a l'arena”</b> per començar.
                                     </p>
                                 </div>
                 
@@ -3155,7 +3132,7 @@ def create_model_building_game_ca_final_sustainability_app(theme_primary_hue: st
                     )
                     
                     # Only ONE button needed now
-                    intro_next_btn = gr.Button("Entrar a la competició ▶️", variant="primary", size="lg")
+                    intro_next_btn = gr.Button("Entrar a l'arena ▶️", variant="primary", size="lg")
   
         # Slide 2: Mission
         with gr.Column(visible=False, elem_id="slide-2") as briefing_slide_2:
