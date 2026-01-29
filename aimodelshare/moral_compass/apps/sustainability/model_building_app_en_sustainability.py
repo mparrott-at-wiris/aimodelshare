@@ -71,32 +71,45 @@ CACHE_DB_FILE = "prediction_cache.sqlite"
 
 def get_cached_prediction(key):
     """
-    Lightning-fast lookup from SQLite database with exhaustive path searching.
+    Lightning-fast lookup from SQLite database with exhaustive path and name searching.
     """
     _log(f"🔎 CACHE LOOKUP: key={repr(key)}")
     
-    # List of possible locations for the DB
-    possible_paths = [
-        os.path.join(os.getcwd(), CACHE_DB_FILE),
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), CACHE_DB_FILE),
-        os.path.join("/app", CACHE_DB_FILE)
+    # Names to check (base first, then full as fallback)
+    db_names = [CACHE_DB_FILE, "prediction_cache_full.sqlite"]
+    
+    # Roots to search
+    search_roots = [
+        os.getcwd(),
+        os.path.dirname(os.path.abspath(__file__)),
+        "/app"
     ]
     
     db_path = None
-    for p in possible_paths:
-        if os.path.exists(p):
-            db_path = p
+    applied_name = None
+    
+    for name in db_names:
+        for root in search_roots:
+            p = os.path.join(root, name)
+            if os.path.exists(p):
+                db_path = p
+                applied_name = name
+                break
+        if db_path:
             break
             
     if not db_path:
-        _log(f"⚠️ DATABASE FILE NOT FOUND. Searched: {possible_paths}")
+        _log(f"⚠️ NO CACHE DB FOUND. Searched: {db_names} in roots: {search_roots}")
         try:
-            _log(f"📂 Current Dir ({os.getcwd()}): {os.listdir(os.getcwd())}")
+            _log(f"📂 /app contents: {os.listdir('/app')}")
         except:
             pass
         return None
 
-    _log(f"✅ Using DB at: {db_path}")
+    if applied_name != CACHE_DB_FILE:
+        _log(f"⚠️ {CACHE_DB_FILE} missing. Falling back to {applied_name}")
+    else:
+        _log(f"✅ Using DB at: {db_path}")
 
     try:
         with sqlite3.connect(db_path, timeout=10.0) as conn:
@@ -327,6 +340,7 @@ def _fetch_leaderboard(token: Optional[str]) -> Optional[pd.DataFrame]:
                     _log(f"⚠️ Pandas error in get_leaderboard: {err_str}. Returning empty/provisional DF.")
                     # Return an empty dataframe with correct columns to prevent downstream failure
                     return pd.DataFrame(columns=["username", "accuracy", "Team", "timestamp"])
+                # For other errors, raise to allow retry logic to handle them
                 raise e
         
         df = _retry_with_backoff(_fetch, description="leaderboard fetch")
