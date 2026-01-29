@@ -26,6 +26,7 @@ import time
 import random
 import requests
 import contextlib
+import hashlib
 from io import StringIO
 import threading
 import functools
@@ -113,9 +114,19 @@ def get_cached_prediction(key):
         _log(f"✅ Using DB at: {db_path}")
 
     try:
-        with sqlite3.connect(db_path, timeout=10.0) as conn:
+        # Hash the key to a fixed-length string (32-char hex) for a much smaller index
+        hashed_key = hashlib.md5(key.encode('utf-8')).hexdigest()
+        
+        # Use URI mode for strict Read-Only if possible (lowest overhead)
+        conn_str = f"file:{db_path}?mode=ro"
+        
+        with sqlite3.connect(conn_str, uri=True, timeout=10.0) as conn:
+            # OPTIMIZATION: Tell SQLite to use a tiny internal cache (2MB)
+            # and rely on the host OS for file paging.
+            conn.execute("PRAGMA cache_size = -2000")
+            
             cursor = conn.cursor()
-            cursor.execute("SELECT value FROM cache WHERE key=?", (key,))
+            cursor.execute("SELECT value FROM cache WHERE key=?", (hashed_key,))
             result = cursor.fetchone()
             
             if result:
@@ -135,7 +146,7 @@ def get_cached_prediction(key):
                     # Legacy string format (converted from '0011...')
                     return np.array([int(c) for c in raw_value], dtype=np.uint8)
             else:
-                _log("❓ CACHE MISS in database")
+                _log(f"❓ CACHE MISS in database (Hashed: {hashed_key})")
                 return None
             
     except Exception as e:
