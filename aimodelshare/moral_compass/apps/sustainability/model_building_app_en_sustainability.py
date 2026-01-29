@@ -71,16 +71,32 @@ CACHE_DB_FILE = "prediction_cache.sqlite"
 
 def get_cached_prediction(key):
     """
-    Lightning-fast lookup from SQLite database with diagnostic logging.
+    Lightning-fast lookup from SQLite database with exhaustive path searching.
     """
-    # 1. Check if DB exists
-    db_path = os.path.join(os.getcwd(), CACHE_DB_FILE)
     _log(f"🔎 CACHE LOOKUP: key={repr(key)}")
-    _log(f"🔎 DB PATH: {db_path}")
     
-    if not os.path.exists(db_path):
-        _log(f"⚠️ DATABASE FILE NOT FOUND at {db_path}")
+    # List of possible locations for the DB
+    possible_paths = [
+        os.path.join(os.getcwd(), CACHE_DB_FILE),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), CACHE_DB_FILE),
+        os.path.join("/app", CACHE_DB_FILE)
+    ]
+    
+    db_path = None
+    for p in possible_paths:
+        if os.path.exists(p):
+            db_path = p
+            break
+            
+    if not db_path:
+        _log(f"⚠️ DATABASE FILE NOT FOUND. Searched: {possible_paths}")
+        try:
+            _log(f"📂 Current Dir ({os.getcwd()}): {os.listdir(os.getcwd())}")
+        except:
+            pass
         return None
+
+    _log(f"✅ Using DB at: {db_path}")
 
     try:
         with sqlite3.connect(db_path, timeout=10.0) as conn:
@@ -93,21 +109,18 @@ def get_cached_prediction(key):
                 return result[0] 
             else:
                 _log("❓ CACHE MISS in database")
-                # Sample diagnostics if miss occurs
+                # Diagnostic info on miss
                 cursor.execute("SELECT count(*) FROM cache")
                 count = cursor.fetchone()[0]
                 _log(f"🔎 DB Total Records: {count}")
-                cursor.execute("SELECT key FROM cache LIMIT 3")
-                samples = [r[0] for r in cursor.fetchall()]
-                _log(f"🔎 Sample keys in DB: {samples}")
+                if count > 0:
+                    cursor.execute("SELECT key FROM cache LIMIT 2")
+                    samples = [r[0] for r in cursor.fetchall()]
+                    _log(f"🔎 DB Sample Keys: {samples}")
                 return None
             
-    except sqlite3.OperationalError as e:
-        _log(f"⚠️ CACHE LOCK ERROR: {e}. Falling back to training.", flush=True)
-        return None
-        
     except Exception as e:
-        _log(f"⚠️ DB READ ERROR: {e}", flush=True)
+        _log(f"⚠️ DB ERROR: {e}")
         return None
 
 # -------------------------------------------------------------------------
@@ -303,7 +316,18 @@ def _fetch_leaderboard(token: Optional[str]) -> Optional[pd.DataFrame]:
         playground_instance = Competition(playground_id)
         
         def _fetch():
-            return playground_instance.get_leaderboard(token=token) if token else playground_instance.get_leaderboard()
+            try:
+                if token:
+                    return playground_instance.get_leaderboard(token=token)
+                return playground_instance.get_leaderboard()
+            except Exception as e:
+                # Catch the 'scalar values' error or any other fetch issues
+                err_str = str(e)
+                if "scalar values" in err_str:
+                    _log(f"⚠️ Pandas error in get_leaderboard: {err_str}. Returning empty/provisional DF.")
+                    # Return an empty dataframe with correct columns to prevent downstream failure
+                    return pd.DataFrame(columns=["username", "accuracy", "Team", "timestamp"])
+                raise e
         
         df = _retry_with_backoff(_fetch, description="leaderboard fetch")
         if df is not None and not df.empty and MAX_LEADERBOARD_ENTRIES:
@@ -4024,7 +4048,7 @@ def create_model_building_game_en_sustainability_app(theme_primary_hue: str = "i
                 best_score_state,
                 last_rank_state,
                 last_submission_score_state,
-                readiness_state,  # NEW
+                readiness_state,
                 # Authentication/Session stats
                 login_username,
                 login_password,
