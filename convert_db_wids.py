@@ -2,6 +2,7 @@ import gzip
 import json
 import sqlite3
 import os
+import numpy as np
 
 # WiDS-specific cache file names
 CACHE_FILE = "wids_prediction_cache.json.gz"
@@ -40,10 +41,17 @@ def create_database(db_path, data, description):
     cursor = conn.cursor()
     
     # Create table with an index on the 'key' for super-fast lookups
-    cursor.execute("CREATE TABLE IF NOT EXISTS cache (key TEXT PRIMARY KEY, value TEXT)")
+    # Use BLOB for value to store bit-packed binary data
+    cursor.execute("CREATE TABLE IF NOT EXISTS cache (key TEXT PRIMARY KEY, value BLOB)")
     
-    # Bulk insert
-    items = [(k, v) for k, v in data.items()]
+    # Bulk insert with bit-packing (1000 chars -> 125 bytes)
+    print(f"📦 Packing bits for {len(data)} entries...")
+    items = []
+    for k, v in data.items():
+        # Convert "0011..." string to numpy uint8 array, then pack bits
+        packed = np.packbits(np.array([int(c) for c in v], dtype=np.uint8)).tobytes()
+        items.append((k, packed))
+        
     cursor.executemany("INSERT OR REPLACE INTO cache (key, value) VALUES (?, ?)", items)
     
     conn.commit()
@@ -54,7 +62,7 @@ def create_database(db_path, data, description):
     conn.close()
     print(f"✅ Success! Created {db_path} with {len(data)} entries")
     print(f"   • {description}")
-    print(f"   • Table structure: cache(key TEXT PRIMARY KEY, value TEXT)")
+    print(f"   • Table structure: cache(key TEXT PRIMARY KEY, value BLOB)")
 
 def convert():
     print("=" * 60)
