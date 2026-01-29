@@ -1,3 +1,4 @@
+"""
 Model Building Game - Aplicación Gradio para el desafío de Sostenibilidad e IA.
 
 Session-based authentication with leaderboard caching and progressive rank unlocking.
@@ -9,6 +10,7 @@ Concurrency Notes:
 - Linear algebra libraries are constrained to single-threaded mode to prevent
   CPU oversubscription in containerized deployments.
 """
+
 
 import os
 
@@ -1051,8 +1053,7 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
         elif rank_diff < 0:
             rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>🔻 Has bajado {abs(rank_diff)} posición{'es' if abs(rank_diff) > 1 else ''}</p>"
         else:
-            rank_diff_html = f<p style='font-size: 1.5rem; font-weight: 600; color: {rank_color}; margin:0;'>Sin Cambios (↔)</p>"
-
+            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {rank_color}; margin:0;'>Sin Cambios (↔)</p>"
 
     return f"""
     <div class='kpi-card' style='border-color: {border_color};'>
@@ -4053,6 +4054,7 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "i
         )
 
     return demo
+
 
 # -------------------------------------------------------------------------
 # 4. Convenience Launcher
