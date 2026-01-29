@@ -71,34 +71,43 @@ CACHE_DB_FILE = "prediction_cache.sqlite"
 
 def get_cached_prediction(key):
     """
-    Lightning-fast lookup from SQLite database.
-    THREAD-SAFE FIX: Opens a new connection for every lookup.
+    Lightning-fast lookup from SQLite database with diagnostic logging.
     """
     # 1. Check if DB exists
-    if not os.path.exists(CACHE_DB_FILE):
+    db_path = os.path.join(os.getcwd(), CACHE_DB_FILE)
+    _log(f"🔎 CACHE LOOKUP: key={repr(key)}")
+    _log(f"🔎 DB PATH: {db_path}")
+    
+    if not os.path.exists(db_path):
+        _log(f"⚠️ DATABASE FILE NOT FOUND at {db_path}")
         return None
 
     try:
-        # Use a context manager ('with') to ensure the connection 
-        # is ALWAYS closed, releasing file locks immediately.
-        # timeout=10 ensures we don't wait forever if the file is busy.
-        with sqlite3.connect(CACHE_DB_FILE, timeout=10.0) as conn:
+        with sqlite3.connect(db_path, timeout=10.0) as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT value FROM cache WHERE key=?", (key,))
             result = cursor.fetchone()
             
             if result:
+                _log("✅ CACHE HIT")
                 return result[0] 
             else:
+                _log("❓ CACHE MISS in database")
+                # Sample diagnostics if miss occurs
+                cursor.execute("SELECT count(*) FROM cache")
+                count = cursor.fetchone()[0]
+                _log(f"🔎 DB Total Records: {count}")
+                cursor.execute("SELECT key FROM cache LIMIT 3")
+                samples = [r[0] for r in cursor.fetchall()]
+                _log(f"🔎 Sample keys in DB: {samples}")
                 return None
             
     except sqlite3.OperationalError as e:
-        # Handle locking errors gracefully
-        print(f"⚠️ CACHE LOCK ERROR: {e}. Falling back to training.", flush=True)
+        _log(f"⚠️ CACHE LOCK ERROR: {e}. Falling back to training.", flush=True)
         return None
         
     except Exception as e:
-        print(f"⚠️ DB READ ERROR: {e}", flush=True)
+        _log(f"⚠️ DB READ ERROR: {e}", flush=True)
         return None
 
 # -------------------------------------------------------------------------
@@ -2109,7 +2118,8 @@ def on_initial_load(username, token=None, team_name=""):
         submission_count,              # submission_count_state
         best_score,                    # best_score_state
         rank,                          # last_rank_state
-        last_score                     # last_submission_score_state
+        last_score,                    # last_submission_score_state
+        True                           # readiness_state (NEW)
     )
 # -------------------------------------------------------------------------
 # Conclusion helpers (dark/light mode aware)
@@ -3970,7 +3980,7 @@ def create_model_building_game_en_sustainability_app(theme_primary_hue: str = "i
                 # Load initial UI with actual user stats to sync Settings states
                 initial_results = on_initial_load(username, token=token, team_name=team_name)
                 
-                # Return initial load results (8) + session state (7)
+                # Return initial load results (18) + session state (7)
                 return initial_results + (
                     gr.update(visible=False),  # login_username
                     gr.update(visible=False),  # login_password  
@@ -4014,6 +4024,7 @@ def create_model_building_game_en_sustainability_app(theme_primary_hue: str = "i
                 best_score_state,
                 last_rank_state,
                 last_submission_score_state,
+                readiness_state,  # NEW
                 # Authentication/Session stats
                 login_username,
                 login_password,
