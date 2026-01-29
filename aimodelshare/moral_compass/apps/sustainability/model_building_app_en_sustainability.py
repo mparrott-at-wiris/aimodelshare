@@ -2023,9 +2023,28 @@ def on_initial_load(username, token=None, team_name=""):
     # Load test labels in the background (lightweight)
     _ensure_y_test_loaded()
     
-    initial_ui = compute_rank_settings(
-        0, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE
-    )
+    # If authenticated, get their REAL stats instead of defaults
+    if username:
+        # Get actual stats for returning users
+        stats = _compute_user_stats(username, token)
+        submission_count = stats.get("submission_count", 0)
+        best_score = stats.get("best_score", 0.0)
+        last_score = stats.get("last_score", 0.0)
+        rank = stats.get("rank", 0)
+        
+        # Determine rank settings based on their actual submission count
+        initial_ui = compute_rank_settings(
+            submission_count, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE
+        )
+    else:
+        # For new users
+        submission_count = 0
+        best_score = 0.0
+        last_score = 0.0
+        rank = 0
+        initial_ui = compute_rank_settings(
+            0, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE
+        )
 
     # 1. Prepare the Welcome HTML
     display_team = team_name if team_name else "Your Team"
@@ -2055,35 +2074,19 @@ def on_initial_load(username, token=None, team_name=""):
         print(f"Error on initial load fetch: {e}")
         full_leaderboard_df = None
 
-    # -------------------------------------------------------------------------
-    # LOGIC UPDATE: Check if THIS user has submitted anything
-    # -------------------------------------------------------------------------
-    user_has_submitted = False
-    if full_leaderboard_df is not None and not full_leaderboard_df.empty:
-        if "username" in full_leaderboard_df.columns and username:
-            # Check if the username exists in the dataframe
-            user_has_submitted = username in full_leaderboard_df["username"].values
-
     # Decision Logic
+    user_has_submitted = (submission_count > 0)
+    
     if not user_has_submitted:
-        # CASE 1: New User (or first time loading session) -> FORCE WELCOME
-        # regardless of whether the leaderboard has other people's data.
         team_html = welcome_html
         individual_html = "<p style='text-align:center; color:#6b7280; padding-top:40px;'>Submit your model to see where you rank!</p>"
-        
     elif full_leaderboard_df is None or full_leaderboard_df.empty:
-        # CASE 2: Returning user, but data fetch failed -> Show Skeleton
         team_html = _build_skeleton_leaderboard(rows=6, is_team=True)
         individual_html = _build_skeleton_leaderboard(rows=6, is_team=False)
-        
     else:
-        # CASE 3: Returning user WITH data -> Show Real Tables
         try:
             team_html, individual_html, _, _, _, _ = generate_competitive_summary(
-                full_leaderboard_df,
-                team_name,
-                username,
-                0, 0, -1
+                full_leaderboard_df, team_name, username, last_score, rank, submission_count
             )
         except Exception as e:
             print(f"Error generating summary HTML: {e}")
@@ -2091,7 +2094,7 @@ def on_initial_load(username, token=None, team_name=""):
             individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error rendering leaderboard.</p>"
 
     return (
-        get_model_card(DEFAULT_MODEL),
+        get_model_card(initial_ui["model_value"]),
         team_html,
         individual_html,
         initial_ui["rank_message"],
@@ -2099,6 +2102,14 @@ def on_initial_load(username, token=None, team_name=""):
         gr.update(minimum=1, maximum=initial_ui["complexity_max"], value=initial_ui["complexity_value"]),
         gr.update(choices=initial_ui["feature_set_choices"], value=initial_ui["feature_set_value"], interactive=initial_ui["feature_set_interactive"]),
         gr.update(choices=initial_ui["data_size_choices"], value=initial_ui["data_size_value"], interactive=initial_ui["data_size_interactive"]),
+        initial_ui["model_value"],      # model_type_state
+        initial_ui["complexity_value"], # complexity_state
+        initial_ui["feature_set_value"],# feature_set_state
+        initial_ui["data_size_value"],  # data_size_state
+        submission_count,              # submission_count_state
+        best_score,                    # best_score_state
+        rank,                          # last_rank_state
+        last_score                     # last_submission_score_state
     )
 # -------------------------------------------------------------------------
 # Conclusion helpers (dark/light mode aware)
@@ -3956,13 +3967,10 @@ def create_model_building_game_en_sustainability_app(theme_primary_hue: str = "i
                 stats = _compute_user_stats(username, token)
                 team_name = stats.get("team_name", "")
                 
-                # Concurrency Note: Do NOT set os.environ for per-user values.
-                # Return state via gr.State objects exclusively.
-                
-                # Hide login form since user is authenticated via session
-                # Return initial load results plus login form hidden
-                # Pass token explicitly for authenticated leaderboard fetch
+                # Load initial UI with actual user stats to sync Settings states
                 initial_results = on_initial_load(username, token=token, team_name=team_name)
+                
+                # Return initial load results (8) + session state (7)
                 return initial_results + (
                     gr.update(visible=False),  # login_username
                     gr.update(visible=False),  # login_password  
@@ -3974,8 +3982,6 @@ def create_model_building_game_en_sustainability_app(theme_primary_hue: str = "i
                 )
             else:
                 _log("No valid session on load, showing login form")
-                # No valid session, proceed with normal load (show login form)
-                # No token available, call without token
                 initial_results = on_initial_load(None, token=None, team_name="")
                 return initial_results + (
                     gr.update(visible=True),   # login_username
@@ -3999,13 +4005,23 @@ def create_model_building_game_en_sustainability_app(theme_primary_hue: str = "i
                 complexity_slider,
                 feature_set_checkbox,
                 data_size_radio,
+                # Setting states (NEW: to sync with rank/session stats)
+                model_type_state,
+                complexity_state,
+                feature_set_state,
+                data_size_state,
+                submission_count_state,
+                best_score_state,
+                last_rank_state,
+                last_submission_score_state,
+                # Authentication/Session stats
                 login_username,
                 login_password,
                 login_submit,
                 login_error,
-                username_state,  # NEW
-                token_state,     # NEW
-                team_name_state, # NEW
+                username_state,
+                token_state,
+                team_name_state,
             ]
         )
 
