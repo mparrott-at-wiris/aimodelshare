@@ -1,0 +1,123 @@
+name: Test WiDS Cache Key Compatibility
+
+# This workflow validates that WiDS cache artifacts are compatible with the
+# Sustainability model-building app's cache key format and coverage expectations.
+#
+# It runs the comprehensive test suite in tests/test_wids_cache_key_compatibility.py
+# which validates:
+# - Cache key structure (model|complexity|size|features format)
+# - Coverage of all app models, data sizes, and feature sets
+# - Default configuration availability (critical for first-time users)
+# - Feature set formatting (alphabetically sorted, comma-separated)
+
+on:
+  # Run on pushes to main branches
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'tests/test_wids_cache_key_compatibility.py'
+      - 'tests/fixtures/wids_cache/**'
+      - 'convert_db_wids.py'
+      - 'aimodelshare/moral_compass/apps/sustainability/model_building_app_en_sustainability.py'
+      - '.github/workflows/test_wids_cache_compatibility.yml'
+  
+  # Run on pull requests
+  pull_request:
+    paths:
+      - 'tests/test_wids_cache_key_compatibility.py'
+      - 'tests/fixtures/wids_cache/**'
+      - 'convert_db_wids.py'
+      - 'aimodelshare/moral_compass/apps/sustainability/model_building_app_en_sustainability.py'
+      - '.github/workflows/test_wids_cache_compatibility.yml'
+  
+  # Allow manual triggering
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-wids-cache-compatibility:
+    name: WiDS Cache Key Compatibility Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: 📦 Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+          pip install numpy pandas scikit-learn gradio
+          echo "✅ Dependencies installed"
+
+      - name: 🧪 Run WiDS Cache Compatibility Tests
+        run: |
+          echo "════════════════════════════════════════════════════════════════════════════════"
+          echo "  🔍 WiDS CACHE KEY COMPATIBILITY TEST SUITE"
+          echo "════════════════════════════════════════════════════════════════════════════════"
+          echo ""
+          echo "Testing cache key format: model|complexity|size|features"
+          echo "Validating coverage of all app options..."
+          echo ""
+          pytest tests/test_wids_cache_key_compatibility.py -v --tb=short --color=yes
+          TEST_EXIT_CODE=$?
+          echo ""
+          echo "════════════════════════════════════════════════════════════════════════════════"
+          if [ $TEST_EXIT_CODE -eq 0 ]; then
+            echo "  ✅ ALL TESTS PASSED"
+          else
+            echo "  ❌ SOME TESTS FAILED"
+          fi
+          echo "════════════════════════════════════════════════════════════════════════════════"
+          exit $TEST_EXIT_CODE
+
+      - name: 📊 Display Detailed Results
+        if: always()
+        run: |
+          echo ""
+          echo "════════════════════════════════════════════════════════════════════════════════"
+          echo "  📊 DETAILED TEST RESULTS"
+          echo "════════════════════════════════════════════════════════════════════════════════"
+          echo ""
+          pytest tests/test_wids_cache_key_compatibility.py -v -s --tb=short --color=yes || true
+          echo ""
+          echo "════════════════════════════════════════════════════════════════════════════════"
+
+      - name: 📝 Test Summary
+        if: always()
+        run: |
+          echo ""
+          echo "════════════════════════════════════════════════════════════════════════════════"
+          echo "  📝 TEST SUITE SUMMARY"
+          echo "════════════════════════════════════════════════════════════════════════════════"
+          echo ""
+          echo "Test File: tests/test_wids_cache_key_compatibility.py"
+          echo ""
+          echo "Test Coverage:"
+          echo "  ✓ Cache key structure validation"
+          echo "  ✓ Delimiter consistency (| character)"
+          echo "  ✓ Model coverage (all app models in cache)"
+          echo "  ✓ Data size coverage (all app sizes in cache)"
+          echo "  ✓ Default configuration validation (critical for first-time users)"
+          echo "  ✓ Feature set formatting (sorted, comma-separated)"
+          echo "  ✓ Complexity range validation (1-10)"
+          echo ""
+          echo "Purpose:"
+          echo "  - Catches cache/app mismatches before deployment"
+          echo "  - Ensures first-time user experience works (default configs)"
+          echo "  - Validates cache key format consistency"
+          echo "  - Serves as living documentation of expected format"
+          echo ""
+          echo "Documentation: tests/fixtures/wids_cache/README.md"
+          echo "════════════════════════════════════════════════════════════════════════════════"
