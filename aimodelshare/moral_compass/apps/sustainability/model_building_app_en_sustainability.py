@@ -72,15 +72,14 @@ CACHE_DB_FILE = "prediction_cache.sqlite"
 
 def get_cached_prediction(key):
     """
-    Lightning-fast lookup from SQLite database with exhaustive path and name searching.
+    Lightning-fast lookup from SQLite database with exhaustive path searching.
     Memory-Optimized: Handles bit-packed binary blobs and string formats.
+    
+    SECURITY: Strictly limited to prediction_cache.sqlite only.
     """
     _log(f"🔎 CACHE LOOKUP: key={repr(key)}")
     
-    # Names to check (base first, then full as fallback)
-    db_names = [CACHE_DB_FILE, "prediction_cache_full.sqlite"]
-    
-    # Roots to search
+    # Roots to search for prediction_cache.sqlite
     search_roots = [
         os.getcwd(),
         os.path.dirname(os.path.abspath(__file__)),
@@ -88,30 +87,21 @@ def get_cached_prediction(key):
     ]
     
     db_path = None
-    applied_name = None
-    
-    for name in db_names:
-        for root in search_roots:
-            p = os.path.join(root, name)
-            if os.path.exists(p):
-                db_path = p
-                applied_name = name
-                break
-        if db_path:
+    for root in search_roots:
+        p = os.path.join(root, CACHE_DB_FILE)
+        if os.path.exists(p):
+            db_path = p
             break
             
     if not db_path:
-        _log(f"⚠️ NO CACHE DB FOUND. Searched: {db_names} in roots: {search_roots}")
+        _log(f"⚠️ {CACHE_DB_FILE} NOT FOUND. Searched roots: {search_roots}")
         try:
             _log(f"📂 /app contents: {os.listdir('/app')}")
         except:
             pass
         return None
 
-    if applied_name != CACHE_DB_FILE:
-        _log(f"⚠️ {CACHE_DB_FILE} missing. Falling back to {applied_name}")
-    else:
-        _log(f"✅ Using DB at: {db_path}")
+    _log(f"✅ Using DB at: {db_path}")
 
     try:
         # Hash the key to a fixed-length string (32-char hex) for a much smaller index
