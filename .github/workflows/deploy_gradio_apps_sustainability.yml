@@ -112,7 +112,7 @@ jobs:
             --cpu=2
             --session-affinity
             --concurrency=20
-            --min-instances=1
+            --min-instances=0
             --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-en-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
@@ -140,7 +140,7 @@ jobs:
             --cpu=2
             --session-affinity
             --concurrency=20
-            --min-instances=1
+            --min-instances=0
             --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-ca-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
@@ -168,7 +168,7 @@ jobs:
             --cpu=2
             --session-affinity
             --concurrency=20
-            --min-instances=1
+            --min-instances=0
             --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-es-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
@@ -197,7 +197,7 @@ jobs:
             --cpu=2
             --session-affinity
             --concurrency=20
-            --min-instances=1
+            --min-instances=0
             --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-en-final-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
@@ -225,7 +225,7 @@ jobs:
             --cpu=2
             --session-affinity
             --concurrency=20
-            --min-instances=1
+            --min-instances=0
             --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-es-final-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
@@ -253,7 +253,7 @@ jobs:
             --cpu=2
             --session-affinity
             --concurrency=20
-            --min-instances=1
+            --min-instances=0
             --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-ca-final-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
