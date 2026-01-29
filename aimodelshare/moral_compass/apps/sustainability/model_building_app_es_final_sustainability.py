@@ -26,6 +26,7 @@ import time
 import random
 import requests
 import contextlib
+import hashlib
 from io import StringIO
 import threading
 import functools
@@ -69,9 +70,9 @@ import sqlite3
 CACHE_DB_FILE_BASE = "prediction_cache.sqlite"
 CACHE_DB_FILE_FULL = "prediction_cache_full.sqlite"
 
-def _get_cached_prediction_from(db_file: str, key: str) -> Optional[str]:
+def _get_cached_prediction_from(db_file: str, key: str):
     """
-    Lightning-fast lookup from specified SQLite database.
+    Lightning-fast lookup from specified SQLite database with MD5 hashing.
     THREAD-SAFE: Opens a new connection for every lookup.
     
     Args:
@@ -79,20 +80,47 @@ def _get_cached_prediction_from(db_file: str, key: str) -> Optional[str]:
         key: Cache key to lookup
     
     Returns:
-        Cached prediction string or None if not found
+        Numpy array of predictions (0/1) or None if not found
     """
     if not os.path.exists(db_file):
         return None
 
     try:
+        # Hash the key to a fixed-length string (32-char hex)
+        hashed_key = hashlib.md5(key.encode('utf-8')).hexdigest()
+        
+        # Use URI mode for strict Read-Only if possible (lowest overhead)
+        conn_str = f"file:{db_file}?mode=ro"
+        
         # Use a context manager ('with') to ensure the connection 
         # is ALWAYS closed, releasing file locks immediately.
         # timeout=10 ensures we don't wait forever if the file is busy.
-        with sqlite3.connect(db_file, timeout=10.0) as conn:
+        with sqlite3.connect(conn_str, uri=True, timeout=10.0) as conn:
+            # OPTIMIZATION: Tell SQLite to use a tiny internal cache (2MB)
+            # and rely on the host OS for file paging.
+            conn.execute("PRAGMA cache_size = -2000")
+
             cursor = conn.cursor()
-            cursor.execute("SELECT value FROM cache WHERE key=?", (key,))
+            cursor.execute("SELECT value FROM cache WHERE key=?", (hashed_key,))
             result = cursor.fetchone()
-            return result[0] if result else None
+            
+            if result:
+                raw_value = result[0]
+                
+                # OPTIMIZATION: Check if value is binary (packed bits) or string
+                if isinstance(raw_value, bytes):
+                    # Unpack 125 bytes back into 1000 bits (0/1)
+                    # This reduces DB size by 8x
+                    unpacked = np.unpackbits(np.frombuffer(raw_value, dtype=np.uint8))
+                    # Ensure we only return 1000 if length is slightly off due to byte padding
+                    if len(unpacked) > 1000:
+                        unpacked = unpacked[:1000]
+                    return unpacked
+                else:
+                    # Legacy string format (converted from '0011...')
+                    return np.array([int(c) for c in raw_value], dtype=np.uint8)
+            else:
+                return None
             
     except sqlite3.OperationalError as e:
         # Handle locking errors gracefully
@@ -103,7 +131,7 @@ def _get_cached_prediction_from(db_file: str, key: str) -> Optional[str]:
         print(f"⚠️ DB READ ERROR ({db_file}): {e}", flush=True)
         return None
 
-def get_cached_prediction(key: str, data_size_str: str) -> Optional[str]:
+def get_cached_prediction(key: str, data_size_str: str):
     """
     Lookup prediction from appropriate database based on data size.
     Routes Full (100%) to prediction_cache_full.sqlite, others to prediction_cache.sqlite.
@@ -113,7 +141,7 @@ def get_cached_prediction(key: str, data_size_str: str) -> Optional[str]:
         data_size_str: Data size label (e.g., "Small (20%)", "Full (100%)")
     
     Returns:
-        Cached prediction string or None if not found
+        Numpy array of predictions or None if not found
     """
     db_file = CACHE_DB_FILE_FULL if data_size_str == "Full (100%)" else CACHE_DB_FILE_BASE
     return _get_cached_prediction_from(db_file, key)
@@ -132,6 +160,30 @@ def get_test_labels(csv_path: str = "datasets/recreated_wids_v2_ny_10k.csv") -> 
     # Load data
     df = pd.read_csv(csv_path)
     
+    # Preprocessing (matches precompute_wids_cache.py)
+    
+    # 1. Facility Type Cleaning
+    if 'facility_type' in df.columns:
+        pass # Already handled by raw data or not needed if we only need target? 
+        # Actually precompute script cleans facility_type but we only need Y here.
+    
+    # 2. Year Built Cleaning (replace 0 or null with median)
+    if 'year_built' in df.columns:
+        df['year_built'] = df['year_built'].replace(0, np.nan)
+        median_year = df['year_built'].median()
+        df['year_built'] = df['year_built'].fillna(median_year)
+    
+    # 3. Energy Star Rating (impute with median)
+    if 'energy_star_rating' in df.columns:
+        median_rating = df['energy_star_rating'].median()
+        df['energy_star_rating'] = df['energy_star_rating'].fillna(median_rating)
+        
+    # 4. Direction Max Wind Speed / Days with Fog (impute with median)
+    for col in ['direction_max_wind_speed', 'days_with_fog']:
+        if col in df.columns:
+            median_val = df[col].median()
+            df[col] = df[col].fillna(median_val)
+    
     # Sample MAX_ROWS
     if df.shape[0] > 4000:  # MAX_ROWS = 4000
         df = df.sample(n=4000, random_state=42)
@@ -147,11 +199,10 @@ def get_test_labels(csv_path: str = "datasets/recreated_wids_v2_ny_10k.csv") -> 
         if col not in df.columns:
             df[col] = np.nan
     
-    X = df[feature_columns].copy()
     y = df["high_energy_usage"].copy()
     
     # Split (matching precompute_wids_cache.py: test_size=0.25, random_state=42, stratify=y)
-    _, _, _, y_test = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y)
+    _, _, _, y_test = train_test_split(df[feature_columns], y, test_size=0.25, random_state=42, stratify=y)
     
     return y_test
 
@@ -625,42 +676,52 @@ def build_cache_key(model_name: str, complexity: int, feature_set: list, data_si
     feature_key = ",".join(sorted(feature_set))
     return f"{model_name}|{complexity}|{data_size_str}|{feature_key}"
 
-def _compute_majority_string(pred_strings: list, tie_break: str = "random", rng_seed: int = 42) -> str:
+def _compute_majority_vote(pred_arrays: list, tie_break: str = "random", rng_seed: int = 42) -> np.ndarray:
     """
-    Compute majority vote over four base model prediction strings (matching generator logic).
+    Compute majority vote over four base model prediction arrays.
+    Vectorized implementation using numpy.
     
     Args:
-        pred_strings: List of 4 prediction strings from base models
+        pred_arrays: List of 4 prediction arrays (numpy) from base models
         tie_break: Tie-breaking strategy ("random" or "zero")
         rng_seed: Random seed for deterministic tie-breaking (default: 42)
     
     Returns:
-        Majority vote prediction string
-    
-    Raises:
-        ValueError: If pred_strings doesn't contain exactly 4 strings or lengths mismatch
+        Majority vote prediction array (numpy)
     """
-    if len(pred_strings) != 4:
-        raise ValueError(f"Expected 4 base model strings, got {len(pred_strings)}")
-    lengths = {len(s) for s in pred_strings}
-    if len(lengths) != 1:
-        raise ValueError("Prediction strings have mismatched lengths.")
-    n = lengths.pop()
-    rng = np.random.default_rng(rng_seed)
-    out = []
-    for i in range(n):
-        votes = [int(s[i]) for s in pred_strings]
-        zeros = votes.count(0)
-        ones = votes.count(1)
-        if zeros > ones:
-            out.append("0")
-        elif ones > zeros:
-            out.append("1")
+    if len(pred_arrays) != 4:
+        raise ValueError(f"Expected 4 base model arrays, got {len(pred_arrays)}")
+        
+    # Stack predictions: shape (4, N)
+    stack = np.vstack(pred_arrays)
+    
+    # Sum votes (0 or 1) along axis 0
+    vote_sum = np.sum(stack, axis=0)
+    
+    # Threshold is 2 for 4 models.
+    # >2 => 3 or 4 votes => 1
+    # <2 => 0 or 1 votes => 0
+    # ==2 => Tie
+    
+    # Initialize output array
+    majority = np.zeros(vote_sum.shape, dtype=np.uint8)
+    
+    # Clear wins
+    majority[vote_sum > 2] = 1
+    majority[vote_sum < 2] = 0
+    
+    # Ties
+    ties = (vote_sum == 2)
+    if np.any(ties):
+        if tie_break == "random":
+            rng = np.random.default_rng(rng_seed)
+            majority[ties] = rng.choice([0, 1], size=np.count_nonzero(ties))
         else:
-            out.append(str(rng.choice([0, 1])) if tie_break == "random" else "0")
-    return "".join(out)
+            majority[ties] = 0 # Default to class 0
+            
+    return majority
 
-def _fetch_base_pred_strings_for_majority(complexity: int, feature_set: list, data_size_str: str) -> Optional[list]:
+def _fetch_base_preds_for_majority(complexity: int, feature_set: list, data_size_str: str) -> Optional[list]:
     """
     Fetch the four base model predictions from cache for given settings.
     Implements cross-DB fallback for Full (100%) data size.
@@ -671,30 +732,30 @@ def _fetch_base_pred_strings_for_majority(complexity: int, feature_set: list, da
         data_size_str: Data size label
     
     Returns:
-        List of 4 prediction strings if all found, None if any missing
+        List of 4 prediction arrays if all found, None if any missing
     """
     # First try: fetch from the primary database for this data size
-    pred_strings = []
+    pred_arrays = []
     for m in BASE_MODEL_NAMES:
         k = build_cache_key(m, complexity, feature_set, data_size_str)
         s = get_cached_prediction(k, data_size_str)
         if s is None:
             break
-        pred_strings.append(s)
+        pred_arrays.append(s)
     
-    if pred_strings and len(pred_strings) == 4:
-        return pred_strings
+    if pred_arrays and len(pred_arrays) == 4:
+        return pred_arrays
     
     # Fallback for Full (100%): try base DB if full-models DB is missing any base model
     if data_size_str == "Full (100%)":
-        pred_strings = []
+        pred_arrays = []
         for m in BASE_MODEL_NAMES:
             k = build_cache_key(m, complexity, feature_set, data_size_str)
             s = _get_cached_prediction_from(CACHE_DB_FILE_BASE, k)
             if s is None:
                 return None
-            pred_strings.append(s)
-        return pred_strings
+            pred_arrays.append(s)
+        return pred_arrays
     
     return None
 
@@ -1789,12 +1850,12 @@ def run_experiment(
     cached_predictions = get_cached_prediction(cache_key, db_data_size)
     
     # Fallback: derive majority vote if selected and missing
-    if model_name_key == MAJORITY_MODEL_NAME and not cached_predictions:
-        base_strings = _fetch_base_pred_strings_for_majority(complexity_level, sanitized_features, db_data_size)
-        if base_strings:
-            cached_predictions = _compute_majority_string(base_strings, tie_break="random", rng_seed=42)
+    if model_name_key == MAJORITY_MODEL_NAME and cached_predictions is None:
+        base_arrays = _fetch_base_preds_for_majority(complexity_level, sanitized_features, db_data_size)
+        if base_arrays:
+            cached_predictions = _compute_majority_vote(base_arrays, tie_break="random", rng_seed=42)
     
-    if not cached_predictions:
+    if cached_predictions is None:
         error_html = f"""
         <div style='background:#fee2e2; padding:16px; border-radius:8px; border:2px solid #ef4444; color:#991b1b; text-align:center;'>
             <h3 style='margin:0;'>⚠️ Configuración no encontrada</h3>
@@ -1814,7 +1875,7 @@ def run_experiment(
         }
         return
 
-    predictions = np.array([int(c) for c in cached_predictions], dtype=np.uint8)
+    predictions = cached_predictions
     from sklearn.metrics import accuracy_score
     local_test_accuracy = accuracy_score(_Y_TEST, predictions)
 
