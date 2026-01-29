@@ -3,6 +3,7 @@ import json
 import sqlite3
 import os
 import numpy as np
+import hashlib
 
 # WiDS-specific cache file names
 CACHE_FILE = "wids_prediction_cache.json.gz"
@@ -44,13 +45,17 @@ def create_database(db_path, data, description):
     # Use BLOB for value to store bit-packed binary data
     cursor.execute("CREATE TABLE IF NOT EXISTS cache (key TEXT PRIMARY KEY, value BLOB)")
     
-    # Bulk insert with bit-packing (1000 chars -> 125 bytes)
-    print(f"📦 Packing bits for {len(data)} entries...")
+    # Bulk insert with bit-packing and key hashing
+    print(f"📦 Packing bits and hashing keys for {len(data)} entries...")
     items = []
     for k, v in data.items():
+        # Hash the key to a fixed 32-char hex string (MD5)
+        # This reduces index RAM usage by ~10x compared to full strings
+        hashed_key = hashlib.md5(k.encode('utf-8')).hexdigest()
+        
         # Convert "0011..." string to numpy uint8 array, then pack bits
         packed = np.packbits(np.array([int(c) for c in v], dtype=np.uint8)).tobytes()
-        items.append((k, packed))
+        items.append((hashed_key, packed))
         
     cursor.executemany("INSERT OR REPLACE INTO cache (key, value) VALUES (?, ?)", items)
     
