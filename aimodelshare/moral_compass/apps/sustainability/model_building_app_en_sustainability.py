@@ -72,6 +72,7 @@ CACHE_DB_FILE = "prediction_cache.sqlite"
 def get_cached_prediction(key):
     """
     Lightning-fast lookup from SQLite database with exhaustive path and name searching.
+    Memory-Optimized: Handles bit-packed binary blobs and string formats.
     """
     _log(f"🔎 CACHE LOOKUP: key={repr(key)}")
     
@@ -119,17 +120,22 @@ def get_cached_prediction(key):
             
             if result:
                 _log("✅ CACHE HIT")
-                return result[0] 
+                raw_value = result[0]
+                
+                # OPTIMIZATION: Check if value is binary (packed bits) or string
+                if isinstance(raw_value, bytes):
+                    # Unpack 125 bytes back into 1000 bits (0/1)
+                    # This reduces DB size by 8x
+                    unpacked = np.unpackbits(np.frombuffer(raw_value, dtype=np.uint8))
+                    # Ensure we only return 1000 if length is slightly off due to byte padding
+                    if len(unpacked) > 1000:
+                        unpacked = unpacked[:1000]
+                    return unpacked
+                else:
+                    # Legacy string format (converted from '0011...')
+                    return np.array([int(c) for c in raw_value], dtype=np.uint8)
             else:
                 _log("❓ CACHE MISS in database")
-                # Diagnostic info on miss
-                cursor.execute("SELECT count(*) FROM cache")
-                count = cursor.fetchone()[0]
-                _log(f"🔎 DB Total Records: {count}")
-                if count > 0:
-                    cursor.execute("SELECT key FROM cache LIMIT 2")
-                    samples = [r[0] for r in cursor.fetchall()]
-                    _log(f"🔎 DB Sample Keys: {samples}")
                 return None
             
     except Exception as e:
@@ -291,9 +297,16 @@ def _get_leaderboard_with_optional_token(playground_instance: Optional["Competit
         return None
     
     def _fetch():
-        if token:
-            return playground_instance.get_leaderboard(token=token)
-        return playground_instance.get_leaderboard()
+        try:
+            if token:
+                return playground_instance.get_leaderboard(token=token)
+            return playground_instance.get_leaderboard()
+        except Exception as e:
+            err_str = str(e)
+            if "scalar values" in err_str:
+                _log(f"⚠️ Pandas error in get_leaderboard: {err_str}. Returning empty/provisional DF.")
+                return pd.DataFrame(columns=["username", "accuracy", "Team", "timestamp"])
+            raise e
     
     try:
         return _retry_with_backoff(_fetch, description="leaderboard fetch")
@@ -1733,9 +1746,9 @@ def run_experiment(
         }
         
         # Fetch from cache
-        cached_predictions = get_cached_prediction(cache_key)
+        predictions = get_cached_prediction(cache_key)
         
-        if not cached_predictions:
+        if predictions is None:
             # Cache miss - show user-friendly error
             _log(f"❌ CACHE MISS: {cache_key}")
             error_html = f"""
@@ -1758,9 +1771,9 @@ def run_experiment(
             }
             return
         
-        # Convert cached prediction string to numpy array
+        # Convert cached prediction string to numpy array (handled by get_cached_prediction)
         _log(f"⚡ CACHE HIT: {cache_key}")
-        predictions = np.array([int(c) for c in cached_predictions], dtype=np.uint8)
+        # Predictions are already a numpy array from get_cached_prediction
         
         # Compute local test accuracy
         from sklearn.metrics import accuracy_score
