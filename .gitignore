@@ -71,9 +71,9 @@ full_models_cache_checkpoint.jsonl
 ensemble_cache_checkpoint.jsonl
 prediction_cache_ensemble.json.gz
 
-# WiDS prediction cache files
-wids_prediction_cache.json.gz
-wids_prediction_cache_full_models.json.gz
+# WiDS prediction cache files (but allow in test fixtures)
+/wids_prediction_cache.json.gz
+/wids_prediction_cache_full_models.json.gz
 wids_cache_checkpoint.jsonl
 wids_full_models_cache_checkpoint.jsonl
 wids_ensemble_cache_checkpoint.jsonl

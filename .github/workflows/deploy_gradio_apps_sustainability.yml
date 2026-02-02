@@ -25,7 +25,7 @@ jobs:
         uses: dawidd6/action-download-artifact@v6
         with:
           workflow: build_wids_cache.yml
-          name: wids-prediction-cache-file
+          name: wids-prediction-cache 
           path: .
           search_artifacts: true
           if_no_artifact_found: warn
@@ -48,7 +48,23 @@ jobs:
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
-
+        
+      - name: Ensure Artifact Registry repo exists
+        run: |
+          set -euo pipefail
+          echo "Ensuring Artifact Registry repository '${REPO_NAME}' exists in '${REGION}'..."
+          if gcloud artifacts repositories describe "${REPO_NAME}" --location="${REGION}" --project="${PROJECT_ID}" >/dev/null 2>&1; then
+            echo "✅ Artifact Registry repo '${REPO_NAME}' already exists."
+          else
+            echo "⚠️ Repo '${REPO_NAME}' not found. Creating it..."
+            gcloud artifacts repositories create "${REPO_NAME}" \
+              --repository-format=docker \
+              --location="${REGION}" \
+              --project="${PROJECT_ID}" \
+              --description="Docker images for sustainability gradio apps"
+            echo "✅ Created Artifact Registry repo '${REPO_NAME}'."
+          fi
+          
       - name: Configure Docker Auth
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
 
@@ -68,7 +84,7 @@ jobs:
             echo "ℹ️ WiDS full-models cache file NOT found."
           fi
 
-          docker build --pull -t "$IMAGE" .
+          docker build --pull -f Dockerfile_sustainability -t "$IMAGE" .
           docker push "$IMAGE"
           echo "IMAGE=$IMAGE" >> $GITHUB_ENV
 
@@ -96,7 +112,7 @@ jobs:
             --cpu=2
             --session-affinity
             --concurrency=20
-            --min-instances=1
+            --min-instances=0
             --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-en-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
@@ -124,7 +140,7 @@ jobs:
             --cpu=2
             --session-affinity
             --concurrency=20
-            --min-instances=1
+            --min-instances=0
             --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-ca-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
@@ -152,7 +168,7 @@ jobs:
             --cpu=2
             --session-affinity
             --concurrency=20
-            --min-instances=1
+            --min-instances=0
             --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-es-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
@@ -181,7 +197,7 @@ jobs:
             --cpu=2
             --session-affinity
             --concurrency=20
-            --min-instances=1
+            --min-instances=0
             --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-en-final-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
@@ -209,7 +225,7 @@ jobs:
             --cpu=2
             --session-affinity
             --concurrency=20
-            --min-instances=1
+            --min-instances=0
             --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-es-final-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
@@ -237,7 +253,7 @@ jobs:
             --cpu=2
             --session-affinity
             --concurrency=20
-            --min-instances=1
+            --min-instances=0
             --max-instances=150
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-ca-final-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true

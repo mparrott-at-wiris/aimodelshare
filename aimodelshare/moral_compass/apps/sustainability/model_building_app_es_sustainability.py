@@ -1,5 +1,5 @@
 """
-Model Building Game - Gradio application for the Justice & Equity Challenge.
+Model Building Game - Aplicación Gradio para el desafío de Sostenibilidad e IA.
 
 Session-based authentication with leaderboard caching and progressive rank unlocking.
 
@@ -10,6 +10,7 @@ Concurrency Notes:
 - Linear algebra libraries are constrained to single-threaded mode to prevent
   CPU oversubscription in containerized deployments.
 """
+
 
 import os
 
@@ -61,6 +62,7 @@ except ImportError:
 # Configuration & Caching Infrastructure
 # -------------------------------------------------------------------------
 
+
 # -------------------------------------------------------------------------
 # CACHE CONFIGURATION (Optimized: Thread-Safe SQLite)
 # -------------------------------------------------------------------------
@@ -106,36 +108,28 @@ def get_cached_prediction(key):
 _Y_TEST = None
 _Y_TEST_LOCK = threading.Lock()
 
-def get_test_labels(csv_path: str = "compas.csv") -> pd.Series:
+def get_test_labels(csv_path: str = "datasets/recreated_wids_v2_ny_10k.csv") -> pd.Series:
     """
     Load test labels from CSV file for local accuracy computation.
-    Matches the exact sampling and splitting logic from precompute_cache.py.
+    Matches the exact sampling and splitting logic from precompute_wids_cache.py.
     
     Args:
-        csv_path: Path to compas.csv (downloaded at build time)
-    
+        csv_path: Path to dataset csv
     Returns:
         pd.Series: Test labels (y_test)
     """
     # Load data
     df = pd.read_csv(csv_path)
     
-    # Calculate length_of_stay
-    try:
-        df['c_jail_in'] = pd.to_datetime(df['c_jail_in'])
-        df['c_jail_out'] = pd.to_datetime(df['c_jail_out'])
-        df['length_of_stay'] = (df['c_jail_out'] - df['c_jail_in']).dt.total_seconds() / (24 * 60 * 60)
-    except Exception:
-        df['length_of_stay'] = np.nan
-    
     # Sample MAX_ROWS
     if df.shape[0] > 4000:  # MAX_ROWS = 4000
         df = df.sample(n=4000, random_state=42)
     
-    # Extract features and target (matching precompute_cache.py)
-    all_numeric_cols = ["juv_fel_count", "juv_misd_count", "juv_other_count", 
-                        "days_b_screening_arrest", "age", "length_of_stay", "priors_count"]
-    all_categorical_cols = ["race", "sex", "c_charge_degree", "c_charge_desc"]
+    # Extract features and target (matching precompute_wids_cache.py)
+    all_numeric_cols = ["floor_area", "year_built", "ELEVATION", "heating_degree_days", 
+                        "cooling_degree_days", "january_min_temp", "july_max_temp", 
+                        "avg_temp", "april_avg_temp", "october_avg_temp"]
+    all_categorical_cols = ["facility_type", "building_class", "State_Factor", "Year_Factor"]
     feature_columns = all_numeric_cols + all_categorical_cols
     
     # Ensure all columns exist
@@ -143,17 +137,10 @@ def get_test_labels(csv_path: str = "compas.csv") -> pd.Series:
         if col not in df.columns:
             df[col] = np.nan
     
-    # Process c_charge_desc
-    if "c_charge_desc" in df.columns:
-        top_charges = df["c_charge_desc"].value_counts().head(50).index
-        df["c_charge_desc"] = df["c_charge_desc"].apply(
-            lambda x: x if pd.notna(x) and x in top_charges else "OTHER"
-        )
-    
     X = df[feature_columns].copy()
-    y = df["two_year_recid"].copy()
+    y = df["high_energy_usage"].copy()
     
-    # Split (matching precompute_cache.py: test_size=0.25, random_state=42, stratify=y)
+    # Split (matching precompute_wids_cache.py: test_size=0.25, random_state=42, stratify=y)
     _, _, _, y_test = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y)
     
     return y_test
@@ -163,9 +150,9 @@ def _ensure_y_test_loaded():
     global _Y_TEST
     with _Y_TEST_LOCK:
         if _Y_TEST is None:
-            print("Loading test labels for local accuracy computation...", flush=True)
+            print("Cargando etiquetas de prueba para el cálculo de precisión local...", flush=True)
             _Y_TEST = get_test_labels()
-            print(f"✅ Test labels loaded: {len(_Y_TEST)} samples", flush=True)
+            print(f"✅ Etiquetas de prueba cargadas: {len(_Y_TEST)} muestras", flush=True)
 
 LEADERBOARD_CACHE_SECONDS = int(os.environ.get("LEADERBOARD_CACHE_SECONDS", "45"))
 MAX_LEADERBOARD_ENTRIES = os.environ.get("MAX_LEADERBOARD_ENTRIES")
@@ -197,7 +184,7 @@ def _retry_with_backoff(
     func: Callable[[], T],
     max_attempts: int = 3,
     base_delay: float = 0.5,
-    description: str = "operation"
+    description: str = "operación"
 ) -> T:
     """
     Execute a function with exponential backoff retry on failure.
@@ -228,11 +215,11 @@ def _retry_with_backoff(
         except Exception as e:
             last_exception = e
             if attempt < max_attempts:
-                _log(f"{description} attempt {attempt} failed: {e}. Retrying in {delay}s...")
+                _log(f"{description} intento {attempt} falló: {e}. Reintentando en {delay}s...")
                 time.sleep(delay)
                 delay *= 2  # Exponential backoff
             else:
-                _log(f"{description} failed after {max_attempts} attempts: {e}")
+                _log(f"{description} falló después de {max_attempts} intentos: {e}")
     
     # Loop always runs at least once (max_attempts >= 1), so last_exception is set
     raise last_exception  # type: ignore[misc]
@@ -275,9 +262,9 @@ def _get_leaderboard_with_optional_token(playground_instance: Optional["Competit
         return playground_instance.get_leaderboard()
     
     try:
-        return _retry_with_backoff(_fetch, description="leaderboard fetch")
+        return _retry_with_backoff(_fetch, description="obtener tabla de clasificación")
     except Exception as e:
-        _log(f"Leaderboard fetch failed after retries: {e}")
+        _log(f"Fallo al obtener la tabla de clasificación después de los reintentos: {e}")
         return None
 
 def _fetch_leaderboard(token: Optional[str]) -> Optional[pd.DataFrame]:
@@ -298,24 +285,24 @@ def _fetch_leaderboard(token: Optional[str]) -> Optional[pd.DataFrame]:
             cache_entry["data"] is not None
             and now - cache_entry["timestamp"] < LEADERBOARD_CACHE_SECONDS
         ):
-            _log(f"Leaderboard cache hit ({cache_key})")
+            _log(f"Acierto de caché de la tabla de clasificación ({cache_key})")
             return cache_entry["data"]
 
-    _log(f"Fetching fresh leaderboard ({cache_key})...")
+    _log(f"Obteniendo tabla de clasificación actualizada ({cache_key})...")
     df = None
     try:
-        playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+        playground_id = "https://bhtrtkrbf4.execute-api.us-east-1.amazonaws.com/prod/m"
         playground_instance = Competition(playground_id)
         
         def _fetch():
             return playground_instance.get_leaderboard(token=token) if token else playground_instance.get_leaderboard()
         
-        df = _retry_with_backoff(_fetch, description="leaderboard fetch")
+        df = _retry_with_backoff(_fetch, description="obtener tabla de clasificación")
         if df is not None and not df.empty and MAX_LEADERBOARD_ENTRIES:
             df = df.head(MAX_LEADERBOARD_ENTRIES)
-        _log(f"Leaderboard fetched ({cache_key}): {len(df) if df is not None else 0} entries")
+        _log(f"Tabla de clasificación obtenida ({cache_key}): {len(df) if df is not None else 0} entradas")
     except Exception as e:
-        _log(f"Leaderboard fetch failed ({cache_key}): {e}")
+        _log(f"Fallo al obtener la tabla de clasificación ({cache_key}): {e}")
         df = None
 
     with _cache_lock:
@@ -337,59 +324,55 @@ def _get_or_assign_team(username: str, leaderboard_df: Optional[pd.DataFrame]) -
                             user_submissions["timestamp"], errors="coerce"
                         )
                         user_submissions = user_submissions.sort_values("timestamp", ascending=False)
-                        _log(f"Sorted {len(user_submissions)} submissions by timestamp for {username}")
+                        _log(f"Ordenadas {len(user_submissions)} entregas por marca de tiempo para {username}")
                     except Exception as ts_err:
-                        _log(f"Timestamp sort error: {ts_err}")
+                        _log(f"Error al ordenar por marca de tiempo: {ts_err}")
                 existing_team = user_submissions.iloc[0]["Team"]
                 if pd.notna(existing_team) and str(existing_team).strip():
                     normalized = _normalize_team_name(existing_team)
-                    _log(f"Found existing team for {username}: {normalized}")
+                    _log(f"Equipo existente encontrado para {username}: {normalized}")
                     return normalized, False
         new_team = _normalize_team_name(random.choice(TEAM_NAMES))
-        _log(f"Assigning new team to {username}: {new_team}")
+        _log(f"Asignando nuevo equipo a {username}: {new_team}")
         return new_team, True
     except Exception as e:
-        _log(f"Team assignment error: {e}")
+        _log(f"Error en la asignación de equipo: {e}")
         new_team = _normalize_team_name(random.choice(TEAM_NAMES))
         return new_team, True
 
 def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str], Optional[str]]:
-    """Attempt to authenticate via session token. Returns (success, username, token)."""
+    """Intentar autenticar mediante token de sesión. Devuelve (éxito, nombre_usuario, token)."""
     try:
         session_id = request.query_params.get("sessionid") if request else None
         if not session_id:
-            _log("No sessionid in request")
+            _log("No hay sessionid en la solicitud")
             return False, None, None
         
         from aimodelshare.aws import get_token_from_session, _get_username_from_token
         
         token = get_token_from_session(session_id)
         if not token:
-            _log("Failed to get token from session")
+            _log("Fallo al obtener el token de la sesión")
             return False, None, None
             
         username = _get_username_from_token(token)
         if not username:
-            _log("Failed to extract username from token")
+            _log("Fallo al extraer el nombre de usuario del token")
             return False, None, None
         
-        _log(f"Session auth successful for {username}")
+        _log(f"Autenticación de sesión exitosa para {username}")
         return True, username, token
         
     except Exception as e:
-        _log(f"Session auth failed: {e}")
+        _log(f"La autenticación de sesión falló: {e}")
         return False, None, None
 
-
-# -------------------------------------------------------------------------
-# UPDATED FUNCTION
-# -------------------------------------------------------------------------
 def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
     """
-    Compute user statistics with caching.
+    Calcular estadísticas de usuario con almacenamiento en caché.
     
-    Concurrency Note: Protected by _user_stats_lock for thread-safe
-    cache reads and writes.
+    Nota de concurrencia: Protegido por _user_stats_lock para lecturas y escrituras
+    de caché seguras para hilos.
     """
     now = time.time()
     
@@ -397,12 +380,12 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
     with _user_stats_lock:
         cached = _user_stats_cache.get(username)
         if cached and (now - cached.get("_ts", 0) < USER_STATS_TTL):
-            _log(f"User stats cache hit for {username}")
+            _log(f"Acierto de caché de estadísticas de usuario para {username}")
             # Return shallow copy to prevent caller mutations from affecting cache.
             # Stats dict contains only primitives (float, int, str), so shallow copy is sufficient.
             return cached.copy()
 
-    _log(f"Computing fresh stats for {username}")
+    _log(f"Calculando estadísticas frescas para {username}")
     leaderboard_df = _fetch_leaderboard(token)
     team_name, _ = _get_or_assign_team(username, leaderboard_df)
     
@@ -443,25 +426,17 @@ def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
                 except KeyError:
                     stats["rank"] = 0
     except Exception as e:
-        _log(f"Error computing stats for {username}: {e}")
+        _log(f"Error calculando estadísticas para {username}: {e}")
 
     # Thread-safe cache update
     with _user_stats_lock:
         _user_stats_cache[username] = stats
-    _log(f"Stats for {username}: {stats}")
+    _log(f"Estadísticas para {username}: {stats}")
     return stats
-  
 def _build_attempts_tracker_html(current_count, limit=10):
     """
     Generate HTML for the attempts tracker display.
     Shows current attempt count vs limit with color coding.
-    
-    Args:
-        current_count: Number of attempts used so far
-        limit: Maximum allowed attempts (default: ATTEMPT_LIMIT)
-    
-    Returns:
-        str: HTML string for the tracker display
     """
     if current_count >= limit:
         # Limit reached - red styling
@@ -469,14 +444,14 @@ def _build_attempts_tracker_html(current_count, limit=10):
         border_color = "#bae6fd"
         text_color = "#0369a1"
         icon = "🛑"
-        label = f"Última oportunidad (por ahora) para mejorar tu puntuación: {current_count}/{limit}"
+        label = f"¡Última oportunidad (por ahora) para subir tu puntuación!: {current_count}/{limit}"
     else:
         # Normal - blue styling
         bg_color = "#f0f9ff"
         border_color = "#bae6fd"
         text_color = "#0369a1"
         icon = "📊"
-        label = f"Intentos usados: {current_count}/{limit}"
+        label = f"Intentos utilizados: {current_count}/{limit}"
 
     return f"""<div style='text-align:center; padding:8px; margin:8px 0; background:{bg_color}; border-radius:8px; border:1px solid {border_color};'>
         <p style='margin:0; color:{text_color}; font-weight:600; font-size:1rem;'>{icon} {label}</p>
@@ -519,7 +494,7 @@ def check_attempt_limit(submission_count: int, limit: int = None) -> Tuple[bool,
 # 1. Configuration
 # -------------------------------------------------------------------------
 
-MY_PLAYGROUND_ID = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+MY_PLAYGROUND_ID = "https://bhtrtkrbf4.execute-api.us-east-1.amazonaws.com/prod/m"
 
 # --- Submission Limit Configuration ---
 # Maximum number of successful leaderboard submissions per user per session.
@@ -542,133 +517,136 @@ LEADERBOARD_POLL_TRIES = 60  # Number of polling attempts (increased to handle b
 LEADERBOARD_POLL_SLEEP = 1.0  # Sleep duration between polls (seconds)
 ENABLE_AUTO_RESUBMIT_AFTER_READY = False  # Future feature flag for auto-resubmit
 
-# --- 1. MODEL CONFIGURATION (Keys match Database) ---
 MODEL_TYPES = {
     "The Balanced Generalist": {
         "model_builder": lambda: LogisticRegression(
             max_iter=500, random_state=42, class_weight="balanced"
         ),
-        # Store the Spanish description here for the UI
-        "card_es": "Este modelo es rápido, fiable y equilibrado. Buen punto de partida; suele dar resultados estables en muchos casos."
+        "card": "Un modelo rápido, fiable y equilibrado. Un buen punto de partida; menos propenso al sobreajuste."
     },
     "The Rule-Maker": {
         "model_builder": lambda: DecisionTreeClassifier(
             random_state=42, class_weight="balanced"
         ),
-        "card_es": "Este modelo aprende reglas simples del tipo «si/entonces». Fácil de entender, pero le cuesta captar patrones complejos."
+        "card": "Aprende reglas simples de tipo 'si/entonces'. Fácil de interpretar, pero puede pasar por alto patrones sutiles."
     },
     "The 'Nearest Neighbor'": {
         "model_builder": lambda: KNeighborsClassifier(),
-        "card_es": "Este modelo se basa en los ejemplos más parecidos del pasado. «Si te pareces a estos casos, prediré el mismo resultado»."
+        "card": "Analiza los ejemplos pasados más cercanos. 'Te pareces a estos otros; predeciré según su comportamiento'."
     },
     "The Deep Pattern-Finder": {
         "model_builder": lambda: RandomForestClassifier(
             random_state=42, class_weight="balanced"
         ),
-        "card_es": "Este modelo combina muchos árboles de decisión para encontrar patrones complejos. Es potente, pero conviene no pasarse con la complejidad."
+        "card": "Un conjunto de muchos árboles de decisión. Potente, puede captar patrones profundos; vigila la complejidad."
     }
 }
 
-DEFAULT_MODEL = "The Balanced Generalist"  # Now using the English key
+DEFAULT_MODEL = "The Balanced Generalist"
 
-# --- 2. TRANSLATION MAPS (UI Display -> Database Key) ---
-
-# Map English Keys to Catalan Display Names for the Radio Button
+# --- TRANSLATION MAPS ---
 MODEL_DISPLAY_MAP = {
     "The Balanced Generalist": "El Generalista Equilibrado",
     "The Rule-Maker": "El Creador de Reglas",
-    "The 'Nearest Neighbor'": "El 'Vecino Más Cercano'",
-    "The Deep Pattern-Finder": "El Buscador de Patrones Profundo"
+    "The 'Nearest Neighbor'": "El 'Vecino más Próximo'",
+    "The Deep Pattern-Finder": "El Buscador de Patrones Profundos"
 }
-
-# Create the Choices List as Tuples: [(Catalan Label, English Value)]
-# This tells Gradio: "Show the user Catalan, but send Python the English key"
 MODEL_RADIO_CHOICES = [(label, key) for key, label in MODEL_DISPLAY_MAP.items()]
 
-# Map Spanish Data Sizes (UI) to English Keys (Database)
-DATA_SIZE_DB_MAP = {
-    "Pequeño (20%)": "Small (20%)",
-    "Medio (60%)": "Medium (60%)",
-    "Grande (80%)": "Large (80%)",
-    "Completo (100%)": "Full (100%)"
-}
-
-
 TEAM_NAMES = [
-    "The Moral Champions", "The Justice League", "The Data Detectives",
-    "The Ethical Explorers", "The Fairness Finders", "The Accuracy Avengers"
+    "The Climate Guardians", "United Eco-Architects", "The Energy Detectives",
+    "The Sustainability League", "Green Future Engineers", "Zero Carbon Avengers"
 ]
 CURRENT_TEAM_NAME = random.choice(TEAM_NAMES)
 
-# Team name translations for UI display only (Spanish)
-# Internal logic (ranking, caching, grouping) always uses canonical English names
 TEAM_NAME_TRANSLATIONS = {
     "en": {
-        "The Justice League": "The Justice League",
-        "The Moral Champions": "The Moral Champions",
-        "The Data Detectives": "The Data Detectives",
-        "The Ethical Explorers": "The Ethical Explorers",
-        "The Fairness Finders": "The Fairness Finders",
-        "The Accuracy Avengers": "The Accuracy Avengers"
+        "The Climate Guardians": "The Climate Guardians",
+        "United Eco-Architects": "United Eco-Architects",
+        "The Energy Detectives": "The Energy Detectives",
+        "The Sustainability League": "The Sustainability League",
+        "Green Future Engineers": "Green Future Engineers",
+        "Zero Carbon Avengers": "Zero Carbon Avengers"
+    },
+    "ca": {
+        "The Climate Guardians": "Els Guardians del Clima",
+        "United Eco-Architects": "Eco-Arquitectes Units",
+        "The Energy Detectives": "Els Detectius de l'Energia",
+        "The Sustainability League": "La Lliga de la Sostenibilitat",
+        "Green Future Engineers": "Enginyers del Futur Verd",
+        "Zero Carbon Avengers": "Els Venjadors del Carboni Zero"
     },
     "es": {
-        "The Justice League": "La Liga de la Justicia",
-        "The Moral Champions": "Los Campeones Morales",
-        "The Data Detectives": "Los Detectives de Datos",
-        "The Ethical Explorers": "Los Exploradores Éticos",
-        "The Fairness Finders": "Los Buscadores de Equidad",
-        "The Accuracy Avengers": "Los Vengadores de Precisión"
+        "The Climate Guardians": "Los Guardianes del Clima",
+        "United Eco-Architects": "Eco-Arquitectos Unidos",
+        "The Energy Detectives": "Los Detectivos de la Energía",
+        "The Sustainability League": "La Liga de la Sostenibilidad",
+        "Green Future Engineers": "Ingenieros del Futuro Verde",
+        "Zero Carbon Avengers": "Los Vengadores del Carbono Cero"
     }
 }
-
-# UI language for team name display
 UI_TEAM_LANG = "es"
 
 
 # --- Feature groups for scaffolding (Weak -> Medium -> Strong) ---
 FEATURE_SET_ALL_OPTIONS = [
-    ("Número de delitos graves juveniles", "juv_fel_count"),
-    ("Número de delitos leves juveniles", "juv_misd_count"),
-    ("Otros delitos juveniles", "juv_other_count"),
-    ("Origen étnico", "race"),
-    ("Sexo", "sex"),
-    ("Gravedad del cargo (leve / grave)", "c_charge_degree"),
-    ("Días antes del arresto", "days_b_screening_arrest"),
-    ("Edad", "age"),
-    ("Días en prisión", "length_of_stay"),
-    ("Número de delitos previos", "priors_count"),
+    ("Superficie (pies cuadrados)", "floor_area"),
+    ("Año de construcción", "year_built"),
+    ("Clase de edificio", "building_class"),
+    ("Tipo de instalación", "facility_type"),
+    ("Factor de estado", "State_Factor"),
+    ("Factor de año", "Year_Factor"),
+    ("Elevación", "ELEVATION"),
+    ("Días de calefacción", "heating_degree_days"),
+    ("Días de refrigeración", "cooling_degree_days"),
+    ("Temp. media anual", "avg_temp"),
+    ("Temp. mínima de enero", "january_min_temp"),
+    ("Temp. máxima de julio", "july_max_temp"),
+    ("Temp. media de abril", "april_avg_temp"),
+    ("Temp. media de octubre", "october_avg_temp"),
 ]
 FEATURE_SET_GROUP_1_VALS = [
-    "juv_fel_count", "juv_misd_count", "juv_other_count", "race", "sex",
-    "c_charge_degree", "days_b_screening_arrest"
+    "floor_area", "year_built", "building_class", "facility_type"
 ]
-FEATURE_SET_GROUP_2_VALS = ["c_charge_desc", "age"]
-FEATURE_SET_GROUP_3_VALS = ["length_of_stay", "priors_count"]
+FEATURE_SET_GROUP_2_VALS = ["State_Factor", "Year_Factor", "ELEVATION"]
+FEATURE_SET_GROUP_3_VALS = [
+    "avg_temp", "heating_degree_days", "cooling_degree_days", 
+    "january_min_temp", "july_max_temp", "april_avg_temp", "october_avg_temp"
+]
 ALL_NUMERIC_COLS = [
-    "juv_fel_count", "juv_misd_count", "juv_other_count",
-    "days_b_screening_arrest", "age", "length_of_stay", "priors_count"
+    "floor_area", "year_built", "ELEVATION", "heating_degree_days", 
+    "cooling_degree_days", "january_min_temp", "july_max_temp", 
+    "avg_temp", "april_avg_temp", "october_avg_temp"
 ]
 ALL_CATEGORICAL_COLS = [
-    "race", "sex", "c_charge_degree"
+    "facility_type", "building_class", "State_Factor", "Year_Factor"
 ]
 DEFAULT_FEATURE_SET = FEATURE_SET_GROUP_1_VALS
 
 
 # --- Data Size config ---
 DATA_SIZE_MAP = {
-    "Pequeño (20%)": 0.2,
-    "Medio (60%)": 0.6,
-    "Grande (80%)": 0.8,
-    "Completo (100%)": 1.0
+    "Small (20%)": 0.2,
+    "Medium (60%)": 0.6,
+    "Large (80%)": 0.8,
+    "Full (100%)": 1.0
 }
-DEFAULT_DATA_SIZE = "Pequeño (20%)"
+DATA_SIZE_DISPLAY_MAP = {
+    "Small (20%)": "Pequeña (20%)",
+    "Medium (60%)": "Mediana (60%)",
+    "Large (80%)": "Grande (80%)",
+    "Full (100%)": "Completa (100%)"
+}
+DATA_SIZE_RADIO_CHOICES = [(label, key) for key, label in DATA_SIZE_DISPLAY_MAP.items()]
+DEFAULT_DATA_SIZE = "Small (20%)"
 
 
 MAX_ROWS = 4000
 TOP_N_CHARGE_CATEGORICAL = 50
+CACHE_MAX_AGE_HOURS = 24  # Cache validity duration
 np.random.seed(42)
 
-# Global state containers
+# Global state container for playground instance
 playground = None
 
 # -------------------------------------------------------------------------
@@ -935,10 +913,10 @@ def _normalize_team_name(name: str) -> str:
         str: Normalized team name, or empty string if input is None/empty
     
     Examples:
-        >>> _normalize_team_name("  The Ethical Explorers  ")
-        'The Ethical Explorers'
-        >>> _normalize_team_name("The  Moral   Champions")
-        'The Moral Champions'
+        >>> _normalize_team_name("  The Energy Detectives  ")
+        'The Energy Detectives'
+        >>> _normalize_team_name("The Climate  Guardians  ")
+        'The Climate Guardians'
         >>> _normalize_team_name(None)
         ''
     """
@@ -948,62 +926,25 @@ def _normalize_team_name(name: str) -> str:
 
 
 # Team name translation helpers for UI display (Catalan)
-def translate_team_name_for_display(team_en: str, lang: str = "ca") -> str:
+def translate_team_name_for_display(team_en: str, lang: str = "es") -> str:
     """
     Translate a canonical English team name to the specified language for UI display.
     Fallback to English if translation not found.
-    
-    Internal logic always uses canonical English names. This is only for UI display.
     """
     if lang not in TEAM_NAME_TRANSLATIONS:
         lang = "en"
     return TEAM_NAME_TRANSLATIONS[lang].get(team_en, team_en)
 
 
-def translate_team_name_to_english(display_name: str, lang: str = "ca") -> str:
-    """
-    Reverse lookup: given a localized team name, return the canonical English name.
-    Returns the original display_name if not found.
-    
-    For future use if user input needs to be normalized back to English.
-    """
-    if lang not in TEAM_NAME_TRANSLATIONS:
-        return display_name  # Already English or unknown
-    
-    translations = TEAM_NAME_TRANSLATIONS[lang]
-    for english_name, localized_name in translations.items():
-        if localized_name == display_name:
-            return english_name
-    return display_name
 
-
-def _format_leaderboard_for_display(df: Optional[pd.DataFrame], lang: str = "ca") -> Optional[pd.DataFrame]:
-    """
-    Create a copy of the leaderboard DataFrame with team names translated for display.
-    Does not mutate the original DataFrame.
-    
-    For potential future use when displaying full leaderboard.
-    Internal logic should always use the original DataFrame with English team names.
-    """
-    if df is None:
-        return None
-    
-    if df.empty or "Team" not in df.columns:
-        return df.copy()
-    
-    df_display = df.copy()
-    df_display["Team"] = df_display["Team"].apply(lambda t: translate_team_name_for_display(t, lang))
-    return df_display
-
-
-def _build_skeleton_leaderboard(rows=6, is_team=True, submit_button_label="5. 🔬 Construir y enviar el modelo"):
+def _build_skeleton_leaderboard(rows=6, is_team=True, submit_button_label="5. 🔬 Construye y Envía Modelo"):
     context_label = "Equipo" if is_team else "Individual"
     return f"""
     <div class='lb-placeholder' aria-live='polite'>
-        <div class='lb-placeholder-title'>{context_label} · Clasificación pendiente</div>
+        <div class='lb-placeholder-title'>Clasificación del {context_label} Pendiente</div>
         <div class='lb-placeholder-sub'>
-            <p style='margin:0 0 6px 0;'>¡Envía tu primer modelo para desbloquear la clasificación!</p>
-            <p style='margin:0;'><strong>Haz clic en «{submit_button_label}» (abajo a la izquierda)</strong> para comenzar!</p>
+            <p style='margin:0 0 6px 0;'>Envía tu primer modelo para completar esta tabla.</p>
+            <p style='margin:0;'><strong>Haz clic en “{submit_button_label}” (abajo a la izquierda)</strong> para empezar!</p>
         </div>
     </div>
     """
@@ -1014,14 +955,14 @@ def build_login_prompt_html():
     The styled preview card will be prepended to this.
     """
     return f"""
-    <h2 style='color: #111827; margin-top:20px; border-top: 2px solid #e5e7eb; padding-top: 20px;'>🔐 Inicia sesión para enviar y clasificarte</h2>
+    <h2 style='color: #111827; margin-top:20px; border-top: 2px solid #e5e7eb; padding-top: 20px;'>🔐 Inicia sesión para enviar y puntuar</h2>
     <div style='margin-top:16px; text-align:left; font-size:1rem; line-height:1.6; color:#374151;'>
         <p style='margin:12px 0;'>
-            This is a preview run only. Sign in to publish your score to the live leaderboard, 
-            earn promotions, and contribute team points.
+            Esta es solo una ejecución de prueba. Inicia sesión para publicar tu puntuación en la clasificación en vivo, 
+            ganar promociones y contribuir con puntos al equipo.
         </p>
         <p style='margin:12px 0;'>
-            <strong>New user?</strong> Create a free account at 
+            <strong>¿Nuevo usuario?</strong> Crea una cuenta gratuita en 
             <a href='https://www.modelshare.ai/login' target='_blank' 
                 style='color:#4f46e5; text-decoration:underline;'>modelshare.ai/login</a>
         </p>
@@ -1034,7 +975,7 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
 
     # Handle pending state - show processing message with provisional diff
     if is_pending:
-        title = "⏳ Procesando el envío"
+        title = "⏳ Procesando Envío"
         acc_color = "#3b82f6"  # Blue
         acc_text = f"{(local_test_accuracy * 100):.2f}%" if local_test_accuracy is not None else "N/A"
         
@@ -1042,54 +983,54 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
         if local_test_accuracy is not None and last_score is not None and last_score > 0:
             score_diff = local_test_accuracy - last_score
             if abs(score_diff) < 0.0001:
-                acc_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #6b7280; margin:0;'>Sin cambios (↔) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Actualización de la clasificación pendiente...</p>"
+                acc_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #6b7280; margin:0;'>Sin Cambios (↔) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pendiente de actualización...</p>"
             elif score_diff > 0:
-                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>+{(score_diff * 100):.2f} (⬆️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Actualización de la clasificación pendiente...</p>"
+                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>+{(score_diff * 100):.2f} (⬆️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pendiente de actualización...</p>"
             else:
-                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>{(score_diff * 100):.2f} (⬇️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Actualización de la clasificación pendiente...</p>"
+                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>{(score_diff * 100):.2f} (⬇️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pendiente de actualización...</p>"
         else:
             # No last score available - just show pending message
-            acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
+            acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pendiente de actualización...</p>"
         
         border_color = acc_color
         rank_color = "#6b7280"  # Gray
         rank_text = "Pendiente"
-        rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0;'>Calculando la posición...</p>"
+        rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0;'>Calculando posición...</p>"
         
     # Handle preview mode - Styled to match "success" card
     elif is_preview:
-        title = "🔬 Prueba de vista previa finalizada!"
-        acc_color = "#16a34a"  # Green (like success)
+        title = "🔬 ¡Ejecución de Prueba Exitosa!"
+        acc_color = "#16a34a"  # Green
         acc_text = f"{(new_score * 100):.2f}%" if new_score > 0 else "N/A"
-        acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>(Solo vista previa - no se ha enviado)</p>" # Neutral color
+        acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>(Solo prueba - no enviado)</p>"
         border_color = acc_color # Green border
-        rank_color = "#3b82f6" # Blue (like rank)
-        rank_text = "N/A" # Placeholder
-        rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0;'>Sin posición (vista previa)</p>" # Neutral color
+        rank_color = "#3b82f6" # Blue
+        rank_text = "N/A"
+        rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0;'>Sin clasificación (prueba)</p>"
     
     # 1. Handle First Submission
     elif submission_count == 0:
-        title = "🎉 ¡Primer modelo enviado!"
+        title = "🎉 ¡Primer Modelo Enviado!"
         acc_color = "#16a34a" # green
         acc_text = f"{(new_score * 100):.2f}%"
         acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>(¡Tu primera puntuación!)</p>"
 
         rank_color = "#3b82f6" # blue
         rank_text = f"#{new_rank}"
-        rank_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #3b82f6; margin:0;'>¡¡Ya estás en la tabla!!</p>"
+        rank_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #3b82f6; margin:0;'>¡Estás en la tabla!</p>"
         border_color = acc_color
 
     else:
         # 2. Handle Score Changes
         score_diff = new_score - last_score
         if abs(score_diff) < 0.0001:
-            title = "✅ Envío completado!"
+            title = "✅ Envío Correcto"
             acc_color = "#6b7280" # gray
             acc_text = f"{(new_score * 100):.2f}%"
-            acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>Sin cambios (↔)</p>"
+            acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>Sin Cambios (↔)</p>"
             border_color = acc_color
         elif score_diff > 0:
-            title = "✅ Envío completado!"
+            title = "✅ ¡Envío Correcto!"
             acc_color = "#16a34a" # green
             acc_text = f"{(new_score * 100):.2f}%"
             acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>+{(score_diff * 100):.2f} (⬆️)</p>"
@@ -1106,20 +1047,20 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
         rank_color = "#3b82f6" # blue
         rank_text = f"#{new_rank}"
         if last_rank == 0: # Handle first rank
-             rank_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #3b82f6; margin:0;'>¡¡Ya estás en la tabla!!</p>"
+             rank_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #3b82f6; margin:0;'>¡Estás en la tabla!</p>"
         elif rank_diff > 0:
-            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>🚀 ¡Has subido {rank_diff} posición/es!</p>"
+            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>🚀 ¡Has subido {rank_diff} posición{'es' if rank_diff > 1 else ''}!</p>"
         elif rank_diff < 0:
-            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>🔻 Has bajado {abs(rank_diff)} posición/es!</p>"
+            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>🔻 Has bajado {abs(rank_diff)} posición{'es' if abs(rank_diff) > 1 else ''}</p>"
         else:
-            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {rank_color}; margin:0;'>Mantienes tu posición (↔)</p>"
+            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {rank_color}; margin:0;'>Sin Cambios (↔)</p>"
 
     return f"""
     <div class='kpi-card' style='border-color: {border_color};'>
         <h2 style='color: var(--body-text-color); margin-top:0;'>{title}</h2>
         <div class='kpi-card-body'>
             <div class='kpi-metric-box'>
-                <p class='kpi-label'>Nueva precisión</p>
+                <p class='kpi-label'>Nueva Precisión</p>
                 <p class='kpi-score' style='color: {acc_color};'>{acc_text}</p>
                 {acc_diff_html}
             </div>
@@ -1135,18 +1076,9 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
 def _build_team_html(team_summary_df, team_name):
     """
     Generates the HTML for the team leaderboard.
-    
-    Uses normalized, case-insensitive comparison to highlight the user's team row,
-    ensuring reliable highlighting even with whitespace or casing variations.
-    
-    Team names are translated to Catalan for display only. Internal comparisons
-    use the unmodified English team names from the DataFrame.
     """
     if team_summary_df is None or team_summary_df.empty:
-        return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Todavía no hay envíos por equipos.</p>"
-
-    # Normalize the current user's team name for comparison (using English names)
-    normalized_user_team = _normalize_team_name(team_name).lower()
+        return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Aún no hay envíos de equipos.</p>"
 
     header = """
     <table class='leaderboard-html-table'>
@@ -1154,8 +1086,8 @@ def _build_team_html(team_summary_df, team_name):
             <tr>
                 <th>Posición</th>
                 <th>Equipo</th>
-                <th>Mejor Puntuación</th>
-                <th>Medio</th>
+                <th>Mejor_Puntuación</th>
+                <th>Punto_Media</th>
                 <th>Envíos</th>
             </tr>
         </thead>
@@ -1164,12 +1096,11 @@ def _build_team_html(team_summary_df, team_name):
 
     body = ""
     for index, row in team_summary_df.iterrows():
-        # Normalize the row's team name and compare case-insensitively (using English names)
+        # Normalize the row's team name and compare case-insensitively
         normalized_row_team = _normalize_team_name(row["Team"]).lower()
-        is_user_team = normalized_row_team == normalized_user_team
+        is_user_team = normalized_row_team == _normalize_team_name(team_name).lower()
         row_class = "class='user-row-highlight'" if is_user_team else ""
-        
-        # Translate team name to Catalan for display only
+        # Translate team name to localized version for display
         display_team_name = translate_team_name_for_display(row["Team"], UI_TEAM_LANG)
         
         body += f"""
@@ -1188,15 +1119,15 @@ def _build_team_html(team_summary_df, team_name):
 def _build_individual_html(individual_summary_df, username):
     """Generates the HTML for the individual leaderboard."""
     if individual_summary_df is None or individual_summary_df.empty:
-        return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Todavía no hay envíos individuales.</p>"
+        return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Aún no hay envíos individuales.</p>"
 
     header = """
     <table class='leaderboard-html-table'>
         <thead>
             <tr>
                 <th>Posición</th>
-                <th>Ingeniero/a</th>
-                <th>Mejor Puntuación</th>
+                <th>Ingeniero</th>
+                <th>Mejor_Puntuación</th>
                 <th>Envíos</th>
             </tr>
         </thead>
@@ -1239,8 +1170,8 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
 
     if leaderboard_df is None or leaderboard_df.empty or "accuracy" not in leaderboard_df.columns:
         return (
-            "<p style='text-align:center; color:#6b7280; padding-top:20px;'>La clasificación está vacía.</p>",
-            "<p style='text-align:center; color:#6b7280; padding-top:20px;'>La clasificación está vacía.</p>",
+            "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Clasificación vacía.</p>",
+            "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Clasificación vacía.</p>",
             _build_kpi_card_html(0, 0, 0, 0, 0, is_preview=False, is_pending=False, local_test_accuracy=None), 
             0.0, 0, 0.0
         )
@@ -1314,7 +1245,7 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
 
 
 def get_model_card(model_name):
-    return MODEL_TYPES.get(model_name, {}).get("card_es", "Descripción no disponible.")
+    return MODEL_TYPES.get(model_name, {}).get("card", "No hay descripción disponible.")
 
 def compute_rank_settings(
     submission_count,
@@ -1323,12 +1254,8 @@ def compute_rank_settings(
     current_feature_set,
     current_data_size
 ):
-    """
-    Returns rank gating settings (updated for 1–10 complexity scale).
-    Adapted for Catalan UI: Returns Tuple choices [(Display, Value)]
-    """
+    """Returns rank gating settings (updated for 1–10 complexity scale)."""
 
-    # Helper to generate feature choices (unchanged logic)
     def get_choices_for_rank(rank):
         if rank == 0: # Trainee
             return [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in FEATURE_SET_GROUP_1_VALS]
@@ -1336,87 +1263,67 @@ def compute_rank_settings(
             return [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in (FEATURE_SET_GROUP_1_VALS + FEATURE_SET_GROUP_2_VALS)]
         return FEATURE_SET_ALL_OPTIONS # Senior+
 
-    # Helper to generate Model Radio Tuples [(Catalan, English)]
-    def get_model_tuples(available_english_keys):
-        # FIX: Use MODEL_DISPLAY_MAP
-        return [(MODEL_DISPLAY_MAP[k], k) for k in available_english_keys if k in MODEL_DISPLAY_MAP]
-
-    # Rank 0: Trainee
     if submission_count == 0:
-        avail_keys = ["The Balanced Generalist"]
         return {
-            "rank_message": "# 🧑‍🎓 Rango: Ingeniero/a en prácticas\n<p style='font-size:24px; line-height:1.4;'>Para tu primer envío, solo tienes que hacer clic en el botón grande '🔬 Construir y enviar el modelo' de abajo!</p>",
-            "model_choices": get_model_tuples(avail_keys),
+            "rank_message": "# 🧑‍🎓 Rango: Ingeniero en Prácticas\n<p style='font-size:24px; line-height:1.4;'>¡Para tu primer envío, simplemente haz clic en el botón '🔬 Construye y Envía Modelo' de abajo!</p>",
+            "model_choices": [MODEL_RADIO_CHOICES[0]],
             "model_value": "The Balanced Generalist",
             "model_interactive": False,
             "complexity_max": 3,
             "complexity_value": min(current_complexity, 3),
-            "feature_set_choices": get_choices_for_rank(0),
-            "feature_set_value": FEATURE_SET_GROUP_1_VALS,
+            "feature_set_choices": [(opt[0], opt[1]) for opt in get_choices_for_rank(0)],
+            "feature_set_value": ["floor_area", "year_built", "building_class", "facility_type"],
             "feature_set_interactive": False,
-            "data_size_choices": ["Pequeño (20%)"],
-            "data_size_value": "Pequeño (20%)",
+            "data_size_choices": [DATA_SIZE_RADIO_CHOICES[0]],
+            "data_size_value": "Small (20%)",
             "data_size_interactive": False,
         }
-        
-    # Rank 1: Junior
     elif submission_count == 1:
-        # Define available models for Rank 1 using ENGLISH keys
-        avail_keys = ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"]
-        
         return {
-            "rank_message": "# 🎉 ¡Has subido de nivel! Ingeniero/a júnior\n<p style='font-size:24px; line-height:1.4;'>¡Nuevos modelos, tamaños de datos y variables desbloqueados!</p>",
-            "model_choices": get_model_tuples(avail_keys),
-            # Ensure current selection is valid for this rank, else reset to default
-            "model_value": current_model if current_model in avail_keys else "The Balanced Generalist",
+            "rank_message": "# 🎉 ¡Has Subido de Rango! Ingeniero Junior\n<p style='font-size:24px; line-height:1.4;'>¡Se han desbloqueado nuevos modelos, tamaños de datos e ingredientes!</p>",
+            "model_choices": MODEL_RADIO_CHOICES[:3],
+            "model_value": current_model if current_model in ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"] else "The Balanced Generalist",
             "model_interactive": True,
             "complexity_max": 6,
             "complexity_value": min(current_complexity, 6),
-            "feature_set_choices": get_choices_for_rank(1),
+            "feature_set_choices": [(opt[0], opt[1]) for opt in get_choices_for_rank(1)],
             "feature_set_value": current_feature_set,
             "feature_set_interactive": True,
-            "data_size_choices": ["Pequeño (20%)", "Medio (60%)"],
-            "data_size_value": current_data_size if current_data_size in ["Pequeño (20%)", "Medio (60%)"] else "Pequeño (20%)",
+            "data_size_choices": DATA_SIZE_RADIO_CHOICES[:2],
+            "data_size_value": current_data_size if current_data_size in ["Small (20%)", "Medium (60%)"] else "Small (20%)",
             "data_size_interactive": True,
         }
-
-    # Rank 2: Senior
     elif submission_count == 2:
-        avail_keys = list(MODEL_TYPES.keys()) # All models
-        
         return {
-            "rank_message": "# 🌟 ¡Has subido de nivel! Ingeniero/a sénior\n<p style='font-size:24px; line-height:1.4;'>¡Variables más potentes desbloqueadas! Los predictores más fuertes (como 'Edad' y 'Número de delitos previos') ya están disponibles en tu lista. Probablemente mejorarán tu precisión, pero recuerda que a menudo conllevan más sesgos sociales.</p>",
-            "model_choices": get_model_tuples(avail_keys),
-            "model_value": current_model if current_model in avail_keys else "The Deep Pattern-Finder",
+            "rank_message": "# 🌟 ¡Has Subido de Rango! Ingeniero Senior\n<p style='font-size:24px; line-height:1.4;'>¡Ingredientes de datos más potentes desbloqueados! Los predictores más fuertes (como 'Temp. media anual') ya están disponibles. Recuerda que a menudo están ligados a factores geográficos fuera del control del edificio.</p>",
+            "model_choices": MODEL_RADIO_CHOICES,
+            "model_value": current_model if current_model in MODEL_TYPES else "The Deep Pattern-Finder",
             "model_interactive": True,
             "complexity_max": 8,
             "complexity_value": min(current_complexity, 8),
-            "feature_set_choices": get_choices_for_rank(2),
+            "feature_set_choices": [(opt[0], opt[1]) for opt in get_choices_for_rank(2)],
             "feature_set_value": current_feature_set,
             "feature_set_interactive": True,
-            "data_size_choices": ["Pequeño (20%)", "Medio (60%)", "Grande (80%)", "Completo (100%)"],
-            "data_size_value": current_data_size if current_data_size in DATA_SIZE_DB_MAP else "Pequeño (20%)",
+            "data_size_choices": DATA_SIZE_RADIO_CHOICES,
+            "data_size_value": current_data_size if any(key == current_data_size for _, key in DATA_SIZE_RADIO_CHOICES) else "Small (20%)",
             "data_size_interactive": True,
         }
-        
-    # Rank 3+: Lead
     else:
-        avail_keys = list(MODEL_TYPES.keys()) # All models
-
         return {
-            "rank_message": "# 👑 Rango: Ingeniero/a principal\n<p style='font-size:24px; line-height:1.4;'>¡Todas las herramientas desbloqueadas — optimiza con libertad!</p>",
-            "model_choices": get_model_tuples(avail_keys),
-            "model_value": current_model if current_model in avail_keys else "The Balanced Generalist",
+            "rank_message": "# 👑 Rango: Ingeniero Jefe\n<p style='font-size:24px; line-height:1.4;'>¡Todas las herramientas desbloqueadas — optimiza libremente!</p>",
+            "model_choices": MODEL_RADIO_CHOICES,
+            "model_value": current_model if current_model in MODEL_TYPES else "The Balanced Generalist",
             "model_interactive": True,
             "complexity_max": 10,
             "complexity_value": current_complexity,
-            "feature_set_choices": get_choices_for_rank(3),
+            "feature_set_choices": [(opt[0], opt[1]) for opt in get_choices_for_rank(3)],
             "feature_set_value": current_feature_set,
             "feature_set_interactive": True,
-            "data_size_choices": ["Pequeño (20%)", "Medio (60%)", "Grande (80%)", "Completo (100%)"],
-            "data_size_value": current_data_size if current_data_size in DATA_SIZE_DB_MAP else "Pequeño (20%)",
+            "data_size_choices": DATA_SIZE_RADIO_CHOICES,
+            "data_size_value": current_data_size if any(key == current_data_size for _, key in DATA_SIZE_RADIO_CHOICES) else "Small (20%)",
             "data_size_interactive": True,
         }
+
 # Find components by name to yield updates
 # --- Existing global component placeholders ---
 submit_button = None
@@ -1542,7 +1449,7 @@ def perform_inline_login(username_input, password_input):
     if not username_input or not username_input.strip():
         error_html = """
         <div style='background:#fef2f2; padding:12px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
-            <p style='margin:0; color:#991b1b; font-weight:500;'>⚠️ Username is required</p>
+            <p style='margin:0; color:#991b1b; font-weight:500;'>⚠️ El nombre de usuario es obligatorio</p>
         </div>
         """
         return {
@@ -1560,7 +1467,7 @@ def perform_inline_login(username_input, password_input):
     if not password_input or not password_input.strip():
         error_html = """
         <div style='background:#fef2f2; padding:12px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
-            <p style='margin:0; color:#991b1b; font-weight:500;'>⚠️ Password is required</p>
+            <p style='margin:0; color:#991b1b; font-weight:500;'>⚠️ La contraseña es obligatoria</p>
         </div>
         """
         return {
@@ -1605,24 +1512,21 @@ def perform_inline_login(username_input, password_input):
         # Normalize team name before storing (defensive - already normalized by get_or_assign_team)
         team_name = _normalize_team_name(team_name)
         
-        # Translate team name for display only (keep team_name_state in English)
-        display_team_name = translate_team_name_for_display(team_name, UI_TEAM_LANG)
-        
         # Build success message based on whether team is new or existing
         if is_new_team:
-            team_message = f"Te hemos asignado a un nuevo equipo: <b>{display_team_name}</b> 🎉"
+            team_message = f"Te han asignado a un nuevo equipo: <b>{team_name}</b> 🎉"
         else:
-            team_message = f"¡Hola de nuevo! Continúas en el equipo: <b>{display_team_name}</b> ✅"
+            team_message = f"¡Bienvenido de nuevo! Continúas en el equipo: <b>{team_name}</b> ✅"
         
         # Success: hide login form, show success message with team info, enable submit button
         success_html = f"""
         <div style='background:#f0fdf4; padding:16px; border-radius:8px; border-left:4px solid #16a34a; margin-top:12px;'>
-            <p style='margin:0; color:#15803d; font-weight:600; font-size:1.1rem;'>✓ Signed in successfully!</p>
+            <p style='margin:0; color:#15803d; font-weight:600; font-size:1.1rem;'>✓ ¡Sesión iniciada correctamente!</p>
             <p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>
                 {team_message}
             </p>
             <p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>
-                Haz clic en "Construir y enviar el modelo" una vez más para publicar tu puntuación.
+                Vuelve a hacer clic en "Construye y Envía Modelo" para publicar tu puntuación.
             </p>
         </div>
         """
@@ -1631,7 +1535,7 @@ def perform_inline_login(username_input, password_input):
             login_password: gr.update(visible=False),
             login_submit: gr.update(visible=False),
             login_error: gr.update(value=success_html, visible=True),
-            submit_button: gr.update(value="🔬 Construir y enviar el modelo", interactive=True),
+            submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True),
             submission_feedback_display: gr.update(visible=False),
             team_name_state: gr.update(value=team_name),
             username_state: gr.update(value=username_clean),
@@ -1645,17 +1549,17 @@ def perform_inline_login(username_input, password_input):
         # Authentication failed: show error with signup link
         error_html = f"""
         <div style='background:#fef2f2; padding:16px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'>
-            <p style='margin:0; color:#991b1b; font-weight:600; font-size:1.1rem;'>⚠️ Authentication failed</p>
+            <p style='margin:0; color:#991b1b; font-weight:600; font-size:1.1rem;'>⚠️ La autenticación ha fallado</p>
             <p style='margin:8px 0; color:#7f1d1d; font-size:0.95rem;'>
-                Could not verify your credentials. Please check your username and password.
+                No se han podido verificar tus credenciales. Por favor, revisa tu nombre de usuario y contraseña.
             </p>
             <p style='margin:8px 0 0 0; color:#7f1d1d; font-size:0.95rem;'>
-                <strong>New user?</strong> Create a free account at 
+                <strong>¿Nuevo usuario?</strong> Crea una cuenta gratuita en 
                 <a href='https://www.modelshare.ai/login' target='_blank' 
                    style='color:#dc2626; text-decoration:underline;'>modelshare.ai/login</a>
             </p>
             <details style='margin-top:12px; font-size:0.85rem; color:#7f1d1d;'>
-                <summary style='cursor:pointer;'>Technical details</summary>
+                <summary style='cursor:pointer;'>Detalles técnicos</summary>
                 <pre style='margin-top:8px; padding:8px; background:#fee; border-radius:4px; overflow-x:auto;'>{str(e)}</pre>
             </details>
         </div>
@@ -1690,10 +1594,59 @@ def run_experiment(
     progress=gr.Progress()
 ):
     """
-    Core experiment using precomputed predictions.
-    No runtime training or feature transformation.
+    Core experiment: Uses 'yield' for visual updates and progress bar.
+    Updated with "Look-Before-You-Leap" caching strategy.
     """
-    progress(0.1, desc="Iniciando el experimento...")
+    # --- COLLISION GUARDS ---
+    # Log types of potentially shadowed names to ensure they refer to component objects, not dicts
+    _log(f"DEBUG guard: types — submit_button={type(submit_button)} submission_feedback_display={type(submission_feedback_display)} kpi_meta_state={type(kpi_meta_state)} was_preview_state={type(was_preview_state)} readiness_flag_param={type(readiness_flag)}")
+    
+    # If any of the component names are found as dicts (indicating parameter shadowing), short-circuit
+    if isinstance(submit_button, dict) or isinstance(submission_feedback_display, dict) or isinstance(kpi_meta_state, dict) or isinstance(was_preview_state, dict):
+        error_html = """
+        <div class='kpi-card' style='border-color: #ef4444;'>
+            <h2 style='color: #111827; margin-top:0;'>⚠️ Configuration Error</h2>
+            <div class='kpi-card-body'>
+                <p style='color: #991b1b;'>Parameter shadowing detected. Global component variables were shadowed by local parameters.</p>
+                <p style='color: #7f1d1d; margin-top: 8px;'>Please refresh the page and try again. If the issue persists, contact support.</p>
+            </div>
+        </div>
+        """
+        yield {
+            submission_feedback_display: gr.update(value=error_html, visible=True),
+            submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True)
+        }
+        return
+    
+    # Sanitize feature_set: convert dicts/tuples to their string values
+    sanitized_feature_set = []
+    for feat in (feature_set or []):
+        if isinstance(feat, dict):
+            # Extract 'value' key if present, otherwise use string representation
+            sanitized_feature_set.append(feat.get("value", str(feat)))
+        elif isinstance(feat, tuple):
+            # For tuples like ("Label", "value"), take the second element
+            sanitized_feature_set.append(feat[1] if len(feat) > 1 else str(feat))
+        else:
+            # Already a string
+            sanitized_feature_set.append(str(feat))
+    feature_set = sanitized_feature_set
+    
+    # Use readiness_flag parameter if provided (always ready now)
+    if readiness_flag is not None:
+        ready = readiness_flag
+    else:
+        ready = True  # App is always ready with cached predictions
+    _log(f"run_experiment: ready={ready}, username={username}, token_present={token is not None}")
+    
+    # Add debug log (optional)
+    _log(f"run_experiment received username={username} token_present={token is not None}")    
+    # Concurrency Note: Use provided parameters exclusively, not os.environ.
+    # Default to "Unknown_User" only if no username provided via state.
+    if not username:
+        username = "Usuario_Desconocido"
+    
+    # Helper to generate the animated HTML
     def get_status_html(step_num, title, subtitle):
         return f"""
         <div class='processing-status'>
@@ -1702,205 +1655,418 @@ def run_experiment(
             <div class='processing-subtext'>{subtitle}</div>
         </div>
         """
-    yield {
+
+    # --- Stage 1: Lock UI and give initial feedback ---
+    progress(0.1, desc="Iniciando experimento...")
+    initial_updates = {
         submit_button: gr.update(value="⏳ Experimento en curso...", interactive=False),
-        submission_feedback_display: gr.update(value=get_status_html(1, "Iniciando", "Preparando las variables de datos..."), visible=True),
-        login_error: gr.update(visible=False),
+        submission_feedback_display: gr.update(value=get_status_html(1, "Inicializando", "Preparando los ingredientes de los datos..."), visible=True), # Make sure it's visible
+        login_error: gr.update(visible=False), # Hide login success/error message
         attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))
     }
+    yield initial_updates
 
     if not model_name_key or model_name_key not in MODEL_TYPES:
         model_name_key = DEFAULT_MODEL
     complexity_level = safe_int(complexity_level, 2)
-    if not username:
-        username = "Unknown_User"
 
-    sanitized_features = []
-    for f in (feature_set or []):
-        if isinstance(f, dict):
-            sanitized_features.append(f.get("value", str(f)))
-        elif isinstance(f, tuple):
-            sanitized_features.append(f[1] if len(f) > 1 else str(f))
-        else:
-            sanitized_features.append(str(f))
-    sanitized_features = sorted(sanitized_features)
+    log_output = f"▶ New Experiment\nModel: {model_name_key}\n..."
 
-    db_data_size = DATA_SIZE_DB_MAP.get(data_size_str, "Small (20%)")
-    feature_key = ",".join(sanitized_features)
-    cache_key = f"{model_name_key}|{complexity_level}|{db_data_size}|{feature_key}"
-
-    _ensure_y_test_loaded()
-
-    progress(0.3, desc="Cargando las predicciones...")
-    yield {submission_feedback_display: gr.update(value=get_status_html(2, "Cargando predicciones", "⚡ Recuperando resultados precomputados..."), visible=True)}
-    cached_predictions = get_cached_prediction(cache_key)
-    if not cached_predictions:
-        error_html = f"""
-        <div style='background:#fee2e2; padding:16px; border-radius:8px; border:2px solid #ef4444; color:#991b1b; text-align:center;'>
-            <h3 style='margin:0;'>⚠️ Configuración no encontrada</h3>
-            <p style='margin:8px 0;'>Esta combinación específica de parámetros no se ha encontrado en nuestra base de datos.</p>
-            <p style='font-size:0.9em;'>Por favor, ajusta la configuración (por ejemplo, cambia el tamaño de los datos o la estrategia del modelo) y vuelve a intentarlo.</p>
-        </div>
-        """
-        settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
-        yield {
-            submission_feedback_display: gr.update(value=error_html, visible=True),
-            submit_button: gr.update(value="🔬 Construir y enviar el modelo", interactive=True),
-            rank_message_display: settings["rank_message"],
-            model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
-            complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
-            feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
-            data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-        }
-        return
-
-    predictions = np.array([int(c) for c in cached_predictions], dtype=np.uint8)
-    from sklearn.metrics import accuracy_score
-    local_test_accuracy = accuracy_score(_Y_TEST, predictions)
-
-    if token is None:
-        progress(0.6, desc="Calculando la vista previa...")
-        preview_card_html = _build_kpi_card_html(
-            new_score=local_test_accuracy, last_score=0, new_rank=0, last_rank=0,
-            submission_count=-1, is_preview=True, is_pending=False, local_test_accuracy=None
+    # Check playground connection
+    if playground is None:
+        settings = compute_rank_settings(
+             submission_count, model_name_key, complexity_level, feature_set, data_size_str
         )
-        login_prompt_text_html = build_login_prompt_html()
-        closing_div_index = preview_card_html.rfind("</div>")
-        combined_html = preview_card_html[:closing_div_index] + login_prompt_text_html + "</div>" if closing_div_index != -1 else preview_card_html + login_prompt_text_html
-        settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
-        yield {
-            submission_feedback_display: gr.update(value=combined_html, visible=True),
-            submit_button: gr.update(value="Sign In Required", interactive=False),
-            login_username: gr.update(visible=True), login_password: gr.update(visible=True),
-            login_submit: gr.update(visible=True), login_error: gr.update(value="", visible=False),
+        
+        error_msg = "<p style='text-align:center; color:red; padding:20px 0;'>Playground No Conectado. Por favor, vuelve a intentarlo más tarde.</p>"
+        
+        error_kpi_meta = {
+            "was_preview": False, "preview_score": None, "ready_at_run_start": False,
+            "poll_iterations": 0, "local_test_accuracy": None, "this_submission_score": None,
+            "new_best_accuracy": None, "rank": None
+        }
+        
+        error_updates = {
+            submission_feedback_display: gr.update(value=error_msg, visible=True),
+            submit_button: gr.update(value="🔬 Construye y Envía Modelo", interactive=True),
             team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
             individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
-            last_submission_score_state: last_submission_score, last_rank_state: last_rank,
-            best_score_state: best_score, submission_count_state: submission_count,
+            last_submission_score_state: last_submission_score,
+            last_rank_state: last_rank,
+            best_score_state: best_score,
+            submission_count_state: submission_count,
             first_submission_score_state: first_submission_score,
             rank_message_display: settings["rank_message"],
             model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
             complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
             feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
             data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
+            login_username: gr.update(visible=False),
+            login_password: gr.update(visible=False),
+            login_submit: gr.update(visible=False),
+            login_error: gr.update(visible=False),
             attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
-            was_preview_state: True, kpi_meta_state: {"was_preview": True, "preview_score": local_test_accuracy, "local_test_accuracy": local_test_accuracy}, last_seen_ts_state: None
+            was_preview_state: False,
+            kpi_meta_state: error_kpi_meta,
+            last_seen_ts_state: None
         }
+        yield error_updates
         return
-
-    if submission_count >= ATTEMPT_LIMIT:
-        limit_warning_html = f"""
-        <div class='kpi-card' style='border-color: #ef4444;'>
-            <h2 style='color: #111827; margin-top:0;'>🛑 Límite de envíos alcanzado</h2>
-            <div class='kpi-card-body'>
-                <div class='kpi-metric-box'>
-                    <p class='kpi-label'>Intentos usados</p>
-                    <p class='kpi-score' style='color: #ef4444;'>{ATTEMPT_LIMIT} / {ATTEMPT_LIMIT}</p>
-                </div>
-            </div>
-            <div style='margin-top: 16px; background:#fef2f2; padding:16px; border-radius:12px; text-align:left; font-size:0.98rem; line-height:1.4;'>
-                <p style='margin:0; color:#991b1b;'><b>¡Muy buen trabajo!</b> Desplázate hacia abajo hasta «Finalizar y reflexionar».</p>
-            </div>
-        </div>"""
-        settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
-        yield {
-            submission_feedback_display: gr.update(value=limit_warning_html, visible=True),
-            submit_button: gr.update(value="🛑 Límite de envíos alcanzado", interactive=False),
-            model_type_radio: gr.update(interactive=False), complexity_slider: gr.update(interactive=False),
-            feature_set_checkbox: gr.update(interactive=False), data_size_radio: gr.update(interactive=False),
-            attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
-            team_leaderboard_display: team_leaderboard_display, individual_leaderboard_display: individual_leaderboard_display,
-            last_submission_score_state: last_submission_score, last_rank_state: last_rank,
-            best_score_state: best_score, submission_count_state: submission_count,
-            first_submission_score_state: first_submission_score, rank_message_display: settings["rank_message"],
-            login_username: gr.update(visible=False), login_password: gr.update(visible=False),
-            login_submit: gr.update(visible=False), login_error: gr.update(visible=False),
-            was_preview_state: False, kpi_meta_state: {}, last_seen_ts_state: None
-        }
-        return
-
-    progress(0.5, desc="Enviando a la nube...")
-    yield {submission_feedback_display: gr.update(value=get_status_html(3, "Envío en curso", "Enviando el modelo al servidor de la competición..."), visible=True)}
-    baseline_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
-
-    def _submit():
-        return playground.submit_model(
-            model=None,
-            preprocessor=None,
-            prediction_submission=predictions.tolist(),
-            input_dict={'description': f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})", 'tags': f"team:{team_name},model:{model_name_key}"},
-            custom_metadata={'Team': team_name, 'Moral_Compass': 0},
-            token=token,
-            return_metrics=["accuracy"]
-        )
 
     try:
-        submit_result = _retry_with_backoff(_submit, description="model submission")
-        if isinstance(submit_result, tuple) and len(submit_result) == 3:
-            _, _, metrics = submit_result
-            this_submission_score = float(metrics.get("accuracy", local_test_accuracy)) if metrics else local_test_accuracy
-        else:
+        # --- Stage 2: Fetch Cached Predictions ---
+        progress(0.3, desc="Obteniendo Predicciones...")
+        
+        # Ensure test labels are loaded
+        _ensure_y_test_loaded()
+        
+        # Build cache key matching precompute_cache.py format:
+        # "ModelName|Complexity|DataSize|SortedFeatures"
+        feature_tuple = tuple(sorted(feature_set))
+        feature_key = ",".join(feature_tuple)
+        cache_key = f"{model_name_key}|{complexity_level}|{data_size_str}|{feature_key}"
+        
+        yield { 
+            submission_feedback_display: gr.update(value=get_status_html(2, "Cargando Predicciones", "⚡ Obteniendo resultados precalculados..."), visible=True),
+            login_error: gr.update(visible=False)
+        }
+        
+        # Fetch from cache
+        cached_predictions = get_cached_prediction(cache_key)
+        
+        if not cached_predictions:
+            # Cache miss - show user-friendly error
+            _log(f"❌ CACHE MISS: {cache_key}")
+            error_html = f"""
+            <div style='background:#fee2e2; padding:16px; border-radius:8px; border:2px solid #ef4444; color:#991b1b; text-align:center;'>
+                <h3 style='margin:0;'>⚠️ Configuración No Encontrada</h3>
+                <p style='margin:8px 0;'>Esta combinación de parámetros no se ha encontrado en nuestra base de datos precalculada.</p>
+                <p style='font-size:0.9em;'>Por favor, ajusta la configuración (por ejemplo, cambia el Tamaño de los Datos o la Estrategia del Modelo) y vuelve a intentarlo.</p>
+            </div>
+            """
+            settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
+            yield { 
+                submission_feedback_display: gr.update(value=error_html, visible=True),
+                submit_button: gr.update(value="🔬 Construye y Envía Modelo", interactive=True),
+                login_error: gr.update(visible=False),
+                rank_message_display: settings["rank_message"],
+                model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
+                complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
+                feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
+                data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
+            }
+            return
+        
+        # Convert cached prediction string to numpy array
+        _log(f"⚡ CACHE HIT: {cache_key}")
+        predictions = np.array([int(c) for c in cached_predictions], dtype=np.uint8)
+        
+        # Compute local test accuracy
+        from sklearn.metrics import accuracy_score
+        local_test_accuracy = accuracy_score(_Y_TEST, predictions)
+        _log(f"Local test accuracy: {local_test_accuracy:.4f}")
+
+        # --- Stage 3: Submit (API Call 1) ---
+        # AUTHENTICATION GATE: Check for token before submission
+        if token is None:
+            # User not authenticated - compute preview score and show login prompt
+            progress(0.6, desc="Calculando Puntuación de Prueba...")
+            
+            # Calculate accuracy using cached predictions and preloaded test labels
+            from sklearn.metrics import accuracy_score
+            preview_score = accuracy_score(_Y_TEST, predictions)
+            
+            preview_kpi_meta = {
+                "was_preview": True, "preview_score": preview_score, "ready_at_run_start": ready,
+                "poll_iterations": 0, "local_test_accuracy": preview_score,
+                "this_submission_score": None, "new_best_accuracy": None, "rank": None
+            }
+            
+            # 1. Generate the styled preview card
+            preview_card_html = _build_kpi_card_html(
+                new_score=preview_score, last_score=0, new_rank=0, last_rank=0,
+                submission_count=-1, is_preview=True, is_pending=False, local_test_accuracy=None
+            )
+            
+            # 2. Inject login text
+            login_prompt_text_html = build_login_prompt_html() 
+            closing_div_index = preview_card_html.rfind("</div>")
+            if closing_div_index != -1:
+                combined_html = preview_card_html[:closing_div_index] + login_prompt_text_html + "</div>"
+            else:
+                combined_html = preview_card_html + login_prompt_text_html 
+                
+            settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
+            
+            gate_updates = {
+                submission_feedback_display: gr.update(value=combined_html, visible=True),
+                submit_button: gr.update(value="Debe Iniciar Sesión", interactive=False),
+                login_username: gr.update(visible=True), login_password: gr.update(visible=True),
+                login_submit: gr.update(visible=True), login_error: gr.update(value="", visible=False),
+                team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
+                individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
+                last_submission_score_state: last_submission_score, last_rank_state: last_rank,
+                best_score_state: best_score, submission_count_state: submission_count,
+                first_submission_score_state: first_submission_score,
+                rank_message_display: settings["rank_message"],
+                model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
+                complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
+                feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
+                data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
+                attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
+                was_preview_state: True, kpi_meta_state: preview_kpi_meta, last_seen_ts_state: None
+            }
+            yield gate_updates
+            return  # Stop here
+        
+        # --- ATTEMPT LIMIT CHECK ---
+        if submission_count >= ATTEMPT_LIMIT:
+            limit_warning_html = f"""
+            <div class='kpi-card' style='border-color: #ef4444;'>
+                <h2 style='color: #111827; margin-top:0;'>🛑 Límite de Envíos Alcanzado</h2>
+                <div class='kpi-card-body'>
+                    <div class='kpi-metric-box'>
+                        <p class='kpi-label'>Intentos Utilizados</p>
+                        <p class='kpi-score' style='color: #ef4444;'>{ATTEMPT_LIMIT} / {ATTEMPT_LIMIT}</p>
+                    </div>
+                </div>
+                <div style='margin-top: 16px; background:#fef2f2; padding:16px; border-radius:12px; text-align:left; font-size:0.98rem; line-height:1.4;'>
+                    <p style='margin:0; color:#991b1b;'><b>¡Buen trabajo!</b> Desplázate hacia abajo hasta "Finalizar y Reflexionar".</p>
+                </div>
+            </div>"""
+            settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
+            limit_reached_updates = {
+                submission_feedback_display: gr.update(value=limit_warning_html, visible=True),
+                submit_button: gr.update(value="🛑 Límite de Envíos Alcanzado", interactive=False),
+                model_type_radio: gr.update(interactive=False), complexity_slider: gr.update(interactive=False),
+                feature_set_checkbox: gr.update(interactive=False), data_size_radio: gr.update(interactive=False),
+                attempts_tracker_display: gr.update(value=f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'><p style='margin:0; color:#991b1b; font-weight:600;'>🛑 Intentos utilizados: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT}</p></div>"),
+                team_leaderboard_display: team_leaderboard_display, individual_leaderboard_display: individual_leaderboard_display,
+                last_submission_score_state: last_submission_score, last_rank_state: last_rank,
+                best_score_state: best_score, submission_count_state: submission_count,
+                first_submission_score_state: first_submission_score, rank_message_display: settings["rank_message"],
+                login_username: gr.update(visible=False), login_password: gr.update(visible=False),
+                login_submit: gr.update(visible=False), login_error: gr.update(visible=False),
+                was_preview_state: False, kpi_meta_state: {}, last_seen_ts_state: None
+            }
+            yield limit_reached_updates
+            return
+        
+        progress(0.5, desc="Enviando a la nube...")
+        yield { 
+            submission_feedback_display: gr.update(value=get_status_html(3, "Enviando", "Enviando el modelo al servidor de la competición..."), visible=True),
+            login_error: gr.update(visible=False)
+        }
+
+        description = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
+        tags = f"team:{team_name},model:{model_name_key}"
+
+        # 1. FETCH BASELINE
+        baseline_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
+
+        # 2. SUBMIT & CAPTURE ACCURACY
+        def _submit():
+            # Submit cached predictions (no model/preprocessor)
+            return playground.submit_model(
+                model=None,  # No model - using cached predictions
+                preprocessor=None,  # No preprocessor needed
+                prediction_submission=predictions.tolist(),  # Convert numpy array to list
+                input_dict={'description': description, 'tags': tags},
+                custom_metadata={'Team': team_name, 'Moral_Compass': 0}, 
+                token=token,
+                return_metrics=["accuracy"] 
+            )
+        
+        try:
+            submit_result = _retry_with_backoff(_submit, description="model submission")
+            if isinstance(submit_result, tuple) and len(submit_result) == 3:
+                _, _, metrics = submit_result
+                if metrics and "accuracy" in metrics and metrics["accuracy"] is not None:
+                    this_submission_score = float(metrics["accuracy"])
+                else:
+                    this_submission_score = local_test_accuracy
+            else:
+                this_submission_score = local_test_accuracy
+        except Exception as e:
+            _log(f"Submission return parsing failed: {e}. Using local accuracy.")
             this_submission_score = local_test_accuracy
-    except Exception:
-        this_submission_score = local_test_accuracy
+        
+        _log(f"Submission successful. Server Score: {this_submission_score}")
 
-    new_submission_count = submission_count + 1
-    new_first_submission_score = first_submission_score if first_submission_score is not None else this_submission_score if submission_count == 0 else first_submission_score
+        try:
+            # Short timeout to trigger the lambda without hanging the UI
+            _log("Triggering backend merge...")
+            playground.get_leaderboard(token=token) 
+        except Exception:
+            # We ignore errors here because the 'submit_model' post 
+            # already succeeded. This is just a cleanup task.
+            pass
+        # -------------------------------------------------------------------------
 
-    simulated_df = baseline_leaderboard_df.copy() if baseline_leaderboard_df is not None else pd.DataFrame()
-    new_row = pd.DataFrame([{"username": username, "accuracy": this_submission_score, "Team": team_name, "timestamp": pd.Timestamp.now(), "version": "latest"}])
-    simulated_df = pd.concat([simulated_df, new_row], ignore_index=True) if not simulated_df.empty else new_row
+        # Immediately increment submission count...
+        new_submission_count = submission_count + 1
+        new_first_submission_score = first_submission_score
+        if submission_count == 0 and first_submission_score is None:
+            new_first_submission_score = this_submission_score
 
-    team_html, individual_html, _, new_best_accuracy, new_rank, _ = generate_competitive_summary(simulated_df, team_name, username, last_submission_score, last_rank, submission_count)
-    kpi_card_html = _build_kpi_card_html(new_score=this_submission_score, last_score=last_submission_score, new_rank=new_rank, last_rank=last_rank, submission_count=submission_count, is_preview=False, is_pending=False)
+        # --- Stage 4: Local Rank Calculation (Optimistic) ---
+        progress(0.9, desc="Calculando Rango...")
+        
+        # 3. SIMULATE UPDATED LEADERBOARD
+        simulated_df = baseline_leaderboard_df.copy() if baseline_leaderboard_df is not None else pd.DataFrame()
+        
+        # We use pd.Timestamp.now() to ensure pandas sorting logic sees this as the absolute latest
+        new_row = pd.DataFrame([{
+            "username": username,
+            "accuracy": this_submission_score,
+            "Team": team_name,
+            "timestamp": pd.Timestamp.now(), 
+            "version": "latest"
+        }])
+        
+        if not simulated_df.empty:
+            simulated_df = pd.concat([simulated_df, new_row], ignore_index=True)
+        else:
+            simulated_df = new_row
 
-    progress(1.0, desc="¡Completado!")
-    limit_reached = new_submission_count >= ATTEMPT_LIMIT
-    if limit_reached:
-        limit_html = f"""
-        <div style='margin-top: 16px; border: 2px solid #ef4444; background:#fef2f2; padding:16px; border-radius:12px; text-align:left;'>
-            <h3 style='margin:0 0 8px 0; color:#991b1b;'>🛑 Límite de envíos alcanzado ({ATTEMPT_LIMIT}/{ATTEMPT_LIMIT})</h3>
-            <p style='margin:0; color:#7f1d1d; line-height:1.4;'>Revisa tus resultados finales arriba y baja hasta «Finalizar y reflexionar» para continuar.</p>
-        </div>"""
-        final_html_display = kpi_card_html + limit_html
-        button_update = gr.update(value="🛑 Límite alcanzado", interactive=False)
-        interactive_state = False
-        tracker_html = _build_attempts_tracker_html(new_submission_count)
-    else:
-        final_html_display = kpi_card_html
-        button_update = gr.update(value="🔬 Construir y enviar modelo", interactive=True)
-        interactive_state = True
-        tracker_html = _build_attempts_tracker_html(new_submission_count)
+        # 4. GENERATE TABLES (Use helper for tables only)
+        # We ignore the kpi_card return from this function because it might use internal sorting 
+        # that doesn't respect our new row perfectly.
+        team_html, individual_html, _, new_best_accuracy, new_rank, _ = generate_competitive_summary(
+            simulated_df, team_name, username, last_submission_score, last_rank, submission_count
+        )
 
-    settings = compute_rank_settings(new_submission_count, model_name_key, complexity_level, feature_set, data_size_str)
-    yield {
-        submission_feedback_display: gr.update(value=final_html_display, visible=True),
-        team_leaderboard_display: team_html,
-        individual_leaderboard_display: individual_html,
-        last_submission_score_state: this_submission_score,
-        last_rank_state: new_rank,
-        best_score_state: new_best_accuracy,
-        submission_count_state: new_submission_count,
-        first_submission_score_state: new_first_submission_score,
-        rank_message_display: settings["rank_message"],
-        model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=(settings["model_interactive"] and interactive_state)),
-        complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"], interactive=interactive_state),
-        feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=(settings["feature_set_interactive"] and interactive_state)),
-        data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=(settings["data_size_interactive"] and interactive_state)),
-        submit_button: button_update,
-        login_username: gr.update(visible=False), login_password: gr.update(visible=False),
-        login_submit: gr.update(visible=False), login_error: gr.update(visible=False),
-        attempts_tracker_display: gr.update(value=tracker_html),
-        was_preview_state: False,
-        kpi_meta_state: {"was_preview": False, "preview_score": None, "local_test_accuracy": local_test_accuracy, "this_submission_score": this_submission_score, "new_best_accuracy": new_best_accuracy, "rank": new_rank},
-        last_seen_ts_state: time.time()
-    }
+        # 5. GENERATE KPI CARD EXPLICITLY (The Authority Fix)
+        # We manually build the card using the score we KNOW we just got.
+        kpi_card_html = _build_kpi_card_html(
+            new_score=this_submission_score,
+            last_score=last_submission_score,
+            new_rank=new_rank,
+            last_rank=last_rank,
+            submission_count=submission_count, 
+            is_preview=False,
+            is_pending=False
+        )
 
+        # --- Stage 5: Final UI Update ---
+        progress(1.0, desc="¡Completado!")
+        
+        success_kpi_meta = {
+            "was_preview": False, "preview_score": None, "ready_at_run_start": ready,
+            "poll_iterations": 0, "local_test_accuracy": local_test_accuracy,
+            "this_submission_score": this_submission_score, "new_best_accuracy": new_best_accuracy,
+            "rank": new_rank, "pending": False, "optimistic_fallback": True 
+        }
+        
+        settings = compute_rank_settings(new_submission_count, model_name_key, complexity_level, feature_set, data_size_str)
+
+        # -------------------------------------------------------------------------
+        # NEW LOGIC: Check for Limit Reached immediately AFTER this submission
+        # -------------------------------------------------------------------------
+        limit_reached = new_submission_count >= ATTEMPT_LIMIT
+        
+        # Prepare the UI state based on whether limit is reached
+        if limit_reached:
+            # 1. Append the Limit Warning HTML *below* the Result Card
+            limit_html = f"""
+            <div style='margin-top: 16px; border: 2px solid #ef4444; background:#fef2f2; padding:16px; border-radius:12px; text-align:left;'>
+                <h3 style='margin:0 0 8px 0; color:#991b1b;'>🛑 Límite de Envíos Alcanzado ({ATTEMPT_LIMIT}/{ATTEMPT_LIMIT})</h3>
+                <p style='margin:0; color:#7f1d1d; line-height:1.4;'>
+                    <b>Has utilizado todos tus intentos para esta sesión.</b><br>
+                    Revisa tus resultados finales arriba y desplázate hacia abajo hasta "Finalizar y Reflexionar" para continuar.
+                </p>
+            </div>
+            """
+            final_html_display = kpi_card_html + limit_html
+            
+            # 2. Disable all controls
+            button_update = gr.update(value="🛑 Límite Alcanzado", interactive=False)
+            interactive_state = False
+            tracker_html = f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'><p style='margin:0; color:#991b1b; font-weight:600;'>🛑 Intentos utilizados: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT} (Máximo)</p></div>"
+        
+        else:
+            # Normal State: Show just the result card and keep controls active
+            final_html_display = kpi_card_html
+            button_update = gr.update(value="🔬 Construye y Envía Modelo", interactive=True)
+            interactive_state = True
+            tracker_html = _build_attempts_tracker_html(new_submission_count)
+
+        # -------------------------------------------------------------------------
+
+        final_updates = {
+            submission_feedback_display: gr.update(value=final_html_display, visible=True),
+            team_leaderboard_display: team_html,
+            individual_leaderboard_display: individual_html,
+            last_submission_score_state: this_submission_score, 
+            last_rank_state: new_rank, 
+            best_score_state: new_best_accuracy,
+            submission_count_state: new_submission_count,
+            first_submission_score_state: new_first_submission_score,
+            rank_message_display: settings["rank_message"],
+            
+            # Apply the interactive state calculated above
+            model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=(settings["model_interactive"] and interactive_state)),
+            complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"], interactive=interactive_state),
+            feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=(settings["feature_set_interactive"] and interactive_state)),
+            data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=(settings["data_size_interactive"] and interactive_state)),
+            
+            submit_button: button_update,
+            
+            login_username: gr.update(visible=False), login_password: gr.update(visible=False),
+            login_submit: gr.update(visible=False), login_error: gr.update(visible=False),
+            attempts_tracker_display: gr.update(value=tracker_html),
+            was_preview_state: False,
+            kpi_meta_state: success_kpi_meta,
+            last_seen_ts_state: time.time()
+        }
+        yield final_updates
+      
+    except Exception as e:
+        error_msg = f"ERROR: {e}"
+        _log(f"Exception in run_experiment: {error_msg}")
+        settings = compute_rank_settings(
+             submission_count, model_name_key, complexity_level, feature_set, data_size_str
+        )
+        
+        exception_kpi_meta = {
+            "was_preview": False, "preview_score": None, "ready_at_run_start": ready if 'ready' in locals() else False,
+            "poll_iterations": 0, "local_test_accuracy": None, "this_submission_score": None,
+            "new_best_accuracy": None, "rank": None, "error": str(e)
+        }
+        
+        error_updates = {
+            submission_feedback_display: gr.update(
+                f"<p style='text-align:center; color:red; padding:20px 0;'>Ha ocurrido un error: {error_msg}</p>", visible=True
+            ),
+            team_leaderboard_display: f"<p style='text-align:center; color:red; padding-top:20px;'>Ha ocurrido un error: {error_msg}</p>",
+            individual_leaderboard_display: f"<p style='text-align:center; color:red; padding-top:20px;'>Ha ocurrido un error: {error_msg}</p>",
+            last_submission_score_state: last_submission_score,
+            last_rank_state: last_rank,
+            best_score_state: best_score,
+            submission_count_state: submission_count,
+            first_submission_score_state: first_submission_score,
+            rank_message_display: settings["rank_message"],
+            model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
+            complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
+            feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
+            data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
+            submit_button: gr.update(value="🔬 Construye y Envía Modelo", interactive=True),
+            login_username: gr.update(visible=False),
+            login_password: gr.update(visible=False),
+            login_submit: gr.update(visible=False),
+            login_error: gr.update(visible=False),
+            attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)),
+            was_preview_state: False,
+            kpi_meta_state: exception_kpi_meta,
+            last_seen_ts_state: None
+        }
+        yield error_updates
 
 def on_initial_load(username, token=None, team_name=""):
     """
-    Load initial UI state. Immediately ready since predictions are precomputed.
+    Load initial UI state. Now immediately ready since predictions are precomputed.
     """
+    # Load test labels in the background (lightweight)
     _ensure_y_test_loaded()
     
     initial_ui = compute_rank_settings(
@@ -1908,25 +2074,25 @@ def on_initial_load(username, token=None, team_name=""):
     )
 
     # 1. Prepare the Welcome HTML
-    # Translate team name to Catalan for display only (keep team_name in English for logic)
-    display_team = translate_team_name_for_display(team_name, UI_TEAM_LANG) if team_name else "Tu equipo"
+    display_team = team_name if team_name else "tu Equipo"
     
     welcome_html = f"""
     <div style='text-align:center; padding: 30px 20px;'>
         <div style='font-size: 3rem; margin-bottom: 10px;'>👋</div>
-        <h3 style='margin: 0 0 8px 0; color: #111827; font-size: 1.5rem;'>¡Ya formas parte del equipo: <b>{display_team}</b>!</h3>
+        <h3 style='margin: 0 0 8px 0; color: #111827; font-size: 1.5rem;'>¡Bienvenido a <b>{display_team}</b>!</h3>
         <p style='font-size: 1.1rem; color: #4b5563; margin: 0 0 20px 0;'>
-            Tu equipo necesita tu ayuda para mejorar la IA.
+            Tu equipo te está esperando para mejorar la IA.
         </p>
         
         <div style='background:#eff6ff; padding:16px; border-radius:12px; border:2px solid #bfdbfe; display:inline-block;'>
             <p style='margin:0; color:#1e40af; font-weight:bold; font-size:1.1rem;'>
-                👈 Haz clic en 'Construir y enviar modelo' para comenzar!
+                👈 ¡Haz clic en "Construye y Envía Modelo" para empezar a jugar!
             </p>
         </div>
     </div>
     """
 
+    # Fetch leaderboard data
     full_leaderboard_df = None
     try:
         if playground:
@@ -1949,7 +2115,7 @@ def on_initial_load(username, token=None, team_name=""):
         # CASE 1: New User (or first time loading session) -> FORCE WELCOME
         # regardless of whether the leaderboard has other people's data.
         team_html = welcome_html
-        individual_html = "<p style='text-align:center; color:#6b7280; padding-top:40px;'>¡Envía tu modelo para ver tu posición en la clasificación!</p>"
+        individual_html = "<p style='text-align:center; color:#6b7280; padding-top:40px;'>¡Envía tu modelo para ver en qué posición estás!</p>"
         
     elif full_leaderboard_df is None or full_leaderboard_df.empty:
         # CASE 2: Returning user, but data fetch failed -> Show Skeleton
@@ -1967,8 +2133,8 @@ def on_initial_load(username, token=None, team_name=""):
             )
         except Exception as e:
             print(f"Error generating summary HTML: {e}")
-            team_html = "<p style='text-align:center; color:red; padding-top:20px;'>Se ha producido un error al cargar la clasificación.</p>"
-            individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>Se ha producido un error al cargar la clasificación.</p>"
+            team_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error al renderizar la clasificación.</p>"
+            individual_html = "<p style='text-align:center; color:red; padding-top:20px;'>Error al renderizar la clasificación.</p>"
 
     return (
         get_model_card(DEFAULT_MODEL),
@@ -1980,8 +2146,6 @@ def on_initial_load(username, token=None, team_name=""):
         gr.update(choices=initial_ui["feature_set_choices"], value=initial_ui["feature_set_value"], interactive=initial_ui["feature_set_interactive"]),
         gr.update(choices=initial_ui["data_size_choices"], value=initial_ui["data_size_value"], interactive=initial_ui["data_size_interactive"]),
     )
-
-
 # -------------------------------------------------------------------------
 # Conclusion helpers (dark/light mode aware)
 # -------------------------------------------------------------------------
@@ -1991,17 +2155,17 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     Colors are handled via CSS classes so that light/dark mode work correctly.
     """
     unlocked_tiers = min(3, max(0, submissions - 1))  # 0..3
-    tier_names = ["En prácticas", "Júnior", "Sénior", "Principal"]
+    tier_names = ["Practicante", "Junior", "Senior", "Jefe"]
     reached = tier_names[: unlocked_tiers + 1]
     tier_line = " → ".join([f"{t}{' ✅' if t in reached else ''}" for t in tier_names])
 
     improvement = (best_score - first_score) if (first_score is not None and submissions > 1) else 0.0
-    strong_predictors = {"age", "length_of_stay", "priors_count", "age_cat"}
+    strong_predictors = {"avg_temp", "heating_degree_days", "cooling_degree_days", "january_min_temp"}
     strong_used = [f for f in feature_set if f in strong_predictors]
 
     ethical_note = (
-        "Has desbloqueado predictores muy potentes. Reflexiona: ¿eliminar los campos demográficos cambiaría la equidad del sistema?"
-         "En la siguiente sección comenzaremos a investigar esta cuestión a fondo."
+        "Has desbloqueado poderosos predictores climáticos. Reflexiona: ¿Cómo influyen la edad del edificio y la temperatura local en el establecimiento de objetivos de eficiencia energética?"
+        " En la próxima sección comenzaremos a investigar esta cuestión más a fondo."
     )
 
     # Tailor message for very few submissions
@@ -2009,7 +2173,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     if submissions < 2:
         tip_html = """
         <div class="final-conclusion-tip">
-          <b>Consejo:</b> Intenta hacer al menos 2 o 3 envíos cambiando SOLO un parámetro cada vez para ver claramente la relación causa-efecto.
+          <b>Consejo:</b> Prueba a enviar al menos 2 o 3 modelos cambiando SOLO un parámetro cada vez para ver claramente la relación causa-efecto.
         </div>
         """
 
@@ -2019,30 +2183,30 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
         attempt_cap_html = f"""
         <div class="final-conclusion-attempt-cap">
           <p style="margin:0;">
-            <b>📊 Límite de intentos alcanzado:</b> Has utilizado todos los {ATTEMPT_LIMIT} intentos de envío permitidos para esta sesión.
-            Podrás enviar más modelos una vez hayas completado algunas actividades nuevas.
+            <b>📊 Límite de Intentos Alcanzado:</b> Has utilizado los {ATTEMPT_LIMIT} intentos de envío permitidos para esta sesión.
+            Volveremos a abrir los envíos una vez hayas completado las próximas actividades.
           </p>
         </div>
         """
 
     return f"""
     <div class="final-conclusion-root">
-      <h1 class="final-conclusion-title">🎉 Fase d’enginyeria completada</h1>
+      <h1 class="final-conclusion-title">🎉 Fase de Ingeniería Completada</h1>
       <div class="final-conclusion-card">
-        <h2 class="final-conclusion-subtitle">Resumen de tu rendimiento</h2>
+        <h2 class="final-conclusion-subtitle">Resumen de tu Rendimiento</h2>
         <ul class="final-conclusion-list">
-          <li>🏁 <b>Mejor precisión:</b> {(best_score * 100):.2f}%</li>
-          <li>📊 <b>Posición conseguida:</b> {('#' + str(rank)) if rank > 0 else '—'}</li>
+          <li>🏁 <b>Mejor Precisión:</b> {(best_score * 100):.2f}%</li>
+          <li>📊 <b>Posición Alcanzada:</b> {('#' + str(rank)) if rank > 0 else '—'}</li>
           <li>🔁 <b>Envíos en esta sesión:</b> {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li>
-          <li>🧗 <b>Mejora respecto a la primera puntuación de esta sesión:</b> {(improvement * 100):+.2f}</li>
-          <li>🎖️ <b>Progreso de nivel:</b> {tier_line}</li>
-          <li>🧪 <b>Variables clave utilizadas:</b> {len(strong_used)} ({', '.join(strong_used) if strong_used else 'Todavía ninguna'})</li>
+          <li>🧗 <b>Mejora respecto a la primera puntuación:</b> {(improvement * 100):+.2f}</li>
+          <li>🎖️ <b>Progreso de Nivel:</b> {tier_line}</li>
+          <li>🧪 <b>Predictores Potentes Utilizados:</b> {len(strong_used)} ({', '.join(strong_used) if strong_used else 'Ninguno todavía'})</li>
         </ul>
 
         {tip_html}
 
         <div class="final-conclusion-ethics">
-          <p style="margin:0;"><b>Reflexión ética:</b> {ethical_note}</p>
+          <p style="margin:0;"><b>Reflexión Ética:</b> {ethical_note}</p>
         </div>
 
         {attempt_cap_html}
@@ -2051,10 +2215,9 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
 
         <div class="final-conclusion-next">
           <h1 class="final-instruction">
-            👇 Continúa con la siguiente actividad abajo — o haz clic en <span style="white-space:nowrap;">Siguiente (barra superior)</span> en vista ampliada ➡️
+            👇 Continúa hacia la siguiente actividad abajo — o haz clic en <span style="white-space:nowrap;">Siguiente (barra superior)</span> en la vista expandida ➡️
           </h1>
         </div>
-      </div>
     </div>
     """
 
@@ -2064,17 +2227,16 @@ def build_conclusion_from_state(best_score, submissions, rank, first_score, feat
     return build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set)
 def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
     """
-    Create (but do not launch) the model building game app.
+    Create (but do not launch) the model building game app v5.0.
     """
-    # Initialize Competition once at startup
+    # Initialize playground connection
     global playground
     if playground is None:
         try:
             playground = Competition(MY_PLAYGROUND_ID)
-            print("✅ Competition connection initialized successfully")
+            print("✅ Playground connected", flush=True)
         except Exception as e:
-            print(f"⚠️ WARNING: Could not connect to playground: {e}")
-            playground = None
+            print(f"⚠️ Playground connection failed: {e}", flush=True)
 
     # Add missing globals (FIX)
     global submit_button, submission_feedback_display, team_leaderboard_display
@@ -2882,6 +3044,14 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "i
         font-size: 3rem;
         animation: pulseArrow 2.5s infinite;
     }
+    /* CTA sizing for the new class */
+    .final-conclusion-next .final-instruction {
+      font-size: clamp(1.5rem, 2vw + 0.6rem, 2rem);
+      line-height: 1.25;
+      margin: 16px 0;
+      /* Optional: keep the pulse animation from the old class */
+      /* animation: pulseArrow 2.5s infinite; */
+    }
 
     /* ---------------------------------------------------- */
     /* Dark Mode Overrides for Final Slide                  */
@@ -2906,14 +3076,6 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "i
         .final-conclusion-attempt-cap {
             background-color: rgba(248, 113, 113, 0.26);
         }
-    }
-    /* CTA sizing for the new class */
-    .final-conclusion-next .final-instruction {
-      font-size: clamp(1.5rem, 2vw + 0.6rem, 2rem);
-      line-height: 1.25;
-      margin: 16px 0;
-      /* Optional: keep the pulse animation from the old class */
-      /* animation: pulseArrow 2.5s infinite; */
     }
     /* ---------------------------------------------------- */
     /* Slide 3: INPUT → MODEL → OUTPUT flow (theme-aware)   */
@@ -2948,6 +3110,148 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "i
             color: color-mix(in srgb, var(--color-accent) 75%, var(--body-text-color) 25%);
         }
     }
+    /* ---------- NEW: Countdown & Interactive Slide Styles ---------- */
+
+    /* 1. Launch Banner (Slide 1) */
+    .launch-banner {
+        background: #111827;
+        color: #4ade80;
+        font-family: monospace;
+        text-align: center;
+        padding: 8px;
+        font-size: 0.9rem;
+        letter-spacing: 2px;
+        margin: -24px -24px 24px -24px; /* Stretch to edges of panel */
+        border-bottom: 2px solid #4ade80;
+        border-radius: var(--slide-radius-lg) var(--slide-radius-lg) 0 0;
+    }
+
+    /* 2. T-Minus Headers */
+    .t-minus-header {
+        text-align: center;
+        margin-bottom: 24px;
+        border-bottom: 2px solid var(--card-border-subtle);
+        padding-bottom: 16px;
+    }
+    
+    .t-minus-badge {
+        display: inline-block;
+        background: var(--text-main);
+        color: var(--body-background-fill);
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-weight: 800;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 8px;
+    }
+
+    .t-minus-title {
+        margin: 0;
+        font-size: 2.2rem;
+        color: var(--accent-strong);
+        font-weight: 800;
+    }
+
+    /* 3. Styled Details/Summary (Click-to-reveal) */
+    details.styled-details {
+        margin-bottom: 12px;
+        background: var(--block-background-fill);
+        border-radius: 10px;
+        border: 1px solid var(--card-border-subtle);
+        overflow: hidden;
+    }
+
+    details.styled-details > summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 16px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--prose-background-fill);
+        transition: background 0.2s;
+        color: var(--text-main);
+    }
+
+    details.styled-details > summary:hover {
+        background: var(--block-background-fill);
+        color: var(--accent-strong);
+    }
+
+    /* Hide default triangle */
+    details.styled-details > summary::-webkit-details-marker {
+        display: none;
+    }
+
+    /* Custom +/- indicator */
+    details.styled-details > summary::after {
+        content: '+';
+        font-size: 1.5rem;
+        font-weight: 400;
+        color: var(--text-muted);
+    }
+
+    details.styled-details[open] > summary::after {
+        content: '−';
+        color: var(--accent-strong);
+    }
+
+    details.styled-details > div.content {
+        padding: 16px;
+        border-top: 1px solid var(--card-border-subtle);
+        background: var(--block-background-fill);
+        color: var(--text-main);
+    }
+
+    /* 4. Mock UI Widgets (for Slide 4) */
+    .widget-row { display: flex; align-items: center; margin-bottom: 8px; color: var(--text-main); font-size: 1rem; }
+    
+    .radio-circle { 
+        width: 16px; height: 16px; border-radius: 50%; 
+        border: 2px solid var(--text-muted); margin-right: 10px; display: inline-block; 
+    }
+    .radio-circle.selected { 
+        border-color: var(--accent-strong); 
+        background: radial-gradient(circle, var(--accent-strong) 40%, transparent 50%); 
+    }
+    
+    .check-square { 
+        width: 16px; height: 16px; border-radius: 4px; 
+        border: 2px solid var(--text-muted); margin-right: 10px; display: inline-block; 
+    }
+    .check-square.checked { 
+        background: var(--accent-strong); border-color: var(--accent-strong); position: relative; 
+    }
+    
+    .slider-track { 
+        height: 6px; background: var(--border-color-primary); border-radius: 3px; 
+        width: 100%; position: relative; margin: 12px 0; 
+    }
+    .slider-thumb { 
+        width: 18px; height: 18px; background: var(--accent-strong); 
+        border-radius: 50%; position: absolute; left: 20%; top: -6px; 
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3); 
+    }
+    
+    .risk-tag { 
+        background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; 
+        font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; 
+        margin-left: 8px; vertical-align: middle; font-weight: 700; 
+    }
+    
+    /* Pop-up info box inside details */
+    .info-popup {
+        background: color-mix(in srgb, var(--color-accent) 5%, transparent);
+        border-left: 4px solid var(--color-accent);
+        padding: 12px;
+        margin-top: 12px;
+        border-radius: 4px;
+        font-size: 0.95rem;
+        color: var(--text-main);
+    }
     """
 
 
@@ -2961,7 +3265,11 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "i
     global login_username, login_password, login_submit, login_error
     global attempts_tracker_display, team_name_state
 
-    with gr.Blocks(theme=gr.themes.Soft(primary_hue="indigo"), css=css) as demo:
+    with gr.Blocks(
+        theme=gr.themes.Soft(primary_hue=theme_primary_hue, radius_size="lg", font=["Outfit", "sans-serif"]),
+        css=css,
+        title="Desafío de Sostenibilidad e IA v5.1"
+    ) as demo:
         # Persistent top anchor for scroll-to-top navigation
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
         
@@ -2969,7 +3277,7 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "i
         gr.HTML("""
             <div id='nav-loading-overlay'>
                 <div class='nav-spinner'></div>
-                <span id='nav-loading-text'>Loading...</span>
+                <span id='nav-loading-text'>Cargando...</span>
             </div>
         """)
 
@@ -2988,48 +3296,41 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "i
             )
 
         # --- Briefing Slideshow (Updated with New Cards) ---
-  
-        # Slide 1: From Understanding to Building (Retained as transition)
+
+        # Slide 1: Designation
         with gr.Column(visible=True, elem_id="slide-1") as briefing_slide_1:
-            gr.Markdown("<h1 style='text-align:center;'>🔄 De la teoría a la práctica</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🔄 Designación Adquirida: Arquitecto de IA Climática</h1>")
             gr.HTML("""
                 <div class='slide-content'>
                 <div class='panel-box'>
-                <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>¡Muy buen trabajo! Hasta ahora has:</h3>
-                <ul style='list-style: none; padding-left: 0; margin-top: 24px; margin-bottom: 24px;'>
-                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Tomado decisiones difíciles en el rol de juez</li>
-                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Aprendido qué son los falsos positivos y los falsos negativos</li>
-                    <li style='font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;'>✅ Entendido cómo funciona la IA</li>
-                </ul>
-                <div style='background:white; padding:16px; border-radius:12px; margin:12px 0; text-align:center;'>
-                    <span style='background:#dbeafe; padding:8px; border-radius:4px; color:#0369a1; font-weight:bold;'>ENTRADA</span> → 
-                    <span style='background:#fef3c7; padding:8px; border-radius:4px; color:#92400e; font-weight:bold;'>MODELO</span> → 
-                    <span style='background:#f0fdf4; padding:8px; border-radius:4px; color:#15803d; font-weight:bold;'>SALIDA</span>
+                <p style='text-align:center; font-size: 1.2rem;'>Enhorabuena por haber completado la Auditoría Global de Emisiones. Basándonos en tu rendimiento, has sido ascendido.</p>
+                <div style='background: linear-gradient(135deg, var(--color-accent) 10%, transparent); border: 2px solid var(--color-accent); padding: 25px; border-radius: 16px; text-align: center; margin: 20px 0;'>
+                    <div style='text-transform: uppercase; letter-spacing: 2px; color: var(--color-accent); font-weight: 800; font-size: 0.9rem; margin-bottom: 5px;'>NUEVO NIVEL DE ACCESO</div>
+                    <h2 style='margin: 0; font-size: 2.2rem; color: var(--text-main);'>ARQUITECTO DE IA CLIMÁTICA</h2>
                 </div>
-                <h3 style='font-size: 1.5rem; text-align:center;'>Ahora: Asume el rol de ingeniero/a de IA.</h3>
+                <h3 style='font-size: 1.5rem; text-align:center; margin-top:0;'>Tu próxima misión:</h3>
+                <p style='text-align:center;'>Utiliza el aprendizaje automático avanzado para identificar el desperdicio de energía oculto en nuestras ciudades. No podemos auditar cada edificio manualmente—necesitamos que tu IA lo haga por nosotros.</p>
                 </div>
                 </div>
             """)
             briefing_1_next = gr.Button("Siguiente ▶️", variant="primary", size="lg")
 
-        # Slide 2: Mission
+        # Slide 2: Grant
         with gr.Column(visible=False, elem_id="slide-2") as briefing_slide_2:
-            gr.Markdown("<h1 style='text-align:center;'>📋 Tu misión: Crear un sistema de IA mejor</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>💰 El Reto de los 500.000 $</h1>")
             gr.HTML("""
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <h3>La misión</h3>
-                        <p>Construye un sistema de IA que ayude a mejorar las decisiones judiciales. Tu objetivo es predecir el riesgo de reincidencia con mayor precisión que el sistema anterior.</p>
-                        
-                        <h3>La competición</h3>
-                        <p>Para lograrlo, competirás con otros perfiles de ingeniería. Te unirás a un equipo y podrás seguir tanto el rendimiento individual como el del equipo en las clasificaciones en tiempo real.</p>
-                        <div style="background:var(--background-fill-secondary); padding:8px 12px; border-radius:8px; margin-bottom:12px; border:1px solid var(--border-color-primary);">
-                             Formarás parte de un equipo como, por ejemplo… <b>🛡️ Los Exploradores Éticos</b>
+                        <div style='background: rgba(16, 185, 129, 0.1); border-left: 5px solid #10b981; padding: 20px; border-radius: 8px; margin-bottom: 25px;'>
+                            <h3 style='margin: 0; color: #059669;'>Subvención a la Innovación en IA Otorgada</h3>
+                            <p style='margin: 10px 0 0 0; font-size: 1.1rem;'>El Ayuntamiento ha asignado <b>500.000 $</b> para combatir la ineficiencia energética en el entorno construido.</p>
                         </div>
-
-                        <h3>El reto de los datos</h3>
-                        <p>Para competir, tendrás acceso a miles de archivos de casos antiguos que contienen <b>perfiles de personas acusadas</b> (edad, historial) y <b>resultados históricos</b> (si hay reincidencia o no).</p>
-                        <p>Tu tarea es crear un sistema de IA que aprenda de los perfiles y prediga el resultado con precisión. ¿Te atreves a construir algo que podría cambiar el funcionamiento de la justicia?</p>
+                        
+                        <h3>🏗️ ¿Por qué los edificios?</h3>
+                        <p>El entorno construido genera el <b>40% de las emisiones globales</b>. A diferencia de los vehículos o la agricultura, los edificios generan datos de sensores constantes y medibles—lo que los convierte en el objetivo ideal para la predicción con IA.</p>
+                        
+                        <h3>🏢 Únete a un equipo</h3>
+                        <p>Te unirás a un equipo de Arquitectos, como por ejemplo <b>🛡️ Los Vengadores de Precisión</b>. Tus puntuaciones individuales contribuirán a la posición total de tu equipo en la clasificación en vivo.</p>
                     </div>
                 </div>
             """)
@@ -3037,16 +3338,22 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "i
                 briefing_2_back = gr.Button("◀️ Atrás", size="lg")
                 briefing_2_next = gr.Button("Siguiente ▶️", variant="primary", size="lg")
 
-        # Slide 3: Concept
+        # Slide 3: What is AI
         with gr.Column(visible=False, elem_id="slide-3") as briefing_slide_3:
-            gr.Markdown("<h1 style='text-align:center;'>🧠 ¿Qué es un sistema de IA?</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🤖 ¿Qué es la IA de Edificios?</h1>")
             gr.HTML("""
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <p>Imagínate un sistema de IA como una "máquina de predicción". Se construye a partir de tres componentes principales:</p>
-                        <p><strong>1. Las entradas:</strong> Los datos que le das (p. ej: edad, delitos).</p>
-                        <p><strong>2. El modelo (el "cerebro"):</strong> Las matemáticas (algoritmo) que encuentran patrones.</p>
-                        <p><strong>3. La salida:</strong> La predicción (p. ej: nivel de riesgo).</p>
+                        <h3 style='text-align:center;'>La IA es una "Máquina de Predicción"</h3>
+                        <p>La IA no es magia—es un sistema que hace predicciones basadas en patrones. En nuestro caso, sigue una fórmula sencilla de tres partes:</p>
+                        <div style='background:var(--block-background-fill); padding:20px; border-radius:12px; margin:20px 0; display:flex; justify-content:space-around; align-items:center; text-align:center;'>
+                            <div><b style='color:#0369a1;'>ENTRADA</b><br><span style='font-size:0.85rem'>Specs del Edificio</span></div>
+                            <span style='font-size:1.5rem;'>→</span>
+                            <div><b style='color:#92400e;'>MODELO</b><br><span style='font-size:0.85rem'>El Cerebro de la IA</span></div>
+                            <span style='font-size:1.5rem;'>→</span>
+                            <div><b style='color:#15803d;'>SALIDA</b><br><span style='font-size:0.85rem'>Predicción de EUI</span></div>
+                        </div>
+                        <p>Piénsalo como la intuición humana: <b>Nubes Negras (Entrada)</b> → <b>Experiencia (Modelo)</b> → <b>Predicción de Lluvia (Salida)</b>. La IA solo lo hace con millones de filas de datos.</p>
                     </div>
                 </div>
             """)
@@ -3054,20 +3361,22 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "i
                 briefing_3_back = gr.Button("◀️ Atrás", size="lg")
                 briefing_3_next = gr.Button("Siguiente ▶️", variant="primary", size="lg")
 
-        # Slide 4: The Loop
+        # Slide 4: Feature Engineering
         with gr.Column(visible=False, elem_id="slide-4") as briefing_slide_4:
-            gr.Markdown("<h1 style='text-align:center;'>🔁 Cómo trabajan los equipos de ingeniería: el ciclo</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🧪 Ingeniería de Datos</h1>")
             gr.HTML("""
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        <p>Los equipos de IA reales casi nunca aciertan a la primera. Siguen un ciclo: <strong>probar, evaluar, aprender, repetir.</strong></p>
-                        <p>Harás exactamente lo mismo en esta competición:</p>
-                        <div class='step-visual'>
-                            <div class='step-visual-box'><b>1. Configura</b><br><span style='font-size:0.85rem'>elige el modelo y los datos</span></div>→
-                            <div class='step-visual-box'><b>2. Envía</b><br><span style='font-size:0.85rem'>entrena tu sistema</span></div>→
-                            <div class='step-visual-box'><b>3. Analiza</b><br><span style='font-size:0.85rem'>revisa la clasificación</span></div>→
-                            <div class='step-visual-box'><b>4. Refina</b><br><span style='font-size:0.85rem'>ajusta y prueba otra vez</span></div>
+                        <p>Para predecir la eficiencia de los edificios <b>sin visitarlos</b>, tu IA necesita entradas específicas llamadas <b>"Predictores."</b></p>
+                        <h3>La métrica de éxito: el EUI del lugar</h3>
+                        <p>Tu IA predecirá la <b>Intensidad de Uso de Energía (EUI)</b>. Esta fórmula normaliza el uso de energía según el tamaño del edificio, lo que nos permite comparar un rascacielos con una casita de manera justa:</p>
+                        <div style='background:#f1f5f9; color:#0f172a; padding:15px; border-radius:8px; text-align:center; font-family:monospace; font-weight:bold; margin:15px 0;'>
+                            (Electricidad + Gas) ÷ Superficie = EUI del lugar
                         </div>
+                        <ul style='margin-top:15px; color:var(--text-muted);'>
+                            <li><b>EUI Bajo:</b> Edificio eficiente, prioridad para certificación verde.</li>
+                            <li><b>EUI Alto:</b> Edificio ineficiente, prioridad máxima para rehabilitación.</li>
+                        </ul>
                     </div>
                 </div>
             """)
@@ -3077,89 +3386,87 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "i
                 briefing_4_next = gr.Button("Siguiente ▶️", variant="primary", size="lg")
 
         # Slide 5: Systems Check (Controls)
- # Slide 5: Systems Check (Controls) - Spanish (Dark Mode Fixed)
         with gr.Column(visible=False, elem_id="slide-5") as briefing_slide_5:
             gr.HTML(
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
                         <div class='t-minus-header'>
-                            <h2 class='t-minus-title' style='color: var(--body-text-color);'>🔧 Revisión de los controles de ingeniería</h2>
+                            <h2 class='t-minus-title' style='color: var(--body-text-color);'>🔧 Revisión del Sistema de Ingeniería</h2>
                         </div>
             
                         <div style='background: color-mix(in srgb, var(--color-accent) 10%, transparent); border:1px solid var(--color-accent); padding:16px; border-radius:10px; text-align:center; margin-bottom:24px;'>
-                            <strong style='color: var(--color-accent); font-size:1.1rem;'>⚠️ MODO DE SIMULACIÓN ACTIVO</strong>
+                            <strong style='color: var(--color-accent); font-size:1.1rem;'>⚠️ MODO SIMULACIÓN ACTIVO</strong>
                             <p style='margin:8px 0 0 0; color: var(--body-text-color); font-size:1.05rem; line-height:1.4;'>
-                                A continuación tienes los <b>4 controles</b> que utilizarás para construir tu modelo en el siguiente paso.<br>
-                                <b>Haz clic en cada uno</b> para entender qué hacen antes de que empiece la competición.
+                                Debajo tienes los <b>4 controles exactos</b> que usarás para construir tu modelo en el siguiente paso.<br>
+                                <b>Haz clic en cada uno ahora</b> para aprender qué hacen antes de que comience la competición.
                             </p>
                         </div>
             
                         <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px; margin-bottom: 8px;">
-                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">1. Estrategia del modelo (el "cerebro")</summary>
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">1. Estrategia de Modelo (El 'cerebro')</summary>
                             <div class="content" style="padding-top: 12px; padding-left: 12px;">
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);"><span class="radio-circle selected" style="display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--color-accent); margin-right:8px;"></span> <b>El Generalista Equilibrado</b></div>
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> El Creador de Reglas</div>
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> El Buscador de Patrones Profundos</div>
                                 
                                 <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
-                                    <b style="color: var(--body-text-color);">En el juego:</b> <span style="color: var(--body-text-color);">Elegirás una de estas estrategias. Cada estrategia permite que el modelo aprenda de los datos de entrada de una manera distinta.</span><br>
-                                    <i style="color: var(--body-text-color-subdued);">Consejo: Empieza con "Generalista Equilibrado" para obtener una puntuación base segura y fiable.</i>
+                                    <b style="color: var(--body-text-color);">En el juego:</b> <span style="color: var(--body-text-color);">Elegirás una de estas estrategias de modelo. Cada estrategia permite a tu modelo aprender de los datos de entrada de una manera única.</span><br>
+                                    <i style="color: var(--body-text-color-subdued);">Consejo: Empieza con el "Generalista Equilibrado" para una puntuación base segura.</i>
                                 </div>
                             </div>
                         </details>
             
                         <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px; margin-bottom: 8px;">
-                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">2. Complejidad del modelo (nivel de enfoque)</summary>
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">2. Complejidad del Modelo (Nivel de atención)</summary>
                             <div class="content" style="padding-top: 12px; padding-left: 12px;">
                                 <div class="slider-track" style="height: 4px; background: var(--neutral-200); margin: 16px 0; position: relative;"><div class="slider-thumb" style="width: 16px; height: 16px; background: var(--color-accent); border-radius: 50%; position: absolute; left: 50%; top: -6px;"></div></div>
                                 <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--body-text-color-subdued);">
-                                    <span>Nivel 1 (general)</span>
-                                    <span>Nivel 10 (específico)</span>
+                                    <span>Nivel 1 (General)</span>
+                                    <span>Nivel 10 (Específico)</span>
                                 </div>
                                 
                                 <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
                                     <b style="color: var(--body-text-color);">En el juego:</b> <span style="color: var(--body-text-color);">Piensa en esto como <b>Estudiar vs. Memorizar</b>.</span><br>
-                                    <span style="color: var(--body-text-color);">• <b>Baja complejidad:</b> La IA aprende conceptos generales (Bueno para casos nuevos).</span><br>
-                                    <span style="color: var(--body-text-color);">• <b>Alta complejidad:</b> La IA memoriza las respuestas (Malo para casos nuevos).</span><br>
-                                    <strong style="color:#ef4444;">⚠️ La trampa:</strong> <span style="color: var(--body-text-color);">un nivel alto puede parecer perfecto en la prueba práctica, pero falla en el mundo real porque la IA solo ha memorizado las respuestas.</span>
+                                    <span style="color: var(--body-text-color);">• <b>Baja Complejidad:</b> La IA aprende conceptos generales (bueno para casos nuevos).</span><br>
+                                    <span style="color: var(--body-text-color);">• <b>Alta Complejidad:</b> La IA memoriza las respuestas (malo para casos nuevos).</span><br>
+                                    <strong style="color:#ef4444;">⚠️ La trampa:</strong> <span style="color: var(--body-text-color);">¡Un valor alto parece perfecto en la prueba de práctica, pero falla en el mundo real porque la IA solo ha memorizado las respuestas!</span>
                                 </div>
                             </div>
                         </details>
             
                         <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px; margin-bottom: 8px;">
-                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">3. Variables de datos (las entradas)</summary>
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">3. Ingredientes (Los datos de entrada)</summary>
                             <div class="content" style="padding-top: 12px; padding-left: 12px;">
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);">
-                                    <span style="color:var(--color-accent); font-weight:bold;">☑</span> <b>Delitos previos</b>
+                                    <span style="color:var(--color-accent); font-weight:bold;">☑</span> <b>Superficie</b>
                                 </div>
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);">
-                                    <span style="color:var(--color-accent); font-weight:bold;">☑</span> <b>Grado del cargo delictivo</b>
+                                    <span style="color:var(--color-accent); font-weight:bold;">☑</span> <b>Año de construcción</b>
                                 </div>
                                 <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);">
-                                    <span style="color:var(--neutral-400); font-weight:bold;">☐</span> <b>Datos demográficos (origen étnico/sexo)</b> <span class="risk-tag" style="background:#fef2f2; color:#b91c1c; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold;">⚠️ RIESGO</span>
+                                    <span style="color:var(--neutral-400); font-weight:bold;">☐</span> <b>Datos Climáticos</b> <span class="risk-tag" style="background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; font-size:0.75rem; font-weight:bold;">⛅ AVANZADO</span>
                                 </div>
                                 
                                 <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
-                                    <b style="color: var(--body-text-color);">En el juego:</b> <span style="color: var(--body-text-color);">marcarás casillas para decidir qué datos de entrada puede utilizar la IA para aprender nuevos patrones.</span><br>
-                                    <strong style="color:#ef4444;">⚠️ Riesgo ético:</strong> <span style="color: var(--body-text-color);">puedes usar datos demográficos para mejorar tu puntuación, pero ¿es justo?</span>
+                                    <b style="color: var(--body-text-color);">En el juego:</b> <span style="color: var(--body-text-color);">Seleccionarás qué especificaciones del edificio puede ver la IA.</span><br>
+                                    <strong style="color:var(--color-accent);">🎓 Consejo Pro:</strong> <span style="color: var(--body-text-color);">Los datos meteorológicos son potentes pero complejos—desbloquéalos a medida que progreses.</span>
                                 </div>
                             </div>
                         </details>
             
                         <details class="styled-details" style="border: 1px solid var(--border-color-primary); padding: 8px; border-radius: 8px;">
-                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">4. Tamaño de datos (volumen)</summary>
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--body-text-color);">4. Tamaño de los datos (Volumen)</summary>
                             <div class="content" style="padding-top: 12px; padding-left: 12px;">
-                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);"><span class="radio-circle selected" style="display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--color-accent); margin-right:8px;"></span> <b>Pequeño (20%)</b> - La IA aprende rápido, pero ve menos datos.</div>
-                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> <b>Completo (100%)</b> - La IA ve más datos, pero aprende más despacio.</div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color);"><span class="radio-circle selected" style="display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--color-accent); margin-right:8px;"></span> <b>Pequeña (20%)</b> - La IA aprende rápido, pero ve menos datos.</div>
+                                <div class="widget-row" style="margin-bottom: 4px; color: var(--body-text-color-subdued);"><span class="radio-circle" style="display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid var(--body-text-color-subdued); margin-right:8px;"></span> <b>Completa (100%)</b> - La IA ve más datos y aprende más lentamente.</div>
                                 
                                 <div class="info-popup" style="background: var(--background-fill-secondary); padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border-color-primary);">
-                                    <b style="color: var(--body-text-color);">En el juego:</b> <span style="color: var(--body-text-color);">Tú decides qué cantidad de historial de datos lee el modelo.</span><br>
-                                    <i style="color: var(--body-text-color-subdued);">Consejo: Usa "Pequeño" para probar ideas rápidamente. Usa "Completo" cuando creas que tienes una estrategia ganadora.</i>
+                                    <b style="color: var(--body-text-color);">En el juego:</b> <span style="color: var(--body-text-color);">Eliges cuánto del historial lee el modelo.</span><br>
+                                    <i style="color: var(--body-text-color-subdued);">Consejo: Usa "Pequeña" para probar ideas rápidamente. Usa "Completa" cuando creas que tienes una estrategia ganadora.</i>
                                 </div>
                             </div>
                         </details>
-            
                     </div>
                 </div>
                 """
@@ -3176,49 +3483,48 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "i
                 <div class='slide-content'>
                     <div class='panel-box'>
                         <div class='t-minus-header'>
-                            <h2 class='t-minus-title'>🚀 Claves finales: el veredicto de la misión</h2>
+                            <h2 class='t-minus-title'>🚀 Misión: Acceso Concedido</h2>
                         </div>
                         
                         <p style='font-size: 1.15rem; text-align:center; margin-bottom: 24px;'>
-                            Acceso concedido. Así es como se juzgará tu trabajo.
+                            Tu formación con los conjuntos de datos del NREL está a punto de comenzar.
                         </p>
             
+                        <!-- How to Win Section -->
                         <div style='background:var(--prose-background-fill); padding:20px; border-radius:12px; text-align:left; margin-bottom:24px;'>
                             <div style='display:flex; align-items:center; gap:8px; margin-bottom:12px;'>
-                                <span style='font-size:1.5rem;'>🔐</span>
-                                <strong style='font-size:1.2rem; color:var(--body-text-color);'>Cómo ganar</strong>
+                                <span style='font-size:1.5rem;'>🎯</span>
+                                <strong style='font-size:1.2rem; color:var(--body-text-color);'>La Prueba de Rendimiento</strong>
                             </div>
                             
                             <p style='margin-bottom:12px;'>
-                                En el mundo real, no conocemos el futuro. Para simular esto, hemos ocultado el 20% de los archivos de casos (datos) en una "caja fuerte".
+                                Para verificar tu sistema, hemos ocultado el 25% de los registros regionales de edificios en una "Cámara Acorazada".
                             </p>
                             
                             <ul style='margin:0; padding-left:24px; color:var(--text-muted); line-height:1.6;'>
                                 <li style='margin-bottom:8px;'>
-                                    Tu sistema de IA aprenderá a partir de los datos de entrada que le proporciones, pero será evaluado con los datos ocultos en la "caja fuerte".
+                                    <b>El objetivo:</b> Diseñar un sistema de IA que identifique los edificios con "Alto Uso de Energía" con la máxima precisión.
                                 </li>
                                 <li>
-                                    <b>Tu Puntuación:</b> se calcula según la precisión de la predicción. Si obtienes un 50%, tu IA básicamente está adivinando (como lanzar una moneda). ¡Tu objetivo es diseñar un sistema que haga predicciones mucho más precisas!
+                                    <b>La puntuación:</b> Estarás en la clasificación según la precisión de tus predicciones. Superar el nivel base desbloqueará nuevas designaciones e "Ingredientes de Datos".
                                 </li>
                             </ul>
                         </div>
             
+                        <!-- Ranks Section -->
                         <div style='text-align:center; border-top:1px solid var(--card-border-subtle); padding-top:20px; margin-bottom:30px;'>
-                            <h3 style='margin:0 0 8px 0; font-size:1.2rem;'>Desbloquea rangos</h3>
-                            <p style='margin-bottom:16px; font-size:0.95rem; color:var(--text-muted);'>
-                                A medida que refines tu modelo y subas en el ranking, ganarás nuevos rangos:
-                            </p>
+                            <h3 style='margin:0 0 8px 0; font-size:1.2rem;'>Rangos de Tecnológico Climático</h3>
                             <div style='display:inline-flex; gap:12px; flex-wrap:wrap; justify-content:center;'>
-                                <span style='padding:6px 12px; background:#f3f4f6; border-radius:20px; font-size:0.9rem; color:#4338ca;'>⭐ En prácticas</span>
-                                <span style='padding:6px 12px; background:#e0e7ff; border-radius:20px; font-size:0.9rem; color:#4338ca;'>⭐⭐ Junior</span>
-                                <span style='padding:6px 12px; background:#fae8ff; border-radius:20px; font-size:0.9rem; color:#86198f;'>⭐⭐⭐ Sénior</span>
+                                <span style='padding:6px 12px; background:#f3f4f6; border-radius:20px; font-size:0.9rem; color:#1a1a1a;'>🌱 Practicante</span>
+                                <span style='padding:6px 12px; background:#e0e7ff; border-radius:20px; font-size:0.9rem; color:#4338ca;'>🏢 Arquitecto Junior</span>
+                                <span style='padding:6px 12px; background:#fae8ff; border-radius:20px; font-size:0.9rem; color:#86198f;'>👑 Arquitecto Jefe</span>
                             </div>
                         </div>
                         
+                        <!-- CTA Section -->
                         <div style='text-align:center; background: color-mix(in srgb, var(--color-accent) 10%, transparent); padding: 20px; border-radius: 12px; border: 2px solid var(--color-accent);'>
-                            <p style='margin:0 0 8px 0; font-size: 1.1rem; color: var(--text-muted);'>Para empezar la competición:</p>
-                            <b style='color:var(--accent-strong); font-size:1.3rem;'>Haz clic en "Comenzar" y después en "Construir y enviar el modelo"</b>
-                            <p style='margin:8px 0 0 0; font-size: 1rem;'>Así, tu primera puntuación aparecerá en la clasificación.</p>
+                            <p style='margin:0 0 8px 0; font-size: 1.1rem; color: var(--text-muted);'>Para comenzar tu primer despliegue:</p>
+                            <b style='color:var(--accent-strong); font-size:1.3rem;'>Haz clic en "Empezar", y luego en "Construye y Envía Modelo"</b>
                         </div>
                     </div>
                 </div>
@@ -3227,18 +3533,14 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "i
             
             with gr.Row():
                 briefing_6_back = gr.Button("◀️ Atrás", size="lg")
-                briefing_6_next = gr.Button("Comenzar la construcción del modelo ▶️", variant="primary", size="lg")
+                briefing_6_next = gr.Button("Empieza a Construir el Modelo ▶️", variant="primary", size="lg")
 
         # --- End Briefing Slideshow ---
 
 
         # Model Building App (Main Interface)
         with gr.Column(visible=False, elem_id="model-step") as model_building_step:
-            gr.Markdown("<h1 style='text-align:center;'>🛠️ Área de construcción de modelos</h1>")
-            
-            # Status panel for initialization progress - HIDDEN
-            init_status_display = gr.HTML(value="", visible=False)
-            
+            gr.Markdown("<h1 style='text-align:center;'>🛠️ Arena de Construcción de Modelos</h1>")
 
             # Session-based authentication state objects
             # Concurrency Note: These are initialized to None/empty and populated
@@ -3265,14 +3567,15 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "i
             feature_set_state = gr.State(DEFAULT_FEATURE_SET)
             data_size_state = gr.State(DEFAULT_DATA_SIZE)
 
-            rank_message_display = gr.Markdown("### Cargando la clasificación...")
+            rank_message_display = gr.Markdown("### Cargando rango...")
             with gr.Row():
                 with gr.Column(scale=1):
 
                     model_type_radio = gr.Radio(
-                        label="1. Estrategia del modelo",
-                        choices=MODEL_RADIO_CHOICES, # Uses the list of tuples [(Cat, En), ...]
-                        value=DEFAULT_MODEL,         # "The Balanced Generalist"
+                        label="1. Estrategia del Modelo",
+                        # Initialize with all possible choices (label, key)
+                        choices=MODEL_RADIO_CHOICES, 
+                        value=DEFAULT_MODEL,
                         interactive=False
                     )
                     model_card_display = gr.Markdown(get_model_card(DEFAULT_MODEL))
@@ -3280,26 +3583,26 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "i
                     gr.Markdown("---") # Separator
 
                     complexity_slider = gr.Slider(
-                        label="2. Complexitat del model (1–10)",
+                        label="2. Complejidad del Modelo (1–10)",
                         minimum=1, maximum=3, step=1, value=2,
-                        info="Valores más altos permiten aprender patrones más complejos, pero si son demasiado altos pueden empeorar los resultados."
+                        info="Valores más altos permiten un aprendizaje de patrones más profundo; los valores muy altos pueden sobreajustar."
                     )
 
                     gr.Markdown("---") # Separator
 
                     feature_set_checkbox = gr.CheckboxGroup(
-                        label="3. Selecciona las variables de datos",
+                        label="3. Selecciona los Ingredientes",
                         choices=FEATURE_SET_ALL_OPTIONS,
                         value=DEFAULT_FEATURE_SET,
                         interactive=False,
-                        info="¡Se desbloquean más variables según tu posición en la clasificación!"
+                        info="¡Se desbloquean más ingredientes a medida que subas de rango!"
                     )
 
                     gr.Markdown("---") # Separator
 
                     data_size_radio = gr.Radio(
-                        label="4. Tamaño de los datos",
-                        choices=[DEFAULT_DATA_SIZE],
+                        label="4. Tamaño de los Datos",
+                        choices=DATA_SIZE_RADIO_CHOICES,
                         value=DEFAULT_DATA_SIZE,
                         interactive=False
                     )
@@ -3309,13 +3612,13 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "i
                     # Attempt tracker display
                     attempts_tracker_display = gr.HTML(
                         value="<div style='text-align:center; padding:8px; margin:8px 0; background:#f0f9ff; border-radius:8px; border:1px solid #bae6fd;'>"
-                        "<p style='margin:0; color:#0369a1; font-weight:600; font-size:1rem;'>📊 Intentos usados: 0/10</p>"
+                        "<p style='margin:0; color:#0369a1; font-weight:600; font-size:1rem;'>📊 Intentos utilizados: 0/10</p>"
                         "</div>",
                         visible=True
                     )
 
                     submit_button = gr.Button(
-                        value="5. 🔬 Construir y enviar el modelo",
+                        value="5. 🔬 Construye y Envía Modelo",
                         variant="primary",
                         size="lg"
                     )
@@ -3324,7 +3627,7 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "i
                     gr.HTML(
                         """
                         <div class='leaderboard-box'>
-                            <h3 style='margin-top:0;'>🏆 Clasificación en directo</h3>
+                            <h3 style='margin-top:0;'>🏆 Clasificación en Vivo</h3>
                             <p style='margin:0;'>Envía un modelo para ver tu posición.</p>
                         </div>
                         """
@@ -3332,23 +3635,23 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "i
 
                     # KPI Card
                     submission_feedback_display = gr.HTML(
-                        "<p style='text-align:center; color:#6b7280; padding:20px 0;'>¡Envía tu primer modelo para recibir una valoración!</p>"
+                        "<p style='text-align:center; color:#6b7280; padding:20px 0;'>¡Envía tu primer modelo para recibir feedback!</p>"
                     )
                     
                     # Inline Login Components (initially hidden)
                     login_username = gr.Textbox(
-                        label="Username",
-                        placeholder="Enter your modelshare.ai username",
+                        label="Nombre de usuario",
+                        placeholder="Introduce tu usuario de modelshare.ai",
                         visible=False
                     )
                     login_password = gr.Textbox(
-                        label="Password",
+                        label="Contraseña",
                         type="password",
-                        placeholder="Enter your password",
+                        placeholder="Introduce tu contraseña",
                         visible=False
                     )
                     login_submit = gr.Button(
-                        "Sign In & Submit",
+                        "Iniciar sesión y Enviar",
                         variant="primary",
                         visible=False
                     )
@@ -3358,30 +3661,30 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "i
                     )
 
                     with gr.Tabs():
-                        with gr.TabItem("Clasificación por equipos"):
+                        with gr.TabItem("Clasificación por Equipos"):
                             team_leaderboard_display = gr.HTML(
                                 "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Envía un modelo para ver la clasificación por equipos.</p>"
                             )
-                        with gr.TabItem("Clasificación individual"):
+                        with gr.TabItem("Clasificación Individual"):
                             individual_leaderboard_display = gr.HTML(
                                 "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Envía un modelo para ver la clasificación individual.</p>"
                             )
 
             # REMOVED: Ethical Reminder HTML Block
             with gr.Row():
-                step_2_back = gr.Button("◀️ Volver a las instrucciones", size="lg")
-                step_2_next = gr.Button("Finalizar y reflexionar ▶️", variant="secondary", size="lg")
+                step_2_back = gr.Button("◀️ Volver a las Instrucciones", size="lg")
+                step_2_next = gr.Button("Finalizar y Reflexionar ▶️", variant="secondary", size="lg")
 
         # Conclusion Step
         with gr.Column(visible=False, elem_id="conclusion-step") as conclusion_step:
-            gr.Markdown("<h1 style='text-align:center;'>✅ Sección completada</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>✅ Sección Completada</h1>")
             final_score_display = gr.HTML(value="<p>Preparando el resumen final...</p>")
-            step_3_back = gr.Button("◀️ Volver al experimento")
+            step_3_back = gr.Button("◀️ Volver al Experimento")
 
         # --- Navigation Logic ---
         all_steps_nav = [
             briefing_slide_1, briefing_slide_2, briefing_slide_3,
-            briefing_slide_4, briefing_slide_5, briefing_slide_6, 
+            briefing_slide_4, briefing_slide_5,  briefing_slide_6, 
             model_building_step, conclusion_step, loading_screen
         ]
 
@@ -3412,6 +3715,7 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "i
             return [updates[s] if s in updates else gr.update() for s in all_steps_nav] + [html]
 
         # Helper function to generate navigation JS with loading overlay
+        # CHANGE 1: Added notify_parent parameter defaulting to False
         def nav_js(target_id: str, message: str, min_show_ms: int = 1200, notify_parent: bool = False) -> str:
             """
             Generate JavaScript for enhanced slide navigation with loading overlay.
@@ -3494,16 +3798,12 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "i
             """
 
 
-        # --- Wire up slide buttons with enhanced navigation ---
-
-        # Slide 1 -> 2
+        # Wire up slide buttons with enhanced navigation
         briefing_1_next.click(
             fn=create_nav(briefing_slide_1, briefing_slide_2),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-2", "Cargando la misión...")
+            js=nav_js("slide-2", "Cargando el resumen de la misión...")
         )
-
-        # Slide 2 (Mission) Navigation
         briefing_2_back.click(
             fn=create_nav(briefing_slide_2, briefing_slide_1),
             inputs=None, outputs=all_steps_nav,
@@ -3512,56 +3812,47 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "i
         briefing_2_next.click(
             fn=create_nav(briefing_slide_2, briefing_slide_3),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-3", "Explorant el concepte del sistema...")
+            js=nav_js("slide-3", "Explorando el concepto del modelo...")
         )
-
-        # Slide 3 (Concepts) Navigation
         briefing_3_back.click(
             fn=create_nav(briefing_slide_3, briefing_slide_2),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-2", "Revisant la missió...")
+            js=nav_js("slide-2", "Volviendo un paso atrás...")
         )
         briefing_3_next.click(
             fn=create_nav(briefing_slide_3, briefing_slide_4),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-4", "Entendiendo el ciclo de trabajo...")
+            js=nav_js("slide-4", "Entendiendo el bucle del experimento...")
         )
-
-        # Slide 4 (The Loop) Navigation
         briefing_4_back.click(
             fn=create_nav(briefing_slide_4, briefing_slide_3),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-3", "Volviendo a los conceptos...")
+            js=nav_js("slide-3", "Revisando conceptos anteriores...")
         )
         briefing_4_next.click(
             fn=create_nav(briefing_slide_4, briefing_slide_5),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-5", "Cargando los controles del sistema...")
+            js=nav_js("slide-5", "Configurando el cerebro...")
         )
-
-        # Slide 5 (Controls) Navigation
         briefing_5_back.click(
             fn=create_nav(briefing_slide_5, briefing_slide_4),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-4", "Revisant el flux de treball...")
+            js=nav_js("slide-4", "Revisión del sistema...")
         )
         briefing_5_next.click(
-            fn=create_nav(briefing_slide_5, briefing_slide_6),
+            fn=create_nav(briefing_slide_5,briefing_slide_6),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-6", "Analitzant els objectius de puntuació...")
+            js=nav_js("slide-6", "Acceso final...")
         )
-
-        # Slide 6 (Score/Final) Navigation
         briefing_6_back.click(
             fn=create_nav(briefing_slide_6, briefing_slide_5),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("slide-5", "Volviendo a los controles...")
+            js=nav_js("slide-5", "Configurando el cerebro...")
         )
-        # Final Step: Slide 6 -> Model Building Interface
         briefing_6_next.click(
             fn=create_nav(briefing_slide_6, model_building_step),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("model-step", "Inicializando el entorno de construcción...")
+            js=nav_js("model-step", "Entrando a la arena de modelos...")
         )
 
         # App -> Back to Instructions
@@ -3582,14 +3873,14 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "i
                 feature_set_state
             ],
             outputs=all_steps_nav + [final_score_display],
-            js=nav_js("conclusion-step", "Generando el resumen de rendiment...")
+            js=nav_js("conclusion-step", "Generando el resumen de rendimiento...")
         )
 
         # Conclusion -> App
         step_3_back.click(
             fn=create_nav(conclusion_step, model_building_step),
             inputs=None, outputs=all_steps_nav,
-            js=nav_js("model-step", "Volviendo al área de construcción del modelo...")
+            js=nav_js("model-step", "Volviendo al espacio de trabajo del experimento...")
         )
 
         # Events
@@ -3680,8 +3971,8 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "i
             ],
             outputs=all_outputs,
             show_progress="full",
-            js=nav_js("model-step", "Ejecutando el experimento...", 500, notify_parent=False)
-            
+            js=nav_js("model-step", "Ejecutando el experimento...", 500, notify_parent=False),
+            api_name="predict"
             ).then(
                 # CHANGE 2: Send the notification ONLY after Python is done (20s later)
                 fn=None,
@@ -3689,6 +3980,7 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "i
                 outputs=None,
                 js="() => { try { window.parent.postMessage('model-updated', '*'); console.log('Submission complete. Notifying parent.'); } catch(e) { console.warn(e); } }"
             )
+        
 
         # Handle session-based authentication on page load
         def handle_load_with_session_auth(request: "gr.Request"):
@@ -3763,9 +4055,11 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue: str = "i
 
     return demo
 
+
 # -------------------------------------------------------------------------
 # 4. Convenience Launcher
 # -------------------------------------------------------------------------
+
 
 def launch_model_building_game_es_sustainability_app(height: int = 1200, share: bool = False, debug: bool = False) -> None:
     """
@@ -3782,4 +4076,3 @@ def launch_model_building_game_es_sustainability_app(height: int = 1200, share: 
     demo = create_model_building_game_es_sustainability_app()
     port = int(os.environ.get("PORT", 8080))
     demo.launch(share=share, inline=True, debug=debug, height=height, server_port=port)
-

@@ -1,5 +1,5 @@
 """
-Model Building Game - Gradio application for the Justice & Equity Challenge.
+Model Building Game - Gradio application for the Climate Sustainability Challenge.
 
 Session-based authentication with leaderboard caching and progressive rank unlocking.
 
@@ -26,6 +26,7 @@ import time
 import random
 import requests
 import contextlib
+import hashlib
 from io import StringIO
 import threading
 import functools
@@ -70,9 +71,9 @@ import sqlite3
 CACHE_DB_FILE_BASE = "prediction_cache.sqlite"
 CACHE_DB_FILE_FULL = "prediction_cache_full.sqlite"
 
-def _get_cached_prediction_from(db_file: str, key: str) -> Optional[str]:
+def _get_cached_prediction_from(db_file: str, key: str):
     """
-    Lightning-fast lookup from specified SQLite database.
+    Lightning-fast lookup from specified SQLite database with MD5 hashing.
     THREAD-SAFE: Opens a new connection for every lookup.
     
     Args:
@@ -80,20 +81,47 @@ def _get_cached_prediction_from(db_file: str, key: str) -> Optional[str]:
         key: Cache key to lookup
     
     Returns:
-        Cached prediction string or None if not found
+        Numpy array of predictions (0/1) or None if not found
     """
     if not os.path.exists(db_file):
         return None
 
     try:
+        # Hash the key to a fixed-length string (32-char hex)
+        hashed_key = hashlib.md5(key.encode('utf-8')).hexdigest()
+        
+        # Use URI mode for strict Read-Only if possible (lowest overhead)
+        conn_str = f"file:{db_file}?mode=ro"
+        
         # Use a context manager ('with') to ensure the connection 
         # is ALWAYS closed, releasing file locks immediately.
         # timeout=10 ensures we don't wait forever if the file is busy.
-        with sqlite3.connect(db_file, timeout=10.0) as conn:
+        with sqlite3.connect(conn_str, uri=True, timeout=10.0) as conn:
+            # OPTIMIZATION: Tell SQLite to use a tiny internal cache (2MB)
+            # and rely on the host OS for file paging.
+            conn.execute("PRAGMA cache_size = -2000")
+
             cursor = conn.cursor()
-            cursor.execute("SELECT value FROM cache WHERE key=?", (key,))
+            cursor.execute("SELECT value FROM cache WHERE key=?", (hashed_key,))
             result = cursor.fetchone()
-            return result[0] if result else None
+            
+            if result:
+                raw_value = result[0]
+                
+                # OPTIMIZATION: Check if value is binary (packed bits) or string
+                if isinstance(raw_value, bytes):
+                    # Unpack 125 bytes back into 1000 bits (0/1)
+                    # This reduces DB size by 8x
+                    unpacked = np.unpackbits(np.frombuffer(raw_value, dtype=np.uint8))
+                    # Ensure we only return 1000 if length is slightly off due to byte padding
+                    if len(unpacked) > 1000:
+                        unpacked = unpacked[:1000]
+                    return unpacked
+                else:
+                    # Legacy string format (converted from '0011...')
+                    return np.array([int(c) for c in raw_value], dtype=np.uint8)
+            else:
+                return None
             
     except sqlite3.OperationalError as e:
         # Handle locking errors gracefully
@@ -104,7 +132,7 @@ def _get_cached_prediction_from(db_file: str, key: str) -> Optional[str]:
         print(f"⚠️ DB READ ERROR ({db_file}): {e}", flush=True)
         return None
 
-def get_cached_prediction(key: str, data_size_str: str) -> Optional[str]:
+def get_cached_prediction(key: str, data_size_str: str):
     """
     Lookup prediction from appropriate database based on data size.
     Routes Full (100%) to prediction_cache_full.sqlite, others to prediction_cache.sqlite.
@@ -114,7 +142,7 @@ def get_cached_prediction(key: str, data_size_str: str) -> Optional[str]:
         data_size_str: Data size label (e.g., "Small (20%)", "Full (100%)")
     
     Returns:
-        Cached prediction string or None if not found
+        Numpy array of predictions or None if not found
     """
     db_file = CACHE_DB_FILE_FULL if data_size_str == "Full (100%)" else CACHE_DB_FILE_BASE
     return _get_cached_prediction_from(db_file, key)
@@ -125,36 +153,48 @@ def get_cached_prediction(key: str, data_size_str: str) -> Optional[str]:
 _Y_TEST = None
 _Y_TEST_LOCK = threading.Lock()
 
-def get_test_labels(csv_path: str = "compas.csv") -> pd.Series:
+def get_test_labels(csv_path: str = "datasets/recreated_wids_v2_ny_10k.csv") -> pd.Series:
     """
     Load test labels from CSV file for local accuracy computation.
-    Matches the exact sampling and splitting logic from precompute_cache.py.
-    
-    Args:
-        csv_path: Path to compas.csv (downloaded at build time)
-    
-    Returns:
-        pd.Series: Test labels (y_test)
+    Matches the exact sampling and splitting logic for the sustainability dataset.
     """
     # Load data
     df = pd.read_csv(csv_path)
     
-    # Calculate length_of_stay
-    try:
-        df['c_jail_in'] = pd.to_datetime(df['c_jail_in'])
-        df['c_jail_out'] = pd.to_datetime(df['c_jail_out'])
-        df['length_of_stay'] = (df['c_jail_out'] - df['c_jail_in']).dt.total_seconds() / (24 * 60 * 60)
-    except Exception:
-        df['length_of_stay'] = np.nan
+    # Preprocessing (matches precompute_wids_cache.py)
+    
+    # 1. Facility Type Cleaning
+    if 'facility_type' in df.columns:
+        pass # Already handled by raw data or not needed if we only need target? 
+        # Actually precompute script cleans facility_type but we only need Y here.
+        # However, we must ensure rows are dropped/kept exactly as in precompute.
+        # The recreated dataset is clean, so minimal dropping expected.
+    
+    # 2. Year Built Cleaning (replace 0 or null with median)
+    if 'year_built' in df.columns:
+        df['year_built'] = df['year_built'].replace(0, np.nan)
+        median_year = df['year_built'].median()
+        df['year_built'] = df['year_built'].fillna(median_year)
+    
+    # 3. Energy Star Rating (impute with median)
+    if 'energy_star_rating' in df.columns:
+        median_rating = df['energy_star_rating'].median()
+        df['energy_star_rating'] = df['energy_star_rating'].fillna(median_rating)
+        
+    # 4. Direction Max Wind Speed / Days with Fog (impute with median)
+    for col in ['direction_max_wind_speed', 'days_with_fog']:
+        if col in df.columns:
+            median_val = df[col].median()
+            df[col] = df[col].fillna(median_val)
     
     # Sample MAX_ROWS
     if df.shape[0] > 4000:  # MAX_ROWS = 4000
         df = df.sample(n=4000, random_state=42)
     
-    # Extract features and target (matching precompute_cache.py)
-    all_numeric_cols = ["juv_fel_count", "juv_misd_count", "juv_other_count", 
-                        "days_b_screening_arrest", "age", "length_of_stay", "priors_count"]
-    all_categorical_cols = ["race", "sex", "c_charge_degree", "c_charge_desc"]
+    all_numeric_cols = ["floor_area", "year_built", "ELEVATION", "heating_degree_days", 
+                        "cooling_degree_days", "january_min_temp", "july_max_temp", 
+                        "avg_temp", "april_avg_temp", "october_avg_temp"]
+    all_categorical_cols = ["facility_type", "building_class", "State_Factor", "Year_Factor"]
     feature_columns = all_numeric_cols + all_categorical_cols
     
     # Ensure all columns exist
@@ -162,18 +202,10 @@ def get_test_labels(csv_path: str = "compas.csv") -> pd.Series:
         if col not in df.columns:
             df[col] = np.nan
     
-    # Process c_charge_desc
-    if "c_charge_desc" in df.columns:
-        top_charges = df["c_charge_desc"].value_counts().head(50).index
-        df["c_charge_desc"] = df["c_charge_desc"].apply(
-            lambda x: x if pd.notna(x) and x in top_charges else "OTHER"
-        )
+    y = df["high_energy_usage"].copy()
     
-    X = df[feature_columns].copy()
-    y = df["two_year_recid"].copy()
-    
-    # Split (matching precompute_cache.py: test_size=0.25, random_state=42, stratify=y)
-    _, _, _, y_test = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y)
+    # Split (matching test_size=0.25, random_state=42, stratify=y)
+    _, _, _, y_test = train_test_split(df[feature_columns], y, test_size=0.25, random_state=42, stratify=y)
     
     return y_test
 
@@ -323,7 +355,7 @@ def _fetch_leaderboard(token: Optional[str]) -> Optional[pd.DataFrame]:
     _log(f"Fetching fresh leaderboard ({cache_key})...")
     df = None
     try:
-        playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+        playground_id = "https://bhtrtkrbf4.execute-api.us-east-1.amazonaws.com/prod/m"
         playground_instance = Competition(playground_id)
         
         def _fetch():
@@ -531,7 +563,7 @@ def check_attempt_limit(submission_count: int, limit: int = None) -> Tuple[bool,
 # 1. Configuration
 # -------------------------------------------------------------------------
 
-MY_PLAYGROUND_ID = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+MY_PLAYGROUND_ID = "https://bhtrtkrbf4.execute-api.us-east-1.amazonaws.com/prod/m"
 
 # --- Model Configuration ---
 MAJORITY_MODEL_NAME = "The Majority Vote"
@@ -563,42 +595,52 @@ def build_cache_key(model_name: str, complexity: int, feature_set: list, data_si
     feature_key = ",".join(sorted(feature_set))
     return f"{model_name}|{complexity}|{data_size_str}|{feature_key}"
 
-def _compute_majority_string(pred_strings: list, tie_break: str = "random", rng_seed: int = 42) -> str:
+def _compute_majority_vote(pred_arrays: list, tie_break: str = "random", rng_seed: int = 42) -> np.ndarray:
     """
-    Compute majority vote over four base model prediction strings (matching generator logic).
+    Compute majority vote over four base model prediction arrays.
+    Vectorized implementation using numpy.
     
     Args:
-        pred_strings: List of 4 prediction strings from base models
+        pred_arrays: List of 4 prediction arrays (numpy) from base models
         tie_break: Tie-breaking strategy ("random" or "zero")
         rng_seed: Random seed for deterministic tie-breaking (default: 42)
     
     Returns:
-        Majority vote prediction string
-    
-    Raises:
-        ValueError: If pred_strings doesn't contain exactly 4 strings or lengths mismatch
+        Majority vote prediction array (numpy)
     """
-    if len(pred_strings) != 4:
-        raise ValueError(f"Expected 4 base model strings, got {len(pred_strings)}")
-    lengths = {len(s) for s in pred_strings}
-    if len(lengths) != 1:
-        raise ValueError("Prediction strings have mismatched lengths.")
-    n = lengths.pop()
-    rng = np.random.default_rng(rng_seed)
-    out = []
-    for i in range(n):
-        votes = [int(s[i]) for s in pred_strings]
-        zeros = votes.count(0)
-        ones = votes.count(1)
-        if zeros > ones:
-            out.append("0")
-        elif ones > zeros:
-            out.append("1")
+    if len(pred_arrays) != 4:
+        raise ValueError(f"Expected 4 base model arrays, got {len(pred_arrays)}")
+        
+    # Stack predictions: shape (4, N)
+    stack = np.vstack(pred_arrays)
+    
+    # Sum votes (0 or 1) along axis 0
+    vote_sum = np.sum(stack, axis=0)
+    
+    # Threshold is 2 for 4 models.
+    # >2 => 3 or 4 votes => 1
+    # <2 => 0 or 1 votes => 0
+    # ==2 => Tie
+    
+    # Initialize output array
+    majority = np.zeros(vote_sum.shape, dtype=np.uint8)
+    
+    # Clear wins
+    majority[vote_sum > 2] = 1
+    majority[vote_sum < 2] = 0
+    
+    # Ties
+    ties = (vote_sum == 2)
+    if np.any(ties):
+        if tie_break == "random":
+            rng = np.random.default_rng(rng_seed)
+            majority[ties] = rng.choice([0, 1], size=np.count_nonzero(ties))
         else:
-            out.append(str(rng.choice([0, 1])) if tie_break == "random" else "0")
-    return "".join(out)
+            majority[ties] = 0 # Default to class 0
+            
+    return majority
 
-def _fetch_base_pred_strings_for_majority(complexity: int, feature_set: list, data_size_str: str) -> Optional[list]:
+def _fetch_base_preds_for_majority(complexity: int, feature_set: list, data_size_str: str) -> Optional[list]:
     """
     Fetch the four base model predictions from cache for given settings.
     Implements cross-DB fallback for Full (100%) data size.
@@ -609,30 +651,30 @@ def _fetch_base_pred_strings_for_majority(complexity: int, feature_set: list, da
         data_size_str: Data size label
     
     Returns:
-        List of 4 prediction strings if all found, None if any missing
+        List of 4 prediction arrays if all found, None if any missing
     """
     # First try: fetch from the primary database for this data size
-    pred_strings = []
+    pred_arrays = []
     for m in BASE_MODEL_NAMES:
         k = build_cache_key(m, complexity, feature_set, data_size_str)
         s = get_cached_prediction(k, data_size_str)
         if s is None:
             break
-        pred_strings.append(s)
+        pred_arrays.append(s)
     
-    if pred_strings and len(pred_strings) == 4:
-        return pred_strings
+    if pred_arrays and len(pred_arrays) == 4:
+        return pred_arrays
     
     # Fallback for Full (100%): try base DB if full-models DB is missing any base model
     if data_size_str == "Full (100%)":
-        pred_strings = []
+        pred_arrays = []
         for m in BASE_MODEL_NAMES:
             k = build_cache_key(m, complexity, feature_set, data_size_str)
             s = _get_cached_prediction_from(CACHE_DB_FILE_BASE, k)
             if s is None:
                 return None
-            pred_strings.append(s)
-        return pred_strings
+            pred_arrays.append(s)
+        return pred_arrays
     
     return None
 
@@ -662,26 +704,26 @@ MODEL_TYPES = {
         "model_builder": lambda: LogisticRegression(
             max_iter=500, random_state=42, class_weight="balanced"
         ),
-        "card": "A fast, reliable, well-rounded model. Good starting point; less prone to overfitting."
+        "card": "### ⚖️ The Balanced Generalist\nA reliable, fast **Logistic Regression** model. Works well as a starting point to identify general trends in energy consumption without over-complicating predictions."
     },
     "The Rule-Maker": {
         "model_builder": lambda: DecisionTreeClassifier(
             random_state=42, class_weight="balanced"
         ),
-        "card": "Learns simple 'if/then' rules. Easy to interpret, but can miss subtle patterns."
+        "card": "### 📐 The Rule-Maker\nA **Decision Tree** that creates logical rules (e.g., 'if the building is from before 1950, then...'). Very transparent, but can be too rigid if the data changes significantly."
     },
     "The 'Nearest Neighbor'": {
         "model_builder": lambda: KNeighborsClassifier(),
-        "card": "Looks at the closest past examples. 'You look like these others; I'll predict like they behave.'"
+        "card": "### 🫂 The 'Nearest Neighbor'\nThis model (**KNN**) looks for similar buildings in the past to predict the future. Excellent for capturing local behaviors, though it requires buildings to be truly comparable."
     },
     "The Deep Pattern-Finder": {
         "model_builder": lambda: RandomForestClassifier(
             random_state=42, class_weight="balanced"
         ),
-        "card": "An ensemble of many decision trees. Powerful, can capture deep patterns; watch complexity."
+        "card": "### 🌲 The Deep Pattern-Finder\nA **Random Forest** that combines hundreds of trees to find subtle patterns. Most powerful for detecting complex energy inefficiencies, but watch out for overfitting."
     },
     "The Majority Vote": {
-        "card": "Ensemble of the four base models computed via majority vote. No training required.",
+        "card": "### 🗳️ The Majority Vote\nAn **Ensemble** model that combines the predictions of the four base models and selects the most frequent one. Often more robust than any single model.",
         "cache_only": True
     }
 }
@@ -689,38 +731,42 @@ MODEL_TYPES = {
 DEFAULT_MODEL = "The Balanced Generalist"
 
 TEAM_NAMES = [
-    "The Moral Champions", "The Justice League", "The Data Detectives",
-    "The Ethical Explorers", "The Fairness Finders", "The Accuracy Avengers"
+    "The Climate Guardians", "United Eco-Architects", "The Energy Detectives",
+    "The Sustainability League", "Green Future Engineers", "Zero Carbon Avengers"
 ]
 CURRENT_TEAM_NAME = random.choice(TEAM_NAMES)
 
 
-# --- Feature groups for scaffolding (Weak -> Medium -> Strong) ---
+# --- Feature groups for scaffolding ---
 FEATURE_SET_ALL_OPTIONS = [
-    ("Juvenile Felony Count", "juv_fel_count"),
-    ("Juvenile Misdemeanor Count", "juv_misd_count"),
-    ("Other Juvenile Count", "juv_other_count"),
-    ("Race", "race"),
-    ("Sex", "sex"),
-    ("Charge Severity (M/F)", "c_charge_degree"),
-    ("Charge Description", "c_charge_desc"),
-    ("Days Before Arrest", "days_b_screening_arrest"),
-    ("Age", "age"),
-    ("Length of Stay", "length_of_stay"),
-    ("Prior Crimes Count", "priors_count"),
+    ("Surface Area (sq ft)", "floor_area"),
+    ("Year Built", "year_built"),
+    ("Building Class", "building_class"),
+    ("Facility Type", "facility_type"),
+    ("Geographic Zone (State Factor)", "State_Factor"),
+    ("Record Year (Year Factor)", "Year_Factor"),
+    ("Elevation", "ELEVATION"),
+    ("Heating Degree Days", "heating_degree_days"),
+    ("Cooling Degree Days", "cooling_degree_days"),
+    ("Annual Avg Temp", "avg_temp"),
+    ("January Min Temp", "january_min_temp"),
+    ("July Max Temp", "july_max_temp"),
+    ("April Avg Temp", "april_avg_temp"),
+    ("October Avg Temp", "october_avg_temp"),
 ]
-FEATURE_SET_GROUP_1_VALS = [
-    "juv_fel_count", "juv_misd_count", "juv_other_count", "race", "sex",
-    "c_charge_degree", "days_b_screening_arrest"
-]
-FEATURE_SET_GROUP_2_VALS = ["c_charge_desc", "age"]
-FEATURE_SET_GROUP_3_VALS = ["length_of_stay", "priors_count"]
+
+# Feature Groups for Progressive Unlocking
+FEATURE_SET_GROUP_1_VALS = ["floor_area", "year_built", "building_class", "facility_type"]
+FEATURE_SET_GROUP_2_VALS = ["State_Factor", "Year_Factor", "ELEVATION"]
+FEATURE_SET_GROUP_3_VALS = ["heating_degree_days", "cooling_degree_days", "avg_temp"]
+
 ALL_NUMERIC_COLS = [
-    "juv_fel_count", "juv_misd_count", "juv_other_count",
-    "days_b_screening_arrest", "age", "length_of_stay", "priors_count"
+    "floor_area", "year_built", "ELEVATION", "heating_degree_days", 
+    "cooling_degree_days", "january_min_temp", "july_max_temp", 
+    "avg_temp", "april_avg_temp", "october_avg_temp"
 ]
 ALL_CATEGORICAL_COLS = [
-    "race", "sex", "c_charge_degree", "c_charge_desc"
+    "facility_type", "building_class", "State_Factor", "Year_Factor"
 ]
 DEFAULT_FEATURE_SET = FEATURE_SET_GROUP_1_VALS
 
@@ -1007,10 +1053,10 @@ def _normalize_team_name(name: str) -> str:
         str: Normalized team name, or empty string if input is None/empty
     
     Examples:
-        >>> _normalize_team_name("  The Ethical Explorers  ")
-        'The Ethical Explorers'
-        >>> _normalize_team_name("The  Moral   Champions")
-        'The Moral Champions'
+        >>> _normalize_team_name("  The Energy Detectives  ")
+        'The Energy Detectives'
+        >>> _normalize_team_name("The Climate  Guardians  ")
+        'The Climate Guardians'
         >>> _normalize_team_name(None)
         ''
     """
@@ -1341,7 +1387,7 @@ def compute_rank_settings(
     data_size_value = current_data_size if current_data_size in all_data_sizes else DEFAULT_DATA_SIZE
 
     return {
-        "rank_message": "# 👑 Rank: Lead Engineer\n<p style='font-size:24px; line-height:1.4;'>All tools unlocked — optimize freely!</p>",
+        "rank_message": "# 👑 Rank: Chief Climate Architect\n<p style='font-size:24px; line-height:1.4;'>All tools unlocked — optimize for the planet!</p>",
         "model_choices": all_models,
         "model_value": model_value,
         "model_interactive": True,
@@ -1763,16 +1809,16 @@ def run_experiment(
         cached_predictions = get_cached_prediction(cache_key, data_size_str)
         
         # Fallback: derive majority vote if selected and missing
-        if model_name_key == MAJORITY_MODEL_NAME and not cached_predictions:
+        if model_name_key == MAJORITY_MODEL_NAME and cached_predictions is None:
             _log(f"Attempting majority-vote fallback for key: {cache_key}")
-            base_strings = _fetch_base_pred_strings_for_majority(complexity_level, feature_set, data_size_str)
-            if base_strings:
+            base_arrays = _fetch_base_preds_for_majority(complexity_level, feature_set, data_size_str)
+            if base_arrays:
                 _log("All base predictions found, computing majority vote")
-                cached_predictions = _compute_majority_string(base_strings, tie_break="random", rng_seed=42)
+                cached_predictions = _compute_majority_vote(base_arrays, tie_break="random", rng_seed=42)
             else:
                 _log("One or more base predictions missing, cannot compute majority vote")
         
-        if not cached_predictions:
+        if cached_predictions is None:
             # Cache miss - show user-friendly error
             _log(f"❌ CACHE MISS: {cache_key}")
             error_html = f"""
@@ -1795,9 +1841,9 @@ def run_experiment(
             }
             return
         
-        # Convert cached prediction string to numpy array
+        # Predictions are already a numpy array (or convertible)
         _log(f"⚡ CACHE HIT: {cache_key}")
-        predictions = np.array([int(c) for c in cached_predictions], dtype=np.uint8)
+        predictions = cached_predictions
         
         # Compute local test accuracy
         from sklearn.metrics import accuracy_score
@@ -1877,7 +1923,7 @@ def run_experiment(
                 preprocessor=None,  # No preprocessor needed
                 prediction_submission=predictions.tolist(),  # Convert numpy array to list
                 input_dict={'description': description, 'tags': tags},
-                custom_metadata={'Team': team_name, 'Moral_Compass': 0}, 
+                custom_metadata={'Team': team_name, 'Energy_Efficiency': 0}, 
                 token=token,
                 return_metrics=["accuracy"] 
             )
@@ -2158,7 +2204,7 @@ def on_initial_load(username, token=None, team_name=""):
 def build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set):
     """
     Build the FINAL certification slide.
-    Reflects the end of the course, the Barcelona competition, and the certification.
+    Reflects the end of the course and the Sustainable AI Engineering certification.
     """
     # Calculate improvement if valid
     improvement = (best_score - first_score) if (first_score is not None and submissions > 1) else 0.0
@@ -2174,13 +2220,13 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     <div class="final-conclusion-root">
       
       <h1 class="final-conclusion-title">🎓 Certification Earned</h1>
-      <h2 style="margin-top:0; color:var(--text-muted);">Ethics at Play: Justice and Equity</h2>
+      <h2 style="margin-top:0; color:var(--text-muted);">Ethics at Play: Sustainable AI Engineering</h2>
 
       <div class="final-conclusion-card">
         
         <h3 class="final-conclusion-subtitle">🏆 The Final Challenge Results</h3>
         <p style="text-align:left; margin-bottom: 15px;">
-            Your final AI system has been entered into the registry for the <b>EdTech Congress Barcelona 2026</b>.
+            Your final AI system for identifying energy-inefficient buildings has been submitted. This model helps prioritize climate rehabilitation efforts.
         </p>
 
         <ul class="final-conclusion-list">
@@ -2199,25 +2245,25 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
           <h2>The Journey Continues</h2>
           
           <div style="text-align: left; margin-top: 15px;">
-              <p>Congratulations! You have completed the <b>Ethics at Play Certification in Justice and Equity</b> and seen how AI can affect real-world decisions.</p>
+              <p>Congratulations! You have completed the <b>Ethics at Play Certification in Sustainable AI</b> and seen how machine learning can address global climate challenges.</p>
               
               <p>Through this challenge, you have learned to:</p>
               <ul style="margin-bottom: 15px;">
-                  <li>Check data for bias</li>
-                  <li>Understand the impact of AI decisions</li>
-                  <li>Build AI systems that are fair, not just accurate</li>
-                  <li>Explain the balance between efficiency and equity</li>
+                  <li>Identify energy consumption patterns in large datasets</li>
+                  <li>Optimize models for real-world environmental impact</li>
+                  <li>Balance predictive power with computational complexity (Green AI)</li>
+                  <li>Understand the role of data-driven decisions in urban sustainability</li>
               </ul>
 
               <div class="final-conclusion-ethics">
                 <p style="margin:0;">
-                    <b>Final Thought:</b> As you move forward, remember that ethics is not a one-time task. 
-                    It is something you must consider at every step. You've shown how to build AI that doesn't just work, but works for everyone.
+                    <b>Final Thought:</b> AI is a powerful tool for the planet, but only if built with responsibility. 
+                    You've shown how to create systems that don't just solve problems, but contribute to a more sustainable future.
                 </p>
               </div>
 
               <p style="text-align:center; margin-top: 25px; font-weight:bold; font-size:1.1rem;">
-                Thank you for playing, and good luck with your future challenges.
+                Thank you for playing, and let's keep engineering a greener world.
               </p>
           </div>
         </div>
@@ -3256,24 +3302,24 @@ def create_model_building_game_en_final_sustainability_app(theme_primary_hue: st
                         
                         <div class="final-intro-wrapper">
                             <p class="final-intro-text">
-                                You’ve explored the ethics. You’ve identified and fixed bias.
+                                You’ve explored the data. You’ve identified energy patterns.
                                 <br>
-                                Now it’s time to put everything together.
+                                Now it’s time to build your most optimized model.
                             </p>
                         </div>
             
                         <div class="final-mission-card">
-                            <h3 class="final-mission-title">🛠️ The Ethical AI Competition</h3>
+                            <h3 class="final-mission-title">🛠️ The Sustainable AI Challenge</h3>
                             <div class="final-mission-body">
-                                <p>Your final mission is to compete again against your peers by building the <strong>most accurate AI system within ethical standards</strong>. With bias addressed, accuracy is back in focus.</p>
+                                <p>Your final mission is to compete again against your peers by building the <strong>most accurate AI system to identify inefficient buildings</strong>. With the climate at stake, every bit of precision counts.</p>
                                 
-                                <p>Use what you’ve learned to climb the leaderboard responsibly—because performance matters, but so do the consequences of your choices.</p>
+                                <p>Use what you’ve learned about Green AI and feature engineering to climb the leaderboard. Help us prioritize where rehabilitation is needed most!</p>
                             </div>
                         </div>
             
                         <div class="final-cta-wrapper">
                             <p class="final-cta-head">
-                                Ready to begin?
+                                Ready to optimize?
                             </p>
                             <p class="final-cta-sub">
                                 👇 Click <b>“Enter the Arena”</b> to start.

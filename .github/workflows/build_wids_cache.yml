@@ -1,4 +1,4 @@
-name: Parallel WiDS Prediction Cache Builder
+name: Build WiDS Prediction Cache
 
 on:
   workflow_dispatch:
@@ -115,6 +115,6 @@ jobs:
       - name: Upload Final Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: wids-final-prediction-cache
+          name: wids-prediction-cache
           path: wids_prediction_cache.json.gz
           retention-days: 90
