@@ -322,7 +322,7 @@ def _fetch_leaderboard(token: Optional[str]) -> Optional[pd.DataFrame]:
     _log(f"Fetching fresh leaderboard ({cache_key})...")
     df = None
     try:
-        playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+        playground_id = "https://bhtrtkrbf4.execute-api.us-east-1.amazonaws.com/prod/m"
         playground_instance = Competition(playground_id)
         
         def _fetch():
@@ -537,7 +537,7 @@ def check_attempt_limit(submission_count: int, limit: int = None) -> Tuple[bool,
 # 1. Configuration
 # -------------------------------------------------------------------------
 
-MY_PLAYGROUND_ID = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+MY_PLAYGROUND_ID = "https://bhtrtkrbf4.execute-api.us-east-1.amazonaws.com/prod/m"
 
 # --- Submission Limit Configuration ---
 # Maximum number of successful leaderboard submissions per user per session.

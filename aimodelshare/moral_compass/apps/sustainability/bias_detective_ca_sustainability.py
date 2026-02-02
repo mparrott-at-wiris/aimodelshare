@@ -6,7 +6,7 @@ from typing import Tuple, Optional, List
 
 # --- 1. CONFIGURATION ---
 DEFAULT_API_URL = "https://b22q73wp50.execute-api.us-east-1.amazonaws.com/dev"
-ORIGINAL_PLAYGROUND_URL = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+ORIGINAL_PLAYGROUND_URL = "https://bhtrtkrbf4.execute-api.us-east-1.amazonaws.com/prod/m"
 TABLE_ID = "sustainabilitymc"
 FALLBACK_TABLE_ID = "sustainabilitymcfallback"
 TOTAL_COURSE_TASKS = 20 # Score calculated against full course

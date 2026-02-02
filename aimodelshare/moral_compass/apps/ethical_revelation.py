@@ -344,7 +344,7 @@ def _fetch_leaderboard(token: str) -> Optional[pd.DataFrame]:
             return _leaderboard_cache["data"]
 
     try:
-        playground_id = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
+        playground_id = "https://bhtrtkrbf4.execute-api.us-east-1.amazonaws.com/prod/m"
         playground = Competition(playground_id)
         df = playground.get_leaderboard(token=token)
         if df is not None and not df.empty and MAX_LEADERBOARD_ENTRIES:
