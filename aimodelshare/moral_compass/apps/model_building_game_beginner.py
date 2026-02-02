@@ -38,7 +38,7 @@ except ImportError:
 # ---------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------
-MY_PLAYGROUND_ID = "https://bhtrtkrbf4.execute-api.us-east-1.amazonaws.com/prod/m"
+MY_PLAYGROUND_ID = "https://cf3wdpkg0d.execute-api.us-east-1.amazonaws.com/prod/m"
 
 MODEL_TYPES = {
     "The Balanced Generalist": {
