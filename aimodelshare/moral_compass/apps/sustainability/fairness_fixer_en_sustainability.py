@@ -1370,26 +1370,11 @@ def ensure_table_and_get_data(username, token, team_name, task_list_state=None):
     try:
         client.get_table(TABLE_ID)
     except Exception:
-        try:
-            client.create_table(
-                table_id=TABLE_ID,
-                display_name="LMS",
-                playground_url="https://example.com",
-            )
-        except Exception:
             # Fallback to alternative table name
             try:
                 client.get_table(FALLBACK_TABLE_ID)
                 TABLE_ID = FALLBACK_TABLE_ID
             except Exception:
-                try:
-                    client.create_table(
-                        table_id=FALLBACK_TABLE_ID,
-                        display_name="LMS",
-                        playground_url="https://example.com",
-                    )
-                    TABLE_ID = FALLBACK_TABLE_ID
-                except Exception:
                     pass
     return get_leaderboard_data(client, username, team_name, task_list_state), username
 
