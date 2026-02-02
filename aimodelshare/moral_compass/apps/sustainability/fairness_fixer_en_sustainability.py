@@ -652,7 +652,7 @@ MODULES = [
                             🚀 ACTION REQUIRED: 
                         </p>
                         <p style="font-size:1.05rem; margin:0;">
-                            Select the variables that represent true <strong>Conduct</strong> to build the fair model..
+                            Select the variables that represent true <strong>Conduct</strong> to build the fair model.
                             Then click <strong>Next</strong> to continue fixing the model.
                         </p>
                     </div>
