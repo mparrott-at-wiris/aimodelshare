@@ -1649,7 +1649,7 @@ def render_leaderboard_card(data, username, team_name):
     """
 
 # --- 9. APP FACTORY (FAIRNESS FIXER) ---
-def create_fairness_fixer_en_app(theme_primary_hue: str = "indigo"):
+def create_fairness_fixer_en_sustainability_app(theme_primary_hue: str = "indigo"):
     with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
         # States
         username_state = gr.State(value=None)
@@ -1910,7 +1910,7 @@ def create_fairness_fixer_en_app(theme_primary_hue: str = "indigo"):
     return demo
 
 # --- 10. LAUNCHER ---
-def launch_fairness_fixer_en_app(
+def launch_fairness_fixer_en_sustainability_app(
     share: bool = False,
     server_name: str = "0.0.0.0",
     server_port: int = 8080,
