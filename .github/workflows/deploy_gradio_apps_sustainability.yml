@@ -258,6 +258,261 @@ jobs:
             --timeout=3000
             --set-env-vars=APP_NAME=model-building-game-ca-final-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
 
+  # Sustainability Bias Detective deployments
+  deploy-bias-detective-en-sustainability:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy bias-detective-en-sustainability
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: bias-detective-en-sustainability
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=0
+            --max-instances=150
+            --timeout=3000
+            --set-env-vars=APP_NAME=bias-detective-en-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  deploy-bias-detective-ca-sustainability:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy bias-detective-ca-sustainability
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: bias-detective-ca-sustainability
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=0
+            --max-instances=150
+            --timeout=3000
+            --set-env-vars=APP_NAME=bias-detective-ca-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  deploy-bias-detective-es-sustainability:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy bias-detective-es-sustainability
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: bias-detective-es-sustainability
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=0
+            --max-instances=150
+            --timeout=3000
+            --set-env-vars=APP_NAME=bias-detective-es-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  # Sustainability Fairness Fixer deployments
+  deploy-fairness-fixer-en-sustainability:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy fairness-fixer-en-sustainability
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: fairness-fixer-en-sustainability
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=0
+            --max-instances=150
+            --timeout=3000
+            --set-env-vars=APP_NAME=fairness-fixer-en-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  deploy-fairness-fixer-ca-sustainability:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy fairness-fixer-ca-sustainability
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: fairness-fixer-ca-sustainability
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=0
+            --max-instances=150
+            --timeout=3000
+            --set-env-vars=APP_NAME=fairness-fixer-ca-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  deploy-fairness-fixer-es-sustainability:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy fairness-fixer-es-sustainability
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: fairness-fixer-es-sustainability
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=0
+            --max-instances=150
+            --timeout=3000
+            --set-env-vars=APP_NAME=fairness-fixer-es-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  # Sustainability Upgrade deployments (renamed from justice-equity-upgrade)
+  deploy-sustainability-upgrade-en:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy sustainability-upgrade-en
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: sustainability-upgrade-en
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=0
+            --max-instances=150
+            --timeout=3000
+            --set-env-vars=APP_NAME=sustainability-upgrade-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  deploy-sustainability-upgrade-ca:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy sustainability-upgrade-ca
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: sustainability-upgrade-ca
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=0
+            --max-instances=150
+            --timeout=3000
+            --set-env-vars=APP_NAME=sustainability-upgrade-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
+  deploy-sustainability-upgrade-es:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy sustainability-upgrade-es
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: sustainability-upgrade-es
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/gradio-universal:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: >-
+            --allow-unauthenticated
+            --memory=2Gi
+            --cpu=2
+            --session-affinity
+            --concurrency=20
+            --min-instances=0
+            --max-instances=150
+            --timeout=3000
+            --set-env-vars=APP_NAME=sustainability-upgrade-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+
   # ------------------------------------------------------------
   # Collect and publish all deployed service URLs
   # ------------------------------------------------------------
@@ -270,6 +525,15 @@ jobs:
       - deploy-model-building-game-en-final-sustainability
       - deploy-model-building-game-es-final-sustainability
       - deploy-model-building-game-ca-final-sustainability
+      - deploy-bias-detective-en-sustainability
+      - deploy-bias-detective-ca-sustainability
+      - deploy-bias-detective-es-sustainability
+      - deploy-fairness-fixer-en-sustainability
+      - deploy-fairness-fixer-ca-sustainability
+      - deploy-fairness-fixer-es-sustainability
+      - deploy-sustainability-upgrade-en
+      - deploy-sustainability-upgrade-ca
+      - deploy-sustainability-upgrade-es
     steps:
       - name: Generate JSON of deployed URLs
         run: |
@@ -280,7 +544,16 @@ jobs:
             "model-building-game-es-sustainability": "${{ needs.deploy-model-building-game-es-sustainability.outputs.url }}",
             "model-building-game-en-final-sustainability": "${{ needs.deploy-model-building-game-en-final-sustainability.outputs.url }}",
             "model-building-game-es-final-sustainability": "${{ needs.deploy-model-building-game-es-final-sustainability.outputs.url }}",
-            "model-building-game-ca-final-sustainability": "${{ needs.deploy-model-building-game-ca-final-sustainability.outputs.url }}"
+            "model-building-game-ca-final-sustainability": "${{ needs.deploy-model-building-game-ca-final-sustainability.outputs.url }}",
+            "bias-detective-en-sustainability": "${{ needs.deploy-bias-detective-en-sustainability.outputs.url }}",
+            "bias-detective-ca-sustainability": "${{ needs.deploy-bias-detective-ca-sustainability.outputs.url }}",
+            "bias-detective-es-sustainability": "${{ needs.deploy-bias-detective-es-sustainability.outputs.url }}",
+            "fairness-fixer-en-sustainability": "${{ needs.deploy-fairness-fixer-en-sustainability.outputs.url }}",
+            "fairness-fixer-ca-sustainability": "${{ needs.deploy-fairness-fixer-ca-sustainability.outputs.url }}",
+            "fairness-fixer-es-sustainability": "${{ needs.deploy-fairness-fixer-es-sustainability.outputs.url }}",
+            "sustainability-upgrade-en": "${{ needs.deploy-sustainability-upgrade-en.outputs.url }}",
+            "sustainability-upgrade-ca": "${{ needs.deploy-sustainability-upgrade-ca.outputs.url }}",
+            "sustainability-upgrade-es": "${{ needs.deploy-sustainability-upgrade-es.outputs.url }}"
           }
           EOF
           echo "Deployed service URLs JSON:"

@@ -90,6 +90,30 @@ _EXPORT_MAP = {
     "launch_model_building_game_ca_final_sustainability_app": ("sustainability.model_building_app_ca_final_sustainability", "launch_model_building_game_ca_final_sustainability_app"),
     "create_model_building_game_es_final_sustainability_app": ("sustainability.model_building_app_es_final_sustainability", "create_model_building_game_es_final_sustainability_app"),
     "launch_model_building_game_es_final_sustainability_app": ("sustainability.model_building_app_es_final_sustainability", "launch_model_building_game_es_final_sustainability_app"),
+
+    # Sustainability bias detective apps
+    "create_bias_detective_en_sustainability_app": ("sustainability.bias_detective_en_sustainability", "create_bias_detective_en_sustainability_app"),
+    "launch_bias_detective_en_sustainability_app": ("sustainability.bias_detective_en_sustainability", "launch_bias_detective_en_sustainability_app"),
+    "create_bias_detective_ca_sustainability_app": ("sustainability.bias_detective_ca_sustainability", "create_bias_detective_ca_sustainability_app"),
+    "launch_bias_detective_ca_sustainability_app": ("sustainability.bias_detective_ca_sustainability", "launch_bias_detective_ca_sustainability_app"),
+    "create_bias_detective_es_sustainability_app": ("sustainability.bias_detective_es_sustainability", "create_bias_detective_es_sustainability_app"),
+    "launch_bias_detective_es_sustainability_app": ("sustainability.bias_detective_es_sustainability", "launch_bias_detective_es_sustainability_app"),
+
+    # Sustainability fairness fixer apps
+    "create_fairness_fixer_en_sustainability_app": ("sustainability.fairness_fixer_en_sustainability", "create_fairness_fixer_en_sustainability_app"),
+    "launch_fairness_fixer_en_sustainability_app": ("sustainability.fairness_fixer_en_sustainability", "launch_fairness_fixer_en_sustainability_app"),
+    "create_fairness_fixer_ca_sustainability_app": ("sustainability.fairness_fixer_ca_sustainability", "create_fairness_fixer_ca_sustainability_app"),
+    "launch_fairness_fixer_ca_sustainability_app": ("sustainability.fairness_fixer_ca_sustainability", "launch_fairness_fixer_ca_sustainability_app"),
+    "create_fairness_fixer_es_sustainability_app": ("sustainability.fairness_fixer_es_sustainability", "create_fairness_fixer_es_sustainability_app"),
+    "launch_fairness_fixer_es_sustainability_app": ("sustainability.fairness_fixer_es_sustainability", "launch_fairness_fixer_es_sustainability_app"),
+
+    # Sustainability upgrade apps (renamed from justice-equity-upgrade)
+    "create_sustainability_upgrade_en_app": ("sustainability.sustainability_upgrade_en", "create_sustainability_upgrade_en_app"),
+    "launch_sustainability_upgrade_en_app": ("sustainability.sustainability_upgrade_en", "launch_sustainability_upgrade_en_app"),
+    "create_sustainability_upgrade_ca_app": ("sustainability.sustainability_upgrade_ca", "create_sustainability_upgrade_ca_app"),
+    "launch_sustainability_upgrade_ca_app": ("sustainability.sustainability_upgrade_ca", "launch_sustainability_upgrade_ca_app"),
+    "create_sustainability_upgrade_es_app": ("sustainability.sustainability_upgrade_es", "create_sustainability_upgrade_es_app"),
+    "launch_sustainability_upgrade_es_app": ("sustainability.sustainability_upgrade_es", "launch_sustainability_upgrade_es_app"),
 }
 
 __all__ = list(_EXPORT_MAP.keys())
