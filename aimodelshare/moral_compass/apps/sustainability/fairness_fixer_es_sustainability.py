@@ -1922,7 +1922,7 @@ def launch_fairness_fixer_es_sustainability_app(
     theme_primary_hue: str = "indigo",
     **kwargs
 ) -> None:
-    app = create_fairness_fixer_es_app(theme_primary_hue=theme_primary_hue)
+    app = create_fairness_fixer_es_sustainability_app(theme_primary_hue=theme_primary_hue)
     app.launch(share=share, server_name=server_name,
                server_port=server_port,
                **kwargs)

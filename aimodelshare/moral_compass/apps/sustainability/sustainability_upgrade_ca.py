@@ -815,7 +815,7 @@ def create_sustainability_upgrade_ca_app(theme_primary_hue: str = "indigo"):
 def launch_sustainability_upgrade_ca_app(share=False,
                             server_port=8080,
                             **kwargs):
-    app = create_justice_equity_upgrade_ca_app()
+    app = create_sustainability_upgrade_ca_app()
     app.launch(share=share,
                server_port=server_port,
                **kwargs)

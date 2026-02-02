@@ -2812,7 +2812,7 @@ def launch_bias_detective_en_sustainability_app(
         theme_primary_hue: Primary color hue
         **kwargs: Additional Gradio launch arguments
     """
-    app = create_bias_detective_en_app(theme_primary_hue=theme_primary_hue)
+    app = create_bias_detective_en_sustainability_app(theme_primary_hue=theme_primary_hue)
     app.launch(
         share=share,
         server_name=server_name,
