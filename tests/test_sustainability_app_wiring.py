@@ -8,7 +8,8 @@ is properly wired through the entire chain:
 2. Mapped to a factory function in the lazy export layer (`aimodelshare/moral_compass/apps/__init__.py`)
 3. The factory function is implemented in the referenced module
 
-Run with: pytest tests/test_sustainability_app_wiring.py -v
+Run with: pytest -v tests/test_sustainability_app_wiring.py
+Or from project root: pytest -v
 """
 
 import os
@@ -249,12 +250,18 @@ def test_complete_chain_validation():
 
 
 def test_no_extra_sustainability_factories_in_export_map():
-    """Verify there are no orphaned sustainability factories in export map not used by workflow."""
+    """Verify there are no orphaned sustainability factories in export map not used by workflow.
+    
+    Note: This test only checks 'create_*' factories (not 'launch_*' factories) since those
+    are what's referenced in the launcher mapping. Launch functions are wrapper functions
+    that are not directly used by the deployment workflow.
+    """
     workflow_apps = extract_app_names_from_workflow()
     launcher_mapping = extract_app_to_factory_mapping()
     export_map = extract_export_map()
     
     # Get all sustainability factory names from export map
+    # We only check 'create_' factories as those are what the launcher uses
     sustainability_factories = {
         k for k in export_map.keys() 
         if 'sustainability' in k and k.startswith('create_')
