@@ -10,7 +10,7 @@ DEFAULT_API_URL = "https://b22q73wp50.execute-api.us-east-1.amazonaws.com/dev"
 ORIGINAL_PLAYGROUND_URL = "https://bhtrtkrbf4.execute-api.us-east-1.amazonaws.com/prod/m"
 TABLE_ID = "sustainabilitymc"
 FALLBACK_TABLE_ID = "sustainabilitymcfallback"
-TOTAL_COURSE_TASKS = 17 # Sync with Act6 + Act7
+TOTAL_COURSE_TASKS = 10 # Sync with Act6 + Act7
 LOCAL_TEST_SESSION_ID = None
 
 # ==============================================================================
