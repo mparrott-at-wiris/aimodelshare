@@ -35,13 +35,13 @@
             :root {
                 --bg: #f8fafc;
                 --card-bg: rgba(255, 255, 255, 0.9);
-                --accent: #0284c7;
-                --accent-glow: rgba(2, 132, 199, 0.2);
-                --success: #059669;
-                --warning: #d97706;
+                --accent: #0369a1;
+                --accent-glow: rgba(3, 105, 161, 0.2);
+                --success: #047857;
+                --warning: #b45309;
                 --error: #dc2626;
                 --text: #0f172a;
-                --text-dim: #64748b;
+                --text-dim: #475569;
                 --bg-gradient-1: rgba(2, 132, 199, 0.08);
                 --bg-gradient-2: rgba(5, 150, 105, 0.08);
                 --card-shadow: rgba(0, 0, 0, 0.1);
@@ -178,69 +178,86 @@
             font-weight: 600;
         }
 
-        /* CLIMATE FACT CARDS */
-        .fact-cards {
-            display: grid;
-            gap: 15px;
+        /* CLIMATE FACT SCROLL */
+        .fact-scroll-container {
+            max-height: 220px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
             margin: 25px 0;
+            padding-right: 8px;
+            position: relative;
         }
 
-        .fact-card {
+        .fact-scroll-container::after {
+            content: '';
+            position: sticky;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(transparent, var(--bg));
+            pointer-events: none;
+            display: block;
+            z-index: 2;
+            margin-top: -60px;
+        }
+
+        .fact-scroll-container.all-revealed::after {
+            display: none;
+        }
+
+        .fact-scroll-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .fact-scroll-container::-webkit-scrollbar-track {
+            background: var(--input-bg);
+            border-radius: 3px;
+        }
+
+        .fact-scroll-container::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 3px;
+            opacity: 0.5;
+        }
+
+        .fact-slide {
             background: var(--input-bg);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            cursor: pointer;
+            padding: 24px;
+            margin-bottom: 20px;
+            min-height: 180px;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
         }
 
-        .fact-card:hover {
-            border-color: var(--accent);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px var(--accent-glow);
+        .fact-slide.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
-        .fact-card-header {
-            padding: 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(56, 189, 248, 0.05);
+        .fact-slide.peek {
+            opacity: 0.5;
+            transform: translateY(0);
         }
 
-        .fact-card-title {
-            font-weight: 700;
-            font-size: 1.05rem;
-            color: var(--text);
+        .fact-slide-header {
             display: flex;
             align-items: center;
             gap: 10px;
+            margin-bottom: 10px;
         }
 
-        .fact-card-icon {
+        .fact-slide-icon {
             font-size: 1.3rem;
         }
 
-        .fact-card-toggle {
-            font-size: 1.2rem;
-            color: var(--accent);
-            transition: transform 0.3s ease;
-        }
-
-        .fact-card.expanded .fact-card-toggle {
-            transform: rotate(180deg);
-        }
-
-        .fact-card-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease, padding 0.4s ease;
-        }
-
-        .fact-card.expanded .fact-card-content {
-            max-height: 500px;
-            padding: 20px;
-            border-top: 1px solid var(--border-color);
+        .fact-slide-title {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--text);
         }
 
         .fact-stat {
@@ -252,8 +269,8 @@
 
         .fact-description {
             color: var(--text-dim);
-            line-height: 1.7;
-            margin-bottom: 15px;
+            line-height: 1.6;
+            margin-bottom: 8px;
             font-size: 1rem;
         }
 
@@ -261,15 +278,33 @@
             font-size: 0.85rem;
             color: var(--text-dim);
             font-style: italic;
-            padding: 10px;
-            background: rgba(56, 189, 248, 0.05);
-            border-left: 3px solid var(--accent);
-            border-radius: 6px;
         }
 
-        .fact-citation strong {
-            color: var(--accent);
-            font-style: normal;
+        .scroll-indicator {
+            position: sticky;
+            bottom: 0;
+            z-index: 3;
+            text-align: center;
+            padding: 12px;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            animation: pulse-scroll 2s ease-in-out infinite;
+        }
+
+        .scroll-indicator.hidden {
+            display: none;
+        }
+
+        @keyframes pulse-scroll {
+            0%, 100% { opacity: 0.7; transform: translateY(0); }
+            50% { opacity: 1; transform: translateY(4px); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .scroll-indicator {
+                animation: none;
+                opacity: 1;
+            }
         }
 
         /* INPUTS */
@@ -278,7 +313,8 @@
         }
 
         input[type="text"],
-        textarea {
+        textarea,
+        select {
             background: var(--input-bg);
             border: 1px solid var(--input-border);
             padding: 15px;
@@ -288,10 +324,26 @@
             outline: none;
             font-size: 1rem;
             font-family: inherit;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            padding-right: 40px;
+            cursor: pointer;
+        }
+
+        select option {
+            background: var(--bg);
+            color: var(--text);
         }
 
         input:focus,
-        textarea:focus {
+        textarea:focus,
+        select:focus {
             border-color: var(--accent);
             box-shadow: 0 0 10px var(--accent-glow);
         }
@@ -478,6 +530,24 @@
             margin-top: 20px;
             display: none;
         }
+
+        .suggestion-chip {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text);
+            padding: 10px 18px;
+            border-radius: 20px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .suggestion-chip:hover {
+            border-color: var(--accent);
+            background: rgba(56, 189, 248, 0.15);
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 
@@ -515,104 +585,35 @@
                         data-backed briefing for city leaders.</p>
                 </div>
 
-                <h3 style="margin-bottom: 15px;">🌍 Why This Mission Matters: Climate Facts You Need to Know</h3>
-                <p style="font-size: 0.95rem; margin-bottom: 20px;">Click each card to reveal critical climate data that
-                    makes this investigation urgent.</p>
+                <h3 style="margin-bottom: 8px;">🌍 Why This Mission Matters</h3>
 
-                <div class="fact-cards">
-                    <div class="fact-card" onclick="toggleFactCard(this)">
-                        <div class="fact-card-header">
-                            <div class="fact-card-title">
-                                <span class="fact-card-icon">🌡️</span>
-                                <span>Global Temperature Milestone</span>
-                            </div>
-                            <div class="fact-card-toggle">▼</div>
+                <div class="fact-scroll-container" id="factScrollContainer">
+                    <div class="fact-slide">
+                        <div class="fact-slide-header">
+                            <span class="fact-slide-icon">🌡️</span>
+                            <span class="fact-slide-title">Global Temperature Milestone</span>
                         </div>
-                        <div class="fact-card-content">
-                            <div class="fact-stat">+1.45°C</div>
-                            <div class="fact-description">
-                                2024 marked the warmest year on record, with global temperatures reaching 1.45°C above
-                                pre-industrial levels (before ~1850). We're dangerously close to breaching the critical 1.5°C threshold
-                                that scientists warn will trigger climate tipping points — changes that can't be undone.
-                            </div>
-                            <div class="fact-citation">
-                                <strong>Source:</strong> NASA Goddard Institute for Space Studies (GISS), 2025 Annual
-                                Temperature Analysis
-                            </div>
-                        </div>
+                        <div class="fact-stat" data-target="1.45" data-prefix="+" data-suffix="°C">+0°C</div>
+                        <div class="fact-description">2024 was the hottest year ever recorded — we're almost at the 1.5°C point of no return.</div>
+                        <div class="fact-citation">Source: NASA GISS, 2025</div>
                     </div>
 
-                    <div class="fact-card" onclick="toggleFactCard(this)">
-                        <div class="fact-card-header">
-                            <div class="fact-card-title">
-                                <span class="fact-card-icon">⚡</span>
-                                <span>The Renewable Energy Revolution</span>
-                            </div>
-                            <div class="fact-card-toggle">▼</div>
+                    <div class="fact-slide">
+                        <div class="fact-slide-header">
+                            <span class="fact-slide-icon">🏁</span>
+                            <span class="fact-slide-title">The Technology Exists Today</span>
                         </div>
-                        <div class="fact-card-content">
-                            <div class="fact-stat">30% of Global Power</div>
-                            <div class="fact-description">
-                                Renewable energy now generates over 30% of the world's electricity, with solar and wind
-                                installations breaking records every quarter. This $100 trillion energy transition is
-                                creating millions of jobs and reshaping the global economy—your future career will be
-                                part of this transformation.
-                            </div>
-                            <div class="fact-citation">
-                                <strong>Source:</strong> International Energy Agency (IEA), Renewables 2025 Report
-                            </div>
-                        </div>
+                        <div class="fact-stat" data-target="50" data-suffix="%">0%</div>
+                        <div class="fact-description">We already have the tech to cut emissions in half by 2030 — it's a question of speed and political will.</div>
+                        <div class="fact-citation">Source: IPCC AR6, 2023</div>
                     </div>
 
-                    <div class="fact-card" onclick="toggleFactCard(this)">
-                        <div class="fact-card-header">
-                            <div class="fact-card-title">
-                                <span class="fact-card-icon">🌊</span>
-                                <span>Extreme Weather Acceleration</span>
-                            </div>
-                            <div class="fact-card-toggle">▼</div>
-                        </div>
-                        <div class="fact-card-content">
-                            <div class="fact-stat">5x More Frequent</div>
-                            <div class="fact-description">
-                                Climate-related disasters have increased fivefold over the past 50 years. Heatwaves,
-                                floods, droughts, and wildfires now occur simultaneously across multiple regions,
-                                causing $200+ billion in annual damages and displacing millions of people.
-                            </div>
-                            <div class="fact-citation">
-                                <strong>Source:</strong> World Meteorological Organization (WMO), State of the Global
-                                Climate 2024
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="fact-card" onclick="toggleFactCard(this)">
-                        <div class="fact-card-header">
-                            <div class="fact-card-title">
-                                <span class="fact-card-icon">🏁</span>
-                                <span>The Technology Exists Today</span>
-                            </div>
-                            <div class="fact-card-toggle">▼</div>
-                        </div>
-                        <div class="fact-card-content">
-                            <div class="fact-stat">50% Reduction Possible by 2030</div>
-                            <div class="fact-description">
-                                We already have the technology to cut global emissions in half by 2030 using existing
-                                solutions: renewable energy, electric vehicles, energy-efficient buildings, and
-                                sustainable agriculture. The challenge isn't innovation—it's the speed of implementation and
-                                political will (the willingness of governments to act).
-                            </div>
-                            <div class="fact-citation">
-                                <strong>Source:</strong> IPCC Sixth Assessment Report (AR6), Mitigation of Climate
-                                Change, 2023
-                            </div>
-                        </div>
-                    </div>
+                    <div class="scroll-indicator" id="scrollIndicator">↓ Scroll to see <span id="factCount">1 more</span> fact</div>
                 </div>
 
                 <div
                     style="background: rgba(56, 189, 248, 0.1); padding: 15px; border-radius: 12px; margin-top: 25px; border-left: 4px solid var(--accent);">
-                    <p style="font-size: 0.9rem; margin-bottom: 0;"><strong>OUR DATA SOURCE:</strong> This mission is
+                    <p style="font-size: 0.95rem; margin-bottom: 0;"><strong>OUR DATA SOURCE:</strong> This mission is
                         powered by <span class="highlight-text">Climate TRACE</span>, a global non-profit coalition that
                         uses a constellation (network) of satellites and AI to monitor every major source of greenhouse gas emissions (CO2, methane, and other gases that trap heat) on Earth
                         — so anyone can check the numbers.</p>
@@ -630,7 +631,19 @@
                     your <span class="highlight-text">Province</span> or <span class="highlight-text">County</span> (the larger administrative area your city belongs to).</p>
                 <div class="input-group">
                     <input type="text" id="cityInput" placeholder="Enter city, province, or county..."
-                        onkeypress="if(event.key === 'Enter') startInvestigation()">
+                        onkeypress="if(event.key === 'Enter') startInvestigation()"
+                        onfocus="document.getElementById('citySuggestions').style.display='flex'"
+                        oninput="document.getElementById('citySuggestions').style.display = this.value.length > 0 ? 'none' : 'flex'">
+                    <div id="citySuggestions" style="display: none; flex-wrap: wrap; gap: 8px; margin-top: 12px;">
+                        <span style="font-size: 0.9rem; color: var(--text-dim); width: 100%; margin-bottom: 2px;">Or try one of these cities:</span>
+                        <button type="button" class="suggestion-chip" onclick="selectSuggestedCity('Barcelona', 'ghs-fua_4523')">Barcelona</button>
+                        <button type="button" class="suggestion-chip" onclick="selectSuggestedCity('Lleida', 'ghs-fua_4291')">Lleida</button>
+                        <button type="button" class="suggestion-chip" onclick="selectSuggestedCity('Tarragona', 'ghs-fua_4358')">Tarragona</button>
+                        <button type="button" class="suggestion-chip" onclick="selectSuggestedCity('Madrid', 'ghs-fua_3147')">Madrid</button>
+                        <button type="button" class="suggestion-chip" onclick="selectSuggestedCity('Córdoba', 'ghs-fua_2700')">Córdoba</button>
+                        <button type="button" class="suggestion-chip" onclick="selectSuggestedCity('New York', 'ghs-fua_7244')">New York</button>
+                        <button type="button" class="suggestion-chip" onclick="selectSuggestedCity('Beijing', 'ghs-fua_7704')">Beijing</button>
+                    </div>
                 </div>
                 <button class="btn" onclick="startInvestigation()">SCAN MY CITY</button>
                 <div id="searchError" class="error-msg">
@@ -690,17 +703,16 @@
             <!-- STEP 3: SECTORS -->
             <div class="mission-step" id="step-3">
                 <h2>🏭 Step 3: Sector Breakdown — Emissions Grouped by Industry</h2>
-                <p>Analyze the chart to find the top three sectors (industry groups) causing the most damage.</p>
+                <p>Analyze the chart to find the single sector causing the most emissions.</p>
                 <div style="background: rgba(56, 189, 248, 0.08); padding: 12px 15px; border-radius: 10px; margin-bottom: 15px; border-left: 3px solid var(--accent);">
-                    <p style="font-size: 0.85rem; margin-bottom: 0; color: var(--text-dim);"><strong style="color: var(--accent);">Note:</strong> This data shows direct emissions (Scope 1) — pollution released at the source. It doesn't include indirect emissions from electricity use (Scope 2) or supply chains (Scope 3), which can be even larger.</p>
+                    <p style="font-size: 0.9rem; margin-bottom: 0; color: var(--text-dim);"><strong style="color: var(--accent);">Note:</strong> This data shows direct emissions (Scope 1) — pollution released at the source. It doesn't include indirect emissions from electricity use (Scope 2) or supply chains (Scope 3), which can be even larger.</p>
                 </div>
                 <div style="height: 250px; margin-bottom: 30px;">
                     <canvas id="sectorChart"></canvas>
                 </div>
                 <div class="quiz">
                     <div class="quiz-title">Checkpoint Question</div>
-                    <p style="margin-bottom: 15px; font-size: 1rem;">Select the <span class="highlight-text">TOP
-                            THREE</span> industries by emissions totals:</p>
+                    <p style="margin-bottom: 15px; font-size: 1rem;">Which <span class="highlight-text">single sector</span> has the highest total emissions?</p>
                     <div class="options-grid" id="sectorOptions"></div>
                 </div>
                 <div class="btn-group">
@@ -787,19 +799,25 @@
                     <h3
                         style="color: var(--accent); margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">
                         Your Investigation Report</h3>
-                    <div id="summaryPoints" style="font-size: 0.95rem; line-height: 1.8;"></div>
+                    <p id="autoContext" style="font-size: 1rem; line-height: 1.8;"></p>
                 </div>
                 <div class="quiz">
-                    <p style="margin-bottom: 10px; color: var(--text); font-weight: 600;">Your Recommendation:</p>
-                    <p style="font-size: 0.9rem;">Write a recommendation to city leaders. Consider these questions:</p>
-                    <ul style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 15px; padding-left: 20px; line-height: 1.8;">
-                        <li>What specific policy or action do you recommend?</li>
-                        <li>What data from your investigation supports this recommendation?</li>
-                        <li>What's one risk or trade-off of your proposed action?</li>
-                        <li>Who specifically should be responsible for implementing it?</li>
-                    </ul>
-                    <textarea id="finalSummary" rows="6"
-                        placeholder="Dear City Leaders, based on the satellite emissions data for our city, I recommend..."></textarea>
+                    <p style="margin-bottom: 15px; color: var(--text); font-weight: 600;">Complete your recommendation to city leaders:</p>
+                    <div style="font-size: 1.1rem; line-height: 2.4; color: var(--text);">
+                        <span>I recommend the city</span>
+                        <select id="strategySelect" style="width: auto; display: inline-block; font-size: 1rem; padding: 6px 36px 6px 12px; border-radius: 8px; vertical-align: baseline; border: 2px dashed var(--accent); background-color: rgba(56, 189, 248, 0.08);">
+                            <option value="" disabled selected>[ choose action ]</option>
+                            <option value="regulate">regulate</option>
+                            <option value="incentivize alternatives to">incentivize alternatives to</option>
+                            <option value="invest in replacing">invest in replacing</option>
+                            <option value="cap and monitor">cap and monitor</option>
+                        </select>
+                        <span id="strategyTarget"></span>
+                    </div>
+                    <div style="font-size: 1.1rem; line-height: 2.4; color: var(--text); margin-top: 15px;">
+                        <span>This is urgent because </span>
+                        <input type="text" id="reasoningInput" style="width: auto; min-width: 250px; display: inline-block; font-size: 1rem; padding: 6px 12px; border-radius: 8px; vertical-align: baseline; border: 2px dashed var(--accent); background-color: rgba(56, 189, 248, 0.08);" placeholder="type your reason...">
+                    </div>
                 </div>
                 <div class="btn-group">
                     <button class="btn secondary" onclick="goToStep(5)">◀️ BACK</button>
@@ -813,15 +831,12 @@
                 <div style="text-align: center;">
                     <span style="font-size: 5rem;">🏆</span>
                     <h2 style="color: var(--success);">Investigation Complete</h2>
-                    <p>You have successfully analyzed the satellite data for your community. Here is your official
-                        report summary:</p>
+                    <p>You have successfully analyzed the satellite data for your community.</p>
                     <div
                         style="background: rgba(255,255,255,0.05); padding: 25px; border-radius: 12px; text-align: left; margin-top: 20px;">
-                        <h4 style="color: var(--accent); margin-bottom: 10px;">Investigation Findings:</h4>
-                        <div id="displayFinalReport" style="font-size: 0.9rem; margin-bottom: 20px;"></div>
-                        <h4 style="color: var(--success); margin-bottom: 10px;">Your Suggestion to Leaders:</h4>
+                        <h4 style="color: var(--success); margin-bottom: 10px;">Your Recommendation to City Leaders:</h4>
                         <div id="displayFinalReflect"
-                            style="font-style: italic; border-left: 3px solid var(--success); padding-left: 15px; color: var(--text-dim);">
+                            style="font-size: 1.1rem; border-left: 3px solid var(--success); padding-left: 15px; color: var(--text-dim);">
                         </div>
                     </div>
                     <div class="btn-group" style="margin-top: 30px; justify-content: center;">
@@ -837,13 +852,15 @@
     </div>
 
     <script>
+        let autoAdvanceTimer = null;
+        let sectorChartInstance = null;
+
         let investigationData = {
             city: null,
             t21: 0, t22: 0,
             sectors: [],
             topSector: null,
-            topSources: [],
-            selectedSectors: new Set()
+            topSources: []
         };
 
         function formatSectorName(name) {
@@ -858,11 +875,83 @@
                 'Roughly equivalent to ' + cars + ' cars driving for a year.';
         }
 
-        function toggleFactCard(card) {
-            card.classList.toggle('expanded');
+        function initFactScroller() {
+            const container = document.getElementById('factScrollContainer');
+            if (!container) return;
+            const slides = Array.from(container.querySelectorAll('.fact-slide'));
+            const indicator = document.getElementById('scrollIndicator');
+            const countSpan = document.getElementById('factCount');
+            let nextReveal = 0;
+            let lastRevealScroll = 0;
+            const SCROLL_GAP = 60;
+
+            function revealNext() {
+                if (nextReveal >= slides.length) return;
+                const slide = slides[nextReveal];
+                slide.classList.remove('peek');
+                slide.classList.add('visible');
+                const stat = slide.querySelector('.fact-stat');
+                if (stat) animateCounter(stat);
+                nextReveal++;
+                lastRevealScroll = container.scrollTop;
+                const remaining = slides.length - nextReveal;
+
+                // Set next card to peek
+                if (nextReveal < slides.length) {
+                    slides[nextReveal].classList.add('peek');
+                }
+
+                // Update or hide indicator
+                if (remaining <= 0) {
+                    if (indicator) indicator.classList.add('hidden');
+                    container.classList.add('all-revealed');
+                } else if (countSpan) {
+                    countSpan.textContent = remaining + ' more';
+                }
+            }
+
+            // On load: reveal first, peek second
+            setTimeout(revealNext, 500);
+
+            // On scroll: reveal next when scrolled 60px past last reveal
+            let scrollTicking = false;
+            container.addEventListener('scroll', () => {
+                if (scrollTicking) return;
+                scrollTicking = true;
+                requestAnimationFrame(() => {
+                    scrollTicking = false;
+                    if (nextReveal >= slides.length) return;
+                    if (container.scrollTop - lastRevealScroll >= SCROLL_GAP) {
+                        revealNext();
+                    }
+                });
+            });
         }
 
+        function animateCounter(el) {
+            const target = parseFloat(el.dataset.target);
+            const prefix = el.dataset.prefix || '';
+            const suffix = el.dataset.suffix || '';
+            const isDecimal = String(target).includes('.');
+            const decimals = isDecimal ? (String(target).split('.')[1] || '').length : 0;
+            const duration = 800;
+            const startTime = performance.now();
+
+            function update(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                const current = target * eased;
+                el.textContent = prefix + (isDecimal ? current.toFixed(decimals) : Math.round(current)) + suffix;
+                if (progress < 1) requestAnimationFrame(update);
+            }
+            requestAnimationFrame(update);
+        }
+
+        document.addEventListener('DOMContentLoaded', initFactScroller);
+
         function goToStep(idx) {
+            if (autoAdvanceTimer) { clearTimeout(autoAdvanceTimer); autoAdvanceTimer = null; }
             document.querySelectorAll('.mission-step').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.step-node').forEach((n, i) => {
                 if (i < idx) n.className = 'step-node completed';
@@ -881,6 +970,44 @@
             if (idx === 4) renderSources();
             if (idx === 5) renderLever();
             if (idx === 6) renderFinalBriefing();
+        }
+
+        function selectSuggestedCity(name, cityId) {
+            document.getElementById('cityInput').value = name;
+            document.getElementById('citySuggestions').style.display = 'none';
+            startInvestigationById(cityId, name);
+        }
+
+        async function startInvestigationById(cityId, displayName) {
+            const errorBox = document.getElementById('searchError');
+            errorBox.style.display = 'none';
+            document.getElementById('step-1').style.display = 'none';
+            document.getElementById('loader').style.display = 'block';
+
+            try {
+                const d21 = await (await fetch(`https://api.climatetrace.org/v7/sources/emissions?cityId=${cityId}&year=2022`)).json();
+                const d22 = await (await fetch(`https://api.climatetrace.org/v7/sources/emissions?cityId=${cityId}&year=2023`)).json();
+                const sourcesData = await (await fetch(`https://api.climatetrace.org/v7/sources?cityId=${cityId}&year=2022`)).json();
+
+                investigationData.city = { id: cityId, matchedName: displayName };
+                investigationData.topSources = sourcesData.slice(0, 3);
+                investigationData.t21 = d21.totals.summaries[0].emissionsQuantity;
+                investigationData.t22 = d22.totals.summaries[0].emissionsQuantity;
+                investigationData.sectors = d22.sectors.summaries.sort((a, b) => b.emissionsQuantity - a.emissionsQuantity);
+                investigationData.topSector = investigationData.sectors[0];
+
+                document.getElementById('locDisplay').innerText = displayName;
+                document.getElementById('num21').innerText = Math.round(investigationData.t21).toLocaleString() + " tonnes";
+                document.getElementById('num22').innerText = Math.round(investigationData.t22).toLocaleString() + " tonnes";
+                updateEmissionsContext();
+
+                goToStep(2);
+            } catch (err) {
+                document.getElementById('step-1').style.display = 'flex';
+                errorBox.style.display = 'block';
+            } finally {
+                document.getElementById('loader').style.display = 'none';
+            }
         }
 
         async function startInvestigation() {
@@ -930,6 +1057,10 @@
                 btn.classList.add('correct');
                 document.getElementById('btn-next-2').disabled = false;
                 document.getElementById('step2-success').style.display = 'block';
+                autoAdvanceTimer = setTimeout(() => {
+                    if (document.getElementById('step-2').classList.contains('active')) goToStep(3);
+                    autoAdvanceTimer = null;
+                }, 2000);
             }
             else { btn.classList.add('wrong'); setTimeout(() => btn.classList.remove('wrong'), 1000); }
         }
@@ -937,25 +1068,23 @@
         function checkStrategyAnswer(btn, type) {
             if (type === 'correct') {
                 btn.classList.add('correct'); document.getElementById('btn-next-5').disabled = false;
+                autoAdvanceTimer = setTimeout(() => {
+                    if (document.getElementById('step-5').classList.contains('active')) goToStep(6);
+                    autoAdvanceTimer = null;
+                }, 2000);
             } else {
                 btn.classList.add('wrong'); setTimeout(() => btn.classList.remove('wrong'), 1000);
             }
         }
 
         function checkSectorAnswer(btn, sectorName) {
-            const topThree = investigationData.sectors.slice(0, 3).map(s => s.sector);
-            if (topThree.includes(sectorName)) {
-                if (investigationData.selectedSectors.has(sectorName)) {
-                    investigationData.selectedSectors.delete(sectorName);
-                    btn.classList.remove('correct');
-                } else {
-                    investigationData.selectedSectors.add(sectorName);
-                    btn.classList.add('correct');
-                }
+            if (sectorName === investigationData.sectors[0].sector) {
+                btn.classList.add('correct');
+                document.getElementById('btn-next-3').disabled = false;
             } else {
-                btn.classList.add('wrong'); setTimeout(() => btn.classList.remove('wrong'), 1000);
+                btn.classList.add('wrong');
+                setTimeout(() => btn.classList.remove('wrong'), 1000);
             }
-            document.getElementById('btn-next-3').disabled = (investigationData.selectedSectors.size < 3);
         }
 
         function checkSourceAnswer(btn, key) {
@@ -966,15 +1095,16 @@
 
         function renderSectorChart() {
             const con = document.getElementById('sectorOptions'); con.innerHTML = '';
-            const pool = investigationData.sectors.slice(0, 6).sort(() => Math.random() - 0.5);
+            const pool = investigationData.sectors.slice(0, 4).sort(() => Math.random() - 0.5);
             pool.forEach(s => {
                 const b = document.createElement('button'); b.className = 'option-btn';
                 b.innerText = formatSectorName(s.sector);
                 b.onclick = () => checkSectorAnswer(b, s.sector);
                 con.appendChild(b);
             });
+            if (sectorChartInstance) { sectorChartInstance.destroy(); }
             const ctx = document.getElementById('sectorChart').getContext('2d');
-            new Chart(ctx, { type: 'bar', data: { labels: investigationData.sectors.map(s => formatSectorName(s.sector)), datasets: [{ data: investigationData.sectors.map(s => s.emissionsQuantity), backgroundColor: '#38bdf8' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { ticks: { color: '#94a3b8', font: { size: 9 } } } } } });
+            sectorChartInstance = new Chart(ctx, { type: 'bar', data: { labels: investigationData.sectors.map(s => formatSectorName(s.sector)), datasets: [{ data: investigationData.sectors.map(s => s.emissionsQuantity), backgroundColor: '#38bdf8' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { ticks: { color: '#94a3b8', font: { size: 9 } } } } } });
         }
 
         function renderSources() {
@@ -1008,25 +1138,23 @@
         }
 
         function renderFinalBriefing() {
-            const trend = investigationData.t22 > investigationData.t21 ? "increased" : "decreased";
-            const diffPct = (Math.abs(investigationData.t22 - investigationData.t21) / investigationData.t21) * 100;
-            const top3Sectors = investigationData.sectors.slice(0, 3).map(s => formatSectorName(s.sector)).join(', ');
             const topSource = investigationData.topSources[0];
-            const briefing = `
-                • <strong>Target Area:</strong> ${investigationData.city.matchedName}<br>
-                • <strong>What Changed:</strong> Annual emissions ${trend} by ${diffPct.toFixed(1)}% between 2022 and 2023.<br>
-                • <strong>Top Three Culprits:</strong> ${top3Sectors}.<br>
-                • <strong>Biggest Single Polluter:</strong> ${topSource.name} (${topSource.subsector}), contributing ${((topSource.emissionsQuantity / investigationData.t22) * 100).toFixed(1)}% of total emissions.<br>
-                • <strong>Top Priority:</strong> Reducing emissions in the ${formatSectorName(investigationData.topSector.sector)} sector through regulation and technology upgrades.
-            `;
-            document.getElementById('summaryPoints').innerHTML = briefing;
+            const sectorName = formatSectorName(investigationData.topSector.sector);
+            const sourceName = topSource.name;
+            document.getElementById('autoContext').innerHTML =
+                `Based on satellite data, <strong>${investigationData.city.matchedName}</strong>'s biggest emission source is the <strong>${sectorName}</strong> sector, specifically <strong>${sourceName}</strong>.`;
+            document.getElementById('strategyTarget').innerHTML =
+                ` this sector's top emitters in the <strong>${sectorName}</strong> sector.`;
         }
 
         function completeMission() {
-            const summary = document.getElementById('finalSummary').value;
-            if (!summary) return alert("Please finalize your suggestion to leaders!");
-            document.getElementById('displayFinalReport').innerHTML = document.getElementById('summaryPoints').innerHTML;
-            document.getElementById('displayFinalReflect').innerText = summary;
+            const strategy = document.getElementById('strategySelect').value;
+            const reasoning = document.getElementById('reasoningInput').value.trim();
+            if (!strategy) return alert("Please choose a strategy from the dropdown!");
+            if (!reasoning) return alert("Please explain why this is urgent!");
+            const sectorName = formatSectorName(investigationData.topSector.sector);
+            const recommendation = `I recommend the city ${strategy} the ${sectorName} sector's top emitters. This is urgent because: ${reasoning}`;
+            document.getElementById('displayFinalReflect').innerText = recommendation;
             goToStep(7);
         }
     </script>
