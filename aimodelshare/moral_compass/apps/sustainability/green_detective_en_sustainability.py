@@ -9,7 +9,7 @@ DEFAULT_API_URL = "https://b22q73wp50.execute-api.us-east-1.amazonaws.com/dev"
 ORIGINAL_PLAYGROUND_URL = "https://bhtrtkrbf4.execute-api.us-east-1.amazonaws.com/prod/m"
 TABLE_ID = "sustainabilitymc"
 FALLBACK_TABLE_ID = "sustainabilitymcfallback"
-TOTAL_COURSE_TASKS = 17 # Score calculated against full course (8 in Act6 + 6 in Act7 + 3 reserved)
+TOTAL_COURSE_TASKS = 10  # Score calculated against full course
 LOCAL_TEST_SESSION_ID = None
 
 
@@ -27,7 +27,7 @@ try:
     from aimodelshare.moral_compass import MoralcompassApiClient
     from aimodelshare.aws import get_token_from_session, _get_username_from_token
 except ImportError:
-    print("📦 Installing dependencies...")
+    print("Installing dependencies...")
     install_dependencies()
     import gradio as gr
     import pandas as pd
@@ -85,1077 +85,251 @@ def fetch_user_history(username, token):
 
 
 # ============================================================================
-# 4. MODULE DEFINITIONS — 8-STEP CURRICULUM-ALIGNED JOURNEY
+# 4. MODULE DEFINITIONS — 6-PAGE AI COST EXPLORER
 # ============================================================================
-# Phase 1: Personal Impact (Steps 0-5)
-# Phase 2: Global Scale + Audit (Steps 6-7)
+# Page 0: Intro/Hook — no quiz
+# Page 1: Per-Prompt Cost (slider) — quiz t1
+# Page 2: Training Costs (model selector) — quiz t2
+# Page 3: Water Crisis (animated bars) — quiz t3
+# Page 4: Global Scale (stat tabs) — quiz t4
+# Page 5: Action Plan (checkboxes) — no quiz
 # ============================================================================
 
 MODULES = [
     # ─────────────────────────────────────────────
-    # MODULE 0 — THE HOOK: PERSONAL CONFRONTATION
+    # MODULE 0 — INTRO: What Does AI Cost the Planet?
     # ─────────────────────────────────────────────
     {
         "id": 0,
-        "title": "Mission Dossier",
+        "title": "The Hidden Cost of AI",
         "html": """
-            <div class="scenario-box">
-                <div class="slide-body">
-
-                    <!-- HOOK: Personal confrontation -->
-                    <div style="text-align:center; margin-bottom:8px;">
-                        <div style="font-size:2.6rem; margin-bottom:6px;">👁️</div>
-                        <h2 class="slide-title" style="margin-bottom:10px; font-size:2rem; line-height:1.2;">
-                            You've already used AI today.
-                        </h2>
-                        <p style="font-size:1.15rem; max-width:650px; margin:0 auto 18px; line-height:1.5; opacity:0.85;">
-                            That autocorrect. That face unlock. That feed algorithm deciding what you see next.
-                            <br>Every single one <strong>burned electricity you never saw.</strong>
+            <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
+                <div class="ace-intro-page">
+                    <div class="ace-reveal" style="animation-delay:0s;">
+                        <div style="font-size:0.875rem; font-weight:800; letter-spacing:3px; color:var(--ace-accent); text-transform:uppercase; margin-bottom:24px; text-align:center;">
+                            Interactive Learning Experience
+                        </div>
+                    </div>
+                    <div class="ace-reveal" style="animation-delay:0.3s;">
+                        <h1 style="font-size:clamp(2rem, 7vw, 3.2rem); font-weight:800; text-align:center; line-height:1.1; letter-spacing:-1px; color:var(--ace-text); margin:0 0 28px 0;">
+                            What Does AI<br/>Really Cost <span style="color:var(--ace-accent);">the Planet?</span>
+                        </h1>
+                    </div>
+                    <div class="ace-reveal" style="animation-delay:0.7s;">
+                        <p id="ace-typewriter-container" style="font-size:1.2rem; color:var(--ace-text-dim); text-align:center; margin-top:0; max-width:500px; line-height:1.6; margin-left:auto; margin-right:auto;">
+                            <span id="ace-typewriter-text"></span><span class="ace-blink" style="color:var(--ace-accent);">|</span>
                         </p>
-                    </div>
-
-                    <!-- LIVE COUNTER — homes as primary metric, MWh secondary -->
-                    <div style="background:#1e293b; color:white; padding:18px 20px; border-radius:12px; margin-bottom:20px; text-align:center;">
-                        <div style="font-size:0.78rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6px;">
-                            ⚡ Since you opened this page, global AI has powered the equivalent of:
-                        </div>
-                        <div style="display:flex; justify-content:center; align-items:baseline; gap:6px;">
-                            <span id="live-homes-counter" style="font-size:2.8rem; font-weight:900; color:#f87171; font-family:monospace;">0</span>
-                            <span style="font-size:1.1rem; color:#94a3b8; font-weight:600;">homes for an hour</span>
-                        </div>
-                        <div style="font-size:0.82rem; color:#64748b; margin-top:4px;">
-                            (<span id="live-kwh-counter" style="color:#94a3b8;">0</span> MWh) — and rising every second
-                        </div>
-                    </div>
-                    <script>
-                    (function(){
-                        var MWH_PER_SEC = 12000 / 3600;
-                        var startTime = Date.now();
-                        function tick() {
-                            var s = (Date.now() - startTime) / 1000;
-                            var mwh = s * MWH_PER_SEC;
-                            var homes = Math.round(mwh * 0.85);
-                            var el1 = document.getElementById('live-kwh-counter');
-                            var el2 = document.getElementById('live-homes-counter');
-                            if(el1) el1.textContent = mwh.toFixed(1).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-                            if(el2) el2.textContent = homes.toLocaleString();
-                            requestAnimationFrame(tick);
-                        }
-                        tick();
-                    })();
-                    </script>
-
-                    <!-- SOCIAL PROOF -->
-                    <div style="background:rgba(99,102,241,0.08); border:2px solid rgba(99,102,241,0.2); border-radius:10px; padding:14px 18px; margin-bottom:20px; display:flex; align-items:center; gap:14px;">
-                        <span style="font-size:2rem;">🤯</span>
-                        <div>
-                            <div style="font-size:1.05rem; font-weight:700;">91% of students your age have no idea AI uses water.</div>
-                            <div style="font-size:0.9rem; opacity:0.7;">By the end of this investigation, you'll know more about AI's real cost than most adults.</div>
-                        </div>
-                    </div>
-
-                    <!-- TWO SHOCK STATS — clarify text vs image costs differ -->
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:20px;">
-                        <div style="background:#fee2e2; padding:18px; border-radius:12px; border:2px solid #fca5a5; text-align:center;">
-                            <div style="font-size:2.4rem;">📱</div>
-                            <div style="font-size:1.5rem; font-weight:900; color:#ef4444; margin:6px 0 2px;">Half a phone charge</div>
-                            <div style="font-size:0.95rem;">The energy cost of generating <strong>one</strong> AI image.</div>
-                            <div style="font-size:0.78rem; color:#7f1d1d; margin-top:4px;">Luccioni et al., 2023</div>
-                        </div>
-                        <div style="background:#dbeafe; padding:18px; border-radius:12px; border:2px solid #93c5fd; text-align:center;">
-                            <div style="font-size:2.4rem;">💧</div>
-                            <div style="font-size:1.5rem; font-weight:900; color:#1e40af; margin:6px 0 2px;">One water bottle</div>
-                            <div style="font-size:0.95rem;"><strong>Evaporated forever</strong> for every 20–25 text prompts.</div>
-                            <div style="font-size:0.78rem; color:#1e3a8a; margin-top:4px;">Li et al., 2023 — UC Riverside</div>
-                        </div>
-                    </div>
-                    <div style="padding:8px 12px; background:rgba(250,204,21,0.1); border-radius:6px; font-size:0.82rem; margin-bottom:20px; text-align:center; opacity:0.8;">
-                        ⚠️ Note: Costs vary by task. An AI-generated image uses ~50× more energy than a text reply. We'll explore this in later steps.
-                    </div>
-
-                    <!-- THE MISSION -->
-                    <div style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:12px; padding:18px; margin-bottom:18px;">
-                        <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
-                            <span style="font-size:2rem;">🔍</span>
-                            <div>
-                                <div style="font-size:0.78rem; font-weight:800; color:var(--body-text-color-subdued); letter-spacing:1.5px;">YOUR ASSIGNMENT</div>
-                                <div style="font-size:1.25rem; font-weight:800; color:var(--color-accent);">Green AI Detective — 8-Step Investigation</div>
-                            </div>
-                        </div>
-                        <p style="font-size:1rem; line-height:1.55; margin-bottom:12px;">
-                            Trace the invisible trail from your screen to the planet. In 8 steps you'll follow your prompt through networks, into GPUs, past cooling towers, across nations — and decide what's worth the cost.
-                        </p>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                            <div style="padding:10px; background:rgba(99,102,241,0.08); border-radius:8px; border-left:3px solid #6366f1;">
-                                <div style="font-weight:800; font-size:0.82rem; color:#6366f1;">PHASE 1: PERSONAL IMPACT</div>
-                                <div style="font-size:0.85rem;">Steps 1-5 — Your click → network → GPU → water → paradox</div>
-                            </div>
-                            <div style="padding:10px; background:rgba(239,68,68,0.08); border-radius:8px; border-left:3px solid #ef4444;">
-                                <div style="font-weight:800; font-size:0.82rem; color:#ef4444;">PHASE 2: GLOBAL SCALE</div>
-                                <div style="font-size:0.85rem;">Steps 6-7 — Global scale → your ethical audit</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- CTA -->
-                    <div style="text-align:center; padding:14px; background:linear-gradient(135deg, rgba(34,197,94,0.12), rgba(16,185,129,0.12)); border-radius:12px; border:2px solid #22c55e;">
-                        <p style="font-size:1.1rem; font-weight:800; color:var(--color-accent); margin-bottom:4px;">⬇️ Answer below to unlock your first Moral Compass Score</p>
-                        <p style="font-size:0.9rem; margin:0; opacity:0.7;">Every correct answer earns points and reveals the next step of the investigation.</p>
                     </div>
                 </div>
             </div>
         """,
     },
-
     # ─────────────────────────────────────────────
-    # MODULE 1 — STEP 1: THE DIGITAL GHOST (Your Click)
+    # MODULE 1 — EVERY SINGLE PROMPT
     # ─────────────────────────────────────────────
     {
         "id": 1,
-        "title": "Step 1: The Digital Ghost",
+        "title": "Every Single Prompt",
         "html": """
-            <div class="scenario-box">
-                <div class="tracker-container">
-                    <div class="tracker-step active">1. YOUR CLICK</div>
-                    <div class="tracker-step">2. THE NETWORK</div>
-                    <div class="tracker-step">3. THE GPU</div>
-                    <div class="tracker-step">4. THE WATER</div>
-                    <div class="tracker-step">5. THE PARADOX</div>
+            <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
+                <div class="ace-reveal" style="animation-delay:0s;">
+                    <div class="ace-section-label">01 / Every Single Prompt</div>
+                    <h2 class="ace-heading">One question to ChatGPT = <span style="color:var(--ace-accent);">one bottle of water</span></h2>
                 </div>
-                <h2 class="slide-title" style="text-align:center;">👻 STEP 1: THE DIGITAL GHOST</h2>
-                <div class="slide-body">
-                    <div style="max-width:800px; margin:0 auto;">
-
-                        <p style="font-size:1.1rem; text-align:center; margin-bottom:20px;">
-                            When you hit "Send" on ChatGPT, ask Snapchat My AI a question, or let an AI rewrite your essay intro —<br>
-                            you think it vanishes into the cloud. <strong>It doesn't.</strong>
-                        </p>
-
-                        <!-- ANIMATED JOURNEY -->
-                        <div style="background:#1e293b; color:white; padding:20px; border-radius:12px; margin-bottom:20px; overflow:hidden; position:relative;">
-                            <div style="font-size:0.78rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:14px; text-align:center;">
-                                ⚡ WHAT HAPPENS WHEN YOU HIT "SEND"
-                            </div>
-                            <div class="ghost-journey" style="display:flex; justify-content:space-between; align-items:center; gap:0; position:relative; padding:0 8px;">
-                                <div class="ghost-step" style="text-align:center; flex:1; opacity:0; animation: ghostFadeIn 0.5s ease forwards 0.3s;">
-                                    <div style="font-size:1.8rem;">📱</div>
-                                    <div style="font-size:0.78rem; font-weight:700; margin-top:4px;">You type</div>
-                                    <div style="font-size:0.7rem; color:#94a3b8;">"Help me with this essay"</div>
-                                </div>
-                                <div style="color:#475569; opacity:0; animation: ghostFadeIn 0.3s ease forwards 0.8s;">→</div>
-                                <div class="ghost-step" style="text-align:center; flex:1; opacity:0; animation: ghostFadeIn 0.5s ease forwards 1.0s;">
-                                    <div style="font-size:1.8rem;">🔌</div>
-                                    <div style="font-size:0.78rem; font-weight:700; margin-top:4px;">WiFi + cables</div>
-                                    <div style="font-size:0.7rem; color:#94a3b8;">1,000s of miles</div>
-                                </div>
-                                <div style="color:#475569; opacity:0; animation: ghostFadeIn 0.3s ease forwards 1.5s;">→</div>
-                                <div class="ghost-step" style="text-align:center; flex:1; opacity:0; animation: ghostFadeIn 0.5s ease forwards 1.7s;">
-                                    <div style="font-size:1.8rem;">🏭</div>
-                                    <div style="font-size:0.78rem; font-weight:700; margin-top:4px;">Data center</div>
-                                    <div style="font-size:0.7rem; color:#94a3b8;">GPU draws power</div>
-                                </div>
-                                <div style="color:#475569; opacity:0; animation: ghostFadeIn 0.3s ease forwards 2.2s;">→</div>
-                                <div class="ghost-step" style="text-align:center; flex:1; opacity:0; animation: ghostFadeIn 0.5s ease forwards 2.4s;">
-                                    <div style="font-size:1.8rem;">🔥</div>
-                                    <div style="font-size:0.78rem; font-weight:700; margin-top:4px;">Heat generated</div>
-                                    <div style="font-size:0.7rem; color:#f87171;">Needs cooling</div>
-                                </div>
-                                <div style="color:#475569; opacity:0; animation: ghostFadeIn 0.3s ease forwards 2.9s;">→</div>
-                                <div class="ghost-step" style="text-align:center; flex:1; opacity:0; animation: ghostFadeIn 0.5s ease forwards 3.1s;">
-                                    <div style="font-size:1.8rem;">💧</div>
-                                    <div style="font-size:0.78rem; font-weight:700; margin-top:4px;">Water evaporates</div>
-                                    <div style="font-size:0.7rem; color:#60a5fa;">Gone from here</div>
-                                </div>
-                            </div>
-                            <div style="text-align:center; margin-top:14px; padding:8px; background:rgba(248,113,113,0.15); border-radius:6px; opacity:0; animation: ghostFadeIn 0.5s ease forwards 3.6s;">
-                                <span style="font-weight:800; color:#f87171;">Total time:</span>
-                                <span style="color:#e2e8f0;"> ~200 milliseconds. You never noticed. But the planet did.</span>
-                            </div>
+                <div class="ace-reveal" style="animation-delay:0.2s;">
+                    <p class="ace-paragraph">Researchers at UC Riverside found that a ~100-word AI prompt uses about <strong style="color:var(--ace-text); font-weight:600;">half a liter of water</strong> &mdash; roughly one standard water bottle. That water cools the massive server chips. The energy? About the same as watching TV for <strong style="color:var(--ace-text); font-weight:600;">9 seconds</strong>.</p>
+                    <p class="ace-paragraph" style="font-size:1rem;">Doesn't sound like much, right? But think about how many prompts you send in a day...</p>
+                </div>
+                <div class="ace-reveal" style="animation-delay:0.4s;">
+                    <div class="ace-card">
+                        <label style="display:block; font-size:1rem; color:var(--ace-text-dim); margin-bottom:16px; font-weight:600;">How many AI prompts do you send per day?</label>
+                        <input type="range" id="ace-prompt-slider" min="1" max="200" value="1" style="width:100%; cursor:pointer;" oninput="aceUpdatePromptCalc(this.value)">
+                        <div style="display:flex; justify-content:space-between; font-size:0.85rem; color:var(--ace-text-dim); margin-top:8px;">
+                            <span>1</span><span>50</span><span>100</span><span>150</span><span>200</span>
                         </div>
-
-                        <!-- GUESS FIRST -->
-                        <div id="guess-block" style="background:rgba(99,102,241,0.08); border:2px solid rgba(99,102,241,0.2); border-radius:12px; padding:18px; margin-bottom:20px;">
-                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); margin-bottom:6px;">🤔 Quick — before you see the answer:</div>
-                            <p style="font-size:0.95rem; margin-bottom:4px;">
-                                Surveys suggest the average teen interacts with AI about <strong>50 times a week</strong> — counting ChatGPT, image filters, Snapchat AI, voice assistants, and smart autocomplete.
-                            </p>
-                            <p style="font-size:0.82rem; opacity:0.6; margin-bottom:12px;">
-                                (Source: Reuters/Ipsos youth AI usage survey, 2024; Goldman Sachs AI adoption report)
-                            </p>
-                            <p style="font-size:0.95rem; margin-bottom:12px;">
-                                How many <strong>phone charges</strong> of energy do you think that equals per week?
-                            </p>
-                            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
-                                <button onclick="document.getElementById('guess-reveal').style.display='block'; document.getElementById('guess-buttons').style.display='none'; document.getElementById('user-guess-1').textContent='You guessed: ~5 charges.';" class="guess-btn" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">~5 charges</button>
-                                <button onclick="document.getElementById('guess-reveal').style.display='block'; document.getElementById('guess-buttons').style.display='none'; document.getElementById('user-guess-1').textContent='You guessed: ~10 charges.';" class="guess-btn" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">~10 charges</button>
-                                <button onclick="document.getElementById('guess-reveal').style.display='block'; document.getElementById('guess-buttons').style.display='none'; document.getElementById('user-guess-1').textContent='You guessed: ~25 charges. Correct!';" class="guess-btn" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">~25 charges</button>
-                                <button onclick="document.getElementById('guess-reveal').style.display='block'; document.getElementById('guess-buttons').style.display='none'; document.getElementById('user-guess-1').textContent='You guessed: ~50 charges.';" class="guess-btn" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">~50 charges</button>
-                            </div>
-                            <div id="guess-buttons"></div>
-                            <div id="guess-reveal" style="display:none; padding:14px; background:#fee2e2; border-radius:8px; border:2px solid #ef4444;">
-                                <div id="user-guess-1" style="font-size:0.9rem; font-weight:600; color:#7f1d1d; margin-bottom:6px; padding:6px 10px; background:rgba(127,29,29,0.08); border-radius:6px;"></div>
-                                <div style="font-size:1.4rem; font-weight:900; color:#ef4444; margin-bottom:4px;">≈ 25 phone charges per week.</div>
-                                <div style="font-size:0.95rem;">That's <strong>~1,000 charges over a school year</strong> — from ONE student, without realizing it.</div>
-                                <div style="font-size:0.82rem; margin-top:4px; opacity:0.7;">Based on ~0.5 Wh avg/query across mixed AI use (Luccioni et al., 2023; IEA, 2024)</div>
-                            </div>
+                        <div id="ace-prompt-count" style="font-size:2.5rem; font-weight:800; color:var(--ace-accent); text-align:center; margin-top:20px;">1 prompt/day</div>
+                        <div id="ace-prompt-stats" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:20px;">
                         </div>
-
-                        <!-- CLASS MULTIPLIER — show the math -->
-                        <div style="background:rgba(34,197,94,0.08); border:2px solid rgba(34,197,94,0.2); border-radius:12px; padding:16px; margin-bottom:18px;">
-                            <div style="font-weight:800; font-size:1.05rem; color:#16a34a; margin-bottom:8px;">👥 Now scale it to this room</div>
-                            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; text-align:center;">
-                                <div style="background:white; padding:12px; border-radius:8px;">
-                                    <div style="font-size:0.78rem; font-weight:600; opacity:0.6;">You alone</div>
-                                    <div style="font-size:1.3rem; font-weight:900; color:#ef4444;">25/week</div>
+                    </div>
+                </div>
+                <div class="ace-reveal" style="animation-delay:0.6s;">
+                    <button onclick="aceToggleComparison()" id="ace-compare-btn" style="margin-top:20px; padding:12px 20px; font-size:0.95rem; font-weight:600; background:transparent; border:1px solid var(--ace-input-border); border-radius:12px; color:var(--ace-accent); cursor:pointer; transition:all 0.3s; font-family:'Outfit',sans-serif;">
+                        Show comparison with Google Search
+                    </button>
+                    <div id="ace-comparison-card" style="display:none; margin-top:16px;">
+                        <div class="ace-card">
+                            <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap;">
+                                <div style="flex:1; min-width:150px;">
+                                    <div style="font-size:0.85rem; color:var(--ace-text-dim); font-weight:600; text-transform:uppercase; letter-spacing:1px;">Google Search</div>
+                                    <div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+                                        <div style="height:22px; width:40px; background:var(--ace-success); border-radius:4px;"></div>
+                                        <span style="color:var(--ace-text-dim); font-size:1rem;">~0.3 Wh</span>
+                                    </div>
                                 </div>
-                                <div style="background:white; padding:12px; border-radius:8px;">
-                                    <div style="font-size:0.78rem; font-weight:600; opacity:0.6;">Your class (30 students)</div>
-                                    <div style="font-size:1.3rem; font-weight:900; color:#ef4444;">750/week</div>
-                                </div>
-                                <div style="background:white; padding:12px; border-radius:8px;">
-                                    <div style="font-size:0.78rem; font-weight:600; opacity:0.6;">Full school year (×40 weeks)</div>
-                                    <div style="font-size:1.3rem; font-weight:900; color:#ef4444;">30,000</div>
-                                    <div style="font-size:0.7rem; opacity:0.6;">phone charges</div>
+                                <div style="flex:1; min-width:150px;">
+                                    <div style="font-size:0.85rem; color:var(--ace-text-dim); font-weight:600; text-transform:uppercase; letter-spacing:1px;">AI Prompt</div>
+                                    <div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+                                        <div style="height:22px; width:200px; background:var(--ace-accent); border-radius:4px;"></div>
+                                        <span style="color:var(--ace-text-dim); font-size:1rem;">~10 Wh</span>
+                                    </div>
                                 </div>
                             </div>
-                            <div style="text-align:center; font-size:0.78rem; opacity:0.5; margin-top:6px;">
-                                Math: 25 charges × 30 students × 40 school weeks = 30,000
-                            </div>
+                            <p class="ace-paragraph" style="margin-top:16px; margin-bottom:0; font-size:1rem;">An AI prompt uses roughly <strong style="color:var(--ace-text); font-weight:600;">30x more energy</strong> than a traditional Google search.</p>
                         </div>
-
-                        <!-- PERSONAL USAGE CALCULATOR — integrated label -->
-                        <div style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:12px; padding:16px; margin-bottom:16px;">
-                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); margin-bottom:4px;">📊 YOUR Personal Footprint Calculator</div>
-                            <p style="font-size:0.9rem; margin-bottom:4px; opacity:0.8;">👇 Use the slider right below to enter YOUR weekly AI prompts and see your real impact.</p>
-                            <p style="font-size:0.78rem; margin-bottom:0; opacity:0.6;">
-                                (This slider calculates an average across text and image tasks. Heavy image generation would be higher; text-only would be lower.)
-                            </p>
-                        </div>
+                    </div>
+                </div>
+            </div>
         """,
     },
-
     # ─────────────────────────────────────────────
-    # MODULE 2 — STEP 2: THE PHYSICAL TRIP (Network)
+    # MODULE 2 — TRAINING THE BEAST
     # ─────────────────────────────────────────────
     {
         "id": 2,
-        "title": "Step 2: The Network",
+        "title": "Training the Beast",
         "html": """
-            <div class="scenario-box">
-                <div class="tracker-container">
-                    <div class="tracker-step completed">1. YOUR CLICK</div>
-                    <div class="tracker-step active">2. THE NETWORK</div>
-                    <div class="tracker-step">3. THE GPU</div>
-                    <div class="tracker-step">4. THE WATER</div>
-                    <div class="tracker-step">5. THE PARADOX</div>
+            <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
+                <div class="ace-reveal" style="animation-delay:0s;">
+                    <div class="ace-section-label">02 / Training the Beast</div>
+                    <h2 class="ace-heading">Before you ever typed a prompt, <span style="color:var(--ace-error);">millions of MWh were burned</span></h2>
                 </div>
-                <h2 class="slide-title" style="text-align:center;">🌐 STEP 2: THE PHYSICAL TRIP</h2>
-                <div class="slide-body">
-                    <div style="max-width:800px; margin:0 auto;">
-
-                        <!-- GEOGRAPHY HOOK — specific, visceral -->
-                        <p style="font-size:1.15rem; text-align:center; margin-bottom:8px; font-weight:700;">
-                            Right now, your last AI prompt is probably in Northern Virginia — or Dublin, or Singapore.
-                        </p>
-                        <p style="font-size:1rem; text-align:center; margin-bottom:20px; opacity:0.8;">
-                            Most major AI models run from a handful of mega-data-centers. If you're in Europe, your prompt likely crossed the Atlantic. In the US, it may have traveled to Virginia or Oregon. Either way: thousands of kilometers, powered every meter.
-                        </p>
-
-                        <!-- GUESS INTERACTION — distance -->
-                        <div style="background:rgba(99,102,241,0.08); border:2px solid rgba(99,102,241,0.2); border-radius:12px; padding:18px; margin-bottom:20px;">
-                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); margin-bottom:6px;">🤔 Before you see the route:</div>
-                            <p style="font-size:0.95rem; margin-bottom:12px;">
-                                How far do you think your prompt physically travels to reach an AI data center?
-                            </p>
-                            <div id="dist-guess-btns" style="display:flex; gap:8px; flex-wrap:wrap;">
-                                <button onclick="document.getElementById('dist-reveal').style.display='block'; document.getElementById('dist-guess-btns').style.display='none'; document.getElementById('user-guess-2').textContent='You guessed: ~100 km.';" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">~100 km</button>
-                                <button onclick="document.getElementById('dist-reveal').style.display='block'; document.getElementById('dist-guess-btns').style.display='none'; document.getElementById('user-guess-2').textContent='You guessed: ~1,000 km.';" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">~1,000 km</button>
-                                <button onclick="document.getElementById('dist-reveal').style.display='block'; document.getElementById('dist-guess-btns').style.display='none'; document.getElementById('user-guess-2').textContent='You guessed: ~5,000 km. Close!';" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">~5,000 km</button>
-                                <button onclick="document.getElementById('dist-reveal').style.display='block'; document.getElementById('dist-guess-btns').style.display='none'; document.getElementById('user-guess-2').textContent='You guessed: ~10,000+ km. Close!';" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">~10,000+ km</button>
-                            </div>
-                            <div id="dist-reveal" style="display:none; padding:14px; background:#fee2e2; border-radius:8px; border:2px solid #ef4444; margin-top:8px;">
-                                <div id="user-guess-2" style="font-size:0.9rem; font-weight:600; color:#7f1d1d; margin-bottom:6px; padding:6px 10px; background:rgba(127,29,29,0.08); border-radius:6px;"></div>
-                                <div style="font-size:1.3rem; font-weight:900; color:#ef4444;">~6,000 – 14,000 km round trip</div>
-                                <div style="font-size:0.9rem; margin-top:3px;">Depending on your location. From Europe that's across the Atlantic and back — powered every meter of the way.</div>
-                            </div>
-                        </div>
-
-                        <!-- PHONE BATTERY CALLBACK — bridge to their pocket -->
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
-                            <div style="padding:14px; background:rgba(239,68,68,0.08); border-radius:8px; text-align:center; border:1px solid rgba(239,68,68,0.2);">
-                                <div style="font-size:1.8rem;">🔋</div>
-                                <div style="font-weight:700; font-size:0.95rem;">Your phone gets hot using AI apps?</div>
-                                <div style="font-size:0.85rem; opacity:0.7;">That's the same physics — electricity → heat. Your phone is a tiny data center in your hand.</div>
-                            </div>
-                            <div style="padding:14px; background:rgba(34,197,94,0.08); border-radius:8px; text-align:center; border:1px solid rgba(34,197,94,0.2);">
-                                <div style="font-size:1.8rem;">📍</div>
-                                <div style="font-weight:700; font-size:0.95rem;">70% of US internet traffic</div>
-                                <div style="font-size:0.85rem; opacity:0.7;">passes through one county in Virginia — Loudoun County, "Data Center Alley"</div>
-                            </div>
-                        </div>
-
-                        <div style="padding:12px; background:#fef3c7; border-left:3px solid #f59e0b; border-radius:6px; font-size:0.9rem;">
-                            <strong>🔑 Key Insight:</strong> The internet feels free and instant. But "instant" still means electricity burned across 7,000+ km of physical cable. <strong>Instant doesn't mean free.</strong>
-                        </div>
+                <div class="ace-reveal" style="animation-delay:0.2s;">
+                    <p class="ace-paragraph">Training a large AI model means feeding it the entire internet &mdash; books, websites, code &mdash; over weeks on thousands of GPUs running 24/7. Training GPT-3 alone used enough electricity to <strong style="color:var(--ace-text); font-weight:600;">power 120 U.S. homes for a year</strong>.</p>
+                </div>
+                <div class="ace-reveal" style="animation-delay:0.4s;">
+                    <div style="font-size:1rem; color:var(--ace-text-dim); margin-bottom:12px; font-weight:600;">Tap a model to see its training footprint</div>
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px;">
+                        <button onclick="aceSelectModel(0)" id="ace-model-btn-0" class="ace-model-btn">
+                            <div style="font-size:2rem;">&#129302;</div>
+                            <div style="font-size:1.2rem; font-weight:800; margin-top:8px;">GPT-3</div>
+                            <div style="font-size:0.85rem; color:var(--ace-text-dim); margin-top:4px;">2020</div>
+                        </button>
+                        <button onclick="aceSelectModel(1)" id="ace-model-btn-1" class="ace-model-btn">
+                            <div style="font-size:2rem;">&#129504;</div>
+                            <div style="font-size:1.2rem; font-weight:800; margin-top:8px;">GPT-4</div>
+                            <div style="font-size:0.85rem; color:var(--ace-text-dim); margin-top:4px;">2023</div>
+                        </button>
+                        <button onclick="aceSelectModel(2)" id="ace-model-btn-2" class="ace-model-btn">
+                            <div style="font-size:2rem;">&#129433;</div>
+                            <div style="font-size:1.2rem; font-weight:800; margin-top:8px;">Llama 3</div>
+                            <div style="font-size:0.85rem; color:var(--ace-text-dim); margin-top:4px;">2024</div>
+                        </button>
                     </div>
+                    <div id="ace-model-detail" style="display:none; margin-top:20px;"></div>
+                </div>
+                <div class="ace-reveal" style="animation-delay:0.6s;">
+                    <div style="margin-top:32px; font-size:1rem; color:var(--ace-text-dim); margin-bottom:16px; font-weight:600;">Training energy has exploded:</div>
+                    <div id="ace-training-bars"></div>
                 </div>
             </div>
         """,
     },
-
     # ─────────────────────────────────────────────
-    # MODULE 3 — STEP 3: THE BRAIN IN THE BASEMENT (GPU)
+    # MODULE 3 — WATER: THE HIDDEN COST
     # ─────────────────────────────────────────────
     {
         "id": 3,
-        "title": "Step 3: The GPU",
+        "title": "Water: The Hidden Cost",
         "html": """
-            <div class="scenario-box">
-                <div class="tracker-container">
-                    <div class="tracker-step completed">1. YOUR CLICK</div>
-                    <div class="tracker-step completed">2. THE NETWORK</div>
-                    <div class="tracker-step active">3. THE GPU</div>
-                    <div class="tracker-step">4. THE WATER</div>
-                    <div class="tracker-step">5. THE PARADOX</div>
+            <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
+                <div class="ace-reveal" style="animation-delay:0s;">
+                    <div class="ace-section-label">03 / Water: The Hidden Cost</div>
+                    <h2 class="ace-heading">AI could drink more water than <span style="color:var(--ace-accent);">all the world's bottled water</span></h2>
                 </div>
-                <h2 class="slide-title" style="text-align:center;">🧠 STEP 3: THE BRAIN IN THE BASEMENT</h2>
-                <div class="slide-body">
-                    <div style="max-width:800px; margin:0 auto;">
-
-                        <p style="font-size:1.1rem; text-align:center; margin-bottom:20px;">
-                            Your prompt arrived at a GPU — the processor that does the "thinking." You know the GPU in a PS5 that renders your games?
-                            <br><strong>Now imagine 10,000 of them, stacked in a warehouse, running 24/7 at max power.</strong>
-                        </p>
-
-                        <!-- PS5 SCALING LADDER -->
-                        <div style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:12px; padding:18px; margin-bottom:20px;">
-                            <div style="font-weight:800; font-size:1rem; margin-bottom:12px; text-align:center;">🎮 FROM YOUR ROOM TO THE DATA CENTER</div>
-                            <div style="display:grid; grid-template-columns:1fr auto 1fr auto 1fr; gap:6px; align-items:center; text-align:center;">
-                                <div style="padding:12px; background:rgba(99,102,241,0.08); border-radius:8px;">
-                                    <div style="font-size:1.8rem;">🎮</div>
-                                    <div style="font-weight:800; font-size:0.85rem;">Your PS5</div>
-                                    <div style="font-size:0.78rem; opacity:0.6;">1 GPU</div>
-                                    <div style="font-size:0.78rem; opacity:0.6;">350W</div>
-                                    <div style="font-size:0.78rem; opacity:0.6;">A few hrs/day</div>
-                                </div>
-                                <div style="font-size:1.3rem; color:var(--body-text-color-subdued);">→</div>
-                                <div style="padding:12px; background:rgba(239,68,68,0.08); border-radius:8px;">
-                                    <div style="font-size:1.8rem;">🖥️</div>
-                                    <div style="font-weight:800; font-size:0.85rem;">1 AI Server Rack</div>
-                                    <div style="font-size:0.78rem; opacity:0.6;">8 GPUs</div>
-                                    <div style="font-size:0.78rem; color:#ef4444; font-weight:600;">10,000W</div>
-                                    <div style="font-size:0.78rem; opacity:0.6;">24/7/365</div>
-                                </div>
-                                <div style="font-size:1.3rem; color:var(--body-text-color-subdued);">→</div>
-                                <div style="padding:12px; background:rgba(239,68,68,0.15); border-radius:8px; border:2px solid #fca5a5;">
-                                    <div style="font-size:1.8rem;">🏭</div>
-                                    <div style="font-weight:800; font-size:0.85rem;">1 Data Center</div>
-                                    <div style="font-size:0.78rem; opacity:0.6;">100,000+ GPUs</div>
-                                    <div style="font-size:0.78rem; color:#ef4444; font-weight:700;">50-100 MW</div>
-                                    <div style="font-size:0.78rem; color:#ef4444; font-weight:600;">= a town of ~80,000</div>
-                                </div>
+                <div class="ace-reveal" style="animation-delay:0.2s;">
+                    <p class="ace-paragraph">A 2025 study found that AI's global water footprint could reach <strong style="color:var(--ace-text); font-weight:600;">312 to 764 billion liters per year</strong> &mdash; comparable to the entire world's annual bottled water consumption. Meanwhile, only <strong style="color:var(--ace-accent); font-weight:700;">0.5% of Earth's water</strong> is accessible freshwater.</p>
+                </div>
+                <div class="ace-reveal" style="animation-delay:0.4s;">
+                    <div class="ace-card">
+                        <div style="text-align:center; font-size:1rem; color:var(--ace-text-dim); margin-bottom:20px; font-weight:600;">AI's annual water use visualized</div>
+                        <div id="ace-water-bars" style="display:flex; justify-content:center; gap:3px; flex-wrap:wrap;"></div>
+                        <div style="display:flex; justify-content:space-between; margin-top:12px; font-size:0.8rem; color:var(--ace-text-dim);">
+                            <span>0</span><span>Each bar = ~15 billion liters</span><span>764B L</span>
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:20px;">
+                            <div style="padding:16px; border-radius:12px; background:var(--ace-input-bg); border:1px solid var(--ace-border-color); text-align:center;">
+                                <div style="font-size:1.8rem;">&#127963;&#65039;</div>
+                                <div style="font-size:1.1rem; font-weight:700; color:var(--ace-text); margin-top:6px;">5M gallons/day</div>
+                                <div style="font-size:0.8rem; color:var(--ace-text-dim); margin-top:4px;">One large data center</div>
+                                <div style="font-size:0.8rem; color:var(--ace-accent); margin-top:2px;">= a town of 50,000 people</div>
                             </div>
-                            <div style="text-align:center; margin-top:10px; font-size:0.82rem; opacity:0.6;">
-                                The heat from one data center could warm an Olympic swimming pool in hours.
+                            <div style="padding:16px; border-radius:12px; background:var(--ace-input-bg); border:1px solid var(--ace-border-color); text-align:center;">
+                                <div style="font-size:1.8rem;">&#127758;</div>
+                                <div style="font-size:1.1rem; font-weight:700; color:var(--ace-text); margin-top:6px;">56% deficit by 2030</div>
+                                <div style="font-size:0.8rem; color:var(--ace-text-dim); margin-top:4px;">Global freshwater gap</div>
+                                <div style="font-size:0.8rem; color:var(--ace-accent); margin-top:2px;">AI is making it worse</div>
                             </div>
                         </div>
-
-                        <!-- GUESS FIRST — 10x comparison -->
-                        <div style="background:rgba(99,102,241,0.08); border:2px solid rgba(99,102,241,0.2); border-radius:12px; padding:18px; margin-bottom:20px;">
-                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); margin-bottom:6px;">🤔 Take a guess:</div>
-                            <p style="font-size:0.95rem; margin-bottom:12px;">
-                                How many times more energy does a single ChatGPT query use compared to a Google search?
-                            </p>
-                            <div id="gpu-guess-btns" style="display:flex; gap:8px; flex-wrap:wrap;">
-                                <button onclick="document.getElementById('gpu-reveal').style.display='block'; document.getElementById('gpu-guess-btns').style.display='none';" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">2× more</button>
-                                <button onclick="document.getElementById('gpu-reveal').style.display='block'; document.getElementById('gpu-guess-btns').style.display='none';" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">5× more</button>
-                                <button onclick="document.getElementById('gpu-reveal').style.display='block'; document.getElementById('gpu-guess-btns').style.display='none';" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">10× more</button>
-                                <button onclick="document.getElementById('gpu-reveal').style.display='block'; document.getElementById('gpu-guess-btns').style.display='none';" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">50× more</button>
-                            </div>
-                            <div id="gpu-reveal" style="display:none;">
-                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:12px;">
-                                    <div style="background:rgba(59,130,246,0.08); padding:16px; border-radius:12px; border:2px solid rgba(59,130,246,0.2); text-align:center;">
-                                        <div style="font-size:0.8rem; font-weight:700; color:#3b82f6; text-transform:uppercase; margin-bottom:6px;">Google Search</div>
-                                        <div style="font-size:2.5rem;">🔍</div>
-                                        <div style="margin-top:8px; height:12px; background:#e5e7eb; border-radius:6px; overflow:hidden;">
-                                            <div style="height:100%; width:10%; background:#3b82f6; border-radius:6px;"></div>
-                                        </div>
-                                        <div style="font-size:0.9rem; margin-top:4px; font-weight:700;">0.3 Wh</div>
-                                    </div>
-                                    <div style="background:rgba(239,68,68,0.08); padding:16px; border-radius:12px; border:2px solid rgba(239,68,68,0.2); text-align:center;">
-                                        <div style="font-size:0.8rem; font-weight:700; color:#ef4444; text-transform:uppercase; margin-bottom:6px;">ChatGPT Query</div>
-                                        <div style="font-size:2.5rem;">🤖</div>
-                                        <div style="margin-top:8px; height:12px; background:#e5e7eb; border-radius:6px; overflow:hidden;">
-                                            <div style="height:100%; width:100%; background:#ef4444; border-radius:6px;"></div>
-                                        </div>
-                                        <div style="font-size:0.9rem; margin-top:4px; font-weight:700; color:#ef4444;">3.0 Wh — 10× more ⚠️</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- COOKBOOK ANALOGY — intuitive, not technical -->
-                        <div style="background:rgba(250,204,21,0.08); border:2px solid rgba(250,204,21,0.25); border-radius:12px; padding:16px; margin-bottom:18px;">
-                            <div style="font-weight:800; font-size:1rem; margin-bottom:8px;">📖 TRAINING vs. INFERENCE — The Cookbook Analogy</div>
-                            <p style="font-size:0.95rem; margin-bottom:0; line-height:1.6;">
-                                <strong>Training</strong> is like writing a cookbook. You do it once — it's months of hard work — but then it's done.
-                                <br><strong>Inference</strong> is like cooking every meal from that cookbook for <strong>200 million people, every single day, forever.</strong>
-                                <br>The cookbook took effort. But the <em>cooking</em> never stops.
-                            </p>
-                        </div>
-
-                        <!-- 11-DAY CLIMAX — with its own guess -->
-                        <div style="background:#1e293b; color:#e2e8f0; padding:20px; border-radius:12px; margin-bottom:18px;">
-                            <div style="color:#fbbf24; font-weight:800; margin-bottom:10px; text-align:center; font-size:1.05rem;">⚡ THE REAL ENERGY MONSTER</div>
-                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
-                                <div style="background:rgba(96,165,250,0.1); padding:12px; border-radius:8px;">
-                                    <div style="font-weight:700; color:#60a5fa;">📖 TRAINING (one-time)</div>
-                                    <div style="font-size:0.9rem; margin-top:4px;">GPT-3 training: <strong>1,287 MWh</strong></div>
-                                    <div style="font-size:0.82rem; opacity:0.7;">= 120 homes powered for a year</div>
-                                </div>
-                                <div style="background:rgba(248,113,113,0.1); padding:12px; border-radius:8px;">
-                                    <div style="font-weight:700; color:#f87171;">🔥 INFERENCE (daily)</div>
-                                    <div style="font-size:0.9rem; margin-top:4px;">200M queries/day: <strong>~120 MWh/day</strong></div>
-                                    <div style="font-size:0.82rem; opacity:0.7;">and growing every month</div>
-                                </div>
-                            </div>
-                            <div style="text-align:center; margin-bottom:8px; font-size:0.95rem;">
-                                Training consumed 1,287 MWh of energy over several months. At 120 MWh/day of inference, how many days until users have consumed that same <strong>amount of energy</strong>?
-                            </div>
-                            <div id="days-guess-btns" style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
-                                <button onclick="document.getElementById('days-reveal').style.display='block'; document.getElementById('days-guess-btns').style.display='none'; document.getElementById('user-guess-3').textContent='You guessed: ~1 year.';" style="padding:6px 16px; border-radius:8px; border:2px solid rgba(250,204,21,0.3); background:rgba(255,255,255,0.05); color:white; font-weight:700; font-size:0.9rem; cursor:pointer;">~1 year</button>
-                                <button onclick="document.getElementById('days-reveal').style.display='block'; document.getElementById('days-guess-btns').style.display='none'; document.getElementById('user-guess-3').textContent='You guessed: ~6 months.';" style="padding:6px 16px; border-radius:8px; border:2px solid rgba(250,204,21,0.3); background:rgba(255,255,255,0.05); color:white; font-weight:700; font-size:0.9rem; cursor:pointer;">~6 months</button>
-                                <button onclick="document.getElementById('days-reveal').style.display='block'; document.getElementById('days-guess-btns').style.display='none'; document.getElementById('user-guess-3').textContent='You guessed: ~1 month.';" style="padding:6px 16px; border-radius:8px; border:2px solid rgba(250,204,21,0.3); background:rgba(255,255,255,0.05); color:white; font-weight:700; font-size:0.9rem; cursor:pointer;">~1 month</button>
-                                <button onclick="document.getElementById('days-reveal').style.display='block'; document.getElementById('days-guess-btns').style.display='none'; document.getElementById('user-guess-3').textContent='You guessed: Less. Correct!';" style="padding:6px 16px; border-radius:8px; border:2px solid rgba(250,204,21,0.3); background:rgba(255,255,255,0.05); color:white; font-weight:700; font-size:0.9rem; cursor:pointer;">Less</button>
-                            </div>
-                            <div id="days-reveal" style="display:none; margin-top:12px; text-align:center; padding:16px; background:rgba(248,113,113,0.15); border-radius:10px; border:2px solid #f87171;">
-                                <div id="user-guess-3" style="font-size:0.9rem; font-weight:600; color:#fca5a5; margin-bottom:6px; padding:6px 10px; background:rgba(248,113,113,0.1); border-radius:6px;"></div>
-                                <div style="font-size:2.4rem; font-weight:900; color:#f87171;">~11 days.</div>
-                                <div style="font-size:1rem; margin-top:4px; color:#fca5a5;">All those months of training? Users burned through the same energy in less than two weeks.</div>
-                                <div style="font-size:0.82rem; margin-top:6px; opacity:0.6;">That was 2023. Usage has doubled since then.</div>
-                            </div>
-                        </div>
-
-                        <!-- OPPORTUNITY COST — what ELSE could this power? -->
-                        <div style="background:rgba(34,197,94,0.08); border:2px solid rgba(34,197,94,0.2); border-radius:12px; padding:16px; margin-bottom:16px;">
-                            <div style="font-weight:800; font-size:1rem; color:#16a34a; margin-bottom:8px;">🔄 WHAT ELSE COULD THAT ENERGY DO?</div>
-                            <p style="font-size:0.9rem; margin-bottom:10px;">ChatGPT's daily inference energy (~120 MWh/day) could instead:</p>
-                            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; text-align:center;">
-                                <div style="background:white; padding:10px; border-radius:8px;">
-                                    <div style="font-size:1.4rem;">🏫</div>
-                                    <div style="font-weight:700; font-size:0.85rem;">Power ~300 schools</div>
-                                    <div style="font-size:0.75rem; opacity:0.6;">for a full day</div>
-                                </div>
-                                <div style="background:white; padding:10px; border-radius:8px;">
-                                    <div style="font-size:1.4rem;">📱</div>
-                                    <div style="font-weight:700; font-size:0.85rem;">Charge 10 million phones</div>
-                                    <div style="font-size:0.75rem; opacity:0.6;">to 100%</div>
-                                </div>
-                                <div style="background:white; padding:10px; border-radius:8px;">
-                                    <div style="font-size:1.4rem;">🚇</div>
-                                    <div style="font-weight:700; font-size:0.85rem;">Run the London Tube</div>
-                                    <div style="font-size:0.75rem; opacity:0.6;">for 8 hours</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style="padding:12px; background:#fef3c7; border-left:3px solid #f59e0b; border-radius:6px; font-size:0.9rem;">
-                            <strong>🔑 Key Insight:</strong> Everyone talks about the cost of <em>training</em> AI. But <strong>inference — the daily use — overtakes training in just 11 days.</strong> The cooking costs more than the cookbook, and the restaurant never closes.
-                        </div>
+                    </div>
+                </div>
+                <div class="ace-reveal" style="animation-delay:0.6s;">
+                    <div class="ace-card" style="margin-top:24px;">
+                        <div style="font-size:1.1rem; font-weight:700; color:var(--ace-text); margin-bottom:12px;">Quick Check: Where does data center cooling water come from?</div>
+                        <div id="ace-water-quiz" style="display:grid; gap:8px;"></div>
+                        <div id="ace-water-quiz-result" style="display:none; margin-top:16px;"></div>
                     </div>
                 </div>
             </div>
         """,
     },
-
     # ─────────────────────────────────────────────
-    # MODULE 4 — STEP 4: THE THIRST FOR COOLING (Water)
+    # MODULE 4 — ZOOM OUT: GLOBAL SCALE
     # ─────────────────────────────────────────────
     {
         "id": 4,
-        "title": "Step 4: The Water",
+        "title": "Zoom Out",
         "html": """
-            <div class="scenario-box">
-                <div class="tracker-container">
-                    <div class="tracker-step completed">1. YOUR CLICK</div>
-                    <div class="tracker-step completed">2. THE NETWORK</div>
-                    <div class="tracker-step completed">3. THE GPU</div>
-                    <div class="tracker-step active">4. THE WATER</div>
-                    <div class="tracker-step">5. THE PARADOX</div>
+            <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
+                <div class="ace-reveal" style="animation-delay:0s;">
+                    <div class="ace-section-label">04 / Zoom Out</div>
+                    <h2 class="ace-heading">AI's appetite is the size of <span style="color:var(--ace-warning);">entire countries</span></h2>
                 </div>
-                <h2 class="slide-title" style="text-align:center;">💧 STEP 4: THE THIRST FOR COOLING</h2>
-                <div class="slide-body">
-                    <div style="max-width:800px; margin:0 auto;">
-
-                        <!-- VISCERAL OPENER — WHY water specifically -->
-                        <p style="font-size:1.1rem; text-align:center; margin-bottom:8px;">
-                            Those 100,000 GPUs from Step 3? At full power, they produce so much heat they would <strong style="color:#ef4444;">physically melt their own circuits</strong> within minutes.
-                        </p>
-                        <p style="font-size:1.05rem; text-align:center; margin-bottom:20px; opacity:0.85;">
-                            The solution? Evaporate massive amounts of water. It enters the atmosphere and falls as rain — but somewhere else entirely. For the local community, that water is <strong>gone for good.</strong>
-                        </p>
-
-                        <!-- GUESS FIRST — how much water per day? -->
-                        <div style="background:rgba(99,102,241,0.08); border:2px solid rgba(99,102,241,0.2); border-radius:12px; padding:18px; margin-bottom:20px;">
-                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); margin-bottom:6px;">🤔 Guess first:</div>
-                            <p style="font-size:0.95rem; margin-bottom:12px;">
-                                A single large AI data center uses how much water <strong>per day</strong>?
-                            </p>
-                            <div id="water-guess-btns" style="display:flex; gap:8px; flex-wrap:wrap;">
-                                <button onclick="document.getElementById('water-reveal').style.display='block'; document.getElementById('water-guess-btns').style.display='none';" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">~1,000 liters</button>
-                                <button onclick="document.getElementById('water-reveal').style.display='block'; document.getElementById('water-guess-btns').style.display='none';" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">~100,000 liters</button>
-                                <button onclick="document.getElementById('water-reveal').style.display='block'; document.getElementById('water-guess-btns').style.display='none';" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">~1 million liters</button>
-                                <button onclick="document.getElementById('water-reveal').style.display='block'; document.getElementById('water-guess-btns').style.display='none';" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">~20 million liters</button>
-                            </div>
-                            <div id="water-reveal" style="display:none; padding:14px; background:#dbeafe; border-radius:8px; border:2px solid #3b82f6; margin-top:8px;">
-                                <div style="font-size:1.4rem; font-weight:900; color:#1e40af;">~19 million liters / day</div>
-                                <div style="font-size:0.95rem; margin-top:3px;">That's 5 million gallons — enough to supply <strong>50,000 people</strong> with their daily drinking water.</div>
-                                <div style="font-size:0.82rem; margin-top:6px; opacity:0.7;">And that's just ONE data center. Google, Microsoft, and Meta each operate dozens.</div>
-                            </div>
-                        </div>
-
-                        <!-- BATHTUB ANALOGY — make the scale intuitive -->
-                        <div style="background:#1e293b; color:white; padding:18px; border-radius:12px; margin-bottom:20px;">
-                            <div style="color:#60a5fa; font-weight:800; margin-bottom:12px; text-align:center;">🛁 THE BATHTUB TEST</div>
-                            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; text-align:center;">
-                                <div style="padding:12px; background:rgba(96,165,250,0.1); border-radius:8px;">
-                                    <div style="font-size:2rem;">💬</div>
-                                    <div style="font-size:0.78rem; color:#94a3b8;">20-25 AI prompts</div>
-                                    <div style="font-size:1.1rem; font-weight:900; color:#60a5fa;">1 bottle</div>
-                                    <div style="font-size:0.72rem; color:#94a3b8;">500ml</div>
-                                </div>
-                                <div style="padding:12px; background:rgba(96,165,250,0.15); border-radius:8px;">
-                                    <div style="font-size:2rem;">📱</div>
-                                    <div style="font-size:0.78rem; color:#94a3b8;">Your weekly AI use (50/wk)</div>
-                                    <div style="font-size:1.1rem; font-weight:900; color:#60a5fa;">~1 liter</div>
-                                    <div style="font-size:0.72rem; color:#94a3b8;">evaporated/week</div>
-                                </div>
-                                <div style="padding:12px; background:rgba(248,113,113,0.15); border-radius:8px;">
-                                    <div style="font-size:2rem;">🏫</div>
-                                    <div style="font-size:0.78rem; color:#94a3b8;">Your class (30 students/yr)</div>
-                                    <div style="font-size:1.1rem; font-weight:900; color:#f87171;">~1,200 liters</div>
-                                    <div style="font-size:0.72rem; color:#94a3b8;">= 7 full bathtubs</div>
-                                </div>
-                            </div>
-                            <div style="text-align:center; margin-top:10px; padding:8px; background:rgba(248,113,113,0.1); border-radius:6px; font-size:0.85rem;">
-                                7 bathtubs from one class sounds small next to a data center's 19 million liters/day. But that's the point: <strong style="color:#f87171;">the data center exists because millions of classes are all sending prompts at once.</strong> Your 7 bathtubs × every class in the world = the data center.
-                            </div>
-                            <div style="text-align:center; font-size:0.72rem; color:#64748b; margin-top:6px;">Source: Li et al., 2023, UC Riverside</div>
-                        </div>
-
-                        <!-- REAL PEOPLE — not just stats, human stories -->
-                        <div style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:12px; padding:18px; margin-bottom:18px;">
-                            <div style="font-weight:800; font-size:1.05rem; margin-bottom:12px;">🗣️ REAL PEOPLE, REAL CONFLICT</div>
-                            <div style="display:grid; gap:10px;">
-                                <div style="padding:12px; background:rgba(239,68,68,0.06); border-radius:8px; border-left:4px solid #ef4444;">
-                                    <div style="font-weight:700; font-size:0.95rem;">🇺🇸 Mesa, Arizona (2023)</div>
-                                    <div style="font-size:0.88rem; line-height:1.5; margin-top:4px;">
-                                        During the worst drought in 1,200 years, residents discovered Microsoft's data center was using <strong>56 million gallons/year</strong> of their water. Families were told to shorten showers while a server farm evaporated enough water to supply 670 homes.
-                                    </div>
-                                </div>
-                                <div style="padding:12px; background:rgba(59,130,246,0.06); border-radius:8px; border-left:4px solid #3b82f6;">
-                                    <div style="font-weight:700; font-size:0.95rem;">📊 Google Global (2023)</div>
-                                    <div style="font-size:0.88rem; line-height:1.5; margin-top:4px;">
-                                        Total water use: <strong>5.6 billion gallons</strong> — up 17% from the previous year. That's enough to fill 8,500 Olympic swimming pools, evaporated in a single year.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- THE INVISIBLE PIPELINE -->
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
-                            <div style="padding:14px; background:rgba(239,68,68,0.08); border-radius:8px; text-align:center; border:1px solid rgba(239,68,68,0.2);">
-                                <div style="font-size:1.8rem;">🏜️</div>
-                                <div style="font-weight:700; font-size:0.95rem;">Why drought zones?</div>
-                                <div style="font-size:0.85rem; opacity:0.7;">Land is cheap in dry areas. Tech companies save billions — and local communities pay with their water.</div>
-                            </div>
-                            <div style="padding:14px; background:rgba(34,197,94,0.08); border-radius:8px; text-align:center; border:1px solid rgba(34,197,94,0.2);">
-                                <div style="font-size:1.8rem;">♻️</div>
-                                <div style="font-weight:700; font-size:0.95rem;">Can't we just recycle it?</div>
-                                <div style="font-size:0.85rem; opacity:0.7;">Evaporative cooling turns water into vapor. It re-enters the water cycle — but as rain in a different watershed. The local community doesn't get it back.</div>
-                            </div>
-                        </div>
-
-                        <div style="padding:12px; background:#fef3c7; border-left:3px solid #f59e0b; border-radius:6px; font-size:0.9rem;">
-                            <strong>🔑 Key Insight:</strong> This isn't just environmental — it's a <strong>justice</strong> problem. The heaviest AI users (wealthy nations) aren't the ones losing water. Data centers go where land and water are cheap — and local communities bear the cost of someone else's convenience.
-                        </div>
+                <div class="ace-reveal" style="animation-delay:0.2s;">
+                    <p class="ace-paragraph">Data centers already use about <strong style="color:var(--ace-text); font-weight:600;">1.5% of global electricity</strong> &mdash; projected to nearly triple by 2030. The U.S. alone holds 45.6% of the world's data centers.</p>
+                </div>
+                <div class="ace-reveal" style="animation-delay:0.4s;">
+                    <div class="ace-card">
+                        <div id="ace-scale-tabs" style="display:flex; gap:8px; margin-bottom:20px;"></div>
+                        <div id="ace-scale-display" style="text-align:center;"></div>
                     </div>
+                </div>
+                <div class="ace-reveal" style="animation-delay:0.6s;">
+                    <div style="margin-top:28px; font-size:1rem; color:var(--ace-text-dim); margin-bottom:16px; font-weight:600;">Where does the energy go inside a data center?</div>
+                    <div id="ace-energy-breakdown"></div>
                 </div>
             </div>
         """,
     },
-
     # ─────────────────────────────────────────────
-    # MODULE 5 — STEP 5: THE SUSTAINABILITY PARADOX
+    # MODULE 5 — YOUR MOVE: ACTION PLAN
     # ─────────────────────────────────────────────
     {
         "id": 5,
-        "title": "Step 5: The Paradox",
+        "title": "Your Move",
         "html": """
-            <div class="scenario-box">
-                <div class="tracker-container">
-                    <div class="tracker-step completed">1. YOUR CLICK</div>
-                    <div class="tracker-step completed">2. THE NETWORK</div>
-                    <div class="tracker-step completed">3. THE GPU</div>
-                    <div class="tracker-step completed">4. THE WATER</div>
-                    <div class="tracker-step active">5. THE PARADOX</div>
+            <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
+                <div class="ace-reveal" style="animation-delay:0s;">
+                    <div class="ace-section-label">05 / Your Move</div>
+                    <h2 class="ace-heading">Now you know. <span style="color:var(--ace-success);">So what can you actually do?</span></h2>
                 </div>
-                <h2 class="slide-title" style="text-align:center;">⚖️ STEP 5: THE SUSTAINABILITY PARADOX</h2>
-                <div class="slide-body">
-                    <div style="max-width:800px; margin:0 auto;">
-
-                        <!-- OPEN WITH THE CONTRADICTION — not a summary, a genuine puzzle -->
-                        <p style="font-size:1.1rem; text-align:center; margin-bottom:6px;">
-                            Here's the twist that makes this whole investigation complicated:
-                        </p>
-                        <div style="text-align:center; margin-bottom:20px;">
-                            <span style="font-size:1.2rem; font-weight:800; color:#ef4444;">AI is destroying the environment</span>
-                            <span style="font-size:1.2rem; font-weight:800; opacity:0.4; margin:0 10px;">&</span>
-                            <span style="font-size:1.2rem; font-weight:800; color:#22c55e;">AI is saving the environment.</span>
-                            <br><span style="font-size:1rem; opacity:0.7; font-weight:600;">Both are true. At the same time.</span>
-                        </div>
-
-                        <!-- INTERACTIVE SORT — classify real AI uses -->
-                        <div style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:12px; padding:18px; margin-bottom:20px;">
-                            <div style="font-weight:800; font-size:1.05rem; margin-bottom:6px;">🧪 CONTEXT FOR YOUR DECISION</div>
-                            <p style="font-size:0.88rem; margin-bottom:12px; opacity:0.7;">Tap each use case to see its environmental cost and benefit. Then form your own opinion: <em>"Does the benefit justify the electricity and water?"</em></p>
-
-                            <div style="display:grid; gap:8px;" id="sort-cases">
-                                <details style="border-radius:8px; overflow:hidden; border:2px solid rgba(148,163,184,0.3);">
-                                    <summary style="padding:12px; font-weight:700; cursor:pointer; display:flex; justify-content:space-between; align-items:center; background:rgba(148,163,184,0.05);">
-                                        <span>🎨 Generating 50 AI memes for a group chat</span>
-                                        <span style="font-size:0.75rem; color:#94a3b8;">TAP</span>
-                                    </summary>
-                                    <div style="padding:12px; border-top:1px solid rgba(148,163,184,0.15); font-size:0.9rem;">
-                                        <div style="font-weight:700; color:#ef4444; margin-bottom:4px;">⚖️ COST: ~25 phone charges of energy. Half a liter of water evaporated.</div>
-                                        <div>BENEFIT: Entertainment for ~10 minutes. Could you have found a similar meme with a Google Image search at 1/10th the energy? Probably.</div>
-                                    </div>
-                                </details>
-
-                                <details style="border-radius:8px; overflow:hidden; border:2px solid rgba(148,163,184,0.3);">
-                                    <summary style="padding:12px; font-weight:700; cursor:pointer; display:flex; justify-content:space-between; align-items:center; background:rgba(148,163,184,0.05);">
-                                        <span>🌾 AI predicting crop disease to save 30% of a harvest</span>
-                                        <span style="font-size:0.75rem; color:#94a3b8;">TAP</span>
-                                    </summary>
-                                    <div style="padding:12px; border-top:1px solid rgba(148,163,184,0.15); font-size:0.9rem;">
-                                        <div style="font-weight:700; color:#22c55e; margin-bottom:4px;">⚖️ COST: Significant computation. BENEFIT: Feeding thousands of families.</div>
-                                        <div>This one AI system might save more water (through reduced irrigation waste) than it consumes for cooling. <strong>Net positive.</strong></div>
-                                    </div>
-                                </details>
-
-                                <details style="border-radius:8px; overflow:hidden; border:2px solid rgba(148,163,184,0.3);">
-                                    <summary style="padding:12px; font-weight:700; cursor:pointer; display:flex; justify-content:space-between; align-items:center; background:rgba(148,163,184,0.05);">
-                                        <span>📚 Student using AI to understand a difficult concept they're stuck on</span>
-                                        <span style="font-size:0.75rem; color:#94a3b8;">TAP</span>
-                                    </summary>
-                                    <div style="padding:12px; border-top:1px solid rgba(148,163,184,0.15); font-size:0.9rem;">
-                                        <div style="font-weight:700; color:#f59e0b; margin-bottom:4px;">⚖️ COST: A few prompts. BENEFIT: Genuine learning that couldn't happen otherwise.</div>
-                                        <div>This one's genuinely debatable. If the textbook or a tutor could have helped, it's less justified. If AI is the only resource available? <strong>Probably worth it.</strong> Context matters.</div>
-                                    </div>
-                                </details>
-                            </div>
-                        </div>
-
-                        <!-- THE FRAMEWORK — the tool they take away -->
-                        <div style="background:#1e293b; color:white; padding:20px; border-radius:12px; margin-bottom:18px;">
-                            <div style="text-align:center; margin-bottom:14px;">
-                                <div style="font-size:0.78rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:1.5px;">THE GREEN AI DETECTIVE'S FRAMEWORK</div>
-                                <div style="font-size:1.3rem; font-weight:900; color:#fbbf24; margin-top:6px;">Before you send any prompt, ask:</div>
-                            </div>
-                            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; text-align:center;">
-                                <div style="padding:14px; background:rgba(250,204,21,0.1); border-radius:8px;">
-                                    <div style="font-size:1.6rem;">1️⃣</div>
-                                    <div style="font-weight:700; font-size:0.9rem; margin-top:4px;">Do I need AI for this?</div>
-                                    <div style="font-size:0.78rem; color:#94a3b8; margin-top:4px;">Could a search engine, textbook, or my own thinking handle it?</div>
-                                </div>
-                                <div style="padding:14px; background:rgba(250,204,21,0.1); border-radius:8px;">
-                                    <div style="font-size:1.6rem;">2️⃣</div>
-                                    <div style="font-weight:700; font-size:0.9rem; margin-top:4px;">Is the benefit real?</div>
-                                    <div style="font-size:0.78rem; color:#94a3b8; margin-top:4px;">Learning, safety, health — or just convenience I could skip?</div>
-                                </div>
-                                <div style="padding:14px; background:rgba(250,204,21,0.1); border-radius:8px;">
-                                    <div style="font-size:1.6rem;">3️⃣</div>
-                                    <div style="font-weight:700; font-size:0.9rem; margin-top:4px;">Am I being efficient?</div>
-                                    <div style="font-size:0.78rem; color:#94a3b8; margin-top:4px;">One clear, detailed prompt beats 12 vague attempts. Follow-ups are fine — mindless repetition isn't.</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- PHASE 1 CAPSTONE — the real question -->
-                        <div style="text-align:center; padding:16px; background:linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.08)); border:2px solid rgba(99,102,241,0.2); border-radius:12px; margin-bottom:16px;">
-                            <div style="font-size:0.78rem; font-weight:700; color:#6366f1; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6px;">🏁 PHASE 1 COMPLETE</div>
-                            <div style="font-size:1.15rem; font-weight:800; margin-bottom:6px;">You've traced the full journey: Click → Network → GPU → Water → Paradox</div>
-                            <div style="font-size:0.95rem; opacity:0.7;">Phase 2 scales this from your screen to the entire planet.</div>
-                        </div>
-
-                        <div style="padding:12px; background:#fef3c7; border-left:3px solid #f59e0b; border-radius:6px; font-size:0.9rem;">
-                            <strong>🔑 Key Insight:</strong> The answer is never "all AI is bad" or "all AI is good." It's: <strong>"Is THIS specific use worth its environmental cost?"</strong> That one question, applied every time, is more powerful than any ban.
-                        </div>
+                <div class="ace-reveal" style="animation-delay:0.2s;">
+                    <p class="ace-paragraph">Nobody's saying stop using AI &mdash; it's incredibly powerful. But being <strong style="color:var(--ace-text); font-weight:600;">intentional</strong> about how you use it makes a real difference when multiplied by billions of users.</p>
+                </div>
+                <div class="ace-reveal" style="animation-delay:0.4s;">
+                    <div id="ace-actions" style="display:grid; gap:10px;"></div>
+                </div>
+                <div class="ace-reveal" style="animation-delay:0.6s;">
+                    <div class="ace-card" style="margin-top:24px; text-align:center;" id="ace-score-card">
+                        <div style="font-size:0.8rem; color:var(--ace-text-dim); text-transform:uppercase; letter-spacing:3px;">Your potential footprint reduction</div>
+                        <div id="ace-action-score" style="font-size:3.5rem; font-weight:800; color:var(--ace-text-dim); margin-top:8px; transition:color 0.3s;">0%</div>
+                        <p id="ace-action-message" class="ace-paragraph" style="margin-top:8px; margin-bottom:0; text-align:center; font-size:1rem;">Select some actions above to see your impact!</p>
                     </div>
                 </div>
-            </div>
-        """,
-    },
-
-    # ─────────────────────────────────────────────
-    # MODULE 6 — STEP 6: GLOBAL SCALE (Merged: City + Ranking + E-Waste bonus)
-    # ─────────────────────────────────────────────
-    {
-        "id": 6,
-        "title": "Step 6: Global Scale",
-        "html": """
-            <div class="scenario-box">
-                <div class="phase-banner" style="background:linear-gradient(135deg, #ef4444, #dc2626); color:white; padding:12px; border-radius:8px; text-align:center; margin-bottom:16px; font-weight:800; font-size:1.05rem;">
-                    🔴 PHASE 2: SCALING THE IMPACT — FROM YOUR SCREEN TO THE PLANET
-                </div>
-                <div class="tracker-container">
-                    <div class="tracker-step active">6. GLOBAL SCALE</div>
-                    <div class="tracker-step">7. YOUR AUDIT</div>
-                </div>
-                <h2 class="slide-title" style="text-align:center;">🌍 STEP 6: GLOBAL SCALE</h2>
-                <div class="slide-body">
-                    <div style="max-width:800px; margin:0 auto;">
-
-                        <!-- PERSONAL BRIDGE — connect back to Phase 1 -->
-                        <p style="font-size:1.1rem; text-align:center; margin-bottom:6px;">
-                            In Phase 1, you calculated your class evaporates <strong style="color:#ef4444;">7 bathtubs of water</strong> per year and burns <strong style="color:#ef4444;">30,000 phone charges</strong>.
-                        </p>
-                        <p style="font-size:1.05rem; text-align:center; margin-bottom:20px; opacity:0.85;">
-                            There are roughly <strong>500,000 secondary schools in Europe alone.</strong> Let's multiply.
-                        </p>
-
-                        <!-- SCALER — from class to continent -->
-                        <div style="background:#1e293b; color:white; padding:20px; border-radius:12px; margin-bottom:20px;">
-                            <div style="color:#fbbf24; font-weight:800; text-align:center; margin-bottom:14px;">📐 THE CLASS-TO-CONTINENT SCALER</div>
-                            <div style="display:grid; grid-template-columns:1fr auto 1fr auto 1fr; gap:6px; align-items:center; text-align:center;">
-                                <div style="padding:12px; background:rgba(96,165,250,0.1); border-radius:8px;">
-                                    <div style="font-size:1.6rem;">🧑‍🎓</div>
-                                    <div style="font-weight:700; font-size:0.85rem;">Your class</div>
-                                    <div style="font-size:0.85rem; color:#60a5fa;">30,000 charges/yr</div>
-                                    <div style="font-size:0.78rem; color:#94a3b8;">7 bathtubs water</div>
-                                </div>
-                                <div style="color:#475569;">×</div>
-                                <div style="padding:12px; background:rgba(250,204,21,0.1); border-radius:8px;">
-                                    <div style="font-size:1.6rem;">🏫</div>
-                                    <div style="font-weight:700; font-size:0.85rem;">Europe's schools</div>
-                                    <div style="font-size:0.85rem; color:#fbbf24;">~500,000</div>
-                                    <div style="font-size:0.78rem; color:#94a3b8;">secondary schools</div>
-                                </div>
-                                <div style="color:#475569;">=</div>
-                                <div style="padding:12px; background:rgba(248,113,113,0.15); border-radius:8px; border:2px solid #f87171;">
-                                    <div style="font-size:1.6rem;">🌍</div>
-                                    <div style="font-weight:700; font-size:0.85rem;">Just students</div>
-                                    <div style="font-size:0.85rem; color:#f87171; font-weight:800;">15 BILLION charges</div>
-                                    <div style="font-size:0.78rem; color:#fca5a5;">3.5M bathtubs of water</div>
-                                </div>
-                            </div>
-                            <div style="text-align:center; margin-top:12px; padding:8px; background:rgba(248,113,113,0.1); border-radius:6px; font-size:0.88rem;">
-                                And that's <strong style="color:#fbbf24;">only students</strong>. Add offices, hospitals, governments, and the 200M daily ChatGPT users worldwide...
-                            </div>
-                        </div>
-
-                        <!-- GLOBAL ELECTRICITY RANKING -->
-                        <div style="background:#1e293b; color:white; padding:18px; border-radius:12px; margin-bottom:20px;">
-                            <div style="color:#fbbf24; font-weight:800; margin-bottom:12px; text-align:center;">⚡ GLOBAL ELECTRICITY RANKING (2026 projection)</div>
-                            <div style="display:grid; gap:8px;">
-                                <div style="display:flex; align-items:center; gap:10px; padding:8px 12px; background:rgba(255,255,255,0.05); border-radius:6px;">
-                                    <span style="font-weight:800; color:#94a3b8; width:24px;">#1</span>
-                                    <span style="font-size:1.2rem;">🇨🇳</span>
-                                    <span style="flex:1;">China</span>
-                                    <div style="width:180px; height:8px; background:rgba(255,255,255,0.1); border-radius:4px; overflow:hidden;">
-                                        <div style="height:100%; width:100%; background:#60a5fa;"></div>
-                                    </div>
-                                </div>
-                                <div style="display:flex; align-items:center; gap:10px; padding:8px 12px; background:rgba(255,255,255,0.05); border-radius:6px;">
-                                    <span style="font-weight:800; color:#94a3b8; width:24px;">#2</span>
-                                    <span style="font-size:1.2rem;">🇺🇸</span>
-                                    <span style="flex:1;">United States</span>
-                                    <div style="width:180px; height:8px; background:rgba(255,255,255,0.1); border-radius:4px; overflow:hidden;">
-                                        <div style="height:100%; width:65%; background:#60a5fa;"></div>
-                                    </div>
-                                </div>
-                                <div style="display:flex; align-items:center; gap:10px; padding:8px 12px; background:rgba(255,255,255,0.05); border-radius:6px;">
-                                    <span style="font-weight:800; color:#94a3b8; width:24px;">#3</span>
-                                    <span style="font-size:1.2rem;">🇮🇳</span>
-                                    <span style="flex:1;">India</span>
-                                    <div style="width:180px; height:8px; background:rgba(255,255,255,0.1); border-radius:4px; overflow:hidden;">
-                                        <div style="height:100%; width:45%; background:#60a5fa;"></div>
-                                    </div>
-                                </div>
-                                <div style="display:flex; align-items:center; gap:10px; padding:8px 12px; background:rgba(255,255,255,0.05); border-radius:6px;">
-                                    <span style="font-weight:800; color:#94a3b8; width:24px;">#4</span>
-                                    <span style="font-size:1.2rem;">🇯🇵</span>
-                                    <span style="flex:1;">Japan</span>
-                                    <div style="width:180px; height:8px; background:rgba(255,255,255,0.1); border-radius:4px; overflow:hidden;">
-                                        <div style="height:100%; width:30%; background:#60a5fa;"></div>
-                                    </div>
-                                </div>
-                                <div style="display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(239,68,68,0.15); border-radius:6px; border:2px solid #f87171;">
-                                    <span style="font-weight:900; color:#f87171; width:24px;">#5</span>
-                                    <span style="font-size:1.2rem;">🖥️</span>
-                                    <span style="flex:1; font-weight:800; color:#f87171;">DATA CENTERS</span>
-                                    <div style="width:180px; height:8px; background:rgba(255,255,255,0.1); border-radius:4px; overflow:hidden;">
-                                        <div style="height:100%; width:25%; background:#f87171;"></div>
-                                    </div>
-                                </div>
-                                <div style="display:flex; align-items:center; gap:10px; padding:8px 12px; background:rgba(255,255,255,0.05); border-radius:6px;">
-                                    <span style="font-weight:800; color:#94a3b8; width:24px;">#6</span>
-                                    <span style="font-size:1.2rem;">🇷🇺</span>
-                                    <span style="flex:1;">Russia</span>
-                                    <div style="width:180px; height:8px; background:rgba(255,255,255,0.1); border-radius:4px; overflow:hidden;">
-                                        <div style="height:100%; width:22%; background:#60a5fa;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div style="text-align:center; margin-top:10px; font-size:0.8rem; color:#94a3b8;">Source: IEA Electricity 2024 Report</div>
-                        </div>
-
-                        <!-- REAL STORY — Dublin -->
-                        <div style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:12px; padding:18px; margin-bottom:18px;">
-                            <div style="font-weight:800; font-size:1.05rem; margin-bottom:10px;">🇮🇪 REAL STORY: Dublin Said "No More"</div>
-                            <div style="padding:12px; background:rgba(239,68,68,0.06); border-radius:8px; border-left:4px solid #ef4444; margin-bottom:10px;">
-                                <div style="font-size:0.92rem; line-height:1.5;">
-                                    By 2022, data centers were consuming <strong>18% of Ireland's entire electricity supply</strong> — heading toward 30%. Ireland's grid operator warned of blackout risks. Dublin imposed a <strong>moratorium: no new data centers</strong> until the grid could cope. Amazon, Microsoft, and Google all had expansion plans frozen.
-                                </div>
-                                <div style="font-size:0.78rem; opacity:0.6; margin-top:6px;">Source: EirGrid, Irish Times, 2022</div>
-                            </div>
-                            <div style="font-size:0.9rem; font-style:italic; opacity:0.8;">
-                                "A country literally told Big Tech: 'You're taking too much. Stop.'"
-                            </div>
-                        </div>
-
-                        <!-- 2030 PROJECTION -->
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px;">
-                            <div style="padding:16px; background:var(--background-fill-secondary); border-radius:12px; border:2px solid var(--border-color-primary); text-align:center;">
-                                <div style="font-size:0.78rem; font-weight:700; opacity:0.6; text-transform:uppercase;">2026 (now)</div>
-                                <div style="font-size:2rem; font-weight:900; color:#f59e0b; margin:6px 0;">#5</div>
-                                <div style="font-size:0.88rem;">Between Japan and Russia</div>
-                                <div style="font-size:0.82rem; opacity:0.6;">~1,000 TWh/year</div>
-                            </div>
-                            <div style="padding:16px; background:rgba(239,68,68,0.06); border-radius:12px; border:2px solid #fca5a5; text-align:center;">
-                                <div style="font-size:0.78rem; font-weight:700; color:#ef4444; text-transform:uppercase;">2030 (projected)</div>
-                                <div style="font-size:2rem; font-weight:900; color:#ef4444; margin:6px 0;">#3–4?</div>
-                                <div style="font-size:0.88rem;">Challenging India for #3</div>
-                                <div style="font-size:0.82rem; color:#ef4444;">~1,800 TWh/year (IEA high scenario)</div>
-                            </div>
-                        </div>
-
-                        <!-- "Powered by renewables" insight -->
-                        <div style="background:rgba(250,204,21,0.08); border:2px solid rgba(250,204,21,0.25); border-radius:12px; padding:16px; margin-bottom:18px;">
-                            <div style="font-weight:800; font-size:1rem; margin-bottom:8px;">⚠️ "Powered by Renewables" — Read the Fine Print</div>
-                            <p style="font-size:0.92rem; line-height:1.5; margin:0;">
-                                When tech companies claim "100% renewable energy," they usually mean they <strong>bought renewable energy certificates</strong> — not that their data center actually runs on clean power. The local grid still burns fossil fuels to meet AI's actual demand. "Powered by renewables" often means <strong>"we bought certificates"</strong> — not "we use clean power."
-                            </p>
-                            <div style="font-size:0.78rem; opacity:0.6; margin-top:6px;">Source: IEA, Goldman Sachs "Generational Growth" report, 2024</div>
-                        </div>
-
-                        <!-- E-WASTE BONUS — collapsible details -->
-                        <details style="border-radius:10px; overflow:hidden; border:2px solid rgba(148,163,184,0.3); margin-bottom:18px;">
-                            <summary style="padding:14px; font-weight:800; cursor:pointer; display:flex; justify-content:space-between; align-items:center; background:rgba(148,163,184,0.05); font-size:1rem;">
-                                <span>🪦 BONUS: The Hardware Graveyard (E-Waste)</span>
-                                <span style="font-size:0.75rem; color:#94a3b8;">TAP TO EXPLORE</span>
-                            </summary>
-                            <div style="padding:16px; border-top:1px solid rgba(148,163,184,0.15);">
-                                <p style="font-size:0.95rem; margin-bottom:12px;">
-                                    A GPU server component weighs about <strong>4 lbs</strong>. But producing it requires mining <strong style="color:#ef4444;">1,763 lbs of raw materials</strong> — a 440:1 ratio. And these GPUs get replaced every 3–5 years, not because they break, but because newer chips are faster and companies must stay competitive.
-                                </p>
-                                <div style="padding:12px; background:rgba(239,68,68,0.06); border-radius:8px; border-left:4px solid #ef4444; margin-bottom:10px;">
-                                    <div style="font-weight:700; font-size:0.95rem;">🇬🇭 Agbogbloshie, Ghana</div>
-                                    <div style="font-size:0.88rem; line-height:1.5; margin-top:4px;">
-                                        One of the world's largest e-waste dumps until its closure in 2021. Workers — some as young as 12 — burned circuit boards over open fires to extract copper and gold. The site was declared one of the <strong>most polluted places on Earth</strong>.
-                                    </div>
-                                    <div style="font-size:0.78rem; opacity:0.6; margin-top:4px;">Source: UN E-Waste Monitor, 2024; Blacksmith Institute</div>
-                                </div>
-                                <div style="font-size:0.88rem; font-style:italic; opacity:0.8;">
-                                    Only 22.3% of global e-waste is properly recycled. The AI arms race — replacing working GPUs every 18 months — produces industrial-scale waste from functional equipment.
-                                </div>
-                            </div>
-                        </details>
-
-                        <div style="padding:12px; background:#fef3c7; border-left:3px solid #f59e0b; border-radius:6px; font-size:0.9rem;">
-                            <strong>🔑 Key Insight:</strong> Your 7 bathtubs × every class in the world = a country's worth of electricity. Data centers rank #5 globally and are heading to #3 by 2030. AI's demand is growing so fast that <strong>entire nations are hitting the brakes.</strong>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        """,
-    },
-
-    # ─────────────────────────────────────────────
-    # MODULE 7 — STEP 7: YOUR ETHICAL AUDIT (Capstone)
-    # ─────────────────────────────────────────────
-    {
-        "id": 7,
-        "title": "Step 7: Your Audit",
-        "html": """
-            <div class="scenario-box">
-                <div class="tracker-container">
-                    <div class="tracker-step completed">6. GLOBAL SCALE</div>
-                    <div class="tracker-step active">7. YOUR AUDIT</div>
-                </div>
-                <h2 class="slide-title" style="text-align:center;">📋 STEP 7: YOUR ETHICAL AUDIT</h2>
-                <div class="slide-body">
-                    <div style="max-width:800px; margin:0 auto;">
-
-                        <p style="font-size:1.1rem; text-align:center; margin-bottom:6px;">
-                            You've traced AI's real cost across <strong>8 steps</strong>:
-                        </p>
-                        <p style="font-size:1rem; text-align:center; margin-bottom:20px; opacity:0.8;">
-                            Click → Network → GPU → Water → Paradox → Global Scale → <strong>Now: Your Verdict.</strong>
-                        </p>
-
-                        <!-- THE LAW -->
-                        <div style="background:rgba(99,102,241,0.08); border:2px solid rgba(99,102,241,0.2); padding:18px; border-radius:12px; margin-bottom:20px;">
-                            <div style="font-weight:800; color:var(--color-accent); margin-bottom:10px;">📜 THE LAW IS CATCHING UP — AND IT AFFECTS YOU</div>
-                            <p style="font-size:0.95rem; margin-bottom:10px; line-height:1.5;">The EU AI Act (2024) will require AI providers to publish their <strong>energy and water consumption</strong>. By 2026, every AI product in Europe must carry environmental disclosures — like the <strong>energy labels on your fridge or washing machine.</strong></p>
-                            <p style="font-size:0.95rem; margin:0; line-height:1.5;">This means: soon, you'll be able to <em>see</em> how much energy and water your AI tools actually use. The invisibility from Step 0? It's ending.</p>
-                            <div style="font-size:0.78rem; opacity:0.6; margin-top:6px;">Source: EU AI Act, Article 53; European Commission, 2024</div>
-                        </div>
-
-                        <!-- SUMMARY TABLE -->
-                        <div style="margin-bottom:20px;">
-                            <div style="font-weight:800; margin-bottom:12px; font-size:1.05rem;">📊 YOUR 8-STEP INVESTIGATION — THE EVIDENCE</div>
-                            <table style="width:100%; border-collapse:collapse; border-radius:8px; overflow:hidden; border:1px solid var(--border-color-primary);">
-                                <thead>
-                                    <tr style="background:var(--background-fill-secondary);">
-                                        <th style="padding:10px; text-align:left; font-size:0.85rem;">Step</th>
-                                        <th style="padding:10px; text-align:left; font-size:0.85rem;">What You Found</th>
-                                        <th style="padding:10px; text-align:left; font-size:0.85rem;">The Number to Remember</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr style="border-bottom:1px solid var(--border-color-primary);">
-                                        <td style="padding:8px; font-weight:600;">📱 Your Click</td>
-                                        <td style="padding:8px; font-size:0.88rem;">~25 phone charges/week</td>
-                                        <td style="padding:8px; font-size:0.88rem; color:#ef4444; font-weight:700;">30,000 charges/class/yr</td>
-                                    </tr>
-                                    <tr style="border-bottom:1px solid var(--border-color-primary);">
-                                        <td style="padding:8px; font-weight:600;">🌐 The Network</td>
-                                        <td style="padding:8px; font-size:0.88rem;">7,200 km per prompt</td>
-                                        <td style="padding:8px; font-size:0.88rem; color:#ef4444; font-weight:700;">10× more than Google</td>
-                                    </tr>
-                                    <tr style="border-bottom:1px solid var(--border-color-primary);">
-                                        <td style="padding:8px; font-weight:600;">🧠 The GPU</td>
-                                        <td style="padding:8px; font-size:0.88rem;">Training vs inference</td>
-                                        <td style="padding:8px; font-size:0.88rem; color:#ef4444; font-weight:700;">11 days to match training</td>
-                                    </tr>
-                                    <tr style="border-bottom:1px solid var(--border-color-primary);">
-                                        <td style="padding:8px; font-weight:600;">💧 The Water</td>
-                                        <td style="padding:8px; font-size:0.88rem;">19M liters/day/center</td>
-                                        <td style="padding:8px; font-size:0.88rem; color:#ef4444; font-weight:700;">7 bathtubs/class/yr</td>
-                                    </tr>
-                                    <tr style="border-bottom:1px solid var(--border-color-primary);">
-                                        <td style="padding:8px; font-weight:600;">⚖️ The Paradox</td>
-                                        <td style="padding:8px; font-size:0.88rem;">Some AI helps, some wastes</td>
-                                        <td style="padding:8px; font-size:0.88rem; color:#6366f1; font-weight:700;">3-question framework</td>
-                                    </tr>
-                                    <tr style="border-bottom:1px solid var(--border-color-primary);">
-                                        <td style="padding:8px; font-weight:600;">🌍 Global Scale</td>
-                                        <td style="padding:8px; font-size:0.88rem;">Dublin moratorium, #5 globally</td>
-                                        <td style="padding:8px; font-size:0.88rem; color:#ef4444; font-weight:700;">18% of Ireland's grid, heading to #3</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding:8px; font-weight:600;">📋 Your Audit</td>
-                                        <td style="padding:8px; font-size:0.88rem;">You decide what's worth it</td>
-                                        <td style="padding:8px; font-size:0.88rem; color:#22c55e; font-weight:700;">⬇️ Right now</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <!-- PERSONAL AUDIT ACTIVITY -->
-                        <div style="background:#1e293b; color:white; padding:20px; border-radius:12px; margin-bottom:20px;">
-                            <div style="color:#fbbf24; font-weight:800; text-align:center; margin-bottom:10px; font-size:1.1rem;">🔍 YOUR PERSONAL AI AUDIT</div>
-                            <p style="font-size:0.95rem; text-align:center; margin-bottom:14px; opacity:0.85;">Think of 3 AI tools or habits you used <strong>this week</strong>. For each, apply the 3-question framework:</p>
-                            <div style="display:grid; gap:10px; margin-bottom:14px;">
-                                <div style="padding:14px; background:rgba(250,204,21,0.08); border-radius:8px; border:1px solid rgba(250,204,21,0.2);">
-                                    <div style="display:flex; gap:12px; align-items:center;">
-                                        <span style="font-size:1.5rem;">1️⃣</span>
-                                        <div>
-                                            <div style="font-weight:700;">AI tool: _____________</div>
-                                            <div style="font-size:0.88rem; color:#94a3b8; margin-top:2px;">Did I need AI? Was the benefit real? Was I efficient?</div>
-                                            <div style="font-size:0.85rem; margin-top:4px;">My verdict: 🟢 Worth it / 🟡 Debatable / 🔴 Could skip</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div style="padding:14px; background:rgba(250,204,21,0.08); border-radius:8px; border:1px solid rgba(250,204,21,0.2);">
-                                    <div style="display:flex; gap:12px; align-items:center;">
-                                        <span style="font-size:1.5rem;">2️⃣</span>
-                                        <div>
-                                            <div style="font-weight:700;">AI tool: _____________</div>
-                                            <div style="font-size:0.88rem; color:#94a3b8; margin-top:2px;">Did I need AI? Was the benefit real? Was I efficient?</div>
-                                            <div style="font-size:0.85rem; margin-top:4px;">My verdict: 🟢 Worth it / 🟡 Debatable / 🔴 Could skip</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div style="padding:14px; background:rgba(250,204,21,0.08); border-radius:8px; border:1px solid rgba(250,204,21,0.2);">
-                                    <div style="display:flex; gap:12px; align-items:center;">
-                                        <span style="font-size:1.5rem;">3️⃣</span>
-                                        <div>
-                                            <div style="font-weight:700;">AI tool: _____________</div>
-                                            <div style="font-size:0.88rem; color:#94a3b8; margin-top:2px;">Did I need AI? Was the benefit real? Was I efficient?</div>
-                                            <div style="font-size:0.85rem; margin-top:4px;">My verdict: 🟢 Worth it / 🟡 Debatable / 🔴 Could skip</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div style="text-align:center; padding:10px; background:rgba(250,204,21,0.1); border-radius:8px; font-size:0.88rem; color:#fbbf24;">
-                                💡 Most people find at least one 🔴. That's the point — awareness changes behavior.
-                            </div>
-                        </div>
-
-                        <!-- CERTIFICATION BADGE -->
-                        <div style="text-align:center; padding:20px; background:linear-gradient(135deg, rgba(34,197,94,0.12), rgba(99,102,241,0.12)); border:3px solid #22c55e; border-radius:16px; margin-bottom:20px;">
-                            <div style="font-size:3rem; margin-bottom:6px;">🏆</div>
-                            <div style="font-size:0.78rem; font-weight:700; color:#22c55e; text-transform:uppercase; letter-spacing:2px;">CERTIFIED</div>
-                            <div style="font-size:1.5rem; font-weight:900; margin:6px 0;">Green AI Detective</div>
-                            <div style="font-size:0.95rem; opacity:0.7;">8-Step Investigation Complete</div>
-                            <div style="margin-top:14px; padding:12px 16px; background:rgba(34,197,94,0.1); border-radius:10px; font-size:0.92rem; text-align:left; max-width:500px; margin-left:auto; margin-right:auto;">
-                                <strong>Investigation complete.</strong> You now have the tools to evaluate AI's environmental impact and make informed decisions about when and how to use it. Every prompt has a cost — and now you know how to weigh it.
-                            </div>
-                            <div style="margin-top:12px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; max-width:400px; margin-left:auto; margin-right:auto;">
-                                <div style="padding:6px; background:white; border-radius:6px; font-size:0.78rem;">
-                                    <div style="font-weight:700; color:#6366f1;">Phase 1</div>
-                                    <div style="opacity:0.6;">Personal Impact ✓</div>
-                                </div>
-                                <div style="padding:6px; background:white; border-radius:6px; font-size:0.78rem;">
-                                    <div style="font-weight:700; color:#ef4444;">Phase 2</div>
-                                    <div style="opacity:0.6;">Global Scale ✓</div>
-                                </div>
-                                <div style="padding:6px; background:white; border-radius:6px; font-size:0.78rem;">
-                                    <div style="font-weight:700; color:#22c55e;">Audit</div>
-                                    <div style="opacity:0.6;">Your Verdict ✓</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- SHAREABLE TAKEAWAYS -->
-                        <div style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:12px; padding:18px; margin-bottom:18px;">
-                            <div style="font-weight:800; font-size:1.05rem; margin-bottom:10px;">🗣️ YOUR TOP 5 SHAREABLE FACTS</div>
-                            <div style="font-size:0.88rem; opacity:0.7; margin-bottom:10px;">Pick your favorite. Tell someone today.</div>
-                            <div style="display:grid; gap:6px;">
-                                <div style="padding:10px 14px; background:white; border-radius:6px; font-size:0.9rem; border-left:3px solid #ef4444;">
-                                    📱 "Every 25 AI prompts evaporate a bottle of water — forever."
-                                </div>
-                                <div style="padding:10px 14px; background:white; border-radius:6px; font-size:0.9rem; border-left:3px solid #f59e0b;">
-                                    ⚡ "ChatGPT users burn through GPT-3's entire training energy in 11 days."
-                                </div>
-                                <div style="padding:10px 14px; background:white; border-radius:6px; font-size:0.9rem; border-left:3px solid #3b82f6;">
-                                    🌍 "If data centers were a country, they'd be the 5th largest electricity consumer on Earth."
-                                </div>
-                                <div style="padding:10px 14px; background:white; border-radius:6px; font-size:0.9rem; border-left:3px solid #8b5cf6;">
-                                    🇮🇪 "Dublin banned new data centers because they were using 18% of Ireland's electricity."
-                                </div>
-                                <div style="padding:10px 14px; background:white; border-radius:6px; font-size:0.9rem; border-left:3px solid #22c55e;">
-                                    ⛏️ "Making a 4 lb server component requires mining 1,763 lbs of raw earth."
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style="padding:14px; background:linear-gradient(135deg, rgba(34,197,94,0.1), rgba(99,102,241,0.1)); border:2px solid #22c55e; border-radius:10px; text-align:center;">
-                            <div style="font-size:1.15rem; font-weight:800; color:var(--color-accent);">🎯 FINAL QUESTION BELOW</div>
-                            <div style="font-size:0.95rem; margin-top:4px;">The hardest question in the investigation. No obvious answer this time.</div>
-                        </div>
+                <div class="ace-reveal" style="animation-delay:0.8s;">
+                    <div class="ace-card" style="margin-top:24px; text-align:center; border:2px solid var(--ace-success);">
+                        <div style="font-size:1.2rem; font-weight:800; color:var(--ace-text);">The Takeaway</div>
+                        <p class="ace-paragraph" style="margin-top:12px; margin-bottom:0; text-align:center; max-width:480px; margin-left:auto; margin-right:auto;">AI is powerful. AI is useful. But AI is <strong style="color:var(--ace-accent); font-weight:700;">not free</strong>. Every prompt costs real water and real energy. Being aware is the first step &mdash; you just took it.</p>
+                        <div style="font-size:0.8rem; color:var(--ace-text-dim); margin-top:16px;">Sources: UC Riverside, IEA, MIT, VU Amsterdam (2024&ndash;2025)</div>
                     </div>
                 </div>
             </div>
@@ -1163,104 +337,61 @@ MODULES = [
     },
 ]
 
+
 # ============================================================================
-# 5. QUIZ CONFIG — 8 QUESTIONS ALIGNED TO 8-STEP CURRICULUM
+# 5. QUIZ CONFIG — 4 QUIZZES ON MODULES 1-4, TASK IDs t1-t4
 # ============================================================================
 
 QUIZ_CONFIG = {
-    0: {
-        "t": "t1",
-        "q": "🚀 **First Score Opportunity:** One AI image costs half a phone charge. 25 text prompts evaporate a water bottle. Most people have no idea. **Why does this invisibility matter?**",
-        "o": [
-            "A) It doesn't — the energy per prompt is tiny, so even billions of users create negligible total impact compared to transportation or manufacturing.",
-            "B) Invisible costs mean billions of users waste energy daily without feedback, and no one pushes companies to change.",
-            "C) It's only a problem for the environment, not for people — water evaporation is part of the natural cycle and doesn't reduce anyone's supply.",
-        ],
-        "a": "B) Invisible costs mean billions of users waste energy daily without feedback, and no one pushes companies to change.",
-        "success": "<strong>Score Unlocked!</strong> The core problem: invisibility enables waste at scale. Now let's make it visible.",
-    },
     1: {
-        "t": "t2",
-        "q": "Your friend says: *\"My individual AI use is so tiny it doesn't matter.\"* You just calculated 30,000 phone charges for one class per year. **What's the strongest counter?**",
+        "t": "t1",
+        "q": "You just learned that a single AI prompt uses ~0.5L of water and ~10 Wh of energy. A classmate says: *\"That's basically nothing \u2014 it doesn't matter.\"* **What's the strongest counter?**",
         "o": [
-            "A) Your friend has a point — the real problem is corporate data centers, not individual users. Even if everyone cut their usage in half, companies would still build the same infrastructure.",
-            "B) Individual prompts are tiny, but 200M users × 50 prompts/week creates massive collective demand. Companies build infrastructure to match OUR usage.",
-            "C) The responsible move is to stop using AI entirely until companies prove they run on 100% renewables — partial measures just slow the transition.",
+            "A) Your classmate is right \u2014 half a liter and 10 watt-hours are negligible, even at scale, compared to industries like transportation.",
+            "B) One prompt is small, but 200 million users sending 50+ prompts/day means billions of liters of water and terawatt-hours of energy per year \u2014 invisible costs add up.",
+            "C) The real problem is only water, not energy \u2014 electricity comes from the grid, but water is lost forever through evaporation.",
         ],
-        "a": "B) Individual prompts are tiny, but 200M users × 50 prompts/week creates massive collective demand. Companies build infrastructure to match OUR usage.",
-        "success": "Ghost detected. 🗣️ <strong>Dinner table challenge:</strong> Tell someone tonight: your weekly AI use = ~25 phone charges.",
+        "a": "B) One prompt is small, but 200 million users sending 50+ prompts/day means billions of liters of water and terawatt-hours of energy per year \u2014 invisible costs add up.",
+        "success": "<strong>Score Unlocked!</strong> Tiny per-prompt costs become massive at scale. 200M users \u00d7 50 prompts = real environmental impact.",
     },
     2: {
-        "t": "t3",
-        "q": "Your school is replacing Google Search with AI-powered search for all students. A teacher argues: *\"The internet already uses electricity — AI search won't make a difference.\"* **What's the flaw?**",
+        "t": "t2",
+        "q": "GPT-4 used ~62,000 MWh for training \u2014 that's 48x more than GPT-3. But after training, users send 200M+ queries/day (inference). **Which costs more over time?**",
         "o": [
-            "A) The teacher is right — both Google and ChatGPT run on the same servers and data centers, so switching from one to the other doesn't meaningfully change total energy consumption.",
-            "B) AI queries use ~10× more energy than traditional search. Switching 500 students to AI would multiply the school's search energy tenfold.",
-            "C) AI search is actually more efficient because it gives one direct answer instead of ten blue links — users spend less time browsing, which reduces total screen-on energy use.",
+            "A) Training is always the bigger cost \u2014 each new model requires retraining from scratch, and models keep getting larger every year.",
+            "B) Inference overtakes training within days because low-cost-per-query \u00d7 massive volume = total energy that dwarfs training and never stops growing.",
+            "C) They're roughly equal \u2014 training is a one-time spike, but inference is so efficient per query that the totals balance out over a year.",
         ],
-        "a": "B) AI queries use ~10× more energy than traditional search. Switching 500 students to AI would multiply the school's search energy tenfold.",
-        "success": "Network traced. AI traffic is an order of magnitude hungrier than traditional browsing. 🗣️ <strong>Share:</strong> 70% of US internet traffic passes through one county in Virginia.",
+        "a": "B) Inference overtakes training within days because low-cost-per-query \u00d7 massive volume = total energy that dwarfs training and never stops growing.",
+        "success": "Key insight unlocked. Training GPT-3 took months of energy \u2014 users matched it in just 11 days of inference.",
     },
     3: {
-        "t": "t4",
-        "q": "Training GPT-3 consumed 1,287 MWh. Inference matched that in ~11 days. A classmate says: *\"Inference is more efficient per query, so it's not a big deal.\"* **Why is this misleading?**",
+        "t": "t3",
+        "q": "A single large data center uses 5 million gallons of freshwater per day, and only 0.5% of Earth's water is accessible freshwater. **Why does AI's water use raise environmental justice concerns?**",
         "o": [
-            "A) Training is actually the bigger long-term cost — each new model version requires retraining from scratch, which compounds over time as models get larger and more frequent.",
-            "B) Per-query efficiency is irrelevant at 200M queries/day. Low cost × massive volume = total energy that dwarfs training in days, and never stops growing.",
-            "C) Inference is essentially free since the model already exists — the electricity costs are negligible compared to the original training investment.",
+            "A) It doesn't \u2014 data centers use municipal water they pay for, just like any other business. The market allocates water fairly.",
+            "B) Data centers consume freshwater from the same rivers and aquifers that communities depend on \u2014 often in drought-prone areas where families are already rationing water.",
+            "C) The water is returned to the water cycle through evaporation, so total global freshwater supply is unchanged. The concern is energy, not water.",
         ],
-        "a": "B) Per-query efficiency is irrelevant at 200M queries/day. Low cost × massive volume = total energy that dwarfs training in days, and never stops growing.",
-        "success": "GPU scanned. 🗣️ <strong>Pop quiz for a friend:</strong> Training GPT-3 took months. How long for users to burn the same energy? 11 days.",
+        "a": "B) Data centers consume freshwater from the same rivers and aquifers that communities depend on \u2014 often in drought-prone areas where families are already rationing water.",
+        "success": "Water crisis confirmed. In Mesa, Arizona, families shortened showers during a 1,200-year drought while Microsoft evaporated 56M gallons/year nearby.",
     },
     4: {
-        "t": "t5",
-        "q": "In Mesa, Arizona, families shortened showers during a 1,200-year drought while Microsoft evaporated 56M gallons/year nearby. A tech exec says: *\"We bring jobs and growth.\"* **What's the strongest response?**",
+        "t": "t4",
+        "q": "AI data centers already use ~1.5% of global electricity, projected to nearly triple by 2030. Dublin banned new data centers in 2022 because they threatened 18% of Ireland's grid. **What does this tell us?**",
         "o": [
-            "A) The jobs argument is valid — data centers create high-paying technical jobs and attract other businesses, which strengthens the local economy enough to fund water infrastructure improvements.",
-            "B) Economic benefits don't justify taking essential resources without consent. The people losing water didn't choose to trade it — and you can't drink a paycheck during a drought.",
-            "C) Evaporated water re-enters the water cycle as rain elsewhere, so the total global water supply is unchanged — the real issue is energy, not water.",
+            "A) It tells us data centers should be banned everywhere \u2014 no amount of economic benefit justifies this level of energy consumption.",
+            "B) AI's energy appetite has grown so large that it now competes with entire countries for electricity, forcing governments to choose between tech growth and grid stability.",
+            "C) Dublin overreacted \u2014 1.5% of global electricity is small, and renewables will scale fast enough to cover the growth without any policy intervention.",
         ],
-        "a": "B) Economic benefits don't justify taking essential resources without consent. The people losing water didn't choose to trade it — and you can't drink a paycheck during a drought.",
-        "success": "Water crisis confirmed. 🗣️ <strong>Share this:</strong> In Mesa, Arizona, families shortened showers during a 1,200-year drought while Microsoft evaporated 56 million gallons/year nearby.",
-    },
-    5: {
-        "t": "t6",
-        "q": "A friend says: *\"Companies should just use renewables — it's not my problem.\"* You've been sorting AI uses from wasteful to worthwhile. **Why is your friend only half right?**",
-        "o": [
-            "A) Your friend is correct — the responsibility lies entirely with corporations. Consumers switching to renewable-powered services like Google (which claims carbon neutrality) eliminates the problem without requiring behavior change.",
-            "B) Companies should use renewables, yes. But demand drives supply — unnecessary prompts mean MORE data centers regardless of energy source. Both efficiency and clean energy are needed.",
-            "C) Renewable energy can't actually power data centers at the scale needed — solar and wind are too intermittent, so fossil fuels will remain dominant for AI infrastructure through at least 2040.",
-        ],
-        "a": "B) Companies should use renewables, yes. But demand drives supply — unnecessary prompts mean MORE data centers regardless of energy source. Both efficiency and clean energy are needed.",
-        "success": "Paradox resolved. 🧠 <strong>Your new superpower:</strong> Before any prompt, ask: <em>Do I need AI? Is the benefit real? Am I being efficient?</em>",
-    },
-    6: {
-        "t": "t7",
-        "q": "Dublin banned new data centers in 2022 because they threatened 18% of Ireland's electricity. A tech lobbyist argues: *\"Data centers create jobs and tax revenue — banning them hurts the economy more than the grid.\"* **What's the strongest counter?**",
-        "o": [
-            "A) The lobbyist is right — Ireland's tech sector accounts for 30% of corporate tax revenue, and data center jobs pay 2-3× the national average. Economic growth should take priority over grid concerns.",
-            "B) Jobs and tax revenue matter, but not if the lights go out. EirGrid warned of blackouts — a grid failure would damage the economy far more than pausing data center growth.",
-            "C) Data centers should be banned permanently, not just paused — no amount of economic benefit justifies the environmental damage they cause, and the jobs can be replaced by green energy projects.",
-        ],
-        "a": "B) Jobs and tax revenue matter, but not if the lights go out. EirGrid warned of blackouts — a grid failure would damage the economy far more than pausing data center growth.",
-        "success": "Scale mapped. 🗣️ <strong>Share this:</strong> Dublin literally told Big Tech 'You're taking too much. Stop.'",
-    },
-    7: {
-        "t": "t11",
-        "q": "🎯 **Final Verdict:** Your school wants to deploy AI tutoring for struggling students. Early tests show it genuinely helps — but running it for 500 students would use as much energy as powering 50 homes for a year. **What do you recommend?**",
-        "o": [
-            "A) Deploy it fully — 500 students benefiting from better education outweighs the energy cost of 50 homes. Education is a fundamental right, and effective AI tutoring is exactly the use case that justifies its environmental footprint.",
-            "B) Deploy with conditions — start with 50 students who need it most, measure real impact vs. energy cost, and expand only if the learning gains are proven significant enough to justify the resources.",
-            "C) Reject it — 50 homes' worth of energy for a tutoring tool is disproportionate when human tutors could deliver the same or better results while creating local jobs and producing zero environmental cost.",
-        ],
-        "a": "B) Deploy with conditions — start with 50 students who need it most, measure real impact vs. energy cost, and expand only if the learning gains are proven significant enough to justify the resources.",
-        "success": "🏆 <strong>Investigation Complete!</strong> You didn't pick the easy answer. That's exactly the thinking the world needs — not 'ban it' or 'allow everything,' but <em>'prove it's worth it, then scale responsibly.'</em>",
+        "a": "B) AI's energy appetite has grown so large that it now competes with entire countries for electricity, forcing governments to choose between tech growth and grid stability.",
+        "success": "Scale mapped. AI now uses as much electricity as entire nations \u2014 and it's growing faster than renewable energy can keep up.",
     },
 }
 
 
 # ============================================================================
-# 7. LEADERBOARD & API LOGIC (Preserved from original)
+# 6. LEADERBOARD & API LOGIC
 # ============================================================================
 
 def get_leaderboard_data(client, username, team_name, local_task_list=None, override_score=None):
@@ -1385,7 +516,7 @@ def trigger_api_update(
 
 
 # ============================================================================
-# 9. SUCCESS MESSAGE RENDERER
+# 7. SUCCESS MESSAGE RENDERER
 # ============================================================================
 
 def generate_success_message(prev, curr, specific_text):
@@ -1393,8 +524,8 @@ def generate_success_message(prev, curr, specific_text):
     new_score = float(curr.get("score", 0) or 0)
     diff_score = new_score - old_score
 
-    old_rank = prev.get("rank", "–") if prev else "–"
-    new_rank = curr.get("rank", "–")
+    old_rank = prev.get("rank", "\u2013") if prev else "\u2013"
+    new_rank = curr.get("rank", "\u2013")
 
     ranks_are_int = isinstance(old_rank, int) and isinstance(new_rank, int)
     rank_diff = old_rank - new_rank if ranks_are_int else 0
@@ -1418,48 +549,48 @@ def generate_success_message(prev, curr, specific_text):
 
     if style_key == "first":
         card_class += " first-score"
-        header_emoji = "🎉"
+        header_emoji = "\U0001f389"
         header_title = "You're Officially on the Board!"
-        summary_line = "You just earned your first Moral Compass Score — you're now part of the global rankings."
+        summary_line = "You just earned your first Moral Compass Score \u2014 you're now part of the global rankings."
         cta_line = "Keep investigating to climb the leaderboard."
     elif style_key == "major":
-        header_emoji = "🔥"
+        header_emoji = "\U0001f525"
         header_title = "Major Moral Compass Boost!"
-        summary_line = "Your analysis made a big impact — you just moved ahead of other detectives."
+        summary_line = "Your analysis made a big impact \u2014 you just moved ahead of other detectives."
         cta_line = "Continue your investigation to keep the momentum."
     elif style_key == "climb":
-        header_emoji = "🚀"
+        header_emoji = "\U0001f680"
         header_title = "You're Climbing the Leaderboard"
-        summary_line = "Nice work — you edged out other participants."
+        summary_line = "Nice work \u2014 you edged out other participants."
         cta_line = "Click NEXT to continue your investigation."
     elif style_key == "tight":
-        header_emoji = "📊"
+        header_emoji = "\U0001f4ca"
         header_title = "The Leaderboard Is Shifting"
         summary_line = "Other teams are moving too. A few more strong answers will set you apart."
         cta_line = "Take on the next step to strengthen your position."
     else:
-        header_emoji = "✅"
+        header_emoji = "\u2705"
         header_title = "Progress Logged"
         summary_line = "Your sustainability knowledge increased your Moral Compass Score."
         cta_line = "Try the next step to keep climbing."
 
     if style_key == "first":
-        score_line = f"🧭 Score: <strong>{new_score:.3f}</strong>"
-        rank_line = f"🏅 Initial Rank: <strong>#{new_rank}</strong>"
+        score_line = f"\U0001f9ed Score: <strong>{new_score:.3f}</strong>"
+        rank_line = f"\U0001f3c5 Initial Rank: <strong>#{new_rank}</strong>"
     else:
         score_line = (
-            f"🧭 Score: {old_score:.3f} → <strong>{new_score:.3f}</strong> "
+            f"\U0001f9ed Score: {old_score:.3f} \u2192 <strong>{new_score:.3f}</strong> "
             f"(+{diff_score:.3f})"
         )
         if ranks_are_int:
             if old_rank == new_rank:
-                rank_line = f"📊 Rank: <strong>#{new_rank}</strong> (holding steady)"
+                rank_line = f"\U0001f4ca Rank: <strong>#{new_rank}</strong> (holding steady)"
             elif rank_diff > 0:
-                rank_line = f"📈 Rank: #{old_rank} → <strong>#{new_rank}</strong> (+{rank_diff} places)"
+                rank_line = f"\U0001f4c8 Rank: #{old_rank} \u2192 <strong>#{new_rank}</strong> (+{rank_diff} places)"
             else:
-                rank_line = f"🔻 Rank: #{old_rank} → <strong>#{new_rank}</strong> ({rank_diff} places)"
+                rank_line = f"\U0001f53b Rank: #{old_rank} \u2192 <strong>#{new_rank}</strong> ({rank_diff} places)"
         else:
-            rank_line = f"📊 Rank: <strong>#{new_rank}</strong>"
+            rank_line = f"\U0001f4ca Rank: <strong>#{new_rank}</strong>"
 
     return f"""
     <div class="{card_class}">
@@ -1483,24 +614,23 @@ def generate_success_message(prev, curr, specific_text):
 
 
 # ============================================================================
-# 10. DASHBOARD & LEADERBOARD RENDERERS
+# 8. DASHBOARD & LEADERBOARD RENDERERS
 # ============================================================================
 
 def render_top_dashboard(data, module_id):
     display_score = 0.0
     count_completed = 0
-    rank_display = "–"
-    team_rank_display = "–"
+    rank_display = "\u2013"
+    team_rank_display = "\u2013"
     if data:
         display_score = float(data.get("score", 0.0))
-        rank_display = f"#{data.get('rank', '–')}"
-        team_rank_display = f"#{data.get('team_rank', '–')}"
+        rank_display = f"#{data.get('rank', '\u2013')}"
+        team_rank_display = f"#{data.get('team_rank', '\u2013')}"
         count_completed = len(data.get("completed_task_ids", []) or [])
     progress_pct = min(100, int((count_completed / TOTAL_COURSE_TASKS) * 100))
 
-    # Phase indicator
-    if module_id <= 5:
-        phase_label = "PHASE 1: Personal Impact"
+    if module_id <= 3:
+        phase_label = "PHASE 1: Individual Impact"
         phase_color = "#6366f1"
     else:
         phase_label = "PHASE 2: Global Scale"
@@ -1512,7 +642,7 @@ def render_top_dashboard(data, module_id):
             <div class="summary-metrics">
                 <div style="text-align:center;">
                     <div class="label-text">Moral Compass Score</div>
-                    <div class="score-text-primary">🧭 {display_score:.3f}</div>
+                    <div class="score-text-primary">\U0001f9ed {display_score:.3f}</div>
                 </div>
                 <div class="divider-vertical"></div>
                 <div style="text-align:center;">
@@ -1563,18 +693,18 @@ def render_leaderboard_card(data, username, team_name):
             )
     return f"""
     <div class="scenario-box leaderboard-card">
-        <h3 class="slide-title" style="margin-bottom:10px;">📊 Live Standings</h3>
+        <h3 class="slide-title" style="margin-bottom:10px;">\U0001f4ca Live Standings</h3>
         <div class="lb-tabs">
             <input type="radio" id="lb-tab-team" name="lb-tabs" checked>
-            <label for="lb-tab-team" class="lb-tab-label">🏆 Team</label>
+            <label for="lb-tab-team" class="lb-tab-label">\U0001f3c6 Team</label>
             <input type="radio" id="lb-tab-user" name="lb-tabs">
-            <label for="lb-tab-user" class="lb-tab-label">👤 Individual</label>
+            <label for="lb-tab-user" class="lb-tab-label">\U0001f464 Individual</label>
             <div class="lb-tab-panels">
                 <div class="lb-panel panel-team">
                     <div class='table-container'>
                         <table class='leaderboard-table'>
                             <thead>
-                                <tr><th>Rank</th><th>Team</th><th style='text-align:right;'>Avg 🧭</th></tr>
+                                <tr><th>Rank</th><th>Team</th><th style='text-align:right;'>Avg \U0001f9ed</th></tr>
                             </thead>
                             <tbody>{team_rows}</tbody>
                         </table>
@@ -1584,7 +714,7 @@ def render_leaderboard_card(data, username, team_name):
                     <div class='table-container'>
                         <table class='leaderboard-table'>
                             <thead>
-                                <tr><th>Rank</th><th>Detective</th><th style='text-align:right;'>Score 🧭</th></tr>
+                                <tr><th>Rank</th><th>Detective</th><th style='text-align:right;'>Score \U0001f9ed</th></tr>
                             </thead>
                             <tbody>{user_rows}</tbody>
                         </table>
@@ -1597,18 +727,205 @@ def render_leaderboard_card(data, username, team_name):
 
 
 # ============================================================================
-# 11. CSS
+# 9. CSS — New design system from JSX + Gradio integration styles
 # ============================================================================
 
 css = """
+/* ========== AI Cost Explorer Design System ========== */
+
+/* ACE CSS variables — scoped with ace- prefix to avoid Gradio collisions */
+/* Light mode is the default (Gradio Soft theme default) */
+:root {
+    --ace-bg: #f8fafc;
+    --ace-card-bg: rgba(255, 255, 255, 0.9);
+    --ace-accent: #0284c7;
+    --ace-accent-glow: rgba(2, 132, 199, 0.2);
+    --ace-success: #059669;
+    --ace-warning: #d97706;
+    --ace-error: #dc2626;
+    --ace-text: #0f172a;
+    --ace-text-dim: #64748b;
+    --ace-bg-gradient-1: rgba(2, 132, 199, 0.08);
+    --ace-bg-gradient-2: rgba(5, 150, 105, 0.08);
+    --ace-card-shadow: rgba(0, 0, 0, 0.1);
+    --ace-border-color: rgba(0, 0, 0, 0.08);
+    --ace-input-bg: rgba(0, 0, 0, 0.02);
+    --ace-input-border: rgba(0, 0, 0, 0.1);
+    --ace-hover-bg: rgba(0, 0, 0, 0.05);
+    --ace-progress-line: rgba(0, 0, 0, 0.1);
+    --ace-bar-text: #fff;
+    --ace-success-bg: rgba(5, 150, 105, 0.08);
+    --ace-error-bg: rgba(220, 38, 38, 0.08);
+    --ace-success-highlight: rgba(5, 150, 105, 0.15);
+    --ace-error-highlight: rgba(220, 38, 38, 0.15);
+    --ace-accent-highlight: rgba(2, 132, 199, 0.1);
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --ace-bg: #0f172a;
+        --ace-card-bg: rgba(30, 41, 59, 0.7);
+        --ace-accent: #38bdf8;
+        --ace-accent-glow: rgba(56, 189, 248, 0.3);
+        --ace-success: #10b981;
+        --ace-warning: #fbbf24;
+        --ace-error: #f43f5e;
+        --ace-text: #f8fafc;
+        --ace-text-dim: #94a3b8;
+        --ace-bg-gradient-1: rgba(56, 189, 248, 0.05);
+        --ace-bg-gradient-2: rgba(16, 185, 129, 0.05);
+        --ace-card-shadow: rgba(0, 0, 0, 0.5);
+        --ace-border-color: rgba(255, 255, 255, 0.05);
+        --ace-input-bg: rgba(255, 255, 255, 0.05);
+        --ace-input-border: rgba(255, 255, 255, 0.1);
+        --ace-hover-bg: rgba(255, 255, 255, 0.08);
+        --ace-progress-line: rgba(255, 255, 255, 0.1);
+        --ace-bar-text: #fff;
+        --ace-success-bg: rgba(16, 185, 129, 0.08);
+        --ace-error-bg: rgba(244, 63, 94, 0.08);
+        --ace-success-highlight: rgba(16, 185, 129, 0.15);
+        --ace-error-highlight: rgba(244, 63, 94, 0.15);
+        --ace-accent-highlight: rgba(56, 189, 248, 0.1);
+    }
+}
+
+/* ACE Animations */
+@keyframes aceSlideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes aceBlink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+/* ACE reveal animation */
+.ace-reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: aceSlideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ACE blink cursor */
+.ace-blink { animation: aceBlink 1s infinite; }
+
+/* ACE Intro page */
+.ace-intro-page {
+    min-height: 65vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 20px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* ACE Section label */
+.ace-section-label {
+    font-size: 0.875rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ace-accent);
+    margin-bottom: 12px;
+}
+
+/* ACE Heading */
+.ace-heading {
+    font-weight: 800;
+    font-size: clamp(1.6rem, 4.5vw, 2.2rem);
+    line-height: 1.2;
+    color: var(--ace-text);
+    margin: 0 0 20px 0;
+    font-family: 'Outfit', sans-serif;
+}
+
+/* ACE Paragraph */
+.ace-paragraph {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: var(--ace-text-dim);
+    margin-bottom: 20px;
+    font-family: 'Outfit', sans-serif;
+}
+
+/* ACE Card — glassmorphism */
+.ace-card {
+    background: var(--ace-card-bg);
+    backdrop-filter: blur(16px);
+    border-radius: 24px;
+    padding: 32px 28px;
+    border: 1px solid var(--ace-border-color);
+    box-shadow: 0 25px 50px -12px var(--ace-card-shadow);
+}
+
+/* ACE Model toggle buttons */
+.ace-model-btn {
+    padding: 20px;
+    border-radius: 16px;
+    cursor: pointer;
+    text-align: center;
+    background: var(--ace-input-bg);
+    border: 2px solid var(--ace-border-color);
+    color: var(--ace-text);
+    transition: all 0.3s;
+    font-family: 'Outfit', sans-serif;
+}
+.ace-model-btn:hover {
+    border-color: var(--ace-accent);
+}
+
+/* ACE Quiz option buttons (in-page MCQ) */
+.ace-quiz-option {
+    padding: 14px 16px;
+    border-radius: 12px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 1rem;
+    background: var(--ace-input-bg);
+    border: 1px solid var(--ace-input-border);
+    color: var(--ace-text);
+    transition: all 0.3s;
+    font-family: 'Outfit', sans-serif;
+    width: 100%;
+}
+.ace-quiz-option:hover {
+    border-color: var(--ace-accent);
+}
+
+/* ACE Range slider styling */
+.ace-card input[type="range"] {
+    -webkit-appearance: none;
+    background: var(--ace-input-bg);
+    border-radius: 6px;
+    outline: none;
+    height: 8px;
+}
+.ace-card input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--ace-accent);
+    cursor: pointer;
+    box-shadow: 0 0 10px var(--ace-accent-glow);
+}
+
+/* Module container backgrounds for ACE */
+.module-container .scenario-box {
+    font-family: 'Outfit', sans-serif;
+}
+
+/* ========== Gradio Integration Styles (from Activity 6) ========== */
+
 /* Layout + containers */
 .summary-box {
-  background: var(--block-background-fill);
-  padding: 20px;
-  border-radius: 12px;
-  border: 1px solid var(--border-color-primary);
-  margin-bottom: 20px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    background: var(--block-background-fill);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color-primary);
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
 }
 .summary-box-inner { display: flex; align-items: center; justify-content: space-between; gap: 30px; }
 .summary-metrics { display: flex; gap: 30px; align-items: center; }
@@ -1616,45 +933,45 @@ css = """
 
 /* Scenario cards */
 .scenario-box {
-  padding: 24px;
-  border-radius: 14px;
-  background: var(--block-background-fill);
-  border: 1px solid var(--border-color-primary);
-  margin-bottom: 22px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    padding: 24px;
+    border-radius: 14px;
+    background: var(--block-background-fill);
+    border: 1px solid var(--border-color-primary);
+    margin-bottom: 22px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
 }
 .slide-title { margin-top: 0; font-size: 1.9rem; font-weight: 800; }
 .slide-body { font-size: 1.12rem; line-height: 1.65; }
 
 /* Hint boxes */
 .hint-box {
-  padding: 12px;
-  border-radius: 10px;
-  background: var(--background-fill-secondary);
-  border: 1px solid var(--border-color-primary);
-  margin-top: 10px;
-  font-size: 0.98rem;
+    padding: 12px;
+    border-radius: 10px;
+    background: var(--background-fill-secondary);
+    border: 1px solid var(--border-color-primary);
+    margin-top: 10px;
+    font-size: 0.98rem;
 }
 
 /* Success / profile card */
 .profile-card.success-card {
-  padding: 20px;
-  border-radius: 14px;
-  border-left: 6px solid #22c55e;
-  background: linear-gradient(135deg, rgba(34,197,94,0.08), var(--block-background-fill));
-  margin-top: 16px;
-  box-shadow: 0 4px 18px rgba(0,0,0,0.08);
-  font-size: 1.04rem;
-  line-height: 1.55;
+    padding: 20px;
+    border-radius: 14px;
+    border-left: 6px solid var(--ace-success);
+    background: linear-gradient(135deg, var(--ace-success-bg), var(--block-background-fill));
+    margin-top: 16px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+    font-size: 1.04rem;
+    line-height: 1.55;
 }
 .profile-card.first-score {
-  border-left-color: #facc15;
-  background: linear-gradient(135deg, rgba(250,204,21,0.18), var(--block-background-fill));
+    border-left-color: var(--ace-warning);
+    background: linear-gradient(135deg, rgba(250,204,21,0.18), var(--block-background-fill));
 }
 .success-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 8px; }
-.success-title { font-size: 1.26rem; font-weight: 900; color: #16a34a; }
+.success-title { font-size: 1.26rem; font-weight: 900; color: var(--ace-success); }
 .success-summary { font-size: 1.06rem; color: var(--body-text-color-subdued); margin-top: 4px; }
-.success-delta { font-size: 1.5rem; font-weight: 800; color: #16a34a; }
+.success-delta { font-size: 1.5rem; font-weight: 800; color: var(--ace-success); }
 .success-metrics { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: var(--background-fill-secondary); font-size: 1.06rem; }
 .success-metric-line { margin-bottom: 4px; }
 .success-body { margin-top: 10px; font-size: 1.06rem; }
@@ -1663,23 +980,23 @@ css = """
 
 /* Numbers + labels */
 .score-text-primary { font-size: 2.05rem; font-weight: 900; color: var(--color-accent); }
-.score-text-team { font-size: 2.05rem; font-weight: 900; color: #60a5fa; }
+.score-text-team { font-size: 2.05rem; font-weight: 900; color: var(--color-accent); }
 .score-text-global { font-size: 2.05rem; font-weight: 900; }
-.label-text { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #6b7280; }
+.label-text { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--body-text-color-subdued, #6b7280); }
 
 /* Progress bar */
-.progress-bar-bg { width: 100%; height: 10px; background: #e5e7eb; border-radius: 6px; overflow: hidden; margin-top: 8px; }
+.progress-bar-bg { width: 100%; height: 10px; background: var(--border-color-primary, #e5e7eb); border-radius: 6px; overflow: hidden; margin-top: 8px; }
 .progress-bar-fill { height: 100%; background: var(--color-accent); transition: width 280ms ease; }
 
 /* Leaderboard tabs + tables */
 .leaderboard-card input[type="radio"] { display: none; }
 .lb-tab-label {
-  display: inline-block; padding: 8px 16px; margin-right: 8px; border-radius: 20px;
-  cursor: pointer; border: 1px solid var(--border-color-primary); font-weight: 700; font-size: 0.94rem;
+    display: inline-block; padding: 8px 16px; margin-right: 8px; border-radius: 20px;
+    cursor: pointer; border: 1px solid var(--border-color-primary); font-weight: 700; font-size: 0.94rem;
 }
 #lb-tab-team:checked + label, #lb-tab-user:checked + label {
-  background: var(--color-accent); color: white; border-color: var(--color-accent);
-  box-shadow: 0 3px 8px rgba(99,102,241,0.25);
+    background: var(--color-accent); color: white; border-color: var(--color-accent);
+    box-shadow: 0 3px 8px rgba(99,102,241,0.25);
 }
 .lb-panel { display: none; margin-top: 10px; }
 #lb-tab-team:checked ~ .lb-tab-panels .panel-team { display: block; }
@@ -1687,153 +1004,399 @@ css = """
 .table-container { height: 320px; overflow-y: auto; border: 1px solid var(--border-color-primary); border-radius: 10px; }
 .leaderboard-table { width: 100%; border-collapse: collapse; }
 .leaderboard-table th {
-  position: sticky; top: 0; background: var(--background-fill-secondary);
-  padding: 10px; text-align: left; border-bottom: 2px solid var(--border-color-primary);
-  font-weight: 800;
+    position: sticky; top: 0; background: var(--background-fill-secondary);
+    padding: 10px; text-align: left; border-bottom: 2px solid var(--border-color-primary);
+    font-weight: 800;
 }
 .leaderboard-table td { padding: 10px; border-bottom: 1px solid var(--border-color-primary); }
-.row-highlight-me, .row-highlight-team { background: rgba(96,165,250,0.18); font-weight: 700; }
-
-/* Containers */
-.ai-risk-container { margin-top: 16px; padding: 16px; background: var(--body-background-fill); border-radius: 10px; border: 1px solid var(--border-color-primary); }
-
-/* Interactive blocks */
-.interactive-block { font-size: 1.06rem; }
-.interactive-block .hint-box { font-size: 1.02rem; }
-.interactive-text { font-size: 1.06rem; }
-
-/* Radio sizes */
-.scenario-radio-large label { font-size: 1.06rem; }
-.quiz-radio-large label { font-size: 1.06rem; }
+.row-highlight-me, .row-highlight-team { background: var(--ace-accent-highlight); font-weight: 700; }
 
 /* Small utility */
 .divider-vertical { width: 1px; height: 48px; background: var(--border-color-primary); opacity: 0.6; }
 
-/* Progress tracker */
-.tracker-container {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  margin-bottom: 25px;
-  background: var(--background-fill-secondary);
-  padding: 10px 0;
-  border-radius: 8px;
-  border: 1px solid var(--border-color-primary);
-  flex-wrap: wrap;
-  gap: 4px;
-}
-.tracker-step {
-  text-align: center;
-  font-weight: 700;
-  font-size: 0.78rem;
-  padding: 5px 8px;
-  border-radius: 4px;
-  color: var(--body-text-color-subdued);
-  transition: all 0.3s ease;
-}
-.tracker-step.completed {
-  color: #10b981;
-  background: rgba(16, 185, 129, 0.1);
-}
-.tracker-step.active {
-  color: var(--color-accent);
-  background: var(--color-accent-soft);
-  box-shadow: 0 0 5px rgba(99, 102, 241, 0.3);
-}
+/* Radio sizes */
+.quiz-radio-large label { font-size: 1.06rem; }
 
 /* Navigation loading overlay */
 #nav-loading-overlay {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: color-mix(in srgb, var(--body-background-fill) 95%, transparent);
-  z-index: 9999; display: none; flex-direction: column; align-items: center;
-  justify-content: center; opacity: 0; transition: opacity 0.3s ease;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: color-mix(in srgb, var(--body-background-fill) 95%, transparent);
+    z-index: 9999; display: none; flex-direction: column; align-items: center;
+    justify-content: center; opacity: 0; transition: opacity 0.3s ease;
 }
 .nav-spinner {
-  width: 50px; height: 50px; border: 5px solid var(--border-color-primary);
-  border-top: 5px solid var(--color-accent); border-radius: 50%;
-  animation: nav-spin 1s linear infinite; margin-bottom: 20px;
+    width: 50px; height: 50px; border: 5px solid var(--border-color-primary);
+    border-top: 5px solid var(--color-accent); border-radius: 50%;
+    animation: nav-spin 1s linear infinite; margin-bottom: 20px;
 }
 @keyframes nav-spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 #nav-loading-text {
-  font-size: 1.3rem; font-weight: 600; color: var(--color-accent);
+    font-size: 1.3rem; font-weight: 600; color: var(--color-accent);
 }
 @media (prefers-color-scheme: dark) {
-  #nav-loading-overlay { background: rgba(15, 23, 42, 0.9); }
-  .nav-spinner { border-color: rgba(148, 163, 184, 0.4); border-top-color: var(--color-accent); }
+    #nav-loading-overlay { background: rgba(15, 23, 42, 0.9); }
+    .nav-spinner { border-color: rgba(148, 163, 184, 0.4); border-top-color: var(--color-accent); }
 }
 
 /* Points chip + quiz CTA */
 .points-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-weight: 800;
-  font-size: 0.8rem;
-  background: var(--color-accent-soft);
-  color: var(--color-accent);
-  border: 1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 0.8rem;
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+    border: 1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
 }
 .quiz-cta {
-  margin: 8px 0 10px 0;
-  font-size: 0.9rem;
-  color: var(--body-text-color-subdued);
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
+    margin: 8px 0 10px 0;
+    font-size: 0.9rem;
+    color: var(--body-text-color-subdued);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
 }
-.quiz-submit { min-width: 200px; }
-
-/* Ghost journey animation */
-@keyframes ghostFadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.ghost-step { transition: all 0.3s ease; }
-
-/* Usage slider styling */
-.usage-slider { margin-top: -8px !important; }
-.usage-slider .wrap { padding: 0 4px !important; }
-
-/* Guess buttons hover */
-.guess-btn:hover { background: rgba(99,102,241,0.12) !important; border-color: var(--color-accent) !important; }
 """
 
 
 # ============================================================================
-# 12. MORAL COMPASS SLIDER HELPER
+# 9b. CLIENT-SIDE JAVASCRIPT — Consolidated (Gradio 6 head injection)
 # ============================================================================
+# Gradio 6 Svelte {@html} does NOT execute <script> tags inside gr.HTML().
+# All JS is injected via gr.Blocks(head=...) into the document <head>.
 
-def simulate_moral_compass_score(acc, progress_pct):
-    try:
-        acc_val = float(acc)
-    except (TypeError, ValueError):
-        acc_val = 0.0
-    try:
-        prog_val = float(progress_pct)
-    except (TypeError, ValueError):
-        prog_val = 0.0
-    score = acc_val * (prog_val / 100.0)
-    return f"""
-    <div class="hint-box interactive-block">
-        <p style="margin-bottom:4px; font-size:1.05rem;"><strong>Your accuracy:</strong> {acc_val:.3f}</p>
-        <p style="margin-bottom:4px; font-size:1.05rem;"><strong>Simulated Ethical Progress %:</strong> {prog_val:.0f}%</p>
-        <p style="margin-bottom:0; font-size:1.08rem;"><strong>Simulated Moral Compass Score:</strong> 🧭 {score:.3f}</p>
-    </div>
-    """
+CLIENT_JS = """
+// === Dynamically load Outfit font ===
+(function(){
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap';
+    document.head.appendChild(link);
+})();
+
+// === Module 0: Typewriter ===
+(function aceInitTypewriter(){
+    var el = document.getElementById('ace-typewriter-text');
+    if (!el) { setTimeout(aceInitTypewriter, 200); return; }
+    var full = "Every time you use AI, something invisible happens...";
+    var i = 0;
+    var iv = setInterval(function(){
+        i++;
+        el.textContent = full.slice(0, i);
+        if (i >= full.length) clearInterval(iv);
+    }, 45);
+})();
+
+// === Module 1: Prompt Calculator ===
+function aceUpdatePromptCalc(val) {
+    var countEl = document.getElementById('ace-prompt-count');
+    var statsEl = document.getElementById('ace-prompt-stats');
+    if (!countEl || !statsEl) return;
+    var pc = parseInt(val);
+    var w = (pc * 0.519).toFixed(1);
+    var e = (pc * 0.01).toFixed(2);
+    var tv = pc * 9;
+    var bottles = Math.round(w / 0.5);
+    var yearL = Math.round(w * 365);
+    var yearBottles = Math.round(yearL / 0.5);
+    countEl.textContent = pc + ' prompt' + (pc > 1 ? 's' : '') + '/day';
+    var stats = [
+        {l:'Water Used', v:w+'L', i:'\\ud83d\\udca7', s:bottles+' bottles'},
+        {l:'Energy Used', v:e+' kWh', i:'\\u26a1', s:tv+'s of TV'},
+        {l:'Per Year', v:yearL+'L', i:'\\ud83d\\udcc5', s:yearBottles+' bottles'}
+    ];
+    var html = '';
+    for (var idx = 0; idx < stats.length; idx++) {
+        var x = stats[idx];
+        html += '<div style="padding:16px; border-radius:12px; background:var(--ace-input-bg); border:1px solid var(--ace-border-color); text-align:center;">'
+            + '<div style="font-size:1.6rem;">' + x.i + '</div>'
+            + '<div style="font-size:1.3rem; font-weight:800; color:var(--ace-text); margin-top:6px;">' + x.v + '</div>'
+            + '<div style="font-size:0.8rem; color:var(--ace-text-dim); margin-top:4px; text-transform:uppercase; letter-spacing:1px;">' + x.l + '</div>'
+            + '<div style="font-size:0.8rem; color:var(--ace-accent); margin-top:4px;">' + x.s + '</div>'
+            + '</div>';
+    }
+    statsEl.innerHTML = html;
+}
+function aceToggleComparison() {
+    var card = document.getElementById('ace-comparison-card');
+    var btn = document.getElementById('ace-compare-btn');
+    if (!card || !btn) return;
+    if (card.style.display === 'none') {
+        card.style.display = 'block';
+        btn.textContent = 'Hide comparison with Google Search';
+        btn.style.background = 'var(--ace-hover-bg)';
+    } else {
+        card.style.display = 'none';
+        btn.textContent = 'Show comparison with Google Search';
+        btn.style.background = 'transparent';
+    }
+}
+(function aceInitPrompt(){
+    if (!document.getElementById('ace-prompt-count')) { setTimeout(aceInitPrompt, 200); return; }
+    aceUpdatePromptCalc(1);
+})();
+
+// === Module 2: Training ===
+(function aceInitTraining(){
+    var barsEl = document.getElementById('ace-training-bars');
+    if (!barsEl) { setTimeout(aceInitTraining, 200); return; }
+    var models = [
+        {name:'GPT-3', energy:1287, water:700000, co2:502, year:2020, icon:'\\u{1F916}', fact:"That's like driving a car around the Earth 60 times"},
+        {name:'GPT-4', energy:62000, water:34000000, co2:24000, year:2023, icon:'\\u{1F9E0}', fact:"Equivalent to ~5,400 U.S. homes' annual electricity"},
+        {name:'Llama 3', energy:39000, water:21000000, co2:15000, year:2024, icon:'\\u{1F999}', fact:'Could fill 8 Olympic swimming pools with the water used'}
+    ];
+    var selected = -1;
+    window.aceSelectModel = function(idx) {
+        var btns = document.querySelectorAll('.ace-model-btn');
+        var detailEl = document.getElementById('ace-model-detail');
+        if (!detailEl) return;
+        if (selected === idx) {
+            selected = -1;
+            for (var b = 0; b < btns.length; b++) {
+                btns[b].style.background = 'var(--ace-input-bg)';
+                btns[b].style.borderColor = 'var(--ace-border-color)';
+            }
+            detailEl.style.display = 'none';
+            return;
+        }
+        selected = idx;
+        for (var b = 0; b < btns.length; b++) {
+            if (b === idx) {
+                btns[b].style.background = 'var(--ace-accent-highlight)';
+                btns[b].style.borderColor = 'var(--ace-accent)';
+            } else {
+                btns[b].style.background = 'var(--ace-input-bg)';
+                btns[b].style.borderColor = 'var(--ace-border-color)';
+            }
+        }
+        var m = models[idx];
+        var waterM = (m.water / 1e6).toFixed(1);
+        var detail = '<div class="ace-card" style="animation:aceSlideUp 0.4s ease;">'
+            + '<h3 style="font-size:1.3rem; font-weight:800; color:var(--ace-accent); margin:0 0 16px 0;">' + m.icon + ' ' + m.name + ' Training Cost</h3>'
+            + '<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">'
+            + '<div style="text-align:center;"><div style="font-size:0.75rem; color:var(--ace-text-dim); text-transform:uppercase; letter-spacing:2px;">Energy</div><div style="font-size:1.6rem; font-weight:800; color:var(--ace-text); margin-top:8px;">' + m.energy.toLocaleString() + '</div><div style="font-size:0.85rem; color:var(--ace-text-dim);">MWh</div></div>'
+            + '<div style="text-align:center;"><div style="font-size:0.75rem; color:var(--ace-text-dim); text-transform:uppercase; letter-spacing:2px;">Water</div><div style="font-size:1.6rem; font-weight:800; color:var(--ace-text); margin-top:8px;">' + waterM + 'M</div><div style="font-size:0.85rem; color:var(--ace-text-dim);">liters</div></div>'
+            + '<div style="text-align:center;"><div style="font-size:0.75rem; color:var(--ace-text-dim); text-transform:uppercase; letter-spacing:2px;">CO\\u2082</div><div style="font-size:1.6rem; font-weight:800; color:var(--ace-text); margin-top:8px;">' + m.co2.toLocaleString() + '</div><div style="font-size:0.85rem; color:var(--ace-text-dim);">tons</div></div>'
+            + '</div>'
+            + '<div style="margin-top:16px; padding:12px 16px; border-radius:10px; background:var(--ace-input-bg); text-align:center; font-size:1rem; color:var(--ace-text-dim);">' + m.fact + '</div>'
+            + '</div>';
+        detailEl.innerHTML = detail;
+        detailEl.style.display = 'block';
+    };
+    // Training bars
+    var bars = [
+        {l:'GPT-3 (2020)', w:2, v:'1,287 MWh', striped:false},
+        {l:'GPT-4 (2023)', w:48, v:'~62,000 MWh', striped:false},
+        {l:'Next-gen (2025+)', w:100, v:'???', striped:true}
+    ];
+    var barHtml = '';
+    for (var i = 0; i < bars.length; i++) {
+        var b = bars[i];
+        var bg = b.striped
+            ? 'repeating-linear-gradient(45deg,var(--ace-error),var(--ace-error) 10px,var(--ace-error) 10px,var(--ace-error) 20px)'
+            : 'var(--ace-error)';
+        barHtml += '<div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">'
+            + '<div style="width:130px; font-size:0.85rem; color:var(--ace-text-dim); flex-shrink:0;">' + b.l + '</div>'
+            + '<div style="flex:1; height:28px; background:var(--ace-input-bg); border-radius:6px; overflow:hidden;">'
+            + '<div style="width:' + b.w + '%; height:100%; border-radius:6px; background:' + bg + '; display:flex; align-items:center; justify-content:flex-end; padding-right:8px;">'
+            + '<span style="font-size:0.75rem; color:var(--ace-bar-text); font-weight:700;">' + b.v + '</span></div></div></div>';
+    }
+    barsEl.innerHTML = barHtml;
+})();
+
+// === Module 3: Water Crisis ===
+(function aceInitWater(){
+    var barContainer = document.getElementById('ace-water-bars');
+    var quizEl = document.getElementById('ace-water-quiz');
+    if (!barContainer || !quizEl) { setTimeout(aceInitWater, 200); return; }
+    // Animated water bars
+    var html = '';
+    for (var i = 0; i < 50; i++) {
+        var opacity = (0.2 + (i/50) * 0.8).toFixed(2);
+        html += '<div style="width:14px; height:44px; border-radius:4px; background:var(--ace-accent); opacity:' + opacity + '; transform:scaleY(0); transform-origin:bottom; transition:transform 0.5s ease ' + (i * 0.03).toFixed(2) + 's;" class="ace-water-bar"></div>';
+    }
+    barContainer.innerHTML = html;
+    setTimeout(function(){
+        var allBars = document.querySelectorAll('.ace-water-bar');
+        for (var j = 0; j < allBars.length; j++) {
+            allBars[j].style.transform = 'scaleY(1)';
+        }
+    }, 500);
+    // Water MCQ quiz
+    var opts = [
+        {id:'a', t:'Only recycled ocean water', correct:false},
+        {id:'b', t:'Freshwater from rivers, groundwater & municipal supplies', correct:true},
+        {id:'c', t:"It's all synthetic water made in labs", correct:false},
+        {id:'d', t:'Rainwater collected on rooftops', correct:false}
+    ];
+    var resultEl = document.getElementById('ace-water-quiz-result');
+    var qHtml = '';
+    for (var k = 0; k < opts.length; k++) {
+        var o = opts[k];
+        qHtml += '<button onclick="aceWaterQuizAnswer(\\'' + o.id + '\\')" id="ace-wq-' + o.id + '" class="ace-quiz-option">'
+            + '<strong style="color:var(--ace-text-dim);">' + o.id.toUpperCase() + '.</strong> ' + o.t + '</button>';
+    }
+    quizEl.innerHTML = qHtml;
+    window.aceWaterQuizAnswer = function(id) {
+        var chosen = opts.filter(function(o){ return o.id === id; })[0];
+        if (!chosen) return;
+        for (var k = 0; k < opts.length; k++) {
+            var btn = document.getElementById('ace-wq-' + opts[k].id);
+            if (!btn) continue;
+            if (opts[k].id === id) {
+                btn.style.background = chosen.correct ? 'var(--ace-success-highlight)' : 'var(--ace-error-highlight)';
+                btn.style.borderColor = chosen.correct ? 'var(--ace-success)' : 'var(--ace-error)';
+            } else {
+                btn.style.background = 'var(--ace-input-bg)';
+                btn.style.borderColor = 'var(--ace-input-border)';
+            }
+        }
+        if (resultEl) {
+            resultEl.style.display = 'block';
+            if (chosen.correct) {
+                resultEl.innerHTML = '<div style="padding:16px; border-radius:12px; font-size:1rem; line-height:1.6; background:var(--ace-success-bg); color:var(--ace-success); border:1px solid var(--ace-success);">Correct! Most data centers tap into freshwater — rivers, underground aquifers, and city water supplies.</div>';
+            } else {
+                resultEl.innerHTML = '<div style="padding:16px; border-radius:12px; font-size:1rem; line-height:1.6; background:var(--ace-error-bg); color:var(--ace-error); border:1px solid var(--ace-error);">Not quite. Data centers mostly rely on real freshwater from local sources — the same water your community drinks.</div>';
+            }
+        }
+    };
+})();
+
+// === Module 4: Global Scale ===
+(function aceInitScale(){
+    var tabsEl = document.getElementById('ace-scale-tabs');
+    var bdEl = document.getElementById('ace-energy-breakdown');
+    if (!tabsEl || !bdEl) { setTimeout(aceInitScale, 200); return; }
+    var categories = [
+        {l:"AI's total energy in 2025", v:'~200 TWh/yr', d:"The entire United Kingdom's electricity", i:'\\ud83c\\uddec\\ud83c\\udde7'},
+        {l:"AI's CO\\u2082 emissions", v:'~56M tons/yr', d:"New York City's total annual emissions", i:'\\ud83d\\uddfd'},
+        {l:"AI's water footprint", v:'~540B liters/yr', d:"Global bottled water consumption", i:'\\ud83e\\uddf4'},
+        {l:'Data centers by 2030', v:'~945 TWh', d:"Between Japan and Russia's total", i:'\\u26a1'}
+    ];
+    var activeTab = 0;
+    function renderTabs() {
+        var displayEl = document.getElementById('ace-scale-display');
+        if (!displayEl) return;
+        var tabHtml = '';
+        for (var i = 0; i < categories.length; i++) {
+            var isActive = i === activeTab;
+            tabHtml += '<button onclick="aceSetScaleTab(' + i + ')" style="flex:1; padding:10px 4px; border-radius:10px; cursor:pointer; background:'
+                + (isActive ? 'var(--ace-hover-bg)' : 'transparent')
+                + '; border:2px solid ' + (isActive ? 'var(--ace-accent)' : 'var(--ace-border-color)')
+                + '; color:' + (isActive ? 'var(--ace-accent)' : 'var(--ace-text-dim)')
+                + '; font-size:1.3rem; transition:all 0.3s; font-family:inherit;">' + categories[i].i + '</button>';
+        }
+        tabsEl.innerHTML = tabHtml;
+        var c = categories[activeTab];
+        displayEl.innerHTML = '<div style="font-size:0.8rem; color:var(--ace-text-dim); text-transform:uppercase; letter-spacing:3px;">' + c.l + '</div>'
+            + '<div style="font-size:clamp(2rem,6vw,3rem); font-weight:800; color:var(--ace-accent); margin-top:8px;">' + c.v + '</div>'
+            + '<div style="font-size:1.1rem; color:var(--ace-text); margin-top:12px; padding:10px 20px; border-radius:12px; background:var(--ace-input-bg); display:inline-block;">' + c.d + '</div>';
+    }
+    window.aceSetScaleTab = function(idx) {
+        activeTab = idx;
+        renderTabs();
+    };
+    renderTabs();
+    // Energy breakdown bars
+    var breakdownItems = [
+        {l:'Servers (GPUs, CPUs)', p:60, c:'var(--ace-warning)'},
+        {l:'Cooling systems', p:25, c:'var(--ace-accent)'},
+        {l:'Networking', p:5, c:'var(--ace-success)'},
+        {l:'Storage', p:5, c:'#a78bfa'},
+        {l:'Other (lighting, etc.)', p:5, c:'var(--ace-text-dim)'}
+    ];
+    var bdHtml = '';
+    for (var j = 0; j < breakdownItems.length; j++) {
+        var x = breakdownItems[j];
+        bdHtml += '<div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">'
+            + '<div style="width:140px; font-size:0.9rem; color:var(--ace-text-dim); flex-shrink:0;">' + x.l + '</div>'
+            + '<div style="flex:1; height:26px; background:var(--ace-input-bg); border-radius:6px; overflow:hidden;">'
+            + '<div style="width:' + x.p + '%; height:100%; background:' + x.c + '; border-radius:6px; display:flex; align-items:center; justify-content:flex-end; padding-right:8px;">'
+            + '<span style="font-size:0.75rem; color:var(--ace-bar-text); font-weight:700;">' + x.p + '%</span></div></div></div>';
+    }
+    bdEl.innerHTML = bdHtml;
+})();
+
+// === Module 5: Action Plan ===
+(function aceInitActions(){
+    var container = document.getElementById('ace-actions');
+    if (!container) { setTimeout(aceInitActions, 200); return; }
+    var actions = [
+        {id:'search', l:'Google it first', d:"Use a regular search when you don't need AI", p:30, i:'\\ud83d\\udd0d'},
+        {id:'specific', l:'Be specific', d:'Clear prompts = fewer follow-ups = less energy', p:15, i:'\\ud83c\\udfaf'},
+        {id:'local', l:'Use smaller models', d:'Smaller AI models use way less energy for simple tasks', p:25, i:'\\ud83d\\udcf1'},
+        {id:'aware', l:'Stay aware', d:'Push for transparency from tech companies', p:20, i:'\\ud83d\\udce2'},
+        {id:'share', l:'Tell a friend', d:'Most people have no idea AI uses this much', p:10, i:'\\ud83d\\udcac'}
+    ];
+    var pledged = {};
+    function renderActions() {
+        var html = '';
+        for (var i = 0; i < actions.length; i++) {
+            var a = actions[i];
+            var checked = !!pledged[a.id];
+            html += '<button onclick="aceToggleAction(\\'' + a.id + '\\')" style="display:flex; align-items:center; gap:14px; padding:16px 18px; border-radius:14px; cursor:pointer; text-align:left; width:100%; background:'
+                + (checked ? 'var(--ace-success-highlight)' : 'var(--ace-input-bg)')
+                + '; border:2px solid ' + (checked ? 'var(--ace-success)' : 'var(--ace-border-color)')
+                + '; color:var(--ace-text); transition:all 0.3s; font-family:inherit; font-size:inherit;">'
+                + '<div style="width:28px; height:28px; border-radius:8px; flex-shrink:0; background:' + (checked ? 'var(--ace-success)' : 'var(--ace-input-bg)') + '; border:2px solid ' + (checked ? 'var(--ace-success)' : 'var(--ace-input-border)') + '; display:flex; align-items:center; justify-content:center; color:var(--ace-bar-text); font-size:0.85rem; font-weight:700;">' + (checked ? '\\u2713' : '') + '</div>'
+                + '<div style="flex:1;"><div style="font-size:1.05rem; font-weight:700;">' + a.i + ' ' + a.l + '</div><div style="font-size:0.9rem; color:var(--ace-text-dim); margin-top:2px;">' + a.d + '</div></div>'
+                + '<div style="font-size:0.85rem; color:var(--ace-success); font-weight:700; opacity:' + (checked ? '1' : '0.3') + ';">-' + a.p + '%</div>'
+                + '</button>';
+        }
+        container.innerHTML = html;
+        updateScore();
+    }
+    function updateScore() {
+        var total = 0;
+        for (var key in pledged) {
+            if (pledged[key]) {
+                var act = actions.filter(function(a){ return a.id === key; })[0];
+                if (act) total += act.p;
+            }
+        }
+        var scoreEl = document.getElementById('ace-action-score');
+        var msgEl = document.getElementById('ace-action-message');
+        if (scoreEl) {
+            scoreEl.textContent = total + '%';
+            if (total > 50) scoreEl.style.color = 'var(--ace-success)';
+            else if (total > 20) scoreEl.style.color = 'var(--ace-warning)';
+            else scoreEl.style.color = 'var(--ace-text-dim)';
+        }
+        if (msgEl) {
+            if (total === 0) msgEl.textContent = 'Select some actions above to see your impact!';
+            else if (total <= 30) msgEl.textContent = 'A solid start! Every bit counts when billions use AI.';
+            else if (total <= 60) msgEl.textContent = "Nice! You're making a real difference.";
+            else if (total <= 90) msgEl.textContent = "You're basically an AI sustainability advocate now!";
+            else msgEl.textContent = 'Maximum impact! Leading the charge for responsible AI use!';
+        }
+    }
+    window.aceToggleAction = function(id) {
+        pledged[id] = !pledged[id];
+        renderActions();
+    };
+    renderActions();
+})();
+"""
+
+HEAD_HTML = (
+    '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap">\n'
+    '<script>\n' + CLIENT_JS + '\n</script>'
+)
 
 
 # ============================================================================
-# 13. APP FACTORY
+# 10. APP FACTORY
 # ============================================================================
 
 def create_green_detective_en_sustainability_app(theme_primary_hue: str = "indigo"):
-    with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
+    with gr.Blocks() as demo:
         # States
         username_state = gr.State(value=None)
         token_state = gr.State(value=None)
@@ -1850,7 +1413,7 @@ def create_green_detective_en_sustainability_app(theme_primary_hue: str = "indig
         with gr.Column(visible=True, elem_id="app-loader") as loader_col:
             gr.HTML(
                 "<div style='text-align:center; padding:100px;'>"
-                "<h2>🕵️‍♀️ Authenticating...</h2>"
+                "<h2>Authenticating...</h2>"
                 "<p>Syncing Moral Compass Data...</p>"
                 "</div>"
             )
@@ -1865,12 +1428,12 @@ def create_green_detective_en_sustainability_app(theme_primary_hue: str = "indig
                     <div style="padding:12px; font-size:0.92rem; line-height:1.6;">
                         <div style="font-weight:700; margin-bottom:8px;">Formula:</div>
                         <div style="background:var(--background-fill-secondary); padding:12px 16px; border-radius:8px; font-family:monospace; font-size:1rem; margin-bottom:10px; border:1px solid var(--border-color-primary);">
-                            Moral Compass Score = Accuracy × (Steps Completed ÷ Total Steps)
+                            Moral Compass Score = Accuracy x (Steps Completed / Total Steps)
                         </div>
                         <ul style="margin:0; padding-left:20px;">
-                            <li><strong>Accuracy</strong> — Your model's accuracy score from Activity 4 (0 to 1).</li>
-                            <li><strong>Steps Completed</strong> — How many investigation steps you've answered correctly so far.</li>
-                            <li><strong>Total Steps</strong> — The total number of quiz questions across the investigation (8).</li>
+                            <li><strong>Accuracy</strong> &mdash; Your model's accuracy score from Activity 4 (0 to 1).</li>
+                            <li><strong>Steps Completed</strong> &mdash; How many investigation steps you've answered correctly so far.</li>
+                            <li><strong>Total Steps</strong> &mdash; The total number of quiz questions across the investigation.</li>
                         </ul>
                         <div style="margin-top:10px; padding:8px 12px; background:rgba(99,102,241,0.08); border-radius:6px; font-size:0.88rem;">
                             Your score increases as you progress through the investigation. A perfect score means high model accuracy <em>and</em> completing all ethical reasoning steps.
@@ -1890,102 +1453,18 @@ def create_green_detective_en_sustainability_app(theme_primary_hue: str = "indig
                 ) as mod_col:
                     gr.HTML(mod["html"])
 
-                    # --- MODULE 1: Interactive Personal Usage Slider ---
-                    if i == 1:
-                        usage_slider = gr.Slider(
-                            minimum=0, maximum=200, value=50, step=5,
-                            label="🎚️ How many AI prompts do YOU send per week? (ChatGPT, image gen, Snapchat AI, voice assistants, autocomplete…)",
-                            elem_classes=["usage-slider"],
-                        )
-                        usage_output = gr.HTML("")
-
-                        def calc_footprint(n_prompts):
-                            charges_week = round(n_prompts * 0.5, 1)
-                            charges_year = round(charges_week * 40, 0)
-                            water_bottles = round(n_prompts / 22.5, 1)
-                            water_year = round(water_bottles * 40, 0)
-                            co2_year_kg = round(n_prompts * 0.003 * 52, 1)  # ~3g CO2 per prompt
-
-                            bar_pct_energy = min(100, int(charges_week / 50 * 100))
-                            bar_pct_water = min(100, int(water_bottles / 10 * 100))
-
-                            return f"""
-                            <div style="background:#1e293b; color:white; padding:16px 18px; border-radius:12px; margin-top:4px;">
-                                <div style="font-size:0.78rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:10px; text-align:center;">
-                                    📊 YOUR WEEKLY AI FOOTPRINT — {int(n_prompts)} prompts/week
-                                </div>
-                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
-                                    <div style="text-align:center; padding:12px; background:rgba(248,113,113,0.12); border-radius:8px;">
-                                        <div style="font-size:0.75rem; color:#94a3b8;">⚡ Energy / week</div>
-                                        <div style="font-size:1.6rem; font-weight:900; color:#f87171;">{charges_week} charges</div>
-                                        <div style="height:6px; background:rgba(255,255,255,0.1); border-radius:3px; margin-top:6px; overflow:hidden;">
-                                            <div style="height:100%; width:{bar_pct_energy}%; background:#f87171; border-radius:3px;"></div>
-                                        </div>
-                                    </div>
-                                    <div style="text-align:center; padding:12px; background:rgba(96,165,250,0.12); border-radius:8px;">
-                                        <div style="font-size:0.75rem; color:#94a3b8;">💧 Water / week</div>
-                                        <div style="font-size:1.6rem; font-weight:900; color:#60a5fa;">{water_bottles} bottles</div>
-                                        <div style="height:6px; background:rgba(255,255,255,0.1); border-radius:3px; margin-top:6px; overflow:hidden;">
-                                            <div style="height:100%; width:{bar_pct_water}%; background:#60a5fa; border-radius:3px;"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div style="text-align:center; padding:10px; background:rgba(250,204,21,0.1); border-radius:8px;">
-                                    <span style="font-size:0.85rem; color:#fbbf24; font-weight:700;">Over one school year (40 weeks):</span>
-                                    <span style="color:white; font-weight:800;"> {int(charges_year)} phone charges</span>
-                                    <span style="color:#94a3b8;"> · </span>
-                                    <span style="color:white; font-weight:800;">{int(water_year)} water bottles evaporated</span>
-                                    <span style="color:#94a3b8;"> · </span>
-                                    <span style="color:white; font-weight:800;">{co2_year_kg} kg CO₂</span>
-                                </div>
-                            </div>
-                            <div style="padding:10px; background:#fef3c7; border-left:3px solid #f59e0b; border-radius:6px; font-size:0.9rem; margin-top:10px;">
-                                <strong>🔑 Key Insight:</strong> Every time you hit "send," somewhere a power plant burns fuel and a cooling tower evaporates water. There is no such thing as a free prompt.
-                            </div>
-                            """
-
-                        usage_slider.change(
-                            fn=calc_footprint,
-                            inputs=[usage_slider],
-                            outputs=[usage_output],
-                        )
-                        # Show default value on load
-                        demo.load(
-                            fn=lambda: calc_footprint(50),
-                            outputs=[usage_output],
-                        )
-
-                    # --- MODULE 7: Personal Audit Textboxes ---
-                    if i == 7:
-                        gr.HTML("<div style='margin-top:10px; font-weight:700; font-size:1rem;'>Type your personal AI audit below:</div>")
-                        audit_tool_1 = gr.Textbox(
-                            label="1. AI tool or habit",
-                            placeholder="e.g. ChatGPT for homework help — Worth it / Debatable / Could skip",
-                            lines=2,
-                        )
-                        audit_tool_2 = gr.Textbox(
-                            label="2. AI tool or habit",
-                            placeholder="e.g. AI image generation for fun — Worth it / Debatable / Could skip",
-                            lines=2,
-                        )
-                        audit_tool_3 = gr.Textbox(
-                            label="3. AI tool or habit",
-                            placeholder="e.g. Voice assistant for reminders — Worth it / Debatable / Could skip",
-                            lines=2,
-                        )
-
-                    # Quiz content
+                    # Quiz content — only for modules in QUIZ_CONFIG (1-4)
                     if i in QUIZ_CONFIG:
                         q_data = QUIZ_CONFIG[i]
 
                         gr.HTML(
                             "<div class='quiz-cta'>"
-                            "<span class='points-chip'>🧭 Moral Compass points available</span>"
+                            "<span class='points-chip'>\U0001f9ed Moral Compass points available</span>"
                             "<span>Answer to boost your score</span>"
                             "</div>"
                         )
 
-                        gr.Markdown(f"### 🧠 {q_data['q']}")
+                        gr.Markdown(f"### \U0001f9e0 {q_data['q']}")
                         radio = gr.Radio(
                             choices=q_data["o"],
                             label="Select Answer:",
@@ -1996,11 +1475,11 @@ def create_green_detective_en_sustainability_app(theme_primary_hue: str = "indig
 
                     # Navigation buttons
                     with gr.Row():
-                        btn_prev = gr.Button("⬅️ Previous", visible=(i > 0))
+                        btn_prev = gr.Button("\u2b05\ufe0f Previous", visible=(i > 0))
                         next_label = (
-                            "Next ▶️"
+                            "Next \u25b6\ufe0f"
                             if i < len(MODULES) - 1
-                            else "🎉 Investigation Complete!"
+                            else "\U0001f389 Investigation Complete!"
                         )
                         btn_next = gr.Button(next_label, variant="primary")
 
@@ -2032,7 +1511,7 @@ def create_green_detective_en_sustainability_app(theme_primary_hue: str = "indig
                             gr.update(),
                             gr.update(),
                             "<div class='hint-box' style='border-color:red;'>"
-                            "❌ Not quite. Re-read the evidence above and think about what the data specifically shows.</div>",
+                            "\u274c Not quite. Re-read the evidence above and think about what the data specifically shows.</div>",
                             task_list,
                         )
 
@@ -2119,7 +1598,7 @@ def create_green_detective_en_sustainability_app(theme_primary_hue: str = "indig
                 )
             return (
                 None, None, None, False,
-                "<div class='hint-box'>⚠️ Auth Failed. Please launch from the course link.</div>",
+                "<div class='hint-box'>Auth Failed. Please launch from the course link.</div>",
                 "", 0.0, [],
                 gr.update(visible=False),
                 gr.update(visible=True),
@@ -2217,7 +1696,6 @@ def create_green_detective_en_sustainability_app(theme_primary_hue: str = "indig
                 )
 
         return demo
-
 
 # ============================================================================
 # LAUNCH
