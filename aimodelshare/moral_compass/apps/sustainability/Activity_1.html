@@ -548,6 +548,40 @@
             background: rgba(56, 189, 248, 0.15);
             transform: translateY(-1px);
         }
+
+        /* Mission objective — animated glow to draw attention on load */
+        .mission-objective {
+            animation: missionGlow 1.5s ease-in-out 3;
+            position: relative;
+        }
+        @keyframes missionGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.2); }
+            50% { box-shadow: 0 0 24px 6px rgba(16, 185, 129, 0.35), inset 0 0 12px rgba(16, 185, 129, 0.08); }
+        }
+
+        /* Inline explanation callouts — so users notice definitions of complex terms */
+        .explain {
+            background: rgba(56, 189, 248, 0.1);
+            padding: 2px 7px;
+            border-radius: 5px;
+            border-bottom: 2px dashed var(--accent);
+            color: var(--text);
+            font-weight: 500;
+        }
+        @media (prefers-color-scheme: light) {
+            .explain {
+                background: rgba(3, 105, 161, 0.08);
+            }
+        }
+
+        /* Subtle entrance for info callout boxes so they catch the eye */
+        .info-callout {
+            animation: calloutSlideIn 0.6s ease-out both;
+        }
+        @keyframes calloutSlideIn {
+            from { opacity: 0; transform: translateX(-8px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
     </style>
 </head>
 
@@ -577,12 +611,11 @@
                         CLIMATE ACTION INVESTIGATOR</h1>
                 </div>
 
-                <div
-                    style="background: rgba(16, 185, 129, 0.1); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 2px solid var(--success);">
-                    <p style="font-size: 1rem; margin-bottom: 0; color: var(--text); text-align: center;"><strong>🎯
-                            MISSION
-                            OBJECTIVE:</strong> Identify the single largest polluter in your home city and generate a
-                        data-backed briefing for city leaders.</p>
+                <div class="mission-objective"
+                    style="background: rgba(16, 185, 129, 0.12); padding: 24px; border-radius: 14px; margin-bottom: 25px; border: 3px solid var(--success);">
+                    <p style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; color: var(--success); font-weight: 800; margin-bottom: 8px; text-align: center;">🎯 Mission Objective</p>
+                    <p style="font-size: 1.15rem; margin-bottom: 0; color: var(--text); text-align: center; font-weight: 600; line-height: 1.5;">Identify the single largest polluter in your home city and create a
+                        report for city leaders using real data.</p>
                 </div>
 
                 <h3 style="margin-bottom: 8px;">🌍 Why This Mission Matters</h3>
@@ -614,8 +647,8 @@
                 <div
                     style="background: rgba(56, 189, 248, 0.1); padding: 15px; border-radius: 12px; margin-top: 25px; border-left: 4px solid var(--accent);">
                     <p style="font-size: 0.95rem; margin-bottom: 0;"><strong>OUR DATA SOURCE:</strong> This mission is
-                        powered by <span class="highlight-text">Climate TRACE</span>, a global non-profit coalition that
-                        uses a constellation (network) of satellites and AI to monitor every major source of greenhouse gas emissions (CO2, methane, and other gases that trap heat) on Earth
+                        powered by <span class="highlight-text">Climate TRACE</span>, a global group that
+                        uses a <span class="explain">network of satellites</span> and AI to monitor every major source of <span class="explain">carbon emissions</span> on Earth
                         — so anyone can check the numbers.</p>
                 </div>
 
@@ -627,8 +660,8 @@
             <!-- STEP 1: THE TARGET -->
             <div class="mission-step" id="step-1">
                 <h2>🎯 Step 1: Select Your City</h2>
-                <p>Enter the name of your city to pull up its emissions profile from satellite data. For smaller towns, search for
-                    your <span class="highlight-text">Province</span> or <span class="highlight-text">County</span> (the larger administrative area your city belongs to).</p>
+                <p>Enter the name of your city to pull up its pollution data from satellite data. For smaller towns, search for
+                    your <span class="highlight-text">Province</span> or <span class="highlight-text">County</span> (the larger region your city is part of).</p>
                 <div class="input-group">
                     <input type="text" id="cityInput" placeholder="Enter city, province, or county..."
                         onkeypress="if(event.key === 'Enter') startInvestigation()"
@@ -660,13 +693,16 @@
             <!-- LOADER -->
             <div id="loader">
                 <div class="spinner"></div>
-                <p style="margin-top: 20px;" id="loaderText">Accessing global satellite network...</p>
+                <p style="margin-top: 20px;" id="loaderText">Connecting to satellite data...</p>
             </div>
 
             <!-- STEP 2: THE TREND -->
             <div class="mission-step" id="step-2">
                 <h2>🌍 Step 2: The Big Picture</h2>
-                <p>Analyzing total greenhouse gas emissions for <span id="locDisplay" class="highlight-text">...</span>. <span style="font-size: 0.9rem; color: var(--text-dim);">(1 tonne of CO2 ≈ what 1 car emits in 3 months)</span></p>
+                <p>Looking at the total carbon emissions for <span id="locDisplay" class="highlight-text">...</span>.</p>
+                <div class="info-callout" style="background: rgba(56, 189, 248, 0.08); padding: 10px 14px; border-radius: 10px; margin: -10px 0 20px 0; border-left: 3px solid var(--accent); display: inline-block;">
+                    <p style="font-size: 0.95rem; margin: 0; color: var(--text-dim);">💡 <span class="explain">1 tonne of carbon emissions ≈ what 1 car produces in 3 months</span></p>
+                </div>
                 <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 30px;">
                     <div>
                         <div
@@ -686,7 +722,7 @@
                 <div class="quiz">
                     <div class="quiz-title">Checkpoint Question</div>
                     <p style="margin-bottom: 15px; font-size: 1rem;">According to the data, what happened to your city's
-                        total carbon footprint (total greenhouse gas emissions) in 2023?</p>
+                        total <span class="explain">carbon footprint (total carbon emissions)</span> in 2023?</p>
                     <div class="options-grid">
                         <button class="option-btn" onclick="checkAnswer(this, 'down')">Emissions went DOWN</button>
                         <button class="option-btn" onclick="checkAnswer(this, 'up')">Emissions went UP</button>
@@ -702,17 +738,17 @@
 
             <!-- STEP 3: SECTORS -->
             <div class="mission-step" id="step-3">
-                <h2>🏭 Step 3: Sector Breakdown — Emissions Grouped by Industry</h2>
-                <p>Analyze the chart to find the single sector causing the most emissions.</p>
-                <div style="background: rgba(56, 189, 248, 0.08); padding: 12px 15px; border-radius: 10px; margin-bottom: 15px; border-left: 3px solid var(--accent);">
-                    <p style="font-size: 0.9rem; margin-bottom: 0; color: var(--text-dim);"><strong style="color: var(--accent);">Note:</strong> This data shows direct emissions (Scope 1) — pollution released at the source. It doesn't include indirect emissions from electricity use (Scope 2) or supply chains (Scope 3), which can be even larger.</p>
+                <h2>🏭 Step 3: <span class="explain" style="border-bottom-color: var(--accent);">Sector (Industry Group)</span> Breakdown</h2>
+                <p>Look at the chart to find the single industry causing the most emissions.</p>
+                <div class="info-callout" style="background: rgba(56, 189, 248, 0.08); padding: 12px 15px; border-radius: 10px; margin-bottom: 15px; border-left: 3px solid var(--accent);">
+                    <p style="font-size: 0.9rem; margin-bottom: 0; color: var(--text-dim);"><strong style="color: var(--accent);">💡 Good to know:</strong> This data shows pollution released directly at the source. It doesn't count pollution from electricity use or shipping, which can be even bigger.</p>
                 </div>
                 <div style="height: 250px; margin-bottom: 30px;">
                     <canvas id="sectorChart"></canvas>
                 </div>
                 <div class="quiz">
                     <div class="quiz-title">Checkpoint Question</div>
-                    <p style="margin-bottom: 15px; font-size: 1rem;">Which <span class="highlight-text">single sector</span> has the highest total emissions?</p>
+                    <p style="margin-bottom: 15px; font-size: 1rem;">Which <span class="highlight-text">single industry</span> has the highest total emissions?</p>
                     <div class="options-grid" id="sectorOptions"></div>
                 </div>
                 <div class="btn-group">
@@ -766,22 +802,22 @@
                 <h2>⚡ Step 5: Strategic Approaches</h2>
                 <p>Data tells us <strong>where</strong> the problem is; strategy tells us <strong>how</strong> to fix
                     it. Monitoring is just the start — now we need to choose the right approach for the <span
-                        id="topSectorLabel" class="highlight-text">---</span> sector.</p>
+                        id="topSectorLabel" class="highlight-text">---</span> industry.</p>
 
                 <div class="quiz"
                     style="background: rgba(56, 189, 248, 0.1); border-color: var(--accent); margin-bottom: 30px;">
-                    <p style="margin-bottom: 0; color: var(--text);"><strong>Strategic Insight:</strong> If we cut
+                    <p style="margin-bottom: 0; color: var(--text);"><strong>What This Means:</strong> If we cut
                         emissions
-                        in this sector by half, our whole city's
-                        footprint drops by <strong><span id="dropPct">0</span>%</strong>.</p>
+                        in this industry by half, our whole city's
+                        total emissions drop by <strong><span id="dropPct">0</span>%</strong>.</p>
                 </div>
 
                 <div class="quiz">
-                    <div class="quiz-title">Strategy Selection</div>
+                    <div class="quiz-title">Your Decision</div>
                     <p style="margin-bottom: 15px; font-size: 1rem;">Based on the data, which approach would make the biggest difference?</p>
                     <div class="options-grid">
-                        <button class="option-btn" onclick="checkStrategyAnswer(this, 'correct')">Targeted regulations on this sector's top emitters.</button>
-                        <button class="option-btn" onclick="checkStrategyAnswer(this, 'wrong')">Voluntary equal reductions across all industries, with no enforcement.</button>
+                        <button class="option-btn" onclick="checkStrategyAnswer(this, 'correct')">Focused rules on the biggest polluters in this industry.</button>
+                        <button class="option-btn" onclick="checkStrategyAnswer(this, 'wrong')">Asking all industries to cut equally, with no rules to enforce it.</button>
                     </div>
                 </div>
 
@@ -793,24 +829,24 @@
 
             <!-- STEP 6: FINAL REPORT -->
             <div class="mission-step" id="step-6">
-                <h2>📜 Plan of Action</h2>
+                <h2>📜 Your Report</h2>
                 <div id="autoSummary"
                     style="background: rgba(255,255,255,0.05); padding: 25px; border-radius: 16px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.1);">
                     <h3
                         style="color: var(--accent); margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">
-                        Your Investigation Report</h3>
+                        What You Found</h3>
                     <p id="autoContext" style="font-size: 1rem; line-height: 1.8;"></p>
                 </div>
                 <div class="quiz">
-                    <p style="margin-bottom: 15px; color: var(--text); font-weight: 600;">Complete your recommendation to city leaders:</p>
+                    <p style="margin-bottom: 15px; color: var(--text); font-weight: 600;">Write your advice to city leaders:</p>
                     <div style="font-size: 1.1rem; line-height: 2.4; color: var(--text);">
                         <span>I recommend the city</span>
                         <select id="strategySelect" style="width: auto; display: inline-block; font-size: 1rem; padding: 6px 36px 6px 12px; border-radius: 8px; vertical-align: baseline; border: 2px dashed var(--accent); background-color: rgba(56, 189, 248, 0.08);">
                             <option value="" disabled selected>[ choose action ]</option>
-                            <option value="regulate">regulate</option>
-                            <option value="incentivize alternatives to">incentivize alternatives to</option>
+                            <option value="create rules for">create rules for</option>
+                            <option value="reward switching away from">reward switching away from</option>
                             <option value="invest in replacing">invest in replacing</option>
-                            <option value="cap and monitor">cap and monitor</option>
+                            <option value="limit and track">limit and track</option>
                         </select>
                         <span id="strategyTarget"></span>
                     </div>
@@ -830,21 +866,24 @@
             <div class="mission-step" id="step-7">
                 <div style="text-align: center;">
                     <span style="font-size: 5rem;">🏆</span>
-                    <h2 style="color: var(--success);">Investigation Complete</h2>
+                    <h2 style="color: var(--success);">Mission Complete</h2>
                     <p>You have successfully analyzed the satellite data for your community.</p>
                     <div
                         style="background: rgba(255,255,255,0.05); padding: 25px; border-radius: 12px; text-align: left; margin-top: 20px;">
-                        <h4 style="color: var(--success); margin-bottom: 10px;">Your Recommendation to City Leaders:</h4>
+                        <h4 style="color: var(--success); margin-bottom: 10px;">Your Advice to City Leaders:</h4>
                         <div id="displayFinalReflect"
                             style="font-size: 1.1rem; border-left: 3px solid var(--success); padding-left: 15px; color: var(--text-dim);">
                         </div>
                     </div>
                     <div class="btn-group" style="margin-top: 30px; justify-content: center;">
                         <button class="btn secondary" onclick="goToStep(6)">◀️ BACK</button>
-                        <button class="btn" style="background: var(--success); cursor:default; opacity:0.7;" disabled>MISSION COMPLETE</button>
+                        <button class="btn" style="background: var(--success); cursor:default; opacity:1;" disabled>MISSION COMPLETE ✓</button>
                     </div>
                     <div style="background:rgba(16,185,129,0.1); border:1px solid var(--success); padding:16px; border-radius:10px; margin-top:16px; text-align:center;">
-                        <p style="margin:0; color:var(--text); font-size:1.05rem;">Mission complete! You've identified your city's biggest emitters. <b>Next up:</b> Buildings account for ~40% of energy use in most cities — you'll design an AI system to predict building energy efficiency using real data.</p>
+                        <p style="margin:0; color:var(--text); font-size:1.05rem;">Mission complete! You've identified your city's biggest emitters. <b>Next up:</b> Buildings account for ~40% of energy use in most cities — you'll design an AI system to predict how much energy buildings use.</p>
+                    </div>
+                    <div style="margin-top: 16px; text-align:center;">
+                        <a href="Activity_2.html" style="display:inline-block; background:linear-gradient(135deg, #a78bfa, #ec4899); color:#f8fafc; border:none; padding:16px 28px; border-radius:12px; font-weight:700; cursor:pointer; transition:all 0.3s ease; text-transform:uppercase; letter-spacing:0.5px; font-size:1rem; text-decoration:none; width:100%; text-align:center;">PROCEED TO ACTIVITY 2 →</a>
                     </div>
                 </div>
             </div>
@@ -872,7 +911,7 @@
             if (!t22) return;
             const cars = Math.round(t22 / 4600).toLocaleString();
             document.getElementById('emissionsContext').innerText =
-                'Roughly equivalent to ' + cars + ' cars driving for a year.';
+                "That's about the same as " + cars + " cars driving for a year.";
         }
 
         function initFactScroller() {
@@ -1142,9 +1181,9 @@
             const sectorName = formatSectorName(investigationData.topSector.sector);
             const sourceName = topSource.name;
             document.getElementById('autoContext').innerHTML =
-                `Based on satellite data, <strong>${investigationData.city.matchedName}</strong>'s biggest emission source is the <strong>${sectorName}</strong> sector, specifically <strong>${sourceName}</strong>.`;
+                `Based on satellite data, <strong>${investigationData.city.matchedName}</strong>'s biggest source of carbon emissions is the <strong>${sectorName}</strong> industry, specifically <strong>${sourceName}</strong>.`;
             document.getElementById('strategyTarget').innerHTML =
-                ` this sector's top emitters in the <strong>${sectorName}</strong> sector.`;
+                ` the biggest polluters in the <strong>${sectorName}</strong> industry.`;
         }
 
         function completeMission() {
@@ -1153,7 +1192,7 @@
             if (!strategy) return alert("Please choose a strategy from the dropdown!");
             if (!reasoning) return alert("Please explain why this is urgent!");
             const sectorName = formatSectorName(investigationData.topSector.sector);
-            const recommendation = `I recommend the city ${strategy} the ${sectorName} sector's top emitters. This is urgent because: ${reasoning}`;
+            const recommendation = `I recommend the city ${strategy} the biggest polluters in the ${sectorName} industry. This is urgent because: ${reasoning}`;
             document.getElementById('displayFinalReflect').innerText = recommendation;
             goToStep(7);
         }

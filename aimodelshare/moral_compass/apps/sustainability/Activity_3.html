@@ -4,10 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Understanding AI for Climate Action v3.1</title>
+    <title>Understanding AI for Climate Action v3.2</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* Dark Mode (Default) */
+        /* ===== DARK MODE (Default) ===== */
         :root {
             --bg: #0f172a;
             --card-bg: rgba(30, 41, 59, 0.7);
@@ -34,7 +34,7 @@
             --green-accent: #15803d;
         }
 
-        /* Light Mode */
+        /* ===== LIGHT MODE ===== */
         @media (prefers-color-scheme: light) {
             :root {
                 --bg: #f8fafc;
@@ -63,11 +63,7 @@
             }
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Outfit', sans-serif;
@@ -79,61 +75,47 @@
                 radial-gradient(circle at 90% 80%, var(--bg-gradient-2) 0%, transparent 20%);
         }
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
+        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
 
-        /* PROGRESS BAR */
+        /* ===== PROGRESS BAR ===== */
         .mission-progress {
             display: flex;
             justify-content: space-between;
             margin-bottom: 40px;
             position: relative;
         }
-
         .mission-progress::before {
             content: '';
             position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
+            top: 50%; left: 0; right: 0;
             height: 2px;
             background: var(--progress-line);
             z-index: 1;
             transform: translateY(-50%);
         }
-
         .step-node {
-            width: 35px;
-            height: 35px;
+            width: 33px; height: 33px;
             border-radius: 50%;
             background: var(--bg);
             border: 2px solid var(--step-border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             z-index: 2;
             color: var(--text-dim);
-            font-weight: 600;
-            font-size: 0.875rem;
+            font-weight: 600; font-size: 0.8rem;
             transition: all 0.3s ease;
         }
-
         .step-node.active {
             border-color: var(--accent);
             color: var(--accent);
             box-shadow: 0 0 15px var(--accent-glow);
         }
-
         .step-node.completed {
             background: var(--success);
             border-color: var(--success);
             color: white;
         }
 
-        /* CARDS & CONTENT */
+        /* ===== CARDS & CONTENT ===== */
         .card {
             background: var(--card-bg);
             backdrop-filter: blur(16px);
@@ -142,627 +124,711 @@
             border: 1px solid var(--border-color);
             box-shadow: 0 25px 50px -12px var(--card-shadow);
             min-height: 500px;
-            display: flex;
-            flex-direction: column;
+            display: flex; flex-direction: column;
         }
-
         .mission-step {
-            display: none;
-            height: 100%;
+            display: none; height: 100%;
             transition: opacity 0.5s ease;
         }
-
         .mission-step.active {
-            display: flex;
-            flex-direction: column;
+            display: flex; flex-direction: column;
         }
 
-        h1,
-        h2,
-        h3 {
-            font-weight: 800;
-            margin-bottom: 20px;
-        }
-
+        /* ===== TYPOGRAPHY ===== */
+        h1, h2, h3 { font-weight: 800; margin-bottom: 20px; }
         h1 {
-            font-size: 2.2rem;
-            letter-spacing: -1px;
-            text-align: center;
+            font-size: 2.2rem; letter-spacing: -1px; text-align: center;
             background: linear-gradient(135deg, var(--ai-purple), var(--ai-pink));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
         }
-
         h2 {
             font-size: 1.8rem;
             background: linear-gradient(135deg, var(--ai-purple), var(--ai-pink));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
         }
+        h3 { font-size: 1.3rem; color: var(--accent); }
+        p { line-height: 1.6; color: var(--text-dim); margin-bottom: 20px; font-size: 1.125rem; }
 
-        h3 {
-            font-size: 1.3rem;
-            color: var(--accent);
-        }
-
-        p {
-            line-height: 1.6;
-            color: var(--text-dim);
-            margin-bottom: 20px;
-            font-size: 1.125rem;
-        }
-
-        .highlight-text {
-            color: var(--text);
-            font-weight: 600;
-        }
-
-        /* INTRO BOX */
-        .ai-intro-box {
-            text-align: center;
-            font-size: 1.125rem;
-            padding: 25px;
-            border-radius: 16px;
-            background: var(--input-bg);
-            border: 2px solid var(--accent);
-            box-shadow: 0 5px 15px var(--accent-glow);
-            margin-bottom: 30px;
-        }
-
-        /* STEP CARDS */
+        /* ===== STEP & INNER CARDS ===== */
         .step-card {
-            font-size: 1.125rem;
-            padding: 28px;
-            border-radius: 16px;
-            background: var(--input-bg);
-            border: 2px solid var(--border-color);
-            margin-bottom: 25px;
+            font-size: 1.125rem; padding: 28px; border-radius: 16px;
+            background: var(--input-bg); border: 2px solid var(--border-color); margin-bottom: 25px;
         }
-
-        .step-card-blue {
-            border-color: #6366f1;
-        }
-
-        .step-card-green {
-            border-color: #16a34a;
-        }
-
-        .step-card-amber {
-            border-color: #f59e0b;
-        }
-
-        .step-card-purple {
-            border-color: #9333ea;
-        }
-
+        .step-card-blue { border-color: #6366f1; }
+        .step-card-green { border-color: #16a34a; }
+        .step-card-amber { border-color: #f59e0b; }
+        .step-card-purple { border-color: #9333ea; }
         .inner-card {
-            background: var(--card-bg);
-            padding: 24px;
-            border-radius: 12px;
-            margin: 24px 0;
-            border: 1px solid var(--border-color);
+            background: var(--card-bg); padding: 24px; border-radius: 12px;
+            margin: 24px 0; border: 1px solid var(--border-color);
         }
+        .inner-card-emphasis { border: 3px solid var(--accent); }
 
-        .inner-card-emphasis {
-            border: 3px solid var(--accent);
-        }
-
-        /* IO FLOW DIAGRAM */
+        /* ===== IO FLOW CHIPS ===== */
         .io-chip-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            text-align: center;
+            display: flex; align-items: stretch; justify-content: center;
+            flex-wrap: wrap; gap: 15px; text-align: center;
         }
-
         .io-chip {
-            padding: 16px 24px;
-            border-radius: 12px;
-            flex: 1;
-            min-width: 140px;
-        }
-
-        .io-chip-input {
-            background: rgba(56, 189, 248, 0.15);
-            border: 2px solid var(--blue-accent);
-        }
-
-        .io-chip-model {
-            background: rgba(251, 191, 36, 0.15);
-            border: 2px solid var(--amber-accent);
-        }
-
-        .io-chip-output {
-            background: rgba(16, 185, 129, 0.15);
-            border: 2px solid var(--green-accent);
-        }
-
-        .io-arrow {
-            font-size: 1.5rem;
-            color: var(--text-dim);
-        }
-
-        .io-label-input {
-            color: var(--blue-accent);
-            font-weight: 700;
-        }
-
-        .io-label-model {
-            color: var(--amber-accent);
-            font-weight: 700;
-        }
-
-        .io-label-output {
-            color: var(--green-accent);
-            font-weight: 700;
-        }
-
-        /* TRAINING FLOW */
-        .training-flow {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .flow-box {
-            padding: 12px 16px;
-            border-radius: 8px;
-            text-align: center;
-            flex: 1;
-            min-width: 120px;
-            font-weight: 700;
-            font-size: 0.875rem;
-        }
-
-        /* INTERACTIVE DEMO */
-        .demo-section {
-            background: var(--input-bg);
-            padding: 25px;
-            border-radius: 16px;
-            border: 1px solid var(--border-color);
-            margin: 20px 0;
-        }
-
-        .demo-title {
-            font-weight: 600;
-            font-size: 1.1rem;
-            color: var(--accent);
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .input-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: 8px;
-            font-size: 0.95rem;
-        }
-
-        input[type="range"] {
-            width: 100%;
-            height: 8px;
-            border-radius: 5px;
-            background: var(--input-bg);
-            outline: none;
-            -webkit-appearance: none;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: var(--accent);
-            cursor: pointer;
-        }
-
-        input[type="range"]::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: var(--accent);
-            cursor: pointer;
-        }
-
-        select {
-            width: 100%;
-            background: var(--input-bg);
-            border: 1px solid var(--input-border);
-            padding: 12px;
-            border-radius: 12px;
-            color: var(--text);
-            font-size: 1rem;
-            font-family: inherit;
-            cursor: pointer;
-        }
-
-        select:focus {
-            border-color: var(--accent);
-            outline: none;
-        }
-
-        .slider-value {
-            display: inline-block;
-            background: var(--accent);
-            color: var(--bg);
-            padding: 4px 12px;
-            border-radius: 6px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            margin-left: 10px;
-        }
-
-        /* PREDICTION RESULT */
-        .prediction-card {
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 16px;
-            border: 3px solid var(--border-color);
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .prediction-title {
-            margin: 0;
-            font-size: 2.5rem;
-            font-weight: 800;
-        }
-
-        .prediction-score {
-            font-size: 1.125rem;
-            margin-top: 12px;
-            color: var(--text-dim);
-        }
-
-        .prediction-placeholder {
-            background: var(--input-bg);
-            color: var(--text-dim);
-            padding: 40px;
-            border-radius: 12px;
-            text-align: center;
-            border: 1px dashed var(--border-color);
-        }
-
-        /* HIGHLIGHT BOX */
-        .highlight-box {
-            background: var(--input-bg);
-            padding: 20px;
-            border-radius: 12px;
-            border-left: 6px solid var(--accent);
-            margin: 20px 0;
-        }
-
-        .info-box {
-            background: rgba(56, 189, 248, 0.1);
-            padding: 20px;
-            border-radius: 12px;
-            border-left: 6px solid var(--blue-accent);
-            margin: 20px 0;
-        }
-
-        /* COMPLETION BOX */
-        .completion-box {
-            font-size: 1.2rem;
-            padding: 30px;
-            border-radius: 16px;
-            background: var(--input-bg);
-            border: 2px solid var(--success);
-            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.2);
-            text-align: center;
-        }
-
-        /* BUTTONS */
-        .btn-group {
-            display: flex;
-            gap: 15px;
-            margin-top: auto;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            background: linear-gradient(135deg, var(--ai-purple), var(--ai-pink));
-            color: var(--text);
-            border: none;
-            padding: 16px 28px;
-            border-radius: 12px;
-            font-weight: 700;
-            cursor: pointer;
+            padding: 16px 24px; border-radius: 12px; flex: 1; min-width: 140px;
             transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-size: 1rem;
-            font-family: inherit;
+        }
+        .io-chip-input { background: rgba(56, 189, 248, 0.15); border: 2px solid var(--blue-accent); }
+        .io-chip-model { background: rgba(251, 191, 36, 0.15); border: 2px solid var(--amber-accent); }
+        .io-chip-output { background: rgba(16, 185, 129, 0.15); border: 2px solid var(--green-accent); }
+        .io-arrow { font-size: 1.5rem; color: var(--text-dim); display: flex; align-items: center; }
+        .io-label-input { color: var(--blue-accent); font-weight: 700; }
+        .io-label-model { color: var(--amber-accent); font-weight: 700; }
+        .io-label-output { color: var(--green-accent); font-weight: 700; }
+
+        /* Interactive IO chips (Step 2) */
+        .io-chip-interactive {
+            cursor: pointer; user-select: none;
+        }
+        .io-chip-interactive:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px var(--card-shadow);
+        }
+        .io-chip-interactive .chip-detail { display: none; margin-top: 10px; }
+        .io-chip-interactive .chip-prompt {
+            font-size: 0.8rem; color: var(--text-dim); margin-top: 6px;
+            opacity: 0.8;
+        }
+        .io-chip-interactive.revealed .chip-detail { display: block; }
+        .io-chip-interactive.revealed .chip-prompt { display: none; }
+        .io-chip-interactive.revealed {
+            cursor: default; transform: none;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+        .io-chip-interactive.revealed:hover { transform: none; }
+
+        /* ===== TRAINING FLOW ===== */
+        .training-flow {
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 10px;
+        }
+        .flow-box {
+            padding: 12px 16px; border-radius: 8px; text-align: center;
+            flex: 1; min-width: 100px; font-weight: 700; font-size: 0.85rem;
+            font-family: 'Courier New', monospace;
+        }
+        .flow-box-animated {
+            opacity: 0.25; transition: all 0.5s ease; transform: scale(0.95);
+        }
+        .flow-box-animated.lit {
+            opacity: 1; transform: scale(1.05);
+        }
+        .accuracy-display {
+            text-align: center; margin-top: 20px;
+            font-size: 1.8rem; font-weight: 800;
+            font-family: 'Courier New', monospace;
+            color: var(--accent); min-height: 50px;
+            transition: all 0.3s ease;
         }
 
-        .btn:hover {
+        /* ===== INTERACTIVE DEMO ===== */
+        .demo-section {
+            background: var(--input-bg); padding: 25px; border-radius: 16px;
+            border: 1px solid var(--border-color); margin: 20px 0;
+        }
+        .demo-title {
+            font-weight: 600; font-size: 1.1rem; color: var(--accent);
+            margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .input-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; color: var(--text); margin-bottom: 8px; font-size: 0.95rem; }
+        input[type="range"] {
+            width: 100%; height: 8px; border-radius: 5px;
+            background: var(--input-bg); outline: none; -webkit-appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 20px; height: 20px;
+            border-radius: 50%; background: var(--accent); cursor: pointer;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px; height: 20px; border-radius: 50%;
+            background: var(--accent); cursor: pointer;
+        }
+        select {
+            width: 100%; background: var(--input-bg); border: 1px solid var(--input-border);
+            padding: 12px; border-radius: 12px; color: var(--text);
+            font-size: 1rem; font-family: inherit; cursor: pointer;
+        }
+        select:focus { border-color: var(--accent); outline: none; }
+        .slider-value {
+            display: inline-block; background: var(--accent); color: var(--bg);
+            padding: 4px 12px; border-radius: 6px; font-weight: 700; font-size: 0.9rem; margin-left: 10px;
+        }
+        .prediction-card {
+            background: var(--card-bg); padding: 30px; border-radius: 16px;
+            border: 3px solid var(--border-color); text-align: center; margin: 20px 0;
+        }
+        .prediction-title { margin: 0; font-size: 2.5rem; font-weight: 800; }
+        .prediction-score { font-size: 1.125rem; margin-top: 12px; color: var(--text-dim); }
+        .prediction-placeholder {
+            background: var(--input-bg); color: var(--text-dim); padding: 40px;
+            border-radius: 12px; text-align: center; border: 1px dashed var(--border-color);
+        }
+
+        /* ===== BOXES ===== */
+        .highlight-box {
+            background: var(--input-bg); padding: 20px; border-radius: 12px;
+            border-left: 6px solid var(--accent); margin: 20px 0;
+        }
+        .info-box {
+            background: rgba(56, 189, 248, 0.1); padding: 20px; border-radius: 12px;
+            border-left: 6px solid var(--blue-accent); margin: 20px 0;
+        }
+        .completion-box {
+            font-size: 1.2rem; padding: 30px; border-radius: 16px;
+            background: var(--input-bg); border: 2px solid var(--success);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.2); text-align: center;
+        }
+
+        /* ===== TAP-TO-REVEAL CARDS (Step 1) ===== */
+        .reveal-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 15px; margin: 20px 0;
+        }
+        .reveal-card {
+            padding: 20px; border-radius: 14px;
+            background: var(--input-bg); border: 2px dashed var(--border-color);
+            cursor: pointer; transition: all 0.3s ease;
+            text-align: center; user-select: none;
+        }
+        .reveal-card:hover {
+            background: var(--hover-bg); border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        .reveal-card.revealed {
+            border-style: solid; border-color: var(--accent); cursor: default;
+            background: var(--input-bg); transform: none;
+        }
+        .reveal-card.revealed:hover { transform: none; }
+        .reveal-card .reveal-default { }
+        .reveal-card .reveal-content { display: none; }
+        .reveal-card.revealed .reveal-default { display: none; }
+        .reveal-card.revealed .reveal-content {
+            display: block; animation: fadeIn 0.4s ease;
+        }
+
+        /* ===== CHOICE CARDS (Step 4) ===== */
+        .choice-row {
+            display: flex; gap: 15px; flex-wrap: wrap; margin: 20px 0;
+        }
+        .choice-card {
+            padding: 24px; border-radius: 14px;
+            background: var(--input-bg); border: 2px solid var(--border-color);
+            cursor: pointer; transition: all 0.3s ease;
+            text-align: center; flex: 1; min-width: 200px;
+            user-select: none;
+        }
+        .choice-card:hover {
+            background: var(--hover-bg); border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        .choice-card.correct {
+            border-color: var(--success); background: rgba(16, 185, 129, 0.15);
+            cursor: default; transform: none; pointer-events: none;
+        }
+        .choice-card.incorrect {
+            border-color: var(--error); background: rgba(244, 63, 94, 0.15);
+        }
+        .choice-card.disabled {
+            opacity: 0.4; cursor: default; pointer-events: none; transform: none;
+        }
+
+        /* ===== QUIZ STYLES ===== */
+        .quiz-container { margin: 20px 0; }
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; margin: 12px 0; }
+        .quiz-option {
+            padding: 14px 20px; border-radius: 10px;
+            background: var(--input-bg); border: 2px solid var(--border-color);
+            cursor: pointer; transition: all 0.3s ease;
+            font-size: 1rem; font-family: inherit; color: var(--text); text-align: left;
+        }
+        .quiz-option:hover {
+            background: var(--hover-bg); border-color: var(--accent);
+        }
+        .quiz-option.correct {
+            border-color: var(--success); background: rgba(16, 185, 129, 0.15);
+            cursor: default;
+        }
+        .quiz-option.incorrect {
+            border-color: var(--error); background: rgba(244, 63, 94, 0.15);
+            cursor: default;
+        }
+        .quiz-option.disabled {
+            pointer-events: none; opacity: 0.5;
+        }
+        .quiz-feedback {
+            padding: 12px 16px; border-radius: 10px;
+            margin-top: 10px; font-size: 0.95rem; display: none;
+        }
+
+        /* ===== COLLAPSIBLE ===== */
+        .collapsible-toggle {
+            display: flex; align-items: center; gap: 8px;
+            cursor: pointer; font-weight: 600; color: var(--accent);
+            background: none; border: none; padding: 0;
+            font-family: inherit; font-size: 1rem;
+        }
+        .collapsible-toggle::before {
+            content: '▶'; font-size: 0.7rem;
+            transition: transform 0.2s ease;
+        }
+        .collapsible-toggle.open::before { transform: rotate(90deg); }
+        .collapsible-content {
+            max-height: 0; overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .collapsible-content.open { max-height: 800px; }
+
+        /* ===== CHALLENGE CARD ===== */
+        .challenge-card {
+            background: rgba(251, 191, 36, 0.1); border: 2px solid var(--warning);
+            border-radius: 14px; padding: 18px; margin: 15px 0;
+            text-align: center; display: none;
+        }
+        .challenge-card.visible { display: block; animation: fadeIn 0.5s ease; }
+        .challenge-card.completed {
+            border-color: var(--success); background: rgba(16, 185, 129, 0.1);
+        }
+
+        /* ===== TRIES COUNTER ===== */
+        .tries-counter {
+            display: inline-block; background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            padding: 6px 14px; border-radius: 20px;
+            font-size: 0.9rem; font-weight: 600; color: var(--text-dim);
+        }
+
+        /* ===== COMPLETION BADGE ===== */
+        .completion-badge {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.15);
+            border: 2px solid var(--success);
+            color: var(--success); padding: 14px 28px;
+            border-radius: 12px; font-weight: 700; font-size: 1.1rem;
+        }
+
+        /* ===== ACTIVITY LINK BUTTON ===== */
+        .btn-link {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--ai-purple), var(--ai-pink));
+            color: var(--text); padding: 16px 28px; border-radius: 12px;
+            font-weight: 700; cursor: pointer; transition: all 0.3s ease;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            font-size: 1rem; text-decoration: none; text-align: center;
+        }
+        .btn-link:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px var(--accent-glow);
         }
 
+        /* ===== GATE HINT ===== */
+        .gate-hint {
+            font-size: 0.85rem; color: var(--text-dim);
+            margin-top: 8px; font-style: italic;
+        }
+
+        /* ===== TYPEWRITER ===== */
+        .typewriter-cursor {
+            display: inline-block; width: 2px; height: 1.2em;
+            background: var(--accent); margin-left: 2px;
+            animation: blink 0.7s infinite; vertical-align: text-bottom;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* ===== MONOSPACE ACCENT ===== */
+        .mono { font-family: 'Courier New', monospace; font-weight: 700; }
+
+        /* ===== BUTTONS ===== */
+        .btn-group { display: flex; gap: 15px; margin-top: auto; flex-wrap: wrap; }
+        .btn {
+            background: linear-gradient(135deg, var(--ai-purple), var(--ai-pink));
+            color: var(--text); border: none; padding: 16px 28px; border-radius: 12px;
+            font-weight: 700; cursor: pointer; transition: all 0.3s ease;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            font-size: 1rem; font-family: inherit;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px var(--accent-glow); }
         .btn.secondary {
-            background: var(--input-bg);
-            color: var(--text);
+            background: var(--input-bg); color: var(--text);
             border: 1px solid var(--input-border);
         }
-
-        .btn.secondary:hover {
-            background: var(--hover-bg);
-        }
-
+        .btn.secondary:hover { background: var(--hover-bg); }
         .btn:disabled {
-            background: #475569;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-            opacity: 0.5;
+            background: #475569; cursor: not-allowed;
+            transform: none; box-shadow: none; opacity: 0.5;
         }
 
-        /* ANIMATIONS */
+        /* ===== ANIMATIONS ===== */
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
+        .fade-in { animation: fadeIn 0.5s ease; }
 
-        .fade-in {
-            animation: fadeIn 0.5s ease;
-        }
-
-        /* RESPONSIVE */
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
-            .input-row {
-                grid-template-columns: 1fr;
-            }
-
-            .io-chip-row {
-                flex-direction: column;
-            }
-
-            .io-arrow {
-                transform: rotate(90deg);
-            }
-
-            h1 {
-                font-size: 1.8rem;
-            }
-
-            h2 {
-                font-size: 1.5rem;
-            }
+            .input-row { grid-template-columns: 1fr; }
+            .io-chip-row { flex-direction: column; }
+            .io-arrow { transform: rotate(90deg); }
+            .reveal-grid { grid-template-columns: 1fr; }
+            .choice-row { flex-direction: column; }
+            .training-flow { flex-direction: column; align-items: stretch; }
+            .training-flow .flow-arrow { transform: rotate(90deg); }
+            h1 { font-size: 1.8rem; }
+            h2 { font-size: 1.5rem; }
+            .card { padding: 24px; }
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <!-- MISSION PROGRESS -->
+        <!-- PROGRESS BAR — 6 nodes for steps 0-5, step 6 (completion) shows all completed -->
         <div class="mission-progress">
             <div class="step-node active" id="node-0">1</div>
             <div class="step-node" id="node-1">2</div>
             <div class="step-node" id="node-2">3</div>
             <div class="step-node" id="node-3">4</div>
             <div class="step-node" id="node-4">5</div>
+            <div class="step-node" id="node-5">6</div>
         </div>
 
         <div class="card">
-            <!-- STEP 0: INTRO -->
+
+            <!-- ============================================================ -->
+            <!-- STEP 0: INTRO — shortened hook, typewriter animation         -->
+            <!-- ============================================================ -->
             <div class="mission-step active" id="step-0">
                 <h1>🤖 What is AI, Anyway?</h1>
 
-                <div class="ai-intro-box">
-                    In Activity 2, you identified <b>Site EUI</b> as the key metric and selected features like floor area, weather data, and elevation. Now let's understand how AI uses those features to make predictions.<br><br>
-                    Before you can build AI systems for climate action, you need to understand what AI actually is.
-                    Don't worry - we'll explain it in simple, everyday terms!
+                <div class="ai-intro-box" style="text-align:center; font-size:1.125rem; padding:25px; border-radius:16px; background:var(--input-bg); border:2px solid var(--accent); box-shadow:0 5px 15px var(--accent-glow); margin-bottom:30px;">
+                    <p id="hookText" style="font-size:1.25rem; font-weight:600; color:var(--text); margin-bottom:12px; min-height:1.6em;"></p>
+                    <p id="hookSub" style="margin:0; opacity:0; transition: opacity 0.6s ease;">
+                        Then you'll build your own model and compete.
+                    </p>
                 </div>
 
                 <div class="btn-group">
-                    <button class="btn" style="width: 100%;" onclick="goToStep(1)">BEGIN LEARNING ▶️</button>
+                    <button class="btn" style="width:100%;" onclick="goToStep(1)">BEGIN LEARNING ▶</button>
                 </div>
             </div>
 
-            <!-- STEP 1: SIMPLE DEFINITION -->
+            <!-- ============================================================ -->
+            <!-- STEP 1: SIMPLE DEFINITION — tap-to-reveal examples           -->
+            <!-- ============================================================ -->
             <div class="mission-step" id="step-1">
                 <h2>🎯 A Simple Definition</h2>
 
                 <div class="step-card step-card-blue">
-                    <p style="font-size: 1.3rem; margin-bottom: 15px;"><b>Artificial Intelligence (AI) is just a fancy
-                            name for:</b></p>
+                    <p style="font-size:1.2rem; margin-bottom:15px;"><b>Artificial Intelligence (AI) is just a fancy name for:</b></p>
 
                     <div class="inner-card inner-card-emphasis">
-                        <h2 style="text-align: center; margin: 0; font-size: 2rem; color: var(--text);">
+                        <h2 style="text-align:center; margin:0; font-size:1.9rem; color:var(--text);">
                             A system that makes predictions based on patterns
                         </h2>
                     </div>
 
-                    <p style="margin-top: 20px;">That's it! Let's break down what that means...</p>
+                    <p style="margin-top:20px;">That's it! You already make predictions this way every day. <b>Tap each card</b> to see how:</p>
 
-                    <h3 style="color: var(--blue-accent); margin-top: 24px;">Think About How YOU Make Predictions:</h3>
-                    <ul style="font-size: 1.125rem; margin-top: 12px; line-height: 1.8;">
-                        <li><b>Weather:</b> Dark clouds → You predict rain → You bring an umbrella</li>
-                        <li><b>Traffic:</b> Rush hour time → You predict congestion → You leave early</li>
-                        <li><b>Movies:</b> Actor you like → You predict you'll enjoy it → You watch it</li>
-                    </ul>
+                    <div class="reveal-grid">
+                        <div class="reveal-card" onclick="revealExample(0)">
+                            <div class="reveal-default">
+                                <div style="font-size:2.2rem;">🌧️</div>
+                                <div style="font-weight:600; margin:8px 0; color:var(--text);">Weather</div>
+                                <div style="font-size:0.85rem; color:var(--text-dim); margin-top:6px;">Tap to reveal</div>
+                            </div>
+                            <div class="reveal-content">
+                                <div style="font-size:2.2rem;">🌧️</div>
+                                <p style="margin:10px 0 0; font-size:1rem; color:var(--text);">
+                                    <b>Dark clouds</b> → You predict <b>rain</b> → You bring an umbrella
+                                </p>
+                            </div>
+                        </div>
+                        <div class="reveal-card" onclick="revealExample(1)">
+                            <div class="reveal-default">
+                                <div style="font-size:2.2rem;">🚗</div>
+                                <div style="font-weight:600; margin:8px 0; color:var(--text);">Traffic</div>
+                                <div style="font-size:0.85rem; color:var(--text-dim); margin-top:6px;">Tap to reveal</div>
+                            </div>
+                            <div class="reveal-content">
+                                <div style="font-size:2.2rem;">🚗</div>
+                                <p style="margin:10px 0 0; font-size:1rem; color:var(--text);">
+                                    <b>Rush hour</b> → You predict <b>congestion</b> → You leave early
+                                </p>
+                            </div>
+                        </div>
+                        <div class="reveal-card" onclick="revealExample(2)">
+                            <div class="reveal-default">
+                                <div style="font-size:2.2rem;">🎬</div>
+                                <div style="font-weight:600; margin:8px 0; color:var(--text);">Movies</div>
+                                <div style="font-size:0.85rem; color:var(--text-dim); margin-top:6px;">Tap to reveal</div>
+                            </div>
+                            <div class="reveal-content">
+                                <div style="font-size:2.2rem;">🎬</div>
+                                <p style="margin:10px 0 0; font-size:1rem; color:var(--text);">
+                                    <b>Actor you like</b> → You predict <b>you'll enjoy it</b> → You watch it
+                                </p>
+                            </div>
+                        </div>
+                    </div>
 
-                    <div class="highlight-box">
-                        <p style="font-size: 1.125rem; margin: 0;">AI does the same thing, but using data and math
+                    <div class="highlight-box" id="step1Summary" style="display:none;">
+                        <p style="font-size:1.125rem; margin:0;">AI does the same thing, but using <b>data and math</b>
                             instead of human experience and intuition.</p>
                     </div>
                 </div>
 
                 <div class="btn-group">
-                    <button class="btn" onclick="goToStep(2)">Next: The AI Formula ▶️</button>
+                    <button class="btn secondary" onclick="goToStep(0)">◀ Back</button>
+                    <button class="btn" id="step1-next" onclick="goToStep(2)" disabled>Next: The AI Formula ▶</button>
                 </div>
+                <div class="gate-hint" id="step1-gate-hint">Tap all 3 cards above to continue</div>
             </div>
 
-            <!-- STEP 2: THE FORMULA -->
+            <!-- ============================================================ -->
+            <!-- STEP 2: THE FORMULA — tap-to-reveal IO chips                 -->
+            <!-- ============================================================ -->
             <div class="mission-step" id="step-2">
                 <h2>📐 The Three-Part Formula</h2>
 
                 <div class="step-card step-card-green">
-                    <p>Every AI system works the same way, following this simple formula:</p>
+                    <p>Every AI system follows this simple formula. <b>Tap each part</b> to learn more:</p>
 
                     <div class="inner-card">
                         <div class="io-chip-row">
-                            <div class="io-chip io-chip-input">
-                                <h3 style="margin: 0; color: var(--blue-accent);">1️⃣ INPUT</h3>
-                                <p style="margin: 8px 0 0 0; font-size: 1rem; color: var(--text-dim);">Data goes in</p>
+                            <div class="io-chip io-chip-input io-chip-interactive" onclick="revealChip('input')">
+                                <h3 style="margin:0; color:var(--blue-accent);" class="mono">INPUT</h3>
+                                <p style="margin:4px 0 0; font-size:0.95rem; color:var(--text-dim);">Data goes in</p>
+                                <div class="chip-prompt">Tap to explore</div>
+                                <div class="chip-detail">
+                                    <p style="margin:0; font-size:0.95rem; color:var(--text);">
+                                        The data that goes in — like <b>floor area</b>, <b>year built</b>, and <b>climate zone</b>
+                                    </p>
+                                </div>
                             </div>
                             <span class="io-arrow">→</span>
-                            <div class="io-chip io-chip-model">
-                                <h3 style="margin: 0; color: var(--amber-accent);">2️⃣ MODEL</h3>
-                                <p style="margin: 8px 0 0 0; font-size: 1rem; color: var(--text-dim);">AI processes it
-                                </p>
+                            <div class="io-chip io-chip-model io-chip-interactive" onclick="revealChip('model')">
+                                <h3 style="margin:0; color:var(--amber-accent);" class="mono">MODEL</h3>
+                                <p style="margin:4px 0 0; font-size:0.95rem; color:var(--text-dim);">AI processes it</p>
+                                <div class="chip-prompt">Tap to explore</div>
+                                <div class="chip-detail">
+                                    <p style="margin:0; font-size:0.95rem; color:var(--text);">
+                                        The AI finds <b>patterns</b> across thousands of buildings to make sense of the data
+                                    </p>
+                                </div>
                             </div>
                             <span class="io-arrow">→</span>
-                            <div class="io-chip io-chip-output">
-                                <h3 style="margin: 0; color: var(--green-accent);">3️⃣ OUTPUT</h3>
-                                <p style="margin: 8px 0 0 0; font-size: 1rem; color: var(--text-dim);">Prediction comes
-                                    out</p>
+                            <div class="io-chip io-chip-output io-chip-interactive" onclick="revealChip('output')">
+                                <h3 style="margin:0; color:var(--green-accent);" class="mono">OUTPUT</h3>
+                                <p style="margin:4px 0 0; font-size:0.95rem; color:var(--text-dim);">Prediction comes out</p>
+                                <div class="chip-prompt">Tap to explore</div>
+                                <div class="chip-detail">
+                                    <p style="margin:0; font-size:0.95rem; color:var(--text);">
+                                        The prediction — <b>"High Efficiency"</b> or <b>"Low Efficiency"</b>
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <h3 style="color: var(--green-accent); margin-top: 32px;">Real-World Examples:</h3>
-
-                    <div class="inner-card" style="margin-top: 15px;">
-                        <p style="margin: 0; font-size: 1.125rem;">
-                            <span class="io-label-input">INPUT:</span> Photo of a dog<br>
-                            <span class="io-label-model">MODEL:</span> Image recognition AI<br>
-                            <span class="io-label-output">OUTPUT:</span> "This is a Golden Retriever"
-                        </p>
-                    </div>
-
-                    <div class="inner-card">
-                        <p style="margin: 0; font-size: 1.125rem;">
-                            <span class="io-label-input">INPUT:</span> "How's the weather?"<br>
-                            <span class="io-label-model">MODEL:</span> Language AI (like ChatGPT)<br>
-                            <span class="io-label-output">OUTPUT:</span> A helpful response
-                        </p>
-                    </div>
-
-                    <div class="inner-card">
-                        <p style="margin: 0; font-size: 1.125rem;">
-                            <span class="io-label-input">INPUT:</span> Building energy data<br>
-                            <span class="io-label-model">MODEL:</span> Energy efficiency AI<br>
-                            <span class="io-label-output">OUTPUT:</span> "High Efficiency" or "Low Efficiency"
-                        </p>
+                    <!-- Collapsible real-world examples -->
+                    <div style="margin-top:20px;">
+                        <button class="collapsible-toggle" onclick="toggleCollapsible(this)">See real-world examples</button>
+                        <div class="collapsible-content">
+                            <div class="inner-card" style="margin-top:12px;">
+                                <p style="margin:0; font-size:1.05rem;">
+                                    <span class="io-label-input">INPUT:</span> Photo of a dog<br>
+                                    <span class="io-label-model">MODEL:</span> Image recognition AI<br>
+                                    <span class="io-label-output">OUTPUT:</span> "This is a Golden Retriever"
+                                </p>
+                            </div>
+                            <div class="inner-card">
+                                <p style="margin:0; font-size:1.05rem;">
+                                    <span class="io-label-input">INPUT:</span> "How's the weather?"<br>
+                                    <span class="io-label-model">MODEL:</span> Language AI (like ChatGPT)<br>
+                                    <span class="io-label-output">OUTPUT:</span> A helpful response
+                                </p>
+                            </div>
+                            <div class="inner-card">
+                                <p style="margin:0; font-size:1.05rem;">
+                                    <span class="io-label-input">INPUT:</span> Building energy data<br>
+                                    <span class="io-label-model">MODEL:</span> Energy efficiency AI<br>
+                                    <span class="io-label-output">OUTPUT:</span> "High Efficiency" or "Low Efficiency"
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="btn-group">
-                    <button class="btn secondary" onclick="goToStep(1)">◀️ Back</button>
-                    <button class="btn" onclick="goToStep(3)">Next: How Models Learn ▶️</button>
+                    <button class="btn secondary" onclick="goToStep(1)">◀ Back</button>
+                    <button class="btn" id="step2-next" onclick="goToStep(3)" disabled>Next: How Models Learn ▶</button>
                 </div>
+                <div class="gate-hint" id="step2-gate-hint">Tap all 3 chips above to continue</div>
             </div>
 
-            <!-- STEP 3: HOW AI LEARNS -->
+            <!-- ============================================================ -->
+            <!-- STEP 3: HOW AI TRAINS — animated training loop               -->
+            <!-- ============================================================ -->
             <div class="mission-step" id="step-3">
                 <h2>🧠 How Does an AI Model Learn?</h2>
 
                 <div class="step-card step-card-amber">
-                    <h3 style="color: var(--amber-accent); margin-top: 0;">1. It Learns from Examples</h3>
-                    <p>An AI model isn't programmed with answers. Instead, it's trained on a huge number of examples,
-                        and it learns how to find the answers on its own.</p>
-                    <p>In our climate scenario, this means feeding the model thousands of past building records
-                        (<b>examples</b>) to teach it how to find the <b>patterns</b> that connect a building's
-                        characteristics to its energy efficiency.</p>
+                    <h3 style="color:var(--amber-accent); margin-top:0;">It Learns from Examples</h3>
+                    <p>An AI model isn't programmed with answers. It's trained on thousands of
+                        past building records and learns to find the <b>patterns</b> that connect
+                        a building's features to its energy efficiency.</p>
 
-                    <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--border-color);">
+                    <hr style="margin:24px 0; border:none; border-top:1px solid var(--border-color);">
 
-                    <h3 style="color: var(--amber-accent);">2. The Training Process</h3>
-                    <p>The AI "trains" by looping through historical data (past building records) millions of times:</p>
+                    <h3 style="color:var(--amber-accent);">The Training Process</h3>
+                    <p>The AI trains by <b>practicing over and over</b>. Click the button to watch it learn:</p>
 
                     <div class="inner-card">
                         <div class="training-flow">
-                            <div class="flow-box"
-                                style="background: rgba(56, 189, 248, 0.15); color: var(--blue-accent);">
+                            <div class="flow-box flow-box-animated" id="flow-1"
+                                style="background:rgba(56,189,248,0.15); color:var(--blue-accent);">
                                 1. INPUT<br>EXAMPLES
                             </div>
-                            <div style="font-size: 1.5rem; color: var(--text-dim);">→</div>
-                            <div class="flow-box"
-                                style="background: rgba(251, 191, 36, 0.15); color: var(--amber-accent);">
+                            <div class="flow-arrow" style="font-size:1.5rem; color:var(--text-dim); display:flex; align-items:center;">→</div>
+                            <div class="flow-box flow-box-animated" id="flow-2"
+                                style="background:rgba(251,191,36,0.15); color:var(--amber-accent);">
                                 2. MODEL<br>GUESSES
                             </div>
-                            <div style="font-size: 1.5rem; color: var(--text-dim);">→</div>
-                            <div class="flow-box"
-                                style="background: rgba(251, 191, 36, 0.15); color: var(--amber-accent);">
+                            <div class="flow-arrow" style="font-size:1.5rem; color:var(--text-dim); display:flex; align-items:center;">→</div>
+                            <div class="flow-box flow-box-animated" id="flow-3"
+                                style="background:rgba(251,191,36,0.15); color:var(--amber-accent);">
                                 3. CHECK<br>ANSWER
                             </div>
-                            <div style="font-size: 1.5rem; color: var(--text-dim);">→</div>
-                            <div class="flow-box"
-                                style="background: rgba(251, 191, 36, 0.15); color: var(--amber-accent);">
+                            <div class="flow-arrow" style="font-size:1.5rem; color:var(--text-dim); display:flex; align-items:center;">→</div>
+                            <div class="flow-box flow-box-animated" id="flow-4"
+                                style="background:rgba(251,191,36,0.15); color:var(--amber-accent);">
                                 4. ADJUST<br>WEIGHTS
                             </div>
-                            <div style="font-size: 1.5rem; color: var(--text-dim);">→</div>
-                            <div class="flow-box"
-                                style="background: rgba(16, 185, 129, 0.15); color: var(--green-accent);">
+                            <div class="flow-arrow" style="font-size:1.5rem; color:var(--text-dim); display:flex; align-items:center;">→</div>
+                            <div class="flow-box flow-box-animated" id="flow-5"
+                                style="background:rgba(16,185,129,0.15); color:var(--green-accent);">
                                 LEARNED<br>MODEL
                             </div>
                         </div>
+
+                        <div class="accuracy-display" id="accuracyDisplay"></div>
+
+                        <button class="btn" id="trainBtn" onclick="runTrainingAnimation()"
+                            style="width:100%; margin-top:15px;">
+                            ▶ Train the AI
+                        </button>
                     </div>
 
-                    <p style="margin-top: 20px;">During the <b>"Adjust"</b> step, the model changes its internal rules
-                        (called <b>"weights"</b>) to get closer to the right answer. For example, it learns <b>how
-                            much</b> "building age" should matter more than "floor area".</p>
-
-                    <div class="info-box" style="margin-top: 24px;">
-                        <p style="font-size: 1.125rem; margin: 0;"><b>Key Insight:</b> The model only learns from the
-                            data you give it. The quality and completeness of your training data directly affects how
-                            well the AI performs!</p>
+                    <div id="step3-post-animation" style="display:none; animation: fadeIn 0.5s ease;">
+                        <p style="margin-top:20px;">During each cycle, the model adjusts its internal rules
+                            (called <b>"weights"</b>) to get closer to the right answer. It learns <b>how much</b>
+                            each feature matters — like whether building age matters more than floor area.</p>
                     </div>
                 </div>
 
                 <div class="btn-group">
-                    <button class="btn secondary" onclick="goToStep(2)">◀️ Back</button>
-                    <button class="btn" onclick="goToStep(4)">Next: Try It Yourself ▶️</button>
+                    <button class="btn secondary" onclick="goToStep(2)">◀ Back</button>
+                    <button class="btn" id="step3-next" onclick="goToStep(4)" disabled>Next: Testing the AI ▶</button>
                 </div>
+                <div class="gate-hint" id="step3-gate-hint">Click "Train the AI" to continue</div>
             </div>
 
-            <!-- STEP 4: INTERACTIVE DEMO -->
+            <!-- ============================================================ -->
+            <!-- STEP 4: HOW WE TEST — binary question + train/test split     -->
+            <!-- ============================================================ -->
             <div class="mission-step" id="step-4">
-                <h2>🎮 Try It Yourself!</h2>
+                <h2>🔬 How Do We Know It Really Learned?</h2>
 
-                <div class="step-card step-card-amber" style="text-align: center; font-size: 1.125rem;">
-                    <p style="margin: 0;"><b>Let's use a simple AI model to predict building energy efficiency.</b><br>
-                        Adjust the inputs below and see how the model's prediction changes!</p>
+                <div class="step-card step-card-purple">
+                    <p>After training, we need to <b>test</b> the AI. But here's the key question:</p>
+
+                    <div class="inner-card" style="text-align:center;">
+                        <p style="font-weight:700; font-size:1.15rem; color:var(--text); margin-bottom:16px;">
+                            Should the AI be tested on buildings it already trained on, or new buildings it hasn't seen?
+                        </p>
+
+                        <div class="choice-row">
+                            <div class="choice-card" id="choice-seen" onclick="answerTrainTest('seen')">
+                                <div style="font-size:2rem; margin-bottom:8px;">🔄</div>
+                                <p style="margin:0; font-weight:600; color:var(--text);">Buildings it already trained on</p>
+                            </div>
+                            <div class="choice-card" id="choice-new" onclick="answerTrainTest('new')">
+                                <div style="font-size:2rem; margin-bottom:8px;">🆕</div>
+                                <p style="margin:0; font-weight:600; color:var(--text);">New buildings it hasn't seen</p>
+                            </div>
+                        </div>
+
+                        <div id="trainTestFeedback" style="display:none;"></div>
+                    </div>
+
+                    <!-- Train/test split visual — hidden until correct answer -->
+                    <div id="trainTestVisual" style="display:none; animation: fadeIn 0.5s ease;">
+                        <div class="inner-card" style="text-align:center;">
+                            <p style="font-weight:700; color:var(--text); margin-bottom:12px;">That's why we split the data:</p>
+                            <div style="display:flex; align-items:center; justify-content:center; gap:15px; flex-wrap:wrap;">
+                                <div style="flex:3; min-width:140px; padding:16px; border-radius:12px; background:rgba(56,189,248,0.15); border:2px solid var(--blue-accent);">
+                                    <div style="font-size:2rem; margin-bottom:4px;">📚</div>
+                                    <div style="font-weight:700; color:var(--blue-accent);">75% Training Data</div>
+                                    <div style="font-size:0.85rem; color:var(--text-dim); margin-top:4px;">The AI learns patterns from these buildings</div>
+                                </div>
+                                <div style="font-size:1.5rem; color:var(--text-dim);">→</div>
+                                <div style="flex:1; min-width:140px; padding:16px; border-radius:12px; background:rgba(16,185,129,0.15); border:2px solid var(--green-accent);">
+                                    <div style="font-size:2rem; margin-bottom:4px;">🔒</div>
+                                    <div style="font-weight:700; color:var(--green-accent);">25% Test Data</div>
+                                    <div style="font-size:0.85rem; color:var(--text-dim); margin-top:4px;">Hidden — used to check real accuracy</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Collapsible key insight -->
+                        <div style="margin-top:16px;">
+                            <button class="collapsible-toggle" onclick="toggleCollapsible(this)">Want to know more?</button>
+                            <div class="collapsible-content">
+                                <div class="info-box" style="margin-top:10px;">
+                                    <p style="font-size:1.05rem; margin:0;"><b>Key Insight:</b> The model only learns from the
+                                        data you give it. The quality of your training data changes how
+                                        well the AI performs!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
+                <div class="btn-group">
+                    <button class="btn secondary" onclick="goToStep(3)">◀ Back</button>
+                    <button class="btn" id="step4-next" onclick="goToStep(5)" disabled>Next: Try It Yourself ▶</button>
+                </div>
+                <div class="gate-hint" id="step4-gate-hint">Answer the question above to continue</div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- STEP 5: INTERACTIVE DEMO — challenge + quiz                  -->
+            <!-- ============================================================ -->
+            <div class="mission-step" id="step-5">
+                <h2>🎮 Try It Yourself!</h2>
+
+                <div class="step-card step-card-amber" style="text-align:center; font-size:1.125rem;">
+                    <p style="margin:0;"><b>Use a simple AI model to predict building energy efficiency.</b><br>
+                        Adjust the inputs and see how the prediction changes!</p>
+                </div>
+
+                <!-- INPUT section -->
                 <div class="demo-section">
-                    <div class="demo-title">1️⃣ INPUT: Adjust the Data</div>
+                    <div class="demo-title">1️⃣ <span class="mono">INPUT</span>: Adjust the Data</div>
 
                     <div class="input-row">
                         <div class="input-group">
-                            <label>Building Age (years) <span class="slider-value" id="ageValue">25</span></label>
-                            <input type="range" id="ageSlider" min="1" max="100" value="25"
+                            <label>Year Built <span class="slider-value" id="ageValue">2000</span></label>
+                            <input type="range" id="ageSlider" min="1920" max="2024" value="2000"
                                 oninput="updateSlider('age', this.value)">
                         </div>
-
                         <div class="input-group">
                             <label>Floor Area (1000s sqft) <span class="slider-value" id="areaValue">50</span></label>
                             <input type="range" id="areaSlider" min="5" max="200" value="50"
@@ -780,76 +846,139 @@
                     </div>
                 </div>
 
+                <!-- MODEL section -->
                 <div class="demo-section">
-                    <div class="demo-title">2️⃣ MODEL: Process the Data</div>
-                    <button class="btn" style="width: 100%;" onclick="runPrediction()">🔮 Run AI Prediction</button>
+                    <div class="demo-title">2️⃣ <span class="mono">MODEL</span>: Process the Data</div>
+                    <button class="btn" style="width:100%;" onclick="runPrediction()">🔮 Run AI Prediction</button>
                 </div>
 
+                <!-- OUTPUT section -->
                 <div class="demo-section">
-                    <div class="demo-title">3️⃣ OUTPUT: See the Prediction</div>
+                    <div class="demo-title">3️⃣ <span class="mono">OUTPUT</span>: See the Prediction</div>
                     <div id="predictionOutput" class="prediction-placeholder">
-                        <p style="font-size: 1.125rem; margin: 0;">Click "Run AI Prediction" above to see the result</p>
+                        <p style="font-size:1.125rem; margin:0;">Click "Run AI Prediction" above to see the result</p>
                     </div>
                 </div>
 
-                <div class="highlight-box">
-                    <p style="margin: 0;"><b>What You Just Did:</b><br><br>
-                        You used a very simple AI model! You provided <b style="color: var(--blue-accent);">input
-                            data</b> (age, area, climate), the <b style="color: var(--amber-accent);">model processed
-                            it</b> using rules and patterns, and it produced an <b
-                            style="color: var(--green-accent);">output prediction</b>.<br><br>
-                        Real AI models are more complex, but they work on the same principle!</p>
+                <!-- Tries counter -->
+                <div id="triesArea" style="display:none; text-align:center; margin:10px 0; animation: fadeIn 0.3s ease;">
+                    <span class="tries-counter" id="triesCounter">Predictions made: 0</span>
+                </div>
+
+                <!-- Challenge card — appears after first prediction -->
+                <div class="challenge-card" id="challengeCard">
+                    <p style="margin:0; font-weight:700; color:var(--text); font-size:1.05rem;" id="challengeText">
+                        🎯 <b>Challenge:</b> Can you find settings that produce a 🟢 <b>High Efficiency</b> building?
+                    </p>
+                </div>
+
+                <!-- Quiz — appears after first prediction, replaces "What You Just Did" -->
+                <div class="quiz-container" id="step5Quiz" style="display:none;">
+                    <p style="font-weight:700; color:var(--text); margin-bottom:8px;">Quick check: What did the <span class="mono">MODEL</span> do?</p>
+                    <div class="quiz-options">
+                        <button class="quiz-option" onclick="answerStep5Quiz('correct', this)">Predicted efficiency based on patterns</button>
+                        <button class="quiz-option" onclick="answerStep5Quiz('wrong-memorize', this)">Memorized the exact inputs</button>
+                        <button class="quiz-option" onclick="answerStep5Quiz('wrong-lookup', this)">Looked up the answer in a database</button>
+                    </div>
+                    <div class="quiz-feedback" id="step5QuizFeedback"></div>
+                </div>
+
+                <!-- Follow-up — appears after quiz answered correctly -->
+                <div id="step5Followup" style="display:none; animation: fadeIn 0.5s ease;">
+                    <div class="highlight-box">
+                        <p style="margin:0; font-size:1rem;"><b>Bonus:</b> Now try making the <b>LEAST</b> efficient building you can.
+                            What feature changed the prediction the most?</p>
+                    </div>
                 </div>
 
                 <div class="btn-group">
-                    <button class="btn secondary" onclick="goToStep(3)">◀️ Back</button>
-                    <button class="btn" onclick="goToStep(5)">Complete This Section ▶️</button>
+                    <button class="btn secondary" onclick="goToStep(4)">◀ Back</button>
+                    <button class="btn" id="step5-next" onclick="goToStep(6)" disabled>Complete This Section ▶</button>
                 </div>
+                <div class="gate-hint" id="step5-gate-hint">Run a prediction and answer the quiz to continue</div>
             </div>
 
-            <!-- STEP 5: COMPLETION -->
-            <div class="mission-step" id="step-5">
-                <div style="text-align: center;">
-                    <span style="font-size: 5rem;">🎓</span>
-                    <h2 style="color: var(--success);">You Now Understand the Basics of AI!</h2>
+            <!-- ============================================================ -->
+            <!-- STEP 6: COMPLETION — quizzes + Activity 4 link               -->
+            <!-- ============================================================ -->
+            <div class="mission-step" id="step-6">
+                <div style="text-align:center;">
+                    <span style="font-size:5rem;">🎓</span>
+                    <h2 style="color:var(--success);">Final Knowledge Check</h2>
 
                     <div class="completion-box">
-                        <p><b>Congratulations!</b> You now know:</p>
-                        <ul
-                            style="font-size: 1.1rem; text-align: left; max-width: 600px; margin: 20px auto; line-height: 1.8;">
-                            <li>What AI is (a prediction system based on patterns)</li>
-                            <li>How it works (Input → Model → Output)</li>
-                            <li>How AI models learn from training data</li>
-                            <li>How to apply AI concepts to climate solutions</li>
-                        </ul>
+                        <p style="margin-bottom:24px;"><b>Answer these questions to complete the activity:</b></p>
 
-                        <p style="margin-top: 32px;"><b>Next Steps:</b></p>
-                        <p>In the following activities, you'll learn how to build and train AI models using real climate
-                            data to predict building energy efficiency.</p>
+                        <!-- Quiz 1 -->
+                        <div class="quiz-container" id="completionQuiz1" style="text-align:left; max-width:550px; margin:0 auto 24px;">
+                            <p style="font-weight:700; color:var(--text); margin-bottom:8px;">
+                                1. What are the 3 parts of every AI system?
+                            </p>
+                            <div class="quiz-options">
+                                <button class="quiz-option" onclick="answerCompletionQuiz(1, 'correct', this)">Input → Model → Output</button>
+                                <button class="quiz-option" onclick="answerCompletionQuiz(1, 'wrong-algo', this)">Data → Algorithm → Prediction</button>
+                                <button class="quiz-option" onclick="answerCompletionQuiz(1, 'wrong-phase', this)">Training → Testing → Deployment</button>
+                            </div>
+                            <div class="quiz-feedback" id="completionQuiz1Feedback"></div>
+                        </div>
 
-                        <h1 style="margin: 20px 0; font-size: clamp(1.5rem, 2vw + 0.6rem, 2rem); line-height: 1.25;">
-                            👇 Continue to the next activity to start building your AI model!
-                        </h1>
+                        <!-- Quiz 2 -->
+                        <div class="quiz-container" id="completionQuiz2" style="text-align:left; max-width:550px; margin:0 auto 24px;">
+                            <p style="font-weight:700; color:var(--text); margin-bottom:8px;">
+                                2. How do we know the AI really learned?
+                            </p>
+                            <div class="quiz-options">
+                                <button class="quiz-option" onclick="answerCompletionQuiz(2, 'correct', this)">Test it on data it hasn't seen before</button>
+                                <button class="quiz-option" onclick="answerCompletionQuiz(2, 'wrong-train', this)">Check if it gets 100% on training data</button>
+                                <button class="quiz-option" onclick="answerCompletionQuiz(2, 'wrong-avg', this)">Run it multiple times and average the results</button>
+                            </div>
+                            <div class="quiz-feedback" id="completionQuiz2Feedback"></div>
+                        </div>
+
+                        <!-- Completion area — hidden until both quizzes correct -->
+                        <div id="completionArea" style="display:none; animation: fadeIn 0.5s ease;">
+                            <hr style="margin:24px 0; border:none; border-top:1px solid var(--border-color);">
+
+                            <div class="completion-badge" style="margin:20px 0;">✓ LEARNING COMPLETE</div>
+
+                            <p style="margin-top:24px;"><b>Next:</b></p>
+                            <p>You'll enter the <b>AI Arena</b> — build your own model, compete on a live leaderboard,
+                                and try to identify the most energy-wasting buildings in the city.
+                                You get 10 tries. Make them count.</p>
+
+                            <div style="margin-top:20px;">
+                                <a href="Activity_4.html" class="btn-link" style="width:100%; display:block;">
+                                    PROCEED TO ACTIVITY 4 →
+                                </a>
+                            </div>
+                        </div>
                     </div>
 
-                    <button class="btn secondary" style="margin-top: 30px;" onclick="goToStep(4)">◀️ Back to
-                        Review</button>
-                    <button class="btn" style="margin-top: 30px; background: var(--success); cursor:default; opacity:0.7;" disabled>
-                        LEARNING COMPLETE
-                    </button>
-                    <div style="background:rgba(16,185,129,0.1); border:1px solid var(--success); padding:16px; border-radius:10px; margin-top:16px; text-align:center;">
-                        <p style="margin:0; color:var(--text); font-size:1.05rem;">You understand how AI works. <b>Next up:</b> You'll build a real machine learning model and compete on a live leaderboard.</p>
-                    </div>
+                    <button class="btn secondary" style="margin-top:30px;" onclick="goToStep(5)">◀ Back to Review</button>
                 </div>
             </div>
-        </div>
-    </div>
+
+        </div><!-- /card -->
+    </div><!-- /container -->
 
     <script>
+        // ===== STATE =====
         let currentStep = 0;
+        const state = {
+            step1Reveals: new Set(),
+            step2Chips: new Set(),
+            step3Animated: false,
+            step4Answered: false,
+            step5Predictions: 0,
+            step5ChallengeComplete: false,
+            step5QuizCorrect: false,
+            step6Quiz1: false,
+            step6Quiz2: false,
+        };
+        const STORAGE_KEY = 'activity3Progress';
 
+        // ===== NAVIGATION =====
         function goToStep(idx) {
-            // Update step visibility
             document.querySelectorAll('.mission-step').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.step-node').forEach((n, i) => {
                 if (i < idx) n.className = 'step-node completed';
@@ -858,17 +987,174 @@
             });
             document.getElementById(`step-${idx}`).classList.add('active');
             currentStep = idx;
-
-            // Scroll to top
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            saveProgress();
         }
 
-        function updateSlider(type, value) {
-            if (type === 'age') {
-                document.getElementById('ageValue').textContent = value;
-            } else if (type === 'area') {
-                document.getElementById('areaValue').textContent = value;
+        // ===== PERSISTENCE =====
+        function saveProgress() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({ step: currentStep }));
+            } catch (e) { /* silently continue */ }
+        }
+
+        function loadProgress() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (!saved) return;
+                const data = JSON.parse(saved);
+                if (data && typeof data.step === 'number' && data.step > 0) {
+                    goToStep(data.step);
+                }
+            } catch (e) { /* start fresh */ }
+        }
+
+        // ===== STEP 0: TYPEWRITER =====
+        function initTypewriter() {
+            const el = document.getElementById('hookText');
+            const sub = document.getElementById('hookSub');
+            if (!el) return;
+            const text = "You've picked the data. Now learn how AI actually uses it.";
+            el.textContent = '';
+            let i = 0;
+            const cursor = document.createElement('span');
+            cursor.className = 'typewriter-cursor';
+            el.appendChild(cursor);
+
+            function type() {
+                if (i < text.length) {
+                    el.insertBefore(document.createTextNode(text[i]), cursor);
+                    i++;
+                    setTimeout(type, 30);
+                } else {
+                    setTimeout(() => {
+                        cursor.remove();
+                        if (sub) sub.style.opacity = '1';
+                    }, 800);
+                }
             }
+            type();
+        }
+
+        // ===== STEP 1: TAP-TO-REVEAL EXAMPLES =====
+        function revealExample(idx) {
+            const cards = document.querySelectorAll('.reveal-card');
+            if (cards[idx].classList.contains('revealed')) return;
+            cards[idx].classList.add('revealed');
+            state.step1Reveals.add(idx);
+
+            if (state.step1Reveals.size >= 3) {
+                document.getElementById('step1-next').disabled = false;
+                document.getElementById('step1-gate-hint').style.display = 'none';
+                document.getElementById('step1Summary').style.display = 'block';
+                document.getElementById('step1Summary').classList.add('fade-in');
+            } else {
+                document.getElementById('step1-gate-hint').textContent =
+                    `${state.step1Reveals.size} of 3 revealed — tap the rest to continue`;
+            }
+        }
+
+        // ===== STEP 2: TAP-TO-REVEAL IO CHIPS =====
+        function revealChip(type) {
+            const chipMap = { input: 0, model: 1, output: 2 };
+            const chips = document.querySelectorAll('.io-chip-interactive');
+            const chip = chips[chipMap[type]];
+            if (chip.classList.contains('revealed')) return;
+            chip.classList.add('revealed');
+            state.step2Chips.add(type);
+
+            if (state.step2Chips.size >= 3) {
+                document.getElementById('step2-next').disabled = false;
+                document.getElementById('step2-gate-hint').style.display = 'none';
+            } else {
+                document.getElementById('step2-gate-hint').textContent =
+                    `${state.step2Chips.size} of 3 explored — tap the rest to continue`;
+            }
+        }
+
+        // ===== COLLAPSIBLE TOGGLE =====
+        function toggleCollapsible(btn) {
+            btn.classList.toggle('open');
+            const content = btn.nextElementSibling;
+            content.classList.toggle('open');
+        }
+
+        // ===== STEP 3: TRAINING ANIMATION =====
+        function runTrainingAnimation() {
+            if (state.step3Animated) return;
+
+            const btn = document.getElementById('trainBtn');
+            btn.disabled = true;
+            btn.textContent = 'Training...';
+
+            const boxes = document.querySelectorAll('.flow-box-animated');
+            const display = document.getElementById('accuracyDisplay');
+            const labels = ['Starting...', 'Accuracy: 47%', 'Accuracy: 62%', 'Accuracy: 78%', 'Accuracy: 91%'];
+            const colors = ['var(--text-dim)', 'var(--error)', 'var(--warning)', 'var(--accent)', 'var(--success)'];
+
+            boxes.forEach((box, i) => {
+                setTimeout(() => {
+                    box.classList.add('lit');
+                    display.textContent = labels[i];
+                    display.style.color = colors[i];
+
+                    if (i === boxes.length - 1) {
+                        setTimeout(() => {
+                            btn.textContent = '✓ Training Complete';
+                            btn.style.background = 'var(--success)';
+                            btn.style.opacity = '1';
+                            state.step3Animated = true;
+                            document.getElementById('step3-next').disabled = false;
+                            document.getElementById('step3-gate-hint').style.display = 'none';
+                            document.getElementById('step3-post-animation').style.display = 'block';
+                        }, 600);
+                    }
+                }, i * 500);
+            });
+        }
+
+        // ===== STEP 4: BINARY TRAIN/TEST QUESTION =====
+        function answerTrainTest(answer) {
+            const feedback = document.getElementById('trainTestFeedback');
+
+            if (answer === 'new') {
+                document.getElementById('choice-new').classList.add('correct');
+                document.getElementById('choice-seen').classList.add('disabled');
+                feedback.innerHTML = `
+                    <div style="background:rgba(16,185,129,0.15); border-radius:12px; padding:16px; margin-top:15px; text-align:left;">
+                        <p style="margin:0; color:var(--success); font-weight:700;">✓ Correct!</p>
+                        <p style="margin:8px 0 0; color:var(--text-dim); font-size:1rem;">
+                            Testing on <b>new data</b> proves the AI actually learned patterns — not just memorized answers.
+                            This is like a student taking a real exam with questions they haven't seen before.
+                        </p>
+                    </div>`;
+                feedback.style.display = 'block';
+                state.step4Answered = true;
+                document.getElementById('trainTestVisual').style.display = 'block';
+                document.getElementById('step4-next').disabled = false;
+                document.getElementById('step4-gate-hint').style.display = 'none';
+                saveProgress();
+            } else {
+                document.getElementById('choice-seen').classList.add('incorrect');
+                feedback.innerHTML = `
+                    <div style="background:rgba(244,63,94,0.15); border-radius:12px; padding:16px; margin-top:15px; text-align:left;">
+                        <p style="margin:0; color:var(--error); font-weight:700;">Not quite!</p>
+                        <p style="margin:8px 0 0; color:var(--text-dim); font-size:1rem;">
+                            That would be like a student memorizing the answer key — they'd score well on that test
+                            but fail on new questions. Try the other option!
+                        </p>
+                    </div>`;
+                feedback.style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('choice-seen').classList.remove('incorrect');
+                }, 2000);
+            }
+        }
+
+        // ===== STEP 5: INTERACTIVE DEMO =====
+        function updateSlider(type, value) {
+            if (type === 'age') document.getElementById('ageValue').textContent = value;
+            else if (type === 'area') document.getElementById('areaValue').textContent = value;
         }
 
         function runPrediction() {
@@ -876,57 +1162,157 @@
             const area = parseInt(document.getElementById('areaSlider').value);
             const climate = document.getElementById('climateSelect').value;
 
-            // Simple scoring algorithm
             let score = 0;
-
-            // Age factor (older = higher energy use)
-            if (age > 50) score += 3;
-            else if (age > 25) score += 2;
+            if (age < 1970) score += 3;
+            else if (age < 2000) score += 2;
             else score += 1;
 
-            // Area factor (larger = higher energy use)
             if (area > 100) score += 3;
             else if (area > 50) score += 2;
             else score += 1;
 
-            // Climate factor
             if (climate === 'cold') score += 2;
             else if (climate === 'hot') score += 2;
             else score += 1;
 
-            // Determine efficiency level
             let efficiency, color, emoji;
             if (score >= 7) {
-                efficiency = "Low Efficiency";
-                color = "#dc2626";
-                emoji = "🔴";
+                efficiency = "Low Efficiency"; color = "#dc2626"; emoji = "🔴";
             } else if (score >= 4) {
-                efficiency = "Medium Efficiency";
-                color = "#f59e0b";
-                emoji = "🟡";
+                efficiency = "Medium Efficiency"; color = "#f59e0b"; emoji = "🟡";
             } else {
-                efficiency = "High Efficiency";
-                color = "#16a34a";
-                emoji = "🟢";
+                efficiency = "High Efficiency"; color = "#16a34a"; emoji = "🟢";
             }
 
-            // Display result — normalize score to 1-10 scale
             const normalizedScore = Math.round(((8 - score) / 5) * 10);
             const output = document.getElementById('predictionOutput');
             output.innerHTML = `
-                <div class="prediction-card fade-in" style="border-color: ${color};">
-                    <h2 class="prediction-title" style="color: ${color};">${emoji} ${efficiency}</h2>
+                <div class="prediction-card fade-in" style="border-color:${color};">
+                    <h2 class="prediction-title" style="color:${color};">${emoji} ${efficiency}</h2>
                     <p class="prediction-score">Efficiency Score: ${normalizedScore}/10</p>
-                    <p style="font-size: 0.95rem; margin-top: 15px; color: var(--text-dim);">
+                    <p style="font-size:0.95rem; margin-top:15px; color:var(--text-dim);">
                         ${efficiency === "Low Efficiency" ? "This building likely needs energy retrofits" :
-                    efficiency === "Medium Efficiency" ? "This building has moderate energy performance" :
-                        "This building is energy efficient!"}
+                          efficiency === "Medium Efficiency" ? "This building has moderate energy performance" :
+                          "This building is energy efficient!"}
                     </p>
                 </div>
-                <div style="margin-top: 15px; background: rgba(251,191,36,0.1); border-left: 3px solid #f59e0b; padding: 12px; border-radius: 0 8px 8px 0;">
-                    <p style="margin: 0; font-size: 0.9rem; color: var(--text-dim);"><strong>Note:</strong> This demo uses simplified rules, not real AI. In Activity 4, you'll build an actual machine learning model that learns patterns from 100,000+ real buildings.</p>
-                </div>
-            `;
+                <div style="margin-top:15px; background:rgba(251,191,36,0.1); border-left:3px solid #f59e0b; padding:12px; border-radius:0 8px 8px 0;">
+                    <p style="margin:0; font-size:0.9rem; color:var(--text-dim);"><strong>Note:</strong> This demo uses simplified rules, not real AI. In Activity 4, you'll build an actual machine learning model that learns patterns from 100,000+ real buildings.</p>
+                </div>`;
+
+            // Update predictions count
+            state.step5Predictions++;
+            document.getElementById('triesArea').style.display = 'block';
+            document.getElementById('triesCounter').textContent = `Predictions made: ${state.step5Predictions}`;
+
+            // Show challenge card after first prediction
+            document.getElementById('challengeCard').classList.add('visible');
+
+            // Show quiz after first prediction
+            document.getElementById('step5Quiz').style.display = 'block';
+            if (state.step5Predictions === 1) {
+                document.getElementById('step5Quiz').classList.add('fade-in');
+            }
+
+            // Check if challenge complete (found green)
+            if (efficiency === "High Efficiency" && !state.step5ChallengeComplete) {
+                state.step5ChallengeComplete = true;
+                const card = document.getElementById('challengeCard');
+                card.classList.add('completed');
+                document.getElementById('challengeText').innerHTML =
+                    '🎉 <b>Challenge complete!</b> You found a High Efficiency building! Great work.';
+            }
+        }
+
+        function answerStep5Quiz(answer, btn) {
+            const feedback = document.getElementById('step5QuizFeedback');
+            const options = document.querySelectorAll('#step5Quiz .quiz-option');
+
+            if (answer === 'correct') {
+                btn.classList.add('correct');
+                options.forEach(o => { if (o !== btn) o.classList.add('disabled'); });
+                feedback.style.display = 'block';
+                feedback.style.background = 'rgba(16,185,129,0.15)';
+                feedback.innerHTML = '<span style="color:var(--success); font-weight:700;">✓ Correct!</span> The model used patterns from training data to predict efficiency based on the inputs you provided.';
+                state.step5QuizCorrect = true;
+                document.getElementById('step5-next').disabled = false;
+                document.getElementById('step5-gate-hint').style.display = 'none';
+                document.getElementById('step5Followup').style.display = 'block';
+                saveProgress();
+            } else {
+                btn.classList.add('incorrect');
+                feedback.style.display = 'block';
+                feedback.style.background = 'rgba(244,63,94,0.15)';
+                if (answer === 'wrong-memorize') {
+                    feedback.innerHTML = '<span style="color:var(--error); font-weight:700;">Not quite.</span> Memorizing inputs is actually what a <em>bad</em> model does (called overfitting). A good model finds general patterns. Try again!';
+                } else {
+                    feedback.innerHTML = '<span style="color:var(--error); font-weight:700;">Not quite.</span> The model doesn\'t look things up — it makes predictions based on patterns it learned during training. Try again!';
+                }
+                setTimeout(() => { btn.classList.remove('incorrect'); }, 1500);
+            }
+        }
+
+        // ===== STEP 6: COMPLETION QUIZZES =====
+        function answerCompletionQuiz(num, answer, btn) {
+            const feedback = document.getElementById(`completionQuiz${num}Feedback`);
+            const options = document.querySelectorAll(`#completionQuiz${num} .quiz-option`);
+
+            if (answer === 'correct') {
+                btn.classList.add('correct');
+                options.forEach(o => { if (o !== btn) o.classList.add('disabled'); });
+                feedback.style.display = 'block';
+                feedback.style.background = 'rgba(16,185,129,0.15)';
+
+                if (num === 1) {
+                    feedback.innerHTML = '<span style="color:var(--success); font-weight:700;">✓ Correct!</span> Input → Model → Output is the framework you\'ll use in Activity 4.';
+                    state.step6Quiz1 = true;
+                } else {
+                    feedback.innerHTML = '<span style="color:var(--success); font-weight:700;">✓ Correct!</span> Testing on unseen data is the only way to know the AI truly learned, not just memorized.';
+                    state.step6Quiz2 = true;
+                }
+
+                checkStep6Complete();
+                saveProgress();
+            } else {
+                btn.classList.add('incorrect');
+                feedback.style.display = 'block';
+                feedback.style.background = 'rgba(244,63,94,0.15)';
+
+                if (num === 1) {
+                    if (answer === 'wrong-algo') {
+                        feedback.innerHTML = '<span style="color:var(--error); font-weight:700;">Close, but not quite.</span> "Data → Algorithm → Prediction" is similar, but the Activity 3 framework uses Input → Model → Output. Try again!';
+                    } else {
+                        feedback.innerHTML = '<span style="color:var(--error); font-weight:700;">Not quite.</span> Training → Testing → Deployment describes phases of building AI, not the parts of an AI system. Try again!';
+                    }
+                } else {
+                    if (answer === 'wrong-train') {
+                        feedback.innerHTML = '<span style="color:var(--error); font-weight:700;">Not quite.</span> 100% on training data could mean the AI just memorized — that\'s called overfitting. We need to test on <em>new</em> data. Try again!';
+                    } else {
+                        feedback.innerHTML = '<span style="color:var(--error); font-weight:700;">Not quite.</span> Running multiple times doesn\'t test whether the AI learned real patterns. We test on data it hasn\'t seen. Try again!';
+                    }
+                }
+                setTimeout(() => { btn.classList.remove('incorrect'); }, 1500);
+            }
+        }
+
+        function checkStep6Complete() {
+            if (state.step6Quiz1 && state.step6Quiz2) {
+                document.getElementById('completionArea').style.display = 'block';
+            }
+        }
+
+        // ===== INITIALIZATION =====
+        loadProgress();
+
+        // Run typewriter only when starting fresh at step 0
+        if (currentStep === 0) {
+            initTypewriter();
+        } else {
+            // If resuming, show static text on step 0
+            const el = document.getElementById('hookText');
+            if (el) el.textContent = "You've picked the data. Now learn how AI actually uses it.";
+            const sub = document.getElementById('hookSub');
+            if (sub) sub.style.opacity = '1';
         }
     </script>
 </body>
