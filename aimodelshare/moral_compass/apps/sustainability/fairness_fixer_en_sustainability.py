@@ -1525,7 +1525,7 @@ HEAD_HTML = (
 # 10. APP FACTORY
 # ============================================================================
 
-def create_green_ai_cto_app(theme_primary_hue: str = "indigo"):
+def create_fairness_fixer_en_sustainability_app(theme_primary_hue: str = "indigo"):
     with gr.Blocks() as demo:
         # States
         username_state = gr.State(value=None)
@@ -1837,14 +1837,14 @@ def create_green_ai_cto_app(theme_primary_hue: str = "indigo"):
 # LAUNCH
 # ============================================================================
 
-def launch_green_ai_cto_app(
+def launch_fairness_fixer_en_sustainability_app(
     share: bool = False,
     server_name: str = "0.0.0.0",
     server_port: int = 8083,
     theme_primary_hue: str = "indigo",
     **kwargs
 ) -> None:
-    app = create_green_ai_cto_app(theme_primary_hue=theme_primary_hue)
+    app = create_fairness_fixer_en_sustainability_app(theme_primary_hue=theme_primary_hue)
     app.launch(
         share=share,
         server_name=server_name,
@@ -1857,4 +1857,4 @@ def launch_green_ai_cto_app(
 
 
 if __name__ == "__main__":
-    launch_green_ai_cto_app(share=False, debug=True, height=1000)
+    launch_fairness_fixer_en_sustainability_app(share=False, debug=True, height=1000)
