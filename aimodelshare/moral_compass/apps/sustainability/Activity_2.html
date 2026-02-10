@@ -798,21 +798,17 @@
                         <div id="sector-transport" class="sector-btn" data-sector="transport"
                             onclick="selectSector(this, 'transport')">
                             <strong style="color: var(--text);">🚗 Transportation:</strong>
-                            <span style="color: var(--text-dim);">High emissions, but hard to track individual
-                                vehicles. Limited data from smart meters.</span>
+                            <span style="color: var(--text-dim);">GPS and traffic sensors produce massive datasets. Cities control roads and transit routes. Fuel consumption is well-documented.</span>
                         </div>
                         <div id="sector-power" class="sector-btn" data-sector="power"
                             onclick="selectSector(this, 'power')">
                             <strong style="color: var(--text);">⚡ Power Generation:</strong>
-                            <span style="color: var(--text-dim);">Big power plants are already closely monitored by
-                                utility companies. Less room for AI to help.</span>
+                            <span style="color: var(--text-dim);">Utility companies track output minute-by-minute. Grid data is highly structured. Government regulations require detailed reporting.</span>
                         </div>
                         <div id="sector-buildings" class="sector-btn" data-sector="buildings"
                             onclick="selectSector(this, 'buildings')">
                             <strong style="color: var(--text);">🏢 Buildings (Homes &amp; Offices):</strong>
-                            <span style="color: var(--text-dim);">Lots of data from smart meters and thermometers,
-                                local government control, clear ways to fix old buildings, measurable
-                                results.</span>
+                            <span style="color: var(--text-dim);">Smart meters and energy audits produce rich datasets. Cities issue building permits and inspections. Retrofits have measurable, repeatable impact.</span>
                         </div>
                     </div>
                     <div id="sectorFeedback"
@@ -888,13 +884,12 @@
                             use!</div>
                     </div>
 
-                    <div class="feature-card" data-feature="color"
-                        onclick="toggleFeature(this, 'color', false)">
-                        <strong style="color: var(--text); font-size: 1.1rem;">🎨 Paint Color</strong>
-                        <p style="font-size: 0.9375rem; margin: 8px 0 0 0; color: var(--text-dim);">Exterior wall
-                            color of the building</p>
-                        <div class="feature-why" style="display:none;">Paint color barely affects how much energy a
-                            building uses.</div>
+                    <div class="feature-card" data-feature="floors"
+                        onclick="toggleFeature(this, 'floors', false)">
+                        <strong style="color: var(--text); font-size: 1.1rem;">🏗️ Number of Floors</strong>
+                        <p style="font-size: 0.9375rem; margin: 8px 0 0 0; color: var(--text-dim);">How many stories tall
+                            the building is</p>
+                        <div class="feature-why" style="display:none;">Taller doesn't mean less efficient — a 2-story building and a 20-story building can have the same energy use per square foot. Floor area already captures size better.</div>
                     </div>
 
                     <div class="feature-card" data-feature="year"
@@ -1005,53 +1000,16 @@
                 </div>
 
                 <div id="dataSearchProgress" style="display: none; margin-top: 20px;">
-                    <div class="loading-step" id="load-1">🔍 Checking for Floor Area data...</div>
-                    <div class="loading-step" id="load-2">🌡️ Checking for Weather Data...</div>
-                    <div class="loading-step" id="load-3">📅 Checking for Year Built data...</div>
-                    <div class="loading-step" id="load-4">📊 Checking for EUI records...</div>
-                    <div class="loading-step" id="load-5">🗄️ Searching NREL database...</div>
                 </div>
 
                 <div id="dataMatchResult" style="display: none; margin-top: 25px;">
-                    <div
-                        style="background: rgba(16, 185, 129, 0.1); border: 2px solid var(--success); padding: 25px; border-radius: 16px;">
-                        <h3 style="color: var(--success); margin-bottom: 15px;">✓ MATCH FOUND!</h3>
-                        <p style="color: var(--text); font-size: 1.05rem; margin-bottom: 15px;"><strong>100,000
-                                building records available</strong> from NREL (the National Renewable Energy Laboratory
-                            &mdash; a real US government energy research lab)</p>
-
-                        <div style="display: grid; gap: 10px; margin: 20px 0;">
-                            <div
-                                style="padding: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
-                                <strong style="color: var(--text);">📍 Coverage:</strong> <span
-                                    style="color: var(--text-dim);">New York, Illinois, Washington</span>
-                            </div>
-                            <div
-                                style="padding: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
-                                <strong style="color: var(--text);">✓ Includes:</strong> <span
-                                    style="color: var(--text-dim);">Floor area, weather data, year built,
-                                    EUI</span>
-                            </div>
-                            <div
-                                style="padding: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
-                                <strong style="color: var(--text);">🎯 Perfect for:</strong> <span
-                                    style="color: var(--text-dim);">Training a building efficiency prediction
-                                    AI</span>
-                            </div>
-                        </div>
-
-                        <button class="btn" style="background: var(--success); width: 100%; margin-top: 15px;"
-                            onclick="goToStep(5)">CONTINUE TO SUMMARY</button>
-                    </div>
                 </div>
             </div>
 
             <!-- STEP 5: SUMMARY & HANDOFF -->
             <div class="mission-step" id="step-5">
                 <div style="text-align: center;">
-                    <span class="celebration-icon">🏆</span>
-                    <h2 style="color: var(--success);">AI Data Plan Complete!</h2>
-                    <p>Great work! You've designed the data strategy for your building efficiency AI.</p>
+                    <h2>Almost Done &mdash; Quick Check</h2>
 
                     <div
                         style="background: rgba(255, 255, 255, 0.05); padding: 25px; border-radius: 12px; text-align: left; margin-top: 20px;">
@@ -1062,7 +1020,7 @@
                     <div
                         style="background: linear-gradient(135deg, rgba(167, 139, 250, 0.1), rgba(236, 72, 153, 0.1)); padding: 20px; border-radius: 12px; margin-top: 20px; border: 1px solid var(--accent);">
                         <p style="font-size: 0.95rem; color: var(--text); margin-bottom: 15px;">
-                            <strong>🎓 Quick Check:</strong>
+                            <strong>🎓 Answer both to unlock your results:</strong>
                         </p>
 
                         <!-- Quiz Question 1 -->
@@ -1083,6 +1041,15 @@
                                 <button class="btn secondary" style="flex: 1; padding: 10px; font-size: 0.9rem; text-transform: none;" onclick="answerQuiz(2, 'correct', this)">Energy per square foot</button>
                             </div>
                             <div id="quiz2Feedback" style="display: none; margin-top: 8px; padding: 8px 12px; border-radius: 8px; font-size: 0.9rem;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Celebration — hidden until both quizzes answered -->
+                    <div id="celebrationArea" style="display:none; animation: fadeIn 0.5s ease;">
+                        <div style="margin-top: 24px;">
+                            <span class="celebration-icon">🏆</span>
+                            <h2 style="color: var(--success);">AI Data Plan Complete!</h2>
+                            <p>Great work! You've designed the data strategy for your building efficiency AI.</p>
                         </div>
                     </div>
 
@@ -1353,9 +1320,9 @@
                 fb.style.background = 'rgba(245, 158, 11, 0.1)';
                 fb.style.borderLeft = '4px solid var(--warning)';
                 if (sectorId === 'transport') {
-                    fb.innerHTML = '<p style="margin:0; color:var(--text-dim);">Not quite &mdash; vehicles are hard to collect data from.</p>';
+                    fb.innerHTML = '<p style="margin:0; color:var(--text-dim);">Good thinking &mdash; transport has lots of data, but individual vehicles are hard for a <em>city</em> to act on. Think: which sector gives the city direct control over physical things it can improve?</p>';
                 } else {
-                    fb.innerHTML = '<p style="margin:0; color:var(--text-dim);">Not quite &mdash; power plants are already well-monitored.</p>';
+                    fb.innerHTML = '<p style="margin:0; color:var(--text-dim);">Power plants do have great data &mdash; but they\'re already heavily regulated and optimized. Think: where is there the most room for AI to find <em>new</em> savings?</p>';
                 }
 
                 // Show hint after 2 wrong attempts
@@ -1456,6 +1423,8 @@
 
         // ——— STEP 5: QUIZ ———
 
+        let quizAnswered = { 1: false, 2: false };
+
         function answerQuiz(questionNum, result, btn) {
             const fb = document.getElementById(`quiz${questionNum}Feedback`);
             fb.style.display = 'block';
@@ -1482,6 +1451,19 @@
                     fb.innerHTML = 'Not quite &mdash; EUI divides energy by floor area so you can compare buildings of different sizes.';
                 }
                 btn.style.borderColor = 'var(--warning)';
+            }
+
+            quizAnswered[questionNum] = true;
+
+            // Show celebration once both questions are answered
+            if (quizAnswered[1] && quizAnswered[2]) {
+                const celebrationArea = document.getElementById('celebrationArea');
+                if (celebrationArea) {
+                    setTimeout(() => {
+                        celebrationArea.style.display = 'block';
+                        celebrationArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }, 600);
+                }
             }
         }
 
@@ -1574,27 +1556,69 @@
             progressDiv.style.display = 'block';
             resultDiv.style.display = 'none';
 
-            const steps = ['load-1', 'load-2', 'load-3', 'load-4', 'load-5'];
-            let delay = 0;
+            // Build dynamic loading steps based on student's selected features
+            const featureMeta = {
+                floor_area: { icon: '🔍', label: 'Floor Area', match: 98, records: '98,000' },
+                weather: { icon: '🌡️', label: 'Weather Data', match: 72, records: '72,000', note: 'some gaps in rural stations' },
+                year: { icon: '📅', label: 'Year Built', match: 85, records: '85,000' }
+            };
 
-            steps.forEach((stepId, i) => {
-                delay += 350;
+            const selectedFeatures = Array.from(projectData.selectedFeatures);
+            const searchSteps = selectedFeatures.map((f, i) => {
+                const meta = featureMeta[f];
+                return { id: `dyn-load-${i}`, icon: meta.icon, label: meta.label, match: meta.match, records: meta.records, note: meta.note };
+            });
+            searchSteps.push({ id: 'dyn-load-eui', icon: '📊', label: 'EUI records', match: 100, records: '100,000' });
+            searchSteps.push({ id: 'dyn-load-nrel', icon: '🗄️', label: 'NREL database', match: null });
+
+            // Render loading steps
+            progressDiv.innerHTML = searchSteps.map(s =>
+                `<div class="loading-step" id="${s.id}">${s.icon} Checking for ${s.label} data...</div>`
+            ).join('');
+
+            let delay = 0;
+            searchSteps.forEach((s, i) => {
+                const jitter = 250 + Math.floor(Math.random() * 200);
+                delay += jitter;
                 setTimeout(() => {
-                    const el = document.getElementById(stepId);
+                    const el = document.getElementById(s.id);
                     el.classList.add('visible');
                 }, delay);
 
-                delay += 300;
+                delay += 200 + Math.floor(Math.random() * 200);
                 setTimeout(() => {
-                    const el = document.getElementById(stepId);
+                    const el = document.getElementById(s.id);
                     el.classList.add('done');
-                    el.textContent = el.textContent.replace('...', ' ✓');
+                    if (s.match !== null) {
+                        const suffix = s.note ? ` (${s.note})` : '';
+                        el.textContent = `${s.icon} ${s.label}: ✓ Found in ${s.records} records (${s.match}% coverage)${suffix}`;
+                    } else {
+                        el.textContent = `${s.icon} ${s.label}: ✓ Connected`;
+                    }
                 }, delay);
             });
 
-            // Show final result after all loading steps
+            // Build dynamic match result
             delay += 500;
             setTimeout(() => {
+                const featureList = selectedFeatures.map(f => featureMeta[f].label).join(', ');
+                resultDiv.innerHTML = `
+                    <div style="background: rgba(16, 185, 129, 0.1); border: 2px solid var(--success); padding: 25px; border-radius: 16px;">
+                        <h3 style="color: var(--success); margin-bottom: 15px;">✓ MATCH FOUND!</h3>
+                        <p style="color: var(--text); font-size: 1.05rem; margin-bottom: 15px;"><strong>100,000 building records available</strong> from NREL (the National Renewable Energy Laboratory &mdash; a real US government energy research lab)</p>
+                        <div style="display: grid; gap: 10px; margin: 20px 0;">
+                            <div style="padding: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
+                                <strong style="color: var(--text);">📍 Coverage:</strong> <span style="color: var(--text-dim);">New York, Illinois, Washington</span>
+                            </div>
+                            <div style="padding: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
+                                <strong style="color: var(--text);">✓ Your features matched:</strong> <span style="color: var(--text-dim);">${featureList}, EUI</span>
+                            </div>
+                            <div style="padding: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
+                                <strong style="color: var(--text);">🎯 Perfect for:</strong> <span style="color: var(--text-dim);">Training a building efficiency prediction AI</span>
+                            </div>
+                        </div>
+                        <button class="btn" style="background: var(--success); width: 100%; margin-top: 15px;" onclick="goToStep(5)">CONTINUE TO SUMMARY</button>
+                    </div>`;
                 resultDiv.style.display = 'block';
                 resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 projectData.dataSearched = true;

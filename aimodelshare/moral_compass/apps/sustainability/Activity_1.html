@@ -970,11 +970,26 @@
 
                 <div class="quiz">
                     <div class="quiz-title">Your Decision</div>
-                    <p style="margin-bottom: 15px; font-size: 1rem;">Based on the data, which approach would make the biggest difference?</p>
-                    <div class="options-grid">
-                        <button class="option-btn" onclick="checkStrategyAnswer(this, 'correct')">Focused rules on the biggest polluters in this industry.</button>
-                        <button class="option-btn" onclick="checkStrategyAnswer(this, 'wrong')">Asking all industries to cut equally, with no rules to enforce it.</button>
+                    <p style="margin-bottom: 15px; font-size: 1rem;">Each approach has real trade-offs. Which strategy would you recommend for the <span class="topSectorLabel highlight-text">---</span> industry?</p>
+                    <div class="options-grid" id="strategyOptions">
+                        <button class="option-btn" onclick="selectStrategy(this, 'regulation')">
+                            <strong>📋 Strict Regulation</strong><br>
+                            <span style="font-size:0.85rem; color:var(--text-dim);">Set legal emission limits. Fine companies that exceed them.</span>
+                        </button>
+                        <button class="option-btn" onclick="selectStrategy(this, 'incentives')">
+                            <strong>💰 Financial Incentives</strong><br>
+                            <span style="font-size:0.85rem; color:var(--text-dim);">Tax breaks and grants for companies that cut emissions voluntarily.</span>
+                        </button>
+                        <button class="option-btn" onclick="selectStrategy(this, 'transparency')">
+                            <strong>📊 Public Reporting</strong><br>
+                            <span style="font-size:0.85rem; color:var(--text-dim);">Require polluters to publish emissions data. Let public pressure drive change.</span>
+                        </button>
+                        <button class="option-btn" onclick="selectStrategy(this, 'technology')">
+                            <strong>🔬 Technology Investment</strong><br>
+                            <span style="font-size:0.85rem; color:var(--text-dim);">Fund R&D for cleaner alternatives. Replace dirty tech with clean tech.</span>
+                        </button>
                     </div>
+                    <div id="strategyFeedback" style="display:none; margin-top:15px; padding:16px; border-radius:12px; background:rgba(16,185,129,0.1); border-left:4px solid var(--success);"></div>
                 </div>
 
                 <div class="btn-group">
@@ -1033,6 +1048,7 @@
                     </div>
                     <div class="btn-group" style="margin-top: 30px; justify-content: center;">
                         <button class="btn secondary" onclick="goToStep(6)">◀️ BACK</button>
+                        <button class="btn secondary" onclick="copyReport()" id="copyReportBtn">📋 COPY MY REPORT</button>
                         <button class="btn" style="background: var(--success); cursor:default; opacity:1;" disabled>MISSION COMPLETE ✓</button>
                     </div>
 
@@ -1367,18 +1383,30 @@
             else { btn.classList.add('wrong'); setTimeout(() => btn.classList.remove('wrong'), 1000); }
         }
 
-        function checkStrategyAnswer(btn, type) {
-            if (type === 'correct') {
-                btn.classList.add('correct'); document.getElementById('btn-next-5').disabled = false;
-                logDecision('Strategy chosen', 'Focused rules on biggest polluters');
-                saveJourneyState();
-                autoAdvanceTimer = setTimeout(() => {
-                    if (document.getElementById('step-5').classList.contains('active')) goToStep(6);
-                    autoAdvanceTimer = null;
-                }, 2000);
-            } else {
-                btn.classList.add('wrong'); setTimeout(() => btn.classList.remove('wrong'), 1000);
-            }
+        function selectStrategy(btn, strategyId) {
+            const feedbackMap = {
+                regulation: { label: 'Strict Regulation', text: 'Strong and fast — but enforcement is expensive and smaller businesses may struggle to comply. Works best when the biggest polluters are a few large facilities.' },
+                incentives: { label: 'Financial Incentives', text: 'Encourages voluntary action — but slow to take effect, and companies may just pocket the savings. Works best when many small actors need motivation to upgrade.' },
+                transparency: { label: 'Public Reporting', text: 'Low cost and empowers citizens — but relies on public attention, which can fade. Works best in cities with engaged communities and local media.' },
+                technology: { label: 'Technology Investment', text: 'Addresses the root cause — but results take years, and breakthroughs aren\'t guaranteed. Works best when current technology is the bottleneck, not behavior.' }
+            };
+
+            // Disable all strategy buttons
+            document.querySelectorAll('#strategyOptions .option-btn').forEach(b => {
+                b.style.pointerEvents = 'none';
+                b.style.opacity = '0.5';
+            });
+            btn.classList.add('correct');
+            btn.style.opacity = '1';
+
+            const info = feedbackMap[strategyId];
+            const fb = document.getElementById('strategyFeedback');
+            fb.style.display = 'block';
+            fb.innerHTML = `<p style="margin:0 0 8px 0; color:var(--success); font-weight:700;">You chose: ${info.label}</p><p style="margin:0; color:var(--text-dim); font-size:0.95rem;">${info.text}</p><p style="margin:8px 0 0 0; color:var(--text); font-size:0.95rem;">There's no single "right" answer — real policy involves exactly these trade-offs. Your choice will shape your final recommendation.</p>`;
+
+            document.getElementById('btn-next-5').disabled = false;
+            logDecision('Strategy chosen', info.label);
+            saveJourneyState();
         }
 
         function checkSectorAnswer(btn, sectorName) {
@@ -1536,6 +1564,34 @@
             } catch (e) { /* silently continue */ }
 
             goToStep(7);
+        }
+
+        function copyReport() {
+            const cityName = investigationData.city?.name || 'my city';
+            const topSector = investigationData.topSector ? formatSectorName(investigationData.topSector.sector) : 'N/A';
+            const topSource = investigationData.topSources[0]?.name || 'N/A';
+            const t22 = investigationData.t22 ? (investigationData.t22 / 1e6).toFixed(1) + 'M' : 'N/A';
+            const recommendation = document.getElementById('displayFinalReflect').innerText;
+
+            const report = `Climate Investigation Report: ${cityName}\n` +
+                `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+                `Total Emissions (2022): ${t22} tonnes CO₂\n` +
+                `Top Sector: ${topSector}\n` +
+                `Top Source: ${topSource}\n\n` +
+                `My Recommendation:\n${recommendation}\n\n` +
+                `— Climate Action Investigator`;
+
+            navigator.clipboard.writeText(report).then(() => {
+                const btn = document.getElementById('copyReportBtn');
+                btn.textContent = '✓ Copied!';
+                btn.style.borderColor = 'var(--success)';
+                btn.style.color = 'var(--success)';
+                setTimeout(() => {
+                    btn.textContent = '📋 COPY MY REPORT';
+                    btn.style.borderColor = '';
+                    btn.style.color = '';
+                }, 2000);
+            });
         }
     </script>
 </body>

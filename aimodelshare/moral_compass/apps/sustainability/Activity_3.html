@@ -1088,6 +1088,7 @@
                                         Climate AI Architect
                                         <div class="climate-badge-subtitle" id="badgeCityName"></div>
                                     </div>
+                                    <p style="margin:12px 0 0 0; font-size:0.9rem; color:var(--text-dim); font-style:italic;">📸 Screenshot this for your portfolio!</p>
                                 </div>
 
                                 <hr style="margin:24px 0; border:none; border-top:1px solid var(--border-color);">
@@ -1329,47 +1330,105 @@
         }
 
         // ===== STEP 1: "YOU ARE THE AI" PREDICTION GAME =====
+        let predictionRound = 1;
+
         function predictMystery(choice) {
             const buttons = document.querySelectorAll('.pred-btn');
             const feedback = document.getElementById('mysteryFeedback');
             const mystery = document.getElementById('mysteryBuilding');
 
-            if (choice === 'low') {
-                // Correct — old + big + cold = low efficiency
-                buttons.forEach(b => b.style.pointerEvents = 'none');
-                buttons[2].classList.add('correct-choice');
-                buttons[0].classList.add('disabled');
-                buttons[1].classList.add('disabled');
+            if (predictionRound === 1) {
+                if (choice === 'low') {
+                    // Round 1 correct — old + big + cold = low efficiency
+                    buttons.forEach(b => b.style.pointerEvents = 'none');
+                    buttons[2].classList.add('correct-choice');
+                    buttons[0].classList.add('disabled');
+                    buttons[1].classList.add('disabled');
 
-                mystery.querySelector('.building-rating').innerHTML = '🔴 Low Efficiency';
-                mystery.querySelector('.building-rating').style.color = '#dc2626';
-                mystery.querySelector('.building-emoji').textContent = '🏗️';
-                mystery.style.borderStyle = 'solid';
-                mystery.style.borderColor = 'var(--success)';
+                    mystery.querySelector('.building-rating').innerHTML = '🔴 Low Efficiency';
+                    mystery.querySelector('.building-rating').style.color = '#dc2626';
+                    mystery.querySelector('.building-emoji').textContent = '🏗️';
+                    mystery.style.borderStyle = 'solid';
+                    mystery.style.borderColor = 'var(--success)';
 
-                feedback.style.display = 'block';
-                feedback.innerHTML = `
-                    <div class="highlight-box fade-in" style="text-align:center;">
-                        <p style="font-size:1.2rem; font-weight:700; color:var(--success); margin-bottom:8px;">You just did what AI does!</p>
-                        <p style="margin:0; font-size:1.05rem;">You found a pattern: <strong>older + bigger + extreme climate = less efficient</strong>. AI does the exact same thing — but with thousands of buildings and math instead of intuition.</p>
-                    </div>`;
+                    feedback.style.display = 'block';
+                    feedback.innerHTML = `
+                        <div class="highlight-box fade-in" style="text-align:center;">
+                            <p style="font-size:1.1rem; font-weight:700; color:var(--success); margin-bottom:8px;">Correct! Now try the opposite.</p>
+                            <p style="margin:0; font-size:1rem;">Old + big + extreme climate = low efficiency. Can you spot a <strong>high efficiency</strong> building?</p>
+                        </div>`;
 
-                document.getElementById('step1-next').disabled = false;
-                document.getElementById('step1-gate-hint').style.display = 'none';
+                    // After a short pause, show Round 2
+                    setTimeout(() => {
+                        predictionRound = 2;
+                        mystery.querySelector('.building-stat:nth-child(3)').innerHTML = 'Year: <strong>2020</strong>';
+                        mystery.querySelector('.building-stat:nth-child(4)').innerHTML = 'Size: <strong>20K sqft</strong>';
+                        mystery.querySelector('.building-stat:nth-child(5)').innerHTML = 'Climate: <strong>Moderate</strong>';
+                        mystery.querySelector('.building-rating').innerHTML = 'What\'s the rating?';
+                        mystery.querySelector('.building-rating').style.color = 'var(--accent)';
+                        mystery.querySelector('.building-emoji').textContent = '❓';
+                        mystery.style.borderColor = 'var(--accent)';
+                        mystery.style.borderStyle = 'dashed';
+                        const label = mystery.querySelector('div:first-child');
+                        label.textContent = 'Mystery Building #2';
+
+                        buttons.forEach(b => {
+                            b.style.pointerEvents = 'auto';
+                            b.classList.remove('correct-choice', 'disabled', 'wrong-choice');
+                        });
+
+                        feedback.innerHTML = `
+                            <div class="info-box fade-in" style="text-align:center;">
+                                <p style="margin:0; color:var(--text);">Round 2: This building is <strong>newer</strong>, <strong>smaller</strong>, and in a <strong>moderate</strong> climate. What do you predict?</p>
+                            </div>`;
+                    }, 1500);
+                } else {
+                    // Round 1 wrong
+                    const idx = choice === 'high' ? 0 : 1;
+                    buttons[idx].classList.add('wrong-choice');
+
+                    feedback.style.display = 'block';
+                    feedback.innerHTML = `
+                        <div class="info-box fade-in" style="text-align:center;">
+                            <p style="margin:0; color:var(--text);">Look at the pattern: the 1965 building (old, big, cold) was <strong>Low</strong>. This mystery building is even older (1958) and bigger (150K sqft). Try again!</p>
+                        </div>`;
+
+                    setTimeout(() => { buttons[idx].classList.remove('wrong-choice'); }, 2000);
+                }
             } else {
-                // Wrong
-                const idx = choice === 'high' ? 0 : 1;
-                buttons[idx].classList.add('wrong-choice');
+                // Round 2: correct answer is 'high' (new + small + moderate = high efficiency)
+                if (choice === 'high') {
+                    buttons.forEach(b => b.style.pointerEvents = 'none');
+                    buttons[0].classList.add('correct-choice');
+                    buttons[1].classList.add('disabled');
+                    buttons[2].classList.add('disabled');
 
-                feedback.style.display = 'block';
-                feedback.innerHTML = `
-                    <div class="info-box fade-in" style="text-align:center;">
-                        <p style="margin:0; color:var(--text);">Look at the pattern: the 1965 building (old, big, cold) was <strong>Low</strong>. This mystery building is even older (1958) and bigger (150K sqft). Try again!</p>
-                    </div>`;
+                    mystery.querySelector('.building-rating').innerHTML = '🟢 High Efficiency';
+                    mystery.querySelector('.building-rating').style.color = '#16a34a';
+                    mystery.querySelector('.building-emoji').textContent = '🏠';
+                    mystery.style.borderColor = 'var(--success)';
+                    mystery.style.borderStyle = 'solid';
 
-                setTimeout(() => {
-                    buttons[idx].classList.remove('wrong-choice');
-                }, 2000);
+                    feedback.style.display = 'block';
+                    feedback.innerHTML = `
+                        <div class="highlight-box fade-in" style="text-align:center;">
+                            <p style="font-size:1.2rem; font-weight:700; color:var(--success); margin-bottom:8px;">You just did what AI does!</p>
+                            <p style="margin:0; font-size:1.05rem;">You found the pattern in <strong>both directions</strong>: older + bigger + extreme climate = less efficient; newer + smaller + moderate climate = more efficient. AI does the exact same thing — but with thousands of buildings and math instead of intuition.</p>
+                        </div>`;
+
+                    document.getElementById('step1-next').disabled = false;
+                    document.getElementById('step1-gate-hint').style.display = 'none';
+                } else {
+                    const idx = choice === 'medium' ? 1 : 2;
+                    buttons[idx].classList.add('wrong-choice');
+
+                    feedback.innerHTML = `
+                        <div class="info-box fade-in" style="text-align:center;">
+                            <p style="margin:0; color:var(--text);">Think about the pattern: the 2018 building (new, 30K, moderate) was <strong>High</strong>. This building is similar — <strong>2020</strong>, <strong>20K sqft</strong>, <strong>moderate</strong> climate. Try again!</p>
+                        </div>`;
+
+                    setTimeout(() => { buttons[idx].classList.remove('wrong-choice'); }, 2000);
+                }
             }
         }
 
@@ -1454,8 +1513,22 @@
         }
 
         // ===== STEP 3: TRAINING ANIMATION =====
+        let trainingCycle = 0;
+        const TRAINING_CYCLES = [
+            { labels: ['Starting...', 'Accuracy: 47%', 'Accuracy: 62%', 'Accuracy: 78%', 'Accuracy: 91%'],
+              colors: ['var(--text-dim)', 'var(--error)', 'var(--warning)', 'var(--accent)', 'var(--success)'],
+              btnText: '▶ Train Again (+more data)', finalAcc: '91%', hint: 'Good start — but can we do better with more training?' },
+            { labels: ['Resuming at 91%...', 'Accuracy: 92%', 'Accuracy: 93%', 'Accuracy: 94%', 'Accuracy: 95%'],
+              colors: ['var(--text-dim)', 'var(--accent)', 'var(--accent)', 'var(--accent)', 'var(--success)'],
+              btnText: '▶ Train One More Time', finalAcc: '95%', hint: 'Improving — but notice the gains are getting smaller.' },
+            { labels: ['Resuming at 95%...', 'Accuracy: 95.5%', 'Accuracy: 96%', 'Accuracy: 96.5%', 'Accuracy: 97%'],
+              colors: ['var(--text-dim)', 'var(--accent)', 'var(--accent)', 'var(--accent)', 'var(--success)'],
+              btnText: null, finalAcc: '97%', hint: 'Diminishing returns — more training barely helps. The model has learned most of what the data can teach.' }
+        ];
+
         function runTrainingAnimation() {
-            if (state.step3Animated) return;
+            const cycle = TRAINING_CYCLES[trainingCycle];
+            if (!cycle) return;
 
             const btn = document.getElementById('trainBtn');
             btn.disabled = true;
@@ -1463,24 +1536,44 @@
 
             const boxes = document.querySelectorAll('.flow-box-animated');
             const display = document.getElementById('accuracyDisplay');
-            const labels = ['Starting...', 'Accuracy: 47%', 'Accuracy: 62%', 'Accuracy: 78%', 'Accuracy: 91%'];
-            const colors = ['var(--text-dim)', 'var(--error)', 'var(--warning)', 'var(--accent)', 'var(--success)'];
+
+            // Reset box styles for re-animation
+            if (trainingCycle > 0) {
+                boxes.forEach(b => b.classList.remove('lit'));
+            }
 
             boxes.forEach((box, i) => {
                 setTimeout(() => {
                     box.classList.add('lit');
-                    display.textContent = labels[i];
-                    display.style.color = colors[i];
+                    display.textContent = cycle.labels[i];
+                    display.style.color = cycle.colors[i];
 
                     if (i === boxes.length - 1) {
                         setTimeout(() => {
-                            btn.textContent = '✓ Training Complete';
-                            btn.style.background = 'var(--success)';
-                            btn.style.opacity = '1';
-                            state.step3Animated = true;
-                            document.getElementById('step3-next').disabled = false;
-                            document.getElementById('step3-gate-hint').style.display = 'none';
-                            document.getElementById('step3-post-animation').style.display = 'block';
+                            const postAnim = document.getElementById('step3-post-animation');
+                            postAnim.style.display = 'block';
+                            postAnim.innerHTML = `
+                                <div class="highlight-box" style="text-align:center;">
+                                    <p style="margin:0 0 6px 0; font-weight:700; color:var(--success);">Accuracy: ${cycle.finalAcc}</p>
+                                    <p style="margin:0; font-size:0.95rem;">${cycle.hint}</p>
+                                </div>`;
+
+                            trainingCycle++;
+
+                            if (cycle.btnText) {
+                                btn.textContent = cycle.btnText;
+                                btn.style.background = 'var(--accent)';
+                                btn.style.opacity = '1';
+                                btn.disabled = false;
+                            } else {
+                                // Final cycle
+                                btn.textContent = '✓ Training Complete (97%)';
+                                btn.style.background = 'var(--success)';
+                                btn.style.opacity = '1';
+                                state.step3Animated = true;
+                                document.getElementById('step3-next').disabled = false;
+                                document.getElementById('step3-gate-hint').style.display = 'none';
+                            }
                         }, 600);
                     }
                 }, i * 500);
