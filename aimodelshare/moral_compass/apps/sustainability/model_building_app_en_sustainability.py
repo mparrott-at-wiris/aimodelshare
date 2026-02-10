@@ -1552,7 +1552,7 @@ def create_model_building_game_en_sustainability_app(theme_primary_hue="indigo")
             print(f"WARNING: Could not connect to playground: {e}")
             playground = None
 
-    # Declare globals that run_experiment yields into
+    # Declare globals that run_experiment and perform_inline_login yield into
     global submit_button, submission_feedback_display, team_leaderboard_display
     global individual_leaderboard_display, last_submission_score_state, last_rank_state
     global best_score_state, submission_count_state, first_submission_score_state
@@ -1560,6 +1560,8 @@ def create_model_building_game_en_sustainability_app(theme_primary_hue="indigo")
     global feature_set_checkbox, data_size_radio
     global login_username, login_password, login_submit, login_error
     global attempts_tracker_display, team_name_state
+    global username_state, token_state, readiness_state
+    global was_preview_state, kpi_meta_state, last_seen_ts_state
 
     with gr.Blocks(
         theme=gr.themes.Soft(primary_hue=theme_primary_hue),
