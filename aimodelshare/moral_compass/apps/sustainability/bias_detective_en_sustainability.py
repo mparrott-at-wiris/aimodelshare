@@ -9,7 +9,7 @@ DEFAULT_API_URL = "https://b22q73wp50.execute-api.us-east-1.amazonaws.com/dev"
 ORIGINAL_PLAYGROUND_URL = "https://bhtrtkrbf4.execute-api.us-east-1.amazonaws.com/prod/m"
 TABLE_ID = "sustainabilitymc"
 FALLBACK_TABLE_ID = "sustainabilitymcfallback"
-TOTAL_COURSE_TASKS = 20 # Score calculated against full course
+TOTAL_COURSE_TASKS = 17 # Score calculated against full course (8 in Act6 + 6 in Act7 + 3 reserved)
 LOCAL_TEST_SESSION_ID = None
 
 
@@ -83,1600 +83,1191 @@ def fetch_user_history(username, token):
         pass
     return default_acc, default_team
 
-# --- 4. MODULE DEFINITIONS (APP 1: 0-10) ---
+
+# ============================================================================
+# 4. MODULE DEFINITIONS — 8-STEP CURRICULUM-ALIGNED JOURNEY
+# ============================================================================
+# Phase 1: Personal Impact (Steps 0-5)
+# Phase 2: Global Scale + Audit (Steps 6-7)
+# ============================================================================
+
 MODULES = [
-    # --- MODULE 0: THE HOOK (Mission Dossier) ---
-  {
+    # ─────────────────────────────────────────────
+    # MODULE 0 — THE HOOK: PERSONAL CONFRONTATION
+    # ─────────────────────────────────────────────
+    {
         "id": 0,
         "title": "Mission Dossier",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin-bottom:25px; text-align:center; font-size: 2.2rem;">🕵️ MISSION DOSSIER</h2>
 
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:25px; margin-bottom:30px; align-items:stretch;">
-                        <div style="background:var(--background-fill-secondary); padding:20px; border-radius:12px; border:1px solid var(--border-color-primary);">
-                            <div style="margin-bottom:15px;">
-                                <div style="font-size:0.9rem; font-weight:800; color:var(--body-text-color-subdued); letter-spacing:1px;">YOUR ROLE</div>
-                                <div style="font-size:1.3rem; font-weight:700; color:var(--color-accent);">Lead Bias Detective</div>
-                            </div>
+                    <!-- HOOK: Personal confrontation -->
+                    <div style="text-align:center; margin-bottom:8px;">
+                        <div style="font-size:2.6rem; margin-bottom:6px;">👁️</div>
+                        <h2 class="slide-title" style="margin-bottom:10px; font-size:2rem; line-height:1.2;">
+                            You've already used AI today.
+                        </h2>
+                        <p style="font-size:1.15rem; max-width:650px; margin:0 auto 18px; line-height:1.5; opacity:0.85;">
+                            That autocorrect. That face unlock. That feed algorithm deciding what you see next.
+                            <br>Every single one <strong>burned electricity you never saw.</strong>
+                        </p>
+                    </div>
+
+                    <!-- LIVE COUNTER — homes as primary metric, MWh secondary -->
+                    <div style="background:#1e293b; color:white; padding:18px 20px; border-radius:12px; margin-bottom:20px; text-align:center;">
+                        <div style="font-size:0.78rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6px;">
+                            ⚡ Since you opened this page, global AI has powered the equivalent of:
+                        </div>
+                        <div style="display:flex; justify-content:center; align-items:baseline; gap:6px;">
+                            <span id="live-homes-counter" style="font-size:2.8rem; font-weight:900; color:#f87171; font-family:monospace;">0</span>
+                            <span style="font-size:1.1rem; color:#94a3b8; font-weight:600;">homes for an hour</span>
+                        </div>
+                        <div style="font-size:0.82rem; color:#64748b; margin-top:4px;">
+                            (<span id="live-kwh-counter" style="color:#94a3b8;">0</span> MWh) — and rising every second
+                        </div>
+                    </div>
+                    <script>
+                    (function(){
+                        var MWH_PER_SEC = 12000 / 3600;
+                        var startTime = Date.now();
+                        function tick() {
+                            var s = (Date.now() - startTime) / 1000;
+                            var mwh = s * MWH_PER_SEC;
+                            var homes = Math.round(mwh * 0.85);
+                            var el1 = document.getElementById('live-kwh-counter');
+                            var el2 = document.getElementById('live-homes-counter');
+                            if(el1) el1.textContent = mwh.toFixed(1).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                            if(el2) el2.textContent = homes.toLocaleString();
+                            requestAnimationFrame(tick);
+                        }
+                        tick();
+                    })();
+                    </script>
+
+                    <!-- SOCIAL PROOF -->
+                    <div style="background:rgba(99,102,241,0.08); border:2px solid rgba(99,102,241,0.2); border-radius:10px; padding:14px 18px; margin-bottom:20px; display:flex; align-items:center; gap:14px;">
+                        <span style="font-size:2rem;">🤯</span>
+                        <div>
+                            <div style="font-size:1.05rem; font-weight:700;">91% of students your age have no idea AI uses water.</div>
+                            <div style="font-size:0.9rem; opacity:0.7;">By the end of this investigation, you'll know more about AI's real cost than most adults.</div>
+                        </div>
+                    </div>
+
+                    <!-- TWO SHOCK STATS — clarify text vs image costs differ -->
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:20px;">
+                        <div style="background:#fee2e2; padding:18px; border-radius:12px; border:2px solid #fca5a5; text-align:center;">
+                            <div style="font-size:2.4rem;">📱</div>
+                            <div style="font-size:1.5rem; font-weight:900; color:#ef4444; margin:6px 0 2px;">Half a phone charge</div>
+                            <div style="font-size:0.95rem;">The energy cost of generating <strong>one</strong> AI image.</div>
+                            <div style="font-size:0.78rem; color:#7f1d1d; margin-top:4px;">Luccioni et al., 2023</div>
+                        </div>
+                        <div style="background:#dbeafe; padding:18px; border-radius:12px; border:2px solid #93c5fd; text-align:center;">
+                            <div style="font-size:2.4rem;">💧</div>
+                            <div style="font-size:1.5rem; font-weight:900; color:#1e40af; margin:6px 0 2px;">One water bottle</div>
+                            <div style="font-size:0.95rem;"><strong>Evaporated forever</strong> for every 20–25 text prompts.</div>
+                            <div style="font-size:0.78rem; color:#1e3a8a; margin-top:4px;">Li et al., 2023 — UC Riverside</div>
+                        </div>
+                    </div>
+                    <div style="padding:8px 12px; background:rgba(250,204,21,0.1); border-radius:6px; font-size:0.82rem; margin-bottom:20px; text-align:center; opacity:0.8;">
+                        ⚠️ Note: Costs vary by task. An AI-generated image uses ~50× more energy than a text reply. We'll explore this in later steps.
+                    </div>
+
+                    <!-- THE MISSION -->
+                    <div style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:12px; padding:18px; margin-bottom:18px;">
+                        <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+                            <span style="font-size:2rem;">🔍</span>
                             <div>
-                                <div style="font-size:0.9rem; font-weight:800; color:var(--body-text-color-subdued); letter-spacing:1px;">YOUR TARGET</div>
-                                <div style="font-size:1.3rem; font-weight:700;">"Compas" AI Algorithm</div>
-                                <div style="font-size:1.0rem; margin-top:5px; opacity:0.8;">Used by judges to decide bail.</div>
+                                <div style="font-size:0.78rem; font-weight:800; color:var(--body-text-color-subdued); letter-spacing:1.5px;">YOUR ASSIGNMENT</div>
+                                <div style="font-size:1.25rem; font-weight:800; color:var(--color-accent);">Green AI Detective — 8-Step Investigation</div>
                             </div>
                         </div>
-                        <div style="background:rgba(239,68,68,0.1); padding:20px; border-radius:12px; border:2px solid #fca5a5; display:flex; flex-direction:column; justify-content:center;">
-                            <div style="font-size:0.9rem; font-weight:800; color:#ef4444; letter-spacing:1px;">🚨 THE THREAT</div>
-                            <div style="font-size:1.15rem; font-weight:600; line-height:1.4; color:var(--body-text-color);">
-                                The model is 92% accurate, but we suspect a <strong style="color:#ef4444;">hidden systematic bias</strong>.
-                                <br><br>
-                                Your goal: Expose flaws before this model is deployed nationwide.
+                        <p style="font-size:1rem; line-height:1.55; margin-bottom:12px;">
+                            Trace the invisible trail from your screen to the planet. In 8 steps you'll follow your prompt through networks, into GPUs, past cooling towers, across nations — and decide what's worth the cost.
+                        </p>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                            <div style="padding:10px; background:rgba(99,102,241,0.08); border-radius:8px; border-left:3px solid #6366f1;">
+                                <div style="font-weight:800; font-size:0.82rem; color:#6366f1;">PHASE 1: PERSONAL IMPACT</div>
+                                <div style="font-size:0.85rem;">Steps 1-5 — Your click → network → GPU → water → paradox</div>
+                            </div>
+                            <div style="padding:10px; background:rgba(239,68,68,0.08); border-radius:8px; border-left:3px solid #ef4444;">
+                                <div style="font-weight:800; font-size:0.82rem; color:#ef4444;">PHASE 2: GLOBAL SCALE</div>
+                                <div style="font-size:0.85rem;">Steps 6-7 — Global scale → your ethical audit</div>
                             </div>
                         </div>
                     </div>
 
-                    <hr style="opacity:0.2; margin:25px 0; border-color:var(--body-text-color);">
-
-                    <p style="text-align:center; font-weight:800; color:var(--body-text-color-subdued); margin-bottom:20px; font-size:1.0rem; letter-spacing:1px;">
-                        👇 CLICK CARDS TO UNLOCK INTEL
-                    </p>
-
-                    <div style="display:grid; gap:20px;">
-                        <details class="evidence-card" style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-left: 6px solid #ef4444; padding:0; border-radius:8px; overflow:hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                            <summary style="padding:20px; font-weight:800; font-size:1.2rem; color:var(--body-text-color); cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between; background:rgba(239,68,68,0.1);">
-                                <div style="display:flex; align-items:center; gap:15px;">
-                                    <span style="font-size:1.8rem;">⚠️</span>
-                                    <span>RISK: The "Ripple Effect"</span>
-                                </div>
-                                <span style="font-size:0.9rem; color:#ef4444; text-transform:uppercase;">Click to Simulate</span>
-                            </summary>
-                            <div style="padding:25px; border-top:1px solid var(--border-color-primary);">
-                                <div style="display:flex; gap:30px; align-items:center;">
-                                    <div style="font-size:3.5rem; line-height:1;">🌊</div>
-                                    <div>
-                                        <div style="font-weight:900; font-size:2.0rem; color:#ef4444; line-height:1;">15,000+</div>
-                                        <div style="font-weight:700; font-size:1.1rem; color:var(--body-text-color); margin-bottom:5px;">Cases Processed Per Year</div>
-                                        <div style="font-size:1.1rem; color:var(--body-text-color-subdued); line-height:1.5;">
-                                            A human makes a mistake once. This AI will repeat the same bias <strong style="color:var(--body-text-color);">15,000+ times a year</strong>.
-                                            <br>If we don't fix it, we automate unfairness at a massive scale.
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </details>
-
-                        <details class="evidence-card" style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-left: 6px solid #22c55e; padding:0; border-radius:8px; overflow:hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                            <summary style="padding:20px; font-weight:800; font-size:1.2rem; color:var(--body-text-color); cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between; background:rgba(34,197,94,0.1);">
-                                <div style="display:flex; align-items:center; gap:15px;">
-                                    <span style="font-size:1.8rem;">🧭</span>
-                                    <span>OBJECTIVE: How to Win</span>
-                                </div>
-                                <span style="font-size:0.9rem; color:#22c55e; text-transform:uppercase;">Click to Calculate</span>
-                            </summary>
-                            <div style="padding:25px; border-top:1px solid var(--border-color-primary);">
-                                <div style="text-align:center; margin-bottom:20px;">
-                                    <div style="font-size:1.4rem; font-weight:800; background:var(--background-fill-primary); border:1px solid var(--border-color-primary); padding:15px; border-radius:10px; display:inline-block; color:var(--body-text-color);">
-                                        <span style="color:#6366f1;">[ Accuracy ]</span>
-                                        <span style="color:var(--body-text-color-subdued); margin:0 10px;">×</span>
-                                        <span style="color:#22c55e;">[ Ethical Progress % ]</span>
-                                        <span style="color:var(--body-text-color-subdued); margin:0 10px;">=</span>
-                                        SCORE
-                                    </div>
-                                </div>
-                                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-                                    <div style="padding:15px; background:rgba(254,226,226,0.1); border:2px solid #fecaca; border-radius:10px; text-align:center;">
-                                        <div style="font-weight:700; color:#ef4444; margin-bottom:5px;">Scenario A: Ignored Ethics</div>
-                                        <div style="font-size:0.95rem; color:var(--body-text-color);">High Accuracy (92%)</div>
-                                        <div style="font-size:0.95rem; color:var(--body-text-color);">0% Ethics</div>
-                                        <div style="margin-top:10px; border-top:1px solid #fecaca; padding-top:5px;">
-                                            <div style="font-size:0.8rem; text-transform:uppercase; color:#ef4444;">Final Score</div>
-                                            <div style="font-size:2.5rem; font-weight:900; color:#ef4444;">0</div>
-                                        </div>
-                                    </div>
-                                    <div style="padding:15px; background:rgba(220,252,231,0.1); border:2px solid #bbf7d0; border-radius:10px; text-align:center;">
-                                        <div style="font-weight:700; color:#22c55e; margin-bottom:5px;">Scenario B: True Detective</div>
-                                        <div style="font-size:0.95rem; color:var(--body-text-color);">High Accuracy (92%)</div>
-                                        <div style="font-size:0.95rem; color:var(--body-text-color);">100% Ethics</div>
-                                        <div style="margin-top:10px; border-top:1px solid #bbf7d0; padding-top:5px;">
-                                            <div style="font-size:0.8rem; text-transform:uppercase; color:#15803d;">Final Score</div>
-                                            <div style="font-size:2.5rem; font-weight:900; color:#22c55e;">92</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </details>
+                    <!-- CTA -->
+                    <div style="text-align:center; padding:14px; background:linear-gradient(135deg, rgba(34,197,94,0.12), rgba(16,185,129,0.12)); border-radius:12px; border:2px solid #22c55e;">
+                        <p style="font-size:1.1rem; font-weight:800; color:var(--color-accent); margin-bottom:4px;">⬇️ Answer below to unlock your first Moral Compass Score</p>
+                        <p style="font-size:0.9rem; margin:0; opacity:0.7;">Every correct answer earns points and reveals the next step of the investigation.</p>
                     </div>
-
-                    <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
-                        <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 MISSION START
-                        </p>
-                        <p style="font-size:1.05rem; margin:0;">
-                            Answer the question below to receive your first <strong>Moral Compass Score boost</strong>.
-                            <br>Then click <strong>Next</strong> to start the investigation.
-                        </p>
-                    </div> 
                 </div>
             </div>
         """,
     },
 
-    # --- MODULE 1: THE MAP (Mission Roadmap) ---
+    # ─────────────────────────────────────────────
+    # MODULE 1 — STEP 1: THE DIGITAL GHOST (Your Click)
+    # ─────────────────────────────────────────────
     {
         "id": 1,
-        "title": "Mission Roadmap",
+        "title": "Step 1: The Digital Ghost",
         "html": """
             <div class="scenario-box">
-                <div class="slide-body">
-
-                    <h2 class="slide-title" style="text-align:center; margin-bottom:15px;">🗺️ MISSION ROADMAP</h2>
-
-                    <p style="font-size:1.1rem; max-width:800px; margin:0 auto 25px auto; text-align:center; color:var(--body-text-color);">
-                        <strong>Your mission is clear:</strong> Uncover the bias hiding inside the 
-                        AI system before it hurts real people. If we cannot find bias, we cannot fix it.
-                    </p>
-
-                    <div class="ai-risk-container" style="background:transparent; border:none; padding:0;">
-
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-
-                            <div style="border: 3px solid #3b82f6; background: rgba(59, 130, 246, 0.1); border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                                <div style="position:absolute; top:-15px; left:15px; background:#3b82f6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 1: RULES</div>
-                                <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">📜</div>
-                                <div style="font-weight:800; font-size:1.2rem; color:#3b82f6; margin-bottom:5px;">Establish the Rules</div>
-                                <div style="font-size:1.0rem; color:var(--body-text-color); font-weight:500; line-height:1.4;">
-                                    Define the ethical standard: <strong>Justice & Equity</strong>. What specifically counts as bias in this investigation?
-                                </div>
-                            </div>
-
-                            <div style="border: 3px solid #14b8a6; background: rgba(20, 184, 166, 0.1); border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                                <div style="position:absolute; top:-15px; left:15px; background:#14b8a6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 2: DATA EVIDENCE</div>
-                                <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">🔍</div>
-                                <div style="font-weight:800; font-size:1.2rem; color:#14b8a6; margin-bottom:5px;">Input Data Forensics</div>
-                                <div style="font-size:1.0rem; color:var(--body-text-color); font-weight:500; line-height:1.4;">
-                                    Scan the <strong>Input Data</strong> for historical injustice, representation gaps, and exclusion bias.
-                                </div>
-                            </div>
-
-                            <div style="border: 3px solid #8b5cf6; background: rgba(139, 92, 246, 0.1); border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                                <div style="position:absolute; top:-15px; left:15px; background:#8b5cf6; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 3: TEST ERROR</div>
-                                <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">🎯</div>
-                                <div style="font-weight:800; font-size:1.2rem; color:#8b5cf6; margin-bottom:5px;">Output Error Testing</div>
-                                <div style="font-size:1.0rem; color:var(--body-text-color); font-weight:500; line-height:1.4;">
-                                    Test the Model's predictions. Prove that mistakes (false alarms) are <strong>unequal</strong> across groups.
-                                </div>
-                            </div>
-
-                            <div style="border: 3px solid #f97316; background: rgba(249, 115, 22, 0.1); border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                                <div style="position:absolute; top:-15px; left:15px; background:#f97316; color:white; padding:4px 16px; border-radius:20px; font-weight:800; font-size:0.9rem; letter-spacing:1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">STEP 4: REPORT IMPACT</div>
-                                <div style="font-size:3rem; margin-top:10px; margin-bottom:5px;">⚖️</div>
-                                <div style="font-weight:800; font-size:1.2rem; color:#f97316; margin-bottom:5px;">The Final Report</div>
-                                <div style="font-size:1.0rem; color:var(--body-text-color); font-weight:500; line-height:1.4;">
-                                    Diagnose systematic harm and issue your final recommendation to the court: <strong>Deploy AI System or Pause to Repair.</strong>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-
-                    <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
-                        <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 CONTINUE MISSION
-                        </p>
-                        <p style="font-size:1.05rem; margin:0; color:var(--body-text-color);">
-                            Answer the question below to receive your next <strong>Moral Compass Score boost</strong>.
-                            <br>Then click <strong>Next</strong> to continue the investigation.
-                        </p>
-                    </div>
+                <div class="tracker-container">
+                    <div class="tracker-step active">1. YOUR CLICK</div>
+                    <div class="tracker-step">2. THE NETWORK</div>
+                    <div class="tracker-step">3. THE GPU</div>
+                    <div class="tracker-step">4. THE WATER</div>
+                    <div class="tracker-step">5. THE PARADOX</div>
                 </div>
-            </div>
+                <h2 class="slide-title" style="text-align:center;">👻 STEP 1: THE DIGITAL GHOST</h2>
+                <div class="slide-body">
+                    <div style="max-width:800px; margin:0 auto;">
+
+                        <p style="font-size:1.1rem; text-align:center; margin-bottom:20px;">
+                            When you hit "Send" on ChatGPT, ask Snapchat My AI a question, or let an AI rewrite your essay intro —<br>
+                            you think it vanishes into the cloud. <strong>It doesn't.</strong>
+                        </p>
+
+                        <!-- ANIMATED JOURNEY -->
+                        <div style="background:#1e293b; color:white; padding:20px; border-radius:12px; margin-bottom:20px; overflow:hidden; position:relative;">
+                            <div style="font-size:0.78rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:14px; text-align:center;">
+                                ⚡ WHAT HAPPENS WHEN YOU HIT "SEND"
+                            </div>
+                            <div class="ghost-journey" style="display:flex; justify-content:space-between; align-items:center; gap:0; position:relative; padding:0 8px;">
+                                <div class="ghost-step" style="text-align:center; flex:1; opacity:0; animation: ghostFadeIn 0.5s ease forwards 0.3s;">
+                                    <div style="font-size:1.8rem;">📱</div>
+                                    <div style="font-size:0.78rem; font-weight:700; margin-top:4px;">You type</div>
+                                    <div style="font-size:0.7rem; color:#94a3b8;">"Help me with this essay"</div>
+                                </div>
+                                <div style="color:#475569; opacity:0; animation: ghostFadeIn 0.3s ease forwards 0.8s;">→</div>
+                                <div class="ghost-step" style="text-align:center; flex:1; opacity:0; animation: ghostFadeIn 0.5s ease forwards 1.0s;">
+                                    <div style="font-size:1.8rem;">🔌</div>
+                                    <div style="font-size:0.78rem; font-weight:700; margin-top:4px;">WiFi + cables</div>
+                                    <div style="font-size:0.7rem; color:#94a3b8;">1,000s of miles</div>
+                                </div>
+                                <div style="color:#475569; opacity:0; animation: ghostFadeIn 0.3s ease forwards 1.5s;">→</div>
+                                <div class="ghost-step" style="text-align:center; flex:1; opacity:0; animation: ghostFadeIn 0.5s ease forwards 1.7s;">
+                                    <div style="font-size:1.8rem;">🏭</div>
+                                    <div style="font-size:0.78rem; font-weight:700; margin-top:4px;">Data center</div>
+                                    <div style="font-size:0.7rem; color:#94a3b8;">GPU draws power</div>
+                                </div>
+                                <div style="color:#475569; opacity:0; animation: ghostFadeIn 0.3s ease forwards 2.2s;">→</div>
+                                <div class="ghost-step" style="text-align:center; flex:1; opacity:0; animation: ghostFadeIn 0.5s ease forwards 2.4s;">
+                                    <div style="font-size:1.8rem;">🔥</div>
+                                    <div style="font-size:0.78rem; font-weight:700; margin-top:4px;">Heat generated</div>
+                                    <div style="font-size:0.7rem; color:#f87171;">Needs cooling</div>
+                                </div>
+                                <div style="color:#475569; opacity:0; animation: ghostFadeIn 0.3s ease forwards 2.9s;">→</div>
+                                <div class="ghost-step" style="text-align:center; flex:1; opacity:0; animation: ghostFadeIn 0.5s ease forwards 3.1s;">
+                                    <div style="font-size:1.8rem;">💧</div>
+                                    <div style="font-size:0.78rem; font-weight:700; margin-top:4px;">Water evaporates</div>
+                                    <div style="font-size:0.7rem; color:#60a5fa;">Gone from here</div>
+                                </div>
+                            </div>
+                            <div style="text-align:center; margin-top:14px; padding:8px; background:rgba(248,113,113,0.15); border-radius:6px; opacity:0; animation: ghostFadeIn 0.5s ease forwards 3.6s;">
+                                <span style="font-weight:800; color:#f87171;">Total time:</span>
+                                <span style="color:#e2e8f0;"> ~200 milliseconds. You never noticed. But the planet did.</span>
+                            </div>
+                        </div>
+
+                        <!-- GUESS FIRST -->
+                        <div id="guess-block" style="background:rgba(99,102,241,0.08); border:2px solid rgba(99,102,241,0.2); border-radius:12px; padding:18px; margin-bottom:20px;">
+                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); margin-bottom:6px;">🤔 Quick — before you see the answer:</div>
+                            <p style="font-size:0.95rem; margin-bottom:4px;">
+                                Surveys suggest the average teen interacts with AI about <strong>50 times a week</strong> — counting ChatGPT, image filters, Snapchat AI, voice assistants, and smart autocomplete.
+                            </p>
+                            <p style="font-size:0.82rem; opacity:0.6; margin-bottom:12px;">
+                                (Source: Reuters/Ipsos youth AI usage survey, 2024; Goldman Sachs AI adoption report)
+                            </p>
+                            <p style="font-size:0.95rem; margin-bottom:12px;">
+                                How many <strong>phone charges</strong> of energy do you think that equals per week?
+                            </p>
+                            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+                                <button onclick="document.getElementById('guess-reveal').style.display='block'; document.getElementById('guess-buttons').style.display='none'; document.getElementById('user-guess-1').textContent='You guessed: ~5 charges.';" class="guess-btn" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">~5 charges</button>
+                                <button onclick="document.getElementById('guess-reveal').style.display='block'; document.getElementById('guess-buttons').style.display='none'; document.getElementById('user-guess-1').textContent='You guessed: ~10 charges.';" class="guess-btn" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">~10 charges</button>
+                                <button onclick="document.getElementById('guess-reveal').style.display='block'; document.getElementById('guess-buttons').style.display='none'; document.getElementById('user-guess-1').textContent='You guessed: ~25 charges. Correct!';" class="guess-btn" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">~25 charges</button>
+                                <button onclick="document.getElementById('guess-reveal').style.display='block'; document.getElementById('guess-buttons').style.display='none'; document.getElementById('user-guess-1').textContent='You guessed: ~50 charges.';" class="guess-btn" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">~50 charges</button>
+                            </div>
+                            <div id="guess-buttons"></div>
+                            <div id="guess-reveal" style="display:none; padding:14px; background:#fee2e2; border-radius:8px; border:2px solid #ef4444;">
+                                <div id="user-guess-1" style="font-size:0.9rem; font-weight:600; color:#7f1d1d; margin-bottom:6px; padding:6px 10px; background:rgba(127,29,29,0.08); border-radius:6px;"></div>
+                                <div style="font-size:1.4rem; font-weight:900; color:#ef4444; margin-bottom:4px;">≈ 25 phone charges per week.</div>
+                                <div style="font-size:0.95rem;">That's <strong>~1,000 charges over a school year</strong> — from ONE student, without realizing it.</div>
+                                <div style="font-size:0.82rem; margin-top:4px; opacity:0.7;">Based on ~0.5 Wh avg/query across mixed AI use (Luccioni et al., 2023; IEA, 2024)</div>
+                            </div>
+                        </div>
+
+                        <!-- CLASS MULTIPLIER — show the math -->
+                        <div style="background:rgba(34,197,94,0.08); border:2px solid rgba(34,197,94,0.2); border-radius:12px; padding:16px; margin-bottom:18px;">
+                            <div style="font-weight:800; font-size:1.05rem; color:#16a34a; margin-bottom:8px;">👥 Now scale it to this room</div>
+                            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; text-align:center;">
+                                <div style="background:white; padding:12px; border-radius:8px;">
+                                    <div style="font-size:0.78rem; font-weight:600; opacity:0.6;">You alone</div>
+                                    <div style="font-size:1.3rem; font-weight:900; color:#ef4444;">25/week</div>
+                                </div>
+                                <div style="background:white; padding:12px; border-radius:8px;">
+                                    <div style="font-size:0.78rem; font-weight:600; opacity:0.6;">Your class (30 students)</div>
+                                    <div style="font-size:1.3rem; font-weight:900; color:#ef4444;">750/week</div>
+                                </div>
+                                <div style="background:white; padding:12px; border-radius:8px;">
+                                    <div style="font-size:0.78rem; font-weight:600; opacity:0.6;">Full school year (×40 weeks)</div>
+                                    <div style="font-size:1.3rem; font-weight:900; color:#ef4444;">30,000</div>
+                                    <div style="font-size:0.7rem; opacity:0.6;">phone charges</div>
+                                </div>
+                            </div>
+                            <div style="text-align:center; font-size:0.78rem; opacity:0.5; margin-top:6px;">
+                                Math: 25 charges × 30 students × 40 school weeks = 30,000
+                            </div>
+                        </div>
+
+                        <!-- PERSONAL USAGE CALCULATOR — integrated label -->
+                        <div style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:12px; padding:16px; margin-bottom:16px;">
+                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); margin-bottom:4px;">📊 YOUR Personal Footprint Calculator</div>
+                            <p style="font-size:0.9rem; margin-bottom:4px; opacity:0.8;">👇 Use the slider right below to enter YOUR weekly AI prompts and see your real impact.</p>
+                            <p style="font-size:0.78rem; margin-bottom:0; opacity:0.6;">
+                                (This slider calculates an average across text and image tasks. Heavy image generation would be higher; text-only would be lower.)
+                            </p>
+                        </div>
         """,
     },
 
-    # --- MODULE 2: RULES (Interactive) ---
+    # ─────────────────────────────────────────────
+    # MODULE 2 — STEP 2: THE PHYSICAL TRIP (Network)
+    # ─────────────────────────────────────────────
     {
         "id": 2,
-        "title": "Step 1: Learn the Rules",
+        "title": "Step 2: The Network",
         "html": """
             <div class="scenario-box">
                 <div class="tracker-container">
-                    <div class="tracker-step active">1. RULES</div>
-                    <div class="tracker-step">2. EVIDENCE</div>
-                    <div class="tracker-step">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICT</div>
+                    <div class="tracker-step completed">1. YOUR CLICK</div>
+                    <div class="tracker-step active">2. THE NETWORK</div>
+                    <div class="tracker-step">3. THE GPU</div>
+                    <div class="tracker-step">4. THE WATER</div>
+                    <div class="tracker-step">5. THE PARADOX</div>
                 </div>
-
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <h2 class="slide-title" style="margin:0;">STEP 1: LEARN THE RULES</h2>
-                    <div style="font-size:2rem;">⚖️</div>
-                </div>
-
+                <h2 class="slide-title" style="text-align:center;">🌐 STEP 2: THE PHYSICAL TRIP</h2>
                 <div class="slide-body">
+                    <div style="max-width:800px; margin:0 auto;">
 
-                    <div style="background:rgba(59, 130, 246, 0.1); border-left:4px solid #3b82f6; padding:15px; margin-bottom:20px; border-radius:4px; color: var(--body-text-color);">
-                        <p style="margin:0; font-size:1.05rem; line-height:1.5;">
-                            <strong style="color:var(--color-accent);">Justice & Equity: Your Primary Rule.</strong><br>
-                            Ethics guide our actions. We follow expert advice from the Catalan Observatory for Ethics in AI <strong>OEIAC (UdG)</strong> to ensure AI systems are fair.
-                            While they have defined 7 core principles of safe AI, our intel suggests this specific case involves a violation of <strong>Justice and Equity</strong>.
+                        <!-- GEOGRAPHY HOOK — specific, visceral -->
+                        <p style="font-size:1.15rem; text-align:center; margin-bottom:8px; font-weight:700;">
+                            Right now, your last AI prompt is probably in Northern Virginia — or Dublin, or Singapore.
                         </p>
-                    </div>
-
-                    <div style="text-align:center; margin-bottom:20px;">
-                        <p style="font-size:1rem; font-weight:700; color:var(--color-accent); background:rgba(59, 130, 246, 0.1); display:inline-block; padding:6px 16px; border-radius:20px; border:1px solid var(--border-color-primary);">
-                            👇 Click on each card below to reveal what counts as bias
+                        <p style="font-size:1rem; text-align:center; margin-bottom:20px; opacity:0.8;">
+                            Most major AI models run from a handful of mega-data-centers. If you're in Europe, your prompt likely crossed the Atlantic. In the US, it may have traveled to Virginia or Oregon. Either way: thousands of kilometers, powered every meter.
                         </p>
-                    </div>
 
-                    <p style="text-align:center; font-weight:700; color:var(--body-text-color-subdued); margin-bottom:10px; font-size:0.9rem; letter-spacing:1px;">
-                        🧩 JUSTICE & EQUITY: WHAT COUNTS AS BIAS?
-                    </p>
-
-                    <div class="ai-risk-container" style="background:transparent; border:none; padding:0;">
-                        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:15px;">
-
-                            <details style="cursor:pointer; background:var(--background-fill-secondary); padding:15px; border-radius:10px; border:1px solid #3b82f6; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
-                                <summary style="list-style:none; font-weight:800; color:#3b82f6; text-align:center; font-size:1.0rem;">
-                                    <div style="font-size:2rem; margin-bottom:5px;">📊</div>
-                                    Representation Bias
-                                </summary>
-                                <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); border-top:1px solid var(--border-color-primary); padding-top:10px; line-height:1.4;">
-                                    <strong>What it checks:</strong> Whether the dataset reflects the real population.
-                                    <br><br>
-                                    If one group appears far more or far less often (e.g., only 10% of cases are Group A, but they are 71% of the population), the AI likely learns biased patterns.
-                                </div>
-                            </details>
-
-                            <details style="cursor:pointer; background:var(--background-fill-secondary); padding:15px; border-radius:10px; border:1px solid #ef4444; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
-                                <summary style="list-style:none; font-weight:800; color:#ef4444; text-align:center; font-size:1.0rem;">
-                                    <div style="font-size:2rem; margin-bottom:5px;">🎯</div>
-                                    Error Gaps
-                                </summary>
-                                <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); border-top:1px solid var(--border-color-primary); padding-top:10px; line-height:1.4;">
-                                    <strong>What it checks:</strong> Whether the AI makes more mistakes for one group than another.
-                                    <br><br>
-                                    Higher error rates for a group (such as false positives) suggest the model is less fair or reliable for them.
-                                </div>
-                            </details>
-
-                            <details style="cursor:pointer; background:var(--background-fill-secondary); padding:15px; border-radius:10px; border:1px solid #22c55e; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
-                                <summary style="list-style:none; font-weight:800; color:#22c55e; text-align:center; font-size:1.0rem;">
-                                    <div style="font-size:2rem; margin-bottom:5px;">⛓️</div>
-                                    Outcome Disparities
-                                </summary>
-                                <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); border-top:1px solid var(--border-color-primary); padding-top:10px; line-height:1.4;">
-                                    <strong>What it checks:</strong> Whether AI decisions lead to worse real-world outcomes for certain groups (e.g., harsher sentencing).
-                                    <br><br>
-                                    Bias isn’t just about data—it affects people’s lives.
-                                </div>
-                            </details>
-                        </div>
-                    </div>
-
-                    <hr style="opacity:0.2; margin:25px 0; border-color:var(--body-text-color);">
-
-                    <details class="hint-box" style="margin-top:0; cursor:pointer;">
-                        <summary style="font-weight:700; color:var(--body-text-color-subdued);">🧭 Reference: Other AI Ethics Principles (OEIAC)</summary>
-                        <div style="margin-top:15px; font-size:0.9rem; display:grid; grid-template-columns: 1fr 1fr; gap:15px; color:var(--body-text-color);">
-                            <div>
-                                <strong>Transparency &amp; Explainability</strong><br>Ensure the AI's reasoning and final judgment are clear so decisions can be inspected and people can appeal.<br>
-                                <strong>Security &amp; Non-maleficence</strong><br>Minimize harmful mistakes and always have a solid plan for system failure.<br>
-                                <strong>Responsibility &amp; Accountability</strong><br>Assign clear owners for the AI and maintain a detailed record of decisions (audit trail).
+                        <!-- GUESS INTERACTION — distance -->
+                        <div style="background:rgba(99,102,241,0.08); border:2px solid rgba(99,102,241,0.2); border-radius:12px; padding:18px; margin-bottom:20px;">
+                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); margin-bottom:6px;">🤔 Before you see the route:</div>
+                            <p style="font-size:0.95rem; margin-bottom:12px;">
+                                How far do you think your prompt physically travels to reach an AI data center?
+                            </p>
+                            <div id="dist-guess-btns" style="display:flex; gap:8px; flex-wrap:wrap;">
+                                <button onclick="document.getElementById('dist-reveal').style.display='block'; document.getElementById('dist-guess-btns').style.display='none'; document.getElementById('user-guess-2').textContent='You guessed: ~100 km.';" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">~100 km</button>
+                                <button onclick="document.getElementById('dist-reveal').style.display='block'; document.getElementById('dist-guess-btns').style.display='none'; document.getElementById('user-guess-2').textContent='You guessed: ~1,000 km.';" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">~1,000 km</button>
+                                <button onclick="document.getElementById('dist-reveal').style.display='block'; document.getElementById('dist-guess-btns').style.display='none'; document.getElementById('user-guess-2').textContent='You guessed: ~5,000 km. Close!';" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">~5,000 km</button>
+                                <button onclick="document.getElementById('dist-reveal').style.display='block'; document.getElementById('dist-guess-btns').style.display='none'; document.getElementById('user-guess-2').textContent='You guessed: ~10,000+ km. Close!';" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">~10,000+ km</button>
                             </div>
-                            <div>
-                                <strong>Autonomy</strong><br>Provide individuals with clear appeals processes and alternatives to the AI's decision.<br>
-                                <strong>Privacy</strong><br>Use only necessary data and always justify any need to use sensitive attributes.<br>
-                                <strong>Sustainability</strong><br>Avoid long-term harm to society or the environment (e.g., massive energy use or market destabilization).
+                            <div id="dist-reveal" style="display:none; padding:14px; background:#fee2e2; border-radius:8px; border:2px solid #ef4444; margin-top:8px;">
+                                <div id="user-guess-2" style="font-size:0.9rem; font-weight:600; color:#7f1d1d; margin-bottom:6px; padding:6px 10px; background:rgba(127,29,29,0.08); border-radius:6px;"></div>
+                                <div style="font-size:1.3rem; font-weight:900; color:#ef4444;">~6,000 – 14,000 km round trip</div>
+                                <div style="font-size:0.9rem; margin-top:3px;">Depending on your location. From Europe that's across the Atlantic and back — powered every meter of the way.</div>
                             </div>
                         </div>
-                    </details>
 
-                    <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
-                        <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 RULES BRIEFING COMPLETE: CONTINUE MISSION
-                        </p>
-                        <p style="font-size:1.05rem; margin:0; color:var(--body-text-color);">
-                            Answer the question below to receive your next <strong>Moral Compass Score boost</strong>.
-                            <br>Then click <strong>Next</strong> to continue your mission.
-                        </p>
+                        <!-- PHONE BATTERY CALLBACK — bridge to their pocket -->
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+                            <div style="padding:14px; background:rgba(239,68,68,0.08); border-radius:8px; text-align:center; border:1px solid rgba(239,68,68,0.2);">
+                                <div style="font-size:1.8rem;">🔋</div>
+                                <div style="font-weight:700; font-size:0.95rem;">Your phone gets hot using AI apps?</div>
+                                <div style="font-size:0.85rem; opacity:0.7;">That's the same physics — electricity → heat. Your phone is a tiny data center in your hand.</div>
+                            </div>
+                            <div style="padding:14px; background:rgba(34,197,94,0.08); border-radius:8px; text-align:center; border:1px solid rgba(34,197,94,0.2);">
+                                <div style="font-size:1.8rem;">📍</div>
+                                <div style="font-weight:700; font-size:0.95rem;">70% of US internet traffic</div>
+                                <div style="font-size:0.85rem; opacity:0.7;">passes through one county in Virginia — Loudoun County, "Data Center Alley"</div>
+                            </div>
+                        </div>
+
+                        <div style="padding:12px; background:#fef3c7; border-left:3px solid #f59e0b; border-radius:6px; font-size:0.9rem;">
+                            <strong>🔑 Key Insight:</strong> The internet feels free and instant. But "instant" still means electricity burned across 7,000+ km of physical cable. <strong>Instant doesn't mean free.</strong>
+                        </div>
                     </div>
                 </div>
             </div>
-        """
+        """,
     },
 
+    # ─────────────────────────────────────────────
+    # MODULE 3 — STEP 3: THE BRAIN IN THE BASEMENT (GPU)
+    # ─────────────────────────────────────────────
     {
         "id": 3,
-        "title": "Step 2: Pattern Recognition",
+        "title": "Step 3: The GPU",
         "html": """
             <div class="scenario-box">
                 <div class="tracker-container">
-                    <div class="tracker-step completed">1. RULES</div>
-                    <div class="tracker-step active">2. EVIDENCE</div>
-                    <div class="tracker-step">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICT</div>
+                    <div class="tracker-step completed">1. YOUR CLICK</div>
+                    <div class="tracker-step completed">2. THE NETWORK</div>
+                    <div class="tracker-step active">3. THE GPU</div>
+                    <div class="tracker-step">4. THE WATER</div>
+                    <div class="tracker-step">5. THE PARADOX</div>
                 </div>
-
-        <div class="slide-body">
-            <h2 class="slide-title" style="margin:0;">STEP 2: SEARCH FOR THE EVIDENCE</h2>
-
-            <div style="text-align:center; margin-bottom:20px;">
-
-                <h2 class="slide-title header-accent" style="margin-top:10px;">The Hunt for Biased Demographic Patterns</h2>
-                <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                    AI systems learn from data. If the data is biased, the AI will be biased too.
-                    <br>Your first task is to look for <strong>Representation Bias,</strong> by checking which <strong>demographic</strong> groups appear more or less often in the data.
-                </p>
-            </div>
-
-            <div style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:16px; padding:25px; margin-bottom:20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-                
-                <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px; border-bottom:1px solid var(--border-color-primary); padding-bottom:10px;">
-                    <div style="font-size:1.5rem;">🚩</div>
-                    <div>
-                        <strong style="color:#0ea5e9; font-size:1.1rem; text-transform:uppercase; letter-spacing:1px;">PATTERN: "THE DISTORTED MIRROR"</strong>
-                        <div style="font-size:0.9rem; color:var(--body-text-color-subdued);">(Representation Bias in Protected Groups)</div>
-                    </div>
-                </div>
-
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:30px;">
-                    
-                    <div style="color: var(--body-text-color);">
-                        <p style="font-size:1rem; line-height:1.6;">
-                            <strong>The Mirror Concept:</strong> Ideally, a dataset should look like a "mirror" of the real population. 
-                            If a group makes up 50% of the population, it should appear at about the same level in the data.
-                        </p>
-                        <p style="font-size:1rem; line-height:1.6;">
-                            <strong>The Red Flag:</strong> Look for <strong>big imbalances</strong> in protected characteristics such as race, gender, or age.
-                        </p>
-                        <ul style="font-size:0.95rem; color:var(--body-text-color-subdued); margin-top:10px; padding-left:20px; line-height:1.5;">
-                            <li><strong>Over-Representation:</strong> One group dominates the data (for example, 80% of arrest records are men). The AI may learn to target this group.</li>
-                            <li><strong>Under-Representation:</strong> One group is missing or tiny. The AI cannot learn reliable patterns for them.</li>
-                        </ul>
-                    </div>
-
-                    <div style="background:var(--background-fill-primary); padding:20px; border-radius:12px; border:1px solid var(--border-color-primary); display:flex; flex-direction:column; justify-content:center;">
-                        
-                        <div style="margin-bottom:20px;">
-                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color-subdued); margin-bottom:5px;">REALITY (The Population)</div>
-                            <div style="display:flex; width:100%; height:24px; border-radius:4px; overflow:hidden;">
-                                <div style="width:33%; background:#94a3b8; display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem;">Group A</div>
-                                <div style="width:34%; background:#64748b; display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem;">Group B</div>
-                                <div style="width:33%; background:#475569; display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem;">Group C</div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <div style="font-size:0.85rem; font-weight:700; color:#0ea5e9; margin-bottom:5px;">THE TRAINING DATA (The Distorted Mirror)</div>
-                            <div style="display:flex; width:100%; height:24px; border-radius:4px; overflow:hidden;">
-                                <div style="width:80%; background:linear-gradient(90deg, #f43f5e, #be123c); display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem; font-weight:700;">GROUP A (80%)</div>
-                                <div style="width:10%; background:#cbd5e1;"></div>
-                                <div style="width:10%; background:#94a3b8;"></div>
-                            </div>
-                            <div style="font-size:0.8rem; color:#ef4444; margin-top:5px; font-weight:600;">
-                                ⚠️ Alert: Group A is massively over-represented.
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-
-            <div style="margin-bottom: 25px; padding: 0 10px;">
-                <p style="font-size:1.1rem; line-height:1.5; color:var(--body-text-color);">
-                    <strong>🕵️ Your Next Step:</strong> Check the demographic data in the Data Forensics Lab. If you see a distorted mirror, the data is likely biased.
-                </p>
-            </div>
-
-            <details style="margin-bottom:30px; cursor:pointer; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); border-radius:8px; padding:12px;">
-                <summary style="font-weight:700; color:var(--body-text-color-subdued); font-size:0.95rem;">🧭 Reference: How do AI datasets become biased?</summary>
-                <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color-subdued); line-height:1.5; padding:0 5px;">
-                    <p style="margin-bottom:10px;"><strong>Example:</strong> When a dataset is built from <strong>historical arrest records</strong>.</p>
-                    <p>Systemic over-policing in specific neighborhoods could distort the counts in the dataset for attributes like <strong>Race or Income</strong>.
-                     The AI then learns this distortion as "truth."</p>
-                </div>
-            </details>
-
-            <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
-                <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                    🚀 EVIDENCE PATTERNS ESTABLISHED: CONTINUE MISSION
-                </p>
-                <p style="font-size:1.05rem; margin:0; color:var(--body-text-color);">
-                    Answer the question below to receive your next <strong>Moral Compass Score boost</strong>.
-                    <br>Then click <strong>Next</strong> to begin <strong>analyzing evidence in the Data Forensics Lab.</strong>
-                </p>
-            </div>
-        </div>
-    </div>
-    """
-    },
-
-    # --- MODULE 4: DATA FORENSICS LAB (The Action) ---
-    {
-        "id": 4, 
-        "title": "Step 2: Data Forensics Lab",
-        "html": """
-            <div class="scenario-box">
-                <div class="tracker-container">
-                    <div class="tracker-step completed">1. RULES</div>
-                    <div class="tracker-step active">2. EVIDENCE</div>
-                    <div class="tracker-step">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICT</div>
-                </div>
-
-           <h2 class="slide-title" style="margin:0;">STEP 2: SEARCH FOR THE EVIDENCE</h2>
-
-            <div style="text-align:center; margin-bottom:20px;">
-
-                <h2 class="slide-title header-accent" style="margin-top:10px;">The Data Forensics Lab</h2>                
+                <h2 class="slide-title" style="text-align:center;">🧠 STEP 3: THE BRAIN IN THE BASEMENT</h2>
                 <div class="slide-body">
+                    <div style="max-width:800px; margin:0 auto;">
 
-                    <p style="text-align:center; max-width:700px; margin:0 auto 15px auto; font-size:1.1rem; color:var(--body-text-color);">
-                        Search for evidence of Representation Bias.
-                        Compare the <strong>real-world</strong> population with the AI system’s <strong>input</strong> data.
-                        <br>Does the AI system "see" the world as it really is, or do you notice signs of distorted representation?
-                    </p>
+                        <p style="font-size:1.1rem; text-align:center; margin-bottom:20px;">
+                            Your prompt arrived at a GPU — the processor that does the "thinking." You know the GPU in a PS5 that renders your games?
+                            <br><strong>Now imagine 10,000 of them, stacked in a warehouse, running 24/7 at max power.</strong>
+                        </p>
 
-                <div style="text-align:center; margin-bottom:20px;">
-                    <p style="font-size:1rem; font-weight:700; color:var(--color-accent); background:rgba(59, 130, 246, 0.1); display:inline-block; padding:6px 16px; border-radius:20px; border:1px solid var(--border-color-primary);">
-                        👇 Click to scan each demographic category to reveal the evidence
-                    </p>
-               </div>
-
-                    <div style="margin-top:20px;">
-                        <input type="radio" id="scan-race" name="scan-tabs" class="scan-radio" checked>
-                        <input type="radio" id="scan-gender" name="scan-tabs" class="scan-radio">
-                        <input type="radio" id="scan-age" name="scan-tabs" class="scan-radio">
-
-                        <div class="forensic-tabs" style="display:flex; justify-content:center; gap:10px; margin-bottom:0;">
-                            <label for="scan-race" class="tab-label-styled" style="flex:1; text-align:center;">SCAN: RACE</label>
-                            <label for="scan-gender" class="tab-label-styled" style="flex:1; text-align:center;">SCAN: GENDER</label>
-                            <label for="scan-age" class="tab-label-styled" style="flex:1; text-align:center;">SCAN: AGE</label>
+                        <!-- PS5 SCALING LADDER -->
+                        <div style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:12px; padding:18px; margin-bottom:20px;">
+                            <div style="font-weight:800; font-size:1rem; margin-bottom:12px; text-align:center;">🎮 FROM YOUR ROOM TO THE DATA CENTER</div>
+                            <div style="display:grid; grid-template-columns:1fr auto 1fr auto 1fr; gap:6px; align-items:center; text-align:center;">
+                                <div style="padding:12px; background:rgba(99,102,241,0.08); border-radius:8px;">
+                                    <div style="font-size:1.8rem;">🎮</div>
+                                    <div style="font-weight:800; font-size:0.85rem;">Your PS5</div>
+                                    <div style="font-size:0.78rem; opacity:0.6;">1 GPU</div>
+                                    <div style="font-size:0.78rem; opacity:0.6;">350W</div>
+                                    <div style="font-size:0.78rem; opacity:0.6;">A few hrs/day</div>
+                                </div>
+                                <div style="font-size:1.3rem; color:var(--body-text-color-subdued);">→</div>
+                                <div style="padding:12px; background:rgba(239,68,68,0.08); border-radius:8px;">
+                                    <div style="font-size:1.8rem;">🖥️</div>
+                                    <div style="font-weight:800; font-size:0.85rem;">1 AI Server Rack</div>
+                                    <div style="font-size:0.78rem; opacity:0.6;">8 GPUs</div>
+                                    <div style="font-size:0.78rem; color:#ef4444; font-weight:600;">10,000W</div>
+                                    <div style="font-size:0.78rem; opacity:0.6;">24/7/365</div>
+                                </div>
+                                <div style="font-size:1.3rem; color:var(--body-text-color-subdued);">→</div>
+                                <div style="padding:12px; background:rgba(239,68,68,0.15); border-radius:8px; border:2px solid #fca5a5;">
+                                    <div style="font-size:1.8rem;">🏭</div>
+                                    <div style="font-weight:800; font-size:0.85rem;">1 Data Center</div>
+                                    <div style="font-size:0.78rem; opacity:0.6;">100,000+ GPUs</div>
+                                    <div style="font-size:0.78rem; color:#ef4444; font-weight:700;">50-100 MW</div>
+                                    <div style="font-size:0.78rem; color:#ef4444; font-weight:600;">= a town of ~80,000</div>
+                                </div>
+                            </div>
+                            <div style="text-align:center; margin-top:10px; font-size:0.82rem; opacity:0.6;">
+                                The heat from one data center could warm an Olympic swimming pool in hours.
+                            </div>
                         </div>
 
-                        <div class="scan-content" style="border-top: 3px solid var(--color-accent);">
-
-                            <div class="scan-pane pane-race">
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; background:#1e293b; color:white; padding:10px 15px; border-radius:6px;">
-                                    <span style="font-family:monospace; letter-spacing:1px;">SCANNING: RACIAL DISTRIBUTION</span>
-                                    <span style="color:#ef4444; font-weight:bold; animation: blink 1.5s infinite;">⚠️ ANOMALY DETECTED</span>
-                                </div>
-
-                                <div style="display:grid; grid-template-columns: 1fr 0.2fr 1fr; align-items:center; gap:10px;">
-
-                                    <div style="text-align:center; background:var(--background-fill-secondary); padding:15px; border-radius:8px; border:1px solid var(--border-color-primary);">
-                                        <div style="font-size:0.9rem; font-weight:700; color:var(--body-text-color-subdued); letter-spacing:1px;">REAL WORLD</div>
-                                        <div style="font-size:2rem; font-weight:900; color:#3b82f6; margin:5px 0;">28%</div>
-                                        <div style="font-size:0.9rem; margin-bottom:10px; color: var(--body-text-color);">African-American Population</div>
-                                        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:4px; max-width:80px; margin:0 auto;">
-                                            <span style="color:#3b82f6;">●</span><span style="color:#3b82f6;">●</span><span style="color:#3b82f6;">●</span><span style="color:var(--border-color-primary);">●</span>
-                                            <span style="color:var(--border-color-primary);">●</span><span style="color:var(--border-color-primary);">●</span><span style="color:var(--border-color-primary);">●</span><span style="color:var(--border-color-primary);">●</span>
-                                            <span style="color:var(--border-color-primary);">●</span><span style="color:var(--border-color-primary);">●</span><span style="color:var(--border-color-primary);">●</span><span style="color:var(--border-color-primary);">●</span>
+                        <!-- GUESS FIRST — 10x comparison -->
+                        <div style="background:rgba(99,102,241,0.08); border:2px solid rgba(99,102,241,0.2); border-radius:12px; padding:18px; margin-bottom:20px;">
+                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); margin-bottom:6px;">🤔 Take a guess:</div>
+                            <p style="font-size:0.95rem; margin-bottom:12px;">
+                                How many times more energy does a single ChatGPT query use compared to a Google search?
+                            </p>
+                            <div id="gpu-guess-btns" style="display:flex; gap:8px; flex-wrap:wrap;">
+                                <button onclick="document.getElementById('gpu-reveal').style.display='block'; document.getElementById('gpu-guess-btns').style.display='none';" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">2× more</button>
+                                <button onclick="document.getElementById('gpu-reveal').style.display='block'; document.getElementById('gpu-guess-btns').style.display='none';" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">5× more</button>
+                                <button onclick="document.getElementById('gpu-reveal').style.display='block'; document.getElementById('gpu-guess-btns').style.display='none';" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">10× more</button>
+                                <button onclick="document.getElementById('gpu-reveal').style.display='block'; document.getElementById('gpu-guess-btns').style.display='none';" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">50× more</button>
+                            </div>
+                            <div id="gpu-reveal" style="display:none;">
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:12px;">
+                                    <div style="background:rgba(59,130,246,0.08); padding:16px; border-radius:12px; border:2px solid rgba(59,130,246,0.2); text-align:center;">
+                                        <div style="font-size:0.8rem; font-weight:700; color:#3b82f6; text-transform:uppercase; margin-bottom:6px;">Google Search</div>
+                                        <div style="font-size:2.5rem;">🔍</div>
+                                        <div style="margin-top:8px; height:12px; background:#e5e7eb; border-radius:6px; overflow:hidden;">
+                                            <div style="height:100%; width:10%; background:#3b82f6; border-radius:6px;"></div>
                                         </div>
+                                        <div style="font-size:0.9rem; margin-top:4px; font-weight:700;">0.3 Wh</div>
                                     </div>
-
-                                    <div style="text-align:center; font-size:1.5rem; color:var(--body-text-color-subdued);">👉</div>
-
-                                    <div style="text-align:center; background:rgba(239, 68, 68, 0.1); padding:15px; border-radius:8px; border:2px solid #ef4444;">
-                                        <div style="font-size:0.9rem; font-weight:700; color:#ef4444; letter-spacing:1px;">INPUT DATA</div>
-                                        <div style="font-size:2rem; font-weight:900; color:#ef4444; margin:5px 0;">51%</div>
-                                        <div style="font-size:0.9rem; margin-bottom:10px; color: var(--body-text-color);">African-American Records</div>
-                                        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:4px; max-width:80px; margin:0 auto;">
-                                            <span style="color:#ef4444;">●</span><span style="color:#ef4444;">●</span><span style="color:#ef4444;">●</span><span style="color:#ef4444;">●</span>
-                                            <span style="color:#ef4444;">●</span><span style="color:#ef4444;">●</span><span style="color:rgba(239, 68, 68, 0.3);">●</span><span style="color:rgba(239, 68, 68, 0.3);">●</span>
-                                            <span style="color:rgba(239, 68, 68, 0.3);">●</span><span style="color:rgba(239, 68, 68, 0.3);">●</span><span style="color:rgba(239, 68, 68, 0.3);">●</span><span style="color:rgba(239, 68, 68, 0.3);">●</span>
+                                    <div style="background:rgba(239,68,68,0.08); padding:16px; border-radius:12px; border:2px solid rgba(239,68,68,0.2); text-align:center;">
+                                        <div style="font-size:0.8rem; font-weight:700; color:#ef4444; text-transform:uppercase; margin-bottom:6px;">ChatGPT Query</div>
+                                        <div style="font-size:2.5rem;">🤖</div>
+                                        <div style="margin-top:8px; height:12px; background:#e5e7eb; border-radius:6px; overflow:hidden;">
+                                            <div style="height:100%; width:100%; background:#ef4444; border-radius:6px;"></div>
                                         </div>
-                                    </div>
-
-                                </div>
-
-                                <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
-                                    <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDENCE LOGGED: Race Representation Bias</div>
-                                    <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        The AI system sees this racial group too often (51% vs 28%). It might link “high risk” to people from this group just because they appear more in arrest records.
+                                        <div style="font-size:0.9rem; margin-top:4px; font-weight:700; color:#ef4444;">3.0 Wh — 10× more ⚠️</div>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="scan-pane pane-gender">
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; background:#1e293b; color:white; padding:10px 15px; border-radius:6px;">
-                                    <span style="font-family:monospace; letter-spacing:1px;">SCANNING: GENDER BALANCE</span>
-                                    <span style="color:#ef4444; font-weight:bold; animation: blink 1.5s infinite;">⚠️ DATA GAP FOUND</span>
+                        <!-- COOKBOOK ANALOGY — intuitive, not technical -->
+                        <div style="background:rgba(250,204,21,0.08); border:2px solid rgba(250,204,21,0.25); border-radius:12px; padding:16px; margin-bottom:18px;">
+                            <div style="font-weight:800; font-size:1rem; margin-bottom:8px;">📖 TRAINING vs. INFERENCE — The Cookbook Analogy</div>
+                            <p style="font-size:0.95rem; margin-bottom:0; line-height:1.6;">
+                                <strong>Training</strong> is like writing a cookbook. You do it once — it's months of hard work — but then it's done.
+                                <br><strong>Inference</strong> is like cooking every meal from that cookbook for <strong>200 million people, every single day, forever.</strong>
+                                <br>The cookbook took effort. But the <em>cooking</em> never stops.
+                            </p>
+                        </div>
+
+                        <!-- 11-DAY CLIMAX — with its own guess -->
+                        <div style="background:#1e293b; color:#e2e8f0; padding:20px; border-radius:12px; margin-bottom:18px;">
+                            <div style="color:#fbbf24; font-weight:800; margin-bottom:10px; text-align:center; font-size:1.05rem;">⚡ THE REAL ENERGY MONSTER</div>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+                                <div style="background:rgba(96,165,250,0.1); padding:12px; border-radius:8px;">
+                                    <div style="font-weight:700; color:#60a5fa;">📖 TRAINING (one-time)</div>
+                                    <div style="font-size:0.9rem; margin-top:4px;">GPT-3 training: <strong>1,287 MWh</strong></div>
+                                    <div style="font-size:0.82rem; opacity:0.7;">= 120 homes powered for a year</div>
                                 </div>
-                                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-                                    <div style="text-align:center; padding:20px; background:var(--background-fill-secondary); border-radius:8px; border:1px solid var(--border-color-primary);">
-                                        <div style="font-size:4rem; line-height:1;">♂️</div>
-                                        <div style="font-size:2.2rem; font-weight:900; color:#3b82f6;">81%</div>
-                                        <div style="font-weight:700; color:var(--body-text-color-subdued);">MALE</div>
-                                        <div style="font-size:0.85rem; color:#16a34a; font-weight:600; margin-top:5px;">✅ Well Represented</div>
-                                    </div>
-                                    <div style="text-align:center; padding:20px; background:rgba(225, 29, 72, 0.1); border-radius:8px; border:2px solid #fda4af;">
-                                        <div style="font-size:4rem; line-height:1; opacity:0.5;">♀️</div>
-                                        <div style="font-size:2.2rem; font-weight:900; color:#e11d48;">19%</div>
-                                        <div style="font-weight:700; color:#fb7185;">FEMALE</div>
-                                        <div style="font-size:0.85rem; color:#e11d48; font-weight:600; margin-top:5px;">⚠️ Insufficient Data</div>
-                                    </div>
-                                </div>
-                                <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
-                                    <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDENCE LOGGED: Gender Representation Bias</div>
-                                    <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        Women are a minority class in this dataset, even though they make up about 50% of the real population. The model will probably struggle to learn accurate patterns for them, leading to **higher error rates** for female defendants.
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="scan-pane pane-age">
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; background:#1e293b; color:white; padding:10px 15px; border-radius:6px;">
-                                    <span style="font-family:monospace; letter-spacing:1px;">SCANNING: AGE DISTRIBUTION</span>
-                                    <span style="color:#ef4444; font-weight:bold; animation: blink 1.5s infinite;">⚠️ DISTRIBUTION SPIKE</span>
-                                </div>
-
-                                <div style="padding:20px; background:var(--background-fill-secondary); border-radius:8px; border:1px solid var(--border-color-primary); height:200px; display:flex; align-items:flex-end; justify-content:space-around;">
-
-                                    <div style="width:20%; text-align:center; display:flex; flex-direction:column; justify-content:flex-end; height:100%;">
-                                        <div style="font-weight:700; color:var(--body-text-color-subdued); margin-bottom:5px;">Low</div>
-                                        <div style="height:60px; background:var(--border-color-primary); border-radius:4px 4px 0 0; width:100%;"></div>
-                                        <div style="margin-top:10px; font-size:0.85rem; font-weight:700; color: var(--body-text-color);">Younger (<25)</div>
-                                    </div>
-
-                                    <div style="width:35%; text-align:center; display:flex; flex-direction:column; justify-content:flex-end; height:100%;">
-                                        <div style="font-weight:700; color:#ef4444; margin-bottom:5px;">HIGH</div>
-                                        <div style="height:120px; background:#ef4444; border-radius:4px 4px 0 0; width:100%; box-shadow:0 4px 10px rgba(239,68,68,0.3);"></div>
-                                        <div style="margin-top:10px; font-size:0.9rem; font-weight:800; color:#ef4444;">25-45 (BUBBLE)</div>
-                                    </div>
-
-                                    <div style="width:20%; text-align:center; display:flex; flex-direction:column; justify-content:flex-end; height:100%;">
-                                        <div style="font-weight:700; color:var(--body-text-color-subdued); margin-bottom:5px;">Low</div>
-                                        <div style="height:50px; background:var(--border-color-primary); border-radius:4px 4px 0 0; width:100%;"></div>
-                                        <div style="margin-top:10px; font-size:0.85rem; font-weight:700; color: var(--body-text-color);">Older (>45)</div>
-                                    </div>
-
-                                </div>
-
-                                <div class="hint-box" style="margin-top:20px; border-left:4px solid #ef4444; background:var(--background-fill-secondary);">
-                                    <div style="font-weight:800; color:#ef4444; font-size:1.0rem;">❌ EVIDENCE LOGGED: Age Representation Bias</div>
-                                    <div style="font-size:0.95rem; margin-top:5px; color: var(--body-text-color);">
-                                        The data is mostly focused on people aged 25–45, the “age bubble.” The model has a blind spot for younger and older people, so its predictions for them are likely unreliable (Generalization Error).
-                                    </div>
+                                <div style="background:rgba(248,113,113,0.1); padding:12px; border-radius:8px;">
+                                    <div style="font-weight:700; color:#f87171;">🔥 INFERENCE (daily)</div>
+                                    <div style="font-size:0.9rem; margin-top:4px;">200M queries/day: <strong>~120 MWh/day</strong></div>
+                                    <div style="font-size:0.82rem; opacity:0.7;">and growing every month</div>
                                 </div>
                             </div>
+                            <div style="text-align:center; margin-bottom:8px; font-size:0.95rem;">
+                                Training consumed 1,287 MWh of energy over several months. At 120 MWh/day of inference, how many days until users have consumed that same <strong>amount of energy</strong>?
+                            </div>
+                            <div id="days-guess-btns" style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
+                                <button onclick="document.getElementById('days-reveal').style.display='block'; document.getElementById('days-guess-btns').style.display='none'; document.getElementById('user-guess-3').textContent='You guessed: ~1 year.';" style="padding:6px 16px; border-radius:8px; border:2px solid rgba(250,204,21,0.3); background:rgba(255,255,255,0.05); color:white; font-weight:700; font-size:0.9rem; cursor:pointer;">~1 year</button>
+                                <button onclick="document.getElementById('days-reveal').style.display='block'; document.getElementById('days-guess-btns').style.display='none'; document.getElementById('user-guess-3').textContent='You guessed: ~6 months.';" style="padding:6px 16px; border-radius:8px; border:2px solid rgba(250,204,21,0.3); background:rgba(255,255,255,0.05); color:white; font-weight:700; font-size:0.9rem; cursor:pointer;">~6 months</button>
+                                <button onclick="document.getElementById('days-reveal').style.display='block'; document.getElementById('days-guess-btns').style.display='none'; document.getElementById('user-guess-3').textContent='You guessed: ~1 month.';" style="padding:6px 16px; border-radius:8px; border:2px solid rgba(250,204,21,0.3); background:rgba(255,255,255,0.05); color:white; font-weight:700; font-size:0.9rem; cursor:pointer;">~1 month</button>
+                                <button onclick="document.getElementById('days-reveal').style.display='block'; document.getElementById('days-guess-btns').style.display='none'; document.getElementById('user-guess-3').textContent='You guessed: Less. Correct!';" style="padding:6px 16px; border-radius:8px; border:2px solid rgba(250,204,21,0.3); background:rgba(255,255,255,0.05); color:white; font-weight:700; font-size:0.9rem; cursor:pointer;">Less</button>
+                            </div>
+                            <div id="days-reveal" style="display:none; margin-top:12px; text-align:center; padding:16px; background:rgba(248,113,113,0.15); border-radius:10px; border:2px solid #f87171;">
+                                <div id="user-guess-3" style="font-size:0.9rem; font-weight:600; color:#fca5a5; margin-bottom:6px; padding:6px 10px; background:rgba(248,113,113,0.1); border-radius:6px;"></div>
+                                <div style="font-size:2.4rem; font-weight:900; color:#f87171;">~11 days.</div>
+                                <div style="font-size:1rem; margin-top:4px; color:#fca5a5;">All those months of training? Users burned through the same energy in less than two weeks.</div>
+                                <div style="font-size:0.82rem; margin-top:6px; opacity:0.6;">That was 2023. Usage has doubled since then.</div>
+                            </div>
+                        </div>
+
+                        <!-- OPPORTUNITY COST — what ELSE could this power? -->
+                        <div style="background:rgba(34,197,94,0.08); border:2px solid rgba(34,197,94,0.2); border-radius:12px; padding:16px; margin-bottom:16px;">
+                            <div style="font-weight:800; font-size:1rem; color:#16a34a; margin-bottom:8px;">🔄 WHAT ELSE COULD THAT ENERGY DO?</div>
+                            <p style="font-size:0.9rem; margin-bottom:10px;">ChatGPT's daily inference energy (~120 MWh/day) could instead:</p>
+                            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; text-align:center;">
+                                <div style="background:white; padding:10px; border-radius:8px;">
+                                    <div style="font-size:1.4rem;">🏫</div>
+                                    <div style="font-weight:700; font-size:0.85rem;">Power ~300 schools</div>
+                                    <div style="font-size:0.75rem; opacity:0.6;">for a full day</div>
+                                </div>
+                                <div style="background:white; padding:10px; border-radius:8px;">
+                                    <div style="font-size:1.4rem;">📱</div>
+                                    <div style="font-weight:700; font-size:0.85rem;">Charge 10 million phones</div>
+                                    <div style="font-size:0.75rem; opacity:0.6;">to 100%</div>
+                                </div>
+                                <div style="background:white; padding:10px; border-radius:8px;">
+                                    <div style="font-size:1.4rem;">🚇</div>
+                                    <div style="font-weight:700; font-size:0.85rem;">Run the London Tube</div>
+                                    <div style="font-size:0.75rem; opacity:0.6;">for 8 hours</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="padding:12px; background:#fef3c7; border-left:3px solid #f59e0b; border-radius:6px; font-size:0.9rem;">
+                            <strong>🔑 Key Insight:</strong> Everyone talks about the cost of <em>training</em> AI. But <strong>inference — the daily use — overtakes training in just 11 days.</strong> The cooking costs more than the cookbook, and the restaurant never closes.
                         </div>
                     </div>
-
-            <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
-                <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                    🚀 REPRESENTATION BIAS EVIDENCE ESTABLISHED: CONTINUE MISSION
-                </p>
-                <p style="font-size:1.05rem; margin:0; color:var(--body-text-color);">
-                    Answer the question below to receive your next <strong>Moral Compass Score boost</strong>.
-                    <br>Then click <strong>Next</strong> to <strong>summarize your data forensic lab findings.</strong>
-                </p>
-            </div>
-
                 </div>
             </div>
         """,
     },
 
-    # --- MODULE 4: EVIDENCE REPORT (Input Flaws) ---
+    # ─────────────────────────────────────────────
+    # MODULE 4 — STEP 4: THE THIRST FOR COOLING (Water)
+    # ─────────────────────────────────────────────
     {
-        "id":5,
-        "title": "Evidence Report: Input Flaws",
+        "id": 4,
+        "title": "Step 4: The Water",
         "html": """
             <div class="scenario-box">
                 <div class="tracker-container">
-                    <div class="tracker-step completed">✓ RULES</div>
-                    <div class="tracker-step completed">✓ EVIDENCE</div>
-                    <div class="tracker-step active">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICT</div>
+                    <div class="tracker-step completed">1. YOUR CLICK</div>
+                    <div class="tracker-step completed">2. THE NETWORK</div>
+                    <div class="tracker-step completed">3. THE GPU</div>
+                    <div class="tracker-step active">4. THE WATER</div>
+                    <div class="tracker-step">5. THE PARADOX</div>
                 </div>
-                <h2 class="slide-title" style="font-size:1.6rem; text-align:center; margin-bottom:15px;">Data Forensics Report: Input Flaws</h2>
-                <div class="ai-risk-container" style="border: 2px solid #ef4444; background: rgba(239,68,68,0.05); padding: 20px;">
-                    <h4 style="margin-top:0; font-size:1.2rem; color:#b91c1c; text-align:center;">📋 EVIDENCE SUMMARY</h4>
-                    <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
-                        <thead>
-                            <tr style="background: rgba(239,68,68,0.1); border-bottom: 2px solid #ef4444;">
-                                <th style="padding: 8px; text-align: left;">SECTOR</th>
-                                <th style="padding: 8px; text-align: left;">FINDING</th>
-                                <th style="padding: 8px; text-align: left;">IMPACT</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr style="border-bottom: 1px solid var(--border-color-primary);">
-                                <td style="padding: 8px; font-weight:700;">Race</td>
-                                <td style="padding: 8px;">Over-represented (51%)</td>
-                                <td style="padding: 8px; color:#b91c1c;">Risk of Increased Prediction Error</td>
-                            </tr>
-                            <tr style="border-bottom: 1px solid var(--border-color-primary);">
-                                <td style="padding: 8px; font-weight:700;">Gender</td>
-                                <td style="padding: 8px;">Under-represented (19%)</td>
-                                <td style="padding: 8px; color:#b91c1c;">Risk of Increased Prediction Error</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; font-weight:700;">Age</td>
-                                <td style="padding: 8px;">Excluded Groups (Under 25/Over 45)</td>
-                                <td style="padding: 8px; color:#b91c1c;">Risk of Increased Prediction Error</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <h2 class="slide-title" style="text-align:center;">💧 STEP 4: THE THIRST FOR COOLING</h2>
+                <div class="slide-body">
+                    <div style="max-width:800px; margin:0 auto;">
 
+                        <!-- VISCERAL OPENER — WHY water specifically -->
+                        <p style="font-size:1.1rem; text-align:center; margin-bottom:8px;">
+                            Those 100,000 GPUs from Step 3? At full power, they produce so much heat they would <strong style="color:#ef4444;">physically melt their own circuits</strong> within minutes.
+                        </p>
+                        <p style="font-size:1.05rem; text-align:center; margin-bottom:20px; opacity:0.85;">
+                            The solution? Evaporate massive amounts of water. It enters the atmosphere and falls as rain — but somewhere else entirely. For the local community, that water is <strong>gone for good.</strong>
+                        </p>
 
-                <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
-                <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                    🚀 NEXT: INVESTIGATE ERRORS IN OUTPUTS - CONTINUE MISSION
-                </p>
-                <p style="font-size:1.05rem; margin:0;">
-                    Answer the question below to receive your next <strong>Moral Compass Score boost</strong>.
-                    <br>Click  <strong>Next</strong> to proceed to **Step 3** to find proof of actual harm: **The Error Gaps**.
-                </p>
-            </div>
+                        <!-- GUESS FIRST — how much water per day? -->
+                        <div style="background:rgba(99,102,241,0.08); border:2px solid rgba(99,102,241,0.2); border-radius:12px; padding:18px; margin-bottom:20px;">
+                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); margin-bottom:6px;">🤔 Guess first:</div>
+                            <p style="font-size:0.95rem; margin-bottom:12px;">
+                                A single large AI data center uses how much water <strong>per day</strong>?
+                            </p>
+                            <div id="water-guess-btns" style="display:flex; gap:8px; flex-wrap:wrap;">
+                                <button onclick="document.getElementById('water-reveal').style.display='block'; document.getElementById('water-guess-btns').style.display='none';" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">~1,000 liters</button>
+                                <button onclick="document.getElementById('water-reveal').style.display='block'; document.getElementById('water-guess-btns').style.display='none';" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">~100,000 liters</button>
+                                <button onclick="document.getElementById('water-reveal').style.display='block'; document.getElementById('water-guess-btns').style.display='none';" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">~1 million liters</button>
+                                <button onclick="document.getElementById('water-reveal').style.display='block'; document.getElementById('water-guess-btns').style.display='none';" style="padding:8px 18px; border-radius:8px; border:2px solid rgba(99,102,241,0.3); background:white; font-weight:700; font-size:0.95rem; cursor:pointer;">~20 million liters</button>
+                            </div>
+                            <div id="water-reveal" style="display:none; padding:14px; background:#dbeafe; border-radius:8px; border:2px solid #3b82f6; margin-top:8px;">
+                                <div style="font-size:1.4rem; font-weight:900; color:#1e40af;">~19 million liters / day</div>
+                                <div style="font-size:0.95rem; margin-top:3px;">That's 5 million gallons — enough to supply <strong>50,000 people</strong> with their daily drinking water.</div>
+                                <div style="font-size:0.82rem; margin-top:6px; opacity:0.7;">And that's just ONE data center. Google, Microsoft, and Meta each operate dozens.</div>
+                            </div>
+                        </div>
+
+                        <!-- BATHTUB ANALOGY — make the scale intuitive -->
+                        <div style="background:#1e293b; color:white; padding:18px; border-radius:12px; margin-bottom:20px;">
+                            <div style="color:#60a5fa; font-weight:800; margin-bottom:12px; text-align:center;">🛁 THE BATHTUB TEST</div>
+                            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; text-align:center;">
+                                <div style="padding:12px; background:rgba(96,165,250,0.1); border-radius:8px;">
+                                    <div style="font-size:2rem;">💬</div>
+                                    <div style="font-size:0.78rem; color:#94a3b8;">20-25 AI prompts</div>
+                                    <div style="font-size:1.1rem; font-weight:900; color:#60a5fa;">1 bottle</div>
+                                    <div style="font-size:0.72rem; color:#94a3b8;">500ml</div>
+                                </div>
+                                <div style="padding:12px; background:rgba(96,165,250,0.15); border-radius:8px;">
+                                    <div style="font-size:2rem;">📱</div>
+                                    <div style="font-size:0.78rem; color:#94a3b8;">Your weekly AI use (50/wk)</div>
+                                    <div style="font-size:1.1rem; font-weight:900; color:#60a5fa;">~1 liter</div>
+                                    <div style="font-size:0.72rem; color:#94a3b8;">evaporated/week</div>
+                                </div>
+                                <div style="padding:12px; background:rgba(248,113,113,0.15); border-radius:8px;">
+                                    <div style="font-size:2rem;">🏫</div>
+                                    <div style="font-size:0.78rem; color:#94a3b8;">Your class (30 students/yr)</div>
+                                    <div style="font-size:1.1rem; font-weight:900; color:#f87171;">~1,200 liters</div>
+                                    <div style="font-size:0.72rem; color:#94a3b8;">= 7 full bathtubs</div>
+                                </div>
+                            </div>
+                            <div style="text-align:center; margin-top:10px; padding:8px; background:rgba(248,113,113,0.1); border-radius:6px; font-size:0.85rem;">
+                                7 bathtubs from one class sounds small next to a data center's 19 million liters/day. But that's the point: <strong style="color:#f87171;">the data center exists because millions of classes are all sending prompts at once.</strong> Your 7 bathtubs × every class in the world = the data center.
+                            </div>
+                            <div style="text-align:center; font-size:0.72rem; color:#64748b; margin-top:6px;">Source: Li et al., 2023, UC Riverside</div>
+                        </div>
+
+                        <!-- REAL PEOPLE — not just stats, human stories -->
+                        <div style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:12px; padding:18px; margin-bottom:18px;">
+                            <div style="font-weight:800; font-size:1.05rem; margin-bottom:12px;">🗣️ REAL PEOPLE, REAL CONFLICT</div>
+                            <div style="display:grid; gap:10px;">
+                                <div style="padding:12px; background:rgba(239,68,68,0.06); border-radius:8px; border-left:4px solid #ef4444;">
+                                    <div style="font-weight:700; font-size:0.95rem;">🇺🇸 Mesa, Arizona (2023)</div>
+                                    <div style="font-size:0.88rem; line-height:1.5; margin-top:4px;">
+                                        During the worst drought in 1,200 years, residents discovered Microsoft's data center was using <strong>56 million gallons/year</strong> of their water. Families were told to shorten showers while a server farm evaporated enough water to supply 670 homes.
+                                    </div>
+                                </div>
+                                <div style="padding:12px; background:rgba(59,130,246,0.06); border-radius:8px; border-left:4px solid #3b82f6;">
+                                    <div style="font-weight:700; font-size:0.95rem;">📊 Google Global (2023)</div>
+                                    <div style="font-size:0.88rem; line-height:1.5; margin-top:4px;">
+                                        Total water use: <strong>5.6 billion gallons</strong> — up 17% from the previous year. That's enough to fill 8,500 Olympic swimming pools, evaporated in a single year.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- THE INVISIBLE PIPELINE -->
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+                            <div style="padding:14px; background:rgba(239,68,68,0.08); border-radius:8px; text-align:center; border:1px solid rgba(239,68,68,0.2);">
+                                <div style="font-size:1.8rem;">🏜️</div>
+                                <div style="font-weight:700; font-size:0.95rem;">Why drought zones?</div>
+                                <div style="font-size:0.85rem; opacity:0.7;">Land is cheap in dry areas. Tech companies save billions — and local communities pay with their water.</div>
+                            </div>
+                            <div style="padding:14px; background:rgba(34,197,94,0.08); border-radius:8px; text-align:center; border:1px solid rgba(34,197,94,0.2);">
+                                <div style="font-size:1.8rem;">♻️</div>
+                                <div style="font-weight:700; font-size:0.95rem;">Can't we just recycle it?</div>
+                                <div style="font-size:0.85rem; opacity:0.7;">Evaporative cooling turns water into vapor. It re-enters the water cycle — but as rain in a different watershed. The local community doesn't get it back.</div>
+                            </div>
+                        </div>
+
+                        <div style="padding:12px; background:#fef3c7; border-left:3px solid #f59e0b; border-radius:6px; font-size:0.9rem;">
+                            <strong>🔑 Key Insight:</strong> This isn't just environmental — it's a <strong>justice</strong> problem. The heaviest AI users (wealthy nations) aren't the ones losing water. Data centers go where land and water are cheap — and local communities bear the cost of someone else's convenience.
+                        </div>
+                    </div>
                 </div>
             </div>
-        """
+        """,
     },
 
-# --- MODULE 5: INTRO TO PREDICTION ERROR ---
+    # ─────────────────────────────────────────────
+    # MODULE 5 — STEP 5: THE SUSTAINABILITY PARADOX
+    # ─────────────────────────────────────────────
+    {
+        "id": 5,
+        "title": "Step 5: The Paradox",
+        "html": """
+            <div class="scenario-box">
+                <div class="tracker-container">
+                    <div class="tracker-step completed">1. YOUR CLICK</div>
+                    <div class="tracker-step completed">2. THE NETWORK</div>
+                    <div class="tracker-step completed">3. THE GPU</div>
+                    <div class="tracker-step completed">4. THE WATER</div>
+                    <div class="tracker-step active">5. THE PARADOX</div>
+                </div>
+                <h2 class="slide-title" style="text-align:center;">⚖️ STEP 5: THE SUSTAINABILITY PARADOX</h2>
+                <div class="slide-body">
+                    <div style="max-width:800px; margin:0 auto;">
+
+                        <!-- OPEN WITH THE CONTRADICTION — not a summary, a genuine puzzle -->
+                        <p style="font-size:1.1rem; text-align:center; margin-bottom:6px;">
+                            Here's the twist that makes this whole investigation complicated:
+                        </p>
+                        <div style="text-align:center; margin-bottom:20px;">
+                            <span style="font-size:1.2rem; font-weight:800; color:#ef4444;">AI is destroying the environment</span>
+                            <span style="font-size:1.2rem; font-weight:800; opacity:0.4; margin:0 10px;">&</span>
+                            <span style="font-size:1.2rem; font-weight:800; color:#22c55e;">AI is saving the environment.</span>
+                            <br><span style="font-size:1rem; opacity:0.7; font-weight:600;">Both are true. At the same time.</span>
+                        </div>
+
+                        <!-- INTERACTIVE SORT — classify real AI uses -->
+                        <div style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:12px; padding:18px; margin-bottom:20px;">
+                            <div style="font-weight:800; font-size:1.05rem; margin-bottom:6px;">🧪 CONTEXT FOR YOUR DECISION</div>
+                            <p style="font-size:0.88rem; margin-bottom:12px; opacity:0.7;">Tap each use case to see its environmental cost and benefit. Then form your own opinion: <em>"Does the benefit justify the electricity and water?"</em></p>
+
+                            <div style="display:grid; gap:8px;" id="sort-cases">
+                                <details style="border-radius:8px; overflow:hidden; border:2px solid rgba(148,163,184,0.3);">
+                                    <summary style="padding:12px; font-weight:700; cursor:pointer; display:flex; justify-content:space-between; align-items:center; background:rgba(148,163,184,0.05);">
+                                        <span>🎨 Generating 50 AI memes for a group chat</span>
+                                        <span style="font-size:0.75rem; color:#94a3b8;">TAP</span>
+                                    </summary>
+                                    <div style="padding:12px; border-top:1px solid rgba(148,163,184,0.15); font-size:0.9rem;">
+                                        <div style="font-weight:700; color:#ef4444; margin-bottom:4px;">⚖️ COST: ~25 phone charges of energy. Half a liter of water evaporated.</div>
+                                        <div>BENEFIT: Entertainment for ~10 minutes. Could you have found a similar meme with a Google Image search at 1/10th the energy? Probably.</div>
+                                    </div>
+                                </details>
+
+                                <details style="border-radius:8px; overflow:hidden; border:2px solid rgba(148,163,184,0.3);">
+                                    <summary style="padding:12px; font-weight:700; cursor:pointer; display:flex; justify-content:space-between; align-items:center; background:rgba(148,163,184,0.05);">
+                                        <span>🌾 AI predicting crop disease to save 30% of a harvest</span>
+                                        <span style="font-size:0.75rem; color:#94a3b8;">TAP</span>
+                                    </summary>
+                                    <div style="padding:12px; border-top:1px solid rgba(148,163,184,0.15); font-size:0.9rem;">
+                                        <div style="font-weight:700; color:#22c55e; margin-bottom:4px;">⚖️ COST: Significant computation. BENEFIT: Feeding thousands of families.</div>
+                                        <div>This one AI system might save more water (through reduced irrigation waste) than it consumes for cooling. <strong>Net positive.</strong></div>
+                                    </div>
+                                </details>
+
+                                <details style="border-radius:8px; overflow:hidden; border:2px solid rgba(148,163,184,0.3);">
+                                    <summary style="padding:12px; font-weight:700; cursor:pointer; display:flex; justify-content:space-between; align-items:center; background:rgba(148,163,184,0.05);">
+                                        <span>📚 Student using AI to understand a difficult concept they're stuck on</span>
+                                        <span style="font-size:0.75rem; color:#94a3b8;">TAP</span>
+                                    </summary>
+                                    <div style="padding:12px; border-top:1px solid rgba(148,163,184,0.15); font-size:0.9rem;">
+                                        <div style="font-weight:700; color:#f59e0b; margin-bottom:4px;">⚖️ COST: A few prompts. BENEFIT: Genuine learning that couldn't happen otherwise.</div>
+                                        <div>This one's genuinely debatable. If the textbook or a tutor could have helped, it's less justified. If AI is the only resource available? <strong>Probably worth it.</strong> Context matters.</div>
+                                    </div>
+                                </details>
+                            </div>
+                        </div>
+
+                        <!-- THE FRAMEWORK — the tool they take away -->
+                        <div style="background:#1e293b; color:white; padding:20px; border-radius:12px; margin-bottom:18px;">
+                            <div style="text-align:center; margin-bottom:14px;">
+                                <div style="font-size:0.78rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:1.5px;">THE GREEN AI DETECTIVE'S FRAMEWORK</div>
+                                <div style="font-size:1.3rem; font-weight:900; color:#fbbf24; margin-top:6px;">Before you send any prompt, ask:</div>
+                            </div>
+                            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; text-align:center;">
+                                <div style="padding:14px; background:rgba(250,204,21,0.1); border-radius:8px;">
+                                    <div style="font-size:1.6rem;">1️⃣</div>
+                                    <div style="font-weight:700; font-size:0.9rem; margin-top:4px;">Do I need AI for this?</div>
+                                    <div style="font-size:0.78rem; color:#94a3b8; margin-top:4px;">Could a search engine, textbook, or my own thinking handle it?</div>
+                                </div>
+                                <div style="padding:14px; background:rgba(250,204,21,0.1); border-radius:8px;">
+                                    <div style="font-size:1.6rem;">2️⃣</div>
+                                    <div style="font-weight:700; font-size:0.9rem; margin-top:4px;">Is the benefit real?</div>
+                                    <div style="font-size:0.78rem; color:#94a3b8; margin-top:4px;">Learning, safety, health — or just convenience I could skip?</div>
+                                </div>
+                                <div style="padding:14px; background:rgba(250,204,21,0.1); border-radius:8px;">
+                                    <div style="font-size:1.6rem;">3️⃣</div>
+                                    <div style="font-weight:700; font-size:0.9rem; margin-top:4px;">Am I being efficient?</div>
+                                    <div style="font-size:0.78rem; color:#94a3b8; margin-top:4px;">One clear, detailed prompt beats 12 vague attempts. Follow-ups are fine — mindless repetition isn't.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PHASE 1 CAPSTONE — the real question -->
+                        <div style="text-align:center; padding:16px; background:linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.08)); border:2px solid rgba(99,102,241,0.2); border-radius:12px; margin-bottom:16px;">
+                            <div style="font-size:0.78rem; font-weight:700; color:#6366f1; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6px;">🏁 PHASE 1 COMPLETE</div>
+                            <div style="font-size:1.15rem; font-weight:800; margin-bottom:6px;">You've traced the full journey: Click → Network → GPU → Water → Paradox</div>
+                            <div style="font-size:0.95rem; opacity:0.7;">Phase 2 scales this from your screen to the entire planet.</div>
+                        </div>
+
+                        <div style="padding:12px; background:#fef3c7; border-left:3px solid #f59e0b; border-radius:6px; font-size:0.9rem;">
+                            <strong>🔑 Key Insight:</strong> The answer is never "all AI is bad" or "all AI is good." It's: <strong>"Is THIS specific use worth its environmental cost?"</strong> That one question, applied every time, is more powerful than any ban.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        """,
+    },
+
+    # ─────────────────────────────────────────────
+    # MODULE 6 — STEP 6: GLOBAL SCALE (Merged: City + Ranking + E-Waste bonus)
+    # ─────────────────────────────────────────────
     {
         "id": 6,
-        "title": "Part II: Step 3 — Proving the Prediction Error",
+        "title": "Step 6: Global Scale",
         "html": """
             <div class="scenario-box">
-                <div class="tracker-container">
-                    <div class="tracker-step completed">1. RULES</div>
-                    <div class="tracker-step completed">2. EVIDENCE</div>
-                    <div class="tracker-step active">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICT</div>
+                <div class="phase-banner" style="background:linear-gradient(135deg, #ef4444, #dc2626); color:white; padding:12px; border-radius:8px; text-align:center; margin-bottom:16px; font-weight:800; font-size:1.05rem;">
+                    🔴 PHASE 2: SCALING THE IMPACT — FROM YOUR SCREEN TO THE PLANET
                 </div>
-
+                <div class="tracker-container">
+                    <div class="tracker-step active">6. GLOBAL SCALE</div>
+                    <div class="tracker-step">7. YOUR AUDIT</div>
+                </div>
+                <h2 class="slide-title" style="text-align:center;">🌍 STEP 6: GLOBAL SCALE</h2>
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">STEP 3: EVALUATE ERRORS</h2>
+                    <div style="max-width:800px; margin:0 auto;">
 
-                    <div style="text-align:center; margin-bottom:20px;">
-                        <h2 class="slide-title header-accent" style="margin-top:10px;">The Hunt For Prediction Errors</h2>
-                        <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                            We found evidence that the input data is biased. Now we must investigate if this bias has influenced the <strong>model's decisions</strong>.
-                            <br>We are looking for the second red flag from our rulebook: <strong>error gaps</strong>.
+                        <!-- PERSONAL BRIDGE — connect back to Phase 1 -->
+                        <p style="font-size:1.1rem; text-align:center; margin-bottom:6px;">
+                            In Phase 1, you calculated your class evaporates <strong style="color:#ef4444;">7 bathtubs of water</strong> per year and burns <strong style="color:#ef4444;">30,000 phone charges</strong>.
                         </p>
-                    </div>
+                        <p style="font-size:1.05rem; text-align:center; margin-bottom:20px; opacity:0.85;">
+                            There are roughly <strong>500,000 secondary schools in Europe alone.</strong> Let's multiply.
+                        </p>
 
-                    <div style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:16px; padding:25px; margin-bottom:25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-                        
-                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px; border-bottom:1px solid var(--border-color-primary); padding-bottom:10px;">
-                            <div style="font-size:1.5rem;">🚩</div>
-                            <div>
-                                <strong style="color:#f43f5e; font-size:1.1rem; text-transform:uppercase; letter-spacing:1px;">PATTERN: "THE DOUBLE STANDARD"</strong>
-                                <div style="font-size:0.9rem; color:var(--body-text-color-subdued);">(Unequal Impact of Mistakes)</div>
+                        <!-- SCALER — from class to continent -->
+                        <div style="background:#1e293b; color:white; padding:20px; border-radius:12px; margin-bottom:20px;">
+                            <div style="color:#fbbf24; font-weight:800; text-align:center; margin-bottom:14px;">📐 THE CLASS-TO-CONTINENT SCALER</div>
+                            <div style="display:grid; grid-template-columns:1fr auto 1fr auto 1fr; gap:6px; align-items:center; text-align:center;">
+                                <div style="padding:12px; background:rgba(96,165,250,0.1); border-radius:8px;">
+                                    <div style="font-size:1.6rem;">🧑‍🎓</div>
+                                    <div style="font-weight:700; font-size:0.85rem;">Your class</div>
+                                    <div style="font-size:0.85rem; color:#60a5fa;">30,000 charges/yr</div>
+                                    <div style="font-size:0.78rem; color:#94a3b8;">7 bathtubs water</div>
+                                </div>
+                                <div style="color:#475569;">×</div>
+                                <div style="padding:12px; background:rgba(250,204,21,0.1); border-radius:8px;">
+                                    <div style="font-size:1.6rem;">🏫</div>
+                                    <div style="font-weight:700; font-size:0.85rem;">Europe's schools</div>
+                                    <div style="font-size:0.85rem; color:#fbbf24;">~500,000</div>
+                                    <div style="font-size:0.78rem; color:#94a3b8;">secondary schools</div>
+                                </div>
+                                <div style="color:#475569;">=</div>
+                                <div style="padding:12px; background:rgba(248,113,113,0.15); border-radius:8px; border:2px solid #f87171;">
+                                    <div style="font-size:1.6rem;">🌍</div>
+                                    <div style="font-weight:700; font-size:0.85rem;">Just students</div>
+                                    <div style="font-size:0.85rem; color:#f87171; font-weight:800;">15 BILLION charges</div>
+                                    <div style="font-size:0.78rem; color:#fca5a5;">3.5M bathtubs of water</div>
+                                </div>
+                            </div>
+                            <div style="text-align:center; margin-top:12px; padding:8px; background:rgba(248,113,113,0.1); border-radius:6px; font-size:0.88rem;">
+                                And that's <strong style="color:#fbbf24;">only students</strong>. Add offices, hospitals, governments, and the 200M daily ChatGPT users worldwide...
                             </div>
                         </div>
 
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:30px;">
-                            
-                            <div>
-                                <p style="font-size:1rem; line-height:1.6; margin-top:0; color:var(--body-text-color);">
-                                    <strong>The Concept:</strong> The "double standard" means mistakes by the AI system affect some people more than others, and real people can be harmed.
+                        <!-- GLOBAL ELECTRICITY RANKING -->
+                        <div style="background:#1e293b; color:white; padding:18px; border-radius:12px; margin-bottom:20px;">
+                            <div style="color:#fbbf24; font-weight:800; margin-bottom:12px; text-align:center;">⚡ GLOBAL ELECTRICITY RANKING (2026 projection)</div>
+                            <div style="display:grid; gap:8px;">
+                                <div style="display:flex; align-items:center; gap:10px; padding:8px 12px; background:rgba(255,255,255,0.05); border-radius:6px;">
+                                    <span style="font-weight:800; color:#94a3b8; width:24px;">#1</span>
+                                    <span style="font-size:1.2rem;">🇨🇳</span>
+                                    <span style="flex:1;">China</span>
+                                    <div style="width:180px; height:8px; background:rgba(255,255,255,0.1); border-radius:4px; overflow:hidden;">
+                                        <div style="height:100%; width:100%; background:#60a5fa;"></div>
+                                    </div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:10px; padding:8px 12px; background:rgba(255,255,255,0.05); border-radius:6px;">
+                                    <span style="font-weight:800; color:#94a3b8; width:24px;">#2</span>
+                                    <span style="font-size:1.2rem;">🇺🇸</span>
+                                    <span style="flex:1;">United States</span>
+                                    <div style="width:180px; height:8px; background:rgba(255,255,255,0.1); border-radius:4px; overflow:hidden;">
+                                        <div style="height:100%; width:65%; background:#60a5fa;"></div>
+                                    </div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:10px; padding:8px 12px; background:rgba(255,255,255,0.05); border-radius:6px;">
+                                    <span style="font-weight:800; color:#94a3b8; width:24px;">#3</span>
+                                    <span style="font-size:1.2rem;">🇮🇳</span>
+                                    <span style="flex:1;">India</span>
+                                    <div style="width:180px; height:8px; background:rgba(255,255,255,0.1); border-radius:4px; overflow:hidden;">
+                                        <div style="height:100%; width:45%; background:#60a5fa;"></div>
+                                    </div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:10px; padding:8px 12px; background:rgba(255,255,255,0.05); border-radius:6px;">
+                                    <span style="font-weight:800; color:#94a3b8; width:24px;">#4</span>
+                                    <span style="font-size:1.2rem;">🇯🇵</span>
+                                    <span style="flex:1;">Japan</span>
+                                    <div style="width:180px; height:8px; background:rgba(255,255,255,0.1); border-radius:4px; overflow:hidden;">
+                                        <div style="height:100%; width:30%; background:#60a5fa;"></div>
+                                    </div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(239,68,68,0.15); border-radius:6px; border:2px solid #f87171;">
+                                    <span style="font-weight:900; color:#f87171; width:24px;">#5</span>
+                                    <span style="font-size:1.2rem;">🖥️</span>
+                                    <span style="flex:1; font-weight:800; color:#f87171;">DATA CENTERS</span>
+                                    <div style="width:180px; height:8px; background:rgba(255,255,255,0.1); border-radius:4px; overflow:hidden;">
+                                        <div style="height:100%; width:25%; background:#f87171;"></div>
+                                    </div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:10px; padding:8px 12px; background:rgba(255,255,255,0.05); border-radius:6px;">
+                                    <span style="font-weight:800; color:#94a3b8; width:24px;">#6</span>
+                                    <span style="font-size:1.2rem;">🇷🇺</span>
+                                    <span style="flex:1;">Russia</span>
+                                    <div style="width:180px; height:8px; background:rgba(255,255,255,0.1); border-radius:4px; overflow:hidden;">
+                                        <div style="height:100%; width:22%; background:#60a5fa;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="text-align:center; margin-top:10px; font-size:0.8rem; color:#94a3b8;">Source: IEA Electricity 2024 Report</div>
+                        </div>
+
+                        <!-- REAL STORY — Dublin -->
+                        <div style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:12px; padding:18px; margin-bottom:18px;">
+                            <div style="font-weight:800; font-size:1.05rem; margin-bottom:10px;">🇮🇪 REAL STORY: Dublin Said "No More"</div>
+                            <div style="padding:12px; background:rgba(239,68,68,0.06); border-radius:8px; border-left:4px solid #ef4444; margin-bottom:10px;">
+                                <div style="font-size:0.92rem; line-height:1.5;">
+                                    By 2022, data centers were consuming <strong>18% of Ireland's entire electricity supply</strong> — heading toward 30%. Ireland's grid operator warned of blackout risks. Dublin imposed a <strong>moratorium: no new data centers</strong> until the grid could cope. Amazon, Microsoft, and Google all had expansion plans frozen.
+                                </div>
+                                <div style="font-size:0.78rem; opacity:0.6; margin-top:6px;">Source: EirGrid, Irish Times, 2022</div>
+                            </div>
+                            <div style="font-size:0.9rem; font-style:italic; opacity:0.8;">
+                                "A country literally told Big Tech: 'You're taking too much. Stop.'"
+                            </div>
+                        </div>
+
+                        <!-- 2030 PROJECTION -->
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px;">
+                            <div style="padding:16px; background:var(--background-fill-secondary); border-radius:12px; border:2px solid var(--border-color-primary); text-align:center;">
+                                <div style="font-size:0.78rem; font-weight:700; opacity:0.6; text-transform:uppercase;">2026 (now)</div>
+                                <div style="font-size:2rem; font-weight:900; color:#f59e0b; margin:6px 0;">#5</div>
+                                <div style="font-size:0.88rem;">Between Japan and Russia</div>
+                                <div style="font-size:0.82rem; opacity:0.6;">~1,000 TWh/year</div>
+                            </div>
+                            <div style="padding:16px; background:rgba(239,68,68,0.06); border-radius:12px; border:2px solid #fca5a5; text-align:center;">
+                                <div style="font-size:0.78rem; font-weight:700; color:#ef4444; text-transform:uppercase;">2030 (projected)</div>
+                                <div style="font-size:2rem; font-weight:900; color:#ef4444; margin:6px 0;">#3–4?</div>
+                                <div style="font-size:0.88rem;">Challenging India for #3</div>
+                                <div style="font-size:0.82rem; color:#ef4444;">~1,800 TWh/year (IEA high scenario)</div>
+                            </div>
+                        </div>
+
+                        <!-- "Powered by renewables" insight -->
+                        <div style="background:rgba(250,204,21,0.08); border:2px solid rgba(250,204,21,0.25); border-radius:12px; padding:16px; margin-bottom:18px;">
+                            <div style="font-weight:800; font-size:1rem; margin-bottom:8px;">⚠️ "Powered by Renewables" — Read the Fine Print</div>
+                            <p style="font-size:0.92rem; line-height:1.5; margin:0;">
+                                When tech companies claim "100% renewable energy," they usually mean they <strong>bought renewable energy certificates</strong> — not that their data center actually runs on clean power. The local grid still burns fossil fuels to meet AI's actual demand. "Powered by renewables" often means <strong>"we bought certificates"</strong> — not "we use clean power."
+                            </p>
+                            <div style="font-size:0.78rem; opacity:0.6; margin-top:6px;">Source: IEA, Goldman Sachs "Generational Growth" report, 2024</div>
+                        </div>
+
+                        <!-- E-WASTE BONUS — collapsible details -->
+                        <details style="border-radius:10px; overflow:hidden; border:2px solid rgba(148,163,184,0.3); margin-bottom:18px;">
+                            <summary style="padding:14px; font-weight:800; cursor:pointer; display:flex; justify-content:space-between; align-items:center; background:rgba(148,163,184,0.05); font-size:1rem;">
+                                <span>🪦 BONUS: The Hardware Graveyard (E-Waste)</span>
+                                <span style="font-size:0.75rem; color:#94a3b8;">TAP TO EXPLORE</span>
+                            </summary>
+                            <div style="padding:16px; border-top:1px solid rgba(148,163,184,0.15);">
+                                <p style="font-size:0.95rem; margin-bottom:12px;">
+                                    A GPU server component weighs about <strong>4 lbs</strong>. But producing it requires mining <strong style="color:#ef4444;">1,763 lbs of raw materials</strong> — a 440:1 ratio. And these GPUs get replaced every 3–5 years, not because they break, but because newer chips are faster and companies must stay competitive.
                                 </p>
-
-                                <div style="margin-top:15px; margin-bottom:15px;">
-                                    <div style="background:rgba(255, 241, 242, 0.1); padding:12px; border-radius:8px; border:1px solid #fda4af; margin-bottom:10px;">
-                                        <div style="font-weight:700; color:#fb7185; margin-bottom:4px; font-size:0.95rem;">⚠️ TYPE 1: FALSE ALARMS (False Positives)</div>
-                                        <div style="font-size:0.9rem; color:var(--body-text-color); line-height:1.4;">Labeling a low-risk person as <strong>High Risk</strong>.</div>
-                                        <div style="font-size:0.85rem; font-weight:700; color:#f43f5e; margin-top:4px;">Harm: Unfair Detention.</div>
+                                <div style="padding:12px; background:rgba(239,68,68,0.06); border-radius:8px; border-left:4px solid #ef4444; margin-bottom:10px;">
+                                    <div style="font-weight:700; font-size:0.95rem;">🇬🇭 Agbogbloshie, Ghana</div>
+                                    <div style="font-size:0.88rem; line-height:1.5; margin-top:4px;">
+                                        One of the world's largest e-waste dumps until its closure in 2021. Workers — some as young as 12 — burned circuit boards over open fires to extract copper and gold. The site was declared one of the <strong>most polluted places on Earth</strong>.
                                     </div>
-
-                                    <div style="background:rgba(240, 249, 255, 0.1); padding:12px; border-radius:8px; border:1px solid #bae6fd;">
-                                        <div style="font-weight:700; color:#38bdf8; margin-bottom:4px; font-size:0.95rem;">⚠️ TYPE 2: MISSED WARNINGS (False Negatives)</div>
-                                        <div style="font-size:0.9rem; color:var(--body-text-color); line-height:1.4;">Labeling a high-risk person as <strong>Low Risk</strong>.</div>
-                                        <div style="font-size:0.85rem; font-weight:700; color:#0ea5e9; margin-top:4px;">Harm: Public Safety Risk.</div>
-                                    </div>
+                                    <div style="font-size:0.78rem; opacity:0.6; margin-top:4px;">Source: UN E-Waste Monitor, 2024; Blacksmith Institute</div>
                                 </div>
-
-                                <div style="background:rgba(255, 241, 242, 0.1); color:var(--body-text-color); padding:10px; border-radius:6px; font-size:0.9rem; border-left:4px solid #db2777; margin-top:15px;">
-                                    <strong>Key Clue:</strong> Look for a significant gap in the <strong>False Alarm Rate</strong>. If Group A is flagged incorrectly substantially more than Group B, that is an Error Gap.
+                                <div style="font-size:0.88rem; font-style:italic; opacity:0.8;">
+                                    Only 22.3% of global e-waste is properly recycled. The AI arms race — replacing working GPUs every 18 months — produces industrial-scale waste from functional equipment.
                                 </div>
                             </div>
+                        </details>
 
-                            <div style="background:var(--background-fill-primary); padding:20px; border-radius:12px; border:1px solid var(--border-color-primary); display:flex; flex-direction:column; justify-content:center;">
-                                
-                                <div style="text-align:center; margin-bottom:10px; font-weight:700; color:var(--body-text-color); font-size:0.9rem;">
-                                    "FALSE ALARMS" (Innocent People Flagged Risky)
-                                </div>
-
-                                <div style="margin-bottom:15px;">
-                                    <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:700; color:#ec4899; margin-bottom:4px;">
-                                        <span>GROUP A (Targeted)</span>
-                                        <span>60% ERROR</span>
-                                    </div>
-                                    <div style="width:100%; background:var(--border-color-primary); height:12px; border-radius:10px; overflow:hidden;">
-                                        <div style="width:60%; background:#db2777; height:100%;"></div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:700; color:var(--body-text-color-subdued); margin-bottom:4px;">
-                                        <span>GROUP B (Baseline)</span>
-                                        <span>30% ERROR</span>
-                                    </div>
-                                    <div style="width:100%; background:var(--border-color-primary); height:12px; border-radius:10px; overflow:hidden;">
-                                        <div style="width:30%; background:#94a3b8; height:100%;"></div>
-                                    </div>
-                                </div>
-
-                                <div style="text-align:center; margin-top:15px; font-size:0.85rem; color:#db2777; font-weight:700; background:rgba(255, 241, 242, 0.1); padding:5px; border-radius:4px;">
-                                    ⚠️ GAP DETECTED: +30 Percentage Point Difference
-                                </div>
-
-                            </div>
+                        <div style="padding:12px; background:#fef3c7; border-left:3px solid #f59e0b; border-radius:6px; font-size:0.9rem;">
+                            <strong>🔑 Key Insight:</strong> Your 7 bathtubs × every class in the world = a country's worth of electricity. Data centers rank #5 globally and are heading to #3 by 2030. AI's demand is growing so fast that <strong>entire nations are hitting the brakes.</strong>
                         </div>
                     </div>
-
-                    <details style="margin-bottom:25px; cursor:pointer; background:rgba(255, 241, 242, 0.1); border:1px solid #fda4af; border-radius:8px; padding:12px;">
-                        <summary style="font-weight:700; color:#fb7185; font-size:0.95rem;">🔬 How Representation Bias leads to Prediction Errors</summary>
-                        <div style="margin-top:12px; font-size:0.95rem; color:var(--body-text-color); line-height:1.5; padding:0 5px;">
-                            <p style="margin-bottom:10px;"><strong>Connect the dots:</strong> In Step 2, we found that the input data overrepresented specific groups.</p>
-                            <p><strong>The Theory:</strong> Because the AI saw these groups more often in arrest records, the data structure may lead the model to make group-specific prediction mistakes. The model may generate more <strong>False Alarms</strong> for innocent people from these groups at a much higher rate.</p>
-                        </div>
-                    </details>
-
-                    <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(219,39,119,0.1), rgba(251,113,133,0.1)); border-radius:12px; border:2px solid #fecdd3;">
-                        <p class="text-danger-adaptive" style="font-size:1.15rem; font-weight:800; margin-bottom:5px; color:#f43f5e;">
-                            🚀 ERROR PATTERN ESTABLISHED: CONTINUE MISSION
-                        </p>
-                        <p class="text-body-danger-adaptive" style="font-size:1.05rem; margin:0; color:var(--body-text-color);">
-                            Answer the question below to confirm your target.
-                            <br>Then click <strong>Next</strong> to open the <strong>Prediction Error Lab</strong> and test the False Alarm Rates.
-                        </p>
-                    </div>
-
                 </div>
             </div>
-        """
+        """,
     },
 
-    # --- MODULE 6: RACE ERROR GAP LAB ---
+    # ─────────────────────────────────────────────
+    # MODULE 7 — STEP 7: YOUR ETHICAL AUDIT (Capstone)
+    # ─────────────────────────────────────────────
     {
         "id": 7,
-        "title": "Step 3: The Race Error Gap Lab",
+        "title": "Step 7: Your Audit",
         "html": """
             <div class="scenario-box">
                 <div class="tracker-container">
-                    <div class="tracker-step completed">1. RULES</div>
-                    <div class="tracker-step completed">2. EVIDENCE</div>
-                    <div class="tracker-step active">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICT</div>
+                    <div class="tracker-step completed">6. GLOBAL SCALE</div>
+                    <div class="tracker-step active">7. YOUR AUDIT</div>
                 </div>
-
+                <h2 class="slide-title" style="text-align:center;">📋 STEP 7: YOUR ETHICAL AUDIT</h2>
                 <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">STEP 3: EVALUATE ERRORS</h2>
+                    <div style="max-width:800px; margin:0 auto;">
 
-                    <div style="text-align:center; margin-bottom:20px;">
-                        <h2 class="slide-title header-accent" style="margin-top:10px;">The Prediction Error Lab - Race Analysis</h2>
-                        <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                            We suspect the model is generating unfair prediction errors. Now, we test this claim.
-                            <br>Click to reveal the error rates below. Do AI mistakes fall equally across white and black defendants?
+                        <p style="font-size:1.1rem; text-align:center; margin-bottom:6px;">
+                            You've traced AI's real cost across <strong>8 steps</strong>:
                         </p>
-                    </div>
+                        <p style="font-size:1rem; text-align:center; margin-bottom:20px; opacity:0.8;">
+                            Click → Network → GPU → Water → Paradox → Global Scale → <strong>Now: Your Verdict.</strong>
+                        </p>
 
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom:25px;">
-                        
-                        <div class="ai-risk-container" style="padding:0; border:2px solid #ef4444; overflow:hidden; border-radius:12px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1); background:transparent;">
-                            <div style="background:rgba(239, 68, 68, 0.1); padding:15px; text-align:center; border-bottom:1px solid #fda4af;">
-                                <h3 style="margin:0; font-size:1.25rem; color:#ef4444;">📡 SCAN 1: FALSE ALARMS</h3>
-                                <p style="font-size:0.9rem; margin:5px 0 0 0; color:var(--body-text-color);">(Innocent people wrongly flagged as "High Risk")</p>
-                            </div>
-                            
-                            <details style="cursor:pointer; background:var(--background-fill-secondary);">
-                                <summary style="list-style:none; padding:20px; font-weight:800; text-align:center; color:#ef4444; font-size:1.1rem; transition:background 0.2s;">
-                                    👇 CLICK TO REVEAL DATA
-                                </summary>
-                                <div style="padding:0 20px 25px 20px; text-align:center; border-top:1px solid var(--border-color-primary);">
-                                    
-                                    <div style="display:flex; justify-content:center; gap:30px; margin-bottom:20px;">
-                                        <div style="text-align:center;">
-                                            <div style="font-size:2.5rem; font-weight:900; color:#ef4444; line-height:1;">45%</div>
-                                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color-subdued); margin-top:5px;">AFRICAN-AMERICAN</div>
-                                        </div>
-                                        <div style="width:1px; background:var(--border-color-primary);"></div>
-                                        <div style="text-align:center;">
-                                            <div style="font-size:2.5rem; font-weight:900; color:#3b82f6; line-height:1;">23%</div>
-                                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color-subdued); margin-top:5px;">WHITE</div>
+                        <!-- THE LAW -->
+                        <div style="background:rgba(99,102,241,0.08); border:2px solid rgba(99,102,241,0.2); padding:18px; border-radius:12px; margin-bottom:20px;">
+                            <div style="font-weight:800; color:var(--color-accent); margin-bottom:10px;">📜 THE LAW IS CATCHING UP — AND IT AFFECTS YOU</div>
+                            <p style="font-size:0.95rem; margin-bottom:10px; line-height:1.5;">The EU AI Act (2024) will require AI providers to publish their <strong>energy and water consumption</strong>. By 2026, every AI product in Europe must carry environmental disclosures — like the <strong>energy labels on your fridge or washing machine.</strong></p>
+                            <p style="font-size:0.95rem; margin:0; line-height:1.5;">This means: soon, you'll be able to <em>see</em> how much energy and water your AI tools actually use. The invisibility from Step 0? It's ending.</p>
+                            <div style="font-size:0.78rem; opacity:0.6; margin-top:6px;">Source: EU AI Act, Article 53; European Commission, 2024</div>
+                        </div>
+
+                        <!-- SUMMARY TABLE -->
+                        <div style="margin-bottom:20px;">
+                            <div style="font-weight:800; margin-bottom:12px; font-size:1.05rem;">📊 YOUR 8-STEP INVESTIGATION — THE EVIDENCE</div>
+                            <table style="width:100%; border-collapse:collapse; border-radius:8px; overflow:hidden; border:1px solid var(--border-color-primary);">
+                                <thead>
+                                    <tr style="background:var(--background-fill-secondary);">
+                                        <th style="padding:10px; text-align:left; font-size:0.85rem;">Step</th>
+                                        <th style="padding:10px; text-align:left; font-size:0.85rem;">What You Found</th>
+                                        <th style="padding:10px; text-align:left; font-size:0.85rem;">The Number to Remember</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="border-bottom:1px solid var(--border-color-primary);">
+                                        <td style="padding:8px; font-weight:600;">📱 Your Click</td>
+                                        <td style="padding:8px; font-size:0.88rem;">~25 phone charges/week</td>
+                                        <td style="padding:8px; font-size:0.88rem; color:#ef4444; font-weight:700;">30,000 charges/class/yr</td>
+                                    </tr>
+                                    <tr style="border-bottom:1px solid var(--border-color-primary);">
+                                        <td style="padding:8px; font-weight:600;">🌐 The Network</td>
+                                        <td style="padding:8px; font-size:0.88rem;">7,200 km per prompt</td>
+                                        <td style="padding:8px; font-size:0.88rem; color:#ef4444; font-weight:700;">10× more than Google</td>
+                                    </tr>
+                                    <tr style="border-bottom:1px solid var(--border-color-primary);">
+                                        <td style="padding:8px; font-weight:600;">🧠 The GPU</td>
+                                        <td style="padding:8px; font-size:0.88rem;">Training vs inference</td>
+                                        <td style="padding:8px; font-size:0.88rem; color:#ef4444; font-weight:700;">11 days to match training</td>
+                                    </tr>
+                                    <tr style="border-bottom:1px solid var(--border-color-primary);">
+                                        <td style="padding:8px; font-weight:600;">💧 The Water</td>
+                                        <td style="padding:8px; font-size:0.88rem;">19M liters/day/center</td>
+                                        <td style="padding:8px; font-size:0.88rem; color:#ef4444; font-weight:700;">7 bathtubs/class/yr</td>
+                                    </tr>
+                                    <tr style="border-bottom:1px solid var(--border-color-primary);">
+                                        <td style="padding:8px; font-weight:600;">⚖️ The Paradox</td>
+                                        <td style="padding:8px; font-size:0.88rem;">Some AI helps, some wastes</td>
+                                        <td style="padding:8px; font-size:0.88rem; color:#6366f1; font-weight:700;">3-question framework</td>
+                                    </tr>
+                                    <tr style="border-bottom:1px solid var(--border-color-primary);">
+                                        <td style="padding:8px; font-weight:600;">🌍 Global Scale</td>
+                                        <td style="padding:8px; font-size:0.88rem;">Dublin moratorium, #5 globally</td>
+                                        <td style="padding:8px; font-size:0.88rem; color:#ef4444; font-weight:700;">18% of Ireland's grid, heading to #3</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:8px; font-weight:600;">📋 Your Audit</td>
+                                        <td style="padding:8px; font-size:0.88rem;">You decide what's worth it</td>
+                                        <td style="padding:8px; font-size:0.88rem; color:#22c55e; font-weight:700;">⬇️ Right now</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- PERSONAL AUDIT ACTIVITY -->
+                        <div style="background:#1e293b; color:white; padding:20px; border-radius:12px; margin-bottom:20px;">
+                            <div style="color:#fbbf24; font-weight:800; text-align:center; margin-bottom:10px; font-size:1.1rem;">🔍 YOUR PERSONAL AI AUDIT</div>
+                            <p style="font-size:0.95rem; text-align:center; margin-bottom:14px; opacity:0.85;">Think of 3 AI tools or habits you used <strong>this week</strong>. For each, apply the 3-question framework:</p>
+                            <div style="display:grid; gap:10px; margin-bottom:14px;">
+                                <div style="padding:14px; background:rgba(250,204,21,0.08); border-radius:8px; border:1px solid rgba(250,204,21,0.2);">
+                                    <div style="display:flex; gap:12px; align-items:center;">
+                                        <span style="font-size:1.5rem;">1️⃣</span>
+                                        <div>
+                                            <div style="font-weight:700;">AI tool: _____________</div>
+                                            <div style="font-size:0.88rem; color:#94a3b8; margin-top:2px;">Did I need AI? Was the benefit real? Was I efficient?</div>
+                                            <div style="font-size:0.85rem; margin-top:4px;">My verdict: 🟢 Worth it / 🟡 Debatable / 🔴 Could skip</div>
                                         </div>
                                     </div>
-
-                                    <div class="hint-box" style="border-left:4px solid #ef4444; background:rgba(239, 68, 68, 0.1); text-align:left;">
-                                        <div style="font-weight:800; color:#ef4444; font-size:0.95rem;">❌ VERDICT: PUNITIVE BIAS</div>
-                                        <div style="font-size:0.9rem; color:var(--body-text-color); margin-top:3px;">
-                                            Black defendants are nearly <strong style="color:#ef4444;">twice as likely</strong> to be wrongly labeled as dangerous compared to White defendants.
-                                        </div>
-                                    </div>
-
                                 </div>
-                            </details>
-                        </div>
-
-                        <div class="ai-risk-container" style="padding:0; border:2px solid #3b82f6; overflow:hidden; border-radius:12px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1); background:transparent;">
-                            <div style="background:rgba(59, 130, 246, 0.1); padding:15px; text-align:center; border-bottom:1px solid #bfdbfe;">
-                                <h3 style="margin:0; font-size:1.25rem; color:#3b82f6;">📡 SCAN 2: MISSED WARNINGS</h3>
-                                <p style="font-size:0.9rem; margin:5px 0 0 0; color:var(--body-text-color);">(Risky people wrongly labeled as "Safe")</p>
-                            </div>
-                            
-                            <details style="cursor:pointer; background:var(--background-fill-secondary);">
-                                <summary style="list-style:none; padding:20px; font-weight:800; text-align:center; color:#3b82f6; font-size:1.1rem; transition:background 0.2s;">
-                                    👇 CLICK TO REVEAL DATA
-                                </summary>
-                                <div style="padding:0 20px 25px 20px; text-align:center; border-top:1px solid var(--border-color-primary);">
-                                    
-                                    <div style="display:flex; justify-content:center; gap:30px; margin-bottom:20px;">
-                                        <div style="text-align:center;">
-                                            <div style="font-size:2.5rem; font-weight:900; color:#ef4444; line-height:1;">28%</div>
-                                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color-subdued); margin-top:5px;">AFRICAN-AMERICAN</div>
-                                        </div>
-                                        <div style="width:1px; background:var(--border-color-primary);"></div>
-                                        <div style="text-align:center;">
-                                            <div style="font-size:2.5rem; font-weight:900; color:#3b82f6; line-height:1;">48%</div>
-                                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color-subdued); margin-top:5px;">WHITE</div>
+                                <div style="padding:14px; background:rgba(250,204,21,0.08); border-radius:8px; border:1px solid rgba(250,204,21,0.2);">
+                                    <div style="display:flex; gap:12px; align-items:center;">
+                                        <span style="font-size:1.5rem;">2️⃣</span>
+                                        <div>
+                                            <div style="font-weight:700;">AI tool: _____________</div>
+                                            <div style="font-size:0.88rem; color:#94a3b8; margin-top:2px;">Did I need AI? Was the benefit real? Was I efficient?</div>
+                                            <div style="font-size:0.85rem; margin-top:4px;">My verdict: 🟢 Worth it / 🟡 Debatable / 🔴 Could skip</div>
                                         </div>
                                     </div>
-
-                                    <div class="hint-box" style="border-left:4px solid #3b82f6; background:rgba(59, 130, 246, 0.1); text-align:left;">
-                                        <div style="font-weight:800; color:#3b82f6; font-size:0.95rem;">❌ VERDICT: LENIENCY BIAS</div>
-                                        <div style="font-size:0.9rem; color:var(--body-text-color); margin-top:3px;">
-                                            White defendants who re-offend are much more likely to be <strong style="color:#3b82f6;">missed</strong> by the system than Black defendants.
-                                        </div>
-                                    </div>
-
                                 </div>
-                            </details>
-                        </div>
-                    </div>
-
-                    <div style="text-align:center; margin-top:20px; padding:20px; background:linear-gradient(to right, rgba(219,39,119,0.1), rgba(251,113,133,0.1)); border-radius:12px; border:2px solid #fecdd3;">
-                        <p style="font-size:1.15rem; font-weight:800; margin-bottom:5px; color:#ef4444;">
-                            🚀 RACIAL ERROR GAP CONFIRMED
-                        </p>
-                        <p style="font-size:1.05rem; margin:0; color:var(--body-text-color);">
-                            We have demonstrated the model has a "Double Standard" for race. 
-                            <br>Answer the question below to certify your findings, then proceed to <strong>Step 4: Analyze Gender, Age, and Geography Gaps in Error.</strong>
-                        </p>
-                    </div>
-
-                </div>
-            </div>
-        """
-    },
-
-    # --- MODULE 7: GENERALIZATION & PROXY SCAN ---
-    {
-        "id": 8,
-        "title": "Step 3: Generalization Scan Lab",
-        "html": """
-            <div class="scenario-box">
-                <div class="tracker-container">
-                    <div class="tracker-step completed">1. RULES</div>
-                    <div class="tracker-step completed">2. EVIDENCE</div>
-                    <div class="tracker-step active">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICT</div>
-                </div>
-
-                <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">STEP 3: EVALUATE ERRORS</h2>
-
-                    <div style="text-align:center; margin-bottom:20px;">
-                        <h2 class="slide-title header-accent" style="margin-top:10px;">The Prediction Error Lab – Gender, Age, and Geography</h2>
-                        <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                            We revealed the Racial Error Gap. But bias hides in other places too.
-                            <br>Use the scanner below to check for gender and age <strong>representation errors</strong> (due to data gaps) and <strong>proxy bias</strong> (that occurs when neutral-looking data replaces sensitive information and leads to unfair results).
-                        </p>
-                    </div>
-
-                    <div style="margin-top:20px;">
-                        <input type="radio" id="scan-gender-err" name="error-tabs" class="scan-radio" checked>
-                        <input type="radio" id="scan-age-err" name="error-tabs" class="scan-radio">
-                        <input type="radio" id="scan-geo-err" name="error-tabs" class="scan-radio">
-
-                        <div class="forensic-tabs" style="display:flex; justify-content:center; gap:10px; margin-bottom:0;">
-                            <label for="scan-gender-err" class="tab-label-styled" style="flex:1; text-align:center; border-color:#fda4af; color:#fb7185;">SCAN: GENDER</label>
-                            <label for="scan-age-err" class="tab-label-styled" style="flex:1; text-align:center; border-color:#fda4af; color:#fb7185;">SCAN: AGE</label>
-                            <label for="scan-geo-err" class="tab-label-styled" style="flex:1; text-align:center; border-color:#fda4af; color:#fb7185;">SCAN: GEOGRAPHY</label>
-                        </div>
-
-                        <div class="scan-content" style="border-top: 3px solid #db2777;">
-
-                            <div class="scan-pane pane-gender-err">
-                                <div style="background:rgba(255, 241, 242, 0.1); padding:15px; text-align:center; border-bottom:1px solid #fda4af; margin-bottom:15px;">
-                                    <h3 style="margin:0; font-size:1.2rem; color:#f43f5e;">📡 GENDER SCAN: PREDICTION ERROR</h3>
-                                    <p style="font-size:0.9rem; margin:5px 0 0 0; color:var(--body-text-color);">(Does the "Data Gap" lead to more mistakes?)</p>
-                                </div>
-
-                                <details style="cursor:pointer; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); border-radius:8px; overflow:hidden;">
-                                    <summary style="list-style:none; padding:15px; font-weight:800; text-align:center; color:#db2777; font-size:1.05rem; background:rgba(255, 241, 242, 0.1);">
-                                        👇 CLICK TO REVEAL FALSE ALARM RATES
-                                    </summary>
-                                    <div style="padding:20px;">
-                                        
-                                        <div style="margin-bottom:20px;">
-                                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                                                <span style="font-weight:700; color:#f43f5e;">WOMEN (The Minority Class)</span>
-                                                <span style="font-weight:700; color:#f43f5e;">32% Error</span>
-                                            </div>
-                                            <div style="width:100%; background:var(--border-color-primary); height:18px; border-radius:4px; overflow:hidden;">
-                                                <div style="width:32%; background:#db2777; height:100%;"></div>
-                                            </div>
-                                        </div>
-
-                                        <div style="margin-bottom:20px;">
-                                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                                                <span style="font-weight:700; color:var(--body-text-color-subdued);">MEN (Well Represented)</span>
-                                                <span style="font-weight:700; color:var(--body-text-color-subdued);">18% Error</span>
-                                            </div>
-                                            <div style="width:100%; background:var(--border-color-primary); height:18px; border-radius:4px; overflow:hidden;">
-                                                <div style="width:18%; background:#94a3b8; height:100%;"></div>
-                                            </div>
-                                        </div>
-
-                                        <div class="hint-box" style="border-left:4px solid #db2777; background:rgba(255, 241, 242, 0.1);">
-                                            <div style="font-weight:800; color:#f43f5e;">❌ VERDICT: BLIND SPOT CONFIRMED</div>
-                                            <div style="font-size:0.95rem; margin-top:5px; color:var(--body-text-color);">
-                                                Because the model has less data on women, it is "guessing" more often. 
-                                                This high error rate is most likely the result of the <strong>Data Gap</strong> we found in Step 2.
-                                            </div>
+                                <div style="padding:14px; background:rgba(250,204,21,0.08); border-radius:8px; border:1px solid rgba(250,204,21,0.2);">
+                                    <div style="display:flex; gap:12px; align-items:center;">
+                                        <span style="font-size:1.5rem;">3️⃣</span>
+                                        <div>
+                                            <div style="font-weight:700;">AI tool: _____________</div>
+                                            <div style="font-size:0.88rem; color:#94a3b8; margin-top:2px;">Did I need AI? Was the benefit real? Was I efficient?</div>
+                                            <div style="font-size:0.85rem; margin-top:4px;">My verdict: 🟢 Worth it / 🟡 Debatable / 🔴 Could skip</div>
                                         </div>
                                     </div>
-                                </details>
-                            </div>
-
-                            <div class="scan-pane pane-age-err">
-                                <div style="background:rgba(255, 241, 242, 0.1); padding:15px; text-align:center; border-bottom:1px solid #fda4af; margin-bottom:15px;">
-                                    <h3 style="margin:0; font-size:1.2rem; color:#f43f5e;">📡 AGE SCAN: PREDICTION ERROR</h3>
-                                    <p style="font-size:0.9rem; margin:5px 0 0 0; color:var(--body-text-color);">(Does the model fail outside the "25-45" bubble?)</p>
                                 </div>
-
-                                <details style="cursor:pointer; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); border-radius:8px; overflow:hidden;">
-                                    <summary style="list-style:none; padding:15px; font-weight:800; text-align:center; color:#db2777; font-size:1.05rem; background:rgba(255, 241, 242, 0.1);">
-                                        👇 CLICK TO REVEAL FALSE ALARM RATES
-                                    </summary>
-                                    <div style="padding:20px;">
-                                        
-                                        <div style="display:flex; align-items:flex-end; justify-content:space-around; height:100px; margin-bottom:15px; padding-bottom:10px; border-bottom:1px solid var(--border-color-primary);">
-                                            <div style="text-align:center; width:25%;">
-                                                <div style="font-size:0.8rem; font-weight:700; color:#ef4444; margin-bottom:2px;">33%</div>
-                                                <div style="height:60px; background:#ef4444; width:100%; border-radius:4px 4px 0 0;"></div>
-                                                <div style="font-size:0.75rem; font-weight:700; margin-top:5px; color:var(--body-text-color);">Less than 25</div>
-                                            </div>
-                                            <div style="text-align:center; width:25%;">
-                                                <div style="font-size:0.8rem; font-weight:700; color:#16a34a; margin-bottom:2px;">18%</div>
-                                                <div style="height:30px; background:#16a34a; width:100%; border-radius:4px 4px 0 0;"></div>
-                                                <div style="font-size:0.75rem; font-weight:700; margin-top:5px; color:var(--body-text-color);">25-45</div>
-                                            </div>
-                                            <div style="text-align:center; width:25%;">
-                                                <div style="font-size:0.8rem; font-weight:700; color:#ef4444; margin-bottom:2px;">27%</div>
-                                                <div style="height:50px; background:#ef4444; width:100%; border-radius:4px 4px 0 0;"></div>
-                                                <div style="font-size:0.75rem; font-weight:700; margin-top:5px; color:var(--body-text-color);">Greater than 45</div>
-                                            </div>
-                                        </div>
-
-                                        <div class="hint-box" style="border-left:4px solid #db2777; background:rgba(255, 241, 242, 0.1);">
-                                            <div style="font-weight:800; color:#f43f5e;">❌ VERDICT: THE "U-SHAPED" FAILURE</div>
-                                            <div style="font-size:0.95rem; margin-top:5px; color:var(--body-text-color);">
-                                                The model works well for the "Bubble" (25-45) with more data but fails significantly for the less than 25 and greater than 45 age categories. 
-                                                It cannot accurately predict risk for age groups it hasn't studied enough.
-                                            </div>
-                                        </div>
-                                    </div>
-                                </details>
                             </div>
+                            <div style="text-align:center; padding:10px; background:rgba(250,204,21,0.1); border-radius:8px; font-size:0.88rem; color:#fbbf24;">
+                                💡 Most people find at least one 🔴. That's the point — awareness changes behavior.
+                            </div>
+                        </div>
 
-                            <div class="scan-pane pane-geo-err">
-                                <div style="background:rgba(255, 241, 242, 0.1); padding:15px; text-align:center; border-bottom:1px solid #fda4af; margin-bottom:15px;">
-                                    <h3 style="margin:0; font-size:1.2rem; color:#f43f5e;">📡 GEOGRAPHY SCAN: THE PROXY CHECK</h3>
-                                    <p style="font-size:0.9rem; margin:5px 0 0 0; color:var(--body-text-color);">(Is "Zip Code" creating a racial double standard?)</p>
+                        <!-- CERTIFICATION BADGE -->
+                        <div style="text-align:center; padding:20px; background:linear-gradient(135deg, rgba(34,197,94,0.12), rgba(99,102,241,0.12)); border:3px solid #22c55e; border-radius:16px; margin-bottom:20px;">
+                            <div style="font-size:3rem; margin-bottom:6px;">🏆</div>
+                            <div style="font-size:0.78rem; font-weight:700; color:#22c55e; text-transform:uppercase; letter-spacing:2px;">CERTIFIED</div>
+                            <div style="font-size:1.5rem; font-weight:900; margin:6px 0;">Green AI Detective</div>
+                            <div style="font-size:0.95rem; opacity:0.7;">8-Step Investigation Complete</div>
+                            <div style="margin-top:14px; padding:12px 16px; background:rgba(34,197,94,0.1); border-radius:10px; font-size:0.92rem; text-align:left; max-width:500px; margin-left:auto; margin-right:auto;">
+                                <strong>Investigation complete.</strong> You now have the tools to evaluate AI's environmental impact and make informed decisions about when and how to use it. Every prompt has a cost — and now you know how to weigh it.
+                            </div>
+                            <div style="margin-top:12px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; max-width:400px; margin-left:auto; margin-right:auto;">
+                                <div style="padding:6px; background:white; border-radius:6px; font-size:0.78rem;">
+                                    <div style="font-weight:700; color:#6366f1;">Phase 1</div>
+                                    <div style="opacity:0.6;">Personal Impact ✓</div>
                                 </div>
-
-                                <details style="cursor:pointer; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); border-radius:8px; overflow:hidden;">
-                                    <summary style="list-style:none; padding:15px; font-weight:800; text-align:center; color:#db2777; font-size:1.05rem; background:rgba(255, 241, 242, 0.1);">
-                                        👇 CLICK TO REVEAL FALSE ALARM RATES
-                                    </summary>
-                                    <div style="padding:20px;">
-                                        
-                                        <div style="margin-bottom:20px;">
-                                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                                                <span style="font-weight:700; color:#f43f5e;">URBAN ZONES (High Minority Pop.)</span>
-                                                <span style="font-weight:700; color:#f43f5e;">58% Error</span>
-                                            </div>
-                                            <div style="width:100%; background:var(--border-color-primary); height:18px; border-radius:4px; overflow:hidden;">
-                                                <div style="width:58%; background:#db2777; height:100%;"></div>
-                                            </div>
-                                        </div>
-
-                                        <div style="margin-bottom:20px;">
-                                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                                                <span style="font-weight:700; color:var(--body-text-color-subdued);">RURAL ZONES</span>
-                                                <span style="font-weight:700; color:var(--body-text-color-subdued);">22% Error</span>
-                                            </div>
-                                            <div style="width:100%; background:var(--border-color-primary); height:18px; border-radius:4px; overflow:hidden;">
-                                                <div style="width:22%; background:#94a3b8; height:100%;"></div>
-                                            </div>
-                                        </div>
-
-                                        <div class="hint-box" style="border-left:4px solid #db2777; background:rgba(255, 241, 242, 0.1);">
-                                            <div style="font-weight:800; color:#f43f5e;">❌ VERDICT: PROXY (HIDDEN RELATIONSHIP) BIAS CONFIRMED</div>
-                                            <div style="font-size:0.95rem; margin-top:5px; color:var(--body-text-color);">
-                                                The error rate in Urban Zones is extremely high (58%). 
-                                                Even if "Race" was removed, the model uses <strong>location</strong> as an indirect proxy, reproducing the same unequal outcomes. 
-                                                As a result, being a “City Resident” is effectively interpreted as "High Risk."
-                                            </div>
-                                        </div>
-                                    </div>
-                                </details>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <div style="text-align:center; margin-top:25px; padding:20px; background:linear-gradient(to right, rgba(219,39,119,0.1), rgba(251,113,133,0.1)); border-radius:12px; border:2px solid #fecdd3;">
-                        <p class="text-danger-adaptive" style="font-size:1.15rem; font-weight:800; margin-bottom:5px; color:#f43f5e;">
-                            🚀 ALL SYSTEMS SCANNED
-                        </p>
-                        <p class="text-body-danger-adaptive" style="font-size:1.05rem; margin:0; color:var(--body-text-color);">
-                            You have collected all the forensic evidence. The bias is systemic.
-                            <br>Click <strong>Next</strong> to make your final recommendation about the AI system.
-                        </p>
-                    </div>
-
-                </div>
-            </div>
-        """
-    },
-
-    # --- MODULE 8: PREDICTION AUDIT SUMMARY ---
-    {
-        "id": 9,
-        "title": "Step 3: Audit Report Summary",
-        "html": """
-            <div class="scenario-box">
-                <div class="tracker-container">
-                    <div class="tracker-step completed">1. RULES</div>
-                    <div class="tracker-step completed">2. EVIDENCE</div>
-                    <div class="tracker-step active">3. ERROR</div>
-                    <div class="tracker-step">4. VERDICT</div>
-                </div>
-
-                <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">STEP 3: EVALUATE ERRORS</h2>
-
-                    <div style="text-align:center; margin-bottom:25px;">
-                        <h2 class="slide-title header-accent" style="margin-top:10px;">Prediction Error Report</h2>
-                        <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                            Review your forensic logs. You have uncovered systemic failures across multiple dimensions.
-                            <br>This evidence shows the model violates the core principle of <strong>Justice & Fairness</strong>.
-                        </p>
-                    </div>
-
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:25px; margin-bottom:30px;">
-
-                        <div style="background:rgba(239, 68, 68, 0.1); border:2px solid #ef4444; border-radius:12px; padding:20px; box-shadow: 0 4px 10px rgba(239,68,68,0.1);">
-                            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #fda4af; padding-bottom:10px; margin-bottom:15px;">
-                                <strong style="color:#ef4444; font-size:1.1rem;">🚨 PRIMARY THREAT</strong>
-                                <span style="background:#ef4444; color:white; font-size:0.75rem; font-weight:800; padding:4px 8px; border-radius:4px;">CONFIRMED</span>
-                            </div>
-                            <h3 style="margin:0 0 10px 0; color:#f87171; font-size:1.25rem;">Racial Double Standard</h3>
-                            <p style="font-size:0.95rem; line-height:1.5; color:var(--body-text-color);">
-                                <strong>The Evidence:</strong> African-American defendants face a <strong style="color:#ef4444;">45% False Alarm Rate</strong> (vs. 23% for White defendants).
-                            </p>
-                            <div style="background:var(--background-fill-secondary); padding:10px; border-radius:6px; border:1px solid #fda4af; margin-top:10px;">
-                                <strong style="color:#ef4444; font-size:0.9rem;">The Impact:</strong> 
-                                <span style="font-size:0.9rem; color:var(--body-text-color);">Punitive Bias. Innocent people are being wrongly flagged for detention at 2x the rate of others.</span>
+                                <div style="padding:6px; background:white; border-radius:6px; font-size:0.78rem;">
+                                    <div style="font-weight:700; color:#ef4444;">Phase 2</div>
+                                    <div style="opacity:0.6;">Global Scale ✓</div>
+                                </div>
+                                <div style="padding:6px; background:white; border-radius:6px; font-size:0.78rem;">
+                                    <div style="font-weight:700; color:#22c55e;">Audit</div>
+                                    <div style="opacity:0.6;">Your Verdict ✓</div>
+                                </div>
                             </div>
                         </div>
 
-                        <div style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:12px; padding:20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-                            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color-primary); padding-bottom:10px; margin-bottom:15px;">
-                                <strong style="color:var(--body-text-color-subdued); font-size:1.1rem;">📍 PROXY FAILURE</strong>
-                                <span style="background:#f59e0b; color:white; font-size:0.75rem; font-weight:800; padding:4px 8px; border-radius:4px;">DETECTED</span>
-                            </div>
-                            <h3 style="margin:0 0 10px 0; color:var(--body-text-color); font-size:1.25rem;">Geographic Discrimination</h3>
-                            <p style="font-size:0.95rem; line-height:1.5; color:var(--body-text-color);">
-                                <strong>The Evidence:</strong> Urban Zones show a massive <strong style="color:#f59e0b;">58% Error Rate</strong>.
-                            </p>
-                            <div style="background:var(--background-fill-primary); padding:10px; border-radius:6px; border:1px solid var(--border-color-primary); margin-top:10px;">
-                                <strong style="color:var(--body-text-color-subdued); font-size:0.9rem;">The Mechanism:</strong> 
-                                <span style="font-size:0.9rem; color:var(--body-text-color);">Although "Race" was hidden, the AI used "Zip Code" as a loophole to target the same communities.</span>
-                            </div>
-                        </div>
-
-                        <div style="grid-column: span 2; background:rgba(14, 165, 233, 0.1); border:2px solid #38bdf8; border-radius:12px; padding:20px;">
-                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-                                <span style="font-size:1.5rem;">📉</span>
-                                <h3 style="margin:0; color:#38bdf8; font-size:1.2rem;">Secondary Failure: Prediction Errors Due to Representation Bias</h3>
-                            </div>
-                            <p style="font-size:1rem; margin-bottom:0; color:var(--body-text-color);">
-                                <strong>The Evidence:</strong> High instability in predictions for <strong style="color:#38bdf8;">Women and Younger/Older Age Groups</strong>.
-                                <br>
-                                <span style="color:var(--body-text-color-subdued); font-size:0.95rem;"><strong>Why?</strong> The input data lacked sufficient examples for these groups (The Distorted Mirror), causing the model to "guess" rather than learn.</span>
-                            </p>
-                        </div>
-
-                    </div>
-
-
-                    <div style="text-align:center; margin-top:25px; padding:20px; background:linear-gradient(to right, rgba(219,39,119,0.1), rgba(251,113,133,0.1)); border-radius:12px; border:2px solid #fecdd3;">
-                        <p style="font-size:1.15rem; font-weight:800; margin-bottom:5px; color:#ef4444;">
-                            🚀 INVESTIGATION CASE FILE CLOSED. FINAL EVIDENCE LOCKED.
-                        </p>
-                        <p style="font-size:1.05rem; margin:0; color:var(--body-text-color);">
-                            You have successfully investigated the Inputs Data and the Output Errors.
-                            <br>Answer the question below to boost your Moral Compass score.  Then click <strong>Next</strong> to file your final report about the AI system.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        """
-    },
-
-    # --- MODULE 9: FINAL VERDICT & REPORT GENERATION ---
-{
-        "id": 10,
-        "title": "Step 4: The Final Verdict",
-        "html": """
-            <div class="scenario-box">
-                <div class="tracker-container">
-                    <div class="tracker-step completed">1. RULES</div>
-                    <div class="tracker-step completed">2. EVIDENCE</div>
-                    <div class="tracker-step completed">3. ERROR</div>
-                    <div class="tracker-step active">4. VERDICT</div>
-                </div>
-
-                <div class="slide-body">
-                    <h2 class="slide-title" style="margin:0;">STEP 4: FILE YOUR FINAL REPORT</h2>
-
-                    <div style="text-align:center; margin-bottom:20px;">
-                        <h2 class="slide-title header-accent" style="margin-top:10px;">Assemble The Case File</h2>
-                        <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                            You have completed the audit. Now you must build the final report for the court and other stakeholders.
-                            <br><strong>Select the valid findings below</strong> to add them to the official record. Be careful—do not include false evidence.
-                        </p>
-                    </div>
-
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:30px;">
-
-                        <details style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
-                            <summary style="list-style:none; padding:15px; font-weight:700; color:var(--body-text-color); display:flex; align-items:center; gap:10px;">
-                                <div style="background:var(--background-fill-primary); width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">+</div>
-                                Finding: "The Distorted Mirror"
-                            </summary>
-                            <div style="background:rgba(34, 197, 94, 0.1); padding:15px; border-top:1px solid #bbf7d0; color:var(--body-text-color);">
-                                <strong style="color:#22c55e;">✅ ADDED TO REPORT</strong>
-                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmed: The Input Data incorrectly over-represents specific demographic groups likely due in part to historical bias.</p>
-                            </div>
-                        </details>
-
-                        <details style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
-                            <summary style="list-style:none; padding:15px; font-weight:700; color:var(--body-text-color); display:flex; align-items:center; gap:10px;">
-                                <div style="background:var(--background-fill-primary); width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">+</div>
-                                Finding: "Malicious Programmer Intent"
-                            </summary>
-                            <div style="background:rgba(239, 68, 68, 0.1); padding:15px; border-top:1px solid #fecaca; color:var(--body-text-color);">
-                                <strong style="color:#ef4444;">❌ REJECTED</strong>
-                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Incorrect. We found no evidence of malicious code. The bias came from the <em>data</em> and <em>proxies</em>, not the programmer's personality.</p>
-                            </div>
-                        </details>
-
-                        <details style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
-                            <summary style="list-style:none; padding:15px; font-weight:700; color:var(--body-text-color); display:flex; align-items:center; gap:10px;">
-                                <div style="background:var(--background-fill-primary); width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">+</div>
-                                Finding: "Racial Double Standard"
-                            </summary>
-                            <div style="background:rgba(34, 197, 94, 0.1); padding:15px; border-top:1px solid #bbf7d0; color:var(--body-text-color);">
-                                <strong style="color:#22c55e;">✅ ADDED TO REPORT</strong>
-                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmed: African-American defendants suffer a 2x higher False Alarm rate than White defendants.</p>
-                            </div>
-                        </details>
-
-                        <details style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
-                            <summary style="list-style:none; padding:15px; font-weight:700; color:var(--body-text-color); display:flex; align-items:center; gap:10px;">
-                                <div style="background:var(--background-fill-primary); width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">+</div>
-                                Finding: "Proxy Variable Leakage"
-                            </summary>
-                            <div style="background:rgba(34, 197, 94, 0.1); padding:15px; border-top:1px solid #bbf7d0; color:var(--body-text-color);">
-                                <strong style="color:#22c55e;">✅ ADDED TO REPORT</strong>
-                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmed: "Zip Code" is functioning as a proxy for Race, reintroducing bias even when variables like Race are removed.</p>
-                            </div>
-                        </details>
-
-                        <details style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
-                            <summary style="list-style:none; padding:15px; font-weight:700; color:var(--body-text-color); display:flex; align-items:center; gap:10px;">
-                                <div style="background:var(--background-fill-primary); width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">+</div>
-                                Finding: "Hardware Calculation Error"
-                            </summary>
-                            <div style="background:rgba(239, 68, 68, 0.1); padding:15px; border-top:1px solid #fecaca; color:var(--body-text-color);">
-                                <strong style="color:#ef4444;">❌ REJECTED</strong>
-                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Irrelevant. The servers are working fine. The math is correct; the <em>patterns</em> it learned are unfair.</p>
-                            </div>
-                        </details>
-
-                        <details style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
-                            <summary style="list-style:none; padding:15px; font-weight:700; color:var(--body-text-color); display:flex; align-items:center; gap:10px;">
-                                <div style="background:var(--background-fill-primary); width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">+</div>
-                                Finding: "Generalization Blind Spots"
-                            </summary>
-                            <div style="background:rgba(34, 197, 94, 0.1); padding:15px; border-top:1px solid #bbf7d0; color:var(--body-text-color);">
-                                <strong style="color:#22c55e;">✅ ADDED TO REPORT</strong>
-                                <p style="margin:5px 0 0 0; font-size:0.9rem;">Confirmed: Lack of data for Women, Younger, and Older defendants creates unreliable predictions.</p>
-                            </div>
-                        </details>
-
-                    </div>
-
-                    <div style="background:var(--background-fill-primary); border-top:2px solid var(--border-color-primary); padding:25px; text-align:center; border-radius:0 0 12px 12px; margin-top:-15px;">
-                        <h3 style="margin-top:0; color:var(--body-text-color);">⚖️ SUBMIT YOUR RECOMMENDATION (By using the Moral Compass Question below these cards.)</h3>
-                        <p style="font-size:1.05rem; margin-bottom:20px; color:var(--body-text-color-subdued);">
-                            Based on the evidence filed above, what is your official recommendation regarding this AI system?
-                        </p>
-
-                        <div style="display:flex; justify-content:center; gap:20px; flex-wrap:wrap;">
-                            <div style="background:var(--background-fill-secondary); border:1px solid var(--border-color-primary); padding:15px 25px; border-radius:8px; cursor:pointer; max-width:250px; opacity:0.8; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
-                                <div style="font-size:2rem; margin-bottom:10px;">✅</div>
-                                <div style="font-weight:700; color:#166534; margin-bottom:5px;">CERTIFY AS SAFE</div>
-                                <div style="font-size:0.85rem; color:var(--body-text-color-subdued);">The biases are minor technicalities. Continue using the system.</div>
-                            </div>
-
-                            <div style="background:var(--background-fill-secondary); border:2px solid #ef4444; padding:15px 25px; border-radius:8px; cursor:pointer; max-width:250px; box-shadow:0 4px 12px rgba(239,68,68,0.2);">
-                                <div style="font-size:2rem; margin-bottom:10px;">🚨</div>
-                                <div style="font-weight:700; color:#ef4444; margin-bottom:5px;">RED NOTICE: PAUSE & FIX</div>
-                                <div style="font-size:0.85rem; color:#ef4444;">The system violates Justice & Equity principles. Halt immediately.</div>
+                        <!-- SHAREABLE TAKEAWAYS -->
+                        <div style="background:var(--background-fill-secondary); border:2px solid var(--border-color-primary); border-radius:12px; padding:18px; margin-bottom:18px;">
+                            <div style="font-weight:800; font-size:1.05rem; margin-bottom:10px;">🗣️ YOUR TOP 5 SHAREABLE FACTS</div>
+                            <div style="font-size:0.88rem; opacity:0.7; margin-bottom:10px;">Pick your favorite. Tell someone today.</div>
+                            <div style="display:grid; gap:6px;">
+                                <div style="padding:10px 14px; background:white; border-radius:6px; font-size:0.9rem; border-left:3px solid #ef4444;">
+                                    📱 "Every 25 AI prompts evaporate a bottle of water — forever."
+                                </div>
+                                <div style="padding:10px 14px; background:white; border-radius:6px; font-size:0.9rem; border-left:3px solid #f59e0b;">
+                                    ⚡ "ChatGPT users burn through GPT-3's entire training energy in 11 days."
+                                </div>
+                                <div style="padding:10px 14px; background:white; border-radius:6px; font-size:0.9rem; border-left:3px solid #3b82f6;">
+                                    🌍 "If data centers were a country, they'd be the 5th largest electricity consumer on Earth."
+                                </div>
+                                <div style="padding:10px 14px; background:white; border-radius:6px; font-size:0.9rem; border-left:3px solid #8b5cf6;">
+                                    🇮🇪 "Dublin banned new data centers because they were using 18% of Ireland's electricity."
+                                </div>
+                                <div style="padding:10px 14px; background:white; border-radius:6px; font-size:0.9rem; border-left:3px solid #22c55e;">
+                                    ⛏️ "Making a 4 lb server component requires mining 1,763 lbs of raw earth."
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div style="text-align:center; margin-top:30px;">
-                        <p style="font-size:0.95rem; color:var(--body-text-color);">
-                            Select your final recommendation below to officially file your report and complete your investigation.
-                        </p>
+                        <div style="padding:14px; background:linear-gradient(135deg, rgba(34,197,94,0.1), rgba(99,102,241,0.1)); border:2px solid #22c55e; border-radius:10px; text-align:center;">
+                            <div style="font-size:1.15rem; font-weight:800; color:var(--color-accent);">🎯 FINAL QUESTION BELOW</div>
+                            <div style="font-size:0.95rem; margin-top:4px;">The hardest question in the investigation. No obvious answer this time.</div>
+                        </div>
                     </div>
-
                 </div>
             </div>
         """,
     },
+]
 
+# ============================================================================
+# 5. QUIZ CONFIG — 8 QUESTIONS ALIGNED TO 8-STEP CURRICULUM
+# ============================================================================
 
-    # --- MODULE 10: PROMOTION ---
-{
-        "id": 11,
-        "title": "Mission Accomplished: Promotion Unlocked",
-        "html": """
-            <div class="scenario-box">
-                <div class="tracker-container">
-                    <div class="tracker-step completed">✓ RULES</div>
-                    <div class="tracker-step completed">✓ EVIDENCE</div>
-                    <div class="tracker-step completed">✓ ERROR</div>
-                    <div class="tracker-step completed">✓ VERDICT</div>
-                </div>
-
-                <div class="slide-body">
-                    
-                    <div style="text-align:center; margin-bottom:25px;">
-                        <h2 class="slide-title" style="margin-top:10px; color:#22c55e;">🎉 MISSION ACCOMPLISHED</h2>
-                        <p style="font-size:1.1rem; max-width:820px; margin:0 auto; color:var(--body-text-color);">
-                            Report Filed. The court has accepted your recommendation to <strong>PAUSE</strong> the system.
-                        </p>
-                    </div>
-
-                    <div style="background:rgba(34, 197, 94, 0.1); border:2px solid #22c55e; border-radius:12px; padding:20px; margin-bottom:30px; text-align:center; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.1);">
-                        <div style="font-size:1.2rem; font-weight:800; color:#22c55e; letter-spacing:1px; text-transform:uppercase;">
-                            ✅ DECISION VALIDATED
-                        </div>
-                        <p style="font-size:1.05rem; color:var(--body-text-color); margin:10px 0 0 0;">
-                            Your analysis was supported by evidence and clear reasoning, aligned with the principles of <strong>Justice & Equity</strong>.
-                        </p>
-                    </div>
-
-                    <div style="background:linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(20, 184, 166, 0.1) 100%); border:2px solid #0ea5e9; border-radius:16px; padding:0; overflow:hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
-                        
-                        <div style="background:#0ea5e9; padding:15px; text-align:center; color:white;">
-                            <h3 style="margin:0; font-size:1.3rem; letter-spacing:1px;">🎖️ PROMOTION UNLOCKED</h3>
-                            <div style="font-size:0.9rem; opacity:0.9;">LEVEL UP: FROM DETECTIVE TO BUILDER</div>
-                        </div>
-
-                        <div style="padding:25px;">
-                            <p style="text-align:center; font-size:1.1rem; margin-bottom:20px; color:var(--body-text-color);">
-                                Identifying bias is the first step. With the findings in place, the focus now shifts to improvement and redesign.
-                                <br><strong>You are trading your Magnifying Glass for a Wrench.</strong>
-                            </p>
-
-                            <div style="background:var(--background-fill-secondary); border-radius:12px; padding:20px; border:1px solid #bae6fd;">
-                                <h4 style="margin-top:0; color:#38bdf8; text-align:center; margin-bottom:15px;">🎓 NEW ROLE: FAIRNESS ENGINEER</h4>
-                                
-                                <ul style="list-style:none; padding:0; margin:0; font-size:1rem; color:var(--body-text-color);">
-                                    <li style="margin-bottom:12px; display:flex; gap:10px; align-items:start;">
-                                        <span>🔧</span>
-                                        <span><strong style="color:#38bdf8;">Your Task 1:</strong> Address proxy variables (e.g. location-based bias).</span>
-                                    </li>
-                                    <li style="margin-bottom:12px; display:flex; gap:10px; align-items:start;">
-                                        <span>📊</span>
-                                        <span><strong style="color:#38bdf8;">Your Task 2:</strong> Improve data representation and coverage.</span>
-                                    </li>
-                                    <li style="display:flex; gap:10px; align-items:start;">
-                                        <span>🗺️</span>
-                                        <span><strong style="color:#38bdf8;">Your Task 3:</strong> Define a roadmap for ongoing monitoring.</span>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="text-align:center; margin-top:30px;">
-                        <p style="font-size:1.1rem; font-weight:600; color:var(--body-text-color);">
-                            👉 Your next mission starts in <strong>Activity 8: The Fairness Fixer</strong>.
-                            <br>
-                            <span style="font-size:0.95rem; font-weight:400; color:var(--body-text-color-subdued);">
-                              <strong>Continue to the next activity below</strong> — or click <span style="white-space:nowrap;">Next (top bar)</span> in expanded view ➡️
-                            </span>
-                        </p>
-                    </div>
-
-                </div>
-            </div>
-        """,
-    },]
-# --- 5. INTERACTIVE CONTENT CONFIGURATION (APP 1) ---
 QUIZ_CONFIG = {
-      0: {
+    0: {
         "t": "t1",
-        # Added bold incentive text to the question
-        "q": "🚀 **First Score Opportunity:** Why do we multiply your Accuracy by Ethical Progress? (Answer correctly to earn your first Moral Compass Score boost!)",
+        "q": "🚀 **First Score Opportunity:** One AI image costs half a phone charge. 25 text prompts evaporate a water bottle. Most people have no idea. **Why does this invisibility matter?**",
         "o": [
-            "A) Because simple accuracy ignores potential bias and harm.",
-            "B) To make the leaderboard math more complicated.",
-            "C) Accuracy is the only metric that actually matters.",
+            "A) It doesn't — the energy per prompt is tiny, so even billions of users create negligible total impact compared to transportation or manufacturing.",
+            "B) Invisible costs mean billions of users waste energy daily without feedback, and no one pushes companies to change.",
+            "C) It's only a problem for the environment, not for people — water evaporation is part of the natural cycle and doesn't reduce anyone's supply.",
         ],
-        "a": "A) Because simple accuracy ignores potential bias and harm.",
-        # Updated success message to confirm the 'win'
-        "success": "<strong>Score Unlocked!</strong> Calibration complete. You are now officially on the leaderboard.",
+        "a": "B) Invisible costs mean billions of users waste energy daily without feedback, and no one pushes companies to change.",
+        "success": "<strong>Score Unlocked!</strong> The core problem: invisibility enables waste at scale. Now let's make it visible.",
     },
     1: {
         "t": "t2",
-        "q": "What is the best first step before you start examining the model's data?",
+        "q": "Your friend says: *\"My individual AI use is so tiny it doesn't matter.\"* You just calculated 30,000 phone charges for one class per year. **What's the strongest counter?**",
         "o": [
-            "Jump straight into the data and look for patterns.",
-            "Learn the rules that define what counts as bias.",
-            "Let the model explain its own decisions.",
+            "A) Your friend has a point — the real problem is corporate data centers, not individual users. Even if everyone cut their usage in half, companies would still build the same infrastructure.",
+            "B) Individual prompts are tiny, but 200M users × 50 prompts/week creates massive collective demand. Companies build infrastructure to match OUR usage.",
+            "C) The responsible move is to stop using AI entirely until companies prove they run on 100% renewables — partial measures just slow the transition.",
         ],
-        "a": "Learn the rules that define what counts as bias.",
-        "success": "Briefing complete. You’re starting your investigation with the right rules in mind.",
+        "a": "B) Individual prompts are tiny, but 200M users × 50 prompts/week creates massive collective demand. Companies build infrastructure to match OUR usage.",
+        "success": "Ghost detected. 🗣️ <strong>Dinner table challenge:</strong> Tell someone tonight: your weekly AI use = ~25 phone charges.",
     },
     2: {
         "t": "t3",
-        "q": "What does Justice & Equity require?",
+        "q": "Your school is replacing Google Search with AI-powered search for all students. A teacher argues: *\"The internet already uses electricity — AI search won't make a difference.\"* **What's the flaw?**",
         "o": [
-            "Explain model decisions",
-            "Checking group level prediction errors to prevent systematic harm",
-            "Minimize error rate",
+            "A) The teacher is right — both Google and ChatGPT run on the same servers and data centers, so switching from one to the other doesn't meaningfully change total energy consumption.",
+            "B) AI queries use ~10× more energy than traditional search. Switching 500 students to AI would multiply the school's search energy tenfold.",
+            "C) AI search is actually more efficient because it gives one direct answer instead of ten blue links — users spend less time browsing, which reduces total screen-on energy use.",
         ],
-        "a": "Checking group level prediction errors to prevent systematic harm",
-        "success": "Protocol Active. You are now auditing for Justice & Fairness.",
+        "a": "B) AI queries use ~10× more energy than traditional search. Switching 500 students to AI would multiply the school's search energy tenfold.",
+        "success": "Network traced. AI traffic is an order of magnitude hungrier than traditional browsing. 🗣️ <strong>Share:</strong> 70% of US internet traffic passes through one county in Virginia.",
     },
     3: {
         "t": "t4",
-        "q": "Detective, we suspect the input data is a 'Distorted Mirror' of reality. To confirm if Representation Bias exists, what is your primary forensic target?",
+        "q": "Training GPT-3 consumed 1,287 MWh. Inference matched that in ~11 days. A classmate says: *\"Inference is more efficient per query, so it's not a big deal.\"* **Why is this misleading?**",
         "o": [
-            "A) I need to read the judge's personal diary entries.",
-            "B) I need to check if the computer is plugged in correctly.",
-            "C) I need to compare the Demographic Distributions (Race/Gender) in the data against real-world population statistics.",
+            "A) Training is actually the bigger long-term cost — each new model version requires retraining from scratch, which compounds over time as models get larger and more frequent.",
+            "B) Per-query efficiency is irrelevant at 200M queries/day. Low cost × massive volume = total energy that dwarfs training in days, and never stops growing.",
+            "C) Inference is essentially free since the model already exists — the electricity costs are negligible compared to the original training investment.",
         ],
-        "a": "C) I need to compare the Demographic Distributions (Race/Gender) in the data against real-world population statistics.",
-        "success": "Target Acquired. You are ready to enter the Data Forensics Lab.",
+        "a": "B) Per-query efficiency is irrelevant at 200M queries/day. Low cost × massive volume = total energy that dwarfs training in days, and never stops growing.",
+        "success": "GPU scanned. 🗣️ <strong>Pop quiz for a friend:</strong> Training GPT-3 took months. How long for users to burn the same energy? 11 days.",
     },
     4: {
         "t": "t5",
-        "q": "Forensic Analysis Review: You flagged the Gender data as a 'Data Gap' (only 19% Female). According to your evidence log, what is the specific technical risk for this group?",
+        "q": "In Mesa, Arizona, families shortened showers during a 1,200-year drought while Microsoft evaporated 56M gallons/year nearby. A tech exec says: *\"We bring jobs and growth.\"* **What's the strongest response?**",
         "o": [
-            "A) The model will have a 'Blind Spot' because it hasn't seen enough examples to learn accurate patterns.",
-            "B) The AI will automatically target this group due to historical over-policing.",
-            "C) The model will default to the 'Real World' statistics to fill in the missing numbers.",
+            "A) The jobs argument is valid — data centers create high-paying technical jobs and attract other businesses, which strengthens the local economy enough to fund water infrastructure improvements.",
+            "B) Economic benefits don't justify taking essential resources without consent. The people losing water didn't choose to trade it — and you can't drink a paycheck during a drought.",
+            "C) Evaporated water re-enters the water cycle as rain elsewhere, so the total global water supply is unchanged — the real issue is energy, not water.",
         ],
-        "a": "A) The model will have a 'Blind Spot' because it hasn't seen enough examples to learn accurate patterns.",
-        "success": "Evidence Locked. You understand that 'Missing Data' creates blind spots, making predictions for that group less reliable.",
+        "a": "B) Economic benefits don't justify taking essential resources without consent. The people losing water didn't choose to trade it — and you can't drink a paycheck during a drought.",
+        "success": "Water crisis confirmed. 🗣️ <strong>Share this:</strong> In Mesa, Arizona, families shortened showers during a 1,200-year drought while Microsoft evaporated 56 million gallons/year nearby.",
     },
-    # --- QUESTION 4 (Evidence Report Summary) ---
     5: {
         "t": "t6",
-        "q": "Detective, review your Evidence Summary table. You found instances of both Over-representation (Race) and Under-representation (Gender/Age). What is your general conclusion about how Representation Bias affects the AI?",
+        "q": "A friend says: *\"Companies should just use renewables — it's not my problem.\"* You've been sorting AI uses from wasteful to worthwhile. **Why is your friend only half right?**",
         "o": [
-            "A) It confirms the dataset is neutral, as the 'Over' and 'Under' categories mathematically cancel each other out.",
-            "B) It creates a 'Risk of Increased Prediction Error' in BOTH directions—whether a group is exaggerated or ignored, the AI's view of reality is warped.",
-            "C) It only creates risk when data is missing (Under-represented); having extra data (Over-represented) actually makes the model more accurate.",
+            "A) Your friend is correct — the responsibility lies entirely with corporations. Consumers switching to renewable-powered services like Google (which claims carbon neutrality) eliminates the problem without requiring behavior change.",
+            "B) Companies should use renewables, yes. But demand drives supply — unnecessary prompts mean MORE data centers regardless of energy source. Both efficiency and clean energy are needed.",
+            "C) Renewable energy can't actually power data centers at the scale needed — solar and wind are too intermittent, so fossil fuels will remain dominant for AI infrastructure through at least 2040.",
         ],
-        "a": "B) It creates a 'Risk of Increased Prediction Error' in BOTH directions—whether a group is exaggerated or ignored, the AI's view of reality is warped.",
-        "success": "Conclusion Verified. Distorted data—whether inflated or missing—can lead to distorted justice.",
+        "a": "B) Companies should use renewables, yes. But demand drives supply — unnecessary prompts mean MORE data centers regardless of energy source. Both efficiency and clean energy are needed.",
+        "success": "Paradox resolved. 🧠 <strong>Your new superpower:</strong> Before any prompt, ask: <em>Do I need AI? Is the benefit real? Am I being efficient?</em>",
     },
     6: {
         "t": "t7",
-        "q": "Detective, you are hunting for the 'Double Standard' pattern. Which specific piece of evidence represents this Red Flag?",
+        "q": "Dublin banned new data centers in 2022 because they threatened 18% of Ireland's electricity. A tech lobbyist argues: *\"Data centers create jobs and tax revenue — banning them hurts the economy more than the grid.\"* **What's the strongest counter?**",
         "o": [
-            "A) The model makes zero mistakes for any group.",
-            "B) One group suffers from a significantly higher 'False Alarm' rate than another group.",
-            "C) The input data contains more men than women.",
+            "A) The lobbyist is right — Ireland's tech sector accounts for 30% of corporate tax revenue, and data center jobs pay 2-3× the national average. Economic growth should take priority over grid concerns.",
+            "B) Jobs and tax revenue matter, but not if the lights go out. EirGrid warned of blackouts — a grid failure would damage the economy far more than pausing data center growth.",
+            "C) Data centers should be banned permanently, not just paused — no amount of economic benefit justifies the environmental damage they cause, and the jobs can be replaced by green energy projects.",
         ],
-        "a": "B) One group suffers from a significantly higher 'False Alarm' rate than another group.",
-        "success": "Pattern Confirmed. When the error rate is lopsided, it's a Double Standard.",
+        "a": "B) Jobs and tax revenue matter, but not if the lights go out. EirGrid warned of blackouts — a grid failure would damage the economy far more than pausing data center growth.",
+        "success": "Scale mapped. 🗣️ <strong>Share this:</strong> Dublin literally told Big Tech 'You're taking too much. Stop.'",
     },
-    # --- QUESTION 6 (Race Error Gap) ---
     7: {
-        "t": "t8",
-        "q": "Review your data log. What did the 'False Alarm' scan reveal about the treatment of African-American defendants?",
-        "o": [
-            "A) They are treated exactly the same as White defendants.",
-            "B) They are missed by the system more often (Leniency Bias).",
-            "C) They are nearly twice as likely to be wrongly flagged as 'High Risk' (Punitive Bias).",
-        ],
-        "a": "C) They are nearly twice as likely to be wrongly flagged as 'High Risk' (Punitive Bias).",
-        "success": "Evidence Logged. The system is punishing innocent people based on race.",
-    },
-
-    # --- QUESTION 7 (Generalization & Proxy Scan) ---
-    8: {
-        "t": "t9",
-        "q": "The Geography Scan showed a massive error rate in Urban Zones. What does this prove about 'Zip Codes'?",
-        "o": [
-            "A) Zip Codes are acting as a 'Proxy Variable' to target specific groups, even if variables like Race are removed from the dataset.",
-            "B) The AI is simply bad at reading maps and location data.",
-            "C) People in cities naturally generate more computer errors than people in rural areas.",
-        ],
-        "a": "A) Zip Codes are acting as a 'Proxy Variable' to target specific groups, even if variables like Race are removed from the dataset.",
-        "success": "Proxy Identified. Hiding a variable doesn't work if you leave a proxy behind.",
-    },
-
-    # --- QUESTION 8 (Audit Summary) ---
-    9: {
-        "t": "t10",
-        "q": "You have closed the case file. Which of the following is CONFIRMED as the 'Primary Threat' in your final report?",
-        "o": [
-            "A) A Racial Double Standard where innocent Black defendants are penalized twice as often.",
-            "B) Malicious code written by hackers to break the system.",
-            "C) A hardware failure in the server room causing random math errors.",
-        ],
-        "a": "A) A Racial Double Standard where innocent Black defendants are penalized twice as often.",
-        "success": "Threat Assessed. The bias is confirmed and documented.",
-    },
-
-    # --- QUESTION 9 (Final Verdict) ---
-    10: {
         "t": "t11",
-        "q": "Based on the severe violations of Justice & Equity found in your audit, what is your final recommendation to the court?",
+        "q": "🎯 **Final Verdict:** Your school wants to deploy AI tutoring for struggling students. Early tests show it genuinely helps — but running it for 500 students would use as much energy as powering 50 homes for a year. **What do you recommend?**",
         "o": [
-            "A) CERTIFY: The system is mostly fine, minor glitches are acceptable.",
-            "B) RED NOTICE: Pause the system for repairs immediately because it is unsafe and biased.",
-            "C) WARNING: Only use the AI on weekends when crime is lower.",
+            "A) Deploy it fully — 500 students benefiting from better education outweighs the energy cost of 50 homes. Education is a fundamental right, and effective AI tutoring is exactly the use case that justifies its environmental footprint.",
+            "B) Deploy with conditions — start with 50 students who need it most, measure real impact vs. energy cost, and expand only if the learning gains are proven significant enough to justify the resources.",
+            "C) Reject it — 50 homes' worth of energy for a tutoring tool is disproportionate when human tutors could deliver the same or better results while creating local jobs and producing zero environmental cost.",
         ],
-        "a": "B) RED NOTICE: Pause the system for repairs immediately because it is unsafe and biased.",
-        "success": "Verdict Delivered. You successfully stopped a harmful system.",
+        "a": "B) Deploy with conditions — start with 50 students who need it most, measure real impact vs. energy cost, and expand only if the learning gains are proven significant enough to justify the resources.",
+        "success": "🏆 <strong>Investigation Complete!</strong> You didn't pick the easy answer. That's exactly the thinking the world needs — not 'ban it' or 'allow everything,' but <em>'prove it's worth it, then scale responsibly.'</em>",
     },
 }
 
 
-# --- 6. SCENARIO CONFIG (for Module 0) ---
-SCENARIO_CONFIG = {
-    "Criminal risk prediction": {
-        "q": (
-            "A system predicts who might reoffend.\n"
-            "Why isn’t accuracy alone enough?"
-        ),
-        "summary": "Even tiny bias can repeat across thousands of bail/sentencing calls — real lives, real impact.",
-        "a": "Accuracy can look good overall while still being unfair to specific groups affected by the model.",
-        "rationale": "Bias at scale means one pattern can hurt many people quickly. We must check subgroup fairness, not just the top-line score."
-    },
-    "Loan approval system": {
-        "q": (
-            "A model decides who gets a loan.\n"
-            "What’s the biggest risk if it learns from biased history?"
-        ),
-        "summary": "Some groups get blocked over and over, shutting down chances for housing, school, and stability.",
-        "a": "It can repeatedly deny the same groups, copying old patterns and locking out opportunity.",
-        "rationale": "If past approvals were unfair, the model can mirror that and keep doors closed — not just once, but repeatedly."
-    },
-    "College admissions screening": {
-        "q": (
-            "A tool ranks college applicants using past admissions data.\n"
-            "What’s the main fairness risk?"
-        ),
-        "summary": "It can favor the same profiles as before, overlooking great candidates who don’t ‘match’ history.",
-        "a": "It can amplify past preferences and exclude talented students who don’t fit the old mold.",
-        "rationale": "Models trained on biased patterns can miss potential. We need checks to ensure diverse, fair selection."
-    }
-}
+# ============================================================================
+# 7. LEADERBOARD & API LOGIC (Preserved from original)
+# ============================================================================
 
-# --- 7. SLIDE 3 RIPPLE EFFECT SLIDER HELPER ---
-def simulate_ripple_effect_cases(cases_per_year):
-    try:
-        c = float(cases_per_year)
-    except (TypeError, ValueError):
-        c = 0.0
-    c_int = int(c)
-    if c_int <= 0:
-        message = (
-            "If the system isn't used on any cases, its bias can't hurt anyone yet — "
-            "but once it goes live, each biased decision can scale quickly."
-        )
-    elif c_int < 5000:
-        message = (
-            f"Even at <strong>{c_int}</strong> cases per year, a biased model can quietly "
-            "affect hundreds of people over time."
-        )
-    elif c_int < 15000:
-        message = (
-            f"At around <strong>{c_int}</strong> cases per year, a biased model could unfairly label "
-            "thousands of people as 'high risk.'"
-        )
-    else:
-        message = (
-            f"At <strong>{c_int}</strong> cases per year, one flawed algorithm can shape the futures "
-            "of an entire region — turning hidden bias into thousands of unfair decisions."
-        )
-
-    return f"""
-    <div class="hint-box interactive-block">
-        <p style="margin-bottom:4px; font-size:1.05rem;">
-            <strong>Estimated cases processed per year:</strong> {c_int}
-        </p>
-        <p style="margin-bottom:0; font-size:1.05rem;">
-            {message}
-        </p>
-    </div>
-    """
-
-# --- 7b. STATIC SCENARIOS RENDERER (Module 0) ---
-def render_static_scenarios():
-    cards = []
-    for name, cfg in SCENARIO_CONFIG.items():
-        q_html = cfg["q"].replace("\\n", "<br>")
-        cards.append(f"""
-            <div class="hint-box" style="margin-top:12px;">
-                <div style="font-weight:700; font-size:1.05rem;">📘 {name}</div>
-                <p style="margin:8px 0 6px 0;">{q_html}</p>
-                <p style="margin:0;"><strong>Key takeaway:</strong> {cfg["a"]}</p>
-                <p style="margin:6px 0 0 0; color:var(--body-text-color-subdued);">{cfg["f_correct"]}</p>
-            </div>
-        """)
-    return "<div class='interactive-block'>" + "".join(cards) + "</div>"
-
-def render_scenario_card(name: str):
-    cfg = SCENARIO_CONFIG.get(name)
-    if not cfg:
-        return "<div class='hint-box'>Select a scenario to view details.</div>"
-    q_html = cfg["q"].replace("\n", "<br>")
-    return f"""
-    <div class="scenario-box">
-        <h3 class="slide-title" style="font-size:1.4rem; margin-bottom:8px;">📘 {name}</h3>
-        <div class="slide-body">
-            <div class="hint-box">
-                <p style="margin:0 0 6px 0; font-size:1.05rem;">{q_html}</p>
-                <p style="margin:0 0 6px 0;"><strong>Key takeaway:</strong> {cfg['a']}</p>
-                <p style="margin:0; color:var(--body-text-color-subdued);">{cfg['rationale']}</p>
-            </div>
-        </div>
-    </div>
-    """
-
-def render_scenario_buttons():
-    # Stylized, high-contrast buttons optimized for 17–20 age group
-    btns = []
-    for name in SCENARIO_CONFIG.keys():
-        btns.append(gr.Button(
-            value=f"🎯 {name}",
-            variant="primary",
-            elem_classes=["scenario-choice-btn"]
-        ))
-    return btns
-
-# --- 8. LEADERBOARD & API LOGIC ---
 def get_leaderboard_data(client, username, team_name, local_task_list=None, override_score=None):
     try:
         resp = client.list_users(table_id=TABLE_ID, limit=500)
         users = resp.get("users", [])
 
-        # 1. OPTIMISTIC UPDATE
         if override_score is not None:
             found = False
             for u in users:
@@ -1689,7 +1280,6 @@ def get_leaderboard_data(client, username, team_name, local_task_list=None, over
                     {"username": username, "moralCompassScore": override_score, "teamName": team_name}
                 )
 
-        # 2. SORT with new score
         users_sorted = sorted(
             users, key=lambda x: float(x.get("moralCompassScore", 0) or 0), reverse=True
         )
@@ -1740,12 +1330,11 @@ def ensure_table_and_get_data(username, token, team_name, task_list_state=None):
     try:
         client.get_table(TABLE_ID)
     except Exception:
-            # Fallback to alternative table name
-            try:
-                client.get_table(FALLBACK_TABLE_ID)
-                TABLE_ID = FALLBACK_TABLE_ID
-            except Exception:
-                    pass
+        try:
+            client.get_table(FALLBACK_TABLE_ID)
+            TABLE_ID = FALLBACK_TABLE_ID
+        except Exception:
+            pass
     return get_leaderboard_data(client, username, team_name, task_list_state), username
 
 
@@ -1759,7 +1348,6 @@ def trigger_api_update(
 
     acc = float(user_real_accuracy) if user_real_accuracy is not None else 0.0
 
-    # 1. Update Lists
     old_task_list = list(task_list_state) if task_list_state else []
     new_task_list = list(old_task_list)
     if append_task_id and append_task_id not in new_task_list:
@@ -1771,7 +1359,6 @@ def trigger_api_update(
         except Exception:
             pass
 
-    # 2. Write to Server
     tasks_completed = len(new_task_list)
     client.update_moral_compass(
         table_id=TABLE_ID,
@@ -1784,11 +1371,9 @@ def trigger_api_update(
         completed_task_ids=new_task_list,
     )
 
-    # 3. Calculate Scores Locally (Simulate Before/After)
     old_score_calc = acc * (len(old_task_list) / TOTAL_COURSE_TASKS)
     new_score_calc = acc * (len(new_task_list) / TOTAL_COURSE_TASKS)
 
-    # 4. Get Data with Override to force rank re-calculation
     prev_data = get_leaderboard_data(
         client, username, team_name, old_task_list, override_score=old_score_calc
     )
@@ -1798,8 +1383,11 @@ def trigger_api_update(
 
     return prev_data, lb_data, username, new_task_list
 
-# --- 9. SUCCESS MESSAGE RENDERER (approved version) ---
-# --- 8. SUCCESS MESSAGE / DASHBOARD RENDERING ---
+
+# ============================================================================
+# 9. SUCCESS MESSAGE RENDERER
+# ============================================================================
+
 def generate_success_message(prev, curr, specific_text):
     old_score = float(prev.get("score", 0) or 0) if prev else 0.0
     new_score = float(curr.get("score", 0) or 0)
@@ -1808,96 +1396,71 @@ def generate_success_message(prev, curr, specific_text):
     old_rank = prev.get("rank", "–") if prev else "–"
     new_rank = curr.get("rank", "–")
 
-    # Are ranks integers? If yes, we can reason about direction.
     ranks_are_int = isinstance(old_rank, int) and isinstance(new_rank, int)
-    rank_diff = old_rank - new_rank if ranks_are_int else 0  # positive => rank improved
+    rank_diff = old_rank - new_rank if ranks_are_int else 0
 
-    # --- STYLE SELECTION -------------------------------------------------
-    # First-time score: special "on the board" moment
     if old_score == 0 and new_score > 0:
         style_key = "first"
     else:
         if ranks_are_int:
             if rank_diff >= 3:
-                style_key = "major"   # big rank jump
+                style_key = "major"
             elif rank_diff > 0:
-                style_key = "climb"   # small climb
+                style_key = "climb"
             elif diff_score > 0 and new_rank == old_rank:
-                style_key = "solid"   # better score, same rank
+                style_key = "solid"
             else:
-                style_key = "tight"   # leaderboard shifted / no visible rank gain
+                style_key = "tight"
         else:
-            # When we can't trust rank as an int, lean on score change
             style_key = "solid" if diff_score > 0 else "tight"
 
-    # --- TEXT + CTA BY STYLE --------------------------------------------
     card_class = "profile-card success-card"
 
     if style_key == "first":
         card_class += " first-score"
         header_emoji = "🎉"
         header_title = "You're Officially on the Board!"
-        summary_line = (
-            "You just earned your first Moral Compass Score — you're now part of the global rankings."
-        )
-        cta_line = "Scroll down to take your next step and start climbing."
+        summary_line = "You just earned your first Moral Compass Score — you're now part of the global rankings."
+        cta_line = "Keep investigating to climb the leaderboard."
     elif style_key == "major":
         header_emoji = "🔥"
         header_title = "Major Moral Compass Boost!"
-        summary_line = (
-            "Your decision made a big impact — you just moved ahead of other participants."
-        )
-        cta_line = "Scroll down to take on your next challenge and keep the boost going."
+        summary_line = "Your analysis made a big impact — you just moved ahead of other detectives."
+        cta_line = "Continue your investigation to keep the momentum."
     elif style_key == "climb":
         header_emoji = "🚀"
         header_title = "You're Climbing the Leaderboard"
-        summary_line = "Nice work — you edged out a few other participants."
-        cta_line = "Scroll down to continue your investigation and push even higher."
+        summary_line = "Nice work — you edged out other participants."
+        cta_line = "Click NEXT to continue your investigation."
     elif style_key == "tight":
         header_emoji = "📊"
         header_title = "The Leaderboard Is Shifting"
-        summary_line = (
-            "Other teams are moving too. You'll need a few more strong decisions to stand out."
-        )
-        cta_line = "Take on the next question to strengthen your position."
-    else:  # "solid"
+        summary_line = "Other teams are moving too. A few more strong answers will set you apart."
+        cta_line = "Take on the next step to strengthen your position."
+    else:
         header_emoji = "✅"
         header_title = "Progress Logged"
-        summary_line = "Your ethical insight increased your Moral Compass Score."
-        cta_line = "Try the next scenario to break into the next tier."
+        summary_line = "Your sustainability knowledge increased your Moral Compass Score."
+        cta_line = "Try the next step to keep climbing."
 
-    # --- SCORE / RANK LINES ---------------------------------------------
-
-    # First-time: different wording (no previous score)
     if style_key == "first":
         score_line = f"🧭 Score: <strong>{new_score:.3f}</strong>"
-        if ranks_are_int:
-            rank_line = f"🏅 Initial Rank: <strong>#{new_rank}</strong>"
-        else:
-            rank_line = f"🏅 Initial Rank: <strong>#{new_rank}</strong>"
+        rank_line = f"🏅 Initial Rank: <strong>#{new_rank}</strong>"
     else:
         score_line = (
             f"🧭 Score: {old_score:.3f} → <strong>{new_score:.3f}</strong> "
             f"(+{diff_score:.3f})"
         )
-
         if ranks_are_int:
             if old_rank == new_rank:
                 rank_line = f"📊 Rank: <strong>#{new_rank}</strong> (holding steady)"
             elif rank_diff > 0:
-                rank_line = (
-                    f"📈 Rank: #{old_rank} → <strong>#{new_rank}</strong> "
-                    f"(+{rank_diff} places)"
-                )
+                rank_line = f"📈 Rank: #{old_rank} → <strong>#{new_rank}</strong> (+{rank_diff} places)"
             else:
-                rank_line = (
-                    f"🔻 Rank: #{old_rank} → <strong>#{new_rank}</strong> "
-                    f"({rank_diff} places)"
-                )
+                rank_line = f"🔻 Rank: #{old_rank} → <strong>#{new_rank}</strong> ({rank_diff} places)"
         else:
             rank_line = f"📊 Rank: <strong>#{new_rank}</strong>"
 
-    # --- HTML COMPOSITION -----------------------------------------------
     return f"""
     <div class="{card_class}">
         <div class="success-header">
@@ -1905,16 +1468,12 @@ def generate_success_message(prev, curr, specific_text):
                 <div class="success-title">{header_emoji} {header_title}</div>
                 <div class="success-summary">{summary_line}</div>
             </div>
-            <div class="success-delta">
-                +{diff_score:.3f}
-            </div>
+            <div class="success-delta">+{diff_score:.3f}</div>
         </div>
-
         <div class="success-metrics">
             <div class="success-metric-line">{score_line}</div>
             <div class="success-metric-line">{rank_line}</div>
         </div>
-
         <div class="success-body">
             <p class="success-body-text">{specific_text}</p>
             <p class="success-cta">{cta_line}</p>
@@ -1922,7 +1481,11 @@ def generate_success_message(prev, curr, specific_text):
     </div>
     """
 
-# --- 10. DASHBOARD & LEADERBOARD RENDERERS ---
+
+# ============================================================================
+# 10. DASHBOARD & LEADERBOARD RENDERERS
+# ============================================================================
+
 def render_top_dashboard(data, module_id):
     display_score = 0.0
     count_completed = 0
@@ -1934,6 +1497,15 @@ def render_top_dashboard(data, module_id):
         team_rank_display = f"#{data.get('team_rank', '–')}"
         count_completed = len(data.get("completed_task_ids", []) or [])
     progress_pct = min(100, int((count_completed / TOTAL_COURSE_TASKS) * 100))
+
+    # Phase indicator
+    if module_id <= 5:
+        phase_label = "PHASE 1: Personal Impact"
+        phase_color = "#6366f1"
+    else:
+        phase_label = "PHASE 2: Global Scale"
+        phase_color = "#ef4444"
+
     return f"""
     <div class="summary-box">
         <div class="summary-box-inner">
@@ -1954,7 +1526,10 @@ def render_top_dashboard(data, module_id):
                 </div>
             </div>
             <div class="summary-progress">
-                <div class="progress-label">Mission Progress: {progress_pct}%</div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                    <div class="progress-label">Investigation Progress: {progress_pct}%</div>
+                    <div style="font-size:0.75rem; font-weight:700; color:{phase_color}; background:rgba(0,0,0,0.05); padding:2px 8px; border-radius:10px;">{phase_label}</div>
+                </div>
                 <div class="progress-bar-bg">
                     <div class="progress-bar-fill" style="width:{progress_pct}%;"></div>
                 </div>
@@ -2009,7 +1584,7 @@ def render_leaderboard_card(data, username, team_name):
                     <div class='table-container'>
                         <table class='leaderboard-table'>
                             <thead>
-                                <tr><th>Rank</th><th>Agent</th><th style='text-align:right;'>Score 🧭</th></tr>
+                                <tr><th>Rank</th><th>Detective</th><th style='text-align:right;'>Score 🧭</th></tr>
                             </thead>
                             <tbody>{user_rows}</tbody>
                         </table>
@@ -2020,65 +1595,11 @@ def render_leaderboard_card(data, username, team_name):
     </div>
     """
 
-def check_audit_report_selection(selected_biases: List[str]) -> Tuple[str, str]:
-    # Define the correct findings (matching the choices defined in the front-end)
-    CORRECT_FINDINGS = [
-        "Choice A: Punitive Bias (Race): AA defendants were twice as likely to be falsely labeled 'High Risk.'",
-        "Choice B: Generalization (Gender): The model made more False Alarm errors for women than for men.",
-        "Choice C: Leniency Pattern (Race): White defendants who re-offended were more likely to be labeled 'Low Risk.'",
-        "Choice E: Proxy Bias (Geography): Location acted as a proxy, doubling False Alarms in high-density areas.",
-    ]
 
-    # Define the incorrect finding
-    INCORRECT_FINDING = "Choice D: FALSE STATEMENT: The model achieved an equal False Negative Rate (FNR) across all races."
+# ============================================================================
+# 11. CSS
+# ============================================================================
 
-    # Separate correct from incorrect selections
-    correctly_selected = [s for s in selected_biases if s in CORRECT_FINDINGS]
-    incorrectly_selected = [s for s in selected_biases if s == INCORRECT_FINDING]
-
-    # Check if any correct finding was missed
-    missed_correct = [s for s in CORRECT_FINDINGS if s not in selected_biases]
-
-    # --- Generate Feedback ---
-    feedback_html = ""
-    if incorrectly_selected:
-        feedback_html = f"<div class='hint-box' style='border-left:4px solid #ef4444; color:#b91c1c;'>❌ ERROR: The statement '{INCORRECT_FINDING.split(':')[0]}' is NOT a true finding. Check your lab results and try again.</div>"
-    elif missed_correct:
-        feedback_html = f"<div class='hint-box' style='border-left:4px solid #f97316; color:#f97316;'>⚠️ INCOMPLETE: You missed {len(missed_correct)} piece(s) of key evidence. Your final report must be complete.</div>"
-    elif len(selected_biases) == len(CORRECT_FINDINGS):
-        feedback_html = "<div class='hint-box' style='border-left:4px solid #22c55e; color:#16a34a;'>✅ EVIDENCE SECURED: This is a complete and accurate diagnosis of the model's systematic failure.</div>"
-    else:
-        feedback_html = "<div class='hint-box' style='border-left:4px solid var(--color-accent);'>Gathering evidence...</div>"
-
-    # --- Build Markdown Report Preview ---
-    if not correctly_selected:
-        report_markdown = "Select the evidence cards above to start drafting your report. (The draft report will appear here.)"
-    else:
-        lines = []
-        lines.append("### 🧾 Draft Audit Report")
-        lines.append("\n**Findings of Systemic Error:**")
-
-        # Map short findings to the markdown report
-        finding_map = {
-            "Choice A": "Punitive Bias (Race): The model is twice as harsh on AA defendants.",
-            "Choice B": "Generalization (Gender): Higher False Alarm errors for women.",
-            "Choice C": "Leniency Pattern (Race): More missed warnings for White defendants.",
-            "Choice E": "Proxy Bias (Geography): Location acts as a stand-in for race/class.",
-        }
-
-        for i, choice in enumerate(CORRECT_FINDINGS):
-            if choice in correctly_selected:
-                short_key = choice.split(':')[0]
-                lines.append(f"{i+1}. {finding_map[short_key]}")
-
-        if len(correctly_selected) == len(CORRECT_FINDINGS) and not incorrectly_selected:
-             lines.append("\n**CONCLUSION:** The evidence proves the system creates unequal harm and violates Justice & Equity.")
-
-        report_markdown = "\n".join(lines)
-
-    return report_markdown, feedback_html
-
-# --- 11. CSS ---
 css = """
 /* Layout + containers */
 .summary-box {
@@ -2176,7 +1697,7 @@ css = """
 /* Containers */
 .ai-risk-container { margin-top: 16px; padding: 16px; background: var(--body-background-fill); border-radius: 10px; border: 1px solid var(--border-color-primary); }
 
-/* Interactive blocks (text size tuned for 17–20 age group) */
+/* Interactive blocks */
 .interactive-block { font-size: 1.06rem; }
 .interactive-block .hint-box { font-size: 1.02rem; }
 .interactive-text { font-size: 1.06rem; }
@@ -2187,6 +1708,38 @@ css = """
 
 /* Small utility */
 .divider-vertical { width: 1px; height: 48px; background: var(--border-color-primary); opacity: 0.6; }
+
+/* Progress tracker */
+.tracker-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-bottom: 25px;
+  background: var(--background-fill-secondary);
+  padding: 10px 0;
+  border-radius: 8px;
+  border: 1px solid var(--border-color-primary);
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.tracker-step {
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.78rem;
+  padding: 5px 8px;
+  border-radius: 4px;
+  color: var(--body-text-color-subdued);
+  transition: all 0.3s ease;
+}
+.tracker-step.completed {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+.tracker-step.active {
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  box-shadow: 0 0 5px rgba(99, 102, 241, 0.3);
+}
 
 /* Navigation loading overlay */
 #nav-loading-overlay {
@@ -2211,163 +1764,8 @@ css = """
   #nav-loading-overlay { background: rgba(15, 23, 42, 0.9); }
   .nav-spinner { border-color: rgba(148, 163, 184, 0.4); border-top-color: var(--color-accent); }
 }
-/* Add these new classes to your existing CSS block (Section 11) */
 
-/* --- PROGRESS TRACKER STYLES --- */
-.tracker-container {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  margin-bottom: 25px;
-  background: var(--background-fill-secondary);
-  padding: 10px 0;
-  border-radius: 8px;
-  border: 1px solid var(--border-color-primary);
-}
-.tracker-step {
-  text-align: center;
-  font-weight: 700;
-  font-size: 0.85rem;
-  padding: 5px 10px;
-  border-radius: 4px;
-  color: var(--body-text-color-subdued);
-  transition: all 0.3s ease;
-}
-.tracker-step.completed {
-  color: #10b981; /* Green */
-  background: rgba(16, 185, 129, 0.1);
-}
-.tracker-step.active {
-  color: var(--color-accent); /* Primary Hue */
-  background: var(--color-accent-soft);
-  box-shadow: 0 0 5px rgba(99, 102, 241, 0.3);
-}
-
-/* --- FORENSICS TAB STYLES --- */
-.forensic-tabs {
-  display: flex;
-  border-bottom: 2px solid var(--border-color-primary);
-  margin-bottom: 0;
-}
-.tab-label-styled {
-  padding: 10px 15px;
-  cursor: pointer;
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: var(--body-text-color-subdued);
-  border-bottom: 2px solid transparent;
-  margin-bottom: -2px; /* Align with border */
-  transition: color 0.2s ease;
-}
-
-/* Hide the radio buttons */
-.scan-radio { display: none; }
-
-/* Content panel styling */
-.scan-content {
-  background: var(--body-background-fill); /* Light gray or similar */
-  padding: 20px;
-  border-radius: 0 8px 8px 8px;
-  border: 1px solid var(--border-color-primary);
-  min-height: 350px;
-  position: relative;
-}
-
-/* Hide all panes by default */
-.scan-pane { display: none; }
-
-/* Show active tab content */
-#scan-race:checked ~ .scan-content .pane-race,
-#scan-gender:checked ~ .scan-content .pane-gender,
-#scan-age:checked ~ .scan-content .pane-age {
-  display: block;
-}
-
-/* Highlight active tab label */
-#scan-race:checked ~ .forensic-tabs label[for="scan-race"],
-#scan-gender:checked ~ .forensic-tabs label[for="scan-gender"],
-#scan-age:checked ~ .forensic-tabs label[for="scan-age"] {
-  color: var(--color-accent);
-  border-bottom-color: var(--color-accent);
-}
-
-/* Utility for danger color */
-:root {
-    --color-danger-light: rgba(239, 68, 68, 0.1);
-    --color-accent-light: rgba(99, 102, 241, 0.15); /* Reusing accent color for general bars */
-}
-/* --- NEW SELECTORS FOR MODULE 8 (Generalization Scan Lab) --- */
-
-/* Show active tab content in Module 8 */
-#scan-gender-err:checked ~ .scan-content .pane-gender-err,
-#scan-age-err:checked ~ .scan-content .pane-age-err,
-#scan-geo-err:checked ~ .scan-content .pane-geo-err {
-  display: block;
-}
-
-/* Highlight active tab label in Module 8 */
-#scan-gender-err:checked ~ .forensic-tabs label[for="scan-gender-err"],
-#scan-age-err:checked ~ .forensic-tabs label[for="scan-age-err"],
-#scan-geo-err:checked ~ .forensic-tabs label[for="scan-geo-err"] {
-  color: var(--color-accent);
-  border-bottom-color: var(--color-accent);
-}
-
-/* If you used .data-scan-tabs instead of .forensic-tabs in Module 8 HTML,
-   the selectors above need to target the parent container correctly.
-   Assuming you used the structure from the draft: */
-
-.data-scan-tabs input[type="radio"]:checked + .tab-label-styled {
-    color: var(--color-accent);
-    border-bottom-color: var(--color-accent);
-}
-
-.data-scan-tabs .scan-content .scan-pane {
-    display: none;
-}
-.data-scan-tabs #scan-gender-err:checked ~ .scan-content .pane-gender-err,
-.data-scan-tabs #scan-age-err:checked ~ .scan-content .pane-age-err,
-.data-scan-tabs #scan-geo-err:checked ~ .scan-content .pane-geo-err {
-    display: block;
-}
-/* --- DARK MODE TEXT FIXES --- */
-
-/* Class to force dark text on elements inside white/light cards so they stay readable */
-.force-dark-text {
-    color: #1f2937 !important;
-}
-
-/* Adaptive Header Color */
-/* Light Mode Default */
-.header-accent {
-    color: #0c4a6e;
-}
-/* Dark Mode Override (Light Blue) */
-body.dark .header-accent, .dark .header-accent {
-    color: #e0f2fe;
-}
-
-/* Adaptive Red Text for Footers */
-/* Light Mode (Dark Red) */
-.text-danger-adaptive {
-    color: #9f1239;
-}
-/* Dark Mode (Light Pink) */
-body.dark .text-danger-adaptive, .dark .text-danger-adaptive {
-    color: #fda4af;
-}
-
-/* Adaptive Body Red Text */
-/* Light Mode (Darker Red) */
-.text-body-danger-adaptive {
-    color: #881337;
-}
-/* Dark Mode (Lighter Pink) */
-body.dark .text-body-danger-adaptive, .dark .text-body-danger-adaptive {
-    color: #fecdd3;
-}
-
-/* --- COMPACT CTA STYLES FOR QUIZ SLIDES --- */
+/* Points chip + quiz CTA */
 .points-chip {
   display: inline-flex;
   align-items: center;
@@ -2389,16 +1787,28 @@ body.dark .text-body-danger-adaptive, .dark .text-body-danger-adaptive {
   align-items: center;
   flex-wrap: wrap;
 }
-.quiz-submit { 
-  min-width: 200px; 
+.quiz-submit { min-width: 200px; }
+
+/* Ghost journey animation */
+@keyframes ghostFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-/* Hide gradient CTA banners for slides > 0, keep slide 0 Mission CTA */
-.module-container[id^="module-"]:not(#module-0) div[style*="linear-gradient(to right"] {
-  display: none !important;
-}
+.ghost-step { transition: all 0.3s ease; }
+
+/* Usage slider styling */
+.usage-slider { margin-top: -8px !important; }
+.usage-slider .wrap { padding: 0 4px !important; }
+
+/* Guess buttons hover */
+.guess-btn:hover { background: rgba(99,102,241,0.12) !important; border-color: var(--color-accent) !important; }
 """
 
-# --- 12. HELPER: SLIDER FOR MORAL COMPASS SCORE (MODULE 0) ---
+
+# ============================================================================
+# 12. MORAL COMPASS SLIDER HELPER
+# ============================================================================
+
 def simulate_moral_compass_score(acc, progress_pct):
     try:
         acc_val = float(acc)
@@ -2408,44 +1818,21 @@ def simulate_moral_compass_score(acc, progress_pct):
         prog_val = float(progress_pct)
     except (TypeError, ValueError):
         prog_val = 0.0
-
     score = acc_val * (prog_val / 100.0)
     return f"""
     <div class="hint-box interactive-block">
-        <p style="margin-bottom:4px; font-size:1.05rem;">
-            <strong>Your current accuracy (from the leaderboard):</strong> {acc_val:.3f}
-        </p>
-        <p style="margin-bottom:4px; font-size:1.05rem;">
-            <strong>Simulated Ethical Progress %:</strong> {prog_val:.0f}%
-        </p>
-        <p style="margin-bottom:0; font-size:1.08rem;">
-            <strong>Simulated Moral Compass Score:</strong> 🧭 {score:.3f}
-        </p>
+        <p style="margin-bottom:4px; font-size:1.05rem;"><strong>Your accuracy:</strong> {acc_val:.3f}</p>
+        <p style="margin-bottom:4px; font-size:1.05rem;"><strong>Simulated Ethical Progress %:</strong> {prog_val:.0f}%</p>
+        <p style="margin-bottom:0; font-size:1.08rem;"><strong>Simulated Moral Compass Score:</strong> 🧭 {score:.3f}</p>
     </div>
-    /* --- DARK MODE FIXES --- */
-    
-    /* Class to force dark text on elements inside white cards */
-    /* This ensures text inside white boxes stays readable in Dark Mode */
-    .force-dark-text {
-        color: #1f2937 !important;
-    }
-    
-    /* Adaptive header color */
-    /* Default (Light Mode) */
-    .header-accent {
-        color: #0c4a6e;
-    }
-    
-    /* Dark Mode Override */
-    /* Changes header to light blue when Gradio is in Dark Mode */
-    body.dark .header-accent, .dark .header-accent {
-        color: #e0f2fe;
-    }
     """
 
 
-# --- 13. APP FACTORY (APP 1) ---
-def create_bias_detective_en_sustainability_app(theme_primary_hue: str = "indigo"):
+# ============================================================================
+# 13. APP FACTORY
+# ============================================================================
+
+def create_green_detective_en_sustainability_app(theme_primary_hue: str = "indigo"):
     with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
         # States
         username_state = gr.State(value=None)
@@ -2455,7 +1842,7 @@ def create_bias_detective_en_sustainability_app(theme_primary_hue: str = "indigo
         accuracy_state = gr.State(value=0.0)
         task_list_state = gr.State(value=[])
 
-        # --- TOP ANCHOR & LOADING OVERLAY FOR NAVIGATION ---
+        # Top anchor + loading overlay
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
         gr.HTML("<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>Loading...</span></div>")
 
@@ -2470,33 +1857,127 @@ def create_bias_detective_en_sustainability_app(theme_primary_hue: str = "indigo
 
         # --- MAIN APP VIEW ---
         with gr.Column(visible=False) as main_app_col:
-            # Title
-            #gr.Markdown("# 🕵️‍♀️ Bias Detective: Part 1 - Data Forensics")
-
-            # Top summary dashboard (progress bar & score)
+            # Top dashboard
             out_top = gr.HTML()
 
-            # Dynamic modules container
+            with gr.Accordion("How is the Moral Compass Score calculated?", open=False):
+                gr.HTML("""
+                    <div style="padding:12px; font-size:0.92rem; line-height:1.6;">
+                        <div style="font-weight:700; margin-bottom:8px;">Formula:</div>
+                        <div style="background:var(--background-fill-secondary); padding:12px 16px; border-radius:8px; font-family:monospace; font-size:1rem; margin-bottom:10px; border:1px solid var(--border-color-primary);">
+                            Moral Compass Score = Accuracy × (Steps Completed ÷ Total Steps)
+                        </div>
+                        <ul style="margin:0; padding-left:20px;">
+                            <li><strong>Accuracy</strong> — Your model's accuracy score from Activity 4 (0 to 1).</li>
+                            <li><strong>Steps Completed</strong> — How many investigation steps you've answered correctly so far.</li>
+                            <li><strong>Total Steps</strong> — The total number of quiz questions across the investigation (8).</li>
+                        </ul>
+                        <div style="margin-top:10px; padding:8px 12px; background:rgba(99,102,241,0.08); border-radius:6px; font-size:0.88rem;">
+                            Your score increases as you progress through the investigation. A perfect score means high model accuracy <em>and</em> completing all ethical reasoning steps.
+                        </div>
+                    </div>
+                """)
+
+            # Module containers
             module_ui_elements = {}
             quiz_wiring_queue = []
 
-            # --- DYNAMIC MODULE GENERATION ---
             for i, mod in enumerate(MODULES):
                 with gr.Column(
                     elem_id=f"module-{i}",
                     elem_classes=["module-container"],
                     visible=(i == 0),
                 ) as mod_col:
-                    # Core slide HTML
                     gr.HTML(mod["html"])
 
+                    # --- MODULE 1: Interactive Personal Usage Slider ---
+                    if i == 1:
+                        usage_slider = gr.Slider(
+                            minimum=0, maximum=200, value=50, step=5,
+                            label="🎚️ How many AI prompts do YOU send per week? (ChatGPT, image gen, Snapchat AI, voice assistants, autocomplete…)",
+                            elem_classes=["usage-slider"],
+                        )
+                        usage_output = gr.HTML("")
 
+                        def calc_footprint(n_prompts):
+                            charges_week = round(n_prompts * 0.5, 1)
+                            charges_year = round(charges_week * 40, 0)
+                            water_bottles = round(n_prompts / 22.5, 1)
+                            water_year = round(water_bottles * 40, 0)
+                            co2_year_kg = round(n_prompts * 0.003 * 52, 1)  # ~3g CO2 per prompt
 
-                    # --- QUIZ CONTENT FOR MODULES WITH QUIZ_CONFIG ---
+                            bar_pct_energy = min(100, int(charges_week / 50 * 100))
+                            bar_pct_water = min(100, int(water_bottles / 10 * 100))
+
+                            return f"""
+                            <div style="background:#1e293b; color:white; padding:16px 18px; border-radius:12px; margin-top:4px;">
+                                <div style="font-size:0.78rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:10px; text-align:center;">
+                                    📊 YOUR WEEKLY AI FOOTPRINT — {int(n_prompts)} prompts/week
+                                </div>
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                                    <div style="text-align:center; padding:12px; background:rgba(248,113,113,0.12); border-radius:8px;">
+                                        <div style="font-size:0.75rem; color:#94a3b8;">⚡ Energy / week</div>
+                                        <div style="font-size:1.6rem; font-weight:900; color:#f87171;">{charges_week} charges</div>
+                                        <div style="height:6px; background:rgba(255,255,255,0.1); border-radius:3px; margin-top:6px; overflow:hidden;">
+                                            <div style="height:100%; width:{bar_pct_energy}%; background:#f87171; border-radius:3px;"></div>
+                                        </div>
+                                    </div>
+                                    <div style="text-align:center; padding:12px; background:rgba(96,165,250,0.12); border-radius:8px;">
+                                        <div style="font-size:0.75rem; color:#94a3b8;">💧 Water / week</div>
+                                        <div style="font-size:1.6rem; font-weight:900; color:#60a5fa;">{water_bottles} bottles</div>
+                                        <div style="height:6px; background:rgba(255,255,255,0.1); border-radius:3px; margin-top:6px; overflow:hidden;">
+                                            <div style="height:100%; width:{bar_pct_water}%; background:#60a5fa; border-radius:3px;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; padding:10px; background:rgba(250,204,21,0.1); border-radius:8px;">
+                                    <span style="font-size:0.85rem; color:#fbbf24; font-weight:700;">Over one school year (40 weeks):</span>
+                                    <span style="color:white; font-weight:800;"> {int(charges_year)} phone charges</span>
+                                    <span style="color:#94a3b8;"> · </span>
+                                    <span style="color:white; font-weight:800;">{int(water_year)} water bottles evaporated</span>
+                                    <span style="color:#94a3b8;"> · </span>
+                                    <span style="color:white; font-weight:800;">{co2_year_kg} kg CO₂</span>
+                                </div>
+                            </div>
+                            <div style="padding:10px; background:#fef3c7; border-left:3px solid #f59e0b; border-radius:6px; font-size:0.9rem; margin-top:10px;">
+                                <strong>🔑 Key Insight:</strong> Every time you hit "send," somewhere a power plant burns fuel and a cooling tower evaporates water. There is no such thing as a free prompt.
+                            </div>
+                            """
+
+                        usage_slider.change(
+                            fn=calc_footprint,
+                            inputs=[usage_slider],
+                            outputs=[usage_output],
+                        )
+                        # Show default value on load
+                        demo.load(
+                            fn=lambda: calc_footprint(50),
+                            outputs=[usage_output],
+                        )
+
+                    # --- MODULE 7: Personal Audit Textboxes ---
+                    if i == 7:
+                        gr.HTML("<div style='margin-top:10px; font-weight:700; font-size:1rem;'>Type your personal AI audit below:</div>")
+                        audit_tool_1 = gr.Textbox(
+                            label="1. AI tool or habit",
+                            placeholder="e.g. ChatGPT for homework help — Worth it / Debatable / Could skip",
+                            lines=2,
+                        )
+                        audit_tool_2 = gr.Textbox(
+                            label="2. AI tool or habit",
+                            placeholder="e.g. AI image generation for fun — Worth it / Debatable / Could skip",
+                            lines=2,
+                        )
+                        audit_tool_3 = gr.Textbox(
+                            label="3. AI tool or habit",
+                            placeholder="e.g. Voice assistant for reminders — Worth it / Debatable / Could skip",
+                            lines=2,
+                        )
+
+                    # Quiz content
                     if i in QUIZ_CONFIG:
                         q_data = QUIZ_CONFIG[i]
 
-                        # Compact points chip and hint above the question
                         gr.HTML(
                             "<div class='quiz-cta'>"
                             "<span class='points-chip'>🧭 Moral Compass points available</span>"
@@ -2513,32 +1994,26 @@ def create_bias_detective_en_sustainability_app(theme_primary_hue: str = "indigo
                         feedback = gr.HTML("")
                         quiz_wiring_queue.append((i, radio, feedback))
 
-                    # --- NAVIGATION BUTTONS ---
+                    # Navigation buttons
                     with gr.Row():
                         btn_prev = gr.Button("⬅️ Previous", visible=(i > 0))
                         next_label = (
                             "Next ▶️"
                             if i < len(MODULES) - 1
-                            else "🎉 You Have Completed Part 1!! (Please Proceed to the Next Activity)"
+                            else "🎉 Investigation Complete!"
                         )
                         btn_next = gr.Button(next_label, variant="primary")
 
                     module_ui_elements[i] = (mod_col, btn_prev, btn_next)
 
-            # Leaderboard card appears AFTER content & interactions
+            # Leaderboard at bottom
             leaderboard_html = gr.HTML()
 
             # --- WIRING: QUIZ LOGIC ---
             for mod_id, radio_comp, feedback_comp in quiz_wiring_queue:
 
                 def quiz_logic_wrapper(
-                    user,
-                    tok,
-                    team,
-                    acc_val,
-                    task_list,
-                    ans,
-                    mid=mod_id,
+                    user, tok, team, acc_val, task_list, ans, mid=mod_id
                 ):
                     cfg = QUIZ_CONFIG[mid]
                     if ans == cfg["a"]:
@@ -2557,38 +2032,30 @@ def create_bias_detective_en_sustainability_app(theme_primary_hue: str = "indigo
                             gr.update(),
                             gr.update(),
                             "<div class='hint-box' style='border-color:red;'>"
-                            "❌ Incorrect. Review the evidence above.</div>",
+                            "❌ Not quite. Re-read the evidence above and think about what the data specifically shows.</div>",
                             task_list,
                         )
 
                 radio_comp.change(
                     fn=quiz_logic_wrapper,
-                    inputs=[
-                        username_state,
-                        token_state,
-                        team_state,
-                        accuracy_state,
-                        task_list_state,
-                        radio_comp,
-                    ],
+                    inputs=[username_state, token_state, team_state, accuracy_state, task_list_state, radio_comp],
                     outputs=[out_top, leaderboard_html, feedback_comp, task_list_state],
                 )
 
-        # --- GLOBAL LOAD HANDLER ---
-        def handle_load(req: gr.Request):
-            success, user, token = _try_session_based_auth(req)
-            team = "Team-Unassigned"
-            acc = 0.0
-            fetched_tasks: List[str] = []
+        # --- LOAD HANDLER ---
+        def handle_load(request: gr.Request):
+            ok, uname, tok = _try_session_based_auth(request)
+            if ok:
+                best_acc, fetched_team = fetch_user_history(uname, tok)
+                team = "Team-Unassigned"
+                fetched_tasks: List[str] = []
 
-            if success and user and token:
-                acc, fetched_team = fetch_user_history(user, token)
                 os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
                 client = MoralcompassApiClient(
-                    api_base_url=DEFAULT_API_URL, auth_token=token
+                    api_base_url=DEFAULT_API_URL, auth_token=tok
                 )
 
-                # Simple team assignment helper
+                # Resolve team from existing server record
                 def get_or_assign_team(client_obj, username_val):
                     try:
                         user_data = client_obj.get_user(
@@ -2601,7 +2068,7 @@ def create_bias_detective_en_sustainability_app(theme_primary_hue: str = "indigo
                             return user_data["teamName"]
                     return "team-a"
 
-                exist_team = get_or_assign_team(client, user)
+                exist_team = get_or_assign_team(client, uname)
                 if fetched_team != "Team-Unassigned":
                     team = fetched_team
                 elif exist_team != "team-a":
@@ -2609,8 +2076,9 @@ def create_bias_detective_en_sustainability_app(theme_primary_hue: str = "indigo
                 else:
                     team = "team-a"
 
+                # Fetch completedTaskIds from server via get_user()
                 try:
-                    user_stats = client.get_user(table_id=TABLE_ID, username=user)
+                    user_stats = client.get_user(table_id=TABLE_ID, username=uname)
                 except Exception:
                     user_stats = None
 
@@ -2626,9 +2094,9 @@ def create_bias_detective_en_sustainability_app(theme_primary_hue: str = "indigo
                 try:
                     client.update_moral_compass(
                         table_id=TABLE_ID,
-                        username=user,
+                        username=uname,
                         team_name=team,
-                        metrics={"accuracy": acc},
+                        metrics={"accuracy": best_acc},
                         tasks_completed=len(fetched_tasks),
                         total_tasks=TOTAL_COURSE_TASKS,
                         primary_metric="accuracy",
@@ -2639,56 +2107,35 @@ def create_bias_detective_en_sustainability_app(theme_primary_hue: str = "indigo
                     pass
 
                 data, _ = ensure_table_and_get_data(
-                    user, token, team, fetched_tasks
+                    uname, tok, team, fetched_tasks
                 )
                 return (
-                    user,
-                    token,
-                    team,
-                    False,
+                    uname, tok, team, False,
                     render_top_dashboard(data, 0),
-                    render_leaderboard_card(data, user, team),
-                    acc,
-                    fetched_tasks,
+                    render_leaderboard_card(data, uname, team),
+                    best_acc, fetched_tasks,
                     gr.update(visible=False),
                     gr.update(visible=True),
                 )
-
-            # Auth failed / no session
             return (
-                None,
-                None,
-                None,
-                False,
+                None, None, None, False,
                 "<div class='hint-box'>⚠️ Auth Failed. Please launch from the course link.</div>",
-                "",
-                0.0,
-                [],
+                "", 0.0, [],
                 gr.update(visible=False),
                 gr.update(visible=True),
             )
 
-        # Attach load event
         demo.load(
-            handle_load,
-            None,
+            handle_load, None,
             [
-                username_state,
-                token_state,
-                team_state,
-                module0_done,
-                out_top,
-                leaderboard_html,
-                accuracy_state,
-                task_list_state,
-                loader_col,
-                main_app_col,
+                username_state, token_state, team_state, module0_done,
+                out_top, leaderboard_html, accuracy_state, task_list_state,
+                loader_col, main_app_col,
             ],
         )
 
-        # --- JAVASCRIPT HELPER FOR NAVIGATION ---
+        # --- JAVASCRIPT HELPER ---
         def nav_js(target_id: str, message: str) -> str:
-            """Generate JavaScript for smooth navigation with loading overlay."""
             return f"""
             ()=>{{
               try {{
@@ -2722,20 +2169,17 @@ def create_bias_detective_en_sustainability_app(theme_primary_hue: str = "indigo
             }}
             """
 
-        # --- NAVIGATION BETWEEN MODULES ---
+        # --- NAVIGATION ---
         for i in range(len(MODULES)):
             curr_col, prev_btn, next_btn = module_ui_elements[i]
 
-            # Previous button
             if i > 0:
                 prev_col = module_ui_elements[i - 1][0]
                 prev_target_id = f"module-{i-1}"
 
                 def make_prev_handler(p_col, c_col, target_id):
                     def navigate_prev():
-                        # First yield: hide current, show nothing (transition state)
                         yield gr.update(visible=False), gr.update(visible=False)
-                        # Second yield: show previous, hide current
                         yield gr.update(visible=True), gr.update(visible=False)
                     return navigate_prev
 
@@ -2745,7 +2189,6 @@ def create_bias_detective_en_sustainability_app(theme_primary_hue: str = "indigo
                     js=nav_js(prev_target_id, "Loading..."),
                 )
 
-            # Next button
             if i < len(MODULES) - 1:
                 next_col = module_ui_elements[i + 1][0]
                 next_target_id = f"module-{i+1}"
@@ -2759,9 +2202,7 @@ def create_bias_detective_en_sustainability_app(theme_primary_hue: str = "indigo
 
                 def make_nav_generator(c_col, n_col):
                     def navigate_next():
-                        # First yield: hide current, show nothing (transition state)
                         yield gr.update(visible=False), gr.update(visible=False)
-                        # Second yield: hide current, show next
                         yield gr.update(visible=False), gr.update(visible=True)
                     return navigate_next
 
@@ -2778,26 +2219,18 @@ def create_bias_detective_en_sustainability_app(theme_primary_hue: str = "indigo
         return demo
 
 
+# ============================================================================
+# LAUNCH
+# ============================================================================
 
-
-def launch_bias_detective_en_sustainability_app(
+def launch_green_detective_en_sustainability_app(
     share: bool = False,
     server_name: str = "0.0.0.0",
     server_port: int = 8080,
     theme_primary_hue: str = "indigo",
     **kwargs
 ) -> None:
-    """
-    Launch the Bias Detective V2 app.
-
-    Args:
-        share: Whether to create a public link
-        server_name: Server hostname
-        server_port: Server port
-        theme_primary_hue: Primary color hue
-        **kwargs: Additional Gradio launch arguments
-    """
-    app = create_bias_detective_en_sustainability_app(theme_primary_hue=theme_primary_hue)
+    app = create_green_detective_en_sustainability_app(theme_primary_hue=theme_primary_hue)
     app.launch(
         share=share,
         server_name=server_name,
@@ -2806,9 +2239,5 @@ def launch_bias_detective_en_sustainability_app(
     )
 
 
-# ============================================================================
-# Main Entry Point
-# ============================================================================
-
 if __name__ == "__main__":
-    launch_bias_detective_en_app(share=False, debug=True, height=1000)
+    launch_green_detective_en_sustainability_app(share=False, debug=True, height=1000)
