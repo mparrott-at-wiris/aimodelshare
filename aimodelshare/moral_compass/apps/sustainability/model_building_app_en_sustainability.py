@@ -921,18 +921,20 @@ def run_experiment(model_name_key, complexity_level, feature_set, data_size_str,
 
 def on_initial_load(username, token=None, team_name=""):
     _ensure_y_test_loaded()
+    # submission_count is always 0 on load — the limit is per-session, not lifetime.
+    submission_count = 0
     if username:
         stats = _compute_user_stats(username, token)
-        submission_count = stats.get("submission_count", 0)
         best_score = stats.get("best_score", 0.0)
         last_score = stats.get("last_score", 0.0)
         rank = stats.get("rank", 0)
+        has_historical_submissions = stats.get("submission_count", 0) > 0
         initial_ui = compute_rank_settings(submission_count, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE)
     else:
-        submission_count = 0
         best_score = 0.0
         last_score = 0.0
         rank = 0
+        has_historical_submissions = False
         initial_ui = compute_rank_settings(0, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE)
     display_team = team_name if team_name else "Your Team"
     welcome_html = f"<div style='text-align:center; padding:30px 20px;'><h3 style='margin:0 0 8px 0;'>Welcome to <b>{display_team}</b>!</h3><p style='font-size:1.1rem; color:#4b5563; margin:0 0 20px 0;'>Your team is waiting for your help to improve the AI.</p><div style='background:#eff6ff; padding:16px; border-radius:12px; border:2px solid #bfdbfe; display:inline-block;'><p style='margin:0; color:#1e40af; font-weight:bold;'>Click \"Build & Submit Model\" to Start!</p></div></div>"
@@ -942,7 +944,7 @@ def on_initial_load(username, token=None, team_name=""):
             full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
     except Exception:
         full_leaderboard_df = None
-    user_has_submitted = submission_count > 0
+    user_has_submitted = has_historical_submissions
     if not user_has_submitted:
         team_html = welcome_html
         individual_html = "<p style='text-align:center; color:#6b7280; padding-top:40px;'>Submit your model to see where you rank!</p>"
