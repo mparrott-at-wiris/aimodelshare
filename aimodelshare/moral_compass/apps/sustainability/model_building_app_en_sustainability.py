@@ -351,11 +351,11 @@ LEADERBOARD_POLL_SLEEP = 1.0
 MODEL_TYPES = {
     "The Balanced Generalist": {
         "model_builder": lambda: LogisticRegression(max_iter=500, random_state=42, class_weight="balanced"),
-        "card": "A fast, reliable, well-rounded model. Good starting point; less prone to overfitting.",
+        "card": "A fast, reliable, well-rounded model. Good starting point; less prone to memorizing the answers instead of actually learning.",
     },
     "The Rule-Maker": {
         "model_builder": lambda: DecisionTreeClassifier(random_state=42, class_weight="balanced"),
-        "card": "Learns simple 'if/then' rules. Easy to interpret, but can miss subtle patterns.",
+        "card": "Learns simple 'if/then' rules. Easy to understand, but can miss tricky or hidden patterns.",
     },
     "The 'Nearest Neighbor'": {
         "model_builder": lambda: KNeighborsClassifier(),
@@ -363,7 +363,7 @@ MODEL_TYPES = {
     },
     "The Deep Pattern-Finder": {
         "model_builder": lambda: RandomForestClassifier(random_state=42, class_weight="balanced"),
-        "card": "An ensemble of many decision trees. Powerful, can capture deep patterns; watch complexity.",
+        "card": "Combines lots of mini-models that each vote on the answer. Powerful, can capture deep patterns; watch complexity.",
     },
 }
 
@@ -375,15 +375,15 @@ TEAM_NAMES = [
 ]
 
 FEATURE_SET_ALL_OPTIONS = [
-    ("Floor Area (sq ft)", "floor_area"),
+    ("Floor Area — how big the building is (sq ft)", "floor_area"),
     ("Year Built", "year_built"),
-    ("Building Class", "building_class"),
-    ("Facility Type", "facility_type"),
-    ("State Factor", "State_Factor"),
-    ("Year Factor", "Year_Factor"),
-    ("Elevation", "ELEVATION"),
-    ("Heating Degree Days", "heating_degree_days"),
-    ("Cooling Degree Days", "cooling_degree_days"),
+    ("Building Type (office, school, warehouse, etc.)", "building_class"),
+    ("Building Use (hospital, lab, retail, etc.)", "facility_type"),
+    ("Location Info (which state)", "State_Factor"),
+    ("Time Period (which year)", "Year_Factor"),
+    ("Altitude (height above sea level)", "ELEVATION"),
+    ("Cold-Weather Days (days needing heating)", "heating_degree_days"),
+    ("Hot-Weather Days (days needing AC)", "cooling_degree_days"),
     ("Average Annual Temp", "avg_temp"),
     ("January Min Temp", "january_min_temp"),
     ("July Max Temp", "july_max_temp"),
@@ -543,7 +543,7 @@ def _build_skeleton_leaderboard(rows=6, is_team=True, submit_button_label="5. �
 
 
 def build_login_prompt_html():
-    return """<h2 style='color: #111827; margin-top:20px; border-top: 2px solid #e5e7eb; padding-top: 20px;'>🔐 Sign in to submit & rank</h2><div style='margin-top:16px; text-align:left; font-size:1rem; line-height:1.6; color:#374151;'><p style='margin:12px 0;'>This is a preview run only. Sign in to publish your score to the live leaderboard, earn promotions, and contribute team points.</p><p style='margin:12px 0;'><strong>New user?</strong> Create a free account at <a href='https://www.modelshare.ai/login' target='_blank' style='color:#4f46e5; text-decoration:underline;'>modelshare.ai/login</a></p></div>"""
+    return """<h2 style='color: #111827; margin-top:20px; border-top: 2px solid #e5e7eb; padding-top: 20px;'>🔐 Sign in to submit & rank</h2><div style='margin-top:16px; text-align:left; font-size:1rem; line-height:1.6; color:#374151;'><p style='margin:12px 0;'>This is a preview run only. Sign in to publish your score to the live leaderboard, earn rank-ups, and contribute team points.</p><p style='margin:12px 0;'><strong>New user?</strong> Create a free account at <a href='https://www.modelshare.ai/login' target='_blank' style='color:#4f46e5; text-decoration:underline;'>modelshare.ai/login</a></p></div>"""
 
 
 def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_count, is_preview=False, is_pending=False, local_test_accuracy=None):
@@ -554,11 +554,11 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
         if local_test_accuracy is not None and last_score is not None and last_score > 0:
             score_diff = local_test_accuracy - last_score
             if abs(score_diff) < 0.0001:
-                acc_diff_html = "<p style='font-size:1.5rem; font-weight:600; color:#6b7280; margin:0;'>No Change (Provisional)</p>"
+                acc_diff_html = "<p style='font-size:1.5rem; font-weight:600; color:#6b7280; margin:0;'>No Change (Estimated)</p>"
             elif score_diff > 0:
-                acc_diff_html = f"<p style='font-size:1.5rem; font-weight:600; color:#16a34a; margin:0;'>+{(score_diff*100):.2f} (Provisional)</p>"
+                acc_diff_html = f"<p style='font-size:1.5rem; font-weight:600; color:#16a34a; margin:0;'>+{(score_diff*100):.2f} (Estimated)</p>"
             else:
-                acc_diff_html = f"<p style='font-size:1.5rem; font-weight:600; color:#ef4444; margin:0;'>{(score_diff*100):.2f} (Provisional)</p>"
+                acc_diff_html = f"<p style='font-size:1.5rem; font-weight:600; color:#ef4444; margin:0;'>{(score_diff*100):.2f} (Estimated)</p>"
         else:
             acc_diff_html = "<p style='font-size:1.2rem; font-weight:500; color:#6b7280; margin:0;'>Pending leaderboard update...</p>"
         border_color = acc_color
@@ -614,14 +614,14 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
             rank_diff_html = f"<p style='font-size:1.5rem; font-weight:600; color:#ef4444; margin:0;'>Dropped {abs(rank_diff)} spot{'s' if abs(rank_diff) > 1 else ''}</p>"
         else:
             rank_diff_html = f"<p style='font-size:1.5rem; font-weight:600; color:{rank_color}; margin:0;'>No Change</p>"
-    return f"""<div class='kpi-card' style='border-color:{border_color};'><h2 style='color:var(--body-text-color); margin-top:0;'>{title}</h2><div class='kpi-card-body'><div class='kpi-metric-box'><p class='kpi-label'>New Accuracy</p><p class='kpi-score' style='color:{acc_color};'>{acc_text}</p>{acc_diff_html}</div><div class='kpi-metric-box'><p class='kpi-label'>Your Rank</p><p class='kpi-score' style='color:{rank_color};'>{rank_text}</p>{rank_diff_html}</div></div></div>"""
+    return f"""<div class='kpi-card' style='border-color:{border_color};'><h2 style='color:var(--body-text-color); margin-top:0;'>{title}</h2><div class='kpi-card-body'><div class='kpi-metric-box'><p class='kpi-label'>New Accuracy</p><p style='font-size:0.8rem; color:#6b7280; margin:0;'>% of buildings your AI predicted correctly</p><p class='kpi-score' style='color:{acc_color};'>{acc_text}</p>{acc_diff_html}<p style='font-size:0.75rem; color:#9ca3af; margin:8px 0 0;'>Below 60% = Needs Work &middot; 60-70% = Decent &middot; 70-80% = Good &middot; 80%+ = Great</p></div><div class='kpi-metric-box'><p class='kpi-label'>Your Rank</p><p class='kpi-score' style='color:{rank_color};'>{rank_text}</p>{rank_diff_html}</div></div></div>"""
 
 
 def _build_team_html(team_summary_df, team_name):
     if team_summary_df is None or team_summary_df.empty:
         return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>No team submissions yet.</p>"
     normalized_user_team = _normalize_team_name(team_name).lower()
-    header = "<table class='leaderboard-html-table'><thead><tr><th>Rank</th><th>Team</th><th>Best_Score</th><th>Avg_Score</th><th>Submissions</th></tr></thead><tbody>"
+    header = "<table class='leaderboard-html-table'><thead><tr><th>Rank</th><th>Team</th><th>Best Score</th><th>Avg Score</th><th>Submissions</th></tr></thead><tbody>"
     body = ""
     for index, row in team_summary_df.iterrows():
         normalized_row_team = _normalize_team_name(row["Team"]).lower()
@@ -634,7 +634,7 @@ def _build_team_html(team_summary_df, team_name):
 def _build_individual_html(individual_summary_df, username):
     if individual_summary_df is None or individual_summary_df.empty:
         return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>No individual submissions yet.</p>"
-    header = "<table class='leaderboard-html-table'><thead><tr><th>Rank</th><th>Engineer</th><th>Best_Score</th><th>Submissions</th></tr></thead><tbody>"
+    header = "<table class='leaderboard-html-table'><thead><tr><th>Rank</th><th>Engineer</th><th>Best Score</th><th>Submissions</th></tr></thead><tbody>"
     body = ""
     for index, row in individual_summary_df.iterrows():
         is_user = row["Engineer"] == username
@@ -697,11 +697,11 @@ def compute_rank_settings(submission_count, current_model, current_complexity, c
     if submission_count == 0:
         return {"rank_message": "# 🧑\u200d🎓 Rank: Trainee Engineer\n<p style='font-size:24px; line-height:1.4;'>For your first submission, just click the big '🔬 Build & Submit Model' button below!</p>", "model_choices": ["The Balanced Generalist"], "model_value": "The Balanced Generalist", "model_interactive": False, "complexity_max": 3, "complexity_value": min(current_complexity, 3), "feature_set_choices": get_choices_for_rank(0), "feature_set_value": ["floor_area", "year_built", "building_class", "facility_type"], "feature_set_interactive": False, "data_size_choices": ["Small (20%)"], "data_size_value": "Small (20%)", "data_size_interactive": False}
     elif submission_count == 1:
-        return {"rank_message": "# 🎉 Rank Up! Junior Engineer\n<p style='font-size:24px; line-height:1.4;'>New models, data sizes, and data ingredients unlocked!</p>", "model_choices": ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"], "model_value": current_model if current_model in ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"] else "The Balanced Generalist", "model_interactive": True, "complexity_max": 6, "complexity_value": min(current_complexity, 6), "feature_set_choices": get_choices_for_rank(1), "feature_set_value": current_feature_set, "feature_set_interactive": True, "data_size_choices": ["Small (20%)", "Medium (60%)"], "data_size_value": current_data_size if current_data_size in ["Small (20%)", "Medium (60%)"] else "Small (20%)", "data_size_interactive": True}
+        return {"rank_message": "# 🎉 Rank Up! Junior Engineer\n<p style='font-size:24px; line-height:1.4;'>New models, data sizes, and data ingredients (the building facts your AI learns from) unlocked!</p>", "model_choices": ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"], "model_value": current_model if current_model in ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"] else "The Balanced Generalist", "model_interactive": True, "complexity_max": 6, "complexity_value": min(current_complexity, 6), "feature_set_choices": get_choices_for_rank(1), "feature_set_value": current_feature_set, "feature_set_interactive": True, "data_size_choices": ["Small (20%)", "Medium (60%)"], "data_size_value": current_data_size if current_data_size in ["Small (20%)", "Medium (60%)"] else "Small (20%)", "data_size_interactive": True}
     elif submission_count == 2:
-        return {"rank_message": "# 🌟 Rank Up! Senior Engineer\n<p style='font-size:24px; line-height:1.4;'>Strongest Data Ingredients Unlocked!</p>", "model_choices": list(MODEL_TYPES.keys()), "model_value": current_model if current_model in MODEL_TYPES else "The Deep Pattern-Finder", "model_interactive": True, "complexity_max": 8, "complexity_value": min(current_complexity, 8), "feature_set_choices": get_choices_for_rank(2), "feature_set_value": current_feature_set, "feature_set_interactive": True, "data_size_choices": ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"], "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Small (20%)", "data_size_interactive": True}
+        return {"rank_message": "# 🌟 Rank Up! Senior Engineer\n<p style='font-size:24px; line-height:1.4;'>Strongest data ingredients (weather-related building facts) unlocked!</p>", "model_choices": list(MODEL_TYPES.keys()), "model_value": current_model if current_model in MODEL_TYPES else "The Deep Pattern-Finder", "model_interactive": True, "complexity_max": 8, "complexity_value": min(current_complexity, 8), "feature_set_choices": get_choices_for_rank(2), "feature_set_value": current_feature_set, "feature_set_interactive": True, "data_size_choices": ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"], "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Small (20%)", "data_size_interactive": True}
     else:
-        return {"rank_message": "# 👑 Rank: Lead Engineer\n<p style='font-size:24px; line-height:1.4;'>All tools unlocked — optimize freely!</p>", "model_choices": list(MODEL_TYPES.keys()), "model_value": current_model if current_model in MODEL_TYPES else "The Balanced Generalist", "model_interactive": True, "complexity_max": 10, "complexity_value": current_complexity, "feature_set_choices": get_choices_for_rank(3), "feature_set_value": current_feature_set, "feature_set_interactive": True, "data_size_choices": ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"], "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Small (20%)", "data_size_interactive": True}
+        return {"rank_message": "# 👑 Rank: Lead Engineer\n<p style='font-size:24px; line-height:1.4;'>All tools unlocked — experiment with any settings you want!</p>", "model_choices": list(MODEL_TYPES.keys()), "model_value": current_model if current_model in MODEL_TYPES else "The Balanced Generalist", "model_interactive": True, "complexity_max": 10, "complexity_value": current_complexity, "feature_set_choices": get_choices_for_rank(3), "feature_set_value": current_feature_set, "feature_set_interactive": True, "data_size_choices": ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"], "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Small (20%)", "data_size_interactive": True}
 
 
 # ---------------------------------------------------------------------------
@@ -824,7 +824,7 @@ def run_experiment(model_name_key, complexity_level, feature_set, data_size_str,
 
     if playground is None:
         settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
-        error_msg = "<p style='text-align:center; color:red; padding:20px 0;'>Playground not connected. Please try again later.</p>"
+        error_msg = "<p style='text-align:center; color:red; padding:20px 0;'>Can't reach the competition server right now. Try again in a moment.</p>"
         yield {submission_feedback_display: gr.update(value=error_msg, visible=True), submit_button: gr.update(value="🔬 Build & Submit Model", interactive=True), team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True), individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False), last_submission_score_state: last_submission_score, last_rank_state: last_rank, best_score_state: best_score, submission_count_state: submission_count, first_submission_score_state: first_submission_score, rank_message_display: settings["rank_message"], model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]), complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]), feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]), data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]), login_username: gr.update(visible=False), login_password: gr.update(visible=False), login_submit: gr.update(visible=False), login_error: gr.update(visible=False), attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)), was_preview_state: False, kpi_meta_state: {}, last_seen_ts_state: None}
         return
 
@@ -834,7 +834,7 @@ def run_experiment(model_name_key, complexity_level, feature_set, data_size_str,
         feature_tuple = tuple(sorted(feature_set))
         feature_key = ",".join(feature_tuple)
         cache_key = f"{model_name_key}|{complexity_level}|{data_size_str}|{feature_key}"
-        yield {submission_feedback_display: gr.update(value=get_status_html(2, "Loading Predictions", "Fetching precomputed results..."), visible=True), login_error: gr.update(visible=False)}
+        yield {submission_feedback_display: gr.update(value=get_status_html(2, "Loading Predictions", "Looking up your AI's predictions..."), visible=True), login_error: gr.update(visible=False)}
         predictions = get_cached_prediction(cache_key)
         if predictions is None:
             error_html = "<div style='background:#fee2e2; padding:16px; border-radius:8px; border:2px solid #ef4444; color:#991b1b; text-align:center;'><h3 style='margin:0;'>Configuration Not Found</h3><p style='margin:8px 0;'>This combination of settings was not found. Please adjust and try again.</p></div>"
@@ -971,14 +971,14 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     improvement = (best_score - first_score) if (first_score is not None and submissions > 1) else 0.0
     strong_predictors = {"avg_temp", "heating_degree_days", "cooling_degree_days", "january_min_temp"}
     strong_used = [f for f in feature_set if f in strong_predictors]
-    ethical_note = "You unlocked powerful climate predictors. Consider: How does building age and local temperature influence energy efficiency target setting? In the next section we will begin to investigate this question further."
+    ethical_note = "You unlocked powerful weather-related building facts. Consider: How does building age and local temperature influence setting goals for how much energy buildings should use? In the next section we will begin to investigate this question further."
     tip_html = ""
     if submissions < 2:
         tip_html = "<div class='final-conclusion-tip'><b>Tip:</b> Try at least 2-3 submissions changing ONE setting at a time to see clear cause/effect.</div>"
     attempt_cap_html = ""
     if submissions >= ATTEMPT_LIMIT:
         attempt_cap_html = f"<div class='final-conclusion-attempt-cap'><p style='margin:0;'><b>Attempt Limit Reached:</b> You used all {ATTEMPT_LIMIT} allowed attempts. We will open up submissions again after you complete some new activities.</p></div>"
-    return f"""<div class="final-conclusion-root"><h1 class="final-conclusion-title">Engineering Phase Complete</h1><div class="final-conclusion-card"><h2 class="final-conclusion-subtitle">Your Performance Snapshot</h2><ul class="final-conclusion-list"><li>Best Accuracy: {(best_score*100):.2f}%</li><li>Rank Achieved: {'#' + str(rank) if rank > 0 else 'N/A'}</li><li>Submissions Made: {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li><li>Improvement Over First Score: {(improvement*100):+.2f}%</li><li>Tier Progress: {tier_line}</li><li>Strong Predictors Used: {len(strong_used)} ({', '.join(strong_used) if strong_used else 'None yet'})</li></ul>{tip_html}<div class="final-conclusion-ethics"><p style="margin:0;"><b>Ethical Reflection:</b> {ethical_note}</p></div>{attempt_cap_html}<div style="background:rgba(245,158,11,0.1); border:2px solid #f59e0b; padding:18px; border-radius:12px; margin-top:20px;"><p style="margin:0; font-size:1.05rem; line-height:1.5;"><b>Before you celebrate...</b> Every AI model has a cost beyond its accuracy score. In the next activity, we'll measure what your model really cost the environment.</p></div><hr class="final-conclusion-divider" /><div class="final-conclusion-next"><p style="margin:0; font-size:1.1rem; text-align:center;"><b>Next up:</b> You'll discover the hidden environmental cost of the AI model you just built.</p></div></div></div>"""
+    return f"""<div class="final-conclusion-root"><h1 class="final-conclusion-title">Engineering Phase Complete</h1><div class="final-conclusion-card"><h2 class="final-conclusion-subtitle">Your Performance Snapshot</h2><ul class="final-conclusion-list"><li>Best Accuracy: {(best_score*100):.2f}%</li><li>Rank Achieved: {'#' + str(rank) if rank > 0 else 'N/A'}</li><li>Submissions Made: {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li><li>Improvement Over First Score: {(improvement*100):+.2f}%</li><li>Tier Progress: {tier_line}</li><li>Most Helpful Building Facts Used: {len(strong_used)} ({', '.join(strong_used) if strong_used else 'None yet'})</li></ul>{tip_html}<div class="final-conclusion-ethics"><p style="margin:0;"><b>Ethical Reflection:</b> {ethical_note}</p></div>{attempt_cap_html}<div style="background:rgba(245,158,11,0.1); border:2px solid #f59e0b; padding:18px; border-radius:12px; margin-top:20px;"><p style="margin:0; font-size:1.05rem; line-height:1.5;"><b>Before you celebrate...</b> Every AI model has a cost beyond its accuracy score. In the next activity, we'll measure what your model really cost the environment.</p></div><hr class="final-conclusion-divider" /><div class="final-conclusion-next"><p style="margin:0; font-size:1.1rem; text-align:center;"><b>Next up:</b> You'll discover the hidden environmental cost of the AI model you just built.</p></div></div></div>"""
 
 
 def build_conclusion_from_state(best_score, submissions, rank, first_score, feature_set):
@@ -1019,7 +1019,7 @@ MODULES = [
         "html": """
 <div style="padding-top:24px;">
   <h2 style="font-size:24px; font-weight:800; margin:0 0 6px; color:var(--a4-accent);">&#127970; Your Mission</h2>
-  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 20px; line-height:1.6;">You can't audit every building manually. Your AI will predict which buildings waste the most energy using a metric called <strong style="color:var(--a4-warning);">Site EUI</strong>.</p>
+  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 20px; line-height:1.6;">You can't audit every building manually. Your AI will predict which buildings waste the most energy using a metric called <strong style="color:var(--a4-warning);">Site EUI</strong> (Energy Use Intensity &mdash; a score for how much energy a building uses per square foot).</p>
   <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:16px; padding:20px; margin-bottom:16px; box-shadow:0 8px 24px var(--a4-card-shadow);">
     <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--a4-accent); margin-bottom:10px;">// energy usage intensity formula</div>
     <div style="background:var(--a4-formula-bg); border-radius:10px; padding:14px 20px; text-align:center; font-family:'Space Mono',monospace; font-size:15px; color:var(--a4-formula-text); font-weight:700; letter-spacing:1px;">(Electricity + Gas) &divide; Floor Area = EUI</div>
@@ -1087,7 +1087,8 @@ MODULES = [
   <div style="font-size:72px; margin-bottom:16px; animation:a4Pulse 2s ease-in-out infinite;">&#128640;</div>
   <h2 style="font-size:30px; font-weight:800; margin:0 0 12px; background:linear-gradient(135deg,var(--a4-grad-launch-from),var(--a4-grad-launch-to)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">Systems Online</h2>
   <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 8px; line-height:1.6;">You know the mission. You've practiced the controls. Time to build your first model.</p>
-  <p style="color:var(--a4-text-dim); font-size:14px; margin:0 0 28px; line-height:1.6;">Tip: Your first submission uses defaults &mdash; just hit the button! Then experiment to climb the ranks.</p>
+  <p style="color:var(--a4-text-dim); font-size:14px; margin:0 0 12px; line-height:1.6;">Tip: Your first submission uses defaults &mdash; just hit the button! Then experiment to climb the ranks.</p>
+  <p style="color:var(--a4-warning); font-size:14px; font-weight:600; margin:0 0 28px; line-height:1.6;">You have 10 tries to build the best AI you can. Make each one count!</p>
   <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:20px; padding:24px; margin-bottom:24px;">
     <div style="display:flex; justify-content:center; gap:24px; flex-wrap:wrap;">
       <div style="display:flex; align-items:center; gap:8px;"><div style="text-align:center;"><div style="font-size:28px;">&#129504;</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:2px;">Pick a model</div></div><span style="color:var(--a4-text-dim); font-size:18px;">&rarr;</span></div>
@@ -1411,11 +1412,11 @@ function obInitControlExplorer(){
       });
       html+='</div></div>';
     } else if(active==='complexity'){
-      var cDesc=sliderVal<=3?'Conservative \u2014 learns broad patterns. Safe & stable.':sliderVal<=7?'Balanced \u2014 useful patterns without memorizing noise.':'Aggressive \u2014 risks memorizing training data (overfitting!).';
+      var cDesc=sliderVal<=3?'Conservative \u2014 learns broad patterns. Safe & stable.':sliderVal<=7?'Balanced \u2014 useful patterns without memorizing noise.':'Aggressive \u2014 risks memorizing the answers instead of actually learning!';
       var cColor=sliderVal<=3?'var(--a4-success)':sliderVal<=7?'var(--a4-warning)':'var(--a4-error)';
       html='<div class="ob-cpanel"><h4 style="margin:0 0 12px;color:var(--a4-ctrl-complexity);font-size:15px;">\u2699\uFE0F How deeply should your AI learn?</h4><input type="range" min="1" max="10" value="'+sliderVal+'" class="ob-cslider" oninput="window._obSliderVal=Number(this.value);obRefreshCtrl();"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--a4-text-dim);margin-top:4px;"><span>Simple</span><span>Balanced</span><span>Aggressive</span></div><div style="margin-top:12px;padding:10px 14px;border-radius:10px;background:var(--a4-input-bg);border:1px solid var(--a4-border-color);font-size:13px;color:'+cColor+';font-weight:500;line-height:1.5;">Level '+sliderVal+': '+cDesc+'</div></div>';
     } else if(active==='features'){
-      var feats=[{key:'floor_area',name:'Floor Area'},{key:'year_built',name:'Year Built'},{key:'building_class',name:'Building Class'},{key:'facility_type',name:'Facility Type'},{key:'State_Factor',name:'State Factor'},{key:'ELEVATION',name:'Elevation'},{key:'avg_temp',name:'Avg Temp'},{key:'heating_degree_days',name:'Heating Days'}];
+      var feats=[{key:'floor_area',name:'Floor Area'},{key:'year_built',name:'Year Built'},{key:'building_class',name:'Building Type'},{key:'facility_type',name:'Building Use'},{key:'State_Factor',name:'Location Info'},{key:'ELEVATION',name:'Altitude'},{key:'avg_temp',name:'Avg Temp'},{key:'heating_degree_days',name:'Cold-Weather Days'}];
       html='<div class="ob-cpanel"><h4 style="margin:0 0 8px;color:var(--a4-ctrl-features);font-size:15px;">\uD83D\uDCE6 Toggle data ingredients:</h4><div style="display:flex;flex-wrap:wrap;gap:6px;">';
       feats.forEach(function(f){
         var on=selFeats.has(f.key);
@@ -1661,9 +1662,9 @@ def create_model_building_game_en_sustainability_app(theme_primary_hue="indigo")
                         gr.Markdown("---")
 
                         complexity_slider = gr.Slider(
-                            label="2. Model Complexity (1-10)",
+                            label="2. Model Depth (1 = simple rules, 10 = very detailed patterns)",
                             minimum=1, maximum=3, step=1, value=2,
-                            info="Higher values allow deeper pattern learning; very high values may overfit."
+                            info="Low = your AI learns simple, safe rules. High = it tries to learn every tiny detail, but might get confused by noise."
                         )
                         complexity_tooltip = gr.HTML(
                             value="<div style='background:var(--background-fill-secondary); padding:10px 14px; border-radius:8px; border:1px solid var(--border-color-primary); margin-top:4px; font-size:0.9rem;'><b>Level 2:</b> Balanced — your model learns useful patterns without memorizing the data.</div>"

@@ -716,26 +716,26 @@ MODEL_TYPES = {
         "model_builder": lambda: LogisticRegression(
             max_iter=500, random_state=42, class_weight="balanced"
         ),
-        "card": "### ⚖️ The Balanced Generalist\nA reliable, fast **Logistic Regression** model. Works well as a starting point to identify general trends in energy consumption without over-complicating predictions."
+        "card": "### ⚖️ The Balanced Generalist\nA reliable, fast model. Works well as a starting point to identify general trends in energy consumption without memorizing the answers instead of actually learning."
     },
     "The Rule-Maker": {
         "model_builder": lambda: DecisionTreeClassifier(
             random_state=42, class_weight="balanced"
         ),
-        "card": "### 📐 The Rule-Maker\nA **Decision Tree** that creates logical rules (e.g., 'if the building is from before 1950, then...'). Very transparent, but can be too rigid if the data changes significantly."
+        "card": "### 📐 The Rule-Maker\nCreates logical 'if/then' rules (e.g., 'if the building is from before 1950, then...'). Easy to understand, but can miss tricky or hidden patterns."
     },
     "The 'Nearest Neighbor'": {
         "model_builder": lambda: KNeighborsClassifier(),
-        "card": "### 🫂 The 'Nearest Neighbor'\nThis model (**KNN**) looks for similar buildings in the past to predict the future. Excellent for capturing local behaviors, though it requires buildings to be truly comparable."
+        "card": "### 🫂 The 'Nearest Neighbor'\nLooks for similar buildings in the past to predict the future. 'You look like these others; I'll predict like they behave.'"
     },
     "The Deep Pattern-Finder": {
         "model_builder": lambda: RandomForestClassifier(
             random_state=42, class_weight="balanced"
         ),
-        "card": "### 🌲 The Deep Pattern-Finder\nA **Random Forest** that combines hundreds of trees to find subtle patterns. Most powerful for detecting complex energy inefficiencies, but watch out for overfitting."
+        "card": "### 🌲 The Deep Pattern-Finder\nCombines lots of mini-models that each vote on the answer. Most powerful for detecting tricky or hidden patterns, but watch out — it can memorize the answers instead of actually learning."
     },
     "The Majority Vote": {
-        "card": "### 🗳️ The Majority Vote\nAn **Ensemble** model that combines the predictions of the four base models and selects the most frequent one. Often more robust than any single model.",
+        "card": "### 🗳️ The Majority Vote\nCombines the predictions of the four base models and picks the most popular answer. Often more reliable than any single model.",
         "cache_only": True
     }
 }
@@ -751,15 +751,15 @@ CURRENT_TEAM_NAME = random.choice(TEAM_NAMES)
 
 # --- Feature groups for scaffolding ---
 FEATURE_SET_ALL_OPTIONS = [
-    ("Surface Area (sq ft)", "floor_area"),
+    ("Floor Area — how big the building is (sq ft)", "floor_area"),
     ("Year Built", "year_built"),
-    ("Building Class", "building_class"),
-    ("Facility Type", "facility_type"),
-    ("Geographic Zone (State Factor)", "State_Factor"),
-    ("Record Year (Year Factor)", "Year_Factor"),
-    ("Elevation", "ELEVATION"),
-    ("Heating Degree Days", "heating_degree_days"),
-    ("Cooling Degree Days", "cooling_degree_days"),
+    ("Building Type (office, school, warehouse, etc.)", "building_class"),
+    ("Building Use (hospital, lab, retail, etc.)", "facility_type"),
+    ("Location Info (which state)", "State_Factor"),
+    ("Time Period (which year)", "Year_Factor"),
+    ("Altitude (height above sea level)", "ELEVATION"),
+    ("Cold-Weather Days (days needing heating)", "heating_degree_days"),
+    ("Hot-Weather Days (days needing AC)", "cooling_degree_days"),
     ("Annual Avg Temp", "avg_temp"),
     ("January Min Temp", "january_min_temp"),
     ("July Max Temp", "july_max_temp"),
@@ -1100,7 +1100,7 @@ def build_login_prompt_html():
     <div style='margin-top:16px; text-align:left; font-size:1rem; line-height:1.6; color:#374151;'>
         <p style='margin:12px 0;'>
             This is a preview run only. Sign in to publish your score to the live leaderboard, 
-            earn promotions, and contribute team points.
+            earn rank-ups, and contribute team points.
         </p>
         <p style='margin:12px 0;'>
             <strong>New user?</strong> Create a free account at 
@@ -1124,11 +1124,11 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
         if local_test_accuracy is not None and last_score is not None and last_score > 0:
             score_diff = local_test_accuracy - last_score
             if abs(score_diff) < 0.0001:
-                acc_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #6b7280; margin:0;'>No Change (↔) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
+                acc_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #6b7280; margin:0;'>No Change (↔) <span style='font-size: 0.9rem; color: #9ca3af;'>(Estimated)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
             elif score_diff > 0:
-                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>+{(score_diff * 100):.2f} (⬆️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
+                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>+{(score_diff * 100):.2f} (⬆️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Estimated)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
             else:
-                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>{(score_diff * 100):.2f} (⬇️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Provisional)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
+                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>{(score_diff * 100):.2f} (⬇️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Estimated)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
         else:
             # No last score available - just show pending message
             acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Pending leaderboard update...</p>"
@@ -1191,8 +1191,10 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
         <div class='kpi-card-body'>
             <div class='kpi-metric-box'>
                 <p class='kpi-label'>New Accuracy</p>
+                <p style='font-size:0.8rem; color:#6b7280; margin:0;'>% of buildings your AI predicted correctly</p>
                 <p class='kpi-score' style='color: {acc_color};'>{acc_text}</p>
                 {acc_diff_html}
+                <p style='font-size:0.75rem; color:#9ca3af; margin:8px 0 0;'>Below 60% = Needs Work &middot; 60-70% = Decent &middot; 70-80% = Good &middot; 80%+ = Great</p>
             </div>
             <div class='kpi-metric-box'>
                 <p class='kpi-label'>Your Rank</p>
@@ -1222,8 +1224,8 @@ def _build_team_html(team_summary_df, team_name):
             <tr>
                 <th>Rank</th>
                 <th>Team</th>
-                <th>Best_Score</th>
-                <th>Avg_Score</th>
+                <th>Best Score</th>
+                <th>Avg Score</th>
                 <th>Submissions</th>
             </tr>
         </thead>
@@ -1260,7 +1262,7 @@ def _build_individual_html(individual_summary_df, username):
             <tr>
                 <th>Rank</th>
                 <th>Engineer</th>
-                <th>Best_Score</th>
+                <th>Best Score</th>
                 <th>Submissions</th>
             </tr>
         </thead>
@@ -1399,7 +1401,7 @@ def compute_rank_settings(
     data_size_value = current_data_size if current_data_size in all_data_sizes else DEFAULT_DATA_SIZE
 
     return {
-        "rank_message": "# 👑 Rank: Chief Climate Architect\n<p style='font-size:24px; line-height:1.4;'>All tools unlocked — optimize for the planet!</p>",
+        "rank_message": "# 👑 Rank: Chief Climate Architect\n<p style='font-size:24px; line-height:1.4;'>All tools unlocked — experiment with any settings you want!</p>",
         "model_choices": all_models,
         "model_value": model_value,
         "model_interactive": True,
@@ -1767,7 +1769,7 @@ def run_experiment(
              submission_count, model_name_key, complexity_level, feature_set, data_size_str
         )
         
-        error_msg = "<p style='text-align:center; color:red; padding:20px 0;'>Playground not connected. Please try again later.</p>"
+        error_msg = "<p style='text-align:center; color:red; padding:20px 0;'>Can't reach the competition server right now. Try again in a moment.</p>"
         
         error_kpi_meta = {
             "was_preview": False, "preview_score": None, "ready_at_run_start": False,
@@ -1813,7 +1815,7 @@ def run_experiment(
         cache_key = build_cache_key(model_name_key, complexity_level, feature_set, data_size_str)
         
         yield { 
-            submission_feedback_display: gr.update(value=get_status_html(2, "Loading Predictions", "⚡ Fetching precomputed results..."), visible=True),
+            submission_feedback_display: gr.update(value=get_status_html(2, "Loading Predictions", "⚡ Looking up your AI's predictions..."), visible=True),
             login_error: gr.update(visible=False)
         }
         
@@ -3392,9 +3394,9 @@ def create_model_building_game_en_final_sustainability_app(theme_primary_hue: st
                     gr.Markdown("---") # Separator
 
                     complexity_slider = gr.Slider(
-                        label="2. Model Complexity (1–10)",
+                        label="2. Model Depth (1 = simple rules, 10 = very detailed patterns)",
                         minimum=1, maximum=3, step=1, value=2,
-                        info="Higher values allow deeper pattern learning; very high values may overfit."
+                        info="Low = your AI learns simple, safe rules. High = it tries to learn every tiny detail, but might get confused by noise."
                     )
 
                     gr.Markdown("---") # Separator
