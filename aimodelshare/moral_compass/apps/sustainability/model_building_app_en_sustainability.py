@@ -1561,7 +1561,11 @@ def create_model_building_game_en_sustainability_app(theme_primary_hue="indigo")
     global login_username, login_password, login_submit, login_error
     global attempts_tracker_display, team_name_state
 
-    with gr.Blocks() as demo:
+    with gr.Blocks(
+        theme=gr.themes.Soft(primary_hue=theme_primary_hue),
+        css=css,
+        head=HEAD_HTML,
+    ) as demo:
 
         # Top anchor for scroll-to-top
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")

@@ -1526,7 +1526,11 @@ HEAD_HTML = (
 # ============================================================================
 
 def create_fairness_fixer_en_sustainability_app(theme_primary_hue: str = "indigo"):
-    with gr.Blocks() as demo:
+    with gr.Blocks(
+        theme=gr.themes.Soft(primary_hue=theme_primary_hue),
+        css=css,
+        head=HEAD_HTML,
+    ) as demo:
         # States
         username_state = gr.State(value=None)
         token_state = gr.State(value=None)
