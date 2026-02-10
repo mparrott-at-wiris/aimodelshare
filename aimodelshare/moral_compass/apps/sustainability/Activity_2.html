@@ -675,6 +675,63 @@
         .collapsible-content.open {
             max-height: 500px;
         }
+
+        /* Journey Timeline */
+        .journey-timeline {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .journey-node {
+            text-align: center;
+            padding: 12px 16px;
+            border-radius: 12px;
+            min-width: 140px;
+            flex: 1;
+        }
+        .journey-node-complete {
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid var(--success);
+        }
+        .journey-node-current {
+            background: rgba(167, 139, 250, 0.15);
+            border: 2px solid var(--accent);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+        .journey-node-upcoming {
+            background: var(--input-bg);
+            border: 2px dashed var(--border-color);
+            opacity: 0.7;
+        }
+        .journey-node-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+        .journey-node-detail {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+        .journey-arrow {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            padding: 0 4px;
+        }
+
+        /* City context callout */
+        .city-context {
+            background: rgba(167, 139, 250, 0.08);
+            border-left: 3px solid var(--accent);
+            padding: 12px 16px;
+            border-radius: 0 10px 10px 0;
+            margin-bottom: 20px;
+            animation: fadeIn 0.5s ease;
+        }
     </style>
 </head>
 
@@ -700,18 +757,23 @@
                     <h1 style="color: var(--text);">AI INNOVATION GRANT AWARDED</h1>
                 </div>
 
-                <p style="text-align: center; color: var(--text); font-size: 1.1rem;">In Activity 1, your climate investigation proved that <strong>buildings and energy</strong> are among the city's biggest emitters. The City Council was so impressed, they're funding your next move:</p>
+                <div id="grantIntroPersonalized" style="display:none;">
+                    <p style="text-align: center; color: var(--text); font-size: 1.1rem;" id="grantIntroPara"></p>
+                </div>
+                <div id="grantIntroGeneric">
+                    <p style="text-align: center; color: var(--text); font-size: 1.1rem;">Your climate investigation caught the City Council's attention. Now they want to tackle the city's <strong>built environment</strong> — the homes, offices, and public buildings that account for roughly 40% of energy use in most cities. That's where AI can make the biggest difference:</p>
+                </div>
 
                 <div class="grant-box">
                     <div
                         style="color: var(--text-dim); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">
-                        Buildings &amp; Energy Innovation Grant</div>
+                        <span id="grantSectorLabel">Buildings &amp; Energy</span> Innovation Grant</div>
                     <div class="grant-amount">$500,000</div>
-                    <p style="margin-bottom: 0; color: var(--text);">Use AI to find the most energy-wasteful buildings in the city &mdash; before anyone has to inspect them by hand.</p>
+                    <p style="margin-bottom: 0; color: var(--text);">Use AI to find the most energy-wasteful buildings in <span id="grantCityInline">the city</span> &mdash; before anyone has to inspect them by hand.</p>
                 </div>
 
                 <div class="briefing-points">
-                    <div class="briefing-item">
+                    <div class="briefing-item" id="grantBriefingItem">
                         🏢 Your city has thousands of buildings. <span class="highlight-text">Your mission:</span> figure out what data an AI needs to predict which ones waste the most energy.
                     </div>
                 </div>
@@ -724,7 +786,7 @@
             <!-- STEP 1: CONFIRM SECTOR TARGET -->
             <div class="mission-step" id="step-1">
                 <h2>🎯 Step 1: Confirm Sector Target</h2>
-                <p>Based on your investigation in Activity 1 and the grant requirements, we need to pick the sector
+                <p>The grant targets the built environment, but which <em>part</em> of it? We need to pick the sector
                     where <span class="highlight-text">AI can make the most accurate predictions</span>.</p>
 
                 <div
@@ -781,6 +843,10 @@
                     needs specific data inputs. In AI, these inputs are called <span
                         class="highlight-text">"features"</span> &mdash;
                     think of them as clues that help the AI make predictions.</p>
+
+                <div id="buildingStockContext" class="city-context" style="display:none;">
+                    <p style="margin: 0; font-size: 0.95rem; color: var(--text);" id="buildingStockText"></p>
+                </div>
 
                 <p style="color: var(--text); font-weight: 600;">Select the 3 best clues for predicting building
                     energy use:</p>
@@ -929,6 +995,10 @@
                     <div id="dataRequirements" style="font-size: 0.95rem; line-height: 1.8;"></div>
                 </div>
 
+                <div id="impactProjection" class="city-context" style="display:none;">
+                    <p style="margin: 0; font-size: 0.95rem; color: var(--text);" id="impactProjectionText"></p>
+                </div>
+
                 <div class="btn-group">
                     <button class="btn secondary" onclick="goToStep(3)">◀️ BACK</button>
                     <button class="btn" id="btn-search" onclick="searchDatabase()">SEARCH NREL DATABASE</button>
@@ -1016,6 +1086,32 @@
                         </div>
                     </div>
 
+                    <!-- E2-5: Journey Timeline -->
+                    <div id="journeyTimeline" style="margin-top: 20px;">
+                        <div class="journey-timeline">
+                            <div class="journey-node journey-node-complete">
+                                <div style="font-size: 1.3rem;">🔍</div>
+                                <div style="font-weight: 700; color: var(--success); font-size: 0.9rem;">Investigation</div>
+                                <div class="journey-node-label" style="color: var(--success);">✓ Complete</div>
+                                <div class="journey-node-detail" id="timelineCityChoice"></div>
+                            </div>
+                            <div class="journey-arrow">→</div>
+                            <div class="journey-node journey-node-complete">
+                                <div style="font-size: 1.3rem;">🧬</div>
+                                <div style="font-weight: 700; color: var(--success); font-size: 0.9rem;">Data Design</div>
+                                <div class="journey-node-label" style="color: var(--success);">✓ Complete</div>
+                                <div class="journey-node-detail">Features: Floor Area, Weather, Year Built</div>
+                            </div>
+                            <div class="journey-arrow">→</div>
+                            <div class="journey-node journey-node-upcoming">
+                                <div style="font-size: 1.3rem;">🤖</div>
+                                <div style="font-weight: 700; color: var(--text-dim); font-size: 0.9rem;">AI Training</div>
+                                <div class="journey-node-label" style="color: var(--text-dim);">Up Next</div>
+                                <div class="journey-node-detail">Activity 3</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="info-box" style="margin-top: 20px;">
                         <p style="margin-bottom: 0; font-size: 0.95rem; color: var(--text);">
                             <strong>📦 NEXT:</strong> You'll learn how AI actually learns from data &mdash; then build your own model and compete on a live leaderboard.
@@ -1037,6 +1133,7 @@
 
     <script>
         const STORAGE_KEY = 'activity2Progress';
+        const JOURNEY_KEY = 'sustainabilityJourney';
 
         let currentStep = 0;
         let projectData = {
@@ -1048,6 +1145,157 @@
         };
 
         let wrongAttempts = { sector: 0, features: 0 };
+
+        // ——— JOURNEY STATE ———
+        function getJourney() {
+            try {
+                return JSON.parse(localStorage.getItem(JOURNEY_KEY) || '{}');
+            } catch (e) { return {}; }
+        }
+
+        function saveJourneyData() {
+            try {
+                const journey = getJourney();
+                journey.dataDesign = {
+                    selectedFeatures: Array.from(projectData.selectedFeatures),
+                    predictionTarget: projectData.predictionGoal || 'eui'
+                };
+                journey.activity2CompletedAt = new Date().toISOString();
+                localStorage.setItem(JOURNEY_KEY, JSON.stringify(journey));
+            } catch (e) { /* silently continue */ }
+        }
+
+        // ——— CLIMATE ZONE LOOKUP ———
+        const CLIMATE_ZONES = {
+            'chicago': { zone: 'cold', desc: 'harsh winters with significant heating needs' },
+            'new york': { zone: 'cold', desc: 'cold winters and humid summers' },
+            'beijing': { zone: 'cold', desc: 'cold, dry winters and hot summers' },
+            'moscow': { zone: 'cold', desc: 'long, severe winters' },
+            'toronto': { zone: 'cold', desc: 'cold winters with heavy snowfall' },
+            'boston': { zone: 'cold', desc: 'cold winters and mild summers' },
+            'detroit': { zone: 'cold', desc: 'harsh winters and moderate summers' },
+            'minneapolis': { zone: 'cold', desc: 'extremely cold winters' },
+            'denver': { zone: 'cold', desc: 'cold winters and dry climate' },
+            'seoul': { zone: 'cold', desc: 'cold winters and hot, humid summers' },
+            'london': { zone: 'moderate', desc: 'mild, damp climate year-round' },
+            'paris': { zone: 'moderate', desc: 'mild winters and warm summers' },
+            'san francisco': { zone: 'moderate', desc: 'mild, foggy climate' },
+            'seattle': { zone: 'moderate', desc: 'mild, rainy winters' },
+            'portland': { zone: 'moderate', desc: 'mild, wet winters' },
+            'barcelona': { zone: 'moderate', desc: 'mild Mediterranean winters and warm summers' },
+            'madrid': { zone: 'moderate', desc: 'hot summers and cool winters' },
+            'lleida': { zone: 'moderate', desc: 'continental Mediterranean climate with cold winters' },
+            'tarragona': { zone: 'moderate', desc: 'mild Mediterranean climate' },
+            'córdoba': { zone: 'hot', desc: 'extremely hot summers and mild winters' },
+            'sydney': { zone: 'moderate', desc: 'mild winters and warm summers' },
+            'tokyo': { zone: 'moderate', desc: 'humid summers and mild winters' },
+            'los angeles': { zone: 'hot', desc: 'hot, dry summers and mild winters' },
+            'miami': { zone: 'hot', desc: 'hot, humid climate year-round' },
+            'phoenix': { zone: 'hot', desc: 'extreme heat with intense cooling needs' },
+            'houston': { zone: 'hot', desc: 'hot, humid climate with high cooling demands' },
+            'dallas': { zone: 'hot', desc: 'hot summers and mild winters' },
+            'mumbai': { zone: 'hot', desc: 'tropical climate with intense humidity' },
+            'dubai': { zone: 'hot', desc: 'extreme desert heat year-round' },
+            'singapore': { zone: 'hot', desc: 'tropical heat and humidity year-round' },
+            'bangkok': { zone: 'hot', desc: 'tropical climate with constant cooling needs' },
+            'rio de janeiro': { zone: 'hot', desc: 'tropical heat with high humidity' },
+            'cairo': { zone: 'hot', desc: 'hot, arid climate' },
+            'lagos': { zone: 'hot', desc: 'tropical heat and heavy rainfall' },
+            'mexico city': { zone: 'moderate', desc: 'mild climate due to high elevation' },
+        };
+
+        function getCityClimate(cityName) {
+            if (!cityName) return null;
+            const key = cityName.toLowerCase();
+            for (const [city, data] of Object.entries(CLIMATE_ZONES)) {
+                if (key.includes(city) || city.includes(key)) return { city, ...data };
+            }
+            return null;
+        }
+
+        // ——— PERSONALIZATION ———
+        function personalizeFromJourney() {
+            const j = getJourney();
+            const cityName = j?.city?.name;
+            if (!cityName) return;
+
+            const sectorName = j?.topSector?.displayName || 'the top sector';
+            const sectorPct = j?.topSector?.percentage ? j.topSector.percentage.toFixed(1) : null;
+            const topSourceName = j?.topSource?.name || 'the top polluter';
+            const topSourcePct = j?.topSource?.percentOfTotal || null;
+            const totalEmissions = j?.emissions?.total2023 || j?.emissions?.total2022;
+
+            // E2-1: Personalized grant opening
+            document.getElementById('grantIntroGeneric').style.display = 'none';
+            document.getElementById('grantIntroPersonalized').style.display = 'block';
+
+            // Acknowledge Act 1 findings, then pivot cleanly to built environment
+            let introText = `Your investigation of <strong>${cityName}</strong> revealed`;
+            if (sectorPct) {
+                introText += ` that <strong>${sectorName}</strong> is the highest-emitting sector at <strong>${sectorPct}%</strong>`;
+            } else {
+                introText += ` that <strong>${sectorName}</strong> is the biggest emitter`;
+            }
+            if (topSourcePct) {
+                introText += `, with <strong>${topSourceName}</strong> alone responsible for <strong>${topSourcePct}%</strong>`;
+            }
+            introText += `. Your work caught the City Council's attention. Now they want to tackle <strong>${cityName}</strong>'s built environment — the homes, offices, and public buildings that account for roughly 40% of energy use in most cities. That's where AI can make the biggest difference:`;
+
+            document.getElementById('grantIntroPara').innerHTML = introText;
+
+            // Grant box city name
+            document.getElementById('grantCityInline').textContent = cityName;
+
+            // Briefing item — estimate building count from total city emissions
+            // (total emissions / ~50 tonnes avg per building is a rough proxy)
+            const buildingEstimate = totalEmissions
+                ? '~' + Math.round(totalEmissions / 50).toLocaleString()
+                : 'thousands of';
+            document.getElementById('grantBriefingItem').innerHTML =
+                `🏢 <strong>${cityName}</strong> has an estimated <strong>${buildingEstimate}</strong> buildings across its built environment — homes, offices, schools, hospitals. <span class="highlight-text">Your mission:</span> figure out what data an AI needs to predict which ones waste the most energy.`;
+
+            // E2-2: Building stock context (Step 2)
+            const buildingCtx = document.getElementById('buildingStockContext');
+            buildingCtx.style.display = 'block';
+            document.getElementById('buildingStockText').innerHTML =
+                `To predict which of <strong>${cityName}</strong>'s <strong>${buildingEstimate}</strong> buildings are wasting the most energy, your AI needs the right data.`;
+
+            // E2-4: Impact projection (Step 4)
+            // Use ~40% of total city emissions as a proxy for building sector share
+            if (totalEmissions) {
+                const buildingSectorEstimate = Math.round(totalEmissions * 0.4);
+                const tenPctReduction = Math.round(buildingSectorEstimate * 0.1);
+                document.getElementById('impactProjection').style.display = 'block';
+                document.getElementById('impactProjectionText').innerHTML =
+                    `If your AI identifies the worst 10% of buildings, retrofitting them could cut <strong>${cityName}</strong>'s building emissions by <strong>~${tenPctReduction.toLocaleString()} tonnes/year</strong>.`;
+            }
+
+            // E2-5: Journey timeline city choice
+            const timelineEl = document.getElementById('timelineCityChoice');
+            if (timelineEl) {
+                timelineEl.textContent = `City: ${cityName}`;
+            }
+        }
+
+        // ——— E2-3: CITY-SPECIFIC FEATURE FEEDBACK ———
+        function getCityFeatureFeedback(featureId) {
+            const j = getJourney();
+            const cityName = j?.city?.name;
+            if (!cityName) return null;
+
+            const climate = getCityClimate(cityName);
+
+            if (featureId === 'weather' && climate) {
+                return `<strong>${cityName}</strong> has ${climate.desc}. Weather data will help your AI understand seasonal energy spikes.`;
+            }
+            if (featureId === 'floor_area') {
+                return `<strong>${cityName}</strong>'s buildings range from small homes to large commercial towers. Floor area is critical for understanding energy scale.`;
+            }
+            if (featureId === 'year') {
+                return `Many buildings in <strong>${cityName}</strong> were built decades ago with poor insulation. Year built helps the AI identify aging infrastructure.`;
+            }
+            return null;
+        }
 
         // ——— COLLAPSIBLE TOGGLE ———
 
@@ -1070,7 +1318,10 @@
             document.getElementById(`step-${idx}`).classList.add('active');
 
             if (idx === 4) renderDataRequirements();
-            if (idx === 5) renderFinalSummary();
+            if (idx === 5) {
+                renderFinalSummary();
+                saveJourneyData();
+            }
 
             saveProgress();
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1127,6 +1378,9 @@
                 card.classList.remove('selected');
                 const whyDiv = card.querySelector('.feature-why');
                 if (whyDiv) whyDiv.style.display = 'none';
+                // Remove city feedback if any
+                const cityFb = card.querySelector('.city-feature-feedback');
+                if (cityFb) cityFb.remove();
             } else {
                 if (isCorrect) {
                     projectData.selectedFeatures.add(featureId);
@@ -1134,6 +1388,16 @@
                     // Show inline "Why?" feedback on the card
                     const whyDiv = card.querySelector('.feature-why');
                     if (whyDiv) whyDiv.style.display = 'block';
+
+                    // E2-3: City-specific feedback
+                    const cityFb = getCityFeatureFeedback(featureId);
+                    if (cityFb) {
+                        const fbDiv = document.createElement('div');
+                        fbDiv.className = 'city-feature-feedback';
+                        fbDiv.style.cssText = 'font-size:0.85rem; color:var(--accent); margin-top:6px; font-style:italic; animation: fadeIn 0.3s ease;';
+                        fbDiv.innerHTML = cityFb;
+                        card.appendChild(fbDiv);
+                    }
                 } else {
                     // Wrong answer — fade to grey
                     card.classList.add('wrong');
@@ -1275,9 +1539,13 @@
 
             const featureList = features.map(f => `• ${featureLabels[f] || f}`).join('<br>');
 
+            const j = getJourney();
+            const cityName = j?.city?.name;
+            const cityLine = cityName ? ` in <strong>${cityName}</strong>` : '';
+
             const requirements = `
                 <strong style="color: var(--accent);">TARGET SECTOR</strong><br>
-                • Buildings (Homes & Offices)<br><br>
+                • Buildings (Homes & Offices)${cityLine}<br><br>
 
                 <strong style="color: var(--accent);">DATA CLUES (FEATURES)</strong><br>
                 ${featureList}<br><br>
@@ -1289,6 +1557,11 @@
                 • 50,000+ buildings &mdash; enough examples for the AI to learn patterns
             `;
             document.getElementById('dataRequirements').innerHTML = requirements;
+
+            // Show impact projection
+            if (j?.topSector?.emissionsQuantity) {
+                document.getElementById('impactProjection').style.display = 'block';
+            }
         }
 
         function searchDatabase() {
@@ -1342,9 +1615,13 @@
 
             const featureList = features.map(f => featureLabels[f] || f).join(', ');
 
+            const j = getJourney();
+            const cityName = j?.city?.name;
+            const cityLine = cityName ? ` for <strong>${cityName}</strong>` : '';
+
             const summary = `
                 <strong style="color: var(--accent);">SECTOR TARGET</strong><br>
-                • Buildings (Homes & Offices)<br><br>
+                • Buildings (Homes & Offices)${cityLine}<br><br>
 
                 <strong style="color: var(--accent);">DATA CLUES (FEATURES)</strong><br>
                 • ${featureList}<br><br>
@@ -1442,6 +1719,7 @@
         }
 
         // Initialize on page load
+        personalizeFromJourney();
         loadProgress();
     </script>
 </body>

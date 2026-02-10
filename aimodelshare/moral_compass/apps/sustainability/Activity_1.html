@@ -582,10 +582,141 @@
             from { opacity: 0; transform: translateX(-8px); }
             to { opacity: 1; transform: translateX(0); }
         }
+
+        /* Decision Log Badge */
+        .decision-badge {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 100;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px var(--card-shadow);
+            display: none;
+        }
+        .decision-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--card-shadow);
+        }
+        .decision-badge-count {
+            font-weight: 800;
+            color: var(--accent);
+            font-size: 1rem;
+        }
+        .decision-badge-label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .decision-log-panel {
+            position: fixed;
+            top: 70px;
+            right: 16px;
+            z-index: 99;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 20px;
+            width: 320px;
+            max-height: 400px;
+            overflow-y: auto;
+            box-shadow: 0 8px 30px var(--card-shadow);
+            display: none;
+        }
+        .decision-log-panel.open { display: block; animation: fadeIn 0.3s ease; }
+        .decision-log-item {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+        .decision-log-item:last-child { border-bottom: none; }
+        .decision-log-item strong { color: var(--text); }
+
+        /* Families Counter */
+        .families-counter {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* Impact Bars */
+        .impact-bars {
+            margin: 20px 0;
+            animation: fadeIn 0.5s ease;
+        }
+        .impact-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        .impact-bar-label {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            min-width: 60px;
+            text-align: right;
+        }
+        .impact-bar-track {
+            flex: 1;
+            height: 28px;
+            background: var(--input-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        .impact-bar-fill {
+            height: 100%;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: white;
+            transition: width 1.5s ease;
+            width: 0;
+        }
+
+        /* Journey save banner */
+        .journey-save-banner {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(16, 185, 129, 0.15));
+            border: 2px solid var(--success);
+            border-radius: 16px;
+            padding: 25px;
+            margin-top: 20px;
+            text-align: center;
+        }
     </style>
 </head>
 
 <body>
+    <!-- Decision Log Badge -->
+    <div class="decision-badge" id="decisionBadge" onclick="toggleDecisionLog()">
+        <div class="decision-badge-count" id="decisionCount">0/6</div>
+        <div class="decision-badge-label">Decisions</div>
+    </div>
+    <div class="decision-log-panel" id="decisionLogPanel">
+        <h4 style="color: var(--accent); margin-bottom: 12px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Your Investigation Decisions</h4>
+        <div id="decisionLogList">
+            <div style="color: var(--text-dim); font-size: 0.9rem; font-style: italic;">No decisions yet — start your investigation!</div>
+        </div>
+        <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-color); font-size: 0.8rem; color: var(--text-dim);">
+            These decisions will carry forward to Activity 2.
+        </div>
+    </div>
+
     <div class="container">
         <!-- MISSION PROGRESS -->
         <div class="mission-progress">
@@ -719,6 +850,10 @@
                     </div>
                 </div>
                 <div id="emissionsContext" style="text-align:center; color:var(--text-dim); font-size:0.95rem; margin:-15px 0 20px 0; font-style:italic;"></div>
+                <div id="familiesAffected" class="families-counter" style="display:none;">
+                    <p style="margin: 0; color: var(--text);">This pollution affects air quality for roughly <span id="familiesCount" style="font-size: 1.5rem; font-weight: 800; color: var(--success);">0</span> families in <span id="familiesCity" class="highlight-text">your city</span>.</p>
+                    <p style="margin: 5px 0 0; font-size: 0.85rem; color: var(--text-dim); font-style: italic;">Estimated based on average household emissions of 8.1 tonnes/year</p>
+                </div>
                 <div class="quiz">
                     <div class="quiz-title">Checkpoint Question</div>
                     <p style="margin-bottom: 15px; font-size: 1rem;">According to the data, what happened to your city's
@@ -784,6 +919,10 @@
                             <div id="detailPct" style="font-size: 1.5rem; color: var(--accent); font-weight: 800;">-
                             </div>
                         </div>
+                        <div id="sourceProximity" style="grid-column: span 2; display: none; margin-top: 5px; padding: 12px; background: rgba(56, 189, 248, 0.05); border-radius: 8px;">
+                            <div style="color: var(--text-dim); font-size: 0.875rem; text-transform: uppercase;">Location & Impact</div>
+                            <div id="proximityText" style="font-size: 0.95rem; color: var(--text-dim); margin-top: 5px;"></div>
+                        </div>
                     </div>
                 </div>
                 <div class="quiz">
@@ -805,11 +944,28 @@
                         id="topSectorLabel" class="highlight-text">---</span> industry.</p>
 
                 <div class="quiz"
-                    style="background: rgba(56, 189, 248, 0.1); border-color: var(--accent); margin-bottom: 30px;">
+                    style="background: rgba(56, 189, 248, 0.1); border-color: var(--accent); margin-bottom: 15px;">
                     <p style="margin-bottom: 0; color: var(--text);"><strong>What This Means:</strong> If we cut
                         emissions
                         in this industry by half, our whole city's
                         total emissions drop by <strong><span id="dropPct">0</span>%</strong>.</p>
+                </div>
+
+                <div id="impactProjection" class="impact-bars" style="display:none;">
+                    <p style="font-size: 0.95rem; color: var(--text); margin-bottom: 12px; font-weight: 600;">If <span id="impactCityName" class="highlight-text">your city</span> adopted targeted rules:</p>
+                    <div class="impact-bar-row">
+                        <div class="impact-bar-label">Before</div>
+                        <div class="impact-bar-track">
+                            <div id="impactBarBefore" class="impact-bar-fill" style="background: var(--error);"></div>
+                        </div>
+                    </div>
+                    <div class="impact-bar-row">
+                        <div class="impact-bar-label">After</div>
+                        <div class="impact-bar-track">
+                            <div id="impactBarAfter" class="impact-bar-fill" style="background: var(--success);"></div>
+                        </div>
+                    </div>
+                    <p id="impactSummary" style="font-size: 0.95rem; color: var(--text-dim); margin-top: 8px; text-align: center;"></p>
                 </div>
 
                 <div class="quiz">
@@ -879,9 +1035,13 @@
                         <button class="btn secondary" onclick="goToStep(6)">◀️ BACK</button>
                         <button class="btn" style="background: var(--success); cursor:default; opacity:1;" disabled>MISSION COMPLETE ✓</button>
                     </div>
-                    <div style="background:rgba(16,185,129,0.1); border:1px solid var(--success); padding:16px; border-radius:10px; margin-top:16px; text-align:center;">
-                        <p style="margin:0; color:var(--text); font-size:1.05rem;">Mission complete! You've identified your city's biggest emitters. <b>Next up:</b> Buildings account for ~40% of energy use in most cities — you'll design an AI system to predict how much energy buildings use.</p>
+
+                    <div class="journey-save-banner">
+                        <p style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; color: var(--success); font-weight: 800; margin-bottom: 8px;">📡 Data Saved</p>
+                        <p style="font-size: 1.1rem; color: var(--text); margin-bottom: 10px;">Your investigation data for <strong id="endCityName">your city</strong> has been saved.</p>
+                        <p style="font-size: 1.05rem; color: var(--text-dim); margin-bottom: 0;">In the next mission, the City Council will use your findings about <strong id="endTopSource" style="color: var(--accent);">the top polluter</strong> to award a <strong style="color: var(--success);">$500K AI grant</strong>. Your recommendation will shape how the grant is used.</p>
                     </div>
+
                     <div style="margin-top: 16px; text-align:center;">
                         <a href="Activity_2.html" style="display:inline-block; background:linear-gradient(135deg, #a78bfa, #ec4899); color:#f8fafc; border:none; padding:16px 28px; border-radius:12px; font-weight:700; cursor:pointer; transition:all 0.3s ease; text-transform:uppercase; letter-spacing:0.5px; font-size:1rem; text-decoration:none; width:100%; text-align:center;">PROCEED TO ACTIVITY 2 →</a>
                     </div>
@@ -893,6 +1053,7 @@
     <script>
         let autoAdvanceTimer = null;
         let sectorChartInstance = null;
+        const JOURNEY_KEY = 'sustainabilityJourney';
 
         let investigationData = {
             city: null,
@@ -901,6 +1062,85 @@
             topSector: null,
             topSources: []
         };
+
+        // ——— DECISION LOG ———
+        let decisionLog = [];
+
+        function logDecision(action, detail) {
+            decisionLog.push({ action, detail, timestamp: Date.now() });
+            updateDecisionBadge();
+        }
+
+        function updateDecisionBadge() {
+            const badge = document.getElementById('decisionBadge');
+            const totalPossible = 6;
+            badge.style.display = 'block';
+            document.getElementById('decisionCount').textContent = `${decisionLog.length}/${totalPossible}`;
+
+            const listEl = document.getElementById('decisionLogList');
+            if (decisionLog.length === 0) return;
+            listEl.innerHTML = decisionLog.map(d =>
+                `<div class="decision-log-item"><strong>${d.action}:</strong> ${d.detail}</div>`
+            ).join('');
+        }
+
+        function toggleDecisionLog() {
+            document.getElementById('decisionLogPanel').classList.toggle('open');
+        }
+
+        // Close decision log when clicking outside
+        document.addEventListener('click', (e) => {
+            const panel = document.getElementById('decisionLogPanel');
+            const badge = document.getElementById('decisionBadge');
+            if (panel.classList.contains('open') && !panel.contains(e.target) && !badge.contains(e.target)) {
+                panel.classList.remove('open');
+            }
+        });
+
+        // ——— JOURNEY STATE ———
+        function saveJourneyState() {
+            try {
+                const journey = JSON.parse(localStorage.getItem(JOURNEY_KEY) || '{}');
+                journey.version = 1;
+                journey.city = {
+                    id: investigationData.city?.id,
+                    name: investigationData.city?.matchedName,
+                    country: investigationData.city?.country || ''
+                };
+                journey.emissions = {
+                    total2022: investigationData.t21,
+                    total2023: investigationData.t22,
+                    trend: investigationData.t22 > investigationData.t21 ? 'up' : 'down',
+                    trendPct: ((investigationData.t22 - investigationData.t21) / investigationData.t21 * 100).toFixed(1),
+                    carsEquivalent: Math.round(investigationData.t22 / 4600)
+                };
+                if (investigationData.topSector) {
+                    journey.topSector = {
+                        name: investigationData.topSector.sector,
+                        displayName: formatSectorName(investigationData.topSector.sector),
+                        emissionsQuantity: investigationData.topSector.emissionsQuantity,
+                        percentage: investigationData.topSector.percentage,
+                        halfImpactPct: (investigationData.topSector.percentage / 2).toFixed(1)
+                    };
+                }
+                const topSource = investigationData.topSources[0];
+                if (topSource) {
+                    journey.topSource = {
+                        name: topSource.name,
+                        subsector: topSource.subsector,
+                        emissionsQuantity: topSource.emissionsQuantity,
+                        percentOfTotal: ((topSource.emissionsQuantity / investigationData.t22) * 100).toFixed(2),
+                        lat: topSource.centroid?.lat || null,
+                        lon: topSource.centroid?.lon || null
+                    };
+                }
+                journey.impactTracker = {
+                    familiesAffected: Math.round(investigationData.t22 / 8.1),
+                    decisionsLogged: decisionLog
+                };
+                localStorage.setItem(JOURNEY_KEY, JSON.stringify(journey));
+            } catch (e) { /* silently continue */ }
+        }
 
         function formatSectorName(name) {
             return name.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
@@ -912,6 +1152,17 @@
             const cars = Math.round(t22 / 4600).toLocaleString();
             document.getElementById('emissionsContext').innerText =
                 "That's about the same as " + cars + " cars driving for a year.";
+        }
+
+        // ——— E1-1: FAMILIES COUNTER ———
+        function updateFamiliesCounter() {
+            const t22 = investigationData.t22;
+            if (!t22) return;
+            const families = Math.round(t22 / 8.1);
+            const el = document.getElementById('familiesAffected');
+            el.style.display = 'block';
+            document.getElementById('familiesCount').textContent = families.toLocaleString();
+            document.getElementById('familiesCity').textContent = investigationData.city?.matchedName || 'your city';
         }
 
         function initFactScroller() {
@@ -1004,11 +1255,13 @@
                 document.getElementById('locDisplay').innerText = investigationData.city.matchedName;
                 document.getElementById('num21').innerText = Math.round(investigationData.t21).toLocaleString() + " tonnes";
                 document.getElementById('num22').innerText = Math.round(investigationData.t22).toLocaleString() + " tonnes";
+                updateFamiliesCounter();
             }
             if (idx === 3) renderSectorChart();
             if (idx === 4) renderSources();
             if (idx === 5) renderLever();
             if (idx === 6) renderFinalBriefing();
+            if (idx === 7) renderEndScreen();
         }
 
         function selectSuggestedCity(name, cityId) {
@@ -1039,6 +1292,10 @@
                 document.getElementById('num21').innerText = Math.round(investigationData.t21).toLocaleString() + " tonnes";
                 document.getElementById('num22').innerText = Math.round(investigationData.t22).toLocaleString() + " tonnes";
                 updateEmissionsContext();
+                updateFamiliesCounter();
+
+                logDecision('City selected', displayName);
+                saveJourneyState();
 
                 goToStep(2);
             } catch (err) {
@@ -1080,6 +1337,10 @@
                 document.getElementById('num21').innerText = Math.round(investigationData.t21).toLocaleString() + " tonnes";
                 document.getElementById('num22').innerText = Math.round(investigationData.t22).toLocaleString() + " tonnes";
                 updateEmissionsContext();
+                updateFamiliesCounter();
+
+                logDecision('City selected', investigationData.city.matchedName);
+                saveJourneyState();
 
                 goToStep(2);
             } catch (err) {
@@ -1096,6 +1357,8 @@
                 btn.classList.add('correct');
                 document.getElementById('btn-next-2').disabled = false;
                 document.getElementById('step2-success').style.display = 'block';
+                logDecision('Trend identified', type === 'up' ? 'Emissions went UP' : 'Emissions went DOWN');
+                saveJourneyState();
                 autoAdvanceTimer = setTimeout(() => {
                     if (document.getElementById('step-2').classList.contains('active')) goToStep(3);
                     autoAdvanceTimer = null;
@@ -1107,6 +1370,8 @@
         function checkStrategyAnswer(btn, type) {
             if (type === 'correct') {
                 btn.classList.add('correct'); document.getElementById('btn-next-5').disabled = false;
+                logDecision('Strategy chosen', 'Focused rules on biggest polluters');
+                saveJourneyState();
                 autoAdvanceTimer = setTimeout(() => {
                     if (document.getElementById('step-5').classList.contains('active')) goToStep(6);
                     autoAdvanceTimer = null;
@@ -1120,6 +1385,8 @@
             if (sectorName === investigationData.sectors[0].sector) {
                 btn.classList.add('correct');
                 document.getElementById('btn-next-3').disabled = false;
+                logDecision('Top sector identified', formatSectorName(sectorName));
+                saveJourneyState();
             } else {
                 btn.classList.add('wrong');
                 setTimeout(() => btn.classList.remove('wrong'), 1000);
@@ -1128,7 +1395,12 @@
 
         function checkSourceAnswer(btn, key) {
             const topKey = `${investigationData.topSources[0].name}|${investigationData.topSources[0].subsector}`;
-            if (key === topKey) { btn.classList.add('correct'); document.getElementById('btn-next-4').disabled = false; }
+            if (key === topKey) {
+                btn.classList.add('correct');
+                document.getElementById('btn-next-4').disabled = false;
+                logDecision('Top source identified', investigationData.topSources[0].name);
+                saveJourneyState();
+            }
             else { btn.classList.add('wrong'); setTimeout(() => btn.classList.remove('wrong'), 1000); }
         }
 
@@ -1161,6 +1433,7 @@
             });
         }
 
+        // ——— E1-2: POLLUTER PROXIMITY ———
         function showSourceDetails(source) {
             const details = document.getElementById('sourceDetails');
             const pct = (source.emissionsQuantity / investigationData.t22) * 100;
@@ -1168,12 +1441,57 @@
             document.getElementById('detailSector').innerText = formatSectorName(source.subsector);
             document.getElementById('detailAmount').innerText = Math.round(source.emissionsQuantity).toLocaleString() + " tonnes";
             document.getElementById('detailPct').innerText = pct.toFixed(2) + "%";
+
+            // Proximity context
+            const proxEl = document.getElementById('sourceProximity');
+            const proxText = document.getElementById('proximityText');
+            const lat = source.centroid?.lat;
+            const lon = source.centroid?.lon;
+            if (lat && lon) {
+                const estimatedPop = Math.max(1, Math.round(source.emissionsQuantity / 50));
+                const popDisplay = estimatedPop > 1000 ? Math.round(estimatedPop / 1000).toLocaleString() + ' thousand' : estimatedPop.toLocaleString();
+                proxText.innerHTML = `This facility is located at <strong style="color:var(--text);">${lat.toFixed(2)}°, ${lon.toFixed(2)}°</strong>. Approximately <strong style="color:var(--accent);">${popDisplay} people</strong> live within range of its emissions. <span style="font-size:0.85rem; font-style:italic;">(estimated)</span>`;
+                proxEl.style.display = 'block';
+            } else {
+                proxEl.style.display = 'none';
+            }
+
             details.style.display = 'block';
+            logDecision('Source investigated', source.name);
         }
 
+        // ——— E1-3: STRATEGY IMPACT BARS ———
         function renderLever() {
-            document.getElementById('topSectorLabel').innerText = formatSectorName(investigationData.topSector.sector);
-            document.getElementById('dropPct').innerText = (investigationData.topSector.percentage / 2).toFixed(1);
+            const topSector = investigationData.topSector;
+            document.getElementById('topSectorLabel').innerText = formatSectorName(topSector.sector);
+            const halfPct = (topSector.percentage / 2).toFixed(1);
+            document.getElementById('dropPct').innerText = halfPct;
+
+            // Impact projection bars
+            const cityName = investigationData.city?.matchedName || 'your city';
+            document.getElementById('impactCityName').textContent = cityName;
+
+            const totalEmissions = investigationData.t22;
+            const sectorEmissions = topSector.emissionsQuantity;
+            const reduction = sectorEmissions / 2;
+            const afterEmissions = totalEmissions - reduction;
+            const carsRemoved = Math.round(reduction / 4600);
+
+            document.getElementById('impactProjection').style.display = 'block';
+            document.getElementById('impactSummary').innerHTML =
+                `Emissions would drop by <strong style="color:var(--success);">${Math.round(reduction).toLocaleString()} tonnes/year</strong> — equivalent to taking <strong style="color:var(--success);">${carsRemoved.toLocaleString()} cars</strong> off the road.`;
+
+            // Animate bars after a short delay
+            const maxVal = totalEmissions;
+            setTimeout(() => {
+                document.getElementById('impactBarBefore').style.width = '100%';
+                document.getElementById('impactBarBefore').textContent = Math.round(totalEmissions).toLocaleString() + ' t';
+            }, 100);
+            setTimeout(() => {
+                const afterPct = (afterEmissions / maxVal) * 100;
+                document.getElementById('impactBarAfter').style.width = afterPct + '%';
+                document.getElementById('impactBarAfter').textContent = Math.round(afterEmissions).toLocaleString() + ' t';
+            }, 600);
         }
 
         function renderFinalBriefing() {
@@ -1186,6 +1504,13 @@
                 ` the biggest polluters in the <strong>${sectorName}</strong> industry.`;
         }
 
+        function renderEndScreen() {
+            const cityName = investigationData.city?.matchedName || 'your city';
+            const topSourceName = investigationData.topSources?.[0]?.name || 'the top polluter';
+            document.getElementById('endCityName').textContent = cityName;
+            document.getElementById('endTopSource').textContent = topSourceName;
+        }
+
         function completeMission() {
             const strategy = document.getElementById('strategySelect').value;
             const reasoning = document.getElementById('reasoningInput').value.trim();
@@ -1194,6 +1519,22 @@
             const sectorName = formatSectorName(investigationData.topSector.sector);
             const recommendation = `I recommend the city ${strategy} the biggest polluters in the ${sectorName} industry. This is urgent because: ${reasoning}`;
             document.getElementById('displayFinalReflect').innerText = recommendation;
+
+            logDecision('Final recommendation', strategy);
+
+            // Save complete journey state
+            try {
+                const journey = JSON.parse(localStorage.getItem(JOURNEY_KEY) || '{}');
+                journey.strategy = strategy;
+                journey.studentRecommendation = recommendation;
+                journey.activity1CompletedAt = new Date().toISOString();
+                journey.impactTracker = {
+                    familiesAffected: Math.round(investigationData.t22 / 8.1),
+                    decisionsLogged: decisionLog
+                };
+                localStorage.setItem(JOURNEY_KEY, JSON.stringify(journey));
+            } catch (e) { /* silently continue */ }
+
             goToStep(7);
         }
     </script>
