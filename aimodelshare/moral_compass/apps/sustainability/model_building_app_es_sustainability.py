@@ -58,6 +58,8 @@ except ImportError:
         "The 'aimodelshare' library is required. Install with: pip install aimodelshare"
     )
 
+from aimodelshare.moral_compass.apps.sustainability.dataset_path_resolver import get_wids_dataset_path
+
 # -------------------------------------------------------------------------
 # Configuration & Caching Infrastructure
 # -------------------------------------------------------------------------
@@ -108,16 +110,21 @@ def get_cached_prediction(key):
 _Y_TEST = None
 _Y_TEST_LOCK = threading.Lock()
 
-def get_test_labels(csv_path: str = "datasets/recreated_wids_v2_ny_10k.csv") -> pd.Series:
+def get_test_labels(csv_path: Optional[str] = None) -> pd.Series:
     """
     Load test labels from CSV file for local accuracy computation.
     Matches the exact sampling and splitting logic from precompute_wids_cache.py.
     
     Args:
-        csv_path: Path to dataset csv
+        csv_path: Optional path to dataset csv. If not provided, uses get_wids_dataset_path()
+                  to automatically resolve the path.
     Returns:
         pd.Series: Test labels (y_test)
     """
+    # Resolve dataset path if not explicitly provided
+    if csv_path is None:
+        csv_path = get_wids_dataset_path()
+    
     # Load data
     df = pd.read_csv(csv_path)
     
