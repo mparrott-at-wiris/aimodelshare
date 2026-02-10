@@ -54,7 +54,10 @@ CACHE_DB_FILE = "prediction_cache.sqlite"
 
 def get_cached_prediction(key):
     _log(f"CACHE LOOKUP: key={repr(key)}")
-    search_roots = [os.getcwd(), os.path.dirname(os.path.abspath(__file__)), "/app"]
+    search_roots = [
+        os.getcwd(),
+        os.path.dirname(os.path.abspath(__file__)),
+        "/app"]
     db_path = None
     for root in search_roots:
         p = os.path.join(root, CACHE_DB_FILE)
@@ -98,37 +101,57 @@ _Y_TEST = None
 _Y_TEST_LOCK = threading.Lock()
 
 
-_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+# -------------------------------------------------------------------------
+# Lightweight Label Loader (No Training, Only Test Accuracy Computation)
+# -------------------------------------------------------------------------
+_Y_TEST = None
+_Y_TEST_LOCK = threading.Lock()
 
-def get_test_labels(csv_path: str = None) -> pd.Series:
-    if csv_path is None:
-        csv_path = os.path.join(_SCRIPT_DIR, "datasets", "recreated_wids_v2_ny_10k.csv")
+def get_test_labels(csv_path: str = "datasets/recreated_wids_v2_ny_10k.csv") -> pd.Series:
+    """
+    Load test labels from CSV file for local accuracy computation.
+    Matches the exact sampling and splitting logic from precompute_wids_cache.py.
+    
+    Args:
+        csv_path: Path to dataset csv
+    Returns:
+        pd.Series: Test labels (y_test)
+    """
+    # Load data
     df = pd.read_csv(csv_path)
-    if df.shape[0] > 4000:
+    
+    # Sample MAX_ROWS
+    if df.shape[0] > 4000:  # MAX_ROWS = 4000
         df = df.sample(n=4000, random_state=42)
-    all_numeric_cols = [
-        "floor_area", "year_built", "ELEVATION", "heating_degree_days",
-        "cooling_degree_days", "january_min_temp", "july_max_temp",
-        "avg_temp", "april_avg_temp", "october_avg_temp",
-    ]
+    
+    # Extract features and target (matching precompute_wids_cache.py)
+    all_numeric_cols = ["floor_area", "year_built", "ELEVATION", "heating_degree_days", 
+                        "cooling_degree_days", "january_min_temp", "july_max_temp", 
+                        "avg_temp", "april_avg_temp", "october_avg_temp"]
     all_categorical_cols = ["facility_type", "building_class", "State_Factor", "Year_Factor"]
     feature_columns = all_numeric_cols + all_categorical_cols
+    
+    # Ensure all columns exist
     for col in feature_columns:
         if col not in df.columns:
             df[col] = np.nan
+    
     X = df[feature_columns].copy()
     y = df["high_energy_usage"].copy()
+    
+    # Split (matching precompute_wids_cache.py: test_size=0.25, random_state=42, stratify=y)
     _, _, _, y_test = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y)
+    
     return y_test
 
-
 def _ensure_y_test_loaded():
+    """Ensure test labels are loaded into memory (thread-safe, cached)."""
     global _Y_TEST
     with _Y_TEST_LOCK:
         if _Y_TEST is None:
             print("Loading test labels for local accuracy computation...", flush=True)
             _Y_TEST = get_test_labels()
-            print(f"Test labels loaded: {len(_Y_TEST)} samples", flush=True)
+            print(f"✅ Test labels loaded: {len(_Y_TEST)} samples", flush=True)
 
 
 # ---------------------------------------------------------------------------
