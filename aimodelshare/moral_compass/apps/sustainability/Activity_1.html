@@ -914,8 +914,8 @@
             <!-- STEP 1: THE TARGET -->
             <div class="mission-step" id="step-1">
                 <h2>🎯 Step 1: Select Your City</h2>
-                <p>Enter the name of your city to pull up its pollution data from satellite data. For smaller towns, search for
-                    your <span class="highlight-text">Province</span> or <span class="highlight-text">County</span> (the larger region your city is part of).</p>
+                <p>Enter the name of your city to pull up its pollution data from satellite data. For smaller towns, you may need to search for a larger nearby city.</p>
+                <p style="font-size:0.85rem; color:var(--text-dim); margin-top:6px; line-height:1.5;">Results show <strong>Functional Urban Areas</strong> — the city plus its commuting zone, as defined by the EU and OECD. Think of it as the city and the surrounding area people commute from.</p>
                 <div class="input-group">
                     <input type="text" id="cityInput" placeholder="Enter city, province, or county..."
                         onkeypress="if(event.key === 'Enter') startInvestigation()"
@@ -928,6 +928,7 @@
                         <button type="button" class="suggestion-chip" onclick="selectSuggestedCity('Tarragona', 'ghs-fua_4358')">Tarragona</button>
                         <button type="button" class="suggestion-chip" onclick="selectSuggestedCity('Madrid', 'ghs-fua_3147')">Madrid</button>
                         <button type="button" class="suggestion-chip" onclick="selectSuggestedCity('Córdoba', 'ghs-fua_2700')">Córdoba</button>
+                        <button type="button" class="suggestion-chip" onclick="selectAndorra()">Andorra</button>
                         <button type="button" class="suggestion-chip" onclick="selectSuggestedCity('New York', 'ghs-fua_7244')">New York</button>
                         <button type="button" class="suggestion-chip" onclick="selectSuggestedCity('Beijing', 'ghs-fua_7704')">Beijing</button>
                     </div>
@@ -941,6 +942,10 @@
                         <li>Try the province or county name (e.g., "Orange County")</li>
                         <li>Use English city names (e.g., "Munich" not "Munchen")</li>
                     </ul>
+                </div>
+                <div id="cityDisambiguation" style="display:none; margin-top:15px;">
+                    <p style="color:var(--text); font-weight:600; margin-bottom:10px;">Multiple locations found — which one did you mean?</p>
+                    <div id="cityOptions" style="display:flex; flex-direction:column; gap:8px;"></div>
                 </div>
             </div>
 
@@ -1235,6 +1240,26 @@
             topSources: []
         };
 
+        // Hardcoded data for Andorra (no city-level data in Climate TRACE API)
+        const ANDORRA_DATA = {
+            city: { id: 'AND', matchedName: 'Andorra' },
+            t21: 499525,
+            t22: 495643,
+            sectors: [
+                { sector: 'buildings', emissionsQuantity: 56509, percentage: 43.7 },
+                { sector: 'transportation', emissionsQuantity: 51441, percentage: 39.7 },
+                { sector: 'waste', emissionsQuantity: 16958, percentage: 13.1 },
+                { sector: 'forestry-and-land-use', emissionsQuantity: 4537, percentage: 3.5 },
+                { sector: 'agriculture', emissionsQuantity: 10, percentage: 0.0 },
+                { sector: 'power', emissionsQuantity: 0, percentage: 0.0 }
+            ],
+            topSources: [
+                { name: 'Andorra la Vella Parish', subsector: 'residential-onsite-fuel-usage', emissionsQuantity: 22409 },
+                { name: 'Abocador De Terres De Beixalís', subsector: 'solid-waste-disposal', emissionsQuantity: 16958 },
+                { name: 'Sant Julià de Lòria Parish', subsector: 'road-transportation', emissionsQuantity: 10505 }
+            ]
+        };
+
         // ——— DECISION LOG ———
         let decisionLog = [];
 
@@ -1451,6 +1476,33 @@
             startInvestigationById(cityId, name);
         }
 
+        function selectAndorra() {
+            document.getElementById('cityInput').value = 'Andorra';
+            document.getElementById('citySuggestions').style.display = 'none';
+            document.getElementById('searchError').style.display = 'none';
+            document.getElementById('step-1').style.display = 'none';
+            document.getElementById('loader').style.display = 'block';
+
+            investigationData.city = ANDORRA_DATA.city;
+            investigationData.t21 = ANDORRA_DATA.t21;
+            investigationData.t22 = ANDORRA_DATA.t22;
+            investigationData.sectors = ANDORRA_DATA.sectors;
+            investigationData.topSector = ANDORRA_DATA.sectors[0];
+            investigationData.topSources = ANDORRA_DATA.topSources;
+
+            document.getElementById('locDisplay').innerText = 'Andorra';
+            document.getElementById('num21').innerText = Math.round(ANDORRA_DATA.t21).toLocaleString() + " tonnes";
+            document.getElementById('num22').innerText = Math.round(ANDORRA_DATA.t22).toLocaleString() + " tonnes";
+            updateEmissionsContext();
+            updateFamiliesCounter();
+
+            logDecision('City selected', 'Andorra');
+            saveJourneyState();
+
+            document.getElementById('loader').style.display = 'none';
+            goToStep(2);
+        }
+
         async function startInvestigationById(cityId, displayName) {
             const errorBox = document.getElementById('searchError');
             errorBox.style.display = 'none';
@@ -1490,9 +1542,11 @@
         async function startInvestigation() {
             const query = document.getElementById('cityInput').value;
             const errorBox = document.getElementById('searchError');
+            const disambiguationBox = document.getElementById('cityDisambiguation');
             if (!query) return;
 
             errorBox.style.display = 'none';
+            disambiguationBox.style.display = 'none';
             document.getElementById('step-1').style.display = 'none';
             document.getElementById('loader').style.display = 'block';
 
@@ -1500,6 +1554,31 @@
                 const searchRes = await fetch(`https://api.climatetrace.org/v7/cities?name=${encodeURIComponent(query)}`);
                 const cities = await searchRes.json();
                 if (!cities || !cities[0] || cities.status === 404) throw new Error("Not found");
+
+                // Sort so Spain (ESP) results appear first
+                cities.sort((a, b) => (a.country === 'ESP' ? -1 : 1) - (b.country === 'ESP' ? -1 : 1));
+
+                // If multiple results, show disambiguation UI
+                if (cities.length > 1) {
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('step-1').style.display = 'flex';
+                    const optionsContainer = document.getElementById('cityOptions');
+                    optionsContainer.innerHTML = '';
+                    cities.forEach(city => {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'btn';
+                        btn.style.cssText = 'font-size:0.95rem; padding:10px 16px; text-align:left;';
+                        btn.textContent = city.matchedName;
+                        btn.onclick = () => {
+                            disambiguationBox.style.display = 'none';
+                            startInvestigationById(city.id, city.matchedName);
+                        };
+                        optionsContainer.appendChild(btn);
+                    });
+                    disambiguationBox.style.display = 'block';
+                    return;
+                }
 
                 const cityId = cities[0].id;
                 investigationData.city = cities[0];
