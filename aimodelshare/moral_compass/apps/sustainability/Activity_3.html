@@ -662,6 +662,78 @@
             h2 { font-size: 1.5rem; }
             .card { padding: 24px; }
         }
+        /* Reset Controls */
+        .reset-btn {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 100;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            font-family: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px var(--card-shadow);
+        }
+        .reset-btn:hover {
+            color: var(--text);
+            border-color: var(--accent);
+            box-shadow: 0 4px 15px var(--card-shadow);
+        }
+        .reset-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+        .reset-overlay.open { display: flex; }
+        .reset-dialog {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+        .reset-dialog h3 { color: var(--text); margin-bottom: 8px; font-size: 1.1rem; }
+        .reset-dialog p { font-size: 0.95rem; margin-bottom: 20px; }
+        .reset-dialog-actions { display: flex; flex-direction: column; gap: 10px; }
+        .reset-dialog-actions button {
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid var(--border-color);
+            text-align: left;
+            background: var(--input-bg);
+            color: var(--text);
+        }
+        .reset-dialog-actions button:hover { transform: translateY(-1px); }
+        .reset-action-activity:hover { border-color: var(--warning); background: rgba(251, 191, 36, 0.1); }
+        .reset-action-journey:hover { border-color: var(--error); background: rgba(244, 63, 94, 0.1); }
+        .reset-dialog-actions .reset-action-cancel {
+            background: none; color: var(--text-dim); border-color: transparent; text-align: center; font-weight: 400;
+        }
+        .reset-dialog-actions .reset-action-cancel:hover { color: var(--text); background: none; }
     </style>
 </head>
 
@@ -1118,7 +1190,45 @@
         </div><!-- /card -->
     </div><!-- /container -->
 
+    <!-- Reset Controls -->
+    <button class="reset-btn" onclick="showResetDialog()" title="Restart activity">&#x21ba; Restart</button>
+    <div class="reset-overlay" id="resetOverlay" onclick="if(event.target===this)closeResetDialog()">
+        <div class="reset-dialog">
+            <h3>Restart?</h3>
+            <p>Choose what to reset:</p>
+            <div class="reset-dialog-actions">
+                <button class="reset-action-activity" onclick="resetActivity()">
+                    &#x21ba; Restart this activity<br>
+                    <span style="font-weight:400; font-size:0.85rem; color:var(--text-dim);">Clear your progress on this page only</span>
+                </button>
+                <button class="reset-action-journey" onclick="resetJourney()">
+                    &#x27f3; Restart entire journey<br>
+                    <span style="font-weight:400; font-size:0.85rem; color:var(--text-dim);">Clear all activities and start from scratch</span>
+                </button>
+                <button class="reset-action-cancel" onclick="closeResetDialog()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // ===== RESET CONTROLS =====
+        if (new URLSearchParams(location.search).has('reset')) {
+            localStorage.removeItem('activity3Progress');
+            location.href = location.pathname;
+        }
+        function showResetDialog() { document.getElementById('resetOverlay').classList.add('open'); }
+        function closeResetDialog() { document.getElementById('resetOverlay').classList.remove('open'); }
+        function resetActivity() {
+            localStorage.removeItem('activity3Progress');
+            location.reload();
+        }
+        function resetJourney() {
+            localStorage.removeItem('sustainabilityJourney');
+            localStorage.removeItem('activity2Progress');
+            localStorage.removeItem('activity3Progress');
+            location.reload();
+        }
+
         // ===== STATE =====
         let currentStep = 0;
         const state = {
