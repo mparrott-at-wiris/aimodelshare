@@ -592,6 +592,226 @@
             animation: fadeIn 0.5s ease;
         }
 
+        /* DATA REQUEST CARD GRID */
+        .data-req-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .data-req-card {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            animation: fadeIn 0.4s ease;
+        }
+        .data-req-card .card-icon {
+            font-size: 1.8rem;
+        }
+        .data-req-card .card-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--accent);
+        }
+        .data-req-card .card-value {
+            font-size: 1rem;
+            color: var(--text);
+            font-weight: 600;
+        }
+        .feature-chip {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin: 3px 2px;
+        }
+        .feature-chip.chip-floor_area {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        .feature-chip.chip-weather {
+            background: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+        .feature-chip.chip-year {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .feature-chip.chip-elevation {
+            background: rgba(236, 72, 153, 0.15);
+            color: #f472b6;
+            border: 1px solid rgba(236, 72, 153, 0.3);
+        }
+
+        /* Step 5: Wide card variant */
+        .data-req-card.card-wide {
+            grid-column: 1 / -1;
+        }
+
+        /* Step 5: Quiz cards */
+        .quiz-card {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent);
+            border-radius: 14px;
+            padding: 20px 20px 20px 24px;
+            margin-bottom: 16px;
+            text-align: left;
+        }
+        .quiz-card-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+        .quiz-badge {
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--ai-purple), var(--ai-pink));
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Step 5: Celebration card */
+        .celebration-card {
+            background: var(--card-bg);
+            border: 2px solid transparent;
+            border-radius: 18px;
+            padding: 36px 28px;
+            margin-top: 24px;
+            background-clip: padding-box;
+            position: relative;
+        }
+        .celebration-card::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, var(--ai-purple), var(--ai-pink));
+            z-index: -1;
+        }
+        .celebration-card .celebration-icon {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        /* SEARCH PROGRESS */
+        .search-progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--input-bg);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 12px 0 16px;
+        }
+        .search-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--ai-purple), var(--ai-pink));
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        .search-check-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            margin: 6px 0;
+            border-radius: 10px;
+            background: var(--input-bg);
+            font-size: 0.95rem;
+            color: var(--text-dim);
+            opacity: 0;
+            transform: translateX(-8px);
+            transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s ease;
+        }
+        .search-check-row.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .search-check-row.done {
+            background: var(--success-bg);
+            color: var(--success);
+        }
+        .search-check-row .row-icon {
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .search-check-row .row-label {
+            flex: 1;
+        }
+        .search-check-row .row-status {
+            flex-shrink: 0;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        @keyframes scanning {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .scanning-text {
+            animation: scanning 1s ease-in-out infinite;
+            color: var(--accent);
+        }
+
+        /* MATCH RESULT FILE CARD */
+        .match-file-card {
+            background: rgba(16, 185, 129, 0.08);
+            border: 2px solid var(--success);
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+        .match-file-card .record-count {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--success), #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 8px 0;
+        }
+        .match-file-card .record-label {
+            font-size: 0.95rem;
+            color: var(--text-dim);
+            margin-bottom: 16px;
+        }
+        .match-stat-pills {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 16px 0 20px;
+        }
+        .match-stat-pill {
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+        .match-stat-pill strong {
+            color: var(--text);
+        }
+
         .eui-formula {
             font-size: 1.5rem;
             font-weight: 700;
@@ -1284,11 +1504,7 @@
                 <p>Now that you've designed your AI system, you need training data that matches your plan &mdash;
                     enough examples for the AI to learn patterns.</p>
 
-                <div
-                    style="background: rgba(255, 255, 255, 0.05); padding: 25px; border-radius: 16px; margin: 25px 0;">
-                    <h3 style="color: var(--accent); margin-bottom: 15px;">Your Data Requirements</h3>
-                    <div id="dataRequirements" style="font-size: 0.95rem; line-height: 1.8;"></div>
-                </div>
+                <div id="dataRequirements" style="margin: 25px 0;"></div>
 
                 <div id="impactProjection" class="city-context" style="display:none;">
                     <p style="margin: 0; font-size: 0.95rem; color: var(--text);" id="impactProjectionText"></p>
@@ -1296,7 +1512,7 @@
 
                 <div class="btn-group">
                     <button class="btn secondary" onclick="goToStep(3)">◀️ BACK</button>
-                    <button class="btn" id="btn-search" onclick="searchDatabase()">SEARCH NREL DATABASE</button>
+                    <button class="btn" id="btn-search" onclick="searchDatabase()">SEARCH FOR DATA</button>
                 </div>
 
                 <div id="dataSearchProgress" style="display: none; margin-top: 20px;">
@@ -1311,87 +1527,89 @@
                 <div style="text-align: center;">
                     <h2>Almost Done &mdash; Quick Check</h2>
 
-                    <div
-                        style="background: rgba(255, 255, 255, 0.05); padding: 25px; border-radius: 12px; text-align: left; margin-top: 20px;">
-                        <h4 style="color: var(--accent); margin-bottom: 15px;">Your AI System Design</h4>
-                        <div id="finalSummary" style="font-size: 0.9rem; line-height: 1.8;"></div>
+                    <h4 style="color: var(--accent); margin: 20px 0 0; text-align: left;">Your AI System Design</h4>
+                    <div id="finalSummary"></div>
+
+                    <p style="font-size: 0.95rem; color: var(--text); margin: 24px 0 16px; text-align: left;">
+                        <strong>🎓 Answer both to unlock your results:</strong>
+                    </p>
+
+                    <!-- Quiz Question 1 -->
+                    <div class="quiz-card" id="quiz1">
+                        <div class="quiz-card-header">
+                            <span class="quiz-badge">1</span>
+                            <p style="font-size: 0.95rem; color: var(--text); margin: 0;">Why can't cities just send inspectors to every building?</p>
+                        </div>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn secondary" style="flex: 1; padding: 10px; font-size: 0.9rem; text-transform: none;" onclick="answerQuiz(1, 'correct', this)">It would take years</button>
+                            <button class="btn secondary" style="flex: 1; padding: 10px; font-size: 0.9rem; text-transform: none;" onclick="answerQuiz(1, 'wrong', this)">Inspectors aren't allowed inside</button>
+                        </div>
+                        <div id="quiz1Feedback" style="display: none; margin-top: 8px; padding: 8px 12px; border-radius: 8px; font-size: 0.9rem;"></div>
                     </div>
 
-                    <div
-                        style="background: linear-gradient(135deg, rgba(167, 139, 250, 0.1), rgba(236, 72, 153, 0.1)); padding: 20px; border-radius: 12px; margin-top: 20px; border: 1px solid var(--accent);">
-                        <p style="font-size: 0.95rem; color: var(--text); margin-bottom: 15px;">
-                            <strong>🎓 Answer both to unlock your results:</strong>
-                        </p>
-
-                        <!-- Quiz Question 1 -->
-                        <div id="quiz1" style="margin-bottom: 16px;">
-                            <p style="font-size: 0.95rem; color: var(--text); margin-bottom: 10px;">Why can't cities just send inspectors to every building?</p>
-                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                <button class="btn secondary" style="flex: 1; padding: 10px; font-size: 0.9rem; text-transform: none;" onclick="answerQuiz(1, 'correct', this)">It would take years</button>
-                                <button class="btn secondary" style="flex: 1; padding: 10px; font-size: 0.9rem; text-transform: none;" onclick="answerQuiz(1, 'wrong', this)">Inspectors aren't allowed inside</button>
-                            </div>
-                            <div id="quiz1Feedback" style="display: none; margin-top: 8px; padding: 8px 12px; border-radius: 8px; font-size: 0.9rem;"></div>
+                    <!-- Quiz Question 2 -->
+                    <div class="quiz-card" id="quiz2">
+                        <div class="quiz-card-header">
+                            <span class="quiz-badge">2</span>
+                            <p style="font-size: 0.95rem; color: var(--text); margin: 0;">What does EUI measure?</p>
                         </div>
-
-                        <!-- Quiz Question 2 -->
-                        <div id="quiz2" style="margin-bottom: 0;">
-                            <p style="font-size: 0.95rem; color: var(--text); margin-bottom: 10px;">What does EUI measure?</p>
-                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                <button class="btn secondary" style="flex: 1; padding: 10px; font-size: 0.9rem; text-transform: none;" onclick="answerQuiz(2, 'wrong', this)">Total energy</button>
-                                <button class="btn secondary" style="flex: 1; padding: 10px; font-size: 0.9rem; text-transform: none;" onclick="answerQuiz(2, 'correct', this)">Energy per square foot</button>
-                            </div>
-                            <div id="quiz2Feedback" style="display: none; margin-top: 8px; padding: 8px 12px; border-radius: 8px; font-size: 0.9rem;"></div>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn secondary" style="flex: 1; padding: 10px; font-size: 0.9rem; text-transform: none;" onclick="answerQuiz(2, 'wrong', this)">Total energy</button>
+                            <button class="btn secondary" style="flex: 1; padding: 10px; font-size: 0.9rem; text-transform: none;" onclick="answerQuiz(2, 'correct', this)">Energy per square foot</button>
                         </div>
+                        <div id="quiz2Feedback" style="display: none; margin-top: 8px; padding: 8px 12px; border-radius: 8px; font-size: 0.9rem;"></div>
                     </div>
 
                     <!-- Celebration — hidden until both quizzes answered -->
                     <div id="celebrationArea" style="display:none; animation: fadeIn 0.5s ease;">
-                        <div style="margin-top: 24px;">
+                        <div class="celebration-card">
                             <span class="celebration-icon">🏆</span>
-                            <h2 style="color: var(--success);">AI Data Plan Complete!</h2>
-                            <p>Great work! You've designed the data strategy for your building efficiency AI.</p>
+                            <h2 style="color: var(--success); margin-bottom: 8px;">AI Data Plan Complete!</h2>
+                            <p id="celebrationMessage">Great work! You've designed the data strategy for your building efficiency AI.</p>
                         </div>
-                    </div>
 
-                    <!-- E2-5: Journey Timeline -->
-                    <div id="journeyTimeline" style="margin-top: 20px;">
-                        <div class="journey-timeline">
-                            <div class="journey-node journey-node-complete">
-                                <div style="font-size: 1.3rem;">🔍</div>
-                                <div style="font-weight: 700; color: var(--success); font-size: 0.9rem;">Investigation</div>
-                                <div class="journey-node-label" style="color: var(--success);">✓ Complete</div>
-                                <div class="journey-node-detail" id="timelineCityChoice"></div>
-                            </div>
-                            <div class="journey-arrow">→</div>
-                            <div class="journey-node journey-node-complete">
-                                <div style="font-size: 1.3rem;">🧬</div>
-                                <div style="font-weight: 700; color: var(--success); font-size: 0.9rem;">Data Design</div>
-                                <div class="journey-node-label" style="color: var(--success);">✓ Complete</div>
-                                <div class="journey-node-detail">Features: Floor Area, Weather, Year Built</div>
-                            </div>
-                            <div class="journey-arrow">→</div>
-                            <div class="journey-node journey-node-upcoming">
-                                <div style="font-size: 1.3rem;">🤖</div>
-                                <div style="font-weight: 700; color: var(--text-dim); font-size: 0.9rem;">AI Training</div>
-                                <div class="journey-node-label" style="color: var(--text-dim);">Up Next</div>
-                                <div class="journey-node-detail">Activity 3</div>
+                        <!-- E2-5: Journey Timeline -->
+                        <div id="journeyTimeline" style="margin-top: 20px;">
+                            <div class="journey-timeline">
+                                <div class="journey-node journey-node-complete">
+                                    <div style="font-size: 1.3rem;">🔍</div>
+                                    <div style="font-weight: 700; color: var(--success); font-size: 0.9rem;">Investigation</div>
+                                    <div class="journey-node-label" style="color: var(--success);">✓ Complete</div>
+                                    <div class="journey-node-detail" id="timelineCityChoice"></div>
+                                </div>
+                                <div class="journey-arrow">→</div>
+                                <div class="journey-node journey-node-complete">
+                                    <div style="font-size: 1.3rem;">🧬</div>
+                                    <div style="font-weight: 700; color: var(--success); font-size: 0.9rem;">Data Design</div>
+                                    <div class="journey-node-label" style="color: var(--success);">✓ Complete</div>
+                                    <div class="journey-node-detail">Features: Floor Area, Weather, Year Built</div>
+                                </div>
+                                <div class="journey-arrow">→</div>
+                                <div class="journey-node journey-node-upcoming">
+                                    <div style="font-size: 1.3rem;">🤖</div>
+                                    <div style="font-weight: 700; color: var(--text-dim); font-size: 0.9rem;">AI Training</div>
+                                    <div class="journey-node-label" style="color: var(--text-dim);">Up Next</div>
+                                    <div class="journey-node-detail">Activity 3</div>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="info-box" style="margin-top: 20px;">
-                        <p style="margin-bottom: 0; font-size: 0.95rem; color: var(--text);">
-                            <strong>📦 NEXT:</strong> You'll learn how AI actually learns from data &mdash; then build your own model and compete on a live leaderboard.
-                        </p>
+                        <div class="info-box" style="margin-top: 20px;">
+                            <p style="margin-bottom: 0; font-size: 0.95rem; color: var(--text);">
+                                <strong>📦 NEXT:</strong> You'll learn how AI actually learns from data &mdash; then build your own model and compete on a live leaderboard.
+                            </p>
+                        </div>
+
+                        <div class="btn-group" style="margin-top: 30px; justify-content: center;">
+                            <button class="btn complete">ACTIVITY 2 COMPLETE ✓</button>
+                        </div>
+                        <div style="margin-top: 16px; text-align:center;">
+                            <a href="Activity_3.html" class="btn-link" style="width: 100%; display: block;">PROCEED TO ACTIVITY 3 →</a>
+                        </div>
                     </div>
 
                     <div class="btn-group" style="margin-top: 30px; justify-content: center;">
                         <button class="btn secondary" onclick="goToStep(4)">◀️ BACK</button>
-                        <button class="btn complete">ACTIVITY 2 COMPLETE ✓</button>
-                    </div>
-                    <div style="margin-top: 16px; text-align:center;">
-                        <a href="Activity_3.html" class="btn-link" style="width: 100%; display: block;">PROCEED TO
-                            ACTIVITY 3 →</a>
                     </div>
                 </div>
             </div>
@@ -1977,36 +2195,59 @@
         function renderDataRequirements() {
             const features = Array.from(projectData.selectedFeatures);
             const featureLabels = {
-                'floor_area': 'Building Floor Area (sqft)',
-                'weather': 'Weather Data (temperature, climate)',
-                'elevation': 'Elevation (altitude above sea level)',
-                'year': 'Year Built (building age)'
+                'floor_area': 'Floor Area',
+                'weather': 'Weather',
+                'elevation': 'Elevation',
+                'year': 'Year Built'
             };
-
-            const featureList = features.map(f => `• ${featureLabels[f] || f}`).join('<br>');
 
             const j = getJourney();
             const cityName = j?.city?.name;
-            const cityLine = cityName ? ` in <strong>${cityName}</strong>` : '';
+            const cityDisplay = cityName || 'your city';
 
-            const requirements = `
-                <strong style="color: var(--accent);">FOCUS AREA</strong><br>
-                • Buildings (Homes & Offices)${cityLine}<br><br>
+            // Build feature chips
+            const chips = features.map(f =>
+                `<span class="feature-chip chip-${f}">${featureLabels[f] || f}</span>`
+            ).join('');
+            const chipsHtml = chips || '<span style="color: var(--text-dim); font-size: 0.9rem;">None selected</span>';
 
-                <strong style="color: var(--accent);">DATA CLUES (FEATURES)</strong><br>
-                ${featureList}<br><br>
+            const grid = `
+                <div class="data-req-grid">
+                    <div class="data-req-card">
+                        <span class="card-icon">🏢</span>
+                        <span class="card-label">Focus</span>
+                        <span class="card-value">Buildings in ${cityDisplay}</span>
+                    </div>
+                    <div class="data-req-card">
+                        <span class="card-icon">🔍</span>
+                        <span class="card-label">Data Clues</span>
+                        <span class="card-value">${chipsHtml}</span>
+                    </div>
+                    <div class="data-req-card">
+                        <span class="card-icon">📊</span>
+                        <span class="card-label">Prediction</span>
+                        <span class="card-value">EUI &mdash; energy per sqft</span>
+                    </div>
+                    <div class="data-req-card">
+                        <span class="card-icon">📦</span>
+                        <span class="card-label">Min. Records</span>
+                        <span class="card-value">50,000+ buildings</span>
+                    </div>
+                </div>`;
+            document.getElementById('dataRequirements').innerHTML = grid;
 
-                <strong style="color: var(--accent);">PREDICTION TARGET</strong><br>
-                • EUI (Energy score per square foot)<br><br>
-
-                <strong style="color: var(--accent);">MINIMUM RECORDS</strong><br>
-                • 50,000+ buildings &mdash; enough examples for the AI to learn patterns
-            `;
-            document.getElementById('dataRequirements').innerHTML = requirements;
-
-            // Show impact projection
-            if (j?.topSector?.emissionsQuantity) {
-                document.getElementById('impactProjection').style.display = 'block';
+            // Bug fix: populate impact projection during Step 4
+            const totalEmissions = j?.emissions?.total2023 || j?.emissions?.total2022;
+            if (totalEmissions && cityName) {
+                const buildingSectorEstimate = Math.round(totalEmissions * 0.4);
+                const tenPctReduction = Math.round(buildingSectorEstimate * 0.1);
+                const projEl = document.getElementById('impactProjection');
+                const projText = document.getElementById('impactProjectionText');
+                if (projEl && projText) {
+                    projText.innerHTML =
+                        `If your AI identifies the worst 10% of buildings, retrofitting them could cut <strong>${cityName}</strong>'s building emissions by <strong>~${tenPctReduction.toLocaleString()} tonnes/year</strong>.`;
+                    projEl.style.display = 'block';
+                }
             }
         }
 
@@ -2020,7 +2261,7 @@
             progressDiv.style.display = 'block';
             resultDiv.style.display = 'none';
 
-            // Build dynamic loading steps based on student's selected features
+            // Build dynamic search steps based on student's selected features
             const featureMeta = {
                 floor_area: { icon: '🔍', label: 'Floor Area', match: 98, records: '98,000' },
                 weather: { icon: '🌡️', label: 'Weather Data', match: 72, records: '72,000', note: 'some gaps in rural stations' },
@@ -2035,59 +2276,81 @@
             searchSteps.push({ id: 'dyn-load-eui', icon: '📊', label: 'EUI records', match: 100, records: '100,000' });
             searchSteps.push({ id: 'dyn-load-nrel', icon: '🗄️', label: 'NREL database', match: null });
 
-            // Render loading steps
-            progressDiv.innerHTML = searchSteps.map(s =>
-                `<div class="loading-step" id="${s.id}">${s.icon} Checking for ${s.label} data...</div>`
-            ).join('');
+            const totalSteps = searchSteps.length;
+
+            // Render progress bar + counter + check rows
+            progressDiv.innerHTML = `
+                <p id="searchCounter" style="font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 4px;">Checking 1 of ${totalSteps} data sources&hellip;</p>
+                <div class="search-progress-bar"><div class="search-progress-fill" id="searchProgressFill"></div></div>
+                ${searchSteps.map(s =>
+                    `<div class="search-check-row" id="${s.id}">
+                        <span class="row-icon">${s.icon}</span>
+                        <span class="row-label">${s.label}</span>
+                        <span class="row-status scanning-text">scanning&hellip;</span>
+                    </div>`
+                ).join('')}`;
+
+            const progressFill = document.getElementById('searchProgressFill');
+            const counterEl = document.getElementById('searchCounter');
 
             let delay = 0;
             searchSteps.forEach((s, i) => {
-                const jitter = 250 + Math.floor(Math.random() * 200);
+                // Show row
+                const jitter = 300 + Math.floor(Math.random() * 200);
                 delay += jitter;
                 setTimeout(() => {
                     const el = document.getElementById(s.id);
                     el.classList.add('visible');
+                    counterEl.textContent = `Checking ${i + 1} of ${totalSteps} data sources\u2026`;
+                    progressFill.style.width = `${((i + 0.5) / totalSteps) * 100}%`;
                 }, delay);
 
-                delay += 200 + Math.floor(Math.random() * 200);
+                // Complete row
+                delay += 300 + Math.floor(Math.random() * 200);
                 setTimeout(() => {
                     const el = document.getElementById(s.id);
                     el.classList.add('done');
+                    const statusEl = el.querySelector('.row-status');
+                    statusEl.classList.remove('scanning-text');
                     if (s.match !== null) {
                         const suffix = s.note ? ` (${s.note})` : '';
-                        el.textContent = `${s.icon} ${s.label}: ✓ Found in ${s.records} records (${s.match}% coverage)${suffix}`;
+                        statusEl.textContent = `✓ ${s.records} records (${s.match}%)${suffix}`;
                     } else {
-                        el.textContent = `${s.icon} ${s.label}: ✓ Connected`;
+                        statusEl.textContent = '✓ Connected';
                     }
+                    progressFill.style.width = `${((i + 1) / totalSteps) * 100}%`;
                 }, delay);
             });
 
-            // Build dynamic match result
+            // Show match result
             delay += 500;
             setTimeout(() => {
+                counterEl.textContent = 'Search complete!';
                 const featureList = selectedFeatures.map(f => featureMeta[f].label).join(', ');
-                resultDiv.innerHTML = `
-                    <div style="background: rgba(16, 185, 129, 0.1); border: 2px solid var(--success); padding: 25px; border-radius: 16px;">
-                        <h3 style="color: var(--success); margin-bottom: 15px;">✓ MATCH FOUND!</h3>
-                        <p style="color: var(--text); font-size: 1.05rem; margin-bottom: 15px;"><strong>100,000 building records available</strong> from NREL (the National Renewable Energy Laboratory &mdash; a real US government energy research lab)</p>
-                        <div style="display: grid; gap: 10px; margin: 20px 0;">
-                            <div style="padding: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
-                                <strong style="color: var(--text);">📍 Coverage:</strong> <span style="color: var(--text-dim);">United States (strongest data in New York, Illinois, Washington)</span>
-                            </div>
-                            <div style="padding: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
-                                <strong style="color: var(--text);">✓ Your features matched:</strong> <span style="color: var(--text-dim);">${featureList}, EUI</span>
-                            </div>
-                            <div style="padding: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
-                                <strong style="color: var(--text);">🎯 Perfect for:</strong> <span style="color: var(--text-dim);">Training a building efficiency prediction AI</span>
-                            </div>
-                        </div>
-                        <button class="btn" style="background: var(--success); width: 100%; margin-top: 15px;" onclick="goToStep(5)">CONTINUE TO SUMMARY</button>
-                    </div>`;
-                resultDiv.style.display = 'block';
-                resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                showMatchResult(resultDiv, featureList, true);
                 projectData.dataSearched = true;
                 saveProgress();
             }, delay);
+        }
+
+        function showMatchResult(container, featureList, animate) {
+            container.innerHTML = `
+                <div class="match-file-card">
+                    <h3 style="color: var(--success); margin-bottom: 4px;">✓ MATCH FOUND</h3>
+                    <div class="record-count" id="matchRecordCount">${animate ? '0' : '100,000'}</div>
+                    <div class="record-label">building records from NREL (National Renewable Energy Laboratory)</div>
+                    <div class="match-stat-pills">
+                        <div class="match-stat-pill"><strong>📍 Coverage:</strong> US (NY, IL, WA)</div>
+                        <div class="match-stat-pill"><strong>✓ Features:</strong> ${featureList}, EUI</div>
+                        <div class="match-stat-pill"><strong>🎯 Purpose:</strong> Efficiency prediction</div>
+                    </div>
+                    <button class="btn" style="background: var(--success); width: 100%;" onclick="goToStep(5)">CONTINUE TO SUMMARY</button>
+                </div>`;
+            container.style.display = 'block';
+            container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            if (animate) {
+                animateCounter('matchRecordCount', 100000, 1200);
+            }
         }
 
         // ——— STEP 5: SUMMARY ———
@@ -2095,34 +2358,57 @@
         function renderFinalSummary() {
             const features = Array.from(projectData.selectedFeatures);
             const featureLabels = {
-                'floor_area': 'Building Floor Area',
-                'weather': 'Weather Data',
+                'floor_area': 'Floor Area',
+                'weather': 'Weather',
                 'elevation': 'Elevation',
                 'year': 'Year Built'
             };
 
-            const featureList = features.map(f => featureLabels[f] || f).join(', ');
-
             const j = getJourney();
             const cityName = j?.city?.name;
-            const cityLine = cityName ? ` for <strong>${cityName}</strong>` : '';
+            const cityDisplay = cityName || 'your city';
 
-            const summary = `
-                <strong style="color: var(--accent);">FOCUS AREA</strong><br>
-                • Buildings (Homes & Offices)${cityLine}<br><br>
+            // Build feature chips
+            const chips = features.map(f =>
+                `<span class="feature-chip chip-${f}">${featureLabels[f] || f}</span>`
+            ).join('');
+            const chipsHtml = chips || '<span style="color: var(--text-dim); font-size: 0.9rem;">None selected</span>';
 
-                <strong style="color: var(--accent);">DATA CLUES (FEATURES)</strong><br>
-                • ${featureList}<br><br>
+            const grid = `
+                <div class="data-req-grid">
+                    <div class="data-req-card">
+                        <span class="card-icon">🏢</span>
+                        <span class="card-label">Focus</span>
+                        <span class="card-value">Buildings in ${cityDisplay}</span>
+                    </div>
+                    <div class="data-req-card">
+                        <span class="card-icon">🔍</span>
+                        <span class="card-label">Data Clues</span>
+                        <span class="card-value">${chipsHtml}</span>
+                    </div>
+                    <div class="data-req-card">
+                        <span class="card-icon">📊</span>
+                        <span class="card-label">Prediction</span>
+                        <span class="card-value">EUI &mdash; energy per sqft</span>
+                    </div>
+                    <div class="data-req-card">
+                        <span class="card-icon">📦</span>
+                        <span class="card-label">Min. Records</span>
+                        <span class="card-value">50,000+ buildings</span>
+                    </div>
+                    <div class="data-req-card card-wide">
+                        <span class="card-icon">🗄️</span>
+                        <span class="card-label">Training Dataset</span>
+                        <span class="card-value">100,000 records &middot; NREL &middot; Status: <span style="color: var(--success);">✓ READY</span></span>
+                    </div>
+                </div>`;
+            document.getElementById('finalSummary').innerHTML = grid;
 
-                <strong style="color: var(--accent);">PREDICTION METRIC</strong><br>
-                • EUI (Energy score per square foot)<br><br>
-
-                <strong style="color: var(--accent);">TRAINING DATASET</strong><br>
-                • NREL Building Data: 100,000 records<br>
-                • Coverage: United States (strongest in New York, Illinois, Washington)<br>
-                • Status: <span style="color: var(--success);">✓ READY</span>
-            `;
-            document.getElementById('finalSummary').innerHTML = summary;
+            // Personalize celebration message with city name
+            const celebMsg = document.getElementById('celebrationMessage');
+            if (celebMsg) {
+                celebMsg.innerHTML = `Great work! You've designed the data strategy for <strong>${cityDisplay}</strong>'s building efficiency AI.`;
+            }
         }
 
         // ——— LOCAL STORAGE PERSISTENCE ———
@@ -2257,6 +2543,29 @@
                             const r2 = document.getElementById('matchup-2');
                             if (r2) r2.style.display = 'block';
                         }
+                    }
+                }
+
+                // Restore Step 4: if data already searched, show result immediately
+                if (projectData.dataSearched) {
+                    const searchBtn = document.getElementById('btn-search');
+                    if (searchBtn) {
+                        searchBtn.disabled = true;
+                        searchBtn.textContent = 'SEARCH COMPLETE';
+                        searchBtn.classList.add('complete');
+                    }
+                    const progressDiv = document.getElementById('dataSearchProgress');
+                    if (progressDiv) progressDiv.style.display = 'none';
+                    const resultDiv = document.getElementById('dataMatchResult');
+                    if (resultDiv) {
+                        const featureMeta = {
+                            floor_area: { label: 'Floor Area' },
+                            weather: { label: 'Weather Data' },
+                            year: { label: 'Year Built' }
+                        };
+                        const featureList = Array.from(projectData.selectedFeatures)
+                            .map(f => (featureMeta[f] || {}).label || f).join(', ');
+                        showMatchResult(resultDiv, featureList, false);
                     }
                 }
 
