@@ -827,7 +827,7 @@
 <body>
     <!-- Decision Log Badge -->
     <div class="decision-badge" id="decisionBadge" onclick="toggleDecisionLog()">
-        <div class="decision-badge-count" id="decisionCount">0/7</div>
+        <div class="decision-badge-count" id="decisionCount">0</div>
         <div class="decision-badge-label">Decisions</div>
     </div>
     <div class="decision-log-panel" id="decisionLogPanel">
@@ -1239,15 +1239,20 @@
         let decisionLog = [];
 
         function logDecision(action, detail) {
-            decisionLog.push({ action, detail, timestamp: Date.now() });
+            const existing = decisionLog.findIndex(d => d.action === action);
+            if (existing !== -1) {
+                decisionLog[existing].detail = detail;
+                decisionLog[existing].timestamp = Date.now();
+            } else {
+                decisionLog.push({ action, detail, timestamp: Date.now() });
+            }
             updateDecisionBadge();
         }
 
         function updateDecisionBadge() {
             const badge = document.getElementById('decisionBadge');
-            const totalPossible = 7;
             badge.style.display = 'block';
-            document.getElementById('decisionCount').textContent = `${decisionLog.length}/${totalPossible}`;
+            document.getElementById('decisionCount').textContent = decisionLog.length;
 
             const listEl = document.getElementById('decisionLogList');
             if (decisionLog.length === 0) return;
