@@ -786,21 +786,21 @@
                     <div class="building-card">
                         <div class="building-emoji">🏢</div>
                         <div class="building-stat">Year: <strong>1965</strong></div>
-                        <div class="building-stat">Size: <strong>120K sqft</strong></div>
+                        <div class="building-stat">Size: <strong>11,150 m²</strong></div>
                         <div class="building-stat">Climate: <strong>Cold</strong></div>
                         <div class="building-rating" style="color:#dc2626;">🔴 Low Efficiency</div>
                     </div>
                     <div class="building-card">
                         <div class="building-emoji">🏠</div>
                         <div class="building-stat">Year: <strong>2018</strong></div>
-                        <div class="building-stat">Size: <strong>30K sqft</strong></div>
+                        <div class="building-stat">Size: <strong>2,790 m²</strong></div>
                         <div class="building-stat">Climate: <strong>Moderate</strong></div>
                         <div class="building-rating" style="color:#16a34a;">🟢 High Efficiency</div>
                     </div>
                     <div class="building-card">
                         <div class="building-emoji">🏬</div>
                         <div class="building-stat">Year: <strong>1990</strong></div>
-                        <div class="building-stat">Size: <strong>80K sqft</strong></div>
+                        <div class="building-stat">Size: <strong>7,430 m²</strong></div>
                         <div class="building-stat">Climate: <strong>Hot</strong></div>
                         <div class="building-rating" style="color:#f59e0b;">🟡 Medium Efficiency</div>
                     </div>
@@ -810,7 +810,7 @@
                     <div style="font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; color:var(--accent); font-weight:700; margin-bottom:8px;">Mystery Building</div>
                     <div class="building-emoji">❓</div>
                     <div class="building-stat">Year: <strong>1958</strong></div>
-                    <div class="building-stat">Size: <strong>150K sqft</strong></div>
+                    <div class="building-stat">Size: <strong>13,940 m²</strong></div>
                     <div class="building-stat">Climate: <strong>Cold</strong></div>
                     <div class="building-rating" style="color:var(--accent);">What's the rating?</div>
                 </div>
@@ -1040,7 +1040,7 @@
                                 oninput="updateSlider('age', this.value)">
                         </div>
                         <div class="input-group">
-                            <label>Floor Area (1000s sqft) <span class="slider-value" id="areaValue">50</span></label>
+                            <label>Floor Area (m²) <span class="slider-value" id="areaValue">4,650</span></label>
                             <input type="range" id="areaSlider" min="5" max="200" value="50"
                                 oninput="updateSlider('area', this.value)">
                         </div>
@@ -1318,7 +1318,7 @@
             const ctx2 = document.getElementById('step2CityContext');
             ctx2.style.display = 'block';
             document.getElementById('step2CityFormula').innerHTML =
-                `<span class="mono" style="font-size:0.9rem;">INPUT:</span> <strong>${cityName}</strong> building data → <span class="mono" style="font-size:0.9rem;">MODEL:</span> Energy AI → <span class="mono" style="font-size:0.9rem;">OUTPUT:</span> kBTU/sqft prediction`;
+                `<span class="mono" style="font-size:0.9rem;">INPUT:</span> <strong>${cityName}</strong> building data → <span class="mono" style="font-size:0.9rem;">MODEL:</span> Energy AI → <span class="mono" style="font-size:0.9rem;">OUTPUT:</span> kWh/m² prediction`;
 
             // E3-1: Step 3 — training context
             const ctx3 = document.getElementById('step3CityContext');
@@ -1333,7 +1333,7 @@
             // E3-2: Personalize demo heading
             document.getElementById('step5Heading').innerHTML = `🎮 Predict a Building in ${cityName}`;
             document.getElementById('step5Intro').innerHTML =
-                `<b>Use a simple AI model to predict building energy efficiency.</b><br>Imagine a school in <strong>${cityName}</strong>'s downtown with 50,000 sqft — adjust the inputs and see how the prediction changes!`;
+                `<b>Use a simple AI model to predict building energy efficiency.</b><br>Imagine a school in <strong>${cityName}</strong>'s downtown with 4,645 m² — adjust the inputs and see how the prediction changes!`;
 
             // E3-2: Pre-set climate zone
             const climateZone = getCityClimateZone(cityName);
@@ -1472,7 +1472,7 @@
                     setTimeout(() => {
                         predictionRound = 2;
                         mystery.querySelector('.building-stat:nth-child(3)').innerHTML = 'Year: <strong>2020</strong>';
-                        mystery.querySelector('.building-stat:nth-child(4)').innerHTML = 'Size: <strong>20K sqft</strong>';
+                        mystery.querySelector('.building-stat:nth-child(4)').innerHTML = 'Size: <strong>1,860 m²</strong>';
                         mystery.querySelector('.building-stat:nth-child(5)').innerHTML = 'Climate: <strong>Moderate</strong>';
                         mystery.querySelector('.building-rating').innerHTML = 'What\'s the rating?';
                         mystery.querySelector('.building-rating').style.color = 'var(--accent)';
@@ -1500,7 +1500,7 @@
                     feedback.style.display = 'block';
                     feedback.innerHTML = `
                         <div class="info-box fade-in" style="text-align:center;">
-                            <p style="margin:0; color:var(--text);">Look at the pattern: the 1965 building (old, big, cold) was <strong>Low</strong>. This mystery building is even older (1958) and bigger (150K sqft). Try again!</p>
+                            <p style="margin:0; color:var(--text);">Look at the pattern: the 1965 building (old, big, cold) was <strong>Low</strong>. This mystery building is even older (1958) and bigger (13,940 m²). Try again!</p>
                         </div>`;
 
                     setTimeout(() => { buttons[idx].classList.remove('wrong-choice'); }, 2000);
@@ -1534,7 +1534,7 @@
 
                     feedback.innerHTML = `
                         <div class="info-box fade-in" style="text-align:center;">
-                            <p style="margin:0; color:var(--text);">Think about the pattern: the 2018 building (new, 30K, moderate) was <strong>High</strong>. This building is similar — <strong>2020</strong>, <strong>20K sqft</strong>, <strong>moderate</strong> climate. Try again!</p>
+                            <p style="margin:0; color:var(--text);">Think about the pattern: the 2018 building (new, 2,790 m², moderate) was <strong>High</strong>. This building is similar — <strong>2020</strong>, <strong>1,860 m²</strong>, <strong>moderate</strong> climate. Try again!</p>
                         </div>`;
 
                     setTimeout(() => { buttons[idx].classList.remove('wrong-choice'); }, 2000);
@@ -1544,9 +1544,9 @@
 
         // ===== STEP 2: ANIMATED PIPELINE =====
         const PIPELINE_BUILDINGS = [
-            { year: 1972, area: '95K', climate: 'Cold', emoji: '🏢', result: '🔴 Low Efficiency', color: '#dc2626' },
-            { year: 2015, area: '25K', climate: 'Moderate', emoji: '🏠', result: '🟢 High Efficiency', color: '#16a34a' },
-            { year: 2001, area: '60K', climate: 'Hot', emoji: '🏬', result: '🟡 Medium Efficiency', color: '#f59e0b' },
+            { year: 1972, area: '8,825', climate: 'Cold', emoji: '🏢', result: '🔴 Low Efficiency', color: '#dc2626' },
+            { year: 2015, area: '2,325', climate: 'Moderate', emoji: '🏠', result: '🟢 High Efficiency', color: '#16a34a' },
+            { year: 2001, area: '5,575', climate: 'Hot', emoji: '🏬', result: '🟡 Medium Efficiency', color: '#f59e0b' },
         ];
         let pipelineIndex = 0;
         let pipelineRunning = false;
@@ -1568,7 +1568,7 @@
             // Phase 1: Input lights up
             document.getElementById('pipeInput').style.boxShadow = '0 0 20px rgba(56, 189, 248, 0.4)';
             const inputData = document.getElementById('pipeInputData');
-            inputData.innerHTML = `${b.emoji} Year: <strong>${b.year}</strong><br>Area: <strong>${b.area} sqft</strong><br>Climate: <strong>${b.climate}</strong>`;
+            inputData.innerHTML = `${b.emoji} Year: <strong>${b.year}</strong><br>Area: <strong>${b.area} m²</strong><br>Climate: <strong>${b.climate}</strong>`;
             setTimeout(() => inputData.classList.add('visible'), 100);
 
             // Phase 2: Model processes
@@ -1769,7 +1769,7 @@
         // ===== STEP 5: INTERACTIVE DEMO =====
         function updateSlider(type, value) {
             if (type === 'age') document.getElementById('ageValue').textContent = value;
-            else if (type === 'area') document.getElementById('areaValue').textContent = value;
+            else if (type === 'area') document.getElementById('areaValue').textContent = (value * 93).toLocaleString();
         }
 
         function runPrediction() {
@@ -1807,9 +1807,9 @@
             const sectorEmissions = j?.topSector?.emissionsQuantity;
             let impactHTML = '';
 
-            // Estimate waste: low efficiency buildings waste ~30 kBTU/sqft above baseline
-            const wastePerBuilding = efficiency === 'Low Efficiency' ? 45 : efficiency === 'Medium Efficiency' ? 20 : 5;
-            const co2PerBuilding = Math.round(wastePerBuilding * area * 0.05); // rough kBTU to tonnes
+            // Estimate waste: low efficiency buildings waste ~142 kWh/m² above baseline
+            const wastePerBuilding = efficiency === 'Low Efficiency' ? 142 : efficiency === 'Medium Efficiency' ? 63 : 16;
+            const co2PerBuilding = Math.round(wastePerBuilding * area * 0.016); // rough kWh/m² to tonnes
             state.cumulativeSavings += co2PerBuilding;
 
             state.lastPrediction = { age, area, climate, efficiency, score: normalizedScore };
@@ -1820,7 +1820,7 @@
                 impactHTML = `
                     <div style="margin-top:12px; background:rgba(16,185,129,0.1); border-left:3px solid #10b981; padding:12px; border-radius:0 8px 8px 0;">
                         <p style="margin:0; font-size:0.9rem; color:var(--text);">
-                            <strong>Impact in ${cityName}:</strong> A building like this wastes ~${wastePerBuilding} kBTU/sqft above efficient baseline.
+                            <strong>Impact in ${cityName}:</strong> A building like this wastes ~${wastePerBuilding} kWh/m² above efficient baseline.
                             If the top 100 buildings like this were retrofitted, <strong>${cityName}</strong> could save <strong>~${topBuildingsReduction.toLocaleString()} tonnes</strong> of CO₂ — equivalent to <strong>${(carsEquiv * 100).toLocaleString()} cars</strong> off the road.
                         </p>
                     </div>`;

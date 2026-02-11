@@ -1336,7 +1336,7 @@
                         onclick="toggleFeature(this, 'floor_area', true)">
                         <strong style="color: var(--text); font-size: 1.1rem;">📏 Floor Area</strong>
                         <p style="font-size: 0.9375rem; margin: 8px 0 0 0; color: var(--text-dim);">Total building
-                            size in square feet</p>
+                            size in square metres</p>
                         <div class="feature-why" style="display:none;">Bigger buildings use more energy &mdash; size
                             is a key clue!</div>
                     </div>
@@ -1373,7 +1373,7 @@
                         <strong style="color: var(--text); font-size: 1.1rem;">🏗️ Number of Floors</strong>
                         <p style="font-size: 0.9375rem; margin: 8px 0 0 0; color: var(--text-dim);">How many stories tall
                             the building is</p>
-                        <div class="feature-why" style="display:none;">Taller doesn't mean less efficient — a 2-story building and a 20-story building can have the same energy use per square foot. Floor area already captures size better.</div>
+                        <div class="feature-why" style="display:none;">Taller doesn't mean less efficient — a 2-story building and a 20-story building can have the same energy use per square metre. Floor area already captures size better.</div>
                     </div>
 
                     <div class="feature-card" data-feature="year"
@@ -1397,7 +1397,7 @@
             <!-- STEP 3: DEFINE ENERGY SCORE (EUI) -->
             <div class="mission-step" id="step-3">
                 <h2>📊 Step 3: Define the Energy Score</h2>
-                <p>Should an AI compare buildings by <span class="highlight-text">total energy used</span>, or <span class="highlight-text">energy per square foot</span>?</p>
+                <p>Should an AI compare buildings by <span class="highlight-text">total energy used</span>, or <span class="highlight-text">energy per square metre</span>?</p>
 
                 <div class="ai-design-panel">
                     <div class="design-label">What Should Your AI Predict?</div>
@@ -1411,7 +1411,7 @@
                         </div>
                         <div class="prediction-card" id="pred-eui" onclick="selectPrediction('eui')">
                             <div style="font-size: 2rem; margin-bottom: 8px;">📊</div>
-                            <strong style="color: var(--text);">Energy per square foot (EUI)</strong>
+                            <strong style="color: var(--text);">Energy per square metre (EUI)</strong>
                             <p style="font-size: 0.85rem; margin: 8px 0 0 0; color: var(--text-dim);">Energy score
                                 that accounts for building size</p>
                         </div>
@@ -1424,9 +1424,9 @@
 
                 <!-- Revealed after correct choice -->
                 <div id="euiExplainer" style="display: none;">
-                    <p>This score is called <span class="highlight-text">EUI</span> (Energy Use Intensity) &mdash; like miles-per-gallon, but for buildings. Each building's energy is measured in <strong>energy units</strong> per year (think of them like calories, but for a building instead of a person). Let's see it in action.</p>
+                    <p>This score is called <span class="highlight-text">EUI</span> (Energy Use Intensity) &mdash; like litres per 100 km, but for buildings. Each building's energy is measured in <strong>energy units</strong> per year (think of them like calories, but for a building instead of a person). Let's see it in action.</p>
 
-                    <p style="font-size: 1rem; font-weight: 600; color: var(--accent); margin: 16px 0 4px 0;">Which building wastes more energy per square foot? Pick one.</p>
+                    <p style="font-size: 1rem; font-weight: 600; color: var(--accent); margin: 16px 0 4px 0;">Which building wastes more energy per square metre? Pick one.</p>
 
                     <!-- Round 1 -->
                     <div class="matchup-round" id="matchup-1">
@@ -1437,7 +1437,7 @@
                                 <div class="building-name">Coffee Shop</div>
                                 <div class="building-stats">
                                     Uses 500,000 energy units/yr<br>
-                                    Size: 2,000 sqft
+                                    Size: 186 m²
                                 </div>
                                 <div class="eui-badge">EUI 250 — wasteful!</div>
                             </div>
@@ -1447,7 +1447,7 @@
                                 <div class="building-name">Warehouse</div>
                                 <div class="building-stats">
                                     Uses 3,000,000 energy units/yr<br>
-                                    Size: 100,000 sqft
+                                    Size: 9,290 m²
                                 </div>
                                 <div class="eui-badge">EUI 30 — efficient!</div>
                             </div>
@@ -1464,7 +1464,7 @@
                                 <div class="building-name">1960s School</div>
                                 <div class="building-stats">
                                     Uses 1,500,000 energy units/yr<br>
-                                    Size: 10,000 sqft
+                                    Size: 929 m²
                                 </div>
                                 <div class="eui-badge">EUI 150 — wasteful!</div>
                             </div>
@@ -1474,7 +1474,7 @@
                                 <div class="building-name">Office Tower</div>
                                 <div class="building-stats">
                                     Uses 8,000,000 energy units/yr<br>
-                                    Size: 200,000 sqft
+                                    Size: 18,580 m²
                                 </div>
                                 <div class="eui-badge">EUI 40 — efficient!</div>
                             </div>
@@ -1486,8 +1486,8 @@
                     <div class="matchup-summary" id="matchup-summary">
                         <p style="font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: 8px;">That's the power of EUI</p>
                         <div class="eui-formula">Energy Used &divide; Building Size = EUI</div>
-                        <p style="font-size: 0.95rem; color: var(--text-dim); margin-top: 8px;"><strong style="color: var(--error);">High EUI = wasteful</strong> &mdash; the building burns through a lot of energy for its size.<br><strong style="color: var(--success);">Low EUI = efficient</strong> &mdash; the building makes good use of every square foot.</p>
-                        <p style="font-size: 0.95rem; color: var(--text-dim); margin-top: 8px;">Without this score, a big warehouse <em>always</em> looks worse than a tiny shop &mdash; even when the shop wastes 8&times; more per square foot. Your AI will use EUI to spot the real energy wasters.</p>
+                        <p style="font-size: 0.95rem; color: var(--text-dim); margin-top: 8px;"><strong style="color: var(--error);">High EUI = wasteful</strong> &mdash; the building burns through a lot of energy for its size.<br><strong style="color: var(--success);">Low EUI = efficient</strong> &mdash; the building makes good use of every square metre.</p>
+                        <p style="font-size: 0.95rem; color: var(--text-dim); margin-top: 8px;">Without this score, a big warehouse <em>always</em> looks worse than a tiny shop &mdash; even when the shop wastes 8&times; more per square metre. Your AI will use EUI to spot the real energy wasters.</p>
                     </div>
                 </div>
 
@@ -1555,7 +1555,7 @@
                         </div>
                         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                             <button class="btn secondary" style="flex: 1; padding: 10px; font-size: 0.9rem; text-transform: none;" onclick="answerQuiz(2, 'wrong', this)">Total energy</button>
-                            <button class="btn secondary" style="flex: 1; padding: 10px; font-size: 0.9rem; text-transform: none;" onclick="answerQuiz(2, 'correct', this)">Energy per square foot</button>
+                            <button class="btn secondary" style="flex: 1; padding: 10px; font-size: 0.9rem; text-transform: none;" onclick="answerQuiz(2, 'correct', this)">Energy per square metre</button>
                         </div>
                         <div id="quiz2Feedback" style="display: none; margin-top: 8px; padding: 8px 12px; border-radius: 8px; font-size: 0.9rem;"></div>
                     </div>
@@ -2071,7 +2071,7 @@
                 totalCard.classList.add('incorrect');
                 fb.style.background = 'rgba(16, 185, 129, 0.1)';
                 fb.style.borderLeft = '4px solid var(--success)';
-                fb.innerHTML = '<p style="margin:0; color:var(--text);"><strong style="color:var(--success);">Correct!</strong> EUI makes it fair to compare buildings of different sizes, just like miles-per-gallon lets you compare cars of different sizes. Let\'s prove it.</p>';
+                fb.innerHTML = '<p style="margin:0; color:var(--text);"><strong style="color:var(--success);">Correct!</strong> EUI makes it fair to compare buildings of different sizes, just like litres per 100 km lets you compare cars of different sizes. Let\'s prove it.</p>';
                 projectData.predictionGoal = 'eui';
                 document.getElementById('euiExplainer').style.display = 'block';
             } else {
@@ -2159,11 +2159,11 @@
             if (correct) {
                 reveal.style.background = 'var(--success-bg)';
                 reveal.style.borderLeft = '4px solid var(--success)';
-                reveal.innerHTML = `<strong style="color: var(--success);">You got it!</strong> The ${data[winnerKey].name} scores EUI ${data[winnerKey].eui} (high = wasteful) vs just ${data[loserKey].eui} for the ${data[loserKey].name} (low = efficient). The building that uses more total energy isn't always the bigger waster &mdash; you have to look at energy <em>per square foot</em>.`;
+                reveal.innerHTML = `<strong style="color: var(--success);">You got it!</strong> The ${data[winnerKey].name} scores EUI ${data[winnerKey].eui} (high = wasteful) vs just ${data[loserKey].eui} for the ${data[loserKey].name} (low = efficient). The building that uses more total energy isn't always the bigger waster &mdash; you have to look at energy <em>per square metre</em>.`;
             } else {
                 reveal.style.background = 'rgba(251, 191, 36, 0.1)';
                 reveal.style.borderLeft = '4px solid var(--warning)';
-                reveal.innerHTML = `<strong style="color: var(--warning);">Surprise!</strong> The ${data[loserKey].name} uses more total energy, but its EUI is only ${data[loserKey].eui} &mdash; that's low, meaning it's efficient for its size. The ${data[winnerKey].name} scores EUI ${data[winnerKey].eui} &mdash; that's high, meaning it wastes far more energy per square foot.`;
+                reveal.innerHTML = `<strong style="color: var(--warning);">Surprise!</strong> The ${data[loserKey].name} uses more total energy, but its EUI is only ${data[loserKey].eui} &mdash; that's low, meaning it's efficient for its size. The ${data[winnerKey].name} scores EUI ${data[winnerKey].eui} &mdash; that's high, meaning it wastes far more energy per square metre.`;
             }
 
             // After round 1, show round 2
@@ -2226,7 +2226,7 @@
                     <div class="data-req-card">
                         <span class="card-icon">📊</span>
                         <span class="card-label">Prediction</span>
-                        <span class="card-value">EUI &mdash; energy per sqft</span>
+                        <span class="card-value">EUI &mdash; energy per m²</span>
                     </div>
                     <div class="data-req-card">
                         <span class="card-icon">📦</span>
@@ -2389,7 +2389,7 @@
                     <div class="data-req-card">
                         <span class="card-icon">📊</span>
                         <span class="card-label">Prediction</span>
-                        <span class="card-value">EUI &mdash; energy per sqft</span>
+                        <span class="card-value">EUI &mdash; energy per m²</span>
                     </div>
                     <div class="data-req-card">
                         <span class="card-icon">📦</span>

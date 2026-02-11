@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Climate Mission: Investigation v1.9</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Dark Mode (Default) */
         :root {
@@ -689,6 +688,58 @@
             width: 0;
         }
 
+        /* Sector race bars */
+        .sector-race { margin: 20px 0; }
+        .sector-race-row {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+        }
+        .sector-race-label {
+            font-size: 0.8rem; font-weight: 600; color: var(--text-dim);
+            min-width: 120px; text-align: right;
+        }
+        .sector-race-track {
+            flex: 1; height: 26px; background: var(--input-bg);
+            border-radius: 6px; overflow: hidden; position: relative;
+        }
+        .sector-race-fill {
+            height: 100%; border-radius: 6px;
+            display: flex; align-items: center; padding-left: 10px;
+            font-size: 0.75rem; font-weight: 700; color: white;
+            transition: width 1.2s ease; width: 0; min-width: 0;
+        }
+        .sector-race-fill.top-sector {
+            box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
+        }
+        .sector-race-pct {
+            font-size: 0.8rem; font-weight: 700; color: var(--text);
+            min-width: 45px;
+        }
+
+        /* Source card percentage bar */
+        .source-pct-row {
+            display: flex; align-items: center; gap: 8px; margin-top: 8px;
+        }
+        .source-pct-track {
+            flex: 1; height: 16px; background: var(--input-bg);
+            border-radius: 6px; overflow: hidden;
+        }
+        .source-pct-fill {
+            height: 100%; border-radius: 6px;
+            transition: width 1s ease; width: 0;
+        }
+        .source-pct-label {
+            font-size: 0.85rem; font-weight: 800; color: var(--accent);
+            min-width: 50px; text-align: right;
+        }
+        .source-pct-hero {
+            font-size: 2rem; font-weight: 800; color: var(--accent);
+            line-height: 1;
+        }
+        .source-pct-subtitle {
+            font-size: 0.7rem; color: var(--text-dim);
+            text-transform: uppercase; letter-spacing: 0.03em;
+        }
+
         /* Journey save banner */
         .journey-save-banner {
             background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(16, 185, 129, 0.15));
@@ -840,7 +891,7 @@
                             <span class="fact-slide-title">The Technology Exists Today</span>
                         </div>
                         <div class="fact-stat" data-target="43" data-suffix="%">0%</div>
-                        <div class="fact-description">We already have the technology to cut emissions by over 40% by 2030. But cities can't fix what they can't measure &mdash; they need investigators to find the biggest sources first.</div>
+                        <div class="fact-description">We already have the technology to cut emissions by over 40% by 2030. But cities can't fix what they can't measure &mdash; they need investigators to find the biggest sources of pollution first.</div>
                         <div class="fact-citation">Source: IPCC AR6 Synthesis Report, 2023</div>
                     </div>
 
@@ -923,8 +974,7 @@
                 </div>
                 <div id="emissionsContext" style="text-align:center; color:var(--text-dim); font-size:0.95rem; margin:-15px 0 20px 0; font-style:italic;"></div>
                 <div id="familiesAffected" class="families-counter" style="display:none;">
-                    <p style="margin: 0; color: var(--text);">This pollution affects air quality for roughly <span id="familiesCount" style="font-size: 1.5rem; font-weight: 800; color: var(--success);">0</span> families in <span id="familiesCity" class="highlight-text">your city</span>.</p>
-                    <p style="margin: 5px 0 0; font-size: 0.85rem; color: var(--text-dim); font-style: italic;">Estimated based on US average household emissions of 8.1 tonnes/year</p>
+                    <p style="margin: 0; color: var(--text);">This pollution affects roughly <span id="familiesCount" style="font-size: 1.5rem; font-weight: 800; color: var(--success);">0</span> families in <span id="familiesCity" class="highlight-text">your city</span>.</p>
                 </div>
                 <div class="quiz">
                     <div class="quiz-title">Checkpoint Question</div>
@@ -940,19 +990,17 @@
                     <p style="margin-bottom: 0; color: var(--success); font-weight: 600;">✓ Trend Confirmed. Now let's
                         investigate WHY this change happened.</p>
                 </div>
-                <button class="btn" id="btn-next-2" disabled onclick="goToStep(3)">CONTINUE MISSION</button>
+                <div class="btn-group">
+                    <button class="btn secondary" onclick="goToStep(1)">◀️ BACK</button>
+                    <button class="btn" id="btn-next-2" disabled onclick="goToStep(3)">CONTINUE MISSION</button>
+                </div>
             </div>
 
             <!-- STEP 3: SECTORS -->
             <div class="mission-step" id="step-3">
                 <h2>🏭 Step 3: <span class="explain" style="border-bottom-color: var(--accent);">Sector (Industry Group)</span> Breakdown</h2>
                 <p>Look at the chart to find the single industry causing the most emissions.</p>
-                <div class="info-callout" style="background: rgba(56, 189, 248, 0.08); padding: 12px 15px; border-radius: 10px; margin-bottom: 15px; border-left: 3px solid var(--accent);">
-                    <p style="font-size: 0.9rem; margin-bottom: 0; color: var(--text-dim);"><strong style="color: var(--accent);">💡 Good to know:</strong> This data shows pollution released directly at the source. It doesn't count pollution from electricity use or shipping, which can be even bigger.</p>
-                </div>
-                <div style="height: 250px; margin-bottom: 30px;">
-                    <canvas id="sectorChart"></canvas>
-                </div>
+                <div id="sectorBreakdown"></div>
                 <div class="quiz">
                     <div class="quiz-title">Checkpoint Question</div>
                     <p style="margin-bottom: 15px; font-size: 1rem;">Which <span class="highlight-text">single industry</span> has the highest total emissions?</p>
@@ -967,8 +1015,7 @@
             <!-- STEP 4: SOURCES -->
             <div class="mission-step" id="step-4">
                 <h2>🛰️ Step 4: Tracking the Sources</h2>
-                <p>Click on each source to investigate its impact. Some names look similar—pay attention to the
-                    industries!</p>
+                <p id="step4Intro">These are the top pollution sources in your city. Each card shows what share of the city's total emissions that source is responsible for.</p>
                 <div id="sourcesContainer" style="margin-bottom: 20px;"></div>
                 <div id="sourceDetails">
                     <h3 id="detailTitle" style="color: var(--accent); margin-bottom: 10px;">Source Details</h3>
@@ -1012,7 +1059,7 @@
             <div class="mission-step" id="step-5">
                 <h2>⚡ Step 5: Strategic Approaches</h2>
                 <p>Data tells us <strong>where</strong> the problem is; strategy tells us <strong>how</strong> to fix
-                    it. Monitoring is just the start — now we need to choose the right approach for the <span
+                    it. Monitoring is just the start — now we need to recommend an approach to reduce pollution for the <span
                         id="topSectorLabel" class="highlight-text">---</span> industry.</p>
 
                 <div class="quiz"
@@ -1020,7 +1067,7 @@
                     <p style="margin-bottom: 0; color: var(--text);"><strong>What This Means:</strong> If we cut
                         emissions
                         in this industry by half, our whole city's
-                        total emissions drop by <strong><span id="dropPct">0</span>%</strong>.</p>
+                        total emissions could drop by <strong><span id="dropPct">0</span>%</strong>.</p>
                 </div>
 
                 <div id="impactProjection" class="impact-bars" style="display:none;">
@@ -1178,7 +1225,6 @@
         }
 
         let autoAdvanceTimer = null;
-        let sectorChartInstance = null;
         const JOURNEY_KEY = 'sustainabilityJourney';
 
         let investigationData = {
@@ -1377,6 +1423,10 @@
             document.getElementById(`step-${idx}`).classList.add('active');
 
             // Re-populate data when navigating back to steps
+            if (idx === 1) {
+                document.getElementById('step-1').style.display = '';
+                document.getElementById('loader').style.display = 'none';
+            }
             if (idx === 2 && investigationData.city) {
                 document.getElementById('locDisplay').innerText = investigationData.city.matchedName;
                 document.getElementById('num21').innerText = Math.round(investigationData.t21).toLocaleString() + " tonnes";
@@ -1551,23 +1601,69 @@
                 b.onclick = () => checkSectorAnswer(b, s.sector);
                 con.appendChild(b);
             });
-            if (sectorChartInstance) { sectorChartInstance.destroy(); }
-            const ctx = document.getElementById('sectorChart').getContext('2d');
-            sectorChartInstance = new Chart(ctx, { type: 'bar', data: { labels: investigationData.sectors.map(s => formatSectorName(s.sector)), datasets: [{ data: investigationData.sectors.map(s => s.emissionsQuantity), backgroundColor: '#38bdf8' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { ticks: { color: '#94a3b8', font: { size: 9 } } } } } });
+            // Animated sector race bars
+            const container = document.getElementById('sectorBreakdown');
+            container.innerHTML = '';
+            const sectors = investigationData.sectors;
+            const total = investigationData.t22;
+            const colors = ['#38bdf8','#10b981','#fbbf24','#f43f5e','#a78bfa','#fb923c','#2dd4bf','#e879f9'];
+            let html = '<div class="sector-race">';
+            sectors.forEach((s, i) => {
+                const pct = (s.emissionsQuantity / total) * 100;
+                const color = colors[i % colors.length];
+                const topClass = i === 0 ? ' top-sector' : '';
+                const badge = i === 0 ? ' ⭐' : '';
+                html += `<div class="sector-race-row">
+                    <div class="sector-race-label">${formatSectorName(s.sector)}${badge}</div>
+                    <div class="sector-race-track">
+                        <div class="sector-race-fill${topClass}" style="background:${color};" data-pct="${pct}"></div>
+                    </div>
+                    <div class="sector-race-pct">${pct.toFixed(1)}%</div>
+                </div>`;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+            const fills = container.querySelectorAll('.sector-race-fill');
+            fills.forEach((fill, i) => {
+                setTimeout(() => { fill.style.width = fill.dataset.pct + '%'; }, 150 * i);
+            });
         }
 
         function renderSources() {
             const con = document.getElementById('sourcesContainer'); con.innerHTML = '';
             const quizCon = document.getElementById('sourceQuizOptions'); quizCon.innerHTML = '';
+            const total = investigationData.t22;
+            const colors = ['#38bdf8','#10b981','#fbbf24','#f43f5e','#a78bfa','#fb923c','#2dd4bf','#e879f9'];
+            const cityName = investigationData.city?.matchedName || 'your city';
+            document.getElementById('step4Intro').textContent = `These are the top pollution sources in ${cityName}. Each card shows what share of the city's total emissions that source is responsible for.`;
             investigationData.topSources.forEach((s, i) => {
+                const pct = (s.emissionsQuantity / total) * 100;
+                const color = colors[i % colors.length];
                 const div = document.createElement('div'); div.className = 'source-card';
-                div.innerHTML = `<div style="display:flex; align-items:center; gap:15px;"><div class="rank-badge">${i + 1}</div><div><div style="font-weight:600; font-size:1rem;">${s.name}</div><div style="font-size:0.8rem; color:var(--text-dim); text-transform:uppercase;">Industry type: ${s.subsector.replace(/-/g, ' ')}</div></div></div>`;
+                div.innerHTML = `<div style="display:flex; align-items:center; gap:15px;">
+                    <div class="rank-badge">${i + 1}</div>
+                    <div style="flex:1;">
+                        <div style="font-weight:600; font-size:1rem;">${s.name}</div>
+                        <div style="font-size:0.8rem; color:var(--text-dim); text-transform:uppercase;">Industry type: ${s.subsector.replace(/-/g, ' ')}</div>
+                        <div class="source-pct-row">
+                            <div class="source-pct-track"><div class="source-pct-fill" style="background:${color};" data-pct="${pct}"></div></div>
+                        </div>
+                    </div>
+                    <div style="text-align:center; min-width:70px;">
+                        <div class="source-pct-hero">${pct.toFixed(1)}%</div>
+                        <div class="source-pct-subtitle">of city emissions</div>
+                    </div>
+                </div>`;
                 div.onclick = () => showSourceDetails(s);
                 con.appendChild(div);
                 const b = document.createElement('button'); b.className = 'option-btn';
                 b.innerText = `${s.name} (${s.subsector.replace(/-/g, ' ')})`;
                 b.onclick = () => checkSourceAnswer(b, `${s.name}|${s.subsector}`);
                 quizCon.appendChild(b);
+            });
+            const fills = con.querySelectorAll('.source-pct-fill');
+            fills.forEach((fill, i) => {
+                setTimeout(() => { fill.style.width = fill.dataset.pct + '%'; }, 300 + 200 * i);
             });
         }
 
