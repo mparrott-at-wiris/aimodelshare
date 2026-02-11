@@ -1416,7 +1416,7 @@
 
             // Estimate building count from emissions (~50 tonnes avg per building)
             const buildingCount = totalEmissions ? Math.round(totalEmissions / 50) : 12000;
-            const inspectorYears = Math.max(1, Math.round(buildingCount / 365));
+            const inspectorYears = Math.max(1, Math.round(buildingCount / 260));
 
             // ~40% of total emissions = building sector
             const buildingEmissions = totalEmissions ? Math.round(totalEmissions * 0.4) : 50000;
@@ -1835,7 +1835,7 @@
                         <p style="color: var(--text); font-size: 1.05rem; margin-bottom: 15px;"><strong>100,000 building records available</strong> from NREL (the National Renewable Energy Laboratory &mdash; a real US government energy research lab)</p>
                         <div style="display: grid; gap: 10px; margin: 20px 0;">
                             <div style="padding: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
-                                <strong style="color: var(--text);">📍 Coverage:</strong> <span style="color: var(--text-dim);">New York, Illinois, Washington</span>
+                                <strong style="color: var(--text);">📍 Coverage:</strong> <span style="color: var(--text-dim);">United States (strongest data in New York, Illinois, Washington)</span>
                             </div>
                             <div style="padding: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
                                 <strong style="color: var(--text);">✓ Your features matched:</strong> <span style="color: var(--text-dim);">${featureList}, EUI</span>
@@ -1882,7 +1882,7 @@
 
                 <strong style="color: var(--accent);">TRAINING DATASET</strong><br>
                 • NREL Building Data: 100,000 records<br>
-                • Coverage: New York, Illinois, Washington<br>
+                • Coverage: United States (strongest in New York, Illinois, Washington)<br>
                 • Status: <span style="color: var(--success);">✓ READY</span>
             `;
             document.getElementById('finalSummary').innerHTML = summary;

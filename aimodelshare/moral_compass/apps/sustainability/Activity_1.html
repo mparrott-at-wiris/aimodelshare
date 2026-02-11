@@ -757,8 +757,8 @@
                             <span class="fact-slide-icon">🌡️</span>
                             <span class="fact-slide-title">Global Temperature Milestone</span>
                         </div>
-                        <div class="fact-stat" data-target="1.45" data-prefix="+" data-suffix="°C">+0°C</div>
-                        <div class="fact-description">2024 was the hottest year ever recorded. Every fraction of a degree means more deadly heat waves, flooding, and wildfires &mdash; and the cities producing the most pollution often don't even know where it's coming from.</div>
+                        <div class="fact-stat" data-target="1.5" data-prefix="+" data-suffix="°C">+0°C</div>
+                        <div class="fact-description">2024 was the hottest year ever recorded &mdash; 1.5°C above pre-industrial levels (1850&ndash;1900 average). Every fraction of a degree means more deadly heat waves, flooding, and wildfires &mdash; and the cities producing the most pollution often don't even know where it's coming from.</div>
                         <div class="fact-citation">Source: NASA GISS, 2025</div>
                     </div>
 
@@ -767,9 +767,9 @@
                             <span class="fact-slide-icon">🏁</span>
                             <span class="fact-slide-title">The Technology Exists Today</span>
                         </div>
-                        <div class="fact-stat" data-target="50" data-suffix="%">0%</div>
-                        <div class="fact-description">We already have the technology to cut emissions in half by 2030. But cities can't fix what they can't measure &mdash; they need investigators to find the biggest sources first.</div>
-                        <div class="fact-citation">Source: IPCC AR6, 2023</div>
+                        <div class="fact-stat" data-target="43" data-suffix="%">0%</div>
+                        <div class="fact-description">We already have the technology to cut emissions by over 40% by 2030. But cities can't fix what they can't measure &mdash; they need investigators to find the biggest sources first.</div>
+                        <div class="fact-citation">Source: IPCC AR6 Synthesis Report, 2023</div>
                     </div>
 
                     <div class="scroll-indicator" id="scrollIndicator">↓ Scroll to see <span id="factCount">1 more</span> fact</div>
@@ -852,7 +852,7 @@
                 <div id="emissionsContext" style="text-align:center; color:var(--text-dim); font-size:0.95rem; margin:-15px 0 20px 0; font-style:italic;"></div>
                 <div id="familiesAffected" class="families-counter" style="display:none;">
                     <p style="margin: 0; color: var(--text);">This pollution affects air quality for roughly <span id="familiesCount" style="font-size: 1.5rem; font-weight: 800; color: var(--success);">0</span> families in <span id="familiesCity" class="highlight-text">your city</span>.</p>
-                    <p style="margin: 5px 0 0; font-size: 0.85rem; color: var(--text-dim); font-style: italic;">Estimated based on average household emissions of 8.1 tonnes/year</p>
+                    <p style="margin: 5px 0 0; font-size: 0.85rem; color: var(--text-dim); font-style: italic;">Estimated based on US average household emissions of 8.1 tonnes/year</p>
                 </div>
                 <div class="quiz">
                     <div class="quiz-title">Checkpoint Question</div>
@@ -1128,7 +1128,7 @@
                     total2023: investigationData.t22,
                     trend: investigationData.t22 > investigationData.t21 ? 'up' : 'down',
                     trendPct: ((investigationData.t22 - investigationData.t21) / investigationData.t21 * 100).toFixed(1),
-                    carsEquivalent: Math.round(investigationData.t22 / 4600)
+                    carsEquivalent: Math.round(investigationData.t22 / 4.6)
                 };
                 if (investigationData.topSector) {
                     journey.topSector = {
@@ -1165,7 +1165,7 @@
         function updateEmissionsContext() {
             const t22 = investigationData.t22;
             if (!t22) return;
-            const cars = Math.round(t22 / 4600).toLocaleString();
+            const cars = Math.round(t22 / 4.6).toLocaleString();
             document.getElementById('emissionsContext').innerText =
                 "That's about the same as " + cars + " cars driving for a year.";
         }
@@ -1503,7 +1503,7 @@
             const sectorEmissions = topSector.emissionsQuantity;
             const reduction = sectorEmissions / 2;
             const afterEmissions = totalEmissions - reduction;
-            const carsRemoved = Math.round(reduction / 4600);
+            const carsRemoved = Math.round(reduction / 4.6);
 
             document.getElementById('impactProjection').style.display = 'block';
             document.getElementById('impactSummary').innerHTML =
