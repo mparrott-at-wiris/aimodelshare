@@ -1614,7 +1614,7 @@
             milestones.forEach((m) => {
                 milestoneDelay += 800;
                 setTimeout(() => {
-                    const pct = ((m.inspected / data.buildingCount) * 100).toFixed(1);
+                    const pct = ((m.inspected / data.buildingCount) * 100).toFixed(2);
                     counter.innerHTML = `<strong>${m.label}:</strong> ${m.inspected} inspected &mdash; <span style="color: var(--error);">${pct}%</span> of ${data.buildingCount.toLocaleString()} buildings`;
                 }, milestoneDelay);
             });
