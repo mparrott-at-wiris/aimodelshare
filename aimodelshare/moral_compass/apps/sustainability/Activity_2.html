@@ -236,47 +236,134 @@
             border-left: 3px solid var(--accent);
         }
 
-        /* SECTOR BUTTONS */
-        .sector-btn {
-            padding: 18px;
+        /* BUILDING GRID */
+        .building-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            max-width: 420px;
+            margin: 20px auto;
+        }
+
+        .building-icon {
+            width: 100%;
+            aspect-ratio: 1;
             background: var(--input-bg);
-            border-radius: 12px;
-            cursor: pointer;
             border: 2px solid var(--input-border);
-            transition: all 0.3s ease;
-            position: relative;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: all 0.4s ease;
         }
 
-        .sector-btn:hover {
-            border-color: var(--accent);
-            background: var(--hover-bg);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px var(--accent-glow);
+        .building-icon.efficient {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: var(--success);
         }
 
-        .sector-btn::after {
-            content: 'Click to select';
-            position: absolute;
-            top: 8px;
-            right: 12px;
-            font-size: 0.75rem;
+        .building-icon.wasteful {
+            background: rgba(244, 63, 94, 0.15);
+            border-color: var(--error);
+        }
+
+        .building-icon.unknown {
+            background: var(--input-bg);
+            border-color: var(--input-border);
+            opacity: 0.5;
+        }
+
+        /* PROBLEM PHASES */
+        .problem-phase {
+            animation: fadeIn 0.5s ease;
+            margin: 15px 0;
+        }
+
+        /* INSPECTOR MATH */
+        .inspector-math {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .math-equation {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .math-number {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .math-operator {
+            font-size: 0.9rem;
             color: var(--text-dim);
-            opacity: 0.6;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
-        .sector-btn.selected {
-            border-color: var(--success) !important;
-            background: var(--success-bg) !important;
-            transform: none;
+        .math-symbol {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text);
         }
 
-        .sector-btn.selected::after {
-            content: '✓ Selected';
-            color: var(--success);
-            opacity: 1;
-            font-weight: 600;
+        .math-result {
+            color: var(--error) !important;
+        }
+
+        .inspector-counter {
+            font-size: 0.95rem;
+            color: var(--text-dim);
+            min-height: 30px;
+        }
+
+        /* COST COUNTERS */
+        .cost-counters {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .cost-counter {
+            text-align: center;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px 10px;
+        }
+
+        .cost-number {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--ai-purple), var(--ai-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .cost-label {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-top: 8px;
+        }
+
+        /* AI PROMISE */
+        .ai-promise-box {
+            background: linear-gradient(135deg, var(--grant-bg-1), var(--grant-bg-2));
+            border: 2px solid var(--accent);
+            padding: 30px;
+            border-radius: 16px;
+            margin: 20px 0;
+            box-shadow: 0 0 30px var(--accent-glow);
         }
 
         /* FEATURE CARDS */
@@ -774,67 +861,91 @@
 
                 <div class="briefing-points">
                     <div class="briefing-item" id="grantBriefingItem">
-                        🏢 Your city has thousands of buildings. <span class="highlight-text">Your mission:</span> figure out what data an AI needs to predict which ones waste the most energy.
+                        🏢 Your city has a problem it can't solve alone. Buildings are wasting massive energy &mdash; but <span class="highlight-text">nobody knows which ones</span>.
                     </div>
                 </div>
 
                 <div class="btn-group">
-                    <button class="btn" style="width: 100%;" onclick="goToStep(1)">BEGIN DATA PLAN</button>
+                    <button class="btn" style="width: 100%;" onclick="goToStep(1)">SEE THE PROBLEM</button>
                 </div>
             </div>
 
-            <!-- STEP 1: CONFIRM SECTOR TARGET -->
+            <!-- STEP 1: THE INSPECTOR'S DILEMMA -->
             <div class="mission-step" id="step-1">
-                <h2>🎯 Step 1: Confirm Sector Target</h2>
-                <p>The grant targets the built environment, but which <em>part</em> of it? We need to pick the sector
-                    where <span class="highlight-text">AI can make the most accurate predictions</span>.</p>
+                <h2>🔍 Step 1: The Inspector's Dilemma</h2>
+                <p>Before we design an AI, let's understand <span class="highlight-text">why we need one</span>.</p>
 
-                <div
-                    style="background: rgba(255, 255, 255, 0.05); padding: 25px; border-radius: 16px; margin: 25px 0;">
-                    <h3 style="color: var(--accent); margin-bottom: 15px;">Choose Your Target</h3>
-                    <p style="color: var(--text-dim); font-size: 0.95rem; margin-bottom: 15px;">Which sector has the
-                        best data for AI to learn from? Click to select:</p>
-                    <div style="display: grid; gap: 15px;">
-                        <div id="sector-transport" class="sector-btn" data-sector="transport"
-                            onclick="selectSector(this, 'transport')">
-                            <strong style="color: var(--text);">🚗 Transportation:</strong>
-                            <span style="color: var(--text-dim);">GPS and traffic sensors produce massive datasets. Cities control roads and transit routes. Fuel consumption is well-documented.</span>
-                        </div>
-                        <div id="sector-power" class="sector-btn" data-sector="power"
-                            onclick="selectSector(this, 'power')">
-                            <strong style="color: var(--text);">⚡ Power Generation:</strong>
-                            <span style="color: var(--text-dim);">Utility companies track output minute-by-minute. Grid data is highly structured. Government regulations require detailed reporting.</span>
-                        </div>
-                        <div id="sector-buildings" class="sector-btn" data-sector="buildings"
-                            onclick="selectSector(this, 'buildings')">
-                            <strong style="color: var(--text);">🏢 Buildings (Homes &amp; Offices):</strong>
-                            <span style="color: var(--text-dim);">Smart meters and energy audits produce rich datasets. Cities issue building permits and inspections. Retrofits have measurable, repeatable impact.</span>
-                        </div>
+                <!-- Phase A: City Building Grid -->
+                <div id="phase-a" class="problem-phase">
+                    <p style="text-align: center; color: var(--text-dim); font-size: 0.95rem;">Here are <span id="gridCityLabel" style="font-weight:600; color:var(--text);">your city's</span> buildings. Which ones are wasting energy?</p>
+                    <div class="building-grid" id="buildingGrid"></div>
+                    <p id="gridCaption" style="text-align: center; font-weight: 600; margin-top: 15px; display: none;">
+                        <span style="color: var(--error);">71% of buildings are a mystery.</span> We have no idea if they're efficient or wasteful.
+                    </p>
+                    <div id="scanBtnWrap" style="text-align: center; margin-top: 15px;">
+                        <button class="btn" id="btn-scan" onclick="revealBuildingGrid()">SCAN THE CITY</button>
                     </div>
-                    <div id="sectorFeedback"
-                        style="margin-top: 15px; padding: 12px; border-radius: 8px; display:none;"></div>
-                    <div id="sectorHint" style="display:none;"></div>
                 </div>
 
-                <div class="info-box" id="sectorLesson" style="display: none;">
-                    <button class="collapsible-toggle" onclick="toggleCollapsible(this)">Learn more</button>
-                    <div class="collapsible-content">
-                        <p style="font-size: 0.95rem; margin: 10px 0 0 0; color: var(--text);">
-                            In real AI projects, <span class="highlight-text">having good data</span> often matters more
-                            than the size of the problem. Buildings win because we have the data to train
-                            effective models.</p>
+                <!-- Phase B: The Inspector Math -->
+                <div id="phase-b" class="problem-phase" style="display: none;">
+                    <h3 style="text-align: center;">What if we sent inspectors?</h3>
+                    <div class="inspector-math">
+                        <div class="math-equation">
+                            <span id="mathBuildings" class="math-number">12,000</span>
+                            <span class="math-operator">buildings</span>
+                            <span class="math-symbol">&times;</span>
+                            <span class="math-number">1 day</span>
+                            <span class="math-operator">per inspection</span>
+                            <span class="math-symbol">=</span>
+                            <span id="mathYears" class="math-number math-result">33 years</span>
+                        </div>
+                        <div id="inspectorCounter" class="inspector-counter"></div>
+                    </div>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <button class="btn" id="btn-phase-b" onclick="showHumanCost()">WHAT HAPPENS WHILE WE WAIT?</button>
+                    </div>
+                </div>
+
+                <!-- Phase C: The Human Cost -->
+                <div id="phase-c" class="problem-phase" style="display: none;">
+                    <h3 style="text-align: center;">While we wait, every year&hellip;</h3>
+                    <div class="cost-counters">
+                        <div class="cost-counter">
+                            <div class="cost-number" id="costFamilies">0</div>
+                            <div class="cost-label">families overpaying on energy</div>
+                        </div>
+                        <div class="cost-counter">
+                            <div class="cost-number" id="costCO2">0</div>
+                            <div class="cost-label">tonnes CO&#x2082; wasted</div>
+                        </div>
+                        <div class="cost-counter">
+                            <div class="cost-number" id="costCars">0</div>
+                            <div class="cost-label">cars' worth of pollution</div>
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <button class="btn" id="btn-phase-c" onclick="showAIPromise()">IS THERE A BETTER WAY?</button>
+                    </div>
+                </div>
+
+                <!-- Phase D: The AI Promise -->
+                <div id="phase-d" class="problem-phase" style="display: none;">
+                    <div class="ai-promise-box">
+                        <p id="aiPromiseText" style="font-size: 1.15rem; color: var(--text); text-align: center; font-weight: 600; margin-bottom: 12px;"></p>
+                        <p style="text-align: center; color: var(--text-dim); margin-bottom: 0;">But first, you need to teach it what to look for.</p>
                     </div>
                 </div>
 
                 <div class="btn-group">
-                    <button class="btn secondary" onclick="goToStep(0)">◀️ BACK</button>
-                    <button class="btn" id="btn-next-1" onclick="goToStep(2)" disabled>CONFIRM SECTOR</button>
+                    <button class="btn secondary" onclick="goToStep(0)">&#x25C0;&#xFE0F; BACK</button>
+                    <button class="btn" id="btn-next-1" onclick="goToStep(2)" disabled>DESIGN YOUR AI</button>
                 </div>
             </div>
 
             <!-- STEP 2: FEATURE SELECTION (CHOOSING CLUES) -->
             <div class="mission-step" id="step-2">
-                <h2>🧬 Step 2: Choose the Right Clues for Your AI</h2>
+                <h2>🧬 Step 2: Teach Your AI What to Look For</h2>
                 <p>To predict which buildings waste energy <strong>without visiting them</strong>, your AI
                     needs specific data inputs. In AI, these inputs are called <span
                         class="highlight-text">"features"</span> &mdash;
@@ -1025,10 +1136,10 @@
 
                         <!-- Quiz Question 1 -->
                         <div id="quiz1" style="margin-bottom: 16px;">
-                            <p style="font-size: 0.95rem; color: var(--text); margin-bottom: 10px;">Why did we pick buildings over transportation?</p>
+                            <p style="font-size: 0.95rem; color: var(--text); margin-bottom: 10px;">Why can't cities just send inspectors to every building?</p>
                             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                <button class="btn secondary" style="flex: 1; padding: 10px; font-size: 0.9rem; text-transform: none;" onclick="answerQuiz(1, 'correct', this)">More data available</button>
-                                <button class="btn secondary" style="flex: 1; padding: 10px; font-size: 0.9rem; text-transform: none;" onclick="answerQuiz(1, 'wrong', this)">Higher emissions</button>
+                                <button class="btn secondary" style="flex: 1; padding: 10px; font-size: 0.9rem; text-transform: none;" onclick="answerQuiz(1, 'correct', this)">It would take years</button>
+                                <button class="btn secondary" style="flex: 1; padding: 10px; font-size: 0.9rem; text-transform: none;" onclick="answerQuiz(1, 'wrong', this)">Inspectors aren't allowed inside</button>
                             </div>
                             <div id="quiz1Feedback" style="display: none; margin-top: 8px; padding: 8px 12px; border-radius: 8px; font-size: 0.9rem;"></div>
                         </div>
@@ -1107,11 +1218,12 @@
             selectedFeatures: new Set(),
             correctFeatures: new Set(['floor_area', 'weather', 'year']),
             predictionGoal: '',
-            sectorConfirmed: false,
+            problemUnderstood: false,
+            phasesRevealed: 0,
             dataSearched: false
         };
 
-        let wrongAttempts = { sector: 0, features: 0 };
+        let wrongAttempts = { features: 0 };
 
         // ——— JOURNEY STATE ———
         function getJourney() {
@@ -1219,7 +1331,7 @@
                 ? '~' + Math.round(totalEmissions / 50).toLocaleString()
                 : 'thousands of';
             document.getElementById('grantBriefingItem').innerHTML =
-                `🏢 <strong>${cityName}</strong> has an estimated <strong>${buildingEstimate}</strong> buildings across its built environment — homes, offices, schools, hospitals. <span class="highlight-text">Your mission:</span> figure out what data an AI needs to predict which ones waste the most energy.`;
+                `🏢 <strong>${cityName}</strong> has an estimated <strong>${buildingEstimate}</strong> buildings. They're wasting massive energy &mdash; but <span class="highlight-text">nobody knows which ones</span>.`;
 
             // E2-2: Building stock context (Step 2)
             const buildingCtx = document.getElementById('buildingStockContext');
@@ -1284,6 +1396,7 @@
             });
             document.getElementById(`step-${idx}`).classList.add('active');
 
+            if (idx === 1) initBuildingGrid();
             if (idx === 4) renderDataRequirements();
             if (idx === 5) {
                 renderFinalSummary();
@@ -1294,44 +1407,158 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // ——— STEP 1: SECTOR SELECTION ———
+        // ——— STEP 1: THE INSPECTOR'S DILEMMA ———
 
-        function selectSector(card, sectorId) {
-            const fb = document.getElementById('sectorFeedback');
-            fb.style.display = 'block';
+        function getProblemData() {
+            const j = getJourney();
+            const totalEmissions = j?.emissions?.total2023 || j?.emissions?.total2022;
+            const cityName = j?.city?.name || 'your city';
 
-            // Reset all sector styles
-            document.querySelectorAll('.sector-btn').forEach(el => {
-                el.classList.remove('selected');
+            // Estimate building count from emissions (~50 tonnes avg per building)
+            const buildingCount = totalEmissions ? Math.round(totalEmissions / 50) : 12000;
+            const inspectorYears = Math.max(1, Math.round(buildingCount / 365));
+
+            // ~40% of total emissions = building sector
+            const buildingEmissions = totalEmissions ? Math.round(totalEmissions * 0.4) : 50000;
+            // Families affected: ~8.1 tonnes per household avg
+            const familiesAffected = totalEmissions ? Math.round(buildingEmissions / 8.1) : 5000;
+            // Cars equivalent: ~4.6 tonnes per car per year
+            const carsEquivalent = totalEmissions ? Math.round(buildingEmissions / 4.6) : 10000;
+
+            return { cityName, buildingCount, inspectorYears, buildingEmissions, familiesAffected, carsEquivalent };
+        }
+
+        function initBuildingGrid() {
+            const grid = document.getElementById('buildingGrid');
+            if (!grid || grid.children.length > 0) return;
+
+            for (let i = 0; i < 24; i++) {
+                const icon = document.createElement('div');
+                icon.className = 'building-icon';
+                icon.textContent = '🏢';
+                icon.dataset.index = i;
+                grid.appendChild(icon);
+            }
+
+            // Set city label
+            const data = getProblemData();
+            const label = document.getElementById('gridCityLabel');
+            if (label) label.textContent = data.cityName + "'s";
+        }
+
+        function revealBuildingGrid() {
+            const btn = document.getElementById('btn-scan');
+            btn.disabled = true;
+            btn.textContent = 'SCANNING...';
+
+            const icons = document.querySelectorAll('.building-icon');
+            const efficient = [2, 11, 19];
+            const wasteful = [0, 7, 14, 22];
+
+            let delay = 0;
+            icons.forEach((icon, i) => {
+                delay += 80 + Math.random() * 40;
+                setTimeout(() => {
+                    if (efficient.includes(i)) {
+                        icon.classList.add('efficient');
+                        icon.textContent = '✅';
+                    } else if (wasteful.includes(i)) {
+                        icon.classList.add('wasteful');
+                        icon.textContent = '❌';
+                    } else {
+                        icon.classList.add('unknown');
+                        icon.textContent = '❓';
+                    }
+                }, delay);
             });
 
-            if (sectorId === 'buildings') {
-                card.classList.add('selected');
-                fb.style.background = 'rgba(16, 185, 129, 0.1)';
-                fb.style.borderLeft = '4px solid var(--success)';
-                fb.innerHTML = '<p style="margin:0; color:var(--text);"><strong style="color:var(--success);">Correct!</strong> Buildings have the most useful data and clear ways to improve them &mdash; ideal for AI.</p>';
-                document.getElementById('sectorLesson').style.display = 'block';
-                document.getElementById('btn-next-1').disabled = false;
-                projectData.sectorConfirmed = true;
-                saveProgress();
-            } else {
-                wrongAttempts.sector++;
+            setTimeout(() => {
+                document.getElementById('gridCaption').style.display = 'block';
+                document.getElementById('scanBtnWrap').style.display = 'none';
 
-                fb.style.background = 'rgba(245, 158, 11, 0.1)';
-                fb.style.borderLeft = '4px solid var(--warning)';
-                if (sectorId === 'transport') {
-                    fb.innerHTML = '<p style="margin:0; color:var(--text-dim);">Good thinking &mdash; transport has lots of data, but individual vehicles are hard for a <em>city</em> to act on. Think: which sector gives the city direct control over physical things it can improve?</p>';
-                } else {
-                    fb.innerHTML = '<p style="margin:0; color:var(--text-dim);">Power plants do have great data &mdash; but they\'re already heavily regulated and optimized. Think: where is there the most room for AI to find <em>new</em> savings?</p>';
-                }
+                setTimeout(() => {
+                    populateInspectorMath();
+                }, 800);
+            }, delay + 300);
+        }
 
-                // Show hint after 2 wrong attempts
-                if (wrongAttempts.sector >= 2) {
-                    const hintDiv = document.getElementById('sectorHint');
-                    hintDiv.style.display = 'block';
-                    hintDiv.innerHTML = '<div class="hint-box">💡 <strong>Hint:</strong> Think about which sector has the most data available from smart meters and thermometers...</div>';
-                }
+        function populateInspectorMath() {
+            const data = getProblemData();
+            const phaseB = document.getElementById('phase-b');
+            phaseB.style.display = 'block';
+            phaseB.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            document.getElementById('mathBuildings').textContent = data.buildingCount.toLocaleString();
+            document.getElementById('mathYears').textContent = data.inspectorYears + ' years';
+
+            // Animated counter: Day 1 → Week 1 → Month 1 → Year 1
+            const counter = document.getElementById('inspectorCounter');
+            const milestones = [
+                { label: 'Day 1', inspected: 1 },
+                { label: 'Week 1', inspected: 5 },
+                { label: 'Month 1', inspected: 22 },
+                { label: 'Year 1', inspected: 260 }
+            ];
+
+            let milestoneDelay = 0;
+            milestones.forEach((m) => {
+                milestoneDelay += 800;
+                setTimeout(() => {
+                    const pct = ((m.inspected / data.buildingCount) * 100).toFixed(1);
+                    counter.innerHTML = `<strong>${m.label}:</strong> ${m.inspected} inspected &mdash; <span style="color: var(--error);">${pct}%</span> of ${data.buildingCount.toLocaleString()} buildings`;
+                }, milestoneDelay);
+            });
+
+            projectData.phasesRevealed = 1;
+            saveProgress();
+        }
+
+        function showHumanCost() {
+            const data = getProblemData();
+            const phaseC = document.getElementById('phase-c');
+            phaseC.style.display = 'block';
+            phaseC.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            animateCounter('costFamilies', data.familiesAffected, 1500);
+            animateCounter('costCO2', data.buildingEmissions, 1500);
+            animateCounter('costCars', data.carsEquivalent, 1500);
+
+            projectData.phasesRevealed = 2;
+            saveProgress();
+        }
+
+        function showAIPromise() {
+            const data = getProblemData();
+            const phaseD = document.getElementById('phase-d');
+            phaseD.style.display = 'block';
+            phaseD.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            document.getElementById('aiPromiseText').innerHTML =
+                `Your AI can analyze ALL <strong>${data.buildingCount.toLocaleString()}</strong> buildings in <strong>${data.cityName}</strong> in seconds, not <strong>${data.inspectorYears} years</strong>.`;
+
+            document.getElementById('btn-next-1').disabled = false;
+            projectData.problemUnderstood = true;
+            projectData.phasesRevealed = 3;
+            saveProgress();
+        }
+
+        function animateCounter(elementId, targetValue, duration) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+
+            const startTime = performance.now();
+
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                // Ease-out cubic
+                const easedProgress = 1 - Math.pow(1 - progress, 3);
+                const current = Math.round(targetValue * easedProgress);
+                el.textContent = current.toLocaleString();
+                if (progress < 1) requestAnimationFrame(update);
             }
+
+            requestAnimationFrame(update);
         }
 
         // ——— STEP 2: FEATURE SELECTION ———
@@ -1446,7 +1673,7 @@
                 fb.style.background = 'rgba(251, 191, 36, 0.15)';
                 fb.style.color = 'var(--text)';
                 if (questionNum === 1) {
-                    fb.innerHTML = 'Not quite &mdash; buildings have more consistent, measurable data from smart meters.';
+                    fb.innerHTML = 'Not quite &mdash; inspectors are allowed inside, but with thousands of buildings and only 1 per day, it would take decades to check them all.';
                 } else {
                     fb.innerHTML = 'Not quite &mdash; EUI divides energy by floor area so you can compare buildings of different sizes.';
                 }
@@ -1526,7 +1753,7 @@
             const cityLine = cityName ? ` in <strong>${cityName}</strong>` : '';
 
             const requirements = `
-                <strong style="color: var(--accent);">TARGET SECTOR</strong><br>
+                <strong style="color: var(--accent);">FOCUS AREA</strong><br>
                 • Buildings (Homes & Offices)${cityLine}<br><br>
 
                 <strong style="color: var(--accent);">DATA CLUES (FEATURES)</strong><br>
@@ -1644,7 +1871,7 @@
             const cityLine = cityName ? ` for <strong>${cityName}</strong>` : '';
 
             const summary = `
-                <strong style="color: var(--accent);">SECTOR TARGET</strong><br>
+                <strong style="color: var(--accent);">FOCUS AREA</strong><br>
                 • Buildings (Homes & Offices)${cityLine}<br><br>
 
                 <strong style="color: var(--accent);">DATA CLUES (FEATURES)</strong><br>
@@ -1669,7 +1896,8 @@
                     currentStep: currentStep,
                     selectedFeatures: Array.from(projectData.selectedFeatures),
                     predictionGoal: projectData.predictionGoal,
-                    sectorConfirmed: projectData.sectorConfirmed,
+                    problemUnderstood: projectData.problemUnderstood,
+                    phasesRevealed: projectData.phasesRevealed,
                     dataSearched: projectData.dataSearched,
                     wrongAttempts: wrongAttempts
                 };
@@ -1690,18 +1918,53 @@
                 // Restore data
                 projectData.selectedFeatures = new Set(state.selectedFeatures || []);
                 projectData.predictionGoal = state.predictionGoal || '';
-                projectData.sectorConfirmed = state.sectorConfirmed || false;
+                projectData.problemUnderstood = state.problemUnderstood || false;
+                projectData.phasesRevealed = state.phasesRevealed || 0;
                 projectData.dataSearched = state.dataSearched || false;
-                wrongAttempts = state.wrongAttempts || { sector: 0, features: 0 };
+                wrongAttempts = state.wrongAttempts || { features: 0 };
 
-                // Restore UI: sector selection
-                if (projectData.sectorConfirmed) {
-                    const buildingsCard = document.getElementById('sector-buildings');
-                    if (buildingsCard) buildingsCard.classList.add('selected');
+                // Restore UI: inspector phases
+                if (projectData.phasesRevealed >= 1) {
+                    initBuildingGrid();
+                    const icons = document.querySelectorAll('.building-icon');
+                    const efficient = [2, 11, 19];
+                    const wasteful = [0, 7, 14, 22];
+                    icons.forEach((icon, i) => {
+                        if (efficient.includes(i)) { icon.classList.add('efficient'); icon.textContent = '✅'; }
+                        else if (wasteful.includes(i)) { icon.classList.add('wasteful'); icon.textContent = '❌'; }
+                        else { icon.classList.add('unknown'); icon.textContent = '❓'; }
+                    });
+                    document.getElementById('gridCaption').style.display = 'block';
+                    const scanWrap = document.getElementById('scanBtnWrap');
+                    if (scanWrap) scanWrap.style.display = 'none';
+                    const data = getProblemData();
+                    const phaseB = document.getElementById('phase-b');
+                    if (phaseB) {
+                        phaseB.style.display = 'block';
+                        document.getElementById('mathBuildings').textContent = data.buildingCount.toLocaleString();
+                        document.getElementById('mathYears').textContent = data.inspectorYears + ' years';
+                    }
+                }
+                if (projectData.phasesRevealed >= 2) {
+                    const data = getProblemData();
+                    const phaseC = document.getElementById('phase-c');
+                    if (phaseC) {
+                        phaseC.style.display = 'block';
+                        document.getElementById('costFamilies').textContent = data.familiesAffected.toLocaleString();
+                        document.getElementById('costCO2').textContent = data.buildingEmissions.toLocaleString();
+                        document.getElementById('costCars').textContent = data.carsEquivalent.toLocaleString();
+                    }
+                }
+                if (projectData.phasesRevealed >= 3) {
+                    const data = getProblemData();
+                    const phaseD = document.getElementById('phase-d');
+                    if (phaseD) {
+                        phaseD.style.display = 'block';
+                        document.getElementById('aiPromiseText').innerHTML =
+                            `Your AI can analyze ALL <strong>${data.buildingCount.toLocaleString()}</strong> buildings in <strong>${data.cityName}</strong> in seconds, not <strong>${data.inspectorYears} years</strong>.`;
+                    }
                     const btn1 = document.getElementById('btn-next-1');
                     if (btn1) btn1.disabled = false;
-                    const lesson = document.getElementById('sectorLesson');
-                    if (lesson) lesson.style.display = 'block';
                 }
 
                 // Restore UI: feature selections
