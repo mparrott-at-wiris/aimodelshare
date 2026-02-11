@@ -461,61 +461,142 @@
             cursor: default;
         }
 
-        /* EUI CALCULATOR */
-        .eui-calculator {
+        /* EUI MATCHUP GAME */
+        .matchup-round {
             background: var(--input-bg);
             border: 1px solid var(--border-color);
-            padding: 20px;
-            border-radius: 12px;
+            padding: 24px;
+            border-radius: 16px;
             margin: 20px 0;
         }
 
-        .eui-calculator input[type="number"] {
-            width: 130px;
-            text-align: center;
-            font-size: 1.1rem;
+        .matchup-round.completed {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .matchup-prompt {
+            font-size: 1rem;
             font-weight: 600;
-            background: var(--input-bg);
-            border: 1px solid var(--input-border);
-            padding: 10px;
-            border-radius: 8px;
             color: var(--text);
-            font-family: inherit;
+            margin-bottom: 16px;
+            text-align: center;
         }
 
-        .eui-calculator input[type="number"]:focus {
+        .matchup-arena {
+            display: flex;
+            align-items: stretch;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .matchup-card {
+            flex: 1;
+            max-width: 240px;
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 14px;
+            padding: 20px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .matchup-card:hover {
             border-color: var(--accent);
-            box-shadow: 0 0 10px var(--accent-glow);
-            outline: none;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px var(--accent-glow);
         }
 
-        .eui-result {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-top: 15px;
-            padding: 15px;
-            border-radius: 8px;
+        .matchup-card .building-icon {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+
+        .matchup-card .building-name {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .matchup-card .building-stats {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            line-height: 1.5;
+        }
+
+        .matchup-vs {
+            display: flex;
+            align-items: center;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--text-dim);
+        }
+
+        .matchup-card.revealed-winner {
+            border-color: var(--error);
+            background: var(--error-bg);
+            cursor: default;
+        }
+
+        .matchup-card.revealed-efficient {
+            border-color: var(--success);
             background: var(--success-bg);
-            border: 1px solid var(--success);
-            display: none;
-            animation: fadeIn 0.3s ease;
+            cursor: default;
         }
 
-        /* EUI DIAGRAM */
-        .eui-diagram {
+        .matchup-card .eui-badge {
+            display: none;
+            margin-top: 10px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .matchup-card.revealed-winner .eui-badge,
+        .matchup-card.revealed-efficient .eui-badge {
+            display: inline-block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .matchup-card.revealed-winner .eui-badge {
+            background: var(--error);
+            color: white;
+        }
+
+        .matchup-card.revealed-efficient .eui-badge {
+            background: var(--success);
+            color: white;
+        }
+
+        .matchup-reveal {
+            margin-top: 14px;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            color: var(--text);
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .matchup-summary {
             background: var(--eui-bg);
             border: 2px solid var(--accent);
-            padding: 30px;
+            padding: 24px;
             border-radius: 16px;
-            margin: 25px 0;
+            margin: 20px 0;
             text-align: center;
+            display: none;
+            animation: fadeIn 0.5s ease;
         }
 
         .eui-formula {
             font-size: 1.5rem;
             font-weight: 700;
             color: var(--eui-formula-color);
-            margin: 20px 0;
+            margin: 12px 0;
             font-family: 'Courier New', monospace;
         }
 
@@ -1123,34 +1204,70 @@
 
                 <!-- Revealed after correct choice -->
                 <div id="euiExplainer" style="display: none;">
-                    <p>This score is called <span class="highlight-text">EUI</span> &mdash; like miles-per-gallon, but for buildings.</p>
+                    <p>This score is called <span class="highlight-text">EUI</span> (Energy Use Intensity) &mdash; like miles-per-gallon, but for buildings. Each building's energy is measured in <strong>energy units</strong> per year (think of them like calories, but for a building instead of a person). Let's see it in action.</p>
 
-                    <!-- Merged EUI Calculator + Diagram -->
-                    <div class="eui-calculator">
-                        <div class="eui-formula" style="margin: 0 0 15px 0;">
-                            Energy Used ÷ Building Size = EUI
-                        </div>
-                        <p style="font-size: 0.95rem; color: var(--text-dim); margin-bottom: 15px;">Try it &mdash; a warehouse uses 2,000,000 energy units across 100,000 sqft. A school uses 500,000 across 10,000 sqft. Which is more efficient?</p>
-                        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                            <div style="text-align: center;">
-                                <div style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Total Energy
+                    <p style="font-size: 1rem; font-weight: 600; color: var(--accent); margin: 16px 0 4px 0;">Which building wastes more energy per square foot? Pick one.</p>
+
+                    <!-- Round 1 -->
+                    <div class="matchup-round" id="matchup-1">
+                        <div class="matchup-prompt">Round 1</div>
+                        <div class="matchup-arena">
+                            <div class="matchup-card" id="m1-a" onclick="pickMatchup(1,'a')">
+                                <div class="building-icon">☕</div>
+                                <div class="building-name">Coffee Shop</div>
+                                <div class="building-stats">
+                                    Uses 500,000 energy units/yr<br>
+                                    Size: 2,000 sqft
                                 </div>
-                                <input type="number" id="calcEnergy" value="2000000" min="0" step="1000">
-                                <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 2px;">energy units
-                                </div>
+                                <div class="eui-badge">EUI 250 — wasteful!</div>
                             </div>
-                            <span style="font-size: 1.5rem; color: var(--text); font-weight: 700;">÷</span>
-                            <div style="text-align: center;">
-                                <div style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Floor Area
+                            <div class="matchup-vs">VS</div>
+                            <div class="matchup-card" id="m1-b" onclick="pickMatchup(1,'b')">
+                                <div class="building-icon">🏭</div>
+                                <div class="building-name">Warehouse</div>
+                                <div class="building-stats">
+                                    Uses 3,000,000 energy units/yr<br>
+                                    Size: 100,000 sqft
                                 </div>
-                                <input type="number" id="calcArea" value="100000" min="1" step="100">
-                                <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 2px;">sqft</div>
+                                <div class="eui-badge">EUI 30 — efficient!</div>
                             </div>
-                            <span style="font-size: 1.5rem; color: var(--text); font-weight: 700;">=</span>
-                            <button class="btn" style="padding: 10px 20px; font-size: 0.9rem;"
-                                onclick="calculateEUI()">Calculate</button>
                         </div>
-                        <div id="euiCalcResult" class="eui-result"></div>
+                        <div class="matchup-reveal" id="matchup-1-reveal"></div>
+                    </div>
+
+                    <!-- Round 2 (hidden until Round 1 done) -->
+                    <div class="matchup-round" id="matchup-2" style="display: none;">
+                        <div class="matchup-prompt">Round 2</div>
+                        <div class="matchup-arena">
+                            <div class="matchup-card" id="m2-a" onclick="pickMatchup(2,'a')">
+                                <div class="building-icon">🏫</div>
+                                <div class="building-name">1960s School</div>
+                                <div class="building-stats">
+                                    Uses 1,500,000 energy units/yr<br>
+                                    Size: 10,000 sqft
+                                </div>
+                                <div class="eui-badge">EUI 150 — wasteful!</div>
+                            </div>
+                            <div class="matchup-vs">VS</div>
+                            <div class="matchup-card" id="m2-b" onclick="pickMatchup(2,'b')">
+                                <div class="building-icon">🏢</div>
+                                <div class="building-name">Office Tower</div>
+                                <div class="building-stats">
+                                    Uses 8,000,000 energy units/yr<br>
+                                    Size: 200,000 sqft
+                                </div>
+                                <div class="eui-badge">EUI 40 — efficient!</div>
+                            </div>
+                        </div>
+                        <div class="matchup-reveal" id="matchup-2-reveal"></div>
+                    </div>
+
+                    <!-- Summary after both rounds -->
+                    <div class="matchup-summary" id="matchup-summary">
+                        <p style="font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: 8px;">That's the power of EUI</p>
+                        <div class="eui-formula">Energy Used &divide; Building Size = EUI</div>
+                        <p style="font-size: 0.95rem; color: var(--text-dim); margin-top: 8px;"><strong style="color: var(--error);">High EUI = wasteful</strong> &mdash; the building burns through a lot of energy for its size.<br><strong style="color: var(--success);">Low EUI = efficient</strong> &mdash; the building makes good use of every square foot.</p>
+                        <p style="font-size: 0.95rem; color: var(--text-dim); margin-top: 8px;">Without this score, a big warehouse <em>always</em> looks worse than a tiny shop &mdash; even when the shop wastes 8&times; more per square foot. Your AI will use EUI to spot the real energy wasters.</p>
                     </div>
                 </div>
 
@@ -1736,9 +1853,8 @@
                 totalCard.classList.add('incorrect');
                 fb.style.background = 'rgba(16, 185, 129, 0.1)';
                 fb.style.borderLeft = '4px solid var(--success)';
-                fb.innerHTML = '<p style="margin:0; color:var(--text);"><strong style="color:var(--success);">Correct!</strong> EUI makes it fair to compare buildings of different sizes, just like miles-per-gallon lets you compare cars of different sizes.</p>';
+                fb.innerHTML = '<p style="margin:0; color:var(--text);"><strong style="color:var(--success);">Correct!</strong> EUI makes it fair to compare buildings of different sizes, just like miles-per-gallon lets you compare cars of different sizes. Let\'s prove it.</p>';
                 projectData.predictionGoal = 'eui';
-                document.getElementById('btn-next-3').disabled = false;
                 document.getElementById('euiExplainer').style.display = 'block';
             } else {
                 totalCard.classList.add('incorrect');
@@ -1795,45 +1911,65 @@
             }
         }
 
-        // ——— STEP 3: EUI CALCULATOR ———
+        // ——— STEP 3: EUI MATCHUP GAME ———
 
-        function calculateEUI() {
-            const energy = parseFloat(document.getElementById('calcEnergy').value);
-            const area = parseFloat(document.getElementById('calcArea').value);
-            const resultDiv = document.getElementById('euiCalcResult');
+        const matchupData = {
+            1: { winner: 'a', a: { name: 'Coffee Shop', eui: 250 }, b: { name: 'Warehouse', eui: 30 } },
+            2: { winner: 'a', a: { name: '1960s School', eui: 150 }, b: { name: 'Office Tower', eui: 40 } }
+        };
+        let matchupsCompleted = { 1: false, 2: false };
 
-            if (!energy || !area || area <= 0) {
-                resultDiv.style.display = 'block';
-                resultDiv.style.background = 'var(--error-bg)';
-                resultDiv.style.borderColor = 'var(--error)';
-                resultDiv.innerHTML = '<span style="color: var(--error);">Please enter valid numbers (area must be greater than 0).</span>';
-                return;
-            }
+        function pickMatchup(round, pick) {
+            if (matchupsCompleted[round]) return;
+            matchupsCompleted[round] = true;
 
-            const eui = (energy / area).toFixed(1);
-            resultDiv.style.display = 'block';
+            const data = matchupData[round];
+            const winnerKey = data.winner;
+            const loserKey = winnerKey === 'a' ? 'b' : 'a';
 
-            let interpretation;
-            if (eui <= 75) {
-                interpretation = '<span style="color: var(--success);">⚡ That\'s an efficient building!</span>';
-                resultDiv.style.background = 'var(--success-bg)';
-                resultDiv.style.borderColor = 'var(--success)';
-            } else if (eui <= 150) {
-                interpretation = '<span style="color: var(--warning);">⚠️ Average efficiency &mdash; room for improvement.</span>';
-                resultDiv.style.background = 'rgba(251, 191, 36, 0.1)';
-                resultDiv.style.borderColor = 'var(--warning)';
+            const winnerCard = document.getElementById(`m${round}-${winnerKey}`);
+            const loserCard = document.getElementById(`m${round}-${loserKey}`);
+            const reveal = document.getElementById(`matchup-${round}-reveal`);
+
+            // Show EUI badges and color cards
+            winnerCard.classList.add('revealed-winner');
+            loserCard.classList.add('revealed-efficient');
+
+            // Reveal explanation
+            reveal.style.display = 'block';
+            const correct = pick === winnerKey;
+            if (correct) {
+                reveal.style.background = 'var(--success-bg)';
+                reveal.style.borderLeft = '4px solid var(--success)';
+                reveal.innerHTML = `<strong style="color: var(--success);">You got it!</strong> The ${data[winnerKey].name} scores EUI ${data[winnerKey].eui} (high = wasteful) vs just ${data[loserKey].eui} for the ${data[loserKey].name} (low = efficient). The building that uses more total energy isn't always the bigger waster &mdash; you have to look at energy <em>per square foot</em>.`;
             } else {
-                interpretation = '<span style="color: var(--error);">🔴 That building wastes a lot of energy &mdash; needs fixing!</span>';
-                resultDiv.style.background = 'var(--error-bg)';
-                resultDiv.style.borderColor = 'var(--error)';
+                reveal.style.background = 'rgba(251, 191, 36, 0.1)';
+                reveal.style.borderLeft = '4px solid var(--warning)';
+                reveal.innerHTML = `<strong style="color: var(--warning);">Surprise!</strong> The ${data[loserKey].name} uses more total energy, but its EUI is only ${data[loserKey].eui} &mdash; that's low, meaning it's efficient for its size. The ${data[winnerKey].name} scores EUI ${data[winnerKey].eui} &mdash; that's high, meaning it wastes far more energy per square foot.`;
             }
 
-            resultDiv.innerHTML = `
-                <div style="font-size: 1.2rem; font-weight: 700; color: var(--text); margin-bottom: 8px;">
-                    ${energy.toLocaleString()} ÷ ${area.toLocaleString()} = <span style="color: var(--accent);">${eui} EUI</span>
-                </div>
-                ${interpretation}
-            `;
+            // After round 1, show round 2
+            if (round === 1) {
+                setTimeout(() => {
+                    document.getElementById('matchup-1').classList.add('completed');
+                    const r2 = document.getElementById('matchup-2');
+                    r2.style.display = 'block';
+                    r2.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 1200);
+            }
+
+            // After round 2, show summary and enable next
+            if (round === 2) {
+                setTimeout(() => {
+                    document.getElementById('matchup-2').classList.add('completed');
+                    const summary = document.getElementById('matchup-summary');
+                    summary.style.display = 'block';
+                    summary.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    document.getElementById('btn-next-3').disabled = false;
+                }, 1200);
+            }
+
+            saveProgress();
         }
 
         // ——— STEP 4: DATA SEARCH ———
@@ -2000,6 +2136,7 @@
                     problemUnderstood: projectData.problemUnderstood,
                     phasesRevealed: projectData.phasesRevealed,
                     dataSearched: projectData.dataSearched,
+                    matchupsCompleted: matchupsCompleted,
                     wrongAttempts: wrongAttempts
                 };
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -2085,16 +2222,42 @@
                     if (btn2) btn2.disabled = false;
                 }
 
-                // Restore UI: prediction choice
+                // Restore UI: prediction choice + matchups
                 if (projectData.predictionGoal === 'eui') {
                     const euiCard = document.getElementById('pred-eui');
                     const totalCard = document.getElementById('pred-total');
                     if (euiCard) euiCard.classList.add('correct');
                     if (totalCard) totalCard.classList.add('incorrect');
-                    const btn3 = document.getElementById('btn-next-3');
-                    if (btn3) btn3.disabled = false;
                     const explainer = document.getElementById('euiExplainer');
                     if (explainer) explainer.style.display = 'block';
+
+                    // Restore matchup rounds
+                    if (state.matchupsCompleted) {
+                        matchupsCompleted = state.matchupsCompleted;
+                        [1, 2].forEach(round => {
+                            if (!matchupsCompleted[round]) return;
+                            const data = matchupData[round];
+                            const winnerCard = document.getElementById(`m${round}-${data.winner}`);
+                            const loserKey = data.winner === 'a' ? 'b' : 'a';
+                            const loserCard = document.getElementById(`m${round}-${loserKey}`);
+                            if (winnerCard) winnerCard.classList.add('revealed-winner');
+                            if (loserCard) loserCard.classList.add('revealed-efficient');
+                            const roundEl = document.getElementById(`matchup-${round}`);
+                            if (roundEl) {
+                                roundEl.style.display = 'block';
+                                roundEl.classList.add('completed');
+                            }
+                        });
+                        if (matchupsCompleted[1] && matchupsCompleted[2]) {
+                            const summary = document.getElementById('matchup-summary');
+                            if (summary) summary.style.display = 'block';
+                            const btn3 = document.getElementById('btn-next-3');
+                            if (btn3) btn3.disabled = false;
+                        } else if (matchupsCompleted[1]) {
+                            const r2 = document.getElementById('matchup-2');
+                            if (r2) r2.style.display = 'block';
+                        }
+                    }
                 }
 
                 // Navigate to saved step
