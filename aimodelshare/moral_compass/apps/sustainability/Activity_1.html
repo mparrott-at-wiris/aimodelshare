@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Climate Mission: Investigation v1.9</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Dark Mode (Default) */
         :root {
@@ -548,10 +547,299 @@
             background: rgba(56, 189, 248, 0.15);
             transform: translateY(-1px);
         }
+
+        /* Mission objective — animated glow to draw attention on load */
+        .mission-objective {
+            animation: missionGlow 1.5s ease-in-out 3;
+            position: relative;
+        }
+        @keyframes missionGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.2); }
+            50% { box-shadow: 0 0 24px 6px rgba(16, 185, 129, 0.35), inset 0 0 12px rgba(16, 185, 129, 0.08); }
+        }
+
+        /* Inline explanation callouts — so users notice definitions of complex terms */
+        .explain {
+            background: rgba(56, 189, 248, 0.1);
+            padding: 2px 7px;
+            border-radius: 5px;
+            border-bottom: 2px dashed var(--accent);
+            color: var(--text);
+            font-weight: 500;
+        }
+        @media (prefers-color-scheme: light) {
+            .explain {
+                background: rgba(3, 105, 161, 0.08);
+            }
+        }
+
+        /* Subtle entrance for info callout boxes so they catch the eye */
+        .info-callout {
+            animation: calloutSlideIn 0.6s ease-out both;
+        }
+        @keyframes calloutSlideIn {
+            from { opacity: 0; transform: translateX(-8px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Decision Log Badge */
+        .decision-badge {
+            position: fixed;
+            top: 62px;
+            right: 16px;
+            z-index: 100;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px var(--card-shadow);
+            display: none;
+        }
+        .decision-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--card-shadow);
+        }
+        .decision-badge-count {
+            font-weight: 800;
+            color: var(--accent);
+            font-size: 1rem;
+        }
+        .decision-badge-label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .decision-log-panel {
+            position: fixed;
+            top: 116px;
+            right: 16px;
+            z-index: 99;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 20px;
+            width: 320px;
+            max-height: 400px;
+            overflow-y: auto;
+            box-shadow: 0 8px 30px var(--card-shadow);
+            display: none;
+        }
+        .decision-log-panel.open { display: block; animation: fadeIn 0.3s ease; }
+        .decision-log-item {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+        .decision-log-item:last-child { border-bottom: none; }
+        .decision-log-item strong { color: var(--text); }
+
+        /* Families Counter */
+        .families-counter {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* Impact Bars */
+        .impact-bars {
+            margin: 20px 0;
+            animation: fadeIn 0.5s ease;
+        }
+        .impact-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        .impact-bar-label {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            min-width: 60px;
+            text-align: right;
+        }
+        .impact-bar-track {
+            flex: 1;
+            height: 28px;
+            background: var(--input-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        .impact-bar-fill {
+            height: 100%;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: white;
+            transition: width 1.5s ease;
+            width: 0;
+        }
+
+        /* Sector race bars */
+        .sector-race { margin: 20px 0; }
+        .sector-race-row {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+        }
+        .sector-race-label {
+            font-size: 0.8rem; font-weight: 600; color: var(--text-dim);
+            min-width: 120px; text-align: right;
+        }
+        .sector-race-track {
+            flex: 1; height: 26px; background: var(--input-bg);
+            border-radius: 6px; overflow: hidden; position: relative;
+        }
+        .sector-race-fill {
+            height: 100%; border-radius: 6px;
+            display: flex; align-items: center; padding-left: 10px;
+            font-size: 0.75rem; font-weight: 700; color: white;
+            transition: width 1.2s ease; width: 0; min-width: 0;
+        }
+        .sector-race-fill.top-sector {
+            box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
+        }
+        .sector-race-pct {
+            font-size: 0.8rem; font-weight: 700; color: var(--text);
+            min-width: 45px;
+        }
+
+        /* Source card percentage bar */
+        .source-pct-row {
+            display: flex; align-items: center; gap: 8px; margin-top: 8px;
+        }
+        .source-pct-track {
+            flex: 1; height: 16px; background: var(--input-bg);
+            border-radius: 6px; overflow: hidden;
+        }
+        .source-pct-fill {
+            height: 100%; border-radius: 6px;
+            transition: width 1s ease; width: 0;
+        }
+        .source-pct-label {
+            font-size: 0.85rem; font-weight: 800; color: var(--accent);
+            min-width: 50px; text-align: right;
+        }
+        .source-pct-hero {
+            font-size: 2rem; font-weight: 800; color: var(--accent);
+            line-height: 1;
+        }
+        .source-pct-subtitle {
+            font-size: 0.7rem; color: var(--text-dim);
+            text-transform: uppercase; letter-spacing: 0.03em;
+        }
+
+        /* Journey save banner */
+        .journey-save-banner {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(16, 185, 129, 0.15));
+            border: 2px solid var(--success);
+            border-radius: 16px;
+            padding: 25px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        /* Reset Controls */
+        .reset-btn {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 100;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            font-family: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px var(--card-shadow);
+        }
+        .reset-btn:hover {
+            color: var(--text);
+            border-color: var(--accent);
+            box-shadow: 0 4px 15px var(--card-shadow);
+        }
+        .reset-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+        .reset-overlay.open { display: flex; }
+        .reset-dialog {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+        .reset-dialog h3 { color: var(--text); margin-bottom: 8px; font-size: 1.1rem; }
+        .reset-dialog p { font-size: 0.95rem; margin-bottom: 20px; }
+        .reset-dialog-actions { display: flex; flex-direction: column; gap: 10px; }
+        .reset-dialog-actions button {
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid var(--border-color);
+            text-align: left;
+            background: var(--input-bg);
+            color: var(--text);
+        }
+        .reset-dialog-actions button:hover { transform: translateY(-1px); }
+        .reset-action-activity:hover { border-color: var(--warning); background: rgba(251, 191, 36, 0.1); }
+        .reset-action-journey:hover { border-color: var(--error); background: rgba(244, 63, 94, 0.1); }
+        .reset-dialog-actions .reset-action-cancel {
+            background: none; color: var(--text-dim); border-color: transparent; text-align: center; font-weight: 400;
+        }
+        .reset-dialog-actions .reset-action-cancel:hover { color: var(--text); background: none; }
     </style>
 </head>
 
 <body>
+    <!-- Decision Log Badge -->
+    <div class="decision-badge" id="decisionBadge" onclick="toggleDecisionLog()">
+        <div class="decision-badge-count" id="decisionCount">0</div>
+        <div class="decision-badge-label">Decisions</div>
+    </div>
+    <div class="decision-log-panel" id="decisionLogPanel">
+        <h4 style="color: var(--accent); margin-bottom: 12px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Your Investigation Decisions</h4>
+        <div id="decisionLogList">
+            <div style="color: var(--text-dim); font-size: 0.9rem; font-style: italic;">No decisions yet — start your investigation!</div>
+        </div>
+        <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-color); font-size: 0.8rem; color: var(--text-dim);">
+            These decisions will carry forward to Activity 2.
+        </div>
+    </div>
+
     <div class="container">
         <!-- MISSION PROGRESS -->
         <div class="mission-progress">
@@ -577,12 +865,11 @@
                         CLIMATE ACTION INVESTIGATOR</h1>
                 </div>
 
-                <div
-                    style="background: rgba(16, 185, 129, 0.1); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 2px solid var(--success);">
-                    <p style="font-size: 1rem; margin-bottom: 0; color: var(--text); text-align: center;"><strong>🎯
-                            MISSION
-                            OBJECTIVE:</strong> Identify the single largest polluter in your home city and generate a
-                        data-backed briefing for city leaders.</p>
+                <div class="mission-objective"
+                    style="background: rgba(16, 185, 129, 0.12); padding: 24px; border-radius: 14px; margin-bottom: 25px; border: 3px solid var(--success);">
+                    <p style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; color: var(--success); font-weight: 800; margin-bottom: 8px; text-align: center;">🎯 Mission Objective</p>
+                    <p style="font-size: 1.15rem; margin-bottom: 0; color: var(--text); text-align: center; font-weight: 600; line-height: 1.5;">Identify the single largest polluter in your home city and create a
+                        report for city leaders using real data.</p>
                 </div>
 
                 <h3 style="margin-bottom: 8px;">🌍 Why This Mission Matters</h3>
@@ -593,8 +880,8 @@
                             <span class="fact-slide-icon">🌡️</span>
                             <span class="fact-slide-title">Global Temperature Milestone</span>
                         </div>
-                        <div class="fact-stat" data-target="1.45" data-prefix="+" data-suffix="°C">+0°C</div>
-                        <div class="fact-description">2024 was the hottest year ever recorded — we're almost at the 1.5°C point of no return.</div>
+                        <div class="fact-stat" data-target="1.5" data-prefix="+" data-suffix="°C">+0°C</div>
+                        <div class="fact-description">2024 was the hottest year ever recorded &mdash; 1.5°C above pre-industrial levels (1850&ndash;1900 average). Every fraction of a degree means more deadly heat waves, flooding, and wildfires &mdash; and the cities producing the most pollution often don't even know where it's coming from.</div>
                         <div class="fact-citation">Source: NASA GISS, 2025</div>
                     </div>
 
@@ -603,9 +890,9 @@
                             <span class="fact-slide-icon">🏁</span>
                             <span class="fact-slide-title">The Technology Exists Today</span>
                         </div>
-                        <div class="fact-stat" data-target="50" data-suffix="%">0%</div>
-                        <div class="fact-description">We already have the tech to cut emissions in half by 2030 — it's a question of speed and political will.</div>
-                        <div class="fact-citation">Source: IPCC AR6, 2023</div>
+                        <div class="fact-stat" data-target="43" data-suffix="%">0%</div>
+                        <div class="fact-description">We already have the technology to cut emissions by over 40% by 2030. But cities can't fix what they can't measure &mdash; they need investigators to find the biggest sources of pollution first.</div>
+                        <div class="fact-citation">Source: IPCC AR6 Synthesis Report, 2023</div>
                     </div>
 
                     <div class="scroll-indicator" id="scrollIndicator">↓ Scroll to see <span id="factCount">1 more</span> fact</div>
@@ -614,8 +901,8 @@
                 <div
                     style="background: rgba(56, 189, 248, 0.1); padding: 15px; border-radius: 12px; margin-top: 25px; border-left: 4px solid var(--accent);">
                     <p style="font-size: 0.95rem; margin-bottom: 0;"><strong>OUR DATA SOURCE:</strong> This mission is
-                        powered by <span class="highlight-text">Climate TRACE</span>, a global non-profit coalition that
-                        uses a constellation (network) of satellites and AI to monitor every major source of greenhouse gas emissions (CO2, methane, and other gases that trap heat) on Earth
+                        powered by <span class="highlight-text">Climate TRACE</span>, a global group that
+                        uses a <span class="explain">network of satellites</span> and AI to monitor every major source of <span class="explain">carbon emissions</span> on Earth
                         — so anyone can check the numbers.</p>
                 </div>
 
@@ -627,8 +914,8 @@
             <!-- STEP 1: THE TARGET -->
             <div class="mission-step" id="step-1">
                 <h2>🎯 Step 1: Select Your City</h2>
-                <p>Enter the name of your city to pull up its emissions profile from satellite data. For smaller towns, search for
-                    your <span class="highlight-text">Province</span> or <span class="highlight-text">County</span> (the larger administrative area your city belongs to).</p>
+                <p>Enter the name of your city to pull up its pollution data from satellite data. For smaller towns, search for
+                    your <span class="highlight-text">Province</span> or <span class="highlight-text">County</span> (the larger region your city is part of).</p>
                 <div class="input-group">
                     <input type="text" id="cityInput" placeholder="Enter city, province, or county..."
                         onkeypress="if(event.key === 'Enter') startInvestigation()"
@@ -660,13 +947,16 @@
             <!-- LOADER -->
             <div id="loader">
                 <div class="spinner"></div>
-                <p style="margin-top: 20px;" id="loaderText">Accessing global satellite network...</p>
+                <p style="margin-top: 20px;" id="loaderText">Connecting to satellite data...</p>
             </div>
 
             <!-- STEP 2: THE TREND -->
             <div class="mission-step" id="step-2">
                 <h2>🌍 Step 2: The Big Picture</h2>
-                <p>Analyzing total greenhouse gas emissions for <span id="locDisplay" class="highlight-text">...</span>. <span style="font-size: 0.9rem; color: var(--text-dim);">(1 tonne of CO2 ≈ what 1 car emits in 3 months)</span></p>
+                <p>Looking at the total carbon emissions for <span id="locDisplay" class="highlight-text">...</span>.</p>
+                <div class="info-callout" style="background: rgba(56, 189, 248, 0.08); padding: 10px 14px; border-radius: 10px; margin: -10px 0 20px 0; border-left: 3px solid var(--accent); display: inline-block;">
+                    <p style="font-size: 0.95rem; margin: 0; color: var(--text-dim);">💡 <span class="explain">1 tonne of carbon emissions ≈ what 1 car produces in 3 months</span></p>
+                </div>
                 <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 30px;">
                     <div>
                         <div
@@ -683,10 +973,13 @@
                     </div>
                 </div>
                 <div id="emissionsContext" style="text-align:center; color:var(--text-dim); font-size:0.95rem; margin:-15px 0 20px 0; font-style:italic;"></div>
+                <div id="familiesAffected" class="families-counter" style="display:none;">
+                    <p style="margin: 0; color: var(--text);">This pollution affects roughly <span id="familiesCount" style="font-size: 1.5rem; font-weight: 800; color: var(--success);">0</span> families in <span id="familiesCity" class="highlight-text">your city</span>.</p>
+                </div>
                 <div class="quiz">
                     <div class="quiz-title">Checkpoint Question</div>
                     <p style="margin-bottom: 15px; font-size: 1rem;">According to the data, what happened to your city's
-                        total carbon footprint (total greenhouse gas emissions) in 2023?</p>
+                        total <span class="explain">carbon footprint (total carbon emissions)</span> in 2023?</p>
                     <div class="options-grid">
                         <button class="option-btn" onclick="checkAnswer(this, 'down')">Emissions went DOWN</button>
                         <button class="option-btn" onclick="checkAnswer(this, 'up')">Emissions went UP</button>
@@ -697,22 +990,20 @@
                     <p style="margin-bottom: 0; color: var(--success); font-weight: 600;">✓ Trend Confirmed. Now let's
                         investigate WHY this change happened.</p>
                 </div>
-                <button class="btn" id="btn-next-2" disabled onclick="goToStep(3)">CONTINUE MISSION</button>
+                <div class="btn-group">
+                    <button class="btn secondary" onclick="goToStep(1)">◀️ BACK</button>
+                    <button class="btn" id="btn-next-2" disabled onclick="goToStep(3)">CONTINUE MISSION</button>
+                </div>
             </div>
 
             <!-- STEP 3: SECTORS -->
             <div class="mission-step" id="step-3">
-                <h2>🏭 Step 3: Sector Breakdown — Emissions Grouped by Industry</h2>
-                <p>Analyze the chart to find the single sector causing the most emissions.</p>
-                <div style="background: rgba(56, 189, 248, 0.08); padding: 12px 15px; border-radius: 10px; margin-bottom: 15px; border-left: 3px solid var(--accent);">
-                    <p style="font-size: 0.9rem; margin-bottom: 0; color: var(--text-dim);"><strong style="color: var(--accent);">Note:</strong> This data shows direct emissions (Scope 1) — pollution released at the source. It doesn't include indirect emissions from electricity use (Scope 2) or supply chains (Scope 3), which can be even larger.</p>
-                </div>
-                <div style="height: 250px; margin-bottom: 30px;">
-                    <canvas id="sectorChart"></canvas>
-                </div>
+                <h2>🏭 Step 3: <span class="explain" style="border-bottom-color: var(--accent);">Sector (Industry Group)</span> Breakdown</h2>
+                <p>Look at the chart to find the single industry causing the most emissions.</p>
+                <div id="sectorBreakdown"></div>
                 <div class="quiz">
                     <div class="quiz-title">Checkpoint Question</div>
-                    <p style="margin-bottom: 15px; font-size: 1rem;">Which <span class="highlight-text">single sector</span> has the highest total emissions?</p>
+                    <p style="margin-bottom: 15px; font-size: 1rem;">Which <span class="highlight-text">single industry</span> has the highest total emissions?</p>
                     <div class="options-grid" id="sectorOptions"></div>
                 </div>
                 <div class="btn-group">
@@ -724,8 +1015,7 @@
             <!-- STEP 4: SOURCES -->
             <div class="mission-step" id="step-4">
                 <h2>🛰️ Step 4: Tracking the Sources</h2>
-                <p>Click on each source to investigate its impact. Some names look similar—pay attention to the
-                    industries!</p>
+                <p id="step4Intro">These are the top pollution sources in your city. Each card shows what share of the city's total emissions that source is responsible for. Click any source to see more details.</p>
                 <div id="sourcesContainer" style="margin-bottom: 20px;"></div>
                 <div id="sourceDetails">
                     <h3 id="detailTitle" style="color: var(--accent); margin-bottom: 10px;">Source Details</h3>
@@ -748,6 +1038,10 @@
                             <div id="detailPct" style="font-size: 1.5rem; color: var(--accent); font-weight: 800;">-
                             </div>
                         </div>
+                        <div id="sourceProximity" style="grid-column: span 2; display: none; margin-top: 5px; padding: 12px; background: rgba(56, 189, 248, 0.05); border-radius: 8px;">
+                            <div style="color: var(--text-dim); font-size: 0.875rem; text-transform: uppercase;">Location & Impact</div>
+                            <div id="proximityText" style="font-size: 0.95rem; color: var(--text-dim); margin-top: 5px;"></div>
+                        </div>
                     </div>
                 </div>
                 <div class="quiz">
@@ -765,24 +1059,56 @@
             <div class="mission-step" id="step-5">
                 <h2>⚡ Step 5: Strategic Approaches</h2>
                 <p>Data tells us <strong>where</strong> the problem is; strategy tells us <strong>how</strong> to fix
-                    it. Monitoring is just the start — now we need to choose the right approach for the <span
-                        id="topSectorLabel" class="highlight-text">---</span> sector.</p>
+                    it. Monitoring is just the start — now we need to recommend an approach to reduce pollution for the <span
+                        id="topSectorLabel" class="highlight-text">---</span> industry.</p>
 
                 <div class="quiz"
-                    style="background: rgba(56, 189, 248, 0.1); border-color: var(--accent); margin-bottom: 30px;">
-                    <p style="margin-bottom: 0; color: var(--text);"><strong>Strategic Insight:</strong> If we cut
+                    style="background: rgba(56, 189, 248, 0.1); border-color: var(--accent); margin-bottom: 15px;">
+                    <p style="margin-bottom: 0; color: var(--text);"><strong>What This Means:</strong> If we cut
                         emissions
-                        in this sector by half, our whole city's
-                        footprint drops by <strong><span id="dropPct">0</span>%</strong>.</p>
+                        in this industry by half, our whole city's
+                        total emissions could drop by <strong><span id="dropPct">0</span>%</strong>.</p>
+                </div>
+
+                <div id="impactProjection" class="impact-bars" style="display:none;">
+                    <p style="font-size: 0.95rem; color: var(--text); margin-bottom: 12px; font-weight: 600;">If <span id="impactCityName" class="highlight-text">your city</span> adopted a targeted strategy to reduce pollution for this industry:</p>
+                    <div class="impact-bar-row">
+                        <div class="impact-bar-label">Before</div>
+                        <div class="impact-bar-track">
+                            <div id="impactBarBefore" class="impact-bar-fill" style="background: var(--error);"></div>
+                        </div>
+                    </div>
+                    <div class="impact-bar-row">
+                        <div class="impact-bar-label">After</div>
+                        <div class="impact-bar-track">
+                            <div id="impactBarAfter" class="impact-bar-fill" style="background: var(--success);"></div>
+                        </div>
+                    </div>
+                    <p id="impactSummary" style="font-size: 0.95rem; color: var(--text-dim); margin-top: 8px; text-align: center;"></p>
                 </div>
 
                 <div class="quiz">
-                    <div class="quiz-title">Strategy Selection</div>
-                    <p style="margin-bottom: 15px; font-size: 1rem;">Based on the data, which approach would make the biggest difference?</p>
-                    <div class="options-grid">
-                        <button class="option-btn" onclick="checkStrategyAnswer(this, 'correct')">Targeted regulations on this sector's top emitters.</button>
-                        <button class="option-btn" onclick="checkStrategyAnswer(this, 'wrong')">Voluntary equal reductions across all industries, with no enforcement.</button>
+                    <div class="quiz-title">Your Decision</div>
+                    <p style="margin-bottom: 15px; font-size: 1rem;">Each approach has real trade-offs. Which strategy would you recommend for the <span id="strategyQuestionSector" class="highlight-text">---</span> industry?</p>
+                    <div class="options-grid" id="strategyOptions">
+                        <button class="option-btn" onclick="selectStrategy(this, 'regulation')">
+                            <strong>📋 Strict Regulation</strong><br>
+                            <span style="font-size:0.85rem; color:var(--text-dim);">Set stricter emissions limits and fine companies that exceed them.</span>
+                        </button>
+                        <button class="option-btn" onclick="selectStrategy(this, 'incentives')">
+                            <strong>💰 Financial Incentives</strong><br>
+                            <span style="font-size:0.85rem; color:var(--text-dim);">Offer financial incentives like tax breaks for companies that cut emissions.</span>
+                        </button>
+                        <button class="option-btn" onclick="selectStrategy(this, 'transparency')">
+                            <strong>📊 Public Reporting</strong><br>
+                            <span style="font-size:0.85rem; color:var(--text-dim);">Require public emissions reporting and let public pressure drive change.</span>
+                        </button>
+                        <button class="option-btn" onclick="selectStrategy(this, 'technology')">
+                            <strong>🔬 Technology Investment</strong><br>
+                            <span style="font-size:0.85rem; color:var(--text-dim);">Invest in cleaner technology and R&D to replace high-emission methods.</span>
+                        </button>
                     </div>
+                    <div id="strategyFeedback" style="display:none; margin-top:15px; padding:16px; border-radius:12px; background:rgba(16,185,129,0.1); border-left:4px solid var(--success);"></div>
                 </div>
 
                 <div class="btn-group">
@@ -793,24 +1119,24 @@
 
             <!-- STEP 6: FINAL REPORT -->
             <div class="mission-step" id="step-6">
-                <h2>📜 Plan of Action</h2>
+                <h2>📜 Your Report</h2>
                 <div id="autoSummary"
                     style="background: rgba(255,255,255,0.05); padding: 25px; border-radius: 16px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.1);">
                     <h3
                         style="color: var(--accent); margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">
-                        Your Investigation Report</h3>
+                        What You Found</h3>
                     <p id="autoContext" style="font-size: 1rem; line-height: 1.8;"></p>
                 </div>
                 <div class="quiz">
-                    <p style="margin-bottom: 15px; color: var(--text); font-weight: 600;">Complete your recommendation to city leaders:</p>
+                    <p style="margin-bottom: 15px; color: var(--text); font-weight: 600;">Write your advice to city leaders:</p>
                     <div style="font-size: 1.1rem; line-height: 2.4; color: var(--text);">
                         <span>I recommend the city</span>
                         <select id="strategySelect" style="width: auto; display: inline-block; font-size: 1rem; padding: 6px 36px 6px 12px; border-radius: 8px; vertical-align: baseline; border: 2px dashed var(--accent); background-color: rgba(56, 189, 248, 0.08);">
                             <option value="" disabled selected>[ choose action ]</option>
-                            <option value="regulate">regulate</option>
-                            <option value="incentivize alternatives to">incentivize alternatives to</option>
-                            <option value="invest in replacing">invest in replacing</option>
-                            <option value="cap and monitor">cap and monitor</option>
+                            <option value="set stricter emissions limits on">set stricter emissions limits on</option>
+                            <option value="offer financial incentives to">offer financial incentives to</option>
+                            <option value="invest in cleaner technology for">invest in cleaner technology for</option>
+                            <option value="require public emissions reporting from">require public emissions reporting from</option>
                         </select>
                         <span id="strategyTarget"></span>
                     </div>
@@ -830,30 +1156,76 @@
             <div class="mission-step" id="step-7">
                 <div style="text-align: center;">
                     <span style="font-size: 5rem;">🏆</span>
-                    <h2 style="color: var(--success);">Investigation Complete</h2>
+                    <h2 style="color: var(--success);">Mission Complete</h2>
                     <p>You have successfully analyzed the satellite data for your community.</p>
                     <div
                         style="background: rgba(255,255,255,0.05); padding: 25px; border-radius: 12px; text-align: left; margin-top: 20px;">
-                        <h4 style="color: var(--success); margin-bottom: 10px;">Your Recommendation to City Leaders:</h4>
+                        <h4 style="color: var(--success); margin-bottom: 10px;">Your Advice to City Leaders:</h4>
                         <div id="displayFinalReflect"
                             style="font-size: 1.1rem; border-left: 3px solid var(--success); padding-left: 15px; color: var(--text-dim);">
                         </div>
                     </div>
                     <div class="btn-group" style="margin-top: 30px; justify-content: center;">
                         <button class="btn secondary" onclick="goToStep(6)">◀️ BACK</button>
-                        <button class="btn" style="background: var(--success); cursor:default; opacity:0.7;" disabled>MISSION COMPLETE</button>
+                        <button class="btn secondary" onclick="copyReport()" id="copyReportBtn">📋 COPY MY REPORT</button>
+                        <button class="btn" style="background: var(--success); cursor:default; opacity:1;" disabled>MISSION COMPLETE ✓</button>
                     </div>
-                    <div style="background:rgba(16,185,129,0.1); border:1px solid var(--success); padding:16px; border-radius:10px; margin-top:16px; text-align:center;">
-                        <p style="margin:0; color:var(--text); font-size:1.05rem;">Mission complete! You've identified your city's biggest emitters. <b>Next up:</b> Buildings account for ~40% of energy use in most cities — you'll design an AI system to predict building energy efficiency using real data.</p>
+
+                    <div class="journey-save-banner">
+                        <p style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; color: var(--success); font-weight: 800; margin-bottom: 8px;">📡 Data Saved</p>
+                        <p style="font-size: 1.1rem; color: var(--text); margin-bottom: 10px;">Your investigation data for <strong id="endCityName">your city</strong> has been saved.</p>
+                        <p style="font-size: 1.05rem; color: var(--text-dim); margin-bottom: 0;">In the next mission, the City Council will use your findings about <strong id="endTopSource" style="color: var(--accent);">the top polluter</strong> to award a <strong style="color: var(--success);">$500K AI grant</strong>. Your recommendation will shape how the grant is used.</p>
+                    </div>
+
+                    <div style="margin-top: 16px; text-align:center;">
+                        <a href="Activity_2.html" style="display:inline-block; background:linear-gradient(135deg, #a78bfa, #ec4899); color:#f8fafc; border:none; padding:16px 28px; border-radius:12px; font-weight:700; cursor:pointer; transition:all 0.3s ease; text-transform:uppercase; letter-spacing:0.5px; font-size:1rem; text-decoration:none; width:100%; text-align:center;">PROCEED TO ACTIVITY 2 →</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Reset Controls -->
+    <button class="reset-btn" onclick="showResetDialog()" title="Restart activity">&#x21ba; Restart</button>
+    <div class="reset-overlay" id="resetOverlay" onclick="if(event.target===this)closeResetDialog()">
+        <div class="reset-dialog">
+            <h3>Restart?</h3>
+            <p>Choose what to reset:</p>
+            <div class="reset-dialog-actions">
+                <button class="reset-action-activity" onclick="resetActivity()">
+                    &#x21ba; Restart this activity<br>
+                    <span style="font-weight:400; font-size:0.85rem; color:var(--text-dim);">Clear your progress on this page only</span>
+                </button>
+                <button class="reset-action-journey" onclick="resetJourney()">
+                    &#x27f3; Restart entire journey<br>
+                    <span style="font-weight:400; font-size:0.85rem; color:var(--text-dim);">Clear all activities and start from scratch</span>
+                </button>
+                <button class="reset-action-cancel" onclick="closeResetDialog()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // ——— RESET CONTROLS ———
+        if (new URLSearchParams(location.search).has('reset')) {
+            localStorage.removeItem('sustainabilityJourney');
+            location.href = location.pathname;
+        }
+        function showResetDialog() { document.getElementById('resetOverlay').classList.add('open'); }
+        function closeResetDialog() { document.getElementById('resetOverlay').classList.remove('open'); }
+        function resetActivity() {
+            localStorage.removeItem('sustainabilityJourney');
+            location.reload();
+        }
+        function resetJourney() {
+            localStorage.removeItem('sustainabilityJourney');
+            localStorage.removeItem('activity2Progress');
+            localStorage.removeItem('activity3Progress');
+            location.reload();
+        }
+
         let autoAdvanceTimer = null;
-        let sectorChartInstance = null;
+        const JOURNEY_KEY = 'sustainabilityJourney';
 
         let investigationData = {
             city: null,
@@ -863,6 +1235,90 @@
             topSources: []
         };
 
+        // ——— DECISION LOG ———
+        let decisionLog = [];
+
+        function logDecision(action, detail) {
+            const existing = decisionLog.findIndex(d => d.action === action);
+            if (existing !== -1) {
+                decisionLog[existing].detail = detail;
+                decisionLog[existing].timestamp = Date.now();
+            } else {
+                decisionLog.push({ action, detail, timestamp: Date.now() });
+            }
+            updateDecisionBadge();
+        }
+
+        function updateDecisionBadge() {
+            const badge = document.getElementById('decisionBadge');
+            badge.style.display = 'block';
+            document.getElementById('decisionCount').textContent = decisionLog.length;
+
+            const listEl = document.getElementById('decisionLogList');
+            if (decisionLog.length === 0) return;
+            listEl.innerHTML = decisionLog.map(d =>
+                `<div class="decision-log-item"><strong>${d.action}:</strong> ${d.detail}</div>`
+            ).join('');
+        }
+
+        function toggleDecisionLog() {
+            document.getElementById('decisionLogPanel').classList.toggle('open');
+        }
+
+        // Close decision log when clicking outside
+        document.addEventListener('click', (e) => {
+            const panel = document.getElementById('decisionLogPanel');
+            const badge = document.getElementById('decisionBadge');
+            if (panel.classList.contains('open') && !panel.contains(e.target) && !badge.contains(e.target)) {
+                panel.classList.remove('open');
+            }
+        });
+
+        // ——— JOURNEY STATE ———
+        function saveJourneyState() {
+            try {
+                const journey = JSON.parse(localStorage.getItem(JOURNEY_KEY) || '{}');
+                journey.version = 1;
+                journey.city = {
+                    id: investigationData.city?.id,
+                    name: investigationData.city?.matchedName,
+                    country: investigationData.city?.country || ''
+                };
+                journey.emissions = {
+                    total2022: investigationData.t21,
+                    total2023: investigationData.t22,
+                    trend: investigationData.t22 > investigationData.t21 ? 'up' : 'down',
+                    trendPct: ((investigationData.t22 - investigationData.t21) / investigationData.t21 * 100).toFixed(1),
+                    carsEquivalent: Math.round(investigationData.t22 / 4.6)
+                };
+                if (investigationData.topSector) {
+                    journey.topSector = {
+                        name: investigationData.topSector.sector,
+                        displayName: formatSectorName(investigationData.topSector.sector),
+                        emissionsQuantity: investigationData.topSector.emissionsQuantity,
+                        percentage: investigationData.topSector.percentage,
+                        halfImpactPct: (investigationData.topSector.percentage / 2).toFixed(1)
+                    };
+                }
+                const topSource = investigationData.topSources[0];
+                if (topSource) {
+                    journey.topSource = {
+                        name: topSource.name,
+                        subsector: topSource.subsector,
+                        emissionsQuantity: topSource.emissionsQuantity,
+                        percentOfTotal: ((topSource.emissionsQuantity / investigationData.t22) * 100).toFixed(2),
+                        lat: topSource.centroid?.lat || null,
+                        lon: topSource.centroid?.lon || null
+                    };
+                }
+                journey.impactTracker = {
+                    familiesAffected: Math.round(investigationData.t22 / 8.1),
+                    decisionsLogged: decisionLog
+                };
+                localStorage.setItem(JOURNEY_KEY, JSON.stringify(journey));
+            } catch (e) { /* silently continue */ }
+        }
+
         function formatSectorName(name) {
             return name.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
         }
@@ -870,9 +1326,20 @@
         function updateEmissionsContext() {
             const t22 = investigationData.t22;
             if (!t22) return;
-            const cars = Math.round(t22 / 4600).toLocaleString();
+            const cars = Math.round(t22 / 4.6).toLocaleString();
             document.getElementById('emissionsContext').innerText =
-                'Roughly equivalent to ' + cars + ' cars driving for a year.';
+                "That's about the same as " + cars + " cars driving for a year.";
+        }
+
+        // ——— E1-1: FAMILIES COUNTER ———
+        function updateFamiliesCounter() {
+            const t22 = investigationData.t22;
+            if (!t22) return;
+            const families = Math.round(t22 / 8.1);
+            const el = document.getElementById('familiesAffected');
+            el.style.display = 'block';
+            document.getElementById('familiesCount').textContent = families.toLocaleString();
+            document.getElementById('familiesCity').textContent = investigationData.city?.matchedName || 'your city';
         }
 
         function initFactScroller() {
@@ -961,15 +1428,21 @@
             document.getElementById(`step-${idx}`).classList.add('active');
 
             // Re-populate data when navigating back to steps
+            if (idx === 1) {
+                document.getElementById('step-1').style.display = '';
+                document.getElementById('loader').style.display = 'none';
+            }
             if (idx === 2 && investigationData.city) {
                 document.getElementById('locDisplay').innerText = investigationData.city.matchedName;
                 document.getElementById('num21').innerText = Math.round(investigationData.t21).toLocaleString() + " tonnes";
                 document.getElementById('num22').innerText = Math.round(investigationData.t22).toLocaleString() + " tonnes";
+                updateFamiliesCounter();
             }
             if (idx === 3) renderSectorChart();
             if (idx === 4) renderSources();
             if (idx === 5) renderLever();
             if (idx === 6) renderFinalBriefing();
+            if (idx === 7) renderEndScreen();
         }
 
         function selectSuggestedCity(name, cityId) {
@@ -1000,6 +1473,10 @@
                 document.getElementById('num21').innerText = Math.round(investigationData.t21).toLocaleString() + " tonnes";
                 document.getElementById('num22').innerText = Math.round(investigationData.t22).toLocaleString() + " tonnes";
                 updateEmissionsContext();
+                updateFamiliesCounter();
+
+                logDecision('City selected', displayName);
+                saveJourneyState();
 
                 goToStep(2);
             } catch (err) {
@@ -1041,6 +1518,10 @@
                 document.getElementById('num21').innerText = Math.round(investigationData.t21).toLocaleString() + " tonnes";
                 document.getElementById('num22').innerText = Math.round(investigationData.t22).toLocaleString() + " tonnes";
                 updateEmissionsContext();
+                updateFamiliesCounter();
+
+                logDecision('City selected', investigationData.city.matchedName);
+                saveJourneyState();
 
                 goToStep(2);
             } catch (err) {
@@ -1057,6 +1538,8 @@
                 btn.classList.add('correct');
                 document.getElementById('btn-next-2').disabled = false;
                 document.getElementById('step2-success').style.display = 'block';
+                logDecision('Trend identified', type === 'up' ? 'Emissions went UP' : 'Emissions went DOWN');
+                saveJourneyState();
                 autoAdvanceTimer = setTimeout(() => {
                     if (document.getElementById('step-2').classList.contains('active')) goToStep(3);
                     autoAdvanceTimer = null;
@@ -1065,22 +1548,38 @@
             else { btn.classList.add('wrong'); setTimeout(() => btn.classList.remove('wrong'), 1000); }
         }
 
-        function checkStrategyAnswer(btn, type) {
-            if (type === 'correct') {
-                btn.classList.add('correct'); document.getElementById('btn-next-5').disabled = false;
-                autoAdvanceTimer = setTimeout(() => {
-                    if (document.getElementById('step-5').classList.contains('active')) goToStep(6);
-                    autoAdvanceTimer = null;
-                }, 2000);
-            } else {
-                btn.classList.add('wrong'); setTimeout(() => btn.classList.remove('wrong'), 1000);
-            }
+        function selectStrategy(btn, strategyId) {
+            const feedbackMap = {
+                regulation: { label: 'Strict Regulation', text: 'Strong and fast — but enforcement is expensive and smaller businesses may struggle to comply. Works best when the biggest polluters are a few large facilities.' },
+                incentives: { label: 'Financial Incentives', text: 'Encourages voluntary action — but slow to take effect, and companies may just pocket the savings. Works best when many small actors need motivation to upgrade.' },
+                transparency: { label: 'Public Reporting', text: 'Low cost and empowers citizens — but relies on public attention, which can fade. Works best in cities with engaged communities and local media.' },
+                technology: { label: 'Technology Investment', text: 'Addresses the root cause — but results take years, and breakthroughs aren\'t guaranteed. Works best when current technology is the bottleneck, not behavior.' }
+            };
+
+            // Disable all strategy buttons
+            document.querySelectorAll('#strategyOptions .option-btn').forEach(b => {
+                b.style.pointerEvents = 'none';
+                b.style.opacity = '0.5';
+            });
+            btn.classList.add('correct');
+            btn.style.opacity = '1';
+
+            const info = feedbackMap[strategyId];
+            const fb = document.getElementById('strategyFeedback');
+            fb.style.display = 'block';
+            fb.innerHTML = `<p style="margin:0 0 8px 0; color:var(--success); font-weight:700;">You chose: ${info.label}</p><p style="margin:0; color:var(--text-dim); font-size:0.95rem;">${info.text}</p><p style="margin:8px 0 0 0; color:var(--text); font-size:0.95rem;">There's no single "right" answer — real policy involves exactly these trade-offs. Your choice will shape your final recommendation.</p>`;
+
+            document.getElementById('btn-next-5').disabled = false;
+            logDecision('Strategy chosen', info.label);
+            saveJourneyState();
         }
 
         function checkSectorAnswer(btn, sectorName) {
             if (sectorName === investigationData.sectors[0].sector) {
                 btn.classList.add('correct');
                 document.getElementById('btn-next-3').disabled = false;
+                logDecision('Top sector identified', formatSectorName(sectorName));
+                saveJourneyState();
             } else {
                 btn.classList.add('wrong');
                 setTimeout(() => btn.classList.remove('wrong'), 1000);
@@ -1089,7 +1588,12 @@
 
         function checkSourceAnswer(btn, key) {
             const topKey = `${investigationData.topSources[0].name}|${investigationData.topSources[0].subsector}`;
-            if (key === topKey) { btn.classList.add('correct'); document.getElementById('btn-next-4').disabled = false; }
+            if (key === topKey) {
+                btn.classList.add('correct');
+                document.getElementById('btn-next-4').disabled = false;
+                logDecision('Top source identified', investigationData.topSources[0].name);
+                saveJourneyState();
+            }
             else { btn.classList.add('wrong'); setTimeout(() => btn.classList.remove('wrong'), 1000); }
         }
 
@@ -1102,17 +1606,59 @@
                 b.onclick = () => checkSectorAnswer(b, s.sector);
                 con.appendChild(b);
             });
-            if (sectorChartInstance) { sectorChartInstance.destroy(); }
-            const ctx = document.getElementById('sectorChart').getContext('2d');
-            sectorChartInstance = new Chart(ctx, { type: 'bar', data: { labels: investigationData.sectors.map(s => formatSectorName(s.sector)), datasets: [{ data: investigationData.sectors.map(s => s.emissionsQuantity), backgroundColor: '#38bdf8' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { ticks: { color: '#94a3b8', font: { size: 9 } } } } } });
+            // Animated sector race bars
+            const container = document.getElementById('sectorBreakdown');
+            container.innerHTML = '';
+            const sectors = investigationData.sectors;
+            const total = investigationData.t22;
+            const colors = ['#38bdf8','#10b981','#fbbf24','#f43f5e','#a78bfa','#fb923c','#2dd4bf','#e879f9'];
+            let html = '<div class="sector-race">';
+            sectors.forEach((s, i) => {
+                const pct = (s.emissionsQuantity / total) * 100;
+                const color = colors[i % colors.length];
+                const topClass = i === 0 ? ' top-sector' : '';
+                const badge = i === 0 ? ' ⭐' : '';
+                html += `<div class="sector-race-row">
+                    <div class="sector-race-label">${formatSectorName(s.sector)}${badge}</div>
+                    <div class="sector-race-track">
+                        <div class="sector-race-fill${topClass}" style="background:${color};" data-pct="${pct}"></div>
+                    </div>
+                    <div class="sector-race-pct">${pct.toFixed(1)}%</div>
+                </div>`;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+            const fills = container.querySelectorAll('.sector-race-fill');
+            fills.forEach((fill, i) => {
+                setTimeout(() => { fill.style.width = fill.dataset.pct + '%'; }, 150 * i);
+            });
         }
 
         function renderSources() {
             const con = document.getElementById('sourcesContainer'); con.innerHTML = '';
             const quizCon = document.getElementById('sourceQuizOptions'); quizCon.innerHTML = '';
+            const total = investigationData.t22;
+            const colors = ['#38bdf8','#10b981','#fbbf24','#f43f5e','#a78bfa','#fb923c','#2dd4bf','#e879f9'];
+            const cityName = investigationData.city?.matchedName || 'your city';
+            document.getElementById('step4Intro').textContent = `These are the top pollution sources in ${cityName}. Each card shows what share of the city's total emissions that source is responsible for.`;
             investigationData.topSources.forEach((s, i) => {
+                const pct = (s.emissionsQuantity / total) * 100;
+                const color = colors[i % colors.length];
                 const div = document.createElement('div'); div.className = 'source-card';
-                div.innerHTML = `<div style="display:flex; align-items:center; gap:15px;"><div class="rank-badge">${i + 1}</div><div><div style="font-weight:600; font-size:1rem;">${s.name}</div><div style="font-size:0.8rem; color:var(--text-dim); text-transform:uppercase;">Industry type: ${s.subsector.replace(/-/g, ' ')}</div></div></div>`;
+                div.innerHTML = `<div style="display:flex; align-items:center; gap:15px;">
+                    <div class="rank-badge">${i + 1}</div>
+                    <div style="flex:1;">
+                        <div style="font-weight:600; font-size:1rem;">${s.name}</div>
+                        <div style="font-size:0.8rem; color:var(--text-dim); text-transform:uppercase;">Industry type: ${s.subsector.replace(/-/g, ' ')}</div>
+                        <div class="source-pct-row">
+                            <div class="source-pct-track"><div class="source-pct-fill" style="background:${color};" data-pct="${pct}"></div></div>
+                        </div>
+                    </div>
+                    <div style="text-align:center; min-width:70px;">
+                        <div class="source-pct-hero">${pct.toFixed(1)}%</div>
+                        <div class="source-pct-subtitle">of city emissions</div>
+                    </div>
+                </div>`;
                 div.onclick = () => showSourceDetails(s);
                 con.appendChild(div);
                 const b = document.createElement('button'); b.className = 'option-btn';
@@ -1120,8 +1666,13 @@
                 b.onclick = () => checkSourceAnswer(b, `${s.name}|${s.subsector}`);
                 quizCon.appendChild(b);
             });
+            const fills = con.querySelectorAll('.source-pct-fill');
+            fills.forEach((fill, i) => {
+                setTimeout(() => { fill.style.width = fill.dataset.pct + '%'; }, 300 + 200 * i);
+            });
         }
 
+        // ——— E1-2: POLLUTER PROXIMITY ———
         function showSourceDetails(source) {
             const details = document.getElementById('sourceDetails');
             const pct = (source.emissionsQuantity / investigationData.t22) * 100;
@@ -1129,12 +1680,58 @@
             document.getElementById('detailSector').innerText = formatSectorName(source.subsector);
             document.getElementById('detailAmount').innerText = Math.round(source.emissionsQuantity).toLocaleString() + " tonnes";
             document.getElementById('detailPct').innerText = pct.toFixed(2) + "%";
+
+            // Proximity context
+            const proxEl = document.getElementById('sourceProximity');
+            const proxText = document.getElementById('proximityText');
+            const lat = source.centroid?.lat;
+            const lon = source.centroid?.lon;
+            if (lat && lon) {
+                const estimatedPop = Math.max(1, Math.round(source.emissionsQuantity / 50));
+                const popDisplay = estimatedPop > 1000 ? Math.round(estimatedPop / 1000).toLocaleString() + ' thousand' : estimatedPop.toLocaleString();
+                proxText.innerHTML = `This facility is located at <strong style="color:var(--text);">${lat.toFixed(2)}°, ${lon.toFixed(2)}°</strong>. Approximately <strong style="color:var(--accent);">${popDisplay} people</strong> live within range of its emissions. <span style="font-size:0.85rem; font-style:italic;">(estimated)</span>`;
+                proxEl.style.display = 'block';
+            } else {
+                proxEl.style.display = 'none';
+            }
+
             details.style.display = 'block';
+            logDecision('Source investigated', source.name);
         }
 
+        // ——— E1-3: STRATEGY IMPACT BARS ———
         function renderLever() {
-            document.getElementById('topSectorLabel').innerText = formatSectorName(investigationData.topSector.sector);
-            document.getElementById('dropPct').innerText = (investigationData.topSector.percentage / 2).toFixed(1);
+            const topSector = investigationData.topSector;
+            document.getElementById('topSectorLabel').innerText = formatSectorName(topSector.sector);
+            document.getElementById('strategyQuestionSector').innerText = formatSectorName(topSector.sector);
+            const halfPct = (topSector.percentage / 2).toFixed(1);
+            document.getElementById('dropPct').innerText = halfPct;
+
+            // Impact projection bars
+            const cityName = investigationData.city?.matchedName || 'your city';
+            document.getElementById('impactCityName').textContent = cityName;
+
+            const totalEmissions = investigationData.t22;
+            const sectorEmissions = topSector.emissionsQuantity;
+            const reduction = sectorEmissions / 2;
+            const afterEmissions = totalEmissions - reduction;
+            const carsRemoved = Math.round(reduction / 4.6);
+
+            document.getElementById('impactProjection').style.display = 'block';
+            document.getElementById('impactSummary').innerHTML =
+                `Emissions would drop by <strong style="color:var(--success);">${Math.round(reduction).toLocaleString()} tonnes/year</strong> — equivalent to taking <strong style="color:var(--success);">${carsRemoved.toLocaleString()} cars</strong> off the road.`;
+
+            // Animate bars after a short delay
+            const maxVal = totalEmissions;
+            setTimeout(() => {
+                document.getElementById('impactBarBefore').style.width = '100%';
+                document.getElementById('impactBarBefore').textContent = Math.round(totalEmissions).toLocaleString() + ' t';
+            }, 100);
+            setTimeout(() => {
+                const afterPct = (afterEmissions / maxVal) * 100;
+                document.getElementById('impactBarAfter').style.width = afterPct + '%';
+                document.getElementById('impactBarAfter').textContent = Math.round(afterEmissions).toLocaleString() + ' t';
+            }, 600);
         }
 
         function renderFinalBriefing() {
@@ -1142,9 +1739,16 @@
             const sectorName = formatSectorName(investigationData.topSector.sector);
             const sourceName = topSource.name;
             document.getElementById('autoContext').innerHTML =
-                `Based on satellite data, <strong>${investigationData.city.matchedName}</strong>'s biggest emission source is the <strong>${sectorName}</strong> sector, specifically <strong>${sourceName}</strong>.`;
+                `Based on satellite data, <strong>${investigationData.city.matchedName}</strong>'s biggest source of carbon emissions is the <strong>${sectorName}</strong> industry, specifically <strong>${sourceName}</strong>.`;
             document.getElementById('strategyTarget').innerHTML =
-                ` this sector's top emitters in the <strong>${sectorName}</strong> sector.`;
+                ` the biggest polluters in the <strong>${sectorName}</strong> industry.`;
+        }
+
+        function renderEndScreen() {
+            const cityName = investigationData.city?.matchedName || 'your city';
+            const topSourceName = investigationData.topSources?.[0]?.name || 'the top polluter';
+            document.getElementById('endCityName').textContent = cityName;
+            document.getElementById('endTopSource').textContent = topSourceName;
         }
 
         function completeMission() {
@@ -1153,9 +1757,53 @@
             if (!strategy) return alert("Please choose a strategy from the dropdown!");
             if (!reasoning) return alert("Please explain why this is urgent!");
             const sectorName = formatSectorName(investigationData.topSector.sector);
-            const recommendation = `I recommend the city ${strategy} the ${sectorName} sector's top emitters. This is urgent because: ${reasoning}`;
+            const recommendation = `I recommend the city ${strategy} the biggest polluters in the ${sectorName} industry. This is urgent because: ${reasoning}`;
             document.getElementById('displayFinalReflect').innerText = recommendation;
+
+            logDecision('Final recommendation', strategy);
+
+            // Save complete journey state
+            try {
+                const journey = JSON.parse(localStorage.getItem(JOURNEY_KEY) || '{}');
+                journey.strategy = strategy;
+                journey.studentRecommendation = recommendation;
+                journey.activity1CompletedAt = new Date().toISOString();
+                journey.impactTracker = {
+                    familiesAffected: Math.round(investigationData.t22 / 8.1),
+                    decisionsLogged: decisionLog
+                };
+                localStorage.setItem(JOURNEY_KEY, JSON.stringify(journey));
+            } catch (e) { /* silently continue */ }
+
             goToStep(7);
+        }
+
+        function copyReport() {
+            const cityName = investigationData.city?.name || 'my city';
+            const topSector = investigationData.topSector ? formatSectorName(investigationData.topSector.sector) : 'N/A';
+            const topSource = investigationData.topSources[0]?.name || 'N/A';
+            const t22 = investigationData.t22 ? (investigationData.t22 / 1e6).toFixed(1) + 'M' : 'N/A';
+            const recommendation = document.getElementById('displayFinalReflect').innerText;
+
+            const report = `Climate Investigation Report: ${cityName}\n` +
+                `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+                `Total Emissions (2022): ${t22} tonnes CO₂\n` +
+                `Top Sector: ${topSector}\n` +
+                `Top Source: ${topSource}\n\n` +
+                `My Recommendation:\n${recommendation}\n\n` +
+                `— Climate Action Investigator`;
+
+            navigator.clipboard.writeText(report).then(() => {
+                const btn = document.getElementById('copyReportBtn');
+                btn.textContent = '✓ Copied!';
+                btn.style.borderColor = 'var(--success)';
+                btn.style.color = 'var(--success)';
+                setTimeout(() => {
+                    btn.textContent = '📋 COPY MY REPORT';
+                    btn.style.borderColor = '';
+                    btn.style.color = '';
+                }, 2000);
+            });
         }
     </script>
 </body>
