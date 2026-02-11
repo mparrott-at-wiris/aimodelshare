@@ -1601,23 +1601,14 @@
             document.getElementById('mathBuildings').textContent = data.buildingCount.toLocaleString();
             document.getElementById('mathYears').textContent = data.inspectorYears + ' years';
 
-            // Animated counter: Day 1 → Week 1 → Month 1 → Year 1
             const counter = document.getElementById('inspectorCounter');
-            const milestones = [
-                { label: 'Day 1', inspected: 1 },
-                { label: 'Week 1', inspected: 5 },
-                { label: 'Month 1', inspected: 22 },
-                { label: 'Year 1', inspected: 260 }
-            ];
-
-            let milestoneDelay = 0;
-            milestones.forEach((m) => {
-                milestoneDelay += 800;
-                setTimeout(() => {
-                    const pct = ((m.inspected / data.buildingCount) * 100).toFixed(2);
-                    counter.innerHTML = `<strong>${m.label}:</strong> ${m.inspected} inspected &mdash; <span style="color: var(--error);">${pct}%</span> of ${data.buildingCount.toLocaleString()} buildings`;
-                }, milestoneDelay);
-            });
+            const rawPct = (260 / data.buildingCount * 100);
+            let d = 1;
+            while (d <= 6 && parseFloat(rawPct.toFixed(d)) === 0) d++;
+            const pct = rawPct.toFixed(d);
+            setTimeout(() => {
+                counter.innerHTML = `<strong>After 1 year:</strong> 260 inspected &mdash; <span style="color: var(--error);">${pct}%</span> of ${data.buildingCount.toLocaleString()} buildings`;
+            }, 800);
 
             projectData.phasesRevealed = 1;
             saveProgress();
