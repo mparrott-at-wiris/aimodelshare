@@ -1093,19 +1093,19 @@
                     <div class="options-grid" id="strategyOptions">
                         <button class="option-btn" onclick="selectStrategy(this, 'regulation')">
                             <strong>📋 Strict Regulation</strong><br>
-                            <span style="font-size:0.85rem; color:var(--text-dim);">Set legal emission limits. Fine companies that exceed them.</span>
+                            <span style="font-size:0.85rem; color:var(--text-dim);">Set stricter emissions limits and fine companies that exceed them.</span>
                         </button>
                         <button class="option-btn" onclick="selectStrategy(this, 'incentives')">
                             <strong>💰 Financial Incentives</strong><br>
-                            <span style="font-size:0.85rem; color:var(--text-dim);">Tax breaks and grants for companies that cut emissions voluntarily.</span>
+                            <span style="font-size:0.85rem; color:var(--text-dim);">Offer financial incentives like tax breaks for companies that cut emissions.</span>
                         </button>
                         <button class="option-btn" onclick="selectStrategy(this, 'transparency')">
                             <strong>📊 Public Reporting</strong><br>
-                            <span style="font-size:0.85rem; color:var(--text-dim);">Require polluters to publish emissions data. Let public pressure drive change.</span>
+                            <span style="font-size:0.85rem; color:var(--text-dim);">Require public emissions reporting and let public pressure drive change.</span>
                         </button>
                         <button class="option-btn" onclick="selectStrategy(this, 'technology')">
                             <strong>🔬 Technology Investment</strong><br>
-                            <span style="font-size:0.85rem; color:var(--text-dim);">Fund R&D for cleaner alternatives. Replace dirty tech with clean tech.</span>
+                            <span style="font-size:0.85rem; color:var(--text-dim);">Invest in cleaner technology and R&D to replace high-emission methods.</span>
                         </button>
                     </div>
                     <div id="strategyFeedback" style="display:none; margin-top:15px; padding:16px; border-radius:12px; background:rgba(16,185,129,0.1); border-left:4px solid var(--success);"></div>
@@ -1133,10 +1133,10 @@
                         <span>I recommend the city</span>
                         <select id="strategySelect" style="width: auto; display: inline-block; font-size: 1rem; padding: 6px 36px 6px 12px; border-radius: 8px; vertical-align: baseline; border: 2px dashed var(--accent); background-color: rgba(56, 189, 248, 0.08);">
                             <option value="" disabled selected>[ choose action ]</option>
-                            <option value="create rules for">create rules for</option>
-                            <option value="reward switching away from">reward switching away from</option>
-                            <option value="invest in replacing">invest in replacing</option>
-                            <option value="limit and track">limit and track</option>
+                            <option value="set stricter emissions limits on">set stricter emissions limits on</option>
+                            <option value="offer financial incentives to">offer financial incentives to</option>
+                            <option value="invest in cleaner technology for">invest in cleaner technology for</option>
+                            <option value="require public emissions reporting from">require public emissions reporting from</option>
                         </select>
                         <span id="strategyTarget"></span>
                     </div>
