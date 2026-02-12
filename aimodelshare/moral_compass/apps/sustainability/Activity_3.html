@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Understanding AI for Climate Action v3.2</title>
+    <title>Understanding AI Systems for Climate Action v3.2</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* ===== DARK MODE (Default) ===== */
@@ -755,7 +755,7 @@
             <!-- STEP 0: INTRO — minimal hook                                -->
             <!-- ============================================================ -->
             <div class="mission-step active" id="step-0">
-                <h1>🤖 How AI Actually Works</h1>
+                <h1>🤖 How an AI System Actually Works</h1>
 
                 <div id="step0CityContext" class="city-context" style="display:none;">
                     <p style="margin: 0; font-size: 1rem; color: var(--text);" id="step0CityText"></p>
@@ -763,7 +763,7 @@
 
                 <div style="text-align:center; font-size:1.25rem; padding:30px; border-radius:16px; background:var(--input-bg); border:2px solid var(--accent); box-shadow:0 5px 15px var(--accent-glow); margin-bottom:30px;">
                     <p style="font-weight:600; color:var(--text); margin:0;">
-                        In 5 minutes, you'll understand what AI is, how it learns, and how to test it.
+                        In 5 minutes, you'll understand what an AI system is, how it learns, and how to test it.
                     </p>
                 </div>
 
@@ -779,7 +779,7 @@
                 <h2>🎯 You Are The AI</h2>
 
                 <p style="text-align:center; font-size:1.1rem; margin-bottom:8px;">
-                    Study these 3 buildings. Find the pattern. Then predict the mystery building.
+                    Not all buildings use energy the same way. Look at the clues for these 3 buildings, spot the pattern, then predict the mystery building's energy efficiency rating.
                 </p>
 
                 <div class="training-buildings">
@@ -834,11 +834,17 @@
             <!-- STEP 2: THE FORMULA — animated pipeline demo                -->
             <!-- ============================================================ -->
             <div class="mission-step" id="step-2">
-                <h2>📐 The Three-Part Formula</h2>
-
-                <div id="step2CityContext" class="city-context" style="display:none;">
-                    <p style="margin: 0; font-size: 0.95rem; color: var(--text);" id="step2CityFormula"></p>
+                <div style="text-align:center; margin-bottom:28px;">
+                    <p style="font-size:1.05rem; color:var(--text); margin:0 0 4px;">Before you can build better AI systems, you need to understand what AI actually is.</p>
+                    <p style="font-size:0.95rem; color:var(--text-dim); margin:0 0 20px;">Don't worry — we'll explain it in simple, everyday terms!</p>
+                    <h2 style="color:var(--accent); margin:0 0 12px;">🎯 A Simple Definition</h2>
+                    <p style="font-size:1rem; color:var(--text); margin:0 0 8px;"><strong>Artificial Intelligence (AI)</strong> is just a fancy name for:</p>
+                    <div style="font-size:1.3rem; font-weight:700; color:var(--text); padding:16px 24px; background:var(--input-bg); border:2px solid var(--accent); border-radius:12px; display:inline-block; box-shadow:0 4px 12px var(--accent-glow);">
+                        A system that makes predictions based on patterns
+                    </div>
                 </div>
+
+                <h2>📐 The Three-Part Formula</h2>
 
                 <p style="text-align:center; margin-bottom:8px;">Every AI follows three steps. Watch it work:</p>
 
@@ -865,7 +871,7 @@
 
                 <div style="text-align:center; margin:20px 0;">
                     <button class="btn" id="pipelineBtn" onclick="feedPipeline()" style="min-width:250px;">
-                        🏢 Feed a Building →
+                        🏢 Submit Building Data →
                     </button>
                     <div id="pipelineCount" style="margin-top:8px; font-size:0.9rem; color:var(--text-dim);"></div>
                 </div>
@@ -880,7 +886,7 @@
                     <button class="btn secondary" onclick="goToStep(1)">◀ Back</button>
                     <button class="btn" id="step2-next" onclick="goToStep(3)" disabled>Next: How Models Learn ▶</button>
                 </div>
-                <div class="gate-hint" id="step2-gate-hint">Feed 3 buildings through the pipeline to continue</div>
+                <div class="gate-hint" id="step2-gate-hint">Submit 3 buildings through the pipeline to continue</div>
             </div>
 
             <!-- ============================================================ -->
@@ -1314,12 +1320,6 @@
             step0Text += ` Now learn how AI uses those features to make predictions.`;
             document.getElementById('step0CityText').innerHTML = step0Text;
 
-            // E3-1: Step 2 — city-specific formula
-            const ctx2 = document.getElementById('step2CityContext');
-            ctx2.style.display = 'block';
-            document.getElementById('step2CityFormula').innerHTML =
-                `<span class="mono" style="font-size:0.9rem;">INPUT:</span> <strong>${cityName}</strong> building data → <span class="mono" style="font-size:0.9rem;">MODEL:</span> Energy AI → <span class="mono" style="font-size:0.9rem;">OUTPUT:</span> kWh/m² prediction`;
-
             // E3-1: Step 3 — training context
             const ctx3 = document.getElementById('step3CityContext');
             ctx3.style.display = 'block';
@@ -1610,7 +1610,7 @@
                     document.getElementById('step2Summary').style.display = 'block';
                 } else {
                     btn.disabled = false;
-                    btn.textContent = `🏢 Feed Building ${pipelineIndex + 1} →`;
+                    btn.textContent = `🏢 Submit Building ${pipelineIndex + 1} →`;
                 }
             }, 2600);
         }
