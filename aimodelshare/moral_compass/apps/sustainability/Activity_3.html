@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Understanding AI for Climate Action v3.2</title>
+    <title>Understanding AI Systems for Climate Action v3.2</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* ===== DARK MODE (Default) ===== */
@@ -755,7 +755,7 @@
             <!-- STEP 0: INTRO — minimal hook                                -->
             <!-- ============================================================ -->
             <div class="mission-step active" id="step-0">
-                <h1>🤖 How AI Actually Works</h1>
+                <h1>🤖 How an AI System Actually Works</h1>
 
                 <div id="step0CityContext" class="city-context" style="display:none;">
                     <p style="margin: 0; font-size: 1rem; color: var(--text);" id="step0CityText"></p>
@@ -763,7 +763,7 @@
 
                 <div style="text-align:center; font-size:1.25rem; padding:30px; border-radius:16px; background:var(--input-bg); border:2px solid var(--accent); box-shadow:0 5px 15px var(--accent-glow); margin-bottom:30px;">
                     <p style="font-weight:600; color:var(--text); margin:0;">
-                        In 5 minutes, you'll understand what AI is, how it learns, and how to test it.
+                        In 5 minutes, you'll understand what an AI system is, how it learns, and how to test it.
                     </p>
                 </div>
 
@@ -779,7 +779,7 @@
                 <h2>🎯 You Are The AI</h2>
 
                 <p style="text-align:center; font-size:1.1rem; margin-bottom:8px;">
-                    Study these 3 buildings. Find the pattern. Then predict the mystery building.
+                    Not all buildings use energy the same way. Look at the clues for these 3 buildings, spot the pattern, then predict the mystery building's energy efficiency rating.
                 </p>
 
                 <div class="training-buildings">
@@ -834,11 +834,17 @@
             <!-- STEP 2: THE FORMULA — animated pipeline demo                -->
             <!-- ============================================================ -->
             <div class="mission-step" id="step-2">
-                <h2>📐 The Three-Part Formula</h2>
-
-                <div id="step2CityContext" class="city-context" style="display:none;">
-                    <p style="margin: 0; font-size: 0.95rem; color: var(--text);" id="step2CityFormula"></p>
+                <div style="text-align:center; margin-bottom:28px;">
+                    <p style="font-size:1.05rem; color:var(--text); margin:0 0 4px;">Before you can build better AI systems, you need to understand what AI actually is.</p>
+                    <p style="font-size:0.95rem; color:var(--text-dim); margin:0 0 20px;">Don't worry — we'll explain it in simple, everyday terms!</p>
+                    <h2 style="color:var(--accent); margin:0 0 12px;">🎯 A Simple Definition</h2>
+                    <p style="font-size:1rem; color:var(--text); margin:0 0 8px;"><strong>Artificial Intelligence (AI)</strong> is just a fancy name for:</p>
+                    <div style="font-size:1.3rem; font-weight:700; color:var(--text); padding:16px 24px; background:var(--input-bg); border:2px solid var(--accent); border-radius:12px; display:inline-block; box-shadow:0 4px 12px var(--accent-glow);">
+                        A system that makes predictions based on patterns
+                    </div>
                 </div>
+
+                <h2>📐 The Three-Part Formula</h2>
 
                 <p style="text-align:center; margin-bottom:8px;">Every AI follows three steps. Watch it work:</p>
 
@@ -865,7 +871,7 @@
 
                 <div style="text-align:center; margin:20px 0;">
                     <button class="btn" id="pipelineBtn" onclick="feedPipeline()" style="min-width:250px;">
-                        🏢 Feed a Building →
+                        🏢 Submit Building Data →
                     </button>
                     <div id="pipelineCount" style="margin-top:8px; font-size:0.9rem; color:var(--text-dim);"></div>
                 </div>
@@ -880,7 +886,7 @@
                     <button class="btn secondary" onclick="goToStep(1)">◀ Back</button>
                     <button class="btn" id="step2-next" onclick="goToStep(3)" disabled>Next: How Models Learn ▶</button>
                 </div>
-                <div class="gate-hint" id="step2-gate-hint">Feed 3 buildings through the pipeline to continue</div>
+                <div class="gate-hint" id="step2-gate-hint">Submit 3 buildings through the pipeline to continue</div>
             </div>
 
             <!-- ============================================================ -->
@@ -915,7 +921,7 @@
                             <div class="flow-arrow" style="font-size:1.5rem; color:var(--text-dim); display:flex; align-items:center;">→</div>
                             <div class="flow-box flow-box-animated" id="flow-4"
                                 style="background:rgba(251,191,36,0.15); color:var(--amber-accent);">
-                                4. ADJUST<br>WEIGHTS
+                                4. ADJUST<br>SETTINGS
                             </div>
                             <div class="flow-arrow" style="font-size:1.5rem; color:var(--text-dim); display:flex; align-items:center;">→</div>
                             <div class="flow-box flow-box-animated" id="flow-5"
@@ -934,7 +940,7 @@
 
                     <div id="step3-post-animation" style="display:none; animation: fadeIn 0.5s ease;">
                         <div class="highlight-box" style="text-align:center;">
-                            <p style="margin:0;">Each round, the AI adjusts its internal rules (<strong>weights</strong>) to get better. It learns <strong>how much</strong> each feature matters.</p>
+                            <p style="margin:0;">Each round, the AI adjusts its internal settings to get better. It learns <strong>how much</strong> each feature matters.</p>
                         </div>
                     </div>
                 </div>
@@ -953,7 +959,8 @@
                 <h2>🔬 Testing the AI</h2>
 
                 <div class="step-card step-card-purple">
-                    <p style="text-align:center; margin-bottom:16px;">The AI trained on buildings. But how do we prove it <strong>actually learned</strong>?</p>
+                    <p style="text-align:center; font-size:1.1rem; color:var(--text); margin-bottom:8px;">The AI trained on buildings. But how do we prove it <strong>actually learned</strong>?</p>
+                    <p style="text-align:center; font-size:1.3rem; font-weight:700; color:var(--accent); margin-bottom:16px;">We split the data!</p>
 
                     <div style="text-align:center;">
                         <div class="building-grid" id="buildingGrid"></div>
@@ -968,13 +975,13 @@
                             <div style="text-align:center; flex:3; min-width:140px; padding:16px; border-radius:12px; background:rgba(56,189,248,0.15); border:2px solid var(--blue-accent);">
                                 <div style="font-size:2rem;">📚</div>
                                 <div style="font-weight:700; color:var(--blue-accent);">75% Training</div>
-                                <div style="font-size:0.85rem; color:var(--text-dim); margin-top:4px;">AI learns from these</div>
+                                <div style="font-size:0.85rem; color:var(--text-dim); margin-top:4px;">We give the model these buildings to practice on. It studies them and learns the patterns.</div>
                             </div>
                             <div style="font-size:1.5rem; color:var(--text-dim); display:flex; align-items:center;">→</div>
                             <div style="text-align:center; flex:1; min-width:140px; padding:16px; border-radius:12px; background:rgba(16,185,129,0.15); border:2px solid var(--green-accent);">
                                 <div style="font-size:2rem;">🔒</div>
                                 <div style="font-weight:700; color:var(--green-accent);">25% Test</div>
-                                <div style="font-size:0.85rem; color:var(--text-dim); margin-top:4px;">Hidden for real testing</div>
+                                <div style="font-size:0.85rem; color:var(--text-dim); margin-top:4px;">We hide these buildings from the model. Then we ask it to predict them — if it gets them right, it really learned!</div>
                             </div>
                         </div>
                     </div>
@@ -982,7 +989,7 @@
                     <div id="splitQuestion" style="display:none;">
                         <div class="inner-card" style="text-align:center;">
                             <p style="font-weight:700; font-size:1.1rem; color:var(--text); margin-bottom:16px;">
-                                Why test on <em>new</em> buildings instead of the training ones?
+                                Why test on <em>hidden</em> building data instead of the data it practiced on?
                             </p>
                             <div class="choice-row">
                                 <div class="choice-card" id="choice-seen" onclick="answerTrainTest('seen')">
@@ -1017,31 +1024,19 @@
                         Adjust the inputs and see how the prediction changes!</p>
                 </div>
 
-                <!-- E3-4: Cumulative impact counter -->
-                <div class="impact-counter" id="impactCounter" style="display:none;">
-                    <div class="impact-counter-item">
-                        <div class="impact-counter-value" id="buildingsAnalyzed">0</div>
-                        <div class="impact-counter-label">Buildings Analyzed</div>
-                    </div>
-                    <div class="impact-counter-item">
-                        <div class="impact-counter-value" id="potentialSavings">0</div>
-                        <div class="impact-counter-label">Tonnes CO₂ Savings Identified</div>
-                    </div>
-                </div>
-
                 <!-- INPUT section -->
                 <div class="demo-section">
                     <div class="demo-title">1️⃣ <span class="mono">INPUT</span>: Adjust the Data</div>
 
                     <div class="input-row">
                         <div class="input-group">
-                            <label>Year Built <span class="slider-value" id="ageValue">2000</span></label>
-                            <input type="range" id="ageSlider" min="1920" max="2024" value="2000"
+                            <label>Year Built <span class="slider-value" id="ageValue">1950</span></label>
+                            <input type="range" id="ageSlider" min="1920" max="2024" value="1950"
                                 oninput="updateSlider('age', this.value)">
                         </div>
                         <div class="input-group">
-                            <label>Floor Area (m²) <span class="slider-value" id="areaValue">4,650</span></label>
-                            <input type="range" id="areaSlider" min="5" max="200" value="50"
+                            <label>Floor Area (m²) <span class="slider-value" id="areaValue">12,090</span></label>
+                            <input type="range" id="areaSlider" min="5" max="200" value="130"
                                 oninput="updateSlider('area', this.value)">
                         </div>
                     </div>
@@ -1050,8 +1045,8 @@
                         <label>Climate Zone</label>
                         <select id="climateSelect">
                             <option value="cold">Cold (High Heating Needs)</option>
-                            <option value="moderate" selected>Moderate</option>
-                            <option value="hot">Hot (High Cooling Needs)</option>
+                            <option value="moderate">Moderate</option>
+                            <option value="hot" selected>Hot (High Cooling Needs)</option>
                         </select>
                     </div>
                 </div>
@@ -1093,19 +1088,12 @@
                     <div class="quiz-feedback" id="step5QuizFeedback"></div>
                 </div>
 
-                <!-- Follow-up — appears after quiz answered correctly -->
-                <div id="step5Followup" style="display:none; animation: fadeIn 0.5s ease;">
-                    <div class="highlight-box">
-                        <p style="margin:0; font-size:1rem;"><b>Bonus:</b> Now try making the <b>LEAST</b> efficient building you can.
-                            What feature changed the prediction the most?</p>
-                    </div>
-                </div>
 
                 <div class="btn-group">
                     <button class="btn secondary" onclick="goToStep(4)">◀ Back</button>
                     <button class="btn" id="step5-next" onclick="goToStep(6)" disabled>Complete This Section ▶</button>
                 </div>
-                <div class="gate-hint" id="step5-gate-hint">Run a prediction and answer the quiz to continue</div>
+                <div class="gate-hint" id="step5-gate-hint">Run at least one prediction to continue</div>
             </div>
 
             <!-- ============================================================ -->
@@ -1314,26 +1302,16 @@
             step0Text += ` Now learn how AI uses those features to make predictions.`;
             document.getElementById('step0CityText').innerHTML = step0Text;
 
-            // E3-1: Step 2 — city-specific formula
-            const ctx2 = document.getElementById('step2CityContext');
-            ctx2.style.display = 'block';
-            document.getElementById('step2CityFormula').innerHTML =
-                `<span class="mono" style="font-size:0.9rem;">INPUT:</span> <strong>${cityName}</strong> building data → <span class="mono" style="font-size:0.9rem;">MODEL:</span> Energy AI → <span class="mono" style="font-size:0.9rem;">OUTPUT:</span> kWh/m² prediction`;
-
             // E3-1: Step 3 — training context
             const ctx3 = document.getElementById('step3CityContext');
             ctx3.style.display = 'block';
-            let step3Text = `The model trains on 100,000 building records`;
-            if (j?.activity2CompletedAt) {
-                step3Text += ` — the dataset you found in Activity 2`;
-            }
-            step3Text += `. It learns patterns connecting ${features ? features.join(', ').replace('floor_area', 'floor area').replace('_', ' ') : 'building features'} to energy use.`;
+            let step3Text = `You spotted a pattern in just 3 buildings. Now imagine doing that with 100,000. That's what the AI model does — it looks at ${features ? features.join(', ').replace('floor_area', 'floor area').replace('_', ' ') : 'building features'} across thousands of real buildings and learns which patterns predict energy use.`;
             document.getElementById('step3CityText').innerHTML = step3Text;
 
             // E3-2: Personalize demo heading
             document.getElementById('step5Heading').innerHTML = `🎮 Predict a Building in ${cityName}`;
             document.getElementById('step5Intro').innerHTML =
-                `<b>Use a simple AI model to predict building energy efficiency.</b><br>Imagine a school in <strong>${cityName}</strong>'s downtown with 4,645 m² — adjust the inputs and see how the prediction changes!`;
+                `<b>Use a simple AI model to predict building energy efficiency.</b> Adjust the inputs and see how the prediction changes!`;
 
             // E3-2: Pre-set climate zone
             const climateZone = getCityClimateZone(cityName);
@@ -1610,7 +1588,7 @@
                     document.getElementById('step2Summary').style.display = 'block';
                 } else {
                     btn.disabled = false;
-                    btn.textContent = `🏢 Feed Building ${pipelineIndex + 1} →`;
+                    btn.textContent = `🏢 Submit Building ${pipelineIndex + 1} →`;
                 }
             }, 2600);
         }
@@ -1627,13 +1605,13 @@
         const TRAINING_CYCLES = [
             { labels: ['Starting...', 'Accuracy: 47%', 'Accuracy: 62%', 'Accuracy: 78%', 'Accuracy: 91%'],
               colors: ['var(--text-dim)', 'var(--error)', 'var(--warning)', 'var(--accent)', 'var(--success)'],
-              btnText: '▶ Train Again (+more data)', finalAcc: '91%', hint: 'Good start — but can we do better with more training?' },
+              btnText: '▶ Train Again (+more data)', finalAcc: '91%', hint: 'The AI model predicted 91 out of every 100 buildings correctly. Good start — but can we do better with more training?' },
             { labels: ['Resuming at 91%...', 'Accuracy: 92%', 'Accuracy: 93%', 'Accuracy: 94%', 'Accuracy: 95%'],
               colors: ['var(--text-dim)', 'var(--accent)', 'var(--accent)', 'var(--accent)', 'var(--success)'],
-              btnText: '▶ Train One More Time', finalAcc: '95%', hint: 'Improving — but notice the gains are getting smaller.' },
+              btnText: '▶ Train One More Time', finalAcc: '95%', hint: '95 out of every 100 correct. Improving — but notice the gains are getting smaller.' },
             { labels: ['Resuming at 95%...', 'Accuracy: 95.5%', 'Accuracy: 96%', 'Accuracy: 96.5%', 'Accuracy: 97%'],
               colors: ['var(--text-dim)', 'var(--accent)', 'var(--accent)', 'var(--accent)', 'var(--success)'],
-              btnText: null, finalAcc: '97%', hint: 'Diminishing returns — more training barely helps. The model has learned most of what the data can teach.' }
+              btnText: null, finalAcc: '97%', hint: '97 out of every 100 correct. More training barely helps now. The model has learned most of what the data can teach.' }
         ];
 
         function runTrainingAnimation() {
@@ -1817,22 +1795,42 @@
             if (cityName && sectorEmissions) {
                 const carsEquiv = Math.max(1, Math.round(co2PerBuilding / 4.6));
                 const topBuildingsReduction = co2PerBuilding * 100;
-                impactHTML = `
-                    <div style="margin-top:12px; background:rgba(16,185,129,0.1); border-left:3px solid #10b981; padding:12px; border-radius:0 8px 8px 0;">
-                        <p style="margin:0; font-size:0.9rem; color:var(--text);">
-                            <strong>Impact in ${cityName}:</strong> A building like this wastes ~${wastePerBuilding} kWh/m² above efficient baseline.
-                            If the top 100 buildings like this were retrofitted, <strong>${cityName}</strong> could save <strong>~${topBuildingsReduction.toLocaleString()} tonnes</strong> of CO₂ — equivalent to <strong>${(carsEquiv * 100).toLocaleString()} cars</strong> off the road.
+                if (efficiency === "High Efficiency") {
+                    impactHTML = `
+                    <div style="margin-top:20px; background:rgba(16,185,129,0.12); border:2px solid #10b981; padding:20px; border-radius:12px; text-align:center;">
+                        <div style="font-size:1.15rem; font-weight:700; color:#10b981; margin-bottom:12px;">🌍 Impact in ${cityName}</div>
+                        <p style="margin:0; font-size:0.95rem; color:var(--text);">
+                            This building is already a top performer! If the 100 least efficient buildings in <strong>${cityName}</strong> were upgraded to this level, the city could reduce <strong>~${topBuildingsReduction.toLocaleString()} tonnes</strong> of planet-warming gas.
                         </p>
                     </div>`;
+                } else {
+                    impactHTML = `
+                    <div style="margin-top:20px; background:rgba(16,185,129,0.12); border:2px solid #10b981; padding:20px; border-radius:12px; text-align:center;">
+                        <div style="font-size:1.15rem; font-weight:700; color:#10b981; margin-bottom:12px;">🌍 Impact in ${cityName}</div>
+                        <p style="margin:0 0 16px; font-size:0.95rem; color:var(--text);">
+                            A building like this wastes <strong>~${wastePerBuilding} kWh/m²</strong> more than an efficient building.
+                        </p>
+                        <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
+                            <div style="background:var(--card-bg); padding:14px 20px; border-radius:10px; min-width:140px;">
+                                <div style="font-size:1.5rem; font-weight:700; color:#10b981;">~${topBuildingsReduction.toLocaleString()}</div>
+                                <div style="font-size:0.8rem; color:var(--text-dim);">tonnes CO₂ reduced</div>
+                                <div style="font-size:0.75rem; color:var(--text-dim); margin-top:2px;">if top 100 buildings upgraded</div>
+                            </div>
+                            <div style="background:var(--card-bg); padding:14px 20px; border-radius:10px; min-width:140px;">
+                                <div style="font-size:1.5rem; font-weight:700; color:#10b981;">${(carsEquiv * 100).toLocaleString()}</div>
+                                <div style="font-size:0.8rem; color:var(--text-dim);">cars off the road</div>
+                            </div>
+                        </div>
+                    </div>`;
+                }
             }
 
             const output = document.getElementById('predictionOutput');
             output.innerHTML = `
                 <div class="prediction-card fade-in" style="border-color:${color};">
                     <h2 class="prediction-title" style="color:${color};">${emoji} ${efficiency}</h2>
-                    <p class="prediction-score">Efficiency Score: ${normalizedScore}/10</p>
                     <p style="font-size:0.95rem; margin-top:15px; color:var(--text-dim);">
-                        ${efficiency === "Low Efficiency" ? "This building likely needs energy retrofits" :
+                        ${efficiency === "Low Efficiency" ? "This building likely needs energy upgrades" :
                           efficiency === "Medium Efficiency" ? "This building has moderate energy performance" :
                           "This building is energy efficient!"}
                     </p>
@@ -1847,14 +1845,14 @@
             document.getElementById('triesArea').style.display = 'block';
             document.getElementById('triesCounter').textContent = `Predictions made: ${state.step5Predictions}`;
 
-            // E3-4: Update cumulative counter
-            const counterEl = document.getElementById('impactCounter');
-            counterEl.style.display = 'flex';
-            document.getElementById('buildingsAnalyzed').textContent = state.step5Predictions;
-            document.getElementById('potentialSavings').textContent = Math.round(state.cumulativeSavings).toLocaleString();
-
             // Show challenge card after first prediction
             document.getElementById('challengeCard').classList.add('visible');
+
+            // Enable completion after first prediction
+            if (state.step5Predictions === 1) {
+                document.getElementById('step5-next').disabled = false;
+                document.getElementById('step5-gate-hint').style.display = 'none';
+            }
 
             // Show quiz after first prediction
             document.getElementById('step5Quiz').style.display = 'block';
