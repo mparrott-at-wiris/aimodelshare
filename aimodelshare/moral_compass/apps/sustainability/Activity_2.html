@@ -1246,14 +1246,14 @@
             <!-- STEP 1: THE INSPECTOR'S DILEMMA -->
             <div class="mission-step" id="step-1">
                 <h2>🔍 Step 1: The Inspector's Dilemma</h2>
-                <p>Before we design an AI, let's understand <span class="highlight-text">why we need one</span>.</p>
+                <p>Before we design an AI solution, let's understand <span class="highlight-text">why we need one</span>.</p>
 
                 <!-- Phase A: City Building Grid -->
                 <div id="phase-a" class="problem-phase">
                     <p style="text-align: center; color: var(--text-dim); font-size: 0.95rem;">Here are <span id="gridCityLabel" style="font-weight:600; color:var(--text);">your city's</span> buildings. Which ones are wasting energy?</p>
                     <div class="building-grid" id="buildingGrid"></div>
                     <p id="gridCaption" style="text-align: center; font-weight: 600; margin-top: 15px; display: none;">
-                        <span style="color: var(--error);">71% of buildings are a mystery.</span> We have no idea if they're efficient or wasteful.
+                        <span style="color: var(--error);">The city needs to find its biggest energy wasters, but most buildings have never been assessed.</span> Right now, there's no quick way to tell an efficient building from a wasteful one.
                     </p>
                     <div id="scanBtnWrap" style="text-align: center; margin-top: 15px;">
                         <button class="btn" id="btn-scan" onclick="revealBuildingGrid()">SCAN THE CITY</button>
@@ -1267,12 +1267,13 @@
                         <div class="math-equation">
                             <span id="mathBuildings" class="math-number">12,000</span>
                             <span class="math-operator">buildings</span>
-                            <span class="math-symbol">&times;</span>
-                            <span class="math-number">1 day</span>
-                            <span class="math-operator">per inspection</span>
+                            <span class="math-symbol">&divide;</span>
+                            <span class="math-number">10</span>
+                            <span class="math-operator">inspectors</span>
                             <span class="math-symbol">=</span>
-                            <span id="mathYears" class="math-number math-result">33 years</span>
+                            <span id="mathYears" class="math-number math-result">~1 year</span>
                         </div>
+                        <p style="text-align:center; color:var(--text-dim); font-size:0.85rem; margin-top:8px;">Assuming each inspector rates 5 buildings per day</p>
                         <div id="inspectorCounter" class="inspector-counter"></div>
                     </div>
                     <div style="text-align: center; margin-top: 15px;">
@@ -1753,17 +1754,8 @@
             document.getElementById('grantIntroGeneric').style.display = 'none';
             document.getElementById('grantIntroPersonalized').style.display = 'block';
 
-            // Acknowledge Act 1 findings, then pivot cleanly to built environment
-            let introText = `Your investigation of <strong>${cityName}</strong> revealed`;
-            if (sectorPct) {
-                introText += ` that <strong>${sectorName}</strong> is the highest-emitting sector at <strong>${sectorPct}%</strong>`;
-            } else {
-                introText += ` that <strong>${sectorName}</strong> is the biggest emitter`;
-            }
-            if (topSourcePct) {
-                introText += `, with <strong>${topSourceName}</strong> alone responsible for <strong>${topSourcePct}%</strong>`;
-            }
-            introText += `. Your work caught the City Council's attention. Now they want to tackle <strong>${cityName}</strong>'s built environment — the homes, offices, and public buildings that account for roughly 40% of energy use in most cities. That's where AI can make the biggest difference:`;
+            // Pivot cleanly to built environment
+            let introText = `Your recommendation caught the City Council's attention. Now they want to tackle <strong>${cityName}</strong>'s built environment — the homes, offices, and public buildings that account for roughly 40% of energy use in most cities. That's where AI can make the biggest difference:`;
 
             document.getElementById('grantIntroPara').innerHTML = introText;
 
@@ -1861,7 +1853,8 @@
 
             // Estimate building count from emissions (~50 tonnes avg per building)
             const buildingCount = totalEmissions ? Math.round(totalEmissions / 50) : 12000;
-            const inspectorYears = Math.max(1, Math.round(buildingCount / 260));
+            const inspectorYears = Math.max(1, Math.round(buildingCount / 13000));
+            const inspectorCostTotal = inspectorYears * 400000;
 
             // ~40% of total emissions = building sector
             const buildingEmissions = totalEmissions ? Math.round(totalEmissions * 0.4) : 50000;
@@ -1870,7 +1863,7 @@
             // Cars equivalent: ~4.6 tonnes per car per year
             const carsEquivalent = totalEmissions ? Math.round(buildingEmissions / 4.6) : 10000;
 
-            return { cityName, buildingCount, inspectorYears, buildingEmissions, familiesAffected, carsEquivalent };
+            return { cityName, buildingCount, inspectorYears, inspectorCostTotal, buildingEmissions, familiesAffected, carsEquivalent };
         }
 
         function initBuildingGrid() {
@@ -1934,16 +1927,7 @@
             phaseB.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
             document.getElementById('mathBuildings').textContent = data.buildingCount.toLocaleString();
-            document.getElementById('mathYears').textContent = data.inspectorYears + ' years';
-
-            const counter = document.getElementById('inspectorCounter');
-            const rawPct = (260 / data.buildingCount * 100);
-            let d = 1;
-            while (d <= 6 && parseFloat(rawPct.toFixed(d)) === 0) d++;
-            const pct = rawPct.toFixed(d);
-            setTimeout(() => {
-                counter.innerHTML = `<strong>After 1 year:</strong> 260 inspected &mdash; <span style="color: var(--error);">${pct}%</span> of ${data.buildingCount.toLocaleString()} buildings`;
-            }, 800);
+            document.getElementById('mathYears').textContent = '~' + data.inspectorYears + (data.inspectorYears === 1 ? ' year' : ' years');
 
             projectData.phasesRevealed = 1;
             saveProgress();
@@ -1970,7 +1954,7 @@
             phaseD.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
             document.getElementById('aiPromiseText').innerHTML =
-                `Your AI can analyze ALL <strong>${data.buildingCount.toLocaleString()}</strong> buildings in <strong>${data.cityName}</strong> in seconds, not <strong>${data.inspectorYears} years</strong>.`;
+                `Your AI solution could analyze ALL <strong>${data.buildingCount.toLocaleString()}</strong> buildings in <strong>${data.cityName}</strong> in minutes, not <strong>${data.inspectorYears} years</strong>.`;
 
             document.getElementById('btn-next-1').disabled = false;
             projectData.problemUnderstood = true;
@@ -2466,7 +2450,7 @@
                     if (phaseB) {
                         phaseB.style.display = 'block';
                         document.getElementById('mathBuildings').textContent = data.buildingCount.toLocaleString();
-                        document.getElementById('mathYears').textContent = data.inspectorYears + ' years';
+                        document.getElementById('mathYears').textContent = '~' + data.inspectorYears + (data.inspectorYears === 1 ? ' year' : ' years');
                     }
                 }
                 if (projectData.phasesRevealed >= 2) {
@@ -2485,7 +2469,7 @@
                     if (phaseD) {
                         phaseD.style.display = 'block';
                         document.getElementById('aiPromiseText').innerHTML =
-                            `Your AI can analyze ALL <strong>${data.buildingCount.toLocaleString()}</strong> buildings in <strong>${data.cityName}</strong> in seconds, not <strong>${data.inspectorYears} years</strong>.`;
+                            `Your AI solution could analyze ALL <strong>${data.buildingCount.toLocaleString()}</strong> buildings in <strong>${data.cityName}</strong> in minutes, not <strong>${data.inspectorYears} years</strong>.`;
                     }
                     const btn1 = document.getElementById('btn-next-1');
                     if (btn1) btn1.disabled = false;
