@@ -1547,6 +1547,13 @@
 
             errorBox.style.display = 'none';
             disambiguationBox.style.display = 'none';
+
+            // Intercept Andorra search — no city-level API data, use hardcoded data
+            if (query.trim().toLowerCase() === 'andorra') {
+                selectAndorra();
+                return;
+            }
+
             document.getElementById('step-1').style.display = 'none';
             document.getElementById('loader').style.display = 'block';
 
