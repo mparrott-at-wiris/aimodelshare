@@ -1323,11 +1323,7 @@
             // E3-1: Step 3 — training context
             const ctx3 = document.getElementById('step3CityContext');
             ctx3.style.display = 'block';
-            let step3Text = `The model trains on 100,000 building records`;
-            if (j?.activity2CompletedAt) {
-                step3Text += ` — the dataset you found in Activity 2`;
-            }
-            step3Text += `. It learns patterns connecting ${features ? features.join(', ').replace('floor_area', 'floor area').replace('_', ' ') : 'building features'} to energy use.`;
+            let step3Text = `You spotted a pattern in just 3 buildings. Now imagine doing that with 100,000. That's what the AI model does — it looks at ${features ? features.join(', ').replace('floor_area', 'floor area').replace('_', ' ') : 'building features'} across thousands of real buildings and learns which patterns predict energy use.`;
             document.getElementById('step3CityText').innerHTML = step3Text;
 
             // E3-2: Personalize demo heading
