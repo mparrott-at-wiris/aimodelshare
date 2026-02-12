@@ -1246,14 +1246,14 @@
             <!-- STEP 1: THE INSPECTOR'S DILEMMA -->
             <div class="mission-step" id="step-1">
                 <h2>🔍 Step 1: The Inspector's Dilemma</h2>
-                <p>Before we design an AI, let's understand <span class="highlight-text">why we need one</span>.</p>
+                <p>Before we design an AI solution, let's understand <span class="highlight-text">why we need one</span>.</p>
 
                 <!-- Phase A: City Building Grid -->
                 <div id="phase-a" class="problem-phase">
                     <p style="text-align: center; color: var(--text-dim); font-size: 0.95rem;">Here are <span id="gridCityLabel" style="font-weight:600; color:var(--text);">your city's</span> buildings. Which ones are wasting energy?</p>
                     <div class="building-grid" id="buildingGrid"></div>
                     <p id="gridCaption" style="text-align: center; font-weight: 600; margin-top: 15px; display: none;">
-                        <span style="color: var(--error);">71% of buildings are a mystery.</span> We have no idea if they're efficient or wasteful.
+                        <span style="color: var(--error);">The city needs to find its biggest energy wasters, but most buildings have never been assessed.</span> Right now, there's no quick way to tell an efficient building from a wasteful one.
                     </p>
                     <div id="scanBtnWrap" style="text-align: center; margin-top: 15px;">
                         <button class="btn" id="btn-scan" onclick="revealBuildingGrid()">SCAN THE CITY</button>
@@ -1267,12 +1267,13 @@
                         <div class="math-equation">
                             <span id="mathBuildings" class="math-number">12,000</span>
                             <span class="math-operator">buildings</span>
-                            <span class="math-symbol">&times;</span>
-                            <span class="math-number">1 day</span>
-                            <span class="math-operator">per inspection</span>
+                            <span class="math-symbol">&divide;</span>
+                            <span class="math-number">10</span>
+                            <span class="math-operator">inspectors</span>
                             <span class="math-symbol">=</span>
-                            <span id="mathYears" class="math-number math-result">33 years</span>
+                            <span id="mathYears" class="math-number math-result">~1 year</span>
                         </div>
+                        <p style="text-align:center; color:var(--text-dim); font-size:0.85rem; margin-top:8px;">Assuming each inspector rates 5 buildings per day</p>
                         <div id="inspectorCounter" class="inspector-counter"></div>
                     </div>
                     <div style="text-align: center; margin-top: 15px;">
@@ -1318,8 +1319,8 @@
 
             <!-- STEP 2: FEATURE SELECTION (CHOOSING CLUES) -->
             <div class="mission-step" id="step-2">
-                <h2>🧬 Step 2: Teach Your AI What to Look For</h2>
-                <p>To predict which buildings waste energy <strong>without visiting them</strong>, your AI
+                <h2>🧬 Step 2: Teach Your AI System What to Look For</h2>
+                <p>To predict which buildings waste energy <strong>without visiting them</strong>, your AI system
                     needs specific data inputs. In AI, these inputs are called <span
                         class="highlight-text">"features"</span> &mdash;
                     think of them as clues that help the AI make predictions.</p>
@@ -1397,10 +1398,10 @@
             <!-- STEP 3: DEFINE ENERGY SCORE (EUI) -->
             <div class="mission-step" id="step-3">
                 <h2>📊 Step 3: Define the Energy Score</h2>
-                <p>Should an AI compare buildings by <span class="highlight-text">total energy used</span>, or <span class="highlight-text">energy per square metre</span>?</p>
+                <p>Should your AI system compare buildings by <span class="highlight-text">total energy used</span>, or <span class="highlight-text">energy per square metre</span>?</p>
 
                 <div class="ai-design-panel">
-                    <div class="design-label">What Should Your AI Predict?</div>
+                    <div class="design-label">What Should Your AI System Predict?</div>
 
                     <div class="prediction-grid">
                         <div class="prediction-card" id="pred-total" onclick="selectPrediction('total')">
@@ -1424,9 +1425,7 @@
 
                 <!-- Revealed after correct choice -->
                 <div id="euiExplainer" style="display: none;">
-                    <p>This score is called <span class="highlight-text">EUI</span> (Energy Use Intensity) &mdash; like litres per 100 km, but for buildings. Each building's energy is measured in <strong>energy units</strong> per year (think of them like calories, but for a building instead of a person). Let's see it in action.</p>
-
-                    <p style="font-size: 1rem; font-weight: 600; color: var(--accent); margin: 16px 0 4px 0;">Which building wastes more energy per square metre? Pick one.</p>
+                    <h3 style="text-align: center; color: var(--accent); margin: 16px 0 8px 0;">Which building wastes more energy per square metre? Pick one.</h3>
 
                     <!-- Round 1 -->
                     <div class="matchup-round" id="matchup-1">
@@ -1487,7 +1486,7 @@
                         <p style="font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: 8px;">That's the power of EUI</p>
                         <div class="eui-formula">Energy Used &divide; Building Size = EUI</div>
                         <p style="font-size: 0.95rem; color: var(--text-dim); margin-top: 8px;"><strong style="color: var(--error);">High EUI = wasteful</strong> &mdash; the building burns through a lot of energy for its size.<br><strong style="color: var(--success);">Low EUI = efficient</strong> &mdash; the building makes good use of every square metre.</p>
-                        <p style="font-size: 0.95rem; color: var(--text-dim); margin-top: 8px;">Without this score, a big warehouse <em>always</em> looks worse than a tiny shop &mdash; even when the shop wastes 8&times; more per square metre. Your AI will use EUI to spot the real energy wasters.</p>
+                        <p style="font-size: 0.95rem; color: var(--text-dim); margin-top: 8px;">Without this score, a big warehouse <em>always</em> looks worse than a tiny shop &mdash; even when the shop wastes 8&times; more per square metre. Your AI system will use EUI to spot the real energy wasters.</p>
                     </div>
                 </div>
 
@@ -1498,11 +1497,12 @@
                 </div>
             </div>
 
-            <!-- STEP 4: DATA REQUEST -->
+            <!-- STEP 4: FIND THE DATA -->
             <div class="mission-step" id="step-4">
-                <h2>🗄️ Step 4: Submit Data Request</h2>
-                <p>Now that you've designed your AI system, you need training data that matches your plan &mdash;
-                    enough examples for the AI to learn patterns.</p>
+                <h2>🗄️ Step 4: Find the Data</h2>
+                <p>Now that you've designed your AI system, you need data that matches your plan &mdash;
+                    enough real building records for it to learn patterns.</p>
+                <p style="font-size:0.9rem; color:var(--text-dim); margin-top:6px;">We'll search a public database of real building energy records from the National Renewable Energy Laboratory (NREL).</p>
 
                 <div id="dataRequirements" style="margin: 25px 0;"></div>
 
@@ -1753,17 +1753,8 @@
             document.getElementById('grantIntroGeneric').style.display = 'none';
             document.getElementById('grantIntroPersonalized').style.display = 'block';
 
-            // Acknowledge Act 1 findings, then pivot cleanly to built environment
-            let introText = `Your investigation of <strong>${cityName}</strong> revealed`;
-            if (sectorPct) {
-                introText += ` that <strong>${sectorName}</strong> is the highest-emitting sector at <strong>${sectorPct}%</strong>`;
-            } else {
-                introText += ` that <strong>${sectorName}</strong> is the biggest emitter`;
-            }
-            if (topSourcePct) {
-                introText += `, with <strong>${topSourceName}</strong> alone responsible for <strong>${topSourcePct}%</strong>`;
-            }
-            introText += `. Your work caught the City Council's attention. Now they want to tackle <strong>${cityName}</strong>'s built environment — the homes, offices, and public buildings that account for roughly 40% of energy use in most cities. That's where AI can make the biggest difference:`;
+            // Pivot cleanly to built environment
+            let introText = `Your recommendation caught the City Council's attention. Now they want to tackle <strong>${cityName}</strong>'s built environment — the homes, offices, and public buildings that account for roughly 40% of energy use in most cities. That's where AI can make the biggest difference:`;
 
             document.getElementById('grantIntroPara').innerHTML = introText;
 
@@ -1791,7 +1782,7 @@
                 const tenPctReduction = Math.round(buildingSectorEstimate * 0.1);
                 document.getElementById('impactProjection').style.display = 'block';
                 document.getElementById('impactProjectionText').innerHTML =
-                    `If your AI identifies the worst 10% of buildings, retrofitting them could cut <strong>${cityName}</strong>'s building emissions by <strong>~${tenPctReduction.toLocaleString()} tonnes/year</strong>.`;
+                    `If your AI system identifies the worst 10% of buildings, upgrading them could cut <strong>${cityName}</strong>'s building emissions by <strong>~${tenPctReduction.toLocaleString()} tonnes/year</strong>.`;
             }
 
             // E2-5: Journey timeline city choice
@@ -1801,23 +1792,8 @@
             }
         }
 
-        // ——— E2-3: CITY-SPECIFIC FEATURE FEEDBACK ———
+        // ——— E2-3: CITY-SPECIFIC FEATURE FEEDBACK (disabled — green text is sufficient) ———
         function getCityFeatureFeedback(featureId) {
-            const j = getJourney();
-            const cityName = j?.city?.name;
-            if (!cityName) return null;
-
-            const climate = getCityClimate(cityName);
-
-            if (featureId === 'weather' && climate) {
-                return `<strong>${cityName}</strong> has ${climate.desc}. Weather data will help your AI understand seasonal energy spikes.`;
-            }
-            if (featureId === 'floor_area') {
-                return `<strong>${cityName}</strong>'s buildings range from small homes to large commercial towers. Floor area is critical for understanding energy scale.`;
-            }
-            if (featureId === 'year') {
-                return `Many buildings in <strong>${cityName}</strong> were built decades ago with poor insulation. Year built helps the AI identify aging infrastructure.`;
-            }
             return null;
         }
 
@@ -1861,7 +1837,8 @@
 
             // Estimate building count from emissions (~50 tonnes avg per building)
             const buildingCount = totalEmissions ? Math.round(totalEmissions / 50) : 12000;
-            const inspectorYears = Math.max(1, Math.round(buildingCount / 260));
+            const inspectorYears = Math.max(1, Math.round(buildingCount / 13000));
+            const inspectorCostTotal = inspectorYears * 400000;
 
             // ~40% of total emissions = building sector
             const buildingEmissions = totalEmissions ? Math.round(totalEmissions * 0.4) : 50000;
@@ -1870,7 +1847,7 @@
             // Cars equivalent: ~4.6 tonnes per car per year
             const carsEquivalent = totalEmissions ? Math.round(buildingEmissions / 4.6) : 10000;
 
-            return { cityName, buildingCount, inspectorYears, buildingEmissions, familiesAffected, carsEquivalent };
+            return { cityName, buildingCount, inspectorYears, inspectorCostTotal, buildingEmissions, familiesAffected, carsEquivalent };
         }
 
         function initBuildingGrid() {
@@ -1934,16 +1911,7 @@
             phaseB.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
             document.getElementById('mathBuildings').textContent = data.buildingCount.toLocaleString();
-            document.getElementById('mathYears').textContent = data.inspectorYears + ' years';
-
-            const counter = document.getElementById('inspectorCounter');
-            const rawPct = (260 / data.buildingCount * 100);
-            let d = 1;
-            while (d <= 6 && parseFloat(rawPct.toFixed(d)) === 0) d++;
-            const pct = rawPct.toFixed(d);
-            setTimeout(() => {
-                counter.innerHTML = `<strong>After 1 year:</strong> 260 inspected &mdash; <span style="color: var(--error);">${pct}%</span> of ${data.buildingCount.toLocaleString()} buildings`;
-            }, 800);
+            document.getElementById('mathYears').textContent = '~' + data.inspectorYears + (data.inspectorYears === 1 ? ' year' : ' years');
 
             projectData.phasesRevealed = 1;
             saveProgress();
@@ -1970,7 +1938,7 @@
             phaseD.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
             document.getElementById('aiPromiseText').innerHTML =
-                `Your AI can analyze ALL <strong>${data.buildingCount.toLocaleString()}</strong> buildings in <strong>${data.cityName}</strong> in seconds, not <strong>${data.inspectorYears} years</strong>.`;
+                `Your AI solution could analyze ALL <strong>${data.buildingCount.toLocaleString()}</strong> buildings in <strong>${data.cityName}</strong> in minutes, not <strong>${data.inspectorYears} years</strong>.`;
 
             document.getElementById('btn-next-1').disabled = false;
             projectData.problemUnderstood = true;
@@ -2071,7 +2039,7 @@
                 totalCard.classList.add('incorrect');
                 fb.style.background = 'rgba(16, 185, 129, 0.1)';
                 fb.style.borderLeft = '4px solid var(--success)';
-                fb.innerHTML = '<p style="margin:0; color:var(--text);"><strong style="color:var(--success);">Correct!</strong> EUI makes it fair to compare buildings of different sizes, just like litres per 100 km lets you compare cars of different sizes. Let\'s prove it.</p>';
+                fb.innerHTML = '<p style="margin:0; color:var(--text);"><strong style="color:var(--success);">Correct!</strong> EUI makes it fair to compare buildings of different sizes, just like litres of gas per 100 km lets you compare cars of different sizes. Let\'s prove it.</p>';
                 projectData.predictionGoal = 'eui';
                 document.getElementById('euiExplainer').style.display = 'block';
             } else {
@@ -2228,11 +2196,6 @@
                         <span class="card-label">Prediction</span>
                         <span class="card-value">EUI &mdash; energy per m²</span>
                     </div>
-                    <div class="data-req-card">
-                        <span class="card-icon">📦</span>
-                        <span class="card-label">Min. Records</span>
-                        <span class="card-value">50,000+ buildings</span>
-                    </div>
                 </div>`;
             document.getElementById('dataRequirements').innerHTML = grid;
 
@@ -2245,7 +2208,7 @@
                 const projText = document.getElementById('impactProjectionText');
                 if (projEl && projText) {
                     projText.innerHTML =
-                        `If your AI identifies the worst 10% of buildings, retrofitting them could cut <strong>${cityName}</strong>'s building emissions by <strong>~${tenPctReduction.toLocaleString()} tonnes/year</strong>.`;
+                        `If your AI system identifies the worst 10% of buildings, upgrading them could cut <strong>${cityName}</strong>'s building emissions by <strong>~${tenPctReduction.toLocaleString()} tonnes/year</strong>.`;
                     projEl.style.display = 'block';
                 }
             }
@@ -2263,18 +2226,17 @@
 
             // Build dynamic search steps based on student's selected features
             const featureMeta = {
-                floor_area: { icon: '🔍', label: 'Floor Area', match: 98, records: '98,000' },
-                weather: { icon: '🌡️', label: 'Weather Data', match: 72, records: '72,000', note: 'some gaps in rural stations' },
-                year: { icon: '📅', label: 'Year Built', match: 85, records: '85,000' }
+                floor_area: { icon: '🔍', label: 'Floor Area', status: 'Available' },
+                weather: { icon: '🌡️', label: 'Weather Data', status: 'Available (some gaps in rural areas)' },
+                year: { icon: '📅', label: 'Year Built', status: 'Available' }
             };
 
             const selectedFeatures = Array.from(projectData.selectedFeatures);
             const searchSteps = selectedFeatures.map((f, i) => {
                 const meta = featureMeta[f];
-                return { id: `dyn-load-${i}`, icon: meta.icon, label: meta.label, match: meta.match, records: meta.records, note: meta.note };
+                return { id: `dyn-load-${i}`, icon: meta.icon, label: meta.label, status: meta.status };
             });
-            searchSteps.push({ id: 'dyn-load-eui', icon: '📊', label: 'EUI records', match: 100, records: '100,000' });
-            searchSteps.push({ id: 'dyn-load-nrel', icon: '🗄️', label: 'NREL database', match: null });
+            searchSteps.push({ id: 'dyn-load-nrel', icon: '🗄️', label: 'NREL database', status: 'Connected' });
 
             const totalSteps = searchSteps.length;
 
@@ -2312,12 +2274,7 @@
                     el.classList.add('done');
                     const statusEl = el.querySelector('.row-status');
                     statusEl.classList.remove('scanning-text');
-                    if (s.match !== null) {
-                        const suffix = s.note ? ` (${s.note})` : '';
-                        statusEl.textContent = `✓ ${s.records} records (${s.match}%)${suffix}`;
-                    } else {
-                        statusEl.textContent = '✓ Connected';
-                    }
+                    statusEl.textContent = `✓ ${s.status}`;
                     progressFill.style.width = `${((i + 1) / totalSteps) * 100}%`;
                 }, delay);
             });
@@ -2340,9 +2297,8 @@
                     <div class="record-count" id="matchRecordCount">${animate ? '0' : '100,000'}</div>
                     <div class="record-label">building records from NREL (National Renewable Energy Laboratory)</div>
                     <div class="match-stat-pills">
-                        <div class="match-stat-pill"><strong>📍 Coverage:</strong> US (NY, IL, WA)</div>
                         <div class="match-stat-pill"><strong>✓ Features:</strong> ${featureList}, EUI</div>
-                        <div class="match-stat-pill"><strong>🎯 Purpose:</strong> Efficiency prediction</div>
+                        <div class="match-stat-pill"><strong>✓ Match:</strong> Includes all your selected features</div>
                     </div>
                     <button class="btn" style="background: var(--success); width: 100%;" onclick="goToStep(5)">CONTINUE TO SUMMARY</button>
                 </div>`;
@@ -2391,14 +2347,9 @@
                         <span class="card-label">Prediction</span>
                         <span class="card-value">EUI &mdash; energy per m²</span>
                     </div>
-                    <div class="data-req-card">
-                        <span class="card-icon">📦</span>
-                        <span class="card-label">Min. Records</span>
-                        <span class="card-value">50,000+ buildings</span>
-                    </div>
                     <div class="data-req-card card-wide">
                         <span class="card-icon">🗄️</span>
-                        <span class="card-label">Training Dataset</span>
+                        <span class="card-label">Dataset</span>
                         <span class="card-value">100,000 records &middot; NREL &middot; Status: <span style="color: var(--success);">✓ READY</span></span>
                     </div>
                 </div>`;
@@ -2466,7 +2417,7 @@
                     if (phaseB) {
                         phaseB.style.display = 'block';
                         document.getElementById('mathBuildings').textContent = data.buildingCount.toLocaleString();
-                        document.getElementById('mathYears').textContent = data.inspectorYears + ' years';
+                        document.getElementById('mathYears').textContent = '~' + data.inspectorYears + (data.inspectorYears === 1 ? ' year' : ' years');
                     }
                 }
                 if (projectData.phasesRevealed >= 2) {
@@ -2485,7 +2436,7 @@
                     if (phaseD) {
                         phaseD.style.display = 'block';
                         document.getElementById('aiPromiseText').innerHTML =
-                            `Your AI can analyze ALL <strong>${data.buildingCount.toLocaleString()}</strong> buildings in <strong>${data.cityName}</strong> in seconds, not <strong>${data.inspectorYears} years</strong>.`;
+                            `Your AI solution could analyze ALL <strong>${data.buildingCount.toLocaleString()}</strong> buildings in <strong>${data.cityName}</strong> in minutes, not <strong>${data.inspectorYears} years</strong>.`;
                     }
                     const btn1 = document.getElementById('btn-next-1');
                     if (btn1) btn1.disabled = false;
