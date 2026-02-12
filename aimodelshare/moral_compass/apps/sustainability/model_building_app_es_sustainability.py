@@ -1,0 +1,2089 @@
+"""
+Activity 4 V2 — Interactive Onboarding + Model Building Arena.
+
+Replaces the briefing slides with a fast, interactive onboarding converted
+from onboarding.jsx.  The arena and conclusion use the REAL Gradio-powered
+model building code from Activity 4 (SQLite cache, session auth,
+run_experiment, playground API, leaderboard, rank gating).
+
+Port: 8081
+"""
+
+import os
+
+# Thread limits (MUST be set before importing numpy/sklearn)
+os.environ.setdefault("OMP_NUM_THREADS", "1")
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+os.environ.setdefault("MKL_NUM_THREADS", "1")
+os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
+
+import time
+import random
+import hashlib
+import threading
+import functools
+from typing import Optional, Dict, Any, Tuple, Callable, TypeVar
+
+import numpy as np
+import pandas as pd
+import gradio as gr
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.impute import SimpleImputer
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
+
+try:
+    from aimodelshare.playground import Competition
+except ImportError:
+    raise ImportError("The 'aimodelshare' library is required. Install with: pip install aimodelshare")
+
+from aimodelshare.moral_compass.apps.sustainability.dataset_path_resolver import get_wids_dataset_path
+
+# ---------------------------------------------------------------------------
+# Cache Configuration (Thread-Safe SQLite)
+# ---------------------------------------------------------------------------
+import sqlite3
+
+CACHE_DB_FILE = "prediction_cache.sqlite"
+
+
+def get_cached_prediction(key):
+    _log(f"CACHE LOOKUP: key={repr(key)}")
+    search_roots = [
+        os.getcwd(),
+        os.path.dirname(os.path.abspath(__file__)),
+        "/app"]
+    db_path = None
+    for root in search_roots:
+        p = os.path.join(root, CACHE_DB_FILE)
+        if os.path.exists(p):
+            db_path = p
+            break
+    if not db_path:
+        _log(f"{CACHE_DB_FILE} NOT FOUND. Searched roots: {search_roots}")
+        return None
+    _log(f"Using DB at: {db_path}")
+    try:
+        hashed_key = hashlib.md5(key.encode('utf-8')).hexdigest()
+        conn_str = f"file:{db_path}?mode=ro"
+        with sqlite3.connect(conn_str, uri=True, timeout=10.0) as conn:
+            conn.execute("PRAGMA cache_size = -2000")
+            cursor = conn.cursor()
+            cursor.execute("SELECT value FROM cache WHERE key=?", (hashed_key,))
+            result = cursor.fetchone()
+            if result:
+                _log("CACHE HIT")
+                raw_value = result[0]
+                if isinstance(raw_value, bytes):
+                    unpacked = np.unpackbits(np.frombuffer(raw_value, dtype=np.uint8))
+                    if len(unpacked) > 1000:
+                        unpacked = unpacked[:1000]
+                    return unpacked
+                else:
+                    return np.array([int(c) for c in raw_value], dtype=np.uint8)
+            else:
+                _log(f"CACHE MISS (Hashed: {hashed_key})")
+                return None
+    except Exception as e:
+        _log(f"DB ERROR: {e}")
+        return None
+
+
+# ---------------------------------------------------------------------------
+# Test Label Loader
+# ---------------------------------------------------------------------------
+_Y_TEST = None
+_Y_TEST_LOCK = threading.Lock()
+
+
+# -------------------------------------------------------------------------
+# Lightweight Label Loader (No Training, Only Test Accuracy Computation)
+# -------------------------------------------------------------------------
+_Y_TEST = None
+_Y_TEST_LOCK = threading.Lock()
+
+def get_test_labels(csv_path: Optional[str] = None) -> pd.Series:
+    """
+    Load test labels from CSV file for local accuracy computation.
+    Matches the exact sampling and splitting logic from precompute_wids_cache.py.
+    
+    Args:
+        csv_path: Optional path to dataset csv. If not provided, uses get_wids_dataset_path()
+                  to automatically resolve the path.
+    Returns:
+        pd.Series: Test labels (y_test)
+    """
+    # Resolve dataset path if not explicitly provided
+    if csv_path is None:
+        csv_path = get_wids_dataset_path()
+    
+    # Load data
+    df = pd.read_csv(csv_path)
+    
+    # Sample MAX_ROWS
+    if df.shape[0] > 4000:  # MAX_ROWS = 4000
+        df = df.sample(n=4000, random_state=42)
+    
+    # Extract features and target (matching precompute_wids_cache.py)
+    all_numeric_cols = ["floor_area", "year_built", "ELEVATION", "heating_degree_days", 
+                        "cooling_degree_days", "january_min_temp", "july_max_temp", 
+                        "avg_temp", "april_avg_temp", "october_avg_temp"]
+    all_categorical_cols = ["facility_type", "building_class", "State_Factor", "Year_Factor"]
+    feature_columns = all_numeric_cols + all_categorical_cols
+    
+    # Ensure all columns exist
+    for col in feature_columns:
+        if col not in df.columns:
+            df[col] = np.nan
+    
+    X = df[feature_columns].copy()
+    y = df["high_energy_usage"].copy()
+    
+    # Split (matching precompute_wids_cache.py: test_size=0.25, random_state=42, stratify=y)
+    _, _, _, y_test = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y)
+    
+    return y_test
+
+def _ensure_y_test_loaded():
+    """Ensure test labels are loaded into memory (thread-safe, cached)."""
+    global _Y_TEST
+    with _Y_TEST_LOCK:
+        if _Y_TEST is None:
+            print("Loading test labels for local accuracy computation...", flush=True)
+            _Y_TEST = get_test_labels()
+            print(f"✅ Test labels loaded: {len(_Y_TEST)} samples", flush=True)
+
+
+# ---------------------------------------------------------------------------
+# Leaderboard / Stats Caching
+# ---------------------------------------------------------------------------
+LEADERBOARD_CACHE_SECONDS = int(os.environ.get("LEADERBOARD_CACHE_SECONDS", "45"))
+MAX_LEADERBOARD_ENTRIES = os.environ.get("MAX_LEADERBOARD_ENTRIES")
+MAX_LEADERBOARD_ENTRIES = int(MAX_LEADERBOARD_ENTRIES) if MAX_LEADERBOARD_ENTRIES else None
+DEBUG_LOG = os.environ.get("DEBUG_LOG", "false").lower() == "true"
+
+_cache_lock = threading.Lock()
+_user_stats_lock = threading.Lock()
+_auth_lock = threading.Lock()
+
+_leaderboard_cache: Dict[str, Dict[str, Any]] = {
+    "anon": {"data": None, "timestamp": 0.0},
+    "auth": {"data": None, "timestamp": 0.0},
+}
+_user_stats_cache: Dict[str, Dict[str, Any]] = {}
+USER_STATS_TTL = LEADERBOARD_CACHE_SECONDS
+
+T = TypeVar("T")
+
+
+def _retry_with_backoff(func: Callable[[], T], max_attempts: int = 3, base_delay: float = 0.5, description: str = "operation") -> T:
+    last_exception: Optional[Exception] = None
+    delay = base_delay
+    for attempt in range(1, max_attempts + 1):
+        try:
+            return func()
+        except Exception as e:
+            last_exception = e
+            if attempt < max_attempts:
+                _log(f"{description} attempt {attempt} failed: {e}. Retrying in {delay}s...")
+                time.sleep(delay)
+                delay *= 2
+            else:
+                _log(f"{description} failed after {max_attempts} attempts: {e}")
+    raise last_exception  # type: ignore[misc]
+
+
+def _log(msg: str):
+    if DEBUG_LOG:
+        print(f"[A4V2] {msg}")
+
+
+def _normalize_team_name(name: str) -> str:
+    if not name:
+        return ""
+    return " ".join(str(name).strip().split())
+
+
+def _get_leaderboard_with_optional_token(playground_instance, token=None):
+    if playground_instance is None:
+        return None
+    def _fetch():
+        try:
+            if token:
+                return playground_instance.get_leaderboard(token=token)
+            return playground_instance.get_leaderboard()
+        except Exception as e:
+            if "scalar values" in str(e):
+                return pd.DataFrame(columns=["username", "accuracy", "Team", "timestamp"])
+            raise e
+    try:
+        return _retry_with_backoff(_fetch, description="leaderboard fetch")
+    except Exception as e:
+        _log(f"Leaderboard fetch failed after retries: {e}")
+        return None
+
+
+def _fetch_leaderboard(token: Optional[str]) -> Optional[pd.DataFrame]:
+    cache_key = "auth" if token else "anon"
+    now = time.time()
+    with _cache_lock:
+        cache_entry = _leaderboard_cache[cache_key]
+        if cache_entry["data"] is not None and now - cache_entry["timestamp"] < LEADERBOARD_CACHE_SECONDS:
+            return cache_entry["data"]
+    df = None
+    try:
+        playground_id = "https://bhtrtkrbf4.execute-api.us-east-1.amazonaws.com/prod/m"
+        playground_instance = Competition(playground_id)
+        def _fetch():
+            try:
+                if token:
+                    return playground_instance.get_leaderboard(token=token)
+                return playground_instance.get_leaderboard()
+            except Exception as e:
+                if "scalar values" in str(e):
+                    return pd.DataFrame(columns=["username", "accuracy", "Team", "timestamp"])
+                raise e
+        df = _retry_with_backoff(_fetch, description="leaderboard fetch")
+        if df is not None and not df.empty and MAX_LEADERBOARD_ENTRIES:
+            df = df.head(MAX_LEADERBOARD_ENTRIES)
+    except Exception as e:
+        _log(f"Leaderboard fetch failed: {e}")
+        df = None
+    with _cache_lock:
+        _leaderboard_cache[cache_key]["data"] = df
+        _leaderboard_cache[cache_key]["timestamp"] = time.time()
+    return df
+
+
+def _get_or_assign_team(username: str, leaderboard_df) -> Tuple[str, bool]:
+    try:
+        if leaderboard_df is not None and not leaderboard_df.empty and "Team" in leaderboard_df.columns:
+            user_submissions = leaderboard_df[leaderboard_df["username"] == username]
+            if not user_submissions.empty:
+                if "timestamp" in user_submissions.columns:
+                    try:
+                        user_submissions = user_submissions.copy()
+                        user_submissions["timestamp"] = pd.to_datetime(user_submissions["timestamp"], errors="coerce")
+                        user_submissions = user_submissions.sort_values("timestamp", ascending=False)
+                    except Exception:
+                        pass
+                existing_team = user_submissions.iloc[0]["Team"]
+                if pd.notna(existing_team) and str(existing_team).strip():
+                    return _normalize_team_name(existing_team), False
+        new_team = _normalize_team_name(random.choice(TEAM_NAMES))
+        return new_team, True
+    except Exception:
+        return _normalize_team_name(random.choice(TEAM_NAMES)), True
+
+
+def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str], Optional[str]]:
+    try:
+        session_id = request.query_params.get("sessionid") if request else None
+        if not session_id:
+            return False, None, None
+        from aimodelshare.aws import get_token_from_session, _get_username_from_token
+        token = get_token_from_session(session_id)
+        if not token:
+            return False, None, None
+        username = _get_username_from_token(token)
+        if not username:
+            return False, None, None
+        return True, username, token
+    except Exception:
+        return False, None, None
+
+
+def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
+    now = time.time()
+    with _user_stats_lock:
+        cached = _user_stats_cache.get(username)
+        if cached and (now - cached.get("_ts", 0) < USER_STATS_TTL):
+            return cached.copy()
+    leaderboard_df = _fetch_leaderboard(token)
+    team_name, _ = _get_or_assign_team(username, leaderboard_df)
+    stats: Dict[str, Any] = {"best_score": 0.0, "rank": 0, "team_name": team_name, "submission_count": 0, "last_score": 0.0, "_ts": time.time()}
+    try:
+        if leaderboard_df is not None and not leaderboard_df.empty:
+            user_submissions = leaderboard_df[leaderboard_df["username"] == username]
+            if not user_submissions.empty:
+                stats["submission_count"] = len(user_submissions)
+                if "accuracy" in user_submissions.columns:
+                    stats["best_score"] = float(user_submissions["accuracy"].max())
+                    if "timestamp" in user_submissions.columns:
+                        try:
+                            user_submissions = user_submissions.copy()
+                            user_submissions["timestamp"] = pd.to_datetime(user_submissions["timestamp"], errors="coerce")
+                            recent = user_submissions.sort_values("timestamp", ascending=False).iloc[0]
+                            stats["last_score"] = float(recent["accuracy"])
+                        except Exception:
+                            stats["last_score"] = stats["best_score"]
+                    else:
+                        stats["last_score"] = stats["best_score"]
+            if "accuracy" in leaderboard_df.columns:
+                user_bests = leaderboard_df.groupby("username")["accuracy"].max()
+                ranked = user_bests.sort_values(ascending=False)
+                try:
+                    stats["rank"] = int(ranked.index.get_loc(username) + 1)
+                except KeyError:
+                    stats["rank"] = 0
+    except Exception as e:
+        _log(f"Error computing stats for {username}: {e}")
+    with _user_stats_lock:
+        _user_stats_cache[username] = stats
+    return stats
+
+
+# ---------------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------------
+MY_PLAYGROUND_ID = "https://bhtrtkrbf4.execute-api.us-east-1.amazonaws.com/prod/m"
+ATTEMPT_LIMIT = 10
+LEADERBOARD_POLL_TRIES = 60
+LEADERBOARD_POLL_SLEEP = 1.0
+
+MODEL_TYPES = {
+    "The Balanced Generalist": {
+        "model_builder": lambda: LogisticRegression(max_iter=500, random_state=42, class_weight="balanced"),
+        "card": "Un modelo rápido, fiable y equilibrado. Un buen punto de partida; menos propenso al sobreajuste.",
+    },
+    "The Rule-Maker": {
+        "model_builder": lambda: DecisionTreeClassifier(random_state=42, class_weight="balanced"),
+        "card": "Aprende reglas simples de tipo 'si/entonces'. Fácil de interpretar, pero puede pasar por alto patrones sutiles.",
+    },
+    "The 'Nearest Neighbor'": {
+        "model_builder": lambda: KNeighborsClassifier(),
+        "card": "Analiza los ejemplos pasados más cercanos. 'Te pareces a estos otros; predeciré según su comportamiento'.",
+    },
+    "The Deep Pattern-Finder": {
+        "model_builder": lambda: RandomForestClassifier(random_state=42, class_weight="balanced"),
+        "card": "Un conjunto de muchos árboles de decisión. Potente, puede captar patrones profundos; vigila la complejidad.",
+    },
+}
+
+DEFAULT_MODEL = "The Balanced Generalist"
+
+TEAM_NAMES = [
+    "The Climate Guardians", "United Eco-Architects", "The Energy Detectives",
+    "The Sustainability League", "Green Future Engineers", "Zero Carbon Avengers",
+]
+
+TEAM_NAME_TRANSLATIONS = {
+    "en": {
+        "The Climate Guardians": "The Climate Guardians",
+        "United Eco-Architects": "United Eco-Architects",
+        "The Energy Detectives": "The Energy Detectives",
+        "The Sustainability League": "The Sustainability League",
+        "Green Future Engineers": "Green Future Engineers",
+        "Zero Carbon Avengers": "Zero Carbon Avengers"
+    },
+    "ca": {
+        "The Climate Guardians": "Els Guardians del Clima",
+        "United Eco-Architects": "Eco-Arquitectes Units",
+        "The Energy Detectives": "Els Detectius de l'Energia",
+        "The Sustainability League": "La Lliga de la Sostenibilitat",
+        "Green Future Engineers": "Enginyers del Futur Verd",
+        "Zero Carbon Avengers": "Els Venjadors del Carboni Zero"
+    },
+    "es": {
+        "The Climate Guardians": "Los Guardianes del Clima",
+        "United Eco-Architects": "Eco-Arquitectos Unidos",
+        "The Energy Detectives": "Los Detectivos de la Energía",
+        "The Sustainability League": "La Liga de la Sostenibilidad",
+        "Green Future Engineers": "Ingenieros del Futuro Verde",
+        "Zero Carbon Avengers": "Los Vengadores del Carbono Cero"
+    }
+}
+UI_TEAM_LANG = "es"
+
+
+def translate_team_name_for_display(english_name: str, lang: str = "es") -> str:
+    return TEAM_NAME_TRANSLATIONS.get(lang, TEAM_NAME_TRANSLATIONS["en"]).get(english_name, english_name)
+
+
+MODEL_DISPLAY_MAP = {
+    "The Balanced Generalist": "El Generalista Equilibrado",
+    "The Rule-Maker": "El Creador de Reglas",
+    "The 'Nearest Neighbor'": "El 'Vecino más Próximo'",
+    "The Deep Pattern-Finder": "El Buscador de Patrones Profundos"
+}
+
+FEATURE_SET_ALL_OPTIONS = [
+    ("Superficie (pies cuadrados)", "floor_area"),
+    ("Año de construcción", "year_built"),
+    ("Clase de edificio", "building_class"),
+    ("Tipo de instalación", "facility_type"),
+    ("Factor de estado", "State_Factor"),
+    ("Factor de año", "Year_Factor"),
+    ("Elevación", "ELEVATION"),
+    ("Días de calefacción", "heating_degree_days"),
+    ("Días de refrigeración", "cooling_degree_days"),
+    ("Temp. media anual", "avg_temp"),
+    ("Temp. mínima de enero", "january_min_temp"),
+    ("Temp. máxima de julio", "july_max_temp"),
+    ("Temp. media de abril", "april_avg_temp"),
+    ("Temp. media de octubre", "october_avg_temp"),
+]
+FEATURE_SET_GROUP_1_VALS = ["floor_area", "year_built", "building_class", "facility_type"]
+FEATURE_SET_GROUP_2_VALS = ["State_Factor", "Year_Factor", "ELEVATION"]
+FEATURE_SET_GROUP_3_VALS = [
+    "avg_temp", "heating_degree_days", "cooling_degree_days",
+    "january_min_temp", "july_max_temp", "april_avg_temp", "october_avg_temp",
+]
+ALL_NUMERIC_COLS = [
+    "floor_area", "year_built", "ELEVATION", "heating_degree_days",
+    "cooling_degree_days", "january_min_temp", "july_max_temp",
+    "avg_temp", "april_avg_temp", "october_avg_temp",
+]
+ALL_CATEGORICAL_COLS = ["facility_type", "building_class", "State_Factor", "Year_Factor"]
+DEFAULT_FEATURE_SET = FEATURE_SET_GROUP_1_VALS
+
+DATA_SIZE_MAP = {"Small (20%)": 0.2, "Medium (60%)": 0.6, "Large (80%)": 0.8, "Full (100%)": 1.0}
+DATA_SIZE_DISPLAY_MAP = {
+    "Small (20%)": "Pequeña (20%)",
+    "Medium (60%)": "Mediana (60%)",
+    "Large (80%)": "Grande (80%)",
+    "Full (100%)": "Completa (100%)"
+}
+DEFAULT_DATA_SIZE = "Small (20%)"
+
+MAX_ROWS = 4000
+np.random.seed(42)
+
+playground = None
+
+
+# ---------------------------------------------------------------------------
+# Data & Backend Utilities
+# ---------------------------------------------------------------------------
+def safe_int(value, default=1):
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return default
+
+
+def _get_user_latest_accuracy(df, username):
+    if df is None or df.empty:
+        return None
+    try:
+        user_rows = df[df["username"] == username]
+        if user_rows.empty or "accuracy" not in user_rows.columns:
+            return None
+        if "timestamp" in user_rows.columns:
+            user_rows = user_rows.copy()
+            user_rows["__parsed_ts"] = pd.to_datetime(user_rows["timestamp"], errors="coerce")
+            valid_ts = user_rows[user_rows["__parsed_ts"].notna()]
+            if not valid_ts.empty:
+                return float(valid_ts.sort_values("__parsed_ts", ascending=False).iloc[0]["accuracy"])
+        return float(user_rows.iloc[-1]["accuracy"])
+    except Exception:
+        return None
+
+
+def _get_user_latest_ts(df, username):
+    if df is None or df.empty:
+        return None
+    try:
+        user_rows = df[df["username"] == username]
+        if user_rows.empty or "timestamp" not in user_rows.columns:
+            return None
+        user_rows = user_rows.copy()
+        user_rows["__parsed_ts"] = pd.to_datetime(user_rows["timestamp"], errors="coerce")
+        valid_ts = user_rows[user_rows["__parsed_ts"].notna()]
+        if valid_ts.empty:
+            return None
+        latest_ts = valid_ts["__parsed_ts"].max()
+        return latest_ts.timestamp() if pd.notna(latest_ts) else None
+    except Exception:
+        return None
+
+
+@functools.lru_cache(maxsize=32)
+def _get_cached_preprocessor_config(numeric_cols_tuple, categorical_cols_tuple):
+    numeric_cols = list(numeric_cols_tuple)
+    categorical_cols = list(categorical_cols_tuple)
+    transformers = []
+    selected_cols = []
+    if numeric_cols:
+        num_tf = Pipeline(steps=[("imputer", SimpleImputer(strategy="median")), ("scaler", StandardScaler())])
+        transformers.append(("num", num_tf, numeric_cols))
+        selected_cols.extend(numeric_cols)
+    if categorical_cols:
+        cat_tf = Pipeline(steps=[("imputer", SimpleImputer(strategy="constant", fill_value="missing")), ("onehot", OneHotEncoder(handle_unknown="ignore", sparse_output=True))])
+        transformers.append(("cat", cat_tf, categorical_cols))
+        selected_cols.extend(categorical_cols)
+    return transformers, selected_cols
+
+
+def build_preprocessor(numeric_cols, categorical_cols):
+    numeric_tuple = tuple(sorted(numeric_cols))
+    categorical_tuple = tuple(sorted(categorical_cols))
+    transformers, selected_cols = _get_cached_preprocessor_config(numeric_tuple, categorical_tuple)
+    preprocessor = ColumnTransformer(transformers=transformers, remainder="drop")
+    return preprocessor, selected_cols
+
+
+def _ensure_dense(X):
+    from scipy import sparse
+    if sparse.issparse(X):
+        return X.toarray()
+    return X
+
+
+def tune_model_complexity(model, level):
+    level = int(level)
+    if isinstance(model, LogisticRegression):
+        c_map = {1: 0.01, 2: 0.025, 3: 0.05, 4: 0.1, 5: 0.25, 6: 0.5, 7: 1.0, 8: 2.0, 9: 5.0, 10: 10.0}
+        model.C = c_map.get(level, 1.0)
+        model.max_iter = max(getattr(model, "max_iter", 0), 500)
+    elif isinstance(model, RandomForestClassifier):
+        depth_map = {1: 3, 2: 5, 3: 7, 4: 9, 5: 11, 6: 15, 7: 20, 8: 25, 9: None, 10: None}
+        est_map = {1: 20, 2: 30, 3: 40, 4: 60, 5: 80, 6: 100, 7: 120, 8: 150, 9: 180, 10: 220}
+        model.max_depth = depth_map.get(level, 10)
+        model.n_estimators = est_map.get(level, 100)
+    elif isinstance(model, DecisionTreeClassifier):
+        depth_map = {1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 8, 7: 10, 8: 12, 9: 15, 10: None}
+        model.max_depth = depth_map.get(level, 6)
+    elif isinstance(model, KNeighborsClassifier):
+        k_map = {1: 100, 2: 75, 3: 60, 4: 50, 5: 40, 6: 30, 7: 25, 8: 15, 9: 7, 10: 3}
+        model.n_neighbors = k_map.get(level, 25)
+    return model
+
+
+# ---------------------------------------------------------------------------
+# HTML Builder Helpers
+# ---------------------------------------------------------------------------
+def _build_attempts_tracker_html(current_count, limit=10):
+    bg_color = "#f0f9ff"
+    border_color = "#bae6fd"
+    text_color = "#0369a1"
+    if current_count >= limit:
+        icon = "🛑"
+        label = f"¡Última oportunidad (por ahora) para mejorar tu puntuación!: {current_count}/{limit}"
+    else:
+        icon = "📊"
+        label = f"Intentos utilizados: {current_count}/{limit}"
+    return f"<div style='text-align:center; padding:8px; margin:8px 0; background:{bg_color}; border-radius:8px; border:1px solid {border_color};'><p style='margin:0; color:{text_color}; font-weight:600; font-size:1rem;'>{icon} {label}</p></div>"
+
+
+def check_attempt_limit(submission_count, limit=None):
+    if limit is None:
+        limit = ATTEMPT_LIMIT
+    if submission_count >= limit:
+        return False, f"Límite de intentos alcanzado ({submission_count}/{limit})"
+    return True, f"Intentos: {submission_count}/{limit}"
+
+
+def _build_skeleton_leaderboard(rows=6, is_team=True, submit_button_label="5. 🔬 Construye y Envía Modelo"):
+    context_label = "Equipo" if is_team else "Individual"
+    return f"""<div class='lb-placeholder' aria-live='polite'><div class='lb-placeholder-title'>Clasificación de {context_label} Pendiente</div><div class='lb-placeholder-sub'><p style='margin:0 0 6px 0;'>Envía tu primer modelo para rellenar esta tabla.</p><p style='margin:0;'><strong>Haz clic en "{submit_button_label}" (abajo a la izquierda)</strong> para empezar.</p></div></div>"""
+
+
+def build_login_prompt_html():
+    return """<h2 style='color: #111827; margin-top:20px; border-top: 2px solid #e5e7eb; padding-top: 20px;'>🔐 Inicia sesión para enviar y clasificarte</h2><div style='margin-top:16px; text-align:left; font-size:1rem; line-height:1.6; color:#374151;'><p style='margin:12px 0;'>Esta es solo una vista previa. Inicia sesión para publicar tu puntuación en la clasificación en vivo, subir de rango y contribuir puntos a tu equipo.</p><p style='margin:12px 0;'><strong>¿Usuario nuevo?</strong> Crea una cuenta gratuita en <a href='https://www.modelshare.ai/login' target='_blank' style='color:#4f46e5; text-decoration:underline;'>modelshare.ai/login</a></p></div>"""
+
+
+def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_count, is_preview=False, is_pending=False, local_test_accuracy=None):
+    if is_pending:
+        title = "⏳ Envío en Proceso"
+        acc_color = "#3b82f6"
+        acc_text = f"{(local_test_accuracy * 100):.2f}%" if local_test_accuracy is not None else "N/D"
+        if local_test_accuracy is not None and last_score is not None and last_score > 0:
+            score_diff = local_test_accuracy - last_score
+            if abs(score_diff) < 0.0001:
+                acc_diff_html = "<p style='font-size:1.5rem; font-weight:600; color:#6b7280; margin:0;'>Sin Cambios (Estimado)</p>"
+            elif score_diff > 0:
+                acc_diff_html = f"<p style='font-size:1.5rem; font-weight:600; color:#16a34a; margin:0;'>+{(score_diff*100):.2f} (Estimado)</p>"
+            else:
+                acc_diff_html = f"<p style='font-size:1.5rem; font-weight:600; color:#ef4444; margin:0;'>{(score_diff*100):.2f} (Estimado)</p>"
+        else:
+            acc_diff_html = "<p style='font-size:1.2rem; font-weight:500; color:#6b7280; margin:0;'>Actualizando clasificación...</p>"
+        border_color = acc_color
+        rank_color = "#6b7280"
+        rank_text = "Pendiente"
+        rank_diff_html = "<p style='font-size:1.2rem; font-weight:500; color:#6b7280; margin:0;'>Calculando posición...</p>"
+    elif is_preview:
+        title = "🔬 ¡Vista Previa Exitosa!"
+        acc_color = "#16a34a"
+        acc_text = f"{(new_score*100):.2f}%" if new_score > 0 else "N/D"
+        acc_diff_html = "<div style='background:#eff6ff; border:2px solid #3b82f6; padding:10px 14px; border-radius:8px; margin-top:8px;'><p style='margin:0; color:#1e40af; font-weight:600; font-size:1rem;'>SOLO VISTA PREVIA — no se ha enviado a la clasificación. Inicia sesión para enviar de verdad.</p></div>"
+        border_color = acc_color
+        rank_color = "#3b82f6"
+        rank_text = "N/D"
+        rank_diff_html = "<p style='font-size:1.2rem; font-weight:500; color:#6b7280; margin:0;'>Sin clasificar (vista previa)</p>"
+    elif submission_count == 0:
+        title = "🎉 ¡Primer Modelo Enviado!"
+        acc_color = "#16a34a"
+        acc_text = f"{(new_score*100):.2f}%"
+        acc_diff_html = "<p style='font-size:1.2rem; font-weight:500; color:#6b7280; margin:0; padding-top:8px;'>(¡Tu primera puntuación!)</p>"
+        rank_color = "#3b82f6"
+        rank_text = f"#{new_rank}"
+        rank_diff_html = "<p style='font-size:1.5rem; font-weight:600; color:#3b82f6; margin:0;'>¡Estás en la clasificación!</p>"
+        border_color = acc_color
+    else:
+        score_diff = new_score - last_score
+        if abs(score_diff) < 0.0001:
+            title = "✅ Envío Exitoso"
+            acc_color = "#6b7280"
+            acc_text = f"{(new_score*100):.2f}%"
+            acc_diff_html = f"<p style='font-size:1.5rem; font-weight:600; color:{acc_color}; margin:0;'>Sin Cambios</p>"
+            border_color = acc_color
+        elif score_diff > 0:
+            title = "✅ ¡Envío Exitoso!"
+            acc_color = "#16a34a"
+            acc_text = f"{(new_score*100):.2f}%"
+            acc_diff_html = f"<p style='font-size:1.5rem; font-weight:600; color:{acc_color}; margin:0;'>+{(score_diff*100):.2f}</p>"
+            border_color = acc_color
+        else:
+            title = "📉 Puntuación Bajó"
+            acc_color = "#ef4444"
+            acc_text = f"{(new_score*100):.2f}%"
+            acc_diff_html = f"<p style='font-size:1.5rem; font-weight:600; color:{acc_color}; margin:0;'>{(score_diff*100):.2f}</p>"
+            border_color = acc_color
+        rank_diff = last_rank - new_rank
+        rank_color = "#3b82f6"
+        rank_text = f"#{new_rank}"
+        if last_rank == 0:
+            rank_diff_html = "<p style='font-size:1.5rem; font-weight:600; color:#3b82f6; margin:0;'>¡Estás en la clasificación!</p>"
+        elif rank_diff > 0:
+            rank_diff_html = f"<p style='font-size:1.5rem; font-weight:600; color:#16a34a; margin:0;'>¡Subiste {rank_diff} puesto{'s' if rank_diff > 1 else ''}!</p>"
+        elif rank_diff < 0:
+            rank_diff_html = f"<p style='font-size:1.5rem; font-weight:600; color:#ef4444; margin:0;'>Bajaste {abs(rank_diff)} puesto{'s' if abs(rank_diff) > 1 else ''}</p>"
+        else:
+            rank_diff_html = f"<p style='font-size:1.5rem; font-weight:600; color:{rank_color}; margin:0;'>Sin Cambios</p>"
+    return f"""<div class='kpi-card' style='border-color:{border_color};'><h2 style='color:var(--body-text-color); margin-top:0;'>{title}</h2><div class='kpi-card-body'><div class='kpi-metric-box'><p class='kpi-label'>Nueva Precisión</p><p style='font-size:0.8rem; color:#6b7280; margin:0;'>% de edificios que tu IA predijo correctamente</p><p class='kpi-score' style='color:{acc_color};'>{acc_text}</p>{acc_diff_html}<p style='font-size:0.75rem; color:#9ca3af; margin:8px 0 0;'>Menos de 60% = Mejorable &middot; 60-70% = Aceptable &middot; 70-80% = Bueno &middot; 80%+ = Excelente</p></div><div class='kpi-metric-box'><p class='kpi-label'>Tu Posición</p><p class='kpi-score' style='color:{rank_color};'>{rank_text}</p>{rank_diff_html}</div></div></div>"""
+
+
+def _build_team_html(team_summary_df, team_name):
+    if team_summary_df is None or team_summary_df.empty:
+        return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Aún no hay envíos de equipos.</p>"
+    normalized_user_team = _normalize_team_name(team_name).lower()
+    header = "<table class='leaderboard-html-table'><thead><tr><th>Posición</th><th>Equipo</th><th>Mejor Punt.</th><th>Punt. Media</th><th>Envíos</th></tr></thead><tbody>"
+    body = ""
+    for index, row in team_summary_df.iterrows():
+        normalized_row_team = _normalize_team_name(row["Team"]).lower()
+        is_user_team = normalized_row_team == normalized_user_team
+        row_class = "class='user-row-highlight'" if is_user_team else ""
+        body += f"<tr {row_class}><td>{index}</td><td>{row['Team']}</td><td>{(row['Best_Score']*100):.2f}%</td><td>{(row['Avg_Score']*100):.2f}%</td><td>{row['Submissions']}</td></tr>"
+    return header + body + "</tbody></table>"
+
+
+def _build_individual_html(individual_summary_df, username):
+    if individual_summary_df is None or individual_summary_df.empty:
+        return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Aún no hay envíos individuales.</p>"
+    header = "<table class='leaderboard-html-table'><thead><tr><th>Posición</th><th>Ingeniero/a</th><th>Mejor Punt.</th><th>Envíos</th></tr></thead><tbody>"
+    body = ""
+    for index, row in individual_summary_df.iterrows():
+        is_user = row["Engineer"] == username
+        row_class = "class='user-row-highlight'" if is_user else ""
+        body += f"<tr {row_class}><td>{index}</td><td>{row['Engineer']}</td><td>{(row['Best_Score']*100):.2f}%</td><td>{row['Submissions']}</td></tr>"
+    return header + body + "</tbody></table>"
+
+
+def generate_competitive_summary(leaderboard_df, team_name, username, last_submission_score, last_rank, submission_count):
+    team_summary_df = pd.DataFrame(columns=["Team", "Best_Score", "Avg_Score", "Submissions"])
+    individual_summary_df = pd.DataFrame(columns=["Engineer", "Best_Score", "Submissions"])
+    if leaderboard_df is None or leaderboard_df.empty or "accuracy" not in leaderboard_df.columns:
+        return ("<p style='text-align:center; color:#6b7280;'>Clasificación vacía.</p>", "<p style='text-align:center; color:#6b7280;'>Clasificación vacía.</p>", _build_kpi_card_html(0, 0, 0, 0, 0), 0.0, 0, 0.0)
+    if "Team" in leaderboard_df.columns:
+        team_summary_df = leaderboard_df.groupby("Team")["accuracy"].agg(Best_Score="max", Avg_Score="mean", Submissions="count").reset_index().sort_values("Best_Score", ascending=False).reset_index(drop=True)
+        team_summary_df.index = team_summary_df.index + 1
+    user_bests = leaderboard_df.groupby("username")["accuracy"].max()
+    user_counts = leaderboard_df.groupby("username")["accuracy"].count()
+    individual_summary_df = pd.DataFrame({"Engineer": user_bests.index, "Best_Score": user_bests.values, "Submissions": user_counts.values}).sort_values("Best_Score", ascending=False).reset_index(drop=True)
+    individual_summary_df.index = individual_summary_df.index + 1
+    new_rank = 0
+    new_best_accuracy = 0.0
+    this_submission_score = 0.0
+    try:
+        user_rows = leaderboard_df[leaderboard_df["username"] == username].copy()
+        if not user_rows.empty:
+            if "timestamp" in user_rows.columns:
+                parsed_ts = pd.to_datetime(user_rows["timestamp"], errors="coerce")
+                if parsed_ts.notna().any():
+                    user_rows["__parsed_ts"] = parsed_ts
+                    user_rows = user_rows.sort_values("__parsed_ts", ascending=False)
+                    this_submission_score = float(user_rows.iloc[0]["accuracy"])
+                else:
+                    this_submission_score = float(user_rows.iloc[-1]["accuracy"])
+            else:
+                this_submission_score = float(user_rows.iloc[-1]["accuracy"])
+        my_rank_row = individual_summary_df[individual_summary_df["Engineer"] == username]
+        if not my_rank_row.empty:
+            new_rank = my_rank_row.index[0]
+            new_best_accuracy = float(my_rank_row["Best_Score"].iloc[0])
+    except Exception:
+        pass
+    team_html = _build_team_html(team_summary_df, team_name)
+    individual_html = _build_individual_html(individual_summary_df, username)
+    kpi_card_html = _build_kpi_card_html(this_submission_score, last_submission_score, new_rank, last_rank, submission_count)
+    return team_html, individual_html, kpi_card_html, new_best_accuracy, new_rank, this_submission_score
+
+
+def get_model_card(model_name):
+    return MODEL_TYPES.get(model_name, {}).get("card", "Sin descripción disponible.")
+
+
+def compute_rank_settings(submission_count, current_model, current_complexity, current_feature_set, current_data_size):
+    def get_choices_for_rank(rank):
+        if rank == 0:
+            return [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in FEATURE_SET_GROUP_1_VALS]
+        if rank == 1:
+            return [opt for opt in FEATURE_SET_ALL_OPTIONS if opt[1] in (FEATURE_SET_GROUP_1_VALS + FEATURE_SET_GROUP_2_VALS)]
+        return FEATURE_SET_ALL_OPTIONS
+    if submission_count == 0:
+        return {"rank_message": "# 🧑\u200d🎓 Rango: Ingeniero en Prácticas\n<p style='font-size:24px; line-height:1.4;'>¡Para tu primer envío, simplemente haz clic en el botón '🔬 Construye y Envía Modelo' de abajo!</p>", "model_choices": [(MODEL_DISPLAY_MAP.get("The Balanced Generalist", "The Balanced Generalist"), "The Balanced Generalist")], "model_value": "The Balanced Generalist", "model_interactive": False, "complexity_max": 3, "complexity_value": min(current_complexity, 3), "feature_set_choices": get_choices_for_rank(0), "feature_set_value": ["floor_area", "year_built", "building_class", "facility_type"], "feature_set_interactive": False, "data_size_choices": [(DATA_SIZE_DISPLAY_MAP.get("Small (20%)", "Small (20%)"), "Small (20%)")], "data_size_value": "Small (20%)", "data_size_interactive": False}
+    elif submission_count == 1:
+        rank1_models = ["The Balanced Generalist", "The Rule-Maker", "The 'Nearest Neighbor'"]
+        return {"rank_message": "# 🎉 ¡Has Subido de Rango! Ingeniero Junior\n<p style='font-size:24px; line-height:1.4;'>¡Se han desbloqueado nuevos modelos, tamaños de datos e ingredientes!</p>", "model_choices": [(MODEL_DISPLAY_MAP.get(k, k), k) for k in rank1_models], "model_value": current_model if current_model in rank1_models else "The Balanced Generalist", "model_interactive": True, "complexity_max": 6, "complexity_value": min(current_complexity, 6), "feature_set_choices": get_choices_for_rank(1), "feature_set_value": current_feature_set, "feature_set_interactive": True, "data_size_choices": [(DATA_SIZE_DISPLAY_MAP.get(k, k), k) for k in ["Small (20%)", "Medium (60%)"]], "data_size_value": current_data_size if current_data_size in ["Small (20%)", "Medium (60%)"] else "Small (20%)", "data_size_interactive": True}
+    elif submission_count == 2:
+        return {"rank_message": "# 🌟 ¡Has Subido de Rango! Ingeniero Senior\n<p style='font-size:24px; line-height:1.4;'>¡Ingredientes de datos más potentes desbloqueados! Los predictores más fuertes (como 'Temp. media anual') ya están disponibles. Recuerda que a menudo están ligados a factores geográficos fuera del control del edificio.</p>", "model_choices": [(MODEL_DISPLAY_MAP.get(k, k), k) for k in MODEL_TYPES.keys()], "model_value": current_model if current_model in MODEL_TYPES else "The Deep Pattern-Finder", "model_interactive": True, "complexity_max": 8, "complexity_value": min(current_complexity, 8), "feature_set_choices": get_choices_for_rank(2), "feature_set_value": current_feature_set, "feature_set_interactive": True, "data_size_choices": [(DATA_SIZE_DISPLAY_MAP.get(k, k), k) for k in ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"]], "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Small (20%)", "data_size_interactive": True}
+    else:
+        return {"rank_message": "# 👑 Rango: Ingeniero Jefe\n<p style='font-size:24px; line-height:1.4;'>¡Todas las herramientas desbloqueadas — optimiza libremente!</p>", "model_choices": [(MODEL_DISPLAY_MAP.get(k, k), k) for k in MODEL_TYPES.keys()], "model_value": current_model if current_model in MODEL_TYPES else "The Balanced Generalist", "model_interactive": True, "complexity_max": 10, "complexity_value": current_complexity, "feature_set_choices": get_choices_for_rank(3), "feature_set_value": current_feature_set, "feature_set_interactive": True, "data_size_choices": [(DATA_SIZE_DISPLAY_MAP.get(k, k), k) for k in ["Small (20%)", "Medium (60%)", "Large (80%)", "Full (100%)"]], "data_size_value": current_data_size if current_data_size in DATA_SIZE_MAP else "Small (20%)", "data_size_interactive": True}
+
+
+# ---------------------------------------------------------------------------
+# Global component placeholders (populated inside app factory)
+# ---------------------------------------------------------------------------
+submit_button = None
+submission_feedback_display = None
+team_leaderboard_display = None
+individual_leaderboard_display = None
+last_submission_score_state = None
+last_rank_state = None
+best_score_state = None
+submission_count_state = None
+rank_message_display = None
+model_type_radio = None
+complexity_slider = None
+feature_set_checkbox = None
+data_size_radio = None
+attempts_tracker_display = None
+team_name_state = None
+login_username = None
+login_password = None
+login_submit = None
+login_error = None
+username_state = None
+token_state = None
+first_submission_score_state = None
+readiness_state = None
+was_preview_state = None
+kpi_meta_state = None
+last_seen_ts_state = None
+
+
+# ---------------------------------------------------------------------------
+# Core functions: get_or_assign_team, perform_inline_login, run_experiment
+# ---------------------------------------------------------------------------
+def get_or_assign_team(username, token=None):
+    try:
+        if playground is None:
+            return _normalize_team_name(random.choice(TEAM_NAMES)), True
+        leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
+        if leaderboard_df is not None and not leaderboard_df.empty and "Team" in leaderboard_df.columns:
+            user_submissions = leaderboard_df[leaderboard_df["username"] == username]
+            if not user_submissions.empty:
+                if "timestamp" in user_submissions.columns:
+                    try:
+                        user_submissions = user_submissions.copy()
+                        user_submissions["timestamp"] = pd.to_datetime(user_submissions["timestamp"], errors="coerce")
+                        user_submissions = user_submissions.sort_values("timestamp", ascending=False)
+                    except Exception:
+                        pass
+                existing_team = user_submissions.iloc[0]["Team"]
+                if pd.notna(existing_team) and str(existing_team).strip():
+                    return _normalize_team_name(existing_team), False
+        return _normalize_team_name(random.choice(TEAM_NAMES)), True
+    except Exception:
+        return _normalize_team_name(random.choice(TEAM_NAMES)), True
+
+
+def perform_inline_login(username_input, password_input):
+    from aimodelshare.aws import get_aws_token
+    if not username_input or not username_input.strip():
+        error_html = "<div style='background:#fef2f2; padding:12px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'><p style='margin:0; color:#991b1b; font-weight:500;'>El nombre de usuario es obligatorio</p></div>"
+        return {login_username: gr.update(), login_password: gr.update(), login_submit: gr.update(), login_error: gr.update(value=error_html, visible=True), submit_button: gr.update(), submission_feedback_display: gr.update(), team_name_state: gr.update(), username_state: gr.update(), token_state: gr.update()}
+    if not password_input or not password_input.strip():
+        error_html = "<div style='background:#fef2f2; padding:12px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'><p style='margin:0; color:#991b1b; font-weight:500;'>La contraseña es obligatoria</p></div>"
+        return {login_username: gr.update(), login_password: gr.update(), login_submit: gr.update(), login_error: gr.update(value=error_html, visible=True), submit_button: gr.update(), submission_feedback_display: gr.update(), team_name_state: gr.update(), username_state: gr.update(), token_state: gr.update()}
+    username_clean = username_input.strip()
+    try:
+        with _auth_lock:
+            os.environ["username"] = username_clean
+            os.environ["password"] = password_input.strip()
+            try:
+                token = get_aws_token()
+            finally:
+                os.environ.pop("password", None)
+                os.environ.pop("username", None)
+                os.environ.pop("AWS_TOKEN", None)
+                os.environ.pop("TEAM_NAME", None)
+        team_name, is_new_team = get_or_assign_team(username_clean, token=token)
+        team_name = _normalize_team_name(team_name)
+        display_team = translate_team_name_for_display(team_name, UI_TEAM_LANG)
+        if is_new_team:
+            team_message = f"Has sido asignado/a aleatoriamente al equipo: <b>{display_team}</b>."
+        else:
+            team_message = f"¡Bienvenido/a de nuevo! Continúas en el equipo: <b>{display_team}</b>"
+        success_html = f"<div style='background:#f0fdf4; padding:16px; border-radius:8px; border-left:4px solid #16a34a; margin-top:12px;'><p style='margin:0; color:#15803d; font-weight:600;'>¡Sesión iniciada correctamente!</p><p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>{team_message}</p><p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>Haz clic en \"Construye y Envía Modelo\" de nuevo para publicar tu puntuación.</p></div>"
+        return {login_username: gr.update(visible=False), login_password: gr.update(visible=False), login_submit: gr.update(visible=False), login_error: gr.update(value=success_html, visible=True), submit_button: gr.update(value="🔬 Construye y Envía Modelo", interactive=True), submission_feedback_display: gr.update(visible=False), team_name_state: gr.update(value=team_name), username_state: gr.update(value=username_clean), token_state: gr.update(value=token)}
+    except Exception as e:
+        error_html = f"<div style='background:#fef2f2; padding:16px; border-radius:8px; border-left:4px solid #ef4444; margin-top:12px;'><p style='margin:0; color:#991b1b; font-weight:600;'>Error de autenticación</p><p style='margin:8px 0; color:#7f1d1d;'>No se han podido verificar tus credenciales.</p><p style='margin:8px 0 0 0; color:#7f1d1d;'><strong>¿Usuario nuevo?</strong> Crea una cuenta gratuita en <a href='https://www.modelshare.ai/login' target='_blank' style='color:#dc2626; text-decoration:underline;'>modelshare.ai/login</a></p></div>"
+        return {login_username: gr.update(visible=True), login_password: gr.update(visible=True), login_submit: gr.update(visible=True), login_error: gr.update(value=error_html, visible=True), submit_button: gr.update(), submission_feedback_display: gr.update(), team_name_state: gr.update(), username_state: gr.update(), token_state: gr.update()}
+
+
+def run_experiment(model_name_key, complexity_level, feature_set, data_size_str, team_name, last_submission_score, last_rank, submission_count, first_submission_score, best_score, username=None, token=None, readiness_flag=None, was_preview_prev=None, progress=gr.Progress()):
+    """Core experiment: Uses 'yield' for visual updates and progress bar."""
+    if isinstance(submit_button, dict) or isinstance(submission_feedback_display, dict):
+        yield {submission_feedback_display: gr.update(value="<p style='color:red;'>Error de Configuración</p>", visible=True), submit_button: gr.update(value="🔬 Construye y Envía Modelo", interactive=True)}
+        return
+    sanitized_feature_set = []
+    for feat in (feature_set or []):
+        if isinstance(feat, dict):
+            sanitized_feature_set.append(feat.get("value", str(feat)))
+        elif isinstance(feat, tuple):
+            sanitized_feature_set.append(feat[1] if len(feat) > 1 else str(feat))
+        else:
+            sanitized_feature_set.append(str(feat))
+    feature_set = sanitized_feature_set
+    ready = readiness_flag if readiness_flag is not None else True
+    if not username:
+        username = "Unknown_User"
+
+    def get_status_html(step_num, title, subtitle):
+        return f"<div class='processing-status'><span class='processing-icon'>⚙️</span><div class='processing-text'>Paso {step_num}/5: {title}</div><div class='processing-subtext'>{subtitle}</div></div>"
+
+    progress(0.1, desc="Iniciando Experimento...")
+    yield {submit_button: gr.update(value="⏳ Experimento en Curso...", interactive=False), submission_feedback_display: gr.update(value=get_status_html(1, "Inicializando", "Preparando tus ingredientes de datos..."), visible=True), login_error: gr.update(visible=False), attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))}
+
+    if not model_name_key or model_name_key not in MODEL_TYPES:
+        model_name_key = DEFAULT_MODEL
+    complexity_level = safe_int(complexity_level, 2)
+
+    if playground is None:
+        settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
+        error_msg = "<p style='text-align:center; color:red; padding:20px 0;'>No se puede conectar con el servidor de la competición en este momento. Inténtalo de nuevo en un momento.</p>"
+        yield {submission_feedback_display: gr.update(value=error_msg, visible=True), submit_button: gr.update(value="🔬 Construye y Envía Modelo", interactive=True), team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True), individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False), last_submission_score_state: last_submission_score, last_rank_state: last_rank, best_score_state: best_score, submission_count_state: submission_count, first_submission_score_state: first_submission_score, rank_message_display: settings["rank_message"], model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]), complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]), feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]), data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]), login_username: gr.update(visible=False), login_password: gr.update(visible=False), login_submit: gr.update(visible=False), login_error: gr.update(visible=False), attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)), was_preview_state: False, kpi_meta_state: {}, last_seen_ts_state: None}
+        return
+
+    try:
+        progress(0.3, desc="Recuperando Predicciones...")
+        _ensure_y_test_loaded()
+        feature_tuple = tuple(sorted(feature_set))
+        feature_key = ",".join(feature_tuple)
+        cache_key = f"{model_name_key}|{complexity_level}|{data_size_str}|{feature_key}"
+        yield {submission_feedback_display: gr.update(value=get_status_html(2, "Cargando Predicciones", "Buscando las predicciones de tu IA..."), visible=True), login_error: gr.update(visible=False)}
+        predictions = get_cached_prediction(cache_key)
+        if predictions is None:
+            error_html = "<div style='background:#fee2e2; padding:16px; border-radius:8px; border:2px solid #ef4444; color:#991b1b; text-align:center;'><h3 style='margin:0;'>Configuración No Encontrada</h3><p style='margin:8px 0;'>Esta combinación de ajustes no se ha encontrado. Por favor, modifícala e inténtalo de nuevo.</p></div>"
+            settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
+            yield {submission_feedback_display: gr.update(value=error_html, visible=True), submit_button: gr.update(value="🔬 Construye y Envía Modelo", interactive=True), login_error: gr.update(visible=False), rank_message_display: settings["rank_message"], model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]), complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]), feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]), data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"])}
+            return
+        from sklearn.metrics import accuracy_score
+        local_test_accuracy = accuracy_score(_Y_TEST, predictions)
+
+        if token is None:
+            progress(0.6, desc="Calculando Puntuación de Vista Previa...")
+            preview_score = local_test_accuracy
+            preview_card_html = _build_kpi_card_html(new_score=preview_score, last_score=0, new_rank=0, last_rank=0, submission_count=-1, is_preview=True)
+            login_prompt_text_html = build_login_prompt_html()
+            closing_div_index = preview_card_html.rfind("</div>")
+            combined_html = preview_card_html[:closing_div_index] + login_prompt_text_html + "</div>" if closing_div_index != -1 else preview_card_html + login_prompt_text_html
+            settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
+            yield {submission_feedback_display: gr.update(value=combined_html, visible=True), submit_button: gr.update(value="Inicio de Sesión Requerido", interactive=False), login_username: gr.update(visible=True), login_password: gr.update(visible=True), login_submit: gr.update(visible=True), login_error: gr.update(value="", visible=False), team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True), individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False), last_submission_score_state: last_submission_score, last_rank_state: last_rank, best_score_state: best_score, submission_count_state: submission_count, first_submission_score_state: first_submission_score, rank_message_display: settings["rank_message"], model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]), complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]), feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]), data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]), attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)), was_preview_state: True, kpi_meta_state: {"was_preview": True, "preview_score": preview_score}, last_seen_ts_state: None}
+            return
+
+        if submission_count >= ATTEMPT_LIMIT:
+            limit_warning_html = f"<div class='kpi-card' style='border-color:#ef4444;'><h2 style='color:#111827; margin-top:0;'>🛑 Límite de Envíos Alcanzado</h2><div class='kpi-card-body'><div class='kpi-metric-box'><p class='kpi-label'>Intentos Utilizados</p><p class='kpi-score' style='color:#ef4444;'>{ATTEMPT_LIMIT}/{ATTEMPT_LIMIT}</p></div></div></div>"
+            settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
+            yield {submission_feedback_display: gr.update(value=limit_warning_html, visible=True), submit_button: gr.update(value="🛑 Límite Alcanzado", interactive=False), model_type_radio: gr.update(interactive=False), complexity_slider: gr.update(interactive=False), feature_set_checkbox: gr.update(interactive=False), data_size_radio: gr.update(interactive=False), attempts_tracker_display: gr.update(value=f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'><p style='margin:0; color:#991b1b; font-weight:600;'>🛑 Intentos: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT}</p></div>"), last_submission_score_state: last_submission_score, last_rank_state: last_rank, best_score_state: best_score, submission_count_state: submission_count, first_submission_score_state: first_submission_score, rank_message_display: settings["rank_message"], login_username: gr.update(visible=False), login_password: gr.update(visible=False), login_submit: gr.update(visible=False), login_error: gr.update(visible=False), was_preview_state: False, kpi_meta_state: {}, last_seen_ts_state: None}
+            return
+
+        progress(0.5, desc="Enviando a la Nube...")
+        yield {submission_feedback_display: gr.update(value=get_status_html(3, "Enviando", "Enviando modelo al servidor de la competición..."), visible=True), login_error: gr.update(visible=False)}
+        description = f"{model_name_key} (Cplx:{complexity_level} Size:{data_size_str})"
+        tags = f"team:{team_name},model:{model_name_key}"
+        baseline_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
+
+        def _submit():
+            return playground.submit_model(model=None, preprocessor=None, prediction_submission=predictions.tolist(), input_dict={"description": description, "tags": tags}, custom_metadata={"Team": team_name, "Moral_Compass": 0}, token=token, return_metrics=["accuracy"])
+
+        try:
+            submit_result = _retry_with_backoff(_submit, description="model submission")
+            if isinstance(submit_result, tuple) and len(submit_result) == 3:
+                _, _, metrics = submit_result
+                this_submission_score = float(metrics["accuracy"]) if metrics and "accuracy" in metrics and metrics["accuracy"] is not None else local_test_accuracy
+            else:
+                this_submission_score = local_test_accuracy
+        except Exception:
+            this_submission_score = local_test_accuracy
+
+        try:
+            playground.get_leaderboard(token=token)
+        except Exception:
+            pass
+
+        new_submission_count = submission_count + 1
+        new_first_submission_score = first_submission_score
+        if submission_count == 0 and first_submission_score is None:
+            new_first_submission_score = this_submission_score
+
+        progress(0.9, desc="Calculando Posición...")
+        simulated_df = baseline_leaderboard_df.copy() if baseline_leaderboard_df is not None else pd.DataFrame()
+        new_row = pd.DataFrame([{"username": username, "accuracy": this_submission_score, "Team": team_name, "timestamp": pd.Timestamp.now(), "version": "latest"}])
+        simulated_df = pd.concat([simulated_df, new_row], ignore_index=True) if not simulated_df.empty else new_row
+        team_html, individual_html, _, new_best_accuracy, new_rank, _ = generate_competitive_summary(simulated_df, team_name, username, last_submission_score, last_rank, submission_count)
+        kpi_card_html = _build_kpi_card_html(new_score=this_submission_score, last_score=last_submission_score, new_rank=new_rank, last_rank=last_rank, submission_count=submission_count)
+
+        progress(1.0, desc="¡Completado!")
+        settings = compute_rank_settings(new_submission_count, model_name_key, complexity_level, feature_set, data_size_str)
+        limit_reached = new_submission_count >= ATTEMPT_LIMIT
+        if limit_reached:
+            limit_html = f"<div style='margin-top:16px; border:2px solid #ef4444; background:#fef2f2; padding:16px; border-radius:12px;'><h3 style='margin:0 0 8px 0; color:#991b1b;'>🛑 Límite de Envíos Alcanzado ({ATTEMPT_LIMIT}/{ATTEMPT_LIMIT})</h3><p style='margin:0; color:#7f1d1d;'>Revisa tus resultados y luego desplázate hasta \"Finalizar y Reflexionar\".</p></div>"
+            final_html_display = kpi_card_html + limit_html
+            button_update = gr.update(value="🛑 Límite Alcanzado", interactive=False)
+            interactive_state = False
+            tracker_html = f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'><p style='margin:0; color:#991b1b; font-weight:600;'>🛑 Intentos: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT}</p></div>"
+        else:
+            final_html_display = kpi_card_html
+            button_update = gr.update(value="🔬 Construye y Envía Modelo", interactive=True)
+            interactive_state = True
+            tracker_html = _build_attempts_tracker_html(new_submission_count)
+        yield {submission_feedback_display: gr.update(value=final_html_display, visible=True), team_leaderboard_display: team_html, individual_leaderboard_display: individual_html, last_submission_score_state: this_submission_score, last_rank_state: new_rank, best_score_state: new_best_accuracy, submission_count_state: new_submission_count, first_submission_score_state: new_first_submission_score, rank_message_display: settings["rank_message"], model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=(settings["model_interactive"] and interactive_state)), complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"], interactive=interactive_state), feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=(settings["feature_set_interactive"] and interactive_state)), data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=(settings["data_size_interactive"] and interactive_state)), submit_button: button_update, login_username: gr.update(visible=False), login_password: gr.update(visible=False), login_submit: gr.update(visible=False), login_error: gr.update(visible=False), attempts_tracker_display: gr.update(value=tracker_html), was_preview_state: False, kpi_meta_state: {"this_submission_score": this_submission_score, "new_best_accuracy": new_best_accuracy, "rank": new_rank}, last_seen_ts_state: time.time()}
+    except Exception as e:
+        error_msg = f"ERROR: {e}"
+        _log(f"Exception in run_experiment: {error_msg}")
+        settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
+        yield {submission_feedback_display: gr.update(value=f"<p style='text-align:center; color:red; padding:20px 0;'>Se ha producido un error: {error_msg}</p>", visible=True), team_leaderboard_display: f"<p style='text-align:center; color:red;'>Error: {error_msg}</p>", individual_leaderboard_display: f"<p style='text-align:center; color:red;'>Error: {error_msg}</p>", last_submission_score_state: last_submission_score, last_rank_state: last_rank, best_score_state: best_score, submission_count_state: submission_count, first_submission_score_state: first_submission_score, rank_message_display: settings["rank_message"], model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]), complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]), feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]), data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]), submit_button: gr.update(value="🔬 Construye y Envía Modelo", interactive=True), login_username: gr.update(visible=False), login_password: gr.update(visible=False), login_submit: gr.update(visible=False), login_error: gr.update(visible=False), attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count)), was_preview_state: False, kpi_meta_state: {}, last_seen_ts_state: None}
+
+
+def on_initial_load(username, token=None, team_name=""):
+    _ensure_y_test_loaded()
+    # submission_count is always 0 on load — the limit is per-session, not lifetime.
+    submission_count = 0
+    if username:
+        stats = _compute_user_stats(username, token)
+        best_score = stats.get("best_score", 0.0)
+        last_score = stats.get("last_score", 0.0)
+        rank = stats.get("rank", 0)
+        has_historical_submissions = stats.get("submission_count", 0) > 0
+        initial_ui = compute_rank_settings(submission_count, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE)
+    else:
+        best_score = 0.0
+        last_score = 0.0
+        rank = 0
+        has_historical_submissions = False
+        initial_ui = compute_rank_settings(0, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE)
+    display_team = translate_team_name_for_display(team_name, UI_TEAM_LANG) if team_name else "Tu Equipo"
+    welcome_html = f"<div style='text-align:center; padding:30px 20px;'><h3 style='margin:0 0 8px 0;'>¡Bienvenido/a a <b>{display_team}</b>!</h3><p style='font-size:1.1rem; color:#4b5563; margin:0 0 20px 0;'>Tu equipo espera tu ayuda para mejorar la IA.</p><div style='background:#eff6ff; padding:16px; border-radius:12px; border:2px solid #bfdbfe; display:inline-block;'><p style='margin:0; color:#1e40af; font-weight:bold;'>¡Haz clic en \"Construye y Envía Modelo\" para empezar!</p></div></div>"
+    full_leaderboard_df = None
+    try:
+        if playground:
+            full_leaderboard_df = _get_leaderboard_with_optional_token(playground, token)
+    except Exception:
+        full_leaderboard_df = None
+    user_has_submitted = has_historical_submissions
+    if not user_has_submitted:
+        team_html = welcome_html
+        individual_html = "<p style='text-align:center; color:#6b7280; padding-top:40px;'>¡Envía tu modelo para ver tu posición en la clasificación!</p>"
+    elif full_leaderboard_df is None or full_leaderboard_df.empty:
+        team_html = _build_skeleton_leaderboard(rows=6, is_team=True)
+        individual_html = _build_skeleton_leaderboard(rows=6, is_team=False)
+    else:
+        try:
+            team_html, individual_html, _, _, _, _ = generate_competitive_summary(full_leaderboard_df, team_name, username, last_score, rank, submission_count)
+        except Exception:
+            team_html = "<p style='text-align:center; color:red;'>Error al mostrar la clasificación.</p>"
+            individual_html = team_html
+    return (get_model_card(initial_ui["model_value"]), team_html, individual_html, initial_ui["rank_message"], gr.update(choices=initial_ui["model_choices"], value=initial_ui["model_value"], interactive=initial_ui["model_interactive"]), gr.update(minimum=1, maximum=initial_ui["complexity_max"], value=initial_ui["complexity_value"]), gr.update(choices=initial_ui["feature_set_choices"], value=initial_ui["feature_set_value"], interactive=initial_ui["feature_set_interactive"]), gr.update(choices=initial_ui["data_size_choices"], value=initial_ui["data_size_value"], interactive=initial_ui["data_size_interactive"]), initial_ui["model_value"], initial_ui["complexity_value"], initial_ui["feature_set_value"], initial_ui["data_size_value"], submission_count, best_score, rank, last_score, True)
+
+
+# ---------------------------------------------------------------------------
+# Conclusion helpers
+# ---------------------------------------------------------------------------
+def build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set):
+    unlocked_tiers = min(3, max(0, submissions - 1))
+    tier_names = ["Practicante", "Junior", "Senior", "Jefe"]
+    reached = tier_names[:unlocked_tiers + 1]
+    tier_line = " -> ".join([f"{t}{' (hecho)' if t in reached else ''}" for t in tier_names])
+    improvement = (best_score - first_score) if (first_score is not None and submissions > 1) else 0.0
+    strong_predictors = {"avg_temp", "heating_degree_days", "cooling_degree_days", "january_min_temp"}
+    strong_used = [f for f in feature_set if f in strong_predictors]
+    ethical_note = "Has desbloqueado datos meteorológicos potentes sobre los edificios. Reflexiona: ¿Cómo influyen la antigüedad del edificio y la temperatura local en los objetivos de consumo energético? En la siguiente sección investigaremos esta cuestión."
+    tip_html = ""
+    if submissions < 2:
+        tip_html = "<div class='final-conclusion-tip'><b>Consejo:</b> Intenta hacer al menos 2-3 envíos cambiando UN solo ajuste a la vez para ver causa/efecto con claridad.</div>"
+    attempt_cap_html = ""
+    if submissions >= ATTEMPT_LIMIT:
+        attempt_cap_html = f"<div class='final-conclusion-attempt-cap'><p style='margin:0;'><b>Límite de intentos alcanzado:</b> Has utilizado los {ATTEMPT_LIMIT} intentos permitidos. Abriremos los envíos de nuevo después de que completes nuevas actividades.</p></div>"
+    return f"""<div class="final-conclusion-root"><h1 class="final-conclusion-title">Fase de Ingeniería Completada</h1><div class="final-conclusion-card"><h2 class="final-conclusion-subtitle">Tu Resumen de Rendimiento</h2><ul class="final-conclusion-list"><li>Mejor Precisión: {(best_score*100):.2f}%</li><li>Posición Alcanzada: {'#' + str(rank) if rank > 0 else 'N/D'}</li><li>Envíos Realizados: {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li><li>Mejora sobre la Primera Puntuación: {(improvement*100):+.2f}%</li><li>Progreso de Rango: {tier_line}</li><li>Datos de Edificios más Útiles Usados: {len(strong_used)} ({', '.join(strong_used) if strong_used else 'Ninguno aún'})</li></ul>{tip_html}<div class="final-conclusion-ethics"><p style="margin:0;"><b>Reflexión Ética:</b> {ethical_note}</p></div>{attempt_cap_html}<div style="background:rgba(245,158,11,0.1); border:2px solid #f59e0b; padding:18px; border-radius:12px; margin-top:20px;"><p style="margin:0; font-size:1.05rem; line-height:1.5;"><b>Antes de celebrar...</b> Cada modelo de IA tiene un coste más allá de su puntuación de precisión. En la siguiente actividad, mediremos el verdadero coste medioambiental de tu modelo.</p></div><hr class="final-conclusion-divider" /><div class="final-conclusion-next"><p style="margin:0; font-size:1.1rem; text-align:center;"><b>A continuación:</b> Descubrirás el coste medioambiental oculto del modelo de IA que acabas de construir.</p></div></div></div>"""
+
+
+def build_conclusion_from_state(best_score, submissions, rank, first_score, feature_set):
+    return build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set)
+
+
+# ============================================================================
+# MODULES — 6 onboarding HTML pages (converted from JSX steps 0-5)
+# ============================================================================
+
+MODULES = [
+    # --- Module 0: Welcome ---
+    {
+        "id": 0,
+        "title": "Bienvenida",
+        "html": """
+<div style="text-align:center; padding-top:40px;">
+  <div style="font-size:64px; margin-bottom:16px;" class="ob-float">&#127959;</div>
+  <div style="font-family:'Space Mono',monospace; font-size:12px; letter-spacing:4px; color:var(--a4-success); text-transform:uppercase; margin-bottom:8px;">// transmisión entrante</div>
+  <h1 style="font-size:clamp(1.8rem,5vw,2.4rem); font-weight:800; margin:0 0 16px; background:linear-gradient(135deg,var(--a4-grad-from),var(--a4-grad-to)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; line-height:1.2; letter-spacing:-1px;">Arquitecto/a de IA Climática</h1>
+  <div style="background:var(--a4-term-bg); border:1px solid var(--a4-term-border); border-radius:16px; padding:20px 24px; margin-bottom:24px; text-align:left; color:var(--a4-text); line-height:1.6; font-size:15px;">
+    <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--a4-term-text); margin-bottom:8px;">&gt; SUBVENCIÓN_APROBADA</div>
+    <span id="ob-typewriter-text"></span><span class="ob-blink" style="color:var(--a4-accent);">|</span>
+  </div>
+  <div id="ob-counter-cards" style="display:none; animation:a4FadeSlideUp 0.5s ease;">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
+      <div class="ob-scard"><div style="font-size:28px; font-weight:800; color:var(--a4-warning);"><span id="ob-counter-emissions">0</span>%</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:4px;">de emisiones globales de los edificios</div></div>
+      <div class="ob-scard"><div style="font-size:28px; font-weight:800; color:var(--a4-accent);">$<span id="ob-counter-grant">0</span>K</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:4px;">tu subvención de innovación</div></div>
+    </div>
+  </div>
+</div>
+""",
+    },
+    # --- Module 1: Mission ---
+    {
+        "id": 1,
+        "title": "Tu Misión",
+        "html": """
+<div style="padding-top:24px;">
+  <h2 style="font-size:24px; font-weight:800; margin:0 0 6px; color:var(--a4-accent);">&#127970; Tu Misión</h2>
+  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 20px; line-height:1.6;">No puedes auditar cada edificio manualmente. Tu IA predecirá qué edificios desperdician más energía usando una métrica llamada <strong style="color:var(--a4-warning);">Site EUI</strong> (Intensidad de Uso Energético &mdash; una puntuación de cuánta energía consume un edificio por metro cuadrado).</p>
+  <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:16px; padding:20px; margin-bottom:16px; box-shadow:0 8px 24px var(--a4-card-shadow);">
+    <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--a4-accent); margin-bottom:10px;">// fórmula de intensidad de uso energético</div>
+    <div style="background:var(--a4-formula-bg); border-radius:10px; padding:14px 20px; text-align:center; font-family:'Space Mono',monospace; font-size:15px; color:var(--a4-formula-text); font-weight:700; letter-spacing:1px;">(Electricidad + Gas) &divide; Superficie = EUI</div>
+    <div style="display:flex; justify-content:space-around; margin-top:16px; text-align:center;">
+      <div><div style="font-size:24px;">&#128994;</div><div style="font-size:14px; font-weight:600; color:var(--a4-success);">EUI Bajo</div><div style="font-size:13px; color:var(--a4-text-dim);">Eficiente</div></div>
+      <div style="font-size:22px; color:var(--a4-text-dim); align-self:center;">vs</div>
+      <div><div style="font-size:24px;">&#128308;</div><div style="font-size:14px; font-weight:600; color:var(--a4-error);">EUI Alto</div><div style="font-size:13px; color:var(--a4-text-dim);">Derrochador &rarr; ¡rehabilitar!</div></div>
+    </div>
+  </div>
+  <div style="background:var(--a4-accent-glow); border:1px solid var(--a4-accent); border-left:4px solid var(--a4-accent); border-radius:12px; padding:14px 16px; font-size:14px; color:var(--a4-text); line-height:1.6;">&#128101; Serás asignado/a aleatoriamente a un <strong>equipo</strong> de Arquitectos. Tus puntuaciones contribuyen a la posición de tu equipo en la clasificación en vivo.</div>
+</div>
+""",
+    },
+    # --- Module 2: AI Basics (drag-sort) ---
+    {
+        "id": 2,
+        "title": "Cómo Funciona la Predicción con IA",
+        "html": """
+<div style="padding-top:24px;">
+  <h2 style="font-size:24px; font-weight:800; margin:0 0 6px; color:var(--a4-accent);">&#129302; Cómo Funciona la Predicción con IA</h2>
+  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 6px; line-height:1.6;">La IA no es magia &mdash; sigue un flujo sencillo. Piensa en ella como la intuición humana:</p>
+  <div style="background:var(--a4-card-bg); border-radius:12px; padding:12px 16px; margin-bottom:16px; font-size:15px; color:var(--a4-text); border:1px solid var(--a4-border-color);">
+    <strong style="color:var(--a4-accent);">Nubes Oscuras</strong> &rarr; <strong style="color:var(--a4-warning);">Experiencia</strong> &rarr; <strong style="color:var(--a4-success);">Predecir Lluvia</strong>
+  </div>
+  <p style="color:var(--a4-accent); font-size:14px; font-weight:600; margin:0 0 12px;">Ahora ordena la versión de IA correctamente:</p>
+  <div id="ob-drag-sort-container"></div>
+</div>
+""",
+    },
+    # --- Module 3: Controls Explorer ---
+    {
+        "id": 3,
+        "title": "Tus 4 Controles",
+        "html": """
+<div style="padding-top:24px;">
+  <h2 style="font-size:24px; font-weight:800; margin:0 0 6px; color:var(--a4-accent);">&#128295; Tus 4 Controles</h2>
+  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 16px; line-height:1.6;">Estos son los controles exactos que usarás. <strong style="color:var(--a4-warning);">Toca cada uno</strong> para ver cómo funciona &mdash; explora los 4 para continuar.</p>
+  <div id="ob-ctrl-grid" style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:16px;"></div>
+  <div id="ob-ctrl-progress" style="font-size:13px; text-align:center; color:var(--a4-text-dim); margin-bottom:12px; line-height:1.5;"></div>
+  <div id="ob-ctrl-detail"></div>
+</div>
+""",
+    },
+    # --- Module 4: Rank System + Quizzes ---
+    {
+        "id": 4,
+        "title": "Sistema de Rangos",
+        "html": """
+<div style="padding-top:24px;">
+  <h2 style="font-size:24px; font-weight:800; margin:0 0 6px; color:var(--a4-accent);">&#127894; Sube de Rango para Desbloquear Más</h2>
+  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 16px; line-height:1.6;">Cada envío desbloquea nuevas herramientas. Tu IA se evalúa con <strong style="color:var(--a4-warning);">edificios no vistos</strong> &mdash; el 25% de los datos están ocultos en una bóveda de pruebas.</p>
+  <div style="display:flex; justify-content:space-between; align-items:center; background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:14px; padding:16px 12px; margin-bottom:16px; overflow:auto;" id="ob-rank-bar"></div>
+  <p style="color:var(--a4-accent); font-size:14px; font-weight:600; margin:0 0 12px;">Comprobación rápida de conocimientos &mdash; responde ambas para continuar:</p>
+  <div id="ob-quiz-1"></div>
+  <div id="ob-quiz-2"></div>
+</div>
+""",
+    },
+    # --- Module 5: Ready ---
+    {
+        "id": 5,
+        "title": "Sistemas en Línea",
+        "html": """
+<div style="text-align:center; padding-top:48px;">
+  <div style="font-size:72px; margin-bottom:16px; animation:a4Pulse 2s ease-in-out infinite;">&#128640;</div>
+  <h2 style="font-size:30px; font-weight:800; margin:0 0 12px; background:linear-gradient(135deg,var(--a4-grad-launch-from),var(--a4-grad-launch-to)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">Sistemas en Línea</h2>
+  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 8px; line-height:1.6;">Conoces la misión. Has practicado con los controles. Es hora de construir tu primer modelo.</p>
+  <p style="color:var(--a4-text-dim); font-size:14px; margin:0 0 12px; line-height:1.6;">Consejo: Tu primer envío usa la configuración por defecto &mdash; ¡solo pulsa el botón! Luego experimenta para subir de rango.</p>
+  <p style="color:var(--a4-warning); font-size:14px; font-weight:600; margin:0 0 28px; line-height:1.6;">Tienes 10 intentos para construir la mejor IA posible. ¡Haz que cada uno cuente!</p>
+  <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:20px; padding:24px; margin-bottom:24px;">
+    <div style="display:flex; justify-content:center; gap:24px; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:8px;"><div style="text-align:center;"><div style="font-size:28px;">&#129504;</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:2px;">Elige un modelo</div></div><span style="color:var(--a4-text-dim); font-size:18px;">&rarr;</span></div>
+      <div style="display:flex; align-items:center; gap:8px;"><div style="text-align:center;"><div style="font-size:28px;">&#9881;&#65039;</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:2px;">Ajusta complejidad</div></div><span style="color:var(--a4-text-dim); font-size:18px;">&rarr;</span></div>
+      <div style="display:flex; align-items:center; gap:8px;"><div style="text-align:center;"><div style="font-size:28px;">&#128230;</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:2px;">Elige datos</div></div><span style="color:var(--a4-text-dim); font-size:18px;">&rarr;</span></div>
+      <div style="text-align:center;"><div style="font-size:28px;">&#128300;</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:2px;">¡Construye y Envía!</div></div>
+    </div>
+  </div>
+</div>
+""",
+    },
+]
+
+
+# ============================================================================
+# CSS
+# ============================================================================
+
+css = r"""
+/* === Onboarding CSS vars (--a4-* namespace) === */
+:root {
+  --a4-bg: #0f172a;
+  --a4-card-bg: rgba(30,41,59,0.7);
+  --a4-accent: #38bdf8;
+  --a4-accent-glow: rgba(56,189,248,0.3);
+  --a4-success: #10b981;
+  --a4-success-soft: rgba(16,185,129,0.15);
+  --a4-warning: #fbbf24;
+  --a4-warning-soft: rgba(251,191,36,0.15);
+  --a4-error: #f43f5e;
+  --a4-error-soft: rgba(244,63,94,0.15);
+  --a4-text: #f8fafc;
+  --a4-text-dim: #94a3b8;
+  --a4-card-shadow: rgba(0,0,0,0.5);
+  --a4-border-color: rgba(255,255,255,0.05);
+  --a4-input-bg: rgba(255,255,255,0.05);
+  --a4-hover-bg: rgba(255,255,255,0.08);
+  --a4-ctrl-model: #818cf8;
+  --a4-ctrl-complexity: #fbbf24;
+  --a4-ctrl-features: #34d399;
+  --a4-ctrl-datasize: #f472b6;
+  --a4-grad-from: #f8fafc; --a4-grad-to: #818cf8;
+  --a4-grad-launch-from: #10b981; --a4-grad-launch-to: #818cf8;
+  --a4-term-bg: rgba(0,0,0,0.3); --a4-term-border: rgba(56,189,248,0.2); --a4-term-text: #38bdf8;
+  --a4-formula-bg: rgba(56,189,248,0.08); --a4-formula-text: #bae6fd;
+  --a4-btn-pri-bg: linear-gradient(135deg,#6366f1,#818cf8); --a4-btn-pri-text: white; --a4-btn-pri-sh: rgba(99,102,241,0.3);
+  --a4-btn-sec-bg: rgba(30,41,59,0.8); --a4-btn-sec-text: #94a3b8; --a4-btn-sec-bdr: rgba(255,255,255,0.1);
+  --a4-btn-go-bg: linear-gradient(135deg,#059669,#10b981); --a4-btn-go-text: #022c22; --a4-btn-go-sh: rgba(16,185,129,0.3);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --a4-bg: #f8fafc;
+    --a4-card-bg: rgba(255,255,255,0.9);
+    --a4-accent: #0284c7;
+    --a4-accent-glow: rgba(2,132,199,0.2);
+    --a4-success: #059669;
+    --a4-success-soft: rgba(5,150,105,0.12);
+    --a4-warning: #d97706;
+    --a4-warning-soft: rgba(217,119,6,0.12);
+    --a4-error: #dc2626;
+    --a4-error-soft: rgba(220,38,38,0.10);
+    --a4-text: #0f172a;
+    --a4-text-dim: #64748b;
+    --a4-card-shadow: rgba(0,0,0,0.1);
+    --a4-border-color: rgba(0,0,0,0.08);
+    --a4-input-bg: rgba(0,0,0,0.02);
+    --a4-hover-bg: rgba(0,0,0,0.05);
+    --a4-ctrl-model: #6366f1;
+    --a4-ctrl-complexity: #d97706;
+    --a4-ctrl-features: #059669;
+    --a4-ctrl-datasize: #db2777;
+    --a4-grad-from: #0f172a; --a4-grad-to: #6366f1;
+    --a4-grad-launch-from: #059669; --a4-grad-launch-to: #6366f1;
+    --a4-term-bg: rgba(0,0,0,0.04); --a4-term-border: rgba(2,132,199,0.25); --a4-term-text: #0284c7;
+    --a4-formula-bg: rgba(2,132,199,0.08); --a4-formula-text: #0c4a6e;
+    --a4-btn-pri-bg: linear-gradient(135deg,#4f46e5,#6366f1); --a4-btn-pri-text: white; --a4-btn-pri-sh: rgba(79,70,229,0.25);
+    --a4-btn-sec-bg: rgba(255,255,255,0.9); --a4-btn-sec-text: #64748b; --a4-btn-sec-bdr: rgba(0,0,0,0.1);
+    --a4-btn-go-bg: linear-gradient(135deg,#047857,#059669); --a4-btn-go-text: white; --a4-btn-go-sh: rgba(5,150,105,0.25);
+  }
+}
+
+/* Animations */
+@keyframes a4FadeSlideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+@keyframes a4FloatGlow { 0%,100% { transform:translateY(0); filter:drop-shadow(0 0 12px var(--a4-accent-glow)); } 50% { transform:translateY(-6px); filter:drop-shadow(0 0 20px var(--a4-accent-glow)); } }
+@keyframes a4Pulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.05); } }
+@keyframes a4Blink { 50% { opacity:0; } }
+
+.ob-blink { animation: a4Blink 1s step-end infinite; }
+.ob-float { animation: a4FloatGlow 3s ease-in-out infinite; }
+
+/* Onboarding card */
+.ob-scard { background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:16px; padding:20px; text-align:center; box-shadow:0 4px 12px var(--a4-card-shadow); }
+
+/* Gate: hidden Next buttons */
+.ob-gate-hidden { display:none !important; }
+
+/* Drag sort items */
+.ob-drag-item {
+  padding:14px 18px; background:var(--a4-card-bg); border:2px solid var(--a4-border-color);
+  border-radius:12px; cursor:grab; font-size:15px; display:flex; align-items:center; gap:12px;
+  line-height:1.4; transition:all 0.3s ease; color:var(--a4-text); margin-bottom:8px; user-select:none;
+}
+.ob-drag-item.ob-dragging { background:var(--a4-accent-glow); border-color:var(--a4-accent); }
+.ob-drag-item.ob-solved { background:var(--a4-success); border-color:var(--a4-success); color:white; cursor:default; }
+
+.ob-drag-num {
+  width:28px; height:28px; border-radius:50%; background:var(--a4-input-bg); border:1px solid var(--a4-border-color);
+  display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:var(--a4-text-dim); flex-shrink:0;
+}
+.ob-drag-item.ob-solved .ob-drag-num { background:rgba(255,255,255,0.3); border-color:rgba(255,255,255,0.4); color:white; }
+
+/* Control explorer panels */
+.ob-cpanel { background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:14px; padding:16px; animation:a4FadeSlideUp 0.3s ease; }
+.ob-cslider { -webkit-appearance:none; appearance:none; width:100%; height:8px; border-radius:4px; background:linear-gradient(90deg,var(--a4-success),var(--a4-warning),var(--a4-error)); outline:none; }
+.ob-cslider::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:24px; height:24px; border-radius:50%; background:var(--a4-text); border:3px solid var(--a4-bg); cursor:pointer; }
+.ob-cslider::-moz-range-thumb { width:24px; height:24px; border-radius:50%; background:var(--a4-text); border:3px solid var(--a4-bg); cursor:pointer; }
+
+/* Control grid buttons */
+.ob-ctrl-btn {
+  padding:16px 12px; background:var(--a4-card-bg); border:2px solid var(--a4-border-color);
+  border-radius:14px; cursor:pointer; text-align:center; transition:all 0.3s ease;
+  color:var(--a4-text); font-family:inherit; position:relative;
+}
+.ob-ctrl-btn.ob-ctrl-active { background:var(--a4-hover-bg); }
+
+/* Quiz bubbles */
+.ob-quiz-bubble { background:var(--a4-card-bg); border:2px solid var(--a4-border-color); border-radius:16px; padding:18px 20px; margin-bottom:12px; transition:border-color 0.3s ease; }
+.ob-quiz-bubble.ob-quiz-correct { border-color:var(--a4-success); }
+.ob-quiz-opt {
+  padding:10px 14px; border-radius:10px; font-size:14px; cursor:pointer; border:2px solid var(--a4-border-color);
+  background:var(--a4-input-bg); color:var(--a4-text); text-align:left; font-weight:500; transition:all 0.2s ease;
+  font-family:inherit; line-height:1.5; width:100%; display:block; margin-bottom:6px;
+}
+
+/* Arena/leaderboard CSS from Activity 4 */
+.kpi-card { background:var(--block-background-fill,#fff); border:2px solid var(--color-accent,#6366f1); padding:24px; border-radius:16px; text-align:center; max-width:600px; margin:auto; min-height:200px; }
+.kpi-card-body { display:flex; flex-wrap:wrap; justify-content:space-around; align-items:flex-end; margin-top:24px; }
+.kpi-metric-box { min-width:150px; margin:10px; }
+.kpi-label { font-size:1rem; color:var(--secondary-text-color,#6b7280); margin:0; }
+.kpi-score { font-size:3rem; font-weight:700; margin:0; line-height:1.1; }
+.leaderboard-html-table { width:100%; border-collapse:collapse; text-align:left; font-size:1rem; min-height:300px; }
+.leaderboard-html-table th { padding:12px 16px; font-size:0.9rem; font-weight:500; }
+.leaderboard-html-table tbody tr { border-bottom:1px solid var(--border-color-primary,#e5e7eb); }
+.leaderboard-html-table td { padding:12px 16px; }
+.leaderboard-html-table .user-row-highlight { background:rgba(59,130,246,0.1); font-weight:600; }
+.lb-placeholder { min-height:300px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:var(--block-background-fill,#fff); border:1px solid var(--border-color-primary,#e5e7eb); border-radius:12px; padding:40px 20px; text-align:center; }
+.lb-placeholder-title { font-size:1.25rem; font-weight:500; color:var(--secondary-text-color,#6b7280); margin-bottom:8px; }
+.lb-placeholder-sub { font-size:1rem; color:var(--secondary-text-color,#6b7280); }
+.processing-status { background:var(--block-background-fill,#fff); border:2px solid var(--color-accent,#6366f1); border-radius:16px; padding:30px; text-align:center; animation:pulse-indigo 2s infinite; }
+.processing-icon { font-size:4rem; margin-bottom:10px; display:block; animation:spin-slow 3s linear infinite; }
+.processing-text { font-size:1.5rem; font-weight:700; color:var(--color-accent,#6366f1); }
+.processing-subtext { font-size:1.1rem; color:var(--secondary-text-color,#6b7280); margin-top:8px; }
+@keyframes pulse-indigo { 0%{box-shadow:0 0 0 0 rgba(99,102,241,0.4);} 70%{box-shadow:0 0 0 15px rgba(99,102,241,0);} 100%{box-shadow:0 0 0 0 rgba(99,102,241,0);} }
+@keyframes spin-slow { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+
+/* Conclusion */
+.final-conclusion-root { text-align:center; }
+.final-conclusion-title { font-size:2.4rem; margin:0; }
+.final-conclusion-card { background:var(--block-background-fill,#fff); padding:28px; border-radius:18px; border:2px solid var(--border-color-primary,#e5e7eb); margin-top:24px; max-width:950px; margin-left:auto; margin-right:auto; }
+.final-conclusion-subtitle { margin-top:0; font-size:1.5rem; }
+.final-conclusion-list { list-style:none; padding:0; font-size:1.05rem; text-align:left; max-width:640px; margin:20px auto; }
+.final-conclusion-list li { margin:4px 0; }
+.final-conclusion-tip { margin-top:16px; padding:16px; border-radius:12px; border-left:6px solid var(--color-accent,#6366f1); background:color-mix(in srgb, var(--color-accent,#6366f1) 12%, transparent); text-align:left; font-size:0.98rem; line-height:1.4; }
+.final-conclusion-ethics { margin-top:16px; padding:18px; border-radius:12px; border-left:6px solid #ef4444; background:color-mix(in srgb, #ef4444 10%, transparent); text-align:left; font-size:0.98rem; line-height:1.4; }
+.final-conclusion-attempt-cap { margin-top:16px; padding:16px; border-radius:12px; border-left:6px solid #ef4444; background:color-mix(in srgb, #ef4444 16%, transparent); text-align:left; font-size:0.98rem; line-height:1.4; }
+.final-conclusion-divider { margin:28px 0; border:0; border-top:2px solid var(--border-color-primary,#e5e7eb); }
+
+/* Nav loading overlay */
+#nav-loading-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); z-index:9999; display:none; flex-direction:column; align-items:center; justify-content:center; opacity:0; transition:opacity 0.3s ease; }
+.nav-spinner { width:50px; height:50px; border:5px solid #e5e7eb; border-top:5px solid var(--color-accent,#6366f1); border-radius:50%; animation:spin-slow 1s linear infinite; margin-bottom:20px; }
+#nav-loading-text { font-size:1.3rem; font-weight:600; color:var(--color-accent,#6366f1); }
+"""
+
+
+# ============================================================================
+# CLIENT_JS — onboarding interactivity (all ob-prefixed)
+# ============================================================================
+
+CLIENT_JS = r"""
+/* --- Font loader --- */
+(function(){
+  if(!document.querySelector('link[href*="Outfit"]')){
+    var l=document.createElement('link');l.rel='stylesheet';
+    l.href='https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Mono:wght@400;700&display=swap';
+    document.head.appendChild(l);
+  }
+})();
+
+/* --- Typewriter --- */
+function obTypewriter(elemId, text, speed, onDone){
+  var el=document.getElementById(elemId); if(!el) return;
+  var idx=0; el.textContent='';
+  var t=setInterval(function(){
+    idx++; el.textContent=text.slice(0,idx);
+    if(idx>=text.length){clearInterval(t); if(onDone) onDone();}
+  }, speed||30);
+}
+
+/* --- Counter --- */
+function obCounter(elemId, target, duration, prefix, suffix){
+  var el=document.getElementById(elemId); if(!el) return;
+  prefix=prefix||''; suffix=suffix||'';
+  var start=0, inc=target/((duration||1200)/16);
+  var t=setInterval(function(){
+    start+=inc;
+    if(start>=target){el.textContent=prefix+target.toLocaleString()+suffix; clearInterval(t);}
+    else el.textContent=prefix+Math.floor(start).toLocaleString()+suffix;
+  },16);
+}
+
+/* --- Welcome init --- */
+function obInitWelcome(){
+  obTypewriter('ob-typewriter-text',
+    "Enhorabuena, Arquitecto/a. El Ayuntamiento ha aprobado una Subvención de Innovación en IA de 500.000 $. Tu misión: construir una IA que identifique los edificios que derrochan energía en toda la ciudad.",
+    22, function(){
+      var cards=document.getElementById('ob-counter-cards');
+      if(cards){cards.style.display='block';}
+      obCounter('ob-counter-emissions',40,1200,'','');
+      obCounter('ob-counter-grant',500,1200,'','');
+    });
+}
+
+/* --- Drag Sort --- */
+function obInitDragSort(){
+  var container=document.getElementById('ob-drag-sort-container');
+  if(!container || container.dataset.init==='1') return;
+  container.dataset.init='1';
+  var items=[
+    {id:'input', icon:'\uD83D\uDCCA', label:'ENTRADA \u2014 Datos del edificio (tamaño, antigüedad, tipo)'},
+    {id:'model', icon:'\uD83E\uDDE0', label:'MODELO \u2014 El cerebro de la IA encuentra patrones'},
+    {id:'output', icon:'\uD83C\uDFAF', label:'SALIDA \u2014 Predice consumo Alto o Bajo'}
+  ];
+  var correct=['input','model','output'];
+  // Shuffle
+  var order=[...items].sort(function(){return Math.random()-0.5;});
+  var solved=false, dragging=null;
+
+  function render(){
+    container.innerHTML='<p style="margin:0 0 8px; font-size:14px; color:var(--a4-text-dim); text-align:center; line-height:1.5;">\uD83D\uDD00 Arrastra para ordenar correctamente</p>';
+    order.forEach(function(item,i){
+      var div=document.createElement('div');
+      div.className='ob-drag-item'+(solved?' ob-solved':'');
+      div.draggable=!solved;
+      div.innerHTML='<span class="ob-drag-num">'+(solved?'\u2713':(i+1))+'</span><span style="font-weight:500;">'+item.icon+' '+item.label+'</span>';
+      div.addEventListener('dragstart',function(){dragging=i;div.classList.add('ob-dragging');});
+      div.addEventListener('dragend',function(){div.classList.remove('ob-dragging');});
+      div.addEventListener('dragover',function(e){e.preventDefault();});
+      div.addEventListener('drop',function(){handleDrop(i);});
+      // Touch support
+      div.addEventListener('touchstart',function(e){dragging=i;div.classList.add('ob-dragging');},{passive:true});
+      div.addEventListener('touchend',function(e){
+        div.classList.remove('ob-dragging');
+        var touch=e.changedTouches[0];
+        var els=document.elementsFromPoint(touch.clientX,touch.clientY);
+        for(var k=0;k<els.length;k++){
+          var idx=Array.from(container.querySelectorAll('.ob-drag-item')).indexOf(els[k]);
+          if(idx>=0 && idx!==dragging){handleDrop(idx); break;}
+        }
+      });
+      container.appendChild(div);
+    });
+    if(solved){
+      var msg=document.createElement('div');
+      msg.style.cssText='text-align:center; color:var(--a4-success); font-weight:700; font-size:18px; margin-top:4px; animation:a4FadeSlideUp 0.5s ease;';
+      msg.textContent='\u2705 \u00a1Perfecto! Así es como funciona la predicción con IA.';
+      container.appendChild(msg);
+    }
+  }
+
+  function handleDrop(i){
+    if(dragging===null || dragging===i || solved) return;
+    var moved=order.splice(dragging,1)[0]; order.splice(i,0,moved); dragging=null;
+    if(order.every(function(item,idx){return item.id===correct[idx];})){
+      solved=true;
+      render();
+      setTimeout(function(){obUnlockNext(2);},800);
+    } else { render(); }
+  }
+  render();
+}
+
+/* --- Control Explorer --- */
+function obInitControlExplorer(){
+  var grid=document.getElementById('ob-ctrl-grid');
+  var prog=document.getElementById('ob-ctrl-progress');
+  var detail=document.getElementById('ob-ctrl-detail');
+  if(!grid || grid.dataset.init==='1') return;
+  grid.dataset.init='1';
+  var explored=new Set();
+  var active=null;
+  var sliderVal=5, selModel=null, selFeats=new Set(['floor_area','year_built']), selSize=null;
+  var ctrls=[
+    {id:'model',icon:'\uD83E\uDDE0',title:'Estrategia de Modelo',sub:'Elige el tipo de cerebro de tu IA',color:'var(--a4-ctrl-model)'},
+    {id:'complexity',icon:'\u2699\uFE0F',title:'Complejidad',sub:'\u00bfCu\u00e1nto de profundo debe aprender?',color:'var(--a4-ctrl-complexity)'},
+    {id:'features',icon:'\uD83D\uDCE6',title:'Ingredientes de Datos',sub:'\u00bfQu\u00e9 informaci\u00f3n ve tu IA?',color:'var(--a4-ctrl-features)'},
+    {id:'datasize',icon:'\uD83D\uDCCA',title:'Tama\u00f1o de Datos',sub:'\u00bfCu\u00e1ntos datos de entrenamiento?',color:'var(--a4-ctrl-datasize)'}
+  ];
+  function mark(id){explored.add(id); if(explored.size===4) setTimeout(function(){obUnlockNext(3);},600); renderProgress();}
+  function renderProgress(){prog.innerHTML=explored.size+'/4 explorados \u2014 '+(explored.size<4?'\u00a1toca cada control para conocerlo!':'\uD83C\uDF89 \u00a1Todos explorados!');}
+  function renderGrid(){
+    grid.innerHTML='';
+    ctrls.forEach(function(c){
+      var btn=document.createElement('button');
+      btn.className='ob-ctrl-btn'+(active===c.id?' ob-ctrl-active':'');
+      btn.style.borderColor=(active===c.id?c.color:'var(--a4-border-color)');
+      btn.innerHTML=(explored.has(c.id)?'<span style="position:absolute;top:6px;right:8px;color:var(--a4-success);font-size:14px;font-weight:700;">\u2713</span>':'')+'<div style="font-size:28px;">'+c.icon+'</div><div style="font-size:14px;font-weight:700;color:'+c.color+';margin-top:4px;">'+c.title+'</div><div style="font-size:13px;color:var(--a4-text-dim);margin-top:2px;line-height:1.4;">'+c.sub+'</div>';
+      btn.onclick=function(){active=c.id; mark(c.id); renderGrid(); renderDetail();};
+      grid.appendChild(btn);
+    });
+  }
+  function renderDetail(){
+    if(!active){detail.innerHTML=''; return;}
+    var html='';
+    if(active==='model'){
+      var models=[{key:'g',name:'El Generalista Equilibrado',desc:'R\u00e1pido, fiable, equilibrado.',icon:'\u2696\uFE0F'},{key:'r',name:'El Creador de Reglas',desc:'Reglas simples si/entonces.',icon:'\uD83D\uDCD0'},{key:'n',name:'El Vecino m\u00e1s Pr\u00f3ximo',desc:'Busca ejemplos pasados similares.',icon:'\uD83D\uDD0D'},{key:'d',name:'El Buscador de Patrones Profundos',desc:'Conjunto potente.',icon:'\uD83C\uDF32'}];
+      html='<div class="ob-cpanel"><h4 style="margin:0 0 8px;color:var(--a4-ctrl-model);font-size:15px;">\uD83E\uDDE0 Elige un cerebro para tu IA:</h4><div style="display:flex;flex-direction:column;gap:6px;">';
+      models.forEach(function(m){
+        var on=selModel===m.key;
+        html+='<button onclick="window._obSelModel=\''+m.key+'\';obRefreshCtrl();" style="padding:12px 14px;background:'+(on?'var(--a4-accent-glow)':'var(--a4-input-bg)')+';border:2px solid '+(on?'var(--a4-accent)':'var(--a4-border-color)')+';border-radius:10px;cursor:pointer;text-align:left;display:flex;gap:10px;align-items:center;color:var(--a4-text);font-family:inherit;transition:all 0.2s ease;"><span style="font-size:22px;">'+m.icon+'</span><div><div style="font-size:14px;font-weight:600;">'+m.name+'</div><div style="font-size:13px;color:var(--a4-text-dim);line-height:1.4;">'+m.desc+'</div></div></button>';
+      });
+      html+='</div></div>';
+    } else if(active==='complexity'){
+      var cDesc=sliderVal<=3?'Conservador \u2014 aprende patrones amplios. Seguro y estable.':sliderVal<=7?'Equilibrado \u2014 patrones \u00fatiles sin memorizar ruido.':'Agresivo \u2014 \u00a1riesgo de memorizar las respuestas en vez de aprender de verdad!';
+      var cColor=sliderVal<=3?'var(--a4-success)':sliderVal<=7?'var(--a4-warning)':'var(--a4-error)';
+      html='<div class="ob-cpanel"><h4 style="margin:0 0 12px;color:var(--a4-ctrl-complexity);font-size:15px;">\u2699\uFE0F \u00bfCu\u00e1nto de profundo debe aprender tu IA?</h4><input type="range" min="1" max="10" value="'+sliderVal+'" class="ob-cslider" oninput="window._obSliderVal=Number(this.value);obRefreshCtrl();"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--a4-text-dim);margin-top:4px;"><span>Simple</span><span>Equilibrado</span><span>Agresivo</span></div><div style="margin-top:12px;padding:10px 14px;border-radius:10px;background:var(--a4-input-bg);border:1px solid var(--a4-border-color);font-size:13px;color:'+cColor+';font-weight:500;line-height:1.5;">Nivel '+sliderVal+': '+cDesc+'</div></div>';
+    } else if(active==='features'){
+      var feats=[{key:'floor_area',name:'Superficie'},{key:'year_built',name:'A\u00f1o construcci\u00f3n'},{key:'building_class',name:'Clase edificio'},{key:'facility_type',name:'Tipo instalaci\u00f3n'},{key:'State_Factor',name:'Factor estado'},{key:'ELEVATION',name:'Elevaci\u00f3n'},{key:'avg_temp',name:'Temp. media'},{key:'heating_degree_days',name:'D\u00edas calefacci\u00f3n'}];
+      html='<div class="ob-cpanel"><h4 style="margin:0 0 8px;color:var(--a4-ctrl-features);font-size:15px;">\uD83D\uDCE6 Activa/desactiva ingredientes de datos:</h4><div style="display:flex;flex-wrap:wrap;gap:6px;">';
+      feats.forEach(function(f){
+        var on=selFeats.has(f.key);
+        html+='<button onclick="window._obToggleFeat(\''+f.key+'\');obRefreshCtrl();" style="padding:8px 12px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;border:2px solid '+(on?'var(--a4-ctrl-features)':'var(--a4-border-color)')+';background:'+(on?'var(--a4-hover-bg)':'transparent')+';color:'+(on?'var(--a4-text)':'var(--a4-text-dim)')+';font-family:inherit;transition:all 0.2s ease;">'+(on?'\u2713 ':'')+f.name+'</button>';
+      });
+      html+='</div><div style="font-size:13px;color:var(--a4-text-dim);margin-top:8px;line-height:1.5;">\uD83D\uDD12 \u00a1Se desbloquean m\u00e1s ingredientes al subir de rango!</div></div>';
+    } else if(active==='datasize'){
+      var sizes=[{key:'s',label:'Peque\u00f1a (20%)',desc:'Experimentos r\u00e1pidos',pct:20},{key:'m',label:'Mediana (60%)',desc:'Velocidad y precisi\u00f3n equilibradas',pct:60},{key:'l',label:'Grande (80%)',desc:'Mejores patrones',pct:80},{key:'f',label:'Completa (100%)',desc:'M\u00e1ximo de datos',pct:100}];
+      html='<div class="ob-cpanel"><h4 style="margin:0 0 8px;color:var(--a4-ctrl-datasize);font-size:15px;">\uD83D\uDCCA \u00bfCu\u00e1nto historial debe estudiar tu IA?</h4><div style="display:flex;flex-direction:column;gap:6px;">';
+      sizes.forEach(function(d){
+        var on=selSize===d.key;
+        html+='<button onclick="window._obSelSize=\''+d.key+'\';obRefreshCtrl();" style="padding:12px 14px;background:'+(on?'var(--a4-hover-bg)':'var(--a4-input-bg)')+';border:2px solid '+(on?'var(--a4-ctrl-datasize)':'var(--a4-border-color)')+';border-radius:10px;cursor:pointer;text-align:left;color:var(--a4-text);font-family:inherit;transition:all 0.2s ease;"><div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:14px;font-weight:600;">'+d.label+'</div><div style="font-size:13px;color:var(--a4-text-dim);line-height:1.4;">'+d.desc+'</div></div><div style="width:44px;height:44px;border-radius:50%;background:conic-gradient(var(--a4-ctrl-datasize) '+(d.pct*3.6)+'deg, var(--a4-input-bg) '+(d.pct*3.6)+'deg);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="width:34px;height:34px;border-radius:50%;background:var(--a4-bg,#0f172a);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--a4-ctrl-datasize);">'+d.pct+'%</span></div></div></button>';
+      });
+      html+='</div><div style="font-size:13px;color:var(--a4-text-dim);margin-top:8px;line-height:1.5;">\uD83D\uDCA1 Consejo: Usa \"Peque\u00f1a\" para probar r\u00e1pido. Usa \"Completa\" para una combinaci\u00f3n ganadora.</div></div>';
+    }
+    detail.innerHTML=html;
+  }
+  // Expose helpers
+  window._obSelModel=selModel; window._obSliderVal=sliderVal; window._obSelSize=selSize;
+  window._obToggleFeat=function(key){if(selFeats.has(key)) selFeats.delete(key); else selFeats.add(key);};
+  window.obRefreshCtrl=function(){
+    selModel=window._obSelModel; sliderVal=window._obSliderVal; selSize=window._obSelSize;
+    renderGrid(); renderDetail();
+  };
+  renderProgress(); renderGrid();
+}
+
+/* --- Quizzes --- */
+function obInitQuizzes(){
+  var q1=document.getElementById('ob-quiz-1');
+  var q2=document.getElementById('ob-quiz-2');
+  if(!q1 || q1.dataset.init==='1') return;
+  q1.dataset.init='1';
+  var correct1=0, correct2=0;
+  function buildQuiz(container, question, options, correctIdx, onCorrect){
+    container.innerHTML='';
+    var bubble=document.createElement('div'); bubble.className='ob-quiz-bubble';
+    var p=document.createElement('p'); p.style.cssText='margin:0 0 10px;font-weight:600;font-size:15px;color:var(--a4-text);line-height:1.5;'; p.textContent=question;
+    bubble.appendChild(p);
+    var selected=null;
+    options.forEach(function(opt,i){
+      var btn=document.createElement('button'); btn.className='ob-quiz-opt'; btn.textContent=opt;
+      btn.onclick=function(){
+        if(selected===correctIdx) return;
+        selected=i;
+        // Reset all
+        Array.from(bubble.querySelectorAll('.ob-quiz-opt')).forEach(function(b,j){
+          if(j===i && j===correctIdx){b.style.borderColor='var(--a4-success)';b.style.background='var(--a4-success-soft)';b.style.color='var(--a4-success)';b.textContent='\u2705 '+opt;}
+          else if(j===i){b.style.borderColor='var(--a4-error)';b.style.background='var(--a4-error-soft)';b.style.color='var(--a4-error)';b.textContent='\u274C '+options[j];}
+          else{b.style.borderColor='var(--a4-border-color)';b.style.background='var(--a4-input-bg)';b.style.color='var(--a4-text)';b.textContent=options[j];}
+        });
+        if(i===correctIdx){bubble.classList.add('ob-quiz-correct'); setTimeout(function(){onCorrect();},500);}
+        else{
+          var err=bubble.querySelector('.ob-quiz-err');
+          if(!err){err=document.createElement('p');err.className='ob-quiz-err';err.style.cssText='margin:8px 0 0;font-size:13px;color:var(--a4-warning);line-height:1.5;';bubble.appendChild(err);}
+          err.textContent='No del todo \u2014 \u00a1int\u00e9ntalo de nuevo!';
+        }
+      };
+      bubble.appendChild(btn);
+    });
+    container.appendChild(bubble);
+  }
+  var quizDone=0;
+  function checkBoth(){quizDone++; if(quizDone>=2) obUnlockNext(4);}
+  buildQuiz(q1,"\u00bfC\u00f3mo se mide la precisi\u00f3n de tu modelo?",["Se eval\u00faa con los mismos datos con los que entren\u00f3","Se prueba con el 25% de edificios ocultos no vistos","El instructor lo puntúa manualmente"],1,checkBoth);
+  buildQuiz(q2,"\u00bfQu\u00e9 pasa cuando subes de rango?",["Nada cambia","Tu puntuaci\u00f3n se reinicia a cero","Se desbloquean nuevos modelos, ingredientes y tama\u00f1os de datos"],2,checkBoth);
+}
+
+/* --- Rank bar init --- */
+function obInitRankBar(){
+  var bar=document.getElementById('ob-rank-bar');
+  if(!bar || bar.dataset.init==='1') return;
+  bar.dataset.init='1';
+  var ranks=[
+    {r:'\uD83C\uDF31 Practicante',c:'var(--a4-text-dim)',d:'1 modelo, controles bloqueados'},
+    {r:'\uD83C\uDFE2 Junior',c:'var(--a4-accent)',d:'3 modelos, m\u00e1s ingredientes'},
+    {r:'\u2B50 Senior',c:'var(--a4-ctrl-model)',d:'Todos los modelos, datos clim\u00e1ticos'},
+    {r:'\uD83D\uDC51 Jefe',c:'var(--a4-warning)',d:'Todo desbloqueado'}
+  ];
+  var html='';
+  ranks.forEach(function(x,i){
+    html+='<div style="display:flex;align-items:center;gap:4px;"><div style="text-align:center;min-width:72px;"><div style="font-size:13px;font-weight:700;color:'+x.c+';white-space:nowrap;">'+x.r+'</div><div style="font-size:12px;color:var(--a4-text-dim);margin-top:2px;line-height:1.4;">'+x.d+'</div></div>'+(i<ranks.length-1?'<span style="color:var(--a4-text-dim);font-size:16px;">\u2192</span>':'')+'</div>';
+  });
+  bar.innerHTML=html;
+}
+
+/* --- Gate unlock --- */
+function obUnlockNext(moduleIdx){
+  /* Find the Next button for this module and remove ob-gate-hidden */
+  var btns=document.querySelectorAll('[class*="ob-gate-'+moduleIdx+'"]');
+  btns.forEach(function(b){b.classList.remove('ob-gate-hidden');b.classList.remove('ob-gate-'+moduleIdx);});
+  /* Also try by elem_classes pattern that Gradio renders */
+  document.querySelectorAll('.ob-gate-'+moduleIdx).forEach(function(el){el.classList.remove('ob-gate-hidden');el.classList.remove('ob-gate-'+moduleIdx);});
+}
+
+/* --- Init polling IIFEs --- */
+(function obPollWelcome(){
+  if(document.getElementById('ob-typewriter-text')){obInitWelcome();}
+  else{setTimeout(obPollWelcome,200);}
+})();
+(function obPollDrag(){
+  if(document.getElementById('ob-drag-sort-container') && !document.getElementById('ob-drag-sort-container').dataset.init){obInitDragSort();}
+  else{setTimeout(obPollDrag,300);}
+})();
+(function obPollCtrl(){
+  if(document.getElementById('ob-ctrl-grid') && !document.getElementById('ob-ctrl-grid').dataset.init){obInitControlExplorer();}
+  else{setTimeout(obPollCtrl,300);}
+})();
+(function obPollQuiz(){
+  if(document.getElementById('ob-quiz-1') && !document.getElementById('ob-quiz-1').dataset.init){obInitQuizzes(); obInitRankBar();}
+  else{setTimeout(obPollQuiz,300);}
+})();
+"""
+
+
+# ============================================================================
+# HEAD_HTML
+# ============================================================================
+
+HEAD_HTML = (
+    '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Mono:wght@400;700&display=swap">\n'
+    '<script>\n' + CLIENT_JS + '\n</script>'
+)
+
+
+# ============================================================================
+# APP FACTORY
+# ============================================================================
+def create_model_building_game_es_sustainability_app(theme_primary_hue="indigo"):
+    """Build the Gradio Blocks app with onboarding modules + arena + conclusion."""
+    global playground
+    if playground is None:
+        try:
+            playground = Competition(MY_PLAYGROUND_ID)
+        except Exception as e:
+            print(f"WARNING: Could not connect to playground: {e}")
+            playground = None
+
+    # Declare globals that run_experiment and perform_inline_login yield into
+    global submit_button, submission_feedback_display, team_leaderboard_display
+    global individual_leaderboard_display, last_submission_score_state, last_rank_state
+    global best_score_state, submission_count_state, first_submission_score_state
+    global rank_message_display, model_type_radio, complexity_slider
+    global feature_set_checkbox, data_size_radio
+    global login_username, login_password, login_submit, login_error
+    global attempts_tracker_display, team_name_state
+    global username_state, token_state, readiness_state
+    global was_preview_state, kpi_meta_state, last_seen_ts_state
+
+    with gr.Blocks(
+        theme=gr.themes.Soft(primary_hue=theme_primary_hue),
+        css=css,
+        head=HEAD_HTML,
+    ) as demo:
+
+        # Top anchor for scroll-to-top
+        gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
+
+        # Navigation loading overlay
+        gr.HTML("""
+            <div id='nav-loading-overlay'>
+                <div class='nav-spinner'></div>
+                <span id='nav-loading-text'>Cargando...</span>
+            </div>
+        """)
+
+        # ── Loader column (shown until JS kicks in) ──────────────────────
+        with gr.Column(visible=True, elem_id="ob-loader") as loader_col:
+            gr.HTML(
+                "<div style='text-align:center; padding:120px 0;'>"
+                "<h2 style='font-size:2rem; color:#6b7280;'>Cargando...</h2>"
+                "</div>"
+            )
+
+        # ── Main app column ──────────────────────────────────────────────
+        with gr.Column(visible=False) as main_app_col:
+
+            # ---------- Onboarding modules (0-5) ----------
+            module_cols = []
+            module_next_btns = []
+            module_back_btns = []
+
+            GATED_MODULES = {2, 3, 4}  # drag-sort, controls, quizzes
+
+            for i, mod in enumerate(MODULES):
+                visible = (i == 0)
+                with gr.Column(visible=visible, elem_id=f"ob-mod-{i}") as col:
+                    gr.HTML(mod["html"])
+
+                    with gr.Row():
+                        if i > 0:
+                            back_btn = gr.Button("Atrás", size="lg")
+                        else:
+                            back_btn = gr.Button("Atrás", size="lg", visible=False)
+
+                        if i < len(MODULES) - 1:
+                            extra_classes = [f"ob-gate-hidden", f"ob-gate-{i}"] if i in GATED_MODULES else []
+                            next_btn = gr.Button("Siguiente", variant="primary", size="lg",
+                                                 elem_classes=extra_classes if extra_classes else None)
+                        else:
+                            # Module 5 (Ready) → "Entrar a la Arena"
+                            next_btn = gr.Button("Entrar a la Arena", variant="primary", size="lg")
+
+                    module_cols.append(col)
+                    module_next_btns.append(next_btn)
+                    module_back_btns.append(back_btn)
+
+            # ---------- Arena column ----------
+            with gr.Column(visible=False, elem_id="model-step") as arena_col:
+                gr.Markdown("<h1 style='text-align:center;'>Arena de Construcción de Modelos</h1>")
+
+                # Session auth state objects
+                username_state = gr.State(None)
+                token_state = gr.State(None)
+                team_name_state = gr.State(None)
+                last_submission_score_state = gr.State(0.0)
+                last_rank_state = gr.State(0)
+                best_score_state = gr.State(0.0)
+                submission_count_state = gr.State(0)
+                first_submission_score_state = gr.State(None)
+                readiness_state = gr.State(False)
+                was_preview_state = gr.State(False)
+                kpi_meta_state = gr.State({})
+                last_seen_ts_state = gr.State(None)
+
+                # Buffered states for dynamic inputs
+                model_type_state = gr.State(DEFAULT_MODEL)
+                complexity_state = gr.State(2)
+                feature_set_state = gr.State(DEFAULT_FEATURE_SET)
+                data_size_state = gr.State(DEFAULT_DATA_SIZE)
+
+                rank_message_display = gr.Markdown("### Cargando rango...")
+
+                with gr.Row():
+                    with gr.Column(scale=1):
+                        model_type_radio = gr.Radio(
+                            label="1. Estrategia de Modelo",
+                            choices=[(MODEL_DISPLAY_MAP.get(k, k), k) for k in MODEL_TYPES.keys()],
+                            value=DEFAULT_MODEL,
+                            interactive=False
+                        )
+                        model_card_display = gr.Markdown(get_model_card(DEFAULT_MODEL))
+                        gr.Markdown("---")
+
+                        complexity_slider = gr.Slider(
+                            label="2. Profundidad del Modelo (1 = reglas simples, 10 = patrones muy detallados)",
+                            minimum=1, maximum=3, step=1, value=2,
+                            info="Bajo = tu IA aprende reglas simples y seguras. Alto = intenta aprender cada mínimo detalle, pero puede confundirse con el ruido."
+                        )
+                        complexity_tooltip = gr.HTML(
+                            value="<div style='background:var(--background-fill-secondary); padding:10px 14px; border-radius:8px; border:1px solid var(--border-color-primary); margin-top:4px; font-size:0.9rem;'><b>Nivel 2:</b> Equilibrado — tu modelo aprende patrones útiles sin memorizar los datos.</div>"
+                        )
+                        gr.Markdown("---")
+
+                        feature_set_checkbox = gr.CheckboxGroup(
+                            label="3. Selecciona Ingredientes de Datos",
+                            choices=FEATURE_SET_ALL_OPTIONS,
+                            value=DEFAULT_FEATURE_SET,
+                            interactive=False,
+                            info="¡Se desbloquean más ingredientes al subir de rango!"
+                        )
+                        gr.Markdown("---")
+
+                        data_size_radio = gr.Radio(
+                            label="4. Tamaño de Datos",
+                            choices=[(DATA_SIZE_DISPLAY_MAP.get(DEFAULT_DATA_SIZE, DEFAULT_DATA_SIZE), DEFAULT_DATA_SIZE)],
+                            value=DEFAULT_DATA_SIZE,
+                            interactive=False
+                        )
+                        gr.Markdown("---")
+
+                        attempts_tracker_display = gr.HTML(
+                            value="<div style='text-align:center; padding:8px; margin:8px 0; background:#f0f9ff; border-radius:8px; border:1px solid #bae6fd;'>"
+                            "<p style='margin:0; color:#0369a1; font-weight:600; font-size:1rem;'>Intentos utilizados: 0/10</p>"
+                            "</div>",
+                            visible=True
+                        )
+
+                        submit_button = gr.Button(
+                            value="5. Construye y Envía Modelo",
+                            variant="primary",
+                            size="lg"
+                        )
+
+                    with gr.Column(scale=1):
+                        gr.HTML(
+                            "<div class='leaderboard-box'>"
+                            "<h3 style='margin-top:0;'>Clasificación en Vivo</h3>"
+                            "<p style='margin:0;'>Envía un modelo para ver tu posición.</p>"
+                            "</div>"
+                        )
+
+                        submission_feedback_display = gr.HTML(
+                            "<p style='text-align:center; color:#6b7280; padding:20px 0;'>¡Envía tu primer modelo para recibir retroalimentación!</p>"
+                        )
+
+                        # Inline login (hidden by default)
+                        login_username = gr.Textbox(label="Nombre de usuario",
+                                                    placeholder="Introduce tu usuario de modelshare.ai",
+                                                    visible=False)
+                        login_password = gr.Textbox(label="Contraseña", type="password",
+                                                    placeholder="Introduce tu contraseña",
+                                                    visible=False)
+                        login_submit = gr.Button("Iniciar Sesión y Enviar", variant="primary",
+                                                 visible=False)
+                        login_error = gr.HTML(value="", visible=False)
+
+                        with gr.Tabs():
+                            with gr.TabItem("Clasificación por Equipos"):
+                                team_leaderboard_display = gr.HTML(
+                                    "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Envía un modelo para ver la clasificación por equipos.</p>"
+                                )
+                            with gr.TabItem("Clasificación Individual"):
+                                individual_leaderboard_display = gr.HTML(
+                                    "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Envía un modelo para ver la clasificación individual.</p>"
+                                )
+
+                with gr.Row():
+                    arena_back_btn = gr.Button("Volver a las Instrucciones", size="lg")
+                    arena_finish_btn = gr.Button("Finalizar y Reflexionar", variant="secondary", size="lg")
+
+            # ---------- Conclusion column ----------
+            with gr.Column(visible=False, elem_id="conclusion-step") as conclusion_col:
+                gr.Markdown("<h1 style='text-align:center;'>Sección Completada</h1>")
+                final_score_display = gr.HTML(value="<p>Preparando resumen final...</p>")
+                conclusion_back_btn = gr.Button("Volver al Experimento")
+
+        # ==================================================================
+        # NAVIGATION WIRING
+        # ==================================================================
+
+        all_panels = module_cols + [arena_col, conclusion_col, loader_col]
+
+        def make_nav(target):
+            """Return fn that shows *target* and hides everything else."""
+            def _nav():
+                return [gr.update(visible=(p is target)) for p in all_panels]
+            return _nav
+
+        def nav_js(target_id, message, min_show_ms=1200, notify_parent=False):
+            notification_code = ""
+            if notify_parent:
+                notification_code = "try { window.parent.postMessage('model-updated', '*'); } catch(e) { console.warn(e); }"
+            return f"""
+            ()=>{{
+              {notification_code}
+              try {{
+                const overlay = document.getElementById('nav-loading-overlay');
+                const messageEl = document.getElementById('nav-loading-text');
+                if(overlay && messageEl) {{
+                  messageEl.textContent = '{message}';
+                  overlay.style.display = 'flex';
+                  setTimeout(() => {{ overlay.style.opacity = '1'; }}, 10);
+                }}
+                const startTime = Date.now();
+                setTimeout(() => {{
+                  const anchor = document.getElementById('app_top_anchor');
+                  const container = document.querySelector('.gradio-container') || document.scrollingElement || document.documentElement;
+                  function doScroll() {{
+                    if(anchor) {{ anchor.scrollIntoView({{behavior:'smooth', block:'start'}}); }}
+                    else {{ container.scrollTo({{top:0, behavior:'smooth'}}); }}
+                    try {{
+                      if(window.parent && window.parent !== window && window.frameElement) {{
+                        const top = window.frameElement.getBoundingClientRect().top + window.parent.scrollY;
+                        window.parent.scrollTo({{top: Math.max(top - 10, 0), behavior:'smooth'}});
+                      }}
+                    }} catch(e2) {{}}
+                  }}
+                  doScroll();
+                  let scrollAttempts = 0;
+                  const scrollInterval = setInterval(() => {{
+                    scrollAttempts++;
+                    doScroll();
+                    if(scrollAttempts >= 3) clearInterval(scrollInterval);
+                  }}, 130);
+                }}, 40);
+                const targetId = '{target_id}';
+                const minShowMs = {min_show_ms};
+                let pollCount = 0;
+                const maxPolls = 77;
+                const pollInterval = setInterval(() => {{
+                  pollCount++;
+                  const elapsed = Date.now() - startTime;
+                  const target = document.getElementById(targetId);
+                  const isVisible = target && target.offsetParent !== null &&
+                                       window.getComputedStyle(target).display !== 'none';
+                  if((isVisible && elapsed >= minShowMs) || pollCount >= maxPolls) {{
+                    clearInterval(pollInterval);
+                    if(overlay) {{
+                      overlay.style.opacity = '0';
+                      setTimeout(() => {{ overlay.style.display = 'none'; }}, 300);
+                    }}
+                  }}
+                }}, 90);
+              }} catch(e) {{ console.warn('nav-js error', e); }}
+            }}
+            """
+
+        # --- Module prev/next ---
+        for i in range(len(MODULES)):
+            # Next button
+            if i < len(MODULES) - 1:
+                module_next_btns[i].click(
+                    fn=make_nav(module_cols[i + 1]),
+                    inputs=None, outputs=all_panels,
+                    js=nav_js(f"ob-mod-{i+1}", "Cargando siguiente sección...")
+                )
+            else:
+                # Module 5 → Arena
+                module_next_btns[i].click(
+                    fn=make_nav(arena_col),
+                    inputs=None, outputs=all_panels,
+                    js=nav_js("model-step", "Entrando a la arena de modelos...")
+                )
+            # Back button
+            if i > 0:
+                module_back_btns[i].click(
+                    fn=make_nav(module_cols[i - 1]),
+                    inputs=None, outputs=all_panels,
+                    js=nav_js(f"ob-mod-{i-1}", "Volviendo atrás...")
+                )
+
+        # Arena back → Module 5
+        arena_back_btn.click(
+            fn=make_nav(module_cols[5]),
+            inputs=None, outputs=all_panels,
+            js=nav_js("ob-mod-5", "Volviendo a las instrucciones...")
+        )
+
+        # Arena finish → Conclusion
+        def finalize_and_show_conclusion(best_score, submissions, rank, first_score, feature_set):
+            html = build_final_conclusion_html(best_score, submissions, rank, first_score, feature_set)
+            vis = [gr.update(visible=(p is conclusion_col)) for p in all_panels]
+            return vis + [html]
+
+        arena_finish_btn.click(
+            fn=finalize_and_show_conclusion,
+            inputs=[best_score_state, submission_count_state, last_rank_state,
+                    first_submission_score_state, feature_set_state],
+            outputs=all_panels + [final_score_display],
+            js=nav_js("conclusion-step", "Generando resumen de rendimiento...")
+        )
+
+        # Conclusion back → Arena
+        conclusion_back_btn.click(
+            fn=make_nav(arena_col),
+            inputs=None, outputs=all_panels,
+            js=nav_js("model-step", "Volviendo al espacio de trabajo del experimento...")
+        )
+
+        # ==================================================================
+        # ARENA CONTROL EVENTS
+        # ==================================================================
+
+        model_type_radio.change(fn=get_model_card, inputs=model_type_radio, outputs=model_card_display)
+        model_type_radio.change(fn=lambda v: v or DEFAULT_MODEL, inputs=model_type_radio, outputs=model_type_state)
+
+        def _complexity_tooltip(v):
+            if v <= 3:
+                desc = "Patrones generales — tu modelo aprende reglas amplias. Punto de partida seguro."
+            elif v <= 7:
+                desc = "Equilibrado — tu modelo aprende patrones útiles sin memorizar los datos."
+            else:
+                desc = "Memorizando detalles — alta precisión con datos de entrenamiento, pero arriesgado con edificios nuevos."
+            return f"<div style='background:var(--background-fill-secondary); padding:10px 14px; border-radius:8px; border:1px solid var(--border-color-primary); margin-top:4px; font-size:0.9rem;'><b>Nivel {int(v)}:</b> {desc}</div>"
+
+        complexity_slider.change(fn=lambda v: v, inputs=complexity_slider, outputs=complexity_state)
+        complexity_slider.change(fn=_complexity_tooltip, inputs=complexity_slider, outputs=complexity_tooltip)
+        feature_set_checkbox.change(fn=lambda v: v or [], inputs=feature_set_checkbox, outputs=feature_set_state)
+        data_size_radio.change(fn=lambda v: v or DEFAULT_DATA_SIZE, inputs=data_size_radio, outputs=data_size_state)
+
+        # All outputs that run_experiment yields into
+        all_outputs = [
+            submission_feedback_display,
+            team_leaderboard_display,
+            individual_leaderboard_display,
+            last_submission_score_state,
+            last_rank_state,
+            best_score_state,
+            submission_count_state,
+            first_submission_score_state,
+            rank_message_display,
+            model_type_radio,
+            complexity_slider,
+            feature_set_checkbox,
+            data_size_radio,
+            submit_button,
+            login_username,
+            login_password,
+            login_submit,
+            login_error,
+            attempts_tracker_display,
+            was_preview_state,
+            kpi_meta_state,
+            last_seen_ts_state
+        ]
+
+        # Wire login
+        login_submit.click(
+            fn=perform_inline_login,
+            inputs=[login_username, login_password],
+            outputs=[
+                login_username, login_password, login_submit, login_error,
+                submit_button, submission_feedback_display,
+                team_name_state, username_state, token_state
+            ]
+        )
+
+        # Wire submit
+        submit_button.click(
+            fn=run_experiment,
+            inputs=[
+                model_type_state, complexity_state, feature_set_state, data_size_state,
+                team_name_state, last_submission_score_state, last_rank_state,
+                submission_count_state, first_submission_score_state, best_score_state,
+                username_state, token_state, readiness_state, was_preview_state,
+            ],
+            outputs=all_outputs,
+            show_progress="full",
+            js=nav_js("model-step", "Ejecutando experimento...", 500, notify_parent=False),
+            api_name="predict"
+        ).then(
+            fn=None, inputs=None, outputs=None,
+            js="() => { try { window.parent.postMessage('model-updated', '*'); console.log('Submission complete. Notifying parent.'); } catch(e) { console.warn(e); } }"
+        )
+
+        # ==================================================================
+        # SESSION AUTH ON LOAD
+        # ==================================================================
+
+        def handle_load_with_session_auth(request: "gr.Request"):
+            success, username, token = _try_session_based_auth(request)
+            if success and username and token:
+                _log(f"Session auth successful on load for {username}")
+                stats = _compute_user_stats(username, token)
+                team_name = stats.get("team_name", "")
+                initial_results = on_initial_load(username, token=token, team_name=team_name)
+                return initial_results + (
+                    gr.update(visible=False),  # login_username
+                    gr.update(visible=False),  # login_password
+                    gr.update(visible=False),  # login_submit
+                    gr.update(visible=False),  # login_error
+                    username,                  # username_state
+                    token,                     # token_state
+                    team_name,                 # team_name_state
+                    gr.update(visible=False),  # loader_col
+                    gr.update(visible=True),   # main_app_col
+                )
+            else:
+                _log("No valid session on load, showing login form")
+                initial_results = on_initial_load(None, token=None, team_name="")
+                return initial_results + (
+                    gr.update(visible=True),   # login_username
+                    gr.update(visible=True),   # login_password
+                    gr.update(visible=True),   # login_submit
+                    gr.update(visible=False),  # login_error
+                    None,                      # username_state
+                    None,                      # token_state
+                    "",                        # team_name_state
+                    gr.update(visible=False),  # loader_col
+                    gr.update(visible=True),   # main_app_col
+                )
+
+        demo.load(
+            fn=handle_load_with_session_auth,
+            inputs=None,
+            outputs=[
+                # on_initial_load returns 17 values:
+                model_card_display,
+                team_leaderboard_display,
+                individual_leaderboard_display,
+                rank_message_display,
+                model_type_radio,
+                complexity_slider,
+                feature_set_checkbox,
+                data_size_radio,
+                model_type_state,
+                complexity_state,
+                feature_set_state,
+                data_size_state,
+                submission_count_state,
+                best_score_state,
+                last_rank_state,
+                last_submission_score_state,
+                readiness_state,
+                # Session auth (7):
+                login_username,
+                login_password,
+                login_submit,
+                login_error,
+                username_state,
+                token_state,
+                team_name_state,
+                # Loader / main visibility (2):
+                loader_col,
+                main_app_col,
+            ]
+        )
+
+    return demo
+
+
+# -------------------------------------------------------------------------
+# 4. Convenience Launcher
+# -------------------------------------------------------------------------
+
+def launch_model_building_game_es_sustainability_app(height: int = 1200, share: bool = False, debug: bool = False) -> None:
+    """
+    Create and directly launch the Model Building Game app v5.0.
+    """
+    global playground
+    if playground is None:
+        try:
+            playground = Competition(MY_PLAYGROUND_ID)
+        except Exception as e:
+            print(f"WARNING: Could not connect to playground: {e}")
+            playground = None
+
+    demo = create_model_building_game_es_sustainability_app()
+
+    port = int(os.environ.get("PORT", 8080))
+    demo.launch(share=share, inline=True, debug=debug, height=height, server_port=port)
