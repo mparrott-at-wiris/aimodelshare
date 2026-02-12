@@ -1793,23 +1793,8 @@
             }
         }
 
-        // ——— E2-3: CITY-SPECIFIC FEATURE FEEDBACK ———
+        // ——— E2-3: CITY-SPECIFIC FEATURE FEEDBACK (disabled — green text is sufficient) ———
         function getCityFeatureFeedback(featureId) {
-            const j = getJourney();
-            const cityName = j?.city?.name;
-            if (!cityName) return null;
-
-            const climate = getCityClimate(cityName);
-
-            if (featureId === 'weather' && climate) {
-                return `<strong>${cityName}</strong> has ${climate.desc}. Weather data will help your AI understand seasonal energy spikes.`;
-            }
-            if (featureId === 'floor_area') {
-                return `<strong>${cityName}</strong>'s buildings range from small homes to large commercial towers. Floor area is critical for understanding energy scale.`;
-            }
-            if (featureId === 'year') {
-                return `Many buildings in <strong>${cityName}</strong> were built decades ago with poor insulation. Year built helps the AI identify aging infrastructure.`;
-            }
             return null;
         }
 
