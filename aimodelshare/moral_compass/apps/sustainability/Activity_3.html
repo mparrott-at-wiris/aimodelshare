@@ -959,7 +959,8 @@
                 <h2>🔬 Testing the AI</h2>
 
                 <div class="step-card step-card-purple">
-                    <p style="text-align:center; margin-bottom:16px;">The AI trained on buildings. But how do we prove it <strong>actually learned</strong>?</p>
+                    <p style="text-align:center; font-size:1.1rem; color:var(--text); margin-bottom:8px;">The AI trained on buildings. But how do we prove it <strong>actually learned</strong>?</p>
+                    <p style="text-align:center; font-size:1.3rem; font-weight:700; color:var(--accent); margin-bottom:16px;">We split the data!</p>
 
                     <div style="text-align:center;">
                         <div class="building-grid" id="buildingGrid"></div>
@@ -974,13 +975,13 @@
                             <div style="text-align:center; flex:3; min-width:140px; padding:16px; border-radius:12px; background:rgba(56,189,248,0.15); border:2px solid var(--blue-accent);">
                                 <div style="font-size:2rem;">📚</div>
                                 <div style="font-weight:700; color:var(--blue-accent);">75% Training</div>
-                                <div style="font-size:0.85rem; color:var(--text-dim); margin-top:4px;">AI learns from these</div>
+                                <div style="font-size:0.85rem; color:var(--text-dim); margin-top:4px;">We give the model these buildings to practice on. It studies them and learns the patterns.</div>
                             </div>
                             <div style="font-size:1.5rem; color:var(--text-dim); display:flex; align-items:center;">→</div>
                             <div style="text-align:center; flex:1; min-width:140px; padding:16px; border-radius:12px; background:rgba(16,185,129,0.15); border:2px solid var(--green-accent);">
                                 <div style="font-size:2rem;">🔒</div>
                                 <div style="font-weight:700; color:var(--green-accent);">25% Test</div>
-                                <div style="font-size:0.85rem; color:var(--text-dim); margin-top:4px;">Hidden for real testing</div>
+                                <div style="font-size:0.85rem; color:var(--text-dim); margin-top:4px;">We hide these buildings from the model. Then we ask it to predict them — if it gets them right, it really learned!</div>
                             </div>
                         </div>
                     </div>
@@ -1023,31 +1024,19 @@
                         Adjust the inputs and see how the prediction changes!</p>
                 </div>
 
-                <!-- E3-4: Cumulative impact counter -->
-                <div class="impact-counter" id="impactCounter" style="display:none;">
-                    <div class="impact-counter-item">
-                        <div class="impact-counter-value" id="buildingsAnalyzed">0</div>
-                        <div class="impact-counter-label">Buildings Analyzed</div>
-                    </div>
-                    <div class="impact-counter-item">
-                        <div class="impact-counter-value" id="potentialSavings">0</div>
-                        <div class="impact-counter-label">Tonnes CO₂ Savings Identified</div>
-                    </div>
-                </div>
-
                 <!-- INPUT section -->
                 <div class="demo-section">
                     <div class="demo-title">1️⃣ <span class="mono">INPUT</span>: Adjust the Data</div>
 
                     <div class="input-row">
                         <div class="input-group">
-                            <label>Year Built <span class="slider-value" id="ageValue">2000</span></label>
-                            <input type="range" id="ageSlider" min="1920" max="2024" value="2000"
+                            <label>Year Built <span class="slider-value" id="ageValue">1950</span></label>
+                            <input type="range" id="ageSlider" min="1920" max="2024" value="1950"
                                 oninput="updateSlider('age', this.value)">
                         </div>
                         <div class="input-group">
-                            <label>Floor Area (m²) <span class="slider-value" id="areaValue">4,650</span></label>
-                            <input type="range" id="areaSlider" min="5" max="200" value="50"
+                            <label>Floor Area (m²) <span class="slider-value" id="areaValue">12,090</span></label>
+                            <input type="range" id="areaSlider" min="5" max="200" value="130"
                                 oninput="updateSlider('area', this.value)">
                         </div>
                     </div>
@@ -1056,8 +1045,8 @@
                         <label>Climate Zone</label>
                         <select id="climateSelect">
                             <option value="cold">Cold (High Heating Needs)</option>
-                            <option value="moderate" selected>Moderate</option>
-                            <option value="hot">Hot (High Cooling Needs)</option>
+                            <option value="moderate">Moderate</option>
+                            <option value="hot" selected>Hot (High Cooling Needs)</option>
                         </select>
                     </div>
                 </div>
@@ -1111,7 +1100,7 @@
                     <button class="btn secondary" onclick="goToStep(4)">◀ Back</button>
                     <button class="btn" id="step5-next" onclick="goToStep(6)" disabled>Complete This Section ▶</button>
                 </div>
-                <div class="gate-hint" id="step5-gate-hint">Run a prediction and answer the quiz to continue</div>
+                <div class="gate-hint" id="step5-gate-hint">Run at least one prediction to continue</div>
             </div>
 
             <!-- ============================================================ -->
@@ -1329,7 +1318,7 @@
             // E3-2: Personalize demo heading
             document.getElementById('step5Heading').innerHTML = `🎮 Predict a Building in ${cityName}`;
             document.getElementById('step5Intro').innerHTML =
-                `<b>Use a simple AI model to predict building energy efficiency.</b><br>Imagine a school in <strong>${cityName}</strong>'s downtown with 4,645 m² — adjust the inputs and see how the prediction changes!`;
+                `<b>Use a simple AI model to predict building energy efficiency.</b> Adjust the inputs and see how the prediction changes!`;
 
             // E3-2: Pre-set climate zone
             const climateZone = getCityClimateZone(cityName);
@@ -1814,11 +1803,22 @@
                 const carsEquiv = Math.max(1, Math.round(co2PerBuilding / 4.6));
                 const topBuildingsReduction = co2PerBuilding * 100;
                 impactHTML = `
-                    <div style="margin-top:12px; background:rgba(16,185,129,0.1); border-left:3px solid #10b981; padding:12px; border-radius:0 8px 8px 0;">
-                        <p style="margin:0; font-size:0.9rem; color:var(--text);">
-                            <strong>Impact in ${cityName}:</strong> A building like this wastes ~${wastePerBuilding} kWh/m² above efficient baseline.
-                            If the top 100 buildings like this were retrofitted, <strong>${cityName}</strong> could save <strong>~${topBuildingsReduction.toLocaleString()} tonnes</strong> of CO₂ — equivalent to <strong>${(carsEquiv * 100).toLocaleString()} cars</strong> off the road.
+                    <div style="margin-top:20px; background:rgba(16,185,129,0.12); border:2px solid #10b981; padding:20px; border-radius:12px; text-align:center;">
+                        <div style="font-size:1.15rem; font-weight:700; color:#10b981; margin-bottom:12px;">🌍 Impact in ${cityName}</div>
+                        <p style="margin:0 0 16px; font-size:0.95rem; color:var(--text);">
+                            A building like this wastes <strong>~${wastePerBuilding} kWh/m²</strong> more than an efficient building.
                         </p>
+                        <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
+                            <div style="background:var(--card-bg); padding:14px 20px; border-radius:10px; min-width:140px;">
+                                <div style="font-size:1.5rem; font-weight:700; color:#10b981;">~${topBuildingsReduction.toLocaleString()}</div>
+                                <div style="font-size:0.8rem; color:var(--text-dim);">tonnes CO₂ saved</div>
+                                <div style="font-size:0.75rem; color:var(--text-dim); margin-top:2px;">if top 100 buildings upgraded</div>
+                            </div>
+                            <div style="background:var(--card-bg); padding:14px 20px; border-radius:10px; min-width:140px;">
+                                <div style="font-size:1.5rem; font-weight:700; color:#10b981;">${(carsEquiv * 100).toLocaleString()}</div>
+                                <div style="font-size:0.8rem; color:var(--text-dim);">cars off the road</div>
+                            </div>
+                        </div>
                     </div>`;
             }
 
@@ -1826,9 +1826,8 @@
             output.innerHTML = `
                 <div class="prediction-card fade-in" style="border-color:${color};">
                     <h2 class="prediction-title" style="color:${color};">${emoji} ${efficiency}</h2>
-                    <p class="prediction-score">Efficiency Score: ${normalizedScore}/10</p>
                     <p style="font-size:0.95rem; margin-top:15px; color:var(--text-dim);">
-                        ${efficiency === "Low Efficiency" ? "This building likely needs energy retrofits" :
+                        ${efficiency === "Low Efficiency" ? "This building likely needs energy upgrades" :
                           efficiency === "Medium Efficiency" ? "This building has moderate energy performance" :
                           "This building is energy efficient!"}
                     </p>
@@ -1851,6 +1850,12 @@
 
             // Show challenge card after first prediction
             document.getElementById('challengeCard').classList.add('visible');
+
+            // Enable completion after first prediction
+            if (state.step5Predictions === 1) {
+                document.getElementById('step5-next').disabled = false;
+                document.getElementById('step5-gate-hint').style.display = 'none';
+            }
 
             // Show quiz after first prediction
             document.getElementById('step5Quiz').style.display = 'block';
