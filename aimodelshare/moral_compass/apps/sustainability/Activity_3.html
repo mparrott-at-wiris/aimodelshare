@@ -921,7 +921,7 @@
                             <div class="flow-arrow" style="font-size:1.5rem; color:var(--text-dim); display:flex; align-items:center;">→</div>
                             <div class="flow-box flow-box-animated" id="flow-4"
                                 style="background:rgba(251,191,36,0.15); color:var(--amber-accent);">
-                                4. ADJUST<br>WEIGHTS
+                                4. ADJUST<br>SETTINGS
                             </div>
                             <div class="flow-arrow" style="font-size:1.5rem; color:var(--text-dim); display:flex; align-items:center;">→</div>
                             <div class="flow-box flow-box-animated" id="flow-5"
@@ -940,7 +940,7 @@
 
                     <div id="step3-post-animation" style="display:none; animation: fadeIn 0.5s ease;">
                         <div class="highlight-box" style="text-align:center;">
-                            <p style="margin:0;">Each round, the AI adjusts its internal rules (<strong>weights</strong>) to get better. It learns <strong>how much</strong> each feature matters.</p>
+                            <p style="margin:0;">Each round, the AI adjusts its internal settings to get better. It learns <strong>how much</strong> each feature matters.</p>
                         </div>
                     </div>
                 </div>
@@ -1627,13 +1627,13 @@
         const TRAINING_CYCLES = [
             { labels: ['Starting...', 'Accuracy: 47%', 'Accuracy: 62%', 'Accuracy: 78%', 'Accuracy: 91%'],
               colors: ['var(--text-dim)', 'var(--error)', 'var(--warning)', 'var(--accent)', 'var(--success)'],
-              btnText: '▶ Train Again (+more data)', finalAcc: '91%', hint: 'Good start — but can we do better with more training?' },
+              btnText: '▶ Train Again (+more data)', finalAcc: '91%', hint: 'The AI model predicted 91 out of every 100 buildings correctly. Good start — but can we do better with more training?' },
             { labels: ['Resuming at 91%...', 'Accuracy: 92%', 'Accuracy: 93%', 'Accuracy: 94%', 'Accuracy: 95%'],
               colors: ['var(--text-dim)', 'var(--accent)', 'var(--accent)', 'var(--accent)', 'var(--success)'],
-              btnText: '▶ Train One More Time', finalAcc: '95%', hint: 'Improving — but notice the gains are getting smaller.' },
+              btnText: '▶ Train One More Time', finalAcc: '95%', hint: '95 out of every 100 correct. Improving — but notice the gains are getting smaller.' },
             { labels: ['Resuming at 95%...', 'Accuracy: 95.5%', 'Accuracy: 96%', 'Accuracy: 96.5%', 'Accuracy: 97%'],
               colors: ['var(--text-dim)', 'var(--accent)', 'var(--accent)', 'var(--accent)', 'var(--success)'],
-              btnText: null, finalAcc: '97%', hint: 'Diminishing returns — more training barely helps. The model has learned most of what the data can teach.' }
+              btnText: null, finalAcc: '97%', hint: '97 out of every 100 correct. More training barely helps now. The model has learned most of what the data can teach.' }
         ];
 
         function runTrainingAnimation() {
