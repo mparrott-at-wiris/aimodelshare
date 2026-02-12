@@ -1497,11 +1497,12 @@
                 </div>
             </div>
 
-            <!-- STEP 4: DATA REQUEST -->
+            <!-- STEP 4: FIND THE DATA -->
             <div class="mission-step" id="step-4">
-                <h2>🗄️ Step 4: Submit Data Request</h2>
-                <p>Now that you've designed your AI system, you need training data that matches your plan &mdash;
-                    enough examples for the AI to learn patterns.</p>
+                <h2>🗄️ Step 4: Find the Data</h2>
+                <p>Now that you've designed your AI system, you need data that matches your plan &mdash;
+                    enough real building records for it to learn patterns.</p>
+                <p style="font-size:0.9rem; color:var(--text-dim); margin-top:6px;">We'll search a public database of real building energy records from the National Renewable Energy Laboratory (NREL).</p>
 
                 <div id="dataRequirements" style="margin: 25px 0;"></div>
 
@@ -1781,7 +1782,7 @@
                 const tenPctReduction = Math.round(buildingSectorEstimate * 0.1);
                 document.getElementById('impactProjection').style.display = 'block';
                 document.getElementById('impactProjectionText').innerHTML =
-                    `If your AI identifies the worst 10% of buildings, retrofitting them could cut <strong>${cityName}</strong>'s building emissions by <strong>~${tenPctReduction.toLocaleString()} tonnes/year</strong>.`;
+                    `If your AI system identifies the worst 10% of buildings, upgrading them could cut <strong>${cityName}</strong>'s building emissions by <strong>~${tenPctReduction.toLocaleString()} tonnes/year</strong>.`;
             }
 
             // E2-5: Journey timeline city choice
@@ -2195,11 +2196,6 @@
                         <span class="card-label">Prediction</span>
                         <span class="card-value">EUI &mdash; energy per m²</span>
                     </div>
-                    <div class="data-req-card">
-                        <span class="card-icon">📦</span>
-                        <span class="card-label">Min. Records</span>
-                        <span class="card-value">50,000+ buildings</span>
-                    </div>
                 </div>`;
             document.getElementById('dataRequirements').innerHTML = grid;
 
@@ -2212,7 +2208,7 @@
                 const projText = document.getElementById('impactProjectionText');
                 if (projEl && projText) {
                     projText.innerHTML =
-                        `If your AI identifies the worst 10% of buildings, retrofitting them could cut <strong>${cityName}</strong>'s building emissions by <strong>~${tenPctReduction.toLocaleString()} tonnes/year</strong>.`;
+                        `If your AI system identifies the worst 10% of buildings, upgrading them could cut <strong>${cityName}</strong>'s building emissions by <strong>~${tenPctReduction.toLocaleString()} tonnes/year</strong>.`;
                     projEl.style.display = 'block';
                 }
             }
@@ -2230,18 +2226,17 @@
 
             // Build dynamic search steps based on student's selected features
             const featureMeta = {
-                floor_area: { icon: '🔍', label: 'Floor Area', match: 98, records: '98,000' },
-                weather: { icon: '🌡️', label: 'Weather Data', match: 72, records: '72,000', note: 'some gaps in rural stations' },
-                year: { icon: '📅', label: 'Year Built', match: 85, records: '85,000' }
+                floor_area: { icon: '🔍', label: 'Floor Area', status: 'Available' },
+                weather: { icon: '🌡️', label: 'Weather Data', status: 'Available (some gaps in rural areas)' },
+                year: { icon: '📅', label: 'Year Built', status: 'Available' }
             };
 
             const selectedFeatures = Array.from(projectData.selectedFeatures);
             const searchSteps = selectedFeatures.map((f, i) => {
                 const meta = featureMeta[f];
-                return { id: `dyn-load-${i}`, icon: meta.icon, label: meta.label, match: meta.match, records: meta.records, note: meta.note };
+                return { id: `dyn-load-${i}`, icon: meta.icon, label: meta.label, status: meta.status };
             });
-            searchSteps.push({ id: 'dyn-load-eui', icon: '📊', label: 'EUI records', match: 100, records: '100,000' });
-            searchSteps.push({ id: 'dyn-load-nrel', icon: '🗄️', label: 'NREL database', match: null });
+            searchSteps.push({ id: 'dyn-load-nrel', icon: '🗄️', label: 'NREL database', status: 'Connected' });
 
             const totalSteps = searchSteps.length;
 
@@ -2279,12 +2274,7 @@
                     el.classList.add('done');
                     const statusEl = el.querySelector('.row-status');
                     statusEl.classList.remove('scanning-text');
-                    if (s.match !== null) {
-                        const suffix = s.note ? ` (${s.note})` : '';
-                        statusEl.textContent = `✓ ${s.records} records (${s.match}%)${suffix}`;
-                    } else {
-                        statusEl.textContent = '✓ Connected';
-                    }
+                    statusEl.textContent = `✓ ${s.status}`;
                     progressFill.style.width = `${((i + 1) / totalSteps) * 100}%`;
                 }, delay);
             });
@@ -2307,9 +2297,8 @@
                     <div class="record-count" id="matchRecordCount">${animate ? '0' : '100,000'}</div>
                     <div class="record-label">building records from NREL (National Renewable Energy Laboratory)</div>
                     <div class="match-stat-pills">
-                        <div class="match-stat-pill"><strong>📍 Coverage:</strong> US (NY, IL, WA)</div>
                         <div class="match-stat-pill"><strong>✓ Features:</strong> ${featureList}, EUI</div>
-                        <div class="match-stat-pill"><strong>🎯 Purpose:</strong> Efficiency prediction</div>
+                        <div class="match-stat-pill"><strong>✓ Match:</strong> Includes all your selected features</div>
                     </div>
                     <button class="btn" style="background: var(--success); width: 100%;" onclick="goToStep(5)">CONTINUE TO SUMMARY</button>
                 </div>`;
@@ -2358,14 +2347,9 @@
                         <span class="card-label">Prediction</span>
                         <span class="card-value">EUI &mdash; energy per m²</span>
                     </div>
-                    <div class="data-req-card">
-                        <span class="card-icon">📦</span>
-                        <span class="card-label">Min. Records</span>
-                        <span class="card-value">50,000+ buildings</span>
-                    </div>
                     <div class="data-req-card card-wide">
                         <span class="card-icon">🗄️</span>
-                        <span class="card-label">Training Dataset</span>
+                        <span class="card-label">Dataset</span>
                         <span class="card-value">100,000 records &middot; NREL &middot; Status: <span style="color: var(--success);">✓ READY</span></span>
                     </div>
                 </div>`;
