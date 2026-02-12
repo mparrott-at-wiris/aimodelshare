@@ -1398,7 +1398,7 @@
             <!-- STEP 3: DEFINE ENERGY SCORE (EUI) -->
             <div class="mission-step" id="step-3">
                 <h2>📊 Step 3: Define the Energy Score</h2>
-                <p>Should an AI compare buildings by <span class="highlight-text">total energy used</span>, or <span class="highlight-text">energy per square metre</span>?</p>
+                <p>Should your AI system compare buildings by <span class="highlight-text">total energy used</span>, or <span class="highlight-text">energy per square metre</span>?</p>
 
                 <div class="ai-design-panel">
                     <div class="design-label">What Should Your AI System Predict?</div>
@@ -1425,9 +1425,7 @@
 
                 <!-- Revealed after correct choice -->
                 <div id="euiExplainer" style="display: none;">
-                    <p>This score is called <span class="highlight-text">EUI</span> (Energy Use Intensity) &mdash; like litres per 100 km, but for buildings. Each building's energy is measured in <strong>energy units</strong> per year (think of them like calories, but for a building instead of a person). Let's see it in action.</p>
-
-                    <p style="font-size: 1rem; font-weight: 600; color: var(--accent); margin: 16px 0 4px 0;">Which building wastes more energy per square metre? Pick one.</p>
+                    <h3 style="text-align: center; color: var(--accent); margin: 16px 0 8px 0;">Which building wastes more energy per square metre? Pick one.</h3>
 
                     <!-- Round 1 -->
                     <div class="matchup-round" id="matchup-1">
@@ -1488,7 +1486,7 @@
                         <p style="font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: 8px;">That's the power of EUI</p>
                         <div class="eui-formula">Energy Used &divide; Building Size = EUI</div>
                         <p style="font-size: 0.95rem; color: var(--text-dim); margin-top: 8px;"><strong style="color: var(--error);">High EUI = wasteful</strong> &mdash; the building burns through a lot of energy for its size.<br><strong style="color: var(--success);">Low EUI = efficient</strong> &mdash; the building makes good use of every square metre.</p>
-                        <p style="font-size: 0.95rem; color: var(--text-dim); margin-top: 8px;">Without this score, a big warehouse <em>always</em> looks worse than a tiny shop &mdash; even when the shop wastes 8&times; more per square metre. Your AI will use EUI to spot the real energy wasters.</p>
+                        <p style="font-size: 0.95rem; color: var(--text-dim); margin-top: 8px;">Without this score, a big warehouse <em>always</em> looks worse than a tiny shop &mdash; even when the shop wastes 8&times; more per square metre. Your AI system will use EUI to spot the real energy wasters.</p>
                     </div>
                 </div>
 
@@ -2040,7 +2038,7 @@
                 totalCard.classList.add('incorrect');
                 fb.style.background = 'rgba(16, 185, 129, 0.1)';
                 fb.style.borderLeft = '4px solid var(--success)';
-                fb.innerHTML = '<p style="margin:0; color:var(--text);"><strong style="color:var(--success);">Correct!</strong> EUI makes it fair to compare buildings of different sizes, just like litres per 100 km lets you compare cars of different sizes. Let\'s prove it.</p>';
+                fb.innerHTML = '<p style="margin:0; color:var(--text);"><strong style="color:var(--success);">Correct!</strong> EUI makes it fair to compare buildings of different sizes, just like litres of gas per 100 km lets you compare cars of different sizes. Let\'s prove it.</p>';
                 projectData.predictionGoal = 'eui';
                 document.getElementById('euiExplainer').style.display = 'block';
             } else {
