@@ -9,14 +9,16 @@ DEFAULT_API_URL = "https://b22q73wp50.execute-api.us-east-1.amazonaws.com/dev"
 ORIGINAL_PLAYGROUND_URL = "https://bhtrtkrbf4.execute-api.us-east-1.amazonaws.com/prod/m"
 TABLE_ID = "sustainabilitymc"
 FALLBACK_TABLE_ID = "sustainabilitymcfallback"
-TOTAL_COURSE_TASKS = 20  # Combined count across apps
+TOTAL_COURSE_TASKS = 10  # Score calculated against full course
 LOCAL_TEST_SESSION_ID = None
+
 
 # --- 2. SETUP & DEPENDENCIES ---
 def install_dependencies():
     packages = ["gradio>=5.0.0", "aimodelshare", "pandas"]
     for package in packages:
         subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
 
 try:
     import gradio as gr
@@ -25,16 +27,13 @@ try:
     from aimodelshare.moral_compass import MoralcompassApiClient
     from aimodelshare.aws import get_token_from_session, _get_username_from_token
 except ImportError:
-    print("📦 Installing dependencies...")
+    print("Installing dependencies...")
     install_dependencies()
     import gradio as gr
     import pandas as pd
     from aimodelshare.playground import Competition
     from aimodelshare.moral_compass import MoralcompassApiClient
     from aimodelshare.aws import get_token_from_session, _get_username_from_token
-
-# Import team name translation utilities
-from .team_name_i18n import translate_team_name_for_display
 
 # --- 3. AUTH & HISTORY HELPERS ---
 def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str], Optional[str]]:
@@ -53,6 +52,7 @@ def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str],
         return True, username, token
     except Exception:
         return False, None, None
+
 
 def fetch_user_history(username, token):
     default_acc = 0.0
@@ -83,1230 +83,347 @@ def fetch_user_history(username, token):
         pass
     return default_acc, default_team
 
-# --- 4. MODULE DEFINITIONS (FAIRNESS FIXER) ---
+
+# ============================================================================
+# 4. MODULE DEFINITIONS — 7-PAGE GREEN AI CTO SIMULATION
+# ============================================================================
+# Page 0: Title Screen — no quiz
+# Page 1: Round 1 — Cooling Crisis — quiz t12
+# Page 2: Round 2 — Power Source Reckoning — quiz t13
+# Page 3: Round 3 — Model Efficiency Overhaul — quiz t14
+# Page 4: Round 4 — Location Decision — quiz t15
+# Page 5: Round 5 — Transparency Report — quiz t16
+# Page 6: Results — quiz t17
+# ============================================================================
+
+def _round_html(round_idx, emoji, title, brief, question, choices):
+    """Generate HTML for a game round (modules 1-5)."""
+    total = 5
+    progress_segments = ""
+    for seg in range(total):
+        if seg < round_idx:
+            color = "var(--cto-success)"
+        elif seg == round_idx:
+            color = "var(--cto-warning)"
+        else:
+            color = "var(--cto-progress-line)"
+        progress_segments += (
+            f'<div style="flex:1; height:4px; border-radius:2px; '
+            f'background:{color}; transition:background 0.5s;"></div>'
+        )
+
+    choice_cards = ""
+    for ci, ch in enumerate(choices):
+        choice_cards += (
+            f'<button class="cto-choice-card" id="cto-choice-{round_idx}-{ci}" '
+            f'onclick="ctoSelectChoice({round_idx},{ci})" '
+            f'style="display:flex; align-items:flex-start; gap:14px; padding:18px 16px; '
+            f'border-radius:16px; cursor:pointer; text-align:left; width:100%; '
+            f'background:var(--cto-input-bg); border:2px solid var(--cto-border-color); '
+            f'color:var(--cto-text); transition:all 0.3s; font-family:\'Outfit\',sans-serif; font-size:inherit;">'
+            f'<div style="width:44px; height:44px; border-radius:12px; flex-shrink:0; '
+            f'background:var(--cto-input-bg); display:flex; align-items:center; justify-content:center; '
+            f'font-size:1.4rem;" id="cto-choice-icon-{round_idx}-{ci}">{ch["icon"]}</div>'
+            f'<div style="flex:1;">'
+            f'<div style="font-size:1.05rem; font-weight:700;">{ch["label"]}</div>'
+            f'<div style="font-size:0.95rem; color:var(--cto-text-dim); margin-top:4px; line-height:1.6;">{ch["desc"]}</div>'
+            f'</div>'
+            f'<div style="width:24px; height:24px; border-radius:50%; flex-shrink:0; margin-top:2px; '
+            f'border:2px solid var(--cto-input-border); background:transparent; '
+            f'display:flex; align-items:center; justify-content:center; transition:all 0.3s;" '
+            f'id="cto-choice-radio-{round_idx}-{ci}"></div>'
+            f'</button>'
+        )
+
+    return f"""
+        <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
+            <div class="cto-reveal" style="animation-delay:0s;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <span style="font-size:0.875rem; color:var(--cto-text-dim); font-weight:600; letter-spacing:3px; text-transform:uppercase;">Ronda {round_idx} / {total}</span>
+                    <span style="font-size:0.875rem; color:var(--cto-text-dim);">NovaMind AI &mdash; Tauler del CTO</span>
+                </div>
+                <div id="cto-stats-{round_idx}" class="cto-stats-grid"></div>
+                <div style="display:flex; gap:6px; margin-top:16px;">
+                    {progress_segments}
+                </div>
+            </div>
+
+            <div class="cto-reveal" style="animation-delay:0.2s;">
+                <div class="cto-card" style="margin-top:28px;">
+                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+                        <span style="font-size:2rem;">{emoji}</span>
+                        <div>
+                            <div style="font-size:0.75rem; color:var(--cto-warning); font-weight:800; letter-spacing:3px; text-transform:uppercase;">Informe Entrant</div>
+                            <h2 style="font-size:1.5rem; font-weight:800; color:var(--cto-text); margin:0;">{title}</h2>
+                        </div>
+                    </div>
+                    <p style="font-size:1.125rem; color:var(--cto-text-dim); line-height:1.7; margin:0;">{brief}</p>
+                </div>
+            </div>
+
+            <div class="cto-reveal" style="animation-delay:0.4s;">
+                <h3 style="margin-top:24px; font-size:1.2rem; font-weight:700; color:var(--cto-text);">{question}</h3>
+            </div>
+
+            <div class="cto-reveal" style="animation-delay:0.6s;" id="cto-choices-container-{round_idx}">
+                <div style="display:grid; gap:10px; margin-top:16px;">
+                    {choice_cards}
+                </div>
+                <button id="cto-confirm-btn-{round_idx}" class="cto-confirm-btn"
+                    onclick="ctoConfirmDecision({round_idx})" style="display:none;">
+                    Confirmar Decisi&oacute; &rarr;
+                </button>
+            </div>
+
+            <div id="cto-feedback-{round_idx}" style="margin-top:24px;"></div>
+        </div>
+    """
+
+
 MODULES = [
-    # --- MODULE 0: THE PROMOTION ---
+    # ─────────────────────────────────────────────
+    # MODULE 0 — TITLE SCREEN
+    # ─────────────────────────────────────────────
     {
         "id": 0,
-        "title": "Mòdul 0: El Banc de treball de l'enginyer/a d'equitat",
+        "title": "IA VERDA CTO",
         "html": """
-            <div class="scenario-box">
-                <div class="slide-body">
-
-                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
-                        <div style="
-                            display:inline-flex;
-                            align-items:center;
-                            gap:10px;
-                            padding:10px 18px;
-                            border-radius:999px;
-                            background:rgba(16, 185, 129, 0.1);
-                            border:1px solid #10b981;
-                            font-size:0.95rem;
-                            text-transform:uppercase;
-                            letter-spacing:0.08em;
-                            font-weight:700;
-                            color:#065f46;">
-                            <span style="font-size:1.1rem;">🎓</span>
-                            <span>PROMOCIÓ: ENGINYER/A D'EQUITAT</span>
+            <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
+                <div class="cto-title-page">
+                    <div class="cto-reveal" style="animation-delay:0s;">
+                        <div style="font-size:0.875rem; font-weight:800; letter-spacing:3px; color:var(--cto-error); text-transform:uppercase; margin-bottom:24px; text-align:center;">
+                            &#9888;&#65039; Simulaci&oacute; Activa
                         </div>
                     </div>
-
-                    <h2 class="slide-title" style="text-align:center;">🔧 Fase final: La reparació</h2>
-
-                    <p style="font-size:1.05rem; max-width:800px; margin:0 auto 20px auto; text-align:center;">
-                        <strong>Benvingut de nou.</strong> Has posat en evidència el biaix en el sistema d'IA de predicció de risc COMPAS i n'has impedit el desplegament. Bona feina.
-                    </p>
-
-                    <p style="font-size:1.05rem; max-width:800px; margin:0 auto 24px auto; text-align:center;">
-                        Però el tribunal encara espera una eina per ajudar a gestionar l'acumulació de casos. La teva nova missió és agafar aquest model defectuós i <strong>arreglar-lo</strong> perquè sigui segur d'utilitzar.
-                    </p>
-
-                    <div class="ai-risk-container" style="border-left:4px solid var(--color-accent);">
-                        <h4 style="margin-top:0; font-size:1.15rem;">El repte: "Biaix persistent"</h4>
-                        <p style="font-size:1.0rem; margin-bottom:0;">
-                            No pots simplement esborrar la columna "origen ètnic" i donar-ho per resolt. El biaix s'amaga en <strong>variables proxy</strong>—dades com el <em>codi postal</em> o els <em>ingressos</em>
-                            que es correlacionen amb l'origen ètnic. Si esborres l'etiqueta però mantens els proxies, el model aprèn el biaix igualment.
+                    <div class="cto-reveal" style="animation-delay:0.3s;">
+                        <h1 style="font-size:clamp(2.2rem, 8vw, 3.5rem); font-weight:800; text-align:center; line-height:1.1; letter-spacing:-1px; color:var(--cto-text); margin:0;">
+                            IA VERDA<br/><span style="color:var(--cto-accent);">CTO</span>
+                        </h1>
+                    </div>
+                    <div class="cto-reveal" style="animation-delay:0.6s;">
+                        <p style="font-size:1.125rem; color:var(--cto-text-dim); text-align:center; max-width:480px; margin:28px auto 0; line-height:1.7;">
+                            Acabes de ser ascendit/da a <strong style="color:var(--cto-text); font-weight:600;">Director/a de Tecnologia (CTO)</strong> de NovaMind AI.
+                            La teva plataforma serveix 50 milions d&#39;usuaris &mdash; i est&agrave; <strong style="color:var(--cto-error); font-weight:700;">destruint el planeta</strong>.
+                            La junta directiva t&#39;ha donat 5 rondes per solucionar-ho.
                         </p>
                     </div>
-
-                    <div class="ai-risk-container" style="margin-top:16px;">
-                        <h4 style="margin-top:0; font-size:1.15rem; text-align:center;">📋 Ordre de treball d'enginyeria</h4>
-                        <p style="text-align:center; margin-bottom:12px; font-size:0.95rem; color:var(--body-text-color-subdued);">
-                            Has de completar aquests tres protocols per certificar el model abans del llançament:
-                        </p>
-
-                        <div style="display:grid; gap:10px; margin-top:12px;">
-
-                            <div style="display:flex; align-items:center; gap:12px; padding:10px; background:var(--background-fill-secondary); border-radius:8px; opacity:0.7;">
-                                <div style="font-size:1.4rem;">✂️</div>
-                                <div>
-                                    <div style="font-weight:700;">Protocol 1: Sanejament de les entrades</div>
-                                    <div style="font-size:0.9rem;">Eliminar classes protegides i detectar les variables proxy ocultes.</div>
-                                </div>
-                                <div style="margin-left:auto; font-weight:700; font-size:0.8rem; text-transform:uppercase; color:var(--body-text-color-subdued);">Pendent</div>
+                    <div class="cto-reveal" style="animation-delay:0.9s;">
+                        <div style="display:flex; gap:12px; margin-top:32px; flex-wrap:wrap; justify-content:center;">
+                            <div style="padding:14px 20px; border-radius:12px; background:var(--cto-input-bg); border:1px solid var(--cto-border-color); text-align:center; min-width:120px;">
+                                <div style="font-size:0.85rem; color:var(--cto-warning); font-weight:600;">&#9889; Energia</div>
+                                <div style="font-size:1.15rem; font-weight:800; color:var(--cto-text); margin-top:4px;">4.200 MWh/mes</div>
                             </div>
-
-                            <div style="display:flex; align-items:center; gap:12px; padding:10px; background:var(--background-fill-secondary); border-radius:8px; opacity:0.7;">
-                                <div style="font-size:1.4rem;">🔗</div>
-                                <div>
-                                    <div style="font-weight:700;">Protocol 2: Causa vs. correlació</div>
-                                    <div style="font-size:0.9rem;">Filtrar dades per comportament real, no només segons correlacions.</div>
-                                </div>
-                                <div style="margin-left:auto; font-weight:700; font-size:0.8rem; text-transform:uppercase; color:var(--body-text-color-subdued);">Bloquejat</div>
+                            <div style="padding:14px 20px; border-radius:12px; background:var(--cto-input-bg); border:1px solid var(--cto-border-color); text-align:center; min-width:120px;">
+                                <div style="font-size:0.85rem; color:var(--cto-error); font-weight:600;">&#128167; Aigua</div>
+                                <div style="font-size:1.15rem; font-weight:800; color:var(--cto-text); margin-top:4px;">18,5M L/mes</div>
                             </div>
-
-                            <div style="display:flex; align-items:center; gap:12px; padding:10px; background:var(--background-fill-secondary); border-radius:8px; opacity:0.7;">
-                                <div style="font-size:1.4rem;">⚖️</div>
-                                <div>
-                                    <div style="font-weight:700;">Protocol 3: Representació i mostreig</div>
-                                    <div style="font-size:0.9rem;">Equilibrar les dades perquè reflecteixin la població local.</div>
-                                </div>
-                                <div style="margin-left:auto; font-weight:700; font-size:0.8rem; text-transform:uppercase; color:var(--body-text-color-subdued);">Bloquejat</div>
+                            <div style="padding:14px 20px; border-radius:12px; background:var(--cto-input-bg); border:1px solid var(--cto-border-color); text-align:center; min-width:120px;">
+                                <div style="font-size:0.85rem; color:var(--cto-text-dim); font-weight:600;">&#127793; Puntuaci&oacute; Verda</div>
+                                <div style="font-size:1.15rem; font-weight:800; color:var(--cto-text); margin-top:4px;">8 / 100</div>
                             </div>
-
                         </div>
                     </div>
-
-                   <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
-                        <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 A PUNT PER COMENÇAR LA REPARACIÓ?
-                        </p>
-                        <p style="font-size:1.05rem; margin:0;">
-                            Fes clic a <strong>Següent</strong> per començar a arreglar el model.
-                        </p>
+                    <div class="cto-reveal" style="animation-delay:1.2s;">
+                        <div style="text-align:center; margin-top:16px;">
+                            <p style="font-size:0.875rem; color:var(--cto-text-dim);">5 decisions &middot; Conseq&uuml;&egrave;ncies reals &middot; Pots salvar NovaMind?</p>
+                        </div>
                     </div>
                 </div>
             </div>
         """,
     },
-    # --- MODULE 1: SANITIZE INPUTS (Protected Classes) ---
+    # ─────────────────────────────────────────────
+    # MODULE 1 — ROUND 1: THE COOLING CRISIS
+    # ─────────────────────────────────────────────
     {
         "id": 1,
-        "title": "Protocol 1: Sanejar les entrades",
-        "html": """
-            <div class="scenario-box">
-                <div class="slide-body">
-
-                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(59,130,246,0.08); border:2px solid var(--color-accent); border-radius:12px; margin-bottom:20px;">
-                        <div style="font-size:1.8rem; background:var(--background-fill-primary); width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">✂️</div>
-                        <div style="flex-grow:1;">
-                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); letter-spacing:0.05em;">PROTOCOL 1: SANEJAR ENTRADES</div>
-                            <div style="font-size:0.9rem; color:var(--body-text-color);">Missió: Eliminar classes protegides i proxies ocults.</div>
-                        </div>
-                        <div style="text-align:right;">
-                            <div style="font-weight:800; font-size:0.85rem; color:var(--color-accent);">PAS 1 DE 3</div>
-                            <div style="height:4px; width:60px; background:#bfdbfe; border-radius:2px; margin-top:4px;">
-                                <div style="height:100%; width:50%; background:var(--color-accent); border-radius:2px;"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
-                        <strong>Equitat a través de la ceguesa.</strong>
-                        Legalment i èticament, no es poden utilitzar <strong>classes protegides</strong> (característiques amb què neix una persona, com l'origen ètnic o l’edat) per calcular la puntuació de risc.
-                    </p>
-
-                    <div class="ai-risk-container">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                            <h4 style="margin:0;">📂 Inspector de columnes del conjunt de dades</h4>
-                            <div style="font-size:0.8rem; font-weight:700; color:#ef4444;">⚠ CONTÉ CARACTERÍSTIQUES NO PERMESES</div>
-                        </div>
-
-                        <p style="font-size:0.95rem; margin-bottom:12px;">
-                            Revisa les capçaleres següents i identifica les columnes que vulneren les lleis d'equitat.
-                        </p>
-
-                        <div style="display:flex; gap:8px; flex-wrap:wrap; background:rgba(0,0,0,0.05); padding:12px; border-radius:8px; border:1px solid var(--border-color-primary);">
-
-                            <div style="padding:6px 12px; background:#fee2e2; border:1px solid #ef4444; border-radius:6px; font-weight:700; color:#b91c1c;">
-                                ⚠️ Origen ètnic
-                            </div>
-                            <div style="padding:6px 12px; background:#fee2e2; border:1px solid #ef4444; border-radius:6px; font-weight:700; color:#b91c1c;">
-                                ⚠️ Gènere
-                            </div>
-                            <div style="padding:6px 12px; background:#fee2e2; border:1px solid #ef4444; border-radius:6px; font-weight:700; color:#b91c1c;">
-                                ⚠️ Edat
-                            </div>
-
-                            <div style="padding:6px 12px; background:var(--background-fill-primary); color:var(--body-text-color); border:1px solid var(--border-color-primary); border-radius:6px;">Condemnes prèvies</div>
-                            <div style="padding:6px 12px; background:var(--background-fill-primary); color:var(--body-text-color); border:1px solid var(--border-color-primary); border-radius:6px;">Situació laboral</div>
-                            <div style="padding:6px 12px; background:var(--background-fill-primary); color:var(--body-text-color); border:1px solid var(--border-color-primary); border-radius:6px;">Codi postal</div>
-                        </div>
-                    </div>
-
-
-            <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
-                        <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 ACCIÓ NECESSÀRIA: SUPRIMIR DADES D'ENTRADA PROTEGIDES
-                        </p>
-                        <p style="font-size:1.05rem; margin:0;">
-                            Utilitza el tauler de comandament de sota per executar la supressió.
-                            Després fes clic a <strong>Següent</strong> per continuar arreglant el model.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        """,
+        "title": "Ronda 1: La Crisi de Refrigeraci\u00f3",
+        "html": _round_html(
+            round_idx=1,
+            emoji="\U0001f321\ufe0f",
+            title="La Crisi de Refrigeraci\u00f3",
+            brief="El teu centre de dades a Phoenix funciona 24/7 amb torres de refrigeraci\u00f3 per aire tradicionals que consumeixen milions de litres d&#39;aigua de la ciutat. La comunitat local est\u00e0 furiosa &mdash; estan en sequera. La refrigeraci\u00f3 consumeix el 40% de la teva factura energ\u00e8tica.",
+            question="Com a CTO, com redissenyes la refrigeraci\u00f3?",
+            choices=[
+                {"icon": "\U0001f9ca", "label": "Refrigeraci\u00f3 per Immersi\u00f3 L\u00edquida", "desc": "Submergir els servidors en fluid no conductor. Gran cost inicial, per\u00f2 elimina l\u2019\u00fas d\u2019aigua per a refrigeraci\u00f3."},
+                {"icon": "\u267b\ufe0f", "label": "H\u00edbrid: Aire + Aigua Reciclada", "desc": "Canviar a aigua grisa reciclada i afegir refrigeraci\u00f3 per aire lliure els mesos m\u00e9s frescos."},
+                {"icon": "\U0001f527", "label": "Optimitzar el Sistema Actual", "desc": "Simplement ajustar les torres de refrigeraci\u00f3 actuals &mdash; afegir sensors i controls intel\u00b7ligents. L\u2019opci\u00f3 m\u00e9s barata."},
+            ],
+        ),
     },
-    # --- MODULE 2: SANITIZE INPUTS (Proxy Variables) ---
+    # ─────────────────────────────────────────────
+    # MODULE 2 — ROUND 2: POWER SOURCE RECKONING
+    # ─────────────────────────────────────────────
     {
         "id": 2,
-        "title": "Protocol 1: Caçant Proxies",
-        "html": """
-            <div class="scenario-box">
-                <div class="slide-body">
-
-                   <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(59,130,246,0.08); border:2px solid var(--color-accent); border-radius:12px; margin-bottom:20px;">
-                        <div style="font-size:1.8rem; background:var(--background-fill-primary); width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">✂️</div>
-                        <div style="flex-grow:1;">
-                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); letter-spacing:0.05em;">PROTOCOL 1: SANEJAMENT DE LES ENTRADES</div>
-                            <div style="font-size:0.9rem; color:var(--body-text-color);">Missió: Eliminar classes protegides i proxies ocults.</div>
-                        </div>
-                        <div style="text-align:right;">
-                            <div style="font-weight:800; font-size:0.85rem; color:var(--color-accent);">PAS 2 DE 3</div>
-                            <div style="height:4px; width:60px; background:#bfdbfe; border-radius:2px; margin-top:4px;">
-                                <div style="height:100%; width:100%; background:var(--color-accent); border-radius:2px;"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
-                        <strong>El problema del "biaix persistent".</strong>
-                        Has eliminat origen ètnic i gènere. Perfecte. Però el biaix sovint s'amaga en <strong>variables proxy</strong>—dades aparentment neutrals que revelen indirectament informació protegida, com l’origen ètnic.
-                    </p>
-
-                    <div class="hint-box" style="border-left:4px solid #f97316;">
-                        <div style="font-weight:700;">Per què el "codi postal" és un Proxy</div>
-
-                        <p style="margin:6px 0 0 0;">
-                            Històricament, moltes ciutats han estat segregades per llei o per classe social. Fins i tot avui, el <strong>codi postal</strong> sovint es correlaciona fortament amb l'origen ètnic.
-                            </p>
-                        <p style="margin-top:8px; font-weight:600; color:#c2410c;">
-                            🚨 El risc: Si proporciones dades d'ubicació a la IA, pot "endevinar", per exemple, l'origen ètnic d'una persona molta precisió i tornar a aprendre exactament el mateix biaix que acabes d’intentar eliminar.
-                        </p>
-                    </div>
-
-                    <div class="ai-risk-container" style="margin-top:16px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <h4 style="margin:0;">📂 Inspector de columnes del conjunt de dades</h4>
-                            <div style="font-size:0.8rem; font-weight:700; color:#f97316;">⚠️ 1 VARIABLE PROXY DETECTADA</div>
-                        </div>
-
-                        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; padding:12px; background:rgba(0,0,0,0.05); border-radius:8px;">
-                            <div style="padding:6px 12px; background:#e5e7eb; color:#9ca3af; text-decoration:line-through; border-radius:6px;">Origen ètnic</div>
-                            <div style="padding:6px 12px; background:#e5e7eb; color:#9ca3af; text-decoration:line-through; border-radius:6px;">Gènere</div>
-
-                            <div style="padding:6px 12px; background:#ffedd5; border:1px solid #f97316; border-radius:6px; font-weight:700; color:#9a3412;">
-                                ⚠️ Codi Postal
-                            </div>
-
-                            <div style="padding:6px 12px; background:var(--background-fill-primary); color:var(--body-text-color); border:1px solid var(--border-color-primary); border-radius:6px;">Condemnes prèvies</div>
-                            <div style="padding:6px 12px; background:var(--background-fill-primary); color:var(--body-text-color); border:1px solid var(--border-color-primary); border-radius:6px;">Situació laboral</div>
-                        </div>
-                    </div>
-
-
-              <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
-                        <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 ACCIÓ NECESSÀRIA: SUPRIMIR DADES D'ENTRADA PROXY
-                        </p>
-                        <p style="font-size:1.05rem; margin:0;">
-                            Selecciona la variable proxy de sota per eliminar-la.
-                            Després fes clic a <strong>Següent</strong> per continuar arreglant el model.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        """,
+        "title": "Ronda 2: El Rendiment de Comptes Energ\u00e8tic",
+        "html": _round_html(
+            round_idx=2,
+            emoji="\u26a1",
+            title="El Rendiment de Comptes Energ\u00e8tic",
+            brief="El teu centre de dades obt\u00e9 el 100% de la xarxa regional &mdash; 65% gas natural i carb\u00f3. Cada consulta d\u2019IA funciona amb combustibles f\u00f2ssils. Els inversors pregunten pel teu pla de carboni.",
+            question="Com fas verda la teva font d\u2019energia?",
+            choices=[
+                {"icon": "\u2600\ufe0f", "label": "Solar In Situ + Emmagatzematge amb Bateries", "desc": "Construir una granja solar amb bateries per a cobertura 24/7. Car per\u00f2 de propietat total."},
+                {"icon": "\U0001f32c\ufe0f", "label": "Acord de Compra d\u2019Energia Renovable", "desc": "Signar un contracte a llarg termini d\u2019energia e\u00f2lica/solar amb un prove\u00efdor renovable."},
+                {"icon": "\U0001f4dc", "label": "Comprar Compensacions de Carboni", "desc": "Adquirir cr\u00e8dits de carboni per &#39;neutralitzar&#39; les emissions sobre el paper. El m\u00e9s barat i r\u00e0pid."},
+            ],
+        ),
     },
-    # --- MODULE 3: THE ACCURACY CRASH (The Pivot) ---
+    # ─────────────────────────────────────────────
+    # MODULE 3 — ROUND 3: MODEL EFFICIENCY OVERHAUL
+    # ─────────────────────────────────────────────
     {
         "id": 3,
-        "title": "Alerta del Sistema: Verificació del Model",
-        "html": """
-            <div class="scenario-box">
-                <div class="slide-body">
-
-                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(59,130,246,0.08); border:2px solid var(--color-accent); border-radius:12px; margin-bottom:20px;">
-                        <div style="font-size:1.8rem; background:white; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">✂️</div>
-                        <div style="flex-grow:1;">
-                            <div style="font-weight:800; font-size:1.05rem; color:var(--color-accent); letter-spacing:0.05em;">PROTOCOL 1: SANEJAMENT DE LES ENTRADES</div>
-                            <div style="font-size:0.9rem; color:var(--body-text-color);">Fase: Verificació i reentrenament del model</div>
-                        </div>
-                        <div style="text-align:right;">
-                            <div style="font-weight:800; font-size:0.85rem; color:var(--color-accent);">PAS 3 DE 3</div>
-                            <div style="height:4px; width:60px; background:#bfdbfe; border-radius:2px; margin-top:4px;">
-                                <div style="height:100%; width:100%; background:var(--color-accent); border-radius:2px;"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">🤖 L'execució de verificació</h2>
-
-                    <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
-                        Has eliminat amb èxit <strong>origen ètnic, gènere, edat i codi postal</strong>.
-                        Hem "sanejat" el conjunt de dades, eliminant les etiquetes demogràfiques. Ara executem la simulació per veure si el model continua funcionat.
-                    </p>
-
-                    <details style="border:none; margin-top:20px;">
-                        <summary style="
-                            background:var(--color-accent);
-                            color:white;
-                            padding:16px 24px;
-                            border-radius:12px;
-                            font-weight:800;
-                            font-size:1.1rem;
-                            text-align:center;
-                            cursor:pointer;
-                            list-style:none;
-                            box-shadow:0 4px 12px rgba(59,130,246,0.3);
-                            transition:transform 0.1s ease;">
-                            ▶️ FES CLIC PER REENTRENAR EL MODEL AMB EL CONJUNT DE DADES REPARAT
-                        </summary>
-
-                        <div style="margin-top:24px; animation: fadeIn 0.6s ease-in-out;">
-
-                            <div class="ai-risk-container" style="display:grid; grid-template-columns:1fr 1fr; gap:20px; background:rgba(0,0,0,0.02);">
-
-                                <div style="text-align:center; padding:10px; border-right:1px solid var(--border-color-primary);">
-                                    <div style="font-size:2.2rem; font-weight:800; color:#ef4444;">📉 78%</div>
-                                    <div style="font-weight:bold; font-size:0.9rem; text-transform:uppercase; color:var(--body-text-color-subdued); margin-bottom:6px;">Precisió (EN COL·LAPSE)</div>
-                                    <div style="font-size:0.9rem; line-height:1.4;">
-                                        <strong>Diagnòstic:</strong> El model ha perdut les seves "dreceres" (com el codi Postal). Està confós i té problemes per predir el risc amb precisió.
-                                    </div>
-                                </div>
-
-                                <div style="text-align:center; padding:10px;">
-                                    <div style="font-size:2.2rem; font-weight:800; color:#f59e0b;">🧩 FALTEN</div>
-                                    <div style="font-weight:bold; font-size:0.9rem; text-transform:uppercase; color:var(--body-text-color-subdued); margin-bottom:6px;">Dades Significatives</div>
-                                    <div style="font-size:0.9rem; line-height:1.4;">
-                                        <strong>Diagnòstic:</strong> Hem netejat les dades problemàtiques, però no les hem substituït per <strong>dades significatives</strong>. El model necessita millors senyals per poder aprendre.
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="hint-box" style="margin-top:20px; border-left:4px solid var(--color-accent);">
-                                <div style="font-weight:700; font-size:1.05rem;">💡 El gir d'enginyeria</div>
-                                <p style="margin:6px 0 0 0;">
-                                    Un model que no sap <em>res</em> és just, però inútil.
-                                    Per recuperar la precisió sense comprometre l’equitat, cal deixar d’eliminar dades i començar a <strong>trobar patrons vàlids</strong>: dades significatives que expliquin <em>per què</em> es produeix el delicte.
-                                </p>
-                            </div>
-
-
-                    </details>
-
-                          <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
-                        <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 ACCIÓ NECESSÀRIA: Trobar dades significatives
-                        </p>
-                        <p style="font-size:1.05rem; margin:0;">
-                            Respon la pregunta de sota per rebre Punts de Brúixola Moral.
-                            Després fes clic a <strong>Següent</strong> per continuar arreglant el model.
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <style>
-                @keyframes fadeIn {
-                    from { opacity: 0; transform: translateY(-10px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                /* Hide default arrow */
-                details > summary { list-style: none; }
-                details > summary::-webkit-details-marker { display: none; }
-            </style>
-        """,
+        "title": "Ronda 3: Revisi\u00f3 d\u2019Efici\u00e8ncia del Model",
+        "html": _round_html(
+            round_idx=3,
+            emoji="\U0001f9e0",
+            title="Revisi\u00f3 d\u2019Efici\u00e8ncia del Model",
+            brief="El teu equip executa un model de 400B par\u00e0metres per a CADA consulta &mdash; fins i tot les senzilles com &#39;quin temps fa?&#39; \u00c9s com fer servir un coet per anar al supermercat. El 80% de les consultes no necessiten tanta pot\u00e8ncia.",
+            question="Com optimitzes el desplegament del model?",
+            choices=[
+                {"icon": "\U0001fa9c", "label": "Cascada Intel\u00b7ligent de Models", "desc": "Dirigir consultes simples al model de 7B, mitjanes al de 70B, complexes al de 400B. Construir un enrutador intel\u00b7ligent."},
+                {"icon": "\U0001f9ec", "label": "Destil\u00b7lar a un Model M\u00e9s Petit", "desc": "Entrenar un \u00fanic model eficient de 70B que capturi la major part de les capacitats del model de 400B."},
+                {"icon": "\U0001f4be", "label": "Nom\u00e9s Afegir Cau de Respostes", "desc": "Emmagatzemar en cau respostes comunes perqu\u00e8 les consultes repetides no passin pel model. Mantenir el model gran per a la resta."},
+            ],
+        ),
     },
-    # --- MODULE 4: CAUSAL VALIDITY (Big Foot) ---
+    # ─────────────────────────────────────────────
+    # MODULE 4 — ROUND 4: LOCATION DECISION
+    # ─────────────────────────────────────────────
     {
         "id": 4,
-        "title": "Protocol 2: Validesa Causal",
-        "html": """
-            <div class="scenario-box">
-                <div class="slide-body">
-
-                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(16, 185, 129, 0.1); border:2px solid #10b981; border-radius:12px; margin-bottom:20px;">
-                        <div style="font-size:1.8rem; background:var(--background-fill-primary); width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🔗</div>
-                        <div style="flex-grow:1;">
-                            <div style="font-weight:800; font-size:1.05rem; color:#10b981; letter-spacing:0.05em;">
-                                PROTOCOL 2: CAUSA VS. CORRELACIÓ
-                            </div>
-                            <div style="font-size:0.9rem; color:var(--body-text-color);">
-                                Missió: Aprendre a distingir quan un patró <strong>causa realment</strong> un resultat — i quan és només una coincidència.
-                            </div>
-                        </div>
-                        <div style="text-align:right;">
-                            <div style="font-weight:800; font-size:0.85rem; color:#10b981;">PAS 1 DE 2</div>
-                            <div style="height:4px; width:60px; background:rgba(16, 185, 129, 0.3); border-radius:2px; margin-top:4px;">
-                                <div style="height:100%; width:50%; background:#10b981; border-radius:2px;"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">
-                        🧠 La trampa del "peu gran": quan la correlació t'enganya
-                    </h2>
-
-                    <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
-                        Per millorar un model, sovint afegim més dades.
-                        <br>
-                        Però aquí hi ha el problema: el model detecta <strong>correlacions</strong> (relacions entre dues variables) i assumeix erròniament que una <strong>causa</strong> l'altra.
-                        <br>
-                        Considera aquest patró estadístic real:
-                    </p>
-
-                    <div class="ai-risk-container" style="text-align:center; padding:20px; border:2px solid #ef4444; background:rgba(239, 68, 68, 0.1);">
-                        <div style="font-size:3rem; margin-bottom:10px;">🦶 📈 📖</div>
-                        <h3 style="margin:0; color:#ef4444;">
-                            La dada: "La gent amb peus més grans té millors puntuacions de lectura."
-                        </h3>
-                        <p style="font-size:1.0rem; margin-top:8px; color:var(--body-text-color);">
-                            De mitjana, les persones amb <strong>peus grans</strong> obté puntuacions molt més altes en proves de lectura que les persones amb <strong>peus petits</strong>.
-                        </p>
-                    </div>
-
-                    <details style="border:none; margin-top:16px;">
-                        <summary style="
-                            background:var(--color-accent);
-                            color:white;
-                            padding:12px 20px;
-                            border-radius:8px;
-                            font-weight:700;
-                            text-align:center;
-                            cursor:pointer;
-                            list-style:none;
-                            width:fit-content;
-                            margin:0 auto;
-                            box-shadow:0 4px 6px rgba(0,0,0,0.1);">
-                            🤔 Per què passa això? (Fes clic per revelar)
-                        </summary>
-
-                        <div style="margin-top:20px; animation: fadeIn 0.5s ease-in-out;">
-                            
-                            <div class="hint-box" style="border-left:4px solid #16a34a; background:rgba(22, 163, 74, 0.1);">
-                                <div style="font-weight:800; font-size:1.1rem; color:#16a34a;">
-                                    La tercera variable oculta: EDAT
-                                </div>
-                                <p style="margin-top:8px; color:var(--body-text-color);">
-                                    Tenir els peus més grans <em>causa</em> que una persona llegeixi millor? <strong>No.</strong>
-                                    <br>
-                                    Els infants tenen peus més petits i encara estan aprenent a llegir.
-                                    <br>
-                                    Els adults tenen peus més grans i han tingut molts més anys de pràctica lectora.
-                                </p>
-                                <p style="margin-bottom:0; color:var(--body-text-color);">
-                                    <strong>La idea clau:</strong> l'edat és la causa de <em>totes dues coses</em>: la mida del peu i la capacitat lectora.
-                                    <br>
-                                    La talla de sabates és un <em>indicador correlacionat</em>: una dada que sembla predictiva, però que no és la causa real del resultat.
-                                </p>
-                            </div>
-
-                            <p style="font-size:1.05rem; text-align:center; margin-top:20px;">
-                                <strong>Per què això importa:</strong>
-                                <br>
-                                En molts conjunts de dades reals, algunes variables semblen predictives només perquè estan relacionades amb factors de fons.
-                                <br>
-                                Els bons models se centren en <strong>el que realment causa els resultats</strong>, no només en allò que passa al mateix temps.
-                            </p>
-                        </div>
-                    </details>
-
-
-              <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
-                        <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 ACCIÓ NECESSÀRIA: Pots detectar una altra "trampa del peu gran" a les dades següents?
-                        </p>
-                        <p style="font-size:1.05rem; margin:0;">
-                            Respon aquesta pregunta per augmentar la teva puntuació de la Brúixola Moral.
-                            Després fes clic a <strong>Següent</strong> per continuar arreglant el model.
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <style>
-                @keyframes fadeIn {
-                    from { opacity: 0; transform: translateY(-5px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                details > summary { list-style: none; }
-                details > summary::-webkit-details-marker { display: none; }
-            </style>
-        """,
+        "title": "Ronda 4: Decisi\u00f3 d\u2019Ubicaci\u00f3",
+        "html": _round_html(
+            round_idx=4,
+            emoji="\U0001f4cd",
+            title="Ubicaci\u00f3, Ubicaci\u00f3, Ubicaci\u00f3",
+            brief="El teu pr\u00f2xim centre de dades est\u00e0 planificat en una regi\u00f3 des\u00e8rtica amb terrenys barats per\u00f2 calor extrema i una xarxa el\u00e8ctrica a gas. Gaireb\u00e9 7.000 dels 8.800 centres de dades del m\u00f3n estan constru\u00efts en el clima equivocat.",
+            question="On construeixes el teu pr\u00f2xim centre de dades?",
+            choices=[
+                {"icon": "\U0001f1f8\U0001f1ea", "label": "Regi\u00f3 N\u00f2rdica (Su\u00e8cia/Finl\u00e0ndia)", "desc": "Clima fred = refrigeraci\u00f3 gaireb\u00e9 gratu\u00efta. Xarxa el\u00e8ctrica 95%+ renovable. Major cost del terreny per\u00f2 enormes estalvis operatius."},
+                {"icon": "\U0001f332", "label": "Nord-oest del Pac\u00edfic (Oregon)", "desc": "Clima moderat, forta energia hidroel\u00e8ctrica, infraestructura tecnol\u00f2gica establerta."},
+                {"icon": "\U0001f3dc\ufe0f", "label": "Mantenir el Pla del Desert", "desc": "Terreny barat, avantatges fiscals, a prop de la seu central. Ja t\u2019ho apanyar\u00e0s amb la calor."},
+            ],
+        ),
     },
-    # --- MODULE 5: APPLYING RESEARCH ---
+    # ─────────────────────────────────────────────
+    # MODULE 5 — ROUND 5: THE TRANSPARENCY REPORT
+    # ─────────────────────────────────────────────
     {
         "id": 5,
-        "title": "Protocol 2: Causa vs. correlació",
-        "html": """
-            <div class="scenario-box">
-                <div class="slide-body">
-
-                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(16, 185, 129, 0.1); border:2px solid #10b981; border-radius:12px; margin-bottom:20px;">
-                        <div style="font-size:1.8rem; background:var(--background-fill-primary); width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🔗</div>
-                        <div style="flex-grow:1;">
-                            <div style="font-weight:800; font-size:1.05rem; color:#10b981; letter-spacing:0.05em;">
-                                PROTOCOL 2: CAUSA VS. CORRELACIÓ
-                            </div>
-                            <div style="font-size:0.9rem; color:var(--body-text-color);">
-                                Missió: Eliminar variables que <strong>es correlacionen</strong> amb els resultats però no en són <strong>la causa</strong>.
-                            </div>
-                        </div>
-                        <div style="text-align:right;">
-                            <div style="font-weight:800; font-size:0.85rem; color:#10b981;">PAS 2 DE 2</div>
-                            <div style="height:4px; width:60px; background:rgba(16, 185, 129, 0.3); border-radius:2px; margin-top:4px;">
-                                <div style="height:100%; width:100%; background:#10b981; border-radius:2px;"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">
-                        🔬 Comprovació amb evidència: Triant variables justes
-                    </h2>
-
-                    <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
-                        Ja ho tens tot a punt per continuar construint una versió més justa del model. Aquí tens quatre variables a tenir en compte.
-                        <br>
-                        Utilitza la regla següent per identificar quines variables representen <strong>causes reals</strong> de comportament — i quines són només correlacions circumstancials.
-                    </p>
-
-                    <div class="hint-box" style="border-left:4px solid var(--color-accent); background:var(--background-fill-secondary); border:1px solid var(--border-color-primary);">
-                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-                            <div style="font-size:1.2rem;">📋</div>
-                            <div style="font-weight:800; color:var(--color-accent); text-transform:uppercase; letter-spacing:0.05em;">
-                                La regla d'enginyeria
-                            </div>
-                        </div>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                            
-                            <div style="padding:10px; background:rgba(239, 68, 68, 0.1); border-radius:6px; border:1px solid rgba(239, 68, 68, 0.3);">
-                                <div style="font-weight:700; color:#ef4444; font-size:0.9rem; margin-bottom:4px;">
-                                    🚫 REBUTJAR: REREFONS
-                                </div>
-                                <div style="font-size:0.85rem; line-height:1.4; color:var(--body-text-color);">
-                                    Variables que descriuen la situació o l'entorn d'una persona (ex: riquesa, barri).
-                                    <br><strong>Es correlacionen amb el delicte però no en són la causa.</strong>
-                                </div>
-                            </div>
-                            
-                            <div style="padding:10px; background:rgba(22, 163, 74, 0.1); border-radius:6px; border:1px solid rgba(22, 163, 74, 0.3);">
-                                <div style="font-weight:700; color:#16a34a; font-size:0.9rem; margin-bottom:4px;">
-                                    ✅ MANTENIR: CONDUCTA
-                                </div>
-                                <div style="font-size:0.85rem; line-height:1.4; color:var(--body-text-color);">
-                                    Variables que descriuen accions documentades fetes per la persona (ex: incompareixença judicial).
-                                    <br><strong>Reflecteixen el comportament real.</strong>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="ai-risk-container" style="margin-top:20px; background:var(--background-fill-secondary); border:1px solid var(--border-color-primary);">
-                        <h4 style="margin:0 0 12px 0; color:var(--body-text-color); text-align:center; font-size:1.1rem;">📂 Variables candidates d'entrada</h4>
-
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
-
-                            <div style="background:var(--background-fill-primary); border:1px solid var(--border-color-primary); border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
-                                <div style="font-weight:700; font-size:1rem; color:var(--body-text-color); margin-bottom:6px;">Situació laboral</div>
-                                <div style="font-size:0.85rem; background:var(--background-fill-secondary); padding:4px 8px; border-radius:4px; color:var(--body-text-color); display:inline-block;">
-                                    Categoria: <strong>Condició de rerefons</strong>
-                                </div>
-                            </div>
-
-                            <div style="background:var(--background-fill-primary); border:1px solid var(--border-color-primary); border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
-                                <div style="font-weight:700; font-size:1rem; color:var(--body-text-color); margin-bottom:6px;">Condemnes prèvies</div>
-                                <div style="font-size:0.85rem; background:rgba(22, 163, 74, 0.1); padding:4px 8px; border-radius:4px; color:#16a34a; display:inline-block;">
-                                    Categoria: <strong>Historial de conducta</strong>
-                                </div>
-                            </div>
-
-                            <div style="background:var(--background-fill-primary); border:1px solid var(--border-color-primary); border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
-                                <div style="font-weight:700; font-size:1rem; color:var(--body-text-color); margin-bottom:6px;">Índex del barri</div>
-                                <div style="font-size:0.85rem; background:var(--background-fill-secondary); padding:4px 8px; border-radius:4px; color:var(--body-text-color); display:inline-block;">
-                                    Categoria: <strong>Entorn</strong>
-                                </div>
-                            </div>
-
-                            <div style="background:var(--background-fill-primary); border:1px solid var(--border-color-primary); border-left:4px solid #cbd5e1; border-radius:6px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
-                                <div style="font-weight:700; font-size:1rem; color:var(--body-text-color); margin-bottom:6px;">Incompareixença judicial</div>
-                                <div style="font-size:0.85rem; background:rgba(22, 163, 74, 0.1); padding:4px 8px; border-radius:4px; color:#16a34a; display:inline-block;">
-                                    Categoria: <strong>Historial de conducta</strong>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <div class="hint-box" style="margin-top:20px; border-left:4px solid #8b5cf6; background:linear-gradient(to right, rgba(139, 92, 246, 0.05), var(--background-fill-primary)); color:var(--body-text-color);">
-                        <div style="font-weight:700; color:#8b5cf6; font-size:1.05rem;">💡 Per què això importa per a l'equitat</div>
-                        <p style="margin:8px 0 0 0; font-size:0.95rem; line-height:1.5;">
-                            Quan una IA jutja les persones basant-se en <strong>correlacions</strong> (com el barri o la pobresa), pot acabar penalitzant-les per les seves <strong>circumstàncies</strong> que sovint no poden controlar.
-                            <br><br>
-                            Quan una IA jutja basant-se en <strong>Causes</strong> (com la conducta), fa que les persones siguin responsables de les seves <strong>accions</strong>.
-                            <br>
-                            <strong>Equitat real = Ser jutjat per les teves eleccions, no pel teu context.</strong>
-                        </p>
-                    </div>
-
-
-              <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
-                        <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 ACCIÓ NECESSÀRIA: 
-                        </p>
-                        <p style="font-size:1.05rem; margin:0;">
-                            Selecciona les variables que representen <strong>conducta</strong> real per construir el model just.
-                            Després fes clic a <strong>Següent</strong> per continuar arreglant el model.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        """,
+        "title": "Ronda 5: L\u2019Informe de Transpar\u00e8ncia",
+        "html": _round_html(
+            round_idx=5,
+            emoji="\U0001f4ca",
+            title="L\u2019Informe de Transpar\u00e8ncia",
+            brief="La UE est\u00e0 impulsant regulacions que exigeixen als centres de dades divulgar m\u00e8triques d\u2019energia i aigua. Els teus competidors guarden silenci. Un investigador acaba de publicar un estudi que diu que la majoria de les empreses tecnol\u00f2giques no comparteixen gaireb\u00e9 res sobre el cost mediambiental de la IA.",
+            question="Quin nivell de transpar\u00e8ncia dones a les teves operacions?",
+            choices=[
+                {"icon": "\U0001f4e1", "label": "Tauler P\u00fablic en Temps Real", "desc": "Construir un tauler p\u00fablic en temps real mostrant energia, aigua, CO\u2082 per consulta. Alliberar les teves eines d\u2019efici\u00e8ncia com a codi obert."},
+                {"icon": "\U0001f4c4", "label": "Informe Anual de Sostenibilitat", "desc": "Publicar un informe anual amb dades agregades. Pr\u00e0ctica est\u00e0ndard de les grans tecnol\u00f2giques."},
+                {"icon": "\U0001f512", "label": "Compliment Legal M\u00ednim", "desc": "Nom\u00e9s compartir el que els reguladors t\u2019obliguin. Mantenir la resta com a &#39;secrets comercials.&#39;"},
+            ],
+        ),
     },
+    # ─────────────────────────────────────────────
+    # MODULE 6 — RESULTS
+    # ─────────────────────────────────────────────
     {
         "id": 6,
-        "title": "Protocol 3: La representació és clau",
+        "title": "El Teu Informe de CTO",
         "html": """
-            <div class="scenario-box">
-                <div class="slide-body">
-
-                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(139, 92, 246, 0.1); border:2px solid #8b5cf6; border-radius:12px; margin-bottom:20px;">
-                        <div style="font-size:1.8rem; background:var(--background-fill-primary); width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🌍</div>
-                        <div style="flex-grow:1;">
-                            <div style="font-weight:800; font-size:1.05rem; color:#7c3aed; letter-spacing:0.05em;">
-                                PROTOCOL 3: REPRESENTACIÓ
-                            </div>
-                            <div style="font-size:0.9rem; color:var(--body-text-color);">
-                                Missió: Assegurar que les dades d'entrenament coincideixen amb el lloc on s'utilitzarà el model.
-                            </div>
-                        </div>
-                        <div style="text-align:right;">
-                            <div style="font-weight:800; font-size:0.85rem; color:#7c3aed;">PAS 1 DE 2</div>
-                            <div style="height:4px; width:60px; background:rgba(139, 92, 246, 0.3); border-radius:2px; margin-top:4px;">
-                                <div style="height:100%; width:50%; background:#8b5cf6; border-radius:2px;"></div>
-                            </div>
-                        </div>
+            <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
+                <div id="cto-results-container" style="padding:20px 0; max-width:900px; margin:0 auto;">
+                    <div style="text-align:center; padding:40px;">
+                        <div style="font-size:1.2rem; color:var(--cto-text-dim);">Calculant els teus resultats...</div>
                     </div>
-
-                    <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">
-                        🗺️ El mapa correcte
-                    </h2>
-
-                    <p style="font-size:1.05rem; text-align:center; max-width:820px; margin:0 auto 15px auto;">
-                        Hem corregit les <strong>variables</strong> (les columnes). Ara hem de comprovar l'<strong>entorn</strong> (les files).
-                    </p>
-
-                    <div style="background:var(--background-fill-secondary); border:2px dashed #94a3b8; border-radius:12px; padding:20px; text-align:center; margin-bottom:25px;">
-                        <div style="font-weight:700; color:#64748b; font-size:0.9rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">L'ESCENARI</div>
-                        <p style="font-size:1.15rem; font-weight:600; color:var(--body-text-color); margin:0; line-height:1.5;">
-                            Aquest conjunt de dades es va construir utilitzant dades històriques del <span style="color:#ef4444;">comtat de Broward, Florida (EUA)</span>.
-                            <br><br>
-                            Imagina agafar aquest model de Florida i fer-lo servir en un sistema judicial completament diferent—com <span style="color:#3b82f6;">Barcelona</span> (o la teva ciutat).
-                        </p>
-                    </div>
-
-                    <div class="ai-risk-container" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
-
-                        <div class="hint-box" style="margin:0; border-left:4px solid #ef4444; background:rgba(239, 68, 68, 0.1);">
-                            <div style="font-weight:800; color:#ef4444; margin-bottom:6px;">
-                                🇺🇸 L'ORIGEN: FLORIDA
-                            </div>
-                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color);">
-                                Context d'entrenament: Sistema judicial EUA
-                            </div>
-                            <ul style="font-size:0.85rem; margin-top:8px; padding-left:16px; line-height:1.4; color:var(--body-text-color);">
-                                <li><strong>Categories demogràfiques:</strong> definides utilitzant etiquetes i agrupacions específiques dels EUA.</li>
-                                <li><strong>Crim i llei:</strong> lleis i processos judicials diferents (per exemple, normes de fiança.</li>
-                                <li><strong>Geografia:</strong> ciutats pensades per moure’s en cotxe i amb expansió suburbana.</li>
-                            </ul>
-                        </div>
-
-                        <div class="hint-box" style="margin:0; border-left:4px solid #3b82f6; background:rgba(59, 130, 246, 0.1);">
-                            <div style="font-weight:800; color:#3b82f6; margin-bottom:6px;">
-                                📍 L'OBJECTIU: BARCELONA
-                            </div>
-                            <div style="font-size:0.85rem; font-weight:700; color:var(--body-text-color);">
-                                Context de desplegament: Sistema judicial de la UE
-                            </div>
-                            <ul style="font-size:0.85rem; margin-top:8px; padding-left:16px; line-height:1.4; color:var(--body-text-color);">
-                                <li><strong>Categories demogràfiques:</strong> definides diferent que als conjunts de dades dels EUA.</li>
-                                <li><strong>Crim i llei:</strong> marc legal i pràctiques policials diferents, i altres tipus de delictes més habituals.</li>
-                                <li><strong>Geografia:</strong> entorn urbà dens i fàcil de recórrer a peu.</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div class="hint-box" style="border-left:4px solid #8b5cf6; background:transparent;">
-                        <div style="font-weight:700; color:#8b5cf6;">
-                            Per què això falla
-                        </div>
-                        <p style="margin-top:6px;">
-                            El model ha après patrons de Florida.
-                            <br>
-                            Quan l'entorn del món real és diferent, el model pot cometre <strong>més errors</strong> — i aquests errors poden afectar <strong>de manera desigual</strong> alguns grups.
-                            <br>
-                            En enginyeria d'IA, això s'anomena <strong>desplaçament del conjunt de dades</strong> (o <strong>canvi de domini</strong>).
-                            <br>
-                            És com intentar trobar la Sagrada Família utilitzant un mapa de Miami.
-                        </p>
-                    </div>
-
-                    <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
-                        <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 ACCIÓ NECESSÀRIA:
-                        </p>
-                        <p style="font-size:1.05rem; margin:0;">
-                            Respon la pregunta de sota per augmentar la teva puntuació de Brúixola Moral.
-                            Després fes clic a <strong>Següent</strong> per continuar arreglant el problema de representació de dades.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        """,
-    },
-    # --- MODULE 7: THE DATA SWAP ---
-    {
-        "id": 7,
-        "title": "Protocol 3: Corregint la representació",
-        "html": """
-            <div class="scenario-box">
-                <div class="slide-body">
-
-                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(139, 92, 246, 0.1); border:2px solid #8b5cf6; border-radius:12px; margin-bottom:20px;">
-                        <div style="font-size:1.8rem; background:var(--background-fill-primary); width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🌍</div>
-                        <div style="flex-grow:1;">
-                            <div style="font-weight:800; font-size:1.05rem; color:#7c3aed; letter-spacing:0.05em;">PROTOCOL 3: REPRESENTACIÓ</div>
-                            <div style="font-size:0.9rem; color:var(--body-text-color);">Missió: Substituir les "dades drecera" amb "dades locals".</div>
-                        </div>
-                        <div style="text-align:right;">
-                            <div style="font-weight:800; font-size:0.85rem; color:#7c3aed;">PAS 2 DE 2</div>
-                            <div style="height:4px; width:60px; background:rgba(139, 92, 246, 0.3); border-radius:2px; margin-top:4px;">
-                                <div style="height:100%; width:100%; background:#8b5cf6; border-radius:2px;"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">🔄 L'intercanvi de dades</h2>
-
-                    <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
-                        No podem utilitzar el conjunt de dades de Florida. Són <strong>"dades drecera"</strong>—escollides només perquè eren fàcils de trobar.
-                        <br>
-                        Per construir un model just per a <strong>qualsevol ubicació</strong> (sigui Barcelona, Berlín o Boston), hem de rebutjar el camí fàcil.
-                        <br>
-                        Hem de recollir <strong>dades locals</strong> que reflecteixin la realitat real d'aquell lloc.
-                    </p>
-
-                    <div class="ai-risk-container" style="text-align:center; border:2px solid #ef4444; background:rgba(239, 68, 68, 0.1); padding:16px; margin-bottom:20px;">
-                        <div style="font-weight:800; color:#ef4444; font-size:1.1rem; margin-bottom:8px;">⚠️ CONJUNT DE DADES ACTUAL: FLORIDA (INVÀLID)</div>
-
-                        <p style="font-size:0.9rem; margin:0; color:var(--body-text-color);">
-                            El conjunt de dades no coincideix amb el context local on s'utilitzarà el model.
-                        </p>
-                    </div>
-
-                    <details style="border:none; margin-top:20px;">
-                        <summary style="
-                            background:#7c3aed;
-                            color:white;
-                            padding:16px 24px;
-                            border-radius:12px;
-                            font-weight:800;
-                            font-size:1.1rem;
-                            text-align:center;
-                            cursor:pointer;
-                            list-style:none;
-                            box-shadow:0 4px 12px rgba(124, 58, 237, 0.3);
-                            transition:transform 0.1s ease;">
-                            🔄 FES CLIC PER IMPORTAR DADES LOCALS DE BARCELONA
-                        </summary>
-
-                        <div style="margin-top:24px; animation: fadeIn 0.6s ease-in-out;">
-
-                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-                                <div style="padding:12px; border:1px solid #22c55e; background:rgba(34, 197, 94, 0.1); border-radius:8px; text-align:center;">
-                                    <div style="font-size:2rem;">📍</div>
-                                    <div style="font-weight:700; color:#22c55e; font-size:0.9rem;">GEOGRAFIA COMPATIBLE</div>
-                                    <div style="font-size:0.8rem; color:var(--body-text-color);">Font de dades: Dept. de Justícia de Catalunya</div>
-                                </div>
-                                <div style="padding:12px; border:1px solid #22c55e; background:rgba(34, 197, 94, 0.1); border-radius:8px; text-align:center;">
-                                    <div style="font-size:2rem;">⚖️</div>
-                                    <div style="font-weight:700; color:#22c55e; font-size:0.9rem;">LLEIS SINCRONITZADES</div>
-                                    <div style="font-size:0.8rem; color:var(--body-text-color);">S'han eliminat delictes específics dels EUA</div>
-                                </div>
-                            </div>
-
-                            <div class="hint-box" style="border-left:4px solid #22c55e;">
-                                <div style="font-weight:700; color:#15803d;">Actualització del sistema completada</div>
-                                <p style="margin-top:6px;">
-                                    El model ara aprèn de les persones a qui realment afectarà. La precisió ara és útil perquè reflecteix la realitat local.
-                                </p>
-                            </div>
-
-                        </div>
-                    </details>
-
-            <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
-                        <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 ACCIÓ NECESSÀRIA:
-                        </p>
-                        <p style="font-size:1.05rem; margin:0;">
-                            Respon la pregunta de sota per augmentar la teva puntuació de Brúixola Moral.
-                            Després fes clic a <strong>Següent</strong> per revisar i certificar que el model està arreglat!
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <style>
-                @keyframes fadeIn {
-                    from { opacity: 0; transform: translateY(-10px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                details > summary { list-style: none; }
-                details > summary::-webkit-details-marker { display: none; }
-            </style>
-        """,
-    },
-    # --- MODULE 8: FINAL REPORT (Before & After) ---
-    {
-        "id": 8,
-        "title": "Informe final d'equitat",
-        "html": """
-            <div class="scenario-box">
-                <div class="slide-body">
-
-                    <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(34, 197, 94, 0.1); border:2px solid #22c55e; border-radius:12px; margin-bottom:20px;">
-                        <div style="font-size:1.8rem; background:var(--background-fill-primary); width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🏁</div>
-                        <div style="flex-grow:1;">
-                            <div style="font-weight:800; font-size:1.05rem; color:#15803d; letter-spacing:0.05em;">AUDITORIA COMPLETADA</div>
-                            <div style="font-size:0.9rem; color:var(--body-text-color);">Estat del sistema: A PUNT PER A LA CERTIFICACIÓ.</div>
-                        </div>
-                    </div>
-
-                    <h2 class="slide-title" style="text-align:center; font-size:1.4rem;">📊 Informe final: abans i després"</h2>
-
-                    <p style="font-size:1.05rem; text-align:center; max-width:800px; margin:0 auto 16px auto;">
-                        Has sanejat les dades amb èxit, filtrat per causalitat i has adaptat el model al context local.
-                        <br>Comparem el teu nou model amb el model original per revisar què ha canviat.
-                    </p>
-
-                    <div class="ai-risk-container" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
-
-                        <div>
-                            <div style="font-weight:800; color:#ef4444; margin-bottom:8px; text-transform:uppercase;">🚫 El model original</div>
-
-                            <div style="padding:10px; border-bottom:1px solid var(--border-color-primary);">
-                                <div style="font-size:0.8rem; font-weight:700; color:var(--body-text-color);">ENTRADES</div>
-                                <div style="color:var(--body-text-color);">Origen ètnic, gènere, codi postal</div>
-                            </div>
-                            <div style="padding:10px; border-bottom:1px solid var(--border-color-primary);">
-                                <div style="font-size:0.8rem; font-weight:700; color:var(--body-text-color);">LÒGICA</div>
-                                <div style="color:var(--body-text-color);">Estatus i estereotips</div>
-                            </div>
-                            <div style="padding:10px; border-bottom:1px solid var(--border-color-primary);">
-                                <div style="font-size:0.8rem; font-weight:700; color:var(--body-text-color);">CONTEXT</div>
-                                <div style="color:var(--body-text-color);">Florida (Mapa equivocat)</div>
-                            </div>
-                            <div style="padding:10px; background:rgba(239, 68, 68, 0.2); margin-top:10px; border-radius:6px; color:#ef4444; font-weight:700; text-align:center;">
-                                RISC DE BIAIX: CRÍTIC
-                            </div>
-                        </div>
-
-                        <div style="transform:scale(1.02); box-shadow:0 4px 12px rgba(0,0,0,0.1); border:2px solid #22c55e; border-radius:8px; overflow:hidden;">
-                            <div style="background:#22c55e; color:white; padding:6px; font-weight:800; text-align:center; text-transform:uppercase;">✅ El teu model millorat</div>
-
-                            <div style="padding:10px; border-bottom:1px solid var(--border-color-primary); background:var(--background-fill-primary);">
-                                <div style="font-size:0.8rem; font-weight:700; color:#15803d;">ENTRADES</div>
-                                <div style="color:var(--body-text-color);">Només variables de conducta</div>
-                            </div>
-                            <div style="padding:10px; border-bottom:1px solid var(--border-color-primary); background:var(--background-fill-primary);">
-                                <div style="font-size:0.8rem; font-weight:700; color:#15803d;">LÒGICA</div>
-                                <div style="color:var(--body-text-color);">Conducta basada en causes</div>
-                            </div>
-                            <div style="padding:10px; border-bottom:1px solid var(--border-color-primary); background:var(--background-fill-primary);">
-                                <div style="font-size:0.8rem; font-weight:700; color:#15803d;">CONTEXT</div>
-                                <div style="color:var(--body-text-color);">Barcelona (context local)</div>
-                            </div>
-                            <div style="padding:10px; background:rgba(34, 197, 94, 0.2); margin-top:0; color:#15803d; font-weight:700; text-align:center;">
-                                RISC DE BIAIX: MINIMITZAT
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="hint-box" style="border-left:4px solid #f59e0b;">
-                        <div style="font-weight:700; color:#b45309;">🚧 Una nota sobre la perfecció"</div>
-                        <p style="margin-top:6px;">
-                            És perfecte aquest model? <strong>No.</strong>
-                            <br>Les dades del món real (com les detencions) encara poden arrossegar biaixos del passat.
-                            Però has passat d'un sistema que <em>amplifica</em> el prejudici a un que <em>mesura l'equitat</em> utilitzant conducta i context Local.
-                        </p>
-                    </div>
-
-            <div style="text-align:center; margin-top:35px; padding:20px; background:linear-gradient(to right, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border-radius:12px; border:2px solid var(--color-accent);">
-                        <p style="font-size:1.15rem; font-weight:800; color:var(--color-accent); margin-bottom:5px;">
-                            🚀 GAIREBÉ ACABAT!
-                        </p>
-                        <p style="font-size:1.05rem; margin:0;">
-                            Respon la pregunta de sota per augmentar la teva Puntuació de Brúixola Moral.
-                            <br>
-                            Fes clic a <strong>Següent</strong> per completar les aprovacions finals del model i certificar-lo.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        """,
-    },
-    # --- MODULE 9: CERTIFICATION ---
-    {
-        "id": 9,
-        "title": "Protocol complet: ètica assegurada",
-        "html": """
-            <div class="scenario-box">
-                <div class="slide-body">
-
-                    <div style="text-align:center; margin-bottom:25px;">
-                        <h2 class="slide-title" style="margin-bottom:10px; color:#15803d;">🚀 ARQUITECTURA ÈTICA VERIFICADA</h2>
-                        <p style="font-size:1.1rem; max-width:700px; margin:0 auto; color:var(--body-text-color);">
-                            Has refactoritzat la IA amb èxit. Ja no depèn de <strong>proxies ocults i dreceres injustes</strong>—ara és una eina transparent construïda sobre principis justos.
-                        </p>
-                    </div>
-                    
-                    <div class="ai-risk-container" style="background:rgba(34, 197, 94, 0.1); border:2px solid #22c55e; padding:25px; border-radius:12px; box-shadow:0 4px 20px rgba(34, 197, 94, 0.15);">
-                        
-                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #bbf7d0; padding-bottom:15px; margin-bottom:20px;">
-                            <div style="font-weight:900; font-size:1.3rem; color:#15803d; letter-spacing:0.05em;">DIAGNÒSTIC DEL SISTEMA</div>
-                            <div style="background:#22c55e; color:white; font-weight:800; padding:6px 12px; border-radius:6px;">SEGURETAT: 100%</div>
-                        </div>
-
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-                            <div style="display:flex; align-items:center; gap:12px;">
-                                <div style="font-size:1.5rem; color:#16a34a;">✅</div>
-                                <div>
-                                    <div style="font-weight:800; color:#15803d;">ENTRADES</div>
-                                    <div style="font-size:0.9rem; color:var(--body-text-color);">Sanejades</div>
-                                </div>
-                            </div>
-                            <div style="display:flex; align-items:center; gap:12px;">
-                                <div style="font-size:1.5rem; color:#16a34a;">✅</div>
-                                <div>
-                                    <div style="font-weight:800; color:#15803d;">LÒGICA</div>
-                                    <div style="font-size:0.9rem; color:var(--body-text-color);">Causal</div>
-                                </div>
-                            </div>
-                            <div style="display:flex; align-items:center; gap:12px;">
-                                <div style="font-size:1.5rem; color:#16a34a;">✅</div>
-                                <div>
-                                    <div style="font-weight:800; color:#15803d;">CONTEXT</div>
-                                    <div style="font-size:0.9rem; color:var(--body-text-color);">Localitzat</div>
-                                </div>
-                            </div>
-                            <div style="display:flex; align-items:center; gap:12px;">
-                                <div style="font-size:1.5rem; color:#16a34a;">✅</div>
-                                <div>
-                                    <div style="font-weight:800; color:#15803d;">ESTAT</div>
-                                    <div style="font-size:0.9rem; color:var(--body-text-color);">Ètic</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="margin-top:30px; padding:20px; background:rgba(245, 158, 11, 0.1); border:2px solid #fcd34d; border-radius:12px;">
-                        <div style="display:flex; gap:15px;">
-                            <div style="font-size:2.5rem;">🎓</div>
-                            <div>
-                                <h3 style="margin:0; color:#b45309;">Següent Objectiu: certificació i rendiment</h3>
-                                <p style="font-size:1.05rem; line-height:1.5; color:var(--body-text-color); margin-top:8px;">
-                                    Ara que has fet el teu model <strong>ètic</strong>, pots continuar millorant la <strong>precisió</strong> del model en l'activitat final de sota.
-                                    <br><br>
-                                    Però abans d'optimitzar la potència, has d'assegurar les teves credencials.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="text-align:center; margin-top:25px;">
-                        <p style="font-size:1.1rem; font-weight:600; color:var(--body-text-color); margin-bottom:15px;">
-                            ⬇️ <strong>Pas Següent Immediat</strong> ⬇️
-                        </p>
-                        
-                        <div style="display:inline-block; padding:15px 30px; background:linear-gradient(to right, #f59e0b, #d97706); border-radius:50px; color:white; font-weight:800; font-size:1.1rem; box-shadow:0 4px 15px rgba(245, 158, 11, 0.4);">
-                            Reclama el teu certificat oficial d'"Ètica en joc" en la següent activitat.
-                        </div>
-                    </div>
-
                 </div>
             </div>
         """,
     },
 ]
 
-# --- 5. INTERACTIVE CONTENT CONFIGURATION (APP 2) ---
+
+# ============================================================================
+# 5. QUIZ CONFIG — 6 QUIZZES ON MODULES 1-6, TASK IDs t5-t10
+# ============================================================================
+
 QUIZ_CONFIG = {
     1: {
-        "t": "t12",
-        "q": "Acció: Selecciona les variables que s'han d'esborrar immediatament perquè són Classes Protegides.",
+        "t": "t5",
+        "q": "La refrigeraci\u00f3 per immersi\u00f3 elimina l\u2019\u00fas d\u2019aigua per\u00f2 costa m\u00e9s inicialment. Un director financer diu: *'No podem justificar el cost \u2014 l\u2019optimitzaci\u00f3 amb sensors \u00e9s suficient.'* Quin \u00e9s el contraargument m\u00e9s s\u00f2lid?",
         "o": [
-            "A) Codi postal i barri",
-            "B) Origen ètnic, gènere, edat",
-            "C) Condemnes prèvies",
+            "A) L\u2019ajust de sensors redueix el malbaratament en un ~5\u201310%, per\u00f2 el sistema b\u00e0sic continua evaporant milions de litres d\u2019aigua dolça durant una sequera \u2014 una millora del 5% en un sistema fonamentalment defectu\u00f3s no \u00e9s suficient.",
+            "B) La refrigeraci\u00f3 per immersi\u00f3 \u00e9s una tecnologia no provada i massa arriscada per al desplegament empresarial. Les millores incrementals s\u00f3n l\u2019opci\u00f3 responsable.",
+            "C) El cost inicial no importa perqu\u00e8 les subvencions del govern cobriran la major part de la despesa d\u2019instal\u00b7laci\u00f3.",
         ],
-        "a": "B) Origen ètnic, gènere, edat",
-        "success": "Tasca Completada. Columnes eliminades. El model ara és cec a dades demogràfiques explícites.",
+        "a": "A) L\u2019ajust de sensors redueix el malbaratament en un ~5\u201310%, per\u00f2 el sistema b\u00e0sic continua evaporant milions de litres d\u2019aigua dolça durant una sequera \u2014 una millora del 5% en un sistema fonamentalment defectu\u00f3s no \u00e9s suficient.",
+        "success": "<strong>Coneixement de Refrigeraci\u00f3 Desbloquejat!</strong> Microsoft ja est\u00e0 provant la refrigeraci\u00f3 per immersi\u00f3. Les correccions marginals en sistemes ineficients no resolen el problema subjacent.",
     },
     2: {
-        "t": "t13",
-        "q": "Per què hem d'eliminar també el 'codi postal' si ja hem eliminat l'origen ètnic?",
+        "t": "t6",
+        "q": "Una empresa compra compensacions de carboni en lloc d\u2019invertir en energia solar in situ. L\u2019equip de comunicaci\u00f3 diu: *'Ja som neutres en carboni.'* Quin \u00e9s el defecte cr\u00edtic d\u2019aquesta afirmaci\u00f3?",
         "o": [
-            "A) Perquè els codis postals ocupen massa memòria.",
-            "B) És una Variable Proxy que reintrodueix el biaix per origen ètnic degut a la segregació històrica.",
-            "C) Els codis postals no són precisos.",
+            "A) Les compensacions de carboni financen la plantaci\u00f3 d\u2019arbres i projectes renovables en altres llocs, la qual cosa \u00e9s igualment efica\u00e7 que l\u2019energia solar in situ per reduir emissions.",
+            "B) Les compensacions de carboni no canvien la font d\u2019energia real del centre de dades \u2014 continua funcionant amb combustibles f\u00f2ssils. Les emissions s\u00f3n reals; la \u2018neutralitat\u2019 \u00e9s comptabilitat.",
+            "C) El defecte \u00e9s que les compensacions de carboni s\u00f3n massa cares \u2014 els panells solars serien m\u00e9s barats a llarg termini.",
         ],
-        "a": "B) És una Variable Proxy que reintrodueix el biaix per origen ètnic degut a la segregació històrica.",
-        "success": "Proxy identificat. Dades d'ubicació eliminades per prevenir el biaix de segregació.",
+        "a": "B) Les compensacions de carboni no canvien la font d\u2019energia real del centre de dades \u2014 continua funcionant amb combustibles f\u00f2ssils. Les emissions s\u00f3n reals; la \u2018neutralitat\u2019 \u00e9s comptabilitat.",
+        "success": "<strong>Claredat sobre la Font Energ\u00e8tica!</strong> Les compensacions s\u00f3n controvertides perqu\u00e8 les emissions reals no canvien. La veritable descarbonitzaci\u00f3 significa canviar la font d\u2019energia.",
     },
     3: {
-        "t": "t14",
-        "q": "Després d'eliminar origen ètnic i codi postal, el model és just però la precisió ha caigut. Per què?",
+        "t": "t7",
+        "q": "Executar un model de 400B per a cada consulta malbarata el 80% de la computaci\u00f3. Un cap de producte diu: *'Els usuaris esperen el millor model sempre.'* Quin \u00e9s el contraargument m\u00e9s fort?",
         "o": [
-            "A) El model està no funciona.",
-            "B) Un model que no sap res és just però inútil. Necessitem millors dades, no només menys dades.",
-            "C) Hauríem de tornar a posar la columna d'origen ètnic.",
+            "A) Els usuaris no noten la difer\u00e8ncia en consultes simples \u2014 un model de 7B respon \u2018Quin temps fa?\u2019 igual de b\u00e9, fent servir 50 vegades menys energia. L\u2019enrutament intel\u00b7ligent dona la millor resposta al cost adequat.",
+            "B) Haur\u00edem de fer servir nom\u00e9s el model m\u00e9s petit per a tot i maximitzar l\u2019estalvi energ\u00e8tic, encara que la qualitat de les respostes baixi significativament.",
+            "C) La mida del model no afecta el consum energ\u00e8tic \u2014 el maquinari GPU consumeix la mateixa energia independentment del model que s\u2019executi.",
         ],
-        "a": "B) Un model que no sap res és just però inútil. Necessitem millors dades, no només menys dades.",
-        "success": "Gir confirmat. Hem de passar d' 'eliminar' a 'seleccionar' millors característiques.",
+        "a": "A) Els usuaris no noten la difer\u00e8ncia en consultes simples \u2014 un model de 7B respon \u2018Quin temps fa?\u2019 igual de b\u00e9, fent servir 50 vegades menys energia. L\u2019enrutament intel\u00b7ligent dona la millor resposta al cost adequat.",
+        "success": "<strong>Arquitectura d\u2019Efici\u00e8ncia Desbloquejada!</strong> Aix\u00ed \u00e9s exactament com operen les empreses l\u00edders en IA \u2014 l\u2019enrutament en cascada ajusta la mida del model a la complexitat de la consulta.",
     },
     4: {
-        "t": "t15",
-        "q": "Basat en l'exemple del “peu gran”, per què pot ser enganyós deixar que una IA depengui de variables com la talla de sabates?",
+        "t": "t8",
+        "q": "Un directiu de centres de dades defensa construir al desert: *'Els terrenys barats i els avantatges fiscals ens estalvien milions.'* Qu\u00e8 ignora aix\u00f2?",
         "o": [
-            "A) Perquè són físicament difícils de mesurar.",
-            "B) Perquè sovint només es correlacionen amb resultats i són causades per un tercer factor ocult, en lloc de causar el resultat elles mateixes."
+            "A) Les ubicacions des\u00e8rtiques estan b\u00e9 sempre que facis servir energia renovable \u2014 la calor no impacta significativament en les operacions amb refrigeraci\u00f3 moderna.",
+            "B) La calor extrema suposa 3 vegades m\u00e9s costos de refrigeraci\u00f3, la xarxa el\u00e8ctrica a gas anul\u00b7la els guanys en carboni i l\u2019escassetat d\u2019aigua crea conflictes amb la comunitat \u2014 els estalvis a curt termini causen costos operatius i reputacionals a llarg termini.",
+            "C) El problema \u00e9s nom\u00e9s reputacional \u2014 els costos operatius reals en ubicacions des\u00e8rtiques s\u00f3n comparables als dels pa\u00efsos n\u00f2rdics.",
         ],
-        "a": "B) Perquè sovint només es correlacionen amb resultats i són causades per un tercer factor ocult, en lloc de causar el resultat elles mateixes.",
-        "success": "Filtre calibrat. Ara estàs comprovant si un patró és causat per una tercera variable oculta — no confonent correlació amb causalitat."
+        "a": "B) La calor extrema suposa 3 vegades m\u00e9s costos de refrigeraci\u00f3, la xarxa el\u00e8ctrica a gas anul\u00b7la els guanys en carboni i l\u2019escassetat d\u2019aigua crea conflictes amb la comunitat \u2014 els estalvis a curt termini causen costos operatius i reputacionals a llarg termini.",
+        "success": "<strong>Intel\u00b7lig\u00e8ncia d\u2019Ubicaci\u00f3!</strong> Meta i Google van triar ubicacions n\u00f2rdiques exactament per aquestes raons \u2014 refrigeraci\u00f3 natural + xarxes renovables = menor cost total.",
     },
-
     5: {
-        "t": "t16",
-        "q": "Quina d’aquestes variables ajuda a predir el delicte per un motiu real (i no per coincidència)?",
+        "t": "t9",
+        "q": "La majoria de les empreses d\u2019IA gaireb\u00e9 no comparteixen dades mediambientals. Un competidor diu: *'La transpar\u00e8ncia \u00e9s un desavantatge competitiu.'* Per qu\u00e8 \u00e9s una visi\u00f3 curta de mires?",
         "o": [
-            "A) Ocupació (condició de context)",
-            "B) Estat Civil (estil de vida)",
-            "C) Incompareixença al tribunal (conducta)",
+            "A) La transpar\u00e8ncia nom\u00e9s \u00e9s \u00fatil per al m\u00e0rqueting \u2014 no canvia l\u2019impacte mediambiental real ni impulsa una rendici\u00f3 de comptes real.",
+            "B) Les regulacions de la UE arribaran de totes maneres. Les empreses que lideren en transpar\u00e8ncia estableixen l\u2019est\u00e0ndard, generen confian\u00e7a i atrauen talent \u2014 mentre que les endarrerides es comparen amb empreses de combustibles f\u00f2ssils que oculten emissions.",
+            "C) La transpar\u00e8ncia total \u00e9s t\u00e8cnicament impossible perqu\u00e8 les m\u00e8triques energ\u00e8tiques varien massa entre centres de dades per informar amb precisi\u00f3.",
         ],
-        "a": "C) Incompareixença al tribunal (conducta)",
-        "success": "Característica seleccionada. 'Incompareixença' reflecteix una acció específica rellevant per al risc de fuga.",
+        "a": "B) Les regulacions de la UE arribaran de totes maneres. Les empreses que lideren en transpar\u00e8ncia estableixen l\u2019est\u00e0ndard, generen confian\u00e7a i atrauen talent \u2014 mentre que les endarrerides es comparen amb empreses de combustibles f\u00f2ssils que oculten emissions.",
+        "success": "<strong>Est\u00e0ndard de Transpar\u00e8ncia Establert!</strong> Els pioners en informes de sostenibilitat defineixen les regles. El secretisme erosiona la confian\u00e7a i convida a una regulaci\u00f3 m\u00e9s estricta.",
     },
     6: {
-        "t": "t17",
-        "q": "Per què un model entrenat a Florida pot fer prediccions poc fiables quan s'utilitza a Barcelona?",
+        "t": "t10",
+        "q": "Despr\u00e9s de jugar les 5 rondes, quina afirmaci\u00f3 captura millor per qu\u00e8 les decisions individuals d\u2019un CTO importen per a la sostenibilitat global de la IA?",
         "o": [
-            "A) Perquè el software està en anglès i s'ha de traduir.",
-            "B) Desajust de context: el model va aprendre patrons lligats a lleis, sistemes i entorns dels EUA que no coincideixen amb la realitat de Barcelona.",
-            "C) Perquè el nombre de persones a Barcelona és diferent de la mida del dataset d'entrenament."
+            "A) Les empreses individuals s\u00f3n massa petites per importar \u2014 nom\u00e9s la regulaci\u00f3 governamental pot arreglar l\u2019impacte mediambiental de la IA a l\u2019escala necess\u00e0ria.",
+            "B) Cada decisi\u00f3 d\u2019infraestructura \u2014 refrigeraci\u00f3, energia, models, ubicaci\u00f3, transpar\u00e8ncia \u2014 s\u2019acumula a trav\u00e9s de milions d\u2019usuaris i estableix normes industrials que altres empreses segueixen o es veuen pressionades a igualar.",
+            "C) La tecnologia es tornar\u00e0 naturalment m\u00e9s eficient amb el temps, de manera que les decisions d\u2019avui no tenen un impacte durador en la sostenibilitat.",
         ],
-        "a": "B) Desajust de context: el model va aprendre patrons lligats a lleis, sistemes i entorns dels EUA que no coincideixen amb la realitat de Barcelona.",
-        "success": "Correcte! Això és un desplaçament de conjunt de dades (o domini). Quan les dades d'entrenament no coincideixen amb on s'usa un model, les prediccions es tornen menys precises i poden fallar de manera desigual entre grups."
-    },
-
-    7: {
-        "t": "t18",
-        "q": "Acabes de rebutjar un dataset massiu i gratuït (Florida) per un de més petit i difícil d'aconseguir (Localment rellevant). Per què ha estat l'elecció d'enginyeria correcta?",
-        "o": [
-            "A) No ho era. Més dades sempre és millor, independentment d'on vinguin.",
-            "B) Perquè la 'rellevància' és més important que el 'volum'. Un mapa petit i precís és millor que un mapa enorme i equivocat.",
-            "C) Perquè el conjunt de dades de Florida era massa car.",
-        ],
-        "a": "B) Perquè la 'rellevància' és més important que el 'volum'. Un mapa petit i precís és millor que un mapa enorme i equivocat.",
-        "success": "Taller completat! Has auditat, filtrat i localitzat el model d'IA amb èxit.",
-    },
-    8: {
-        "t": "t19",
-        "q": "Has arreglat les entrades, la lògica i el context. El teu nou model és ara 100% perfectament just?",
-        "o": [
-            "A) Sí. Les matemàtiques són objectives, així que si les dades estan netes, el model és perfecte.",
-            "B) No. És més segur perquè hem prioritzat 'conducta' sobre 'estatus' i 'realitat local' sobre 'dades fàcils', però sempre hem d'estar vigilants.",
-        ],
-        "a": "B) No. És més segur perquè hem prioritzat 'conducta' sobre 'estatus' i 'realitat local' sobre 'dades fàcils', però sempre hem d'estar vigilants.",
-        "success": "Bona feina. A continuació pots revisar oficialment aquest model per al seu ús.",
-    },
-    9: {
-        "t": "t20",
-        "q": "Has sanejat entrades, filtrat per causalitat i reponderat per representació. Estàs llest per aprovar aquest sistema d'IA reparat?",
-        "o": [
-            "A) Sí, el model ara és segur i autoritzo l'ús d'aquest sistema d'IA reparat.",
-            "B) No, espera un model perfecte.",
-        ],
-        "a": "A) Sí, el model ara és segur i autoritzo l'ús d'aquest sistema d'IA reparat.",
-        "success": "Missió complerta. Has dissenyat un sistema més segur i just.",
+        "a": "B) Cada decisi\u00f3 d\u2019infraestructura \u2014 refrigeraci\u00f3, energia, models, ubicaci\u00f3, transpar\u00e8ncia \u2014 s\u2019acumula a trav\u00e9s de milions d\u2019usuaris i estableix normes industrials que altres empreses segueixen o es veuen pressionades a igualar.",
+        "success": "<strong>Certificaci\u00f3 de CTO Completada!</strong> Ara entens que la sostenibilitat de la IA no \u00e9s una gran decisi\u00f3 \u2014 s\u00f3n cinc decisions d\u2019infraestructura que s\u2019acumulen i transformen tota una ind\u00fastria.",
     },
 }
 
-# --- 6. CSS (Shared with App 1 for consistency) ---
-css = """
-/* Layout + containers */
-.summary-box {
-  background: var(--block-background-fill);
-  padding: 20px;
-  border-radius: 12px;
-  border: 1px solid var(--border-color-primary);
-  margin-bottom: 20px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-}
-.summary-box-inner { display: flex; align-items: center; justify-content: space-between; gap: 30px; }
-.summary-metrics { display: flex; gap: 30px; align-items: center; }
-.summary-progress { width: 560px; max-width: 100%; }
 
-/* Scenario cards */
-.scenario-box {
-  padding: 24px;
-  border-radius: 14px;
-  background: var(--block-background-fill);
-  border: 1px solid var(--border-color-primary);
-  margin-bottom: 22px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-}
-.slide-title { margin-top: 0; font-size: 1.9rem; font-weight: 800; }
-.slide-body { font-size: 1.12rem; line-height: 1.65; }
+# ============================================================================
+# 6. LEADERBOARD & API LOGIC
+# ============================================================================
 
-/* Hint boxes */
-.hint-box {
-  padding: 12px;
-  border-radius: 10px;
-  background: var(--background-fill-secondary);
-  border: 1px solid var(--border-color-primary);
-  margin-top: 10px;
-  font-size: 0.98rem;
-}
-
-/* Success / profile card */
-.profile-card.success-card {
-  padding: 20px;
-  border-radius: 14px;
-  border-left: 6px solid #22c55e;
-  background: linear-gradient(135deg, rgba(34,197,94,0.08), var(--block-background-fill));
-  margin-top: 16px;
-  box-shadow: 0 4px 18px rgba(0,0,0,0.08);
-  font-size: 1.04rem;
-  line-height: 1.55;
-}
-.profile-card.first-score {
-  border-left-color: #facc15;
-  background: linear-gradient(135deg, rgba(250,204,21,0.18), var(--block-background-fill));
-}
-.success-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 8px; }
-.success-title { font-size: 1.26rem; font-weight: 900; color: #16a34a; }
-.success-summary { font-size: 1.06rem; color: var(--body-text-color-subdued); margin-top: 4px; }
-.success-delta { font-size: 1.5rem; font-weight: 800; color: #16a34a; }
-.success-metrics { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: var(--background-fill-secondary); font-size: 1.06rem; }
-.success-metric-line { margin-bottom: 4px; }
-.success-body { margin-top: 10px; font-size: 1.06rem; }
-.success-body-text { margin: 0 0 6px 0; }
-.success-cta { margin: 4px 0 0 0; font-weight: 700; font-size: 1.06rem; }
-
-/* Numbers + labels */
-.score-text-primary { font-size: 2.05rem; font-weight: 900; color: var(--color-accent); }
-.score-text-team { font-size: 2.05rem; font-weight: 900; color: #60a5fa; }
-.score-text-global { font-size: 2.05rem; font-weight: 900; }
-.label-text { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #6b7280; }
-
-/* Progress bar */
-.progress-bar-bg { width: 100%; height: 10px; background: #e5e7eb; border-radius: 6px; overflow: hidden; margin-top: 8px; }
-.progress-bar-fill { height: 100%; background: var(--color-accent); transition: width 280ms ease; }
-
-/* Leaderboard tabs + tables */
-.leaderboard-card input[type="radio"] { display: none; }
-.lb-tab-label {
-  display: inline-block; padding: 8px 16px; margin-right: 8px; border-radius: 20px;
-  cursor: pointer; border: 1px solid var(--border-color-primary); font-weight: 700; font-size: 0.94rem;
-}
-#lb-tab-team:checked + label, #lb-tab-user:checked + label {
-  background: var(--color-accent); color: white; border-color: var(--color-accent);
-  box-shadow: 0 3px 8px rgba(99,102,241,0.25);
-}
-.lb-panel { display: none; margin-top: 10px; }
-#lb-tab-team:checked ~ .lb-tab-panels .panel-team { display: block; }
-#lb-tab-user:checked ~ .lb-tab-panels .panel-user { display: block; }
-.table-container { height: 320px; overflow-y: auto; border: 1px solid var(--border-color-primary); border-radius: 10px; }
-.leaderboard-table { width: 100%; border-collapse: collapse; }
-.leaderboard-table th {
-  position: sticky; top: 0; background: var(--background-fill-secondary);
-  padding: 10px; text-align: left; border-bottom: 2px solid var(--border-color-primary);
-  font-weight: 800;
-}
-.leaderboard-table td { padding: 10px; border-bottom: 1px solid var(--border-color-primary); }
-.row-highlight-me, .row-highlight-team { background: rgba(96,165,250,0.18); font-weight: 700; }
-
-/* Containers */
-.ai-risk-container { margin-top: 16px; padding: 16px; background: var(--body-background-fill); border-radius: 10px; border: 1px solid var(--border-color-primary); }
-
-/* Interactive blocks (text size tuned for 17–20 age group) */
-.interactive-block { font-size: 1.06rem; }
-.interactive-block .hint-box { font-size: 1.02rem; }
-.interactive-text { font-size: 1.06rem; }
-
-/* Radio sizes */
-.scenario-radio-large label { font-size: 1.06rem; }
-.quiz-radio-large label { font-size: 1.06rem; }
-
-/* Small utility */
-.divider-vertical { width: 1px; height: 48px; background: var(--border-color-primary); opacity: 0.6; }
-
-/* Navigation loading overlay */
-#nav-loading-overlay {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: color-mix(in srgb, var(--body-background-fill) 95%, transparent);
-  z-index: 9999; display: none; flex-direction: column; align-items: center;
-  justify-content: center; opacity: 0; transition: opacity 0.3s ease;
-}
-.nav-spinner {
-  width: 50px; height: 50px; border: 5px solid var(--border-color-primary);
-  border-top: 5px solid var(--color-accent); border-radius: 50%;
-  animation: nav-spin 1s linear infinite; margin-bottom: 20px;
-}
-@keyframes nav-spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-#nav-loading-text {
-  font-size: 1.3rem; font-weight: 600; color: var(--color-accent);
-}
-@media (prefers-color-scheme: dark) {
-  #nav-loading-overlay { background: rgba(15, 23, 42, 0.9); }
-  .nav-spinner { border-color: rgba(148, 163, 184, 0.4); border-top-color: var(--color-accent); }
-}
-
-/* --- COMPACT CTA STYLES FOR QUIZ SLIDES --- */
-.points-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-weight: 800;
-  font-size: 0.8rem;
-  background: var(--color-accent-soft);
-  color: var(--color-accent);
-  border: 1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
-}
-.quiz-cta {
-  margin: 8px 0 10px 0;
-  font-size: 0.9rem;
-  color: var(--body-text-color-subdued);
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-.quiz-submit { 
-  min-width: 200px; 
-}
-/* Hide gradient CTA banners for slides > 0, keep slide 0 Mission CTA */
-.module-container[id^="module-"]:not(#module-0) div[style*="linear-gradient(to right"] {
-  display: none !important;
-}
-"""
-
-# --- 7. LEADERBOARD & API LOGIC (Reused) ---
 def get_leaderboard_data(client, username, team_name, local_task_list=None, override_score=None):
     try:
         resp = client.list_users(table_id=TABLE_ID, limit=500)
@@ -1364,6 +481,7 @@ def get_leaderboard_data(client, username, team_name, local_task_list=None, over
     except Exception:
         return None
 
+
 def ensure_table_and_get_data(username, token, team_name, task_list_state=None):
     global TABLE_ID
     if not username or not token:
@@ -1373,13 +491,13 @@ def ensure_table_and_get_data(username, token, team_name, task_list_state=None):
     try:
         client.get_table(TABLE_ID)
     except Exception:
-            # Fallback to alternative table name
-            try:
-                client.get_table(FALLBACK_TABLE_ID)
-                TABLE_ID = FALLBACK_TABLE_ID
-            except Exception:
-                    pass
+        try:
+            client.get_table(FALLBACK_TABLE_ID)
+            TABLE_ID = FALLBACK_TABLE_ID
+        except Exception:
+            pass
     return get_leaderboard_data(client, username, team_name, task_list_state), username
+
 
 def trigger_api_update(
     username, token, team_name, module_id, user_real_accuracy, task_list_state, append_task_id=None
@@ -1426,14 +544,18 @@ def trigger_api_update(
 
     return prev_data, lb_data, username, new_task_list
 
-# --- 8. SUCCESS MESSAGE / DASHBOARD RENDERING ---
+
+# ============================================================================
+# 7. SUCCESS MESSAGE RENDERER
+# ============================================================================
+
 def generate_success_message(prev, curr, specific_text):
     old_score = float(prev.get("score", 0) or 0) if prev else 0.0
     new_score = float(curr.get("score", 0) or 0)
     diff_score = new_score - old_score
 
-    old_rank = prev.get("rank", "–") if prev else "–"
-    new_rank = curr.get("rank", "–")
+    old_rank = prev.get("rank", "\u2013") if prev else "\u2013"
+    new_rank = curr.get("rank", "\u2013")
 
     ranks_are_int = isinstance(old_rank, int) and isinstance(new_rank, int)
     rank_diff = old_rank - new_rank if ranks_are_int else 0
@@ -1457,64 +579,48 @@ def generate_success_message(prev, curr, specific_text):
 
     if style_key == "first":
         card_class += " first-score"
-        header_emoji = "🎉"
-        header_title = "Estàs Oficialment a la Classificació!"
-        summary_line = (
-            "Acabes de guanyar la teva primera Puntuació de Brúixola Moral — ara ets part de la classificació global."
-        )
-        cta_line = "Desplaça't cap avall per fer el teu proper pas i començar a escalar."
+        header_emoji = "\U0001f389"
+        header_title = "Ets Oficialment a la Classificaci\u00f3!"
+        summary_line = "Acabes d\u2019obtenir la teva primera Puntuaci\u00f3 de Br\u00faixola Moral \u2014 ara formes part del r\u00e0nquing global."
+        cta_line = "Continua prenent decisions de CTO per escalar a la classificaci\u00f3."
     elif style_key == "major":
-        header_emoji = "🔥"
-        header_title = "Gran Impuls de Brúixola Moral!"
-        summary_line = (
-            "La teva decisió ha tingut un gran impacte — acabes d'avançar altres participants."
-        )
-        cta_line = "Desplaça't cap avall per enfrontar el teu proper repte i mantenir l'impuls."
+        header_emoji = "\U0001f525"
+        header_title = "Gran Impuls a la Br\u00faixola Moral!"
+        summary_line = "La teva decisi\u00f3 com a CTO ha tingut un gran impacte \u2014 acabes d\u2019avançar per davant d\u2019altres l\u00edders."
+        cta_line = "Continua la teva simulaci\u00f3 per mantenir l\u2019impuls."
     elif style_key == "climb":
-        header_emoji = "🚀"
-        header_title = "Estàs Escalant la Classificació"
-        summary_line = "Bona feina — has superat alguns altres participants."
-        cta_line = "Desplaça't cap avall per continuar la teva investigació i pujar encara més."
+        header_emoji = "\U0001f680"
+        header_title = "Est\u00e0s Escalant a la Classificaci\u00f3"
+        summary_line = "Bona feina \u2014 has superat altres participants."
+        cta_line = "Fes clic a SEG\u00dcENT per continuar la teva simulaci\u00f3."
     elif style_key == "tight":
-        header_emoji = "📊"
-        header_title = "La Classificació està Canviant"
-        summary_line = (
-            "Altres equips també es mouen. Necessitaràs unes quantes decisions més fortes per destacar."
-        )
-        cta_line = "Respon la següent pregunta per enfortir la teva posició."
+        header_emoji = "\U0001f4ca"
+        header_title = "La Classificaci\u00f3 Est\u00e0 Canviant"
+        summary_line = "Els altres equips tamb\u00e9 es mouen. Unes quantes respostes m\u00e9s fortes et diferenciaran."
+        cta_line = "Afronta la seg\u00fcent ronda per enfortir la teva posici\u00f3."
     else:
-        header_emoji = "✅"
-        header_title = "Progrés Registrat"
-        summary_line = "La teva perspectiva ètica ha augmentat la teva Puntuació de Brúixola Moral."
-        cta_line = "Prova el següent escenari per arribar al següent nivell."
+        header_emoji = "\u2705"
+        header_title = "Progr\u00e9s Registrat"
+        summary_line = "El teu coneixement en sostenibilitat ha augmentat la teva Puntuaci\u00f3 de Br\u00faixola Moral."
+        cta_line = "Prova la seg\u00fcent ronda per continuar escalant."
 
     if style_key == "first":
-        score_line = f"🧭 Puntuació: <strong>{new_score:.3f}</strong>"
-        if ranks_are_int:
-            rank_line = f"🏅 Rang Inicial: <strong>#{new_rank}</strong>"
-        else:
-            rank_line = f"🏅 Rang Inicial: <strong>#{new_rank}</strong>"
+        score_line = f"\U0001f9ed Puntuaci\u00f3: <strong>{new_score:.3f}</strong>"
+        rank_line = f"\U0001f3c5 Posici\u00f3 Inicial: <strong>#{new_rank}</strong>"
     else:
         score_line = (
-            f"🧭 Puntuació: {old_score:.3f} → <strong>{new_score:.3f}</strong> "
+            f"\U0001f9ed Puntuaci\u00f3: {old_score:.3f} \u2192 <strong>{new_score:.3f}</strong> "
             f"(+{diff_score:.3f})"
         )
-
         if ranks_are_int:
             if old_rank == new_rank:
-                rank_line = f"📊 Rang: <strong>#{new_rank}</strong> (mantenen-se estable)"
+                rank_line = f"\U0001f4ca Posici\u00f3: <strong>#{new_rank}</strong> (mantenint-se)"
             elif rank_diff > 0:
-                rank_line = (
-                    f"📈 Rang: #{old_rank} → <strong>#{new_rank}</strong> "
-                    f"(+{rank_diff} posicions)"
-                )
+                rank_line = f"\U0001f4c8 Posici\u00f3: #{old_rank} \u2192 <strong>#{new_rank}</strong> (+{rank_diff} llocs)"
             else:
-                rank_line = (
-                    f"🔻 Rang: #{old_rank} → <strong>#{new_rank}</strong> "
-                    f"({rank_diff} posicions)"
-                )
+                rank_line = f"\U0001f53b Posici\u00f3: #{old_rank} \u2192 <strong>#{new_rank}</strong> ({rank_diff} llocs)"
         else:
-            rank_line = f"📊 Rang: <strong>#{new_rank}</strong>"
+            rank_line = f"\U0001f4ca Posici\u00f3: <strong>#{new_rank}</strong>"
 
     return f"""
     <div class="{card_class}">
@@ -1523,16 +629,12 @@ def generate_success_message(prev, curr, specific_text):
                 <div class="success-title">{header_emoji} {header_title}</div>
                 <div class="success-summary">{summary_line}</div>
             </div>
-            <div class="success-delta">
-                +{diff_score:.3f}
-            </div>
+            <div class="success-delta">+{diff_score:.3f}</div>
         </div>
-
         <div class="success-metrics">
             <div class="success-metric-line">{score_line}</div>
             <div class="success-metric-line">{rank_line}</div>
         </div>
-
         <div class="success-body">
             <p class="success-body-text">{specific_text}</p>
             <p class="success-cta">{cta_line}</p>
@@ -1540,38 +642,54 @@ def generate_success_message(prev, curr, specific_text):
     </div>
     """
 
+
+# ============================================================================
+# 8. DASHBOARD & LEADERBOARD RENDERERS
+# ============================================================================
+
 def render_top_dashboard(data, module_id):
     display_score = 0.0
     count_completed = 0
-    rank_display = "–"
-    team_rank_display = "–"
+    rank_display = "\u2013"
+    team_rank_display = "\u2013"
     if data:
         display_score = float(data.get("score", 0.0))
-        rank_display = f"#{data.get('rank', '–')}"
-        team_rank_display = f"#{data.get('team_rank', '–')}"
+        rank_display = f"#{data.get('rank', '\u2013')}"
+        team_rank_display = f"#{data.get('team_rank', '\u2013')}"
         count_completed = len(data.get("completed_task_ids", []) or [])
     progress_pct = min(100, int((count_completed / TOTAL_COURSE_TASKS) * 100))
+
+    if module_id <= 3:
+        phase_label = "FASE 1: Decisions d\u2019Infraestructura"
+        phase_color = "#6366f1"
+    else:
+        phase_label = "FASE 2: Estrat\u00e8gia i Avaluaci\u00f3"
+        phase_color = "#ef4444"
+
     return f"""
     <div class="summary-box">
         <div class="summary-box-inner">
             <div class="summary-metrics">
                 <div style="text-align:center;">
-                    <div class="label-text">Moral Compass Score</div>
-                    <div class="score-text-primary">🧭 {display_score:.3f}</div>
+                    <div class="label-text">Puntuaci\u00f3 Br\u00faixola Moral</div>
+                    <div class="score-text-primary">\U0001f9ed {display_score:.3f}</div>
                 </div>
                 <div class="divider-vertical"></div>
                 <div style="text-align:center;">
-                    <div class="label-text">Team Rank</div>
+                    <div class="label-text">R\u00e0nquing d\u2019Equip</div>
                     <div class="score-text-team">{team_rank_display}</div>
                 </div>
                 <div class="divider-vertical"></div>
                 <div style="text-align:center;">
-                    <div class="label-text">Global Rank</div>
+                    <div class="label-text">R\u00e0nquing Global</div>
                     <div class="score-text-global">{rank_display}</div>
                 </div>
             </div>
             <div class="summary-progress">
-                <div class="progress-label">Mission Progress: {progress_pct}%</div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                    <div class="progress-label">Progr\u00e9s de la Simulaci\u00f3: {progress_pct}%</div>
+                    <div style="font-size:0.75rem; font-weight:700; color:{phase_color}; background:rgba(0,0,0,0.05); padding:2px 8px; border-radius:10px;">{phase_label}</div>
+                </div>
                 <div class="progress-bar-bg">
                     <div class="progress-bar-fill" style="width:{progress_pct}%;"></div>
                 </div>
@@ -1580,17 +698,16 @@ def render_top_dashboard(data, module_id):
     </div>
     """
 
+
 def render_leaderboard_card(data, username, team_name):
     team_rows = ""
     user_rows = ""
     if data and data.get("all_teams"):
         for i, t in enumerate(data["all_teams"]):
             cls = "row-highlight-team" if t["team"] == team_name else "row-normal"
-            # Translate team name for display
-            team_label = translate_team_name_for_display(t['team'], lang='ca')
             team_rows += (
                 f"<tr class='{cls}'><td style='padding:8px;text-align:center;'>{i+1}</td>"
-                f"<td style='padding:8px;'>{team_label}</td>"
+                f"<td style='padding:8px;'>{t['team']}</td>"
                 f"<td style='padding:8px;text-align:right;'>{t['avg']:.3f}</td></tr>"
             )
     if data and data.get("all_users"):
@@ -1606,18 +723,18 @@ def render_leaderboard_card(data, username, team_name):
             )
     return f"""
     <div class="scenario-box leaderboard-card">
-        <h3 class="slide-title" style="margin-bottom:10px;">📊 Live Standings</h3>
+        <h3 class="slide-title" style="margin-bottom:10px;">\U0001f4ca Classificaci\u00f3 en Viu</h3>
         <div class="lb-tabs">
             <input type="radio" id="lb-tab-team" name="lb-tabs" checked>
-            <label for="lb-tab-team" class="lb-tab-label">🏆 Team</label>
+            <label for="lb-tab-team" class="lb-tab-label">\U0001f3c6 Equip</label>
             <input type="radio" id="lb-tab-user" name="lb-tabs">
-            <label for="lb-tab-user" class="lb-tab-label">👤 Individual</label>
+            <label for="lb-tab-user" class="lb-tab-label">\U0001f464 Individual</label>
             <div class="lb-tab-panels">
                 <div class="lb-panel panel-team">
                     <div class='table-container'>
                         <table class='leaderboard-table'>
                             <thead>
-                                <tr><th>Rank</th><th>Team</th><th style='text-align:right;'>Avg 🧭</th></tr>
+                                <tr><th>Pos.</th><th>Equip</th><th style='text-align:right;'>Mitjana \U0001f9ed</th></tr>
                             </thead>
                             <tbody>{team_rows}</tbody>
                         </table>
@@ -1627,7 +744,7 @@ def render_leaderboard_card(data, username, team_name):
                     <div class='table-container'>
                         <table class='leaderboard-table'>
                             <thead>
-                                <tr><th>Rank</th><th>Agent</th><th style='text-align:right;'>Score 🧭</th></tr>
+                                <tr><th>Pos.</th><th>CTO</th><th style='text-align:right;'>Punt. \U0001f9ed</th></tr>
                             </thead>
                             <tbody>{user_rows}</tbody>
                         </table>
@@ -1638,17 +755,791 @@ def render_leaderboard_card(data, username, team_name):
     </div>
     """
 
-# --- 9. APP FACTORY (FAIRNESS FIXER) ---
+
+# ============================================================================
+# 9. CSS — CTO design system + Gradio integration
+# ============================================================================
+
+css = """
+/* ========== Green AI CTO Design System ========== */
+
+/* CTO CSS variables — scoped with cto- prefix to avoid Gradio collisions */
+/* Light mode is the default (Gradio Soft theme default) */
+:root {
+    --cto-bg: #f8fafc;
+    --cto-card-bg: rgba(255, 255, 255, 0.9);
+    --cto-accent: #0284c7;
+    --cto-accent-glow: rgba(2, 132, 199, 0.2);
+    --cto-success: #059669;
+    --cto-warning: #d97706;
+    --cto-error: #dc2626;
+    --cto-text: #0f172a;
+    --cto-text-dim: #64748b;
+    --cto-bg-gradient-1: rgba(2, 132, 199, 0.08);
+    --cto-bg-gradient-2: rgba(5, 150, 105, 0.08);
+    --cto-card-shadow: rgba(0, 0, 0, 0.1);
+    --cto-border-color: rgba(0, 0, 0, 0.08);
+    --cto-input-bg: rgba(0, 0, 0, 0.02);
+    --cto-input-border: rgba(0, 0, 0, 0.1);
+    --cto-hover-bg: rgba(0, 0, 0, 0.05);
+    --cto-progress-line: rgba(0, 0, 0, 0.1);
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --cto-bg: #0f172a;
+        --cto-card-bg: rgba(30, 41, 59, 0.7);
+        --cto-accent: #38bdf8;
+        --cto-accent-glow: rgba(56, 189, 248, 0.3);
+        --cto-success: #10b981;
+        --cto-warning: #fbbf24;
+        --cto-error: #f43f5e;
+        --cto-text: #f8fafc;
+        --cto-text-dim: #94a3b8;
+        --cto-bg-gradient-1: rgba(56, 189, 248, 0.05);
+        --cto-bg-gradient-2: rgba(16, 185, 129, 0.05);
+        --cto-card-shadow: rgba(0, 0, 0, 0.5);
+        --cto-border-color: rgba(255, 255, 255, 0.05);
+        --cto-input-bg: rgba(255, 255, 255, 0.05);
+        --cto-input-border: rgba(255, 255, 255, 0.1);
+        --cto-hover-bg: rgba(255, 255, 255, 0.08);
+        --cto-progress-line: rgba(255, 255, 255, 0.1);
+    }
+}
+
+/* CTO Animations */
+@keyframes ctoSlideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes ctoSpin {
+    to { transform: rotate(360deg); }
+}
+
+/* CTO reveal animation */
+.cto-reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: ctoSlideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* CTO Title page */
+.cto-title-page {
+    min-height: 65vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 20px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* CTO Card — glassmorphism */
+.cto-card {
+    background: var(--cto-card-bg);
+    backdrop-filter: blur(16px);
+    border-radius: 24px;
+    padding: 32px 28px;
+    border: 1px solid var(--cto-border-color);
+    box-shadow: 0 25px 50px -12px var(--cto-card-shadow);
+}
+
+/* CTO Stats grid */
+.cto-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 16px;
+    border-radius: 16px;
+    background: var(--cto-card-bg);
+    border: 1px solid var(--cto-border-color);
+    backdrop-filter: blur(16px);
+}
+
+/* CTO Choice cards */
+.cto-choice-card:hover {
+    border-color: var(--cto-accent) !important;
+}
+
+/* CTO Confirm button */
+.cto-confirm-btn {
+    margin-top: 20px;
+    padding: 16px 36px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    background: var(--cto-accent);
+    color: var(--cto-bg);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 8px 25px var(--cto-accent-glow);
+    transition: all 0.3s;
+    font-family: 'Outfit', sans-serif;
+}
+.cto-confirm-btn:hover {
+    filter: brightness(1.08);
+    transform: translateY(-2px);
+}
+
+/* CTO Feedback tiers */
+.cto-feedback-best { border-color: var(--cto-success) !important; }
+.cto-feedback-good { border-color: var(--cto-warning) !important; }
+.cto-feedback-poor { border-color: var(--cto-error) !important; }
+
+/* CTO Results tier badge */
+.cto-tier-badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    background: var(--cto-input-bg);
+    border: 1px solid var(--cto-border-color);
+}
+
+/* CTO Certification card */
+.cto-cert-card {
+    margin-top: 24px;
+    text-align: center;
+    background: var(--cto-card-bg);
+    backdrop-filter: blur(16px);
+    border-radius: 24px;
+    padding: 32px 28px;
+    box-shadow: 0 25px 50px -12px var(--cto-card-shadow);
+}
+
+/* Module container backgrounds for CTO */
+.module-container .scenario-box {
+    font-family: 'Outfit', sans-serif;
+}
+
+/* ========== Gradio Integration Styles ========== */
+
+/* Layout + containers */
+.summary-box {
+    background: var(--block-background-fill);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color-primary);
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+.summary-box-inner { display: flex; align-items: center; justify-content: space-between; gap: 30px; }
+.summary-metrics { display: flex; gap: 30px; align-items: center; }
+.summary-progress { width: 560px; max-width: 100%; }
+
+/* Scenario cards */
+.scenario-box {
+    padding: 24px;
+    border-radius: 14px;
+    background: var(--block-background-fill);
+    border: 1px solid var(--border-color-primary);
+    margin-bottom: 22px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+.slide-title { margin-top: 0; font-size: 1.9rem; font-weight: 800; }
+
+/* Hint boxes */
+.hint-box {
+    padding: 12px;
+    border-radius: 10px;
+    background: var(--background-fill-secondary);
+    border: 1px solid var(--border-color-primary);
+    margin-top: 10px;
+    font-size: 0.98rem;
+}
+
+/* Success / profile card */
+.profile-card.success-card {
+    padding: 20px;
+    border-radius: 14px;
+    border-left: 6px solid var(--cto-success);
+    background: linear-gradient(135deg, rgba(5,150,105,0.08), var(--block-background-fill));
+    margin-top: 16px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+    font-size: 1.04rem;
+    line-height: 1.55;
+}
+.profile-card.first-score {
+    border-left-color: var(--cto-warning);
+    background: linear-gradient(135deg, rgba(250,204,21,0.18), var(--block-background-fill));
+}
+.success-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 8px; }
+.success-title { font-size: 1.26rem; font-weight: 900; color: var(--cto-success); }
+.success-summary { font-size: 1.06rem; color: var(--body-text-color-subdued); margin-top: 4px; }
+.success-delta { font-size: 1.5rem; font-weight: 800; color: var(--cto-success); }
+.success-metrics { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: var(--background-fill-secondary); font-size: 1.06rem; }
+.success-metric-line { margin-bottom: 4px; }
+.success-body { margin-top: 10px; font-size: 1.06rem; }
+.success-body-text { margin: 0 0 6px 0; }
+.success-cta { margin: 4px 0 0 0; font-weight: 700; font-size: 1.06rem; }
+
+/* Numbers + labels */
+.score-text-primary { font-size: 2.05rem; font-weight: 900; color: var(--color-accent); }
+.score-text-team { font-size: 2.05rem; font-weight: 900; color: var(--color-accent); }
+.score-text-global { font-size: 2.05rem; font-weight: 900; }
+.label-text { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--body-text-color-subdued, #6b7280); }
+
+/* Progress bar */
+.progress-bar-bg { width: 100%; height: 10px; background: var(--border-color-primary, #e5e7eb); border-radius: 6px; overflow: hidden; margin-top: 8px; }
+.progress-bar-fill { height: 100%; background: var(--color-accent); transition: width 280ms ease; }
+.progress-label { font-size: 0.82rem; font-weight: 700; }
+
+/* Leaderboard tabs + tables */
+.leaderboard-card input[type="radio"] { display: none; }
+.lb-tab-label {
+    display: inline-block; padding: 8px 16px; margin-right: 8px; border-radius: 20px;
+    cursor: pointer; border: 1px solid var(--border-color-primary); font-weight: 700; font-size: 0.94rem;
+}
+#lb-tab-team:checked + label, #lb-tab-user:checked + label {
+    background: var(--color-accent); color: white; border-color: var(--color-accent);
+    box-shadow: 0 3px 8px rgba(99,102,241,0.25);
+}
+.lb-panel { display: none; margin-top: 10px; }
+#lb-tab-team:checked ~ .lb-tab-panels .panel-team { display: block; }
+#lb-tab-user:checked ~ .lb-tab-panels .panel-user { display: block; }
+.table-container { height: 320px; overflow-y: auto; border: 1px solid var(--border-color-primary); border-radius: 10px; }
+.leaderboard-table { width: 100%; border-collapse: collapse; }
+.leaderboard-table th {
+    position: sticky; top: 0; background: var(--background-fill-secondary);
+    padding: 10px; text-align: left; border-bottom: 2px solid var(--border-color-primary);
+    font-weight: 800;
+}
+.leaderboard-table td { padding: 10px; border-bottom: 1px solid var(--border-color-primary); }
+.row-highlight-me, .row-highlight-team { background: rgba(2, 132, 199, 0.1); font-weight: 700; }
+
+/* Small utility */
+.divider-vertical { width: 1px; height: 48px; background: var(--border-color-primary); opacity: 0.6; }
+
+/* Radio sizes */
+.quiz-radio-large label { font-size: 1.06rem; }
+
+/* Navigation loading overlay */
+#nav-loading-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: color-mix(in srgb, var(--body-background-fill) 95%, transparent);
+    z-index: 9999; display: none; flex-direction: column; align-items: center;
+    justify-content: center; opacity: 0; transition: opacity 0.3s ease;
+}
+.nav-spinner {
+    width: 50px; height: 50px; border: 5px solid var(--border-color-primary);
+    border-top: 5px solid var(--color-accent); border-radius: 50%;
+    animation: nav-spin 1s linear infinite; margin-bottom: 20px;
+}
+@keyframes nav-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+#nav-loading-text {
+    font-size: 1.3rem; font-weight: 600; color: var(--color-accent);
+}
+@media (prefers-color-scheme: dark) {
+    #nav-loading-overlay { background: rgba(15, 23, 42, 0.9); }
+    .nav-spinner { border-color: rgba(148, 163, 184, 0.4); border-top-color: var(--color-accent); }
+}
+
+/* Points chip + quiz CTA */
+.points-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 0.8rem;
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+    border: 1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
+}
+.quiz-cta {
+    margin: 8px 0 10px 0;
+    font-size: 0.9rem;
+    color: var(--body-text-color-subdued);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+"""
+
+
+# ============================================================================
+# 9b. CLIENT-SIDE JAVASCRIPT — Consolidated game engine (Gradio 6 head injection)
+# ============================================================================
+
+CLIENT_JS = """
+// === Dynamically load Outfit font ===
+(function(){
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap';
+    document.head.appendChild(link);
+})();
+
+// =============================================
+// GREEN AI CTO — Game Engine
+// =============================================
+
+// --- Global State ---
+window.ctoState = {energy:4200, water:18500000, co2:1680, cost:2800000, greenScore:8, reputation:12};
+window.ctoPrevState = null;
+window.ctoChoices = [];
+window.ctoSelectedChoice = {};
+
+// --- Round Data (from JSX) ---
+window.CTO_ROUNDS = [
+    null, // index 0 unused (rounds are 1-5)
+    { id:"cooling", title:"La Crisi de Refrigeraci\\u00f3", emoji:"\\ud83c\\udf21\\ufe0f",
+      choices:[
+        { id:"a", label:"Refrigeraci\\u00f3 per Immersi\\u00f3 L\\u00edquida", icon:"\\ud83e\\uddf2",
+          fx:{energy:-35,water:-70,co2:-30,cost:-20,greenScore:28,reputation:22},
+          fb:"Moviment incre\\u00edble. La refrigeraci\\u00f3 per immersi\\u00f3 \\u00e9s d\\u2019avantguarda \\u2014 Microsoft ja l\\u2019est\\u00e0 provant. Has eliminat la major part de l\\u2019\\u00fas d\\u2019aigua i has redu\\u00eft l\\u2019energia un 35%.", tier:"best" },
+        { id:"b", label:"H\\u00edbrid: Aire + Aigua Reciclada", icon:"\\u267b\\ufe0f",
+          fx:{energy:-15,water:-45,co2:-12,cost:-8,greenScore:15,reputation:14},
+          fb:"Intel\\u00b7ligent i pr\\u00e0ctic. Gaireb\\u00e9 has redu\\u00eft a la meitat el consum d\\u2019aigua dolça en canviar a aigua reciclada, i la refrigeraci\\u00f3 per aire lliure estalvia energia els dies m\\u00e9s frescos.", tier:"good" },
+        { id:"c", label:"Optimitzar el Sistema Actual", icon:"\\ud83d\\udd27",
+          fx:{energy:-5,water:-8,co2:-4,cost:-3,greenScore:4,reputation:-5},
+          fb:"Els sensors ajuden, per\\u00f2 continues fent servir el mateix sistema ineficient. Les not\\u00edcies locals publiquen un reportatge sobre el teu \\u00fas d\\u2019aigua durant la sequera.", tier:"poor" },
+      ],
+    },
+    { id:"energy", title:"El Rendiment de Comptes Energ\\u00e8tic", emoji:"\\u26a1",
+      choices:[
+        { id:"a", label:"Solar In Situ + Emmagatzematge amb Bateries", icon:"\\u2600\\ufe0f",
+          fx:{energy:-10,water:-5,co2:-55,cost:-15,greenScore:25,reputation:20},
+          fb:"Inversi\\u00f3 audaç. La teva granja solar cobreix el 80% de la c\\u00e0rrega di\\u00fcrna, les bateries s\\u2019encarreguen de la nit. El CO\\u2082 cau dr\\u00e0sticament. Als inversors els encanten els estalvis a llarg termini.", tier:"best" },
+        { id:"b", label:"Acord de Compra d\\u2019Energia Renovable", icon:"\\ud83c\\udf2c\\ufe0f",
+          fx:{energy:-3,water:-3,co2:-35,cost:-5,greenScore:16,reputation:12},
+          fb:"Un PPA \\u00e9s el que fan la majoria de les grans tecnol\\u00f2giques \\u2014 efica\\u00e7 i relativament f\\u00e0cil. El teu mix energ\\u00e8tic canvia significativament cap a renovables.", tier:"good" },
+        { id:"c", label:"Comprar Compensacions de Carboni", icon:"\\ud83d\\udcdc",
+          fx:{energy:0,water:0,co2:-10,cost:-1,greenScore:3,reputation:-8},
+          fb:"Les compensacions de carboni s\\u00f3n controvertides \\u2014 moltes es consideren \\u2018greenwashing.\\u2019 Els grups ecologistes et senyalen. Les teves emissions reals no han canviat.", tier:"poor" },
+      ],
+    },
+    { id:"models", title:"Revisi\\u00f3 d\\u2019Efici\\u00e8ncia del Model", emoji:"\\ud83e\\udde0",
+      choices:[
+        { id:"a", label:"Cascada Intel\\u00b7ligent de Models", icon:"\\ud83e\\udea9",
+          fx:{energy:-40,water:-30,co2:-38,cost:-35,greenScore:22,reputation:15},
+          fb:"Arquitectura genial. El 80% de les consultes ara van al model petit (50 vegades menys energia), i els usuaris no noten la difer\\u00e8ncia. Aix\\u00ed \\u00e9s com operen les millors empreses d\\u2019IA.", tier:"best" },
+        { id:"b", label:"Destil\\u00b7lar a un Model M\\u00e9s Petit", icon:"\\ud83e\\uddec",
+          fx:{energy:-25,water:-18,co2:-22,cost:-20,greenScore:14,reputation:10},
+          fb:"La destil\\u00b7laci\\u00f3 de models est\\u00e0 provada. El teu nou model de 70B gestiona el 90% de les tasques b\\u00e9, redu\\u00efnt l\\u2019energia significativament.", tier:"good" },
+        { id:"c", label:"Nom\\u00e9s Afegir Cau de Respostes", icon:"\\ud83d\\udcbe",
+          fx:{energy:-10,water:-5,co2:-8,cost:-10,greenScore:5,reputation:3},
+          fb:"El cau ajuda per a consultes repetides, per\\u00f2 la majoria dels prompts d\\u2019IA s\\u00f3n \\u00fanics \\u2014 el model enorme continua executant-se per a la gran majoria. Un pedaç, no una soluci\\u00f3.", tier:"poor" },
+      ],
+    },
+    { id:"location", title:"Ubicaci\\u00f3, Ubicaci\\u00f3, Ubicaci\\u00f3", emoji:"\\ud83d\\udccd",
+      choices:[
+        { id:"a", label:"Regi\\u00f3 N\\u00f2rdica (Su\\u00e8cia/Finl\\u00e0ndia)", icon:"\\ud83c\\uddf8\\ud83c\\uddea",
+          fx:{energy:-20,water:-40,co2:-30,cost:-18,greenScore:20,reputation:18},
+          fb:"Aix\\u00f2 \\u00e9s exactament el que han fet Meta i Google. L\\u2019aire fred n\\u00f2rdic proporciona refrigeraci\\u00f3 natural, i la xarxa renovable significa gaireb\\u00e9 zero carboni.", tier:"best" },
+        { id:"b", label:"Nord-oest del Pac\\u00edfic (Oregon)", icon:"\\ud83c\\udf32",
+          fx:{energy:-10,water:-20,co2:-18,cost:-10,greenScore:12,reputation:10},
+          fb:"Oregon \\u00e9s popular \\u2014 Amazon i Google hi tenen grans instal\\u00b7lacions. L\\u2019energia hidroel\\u00e8ctrica ajuda amb les xifres de carboni, el clima suau redueix la refrigeraci\\u00f3.", tier:"good" },
+        { id:"c", label:"Mantenir el Pla del Desert", icon:"\\ud83c\\udfdc\\ufe0f",
+          fx:{energy:5,water:10,co2:5,cost:5,greenScore:-3,reputation:-10},
+          fb:"El terreny barat \\u00e9s temptador, per\\u00f2 la calor extrema suposa 3 vegades m\\u00e9s costos de refrigeraci\\u00f3. La xarxa a gas anul\\u00b7la els guanys. Els grups ecologistes t\\u2019afegeixen a una llista d\\u2019\\u2018infractors clim\\u00e0tics\\u2019.", tier:"poor" },
+      ],
+    },
+    { id:"transparency", title:"L\\u2019Informe de Transpar\\u00e8ncia", emoji:"\\ud83d\\udcca",
+      choices:[
+        { id:"a", label:"Tauler P\\u00fablic en Temps Real", icon:"\\ud83d\\udce1",
+          fx:{energy:-5,water:-3,co2:-5,cost:2,greenScore:18,reputation:25},
+          fb:"Revolucionari. Ets la primera empresa d\\u2019IA amb un tauler de sostenibilitat en viu. Desenvolupadors, investigadors i mitjans t\\u2019elogien. Estableixes un nou est\\u00e0ndard a la ind\\u00fastria.", tier:"best" },
+        { id:"b", label:"Informe Anual de Sostenibilitat", icon:"\\ud83d\\udcc4",
+          fx:{energy:-2,water:-1,co2:-2,cost:0,greenScore:8,reputation:10},
+          fb:"Els informes anuals s\\u00f3n el m\\u00ednim que publiquen Google i Microsoft. Compleix el tr\\u00e0mit per\\u00f2 no impulsa una rendici\\u00f3 de comptes real.", tier:"good" },
+        { id:"c", label:"Compliment Legal M\\u00ednim", icon:"\\ud83d\\udd12",
+          fx:{energy:0,water:0,co2:0,cost:0,greenScore:-2,reputation:-15},
+          fb:"Els investigadors senyalen la teva empresa per falta de transpar\\u00e8ncia. Una publicaci\\u00f3 viral compara el teu secretisme amb el de les empreses de combustibles f\\u00f2ssils que oculten dades d\\u2019emissions. La confian\\u00e7a s\\u2019erosiona.", tier:"poor" },
+      ],
+    },
+];
+
+// --- INIT STATE ---
+window.CTO_INIT = {energy:4200, water:18500000, co2:1680, cost:2800000, greenScore:8, reputation:12};
+
+// --- Apply effects (percentage-based) ---
+function ctoApply(stats, fx) {
+    return {
+        energy: Math.max(0, Math.round(stats.energy * (1 + fx.energy / 100))),
+        water: Math.max(0, Math.round(stats.water * (1 + fx.water / 100))),
+        co2: Math.max(0, Math.round(stats.co2 * (1 + fx.co2 / 100))),
+        cost: Math.max(0, Math.round(stats.cost * (1 + fx.cost / 100))),
+        greenScore: Math.min(100, Math.max(0, stats.greenScore + fx.greenScore)),
+        reputation: Math.min(100, Math.max(0, stats.reputation + fx.reputation)),
+    };
+}
+
+// --- Grade calculator ---
+function ctoGrade(s) {
+    if (s >= 90) return { l:"A+", c:"var(--cto-success)", t:"Llegendari" };
+    if (s >= 75) return { l:"A", c:"var(--cto-success)", t:"Excel\\u00b7lent" };
+    if (s >= 60) return { l:"B", c:"var(--cto-accent)", t:"Genial" };
+    if (s >= 45) return { l:"C", c:"var(--cto-warning)", t:"Acceptable" };
+    if (s >= 30) return { l:"D", c:"var(--cto-warning)", t:"Cal Millorar" };
+    return { l:"F", c:"var(--cto-error)", t:"Cr\\u00edtic" };
+}
+
+// --- Number formatter ---
+function ctoFmt(n) {
+    return n >= 1e6 ? (n/1e6).toFixed(1)+"M" : n >= 1e3 ? (n/1e3).toFixed(0)+"K" : String(n);
+}
+
+// --- Render stats grid ---
+function ctoRenderStats(containerId, stats, prev) {
+    var el = document.getElementById(containerId);
+    if (!el) return;
+    var items = [
+        {k:"energy", l:"Energia", u:"MWh/mes", i:"\\u26a1"},
+        {k:"water", l:"Aigua", u:"L/mes", i:"\\ud83d\\udca7"},
+        {k:"co2", l:"CO\\u2082", u:"t/mes", i:"\\ud83d\\udca8"},
+        {k:"cost", l:"Cost", u:"$/mes", i:"\\ud83d\\udcb0"},
+        {k:"greenScore", l:"Verd", u:"/100", i:"\\ud83c\\udf31"},
+        {k:"reputation", l:"Rep", u:"/100", i:"\\u2b50"},
+    ];
+    var html = "";
+    for (var idx = 0; idx < items.length; idx++) {
+        var it = items[idx];
+        var v = stats[it.k];
+        var d = null;
+        if (prev) {
+            var pv = prev[it.k] || 1;
+            d = Math.round((v - prev[it.k]) / pv * 100);
+        }
+        var valStr = it.k === "cost" ? "$" + ctoFmt(v) : (it.k === "greenScore" || it.k === "reputation") ? String(v) : ctoFmt(v);
+        var deltaHtml = "";
+        if (d !== null && d !== 0) {
+            var dColor = d < 0 ? "var(--cto-success)" : "var(--cto-error)";
+            // For greenScore and reputation, positive is good
+            if (it.k === "greenScore" || it.k === "reputation") {
+                dColor = d > 0 ? "var(--cto-success)" : "var(--cto-error)";
+            }
+            var arrow = d < 0 ? "\\u2193" : "\\u2191";
+            deltaHtml = '<div style="font-size:0.75rem; margin-top:2px; color:' + dColor + ';">' + arrow + Math.abs(d) + '%</div>';
+        }
+        html += '<div style="text-align:center; padding:8px 4px;">'
+            + '<div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">' + it.i + ' ' + it.l + '</div>'
+            + '<div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">' + valStr + '</div>'
+            + '<div style="font-size:0.7rem; color:var(--cto-text-dim);">' + it.u + '</div>'
+            + deltaHtml
+            + '</div>';
+    }
+    el.innerHTML = html;
+}
+
+// --- Select a choice card ---
+function ctoSelectChoice(roundIdx, choiceIdx) {
+    // Deselect all choices in this round
+    for (var i = 0; i < 3; i++) {
+        var card = document.getElementById('cto-choice-' + roundIdx + '-' + i);
+        var radio = document.getElementById('cto-choice-radio-' + roundIdx + '-' + i);
+        var icon = document.getElementById('cto-choice-icon-' + roundIdx + '-' + i);
+        if (card) {
+            card.style.background = 'var(--cto-input-bg)';
+            card.style.borderColor = 'var(--cto-border-color)';
+        }
+        if (radio) {
+            radio.style.borderColor = 'var(--cto-input-border)';
+            radio.style.background = 'transparent';
+            radio.innerHTML = '';
+        }
+        if (icon) {
+            icon.style.background = 'var(--cto-input-bg)';
+        }
+    }
+    // Select the clicked choice
+    var selCard = document.getElementById('cto-choice-' + roundIdx + '-' + choiceIdx);
+    var selRadio = document.getElementById('cto-choice-radio-' + roundIdx + '-' + choiceIdx);
+    var selIcon = document.getElementById('cto-choice-icon-' + roundIdx + '-' + choiceIdx);
+    if (selCard) {
+        selCard.style.background = 'rgba(56,189,248,0.08)';
+        selCard.style.borderColor = 'var(--cto-accent)';
+    }
+    if (selRadio) {
+        selRadio.style.borderColor = 'var(--cto-accent)';
+        selRadio.style.background = 'var(--cto-accent)';
+        selRadio.innerHTML = '<span style="color:var(--cto-bg); font-size:0.85rem; font-weight:700;">\\u2713</span>';
+    }
+    if (selIcon) {
+        selIcon.style.background = 'var(--cto-hover-bg)';
+    }
+    window.ctoSelectedChoice[roundIdx] = choiceIdx;
+    // Show confirm button
+    var btn = document.getElementById('cto-confirm-btn-' + roundIdx);
+    if (btn) btn.style.display = 'inline-block';
+}
+
+// --- Confirm decision ---
+function ctoConfirmDecision(roundIdx) {
+    var choiceIdx = window.ctoSelectedChoice[roundIdx];
+    if (choiceIdx === undefined || choiceIdx === null) return;
+
+    var roundData = window.CTO_ROUNDS[roundIdx];
+    if (!roundData) return;
+    var choice = roundData.choices[choiceIdx];
+    if (!choice) return;
+
+    // Save previous state
+    window.ctoPrevState = JSON.parse(JSON.stringify(window.ctoState));
+
+    // Apply effects
+    window.ctoState = ctoApply(window.ctoState, choice.fx);
+    window.ctoChoices.push(choice);
+
+    // Hide choices container
+    var choicesContainer = document.getElementById('cto-choices-container-' + roundIdx);
+    if (choicesContainer) choicesContainer.style.display = 'none';
+
+    // Build feedback
+    var tc = {best:"var(--cto-success)", good:"var(--cto-warning)", poor:"var(--cto-error)"};
+    var tl = {best:"\\ud83c\\udf1f Excel\\u00b7lent Elecci\\u00f3", good:"\\ud83d\\udc4d Bona Elecci\\u00f3", poor:"\\u26a0\\ufe0f Elecci\\u00f3 Arriscada"};
+
+    var impactChips = [
+        {l:"Energia",v:(choice.fx.energy>0?"+":"") + choice.fx.energy + "%", g:choice.fx.energy<0},
+        {l:"Aigua",v:(choice.fx.water>0?"+":"") + choice.fx.water + "%", g:choice.fx.water<0},
+        {l:"CO\\u2082",v:(choice.fx.co2>0?"+":"") + choice.fx.co2 + "%", g:choice.fx.co2<0},
+        {l:"Verd +",v:"+" + choice.fx.greenScore, g:choice.fx.greenScore>0}
+    ];
+    var chipsHtml = '';
+    for (var ci = 0; ci < impactChips.length; ci++) {
+        var chip = impactChips[ci];
+        var chipBg = chip.g ? "rgba(16,185,129,0.1)" : "rgba(244,63,94,0.1)";
+        var chipColor = chip.g ? "var(--cto-success)" : "var(--cto-error)";
+        chipsHtml += '<div style="padding:6px 12px; border-radius:8px; background:' + chipBg + '; font-size:0.85rem; color:' + chipColor + '; font-weight:600;">' + chip.l + ': ' + chip.v + '</div>';
+    }
+
+    var fbHtml = '<div class="cto-card cto-feedback-' + choice.tier + '" style="animation:ctoSlideUp 0.5s ease;">'
+        + '<div style="font-size:1rem; font-weight:800; color:' + tc[choice.tier] + '; margin-bottom:8px;">' + tl[choice.tier] + '</div>'
+        + '<p style="font-size:1.05rem; color:var(--cto-text-dim); line-height:1.7; margin:0;">' + choice.fb + '</p>'
+        + '<div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">' + chipsHtml + '</div>'
+        + '<div id="cto-spinner-' + roundIdx + '" style="margin-top:20px; font-size:0.9rem; color:var(--cto-text-dim); display:flex; align-items:center; gap:8px;">'
+        + '<div style="width:16px; height:16px; border:2px solid var(--cto-text-dim); border-top:2px solid var(--cto-accent); border-radius:50%; animation:ctoSpin 1s linear infinite;"></div>'
+        + 'Aplicant canvis als sistemes de NovaMind...'
+        + '</div>'
+        + '</div>';
+
+    var fbContainer = document.getElementById('cto-feedback-' + roundIdx);
+    if (fbContainer) fbContainer.innerHTML = fbHtml;
+
+    // After 1.2s, hide spinner (the "continue" is handled by Gradio's Next button)
+    setTimeout(function() {
+        var spinner = document.getElementById('cto-spinner-' + roundIdx);
+        if (spinner) {
+            spinner.innerHTML = '<div style="font-size:0.9rem; color:var(--cto-accent); font-weight:700;">\\u2705 Canvis aplicats. Fes clic a SEG\\u00dcENT per continuar.</div>';
+        }
+    }, 1200);
+}
+
+// --- Render Results ---
+function ctoRenderResults() {
+    var container = document.getElementById('cto-results-container');
+    if (!container) return;
+
+    var stats = window.ctoState;
+    var choices = window.ctoChoices;
+    var INIT = window.CTO_INIT;
+    var g = ctoGrade(stats.greenScore);
+    var ok = stats.greenScore >= 60;
+    var er = Math.round((1 - stats.energy / INIT.energy) * 100);
+    var wr = Math.round((1 - stats.water / INIT.water) * 100);
+    var cr = Math.round((1 - stats.co2 / INIT.co2) * 100);
+    var bc = 0;
+    for (var i = 0; i < choices.length; i++) { if (choices[i].tier === "best") bc++; }
+
+    // Status line
+    var statusColor = ok ? "var(--cto-success)" : "var(--cto-warning)";
+    var statusText = ok ? "\\u2705 Avaluaci\\u00f3 Completada" : "\\u26a0\\ufe0f Avaluaci\\u00f3 Completada";
+
+    // Progress rings
+    var ringItems = [
+        {l:"Punt. Verda", v:stats.greenScore, m:100},
+        {l:"Reputaci\\u00f3", v:stats.reputation, m:100},
+        {l:"Millors Eleccions", v:bc, m:5}
+    ];
+    var ringsHtml = '';
+    for (var ri = 0; ri < ringItems.length; ri++) {
+        var x = ringItems[ri];
+        var pct = Math.min(100, (x.v / x.m) * 100);
+        var da = Math.round(pct * 2.14);
+        ringsHtml += '<div style="text-align:center;">'
+            + '<div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:2px;">' + x.l + '</div>'
+            + '<div style="position:relative; width:80px; height:80px; margin:8px auto;">'
+            + '<svg width="80" height="80" viewBox="0 0 80 80">'
+            + '<circle cx="40" cy="40" r="34" fill="none" stroke="var(--cto-input-bg)" stroke-width="6"/>'
+            + '<circle cx="40" cy="40" r="34" fill="none" stroke="var(--cto-accent)" stroke-width="6" '
+            + 'stroke-dasharray="' + da + ' 214" stroke-linecap="round" transform="rotate(-90 40 40)" '
+            + 'style="transition:stroke-dasharray 1.2s cubic-bezier(0.16,1,0.3,1);"/>'
+            + '</svg>'
+            + '<div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:800; color:var(--cto-text);">' + x.v + '</div>'
+            + '</div></div>';
+    }
+
+    // Impact summary
+    var impactItems = [
+        {l:"Energia Redu\\u00efda", v:er+"%", f:INIT.energy.toLocaleString(), t:stats.energy.toLocaleString(), u:"MWh/mes"},
+        {l:"Aigua Estalviada", v:wr+"%", f:(INIT.water/1e6).toFixed(1)+"M", t:(stats.water/1e6).toFixed(1)+"M", u:"L/mes"},
+        {l:"CO\\u2082 Redu\\u00eft", v:cr+"%", f:INIT.co2.toLocaleString(), t:stats.co2.toLocaleString(), u:"t/mes"}
+    ];
+    var impactHtml = '';
+    for (var ii = 0; ii < impactItems.length; ii++) {
+        var imp = impactItems[ii];
+        impactHtml += '<div style="text-align:center; padding:16px; border-radius:14px; background:var(--cto-input-bg);">'
+            + '<div style="font-size:1.8rem; font-weight:800; color:var(--cto-accent);">\\u2193' + imp.v + '</div>'
+            + '<div style="font-size:0.8rem; color:var(--cto-text-dim); margin-top:8px; text-transform:uppercase; letter-spacing:1px;">' + imp.l + '</div>'
+            + '<div style="font-size:0.75rem; color:var(--cto-text-dim); margin-top:4px;">' + imp.f + ' \\u2192 ' + imp.t + ' ' + imp.u + '</div>'
+            + '</div>';
+    }
+
+    // Audit trail
+    var tc2 = {best:"var(--cto-success)", good:"var(--cto-warning)", poor:"var(--cto-error)"};
+    var tl2 = {best:"Millor", good:"Bona", poor:"Pobre"};
+    var roundNames = [null, "La Crisi de Refrigeraci\\u00f3", "El Rendiment de Comptes Energ\\u00e8tic", "Revisi\\u00f3 d\\u2019Efici\\u00e8ncia del Model", "Decisi\\u00f3 d\\u2019Ubicaci\\u00f3", "L\\u2019Informe de Transpar\\u00e8ncia"];
+    var roundEmojis = [null, "\\ud83c\\udf21\\ufe0f", "\\u26a1", "\\ud83e\\udde0", "\\ud83d\\udccd", "\\ud83d\\udcca"];
+    var auditHtml = '';
+    for (var ai = 0; ai < choices.length; ai++) {
+        var ch = choices[ai];
+        var borderBot = ai < choices.length - 1 ? "1px solid var(--cto-border-color)" : "none";
+        auditHtml += '<div style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:' + borderBot + ';">'
+            + '<span style="font-size:1.3rem;">' + roundEmojis[ai+1] + '</span>'
+            + '<div style="flex:1;">'
+            + '<div style="font-size:1rem; font-weight:600; color:var(--cto-text);">' + ch.label + '</div>'
+            + '<div style="font-size:0.8rem; color:var(--cto-text-dim);">' + roundNames[ai+1] + '</div>'
+            + '</div>'
+            + '<div class="cto-tier-badge" style="color:' + tc2[ch.tier] + ';">' + tl2[ch.tier] + '</div>'
+            + '</div>';
+    }
+
+    // Certification
+    var certHtml = '';
+    if (ok) {
+        certHtml = '<div class="cto-cert-card" style="border:2px solid var(--cto-success);">'
+            + '<div style="font-size:3rem;">\\ud83c\\udfc5</div>'
+            + '<h2 style="font-size:1.6rem; font-weight:800; color:var(--cto-success); margin-top:12px;">IA VERDA CERTIFICADA</h2>'
+            + '<p style="font-size:1.05rem; color:var(--cto-text-dim); margin-top:8px; line-height:1.7; max-width:440px; margin-left:auto; margin-right:auto;">'
+            + 'NovaMind AI ha estat aprovada per al redesplegament sota el Marc d\\u2019IA Verda. La teva plataforma ara compleix els est\\u00e0ndards de sostenibilitat.</p>'
+            + '<div style="margin-top:20px; display:inline-block; padding:12px 28px; border-radius:12px; background:rgba(16,185,129,0.1); border:1px solid var(--cto-success); font-size:1rem; color:var(--cto-success); font-weight:700;">'
+            + '\\u2705 APROVADA PER AL REDESPLEGAMENT</div>'
+            + '</div>';
+    } else {
+        certHtml = '<div class="cto-cert-card" style="border:2px solid var(--cto-warning);">'
+            + '<div style="font-size:3rem;">\\ud83d\\udd04</div>'
+            + '<h2 style="font-size:1.6rem; font-weight:800; color:var(--cto-warning); margin-top:12px;">ESTAT PROVISIONAL</h2>'
+            + '<p style="font-size:1.05rem; color:var(--cto-text-dim); margin-top:8px; line-height:1.7; max-width:440px; margin-left:auto; margin-right:auto;">'
+            + 'NovaMind ha millorat per\\u00f2 no ha assolit la certificaci\\u00f3 d\\u2019IA Verda (puntuaci\\u00f3 60+). La junta et dona una altra oportunitat.</p>'
+            + '<div style="margin-top:20px; display:inline-block; padding:12px 28px; border-radius:12px; background:rgba(251,191,36,0.1); border:1px solid var(--cto-warning); font-size:1rem; color:var(--cto-warning); font-weight:700;">'
+            + '\\u23f3 REDESPLEGAMENT PENDENT</div>'
+            + '</div>';
+    }
+
+    // What you learned
+    var learnHtml = '<div class="cto-card" style="margin-top:24px; text-align:center;">'
+        + '<div style="font-size:1.1rem; font-weight:800; color:var(--cto-text);">\\ud83d\\udca1 El Que Acabes d\\u2019Aprendre</div>'
+        + '<p style="font-size:1rem; color:var(--cto-text-dim); line-height:1.7; margin-top:8px; max-width:480px; margin-left:auto; margin-right:auto;">'
+        + 'Les empreses reals d\\u2019IA s\\u2019enfronten a aquestes mateixes decisions cada dia. Refrigeraci\\u00f3, fonts d\\u2019energia, efici\\u00e8ncia del model, ubicaci\\u00f3 i transpar\\u00e8ncia s\\u00f3n les palanques que determinen si la IA ajuda o perjudica el planeta.</p>'
+        + '<div style="font-size:0.8rem; color:var(--cto-text-dim); margin-top:12px;">Basat en dades reals de IEA, MIT, UC Riverside, VU Amsterdam (2024\\u20132025)</div>'
+        + '</div>';
+
+    container.innerHTML = '<div style="text-align:center; font-size:0.875rem; font-weight:800; letter-spacing:3px; color:' + statusColor + '; text-transform:uppercase;">'
+        + statusText + '</div>'
+        + '<h1 style="text-align:center; font-size:clamp(2rem, 7vw, 3.2rem); font-weight:800; margin-top:16px; color:var(--cto-text);">'
+        + '<span style="color:' + g.c + ';">' + g.l + '</span> \\u2014 ' + g.t + '</h1>'
+        + '<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:32px;">' + ringsHtml + '</div>'
+        + '<div class="cto-card" style="margin-top:28px;">'
+        + '<h3 style="font-size:1.2rem; font-weight:800; color:var(--cto-text); margin:0 0 16px 0;">El Teu Impacte com a CTO</h3>'
+        + '<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px;">' + impactHtml + '</div></div>'
+        + '<div class="cto-card" style="margin-top:20px;">'
+        + '<h3 style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin:0 0 12px 0;">Les Teves Decisions</h3>'
+        + auditHtml + '</div>'
+        + certHtml
+        + learnHtml;
+}
+
+// --- Init functions for each module ---
+(function ctoInitStats1(){
+    var el = document.getElementById('cto-stats-1');
+    if (!el) { setTimeout(ctoInitStats1, 200); return; }
+    ctoRenderStats('cto-stats-1', window.ctoState, window.ctoPrevState);
+})();
+
+(function ctoInitStats2(){
+    var el = document.getElementById('cto-stats-2');
+    if (!el) { setTimeout(ctoInitStats2, 200); return; }
+    ctoRenderStats('cto-stats-2', window.ctoState, window.ctoPrevState);
+})();
+
+(function ctoInitStats3(){
+    var el = document.getElementById('cto-stats-3');
+    if (!el) { setTimeout(ctoInitStats3, 200); return; }
+    ctoRenderStats('cto-stats-3', window.ctoState, window.ctoPrevState);
+})();
+
+(function ctoInitStats4(){
+    var el = document.getElementById('cto-stats-4');
+    if (!el) { setTimeout(ctoInitStats4, 200); return; }
+    ctoRenderStats('cto-stats-4', window.ctoState, window.ctoPrevState);
+})();
+
+(function ctoInitStats5(){
+    var el = document.getElementById('cto-stats-5');
+    if (!el) { setTimeout(ctoInitStats5, 200); return; }
+    ctoRenderStats('cto-stats-5', window.ctoState, window.ctoPrevState);
+})();
+
+(function ctoInitResults(){
+    var el = document.getElementById('cto-results-container');
+    if (!el) { setTimeout(ctoInitResults, 200); return; }
+    // Only render if we have at least 5 choices (all rounds played)
+    if (window.ctoChoices && window.ctoChoices.length >= 5) {
+        ctoRenderResults();
+    }
+})();
+
+// Re-render stats when modules become visible (navigation triggers this)
+function ctoRefreshVisibleStats() {
+    for (var r = 1; r <= 5; r++) {
+        var el = document.getElementById('cto-stats-' + r);
+        if (el && el.offsetParent !== null) {
+            ctoRenderStats('cto-stats-' + r, window.ctoState, window.ctoPrevState);
+        }
+    }
+    // Check if results container is visible and needs rendering
+    var resEl = document.getElementById('cto-results-container');
+    if (resEl && resEl.offsetParent !== null && window.ctoChoices && window.ctoChoices.length >= 5) {
+        ctoRenderResults();
+    }
+}
+
+// Poll to refresh stats on navigation
+setInterval(ctoRefreshVisibleStats, 500);
+"""
+
+HEAD_HTML = (
+    '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap">\n'
+    '<script>\n' + CLIENT_JS + '\n</script>'
+)
+
+
+# ============================================================================
+# 10. APP FACTORY
+# ============================================================================
+
 def create_fairness_fixer_ca_sustainability_app(theme_primary_hue: str = "indigo"):
-    with gr.Blocks(theme=gr.themes.Soft(primary_hue=theme_primary_hue), css=css) as demo:
+    with gr.Blocks(
+        theme=gr.themes.Soft(primary_hue=theme_primary_hue),
+        css=css,
+        head=HEAD_HTML,
+    ) as demo:
         # States
         username_state = gr.State(value=None)
         token_state = gr.State(value=None)
         team_state = gr.State(value=None)
+        module0_done = gr.State(value=False)
         accuracy_state = gr.State(value=0.0)
         task_list_state = gr.State(value=[])
 
-        # --- TOP ANCHOR & LOADING OVERLAY ---
+        # Top anchor + loading overlay
         gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
         gr.HTML("<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>Carregant...</span></div>")
 
@@ -1656,69 +1547,87 @@ def create_fairness_fixer_ca_sustainability_app(theme_primary_hue: str = "indigo
         with gr.Column(visible=True, elem_id="app-loader") as loader_col:
             gr.HTML(
                 "<div style='text-align:center; padding:100px;'>"
-                "<h2>🕵️‍♀️ Autenticant...</h2>"
-                "<p>Sincronitzant Perfil d'Enginyer d'Equitat...</p>"
+                "<h2>Autenticant...</h2>"
+                "<p>Sincronitzant dades de la Br\u00faixola Moral...</p>"
                 "</div>"
             )
 
         # --- MAIN APP VIEW ---
         with gr.Column(visible=False) as main_app_col:
-            # Top summary dashboard
+            # Top dashboard
             out_top = gr.HTML()
 
-            # Dynamic modules container
+            with gr.Accordion("Com es calcula la Puntuaci\u00f3 de la Br\u00faixola Moral?", open=False):
+                gr.HTML("""
+                    <div style="padding:12px; font-size:0.92rem; line-height:1.6;">
+                        <div style="font-weight:700; margin-bottom:8px;">F\u00f3rmula:</div>
+                        <div style="background:var(--background-fill-secondary); padding:12px 16px; border-radius:8px; font-family:monospace; font-size:1rem; margin-bottom:10px; border:1px solid var(--border-color-primary);">
+                            Puntuaci\u00f3 Br\u00faixola Moral = Precisi\u00f3 x (Passos Completats / Total de Passos)
+                        </div>
+                        <ul style="margin:0; padding-left:20px;">
+                            <li><strong>Precisi\u00f3</strong> &mdash; La puntuaci\u00f3 de precisi\u00f3 del teu model de l\u2019Activitat 4 (0 a 1).</li>
+                            <li><strong>Passos Completats</strong> &mdash; Quants passos d\u2019investigaci\u00f3 has respost correctament fins ara.</li>
+                            <li><strong>Total de Passos</strong> &mdash; El nombre total de preguntes del qüestionari en tota la investigaci\u00f3.</li>
+                        </ul>
+                        <div style="margin-top:10px; padding:8px 12px; background:rgba(99,102,241,0.08); border-radius:6px; font-size:0.88rem;">
+                            La teva puntuaci\u00f3 augmenta a mesura que avances en la simulaci\u00f3. Una puntuaci\u00f3 perfecta significa alta precisi\u00f3 del model <em>i</em> completar tots els passos de raonament \u00e8tic.
+                        </div>
+                    </div>
+                """)
+
+            # Module containers
             module_ui_elements = {}
             quiz_wiring_queue = []
 
-            # --- DYNAMIC MODULE GENERATION ---
             for i, mod in enumerate(MODULES):
                 with gr.Column(
                     elem_id=f"module-{i}",
                     elem_classes=["module-container"],
                     visible=(i == 0),
                 ) as mod_col:
-                    # Core slide HTML
                     gr.HTML(mod["html"])
 
-                    # --- QUIZ CONTENT ---
+                    # Quiz content — only for modules in QUIZ_CONFIG (1-6)
                     if i in QUIZ_CONFIG:
                         q_data = QUIZ_CONFIG[i]
 
-                        # Compact points chip and hint above the question
                         gr.HTML(
                             "<div class='quiz-cta'>"
-                            "<span class='points-chip'>🧭 Punts de Brúixola Moral disponibles</span>"
-                            "<span>Respon per millorar la teva puntuació</span>"
+                            "<span class='points-chip'>\U0001f9ed Punts de Br\u00faixola Moral disponibles</span>"
+                            "<span>Respon per augmentar la teva puntuaci\u00f3</span>"
                             "</div>"
                         )
 
-                        gr.Markdown(f"### 🧠 {q_data['q']}")
+                        gr.Markdown(f"### \U0001f9e0 {q_data['q']}")
                         radio = gr.Radio(
                             choices=q_data["o"],
-                            label="Selecciona una Acció:",
+                            label="Selecciona la teva resposta:",
                             elem_classes=["quiz-radio-large"],
                         )
                         feedback = gr.HTML("")
                         quiz_wiring_queue.append((i, radio, feedback))
 
-                    # --- NAVIGATION BUTTONS ---
+                    # Navigation buttons
                     with gr.Row():
-                        btn_prev = gr.Button("⬅️ Anterior", visible=(i > 0))
+                        btn_prev = gr.Button("\u2b05\ufe0f Anterior", visible=(i > 0))
                         next_label = (
-                            "Següent ▶️"
+                            "Seg\u00fcent \u25b6\ufe0f"
                             if i < len(MODULES) - 1
-                            else "🎉 Model Autoritzat! Desplaça't cap avall per rebre el teu Certificat oficial d'Ètica en Joc!"
+                            else "\U0001f389 Simulaci\u00f3 Completada!"
                         )
                         btn_next = gr.Button(next_label, variant="primary")
 
                     module_ui_elements[i] = (mod_col, btn_prev, btn_next)
 
-            # Leaderboard card
+            # Leaderboard at bottom
             leaderboard_html = gr.HTML()
 
             # --- WIRING: QUIZ LOGIC ---
             for mod_id, radio_comp, feedback_comp in quiz_wiring_queue:
-                def quiz_logic_wrapper(user, tok, team, acc_val, task_list, ans, mid=mod_id):
+
+                def quiz_logic_wrapper(
+                    user, tok, team, acc_val, task_list, ans, mid=mod_id
+                ):
                     cfg = QUIZ_CONFIG[mid]
                     if ans == cfg["a"]:
                         prev, curr, _, new_tasks = trigger_api_update(
@@ -1735,7 +1644,8 @@ def create_fairness_fixer_ca_sustainability_app(theme_primary_hue: str = "indigo
                         return (
                             gr.update(),
                             gr.update(),
-                            "<div class='hint-box' style='border-color:red;'>❌ Incorrecte. Torna-ho a intentar.</div>",
+                            "<div class='hint-box' style='border-color:red;'>"
+                            "\u274c No del tot. Torna a llegir l\u2019escenari anterior i pensa en qu\u00e8 mostren espec\u00edficament les dades.</div>",
                             task_list,
                         )
 
@@ -1745,21 +1655,25 @@ def create_fairness_fixer_ca_sustainability_app(theme_primary_hue: str = "indigo
                     outputs=[out_top, leaderboard_html, feedback_comp, task_list_state],
                 )
 
-        # --- GLOBAL LOAD HANDLER ---
-        def handle_load(req: gr.Request):
-            success, user, token = _try_session_based_auth(req)
-            team = "Team-Unassigned"
-            acc = 0.0
-            fetched_tasks: List[str] = []
+        # --- LOAD HANDLER ---
+        def handle_load(request: gr.Request):
+            ok, uname, tok = _try_session_based_auth(request)
+            if ok:
+                best_acc, fetched_team = fetch_user_history(uname, tok)
+                team = "Team-Unassigned"
+                fetched_tasks: List[str] = []
 
-            if success and user and token:
-                acc, fetched_team = fetch_user_history(user, token)
                 os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
-                client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
+                client = MoralcompassApiClient(
+                    api_base_url=DEFAULT_API_URL, auth_token=tok
+                )
 
+                # Resolve team from existing server record
                 def get_or_assign_team(client_obj, username_val):
                     try:
-                        user_data = client_obj.get_user(table_id=TABLE_ID, username=username_val)
+                        user_data = client_obj.get_user(
+                            table_id=TABLE_ID, username=username_val
+                        )
                     except Exception:
                         user_data = None
                     if user_data and isinstance(user_data, dict):
@@ -1767,7 +1681,7 @@ def create_fairness_fixer_ca_sustainability_app(theme_primary_hue: str = "indigo
                             return user_data["teamName"]
                     return "team-a"
 
-                exist_team = get_or_assign_team(client, user)
+                exist_team = get_or_assign_team(client, uname)
                 if fetched_team != "Team-Unassigned":
                     team = fetched_team
                 elif exist_team != "team-a":
@@ -1775,8 +1689,9 @@ def create_fairness_fixer_ca_sustainability_app(theme_primary_hue: str = "indigo
                 else:
                     team = "team-a"
 
+                # Fetch completedTaskIds from server via get_user()
                 try:
-                    user_stats = client.get_user(table_id=TABLE_ID, username=user)
+                    user_stats = client.get_user(table_id=TABLE_ID, username=uname)
                 except Exception:
                     user_stats = None
 
@@ -1784,14 +1699,17 @@ def create_fairness_fixer_ca_sustainability_app(theme_primary_hue: str = "indigo
                     if isinstance(user_stats, dict):
                         fetched_tasks = user_stats.get("completedTaskIds") or []
                     else:
-                        fetched_tasks = getattr(user_stats, "completed_task_ids", []) or []
+                        fetched_tasks = getattr(
+                            user_stats, "completed_task_ids", []
+                        ) or []
 
+                # Sync baseline moral compass record
                 try:
                     client.update_moral_compass(
                         table_id=TABLE_ID,
-                        username=user,
+                        username=uname,
                         team_name=team,
-                        metrics={"accuracy": acc},
+                        metrics={"accuracy": best_acc},
                         tasks_completed=len(fetched_tasks),
                         total_tasks=TOTAL_COURSE_TASKS,
                         primary_metric="accuracy",
@@ -1801,28 +1719,35 @@ def create_fairness_fixer_ca_sustainability_app(theme_primary_hue: str = "indigo
                 except Exception:
                     pass
 
-                data, _ = ensure_table_and_get_data(user, token, team, fetched_tasks)
-                return (
-                    user, token, team, False,
-                    render_top_dashboard(data, 0),
-                    render_leaderboard_card(data, user, team),
-                    acc, fetched_tasks,
-                    gr.update(visible=False), gr.update(visible=True),
+                data, _ = ensure_table_and_get_data(
+                    uname, tok, team, fetched_tasks
                 )
-
+                return (
+                    uname, tok, team, False,
+                    render_top_dashboard(data, 0),
+                    render_leaderboard_card(data, uname, team),
+                    best_acc, fetched_tasks,
+                    gr.update(visible=False),
+                    gr.update(visible=True),
+                )
             return (
                 None, None, None, False,
-                "<div class='hint-box'>⚠️ Auth Failed. Please launch from the course link.</div>",
+                "<div class='hint-box'>Autenticaci\u00f3 fallida. Si us plau, accedeix des de l\u2019enlla\u00e7 del curs.</div>",
                 "", 0.0, [],
-                gr.update(visible=False), gr.update(visible=True),
+                gr.update(visible=False),
+                gr.update(visible=True),
             )
 
         demo.load(
             handle_load, None,
-            [username_state, token_state, team_state, gr.State(False), out_top, leaderboard_html, accuracy_state, task_list_state, loader_col, main_app_col],
+            [
+                username_state, token_state, team_state, module0_done,
+                out_top, leaderboard_html, accuracy_state, task_list_state,
+                loader_col, main_app_col,
+            ],
         )
 
-        # --- JAVASCRIPT NAVIGATION ---
+        # --- JAVASCRIPT HELPER ---
         def nav_js(target_id: str, message: str) -> str:
             return f"""
             ()=>{{
@@ -1840,6 +1765,12 @@ def create_fairness_fixer_ca_sustainability_app(theme_primary_hue: str = "indigo
                   if(anchor) anchor.scrollIntoView({{behavior:'smooth', block:'start'}});
                 }}, 40);
                 const targetId = '{target_id}';
+                if(targetId === 'module-6' && typeof ctoRenderResults === 'function') {{
+                  var _rp = setInterval(() => {{
+                    var c = document.getElementById('cto-results-container');
+                    if(c) {{ clearInterval(_rp); ctoRenderResults(); }}
+                  }}, 100);
+                }}
                 const pollInterval = setInterval(() => {{
                   const elapsed = Date.now() - startTime;
                   const target = document.getElementById(targetId);
@@ -1857,19 +1788,22 @@ def create_fairness_fixer_ca_sustainability_app(theme_primary_hue: str = "indigo
             }}
             """
 
-        # --- NAV BUTTON WIRING ---
+        # --- NAVIGATION ---
         for i in range(len(MODULES)):
             curr_col, prev_btn, next_btn = module_ui_elements[i]
+
             if i > 0:
                 prev_col = module_ui_elements[i - 1][0]
                 prev_target_id = f"module-{i-1}"
-                def make_prev_handler(p_col, c_col):
+
+                def make_prev_handler(p_col, c_col, target_id):
                     def navigate_prev():
                         yield gr.update(visible=False), gr.update(visible=False)
                         yield gr.update(visible=True), gr.update(visible=False)
                     return navigate_prev
+
                 prev_btn.click(
-                    fn=make_prev_handler(prev_col, curr_col),
+                    fn=make_prev_handler(prev_col, curr_col, prev_target_id),
                     outputs=[prev_col, curr_col],
                     js=nav_js(prev_target_id, "Carregant..."),
                 )
@@ -1877,16 +1811,20 @@ def create_fairness_fixer_ca_sustainability_app(theme_primary_hue: str = "indigo
             if i < len(MODULES) - 1:
                 next_col = module_ui_elements[i + 1][0]
                 next_target_id = f"module-{i+1}"
+
                 def make_next_handler(c_col, n_col, next_idx):
                     def wrapper_next(user, tok, team, tasks):
                         data, _ = ensure_table_and_get_data(user, tok, team, tasks)
-                        return render_top_dashboard(data, next_idx)
+                        dash_html = render_top_dashboard(data, next_idx)
+                        return dash_html
                     return wrapper_next
+
                 def make_nav_generator(c_col, n_col):
                     def navigate_next():
                         yield gr.update(visible=False), gr.update(visible=False)
                         yield gr.update(visible=False), gr.update(visible=True)
                     return navigate_next
+
                 next_btn.click(
                     fn=make_next_handler(curr_col, next_col, i + 1),
                     inputs=[username_state, token_state, team_state, task_list_state],
@@ -1897,20 +1835,30 @@ def create_fairness_fixer_ca_sustainability_app(theme_primary_hue: str = "indigo
                     outputs=[curr_col, next_col],
                 )
 
-    return demo
+        return demo
 
-# --- 10. LAUNCHER ---
+# ============================================================================
+# LAUNCH
+# ============================================================================
+
 def launch_fairness_fixer_ca_sustainability_app(
     share: bool = False,
     server_name: str = "0.0.0.0",
-    server_port: int = 8080,
+    server_port: int = 8083,
     theme_primary_hue: str = "indigo",
     **kwargs
 ) -> None:
     app = create_fairness_fixer_ca_sustainability_app(theme_primary_hue=theme_primary_hue)
-    app.launch(share=share, server_name=server_name,
-               server_port=server_port,
-               **kwargs)
+    app.launch(
+        share=share,
+        server_name=server_name,
+        server_port=server_port,
+        theme=gr.themes.Soft(primary_hue=theme_primary_hue),
+        css=css,
+        head=HEAD_HTML,
+        **kwargs
+    )
+
 
 if __name__ == "__main__":
-    launch_fairness_fixer_ca_app(share=False, debug=True, height=1000)
+    launch_fairness_fixer_ca_sustainability_app(share=False, debug=True, height=1000)
