@@ -1088,13 +1088,6 @@
                     <div class="quiz-feedback" id="step5QuizFeedback"></div>
                 </div>
 
-                <!-- Follow-up — appears after quiz answered correctly -->
-                <div id="step5Followup" style="display:none; animation: fadeIn 0.5s ease;">
-                    <div class="highlight-box">
-                        <p style="margin:0; font-size:1rem;"><b>Bonus:</b> Now try making the <b>LEAST</b> efficient building you can.
-                            What feature changed the prediction the most?</p>
-                    </div>
-                </div>
 
                 <div class="btn-group">
                     <button class="btn secondary" onclick="goToStep(4)">◀ Back</button>
@@ -1841,12 +1834,6 @@
             state.step5Predictions++;
             document.getElementById('triesArea').style.display = 'block';
             document.getElementById('triesCounter').textContent = `Predictions made: ${state.step5Predictions}`;
-
-            // E3-4: Update cumulative counter
-            const counterEl = document.getElementById('impactCounter');
-            counterEl.style.display = 'flex';
-            document.getElementById('buildingsAnalyzed').textContent = state.step5Predictions;
-            document.getElementById('potentialSavings').textContent = Math.round(state.cumulativeSavings).toLocaleString();
 
             // Show challenge card after first prediction
             document.getElementById('challengeCard').classList.add('visible');
