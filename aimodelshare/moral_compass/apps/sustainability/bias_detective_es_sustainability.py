@@ -753,7 +753,7 @@ css = """
     --ace-input-border: rgba(0, 0, 0, 0.1);
     --ace-hover-bg: rgba(0, 0, 0, 0.05);
     --ace-progress-line: rgba(0, 0, 0, 0.1);
-    --ace-bar-text: #fff;
+    --ace-bar-text: #0f172a;
     --ace-success-bg: rgba(5, 150, 105, 0.08);
     --ace-error-bg: rgba(220, 38, 38, 0.08);
     --ace-success-highlight: rgba(5, 150, 105, 0.15);

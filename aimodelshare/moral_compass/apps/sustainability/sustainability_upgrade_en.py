@@ -160,8 +160,8 @@ css = """
 }
 
 /* Highlighting Rows */
-.row-highlight-me { background: rgba(96, 165, 250, 0.2); font-weight: 700; }
-.row-highlight-team { background: rgba(96, 165, 250, 0.1); font-weight: 700; }
+.row-highlight-me { background: color-mix(in srgb, var(--color-accent) 20%, transparent); font-weight: 700; }
+.row-highlight-team { background: color-mix(in srgb, var(--color-accent) 10%, transparent); font-weight: 700; }
 
 /* --- TAB LOGIC (RESTORED) --- */
 .leaderboard-card input[type="radio"] { display: none; }
@@ -216,7 +216,7 @@ css = """
     border: none; 
     cursor: pointer;
 }
-.share-print { background-color: #1e3a8a; }
+.share-print { background-color: var(--color-accent, #1e3a8a); }
 
 /* --- PRINT ONLY --- */
 @media print {
