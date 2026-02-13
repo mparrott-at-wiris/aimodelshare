@@ -540,9 +540,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     </div>
                 </div>
 
-                <div class="btn-group" id="btnContinueReset"
-                    style="justify-content: center; opacity: 0; pointer-events: none;">
-                    <button class="btn" onclick="goToStep(4)">INTRODUCE NEW METRIC</button>
+                <div class="btn-group" style="justify-content: center;">
+                    <button class="btn secondary" onclick="goToStep(2)">BACK</button>
+                    <button class="btn" id="btnContinueReset"
+                        style="opacity: 0; pointer-events: none;" onclick="goToStep(4)">INTRODUCE NEW METRIC</button>
                 </div>
             </div>
 
@@ -576,7 +577,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 </div>
 
                 <div class="btn-group">
-                    <button class="btn" style="width: 100%;" onclick="showTransition()">START SUSTAINABILITY
+                    <button class="btn secondary" onclick="goToStep(3)">BACK</button>
+                    <button class="btn" onclick="showTransition()">START SUSTAINABILITY
                         AUDIT</button>
                 </div>
             </div>
@@ -596,6 +598,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     </div>
 
     <script>
+        let step3Played = false;
+
         function goToStep(step) {
             // Hide all steps
             document.querySelectorAll('.mission-step').forEach(el => el.classList.remove('active'));
@@ -606,7 +610,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
             // Special logic for Step 3 (Animation)
             if (step === 3) {
-                setTimeout(runResetAnimation, 500);
+                if (!step3Played) {
+                    setTimeout(runResetAnimation, 500);
+                } else {
+                    const btn = document.getElementById('btnContinueReset');
+                    btn.style.opacity = '1';
+                    btn.style.pointerEvents = 'all';
+                }
             }
         }
 
@@ -634,6 +644,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     setTimeout(() => {
                         btn.style.opacity = '1';
                         btn.style.pointerEvents = 'all';
+                        step3Played = true;
                     }, 1000);
                 }
                 scoreVal.textContent = score;
