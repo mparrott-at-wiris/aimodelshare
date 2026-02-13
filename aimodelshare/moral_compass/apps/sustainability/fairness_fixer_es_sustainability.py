@@ -805,6 +805,25 @@ css = """
         --cto-progress-line: rgba(255, 255, 255, 0.1);
     }
 }
+.dark {
+    --cto-bg: #0f172a;
+    --cto-card-bg: rgba(30, 41, 59, 0.7);
+    --cto-accent: #38bdf8;
+    --cto-accent-glow: rgba(56, 189, 248, 0.3);
+    --cto-success: #10b981;
+    --cto-warning: #fbbf24;
+    --cto-error: #f43f5e;
+    --cto-text: #f8fafc;
+    --cto-text-dim: #94a3b8;
+    --cto-bg-gradient-1: rgba(56, 189, 248, 0.05);
+    --cto-bg-gradient-2: rgba(16, 185, 129, 0.05);
+    --cto-card-shadow: rgba(0, 0, 0, 0.5);
+    --cto-border-color: rgba(255, 255, 255, 0.05);
+    --cto-input-bg: rgba(255, 255, 255, 0.05);
+    --cto-input-border: rgba(255, 255, 255, 0.1);
+    --cto-hover-bg: rgba(255, 255, 255, 0.08);
+    --cto-progress-line: rgba(255, 255, 255, 0.1);
+}
 
 /* CTO Animations */
 @keyframes ctoSlideUp {
@@ -1038,6 +1057,8 @@ css = """
     #nav-loading-overlay { background: rgba(15, 23, 42, 0.9); }
     .nav-spinner { border-color: rgba(148, 163, 184, 0.4); border-top-color: var(--color-accent); }
 }
+.dark #nav-loading-overlay { background: rgba(15, 23, 42, 0.9); }
+.dark .nav-spinner { border-color: rgba(148, 163, 184, 0.4); border-top-color: var(--color-accent); }
 
 /* Points chip + quiz CTA */
 .points-chip {

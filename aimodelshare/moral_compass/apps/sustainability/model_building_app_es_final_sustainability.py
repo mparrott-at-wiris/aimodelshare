@@ -1144,8 +1144,8 @@ def build_login_prompt_html():
     The styled preview card will be prepended to this.
     """
     return f"""
-    <h2 style='color: #111827; margin-top:20px; border-top: 2px solid #e5e7eb; padding-top: 20px;'>🔐 Inicia sesión para enviar y clasificarte</h2>
-    <div style='margin-top:16px; text-align:left; font-size:1rem; line-height:1.6; color:#374151;'>
+    <h2 style='color: var(--body-text-color, #111827); margin-top:20px; border-top: 2px solid var(--border-color-primary, #e5e7eb); padding-top: 20px;'>🔐 Inicia sesión para enviar y clasificarte</h2>
+    <div style='margin-top:16px; text-align:left; font-size:1rem; line-height:1.6; color:var(--secondary-text-color, #374151);'>
         <p style='margin:12px 0;'>
             Esta es solo una vista previa. Inicia sesión para publicar tu puntuación en la clasificación en vivo, subir de rango y contribuir puntos a tu equipo.
         </p>
@@ -1171,30 +1171,30 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
         if local_test_accuracy is not None and last_score is not None and last_score > 0:
             score_diff = local_test_accuracy - last_score
             if abs(score_diff) < 0.0001:
-                acc_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: #6b7280; margin:0;'>Sin Cambios (↔) <span style='font-size: 0.9rem; color: #9ca3af;'>(Estimado)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Actualizando clasificación...</p>"
+                acc_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: var(--secondary-text-color, #6b7280); margin:0;'>Sin Cambios (↔) <span style='font-size: 0.9rem; color: var(--secondary-text-color, #9ca3af);'>(Estimado)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: var(--secondary-text-color, #6b7280); margin:0; padding-top: 8px;'>Actualizando clasificación...</p>"
             elif score_diff > 0:
-                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>+{(score_diff * 100):.2f} (⬆️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Estimado)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Actualizando clasificación...</p>"
+                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>+{(score_diff * 100):.2f} (⬆️) <span style='font-size: 0.9rem; color: var(--secondary-text-color, #9ca3af);'>(Estimado)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: var(--secondary-text-color, #6b7280); margin:0; padding-top: 8px;'>Actualizando clasificación...</p>"
             else:
-                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>{(score_diff * 100):.2f} (⬇️) <span style='font-size: 0.9rem; color: #9ca3af;'>(Estimado)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Actualizando clasificación...</p>"
+                acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>{(score_diff * 100):.2f} (⬇️) <span style='font-size: 0.9rem; color: var(--secondary-text-color, #9ca3af);'>(Estimado)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: var(--secondary-text-color, #6b7280); margin:0; padding-top: 8px;'>Actualizando clasificación...</p>"
         else:
             # No last score available - just show pending message
-            acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>Actualizando clasificación...</p>"
+            acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: var(--secondary-text-color, #6b7280); margin:0; padding-top: 8px;'>Actualizando clasificación...</p>"
         
         border_color = acc_color
         rank_color = "#6b7280"  # Gray
         rank_text = "Pendiente"
-        rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0;'>Calculando posición...</p>"
+        rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: var(--secondary-text-color, #6b7280); margin:0;'>Calculando posición...</p>"
         
     # Handle preview mode - Styled to match "success" card
     elif is_preview:
         title = "🔬 ¡Vista Previa Exitosa!"
         acc_color = "#16a34a"  # Green (like success)
         acc_text = f"{(new_score * 100):.2f}%" if new_score > 0 else "N/D"
-        acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0; padding-top: 8px;'>(Solo vista previa — no se ha enviado)</p>" # Neutral color
+        acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: var(--secondary-text-color, #6b7280); margin:0; padding-top: 8px;'>(Solo vista previa — no se ha enviado)</p>" # Neutral color
         border_color = acc_color # Green border
         rank_color = "#3b82f6" # Blue (like rank)
         rank_text = "N/D" # Placeholder
-        rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: #6b7280; margin:0;'>Sin clasificar (vista previa)</p>" # Neutral color
+        rank_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: var(--secondary-text-color, #6b7280); margin:0;'>Sin clasificar (vista previa)</p>" # Neutral color
     
 
     else:
@@ -1238,10 +1238,10 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
         <div class='kpi-card-body'>
             <div class='kpi-metric-box'>
                 <p class='kpi-label'>Nueva Precisión</p>
-                <p style='font-size:0.8rem; color:#6b7280; margin:0;'>% de edificios que tu IA predijo correctamente</p>
+                <p style='font-size:0.8rem; color:var(--secondary-text-color, #6b7280); margin:0;'>% de edificios que tu IA predijo correctamente</p>
                 <p class='kpi-score' style='color: {acc_color};'>{acc_text}</p>
                 {acc_diff_html}
-                <p style='font-size:0.75rem; color:#9ca3af; margin:8px 0 0;'>Menos de 60% = Mejorable &middot; 60-70% = Aceptable &middot; 70-80% = Bueno &middot; 80%+ = Excelente</p>
+                <p style='font-size:0.75rem; color:var(--secondary-text-color, #9ca3af); margin:8px 0 0;'>Menos de 60% = Mejorable &middot; 60-70% = Aceptable &middot; 70-80% = Bueno &middot; 80%+ = Excelente</p>
             </div>
             <div class='kpi-metric-box'>
                 <p class='kpi-label'>Tu Posición</p>
@@ -1260,7 +1260,7 @@ def _build_team_html(team_summary_df, team_name):
     ensuring reliable highlighting even with whitespace or casing variations.
     """
     if team_summary_df is None or team_summary_df.empty:
-        return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Aún no hay envíos de equipos.</p>"
+        return "<p style='text-align:center; color:var(--secondary-text-color, #6b7280); padding-top:20px;'>Aún no hay envíos de equipos.</p>"
 
     # Normalize the current user's team name for comparison
     normalized_user_team = _normalize_team_name(team_name).lower()
@@ -1301,7 +1301,7 @@ def _build_team_html(team_summary_df, team_name):
 def _build_individual_html(individual_summary_df, username):
     """Generates the HTML for the individual leaderboard."""
     if individual_summary_df is None or individual_summary_df.empty:
-        return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Aún no hay envíos individuales.</p>"
+        return "<p style='text-align:center; color:var(--secondary-text-color, #6b7280); padding-top:20px;'>Aún no hay envíos individuales.</p>"
 
     header = """
     <table class='leaderboard-html-table'>
@@ -1352,8 +1352,8 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
 
     if leaderboard_df is None or leaderboard_df.empty or "accuracy" not in leaderboard_df.columns:
         return (
-            "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Clasificación vacía.</p>",
-            "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Clasificación vacía.</p>",
+            "<p style='text-align:center; color:var(--secondary-text-color, #6b7280); padding-top:20px;'>Clasificación vacía.</p>",
+            "<p style='text-align:center; color:var(--secondary-text-color, #6b7280); padding-top:20px;'>Clasificación vacía.</p>",
             _build_kpi_card_html(0, 0, 0, 0, 0, is_preview=False, is_pending=False, local_test_accuracy=None), 
             0.0, 0, 0.0
         )
@@ -1743,7 +1743,7 @@ def run_experiment(
     if isinstance(submit_button, dict) or isinstance(submission_feedback_display, dict) or isinstance(kpi_meta_state, dict) or isinstance(was_preview_state, dict):
         error_html = """
         <div class='kpi-card' style='border-color: #ef4444;'>
-            <h2 style='color: #111827; margin-top:0;'>⚠️ Error de Configuración</h2>
+            <h2 style='color: var(--body-text-color, #111827); margin-top:0;'>⚠️ Error de Configuración</h2>
             <div class='kpi-card-body'>
                 <p style='color: #991b1b;'>Se detectó un conflicto de parámetros. Las variables globales de componentes fueron sobrescritas por parámetros locales.</p>
                 <p style='color: #7f1d1d; margin-top: 8px;'>Actualiza la página e inténtalo de nuevo. Si el problema persiste, contacta con soporte.</p>
@@ -2194,13 +2194,13 @@ def on_initial_load(username, token=None, team_name=""):
     welcome_html = f"""
     <div style='text-align:center; padding: 30px 20px;'>
         <div style='font-size: 3rem; margin-bottom: 10px;'>👋</div>
-        <h3 style='margin: 0 0 8px 0; color: #111827; font-size: 1.5rem;'>¡Bienvenido/a a <b>{display_team}</b>!</h3>
-        <p style='font-size: 1.1rem; color: #4b5563; margin: 0 0 20px 0;'>
+        <h3 style='margin: 0 0 8px 0; color: var(--body-text-color, #111827); font-size: 1.5rem;'>¡Bienvenido/a a <b>{display_team}</b>!</h3>
+        <p style='font-size: 1.1rem; color: var(--secondary-text-color, #4b5563); margin: 0 0 20px 0;'>
             Tu equipo espera tu ayuda para mejorar la IA.
         </p>
         
-        <div style='background:#eff6ff; padding:16px; border-radius:12px; border:2px solid #bfdbfe; display:inline-block;'>
-            <p style='margin:0; color:#1e40af; font-weight:bold; font-size:1.1rem;'>
+        <div style='background:var(--color-accent-soft, #eff6ff); padding:16px; border-radius:12px; border:2px solid color-mix(in srgb, var(--color-accent, #3b82f6) 40%, transparent); display:inline-block;'>
+            <p style='margin:0; color:var(--color-accent, #1e40af); font-weight:bold; font-size:1.1rem;'>
                 👈 ¡Haz clic en "Construye y Envía Modelo" para empezar!
             </p>
         </div>
@@ -2230,7 +2230,7 @@ def on_initial_load(username, token=None, team_name=""):
         # CASE 1: New User (or first time loading session) -> FORCE WELCOME
         # regardless of whether the leaderboard has other people's data.
         team_html = welcome_html
-        individual_html = "<p style='text-align:center; color:#6b7280; padding-top:40px;'>¡Envía tu modelo para ver tu posición!</p>"
+        individual_html = "<p style='text-align:center; color:var(--secondary-text-color, #6b7280); padding-top:40px;'>¡Envía tu modelo para ver tu posición!</p>"
         
     elif full_leaderboard_df is None or full_leaderboard_df.empty:
         # CASE 2: Returning user, but data fetch failed -> Show Skeleton
@@ -2830,6 +2830,9 @@ def create_model_building_game_es_final_sustainability_app(theme_primary_hue: st
             filter: invert(1) hue-rotate(180deg);
         }
     }
+    .dark .dark-invert-image {
+        filter: invert(1) hue-rotate(180deg);
+    }
 
     /* ------------------------------------------------------------------
       Dark Mode Specific Fine Tuning
@@ -2858,7 +2861,25 @@ def create_model_building_game_es_final_sustainability_app(theme_primary_hue: st
             background: color-mix(in srgb, #000 70%, var(--body-background-fill) 30%);
         }
     }
-    
+    .dark .panel-box,
+    .dark .leaderboard-box,
+    .dark .mock-ui-box,
+    .dark .mock-ui-inner,
+    .dark .processing-status,
+    .dark .kpi-card {
+        background: color-mix(in srgb, var(--block-background-fill) 85%, #000 15%);
+        border-color: color-mix(in srgb, var(--card-border-subtle) 70%, var(--accent-strong) 30%);
+    }
+    .dark .leaderboard-html-table thead {
+        background: color-mix(in srgb, var(--block-background-fill) 75%, #000 25%);
+    }
+    .dark .lb-placeholder {
+        background: color-mix(in srgb, var(--block-background-fill) 75%, #000 25%);
+    }
+    .dark #nav-loading-overlay {
+        background: color-mix(in srgb, #000 70%, var(--body-background-fill) 30%);
+    }
+
     /* ---------- Conclusion Card Theme Tokens ---------- */
 
     /* Light theme defaults */
@@ -2901,6 +2922,22 @@ def create_model_building_game_es_final_sustainability_app(theme_primary_hue: st
         --conclusion-attempt-border: #f97373;
         --conclusion-attempt-fg: #fee2e2;
 
+        --conclusion-next-fg: #e5e7eb;
+    }
+
+    .dark {
+        --conclusion-card-bg: #020617;
+        --conclusion-card-border: #38bdf8;
+        --conclusion-card-fg: #e5e7eb;
+        --conclusion-tip-bg: rgba(250, 204, 21, 0.08);
+        --conclusion-tip-border: #facc15;
+        --conclusion-tip-fg: #facc15;
+        --conclusion-ethics-bg: rgba(248, 113, 113, 0.10);
+        --conclusion-ethics-border: #f97373;
+        --conclusion-ethics-fg: #fecaca;
+        --conclusion-attempt-bg: rgba(248, 113, 113, 0.16);
+        --conclusion-attempt-border: #f97373;
+        --conclusion-attempt-fg: #fee2e2;
         --conclusion-next-fg: #e5e7eb;
     }
 
@@ -3138,6 +3175,21 @@ def create_model_building_game_es_final_sustainability_app(theme_primary_hue: st
             background-color: rgba(248, 113, 113, 0.26);
         }
     }
+    .dark .final-conclusion-card {
+        background-color: #0b1120;
+        color: white;
+        border-color: #38bdf8;
+        box-shadow: none;
+    }
+    .dark .final-conclusion-tip {
+        background-color: rgba(56, 189, 248, 0.18);
+    }
+    .dark .final-conclusion-ethics {
+        background-color: rgba(248, 113, 113, 0.18);
+    }
+    .dark .final-conclusion-attempt-cap {
+        background-color: rgba(248, 113, 113, 0.26);
+    }
     /* ---------------------------------------------------- */
     /* Slide 3: INPUT → MODEL → OUTPUT flow (theme-aware)   */
     /* ---------------------------------------------------- */
@@ -3170,6 +3222,12 @@ def create_model_building_game_es_final_sustainability_app(theme_primary_hue: st
             /* In dark mode, nudge arrows toward accent for contrast/confidence */
             color: color-mix(in srgb, var(--color-accent) 75%, var(--body-text-color) 25%);
         }
+    }
+    .dark .model-flow {
+        color: var(--body-text-color);
+    }
+    .dark .model-flow-arrow {
+        color: color-mix(in srgb, var(--color-accent) 75%, var(--body-text-color) 25%);
     }
     /* ---------- NEW: Countdown & Interactive Slide Styles ---------- */
 
@@ -3347,7 +3405,7 @@ def create_model_building_game_es_final_sustainability_app(theme_primary_hue: st
             gr.Markdown(
                 """
                 <div style='text-align:center; padding:100px 0;'>
-                    <h2 style='font-size:2rem; color:#6b7280;'>⏳ Cargando...</h2>
+                    <h2 style='font-size:2rem; color:var(--secondary-text-color, #6b7280);'>⏳ Cargando...</h2>
                 </div>
                 """
             )
@@ -3489,7 +3547,7 @@ def create_model_building_game_es_final_sustainability_app(theme_primary_hue: st
 
                     # KPI Card
                     submission_feedback_display = gr.HTML(
-                        "<p style='text-align:center; color:#6b7280; padding:20px 0;'>¡Envía tu primer modelo para recibir retroalimentación!</p>"
+                        "<p style='text-align:center; color:var(--secondary-text-color, #6b7280); padding:20px 0;'>¡Envía tu primer modelo para recibir retroalimentación!</p>"
                     )
                     # Replace the tracker instantiation with a hidden, empty component
                     attempts_tracker_display = gr.HTML(
@@ -3521,11 +3579,11 @@ def create_model_building_game_es_final_sustainability_app(theme_primary_hue: st
                     with gr.Tabs():
                         with gr.TabItem("Clasificación por Equipos"):
                             team_leaderboard_display = gr.HTML(
-                                "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Envía un modelo para ver la clasificación por equipos.</p>"
+                                "<p style='text-align:center; color:var(--secondary-text-color, #6b7280); padding-top:20px;'>Envía un modelo para ver la clasificación por equipos.</p>"
                             )
                         with gr.TabItem("Clasificación Individual"):
                             individual_leaderboard_display = gr.HTML(
-                                "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Envía un modelo para ver la clasificación individual.</p>"
+                                "<p style='text-align:center; color:var(--secondary-text-color, #6b7280); padding-top:20px;'>Envía un modelo para ver la clasificación individual.</p>"
                             )
 
             # REMOVED: Ethical Reminder HTML Block

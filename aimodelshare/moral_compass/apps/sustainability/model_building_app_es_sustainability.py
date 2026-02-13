@@ -589,7 +589,7 @@ def _build_skeleton_leaderboard(rows=6, is_team=True, submit_button_label="5. �
 
 
 def build_login_prompt_html():
-    return """<h2 style='color: #111827; margin-top:20px; border-top: 2px solid #e5e7eb; padding-top: 20px;'>🔐 Inicia sesión para enviar y clasificarte</h2><div style='margin-top:16px; text-align:left; font-size:1rem; line-height:1.6; color:#374151;'><p style='margin:12px 0;'>Esta es solo una vista previa. Inicia sesión para publicar tu puntuación en la clasificación en vivo, subir de rango y contribuir puntos a tu equipo.</p><p style='margin:12px 0;'><strong>¿Usuario nuevo?</strong> Crea una cuenta gratuita en <a href='https://www.modelshare.ai/login' target='_blank' style='color:#4f46e5; text-decoration:underline;'>modelshare.ai/login</a></p></div>"""
+    return """<h2 style='color: var(--body-text-color, #111827); margin-top:20px; border-top: 2px solid var(--border-color-primary, #e5e7eb); padding-top: 20px;'>🔐 Inicia sesión para enviar y clasificarte</h2><div style='margin-top:16px; text-align:left; font-size:1rem; line-height:1.6; color:var(--secondary-text-color, #374151);'><p style='margin:12px 0;'>Esta es solo una vista previa. Inicia sesión para publicar tu puntuación en la clasificación en vivo, subir de rango y contribuir puntos a tu equipo.</p><p style='margin:12px 0;'><strong>¿Usuario nuevo?</strong> Crea una cuenta gratuita en <a href='https://www.modelshare.ai/login' target='_blank' style='color:#4f46e5; text-decoration:underline;'>modelshare.ai/login</a></p></div>"""
 
 
 def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_count, is_preview=False, is_pending=False, local_test_accuracy=None):
@@ -600,31 +600,31 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
         if local_test_accuracy is not None and last_score is not None and last_score > 0:
             score_diff = local_test_accuracy - last_score
             if abs(score_diff) < 0.0001:
-                acc_diff_html = "<p style='font-size:1.5rem; font-weight:600; color:#6b7280; margin:0;'>Sin Cambios (Estimado)</p>"
+                acc_diff_html = "<p style='font-size:1.5rem; font-weight:600; color:var(--secondary-text-color, #6b7280); margin:0;'>Sin Cambios (Estimado)</p>"
             elif score_diff > 0:
                 acc_diff_html = f"<p style='font-size:1.5rem; font-weight:600; color:#16a34a; margin:0;'>+{(score_diff*100):.2f} (Estimado)</p>"
             else:
                 acc_diff_html = f"<p style='font-size:1.5rem; font-weight:600; color:#ef4444; margin:0;'>{(score_diff*100):.2f} (Estimado)</p>"
         else:
-            acc_diff_html = "<p style='font-size:1.2rem; font-weight:500; color:#6b7280; margin:0;'>Actualizando clasificación...</p>"
+            acc_diff_html = "<p style='font-size:1.2rem; font-weight:500; color:var(--secondary-text-color, #6b7280); margin:0;'>Actualizando clasificación...</p>"
         border_color = acc_color
         rank_color = "#6b7280"
         rank_text = "Pendiente"
-        rank_diff_html = "<p style='font-size:1.2rem; font-weight:500; color:#6b7280; margin:0;'>Calculando posición...</p>"
+        rank_diff_html = "<p style='font-size:1.2rem; font-weight:500; color:var(--secondary-text-color, #6b7280); margin:0;'>Calculando posición...</p>"
     elif is_preview:
         title = "🔬 ¡Vista Previa Exitosa!"
         acc_color = "#16a34a"
         acc_text = f"{(new_score*100):.2f}%" if new_score > 0 else "N/D"
-        acc_diff_html = "<div style='background:#eff6ff; border:2px solid #3b82f6; padding:10px 14px; border-radius:8px; margin-top:8px;'><p style='margin:0; color:#1e40af; font-weight:600; font-size:1rem;'>SOLO VISTA PREVIA — no se ha enviado a la clasificación. Inicia sesión para enviar de verdad.</p></div>"
+        acc_diff_html = "<div style='background:var(--color-accent-soft, #eff6ff); border:2px solid #3b82f6; padding:10px 14px; border-radius:8px; margin-top:8px;'><p style='margin:0; color:var(--color-accent, #1e40af); font-weight:600; font-size:1rem;'>SOLO VISTA PREVIA — no se ha enviado a la clasificación. Inicia sesión para enviar de verdad.</p></div>"
         border_color = acc_color
         rank_color = "#3b82f6"
         rank_text = "N/D"
-        rank_diff_html = "<p style='font-size:1.2rem; font-weight:500; color:#6b7280; margin:0;'>Sin clasificar (vista previa)</p>"
+        rank_diff_html = "<p style='font-size:1.2rem; font-weight:500; color:var(--secondary-text-color, #6b7280); margin:0;'>Sin clasificar (vista previa)</p>"
     elif submission_count == 0:
         title = "🎉 ¡Primer Modelo Enviado!"
         acc_color = "#16a34a"
         acc_text = f"{(new_score*100):.2f}%"
-        acc_diff_html = "<p style='font-size:1.2rem; font-weight:500; color:#6b7280; margin:0; padding-top:8px;'>(¡Tu primera puntuación!)</p>"
+        acc_diff_html = "<p style='font-size:1.2rem; font-weight:500; color:var(--secondary-text-color, #6b7280); margin:0; padding-top:8px;'>(¡Tu primera puntuación!)</p>"
         rank_color = "#3b82f6"
         rank_text = f"#{new_rank}"
         rank_diff_html = "<p style='font-size:1.5rem; font-weight:600; color:#3b82f6; margin:0;'>¡Estás en la clasificación!</p>"
@@ -660,12 +660,12 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
             rank_diff_html = f"<p style='font-size:1.5rem; font-weight:600; color:#ef4444; margin:0;'>Bajaste {abs(rank_diff)} puesto{'s' if abs(rank_diff) > 1 else ''}</p>"
         else:
             rank_diff_html = f"<p style='font-size:1.5rem; font-weight:600; color:{rank_color}; margin:0;'>Sin Cambios</p>"
-    return f"""<div class='kpi-card' style='border-color:{border_color};'><h2 style='color:var(--body-text-color); margin-top:0;'>{title}</h2><div class='kpi-card-body'><div class='kpi-metric-box'><p class='kpi-label'>Nueva Precisión</p><p style='font-size:0.8rem; color:#6b7280; margin:0;'>% de edificios que tu IA predijo correctamente</p><p class='kpi-score' style='color:{acc_color};'>{acc_text}</p>{acc_diff_html}<p style='font-size:0.75rem; color:#9ca3af; margin:8px 0 0;'>Menos de 60% = Mejorable &middot; 60-70% = Aceptable &middot; 70-80% = Bueno &middot; 80%+ = Excelente</p></div><div class='kpi-metric-box'><p class='kpi-label'>Tu Posición</p><p class='kpi-score' style='color:{rank_color};'>{rank_text}</p>{rank_diff_html}</div></div></div>"""
+    return f"""<div class='kpi-card' style='border-color:{border_color};'><h2 style='color:var(--body-text-color); margin-top:0;'>{title}</h2><div class='kpi-card-body'><div class='kpi-metric-box'><p class='kpi-label'>Nueva Precisión</p><p style='font-size:0.8rem; color:var(--secondary-text-color, #6b7280); margin:0;'>% de edificios que tu IA predijo correctamente</p><p class='kpi-score' style='color:{acc_color};'>{acc_text}</p>{acc_diff_html}<p style='font-size:0.75rem; color:var(--secondary-text-color, #9ca3af); margin:8px 0 0;'>Menos de 60% = Mejorable &middot; 60-70% = Aceptable &middot; 70-80% = Bueno &middot; 80%+ = Excelente</p></div><div class='kpi-metric-box'><p class='kpi-label'>Tu Posición</p><p class='kpi-score' style='color:{rank_color};'>{rank_text}</p>{rank_diff_html}</div></div></div>"""
 
 
 def _build_team_html(team_summary_df, team_name):
     if team_summary_df is None or team_summary_df.empty:
-        return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Aún no hay envíos de equipos.</p>"
+        return "<p style='text-align:center; color:var(--secondary-text-color, #6b7280); padding-top:20px;'>Aún no hay envíos de equipos.</p>"
     normalized_user_team = _normalize_team_name(team_name).lower()
     header = "<table class='leaderboard-html-table'><thead><tr><th>Posición</th><th>Equipo</th><th>Mejor Punt.</th><th>Punt. Media</th><th>Envíos</th></tr></thead><tbody>"
     body = ""
@@ -679,7 +679,7 @@ def _build_team_html(team_summary_df, team_name):
 
 def _build_individual_html(individual_summary_df, username):
     if individual_summary_df is None or individual_summary_df.empty:
-        return "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Aún no hay envíos individuales.</p>"
+        return "<p style='text-align:center; color:var(--secondary-text-color, #6b7280); padding-top:20px;'>Aún no hay envíos individuales.</p>"
     header = "<table class='leaderboard-html-table'><thead><tr><th>Posición</th><th>Ingeniero/a</th><th>Mejor Punt.</th><th>Envíos</th></tr></thead><tbody>"
     body = ""
     for index, row in individual_summary_df.iterrows():
@@ -693,7 +693,7 @@ def generate_competitive_summary(leaderboard_df, team_name, username, last_submi
     team_summary_df = pd.DataFrame(columns=["Team", "Best_Score", "Avg_Score", "Submissions"])
     individual_summary_df = pd.DataFrame(columns=["Engineer", "Best_Score", "Submissions"])
     if leaderboard_df is None or leaderboard_df.empty or "accuracy" not in leaderboard_df.columns:
-        return ("<p style='text-align:center; color:#6b7280;'>Clasificación vacía.</p>", "<p style='text-align:center; color:#6b7280;'>Clasificación vacía.</p>", _build_kpi_card_html(0, 0, 0, 0, 0), 0.0, 0, 0.0)
+        return ("<p style='text-align:center; color:var(--secondary-text-color, #6b7280);'>Clasificación vacía.</p>", "<p style='text-align:center; color:var(--secondary-text-color, #6b7280);'>Clasificación vacía.</p>", _build_kpi_card_html(0, 0, 0, 0, 0), 0.0, 0, 0.0)
     if "Team" in leaderboard_df.columns:
         team_summary_df = leaderboard_df.groupby("Team")["accuracy"].agg(Best_Score="max", Avg_Score="mean", Submissions="count").reset_index().sort_values("Best_Score", ascending=False).reset_index(drop=True)
         team_summary_df.index = team_summary_df.index + 1
@@ -904,7 +904,7 @@ def run_experiment(model_name_key, complexity_level, feature_set, data_size_str,
             return
 
         if submission_count >= ATTEMPT_LIMIT:
-            limit_warning_html = f"<div class='kpi-card' style='border-color:#ef4444;'><h2 style='color:#111827; margin-top:0;'>🛑 Límite de Envíos Alcanzado</h2><div class='kpi-card-body'><div class='kpi-metric-box'><p class='kpi-label'>Intentos Utilizados</p><p class='kpi-score' style='color:#ef4444;'>{ATTEMPT_LIMIT}/{ATTEMPT_LIMIT}</p></div></div></div>"
+            limit_warning_html = f"<div class='kpi-card' style='border-color:#ef4444;'><h2 style='color:var(--body-text-color, #111827); margin-top:0;'>🛑 Límite de Envíos Alcanzado</h2><div class='kpi-card-body'><div class='kpi-metric-box'><p class='kpi-label'>Intentos Utilizados</p><p class='kpi-score' style='color:#ef4444;'>{ATTEMPT_LIMIT}/{ATTEMPT_LIMIT}</p></div></div></div>"
             settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
             yield {submission_feedback_display: gr.update(value=limit_warning_html, visible=True), submit_button: gr.update(value="🛑 Límite Alcanzado", interactive=False), model_type_radio: gr.update(interactive=False), complexity_slider: gr.update(interactive=False), feature_set_checkbox: gr.update(interactive=False), data_size_radio: gr.update(interactive=False), attempts_tracker_display: gr.update(value=f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'><p style='margin:0; color:#991b1b; font-weight:600;'>🛑 Intentos: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT}</p></div>"), last_submission_score_state: last_submission_score, last_rank_state: last_rank, best_score_state: best_score, submission_count_state: submission_count, first_submission_score_state: first_submission_score, rank_message_display: settings["rank_message"], login_username: gr.update(visible=False), login_password: gr.update(visible=False), login_submit: gr.update(visible=False), login_error: gr.update(visible=False), was_preview_state: False, kpi_meta_state: {}, last_seen_ts_state: None}
             return
@@ -985,7 +985,7 @@ def on_initial_load(username, token=None, team_name=""):
         has_historical_submissions = False
         initial_ui = compute_rank_settings(0, DEFAULT_MODEL, 2, DEFAULT_FEATURE_SET, DEFAULT_DATA_SIZE)
     display_team = translate_team_name_for_display(team_name, UI_TEAM_LANG) if team_name else "Tu Equipo"
-    welcome_html = f"<div style='text-align:center; padding:30px 20px;'><h3 style='margin:0 0 8px 0;'>¡Bienvenido/a a <b>{display_team}</b>!</h3><p style='font-size:1.1rem; color:#4b5563; margin:0 0 20px 0;'>Tu equipo espera tu ayuda para mejorar la IA.</p><div style='background:#eff6ff; padding:16px; border-radius:12px; border:2px solid #bfdbfe; display:inline-block;'><p style='margin:0; color:#1e40af; font-weight:bold;'>¡Haz clic en \"Construye y Envía Modelo\" para empezar!</p></div></div>"
+    welcome_html = f"<div style='text-align:center; padding:30px 20px;'><h3 style='margin:0 0 8px 0;'>¡Bienvenido/a a <b>{display_team}</b>!</h3><p style='font-size:1.1rem; color:var(--secondary-text-color, #4b5563); margin:0 0 20px 0;'>Tu equipo espera tu ayuda para mejorar la IA.</p><div style='background:var(--color-accent-soft, #eff6ff); padding:16px; border-radius:12px; border:2px solid color-mix(in srgb, var(--color-accent, #3b82f6) 40%, transparent); display:inline-block;'><p style='margin:0; color:var(--color-accent, #1e40af); font-weight:bold;'>¡Haz clic en \"Construye y Envía Modelo\" para empezar!</p></div></div>"
     full_leaderboard_df = None
     try:
         if playground:
@@ -995,7 +995,7 @@ def on_initial_load(username, token=None, team_name=""):
     user_has_submitted = has_historical_submissions
     if not user_has_submitted:
         team_html = welcome_html
-        individual_html = "<p style='text-align:center; color:#6b7280; padding-top:40px;'>¡Envía tu modelo para ver tu posición en la clasificación!</p>"
+        individual_html = "<p style='text-align:center; color:var(--secondary-text-color, #6b7280); padding-top:40px;'>¡Envía tu modelo para ver tu posición en la clasificación!</p>"
     elif full_leaderboard_df is None or full_leaderboard_df.empty:
         team_html = _build_skeleton_leaderboard(rows=6, is_team=True)
         individual_html = _build_skeleton_leaderboard(rows=6, is_team=False)
@@ -1218,6 +1218,35 @@ css = r"""
     --a4-btn-sec-bg: rgba(30,41,59,0.8); --a4-btn-sec-text: #94a3b8; --a4-btn-sec-bdr: rgba(255,255,255,0.1);
     --a4-btn-go-bg: linear-gradient(135deg,#059669,#10b981); --a4-btn-go-text: #022c22; --a4-btn-go-sh: rgba(16,185,129,0.3);
   }
+}
+.dark {
+  --a4-bg: #0f172a;
+  --a4-card-bg: rgba(30,41,59,0.7);
+  --a4-accent: #38bdf8;
+  --a4-accent-glow: rgba(56,189,248,0.3);
+  --a4-success: #10b981;
+  --a4-success-soft: rgba(16,185,129,0.15);
+  --a4-warning: #fbbf24;
+  --a4-warning-soft: rgba(251,191,36,0.15);
+  --a4-error: #f43f5e;
+  --a4-error-soft: rgba(244,63,94,0.15);
+  --a4-text: #f8fafc;
+  --a4-text-dim: #94a3b8;
+  --a4-card-shadow: rgba(0,0,0,0.5);
+  --a4-border-color: rgba(255,255,255,0.05);
+  --a4-input-bg: rgba(255,255,255,0.05);
+  --a4-hover-bg: rgba(255,255,255,0.08);
+  --a4-ctrl-model: #818cf8;
+  --a4-ctrl-complexity: #fbbf24;
+  --a4-ctrl-features: #34d399;
+  --a4-ctrl-datasize: #f472b6;
+  --a4-grad-from: #f8fafc; --a4-grad-to: #818cf8;
+  --a4-grad-launch-from: #10b981; --a4-grad-launch-to: #818cf8;
+  --a4-term-bg: rgba(0,0,0,0.3); --a4-term-border: rgba(56,189,248,0.2); --a4-term-text: #38bdf8;
+  --a4-formula-bg: rgba(56,189,248,0.08); --a4-formula-text: #bae6fd;
+  --a4-btn-pri-bg: linear-gradient(135deg,#6366f1,#818cf8); --a4-btn-pri-text: white; --a4-btn-pri-sh: rgba(99,102,241,0.3);
+  --a4-btn-sec-bg: rgba(30,41,59,0.8); --a4-btn-sec-text: #94a3b8; --a4-btn-sec-bdr: rgba(255,255,255,0.1);
+  --a4-btn-go-bg: linear-gradient(135deg,#059669,#10b981); --a4-btn-go-text: #022c22; --a4-btn-go-sh: rgba(16,185,129,0.3);
 }
 
 /* Animations */
@@ -1759,7 +1788,7 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue="indigo")
                         )
 
                         submission_feedback_display = gr.HTML(
-                            "<p style='text-align:center; color:#6b7280; padding:20px 0;'>¡Envía tu primer modelo para recibir retroalimentación!</p>"
+                            "<p style='text-align:center; color:var(--secondary-text-color, #6b7280); padding:20px 0;'>¡Envía tu primer modelo para recibir retroalimentación!</p>"
                         )
 
                         # Inline login (hidden by default)
@@ -1776,11 +1805,11 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue="indigo")
                         with gr.Tabs():
                             with gr.TabItem("Clasificación por Equipos"):
                                 team_leaderboard_display = gr.HTML(
-                                    "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Envía un modelo para ver la clasificación por equipos.</p>"
+                                    "<p style='text-align:center; color:var(--secondary-text-color, #6b7280); padding-top:20px;'>Envía un modelo para ver la clasificación por equipos.</p>"
                                 )
                             with gr.TabItem("Clasificación Individual"):
                                 individual_leaderboard_display = gr.HTML(
-                                    "<p style='text-align:center; color:#6b7280; padding-top:20px;'>Envía un modelo para ver la clasificación individual.</p>"
+                                    "<p style='text-align:center; color:var(--secondary-text-color, #6b7280); padding-top:20px;'>Envía un modelo para ver la clasificación individual.</p>"
                                 )
 
                 with gr.Row():

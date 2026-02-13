@@ -787,6 +787,31 @@ css = """
         --ace-accent-highlight: rgba(56, 189, 248, 0.1);
     }
 }
+.dark {
+    --ace-bg: #0f172a;
+    --ace-card-bg: rgba(30, 41, 59, 0.7);
+    --ace-accent: #38bdf8;
+    --ace-accent-glow: rgba(56, 189, 248, 0.3);
+    --ace-success: #10b981;
+    --ace-warning: #fbbf24;
+    --ace-error: #f43f5e;
+    --ace-text: #f8fafc;
+    --ace-text-dim: #94a3b8;
+    --ace-bg-gradient-1: rgba(56, 189, 248, 0.05);
+    --ace-bg-gradient-2: rgba(16, 185, 129, 0.05);
+    --ace-card-shadow: rgba(0, 0, 0, 0.5);
+    --ace-border-color: rgba(255, 255, 255, 0.05);
+    --ace-input-bg: rgba(255, 255, 255, 0.05);
+    --ace-input-border: rgba(255, 255, 255, 0.1);
+    --ace-hover-bg: rgba(255, 255, 255, 0.08);
+    --ace-progress-line: rgba(255, 255, 255, 0.1);
+    --ace-bar-text: #fff;
+    --ace-success-bg: rgba(16, 185, 129, 0.08);
+    --ace-error-bg: rgba(244, 63, 94, 0.08);
+    --ace-success-highlight: rgba(16, 185, 129, 0.15);
+    --ace-error-highlight: rgba(244, 63, 94, 0.15);
+    --ace-accent-highlight: rgba(56, 189, 248, 0.1);
+}
 
 /* ACE Animations */
 @keyframes aceSlideUp {
@@ -1040,6 +1065,8 @@ css = """
     #nav-loading-overlay { background: rgba(15, 23, 42, 0.9); }
     .nav-spinner { border-color: rgba(148, 163, 184, 0.4); border-top-color: var(--color-accent); }
 }
+.dark #nav-loading-overlay { background: rgba(15, 23, 42, 0.9); }
+.dark .nav-spinner { border-color: rgba(148, 163, 184, 0.4); border-top-color: var(--color-accent); }
 
 /* Points chip + quiz CTA */
 .points-chip {
