@@ -740,7 +740,8 @@ def _app_interface(request: gr.Request):
 
 def create_moral_compass_challenge_sustainability_es_app(theme_primary_hue: str = "indigo"):
     with gr.Blocks(title="Actividad 5: El Coste de la Sostenibilidad") as demo:
-        gr.HTML(_app_interface)
+        html = gr.HTML()
+        demo.load(_app_interface, outputs=html)
     return demo
 
 
