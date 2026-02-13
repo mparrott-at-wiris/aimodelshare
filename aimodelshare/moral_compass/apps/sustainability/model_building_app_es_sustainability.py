@@ -1157,65 +1157,66 @@ MODULES = [
 
 css = r"""
 /* === Onboarding CSS vars (--a4-* namespace) === */
+/* Light mode is the default (matches bias detective pattern) */
 :root {
-  --a4-bg: #0f172a;
-  --a4-card-bg: rgba(30,41,59,0.7);
-  --a4-accent: #38bdf8;
-  --a4-accent-glow: rgba(56,189,248,0.3);
-  --a4-success: #10b981;
-  --a4-success-soft: rgba(16,185,129,0.15);
-  --a4-warning: #fbbf24;
-  --a4-warning-soft: rgba(251,191,36,0.15);
-  --a4-error: #f43f5e;
-  --a4-error-soft: rgba(244,63,94,0.15);
-  --a4-text: #f8fafc;
-  --a4-text-dim: #94a3b8;
-  --a4-card-shadow: rgba(0,0,0,0.5);
-  --a4-border-color: rgba(255,255,255,0.05);
-  --a4-input-bg: rgba(255,255,255,0.05);
-  --a4-hover-bg: rgba(255,255,255,0.08);
-  --a4-ctrl-model: #818cf8;
-  --a4-ctrl-complexity: #fbbf24;
-  --a4-ctrl-features: #34d399;
-  --a4-ctrl-datasize: #f472b6;
-  --a4-grad-from: #f8fafc; --a4-grad-to: #818cf8;
-  --a4-grad-launch-from: #10b981; --a4-grad-launch-to: #818cf8;
-  --a4-term-bg: rgba(0,0,0,0.3); --a4-term-border: rgba(56,189,248,0.2); --a4-term-text: #38bdf8;
-  --a4-formula-bg: rgba(56,189,248,0.08); --a4-formula-text: #bae6fd;
-  --a4-btn-pri-bg: linear-gradient(135deg,#6366f1,#818cf8); --a4-btn-pri-text: white; --a4-btn-pri-sh: rgba(99,102,241,0.3);
-  --a4-btn-sec-bg: rgba(30,41,59,0.8); --a4-btn-sec-text: #94a3b8; --a4-btn-sec-bdr: rgba(255,255,255,0.1);
-  --a4-btn-go-bg: linear-gradient(135deg,#059669,#10b981); --a4-btn-go-text: #022c22; --a4-btn-go-sh: rgba(16,185,129,0.3);
+  --a4-bg: #f8fafc;
+  --a4-card-bg: rgba(255,255,255,0.9);
+  --a4-accent: #0284c7;
+  --a4-accent-glow: rgba(2,132,199,0.2);
+  --a4-success: #059669;
+  --a4-success-soft: rgba(5,150,105,0.12);
+  --a4-warning: #d97706;
+  --a4-warning-soft: rgba(217,119,6,0.12);
+  --a4-error: #dc2626;
+  --a4-error-soft: rgba(220,38,38,0.10);
+  --a4-text: #0f172a;
+  --a4-text-dim: #64748b;
+  --a4-card-shadow: rgba(0,0,0,0.1);
+  --a4-border-color: rgba(0,0,0,0.08);
+  --a4-input-bg: rgba(0,0,0,0.02);
+  --a4-hover-bg: rgba(0,0,0,0.05);
+  --a4-ctrl-model: #6366f1;
+  --a4-ctrl-complexity: #d97706;
+  --a4-ctrl-features: #059669;
+  --a4-ctrl-datasize: #db2777;
+  --a4-grad-from: #0f172a; --a4-grad-to: #6366f1;
+  --a4-grad-launch-from: #059669; --a4-grad-launch-to: #6366f1;
+  --a4-term-bg: rgba(0,0,0,0.04); --a4-term-border: rgba(2,132,199,0.25); --a4-term-text: #0284c7;
+  --a4-formula-bg: rgba(2,132,199,0.08); --a4-formula-text: #0c4a6e;
+  --a4-btn-pri-bg: linear-gradient(135deg,#4f46e5,#6366f1); --a4-btn-pri-text: white; --a4-btn-pri-sh: rgba(79,70,229,0.25);
+  --a4-btn-sec-bg: rgba(255,255,255,0.9); --a4-btn-sec-text: #64748b; --a4-btn-sec-bdr: rgba(0,0,0,0.1);
+  --a4-btn-go-bg: linear-gradient(135deg,#047857,#059669); --a4-btn-go-text: white; --a4-btn-go-sh: rgba(5,150,105,0.25);
 }
 
-@media (prefers-color-scheme: light) {
+@media (prefers-color-scheme: dark) {
   :root {
-    --a4-bg: #f8fafc;
-    --a4-card-bg: rgba(255,255,255,0.9);
-    --a4-accent: #0284c7;
-    --a4-accent-glow: rgba(2,132,199,0.2);
-    --a4-success: #059669;
-    --a4-success-soft: rgba(5,150,105,0.12);
-    --a4-warning: #d97706;
-    --a4-warning-soft: rgba(217,119,6,0.12);
-    --a4-error: #dc2626;
-    --a4-error-soft: rgba(220,38,38,0.10);
-    --a4-text: #0f172a;
-    --a4-text-dim: #64748b;
-    --a4-card-shadow: rgba(0,0,0,0.1);
-    --a4-border-color: rgba(0,0,0,0.08);
-    --a4-input-bg: rgba(0,0,0,0.02);
-    --a4-hover-bg: rgba(0,0,0,0.05);
-    --a4-ctrl-model: #6366f1;
-    --a4-ctrl-complexity: #d97706;
-    --a4-ctrl-features: #059669;
-    --a4-ctrl-datasize: #db2777;
-    --a4-grad-from: #0f172a; --a4-grad-to: #6366f1;
-    --a4-grad-launch-from: #059669; --a4-grad-launch-to: #6366f1;
-    --a4-term-bg: rgba(0,0,0,0.04); --a4-term-border: rgba(2,132,199,0.25); --a4-term-text: #0284c7;
-    --a4-formula-bg: rgba(2,132,199,0.08); --a4-formula-text: #0c4a6e;
-    --a4-btn-pri-bg: linear-gradient(135deg,#4f46e5,#6366f1); --a4-btn-pri-text: white; --a4-btn-pri-sh: rgba(79,70,229,0.25);
-    --a4-btn-sec-bg: rgba(255,255,255,0.9); --a4-btn-sec-text: #64748b; --a4-btn-sec-bdr: rgba(0,0,0,0.1);
-    --a4-btn-go-bg: linear-gradient(135deg,#047857,#059669); --a4-btn-go-text: white; --a4-btn-go-sh: rgba(5,150,105,0.25);
+    --a4-bg: #0f172a;
+    --a4-card-bg: rgba(30,41,59,0.7);
+    --a4-accent: #38bdf8;
+    --a4-accent-glow: rgba(56,189,248,0.3);
+    --a4-success: #10b981;
+    --a4-success-soft: rgba(16,185,129,0.15);
+    --a4-warning: #fbbf24;
+    --a4-warning-soft: rgba(251,191,36,0.15);
+    --a4-error: #f43f5e;
+    --a4-error-soft: rgba(244,63,94,0.15);
+    --a4-text: #f8fafc;
+    --a4-text-dim: #94a3b8;
+    --a4-card-shadow: rgba(0,0,0,0.5);
+    --a4-border-color: rgba(255,255,255,0.05);
+    --a4-input-bg: rgba(255,255,255,0.05);
+    --a4-hover-bg: rgba(255,255,255,0.08);
+    --a4-ctrl-model: #818cf8;
+    --a4-ctrl-complexity: #fbbf24;
+    --a4-ctrl-features: #34d399;
+    --a4-ctrl-datasize: #f472b6;
+    --a4-grad-from: #f8fafc; --a4-grad-to: #818cf8;
+    --a4-grad-launch-from: #10b981; --a4-grad-launch-to: #818cf8;
+    --a4-term-bg: rgba(0,0,0,0.3); --a4-term-border: rgba(56,189,248,0.2); --a4-term-text: #38bdf8;
+    --a4-formula-bg: rgba(56,189,248,0.08); --a4-formula-text: #bae6fd;
+    --a4-btn-pri-bg: linear-gradient(135deg,#6366f1,#818cf8); --a4-btn-pri-text: white; --a4-btn-pri-sh: rgba(99,102,241,0.3);
+    --a4-btn-sec-bg: rgba(30,41,59,0.8); --a4-btn-sec-text: #94a3b8; --a4-btn-sec-bdr: rgba(255,255,255,0.1);
+    --a4-btn-go-bg: linear-gradient(135deg,#059669,#10b981); --a4-btn-go-text: #022c22; --a4-btn-go-sh: rgba(16,185,129,0.3);
   }
 }
 
@@ -1309,6 +1310,11 @@ css = r"""
 #nav-loading-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); z-index:9999; display:none; flex-direction:column; align-items:center; justify-content:center; opacity:0; transition:opacity 0.3s ease; }
 .nav-spinner { width:50px; height:50px; border:5px solid #e5e7eb; border-top:5px solid var(--color-accent,#6366f1); border-radius:50%; animation:spin-slow 1s linear infinite; margin-bottom:20px; }
 #nav-loading-text { font-size:1.3rem; font-weight:600; color:var(--color-accent,#6366f1); }
+
+@media (prefers-color-scheme: dark) {
+  #nav-loading-overlay { background: rgba(15, 23, 42, 0.9); }
+  .nav-spinner { border-color: rgba(148, 163, 184, 0.4); border-top-color: var(--color-accent); }
+}
 """
 
 
@@ -1476,7 +1482,7 @@ function obInitControlExplorer(){
       html='<div class="ob-cpanel"><h4 style="margin:0 0 8px;color:var(--a4-ctrl-datasize);font-size:15px;">\uD83D\uDCCA \u00bfCu\u00e1nto historial debe estudiar tu IA?</h4><div style="display:flex;flex-direction:column;gap:6px;">';
       sizes.forEach(function(d){
         var on=selSize===d.key;
-        html+='<button onclick="window._obSelSize=\''+d.key+'\';obRefreshCtrl();" style="padding:12px 14px;background:'+(on?'var(--a4-hover-bg)':'var(--a4-input-bg)')+';border:2px solid '+(on?'var(--a4-ctrl-datasize)':'var(--a4-border-color)')+';border-radius:10px;cursor:pointer;text-align:left;color:var(--a4-text);font-family:inherit;transition:all 0.2s ease;"><div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:14px;font-weight:600;">'+d.label+'</div><div style="font-size:13px;color:var(--a4-text-dim);line-height:1.4;">'+d.desc+'</div></div><div style="width:44px;height:44px;border-radius:50%;background:conic-gradient(var(--a4-ctrl-datasize) '+(d.pct*3.6)+'deg, var(--a4-input-bg) '+(d.pct*3.6)+'deg);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="width:34px;height:34px;border-radius:50%;background:var(--a4-bg,#0f172a);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--a4-ctrl-datasize);">'+d.pct+'%</span></div></div></button>';
+        html+='<button onclick="window._obSelSize=\''+d.key+'\';obRefreshCtrl();" style="padding:12px 14px;background:'+(on?'var(--a4-hover-bg)':'var(--a4-input-bg)')+';border:2px solid '+(on?'var(--a4-ctrl-datasize)':'var(--a4-border-color)')+';border-radius:10px;cursor:pointer;text-align:left;color:var(--a4-text);font-family:inherit;transition:all 0.2s ease;"><div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:14px;font-weight:600;">'+d.label+'</div><div style="font-size:13px;color:var(--a4-text-dim);line-height:1.4;">'+d.desc+'</div></div><div style="width:44px;height:44px;border-radius:50%;background:conic-gradient(var(--a4-ctrl-datasize) '+(d.pct*3.6)+'deg, var(--a4-input-bg) '+(d.pct*3.6)+'deg);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="width:34px;height:34px;border-radius:50%;background:var(--a4-bg,#f8fafc);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--a4-ctrl-datasize);">'+d.pct+'%</span></div></div></button>';
       });
       html+='</div><div style="font-size:13px;color:var(--a4-text-dim);margin-top:8px;line-height:1.5;">\uD83D\uDCA1 Consejo: Usa \"Peque\u00f1a\" para probar r\u00e1pido. Usa \"Completa\" para una combinaci\u00f3n ganadora.</div></div>';
     }
@@ -1635,7 +1641,7 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue="indigo")
         with gr.Column(visible=True, elem_id="ob-loader") as loader_col:
             gr.HTML(
                 "<div style='text-align:center; padding:120px 0;'>"
-                "<h2 style='font-size:2rem; color:#6b7280;'>Cargando...</h2>"
+                "<h2 style='font-size:2rem; color:var(--a4-text-dim,#6b7280);'>Cargando...</h2>"
                 "</div>"
             )
 

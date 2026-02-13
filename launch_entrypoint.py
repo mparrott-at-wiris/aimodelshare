@@ -66,6 +66,10 @@ APP_NAME_TO_FACTORY = {
     "sustainability-upgrade-en": "create_sustainability_upgrade_en_app",
     "sustainability-upgrade-ca": "create_sustainability_upgrade_ca_app",
     "sustainability-upgrade-es": "create_sustainability_upgrade_es_app",
+    # Sustainability moral compass challenge apps
+    "moral-compass-en-sustainability": "create_moral_compass_challenge_sustainability_en_app",
+    "moral-compass-es-sustainability": "create_moral_compass_challenge_sustainability_es_app",
+    "moral-compass-ca-sustainability": "create_moral_compass_challenge_sustainability_ca_app",
 }
 
 

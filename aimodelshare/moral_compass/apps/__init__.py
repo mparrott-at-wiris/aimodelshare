@@ -114,6 +114,14 @@ _EXPORT_MAP = {
     "launch_sustainability_upgrade_ca_app": ("sustainability.sustainability_upgrade_ca", "launch_sustainability_upgrade_ca_app"),
     "create_sustainability_upgrade_es_app": ("sustainability.sustainability_upgrade_es", "create_sustainability_upgrade_es_app"),
     "launch_sustainability_upgrade_es_app": ("sustainability.sustainability_upgrade_es", "launch_sustainability_upgrade_es_app"),
+
+    # Sustainability moral compass challenge apps
+    "create_moral_compass_challenge_sustainability_en_app": ("sustainability.moral_compass_challenge_sustainability_en", "create_moral_compass_challenge_sustainability_en_app"),
+    "launch_moral_compass_challenge_sustainability_en_app": ("sustainability.moral_compass_challenge_sustainability_en", "launch_moral_compass_challenge_sustainability_en_app"),
+    "create_moral_compass_challenge_sustainability_es_app": ("sustainability.moral_compass_challenge_sustainability_es", "create_moral_compass_challenge_sustainability_es_app"),
+    "launch_moral_compass_challenge_sustainability_es_app": ("sustainability.moral_compass_challenge_sustainability_es", "launch_moral_compass_challenge_sustainability_es_app"),
+    "create_moral_compass_challenge_sustainability_ca_app": ("sustainability.moral_compass_challenge_sustainability_ca", "create_moral_compass_challenge_sustainability_ca_app"),
+    "launch_moral_compass_challenge_sustainability_ca_app": ("sustainability.moral_compass_challenge_sustainability_ca", "launch_moral_compass_challenge_sustainability_ca_app"),
 }
 
 __all__ = list(_EXPORT_MAP.keys())
