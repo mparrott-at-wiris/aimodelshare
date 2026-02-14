@@ -1045,16 +1045,16 @@ MODULES = [
         "html": """
 <div style="text-align:center; padding-top:40px;">
   <div style="font-size:64px; margin-bottom:16px;" class="ob-float">&#127959;</div>
-  <div style="font-family:'Space Mono',monospace; font-size:12px; letter-spacing:4px; color:var(--a4-success); text-transform:uppercase; margin-bottom:8px;">// transmisión entrante</div>
-  <h1 style="font-size:clamp(1.8rem,5vw,2.4rem); font-weight:800; margin:0 0 16px; background:linear-gradient(135deg,var(--a4-grad-from),var(--a4-grad-to)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; line-height:1.2; letter-spacing:-1px;">Arquitecto/a de IA Climática</h1>
+  <div style="font-family:'Space Mono',monospace; font-size:12px; letter-spacing:4px; color:var(--a4-success); text-transform:uppercase; margin-bottom:8px;">// tu misión</div>
+  <h1 style="font-size:clamp(1.8rem,5vw,2.4rem); font-weight:800; margin:0 0 16px; background:linear-gradient(135deg,var(--a4-grad-from),var(--a4-grad-to)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; line-height:1.2; letter-spacing:-1px;">Ingeniero/a de IA</h1>
   <div style="background:var(--a4-term-bg); border:1px solid var(--a4-term-border); border-radius:16px; padding:20px 24px; margin-bottom:24px; text-align:left; color:var(--a4-text); line-height:1.6; font-size:15px;">
-    <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--a4-term-text); margin-bottom:8px;">&gt; SUBVENCIÓN_APROBADA</div>
+    <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--a4-term-text); margin-bottom:8px;">&gt; INFORME_DE_MISIÓN</div>
     <span id="ob-typewriter-text"></span><span class="ob-blink" style="color:var(--a4-accent);">|</span>
   </div>
   <div id="ob-counter-cards" style="display:none; animation:a4FadeSlideUp 0.5s ease;">
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
       <div class="ob-scard"><div style="font-size:28px; font-weight:800; color:var(--a4-warning);"><span id="ob-counter-emissions">0</span>%</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:4px;">de emisiones globales de los edificios</div></div>
-      <div class="ob-scard"><div style="font-size:28px; font-weight:800; color:var(--a4-accent);">$<span id="ob-counter-grant">0</span>K</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:4px;">tu subvención de innovación</div></div>
+      <div class="ob-scard"><div style="font-size:28px; font-weight:800; color:var(--a4-accent);"><span id="ob-counter-grant">0</span></div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:4px;">intentos para construir el mejor modelo</div></div>
     </div>
   </div>
 </div>
@@ -1077,29 +1077,13 @@ MODULES = [
       <div><div style="font-size:24px;">&#128308;</div><div style="font-size:14px; font-weight:600; color:var(--a4-error);">EUI Alto</div><div style="font-size:13px; color:var(--a4-text-dim);">Derrochador &rarr; ¡rehabilitar!</div></div>
     </div>
   </div>
-  <div style="background:var(--a4-accent-glow); border:1px solid var(--a4-accent); border-left:4px solid var(--a4-accent); border-radius:12px; padding:14px 16px; font-size:14px; color:var(--a4-text); line-height:1.6;">&#128101; Serás asignado/a aleatoriamente a un <strong>equipo</strong> de Arquitectos. Tus puntuaciones contribuyen a la posición de tu equipo en la clasificación en vivo.</div>
+  <div style="background:var(--a4-accent-glow); border:1px solid var(--a4-accent); border-left:4px solid var(--a4-accent); border-radius:12px; padding:14px 16px; font-size:14px; color:var(--a4-text); line-height:1.6;">&#128101; Serás asignado/a aleatoriamente a un <strong>equipo</strong> de ingenieros/as. Tus puntuaciones contribuyen a la posición de tu equipo en la clasificación en vivo.</div>
 </div>
 """,
     },
-    # --- Module 2: AI Basics (drag-sort) ---
+    # --- Module 2: Controls Explorer ---
     {
         "id": 2,
-        "title": "Cómo Funciona la Predicción con IA",
-        "html": """
-<div style="padding-top:24px;">
-  <h2 style="font-size:24px; font-weight:800; margin:0 0 6px; color:var(--a4-accent);">&#129302; Cómo Funciona la Predicción con IA</h2>
-  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 6px; line-height:1.6;">La IA no es magia &mdash; sigue un flujo sencillo. Piensa en ella como la intuición humana:</p>
-  <div style="background:var(--a4-card-bg); border-radius:12px; padding:12px 16px; margin-bottom:16px; font-size:15px; color:var(--a4-text); border:1px solid var(--a4-border-color);">
-    <strong style="color:var(--a4-accent);">Nubes Oscuras</strong> &rarr; <strong style="color:var(--a4-warning);">Experiencia</strong> &rarr; <strong style="color:var(--a4-success);">Predecir Lluvia</strong>
-  </div>
-  <p style="color:var(--a4-accent); font-size:14px; font-weight:600; margin:0 0 12px;">Ahora ordena la versión de IA correctamente:</p>
-  <div id="ob-drag-sort-container"></div>
-</div>
-""",
-    },
-    # --- Module 3: Controls Explorer ---
-    {
-        "id": 3,
         "title": "Tus 4 Controles",
         "html": """
 <div style="padding-top:24px;">
@@ -1111,9 +1095,9 @@ MODULES = [
 </div>
 """,
     },
-    # --- Module 4: Rank System + Quizzes ---
+    # --- Module 3: Rank System + Quizzes ---
     {
-        "id": 4,
+        "id": 3,
         "title": "Sistema de Rangos",
         "html": """
 <div style="padding-top:24px;">
@@ -1126,17 +1110,55 @@ MODULES = [
 </div>
 """,
     },
-    # --- Module 5: Ready ---
+    # --- Module 4: Ready ---
     {
-        "id": 5,
+        "id": 4,
         "title": "Sistemas en Línea",
         "html": """
-<div style="text-align:center; padding-top:48px;">
-  <div style="font-size:72px; margin-bottom:16px; animation:a4Pulse 2s ease-in-out infinite;">&#128640;</div>
-  <h2 style="font-size:30px; font-weight:800; margin:0 0 12px; background:linear-gradient(135deg,var(--a4-grad-launch-from),var(--a4-grad-launch-to)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">Sistemas en Línea</h2>
-  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 8px; line-height:1.6;">Conoces la misión. Has practicado con los controles. Es hora de construir tu primer modelo.</p>
-  <p style="color:var(--a4-text-dim); font-size:14px; margin:0 0 12px; line-height:1.6;">Consejo: Tu primer envío usa la configuración por defecto &mdash; ¡solo pulsa el botón! Luego experimenta para subir de rango.</p>
-  <p style="color:var(--a4-warning); font-size:14px; font-weight:600; margin:0 0 28px; line-height:1.6;">Tienes 10 intentos para construir la mejor IA posible. ¡Haz que cada uno cuente!</p>
+<div style="padding-top:24px;">
+  <div style="text-align:center;">
+    <div style="font-size:72px; margin-bottom:16px; animation:a4Pulse 2s ease-in-out infinite;">&#128640;</div>
+    <h2 style="font-size:30px; font-weight:800; margin:0 0 20px; background:linear-gradient(135deg,var(--a4-grad-launch-from),var(--a4-grad-launch-to)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">Sistemas en Línea</h2>
+  </div>
+
+  <!-- Section A: Cómo te Puntúan -->
+  <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:16px; padding:20px; margin-bottom:16px;">
+    <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--a4-accent); margin-bottom:10px;">// cómo te puntúan</div>
+    <p style="color:var(--a4-text); font-size:14px; margin:0 0 10px; line-height:1.6;">Tu IA se prueba con una <strong style="color:var(--a4-warning);">bóveda de pruebas oculta</strong> &mdash; el 25% de los edificios que nunca ha visto. Esto simula el mundo real: tu modelo debe generalizar a datos nuevos, no solo memorizar el conjunto de entrenamiento.</p>
+    <p style="color:var(--a4-text); font-size:14px; margin:0 0 10px; line-height:1.6;"><strong style="color:var(--a4-accent);">Precisión</strong> = el porcentaje de edificios de la bóveda que tu IA clasifica correctamente (alto vs. bajo consumo).</p>
+    <div style="background:var(--a4-formula-bg); border-radius:10px; padding:12px 16px; text-align:center; font-family:'Space Mono',monospace; font-size:14px; color:var(--a4-formula-text); font-weight:700;">50% = azar &nbsp;&#127922; &nbsp;&mdash;&nbsp; tu objetivo es superar esa línea base</div>
+  </div>
+
+  <!-- Section B: La Competición -->
+  <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:16px; padding:20px; margin-bottom:16px;">
+    <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--a4-accent); margin-bottom:10px;">// la competición</div>
+    <p style="color:var(--a4-text); font-size:14px; margin:0 0 10px; line-height:1.6;">Cada envío actualiza <strong style="color:var(--a4-accent);">dos clasificaciones en vivo</strong> en tiempo real:</p>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+      <div style="background:var(--a4-term-bg); border-radius:10px; padding:12px; text-align:center;"><div style="font-size:22px;">&#128100;</div><div style="font-size:13px; font-weight:700; color:var(--a4-accent); margin-top:4px;">Individual</div><div style="font-size:12px; color:var(--a4-text-dim); margin-top:2px;">Tu mejor precisión</div></div>
+      <div style="background:var(--a4-term-bg); border-radius:10px; padding:12px; text-align:center;"><div style="font-size:22px;">&#128101;</div><div style="font-size:13px; font-weight:700; color:var(--a4-success); margin-top:4px;">Equipo</div><div style="font-size:12px; color:var(--a4-text-dim); margin-top:2px;">p. ej. &ldquo;Ingenieros del Futuro Verde&rdquo;</div></div>
+    </div>
+    <p style="color:var(--a4-text-dim); font-size:13px; margin:0; line-height:1.5;">Tu puntuación contribuye a la posición de tu equipo &mdash; cada mejora ayuda a todos.</p>
+  </div>
+
+  <!-- Section C: El Bucle de Ingeniería -->
+  <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:16px; padding:20px; margin-bottom:16px;">
+    <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--a4-accent); margin-bottom:10px;">// el bucle de ingeniería</div>
+    <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+      <div style="background:var(--a4-term-bg); border-radius:10px; padding:10px 14px; text-align:center;"><div style="font-size:22px;">&#128295;</div><div style="font-size:13px; font-weight:700; color:var(--a4-accent); margin-top:4px;">Prueba</div></div>
+      <span style="color:var(--a4-text-dim); font-size:18px; align-self:center;">&rarr;</span>
+      <div style="background:var(--a4-term-bg); border-radius:10px; padding:10px 14px; text-align:center;"><div style="font-size:22px;">&#128300;</div><div style="font-size:13px; font-weight:700; color:var(--a4-warning); margin-top:4px;">Testea</div></div>
+      <span style="color:var(--a4-text-dim); font-size:18px; align-self:center;">&rarr;</span>
+      <div style="background:var(--a4-term-bg); border-radius:10px; padding:10px 14px; text-align:center;"><div style="font-size:22px;">&#128161;</div><div style="font-size:13px; font-weight:700; color:var(--a4-success); margin-top:4px;">Aprende</div></div>
+      <span style="color:var(--a4-text-dim); font-size:18px; align-self:center;">&rarr;</span>
+      <div style="background:var(--a4-term-bg); border-radius:10px; padding:10px 14px; text-align:center;"><div style="font-size:22px;">&#128257;</div><div style="font-size:13px; font-weight:700; color:var(--a4-ctrl-model); margin-top:4px;">Repite</div></div>
+    </div>
+    <div style="background:var(--a4-accent-glow); border:1px solid var(--a4-accent); border-left:4px solid var(--a4-accent); border-radius:12px; padding:12px 14px; font-size:13px; color:var(--a4-text); line-height:1.5;">&#128161; <strong>Consejo pro:</strong> Cambia <strong>UN SOLO</strong> ajuste cada vez para saber qué marcó la diferencia.</div>
+  </div>
+
+  <!-- Existing: workflow visual + tips -->
+  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 8px; line-height:1.6; text-align:center;">Conoces la misión. Has practicado con los controles. Es hora de construir tu primer modelo.</p>
+  <p style="color:var(--a4-text-dim); font-size:14px; margin:0 0 12px; line-height:1.6; text-align:center;">Consejo: Tu primer envío usa la configuración por defecto &mdash; ¡solo pulsa el botón! Luego experimenta para subir de rango.</p>
+  <p style="color:var(--a4-warning); font-size:14px; font-weight:600; margin:0 0 20px; line-height:1.6; text-align:center;">Tienes 10 intentos para construir la mejor IA posible. ¡Haz que cada uno cuente!</p>
   <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:20px; padding:24px; margin-bottom:24px;">
     <div style="display:flex; justify-content:center; gap:24px; flex-wrap:wrap;">
       <div style="display:flex; align-items:center; gap:8px;"><div style="text-align:center;"><div style="font-size:28px;">&#129504;</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:2px;">Elige un modelo</div></div><span style="color:var(--a4-text-dim); font-size:18px;">&rarr;</span></div>
@@ -1264,21 +1286,6 @@ css = r"""
 /* Gate: hidden Next buttons */
 .ob-gate-hidden { display:none !important; }
 
-/* Drag sort items */
-.ob-drag-item {
-  padding:14px 18px; background:var(--a4-card-bg); border:2px solid var(--a4-border-color);
-  border-radius:12px; cursor:grab; font-size:15px; display:flex; align-items:center; gap:12px;
-  line-height:1.4; transition:all 0.3s ease; color:var(--a4-text); margin-bottom:8px; user-select:none;
-}
-.ob-drag-item.ob-dragging { background:var(--a4-accent-glow); border-color:var(--a4-accent); }
-.ob-drag-item.ob-solved { background:var(--a4-success); border-color:var(--a4-success); color:white; cursor:default; }
-
-.ob-drag-num {
-  width:28px; height:28px; border-radius:50%; background:var(--a4-input-bg); border:1px solid var(--a4-border-color);
-  display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:var(--a4-text-dim); flex-shrink:0;
-}
-.ob-drag-item.ob-solved .ob-drag-num { background:rgba(255,255,255,0.3); border-color:rgba(255,255,255,0.4); color:white; }
-
 /* Control explorer panels */
 .ob-cpanel { background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:14px; padding:16px; animation:a4FadeSlideUp 0.3s ease; }
 .ob-cslider { -webkit-appearance:none; appearance:none; width:100%; height:8px; border-radius:4px; background:linear-gradient(90deg,var(--a4-success),var(--a4-warning),var(--a4-error)); outline:none; }
@@ -1381,72 +1388,13 @@ function obCounter(elemId, target, duration, prefix, suffix){
 /* --- Welcome init --- */
 function obInitWelcome(){
   obTypewriter('ob-typewriter-text',
-    "Enhorabuena, Arquitecto/a. El Ayuntamiento ha aprobado una Subvención de Innovación en IA de 500.000 $. Tu misión: construir una IA que identifique los edificios que derrochan energía en toda la ciudad.",
+    "Ahora te toca ponerte en la piel de un/a Ingeniero/a de IA. Tu misión: construir un sistema de IA que prediga qué edificios desperdician más energía — y competir con otros ingenieros/as en una clasificación en vivo.",
     22, function(){
       var cards=document.getElementById('ob-counter-cards');
       if(cards){cards.style.display='block';}
       obCounter('ob-counter-emissions',40,1200,'','');
-      obCounter('ob-counter-grant',500,1200,'','');
+      obCounter('ob-counter-grant',10,1200,'','');
     });
-}
-
-/* --- Drag Sort --- */
-function obInitDragSort(){
-  var container=document.getElementById('ob-drag-sort-container');
-  if(!container || container.dataset.init==='1') return;
-  container.dataset.init='1';
-  var items=[
-    {id:'input', icon:'\uD83D\uDCCA', label:'ENTRADA \u2014 Datos del edificio (tamaño, antigüedad, tipo)'},
-    {id:'model', icon:'\uD83E\uDDE0', label:'MODELO \u2014 El cerebro de la IA encuentra patrones'},
-    {id:'output', icon:'\uD83C\uDFAF', label:'SALIDA \u2014 Predice consumo Alto o Bajo'}
-  ];
-  var correct=['input','model','output'];
-  // Shuffle
-  var order=[...items].sort(function(){return Math.random()-0.5;});
-  var solved=false, dragging=null;
-
-  function render(){
-    container.innerHTML='<p style="margin:0 0 8px; font-size:14px; color:var(--a4-text-dim); text-align:center; line-height:1.5;">\uD83D\uDD00 Arrastra para ordenar correctamente</p>';
-    order.forEach(function(item,i){
-      var div=document.createElement('div');
-      div.className='ob-drag-item'+(solved?' ob-solved':'');
-      div.draggable=!solved;
-      div.innerHTML='<span class="ob-drag-num">'+(solved?'\u2713':(i+1))+'</span><span style="font-weight:500;">'+item.icon+' '+item.label+'</span>';
-      div.addEventListener('dragstart',function(){dragging=i;div.classList.add('ob-dragging');});
-      div.addEventListener('dragend',function(){div.classList.remove('ob-dragging');});
-      div.addEventListener('dragover',function(e){e.preventDefault();});
-      div.addEventListener('drop',function(){handleDrop(i);});
-      // Touch support
-      div.addEventListener('touchstart',function(e){dragging=i;div.classList.add('ob-dragging');},{passive:true});
-      div.addEventListener('touchend',function(e){
-        div.classList.remove('ob-dragging');
-        var touch=e.changedTouches[0];
-        var els=document.elementsFromPoint(touch.clientX,touch.clientY);
-        for(var k=0;k<els.length;k++){
-          var idx=Array.from(container.querySelectorAll('.ob-drag-item')).indexOf(els[k]);
-          if(idx>=0 && idx!==dragging){handleDrop(idx); break;}
-        }
-      });
-      container.appendChild(div);
-    });
-    if(solved){
-      var msg=document.createElement('div');
-      msg.style.cssText='text-align:center; color:var(--a4-success); font-weight:700; font-size:18px; margin-top:4px; animation:a4FadeSlideUp 0.5s ease;';
-      msg.textContent='\u2705 \u00a1Perfecto! Así es como funciona la predicción con IA.';
-      container.appendChild(msg);
-    }
-  }
-
-  function handleDrop(i){
-    if(dragging===null || dragging===i || solved) return;
-    var moved=order.splice(dragging,1)[0]; order.splice(i,0,moved); dragging=null;
-    if(order.every(function(item,idx){return item.id===correct[idx];})){
-      solved=true;
-      render();
-      setTimeout(function(){obUnlockNext(2);},800);
-    } else { render(); }
-  }
-  render();
 }
 
 /* --- Control Explorer --- */
@@ -1465,7 +1413,7 @@ function obInitControlExplorer(){
     {id:'features',icon:'\uD83D\uDCE6',title:'Ingredientes de Datos',sub:'\u00bfQu\u00e9 informaci\u00f3n ve tu IA?',color:'var(--a4-ctrl-features)'},
     {id:'datasize',icon:'\uD83D\uDCCA',title:'Tama\u00f1o de Datos',sub:'\u00bfCu\u00e1ntos datos de entrenamiento?',color:'var(--a4-ctrl-datasize)'}
   ];
-  function mark(id){explored.add(id); if(explored.size===4) setTimeout(function(){obUnlockNext(3);},600); renderProgress();}
+  function mark(id){explored.add(id); if(explored.size===4) setTimeout(function(){obUnlockNext(2);},600); renderProgress();}
   function renderProgress(){prog.innerHTML=explored.size+'/4 explorados \u2014 '+(explored.size<4?'\u00a1toca cada control para conocerlo!':'\uD83C\uDF89 \u00a1Todos explorados!');}
   function renderGrid(){
     grid.innerHTML='';
@@ -1558,7 +1506,7 @@ function obInitQuizzes(){
     container.appendChild(bubble);
   }
   var quizDone=0;
-  function checkBoth(){quizDone++; if(quizDone>=2) obUnlockNext(4);}
+  function checkBoth(){quizDone++; if(quizDone>=2) obUnlockNext(3);}
   buildQuiz(q1,"\u00bfC\u00f3mo se mide la precisi\u00f3n de tu modelo?",["Se eval\u00faa con los mismos datos con los que entren\u00f3","Se prueba con el 25% de edificios ocultos no vistos","El instructor lo puntúa manualmente"],1,checkBoth);
   buildQuiz(q2,"\u00bfQu\u00e9 pasa cuando subes de rango?",["Nada cambia","Tu puntuaci\u00f3n se reinicia a cero","Se desbloquean nuevos modelos, ingredientes y tama\u00f1os de datos"],2,checkBoth);
 }
@@ -1569,10 +1517,10 @@ function obInitRankBar(){
   if(!bar || bar.dataset.init==='1') return;
   bar.dataset.init='1';
   var ranks=[
-    {r:'\uD83C\uDF31 Practicante',c:'var(--a4-text-dim)',d:'1 modelo, controles bloqueados'},
-    {r:'\uD83C\uDFE2 Junior',c:'var(--a4-accent)',d:'3 modelos, m\u00e1s ingredientes'},
-    {r:'\u2B50 Senior',c:'var(--a4-ctrl-model)',d:'Todos los modelos, datos clim\u00e1ticos'},
-    {r:'\uD83D\uDC51 Jefe',c:'var(--a4-warning)',d:'Todo desbloqueado'}
+    {r:'\uD83C\uDF31 Ingeniero/a Practicante',c:'var(--a4-text-dim)',d:'1 modelo, complejidad \u22643, datos peque\u00f1os'},
+    {r:'\uD83C\uDFE2 Ingeniero/a Junior',c:'var(--a4-accent)',d:'3 modelos, complejidad \u22646, + ubicaci\u00f3n'},
+    {r:'\u2B50 Ingeniero/a Senior',c:'var(--a4-ctrl-model)',d:'Todos los modelos, complejidad \u22648, + clima'},
+    {r:'\uD83D\uDC51 Ingeniero/a Jefe',c:'var(--a4-warning)',d:'Todas las herramientas, complejidad \u226410'}
   ];
   var html='';
   ranks.forEach(function(x,i){
@@ -1594,10 +1542,6 @@ function obUnlockNext(moduleIdx){
 (function obPollWelcome(){
   if(document.getElementById('ob-typewriter-text')){obInitWelcome();}
   else{setTimeout(obPollWelcome,200);}
-})();
-(function obPollDrag(){
-  if(document.getElementById('ob-drag-sort-container') && !document.getElementById('ob-drag-sort-container').dataset.init){obInitDragSort();}
-  else{setTimeout(obPollDrag,300);}
 })();
 (function obPollCtrl(){
   if(document.getElementById('ob-ctrl-grid') && !document.getElementById('ob-ctrl-grid').dataset.init){obInitControlExplorer();}
@@ -1677,7 +1621,7 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue="indigo")
             module_next_btns = []
             module_back_btns = []
 
-            GATED_MODULES = {2, 3, 4}  # drag-sort, controls, quizzes
+            GATED_MODULES = {2, 3}  # controls, quizzes
 
             for i, mod in enumerate(MODULES):
                 visible = (i == 0)
@@ -1695,7 +1639,7 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue="indigo")
                             next_btn = gr.Button("Siguiente", variant="primary", size="lg",
                                                  elem_classes=extra_classes if extra_classes else None)
                         else:
-                            # Module 5 (Ready) → "Entrar a la Arena"
+                            # Module 4 (Ready) → "Entrar a la Arena"
                             next_btn = gr.Button("Entrar a la Arena", variant="primary", size="lg")
 
                     module_cols.append(col)
@@ -1903,7 +1847,7 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue="indigo")
                     js=nav_js(f"ob-mod-{i+1}", "Cargando siguiente sección...")
                 )
             else:
-                # Module 5 → Arena
+                # Last module → Arena
                 module_next_btns[i].click(
                     fn=make_nav(arena_col),
                     inputs=None, outputs=all_panels,
@@ -1917,11 +1861,11 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue="indigo")
                     js=nav_js(f"ob-mod-{i-1}", "Volviendo atrás...")
                 )
 
-        # Arena back → Module 5
+        # Arena back → last onboarding module
         arena_back_btn.click(
-            fn=make_nav(module_cols[5]),
+            fn=make_nav(module_cols[-1]),
             inputs=None, outputs=all_panels,
-            js=nav_js("ob-mod-5", "Volviendo a las instrucciones...")
+            js=nav_js(f"ob-mod-{len(MODULES)-1}", "Volviendo a las instrucciones...")
         )
 
         # Arena finish → Conclusion

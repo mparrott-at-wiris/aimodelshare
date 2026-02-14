@@ -1033,25 +1033,9 @@ MODULES = [
 </div>
 """,
     },
-    # --- Module 2: AI Basics (drag-sort) ---
+    # --- Module 2: Controls Explorer ---
     {
         "id": 2,
-        "title": "How AI Prediction Works",
-        "html": """
-<div style="padding-top:24px;">
-  <h2 style="font-size:24px; font-weight:800; margin:0 0 6px; color:var(--a4-accent);">&#129302; How AI Prediction Works</h2>
-  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 6px; line-height:1.6;">AI isn't magic &mdash; it follows a simple flow. Think of it like human intuition:</p>
-  <div style="background:var(--a4-card-bg); border-radius:12px; padding:12px 16px; margin-bottom:16px; font-size:15px; color:var(--a4-text); border:1px solid var(--a4-border-color);">
-    <strong style="color:var(--a4-accent);">Dark Clouds</strong> &rarr; <strong style="color:var(--a4-warning);">Experience</strong> &rarr; <strong style="color:var(--a4-success);">Predict Rain</strong>
-  </div>
-  <p style="color:var(--a4-accent); font-size:14px; font-weight:600; margin:0 0 12px;">Now arrange the AI version in order:</p>
-  <div id="ob-drag-sort-container"></div>
-</div>
-""",
-    },
-    # --- Module 3: Controls Explorer ---
-    {
-        "id": 3,
         "title": "Your 4 Controls",
         "html": """
 <div style="padding-top:24px;">
@@ -1065,7 +1049,7 @@ MODULES = [
     },
     # --- Module 4: Rank System + Quizzes ---
     {
-        "id": 4,
+        "id": 3,
         "title": "Rank System",
         "html": """
 <div style="padding-top:24px;">
@@ -1080,7 +1064,7 @@ MODULES = [
     },
     # --- Module 5: Ready ---
     {
-        "id": 5,
+        "id": 4,
         "title": "Systems Online",
         "html": """
 <div style="padding-top:24px;">
@@ -1254,21 +1238,6 @@ css = r"""
 /* Gate: hidden Next buttons */
 .ob-gate-hidden { display:none !important; }
 
-/* Drag sort items */
-.ob-drag-item {
-  padding:14px 18px; background:var(--a4-card-bg); border:2px solid var(--a4-border-color);
-  border-radius:12px; cursor:grab; font-size:15px; display:flex; align-items:center; gap:12px;
-  line-height:1.4; transition:all 0.3s ease; color:var(--a4-text); margin-bottom:8px; user-select:none;
-}
-.ob-drag-item.ob-dragging { background:var(--a4-accent-glow); border-color:var(--a4-accent); }
-.ob-drag-item.ob-solved { background:var(--a4-success); border-color:var(--a4-success); color:white; cursor:default; }
-
-.ob-drag-num {
-  width:28px; height:28px; border-radius:50%; background:var(--a4-input-bg); border:1px solid var(--a4-border-color);
-  display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:var(--a4-text-dim); flex-shrink:0;
-}
-.ob-drag-item.ob-solved .ob-drag-num { background:rgba(255,255,255,0.3); border-color:rgba(255,255,255,0.4); color:white; }
-
 /* Control explorer panels */
 .ob-cpanel { background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:14px; padding:16px; animation:a4FadeSlideUp 0.3s ease; }
 .ob-cslider { -webkit-appearance:none; appearance:none; width:100%; height:8px; border-radius:4px; background:linear-gradient(90deg,var(--a4-success),var(--a4-warning),var(--a4-error)); outline:none; }
@@ -1380,65 +1349,6 @@ function obInitWelcome(){
     });
 }
 
-/* --- Drag Sort --- */
-function obInitDragSort(){
-  var container=document.getElementById('ob-drag-sort-container');
-  if(!container || container.dataset.init==='1') return;
-  container.dataset.init='1';
-  var items=[
-    {id:'input', icon:'\uD83D\uDCCA', label:'INPUT \u2014 Building specs (size, age, type)'},
-    {id:'model', icon:'\uD83E\uDDE0', label:'MODEL \u2014 The AI brain finds patterns'},
-    {id:'output', icon:'\uD83C\uDFAF', label:'OUTPUT \u2014 Predicts High or Low energy'}
-  ];
-  var correct=['input','model','output'];
-  // Shuffle
-  var order=[...items].sort(function(){return Math.random()-0.5;});
-  var solved=false, dragging=null;
-
-  function render(){
-    container.innerHTML='<p style="margin:0 0 8px; font-size:14px; color:var(--a4-text-dim); text-align:center; line-height:1.5;">\uD83D\uDD00 Drag to arrange the correct order</p>';
-    order.forEach(function(item,i){
-      var div=document.createElement('div');
-      div.className='ob-drag-item'+(solved?' ob-solved':'');
-      div.draggable=!solved;
-      div.innerHTML='<span class="ob-drag-num">'+(solved?'\u2713':(i+1))+'</span><span style="font-weight:500;">'+item.icon+' '+item.label+'</span>';
-      div.addEventListener('dragstart',function(){dragging=i;div.classList.add('ob-dragging');});
-      div.addEventListener('dragend',function(){div.classList.remove('ob-dragging');});
-      div.addEventListener('dragover',function(e){e.preventDefault();});
-      div.addEventListener('drop',function(){handleDrop(i);});
-      // Touch support
-      div.addEventListener('touchstart',function(e){dragging=i;div.classList.add('ob-dragging');},{passive:true});
-      div.addEventListener('touchend',function(e){
-        div.classList.remove('ob-dragging');
-        var touch=e.changedTouches[0];
-        var els=document.elementsFromPoint(touch.clientX,touch.clientY);
-        for(var k=0;k<els.length;k++){
-          var idx=Array.from(container.querySelectorAll('.ob-drag-item')).indexOf(els[k]);
-          if(idx>=0 && idx!==dragging){handleDrop(idx); break;}
-        }
-      });
-      container.appendChild(div);
-    });
-    if(solved){
-      var msg=document.createElement('div');
-      msg.style.cssText='text-align:center; color:var(--a4-success); font-weight:700; font-size:18px; margin-top:4px; animation:a4FadeSlideUp 0.5s ease;';
-      msg.textContent='\u2705 Perfect! That\'s how AI prediction works.';
-      container.appendChild(msg);
-    }
-  }
-
-  function handleDrop(i){
-    if(dragging===null || dragging===i || solved) return;
-    var moved=order.splice(dragging,1)[0]; order.splice(i,0,moved); dragging=null;
-    if(order.every(function(item,idx){return item.id===correct[idx];})){
-      solved=true;
-      render();
-      setTimeout(function(){obUnlockNext(2);},800);
-    } else { render(); }
-  }
-  render();
-}
-
 /* --- Control Explorer --- */
 function obInitControlExplorer(){
   var grid=document.getElementById('ob-ctrl-grid');
@@ -1455,7 +1365,7 @@ function obInitControlExplorer(){
     {id:'features',icon:'\uD83D\uDCE6',title:'Data Ingredients',sub:'What info does your AI see?',color:'var(--a4-ctrl-features)'},
     {id:'datasize',icon:'\uD83D\uDCCA',title:'Data Size',sub:'How much training data?',color:'var(--a4-ctrl-datasize)'}
   ];
-  function mark(id){explored.add(id); if(explored.size===4) setTimeout(function(){obUnlockNext(3);},600); renderProgress();}
+  function mark(id){explored.add(id); if(explored.size===4) setTimeout(function(){obUnlockNext(2);},600); renderProgress();}
   function renderProgress(){prog.innerHTML=explored.size+'/4 explored \u2014 '+(explored.size<4?'tap each control to learn it!':'\uD83C\uDF89 All explored!');}
   function renderGrid(){
     grid.innerHTML='';
@@ -1548,7 +1458,7 @@ function obInitQuizzes(){
     container.appendChild(bubble);
   }
   var quizDone=0;
-  function checkBoth(){quizDone++; if(quizDone>=2) obUnlockNext(4);}
+  function checkBoth(){quizDone++; if(quizDone>=2) obUnlockNext(3);}
   buildQuiz(q1,"How is your model's accuracy measured?",["It's graded on the same data it trained on","It's tested on 25% of hidden, unseen buildings","The instructor manually scores it"],1,checkBoth);
   buildQuiz(q2,"What happens when you rank up?",["Nothing changes","Your score resets to zero","New models, features, & data sizes unlock"],2,checkBoth);
 }
@@ -1584,10 +1494,6 @@ function obUnlockNext(moduleIdx){
 (function obPollWelcome(){
   if(document.getElementById('ob-typewriter-text')){obInitWelcome();}
   else{setTimeout(obPollWelcome,200);}
-})();
-(function obPollDrag(){
-  if(document.getElementById('ob-drag-sort-container') && !document.getElementById('ob-drag-sort-container').dataset.init){obInitDragSort();}
-  else{setTimeout(obPollDrag,300);}
 })();
 (function obPollCtrl(){
   if(document.getElementById('ob-ctrl-grid') && !document.getElementById('ob-ctrl-grid').dataset.init){obInitControlExplorer();}
@@ -1667,7 +1573,7 @@ def create_model_building_game_en_sustainability_app(theme_primary_hue="indigo")
             module_next_btns = []
             module_back_btns = []
 
-            GATED_MODULES = {2, 3, 4}  # drag-sort, controls, quizzes
+            GATED_MODULES = {2, 3}  # controls, quizzes
 
             for i, mod in enumerate(MODULES):
                 visible = (i == 0)
@@ -1685,7 +1591,7 @@ def create_model_building_game_en_sustainability_app(theme_primary_hue="indigo")
                             next_btn = gr.Button("Next", variant="primary", size="lg",
                                                  elem_classes=extra_classes if extra_classes else None)
                         else:
-                            # Module 5 (Ready) → "Enter the Arena"
+                            # Module 4 (Ready) → "Enter the Arena"
                             next_btn = gr.Button("Enter the Arena", variant="primary", size="lg")
 
                     module_cols.append(col)
@@ -1893,7 +1799,7 @@ def create_model_building_game_en_sustainability_app(theme_primary_hue="indigo")
                     js=nav_js(f"ob-mod-{i+1}", "Loading next section...")
                 )
             else:
-                # Module 5 → Arena
+                # Last module → Arena
                 module_next_btns[i].click(
                     fn=make_nav(arena_col),
                     inputs=None, outputs=all_panels,
@@ -1907,11 +1813,11 @@ def create_model_building_game_en_sustainability_app(theme_primary_hue="indigo")
                     js=nav_js(f"ob-mod-{i-1}", "Going back...")
                 )
 
-        # Arena back → Module 5
+        # Arena back → last onboarding module
         arena_back_btn.click(
-            fn=make_nav(module_cols[5]),
+            fn=make_nav(module_cols[-1]),
             inputs=None, outputs=all_panels,
-            js=nav_js("ob-mod-5", "Returning to instructions...")
+            js=nav_js(f"ob-mod-{len(MODULES)-1}", "Returning to instructions...")
         )
 
         # Arena finish → Conclusion
