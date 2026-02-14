@@ -997,16 +997,16 @@ MODULES = [
         "html": """
 <div style="text-align:center; padding-top:40px;">
   <div style="font-size:64px; margin-bottom:16px;" class="ob-float">&#127959;</div>
-  <div style="font-family:'Space Mono',monospace; font-size:12px; letter-spacing:4px; color:var(--a4-success); text-transform:uppercase; margin-bottom:8px;">// incoming transmission</div>
-  <h1 style="font-size:clamp(1.8rem,5vw,2.4rem); font-weight:800; margin:0 0 16px; background:linear-gradient(135deg,var(--a4-grad-from),var(--a4-grad-to)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; line-height:1.2; letter-spacing:-1px;">Climate AI Architect</h1>
+  <div style="font-family:'Space Mono',monospace; font-size:12px; letter-spacing:4px; color:var(--a4-success); text-transform:uppercase; margin-bottom:8px;">// your mission</div>
+  <h1 style="font-size:clamp(1.8rem,5vw,2.4rem); font-weight:800; margin:0 0 16px; background:linear-gradient(135deg,var(--a4-grad-from),var(--a4-grad-to)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; line-height:1.2; letter-spacing:-1px;">AI Engineer</h1>
   <div style="background:var(--a4-term-bg); border:1px solid var(--a4-term-border); border-radius:16px; padding:20px 24px; margin-bottom:24px; text-align:left; color:var(--a4-text); line-height:1.6; font-size:15px;">
-    <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--a4-term-text); margin-bottom:8px;">&gt; GRANT_APPROVED</div>
+    <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--a4-term-text); margin-bottom:8px;">&gt; MISSION_BRIEFING</div>
     <span id="ob-typewriter-text"></span><span class="ob-blink" style="color:var(--a4-accent);">|</span>
   </div>
   <div id="ob-counter-cards" style="display:none; animation:a4FadeSlideUp 0.5s ease;">
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
       <div class="ob-scard"><div style="font-size:28px; font-weight:800; color:var(--a4-warning);"><span id="ob-counter-emissions">0</span>%</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:4px;">of global emissions from buildings</div></div>
-      <div class="ob-scard"><div style="font-size:28px; font-weight:800; color:var(--a4-accent);">$<span id="ob-counter-grant">0</span>K</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:4px;">your innovation grant</div></div>
+      <div class="ob-scard"><div style="font-size:28px; font-weight:800; color:var(--a4-accent);"><span id="ob-counter-grant">0</span></div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:4px;">attempts to build the best model</div></div>
     </div>
   </div>
 </div>
@@ -1029,7 +1029,7 @@ MODULES = [
       <div><div style="font-size:24px;">&#128308;</div><div style="font-size:14px; font-weight:600; color:var(--a4-error);">High EUI</div><div style="font-size:13px; color:var(--a4-text-dim);">Wasteful &rarr; retrofit!</div></div>
     </div>
   </div>
-  <div style="background:var(--a4-accent-glow); border:1px solid var(--a4-accent); border-left:4px solid var(--a4-accent); border-radius:12px; padding:14px 16px; font-size:14px; color:var(--a4-text); line-height:1.6;">&#128101; You'll be randomly assigned to a <strong>team</strong> of fellow Architects. Your scores contribute to your team's standing on the live leaderboard.</div>
+  <div style="background:var(--a4-accent-glow); border:1px solid var(--a4-accent); border-left:4px solid var(--a4-accent); border-radius:12px; padding:14px 16px; font-size:14px; color:var(--a4-text); line-height:1.6;">&#128101; You'll be randomly assigned to a <strong>team</strong> of fellow engineers. Your scores contribute to your team's standing on the live leaderboard.</div>
 </div>
 """,
     },
@@ -1083,12 +1083,50 @@ MODULES = [
         "id": 5,
         "title": "Systems Online",
         "html": """
-<div style="text-align:center; padding-top:48px;">
-  <div style="font-size:72px; margin-bottom:16px; animation:a4Pulse 2s ease-in-out infinite;">&#128640;</div>
-  <h2 style="font-size:30px; font-weight:800; margin:0 0 12px; background:linear-gradient(135deg,var(--a4-grad-launch-from),var(--a4-grad-launch-to)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">Systems Online</h2>
-  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 8px; line-height:1.6;">You know the mission. You've practiced the controls. Time to build your first model.</p>
-  <p style="color:var(--a4-text-dim); font-size:14px; margin:0 0 12px; line-height:1.6;">Tip: Your first submission uses defaults &mdash; just hit the button! Then experiment to climb the ranks.</p>
-  <p style="color:var(--a4-warning); font-size:14px; font-weight:600; margin:0 0 28px; line-height:1.6;">You have 10 tries to build the best AI you can. Make each one count!</p>
+<div style="padding-top:24px;">
+  <div style="text-align:center;">
+    <div style="font-size:72px; margin-bottom:16px; animation:a4Pulse 2s ease-in-out infinite;">&#128640;</div>
+    <h2 style="font-size:30px; font-weight:800; margin:0 0 20px; background:linear-gradient(135deg,var(--a4-grad-launch-from),var(--a4-grad-launch-to)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">Systems Online</h2>
+  </div>
+
+  <!-- Section A: How You're Scored -->
+  <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:16px; padding:20px; margin-bottom:16px;">
+    <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--a4-accent); margin-bottom:10px;">// how you're scored</div>
+    <p style="color:var(--a4-text); font-size:14px; margin:0 0 10px; line-height:1.6;">Your AI is tested on a <strong style="color:var(--a4-warning);">hidden test vault</strong> &mdash; 25% of the buildings it has never seen. This simulates the real world: your model must generalize to new data, not just memorize the training set.</p>
+    <p style="color:var(--a4-text); font-size:14px; margin:0 0 10px; line-height:1.6;"><strong style="color:var(--a4-accent);">Accuracy</strong> = the percentage of vault buildings your AI classifies correctly (high vs. low energy).</p>
+    <div style="background:var(--a4-formula-bg); border-radius:10px; padding:12px 16px; text-align:center; font-family:'Space Mono',monospace; font-size:14px; color:var(--a4-formula-text); font-weight:700;">50% = coin flip &nbsp;&#127922; &nbsp;&mdash;&nbsp; your goal is to beat that baseline</div>
+  </div>
+
+  <!-- Section B: The Competition -->
+  <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:16px; padding:20px; margin-bottom:16px;">
+    <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--a4-accent); margin-bottom:10px;">// the competition</div>
+    <p style="color:var(--a4-text); font-size:14px; margin:0 0 10px; line-height:1.6;">Every submission updates <strong style="color:var(--a4-accent);">two live leaderboards</strong> in real time:</p>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+      <div style="background:var(--a4-term-bg); border-radius:10px; padding:12px; text-align:center;"><div style="font-size:22px;">&#128100;</div><div style="font-size:13px; font-weight:700; color:var(--a4-accent); margin-top:4px;">Individual</div><div style="font-size:12px; color:var(--a4-text-dim); margin-top:2px;">Your best accuracy</div></div>
+      <div style="background:var(--a4-term-bg); border-radius:10px; padding:12px; text-align:center;"><div style="font-size:22px;">&#128101;</div><div style="font-size:13px; font-weight:700; color:var(--a4-success); margin-top:4px;">Team</div><div style="font-size:12px; color:var(--a4-text-dim); margin-top:2px;">e.g. &ldquo;Green Future Engineers&rdquo;</div></div>
+    </div>
+    <p style="color:var(--a4-text-dim); font-size:13px; margin:0; line-height:1.5;">Your score contributes to your team's rank &mdash; every improvement helps everyone.</p>
+  </div>
+
+  <!-- Section C: The Engineering Loop -->
+  <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:16px; padding:20px; margin-bottom:16px;">
+    <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--a4-accent); margin-bottom:10px;">// the engineering loop</div>
+    <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+      <div style="background:var(--a4-term-bg); border-radius:10px; padding:10px 14px; text-align:center;"><div style="font-size:22px;">&#128295;</div><div style="font-size:13px; font-weight:700; color:var(--a4-accent); margin-top:4px;">Try</div></div>
+      <span style="color:var(--a4-text-dim); font-size:18px; align-self:center;">&rarr;</span>
+      <div style="background:var(--a4-term-bg); border-radius:10px; padding:10px 14px; text-align:center;"><div style="font-size:22px;">&#128300;</div><div style="font-size:13px; font-weight:700; color:var(--a4-warning); margin-top:4px;">Test</div></div>
+      <span style="color:var(--a4-text-dim); font-size:18px; align-self:center;">&rarr;</span>
+      <div style="background:var(--a4-term-bg); border-radius:10px; padding:10px 14px; text-align:center;"><div style="font-size:22px;">&#128161;</div><div style="font-size:13px; font-weight:700; color:var(--a4-success); margin-top:4px;">Learn</div></div>
+      <span style="color:var(--a4-text-dim); font-size:18px; align-self:center;">&rarr;</span>
+      <div style="background:var(--a4-term-bg); border-radius:10px; padding:10px 14px; text-align:center;"><div style="font-size:22px;">&#128257;</div><div style="font-size:13px; font-weight:700; color:var(--a4-ctrl-model); margin-top:4px;">Repeat</div></div>
+    </div>
+    <div style="background:var(--a4-accent-glow); border:1px solid var(--a4-accent); border-left:4px solid var(--a4-accent); border-radius:12px; padding:12px 14px; font-size:13px; color:var(--a4-text); line-height:1.5;">&#128161; <strong>Pro tip:</strong> Change <strong>ONE</strong> setting at a time so you know what made the difference.</div>
+  </div>
+
+  <!-- Existing: workflow visual + tips -->
+  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 8px; line-height:1.6; text-align:center;">You know the mission. You've practiced the controls. Time to build your first model.</p>
+  <p style="color:var(--a4-text-dim); font-size:14px; margin:0 0 12px; line-height:1.6; text-align:center;">Tip: Your first submission uses defaults &mdash; just hit the button! Then experiment to climb the ranks.</p>
+  <p style="color:var(--a4-warning); font-size:14px; font-weight:600; margin:0 0 20px; line-height:1.6; text-align:center;">You have 10 tries to build the best AI you can. Make each one count!</p>
   <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:20px; padding:24px; margin-bottom:24px;">
     <div style="display:flex; justify-content:center; gap:24px; flex-wrap:wrap;">
       <div style="display:flex; align-items:center; gap:8px;"><div style="text-align:center;"><div style="font-size:28px;">&#129504;</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:2px;">Pick a model</div></div><span style="color:var(--a4-text-dim); font-size:18px;">&rarr;</span></div>
@@ -1333,12 +1371,12 @@ function obCounter(elemId, target, duration, prefix, suffix){
 /* --- Welcome init --- */
 function obInitWelcome(){
   obTypewriter('ob-typewriter-text',
-    "Congratulations, Architect. The City Council has approved a $500,000 AI Innovation Grant. Your mission: build an AI that identifies energy-wasting buildings across the city.",
+    "Now it's your turn to step into the shoes of an AI Engineer. Your mission: build an AI system that predicts which buildings waste the most energy — and compete with other engineers on a live leaderboard.",
     22, function(){
       var cards=document.getElementById('ob-counter-cards');
       if(cards){cards.style.display='block';}
       obCounter('ob-counter-emissions',40,1200,'','');
-      obCounter('ob-counter-grant',500,1200,'','');
+      obCounter('ob-counter-grant',10,1200,'','');
     });
 }
 
@@ -1521,10 +1559,10 @@ function obInitRankBar(){
   if(!bar || bar.dataset.init==='1') return;
   bar.dataset.init='1';
   var ranks=[
-    {r:'\uD83C\uDF31 Trainee',c:'var(--a4-text-dim)',d:'1 model, locked controls'},
-    {r:'\uD83C\uDFE2 Junior',c:'var(--a4-accent)',d:'3 models, more features'},
-    {r:'\u2B50 Senior',c:'var(--a4-ctrl-model)',d:'All models, climate data'},
-    {r:'\uD83D\uDC51 Lead',c:'var(--a4-warning)',d:'Everything unlocked'}
+    {r:'\uD83C\uDF31 Trainee Engineer',c:'var(--a4-text-dim)',d:'1 model, complexity \u22643, small data'},
+    {r:'\uD83C\uDFE2 Junior Engineer',c:'var(--a4-accent)',d:'3 models, complexity \u22646, + location'},
+    {r:'\u2B50 Senior Engineer',c:'var(--a4-ctrl-model)',d:'All models, complexity \u22648, + weather'},
+    {r:'\uD83D\uDC51 Lead Engineer',c:'var(--a4-warning)',d:'All tools, complexity \u226410'}
   ];
   var html='';
   ranks.forEach(function(x,i){
