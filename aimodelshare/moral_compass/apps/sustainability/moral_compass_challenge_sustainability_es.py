@@ -261,15 +261,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         .btn {
             background: var(--accent);
             color: var(--bg);
-            border: none;
+            border: 2px solid transparent;
             padding: 16px 28px;
-            border-radius: 12px;
+            border-radius: 16px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-size: 1rem;
+            font-family: 'Outfit', sans-serif;
         }
 
         .btn:hover {
@@ -278,17 +279,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         .btn.secondary {
-            background: var(--input-bg);
+            background: rgba(255, 255, 255, 0.08);
             color: var(--text);
-            border: 1px solid var(--border-color);
+            border: 2px solid var(--step-border);
         }
 
         .btn.secondary:hover {
             background: var(--hover-bg);
+            border-color: var(--accent);
         }
 
         .btn.danger {
             background: var(--warning);
+            border: 2px solid var(--warning);
             box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
         }
 
@@ -589,7 +592,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
                 <div class="btn-group">
                     <button class="btn secondary" onclick="goToStep(1)">ATR&Aacute;S</button>
-                    <button class="btn danger" onclick="goToStep(3)">RECONOCER EL IMPACTO</button>
+                    <button class="btn danger" style="flex:1; font-size:1.1rem; padding:18px 32px;" onclick="goToStep(3)">RECONOCER EL IMPACTO &rarr;</button>
                 </div>
             </div>
 
@@ -617,7 +620,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 <div class="btn-group" style="justify-content: center;">
                     <button class="btn secondary" onclick="goToStep(2)">ATR&Aacute;S</button>
                     <button class="btn" id="btnContinueReset"
-                        style="opacity: 0; pointer-events: none;" onclick="goToStep(4)">INTRODUCIR NUEVA M&Eacute;TRICA</button>
+                        style="opacity:0; pointer-events:none; flex:1; font-size:1.1rem; padding:18px 32px;" onclick="goToStep(4)">INTRODUCIR NUEVA M&Eacute;TRICA &rarr;</button>
                 </div>
             </div>
 
@@ -652,8 +655,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
                 <div class="btn-group">
                     <button class="btn secondary" onclick="goToStep(3)">ATR&Aacute;S</button>
-                    <button class="btn" onclick="showTransition()">INICIAR AUDITOR&Iacute;A DE
-                        SOSTENIBILIDAD</button>
+                    <button class="btn success" style="flex:1; font-size:1.1rem; padding:18px 32px;" onclick="showTransition()">INICIAR AUDITOR&Iacute;A DE SOSTENIBILIDAD &rarr;</button>
                 </div>
             </div>
 
@@ -667,7 +669,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         <p style="color:var(--text); font-size:1.2rem; max-width:600px;">
             Has visto el coste oculto. <b>A continuaci&oacute;n:</b> Investigar&aacute;s la huella medioambiental completa de la IA &mdash; desde la pantalla de tu m&oacute;vil hasta la escala global &mdash; como Detective de IA Verde.
         </p>
-        <button class="btn secondary" style="margin-top:40px;"
+        <button class="btn secondary" style="margin-top:40px; font-size:1.1rem; padding:18px 40px;"
             onclick="document.getElementById('transitionOverlay').style.display='none'">CERRAR</button>
     </div>
 
