@@ -1485,25 +1485,28 @@ def create_bias_detective_en_sustainability_app(theme_primary_hue: str = "indigo
             out_top = gr.HTML()
 
             gr.HTML("""
-                <div style="background:var(--background-fill-secondary); padding:24px; border-radius:16px;
-                            text-align:center; border:2px dashed var(--color-accent); margin:8px 0 16px 0;">
-                    <div style="text-transform:uppercase; letter-spacing:2px; color:var(--body-text-color-subdued);
-                                font-size:0.85rem; margin-bottom:10px; font-weight:700;">
-                        The Moral Compass Formula
+                <details style="background:var(--background-fill-secondary); border-radius:16px;
+                                border:2px dashed var(--color-accent); margin:8px 0 16px 0;">
+                    <summary style="padding:14px 24px; cursor:pointer; text-transform:uppercase; letter-spacing:2px;
+                                    color:var(--body-text-color-subdued); font-size:0.85rem; font-weight:700;
+                                    text-align:center; list-style:none;">
+                        &#9656; The Moral Compass Formula
+                    </summary>
+                    <div style="padding:0 24px 24px 24px; text-align:center;">
+                        <div style="font-size:1.3rem; font-weight:700; margin:12px 0; font-family:'Outfit',sans-serif;">
+                            Moral Compass Score =
+                            <span style="background:rgba(5,150,105,0.15); color:var(--ace-success); padding:4px 10px; border-radius:6px;">
+                                [ Accuracy ]</span>
+                            &times;
+                            <span style="background:rgba(2,132,199,0.15); color:var(--ace-accent); padding:4px 10px; border-radius:6px;">
+                                [ Sustainability % ]</span>
+                        </div>
+                        <p style="font-size:0.95rem; margin:12px 0 0 0; color:var(--body-text-color-subdued);">
+                            <strong>Sustainability %</strong> reflects your Moral Compass progress through the investigation.<br/>
+                            If your Sustainability % is <strong>0%</strong>, your Moral Compass Score is <strong>0</strong>.
+                        </p>
                     </div>
-                    <div style="font-size:1.3rem; font-weight:700; margin:12px 0; font-family:'Outfit',sans-serif;">
-                        Moral Compass Score =
-                        <span style="background:rgba(5,150,105,0.15); color:var(--ace-success); padding:4px 10px; border-radius:6px;">
-                            [ Accuracy ]</span>
-                        &times;
-                        <span style="background:rgba(2,132,199,0.15); color:var(--ace-accent); padding:4px 10px; border-radius:6px;">
-                            [ Sustainability % ]</span>
-                    </div>
-                    <p style="font-size:0.95rem; margin:12px 0 0 0; color:var(--body-text-color-subdued);">
-                        <strong>Sustainability %</strong> reflects your Moral Compass progress through the investigation.<br/>
-                        If your Sustainability % is <strong>0%</strong>, your Moral Compass Score is <strong>0</strong>.
-                    </p>
-                </div>
+                </details>
             """)
 
             # Module containers
