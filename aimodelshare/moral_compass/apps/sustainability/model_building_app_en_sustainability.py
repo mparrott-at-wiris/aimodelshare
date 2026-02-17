@@ -971,14 +971,13 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     improvement = (best_score - first_score) if (first_score is not None and submissions > 1) else 0.0
     strong_predictors = {"avg_temp", "heating_degree_days", "cooling_degree_days", "january_min_temp"}
     strong_used = [f for f in feature_set if f in strong_predictors]
-    ethical_note = "You unlocked powerful weather-related building facts. Consider: How does building age and local temperature influence setting goals for how much energy buildings should use? In the next section we will begin to investigate this question further."
     tip_html = ""
     if submissions < 2:
         tip_html = "<div class='final-conclusion-tip'><b>Tip:</b> Try at least 2-3 submissions changing ONE setting at a time to see clear cause/effect.</div>"
     attempt_cap_html = ""
     if submissions >= ATTEMPT_LIMIT:
         attempt_cap_html = f"<div class='final-conclusion-attempt-cap'><p style='margin:0;'><b>Attempt Limit Reached:</b> You used all {ATTEMPT_LIMIT} allowed attempts. We will open up submissions again after you complete some new activities.</p></div>"
-    return f"""<div class="final-conclusion-root"><h1 class="final-conclusion-title">Engineering Phase Complete</h1><div class="final-conclusion-card"><h2 class="final-conclusion-subtitle">Your Performance Snapshot</h2><ul class="final-conclusion-list"><li>Best Accuracy: {(best_score*100):.2f}%</li><li>Rank Achieved: {'#' + str(rank) if rank > 0 else 'N/A'}</li><li>Submissions Made: {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li><li>Improvement Over First Score: {(improvement*100):+.2f}%</li><li>Tier Progress: {tier_line}</li><li>Most Helpful Building Facts Used: {len(strong_used)} ({', '.join(strong_used) if strong_used else 'None yet'})</li></ul>{tip_html}<div class="final-conclusion-ethics"><p style="margin:0;"><b>Ethical Reflection:</b> {ethical_note}</p></div>{attempt_cap_html}<div style="background:rgba(245,158,11,0.1); border:2px solid #f59e0b; padding:18px; border-radius:12px; margin-top:20px;"><p style="margin:0; font-size:1.05rem; line-height:1.5;"><b>Before you celebrate...</b> Every AI model has a cost beyond its accuracy score. In the next activity, we'll measure what your model really cost the environment.</p></div><hr class="final-conclusion-divider" /><div class="final-conclusion-next"><p style="margin:0; font-size:1.1rem; text-align:center;"><b>Next up:</b> You'll discover the hidden environmental cost of the AI model you just built.</p></div></div></div>"""
+    return f"""<div class="final-conclusion-root"><h1 class="final-conclusion-title">Engineering Phase Complete</h1><div class="final-conclusion-card"><h2 class="final-conclusion-subtitle">Your Performance Snapshot</h2><ul class="final-conclusion-list"><li>Best Accuracy: {(best_score*100):.2f}%</li><li>Rank Achieved: {'#' + str(rank) if rank > 0 else 'N/A'}</li><li>Submissions Made: {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li><li>Improvement Over First Score: {(improvement*100):+.2f}%</li><li>Tier Progress: {tier_line}</li><li>Most Helpful Building Facts Used: {len(strong_used)} ({', '.join(strong_used) if strong_used else 'None yet'})</li></ul>{tip_html}{attempt_cap_html}<div style="background:rgba(245,158,11,0.1); border:2px solid #f59e0b; padding:18px; border-radius:12px; margin-top:20px;"><p style="margin:0; font-size:1.05rem; line-height:1.5;"><b>Before you celebrate...</b> Every AI model has a cost beyond its accuracy score. In the next activity, we'll measure what your model really cost the environment.</p></div><hr class="final-conclusion-divider" /><div class="final-conclusion-next"><p style="margin:0; font-size:1.1rem; text-align:center;"><b>Next up:</b> You'll discover the hidden environmental cost of the AI model you just built.</p></div></div></div>"""
 
 
 def build_conclusion_from_state(best_score, submissions, rank, first_score, feature_set):
@@ -1033,17 +1032,38 @@ MODULES = [
 </div>
 """,
     },
-    # --- Module 2: Controls Explorer ---
+    # --- Module 2: Engineering Loop + Controls Explorer ---
     {
         "id": 2,
         "title": "Your 4 Controls",
         "html": """
 <div style="padding-top:24px;">
-  <h2 style="font-size:24px; font-weight:800; margin:0 0 6px; color:var(--a4-accent);">&#128295; Your 4 Controls</h2>
-  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 16px; line-height:1.6;">These are the exact controls you'll use. <strong style="color:var(--a4-warning);">Tap each one</strong> to see how it works &mdash; explore all 4 to continue.</p>
+
+  <!-- Section A: Engineering Loop (motivation) -->
+  <h2 style="font-size:24px; font-weight:800; margin:0 0 6px; color:var(--a4-accent);">&#128640; How to Improve Your AI (and Move Up the Leaderboard!)</h2>
+  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 16px; line-height:1.6;">This is how real AI engineers work &mdash; and it's exactly how you'll play. Each attempt, you'll tweak your settings, test the result, learn what worked, and try again.</p>
+
+  <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:16px; padding:20px; margin-bottom:16px;">
+    <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--a4-accent); margin-bottom:10px;">// the engineering loop</div>
+    <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+      <div style="background:var(--a4-term-bg); border-radius:10px; padding:10px 14px; text-align:center;"><div style="font-size:22px;">&#128295;</div><div style="font-size:13px; font-weight:700; color:var(--a4-accent); margin-top:4px;">Try</div></div>
+      <span style="color:var(--a4-text-dim); font-size:18px; align-self:center;">&rarr;</span>
+      <div style="background:var(--a4-term-bg); border-radius:10px; padding:10px 14px; text-align:center;"><div style="font-size:22px;">&#128300;</div><div style="font-size:13px; font-weight:700; color:var(--a4-warning); margin-top:4px;">Test</div></div>
+      <span style="color:var(--a4-text-dim); font-size:18px; align-self:center;">&rarr;</span>
+      <div style="background:var(--a4-term-bg); border-radius:10px; padding:10px 14px; text-align:center;"><div style="font-size:22px;">&#128161;</div><div style="font-size:13px; font-weight:700; color:var(--a4-success); margin-top:4px;">Learn</div></div>
+      <span style="color:var(--a4-text-dim); font-size:18px; align-self:center;">&rarr;</span>
+      <div style="background:var(--a4-term-bg); border-radius:10px; padding:10px 14px; text-align:center;"><div style="font-size:22px;">&#128257;</div><div style="font-size:13px; font-weight:700; color:var(--a4-ctrl-model); margin-top:4px;">Repeat</div></div>
+    </div>
+    <div style="background:var(--a4-accent-glow); border:1px solid var(--a4-accent); border-left:4px solid var(--a4-accent); border-radius:12px; padding:12px 14px; font-size:13px; color:var(--a4-text); line-height:1.5;">&#128161; <strong>Pro tip:</strong> Change <strong>ONE</strong> setting at a time so you know what made the difference.</div>
+  </div>
+
+  <!-- Section B: Your 4 Controls -->
+  <h3 style="font-size:20px; font-weight:800; margin:0 0 6px; color:var(--a4-accent);">&#128295; Your 4 Controls</h3>
+  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 16px; line-height:1.6;">Meet the 4 settings you'll tweak each round. <strong style="color:var(--a4-warning);">&#128071; Tap each card below</strong> to learn what it does &mdash; you need to explore all 4 before you can continue.</p>
   <div id="ob-ctrl-grid" style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:16px;"></div>
   <div id="ob-ctrl-progress" style="font-size:13px; text-align:center; color:var(--a4-text-dim); margin-bottom:12px; line-height:1.5;"></div>
   <div id="ob-ctrl-detail"></div>
+
 </div>
 """,
     },
@@ -1073,15 +1093,20 @@ MODULES = [
     <h2 style="font-size:30px; font-weight:800; margin:0 0 20px; background:linear-gradient(135deg,var(--a4-grad-launch-from),var(--a4-grad-launch-to)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">Systems Online</h2>
   </div>
 
-  <!-- Section A: How You're Scored -->
-  <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:16px; padding:20px; margin-bottom:16px;">
-    <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--a4-accent); margin-bottom:10px;">// how you're scored</div>
-    <p style="color:var(--a4-text); font-size:14px; margin:0 0 10px; line-height:1.6;">Your AI is tested on a <strong style="color:var(--a4-warning);">hidden test vault</strong> &mdash; 25% of the buildings it has never seen. This simulates the real world: your model must generalize to new data, not just memorize the training set.</p>
-    <p style="color:var(--a4-text); font-size:14px; margin:0 0 10px; line-height:1.6;"><strong style="color:var(--a4-accent);">Accuracy</strong> = the percentage of vault buildings your AI classifies correctly (high vs. low energy).</p>
-    <div style="background:var(--a4-formula-bg); border-radius:10px; padding:12px 16px; text-align:center; font-family:'Space Mono',monospace; font-size:14px; color:var(--a4-formula-text); font-weight:700;">50% = coin flip &nbsp;&#127922; &nbsp;&mdash;&nbsp; your goal is to beat that baseline</div>
+  <!-- Section 1: Workflow recap + tips -->
+  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 8px; line-height:1.6; text-align:center;">You know the mission. You've practiced the controls. Time to build your first model.</p>
+  <p style="color:var(--a4-text-dim); font-size:14px; margin:0 0 12px; line-height:1.6; text-align:center;">Tip: Your first submission uses defaults &mdash; just hit the button! Then experiment to climb the ranks.</p>
+  <p style="color:var(--a4-warning); font-size:14px; font-weight:600; margin:0 0 20px; line-height:1.6; text-align:center;">You have 10 tries to build the best AI you can. Make each one count!</p>
+  <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:20px; padding:24px; margin-bottom:24px; overflow:hidden;">
+    <div style="display:flex; justify-content:center; gap:24px; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:8px;"><div style="text-align:center;"><div style="font-size:28px;">&#129504;</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:2px;">Pick a model</div></div><span style="color:var(--a4-text-dim); font-size:18px;">&rarr;</span></div>
+      <div style="display:flex; align-items:center; gap:8px;"><div style="text-align:center;"><div style="font-size:28px;">&#9881;&#65039;</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:2px;">Set complexity</div></div><span style="color:var(--a4-text-dim); font-size:18px;">&rarr;</span></div>
+      <div style="display:flex; align-items:center; gap:8px;"><div style="text-align:center;"><div style="font-size:28px;">&#128230;</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:2px;">Choose data</div></div><span style="color:var(--a4-text-dim); font-size:18px;">&rarr;</span></div>
+      <div style="text-align:center;"><div style="font-size:28px;">&#128300;</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:2px;">Build &amp; Submit!</div></div>
+    </div>
   </div>
 
-  <!-- Section B: The Competition -->
+  <!-- Section 2: The Competition -->
   <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:16px; padding:20px; margin-bottom:16px;">
     <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--a4-accent); margin-bottom:10px;">// the competition</div>
     <p style="color:var(--a4-text); font-size:14px; margin:0 0 10px; line-height:1.6;">Every submission updates <strong style="color:var(--a4-accent);">two live leaderboards</strong> in real time:</p>
@@ -1092,32 +1117,12 @@ MODULES = [
     <p style="color:var(--a4-text-dim); font-size:13px; margin:0; line-height:1.5;">Your score contributes to your team's rank &mdash; every improvement helps everyone.</p>
   </div>
 
-  <!-- Section C: The Engineering Loop -->
+  <!-- Section 3: How You're Scored -->
   <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:16px; padding:20px; margin-bottom:16px;">
-    <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--a4-accent); margin-bottom:10px;">// the engineering loop</div>
-    <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
-      <div style="background:var(--a4-term-bg); border-radius:10px; padding:10px 14px; text-align:center;"><div style="font-size:22px;">&#128295;</div><div style="font-size:13px; font-weight:700; color:var(--a4-accent); margin-top:4px;">Try</div></div>
-      <span style="color:var(--a4-text-dim); font-size:18px; align-self:center;">&rarr;</span>
-      <div style="background:var(--a4-term-bg); border-radius:10px; padding:10px 14px; text-align:center;"><div style="font-size:22px;">&#128300;</div><div style="font-size:13px; font-weight:700; color:var(--a4-warning); margin-top:4px;">Test</div></div>
-      <span style="color:var(--a4-text-dim); font-size:18px; align-self:center;">&rarr;</span>
-      <div style="background:var(--a4-term-bg); border-radius:10px; padding:10px 14px; text-align:center;"><div style="font-size:22px;">&#128161;</div><div style="font-size:13px; font-weight:700; color:var(--a4-success); margin-top:4px;">Learn</div></div>
-      <span style="color:var(--a4-text-dim); font-size:18px; align-self:center;">&rarr;</span>
-      <div style="background:var(--a4-term-bg); border-radius:10px; padding:10px 14px; text-align:center;"><div style="font-size:22px;">&#128257;</div><div style="font-size:13px; font-weight:700; color:var(--a4-ctrl-model); margin-top:4px;">Repeat</div></div>
-    </div>
-    <div style="background:var(--a4-accent-glow); border:1px solid var(--a4-accent); border-left:4px solid var(--a4-accent); border-radius:12px; padding:12px 14px; font-size:13px; color:var(--a4-text); line-height:1.5;">&#128161; <strong>Pro tip:</strong> Change <strong>ONE</strong> setting at a time so you know what made the difference.</div>
-  </div>
-
-  <!-- Existing: workflow visual + tips -->
-  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 8px; line-height:1.6; text-align:center;">You know the mission. You've practiced the controls. Time to build your first model.</p>
-  <p style="color:var(--a4-text-dim); font-size:14px; margin:0 0 12px; line-height:1.6; text-align:center;">Tip: Your first submission uses defaults &mdash; just hit the button! Then experiment to climb the ranks.</p>
-  <p style="color:var(--a4-warning); font-size:14px; font-weight:600; margin:0 0 20px; line-height:1.6; text-align:center;">You have 10 tries to build the best AI you can. Make each one count!</p>
-  <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:20px; padding:24px; margin-bottom:24px;">
-    <div style="display:flex; justify-content:center; gap:24px; flex-wrap:wrap;">
-      <div style="display:flex; align-items:center; gap:8px;"><div style="text-align:center;"><div style="font-size:28px;">&#129504;</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:2px;">Pick a model</div></div><span style="color:var(--a4-text-dim); font-size:18px;">&rarr;</span></div>
-      <div style="display:flex; align-items:center; gap:8px;"><div style="text-align:center;"><div style="font-size:28px;">&#9881;&#65039;</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:2px;">Set complexity</div></div><span style="color:var(--a4-text-dim); font-size:18px;">&rarr;</span></div>
-      <div style="display:flex; align-items:center; gap:8px;"><div style="text-align:center;"><div style="font-size:28px;">&#128230;</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:2px;">Choose data</div></div><span style="color:var(--a4-text-dim); font-size:18px;">&rarr;</span></div>
-      <div style="text-align:center;"><div style="font-size:28px;">&#128300;</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:2px;">Build &amp; Submit!</div></div>
-    </div>
+    <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--a4-accent); margin-bottom:10px;">// how you're scored</div>
+    <p style="color:var(--a4-text); font-size:14px; margin:0 0 10px; line-height:1.6;">Your AI is tested on a <strong style="color:var(--a4-warning);">hidden test vault</strong> &mdash; 25% of the buildings it has never seen. This simulates the real world: your model must generalize to new data, not just memorize the training set.</p>
+    <p style="color:var(--a4-text); font-size:14px; margin:0 0 10px; line-height:1.6;"><strong style="color:var(--a4-accent);">Accuracy</strong> = the percentage of vault buildings your AI classifies correctly (high vs. low energy).</p>
+    <div style="background:var(--a4-formula-bg); border-radius:10px; padding:12px 16px; text-align:center; font-family:'Space Mono',monospace; font-size:14px; color:var(--a4-formula-text); font-weight:700;">50% = coin flip &nbsp;&#127922; &nbsp;&mdash;&nbsp; your goal is to beat that baseline</div>
   </div>
 </div>
 """,

@@ -1014,14 +1014,13 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     improvement = (best_score - first_score) if (first_score is not None and submissions > 1) else 0.0
     strong_predictors = {"avg_temp", "heating_degree_days", "cooling_degree_days", "january_min_temp"}
     strong_used = [f for f in feature_set if f in strong_predictors]
-    ethical_note = "Has desbloquejat dades potents relacionades amb el clima dels edificis. Considera: Com influeixen l'antiguitat de l'edifici i la temperatura local en l'establiment d'objectius sobre quanta energia haurien d'utilitzar els edificis? A la propera secció començarem a investigar aquesta qüestió."
     tip_html = ""
     if submissions < 2:
         tip_html = "<div class='final-conclusion-tip'><b>Consell:</b> Prova almenys 2-3 enviaments canviant UN sol paràmetre cada vegada per veure causa/efecte clarament.</div>"
     attempt_cap_html = ""
     if submissions >= ATTEMPT_LIMIT:
         attempt_cap_html = f"<div class='final-conclusion-attempt-cap'><p style='margin:0;'><b>Límit d'Intents Assolit:</b> Has utilitzat els {ATTEMPT_LIMIT} intents permesos. Obrirem els enviaments de nou després de completar noves activitats.</p></div>"
-    return f"""<div class="final-conclusion-root"><h1 class="final-conclusion-title">Fase d'Enginyeria Completada</h1><div class="final-conclusion-card"><h2 class="final-conclusion-subtitle">Resum del Teu Rendiment</h2><ul class="final-conclusion-list"><li>Millor Precisió: {(best_score*100):.2f}%</li><li>Posició Aconseguida: {'#' + str(rank) if rank > 0 else 'N/A'}</li><li>Enviaments Realitzats: {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li><li>Millora sobre la Primera Puntuació: {(improvement*100):+.2f}%</li><li>Progrés de Rang: {tier_line}</li><li>Dades Més Útils Utilitzades: {len(strong_used)} ({', '.join(strong_used) if strong_used else 'Cap encara'})</li></ul>{tip_html}<div class="final-conclusion-ethics"><p style="margin:0;"><b>Reflexió Ètica:</b> {ethical_note}</p></div>{attempt_cap_html}<div style="background:rgba(245,158,11,0.1); border:2px solid #f59e0b; padding:18px; border-radius:12px; margin-top:20px;"><p style="margin:0; font-size:1.05rem; line-height:1.5;"><b>Abans de celebrar...</b> Cada model d'IA té un cost més enllà de la seva puntuació de precisió. A la propera activitat, mesurarem el que el teu model realment ha costat al medi ambient.</p></div><hr class="final-conclusion-divider" /><div class="final-conclusion-next"><p style="margin:0; font-size:1.1rem; text-align:center;"><b>A continuació:</b> Descobriràs el cost ambiental ocult del model d'IA que acabes de construir.</p></div></div></div>"""
+    return f"""<div class="final-conclusion-root"><h1 class="final-conclusion-title">Fase d'Enginyeria Completada</h1><div class="final-conclusion-card"><h2 class="final-conclusion-subtitle">Resum del Teu Rendiment</h2><ul class="final-conclusion-list"><li>Millor Precisió: {(best_score*100):.2f}%</li><li>Posició Aconseguida: {'#' + str(rank) if rank > 0 else 'N/A'}</li><li>Enviaments Realitzats: {submissions}{' / ' + str(ATTEMPT_LIMIT) if submissions >= ATTEMPT_LIMIT else ''}</li><li>Millora sobre la Primera Puntuació: {(improvement*100):+.2f}%</li><li>Progrés de Rang: {tier_line}</li><li>Dades Més Útils Utilitzades: {len(strong_used)} ({', '.join(strong_used) if strong_used else 'Cap encara'})</li></ul>{tip_html}{attempt_cap_html}<div style="background:rgba(245,158,11,0.1); border:2px solid #f59e0b; padding:18px; border-radius:12px; margin-top:20px;"><p style="margin:0; font-size:1.05rem; line-height:1.5;"><b>Abans de celebrar...</b> Cada model d'IA té un cost més enllà de la seva puntuació de precisió. A la propera activitat, mesurarem el que el teu model realment ha costat al medi ambient.</p></div><hr class="final-conclusion-divider" /><div class="final-conclusion-next"><p style="margin:0; font-size:1.1rem; text-align:center;"><b>A continuació:</b> Descobriràs el cost ambiental ocult del model d'IA que acabes de construir.</p></div></div></div>"""
 
 
 def build_conclusion_from_state(best_score, submissions, rank, first_score, feature_set):
@@ -1076,17 +1075,38 @@ MODULES = [
 </div>
 """,
     },
-    # --- Module 2: Controls Explorer ---
+    # --- Module 2: Engineering Loop + Controls Explorer ---
     {
         "id": 2,
         "title": "Els Teus 4 Controls",
         "html": """
 <div style="padding-top:24px;">
-  <h2 style="font-size:24px; font-weight:800; margin:0 0 6px; color:var(--a4-accent);">&#128295; Els Teus 4 Controls</h2>
-  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 16px; line-height:1.6;">Aquests són els controls exactes que faràs servir. <strong style="color:var(--a4-warning);">Toca cadascun</strong> per veure com funciona &mdash; explora'ls tots 4 per continuar.</p>
+
+  <!-- Section A: El Bucle d'Enginyeria (motivació) -->
+  <h2 style="font-size:24px; font-weight:800; margin:0 0 6px; color:var(--a4-accent);">&#128640; Com Millorar la Teva IA (i Pujar a la Classificació!)</h2>
+  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 16px; line-height:1.6;">Així és com treballen els enginyers d'IA reals &mdash; i així és exactament com jugaràs tu. A cada intent, ajustaràs els teus paràmetres, provaràs el resultat, aprendràs què ha funcionat i ho tornaràs a intentar.</p>
+
+  <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:16px; padding:20px; margin-bottom:16px;">
+    <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--a4-accent); margin-bottom:10px;">// el bucle d'enginyeria</div>
+    <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+      <div style="background:var(--a4-term-bg); border-radius:10px; padding:10px 14px; text-align:center;"><div style="font-size:22px;">&#128295;</div><div style="font-size:13px; font-weight:700; color:var(--a4-accent); margin-top:4px;">Prova</div></div>
+      <span style="color:var(--a4-text-dim); font-size:18px; align-self:center;">&rarr;</span>
+      <div style="background:var(--a4-term-bg); border-radius:10px; padding:10px 14px; text-align:center;"><div style="font-size:22px;">&#128300;</div><div style="font-size:13px; font-weight:700; color:var(--a4-warning); margin-top:4px;">Testa</div></div>
+      <span style="color:var(--a4-text-dim); font-size:18px; align-self:center;">&rarr;</span>
+      <div style="background:var(--a4-term-bg); border-radius:10px; padding:10px 14px; text-align:center;"><div style="font-size:22px;">&#128161;</div><div style="font-size:13px; font-weight:700; color:var(--a4-success); margin-top:4px;">Aprèn</div></div>
+      <span style="color:var(--a4-text-dim); font-size:18px; align-self:center;">&rarr;</span>
+      <div style="background:var(--a4-term-bg); border-radius:10px; padding:10px 14px; text-align:center;"><div style="font-size:22px;">&#128257;</div><div style="font-size:13px; font-weight:700; color:var(--a4-ctrl-model); margin-top:4px;">Repeteix</div></div>
+    </div>
+    <div style="background:var(--a4-accent-glow); border:1px solid var(--a4-accent); border-left:4px solid var(--a4-accent); border-radius:12px; padding:12px 14px; font-size:13px; color:var(--a4-text); line-height:1.5;">&#128161; <strong>Consell pro:</strong> Canvia <strong>UN SOL</strong> paràmetre cada vegada perquè sàpigues què ha fet la diferència.</div>
+  </div>
+
+  <!-- Section B: Els Teus 4 Controls -->
+  <h3 style="font-size:20px; font-weight:800; margin:0 0 6px; color:var(--a4-accent);">&#128295; Els Teus 4 Controls</h3>
+  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 16px; line-height:1.6;">Coneix els 4 paràmetres que ajustaràs a cada ronda. <strong style="color:var(--a4-warning);">&#128071; Toca cada targeta a sota</strong> per descobrir què fa &mdash; cal que exploris les 4 per continuar.</p>
   <div id="ob-ctrl-grid" style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:16px;"></div>
   <div id="ob-ctrl-progress" style="font-size:13px; text-align:center; color:var(--a4-text-dim); margin-bottom:12px; line-height:1.5;"></div>
   <div id="ob-ctrl-detail"></div>
+
 </div>
 """,
     },
@@ -1116,15 +1136,20 @@ MODULES = [
     <h2 style="font-size:30px; font-weight:800; margin:0 0 20px; background:linear-gradient(135deg,var(--a4-grad-launch-from),var(--a4-grad-launch-to)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">Sistemes en Línia</h2>
   </div>
 
-  <!-- Section A: Com et Puntuen -->
-  <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:16px; padding:20px; margin-bottom:16px;">
-    <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--a4-accent); margin-bottom:10px;">// com et puntuen</div>
-    <p style="color:var(--a4-text); font-size:14px; margin:0 0 10px; line-height:1.6;">La teva IA es prova amb un <strong style="color:var(--a4-warning);">conjunt de test ocult</strong> &mdash; el 25% dels edificis que mai ha vist. Això simula el món real: el teu model ha de generalitzar a dades noves, no només memoritzar el conjunt d'entrenament.</p>
-    <p style="color:var(--a4-text); font-size:14px; margin:0 0 10px; line-height:1.6;"><strong style="color:var(--a4-accent);">Precisió</strong> = el percentatge d'edificis del conjunt de test que la teva IA classifica correctament (alt vs. baix consum).</p>
-    <div style="background:var(--a4-formula-bg); border-radius:10px; padding:12px 16px; text-align:center; font-family:'Space Mono',monospace; font-size:14px; color:var(--a4-formula-text); font-weight:700;">50% = atzar &nbsp;&#127922; &nbsp;&mdash;&nbsp; el teu objectiu és superar aquesta línia base</div>
+  <!-- Section 1: Workflow recap + tips -->
+  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 8px; line-height:1.6; text-align:center;">Coneixes la missió. Has practicat els controls. És hora de construir el teu primer model.</p>
+  <p style="color:var(--a4-text-dim); font-size:14px; margin:0 0 12px; line-height:1.6; text-align:center;">Consell: El teu primer enviament utilitza els valors per defecte &mdash; simplement prem el botó! Després experimenta per pujar de rang.</p>
+  <p style="color:var(--a4-warning); font-size:14px; font-weight:600; margin:0 0 20px; line-height:1.6; text-align:center;">Tens 10 intents per construir la millor IA possible. Fes que cada un compti!</p>
+  <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:20px; padding:24px; margin-bottom:24px; overflow:hidden;">
+    <div style="display:flex; justify-content:center; gap:24px; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:8px;"><div style="text-align:center;"><div style="font-size:28px;">&#129504;</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:2px;">Tria un model</div></div><span style="color:var(--a4-text-dim); font-size:18px;">&rarr;</span></div>
+      <div style="display:flex; align-items:center; gap:8px;"><div style="text-align:center;"><div style="font-size:28px;">&#9881;&#65039;</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:2px;">Ajusta la complexitat</div></div><span style="color:var(--a4-text-dim); font-size:18px;">&rarr;</span></div>
+      <div style="display:flex; align-items:center; gap:8px;"><div style="text-align:center;"><div style="font-size:28px;">&#128230;</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:2px;">Tria les dades</div></div><span style="color:var(--a4-text-dim); font-size:18px;">&rarr;</span></div>
+      <div style="text-align:center;"><div style="font-size:28px;">&#128300;</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:2px;">Construeix i Envia!</div></div>
+    </div>
   </div>
 
-  <!-- Section B: La Competició -->
+  <!-- Section 2: La Competició -->
   <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:16px; padding:20px; margin-bottom:16px;">
     <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--a4-accent); margin-bottom:10px;">// la competició</div>
     <p style="color:var(--a4-text); font-size:14px; margin:0 0 10px; line-height:1.6;">Cada enviament actualitza <strong style="color:var(--a4-accent);">dues classificacions en viu</strong> en temps real:</p>
@@ -1135,32 +1160,12 @@ MODULES = [
     <p style="color:var(--a4-text-dim); font-size:13px; margin:0; line-height:1.5;">La teva puntuació contribueix a la posició del teu equip &mdash; cada millora ajuda a tothom.</p>
   </div>
 
-  <!-- Section C: El Bucle d'Enginyeria -->
+  <!-- Section 3: Com et Puntuen -->
   <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:16px; padding:20px; margin-bottom:16px;">
-    <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--a4-accent); margin-bottom:10px;">// el bucle d'enginyeria</div>
-    <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
-      <div style="background:var(--a4-term-bg); border-radius:10px; padding:10px 14px; text-align:center;"><div style="font-size:22px;">&#128295;</div><div style="font-size:13px; font-weight:700; color:var(--a4-accent); margin-top:4px;">Prova</div></div>
-      <span style="color:var(--a4-text-dim); font-size:18px; align-self:center;">&rarr;</span>
-      <div style="background:var(--a4-term-bg); border-radius:10px; padding:10px 14px; text-align:center;"><div style="font-size:22px;">&#128300;</div><div style="font-size:13px; font-weight:700; color:var(--a4-warning); margin-top:4px;">Testa</div></div>
-      <span style="color:var(--a4-text-dim); font-size:18px; align-self:center;">&rarr;</span>
-      <div style="background:var(--a4-term-bg); border-radius:10px; padding:10px 14px; text-align:center;"><div style="font-size:22px;">&#128161;</div><div style="font-size:13px; font-weight:700; color:var(--a4-success); margin-top:4px;">Aprèn</div></div>
-      <span style="color:var(--a4-text-dim); font-size:18px; align-self:center;">&rarr;</span>
-      <div style="background:var(--a4-term-bg); border-radius:10px; padding:10px 14px; text-align:center;"><div style="font-size:22px;">&#128257;</div><div style="font-size:13px; font-weight:700; color:var(--a4-ctrl-model); margin-top:4px;">Repeteix</div></div>
-    </div>
-    <div style="background:var(--a4-accent-glow); border:1px solid var(--a4-accent); border-left:4px solid var(--a4-accent); border-radius:12px; padding:12px 14px; font-size:13px; color:var(--a4-text); line-height:1.5;">&#128161; <strong>Consell pro:</strong> Canvia <strong>UN SOL</strong> paràmetre cada vegada perquè sàpigues què ha fet la diferència.</div>
-  </div>
-
-  <!-- Existing: workflow visual + tips -->
-  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 8px; line-height:1.6; text-align:center;">Coneixes la missió. Has practicat els controls. És hora de construir el teu primer model.</p>
-  <p style="color:var(--a4-text-dim); font-size:14px; margin:0 0 12px; line-height:1.6; text-align:center;">Consell: El teu primer enviament utilitza els valors per defecte &mdash; simplement prem el botó! Després experimenta per pujar de rang.</p>
-  <p style="color:var(--a4-warning); font-size:14px; font-weight:600; margin:0 0 20px; line-height:1.6; text-align:center;">Tens 10 intents per construir la millor IA possible. Fes que cada un compti!</p>
-  <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:20px; padding:24px; margin-bottom:24px;">
-    <div style="display:flex; justify-content:center; gap:24px; flex-wrap:wrap;">
-      <div style="display:flex; align-items:center; gap:8px;"><div style="text-align:center;"><div style="font-size:28px;">&#129504;</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:2px;">Tria un model</div></div><span style="color:var(--a4-text-dim); font-size:18px;">&rarr;</span></div>
-      <div style="display:flex; align-items:center; gap:8px;"><div style="text-align:center;"><div style="font-size:28px;">&#9881;&#65039;</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:2px;">Ajusta la complexitat</div></div><span style="color:var(--a4-text-dim); font-size:18px;">&rarr;</span></div>
-      <div style="display:flex; align-items:center; gap:8px;"><div style="text-align:center;"><div style="font-size:28px;">&#128230;</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:2px;">Tria les dades</div></div><span style="color:var(--a4-text-dim); font-size:18px;">&rarr;</span></div>
-      <div style="text-align:center;"><div style="font-size:28px;">&#128300;</div><div style="font-size:13px; color:var(--a4-text-dim); margin-top:2px;">Construeix i Envia!</div></div>
-    </div>
+    <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--a4-accent); margin-bottom:10px;">// com et puntuen</div>
+    <p style="color:var(--a4-text); font-size:14px; margin:0 0 10px; line-height:1.6;">La teva IA es prova amb un <strong style="color:var(--a4-warning);">conjunt de test ocult</strong> &mdash; el 25% dels edificis que mai ha vist. Això simula el món real: el teu model ha de generalitzar a dades noves, no només memoritzar el conjunt d'entrenament.</p>
+    <p style="color:var(--a4-text); font-size:14px; margin:0 0 10px; line-height:1.6;"><strong style="color:var(--a4-accent);">Precisió</strong> = el percentatge d'edificis del conjunt de test que la teva IA classifica correctament (alt vs. baix consum).</p>
+    <div style="background:var(--a4-formula-bg); border-radius:10px; padding:12px 16px; text-align:center; font-family:'Space Mono',monospace; font-size:14px; color:var(--a4-formula-text); font-weight:700;">50% = atzar &nbsp;&#127922; &nbsp;&mdash;&nbsp; el teu objectiu és superar aquesta línia base</div>
   </div>
 </div>
 """,
