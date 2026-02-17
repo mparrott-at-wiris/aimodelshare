@@ -1859,6 +1859,7 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue="indigo")
                 module_next_btns[i].click(
                     fn=make_nav(module_cols[i + 1]),
                     inputs=None, outputs=all_panels,
+                    show_progress="hidden",
                     js=nav_js(f"ob-mod-{i+1}", "Cargando siguiente sección...")
                 )
             else:
@@ -1866,6 +1867,7 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue="indigo")
                 module_next_btns[i].click(
                     fn=make_nav(arena_col),
                     inputs=None, outputs=all_panels,
+                    show_progress="hidden",
                     js=nav_js("model-step", "Entrando a la arena de modelos...")
                 )
             # Back button
@@ -1873,6 +1875,7 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue="indigo")
                 module_back_btns[i].click(
                     fn=make_nav(module_cols[i - 1]),
                     inputs=None, outputs=all_panels,
+                    show_progress="hidden",
                     js=nav_js(f"ob-mod-{i-1}", "Volviendo atrás...")
                 )
 
@@ -1880,6 +1883,7 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue="indigo")
         arena_back_btn.click(
             fn=make_nav(module_cols[-1]),
             inputs=None, outputs=all_panels,
+            show_progress="hidden",
             js=nav_js(f"ob-mod-{len(MODULES)-1}", "Volviendo a las instrucciones...")
         )
 
@@ -1894,6 +1898,7 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue="indigo")
             inputs=[best_score_state, submission_count_state, last_rank_state,
                     first_submission_score_state, feature_set_state],
             outputs=all_panels + [final_score_display],
+            show_progress="hidden",
             js=nav_js("conclusion-step", "Generando resumen de rendimiento...")
         )
 
@@ -1901,6 +1906,7 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue="indigo")
         conclusion_back_btn.click(
             fn=make_nav(arena_col),
             inputs=None, outputs=all_panels,
+            show_progress="hidden",
             js=nav_js("model-step", "Volviendo al espacio de trabajo del experimento...")
         )
 
@@ -1908,8 +1914,8 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue="indigo")
         # ARENA CONTROL EVENTS
         # ==================================================================
 
-        model_type_radio.change(fn=get_model_card, inputs=model_type_radio, outputs=model_card_display)
-        model_type_radio.change(fn=lambda v: v or DEFAULT_MODEL, inputs=model_type_radio, outputs=model_type_state)
+        model_type_radio.change(fn=get_model_card, inputs=model_type_radio, outputs=model_card_display, show_progress="hidden")
+        model_type_radio.change(fn=lambda v: v or DEFAULT_MODEL, inputs=model_type_radio, outputs=model_type_state, show_progress="hidden")
 
         def _complexity_tooltip(v):
             if v <= 3:
@@ -1920,10 +1926,10 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue="indigo")
                 desc = "Memorizando detalles — alta precisión con datos de entrenamiento, pero arriesgado con edificios nuevos."
             return f"<div style='background:var(--background-fill-secondary); padding:10px 14px; border-radius:8px; border:1px solid var(--border-color-primary); margin-top:4px; font-size:0.9rem;'><b>Nivel {int(v)}:</b> {desc}</div>"
 
-        complexity_slider.change(fn=lambda v: v, inputs=complexity_slider, outputs=complexity_state)
-        complexity_slider.change(fn=_complexity_tooltip, inputs=complexity_slider, outputs=complexity_tooltip)
-        feature_set_checkbox.change(fn=lambda v: v or [], inputs=feature_set_checkbox, outputs=feature_set_state)
-        data_size_radio.change(fn=lambda v: v or DEFAULT_DATA_SIZE, inputs=data_size_radio, outputs=data_size_state)
+        complexity_slider.change(fn=lambda v: v, inputs=complexity_slider, outputs=complexity_state, show_progress="hidden")
+        complexity_slider.change(fn=_complexity_tooltip, inputs=complexity_slider, outputs=complexity_tooltip, show_progress="hidden")
+        feature_set_checkbox.change(fn=lambda v: v or [], inputs=feature_set_checkbox, outputs=feature_set_state, show_progress="hidden")
+        data_size_radio.change(fn=lambda v: v or DEFAULT_DATA_SIZE, inputs=data_size_radio, outputs=data_size_state, show_progress="hidden")
 
         # All outputs that run_experiment yields into
         all_outputs = [
@@ -2020,6 +2026,7 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue="indigo")
         demo.load(
             fn=handle_load_with_session_auth,
             inputs=None,
+            show_progress="hidden",
             outputs=[
                 # on_initial_load returns 17 values:
                 model_card_display,
