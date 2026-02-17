@@ -1075,9 +1075,8 @@ MODULES = [
 <div style="padding-top:24px;">
   <h2 style="font-size:24px; font-weight:800; margin:0 0 6px; color:var(--a4-accent);">&#127894; Rank Up to Unlock More</h2>
   <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 16px; line-height:1.6;">Each submission unlocks new tools. Your AI is scored on <strong style="color:var(--a4-warning);">unseen buildings</strong> &mdash; 25% of the data is hidden in a test vault.</p>
-  <div style="display:flex; justify-content:space-between; align-items:center; background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:14px; padding:16px 12px; margin-bottom:16px; overflow:auto;" id="ob-rank-bar"></div>
-  <p style="color:var(--a4-accent); font-size:14px; font-weight:600; margin:0 0 12px;">Quick knowledge check &mdash; answer both to proceed:</p>
-  <div id="ob-quiz-1"></div>
+  <div id="ob-rank-bar" style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:20px;"></div>
+  <p style="color:var(--a4-accent); font-size:14px; font-weight:600; margin:0 0 12px;">Quick knowledge check &mdash; answer to proceed:</p>
   <div id="ob-quiz-2"></div>
 </div>
 """,
@@ -1429,11 +1428,9 @@ function obInitControlExplorer(){
 
 /* --- Quizzes --- */
 function obInitQuizzes(){
-  var q1=document.getElementById('ob-quiz-1');
   var q2=document.getElementById('ob-quiz-2');
-  if(!q1 || q1.dataset.init==='1') return;
-  q1.dataset.init='1';
-  var correct1=0, correct2=0;
+  if(!q2 || q2.dataset.init==='1') return;
+  q2.dataset.init='1';
   function buildQuiz(container, question, options, correctIdx, onCorrect){
     container.innerHTML='';
     var bubble=document.createElement('div'); bubble.className='ob-quiz-bubble';
@@ -1462,10 +1459,8 @@ function obInitQuizzes(){
     });
     container.appendChild(bubble);
   }
-  var quizDone=0;
-  function checkBoth(){quizDone++; if(quizDone>=2) obUnlockNext(3);}
-  buildQuiz(q1,"How is your model's accuracy measured?",["It's graded on the same data it trained on","It's tested on 25% of hidden, unseen buildings","The instructor manually scores it"],1,checkBoth);
-  buildQuiz(q2,"What happens when you rank up?",["Nothing changes","Your score resets to zero","New models, features, & data sizes unlock"],2,checkBoth);
+  function checkQuiz(){ obUnlockNext(3); }
+  buildQuiz(q2,"What happens when you rank up?",["Nothing changes","Your score resets to zero","New models, features, & data sizes unlock"],2,checkQuiz);
 }
 
 /* --- Rank bar init --- */
@@ -1474,14 +1469,18 @@ function obInitRankBar(){
   if(!bar || bar.dataset.init==='1') return;
   bar.dataset.init='1';
   var ranks=[
-    {r:'\uD83C\uDF31 Trainee Engineer',c:'var(--a4-text-dim)',d:'1 model, complexity \u22643, small data'},
-    {r:'\uD83C\uDFE2 Junior Engineer',c:'var(--a4-accent)',d:'3 models, complexity \u22646, + location'},
-    {r:'\u2B50 Senior Engineer',c:'var(--a4-ctrl-model)',d:'All models, complexity \u22648, + weather'},
-    {r:'\uD83D\uDC51 Lead Engineer',c:'var(--a4-warning)',d:'All tools, complexity \u226410'}
+    {i:'\uD83C\uDF31',r:'Trainee Engineer',c:'var(--a4-text-dim)',d:'1 model, complexity \u22643, small data'},
+    {i:'\uD83C\uDFE2',r:'Junior Engineer',c:'var(--a4-accent)',d:'3 models, complexity \u22646, + location'},
+    {i:'\u2B50',r:'Senior Engineer',c:'var(--a4-ctrl-model)',d:'All models, complexity \u22648, + weather'},
+    {i:'\uD83D\uDC51',r:'Lead Engineer',c:'var(--a4-warning)',d:'All tools, complexity \u226410'}
   ];
   var html='';
-  ranks.forEach(function(x,i){
-    html+='<div style="display:flex;align-items:center;gap:4px;"><div style="text-align:center;min-width:72px;"><div style="font-size:13px;font-weight:700;color:'+x.c+';white-space:nowrap;">'+x.r+'</div><div style="font-size:12px;color:var(--a4-text-dim);margin-top:2px;line-height:1.4;">'+x.d+'</div></div>'+(i<ranks.length-1?'<span style="color:var(--a4-text-dim);font-size:16px;">\u2192</span>':'')+'</div>';
+  ranks.forEach(function(x){
+    html+='<div style="background:var(--a4-card-bg);border:2px solid var(--a4-border-color);border-radius:16px;padding:16px 10px;text-align:center;">'
+      +'<div style="font-size:2rem;margin-bottom:6px;">'+x.i+'</div>'
+      +'<div style="font-size:0.95rem;font-weight:800;color:'+x.c+';line-height:1.3;">'+x.r+'</div>'
+      +'<div style="font-size:0.8rem;color:var(--a4-text-dim);margin-top:6px;line-height:1.4;">'+x.d+'</div>'
+      +'</div>';
   });
   bar.innerHTML=html;
 }
@@ -1505,7 +1504,7 @@ function obUnlockNext(moduleIdx){
   else{setTimeout(obPollCtrl,300);}
 })();
 (function obPollQuiz(){
-  if(document.getElementById('ob-quiz-1') && !document.getElementById('ob-quiz-1').dataset.init){obInitQuizzes(); obInitRankBar();}
+  if(document.getElementById('ob-quiz-2') && !document.getElementById('ob-quiz-2').dataset.init){obInitQuizzes(); obInitRankBar();}
   else{setTimeout(obPollQuiz,300);}
 })();
 
@@ -1515,8 +1514,8 @@ function obReinitAll(){
   if(tw && !tw.textContent.trim()){obInitWelcome();}
   var grid=document.getElementById('ob-ctrl-grid');
   if(grid && grid.children.length===0){delete grid.dataset.init; obInitControlExplorer();}
-  var q1=document.getElementById('ob-quiz-1');
-  if(q1 && q1.children.length===0){delete q1.dataset.init; obInitQuizzes(); obInitRankBar();}
+  var q2=document.getElementById('ob-quiz-2');
+  if(q2 && q2.children.length===0){delete q2.dataset.init; obInitQuizzes(); obInitRankBar();}
 }
 """
 

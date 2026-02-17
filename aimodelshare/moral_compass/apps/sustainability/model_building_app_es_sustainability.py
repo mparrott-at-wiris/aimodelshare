@@ -1123,9 +1123,8 @@ MODULES = [
 <div style="padding-top:24px;">
   <h2 style="font-size:24px; font-weight:800; margin:0 0 6px; color:var(--a4-accent);">&#127894; Sube de Rango para Desbloquear Más</h2>
   <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 16px; line-height:1.6;">Cada envío desbloquea nuevas herramientas. Tu IA se evalúa con <strong style="color:var(--a4-warning);">edificios no vistos</strong> &mdash; el 25% de los datos están ocultos en una bóveda de pruebas.</p>
-  <div style="display:flex; justify-content:space-between; align-items:center; background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:14px; padding:16px 12px; margin-bottom:16px; overflow:auto;" id="ob-rank-bar"></div>
-  <p style="color:var(--a4-accent); font-size:14px; font-weight:600; margin:0 0 12px;">Comprobación rápida de conocimientos &mdash; responde ambas para continuar:</p>
-  <div id="ob-quiz-1"></div>
+  <div id="ob-rank-bar" style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:20px;"></div>
+  <p style="color:var(--a4-accent); font-size:14px; font-weight:600; margin:0 0 12px;">Comprobación rápida de conocimientos &mdash; responde para continuar:</p>
   <div id="ob-quiz-2"></div>
 </div>
 """,
@@ -1477,11 +1476,9 @@ function obInitControlExplorer(){
 
 /* --- Quizzes --- */
 function obInitQuizzes(){
-  var q1=document.getElementById('ob-quiz-1');
   var q2=document.getElementById('ob-quiz-2');
-  if(!q1 || q1.dataset.init==='1') return;
-  q1.dataset.init='1';
-  var correct1=0, correct2=0;
+  if(!q2 || q2.dataset.init==='1') return;
+  q2.dataset.init='1';
   function buildQuiz(container, question, options, correctIdx, onCorrect){
     container.innerHTML='';
     var bubble=document.createElement('div'); bubble.className='ob-quiz-bubble';
@@ -1510,10 +1507,8 @@ function obInitQuizzes(){
     });
     container.appendChild(bubble);
   }
-  var quizDone=0;
-  function checkBoth(){quizDone++; if(quizDone>=2) obUnlockNext(3);}
-  buildQuiz(q1,"\u00bfC\u00f3mo se mide la precisi\u00f3n de tu modelo?",["Se eval\u00faa con los mismos datos con los que entren\u00f3","Se prueba con el 25% de edificios ocultos no vistos","El instructor lo puntúa manualmente"],1,checkBoth);
-  buildQuiz(q2,"\u00bfQu\u00e9 pasa cuando subes de rango?",["Nada cambia","Tu puntuaci\u00f3n se reinicia a cero","Se desbloquean nuevos modelos, ingredientes y tama\u00f1os de datos"],2,checkBoth);
+  function checkQuiz(){ obUnlockNext(3); }
+  buildQuiz(q2,"\u00bfQu\u00e9 pasa cuando subes de rango?",["Nada cambia","Tu puntuaci\u00f3n se reinicia a cero","Se desbloquean nuevos modelos, ingredientes y tama\u00f1os de datos"],2,checkQuiz);
 }
 
 /* --- Rank bar init --- */
@@ -1522,14 +1517,18 @@ function obInitRankBar(){
   if(!bar || bar.dataset.init==='1') return;
   bar.dataset.init='1';
   var ranks=[
-    {r:'\uD83C\uDF31 Ingeniero/a Practicante',c:'var(--a4-text-dim)',d:'1 modelo, complejidad \u22643, datos peque\u00f1os'},
-    {r:'\uD83C\uDFE2 Ingeniero/a Junior',c:'var(--a4-accent)',d:'3 modelos, complejidad \u22646, + ubicaci\u00f3n'},
-    {r:'\u2B50 Ingeniero/a Senior',c:'var(--a4-ctrl-model)',d:'Todos los modelos, complejidad \u22648, + clima'},
-    {r:'\uD83D\uDC51 Ingeniero/a Jefe',c:'var(--a4-warning)',d:'Todas las herramientas, complejidad \u226410'}
+    {i:'\uD83C\uDF31',r:'Ingeniero/a Practicante',c:'var(--a4-text-dim)',d:'1 modelo, complejidad \u22643, datos peque\u00f1os'},
+    {i:'\uD83C\uDFE2',r:'Ingeniero/a Junior',c:'var(--a4-accent)',d:'3 modelos, complejidad \u22646, + ubicaci\u00f3n'},
+    {i:'\u2B50',r:'Ingeniero/a Senior',c:'var(--a4-ctrl-model)',d:'Todos los modelos, complejidad \u22648, + clima'},
+    {i:'\uD83D\uDC51',r:'Ingeniero/a Jefe',c:'var(--a4-warning)',d:'Todas las herramientas, complejidad \u226410'}
   ];
   var html='';
-  ranks.forEach(function(x,i){
-    html+='<div style="display:flex;align-items:center;gap:4px;"><div style="text-align:center;min-width:72px;"><div style="font-size:13px;font-weight:700;color:'+x.c+';white-space:nowrap;">'+x.r+'</div><div style="font-size:12px;color:var(--a4-text-dim);margin-top:2px;line-height:1.4;">'+x.d+'</div></div>'+(i<ranks.length-1?'<span style="color:var(--a4-text-dim);font-size:16px;">\u2192</span>':'')+'</div>';
+  ranks.forEach(function(x){
+    html+='<div style="background:var(--a4-card-bg);border:2px solid var(--a4-border-color);border-radius:16px;padding:16px 10px;text-align:center;">'
+      +'<div style="font-size:2rem;margin-bottom:6px;">'+x.i+'</div>'
+      +'<div style="font-size:0.95rem;font-weight:800;color:'+x.c+';line-height:1.3;">'+x.r+'</div>'
+      +'<div style="font-size:0.8rem;color:var(--a4-text-dim);margin-top:6px;line-height:1.4;">'+x.d+'</div>'
+      +'</div>';
   });
   bar.innerHTML=html;
 }
@@ -1553,7 +1552,7 @@ function obUnlockNext(moduleIdx){
   else{setTimeout(obPollCtrl,300);}
 })();
 (function obPollQuiz(){
-  if(document.getElementById('ob-quiz-1') && !document.getElementById('ob-quiz-1').dataset.init){obInitQuizzes(); obInitRankBar();}
+  if(document.getElementById('ob-quiz-2') && !document.getElementById('ob-quiz-2').dataset.init){obInitQuizzes(); obInitRankBar();}
   else{setTimeout(obPollQuiz,300);}
 })();
 
@@ -1563,8 +1562,8 @@ function obReinitAll(){
   if(tw && !tw.textContent.trim()){obInitWelcome();}
   var grid=document.getElementById('ob-ctrl-grid');
   if(grid && grid.children.length===0){delete grid.dataset.init; obInitControlExplorer();}
-  var q1=document.getElementById('ob-quiz-1');
-  if(q1 && q1.children.length===0){delete q1.dataset.init; obInitQuizzes(); obInitRankBar();}
+  var q2=document.getElementById('ob-quiz-2');
+  if(q2 && q2.children.length===0){delete q2.dataset.init; obInitQuizzes(); obInitRankBar();}
 }
 """
 
