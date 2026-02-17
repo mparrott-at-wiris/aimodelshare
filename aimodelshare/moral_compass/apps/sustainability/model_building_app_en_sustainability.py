@@ -1508,6 +1508,16 @@ function obUnlockNext(moduleIdx){
   if(document.getElementById('ob-quiz-1') && !document.getElementById('ob-quiz-1').dataset.init){obInitQuizzes(); obInitRankBar();}
   else{setTimeout(obPollQuiz,300);}
 })();
+
+/* --- Re-init after back-navigation (Gradio may re-render HTML, wiping dynamic content) --- */
+function obReinitAll(){
+  var tw=document.getElementById('ob-typewriter-text');
+  if(tw && !tw.textContent.trim()){obInitWelcome();}
+  var grid=document.getElementById('ob-ctrl-grid');
+  if(grid && grid.children.length===0){delete grid.dataset.init; obInitControlExplorer();}
+  var q1=document.getElementById('ob-quiz-1');
+  if(q1 && q1.children.length===0){delete q1.dataset.init; obInitQuizzes(); obInitRankBar();}
+}
 """
 
 
@@ -1788,6 +1798,7 @@ def create_model_building_game_en_sustainability_app(theme_primary_hue="indigo")
                       overlay.style.opacity = '0';
                       setTimeout(() => {{ overlay.style.display = 'none'; }}, 300);
                     }}
+                    setTimeout(function(){{ if(typeof obReinitAll==='function') obReinitAll(); }}, 300);
                   }}
                 }}, 90);
               }} catch(e) {{ console.warn('nav-js error', e); }}
