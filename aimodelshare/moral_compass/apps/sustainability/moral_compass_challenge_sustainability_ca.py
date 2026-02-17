@@ -61,7 +61,7 @@ function runResetAnimation() {
         if (score <= 0) {
             score = 0;
             clearInterval(interval);
-            scoreVal.style.color = '#ef4444';
+            scoreVal.style.color = 'var(--warning)';
             msg.style.opacity = '1';
             setTimeout(function() {
                 btn.style.opacity = '1';
@@ -91,22 +91,62 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <title>Activitat 5: El Cost de la Sostenibilitat</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* Dark Mode (Default) - Matches Activity 1 & 2 styles */
+        /* Light Mode (Default) - Matches detective app pattern */
         :root {
+            --bg: #f8fafc;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --accent: #d97706;
+            --accent-glow: rgba(217, 119, 6, 0.2);
+            --success: #059669;
+            --warning: #dc2626;
+            --text: #0f172a;
+            --text-dim: #64748b;
+            --bg-gradient-1: rgba(217, 119, 6, 0.05);
+            --bg-gradient-2: rgba(220, 38, 38, 0.05);
+            --card-shadow: rgba(0, 0, 0, 0.1);
+            --border-color: rgba(0, 0, 0, 0.08);
+            --input-bg: rgba(0, 0, 0, 0.03);
+            --input-border: rgba(0, 0, 0, 0.1);
+            --hover-bg: rgba(0, 0, 0, 0.05);
+            --progress-line: rgba(0, 0, 0, 0.1);
+            --step-border: rgba(0, 0, 0, 0.2);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0f172a;
+                --card-bg: rgba(30, 41, 59, 0.7);
+                --accent: #f59e0b;
+                --accent-glow: rgba(245, 158, 11, 0.3);
+                --success: #10b981;
+                --warning: #ef4444;
+                --text: #f8fafc;
+                --text-dim: #94a3b8;
+                --bg-gradient-1: rgba(245, 158, 11, 0.05);
+                --bg-gradient-2: rgba(239, 68, 68, 0.05);
+                --card-shadow: rgba(0, 0, 0, 0.5);
+                --border-color: rgba(255, 255, 255, 0.05);
+                --input-bg: rgba(255, 255, 255, 0.05);
+                --input-border: rgba(255, 255, 255, 0.1);
+                --hover-bg: rgba(255, 255, 255, 0.08);
+                --progress-line: rgba(255, 255, 255, 0.1);
+                --step-border: rgba(255, 255, 255, 0.2);
+            }
+        }
+
+        .dark {
             --bg: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.8);
+            --card-bg: rgba(30, 41, 59, 0.7);
             --accent: #f59e0b;
-            /* Amber/Orange for Caution/Energy */
             --accent-glow: rgba(245, 158, 11, 0.3);
             --success: #10b981;
             --warning: #ef4444;
-            /* Red for alert */
             --text: #f8fafc;
             --text-dim: #94a3b8;
             --bg-gradient-1: rgba(245, 158, 11, 0.05);
             --bg-gradient-2: rgba(239, 68, 68, 0.05);
             --card-shadow: rgba(0, 0, 0, 0.5);
-            --border-color: rgba(255, 255, 255, 0.1);
+            --border-color: rgba(255, 255, 255, 0.05);
             --input-bg: rgba(255, 255, 255, 0.05);
             --input-border: rgba(255, 255, 255, 0.1);
             --hover-bg: rgba(255, 255, 255, 0.08);
@@ -189,7 +229,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             background: var(--card-bg);
             backdrop-filter: blur(16px);
             border-radius: 24px;
-            padding: 40px;
+            padding: 32px 28px;
             border: 1px solid var(--border-color);
             box-shadow: 0 25px 50px -12px var(--card-shadow);
             min-height: 500px;
@@ -219,7 +259,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         h1 {
-            font-size: 2.2rem;
+            font-size: clamp(1.6rem, 5vw, 2.2rem);
             letter-spacing: -1px;
             text-transform: uppercase;
         }
@@ -230,7 +270,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         h2 {
-            font-size: 1.8rem;
+            font-size: clamp(1.4rem, 4vw, 1.8rem);
         }
 
         p {
@@ -279,7 +319,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         .btn.secondary {
-            background: rgba(255, 255, 255, 0.08);
+            background: var(--hover-bg);
             color: var(--text);
             border: 2px solid var(--step-border);
         }
@@ -393,7 +433,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             gap: 20px;
             margin: 15px 0;
             padding: 15px;
-            background: rgba(255, 255, 255, 0.03);
+            background: var(--input-bg);
             border-radius: 12px;
             border: 1px solid var(--border-color);
         }
@@ -427,12 +467,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         .part-acc {
             background: rgba(16, 185, 129, 0.2);
-            color: #34d399;
+            color: var(--success);
         }
 
         .part-sus {
             background: rgba(245, 158, 11, 0.2);
-            color: #fbbf24;
+            color: var(--accent);
         }
 
         @keyframes fadeIn {
@@ -477,28 +517,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
         }
 
-        /* Light Mode */
-        @media (prefers-color-scheme: light) {
-            :root {
-                --bg: #f8fafc;
-                --card-bg: rgba(255, 255, 255, 0.9);
-                --accent: #d97706;
-                --accent-glow: rgba(217, 119, 6, 0.2);
-                --success: #059669;
-                --warning: #dc2626;
-                --text: #0f172a;
-                --text-dim: #64748b;
-                --bg-gradient-1: rgba(217, 119, 6, 0.05);
-                --bg-gradient-2: rgba(220, 38, 38, 0.05);
-                --card-shadow: rgba(0, 0, 0, 0.1);
-                --border-color: rgba(0, 0, 0, 0.1);
-                --input-bg: rgba(0, 0, 0, 0.03);
-                --input-border: rgba(0, 0, 0, 0.1);
-                --hover-bg: rgba(0, 0, 0, 0.05);
-                --progress-line: rgba(0, 0, 0, 0.1);
-                --step-border: rgba(0, 0, 0, 0.2);
-            }
-        }
     </style>
 </head>
 
@@ -556,7 +574,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 <p>Abans de poder certificar el teu model, hem d\u2019auditar el <span class="highlight-text">cost ocult</span>
                     del teu proc\u00e9s d\u2019entrenament.</p>
 
-                <div style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 25px; margin: 20px 0;">
+                <div style="background: var(--input-bg); border-radius: 16px; padding: 25px; margin: 20px 0;">
                     <h3 style="margin-bottom: 20px;">La Petjada Invisible</h3>
 
                     <div class="energy-fact">
@@ -734,8 +752,8 @@ def get_html_content(best_score_pct, rank_str, is_demo=False):
     html = html.replace('id="scoreValue">94<', f'id="scoreValue">{score_int}<')
 
     if is_demo:
-        demo_banner = """<div style="background:rgba(251,191,36,0.15); border:2px solid #f59e0b; padding:12px; border-radius:8px; margin-bottom:20px; text-align:center;">
-            <strong style="color:#d97706;">Mode Demostratiu:</strong> <span style="color:var(--text-dim);">No s\u2019ha pogut carregar la puntuaci\u00f3 real del teu model. Es mostren valors d\u2019exemple.</span>
+        demo_banner = """<div style="background:var(--accent-glow); border:2px solid var(--accent); padding:12px; border-radius:8px; margin-bottom:20px; text-align:center;">
+            <strong style="color:var(--accent);">Mode Demostratiu:</strong> <span style="color:var(--text-dim);">No s\u2019ha pogut carregar la puntuaci\u00f3 real del teu model. Es mostren valors d\u2019exemple.</span>
         </div>"""
         html = html.replace('<div class="card">', f'<div class="card">{demo_banner}')
 
