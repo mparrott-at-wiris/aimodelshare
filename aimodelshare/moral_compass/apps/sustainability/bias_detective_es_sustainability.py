@@ -1133,13 +1133,13 @@ function aceUpdatePromptCalc(val) {
     var e = (pc * 0.01).toFixed(2);
     var tv = pc * 9;
     var bottles = Math.round(w / 0.5);
-    var yearL = Math.round(w * 365);
-    var yearBottles = Math.round(yearL / 0.5);
+    var co2 = (pc * 0.4).toFixed(1);
+    var yearKm = ((co2 * 365) / 121).toFixed(1);
     countEl.textContent = pc + ' consulta' + (pc > 1 ? 's' : '') + '/d\\u00eda';
     var stats = [
         {l:'Agua usada', v:w+'L', i:'\\ud83d\\udca7', s:bottles+' botellas'},
         {l:'Energ\\u00eda usada', v:e+' kWh', i:'\\u26a1', s:tv+'s de TV'},
-        {l:'Al a\\u00f1o', v:yearL+'L', i:'\\ud83d\\udcc5', s:yearBottles+' botellas'}
+        {l:'CO\\u2082 emitido', v:co2+'g', i:'\\ud83c\\udf2b\\ufe0f', s:yearKm+' km conducidos/a\\u00f1o'}
     ];
     var html = '';
     for (var idx = 0; idx < stats.length; idx++) {

@@ -1133,13 +1133,13 @@ function aceUpdatePromptCalc(val) {
     var e = (pc * 0.01).toFixed(2);
     var tv = pc * 9;
     var bottles = Math.round(w / 0.5);
-    var yearL = Math.round(w * 365);
-    var yearBottles = Math.round(yearL / 0.5);
+    var co2 = (pc * 0.4).toFixed(1);
+    var yearKm = ((co2 * 365) / 121).toFixed(1);
     countEl.textContent = pc + ' prompt' + (pc > 1 ? 's' : '') + '/day';
     var stats = [
         {l:'Water Used', v:w+'L', i:'\\ud83d\\udca7', s:bottles+' bottles'},
         {l:'Energy Used', v:e+' kWh', i:'\\u26a1', s:tv+'s of TV'},
-        {l:'Per Year', v:yearL+'L', i:'\\ud83d\\udcc5', s:yearBottles+' bottles'}
+        {l:'CO\\u2082 Emitted', v:co2+'g', i:'\\ud83c\\udf2b\\ufe0f', s:yearKm+' km driven/yr'}
     ];
     var html = '';
     for (var idx = 0; idx < stats.length; idx++) {
@@ -1485,25 +1485,28 @@ def create_bias_detective_en_sustainability_app(theme_primary_hue: str = "indigo
             out_top = gr.HTML()
 
             gr.HTML("""
-                <div style="background:var(--background-fill-secondary); padding:24px; border-radius:16px;
-                            text-align:center; border:2px dashed var(--color-accent); margin:8px 0 16px 0;">
-                    <div style="text-transform:uppercase; letter-spacing:2px; color:var(--body-text-color-subdued);
-                                font-size:0.85rem; margin-bottom:10px; font-weight:700;">
-                        The Moral Compass Formula
+                <details style="background:var(--background-fill-secondary); border-radius:16px;
+                                border:2px dashed var(--color-accent); margin:8px 0 16px 0;">
+                    <summary style="padding:14px 24px; cursor:pointer; text-transform:uppercase; letter-spacing:2px;
+                                    color:var(--body-text-color-subdued); font-size:0.85rem; font-weight:700;
+                                    text-align:center; list-style:none;">
+                        &#9656; The Moral Compass Formula
+                    </summary>
+                    <div style="padding:0 24px 24px 24px; text-align:center;">
+                        <div style="font-size:1.3rem; font-weight:700; margin:12px 0; font-family:'Outfit',sans-serif;">
+                            Moral Compass Score =
+                            <span style="background:rgba(5,150,105,0.15); color:var(--ace-success); padding:4px 10px; border-radius:6px;">
+                                [ Accuracy ]</span>
+                            &times;
+                            <span style="background:rgba(2,132,199,0.15); color:var(--ace-accent); padding:4px 10px; border-radius:6px;">
+                                [ Sustainability % ]</span>
+                        </div>
+                        <p style="font-size:0.95rem; margin:12px 0 0 0; color:var(--body-text-color-subdued);">
+                            <strong>Sustainability %</strong> reflects your Moral Compass progress through the investigation.<br/>
+                            If your Sustainability % is <strong>0%</strong>, your Moral Compass Score is <strong>0</strong>.
+                        </p>
                     </div>
-                    <div style="font-size:1.3rem; font-weight:700; margin:12px 0; font-family:'Outfit',sans-serif;">
-                        Moral Compass Score =
-                        <span style="background:rgba(5,150,105,0.15); color:var(--ace-success); padding:4px 10px; border-radius:6px;">
-                            [ Accuracy ]</span>
-                        &times;
-                        <span style="background:rgba(2,132,199,0.15); color:var(--ace-accent); padding:4px 10px; border-radius:6px;">
-                            [ Sustainability % ]</span>
-                    </div>
-                    <p style="font-size:0.95rem; margin:12px 0 0 0; color:var(--body-text-color-subdued);">
-                        <strong>Sustainability %</strong> reflects your Moral Compass progress through the investigation.<br/>
-                        If your Sustainability % is <strong>0%</strong>, your Moral Compass Score is <strong>0</strong>.
-                    </p>
-                </div>
+                </details>
             """)
 
             # Module containers
