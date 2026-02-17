@@ -21,6 +21,66 @@ _cache_lock = threading.Lock()
 _leaderboard_cache: Dict[str, Any] = {"data": None, "timestamp": 0.0}
 _user_stats_cache: Dict[str, Dict[str, Any]] = {}
 
+# --- Client JS (loaded via gr.Blocks head, NOT inside gr.HTML) ---
+CLIENT_JS = """
+var step3Played = false;
+
+function goToStep(step) {
+    document.querySelectorAll('.mission-step').forEach(function(el){ el.classList.remove('active'); });
+    var target = document.getElementById('step-' + step);
+    if (target) target.classList.add('active');
+
+    document.querySelectorAll('.step-node').forEach(function(node, i) {
+        node.classList.remove('active', 'completed');
+        if (i + 1 < step) node.classList.add('completed');
+        else if (i + 1 === step) node.classList.add('active');
+    });
+
+    if (step === 3) {
+        if (!step3Played) {
+            setTimeout(runResetAnimation, 500);
+        } else {
+            var btn = document.getElementById('btnContinueReset');
+            btn.style.opacity = '1';
+            btn.style.pointerEvents = 'all';
+        }
+    }
+}
+
+function runResetAnimation() {
+    var gauge = document.getElementById('mainGauge');
+    var scoreVal = document.getElementById('scoreValue');
+    var msg = document.getElementById('resetMessage');
+    var btn = document.getElementById('btnContinueReset');
+
+    gauge.classList.add('gauge-dropping');
+
+    var score = parseInt(scoreVal.textContent) || 94;
+    var interval = setInterval(function() {
+        score -= 2;
+        if (score <= 0) {
+            score = 0;
+            clearInterval(interval);
+            scoreVal.style.color = '#ef4444';
+            msg.style.opacity = '1';
+            setTimeout(function() {
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'all';
+                step3Played = true;
+            }, 1000);
+        }
+        scoreVal.textContent = score;
+    }, 30);
+}
+
+function showTransition() {
+    document.getElementById('transitionOverlay').style.display = 'flex';
+    try { window.parent.postMessage('activity_complete', '*'); } catch (e) { }
+}
+"""
+
+HEAD_HTML = '<script>' + CLIENT_JS + '</script>'
+
 # --- HTML Template ---
 HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="es">
@@ -481,8 +541,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                         y energ&iacute;a en el futuro.</p>
                 </div>
 
+                <p style="text-align:center; color:var(--text); font-weight:600; font-size:1.1rem; margin-bottom:8px;">&iquest;Listo? Publica tu modelo para obtener la certificaci&oacute;n.</p>
                 <div class="btn-group" style="justify-content: center;">
-                    <button class="btn success" style="width: 100%;" onclick="goToStep(2)">PUBLICAR MODELO Y CERTIFICAR &rarr;</button>
+                    <button class="btn success" style="width:100%; font-size:1.2rem; padding:20px 32px;" onclick="goToStep(2)">PUBLICAR MODELO Y CERTIFICAR &rarr;</button>
                 </div>
             </div>
 
@@ -610,73 +671,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             onclick="document.getElementById('transitionOverlay').style.display='none'">CERRAR</button>
     </div>
 
-    <script>
-        let step3Played = false;
-
-        function goToStep(step) {
-            // Hide all steps
-            document.querySelectorAll('.mission-step').forEach(el => el.classList.remove('active'));
-
-            // Show target step
-            const target = document.getElementById(`step-${step}`);
-            if (target) target.classList.add('active');
-
-            // Update progress bar
-            document.querySelectorAll('.step-node').forEach((node, i) => {
-                node.classList.remove('active', 'completed');
-                if (i + 1 < step) node.classList.add('completed');
-                else if (i + 1 === step) node.classList.add('active');
-            });
-
-            // Special logic for Step 3 (Animation)
-            if (step === 3) {
-                if (!step3Played) {
-                    setTimeout(runResetAnimation, 500);
-                } else {
-                    const btn = document.getElementById('btnContinueReset');
-                    btn.style.opacity = '1';
-                    btn.style.pointerEvents = 'all';
-                }
-            }
-        }
-
-        function runResetAnimation() {
-            const gauge = document.getElementById('mainGauge');
-            const scoreVal = document.getElementById('scoreValue');
-            const msg = document.getElementById('resetMessage');
-            const btn = document.getElementById('btnContinueReset');
-
-            // Add dropping class to gauge ring
-            gauge.classList.add('gauge-dropping');
-
-            // Animate number countdown
-            let score = 94;
-            const interval = setInterval(() => {
-                score -= 2;
-                if (score <= 0) {
-                    score = 0;
-                    clearInterval(interval);
-                    // Show message
-                    scoreVal.style.color = '#ef4444';
-                    msg.style.opacity = '1';
-
-                    // Show button
-                    setTimeout(() => {
-                        btn.style.opacity = '1';
-                        btn.style.pointerEvents = 'all';
-                        step3Played = true;
-                    }, 1000);
-                }
-                scoreVal.textContent = score;
-            }, 30);
-        }
-
-        function showTransition() {
-            document.getElementById('transitionOverlay').style.display = 'flex';
-            // Also try postMessage just in case
-            try { window.parent.postMessage('activity_complete', '*'); } catch (e) { }
-        }
-    </script>
+    <!-- JS loaded via gr.Blocks(head=...) -->
 </body>
 
 </html>
@@ -707,7 +702,7 @@ def _fetch_leaderboard(token: str) -> Optional[pd.DataFrame]:
 
 def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
     leaderboard_df = _fetch_leaderboard(token)
-    best_score = 0
+    best_score = None
     rank = None
 
     if leaderboard_df is not None and not leaderboard_df.empty:
@@ -733,9 +728,8 @@ def get_html_content(best_score_pct, rank_str, is_demo=False):
 
     # Replace static placeholders with dynamic values
     html = html.replace("94.2%", f"{best_score_pct:.1f}%")
-    html = html.replace("#3", f"#{rank_str}")
+    html = html.replace('>#3</div>', f'>#{rank_str}</div>')
     html = html.replace('id="scoreValue">94<', f'id="scoreValue">{score_int}<')
-    html = html.replace('let score = 94;', f'let score = {score_int};')
 
     if is_demo:
         demo_banner = """<div style="background:rgba(251,191,36,0.15); border:2px solid #f59e0b; padding:12px; border-radius:8px; margin-bottom:20px; text-align:center;">
@@ -757,7 +751,7 @@ def _app_interface(request: gr.Request):
             username = _get_username_from_token(token)
             if username:
                 stats = _compute_user_stats(username, token)
-                if stats["best_score"]:
+                if stats["best_score"] is not None:
                     best_score = stats["best_score"] * 100
                     is_demo = False
                 if stats["rank"]:
@@ -770,7 +764,7 @@ def _app_interface(request: gr.Request):
 
 
 def create_moral_compass_challenge_sustainability_es_app(theme_primary_hue: str = "indigo"):
-    with gr.Blocks(title="Actividad 5: El Coste de la Sostenibilidad") as demo:
+    with gr.Blocks(title="Actividad 5: El Coste de la Sostenibilidad", head=HEAD_HTML) as demo:
         html = gr.HTML()
         demo.load(_app_interface, outputs=html)
     return demo
