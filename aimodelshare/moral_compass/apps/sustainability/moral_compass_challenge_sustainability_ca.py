@@ -232,6 +232,21 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
         }
 
+        .btn.success {
+            background: var(--success);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+            animation: ctaPulse 2s ease-in-out infinite;
+        }
+
+        .btn.success:hover {
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5);
+        }
+
+        @keyframes ctaPulse {
+            0%, 100% { box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
+            50% { box-shadow: 0 8px 30px rgba(16, 185, 129, 0.6); }
+        }
+
         /* STAT CARDS */
         .stat-grid {
             display: grid;
@@ -428,12 +443,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <div class="container">
         <!-- PROGRESS -->
         <div class="mission-progress">
-            <div class="step-node completed">1</div>
-            <div class="step-node completed">2</div>
-            <div class="step-node completed">3</div>
-            <div class="step-node completed">4</div>
-            <div class="step-node active">5</div>
-            <div class="step-node">6</div>
+            <div class="step-node active">1</div>
+            <div class="step-node">2</div>
+            <div class="step-node">3</div>
+            <div class="step-node">4</div>
         </div>
 
         <div class="card">
@@ -469,7 +482,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 </div>
 
                 <div class="btn-group" style="justify-content: center;">
-                    <button class="btn" style="width: 100%;" onclick="goToStep(2)">PUBLICAR MODEL I CERTIFICAR</button>
+                    <button class="btn success" style="width: 100%;" onclick="goToStep(2)">PUBLICAR MODEL I CERTIFICAR &rarr;</button>
                 </div>
             </div>
 
@@ -607,6 +620,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             // Show target step
             const target = document.getElementById(`step-${step}`);
             if (target) target.classList.add('active');
+
+            // Update progress bar
+            document.querySelectorAll('.step-node').forEach((node, i) => {
+                node.classList.remove('active', 'completed');
+                if (i + 1 < step) node.classList.add('completed');
+                else if (i + 1 === step) node.classList.add('active');
+            });
 
             // Special logic for Step 3 (Animation)
             if (step === 3) {
