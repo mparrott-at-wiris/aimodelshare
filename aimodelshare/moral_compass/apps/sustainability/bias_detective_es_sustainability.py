@@ -1112,6 +1112,8 @@ CLIENT_JS = """
 (function aceInitTypewriter(){
     var el = document.getElementById('ace-typewriter-text');
     if (!el) { setTimeout(aceInitTypewriter, 200); return; }
+    if (el.dataset.init === '1') return;
+    el.dataset.init = '1';
     var full = "Cada vez que usas la IA, algo invisible sucede...";
     var i = 0;
     var iv = setInterval(function(){
@@ -1166,7 +1168,10 @@ function aceToggleComparison() {
     }
 }
 (function aceInitPrompt(){
-    if (!document.getElementById('ace-prompt-count')) { setTimeout(aceInitPrompt, 200); return; }
+    var el = document.getElementById('ace-prompt-count');
+    if (!el) { setTimeout(aceInitPrompt, 200); return; }
+    if (el.dataset.init === '1') return;
+    el.dataset.init = '1';
     aceUpdatePromptCalc(1);
 })();
 
@@ -1174,6 +1179,8 @@ function aceToggleComparison() {
 (function aceInitTraining(){
     var barsEl = document.getElementById('ace-training-bars');
     if (!barsEl) { setTimeout(aceInitTraining, 200); return; }
+    if (barsEl.dataset.init === '1') return;
+    barsEl.dataset.init = '1';
     var models = [
         {name:'GPT-3', energy:1287, water:700000, co2:502, year:2020, icon:'\\u{1F916}', fact:"Equivale a conducir un coche alrededor de la Tierra 60 veces"},
         {name:'GPT-4', energy:62000, water:34000000, co2:24000, year:2023, icon:'\\u{1F9E0}', fact:"Equivalente a la electricidad anual de ~5400 hogares de EE. UU."},
@@ -1243,6 +1250,8 @@ function aceToggleComparison() {
     var barContainer = document.getElementById('ace-water-bars');
     var quizEl = document.getElementById('ace-water-quiz');
     if (!barContainer || !quizEl) { setTimeout(aceInitWater, 200); return; }
+    if (barContainer.dataset.init === '1') return;
+    barContainer.dataset.init = '1';
     // Animated water bars
     var html = '';
     for (var i = 0; i < 50; i++) {
@@ -1301,6 +1310,8 @@ function aceToggleComparison() {
     var tabsEl = document.getElementById('ace-scale-tabs');
     var bdEl = document.getElementById('ace-energy-breakdown');
     if (!tabsEl || !bdEl) { setTimeout(aceInitScale, 200); return; }
+    if (tabsEl.dataset.init === '1') return;
+    tabsEl.dataset.init = '1';
     var categories = [
         {l:"Energ\\u00eda total de la IA en 2025", v:'~200 TWh/a\\u00f1o', d:"Toda la electricidad del Reino Unido", i:'\\ud83c\\uddec\\ud83c\\udde7'},
         {l:"Emisiones de CO\\u2082 de la IA", v:'~56M ton/a\\u00f1o', d:"Las emisiones totales anuales de Nueva York", i:'\\ud83d\\uddfd'},
@@ -1355,6 +1366,8 @@ function aceToggleComparison() {
 (function aceInitActions(){
     var container = document.getElementById('ace-actions');
     if (!container) { setTimeout(aceInitActions, 200); return; }
+    if (container.dataset.init === '1') return;
+    container.dataset.init = '1';
     var actions = [
         {id:'search', l:'B\\u00fascalo en Google primero', d:"Usa un buscador normal cuando no necesites IA", p:30, i:'\\ud83d\\udd0d'},
         {id:'specific', l:'S\\u00e9 espec\\u00edfico', d:'Consultas claras = menos seguimientos = menos energ\\u00eda', p:15, i:'\\ud83c\\udfaf'},
@@ -1410,6 +1423,23 @@ function aceToggleComparison() {
     };
     renderActions();
 })();
+
+// === Re-init after back-navigation (Gradio may re-render HTML, wiping dynamic content) ===
+function aceReinitAll(){
+    var tw = document.getElementById('ace-typewriter-text');
+    if (tw && !tw.textContent.trim()) { delete tw.dataset.init; aceInitTypewriter(); }
+    var pc = document.getElementById('ace-prompt-count');
+    var ps = document.getElementById('ace-prompt-stats');
+    if (pc && ps && ps.children.length === 0) { delete pc.dataset.init; aceInitPrompt(); }
+    var bars = document.getElementById('ace-training-bars');
+    if (bars && bars.children.length === 0) { delete bars.dataset.init; aceInitTraining(); }
+    var wb = document.getElementById('ace-water-bars');
+    if (wb && wb.children.length === 0) { delete wb.dataset.init; aceInitWater(); }
+    var tabs = document.getElementById('ace-scale-tabs');
+    if (tabs && tabs.children.length === 0) { delete tabs.dataset.init; aceInitScale(); }
+    var acts = document.getElementById('ace-actions');
+    if (acts && acts.children.length === 0) { delete acts.dataset.init; aceInitActions(); }
+}
 """
 
 HEAD_HTML = (
@@ -1673,6 +1703,7 @@ def create_bias_detective_es_sustainability_app(theme_primary_hue: str = "indigo
                       overlay.style.opacity = '0';
                       setTimeout(() => {{ overlay.style.display = 'none'; }}, 300);
                     }}
+                    setTimeout(function(){{ if(typeof aceReinitAll==='function') aceReinitAll(); }}, 300);
                   }}
                 }}, 90);
               }} catch(e) {{ console.warn('nav-js error', e); }}
