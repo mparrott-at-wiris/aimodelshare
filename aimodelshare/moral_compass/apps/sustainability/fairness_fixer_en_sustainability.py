@@ -140,7 +140,7 @@ def _round_html(round_idx, emoji, title, brief, question, choices):
             <div class="cto-reveal" style="animation-delay:0s;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                     <span style="font-size:0.875rem; color:var(--cto-text-dim); font-weight:600; letter-spacing:3px; text-transform:uppercase;">Round {round_idx} / {total}</span>
-                    <span style="font-size:0.875rem; color:var(--cto-text-dim);">NovaMind AI &mdash; CTO Dashboard</span>
+                    <span style="font-size:0.875rem; color:var(--cto-text-dim);">NovaMind AI &mdash; Advisor Review</span>
                 </div>
                 <div id="cto-stats-{round_idx}" class="cto-stats-grid"></div>
                 <div style="display:flex; gap:6px; margin-top:16px;">
@@ -186,7 +186,7 @@ MODULES = [
     # ─────────────────────────────────────────────
     {
         "id": 0,
-        "title": "GREEN AI CTO",
+        "title": "GREEN AI ADVISOR",
         "html": """
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
                 <div class="cto-title-page">
@@ -197,14 +197,14 @@ MODULES = [
                     </div>
                     <div class="cto-reveal" style="animation-delay:0.3s;">
                         <h1 style="font-size:clamp(2.2rem, 8vw, 3.5rem); font-weight:800; text-align:center; line-height:1.1; letter-spacing:-1px; color:var(--cto-text); margin:0;">
-                            GREEN AI<br/><span style="color:var(--cto-accent);">CTO</span>
+                            GREEN AI<br/><span style="color:var(--cto-accent);">ADVISOR</span>
                         </h1>
                     </div>
                     <div class="cto-reveal" style="animation-delay:0.6s;">
                         <p style="font-size:1.125rem; color:var(--cto-text-dim); text-align:center; max-width:480px; margin:28px auto 0; line-height:1.7;">
-                            You just got promoted to <strong style="color:var(--cto-text); font-weight:600;">Chief Technology Officer</strong> of NovaMind AI.
-                            Your platform serves 50 million users &mdash; and it&#39;s <strong style="color:var(--cto-error); font-weight:700;">destroying the planet</strong>.
-                            Your board has given you 5 rounds to fix it.
+                            The mayor just appointed you as your city&#39;s first <strong style="color:var(--cto-text); font-weight:600;">Green AI Advisor</strong>.
+                            NovaMind AI wants to build a massive data center here &mdash; 50 million users, and a footprint that&#39;s <strong style="color:var(--cto-error); font-weight:700;">destroying the planet</strong>.
+                            You have 5 rounds to evaluate their proposal and set the sustainability standards.
                         </p>
                     </div>
                     <div class="cto-reveal" style="animation-delay:0.9s;">
@@ -225,7 +225,7 @@ MODULES = [
                     </div>
                     <div class="cto-reveal" style="animation-delay:1.2s;">
                         <div style="text-align:center; margin-top:16px;">
-                            <p style="font-size:0.875rem; color:var(--cto-text-dim);">5 decisions &middot; Real consequences &middot; Can you save NovaMind?</p>
+                            <p style="font-size:0.875rem; color:var(--cto-text-dim);">5 requirements &middot; Real consequences &middot; Will you protect your city?</p>
                         </div>
                     </div>
                 </div>
@@ -242,8 +242,8 @@ MODULES = [
             round_idx=1,
             emoji="\U0001f321\ufe0f",
             title="The Cooling Crisis",
-            brief="Your data center in Phoenix runs 24/7 with traditional air cooling towers that gulp millions of gallons of city water. The local community is furious &mdash; they&#39;re in a drought. Cooling eats 40% of your energy bill.",
-            question="As CTO, how do you redesign cooling?",
+            brief="NovaMind&#39;s proposed data center runs 24/7 with traditional air cooling towers that gulp millions of gallons of city water. The local community is furious &mdash; they&#39;re in a drought. Cooling eats 40% of the energy bill.",
+            question="What cooling standard do you require?",
             choices=[
                 {"icon": "\U0001f9ca", "label": "Liquid Immersion Cooling", "desc": "Submerge servers in non-conductive fluid. Big upfront cost but eliminates water use for cooling."},
                 {"icon": "\u267b\ufe0f", "label": "Hybrid Air + Recycled Water", "desc": "Switch to recycled gray water and add free-air cooling for cooler months."},
@@ -261,8 +261,8 @@ MODULES = [
             round_idx=2,
             emoji="\u26a1",
             title="Power Source Reckoning",
-            brief="Your data center pulls 100% from the regional grid &mdash; 65% natural gas and coal. Every AI query is powered by fossil fuels. Investors are asking about your carbon plan.",
-            question="How do you green your power supply?",
+            brief="NovaMind&#39;s data center pulls 100% from the regional grid &mdash; 65% natural gas and coal. Every AI query would be powered by fossil fuels. Your city council is asking about the carbon plan.",
+            question="What energy requirement do you set?",
             choices=[
                 {"icon": "\u2600\ufe0f", "label": "On-Site Solar + Battery Storage", "desc": "Build a solar farm with battery packs for 24/7 coverage. Expensive but fully owned."},
                 {"icon": "\U0001f32c\ufe0f", "label": "Renewable Power Purchase Agreement", "desc": "Sign a long-term contract for wind/solar energy from a renewable provider."},
@@ -280,8 +280,8 @@ MODULES = [
             round_idx=3,
             emoji="\U0001f9e0",
             title="Model Efficiency Overhaul",
-            brief="Your team runs a 400B parameter model for EVERY query &mdash; even simple ones like &#39;what&#39;s the weather?&#39; That&#39;s like using a rocket to go to the grocery store. 80% of queries don&#39;t need that much power.",
-            question="How do you optimize model deployment?",
+            brief="NovaMind&#39;s team runs a 400B parameter model for EVERY query &mdash; even simple ones like &#39;what&#39;s the weather?&#39; That&#39;s like using a rocket to go to the grocery store. 80% of queries don&#39;t need that much power.",
+            question="What efficiency standard do you require?",
             choices=[
                 {"icon": "\U0001fa9c", "label": "Smart Model Cascade", "desc": "Route simple queries to a 7B model, medium to 70B, complex to 400B. Build an intelligent router."},
                 {"icon": "\U0001f9ec", "label": "Distill to One Smaller Model", "desc": "Train a single efficient 70B model that captures most of the 400B model&#39;s capabilities."},
@@ -299,8 +299,8 @@ MODULES = [
             round_idx=4,
             emoji="\U0001f4cd",
             title="Location, Location, Location",
-            brief="Your next data center is planned for a desert region with cheap land but extreme heat and a gas-powered grid. Nearly 7,000 of the world&#39;s 8,800 data centers are built in the wrong climate.",
-            question="Where do you build your next data center?",
+            brief="NovaMind&#39;s next data center is planned for a desert region with cheap land but extreme heat and a gas-powered grid. Nearly 7,000 of the world&#39;s 8,800 data centers are built in the wrong climate.",
+            question="What location requirement do you set?",
             choices=[
                 {"icon": "\U0001f1f8\U0001f1ea", "label": "Nordic Region (Sweden/Finland)", "desc": "Cold climate = almost free cooling. Grid is 95%+ renewable. Higher land cost but massive operational savings."},
                 {"icon": "\U0001f332", "label": "Pacific Northwest (Oregon)", "desc": "Moderate climate, strong hydro power, established tech infrastructure."},
@@ -318,8 +318,8 @@ MODULES = [
             round_idx=5,
             emoji="\U0001f4ca",
             title="The Transparency Report",
-            brief="The EU is pushing regulations requiring data centers to disclose energy and water metrics. Your competitors are staying quiet. A researcher just published a study saying most tech companies share almost nothing about AI&#39;s environmental cost.",
-            question="How transparent do you make your operations?",
+            brief="The EU is pushing regulations requiring data centers to disclose energy and water metrics. NovaMind&#39;s competitors are staying quiet. A researcher just published a study saying most tech companies share almost nothing about AI&#39;s environmental cost.",
+            question="What transparency standard do you require?",
             choices=[
                 {"icon": "\U0001f4e1", "label": "Full Public Dashboard", "desc": "Build a real-time public dashboard showing energy, water, CO\u2082 per query. Open-source your efficiency tools."},
                 {"icon": "\U0001f4c4", "label": "Annual Sustainability Report", "desc": "Publish a yearly report with aggregated data. Standard practice for big tech."},
@@ -332,7 +332,7 @@ MODULES = [
     # ─────────────────────────────────────────────
     {
         "id": 6,
-        "title": "Your CTO Report Card",
+        "title": "Your Advisor Report",
         "html": """
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
                 <div id="cto-results-container" style="padding:20px 0; max-width:900px; margin:0 auto;">
@@ -408,14 +408,14 @@ QUIZ_CONFIG = {
     },
     6: {
         "t": "t10",
-        "q": "After playing all 5 rounds, which statement best captures why individual CTO decisions matter for global AI sustainability?",
+        "q": "After playing all 5 rounds, which statement best captures why individual infrastructure decisions matter for global AI sustainability?",
         "o": [
             "A) Individual companies are too small to matter \u2014 only government regulation can fix AI\u2019s environmental impact at the scale required.",
             "B) Every infrastructure decision \u2014 cooling, energy, models, location, transparency \u2014 compounds across millions of users and sets industry norms that other companies follow or get pressured to match.",
             "C) The technology will naturally become more efficient over time, so today\u2019s decisions don\u2019t have lasting impact on sustainability.",
         ],
         "a": "B) Every infrastructure decision \u2014 cooling, energy, models, location, transparency \u2014 compounds across millions of users and sets industry norms that other companies follow or get pressured to match.",
-        "success": "<strong>CTO Certification Complete!</strong> You now understand that AI sustainability isn\u2019t one big decision \u2014 it\u2019s five compounding infrastructure choices that reshape an entire industry.",
+        "success": "<strong>Advisor Certification Complete!</strong> You now understand that AI sustainability isn\u2019t one big decision \u2014 it\u2019s five compounding infrastructure choices that reshape an entire industry.",
     },
 }
 
@@ -582,11 +582,11 @@ def generate_success_message(prev, curr, specific_text):
         header_emoji = "\U0001f389"
         header_title = "You're Officially on the Board!"
         summary_line = "You just earned your first Moral Compass Score \u2014 you're now part of the global rankings."
-        cta_line = "Keep making CTO decisions to climb the leaderboard."
+        cta_line = "Keep making recommendations to climb the leaderboard."
     elif style_key == "major":
         header_emoji = "\U0001f525"
         header_title = "Major Moral Compass Boost!"
-        summary_line = "Your CTO decision made a big impact \u2014 you just moved ahead of other leaders."
+        summary_line = "Your recommendation made a big impact \u2014 you just moved ahead of other advisors."
         cta_line = "Continue your simulation to keep the momentum."
     elif style_key == "climb":
         header_emoji = "\U0001f680"
@@ -744,7 +744,7 @@ def render_leaderboard_card(data, username, team_name):
                     <div class='table-container'>
                         <table class='leaderboard-table'>
                             <thead>
-                                <tr><th>Rank</th><th>CTO</th><th style='text-align:right;'>Score \U0001f9ed</th></tr>
+                                <tr><th>Rank</th><th>Advisor</th><th style='text-align:right;'>Score \U0001f9ed</th></tr>
                             </thead>
                             <tbody>{user_rows}</tbody>
                         </table>
@@ -1121,20 +1121,20 @@ window.CTO_ROUNDS = [
           fb:"Smart and practical. You nearly halved freshwater draw by switching to recycled water, and free-air cooling saves energy on cooler days.", tier:"good" },
         { id:"c", label:"Optimize Existing System", icon:"\\ud83d\\udd27",
           fx:{energy:-5,water:-8,co2:-4,cost:-3,greenScore:4,reputation:-5},
-          fb:"Sensors help, but you\\u2019re still running the same wasteful system. The local news runs a story about your water use during a drought.", tier:"poor" },
+          fb:"Sensors help, but they\\u2019re still running the same wasteful system. The local news runs a story about NovaMind\\u2019s water use during a drought.", tier:"poor" },
       ],
     },
     { id:"energy", title:"Power Source Reckoning", emoji:"\\u26a1",
       choices:[
         { id:"a", label:"On-Site Solar + Battery Storage", icon:"\\u2600\\ufe0f",
           fx:{energy:-10,water:-5,co2:-55,cost:-15,greenScore:25,reputation:20},
-          fb:"Bold investment. Your solar farm covers 80% of daytime load, batteries handle the night. CO\\u2082 drops dramatically. Investors love the long-term savings.", tier:"best" },
+          fb:"Bold investment. NovaMind\\u2019s solar farm covers 80% of daytime load, batteries handle the night. CO\\u2082 drops dramatically. The city council loves the long-term savings.", tier:"best" },
         { id:"b", label:"Renewable Power Purchase Agreement", icon:"\\ud83c\\udf2c\\ufe0f",
           fx:{energy:-3,water:-3,co2:-35,cost:-5,greenScore:16,reputation:12},
-          fb:"A PPA is what most big tech does \\u2014 effective and relatively easy. Your grid mix shifts significantly toward renewables.", tier:"good" },
+          fb:"A PPA is what most big tech does \\u2014 effective and relatively easy. Their grid mix shifts significantly toward renewables.", tier:"good" },
         { id:"c", label:"Buy Carbon Offsets", icon:"\\ud83d\\udcdc",
           fx:{energy:0,water:0,co2:-10,cost:-1,greenScore:3,reputation:-8},
-          fb:"Carbon offsets are controversial \\u2014 many are considered \\u2018greenwashing.\\u2019 Environmental groups call you out. Your actual emissions haven\\u2019t changed.", tier:"poor" },
+          fb:"Carbon offsets are controversial \\u2014 many are considered \\u2018greenwashing.\\u2019 Environmental groups call NovaMind out. Their actual emissions haven\\u2019t changed.", tier:"poor" },
       ],
     },
     { id:"models", title:"Model Efficiency Overhaul", emoji:"\\ud83e\\udde0",
@@ -1144,7 +1144,7 @@ window.CTO_ROUNDS = [
           fb:"Genius architecture. 80% of queries now hit the small model (50x less energy), and users can\\u2019t tell the difference. This is how the best AI companies operate.", tier:"best" },
         { id:"b", label:"Distill to One Smaller Model", icon:"\\ud83e\\uddec",
           fx:{energy:-25,water:-18,co2:-22,cost:-20,greenScore:14,reputation:10},
-          fb:"Model distillation is proven. Your new 70B handles 90% of tasks well, cutting energy significantly.", tier:"good" },
+          fb:"Model distillation is proven. Their new 70B handles 90% of tasks well, cutting energy significantly.", tier:"good" },
         { id:"c", label:"Just Add Response Caching", icon:"\\ud83d\\udcbe",
           fx:{energy:-10,water:-5,co2:-8,cost:-10,greenScore:5,reputation:3},
           fb:"Caching helps for repeated queries, but most AI prompts are unique \\u2014 the huge model still runs for the vast majority. A band-aid, not a solution.", tier:"poor" },
@@ -1160,20 +1160,20 @@ window.CTO_ROUNDS = [
           fb:"Oregon is popular \\u2014 Amazon and Google have major facilities there. Hydro power helps carbon numbers, mild climate reduces cooling.", tier:"good" },
         { id:"c", label:"Stick with the Desert Plan", icon:"\\ud83c\\udfdc\\ufe0f",
           fx:{energy:5,water:10,co2:5,cost:5,greenScore:-3,reputation:-10},
-          fb:"Cheap land is tempting, but extreme heat means 3x cooling costs. The gas grid erases gains. Environmental groups add you to a \\u2018climate offender\\u2019 watchlist.", tier:"poor" },
+          fb:"Cheap land is tempting, but extreme heat means 3x cooling costs. The gas grid erases gains. Environmental groups add NovaMind to a \\u2018climate offender\\u2019 watchlist.", tier:"poor" },
       ],
     },
     { id:"transparency", title:"The Transparency Report", emoji:"\\ud83d\\udcca",
       choices:[
         { id:"a", label:"Full Public Dashboard", icon:"\\ud83d\\udce1",
           fx:{energy:-5,water:-3,co2:-5,cost:2,greenScore:18,reputation:25},
-          fb:"Revolutionary. You\\u2019re the first AI company with a live sustainability dashboard. Developers, researchers, and media praise you. You set a new industry standard.", tier:"best" },
+          fb:"Revolutionary. NovaMind becomes the first AI company with a live sustainability dashboard. Developers, researchers, and media praise the standard. Your city sets a new industry benchmark.", tier:"best" },
         { id:"b", label:"Annual Sustainability Report", icon:"\\ud83d\\udcc4",
           fx:{energy:-2,water:-1,co2:-2,cost:0,greenScore:8,reputation:10},
           fb:"Annual reports are the bare minimum that Google and Microsoft publish. It checks a box but doesn\\u2019t drive real accountability.", tier:"good" },
         { id:"c", label:"Minimum Legal Compliance", icon:"\\ud83d\\udd12",
           fx:{energy:0,water:0,co2:0,cost:0,greenScore:-2,reputation:-15},
-          fb:"Researchers flag your company for lack of transparency. A viral post compares your secrecy to fossil fuel companies hiding emissions data. Trust erodes.", tier:"poor" },
+          fb:"Researchers flag NovaMind for lack of transparency. A viral post compares their secrecy to fossil fuel companies hiding emissions data. Trust erodes.", tier:"poor" },
       ],
     },
 ];
@@ -1337,7 +1337,7 @@ function ctoConfirmDecision(roundIdx) {
         + '<div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">' + chipsHtml + '</div>'
         + '<div id="cto-spinner-' + roundIdx + '" style="margin-top:20px; font-size:0.9rem; color:var(--cto-text-dim); display:flex; align-items:center; gap:8px;">'
         + '<div style="width:16px; height:16px; border:2px solid var(--cto-text-dim); border-top:2px solid var(--cto-accent); border-radius:50%; animation:ctoSpin 1s linear infinite;"></div>'
-        + 'Applying changes to NovaMind systems...'
+        + 'Applying requirement to NovaMind proposal...'
         + '</div>'
         + '</div>';
 
@@ -1437,20 +1437,20 @@ function ctoRenderResults() {
     if (ok) {
         certHtml = '<div class="cto-cert-card" style="border:2px solid var(--cto-success);">'
             + '<div style="font-size:3rem;">\\ud83c\\udfc5</div>'
-            + '<h2 style="font-size:1.6rem; font-weight:800; color:var(--cto-success); margin-top:12px;">GREEN AI CERTIFIED</h2>'
+            + '<h2 style="font-size:1.6rem; font-weight:800; color:var(--cto-success); margin-top:12px;">PROPOSAL APPROVED</h2>'
             + '<p style="font-size:1.05rem; color:var(--cto-text-dim); margin-top:8px; line-height:1.7; max-width:440px; margin-left:auto; margin-right:auto;">'
-            + 'NovaMind AI has been approved for redeployment under the Green AI Framework. Your platform now meets sustainability standards.</p>'
+            + 'NovaMind AI\\u2019s data center proposal meets your city\\u2019s Green AI standards. Your sustainability requirements protect the community.</p>'
             + '<div style="margin-top:20px; display:inline-block; padding:12px 28px; border-radius:12px; background:rgba(16,185,129,0.1); border:1px solid var(--cto-success); font-size:1rem; color:var(--cto-success); font-weight:700;">'
-            + '\\u2705 APPROVED FOR REDEPLOYMENT</div>'
+            + '\\u2705 APPROVED FOR CONSTRUCTION</div>'
             + '</div>';
     } else {
         certHtml = '<div class="cto-cert-card" style="border:2px solid var(--cto-warning);">'
             + '<div style="font-size:3rem;">\\ud83d\\udd04</div>'
-            + '<h2 style="font-size:1.6rem; font-weight:800; color:var(--cto-warning); margin-top:12px;">PROVISIONAL STATUS</h2>'
+            + '<h2 style="font-size:1.6rem; font-weight:800; color:var(--cto-warning); margin-top:12px;">CONDITIONAL APPROVAL</h2>'
             + '<p style="font-size:1.05rem; color:var(--cto-text-dim); margin-top:8px; line-height:1.7; max-width:440px; margin-left:auto; margin-right:auto;">'
-            + 'NovaMind has improved but hasn\\u2019t reached Green AI certification (score 60+). The board is giving you another chance.</p>'
+            + 'NovaMind\\u2019s proposal has improved but hasn\\u2019t met your city\\u2019s Green AI standards (score 60+). The council is requesting revisions.</p>'
             + '<div style="margin-top:20px; display:inline-block; padding:12px 28px; border-radius:12px; background:rgba(251,191,36,0.1); border:1px solid var(--cto-warning); font-size:1rem; color:var(--cto-warning); font-weight:700;">'
-            + '\\u23f3 REDEPLOYMENT PENDING</div>'
+            + '\\u23f3 REVISIONS REQUIRED</div>'
             + '</div>';
     }
 
@@ -1468,7 +1468,7 @@ function ctoRenderResults() {
         + '<span style="color:' + g.c + ';">' + g.l + '</span> \\u2014 ' + g.t + '</h1>'
         + '<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:32px;">' + ringsHtml + '</div>'
         + '<div class="cto-card" style="margin-top:28px;">'
-        + '<h3 style="font-size:1.2rem; font-weight:800; color:var(--cto-text); margin:0 0 16px 0;">Your Impact as CTO</h3>'
+        + '<h3 style="font-size:1.2rem; font-weight:800; color:var(--cto-text); margin:0 0 16px 0;">Your Recommendations</h3>'
         + '<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px;">' + impactHtml + '</div></div>'
         + '<div class="cto-card" style="margin-top:20px;">'
         + '<h3 style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin:0 0 12px 0;">Your Decisions</h3>'
