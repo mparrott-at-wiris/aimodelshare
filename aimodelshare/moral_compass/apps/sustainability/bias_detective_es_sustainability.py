@@ -1484,23 +1484,27 @@ def create_bias_detective_es_sustainability_app(theme_primary_hue: str = "indigo
             # Top dashboard
             out_top = gr.HTML()
 
-            with gr.Accordion("\u00bfC\u00f3mo se calcula la puntuaci\u00f3n de Br\u00fajula Moral?", open=False):
-                gr.HTML("""
-                    <div style="padding:12px; font-size:0.92rem; line-height:1.6;">
-                        <div style="font-weight:700; margin-bottom:8px;">F&oacute;rmula:</div>
-                        <div style="background:var(--background-fill-secondary); padding:12px 16px; border-radius:8px; font-family:monospace; font-size:1rem; margin-bottom:10px; border:1px solid var(--border-color-primary);">
-                            Puntuaci&oacute;n Br&uacute;jula Moral = Precisi&oacute;n x (Pasos completados / Pasos totales)
-                        </div>
-                        <ul style="margin:0; padding-left:20px;">
-                            <li><strong>Precisi&oacute;n</strong> &mdash; La puntuaci&oacute;n de precisi&oacute;n de tu modelo de la Actividad 4 (de 0 a 1).</li>
-                            <li><strong>Pasos completados</strong> &mdash; Cu&aacute;ntos pasos de investigaci&oacute;n has respondido correctamente hasta ahora.</li>
-                            <li><strong>Pasos totales</strong> &mdash; El n&uacute;mero total de preguntas del cuestionario en toda la investigaci&oacute;n.</li>
-                        </ul>
-                        <div style="margin-top:10px; padding:8px 12px; background:rgba(99,102,241,0.08); border-radius:6px; font-size:0.88rem;">
-                            Tu puntuaci&oacute;n aumenta a medida que avanzas en la investigaci&oacute;n. Una puntuaci&oacute;n perfecta significa alta precisi&oacute;n del modelo <em>y</em> completar todos los pasos de razonamiento &eacute;tico.
-                        </div>
+            gr.HTML("""
+                <div style="background:var(--background-fill-secondary); padding:24px; border-radius:16px;
+                            text-align:center; border:2px dashed var(--color-accent); margin:8px 0 16px 0;">
+                    <div style="text-transform:uppercase; letter-spacing:2px; color:var(--body-text-color-subdued);
+                                font-size:0.85rem; margin-bottom:10px; font-weight:700;">
+                        La F&oacute;rmula de la Br&uacute;jula Moral
                     </div>
-                """)
+                    <div style="font-size:1.3rem; font-weight:700; margin:12px 0; font-family:'Outfit',sans-serif;">
+                        Puntuaci&oacute;n Br&uacute;jula Moral =
+                        <span style="background:rgba(5,150,105,0.15); color:var(--ace-success); padding:4px 10px; border-radius:6px;">
+                            [ Precisi&oacute;n ]</span>
+                        &times;
+                        <span style="background:rgba(2,132,199,0.15); color:var(--ace-accent); padding:4px 10px; border-radius:6px;">
+                            [ Sostenibilidad % ]</span>
+                    </div>
+                    <p style="font-size:0.95rem; margin:12px 0 0 0; color:var(--body-text-color-subdued);">
+                        <strong>Sostenibilidad %</strong> refleja tu progreso de Br&uacute;jula Moral a trav&eacute;s de la investigaci&oacute;n.<br/>
+                        Si tu Sostenibilidad % es <strong>0%</strong>, tu Puntuaci&oacute;n Br&uacute;jula Moral es <strong>0</strong>.
+                    </p>
+                </div>
+            """)
 
             # Module containers
             module_ui_elements = {}

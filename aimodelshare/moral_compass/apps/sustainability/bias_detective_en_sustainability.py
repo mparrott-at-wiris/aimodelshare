@@ -1484,23 +1484,27 @@ def create_bias_detective_en_sustainability_app(theme_primary_hue: str = "indigo
             # Top dashboard
             out_top = gr.HTML()
 
-            with gr.Accordion("How is the Moral Compass Score calculated?", open=False):
-                gr.HTML("""
-                    <div style="padding:12px; font-size:0.92rem; line-height:1.6;">
-                        <div style="font-weight:700; margin-bottom:8px;">Formula:</div>
-                        <div style="background:var(--background-fill-secondary); padding:12px 16px; border-radius:8px; font-family:monospace; font-size:1rem; margin-bottom:10px; border:1px solid var(--border-color-primary);">
-                            Moral Compass Score = Accuracy x (Steps Completed / Total Steps)
-                        </div>
-                        <ul style="margin:0; padding-left:20px;">
-                            <li><strong>Accuracy</strong> &mdash; Your model's accuracy score from Activity 4 (0 to 1).</li>
-                            <li><strong>Steps Completed</strong> &mdash; How many investigation steps you've answered correctly so far.</li>
-                            <li><strong>Total Steps</strong> &mdash; The total number of quiz questions across the investigation.</li>
-                        </ul>
-                        <div style="margin-top:10px; padding:8px 12px; background:rgba(99,102,241,0.08); border-radius:6px; font-size:0.88rem;">
-                            Your score increases as you progress through the investigation. A perfect score means high model accuracy <em>and</em> completing all ethical reasoning steps.
-                        </div>
+            gr.HTML("""
+                <div style="background:var(--background-fill-secondary); padding:24px; border-radius:16px;
+                            text-align:center; border:2px dashed var(--color-accent); margin:8px 0 16px 0;">
+                    <div style="text-transform:uppercase; letter-spacing:2px; color:var(--body-text-color-subdued);
+                                font-size:0.85rem; margin-bottom:10px; font-weight:700;">
+                        The Moral Compass Formula
                     </div>
-                """)
+                    <div style="font-size:1.3rem; font-weight:700; margin:12px 0; font-family:'Outfit',sans-serif;">
+                        Moral Compass Score =
+                        <span style="background:rgba(5,150,105,0.15); color:var(--ace-success); padding:4px 10px; border-radius:6px;">
+                            [ Accuracy ]</span>
+                        &times;
+                        <span style="background:rgba(2,132,199,0.15); color:var(--ace-accent); padding:4px 10px; border-radius:6px;">
+                            [ Sustainability % ]</span>
+                    </div>
+                    <p style="font-size:0.95rem; margin:12px 0 0 0; color:var(--body-text-color-subdued);">
+                        <strong>Sustainability %</strong> reflects your Moral Compass progress through the investigation.<br/>
+                        If your Sustainability % is <strong>0%</strong>, your Moral Compass Score is <strong>0</strong>.
+                    </p>
+                </div>
+            """)
 
             # Module containers
             module_ui_elements = {}

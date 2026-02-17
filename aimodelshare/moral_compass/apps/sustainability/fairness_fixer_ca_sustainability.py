@@ -1578,23 +1578,27 @@ def create_fairness_fixer_ca_sustainability_app(theme_primary_hue: str = "indigo
             # Top dashboard
             out_top = gr.HTML()
 
-            with gr.Accordion("Com es calcula la Puntuaci\u00f3 de la Br\u00faixola Moral?", open=False):
-                gr.HTML("""
-                    <div style="padding:12px; font-size:0.92rem; line-height:1.6;">
-                        <div style="font-weight:700; margin-bottom:8px;">F\u00f3rmula:</div>
-                        <div style="background:var(--background-fill-secondary); padding:12px 16px; border-radius:8px; font-family:monospace; font-size:1rem; margin-bottom:10px; border:1px solid var(--border-color-primary);">
-                            Puntuaci\u00f3 Br\u00faixola Moral = Precisi\u00f3 x (Passos Completats / Total de Passos)
-                        </div>
-                        <ul style="margin:0; padding-left:20px;">
-                            <li><strong>Precisi\u00f3</strong> &mdash; La puntuaci\u00f3 de precisi\u00f3 del teu model de l\u2019Activitat 4 (0 a 1).</li>
-                            <li><strong>Passos Completats</strong> &mdash; Quants passos d\u2019investigaci\u00f3 has respost correctament fins ara.</li>
-                            <li><strong>Total de Passos</strong> &mdash; El nombre total de preguntes del qüestionari en tota la investigaci\u00f3.</li>
-                        </ul>
-                        <div style="margin-top:10px; padding:8px 12px; background:rgba(99,102,241,0.08); border-radius:6px; font-size:0.88rem;">
-                            La teva puntuaci\u00f3 augmenta a mesura que avances en la simulaci\u00f3. Una puntuaci\u00f3 perfecta significa alta precisi\u00f3 del model <em>i</em> completar tots els passos de raonament \u00e8tic.
-                        </div>
+            gr.HTML("""
+                <div style="background:var(--background-fill-secondary); padding:24px; border-radius:16px;
+                            text-align:center; border:2px dashed var(--color-accent); margin:8px 0 16px 0;">
+                    <div style="text-transform:uppercase; letter-spacing:2px; color:var(--body-text-color-subdued);
+                                font-size:0.85rem; margin-bottom:10px; font-weight:700;">
+                        La F&oacute;rmula de la Br&uacute;ixola Moral
                     </div>
-                """)
+                    <div style="font-size:1.3rem; font-weight:700; margin:12px 0; font-family:'Outfit',sans-serif;">
+                        Puntuaci&oacute; Br&uacute;ixola Moral =
+                        <span style="background:rgba(5,150,105,0.15); color:var(--ace-success); padding:4px 10px; border-radius:6px;">
+                            [ Precisi&oacute; ]</span>
+                        &times;
+                        <span style="background:rgba(2,132,199,0.15); color:var(--ace-accent); padding:4px 10px; border-radius:6px;">
+                            [ Sostenibilitat % ]</span>
+                    </div>
+                    <p style="font-size:0.95rem; margin:12px 0 0 0; color:var(--body-text-color-subdued);">
+                        <strong>Sostenibilitat %</strong> reflecteix el teu progr&eacute;s de Br&uacute;ixola Moral a trav&eacute;s de la simulaci&oacute;.<br/>
+                        Si la teva Sostenibilitat % &eacute;s <strong>0%</strong>, la teva Puntuaci&oacute; Br&uacute;ixola Moral &eacute;s <strong>0</strong>.
+                    </p>
+                </div>
+            """)
 
             # Module containers
             module_ui_elements = {}
