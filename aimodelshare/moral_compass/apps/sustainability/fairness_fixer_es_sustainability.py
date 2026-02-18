@@ -215,18 +215,18 @@ MODULES = [
                             <div class="cto-stats-grid">
                                 <div style="text-align:center; padding:8px 4px;">
                                     <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#9889; Energ&iacute;a de Familias</div>
-                                    <div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">4.200</div>
-                                    <div style="font-size:0.7rem; color:var(--cto-text-dim);">hogares</div>
+                                    <div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">14.400</div>
+                                    <div style="font-size:0.7rem; color:var(--cto-text-dim);">hogares/a&ntilde;o</div>
                                 </div>
                                 <div style="text-align:center; padding:8px 4px;">
                                     <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#128167; Uso de Agua</div>
-                                    <div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">7,4</div>
-                                    <div style="font-size:0.7rem; color:var(--cto-text-dim);">piscinas</div>
+                                    <div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">89</div>
+                                    <div style="font-size:0.7rem; color:var(--cto-text-dim);">piscinas/a&ntilde;o</div>
                                 </div>
                                 <div style="text-align:center; padding:8px 4px;">
                                     <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#128663; Contaminaci&oacute;n CO&#8322;</div>
                                     <div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">4.800</div>
-                                    <div style="font-size:0.7rem; color:var(--cto-text-dim);">coches</div>
+                                    <div style="font-size:0.7rem; color:var(--cto-text-dim);">coches/a&ntilde;o</div>
                                 </div>
                                 <div style="text-align:center; padding:8px 4px;">
                                     <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#127793; Puntuaci&oacute;n Verde</div>
@@ -258,7 +258,7 @@ MODULES = [
             round_idx=1,
             emoji="\U0001f321\ufe0f",
             title="La Crisis de Refrigeraci\u00f3n",
-            brief="Imagina un edificio que usa 7 piscinas de agua CADA MES solo para mantener sus ordenadores fr\u00edos. Ese es el plan de NovaMind &mdash; y tu ciudad se est\u00e1 quedando sin agua.",
+            brief="Imagina un edificio que usa 89 piscinas de agua CADA A\u00d1O solo para mantener sus ordenadores fr\u00edos. Ese es el plan de NovaMind &mdash; y tu ciudad se est\u00e1 quedando sin agua.",
             question="\u00bfC\u00f3mo deber\u00eda NovaMind enfriar sus ordenadores?",
             choices=[
                 {"icon": "\U0001f9ca", "label": "Sumergir Servidores en L\u00edquido Especial", "desc": "Meter los ordenadores en un ba\u00f1o fr\u00edo en vez de rociar agua. Cuesta m\u00e1s instalarlo, pero no usa casi nada de agua."},
@@ -1155,7 +1155,7 @@ window.CTO_ROUNDS = [
       choices:[
         { id:"a", label:"Sumergir Servidores en L\\u00edquido Especial", icon:"\\ud83e\\uddf2",
           fx:{energy:-35,water:-70,co2:-30,cost:-20,greenScore:28,reputation:22},
-          fb:"\\u00a1Incre\\u00edble! La ciudad conserva su agua. Microsoft ya est\\u00e1 probando esta misma idea. \\u00a1Acabas de ahorrar a la ciudad casi 5 piscinas de agua cada mes!", tier:"best" },
+          fb:"\\u00a1Incre\\u00edble! La ciudad conserva su agua. Microsoft ya est\\u00e1 probando esta misma idea. \\u00a1Acabas de ahorrar a la ciudad casi 60 piscinas de agua cada a\\u00f1o!", tier:"best" },
         { id:"b", label:"Reutilizar Agua + Usar Aire Fr\\u00edo", icon:"\\u267b\\ufe0f",
           fx:{energy:-15,water:-45,co2:-12,cost:-8,greenScore:15,reputation:14},
           fb:"\\u00a1Buena jugada! Reciclar el agua significa que la ciudad conserva la mitad de su suministro. En los d\\u00edas fr\\u00edos, la naturaleza enfr\\u00eda gratis.", tier:"good" },
@@ -1219,7 +1219,7 @@ window.CTO_ROUNDS = [
 ];
 
 // --- INIT STATE ---
-window.CTO_INIT = {energy:4200, water:18500000, co2:1680, cost:2800000, greenScore:8, reputation:12};
+window.CTO_INIT = {energy:50400, water:222000000, co2:20160, cost:33600000, greenScore:8, reputation:12};
 
 // --- Apply effects (percentage-based) ---
 function ctoApply(stats, fx) {
@@ -1253,9 +1253,9 @@ function ctoRenderStats(containerId, stats, prev) {
     var el = document.getElementById(containerId);
     if (!el) return;
     var items = [
-        {k:"energy", l:"Energ\\u00eda de Familias", u:"hogares", i:"\\u26a1", conv:1, up:false},
-        {k:"water", l:"Uso de Agua", u:"piscinas", i:"\\ud83d\\udca7", conv:2500000, up:false},
-        {k:"co2", l:"Contaminaci\\u00f3n CO\\u2082", u:"coches", i:"\\ud83d\\ude97", conv:0.35, up:false},
+        {k:"energy", l:"Energ\\u00eda de Familias", u:"hogares/a\\u00f1o", i:"\\u26a1", conv:3.5, up:false},
+        {k:"water", l:"Uso de Agua", u:"piscinas/a\\u00f1o", i:"\\ud83d\\udca7", conv:2500000, up:false},
+        {k:"co2", l:"Contaminaci\\u00f3n CO\\u2082", u:"coches/a\\u00f1o", i:"\\ud83d\\ude97", conv:4.2, up:false},
         {k:"greenScore", l:"Puntuaci\\u00f3n Verde", u:"/100", i:"\\ud83c\\udf31", conv:1, up:true},
     ];
     var html = "";
@@ -1361,9 +1361,9 @@ function ctoConfirmDecision(roundIdx) {
     var energyDelta = prevState.energy - newState.energy;
     var waterDelta = prevState.water - newState.water;
     var co2Delta = prevState.co2 - newState.co2;
-    var homesVal = Math.abs(Math.round(energyDelta));
+    var homesVal = Math.abs(Math.round(energyDelta / 3.5));
     var poolsVal = Math.abs(waterDelta / 2500000).toFixed(1);
-    var carsVal = Math.abs(co2Delta / 0.35).toFixed(0);
+    var carsVal = Math.abs(co2Delta / 4.2).toFixed(0);
     var prevGreen = prevState.greenScore;
     var newGreen = newState.greenScore;
 
@@ -1467,9 +1467,9 @@ function ctoRenderResults() {
     }
 
     // Impact summary — relatable units
-    var homesSaved = INIT.energy - stats.energy;
+    var homesSaved = Math.round((INIT.energy - stats.energy) / 3.5);
     var poolsSaved = ((INIT.water - stats.water) / 2500000).toFixed(1);
-    var carsRemoved = ((INIT.co2 - stats.co2) / 0.35).toFixed(0);
+    var carsRemoved = ((INIT.co2 - stats.co2) / 4.2).toFixed(0);
     var impactItems = [
         {l:"Hogares de Energ\\u00eda Ahorrados", v:homesSaved, i:"\\u26a1"},
         {l:"Piscinas de Agua Ahorradas", v:poolsSaved, i:"\\ud83d\\udca7"},

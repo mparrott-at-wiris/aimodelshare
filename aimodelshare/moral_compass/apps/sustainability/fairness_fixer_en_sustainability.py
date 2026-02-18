@@ -215,18 +215,18 @@ MODULES = [
                             <div class="cto-stats-grid">
                                 <div style="text-align:center; padding:8px 4px;">
                                     <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#9889; Families&#39; Energy</div>
-                                    <div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">4,200</div>
-                                    <div style="font-size:0.7rem; color:var(--cto-text-dim);">homes&#39; worth</div>
+                                    <div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">14,400</div>
+                                    <div style="font-size:0.7rem; color:var(--cto-text-dim);">homes/year</div>
                                 </div>
                                 <div style="text-align:center; padding:8px 4px;">
                                     <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#128167; Water Use</div>
-                                    <div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">7.4</div>
-                                    <div style="font-size:0.7rem; color:var(--cto-text-dim);">swimming pools</div>
+                                    <div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">89</div>
+                                    <div style="font-size:0.7rem; color:var(--cto-text-dim);">pools/year</div>
                                 </div>
                                 <div style="text-align:center; padding:8px 4px;">
                                     <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#128663; CO&#8322; Pollution</div>
                                     <div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">4,800</div>
-                                    <div style="font-size:0.7rem; color:var(--cto-text-dim);">cars&#39; worth</div>
+                                    <div style="font-size:0.7rem; color:var(--cto-text-dim);">cars/year</div>
                                 </div>
                                 <div style="text-align:center; padding:8px 4px;">
                                     <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#127793; Green Score</div>
@@ -258,7 +258,7 @@ MODULES = [
             round_idx=1,
             emoji="\U0001f321\ufe0f",
             title="The Cooling Crisis",
-            brief="Imagine a building that uses 7 swimming pools of water EVERY MONTH just to keep its computers cool. That&#39;s NovaMind&#39;s plan &mdash; and your city is running out of water.",
+            brief="Imagine a building that uses 89 swimming pools of water EVERY YEAR just to keep its computers cool. That&#39;s NovaMind&#39;s plan &mdash; and your city is running out of water.",
             question="How should NovaMind cool its computers?",
             choices=[
                 {"icon": "\U0001f9ca", "label": "Dunk Servers in Special Liquid", "desc": "Put the computers in a cool bath instead of spraying water. Costs more to set up, but uses almost zero water."},
@@ -1155,7 +1155,7 @@ window.CTO_ROUNDS = [
       choices:[
         { id:"a", label:"Dunk Servers in Special Liquid", icon:"\\ud83e\\uddf2",
           fx:{energy:-35,water:-70,co2:-30,cost:-20,greenScore:28,reputation:22},
-          fb:"Amazing! The city keeps its water. Microsoft is already testing this exact idea. You just saved the city almost 5 swimming pools of water every month!", tier:"best" },
+          fb:"Amazing! The city keeps its water. Microsoft is already testing this exact idea. You just saved the city almost 60 swimming pools of water every year!", tier:"best" },
         { id:"b", label:"Reuse Water + Use Cold Air", icon:"\\u267b\\ufe0f",
           fx:{energy:-15,water:-45,co2:-12,cost:-8,greenScore:15,reputation:14},
           fb:"Smart move! Recycling water means the city keeps about half its supply safe. On cold days, nature does the cooling for free.", tier:"good" },
@@ -1219,7 +1219,7 @@ window.CTO_ROUNDS = [
 ];
 
 // --- INIT STATE ---
-window.CTO_INIT = {energy:4200, water:18500000, co2:1680, cost:2800000, greenScore:8, reputation:12};
+window.CTO_INIT = {energy:50400, water:222000000, co2:20160, cost:33600000, greenScore:8, reputation:12};
 
 // --- Apply effects (percentage-based) ---
 function ctoApply(stats, fx) {
@@ -1253,9 +1253,9 @@ function ctoRenderStats(containerId, stats, prev) {
     var el = document.getElementById(containerId);
     if (!el) return;
     var items = [
-        {k:"energy", l:"Families\\u2019 Energy", u:"homes\\u2019 worth", i:"\\u26a1", conv:1, up:false},
-        {k:"water", l:"Water Use", u:"swimming pools", i:"\\ud83d\\udca7", conv:2500000, up:false},
-        {k:"co2", l:"CO\\u2082 Pollution", u:"cars\\u2019 worth", i:"\\ud83d\\ude97", conv:0.35, up:false},
+        {k:"energy", l:"Families\\u2019 Energy", u:"homes/year", i:"\\u26a1", conv:3.5, up:false},
+        {k:"water", l:"Water Use", u:"pools/year", i:"\\ud83d\\udca7", conv:2500000, up:false},
+        {k:"co2", l:"CO\\u2082 Pollution", u:"cars/year", i:"\\ud83d\\ude97", conv:4.2, up:false},
         {k:"greenScore", l:"Green Score", u:"/100", i:"\\ud83c\\udf31", conv:1, up:true},
     ];
     var html = "";
@@ -1361,9 +1361,9 @@ function ctoConfirmDecision(roundIdx) {
     var energyDelta = prevState.energy - newState.energy;
     var waterDelta = prevState.water - newState.water;
     var co2Delta = prevState.co2 - newState.co2;
-    var homesVal = Math.abs(Math.round(energyDelta));
+    var homesVal = Math.abs(Math.round(energyDelta / 3.5));
     var poolsVal = Math.abs(waterDelta / 2500000).toFixed(1);
-    var carsVal = Math.abs(co2Delta / 0.35).toFixed(0);
+    var carsVal = Math.abs(co2Delta / 4.2).toFixed(0);
     var prevGreen = prevState.greenScore;
     var newGreen = newState.greenScore;
 
@@ -1467,9 +1467,9 @@ function ctoRenderResults() {
     }
 
     // Impact summary — relatable units
-    var homesSaved = INIT.energy - stats.energy;
+    var homesSaved = Math.round((INIT.energy - stats.energy) / 3.5);
     var poolsSaved = ((INIT.water - stats.water) / 2500000).toFixed(1);
-    var carsRemoved = ((INIT.co2 - stats.co2) / 0.35).toFixed(0);
+    var carsRemoved = ((INIT.co2 - stats.co2) / 4.2).toFixed(0);
     var impactItems = [
         {l:"Homes of Energy Saved", v:homesSaved, i:"\\u26a1"},
         {l:"Swimming Pools of Water Saved", v:poolsSaved, i:"\\ud83d\\udca7"},
