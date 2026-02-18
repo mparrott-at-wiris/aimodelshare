@@ -136,11 +136,36 @@ MODULES = [
                     <div class="ace-section-label">01 / Cada consulta compta</div>
                     <h2 class="ace-heading">Una pregunta a ChatGPT = <span style="color:var(--ace-accent);">una ampolla d'aigua</span></h2>
                 </div>
-                <div class="ace-reveal" style="animation-delay:0.2s;">
+                <div class="ace-reveal" style="animation-delay:0.15s;">
+                    <div style="background:var(--ace-accent-highlight); border-left:4px solid var(--ace-accent); border-radius:16px; padding:20px 24px; margin-bottom:8px;">
+                        <p style="margin:0; font-size:1.05rem; line-height:1.6; color:var(--ace-text);">
+                            <strong style="color:var(--ace-accent);">Sostenibilitat: El teu principi rector.</strong><br>
+                            L'&egrave;tica guia com constru&iuml;m i utilitzem la IA. Seguim l'assessorament expert de l'Observatori d'&Egrave;tica en Intel&middot;lig&egrave;ncia Artificial de Catalunya <strong>OEIAC (UdG)</strong>, que defineix 7 principis fonamentals d'una IA segura. Aquesta investigaci&oacute; se centra en la <strong>Sostenibilitat</strong> &mdash; el principi que els sistemes d'IA han d'evitar danys a llarg termini al medi ambient.
+                        </p>
+                    </div>
+                </div>
+                <div class="ace-reveal" style="animation-delay:0.18s;">
+                    <details style="background:var(--ace-input-bg); border:1px solid var(--ace-border-color); border-radius:16px; padding:16px 20px; cursor:pointer;">
+                        <summary style="font-weight:700; color:var(--ace-text-dim); font-size:0.95rem;">&#128736;&#65039; Refer&egrave;ncia: Altres principis d'&egrave;tica en IA (OEIAC)</summary>
+                        <div style="margin-top:15px; font-size:0.9rem; display:grid; grid-template-columns:1fr 1fr; gap:15px; color:var(--ace-text);">
+                            <div>
+                                <strong>Just&iacute;cia i equitat</strong><br>Assegurar que la IA tracti tots els grups de manera justa i no discrimini.<br><br>
+                                <strong>Transpar&egrave;ncia i explicabilitat</strong><br>Fer que el raonament de la IA sigui clar perqu&egrave; les decisions es puguin inspeccionar.<br><br>
+                                <strong>Seguretat i no-malefic&egrave;ncia</strong><br>Minimitzar errors nocius; planificar per a fallades.
+                            </div>
+                            <div>
+                                <strong>Responsabilitat i rendici&oacute; de comptes</strong><br>Assignar propietaris clars i mantenir rastres d'auditoria.<br><br>
+                                <strong>Autonomia</strong><br>Proporcionar processos d'apel&middot;laci&oacute; i alternatives a les decisions de la IA.<br><br>
+                                <strong>Privacitat</strong><br>Utilitzar nom&eacute;s les dades necess&agrave;ries; justificar l'&uacute;s d'atributs sensibles.
+                            </div>
+                        </div>
+                    </details>
+                </div>
+                <div class="ace-reveal" style="animation-delay:0.4s;">
                     <p class="ace-paragraph">Investigadors de la UC Riverside van descobrir que una consulta d'IA de ~100 paraules consumeix aproximadament <strong style="color:var(--ace-text); font-weight:600;">mig litre d'aigua</strong> &mdash; m&eacute;s o menys una ampolla est&agrave;ndard. Aquesta aigua refrigera els enormes xips dels servidors. L'energia? Equivalent a mirar la televisi&oacute; durant <strong style="color:var(--ace-text); font-weight:600;">9 segons</strong>.</p>
                     <p class="ace-paragraph" style="font-size:1rem;">No sembla gaire, oi? Per&ograve; pensa en quantes consultes envies al dia...</p>
                 </div>
-                <div class="ace-reveal" style="animation-delay:0.4s;">
+                <div class="ace-reveal" style="animation-delay:0.6s;">
                     <div class="ace-card">
                         <label style="display:block; font-size:1rem; color:var(--ace-text-dim); margin-bottom:16px; font-weight:600;">Quantes consultes d'IA envies al dia?</label>
                         <input type="range" id="ace-prompt-slider" min="1" max="200" value="1" style="width:100%; cursor:pointer;" oninput="aceUpdatePromptCalc(this.value)">
@@ -152,7 +177,7 @@ MODULES = [
                         </div>
                     </div>
                 </div>
-                <div class="ace-reveal" style="animation-delay:0.6s;">
+                <div class="ace-reveal" style="animation-delay:0.8s;">
                     <button onclick="aceToggleComparison()" id="ace-compare-btn" style="margin-top:20px; padding:12px 20px; font-size:0.95rem; font-weight:600; background:transparent; border:1px solid var(--ace-input-border); border-radius:12px; color:var(--ace-accent); cursor:pointer; transition:all 0.3s; font-family:'Outfit',sans-serif;">
                         Mostra comparaci&oacute; amb la Cerca de Google
                     </button>
