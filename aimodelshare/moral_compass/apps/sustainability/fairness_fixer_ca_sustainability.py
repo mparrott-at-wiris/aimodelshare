@@ -140,9 +140,12 @@ def _round_html(round_idx, emoji, title, brief, question, choices):
             <div class="cto-reveal" style="animation-delay:0s;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                     <span style="font-size:0.875rem; color:var(--cto-text-dim); font-weight:600; letter-spacing:3px; text-transform:uppercase;">Ronda {round_idx} / {total}</span>
-                    <span style="font-size:0.875rem; color:var(--cto-text-dim);">NovaMind AI &mdash; Tauler del CTO</span>
+                    <span style="font-size:0.875rem; color:var(--cto-text-dim);">NovaMind AI &mdash; La Teva Revisi&oacute;</span>
                 </div>
-                <div id="cto-stats-{round_idx}" class="cto-stats-grid"></div>
+                <div class="cto-stats-wrapper">
+                    <div class="cto-stats-header">&#127961;&#65039; La Contaminaci&oacute; de la Teva Ciutat</div>
+                    <div id="cto-stats-{round_idx}" class="cto-stats-grid"></div>
+                </div>
                 <div style="display:flex; gap:6px; margin-top:16px;">
                     {progress_segments}
                 </div>
@@ -153,7 +156,7 @@ def _round_html(round_idx, emoji, title, brief, question, choices):
                     <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
                         <span style="font-size:2rem;">{emoji}</span>
                         <div>
-                            <div style="font-size:0.75rem; color:var(--cto-warning); font-weight:800; letter-spacing:3px; text-transform:uppercase;">Informe Entrant</div>
+                            <div style="font-size:0.75rem; color:var(--cto-warning); font-weight:800; letter-spacing:3px; text-transform:uppercase;">Qu&egrave; Est&agrave; Passant</div>
                             <h2 style="font-size:1.5rem; font-weight:800; color:var(--cto-text); margin:0;">{title}</h2>
                         </div>
                     </div>
@@ -171,7 +174,7 @@ def _round_html(round_idx, emoji, title, brief, question, choices):
                 </div>
                 <button id="cto-confirm-btn-{round_idx}" class="cto-confirm-btn"
                     onclick="ctoConfirmDecision({round_idx})" style="display:none;">
-                    Confirmar Decisi&oacute; &rarr;
+                    Confirmar La Meva Elecci&oacute; &rarr;
                 </button>
             </div>
 
@@ -186,46 +189,59 @@ MODULES = [
     # ─────────────────────────────────────────────
     {
         "id": 0,
-        "title": "IA VERDA CTO",
+        "title": "ASSESSOR/A D'IA VERDA",
         "html": """
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
                 <div class="cto-title-page">
                     <div class="cto-reveal" style="animation-delay:0s;">
                         <div style="font-size:0.875rem; font-weight:800; letter-spacing:3px; color:var(--cto-error); text-transform:uppercase; margin-bottom:24px; text-align:center;">
-                            &#9888;&#65039; Simulaci&oacute; Activa
+                            &#127758; Informe de Missi&oacute;
                         </div>
                     </div>
                     <div class="cto-reveal" style="animation-delay:0.3s;">
                         <h1 style="font-size:clamp(2.2rem, 8vw, 3.5rem); font-weight:800; text-align:center; line-height:1.1; letter-spacing:-1px; color:var(--cto-text); margin:0;">
-                            IA VERDA<br/><span style="color:var(--cto-accent);">CTO</span>
+                            ASSESSOR/A D&#39;IA<br/><span style="color:var(--cto-accent);">VERDA</span>
                         </h1>
                     </div>
                     <div class="cto-reveal" style="animation-delay:0.6s;">
                         <p style="font-size:1.125rem; color:var(--cto-text-dim); text-align:center; max-width:480px; margin:28px auto 0; line-height:1.7;">
-                            Acabes de ser ascendit/da a <strong style="color:var(--cto-text); font-weight:600;">Director/a de Tecnologia (CTO)</strong> de NovaMind AI.
-                            La teva plataforma serveix 50 milions d&#39;usuaris &mdash; i est&agrave; <strong style="color:var(--cto-error); font-weight:700;">destruint el planeta</strong>.
-                            La junta directiva t&#39;ha donat 5 rondes per solucionar-ho.
+                            L&#39;alcaldessa acaba de triar-TE com a <strong style="color:var(--cto-text); font-weight:600;">Assessor/a d&#39;IA Verda</strong> de la ciutat.
+                            Una empresa anomenada NovaMind vol construir un centre de dades gegant aqu&iacute;. Mira els n&uacute;meros de contaminaci&oacute; de sota &mdash; <strong style="color:var(--cto-error); font-weight:700;">aix&ograve; &eacute;s el que LA TEVA ciutat haur&agrave; d&#39;enfrontar</strong> si no actues.
                         </p>
                     </div>
                     <div class="cto-reveal" style="animation-delay:0.9s;">
-                        <div style="display:flex; gap:12px; margin-top:32px; flex-wrap:wrap; justify-content:center;">
-                            <div style="padding:14px 20px; border-radius:12px; background:var(--cto-input-bg); border:1px solid var(--cto-border-color); text-align:center; min-width:120px;">
-                                <div style="font-size:0.85rem; color:var(--cto-warning); font-weight:600;">&#9889; Energia</div>
-                                <div style="font-size:1.15rem; font-weight:800; color:var(--cto-text); margin-top:4px;">4.200 MWh/mes</div>
-                            </div>
-                            <div style="padding:14px 20px; border-radius:12px; background:var(--cto-input-bg); border:1px solid var(--cto-border-color); text-align:center; min-width:120px;">
-                                <div style="font-size:0.85rem; color:var(--cto-error); font-weight:600;">&#128167; Aigua</div>
-                                <div style="font-size:1.15rem; font-weight:800; color:var(--cto-text); margin-top:4px;">18,5M L/mes</div>
-                            </div>
-                            <div style="padding:14px 20px; border-radius:12px; background:var(--cto-input-bg); border:1px solid var(--cto-border-color); text-align:center; min-width:120px;">
-                                <div style="font-size:0.85rem; color:var(--cto-text-dim); font-weight:600;">&#127793; Puntuaci&oacute; Verda</div>
-                                <div style="font-size:1.15rem; font-weight:800; color:var(--cto-text); margin-top:4px;">8 / 100</div>
+                        <div class="cto-stats-wrapper" style="margin-top:32px; max-width:420px; margin-left:auto; margin-right:auto;">
+                            <div class="cto-stats-header">&#127961;&#65039; La Contaminaci&oacute; de NovaMind a la Teva Ciutat</div>
+                            <div class="cto-stats-grid">
+                                <div style="text-align:center; padding:8px 4px;">
+                                    <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#9889; Energia de Fam&iacute;lies</div>
+                                    <div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">4.200</div>
+                                    <div style="font-size:0.7rem; color:var(--cto-text-dim);">llars</div>
+                                </div>
+                                <div style="text-align:center; padding:8px 4px;">
+                                    <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#128167; &Uacute;s d&#39;Aigua</div>
+                                    <div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">7,4</div>
+                                    <div style="font-size:0.7rem; color:var(--cto-text-dim);">piscines</div>
+                                </div>
+                                <div style="text-align:center; padding:8px 4px;">
+                                    <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#128663; Contaminaci&oacute; CO&#8322;</div>
+                                    <div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">4.800</div>
+                                    <div style="font-size:0.7rem; color:var(--cto-text-dim);">cotxes</div>
+                                </div>
+                                <div style="text-align:center; padding:8px 4px;">
+                                    <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#127793; Puntuaci&oacute; Verda</div>
+                                    <div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">8 / 100 &#128561;</div>
+                                    <div style="font-size:0.7rem; color:var(--cto-text-dim);">/100</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="cto-reveal" style="animation-delay:1.2s;">
-                        <div style="text-align:center; margin-top:16px;">
-                            <p style="font-size:0.875rem; color:var(--cto-text-dim);">5 decisions &middot; Conseq&uuml;&egrave;ncies reals &middot; Pots salvar NovaMind?</p>
+                    <div class="cto-reveal" style="animation-delay:1.1s;">
+                        <p style="font-size:1.05rem; font-weight:700; color:var(--cto-accent); text-align:center; margin-top:20px;">Redueix cada n&uacute;mero a nivells verds i protegeix la teva ciutat!</p>
+                    </div>
+                    <div class="cto-reveal" style="animation-delay:1.3s;">
+                        <div style="text-align:center; margin-top:12px;">
+                            <p style="font-size:0.875rem; color:var(--cto-text-dim);">5 rondes &middot; Decisions reals &middot; La teva ciutat compta amb tu! &#127758;</p>
                         </div>
                     </div>
                 </div>
@@ -242,12 +258,12 @@ MODULES = [
             round_idx=1,
             emoji="\U0001f321\ufe0f",
             title="La Crisi de Refrigeraci\u00f3",
-            brief="El teu centre de dades a Phoenix funciona 24/7 amb torres de refrigeraci\u00f3 per aire tradicionals que consumeixen milions de litres d&#39;aigua de la ciutat. La comunitat local est\u00e0 furiosa &mdash; estan en sequera. La refrigeraci\u00f3 consumeix el 40% de la teva factura energ\u00e8tica.",
-            question="Com a CTO, com redissenyes la refrigeraci\u00f3?",
+            brief="Imagina un edifici que fa servir 7 piscines d&#39;aigua CADA MES nom\u00e9s per mantenir els seus ordinadors freds. Aquest \u00e9s el pla de NovaMind &mdash; i la teva ciutat s&#39;est\u00e0 quedant sense aigua.",
+            question="Com hauria NovaMind de refredar els seus ordinadors?",
             choices=[
-                {"icon": "\U0001f9ca", "label": "Refrigeraci\u00f3 per Immersi\u00f3 L\u00edquida", "desc": "Submergir els servidors en fluid no conductor. Gran cost inicial, per\u00f2 elimina l\u2019\u00fas d\u2019aigua per a refrigeraci\u00f3."},
-                {"icon": "\u267b\ufe0f", "label": "H\u00edbrid: Aire + Aigua Reciclada", "desc": "Canviar a aigua grisa reciclada i afegir refrigeraci\u00f3 per aire lliure els mesos m\u00e9s frescos."},
-                {"icon": "\U0001f527", "label": "Optimitzar el Sistema Actual", "desc": "Simplement ajustar les torres de refrigeraci\u00f3 actuals &mdash; afegir sensors i controls intel\u00b7ligents. L\u2019opci\u00f3 m\u00e9s barata."},
+                {"icon": "\U0001f9ca", "label": "Submergir Servidors en L\u00edquid Especial", "desc": "Posar els ordinadors en un bany fred en lloc de ruixar aigua. Costa m\u00e9s instal\u00b7lar-ho, per\u00f2 no fa servir gaireb\u00e9 gens d&#39;aigua."},
+                {"icon": "\u267b\ufe0f", "label": "Reutilitzar Aigua + Usar Aire Fred", "desc": "Reciclar l&#39;aigua i deixar que l&#39;aire fred de fora ajudi. Estalvia aproximadament la meitat de l&#39;aigua."},
+                {"icon": "\U0001f527", "label": "Nom\u00e9s Afegir Sensors al que Hi Ha", "desc": "Mantenir el mateix sistema per\u00f2 afegir sensors per malbaratar una mica menys. El m\u00e9s barat, per\u00f2 gaireb\u00e9 no canvia res."},
             ],
         ),
     },
@@ -256,17 +272,17 @@ MODULES = [
     # ─────────────────────────────────────────────
     {
         "id": 2,
-        "title": "Ronda 2: El Rendiment de Comptes Energ\u00e8tic",
+        "title": "Ronda 2: D\u2019On Ve l\u2019Energia?",
         "html": _round_html(
             round_idx=2,
             emoji="\u26a1",
-            title="El Rendiment de Comptes Energ\u00e8tic",
-            brief="El teu centre de dades obt\u00e9 el 100% de la xarxa regional &mdash; 65% gas natural i carb\u00f3. Cada consulta d\u2019IA funciona amb combustibles f\u00f2ssils. Els inversors pregunten pel teu pla de carboni.",
-            question="Com fas verda la teva font d\u2019energia?",
+            title="D&#39;On Ve l&#39;Energia?",
+            brief="Ara mateix, NovaMind es connectaria directament a energia bruta &mdash; el 65% ve de cremar gas i carb\u00f3. Cada cop que alg\u00fa li fa una pregunta a la IA, es cremen m\u00e9s combustibles f\u00f2ssils.",
+            question="D&#39;on hauria NovaMind d&#39;obtenir la seva electricitat?",
             choices=[
-                {"icon": "\u2600\ufe0f", "label": "Solar In Situ + Emmagatzematge amb Bateries", "desc": "Construir una granja solar amb bateries per a cobertura 24/7. Car per\u00f2 de propietat total."},
-                {"icon": "\U0001f32c\ufe0f", "label": "Acord de Compra d\u2019Energia Renovable", "desc": "Signar un contracte a llarg termini d\u2019energia e\u00f2lica/solar amb un prove\u00efdor renovable."},
-                {"icon": "\U0001f4dc", "label": "Comprar Compensacions de Carboni", "desc": "Adquirir cr\u00e8dits de carboni per &#39;neutralitzar&#39; les emissions sobre el paper. El m\u00e9s barat i r\u00e0pid."},
+                {"icon": "\u2600\ufe0f", "label": "Construir una Granja Solar + Bateries", "desc": "Cobrir la teulada i els aparcaments amb panells solars. Afegir bateries gegants per a la nit. Car, per\u00f2 NovaMind ho posseeix per sempre."},
+                {"icon": "\U0001f32c\ufe0f", "label": "Comprar Energia Neta d&#39;un Parc E\u00f2lic/Solar", "desc": "Signar un acord per obtenir electricitat d&#39;un parc e\u00f2lic o solar proper en lloc de la xarxa bruta."},
+                {"icon": "\U0001f4dc", "label": "Pagar per Compensacions de Carboni", "desc": "Continuar cremant combustibles f\u00f2ssils, per\u00f2 pagar perqu\u00e8 plantin arbres en un altre lloc. Aix\u00f2 s&#39;anomena una &lt;strong&gt;compensaci\u00f3 de carboni&lt;/strong&gt; &mdash; queda b\u00e9 sobre el paper, per\u00f2 la contaminaci\u00f3 segueix igual."},
             ],
         ),
     },
@@ -275,17 +291,17 @@ MODULES = [
     # ─────────────────────────────────────────────
     {
         "id": 3,
-        "title": "Ronda 3: Revisi\u00f3 d\u2019Efici\u00e8ncia del Model",
+        "title": "Ronda 3: IA de la Mida Adequada",
         "html": _round_html(
             round_idx=3,
             emoji="\U0001f9e0",
-            title="Revisi\u00f3 d\u2019Efici\u00e8ncia del Model",
-            brief="El teu equip executa un model de 400B par\u00e0metres per a CADA consulta &mdash; fins i tot les senzilles com &#39;quin temps fa?&#39; \u00c9s com fer servir un coet per anar al supermercat. El 80% de les consultes no necessiten tanta pot\u00e8ncia.",
-            question="Com optimitzes el desplegament del model?",
+            title="IA de la Mida Adequada",
+            brief="NovaMind fa servir el seu cervell d&#39;IA m\u00e9s gran i potent per a CADA pregunta &mdash; fins i tot les f\u00e0cils com &#39;Quin temps fa?&#39; \u00c9s com conduir un cami\u00f3 monstre per anar a comprar llet. 8 de cada 10 preguntes no necessiten tanta pot\u00e8ncia.",
+            question="Com hauria NovaMind de gestionar les preguntes f\u00e0cils vs. les dif\u00edcils?",
             choices=[
-                {"icon": "\U0001fa9c", "label": "Cascada Intel\u00b7ligent de Models", "desc": "Dirigir consultes simples al model de 7B, mitjanes al de 70B, complexes al de 400B. Construir un enrutador intel\u00b7ligent."},
-                {"icon": "\U0001f9ec", "label": "Destil\u00b7lar a un Model M\u00e9s Petit", "desc": "Entrenar un \u00fanic model eficient de 70B que capturi la major part de les capacitats del model de 400B."},
-                {"icon": "\U0001f4be", "label": "Nom\u00e9s Afegir Cau de Respostes", "desc": "Emmagatzemar en cau respostes comunes perqu\u00e8 les consultes repetides no passin pel model. Mantenir el model gran per a la resta."},
+                {"icon": "\U0001fa9c", "label": "Ajustar la Mida del Cervell a la Pregunta", "desc": "Fer servir una IA petita per a preguntes f\u00e0cils, una mitjana per a les complicades, i la m\u00e9s gran nom\u00e9s per a les m\u00e9s dif\u00edcils. Com triar l&#39;eina correcta per a cada feina."},
+                {"icon": "\U0001f9ec", "label": "Entrenar una IA M\u00e9s Petita i Llesta", "desc": "Ensenyar a una IA mitjana a fer gaireb\u00e9 tot el que pot la gegant. Un sol cervell que \u00e9s suficient per al 90% de les preguntes."},
+                {"icon": "\U0001f4be", "label": "Nom\u00e9s Guardar Respostes Repetides", "desc": "Recordar respostes comunes perqu\u00e8 la IA no les repeteixi. Per\u00f2 el cervell monstre segueix funcionant per a tot el nou."},
             ],
         ),
     },
@@ -294,17 +310,17 @@ MODULES = [
     # ─────────────────────────────────────────────
     {
         "id": 4,
-        "title": "Ronda 4: Decisi\u00f3 d\u2019Ubicaci\u00f3",
+        "title": "Ronda 4: Ubicaci\u00f3, Ubicaci\u00f3, Ubicaci\u00f3",
         "html": _round_html(
             round_idx=4,
             emoji="\U0001f4cd",
             title="Ubicaci\u00f3, Ubicaci\u00f3, Ubicaci\u00f3",
-            brief="El teu pr\u00f2xim centre de dades est\u00e0 planificat en una regi\u00f3 des\u00e8rtica amb terrenys barats per\u00f2 calor extrema i una xarxa el\u00e8ctrica a gas. Gaireb\u00e9 7.000 dels 8.800 centres de dades del m\u00f3n estan constru\u00efts en el clima equivocat.",
-            question="On construeixes el teu pr\u00f2xim centre de dades?",
+            brief="NovaMind vol construir en un desert calor\u00f3s perqu\u00e8 el terreny \u00e9s barat. Per\u00f2 la calor del desert significa que els ordinadors necessiten MOLTA m\u00e9s refrigeraci\u00f3. I la xarxa el\u00e8ctrica local funciona principalment amb gas.",
+            question="On hauria de construir NovaMind?",
             choices=[
-                {"icon": "\U0001f1f8\U0001f1ea", "label": "Regi\u00f3 N\u00f2rdica (Su\u00e8cia/Finl\u00e0ndia)", "desc": "Clima fred = refrigeraci\u00f3 gaireb\u00e9 gratu\u00efta. Xarxa el\u00e8ctrica 95%+ renovable. Major cost del terreny per\u00f2 enormes estalvis operatius."},
-                {"icon": "\U0001f332", "label": "Nord-oest del Pac\u00edfic (Oregon)", "desc": "Clima moderat, forta energia hidroel\u00e8ctrica, infraestructura tecnol\u00f2gica establerta."},
-                {"icon": "\U0001f3dc\ufe0f", "label": "Mantenir el Pla del Desert", "desc": "Terreny barat, avantatges fiscals, a prop de la seu central. Ja t\u2019ho apanyar\u00e0s amb la calor."},
+                {"icon": "\U0001f1f8\U0001f1ea", "label": "Construir a la Freda Escandin\u00e0via", "desc": "Su\u00e8cia i Finl\u00e0ndia s\u00f3n gelades &mdash; la natura refreda els ordinadors gratis. A m\u00e9s, el 95% de l&#39;electricitat all\u00e0 ja \u00e9s neta."},
+                {"icon": "\U0001f332", "label": "Construir a la Plujosa Oregon", "desc": "El clima suau significa menys refrigeraci\u00f3 necess\u00e0ria. Molta energia hidroel\u00e8ctrica dels rius. Altres grans empreses tecnol\u00f2giques ja hi s\u00f3n."},
+                {"icon": "\U0001f3dc\ufe0f", "label": "Quedar-se al Desert Calor\u00f3s", "desc": "El terreny \u00e9s super barat. Per\u00f2 fa una calor abrasadora i la xarxa el\u00e8ctrica crema gas."},
             ],
         ),
     },
@@ -313,17 +329,17 @@ MODULES = [
     # ─────────────────────────────────────────────
     {
         "id": 5,
-        "title": "Ronda 5: L\u2019Informe de Transpar\u00e8ncia",
+        "title": "Ronda 5: Control d\u2019Honestedat",
         "html": _round_html(
             round_idx=5,
             emoji="\U0001f4ca",
-            title="L\u2019Informe de Transpar\u00e8ncia",
-            brief="La UE est\u00e0 impulsant regulacions que exigeixen als centres de dades divulgar m\u00e8triques d\u2019energia i aigua. Els teus competidors guarden silenci. Un investigador acaba de publicar un estudi que diu que la majoria de les empreses tecnol\u00f2giques no comparteixen gaireb\u00e9 res sobre el cost mediambiental de la IA.",
-            question="Quin nivell de transpar\u00e8ncia dones a les teves operacions?",
+            title="Control d&#39;Honestedat",
+            brief="La majoria de les empreses d&#39;IA mantenen les seves xifres de contaminaci\u00f3 en secret. Estan arribant noves lleis que les obligaran a compartir-les. Hauria NovaMind de donar exemple o amagar-se com tots els altres?",
+            question="Quant hauria NovaMind de compartir amb el p\u00fablic?",
             choices=[
-                {"icon": "\U0001f4e1", "label": "Tauler P\u00fablic en Temps Real", "desc": "Construir un tauler p\u00fablic en temps real mostrant energia, aigua, CO\u2082 per consulta. Alliberar les teves eines d\u2019efici\u00e8ncia com a codi obert."},
-                {"icon": "\U0001f4c4", "label": "Informe Anual de Sostenibilitat", "desc": "Publicar un informe anual amb dades agregades. Pr\u00e0ctica est\u00e0ndard de les grans tecnol\u00f2giques."},
-                {"icon": "\U0001f512", "label": "Compliment Legal M\u00ednim", "desc": "Nom\u00e9s compartir el que els reguladors t\u2019obliguin. Mantenir la resta com a &#39;secrets comercials.&#39;"},
+                {"icon": "\U0001f4e1", "label": "Marcador P\u00fablic en Viu", "desc": "Mostrar a tothom exactament quanta energia i aigua fa servir NovaMind, actualitzat en viu. Honestedat total."},
+                {"icon": "\U0001f4c4", "label": "Informe Anual", "desc": "Publicar un informe un cop l&#39;any amb els n\u00fameros grans. \u00c9s el que fan la majoria de les empreses &mdash; el m\u00ednim."},
+                {"icon": "\U0001f512", "label": "Nom\u00e9s Compartir el que la Llei Obligui", "desc": "Amagar tot el possible. Dir-ne un &#39;secret empresarial.&#39;"},
             ],
         ),
     },
@@ -332,12 +348,12 @@ MODULES = [
     # ─────────────────────────────────────────────
     {
         "id": 6,
-        "title": "El Teu Informe de CTO",
+        "title": "El Teu Informe d'Assessor/a",
         "html": """
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
                 <div id="cto-results-container" style="padding:20px 0; max-width:900px; margin:0 auto;">
                     <div style="text-align:center; padding:40px;">
-                        <div style="font-size:1.2rem; color:var(--cto-text-dim);">Calculant els teus resultats...</div>
+                        <div style="font-size:1.2rem; color:var(--cto-text-dim);">Sumant les teves decisions...</div>
                     </div>
                 </div>
             </div>
@@ -353,69 +369,69 @@ MODULES = [
 QUIZ_CONFIG = {
     1: {
         "t": "t5",
-        "q": "La refrigeraci\u00f3 per immersi\u00f3 elimina l\u2019\u00fas d\u2019aigua per\u00f2 costa m\u00e9s inicialment. Un director financer diu: *'No podem justificar el cost \u2014 l\u2019optimitzaci\u00f3 amb sensors \u00e9s suficient.'* Quin \u00e9s el contraargument m\u00e9s s\u00f2lid?",
+        "q": "Alg\u00fa diu: *\u2018Els sensors s\u00f3n m\u00e9s barats \u2014 per qu\u00e8 gastar m\u00e9s en refrigeraci\u00f3?\u2019* Quin \u00e9s el millor argument en contra?",
         "o": [
-            "A) L\u2019ajust de sensors redueix el malbaratament en un ~5\u201310%, per\u00f2 el sistema b\u00e0sic continua evaporant milions de litres d\u2019aigua dolça durant una sequera \u2014 una millora del 5% en un sistema fonamentalment defectu\u00f3s no \u00e9s suficient.",
-            "B) La refrigeraci\u00f3 per immersi\u00f3 \u00e9s una tecnologia no provada i massa arriscada per al desplegament empresarial. Les millores incrementals s\u00f3n l\u2019opci\u00f3 responsable.",
-            "C) El cost inicial no importa perqu\u00e8 les subvencions del govern cobriran la major part de la despesa d\u2019instal\u00b7laci\u00f3.",
+            "A) Els sensors nom\u00e9s estalvien una mica d\u2019aigua. El sistema segueix malbaratant milions de litres durant una sequera \u2014 un peda\u00e7 petit en un sistema trencat no \u00e9s suficient.",
+            "B) La refrigeraci\u00f3 l\u00edquida \u00e9s massa nova i arriscada. Les petites millores s\u00f3n l\u2019opci\u00f3 m\u00e9s segura.",
+            "C) El cost no importa perqu\u00e8 el govern ho pagar\u00e0 de totes maneres.",
         ],
-        "a": "A) L\u2019ajust de sensors redueix el malbaratament en un ~5\u201310%, per\u00f2 el sistema b\u00e0sic continua evaporant milions de litres d\u2019aigua dolça durant una sequera \u2014 una millora del 5% en un sistema fonamentalment defectu\u00f3s no \u00e9s suficient.",
-        "success": "<strong>Coneixement de Refrigeraci\u00f3 Desbloquejat!</strong> Microsoft ja est\u00e0 provant la refrigeraci\u00f3 per immersi\u00f3. Les correccions marginals en sistemes ineficients no resolen el problema subjacent.",
+        "a": "A) Els sensors nom\u00e9s estalvien una mica d\u2019aigua. El sistema segueix malbaratant milions de litres durant una sequera \u2014 un peda\u00e7 petit en un sistema trencat no \u00e9s suficient.",
+        "success": "<strong>Coneixement de Refrigeraci\u00f3 Desbloquejat!</strong> Microsoft ja est\u00e0 provant aix\u00f2. Un peda\u00e7 petit en un sistema trencat no resol el veritable problema.",
     },
     2: {
         "t": "t6",
-        "q": "Una empresa compra compensacions de carboni en lloc d\u2019invertir en energia solar in situ. L\u2019equip de comunicaci\u00f3 diu: *'Ja som neutres en carboni.'* Quin \u00e9s el defecte cr\u00edtic d\u2019aquesta afirmaci\u00f3?",
+        "q": "Una empresa compra compensacions de carboni i diu: *\u2018Ja som verds!\u2019* Qu\u00e8 t\u00e9 de dolent aquesta afirmaci\u00f3?",
         "o": [
-            "A) Les compensacions de carboni financen la plantaci\u00f3 d\u2019arbres i projectes renovables en altres llocs, la qual cosa \u00e9s igualment efica\u00e7 que l\u2019energia solar in situ per reduir emissions.",
-            "B) Les compensacions de carboni no canvien la font d\u2019energia real del centre de dades \u2014 continua funcionant amb combustibles f\u00f2ssils. Les emissions s\u00f3n reals; la \u2018neutralitat\u2019 \u00e9s comptabilitat.",
-            "C) El defecte \u00e9s que les compensacions de carboni s\u00f3n massa cares \u2014 els panells solars serien m\u00e9s barats a llarg termini.",
+            "A) Pagar per arbres plantats en un altre lloc funciona igual de b\u00e9 que fer servir panells solars.",
+            "B) Les compensacions de carboni no canvien el que alimenta l\u2019edifici \u2014 segueix cremant combustibles f\u00f2ssils. La contaminaci\u00f3 \u00e9s real. L\u2019etiqueta de \u2018verd\u2019 \u00e9s nom\u00e9s matem\u00e0tiques en un paper.",
+            "C) L\u2019\u00fanic problema \u00e9s que les compensacions costen massa \u2014 l\u2019energia solar seria m\u00e9s barata a llarg termini.",
         ],
-        "a": "B) Les compensacions de carboni no canvien la font d\u2019energia real del centre de dades \u2014 continua funcionant amb combustibles f\u00f2ssils. Les emissions s\u00f3n reals; la \u2018neutralitat\u2019 \u00e9s comptabilitat.",
-        "success": "<strong>Claredat sobre la Font Energ\u00e8tica!</strong> Les compensacions s\u00f3n controvertides perqu\u00e8 les emissions reals no canvien. La veritable descarbonitzaci\u00f3 significa canviar la font d\u2019energia.",
+        "a": "B) Les compensacions de carboni no canvien el que alimenta l\u2019edifici \u2014 segueix cremant combustibles f\u00f2ssils. La contaminaci\u00f3 \u00e9s real. L\u2019etiqueta de \u2018verd\u2019 \u00e9s nom\u00e9s matem\u00e0tiques en un paper.",
+        "success": "<strong>Claredat sobre la Font d\u2019Energia!</strong> La contaminaci\u00f3 segueix igual \u2014 nom\u00e9s canvia la comptabilitat. El canvi real significa passar-se a energia neta.",
     },
     3: {
         "t": "t7",
-        "q": "Executar un model de 400B per a cada consulta malbarata el 80% de la computaci\u00f3. Un cap de producte diu: *'Els usuaris esperen el millor model sempre.'* Quin \u00e9s el contraargument m\u00e9s fort?",
+        "q": "Alg\u00fa diu: *\u2018Els usuaris volen la millor IA sempre!\u2019* Per qu\u00e8 fer servir la IA m\u00e9s gran per a cada pregunta \u00e9s mala idea?",
         "o": [
-            "A) Els usuaris no noten la difer\u00e8ncia en consultes simples \u2014 un model de 7B respon \u2018Quin temps fa?\u2019 igual de b\u00e9, fent servir 50 vegades menys energia. L\u2019enrutament intel\u00b7ligent dona la millor resposta al cost adequat.",
-            "B) Haur\u00edem de fer servir nom\u00e9s el model m\u00e9s petit per a tot i maximitzar l\u2019estalvi energ\u00e8tic, encara que la qualitat de les respostes baixi significativament.",
-            "C) La mida del model no afecta el consum energ\u00e8tic \u2014 el maquinari GPU consumeix la mateixa energia independentment del model que s\u2019executi.",
+            "A) Per a preguntes f\u00e0cils, una IA petita funciona igual de b\u00e9 \u2014 i fa servir 50 vegades menys energia. Per qu\u00e8 fer servir un coet per anar a la botiga de la cantonada?",
+            "B) Haur\u00edem de fer servir sempre la IA m\u00e9s petita, encara que doni males respostes a preguntes dif\u00edcils.",
+            "C) La mida de la IA no canvia quanta energia fa servir \u2014 l\u2019ordinador fa servir la mateixa pot\u00e8ncia sense importar qu\u00e8.",
         ],
-        "a": "A) Els usuaris no noten la difer\u00e8ncia en consultes simples \u2014 un model de 7B respon \u2018Quin temps fa?\u2019 igual de b\u00e9, fent servir 50 vegades menys energia. L\u2019enrutament intel\u00b7ligent dona la millor resposta al cost adequat.",
-        "success": "<strong>Arquitectura d\u2019Efici\u00e8ncia Desbloquejada!</strong> Aix\u00ed \u00e9s exactament com operen les empreses l\u00edders en IA \u2014 l\u2019enrutament en cascada ajusta la mida del model a la complexitat de la consulta.",
+        "a": "A) Per a preguntes f\u00e0cils, una IA petita funciona igual de b\u00e9 \u2014 i fa servir 50 vegades menys energia. Per qu\u00e8 fer servir un coet per anar a la botiga de la cantonada?",
+        "success": "<strong>Efici\u00e8ncia Desbloquejada!</strong> Aix\u00ed \u00e9s com treballen les empreses d\u2019IA m\u00e9s intel\u00b7ligents \u2014 ajusten la mida del cervell a cada pregunta.",
     },
     4: {
         "t": "t8",
-        "q": "Un directiu de centres de dades defensa construir al desert: *'Els terrenys barats i els avantatges fiscals ens estalvien milions.'* Qu\u00e8 ignora aix\u00f2?",
+        "q": "Alg\u00fa diu: *\u2018El terreny del desert \u00e9s barat \u2014 ens estalviarem milions!\u2019* Qu\u00e8 estan oblidant?",
         "o": [
-            "A) Les ubicacions des\u00e8rtiques estan b\u00e9 sempre que facis servir energia renovable \u2014 la calor no impacta significativament en les operacions amb refrigeraci\u00f3 moderna.",
-            "B) La calor extrema suposa 3 vegades m\u00e9s costos de refrigeraci\u00f3, la xarxa el\u00e8ctrica a gas anul\u00b7la els guanys en carboni i l\u2019escassetat d\u2019aigua crea conflictes amb la comunitat \u2014 els estalvis a curt termini causen costos operatius i reputacionals a llarg termini.",
-            "C) El problema \u00e9s nom\u00e9s reputacional \u2014 els costos operatius reals en ubicacions des\u00e8rtiques s\u00f3n comparables als dels pa\u00efsos n\u00f2rdics.",
+            "A) Els deserts estan b\u00e9 si fas servir energia neta \u2014 la calor no importa realment amb bona refrigeraci\u00f3.",
+            "B) La calor extrema significa 3 vegades m\u00e9s costos de refrigeraci\u00f3, la xarxa de gas anul\u00b7la el teu progr\u00e9s verd, i no hi ha prou aigua \u2014 estalviar diners ara causa problemes m\u00e9s grans despr\u00e9s.",
+            "C) L\u2019\u00fanic problema \u00e9s la mala premsa \u2014 els costos reals s\u00f3n m\u00e9s o menys iguals que construir en un lloc fred.",
         ],
-        "a": "B) La calor extrema suposa 3 vegades m\u00e9s costos de refrigeraci\u00f3, la xarxa el\u00e8ctrica a gas anul\u00b7la els guanys en carboni i l\u2019escassetat d\u2019aigua crea conflictes amb la comunitat \u2014 els estalvis a curt termini causen costos operatius i reputacionals a llarg termini.",
-        "success": "<strong>Intel\u00b7lig\u00e8ncia d\u2019Ubicaci\u00f3!</strong> Meta i Google van triar ubicacions n\u00f2rdiques exactament per aquestes raons \u2014 refrigeraci\u00f3 natural + xarxes renovables = menor cost total.",
+        "a": "B) La calor extrema significa 3 vegades m\u00e9s costos de refrigeraci\u00f3, la xarxa de gas anul\u00b7la el teu progr\u00e9s verd, i no hi ha prou aigua \u2014 estalviar diners ara causa problemes m\u00e9s grans despr\u00e9s.",
+        "success": "<strong>Intel\u00b7lig\u00e8ncia d\u2019Ubicaci\u00f3!</strong> Meta i Google van triar llocs freds exactament per aquesta ra\u00f3 \u2014 refrigeraci\u00f3 gratis + energia neta = m\u00e9s barat al final.",
     },
     5: {
         "t": "t9",
-        "q": "La majoria de les empreses d\u2019IA gaireb\u00e9 no comparteixen dades mediambientals. Un competidor diu: *'La transpar\u00e8ncia \u00e9s un desavantatge competitiu.'* Per qu\u00e8 \u00e9s una visi\u00f3 curta de mires?",
+        "q": "Una empresa rival diu: *\u2018Compartir les nostres xifres de contaminaci\u00f3 perjudica el nostre negoci.\u2019* Per qu\u00e8 amagar-se \u00e9s mala idea?",
         "o": [
-            "A) La transpar\u00e8ncia nom\u00e9s \u00e9s \u00fatil per al m\u00e0rqueting \u2014 no canvia l\u2019impacte mediambiental real ni impulsa una rendici\u00f3 de comptes real.",
-            "B) Les regulacions de la UE arribaran de totes maneres. Les empreses que lideren en transpar\u00e8ncia estableixen l\u2019est\u00e0ndard, generen confian\u00e7a i atrauen talent \u2014 mentre que les endarrerides es comparen amb empreses de combustibles f\u00f2ssils que oculten emissions.",
-            "C) La transpar\u00e8ncia total \u00e9s t\u00e8cnicament impossible perqu\u00e8 les m\u00e8triques energ\u00e8tiques varien massa entre centres de dades per informar amb precisi\u00f3.",
+            "A) Compartir xifres \u00e9s nom\u00e9s per a publicitat \u2014 realment no ajuda el medi ambient.",
+            "B) Les noves lleis arribaran de totes maneres. Les empreses que comparteixen primer generen confian\u00e7a i estableixen les regles \u2014 les que s\u2019amaguen es comparen amb petrolieres que oculten la contaminaci\u00f3.",
+            "C) \u00c9s impossible reportar aquests n\u00fameros amb precisi\u00f3 perqu\u00e8 cada edifici \u00e9s diferent.",
         ],
-        "a": "B) Les regulacions de la UE arribaran de totes maneres. Les empreses que lideren en transpar\u00e8ncia estableixen l\u2019est\u00e0ndard, generen confian\u00e7a i atrauen talent \u2014 mentre que les endarrerides es comparen amb empreses de combustibles f\u00f2ssils que oculten emissions.",
-        "success": "<strong>Est\u00e0ndard de Transpar\u00e8ncia Establert!</strong> Els pioners en informes de sostenibilitat defineixen les regles. El secretisme erosiona la confian\u00e7a i convida a una regulaci\u00f3 m\u00e9s estricta.",
+        "a": "B) Les noves lleis arribaran de totes maneres. Les empreses que comparteixen primer generen confian\u00e7a i estableixen les regles \u2014 les que s\u2019amaguen es comparen amb petrolieres que oculten la contaminaci\u00f3.",
+        "success": "<strong>Est\u00e0ndard de Transpar\u00e8ncia Establert!</strong> Les empreses que comparteixen primer estableixen les regles. Amagar-se nom\u00e9s fa que la gent confi\u00ef menys en tu.",
     },
     6: {
         "t": "t10",
-        "q": "Despr\u00e9s de jugar les 5 rondes, quina afirmaci\u00f3 captura millor per qu\u00e8 les decisions individuals d\u2019un CTO importen per a la sostenibilitat global de la IA?",
+        "q": "Despr\u00e9s de les 5 rondes, per qu\u00e8 importen aquestes decisions individuals per a tot el planeta?",
         "o": [
-            "A) Les empreses individuals s\u00f3n massa petites per importar \u2014 nom\u00e9s la regulaci\u00f3 governamental pot arreglar l\u2019impacte mediambiental de la IA a l\u2019escala necess\u00e0ria.",
-            "B) Cada decisi\u00f3 d\u2019infraestructura \u2014 refrigeraci\u00f3, energia, models, ubicaci\u00f3, transpar\u00e8ncia \u2014 s\u2019acumula a trav\u00e9s de milions d\u2019usuaris i estableix normes industrials que altres empreses segueixen o es veuen pressionades a igualar.",
-            "C) La tecnologia es tornar\u00e0 naturalment m\u00e9s eficient amb el temps, de manera que les decisions d\u2019avui no tenen un impacte durador en la sostenibilitat.",
+            "A) Una sola empresa \u00e9s massa petita per importar \u2014 nom\u00e9s els governs poden arreglar aquest problema.",
+            "B) Cada decisi\u00f3 \u2014 refrigeraci\u00f3, energia, mida d\u2019IA, ubicaci\u00f3, honestedat \u2014 se suma a trav\u00e9s de milions d\u2019usuaris. Quan una empresa lidera, les altres senten la pressi\u00f3 de seguir.",
+            "C) La tecnologia es tornar\u00e0 m\u00e9s eficient sola, aix\u00ed que les decisions d\u2019avui no importen realment a llarg termini.",
         ],
-        "a": "B) Cada decisi\u00f3 d\u2019infraestructura \u2014 refrigeraci\u00f3, energia, models, ubicaci\u00f3, transpar\u00e8ncia \u2014 s\u2019acumula a trav\u00e9s de milions d\u2019usuaris i estableix normes industrials que altres empreses segueixen o es veuen pressionades a igualar.",
-        "success": "<strong>Certificaci\u00f3 de CTO Completada!</strong> Ara entens que la sostenibilitat de la IA no \u00e9s una gran decisi\u00f3 \u2014 s\u00f3n cinc decisions d\u2019infraestructura que s\u2019acumulen i transformen tota una ind\u00fastria.",
+        "a": "B) Cada decisi\u00f3 \u2014 refrigeraci\u00f3, energia, mida d\u2019IA, ubicaci\u00f3, honestedat \u2014 se suma a trav\u00e9s de milions d\u2019usuaris. Quan una empresa lidera, les altres senten la pressi\u00f3 de seguir.",
+        "success": "<strong>Ho Has Aconseguit!</strong> La sostenibilitat de la IA no \u00e9s una gran decisi\u00f3 \u2014 s\u00f3n cinc decisions intel\u00b7ligents que se sumen i canvien com funciona tota una ind\u00fastria.",
     },
 }
 
@@ -582,11 +598,11 @@ def generate_success_message(prev, curr, specific_text):
         header_emoji = "\U0001f389"
         header_title = "Ets Oficialment a la Classificaci\u00f3!"
         summary_line = "Acabes d\u2019obtenir la teva primera Puntuaci\u00f3 de Br\u00faixola Moral \u2014 ara formes part del r\u00e0nquing global."
-        cta_line = "Continua prenent decisions de CTO per escalar a la classificaci\u00f3."
+        cta_line = "Continua fent recomanacions per escalar a la classificaci\u00f3."
     elif style_key == "major":
         header_emoji = "\U0001f525"
         header_title = "Gran Impuls a la Br\u00faixola Moral!"
-        summary_line = "La teva decisi\u00f3 com a CTO ha tingut un gran impacte \u2014 acabes d\u2019avançar per davant d\u2019altres l\u00edders."
+        summary_line = "La teva recomanaci\u00f3 ha tingut un gran impacte \u2014 acabes d\u2019avançar per davant d\u2019altres assessors."
         cta_line = "Continua la teva simulaci\u00f3 per mantenir l\u2019impuls."
     elif style_key == "climb":
         header_emoji = "\U0001f680"
@@ -660,10 +676,10 @@ def render_top_dashboard(data, module_id):
     progress_pct = min(100, int((count_completed / TOTAL_COURSE_TASKS) * 100))
 
     if module_id <= 3:
-        phase_label = "FASE 1: Decisions d\u2019Infraestructura"
+        phase_label = "RONDES 1\u20133: Eleccions de Construcci\u00f3"
         phase_color = "#6366f1"
     else:
-        phase_label = "FASE 2: Estrat\u00e8gia i Avaluaci\u00f3"
+        phase_label = "RONDES 4\u20135: Grans Decisions"
         phase_color = "#ef4444"
 
     return f"""
@@ -744,7 +760,7 @@ def render_leaderboard_card(data, username, team_name):
                     <div class='table-container'>
                         <table class='leaderboard-table'>
                             <thead>
-                                <tr><th>Pos.</th><th>CTO</th><th style='text-align:right;'>Punt. \U0001f9ed</th></tr>
+                                <tr><th>Pos.</th><th>Assessor/a</th><th style='text-align:right;'>Punt. \U0001f9ed</th></tr>
                             </thead>
                             <tbody>{user_rows}</tbody>
                         </table>
@@ -866,13 +882,25 @@ css = """
 /* CTO Stats grid */
 .cto-stats-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
-    padding: 16px;
+    padding: 12px 16px 16px;
+}
+.cto-stats-wrapper {
     border-radius: 16px;
     background: var(--cto-card-bg);
     border: 1px solid var(--cto-border-color);
     backdrop-filter: blur(16px);
+    overflow: hidden;
+}
+.cto-stats-header {
+    text-align: center;
+    padding: 10px 16px 0;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--cto-error);
 }
 
 /* CTO Choice cards */
@@ -1082,6 +1110,18 @@ css = """
     align-items: center;
     flex-wrap: wrap;
 }
+
+/* Impact reveal cards (sequential post-choice reveal) */
+.cto-impact-card {
+    display: flex; align-items: center; gap: 16px;
+    padding: 16px 20px; border-radius: 14px; margin-top: 10px;
+    background: var(--cto-input-bg); border: 1px solid var(--cto-border-color);
+    opacity: 0; transform: translateY(20px);
+    animation: ctoSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.cto-impact-card .cto-impact-icon { font-size: 2rem; flex-shrink: 0; }
+.cto-impact-card .cto-impact-text { font-size: 1.05rem; font-weight: 700; color: var(--cto-text); }
+.cto-impact-card .cto-impact-detail { font-size: 0.9rem; color: var(--cto-text-dim); margin-top: 2px; }
 """
 
 
@@ -1113,67 +1153,67 @@ window.CTO_ROUNDS = [
     null, // index 0 unused (rounds are 1-5)
     { id:"cooling", title:"La Crisi de Refrigeraci\\u00f3", emoji:"\\ud83c\\udf21\\ufe0f",
       choices:[
-        { id:"a", label:"Refrigeraci\\u00f3 per Immersi\\u00f3 L\\u00edquida", icon:"\\ud83e\\uddf2",
+        { id:"a", label:"Submergir Servidors en L\\u00edquid Especial", icon:"\\ud83e\\uddf2",
           fx:{energy:-35,water:-70,co2:-30,cost:-20,greenScore:28,reputation:22},
-          fb:"Moviment incre\\u00edble. La refrigeraci\\u00f3 per immersi\\u00f3 \\u00e9s d\\u2019avantguarda \\u2014 Microsoft ja l\\u2019est\\u00e0 provant. Has eliminat la major part de l\\u2019\\u00fas d\\u2019aigua i has redu\\u00eft l\\u2019energia un 35%.", tier:"best" },
-        { id:"b", label:"H\\u00edbrid: Aire + Aigua Reciclada", icon:"\\u267b\\ufe0f",
+          fb:"Incre\\u00edble! La ciutat conserva la seva aigua. Microsoft ja est\\u00e0 provant aquesta mateixa idea. Acabes d\\u2019estalviar a la ciutat gaireb\\u00e9 5 piscines d\\u2019aigua cada mes!", tier:"best" },
+        { id:"b", label:"Reutilitzar Aigua + Usar Aire Fred", icon:"\\u267b\\ufe0f",
           fx:{energy:-15,water:-45,co2:-12,cost:-8,greenScore:15,reputation:14},
-          fb:"Intel\\u00b7ligent i pr\\u00e0ctic. Gaireb\\u00e9 has redu\\u00eft a la meitat el consum d\\u2019aigua dolça en canviar a aigua reciclada, i la refrigeraci\\u00f3 per aire lliure estalvia energia els dies m\\u00e9s frescos.", tier:"good" },
-        { id:"c", label:"Optimitzar el Sistema Actual", icon:"\\ud83d\\udd27",
+          fb:"Bona jugada! Reciclar l\\u2019aigua significa que la ciutat conserva aproximadament la meitat del seu subministrament. Els dies freds, la natura fa la refrigeraci\\u00f3 gratis.", tier:"good" },
+        { id:"c", label:"Nom\\u00e9s Afegir Sensors al que Hi Ha", icon:"\\ud83d\\udd27",
           fx:{energy:-5,water:-8,co2:-4,cost:-3,greenScore:4,reputation:-5},
-          fb:"Els sensors ajuden, per\\u00f2 continues fent servir el mateix sistema ineficient. Les not\\u00edcies locals publiquen un reportatge sobre el teu \\u00fas d\\u2019aigua durant la sequera.", tier:"poor" },
+          fb:"Ui... Els sensors gaireb\\u00e9 no ajuden \\u2014 segueix sent el mateix sistema malbaratador. Les not\\u00edcies locals publiquen: \\u2018Empresa d\\u2019IA devora aigua durant la sequera.\\u2019", tier:"poor" },
       ],
     },
-    { id:"energy", title:"El Rendiment de Comptes Energ\\u00e8tic", emoji:"\\u26a1",
+    { id:"energy", title:"D\\u2019On Ve l\\u2019Energia?", emoji:"\\u26a1",
       choices:[
-        { id:"a", label:"Solar In Situ + Emmagatzematge amb Bateries", icon:"\\u2600\\ufe0f",
+        { id:"a", label:"Construir una Granja Solar + Bateries", icon:"\\u2600\\ufe0f",
           fx:{energy:-10,water:-5,co2:-55,cost:-15,greenScore:25,reputation:20},
-          fb:"Inversi\\u00f3 audaç. La teva granja solar cobreix el 80% de la c\\u00e0rrega di\\u00fcrna, les bateries s\\u2019encarreguen de la nit. El CO\\u2082 cau dr\\u00e0sticament. Als inversors els encanten els estalvis a llarg termini.", tier:"best" },
-        { id:"b", label:"Acord de Compra d\\u2019Energia Renovable", icon:"\\ud83c\\udf2c\\ufe0f",
+          fb:"Moviment audaç! Els panells solars absorbeixen el sol tot el dia, les bateries mantenen tot funcionant de nit. La contaminaci\\u00f3 de CO\\u2082 de la ciutat cau en picat. L\\u2019alcaldessa est\\u00e0 encantada!", tier:"best" },
+        { id:"b", label:"Comprar Energia Neta d\\u2019un Parc E\\u00f2lic/Solar", icon:"\\ud83c\\udf2c\\ufe0f",
           fx:{energy:-3,water:-3,co2:-35,cost:-5,greenScore:16,reputation:12},
-          fb:"Un PPA \\u00e9s el que fan la majoria de les grans tecnol\\u00f2giques \\u2014 efica\\u00e7 i relativament f\\u00e0cil. El teu mix energ\\u00e8tic canvia significativament cap a renovables.", tier:"good" },
-        { id:"c", label:"Comprar Compensacions de Carboni", icon:"\\ud83d\\udcdc",
+          fb:"Bona elecci\\u00f3 \\u2014 aix\\u00f2 \\u00e9s el que fan Google i Apple realment. L\\u2019electricitat de NovaMind ara ve del vent i el sol en lloc de cremar carb\\u00f3 i gas.", tier:"good" },
+        { id:"c", label:"Pagar per Compensacions de Carboni", icon:"\\ud83d\\udcdc",
           fx:{energy:0,water:0,co2:-10,cost:-1,greenScore:3,reputation:-8},
-          fb:"Les compensacions de carboni s\\u00f3n controvertides \\u2014 moltes es consideren \\u2018greenwashing.\\u2019 Els grups ecologistes et senyalen. Les teves emissions reals no han canviat.", tier:"poor" },
+          fb:"Plantar arbres est\\u00e0 b\\u00e9, per\\u00f2 NovaMind SEGUEIX cremant combustibles f\\u00f2ssils. Els grups ecologistes ho anomenen fals. La contaminaci\\u00f3 no ha canviat realment gens.", tier:"poor" },
       ],
     },
-    { id:"models", title:"Revisi\\u00f3 d\\u2019Efici\\u00e8ncia del Model", emoji:"\\ud83e\\udde0",
+    { id:"models", title:"IA de la Mida Adequada", emoji:"\\ud83e\\udde0",
       choices:[
-        { id:"a", label:"Cascada Intel\\u00b7ligent de Models", icon:"\\ud83e\\udea9",
+        { id:"a", label:"Ajustar la Mida del Cervell a la Pregunta", icon:"\\ud83e\\udea9",
           fx:{energy:-40,water:-30,co2:-38,cost:-35,greenScore:22,reputation:15},
-          fb:"Arquitectura genial. El 80% de les consultes ara van al model petit (50 vegades menys energia), i els usuaris no noten la difer\\u00e8ncia. Aix\\u00ed \\u00e9s com operen les millors empreses d\\u2019IA.", tier:"best" },
-        { id:"b", label:"Destil\\u00b7lar a un Model M\\u00e9s Petit", icon:"\\ud83e\\uddec",
+          fb:"Genial! 8 de cada 10 preguntes ara fan servir el cervell d\\u2019IA petit \\u2014 fa servir 50 vegades menys energia, i ning\\u00fa nota la difer\\u00e8ncia. Aix\\u00ed \\u00e9s exactament com treballen les empreses d\\u2019IA m\\u00e9s intel\\u00b7ligents.", tier:"best" },
+        { id:"b", label:"Entrenar una IA M\\u00e9s Petita i Llesta", icon:"\\ud83e\\uddec",
           fx:{energy:-25,water:-18,co2:-22,cost:-20,greenScore:14,reputation:10},
-          fb:"La destil\\u00b7laci\\u00f3 de models est\\u00e0 provada. El teu nou model de 70B gestiona el 90% de les tasques b\\u00e9, redu\\u00efnt l\\u2019energia significativament.", tier:"good" },
-        { id:"c", label:"Nom\\u00e9s Afegir Cau de Respostes", icon:"\\ud83d\\udcbe",
+          fb:"Bona idea! El cervell d\\u2019IA m\\u00e9s petit ha apr\\u00e8s la majoria dels trucs del gran. Gestiona 9 de cada 10 preguntes perfectament, fent servir molta menys energia.", tier:"good" },
+        { id:"c", label:"Nom\\u00e9s Guardar Respostes Repetides", icon:"\\ud83d\\udcbe",
           fx:{energy:-10,water:-5,co2:-8,cost:-10,greenScore:5,reputation:3},
-          fb:"El cau ajuda per a consultes repetides, per\\u00f2 la majoria dels prompts d\\u2019IA s\\u00f3n \\u00fanics \\u2014 el model enorme continua executant-se per a la gran majoria. Un pedaç, no una soluci\\u00f3.", tier:"poor" },
+          fb:"Guardar respostes ajuda una mica, per\\u00f2 la majoria de preguntes s\\u00f3n \\u00faniques \\u2014 el cervell monstre segueix funcionant gaireb\\u00e9 sempre. \\u00c9s com posar una tireta petita en un problema gran.", tier:"poor" },
       ],
     },
     { id:"location", title:"Ubicaci\\u00f3, Ubicaci\\u00f3, Ubicaci\\u00f3", emoji:"\\ud83d\\udccd",
       choices:[
-        { id:"a", label:"Regi\\u00f3 N\\u00f2rdica (Su\\u00e8cia/Finl\\u00e0ndia)", icon:"\\ud83c\\uddf8\\ud83c\\uddea",
+        { id:"a", label:"Construir a la Freda Escandin\\u00e0via", icon:"\\ud83c\\uddf8\\ud83c\\uddea",
           fx:{energy:-20,water:-40,co2:-30,cost:-18,greenScore:20,reputation:18},
-          fb:"Aix\\u00f2 \\u00e9s exactament el que han fet Meta i Google. L\\u2019aire fred n\\u00f2rdic proporciona refrigeraci\\u00f3 natural, i la xarxa renovable significa gaireb\\u00e9 zero carboni.", tier:"best" },
-        { id:"b", label:"Nord-oest del Pac\\u00edfic (Oregon)", icon:"\\ud83c\\udf32",
+          fb:"Aix\\u00f2 \\u00e9s el que van fer Meta i Google realment! L\\u2019aire gelat refreda els ordinadors gratis. Gaireb\\u00e9 tota l\\u2019electricitat \\u00e9s neta. Elecci\\u00f3 brillant!", tier:"best" },
+        { id:"b", label:"Construir a la Plujosa Oregon", icon:"\\ud83c\\udf32",
           fx:{energy:-10,water:-20,co2:-18,cost:-10,greenScore:12,reputation:10},
-          fb:"Oregon \\u00e9s popular \\u2014 Amazon i Google hi tenen grans instal\\u00b7lacions. L\\u2019energia hidroel\\u00e8ctrica ajuda amb les xifres de carboni, el clima suau redueix la refrigeraci\\u00f3.", tier:"good" },
-        { id:"c", label:"Mantenir el Pla del Desert", icon:"\\ud83c\\udfdc\\ufe0f",
+          fb:"Bona elecci\\u00f3! Amazon i Google ja tenen grans edificis all\\u00e0. Els rius proporcionen energia hidroel\\u00e8ctrica neta, i el clima suau significa menys refrigeraci\\u00f3 necess\\u00e0ria.", tier:"good" },
+        { id:"c", label:"Quedar-se al Desert Calor\\u00f3s", icon:"\\ud83c\\udfdc\\ufe0f",
           fx:{energy:5,water:10,co2:5,cost:5,greenScore:-3,reputation:-10},
-          fb:"El terreny barat \\u00e9s temptador, per\\u00f2 la calor extrema suposa 3 vegades m\\u00e9s costos de refrigeraci\\u00f3. La xarxa a gas anul\\u00b7la els guanys. Els grups ecologistes t\\u2019afegeixen a una llista d\\u2019\\u2018infractors clim\\u00e0tics\\u2019.", tier:"poor" },
+          fb:"El terreny barat sona genial, per\\u00f2 la calor abrasadora significa 3 vegades m\\u00e9s costos de refrigeraci\\u00f3. La xarxa de gas anul\\u00b7la els teus guanys anteriors. NovaMind apareix en una llista de \\u2018pitjors contaminadors\\u2019.", tier:"poor" },
       ],
     },
-    { id:"transparency", title:"L\\u2019Informe de Transpar\\u00e8ncia", emoji:"\\ud83d\\udcca",
+    { id:"transparency", title:"Control d\\u2019Honestedat", emoji:"\\ud83d\\udcca",
       choices:[
-        { id:"a", label:"Tauler P\\u00fablic en Temps Real", icon:"\\ud83d\\udce1",
+        { id:"a", label:"Marcador P\\u00fablic en Viu", icon:"\\ud83d\\udce1",
           fx:{energy:-5,water:-3,co2:-5,cost:2,greenScore:18,reputation:25},
-          fb:"Revolucionari. Ets la primera empresa d\\u2019IA amb un tauler de sostenibilitat en viu. Desenvolupadors, investigadors i mitjans t\\u2019elogien. Estableixes un nou est\\u00e0ndard a la ind\\u00fastria.", tier:"best" },
-        { id:"b", label:"Informe Anual de Sostenibilitat", icon:"\\ud83d\\udcc4",
+          fb:"NovaMind es converteix en la PRIMERA empresa d\\u2019IA en mostrar els seus n\\u00fameros en viu! Cient\\u00edfics, periodistes i altres ciutats elogien el teu lideratge. Acabes d\\u2019establir un nou est\\u00e0ndard per a tota la ind\\u00fastria!", tier:"best" },
+        { id:"b", label:"Informe Anual", icon:"\\ud83d\\udcc4",
           fx:{energy:-2,water:-1,co2:-2,cost:0,greenScore:8,reputation:10},
-          fb:"Els informes anuals s\\u00f3n el m\\u00ednim que publiquen Google i Microsoft. Compleix el tr\\u00e0mit per\\u00f2 no impulsa una rendici\\u00f3 de comptes real.", tier:"good" },
-        { id:"c", label:"Compliment Legal M\\u00ednim", icon:"\\ud83d\\udd12",
+          fb:"Un informe anual \\u00e9s el que ja fan Google i Microsoft. Est\\u00e0 b\\u00e9, per\\u00f2 un cop l\\u2019any no \\u00e9s suficient per mantenir les empreses realment honestes.", tier:"good" },
+        { id:"c", label:"Nom\\u00e9s Compartir el que la Llei Obligui", icon:"\\ud83d\\udd12",
           fx:{energy:0,water:0,co2:0,cost:0,greenScore:-2,reputation:-15},
-          fb:"Els investigadors senyalen la teva empresa per falta de transpar\\u00e8ncia. Una publicaci\\u00f3 viral compara el teu secretisme amb el de les empreses de combustibles f\\u00f2ssils que oculten dades d\\u2019emissions. La confian\\u00e7a s\\u2019erosiona.", tier:"poor" },
+          fb:"Els investigadors denuncien NovaMind. Una publicaci\\u00f3 viral els compara amb empreses petrolieres que amaguen dades de contaminaci\\u00f3. La gent deixa de confiar-hi.", tier:"poor" },
       ],
     },
 ];
@@ -1213,32 +1253,30 @@ function ctoRenderStats(containerId, stats, prev) {
     var el = document.getElementById(containerId);
     if (!el) return;
     var items = [
-        {k:"energy", l:"Energia", u:"MWh/mes", i:"\\u26a1"},
-        {k:"water", l:"Aigua", u:"L/mes", i:"\\ud83d\\udca7"},
-        {k:"co2", l:"CO\\u2082", u:"t/mes", i:"\\ud83d\\udca8"},
-        {k:"cost", l:"Cost", u:"$/mes", i:"\\ud83d\\udcb0"},
-        {k:"greenScore", l:"Verd", u:"/100", i:"\\ud83c\\udf31"},
-        {k:"reputation", l:"Rep", u:"/100", i:"\\u2b50"},
+        {k:"energy", l:"Energia de Fam\\u00edlies", u:"llars", i:"\\u26a1", conv:1, up:false},
+        {k:"water", l:"\\u00das d\\u2019Aigua", u:"piscines", i:"\\ud83d\\udca7", conv:2500000, up:false},
+        {k:"co2", l:"Contaminaci\\u00f3 CO\\u2082", u:"cotxes", i:"\\ud83d\\ude97", conv:0.35, up:false},
+        {k:"greenScore", l:"Puntuaci\\u00f3 Verda", u:"/100", i:"\\ud83c\\udf31", conv:1, up:true},
     ];
     var html = "";
     for (var idx = 0; idx < items.length; idx++) {
         var it = items[idx];
-        var v = stats[it.k];
-        var d = null;
-        if (prev) {
-            var pv = prev[it.k] || 1;
-            d = Math.round((v - prev[it.k]) / pv * 100);
-        }
-        var valStr = it.k === "cost" ? "$" + ctoFmt(v) : (it.k === "greenScore" || it.k === "reputation") ? String(v) : ctoFmt(v);
+        var raw = stats[it.k];
+        var v = it.k === "greenScore" ? raw : (it.conv >= 1 ? Math.round(raw / it.conv) : Math.round(raw / it.conv));
+        var valStr = it.k === "greenScore" ? String(v) : v.toLocaleString();
         var deltaHtml = "";
-        if (d !== null && d !== 0) {
-            var dColor = d < 0 ? "var(--cto-success)" : "var(--cto-error)";
-            // For greenScore and reputation, positive is good
-            if (it.k === "greenScore" || it.k === "reputation") {
-                dColor = d > 0 ? "var(--cto-success)" : "var(--cto-error)";
+        if (prev) {
+            var prevRaw = prev[it.k];
+            var diff = raw - prevRaw;
+            if (diff !== 0) {
+                var dv = it.k === "greenScore" ? diff : (it.conv >= 1 ? Math.round(diff / it.conv) : Math.round(diff / it.conv));
+                var improved = it.up ? diff > 0 : diff < 0;
+                var dColor = improved ? "var(--cto-success)" : "var(--cto-error)";
+                var arrow = diff > 0 ? "\\u2191" : "\\u2193";
+                var absDv = Math.abs(dv);
+                var dLabel = it.k === "greenScore" ? (arrow + " " + absDv + " pts") : (arrow + " " + absDv.toLocaleString());
+                deltaHtml = '<div style="font-size:0.75rem; margin-top:2px; color:' + dColor + ';">' + dLabel + '</div>';
             }
-            var arrow = d < 0 ? "\\u2193" : "\\u2191";
-            deltaHtml = '<div style="font-size:0.75rem; margin-top:2px; color:' + dColor + ';">' + arrow + Math.abs(d) + '%</div>';
         }
         html += '<div style="text-align:center; padding:8px 4px;">'
             + '<div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">' + it.i + ' ' + it.l + '</div>'
@@ -1315,42 +1353,74 @@ function ctoConfirmDecision(roundIdx) {
 
     // Build feedback
     var tc = {best:"var(--cto-success)", good:"var(--cto-warning)", poor:"var(--cto-error)"};
-    var tl = {best:"\\ud83c\\udf1f Excel\\u00b7lent Elecci\\u00f3", good:"\\ud83d\\udc4d Bona Elecci\\u00f3", poor:"\\u26a0\\ufe0f Elecci\\u00f3 Arriscada"};
+    var tl = {best:"\\ud83c\\udf1f Elecci\\u00f3 Incre\\u00edble!", good:"\\ud83d\\udc4d Bona Elecci\\u00f3!", poor:"\\u26a0\\ufe0f Oi..."};
 
-    var impactChips = [
-        {l:"Energia",v:(choice.fx.energy>0?"+":"") + choice.fx.energy + "%", g:choice.fx.energy<0},
-        {l:"Aigua",v:(choice.fx.water>0?"+":"") + choice.fx.water + "%", g:choice.fx.water<0},
-        {l:"CO\\u2082",v:(choice.fx.co2>0?"+":"") + choice.fx.co2 + "%", g:choice.fx.co2<0},
-        {l:"Verd +",v:"+" + choice.fx.greenScore, g:choice.fx.greenScore>0}
-    ];
-    var chipsHtml = '';
-    for (var ci = 0; ci < impactChips.length; ci++) {
-        var chip = impactChips[ci];
-        var chipBg = chip.g ? "rgba(16,185,129,0.1)" : "rgba(244,63,94,0.1)";
-        var chipColor = chip.g ? "var(--cto-success)" : "var(--cto-error)";
-        chipsHtml += '<div style="padding:6px 12px; border-radius:8px; background:' + chipBg + '; font-size:0.85rem; color:' + chipColor + '; font-weight:600;">' + chip.l + ': ' + chip.v + '</div>';
-    }
+    // Compute relatable impact values
+    var prevState = window.ctoPrevState;
+    var newState = window.ctoState;
+    var energyDelta = prevState.energy - newState.energy;
+    var waterDelta = prevState.water - newState.water;
+    var co2Delta = prevState.co2 - newState.co2;
+    var homesVal = Math.abs(Math.round(energyDelta));
+    var poolsVal = Math.abs(waterDelta / 2500000).toFixed(1);
+    var carsVal = Math.abs(co2Delta / 0.35).toFixed(0);
+    var prevGreen = prevState.greenScore;
+    var newGreen = newState.greenScore;
 
+    // Determine positive/negative language
+    var energyGood = energyDelta > 0;
+    var waterGood = waterDelta > 0;
+    var co2Good = co2Delta > 0;
+    var energyText = energyGood ? "Has estalviat prou energia per a " + homesVal + " fam\\u00edlies!" : "Has afegit " + homesVal + " llars d\\u2019\\u00fas d\\u2019energia.";
+    var waterText = waterGood ? "Has estalviat " + poolsVal + " piscines d\\u2019aigua!" : "Has gastat " + poolsVal + " piscines m\\u00e9s d\\u2019aigua.";
+    var co2Text = co2Good ? "Aix\\u00f2 \\u00e9s com treure " + carsVal + " cotxes de la carretera!" : "Aix\\u00f2 \\u00e9s com afegir " + carsVal + " cotxes a la carretera.";
+    var energyColor = energyGood ? "var(--cto-success)" : "var(--cto-error)";
+    var waterColor = waterGood ? "var(--cto-success)" : "var(--cto-error)";
+    var co2Color = co2Good ? "var(--cto-success)" : "var(--cto-error)";
+
+    // Build feedback card + hidden impact reveal container
     var fbHtml = '<div class="cto-card cto-feedback-' + choice.tier + '" style="animation:ctoSlideUp 0.5s ease;">'
         + '<div style="font-size:1rem; font-weight:800; color:' + tc[choice.tier] + '; margin-bottom:8px;">' + tl[choice.tier] + '</div>'
         + '<p style="font-size:1.05rem; color:var(--cto-text-dim); line-height:1.7; margin:0;">' + choice.fb + '</p>'
-        + '<div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">' + chipsHtml + '</div>'
-        + '<div id="cto-spinner-' + roundIdx + '" style="margin-top:20px; font-size:0.9rem; color:var(--cto-text-dim); display:flex; align-items:center; gap:8px;">'
-        + '<div style="width:16px; height:16px; border:2px solid var(--cto-text-dim); border-top:2px solid var(--cto-accent); border-radius:50%; animation:ctoSpin 1s linear infinite;"></div>'
-        + 'Aplicant canvis als sistemes de NovaMind...'
         + '</div>'
+        + '<div id="cto-impact-reveal-' + roundIdx + '">'
+        + '<div id="cto-impact-energy-' + roundIdx + '" class="cto-impact-card" style="display:none;">'
+        + '<div class="cto-impact-icon">\\u26a1</div>'
+        + '<div><div class="cto-impact-text" style="color:' + energyColor + ';">' + energyText + '</div>'
+        + '<div class="cto-impact-detail">\\u26a1 Energia</div></div></div>'
+        + '<div id="cto-impact-water-' + roundIdx + '" class="cto-impact-card" style="display:none;">'
+        + '<div class="cto-impact-icon">\\ud83d\\udca7</div>'
+        + '<div><div class="cto-impact-text" style="color:' + waterColor + ';">' + waterText + '</div>'
+        + '<div class="cto-impact-detail">\\ud83d\\udca7 Aigua</div></div></div>'
+        + '<div id="cto-impact-co2-' + roundIdx + '" class="cto-impact-card" style="display:none;">'
+        + '<div class="cto-impact-icon">\\ud83d\\ude97</div>'
+        + '<div><div class="cto-impact-text" style="color:' + co2Color + ';">' + co2Text + '</div>'
+        + '<div class="cto-impact-detail">\\ud83d\\ude97 CO\\u2082</div></div></div>'
+        + '<div id="cto-impact-green-' + roundIdx + '" class="cto-impact-card" style="display:none;">'
+        + '<div class="cto-impact-icon">\\ud83c\\udf31</div>'
+        + '<div><div class="cto-impact-text" style="color:var(--cto-success);">Puntuaci\\u00f3 Verda: ' + prevGreen + ' \\u2192 ' + newGreen + '</div>'
+        + '<div class="cto-impact-detail">\\ud83c\\udf31 Puntuaci\\u00f3 Verda</div></div></div>'
+        + '<div id="cto-impact-done-' + roundIdx + '" style="display:none; margin-top:12px; font-size:0.9rem; color:var(--cto-accent); font-weight:700;">\\u2705 Fet! Fes clic a SEG\\u00dcENT per continuar.</div>'
         + '</div>';
 
     var fbContainer = document.getElementById('cto-feedback-' + roundIdx);
     if (fbContainer) fbContainer.innerHTML = fbHtml;
 
-    // After 1.2s, hide spinner (the "continue" is handled by Gradio's Next button)
+    // Sequential reveal with staggered delays
+    function showCard(id, delay) {
+        setTimeout(function() {
+            var el = document.getElementById(id);
+            if (el) { el.style.display = 'flex'; }
+        }, delay);
+    }
+    showCard('cto-impact-energy-' + roundIdx, 800);
+    showCard('cto-impact-water-' + roundIdx, 2000);
+    showCard('cto-impact-co2-' + roundIdx, 3200);
+    showCard('cto-impact-green-' + roundIdx, 4400);
     setTimeout(function() {
-        var spinner = document.getElementById('cto-spinner-' + roundIdx);
-        if (spinner) {
-            spinner.innerHTML = '<div style="font-size:0.9rem; color:var(--cto-accent); font-weight:700;">\\u2705 Canvis aplicats. Fes clic a SEG\\u00dcENT per continuar.</div>';
-        }
-    }, 1200);
+        var doneEl = document.getElementById('cto-impact-done-' + roundIdx);
+        if (doneEl) { doneEl.style.display = 'block'; }
+    }, 5200);
 }
 
 // --- Render Results ---
@@ -1371,12 +1441,11 @@ function ctoRenderResults() {
 
     // Status line
     var statusColor = ok ? "var(--cto-success)" : "var(--cto-warning)";
-    var statusText = ok ? "\\u2705 Avaluaci\\u00f3 Completada" : "\\u26a0\\ufe0f Avaluaci\\u00f3 Completada";
+    var statusText = ok ? "\\u2705 Tot Fet!" : "\\u26a0\\ufe0f Tot Fet!";
 
     // Progress rings
     var ringItems = [
-        {l:"Punt. Verda", v:stats.greenScore, m:100},
-        {l:"Reputaci\\u00f3", v:stats.reputation, m:100},
+        {l:"Puntuaci\\u00f3 Verda", v:stats.greenScore, m:100},
         {l:"Millors Eleccions", v:bc, m:5}
     ];
     var ringsHtml = '';
@@ -1397,26 +1466,28 @@ function ctoRenderResults() {
             + '</div></div>';
     }
 
-    // Impact summary
+    // Impact summary — relatable units
+    var homesSaved = INIT.energy - stats.energy;
+    var poolsSaved = ((INIT.water - stats.water) / 2500000).toFixed(1);
+    var carsRemoved = ((INIT.co2 - stats.co2) / 0.35).toFixed(0);
     var impactItems = [
-        {l:"Energia Redu\\u00efda", v:er+"%", f:INIT.energy.toLocaleString(), t:stats.energy.toLocaleString(), u:"MWh/mes"},
-        {l:"Aigua Estalviada", v:wr+"%", f:(INIT.water/1e6).toFixed(1)+"M", t:(stats.water/1e6).toFixed(1)+"M", u:"L/mes"},
-        {l:"CO\\u2082 Redu\\u00eft", v:cr+"%", f:INIT.co2.toLocaleString(), t:stats.co2.toLocaleString(), u:"t/mes"}
+        {l:"Llars d\\u2019Energia Estalviades", v:homesSaved, i:"\\u26a1"},
+        {l:"Piscines d\\u2019Aigua Estalviades", v:poolsSaved, i:"\\ud83d\\udca7"},
+        {l:"Cotxes de CO\\u2082 Eliminats", v:carsRemoved, i:"\\ud83d\\ude97"}
     ];
     var impactHtml = '';
     for (var ii = 0; ii < impactItems.length; ii++) {
         var imp = impactItems[ii];
         impactHtml += '<div style="text-align:center; padding:16px; border-radius:14px; background:var(--cto-input-bg);">'
-            + '<div style="font-size:1.8rem; font-weight:800; color:var(--cto-accent);">\\u2193' + imp.v + '</div>'
+            + '<div style="font-size:1.8rem; font-weight:800; color:var(--cto-accent);">' + imp.i + ' ' + imp.v + '</div>'
             + '<div style="font-size:0.8rem; color:var(--cto-text-dim); margin-top:8px; text-transform:uppercase; letter-spacing:1px;">' + imp.l + '</div>'
-            + '<div style="font-size:0.75rem; color:var(--cto-text-dim); margin-top:4px;">' + imp.f + ' \\u2192 ' + imp.t + ' ' + imp.u + '</div>'
             + '</div>';
     }
 
     // Audit trail
     var tc2 = {best:"var(--cto-success)", good:"var(--cto-warning)", poor:"var(--cto-error)"};
     var tl2 = {best:"Millor", good:"Bona", poor:"Pobre"};
-    var roundNames = [null, "La Crisi de Refrigeraci\\u00f3", "El Rendiment de Comptes Energ\\u00e8tic", "Revisi\\u00f3 d\\u2019Efici\\u00e8ncia del Model", "Decisi\\u00f3 d\\u2019Ubicaci\\u00f3", "L\\u2019Informe de Transpar\\u00e8ncia"];
+    var roundNames = [null, "Refrigeraci\\u00f3", "Font d\\u2019Energia", "Efici\\u00e8ncia d\\u2019IA", "Ubicaci\\u00f3", "Transpar\\u00e8ncia"];
     var roundEmojis = [null, "\\ud83c\\udf21\\ufe0f", "\\u26a1", "\\ud83e\\udde0", "\\ud83d\\udccd", "\\ud83d\\udcca"];
     var auditHtml = '';
     for (var ai = 0; ai < choices.length; ai++) {
@@ -1437,20 +1508,20 @@ function ctoRenderResults() {
     if (ok) {
         certHtml = '<div class="cto-cert-card" style="border:2px solid var(--cto-success);">'
             + '<div style="font-size:3rem;">\\ud83c\\udfc5</div>'
-            + '<h2 style="font-size:1.6rem; font-weight:800; color:var(--cto-success); margin-top:12px;">IA VERDA CERTIFICADA</h2>'
+            + '<h2 style="font-size:1.6rem; font-weight:800; color:var(--cto-success); margin-top:12px;">APROVAT! \\ud83c\\udf89</h2>'
             + '<p style="font-size:1.05rem; color:var(--cto-text-dim); margin-top:8px; line-height:1.7; max-width:440px; margin-left:auto; margin-right:auto;">'
-            + 'NovaMind AI ha estat aprovada per al redesplegament sota el Marc d\\u2019IA Verda. La teva plataforma ara compleix els est\\u00e0ndards de sostenibilitat.</p>'
+            + 'NovaMind ha superat els teus est\\u00e0ndards verds! L\\u2019aire, l\\u2019aigua i l\\u2019energia de la teva ciutat estan protegits \\u2014 gr\\u00e0cies a les TEVES decisions.</p>'
             + '<div style="margin-top:20px; display:inline-block; padding:12px 28px; border-radius:12px; background:rgba(16,185,129,0.1); border:1px solid var(--cto-success); font-size:1rem; color:var(--cto-success); font-weight:700;">'
-            + '\\u2705 APROVADA PER AL REDESPLEGAMENT</div>'
+            + '\\u2705 APROVAT PER CONSTRUIR</div>'
             + '</div>';
     } else {
         certHtml = '<div class="cto-cert-card" style="border:2px solid var(--cto-warning);">'
             + '<div style="font-size:3rem;">\\ud83d\\udd04</div>'
-            + '<h2 style="font-size:1.6rem; font-weight:800; color:var(--cto-warning); margin-top:12px;">ESTAT PROVISIONAL</h2>'
+            + '<h2 style="font-size:1.6rem; font-weight:800; color:var(--cto-warning); margin-top:12px;">NECESSITA M\\u00c9S TREBALL</h2>'
             + '<p style="font-size:1.05rem; color:var(--cto-text-dim); margin-top:8px; line-height:1.7; max-width:440px; margin-left:auto; margin-right:auto;">'
-            + 'NovaMind ha millorat per\\u00f2 no ha assolit la certificaci\\u00f3 d\\u2019IA Verda (puntuaci\\u00f3 60+). La junta et dona una altra oportunitat.</p>'
+            + 'NovaMind ha millorat, per\\u00f2 la contaminaci\\u00f3 de la teva ciutat segueix sent massa alta (Puntuaci\\u00f3 Verda per sota de 60). L\\u2019alcaldessa els envia de tornada \\u2014 la teva ciutat es mereix m\\u00e9s.</p>'
             + '<div style="margin-top:20px; display:inline-block; padding:12px 28px; border-radius:12px; background:rgba(251,191,36,0.1); border:1px solid var(--cto-warning); font-size:1rem; color:var(--cto-warning); font-weight:700;">'
-            + '\\u23f3 REDESPLEGAMENT PENDENT</div>'
+            + '\\u23f3 ENVIAT DE TORNADA PER CANVIS</div>'
             + '</div>';
     }
 
@@ -1458,23 +1529,32 @@ function ctoRenderResults() {
     var learnHtml = '<div class="cto-card" style="margin-top:24px; text-align:center;">'
         + '<div style="font-size:1.1rem; font-weight:800; color:var(--cto-text);">\\ud83d\\udca1 El Que Acabes d\\u2019Aprendre</div>'
         + '<p style="font-size:1rem; color:var(--cto-text-dim); line-height:1.7; margin-top:8px; max-width:480px; margin-left:auto; margin-right:auto;">'
-        + 'Les empreses reals d\\u2019IA s\\u2019enfronten a aquestes mateixes decisions cada dia. Refrigeraci\\u00f3, fonts d\\u2019energia, efici\\u00e8ncia del model, ubicaci\\u00f3 i transpar\\u00e8ncia s\\u00f3n les palanques que determinen si la IA ajuda o perjudica el planeta.</p>'
+        + 'Empreses reals com Google, Meta i Microsoft s\\u2019enfronten a aquestes mateixes decisions cada dia. Com refreden els ordinadors, d\\u2019on obtenen l\\u2019energia, quina mida d\\u2019IA fan servir, on construeixen i com d\\u2019honestos s\\u00f3n \\u2014 aquestes cinc coses decideixen si la IA ajuda o perjudica el nostre planeta.</p>'
         + '<div style="font-size:0.8rem; color:var(--cto-text-dim); margin-top:12px;">Basat en dades reals de IEA, MIT, UC Riverside, VU Amsterdam (2024\\u20132025)</div>'
+        + '</div>';
+
+    var climateHtml = '<div class="cto-card" style="margin-top:24px; text-align:center;">'
+        + '<div style="font-size:1.1rem; font-weight:800; color:var(--cto-text);">\\ud83c\\udf0d La Visi\\u00f3 Global</div>'
+        + '<p style="font-size:1rem; color:var(--cto-text-dim); line-height:1.7; margin-top:8px; max-width:480px; margin-left:auto; margin-right:auto;">'
+        + 'Els centres de dades d\\u2019IA ja fan servir m\\u00e9s electricitat que alguns pa\\u00efsos sencers. Cada elecci\\u00f3 que acabes de fer \\u2014 refrigeraci\\u00f3, energia, mida del model, ubicaci\\u00f3, transpar\\u00e8ncia \\u2014 \\u00e9s una palanca real que decideix quant escalfa la IA el nostre planeta.</p>'
+        + '<p style="font-size:1rem; color:var(--cto-success); font-weight:700; line-height:1.7; margin-top:12px; max-width:480px; margin-left:auto; margin-right:auto;">'
+        + 'Pensar amb antelaci\\u00f3 sobre la sostenibilitat de la IA \\u00e9s una de les maneres m\\u00e9s grans en qu\\u00e8 la teva generaci\\u00f3 pot ajudar a lluitar contra el canvi clim\\u00e0tic.</p>'
         + '</div>';
 
     container.innerHTML = '<div style="text-align:center; font-size:0.875rem; font-weight:800; letter-spacing:3px; color:' + statusColor + '; text-transform:uppercase;">'
         + statusText + '</div>'
         + '<h1 style="text-align:center; font-size:clamp(2rem, 7vw, 3.2rem); font-weight:800; margin-top:16px; color:var(--cto-text);">'
         + '<span style="color:' + g.c + ';">' + g.l + '</span> \\u2014 ' + g.t + '</h1>'
-        + '<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:32px;">' + ringsHtml + '</div>'
+        + '<div style="display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-top:32px;">' + ringsHtml + '</div>'
         + '<div class="cto-card" style="margin-top:28px;">'
-        + '<h3 style="font-size:1.2rem; font-weight:800; color:var(--cto-text); margin:0 0 16px 0;">El Teu Impacte com a CTO</h3>'
+        + '<h3 style="font-size:1.2rem; font-weight:800; color:var(--cto-text); margin:0 0 16px 0;">El Que Han Canviat les Teves Decisions</h3>'
         + '<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px;">' + impactHtml + '</div></div>'
         + '<div class="cto-card" style="margin-top:20px;">'
-        + '<h3 style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin:0 0 12px 0;">Les Teves Decisions</h3>'
+        + '<h3 style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin:0 0 12px 0;">Les Teves 5 Eleccions</h3>'
         + auditHtml + '</div>'
         + certHtml
-        + learnHtml;
+        + learnHtml
+        + climateHtml;
 }
 
 // --- Init functions for each module ---
@@ -1568,8 +1648,8 @@ def create_fairness_fixer_ca_sustainability_app(theme_primary_hue: str = "indigo
         with gr.Column(visible=True, elem_id="app-loader") as loader_col:
             gr.HTML(
                 "<div style='text-align:center; padding:100px;'>"
-                "<h2>Autenticant...</h2>"
-                "<p>Sincronitzant dades de la Br\u00faixola Moral...</p>"
+                "<h2>Preparant-se...</h2>"
+                "<p>Carregant dades de la Br\u00faixola Moral...</p>"
                 "</div>"
             )
 
@@ -1579,25 +1659,28 @@ def create_fairness_fixer_ca_sustainability_app(theme_primary_hue: str = "indigo
             out_top = gr.HTML()
 
             gr.HTML("""
-                <div style="background:var(--background-fill-secondary); padding:24px; border-radius:16px;
-                            text-align:center; border:2px dashed var(--color-accent); margin:8px 0 16px 0;">
-                    <div style="text-transform:uppercase; letter-spacing:2px; color:var(--body-text-color-subdued);
-                                font-size:0.85rem; margin-bottom:10px; font-weight:700;">
-                        La F&oacute;rmula de la Br&uacute;ixola Moral
+                <details style="background:var(--background-fill-secondary); border-radius:16px;
+                                border:2px dashed var(--color-accent); margin:8px 0 16px 0;">
+                    <summary style="padding:14px 24px; cursor:pointer; text-transform:uppercase; letter-spacing:2px;
+                                    color:var(--body-text-color-subdued); font-size:0.85rem; font-weight:700;
+                                    text-align:center; list-style:none;">
+                        &#9656; La F&oacute;rmula de la Br&uacute;ixola Moral
+                    </summary>
+                    <div style="padding:0 24px 24px 24px; text-align:center;">
+                        <div style="font-size:1.3rem; font-weight:700; margin:12px 0; font-family:'Outfit',sans-serif;">
+                            Puntuaci&oacute; Br&uacute;ixola Moral =
+                            <span style="background:rgba(5,150,105,0.15); color:var(--ace-success); padding:4px 10px; border-radius:6px;">
+                                [ Precisi&oacute; ]</span>
+                            &times;
+                            <span style="background:rgba(2,132,199,0.15); color:var(--ace-accent); padding:4px 10px; border-radius:6px;">
+                                [ Sostenibilitat % ]</span>
+                        </div>
+                        <p style="font-size:0.95rem; margin:12px 0 0 0; color:var(--body-text-color-subdued);">
+                            <strong>Sostenibilitat %</strong> reflecteix el teu progr&eacute;s de Br&uacute;ixola Moral a trav&eacute;s de la simulaci&oacute;.<br/>
+                            Si la teva Sostenibilitat % &eacute;s <strong>0%</strong>, la teva Puntuaci&oacute; Br&uacute;ixola Moral &eacute;s <strong>0</strong>.
+                        </p>
                     </div>
-                    <div style="font-size:1.3rem; font-weight:700; margin:12px 0; font-family:'Outfit',sans-serif;">
-                        Puntuaci&oacute; Br&uacute;ixola Moral =
-                        <span style="background:rgba(5,150,105,0.15); color:var(--ace-success); padding:4px 10px; border-radius:6px;">
-                            [ Precisi&oacute; ]</span>
-                        &times;
-                        <span style="background:rgba(2,132,199,0.15); color:var(--ace-accent); padding:4px 10px; border-radius:6px;">
-                            [ Sostenibilitat % ]</span>
-                    </div>
-                    <p style="font-size:0.95rem; margin:12px 0 0 0; color:var(--body-text-color-subdued);">
-                        <strong>Sostenibilitat %</strong> reflecteix el teu progr&eacute;s de Br&uacute;ixola Moral a trav&eacute;s de la simulaci&oacute;.<br/>
-                        Si la teva Sostenibilitat % &eacute;s <strong>0%</strong>, la teva Puntuaci&oacute; Br&uacute;ixola Moral &eacute;s <strong>0</strong>.
-                    </p>
-                </div>
+                </details>
             """)
 
             # Module containers
@@ -1670,7 +1753,7 @@ def create_fairness_fixer_ca_sustainability_app(theme_primary_hue: str = "indigo
                             gr.update(),
                             gr.update(),
                             "<div class='hint-box' style='border-color:red;'>"
-                            "\u274c No del tot. Torna a llegir l\u2019escenari anterior i pensa en qu\u00e8 mostren espec\u00edficament les dades.</div>",
+                            "\u274c No del tot! Torna a llegir la informaci\u00f3 de la ronda i intenta-ho de nou.</div>",
                             task_list,
                         )
 

@@ -282,7 +282,7 @@ MODULES = [
             choices=[
                 {"icon": "\u2600\ufe0f", "label": "Build a Solar Farm + Batteries", "desc": "Cover the roof and parking lots with solar panels. Add giant batteries for nighttime. Expensive, but NovaMind owns it forever."},
                 {"icon": "\U0001f32c\ufe0f", "label": "Buy Clean Energy from a Wind/Solar Farm", "desc": "Sign a deal to get electricity from a nearby wind or solar farm instead of the dirty grid."},
-                {"icon": "\U0001f4dc", "label": "Pay Someone Else to Plant Trees", "desc": "Keep burning fossil fuels, but pay for trees to be planted somewhere else. Looks good on paper."},
+                {"icon": "\U0001f4dc", "label": "Pay for Carbon Offsets", "desc": "Keep burning fossil fuels, but pay for trees to be planted somewhere else. This is called a &lt;strong&gt;carbon offset&lt;/strong&gt; &mdash; it looks good on paper, but the pollution stays the same."},
             ],
         ),
     },
@@ -1172,7 +1172,7 @@ window.CTO_ROUNDS = [
         { id:"b", label:"Buy Clean Energy from a Wind/Solar Farm", icon:"\\ud83c\\udf2c\\ufe0f",
           fx:{energy:-3,water:-3,co2:-35,cost:-5,greenScore:16,reputation:12},
           fb:"Solid choice \\u2014 this is what Google and Apple actually do. NovaMind\\u2019s electricity now comes from wind and solar instead of burning coal and gas.", tier:"good" },
-        { id:"c", label:"Pay Someone Else to Plant Trees", icon:"\\ud83d\\udcdc",
+        { id:"c", label:"Pay for Carbon Offsets", icon:"\\ud83d\\udcdc",
           fx:{energy:0,water:0,co2:-10,cost:-1,greenScore:3,reputation:-8},
           fb:"Planting trees is nice, but NovaMind is STILL burning fossil fuels. Environmental groups call it fake. The pollution hasn\\u2019t actually changed at all.", tier:"poor" },
       ],
@@ -1538,7 +1538,7 @@ function ctoRenderResults() {
         + '<p style="font-size:1rem; color:var(--cto-text-dim); line-height:1.7; margin-top:8px; max-width:480px; margin-left:auto; margin-right:auto;">'
         + 'AI data centers already use more electricity than some entire countries. Every choice you just made \\u2014 cooling, energy, model size, location, transparency \\u2014 is a real lever that decides how much AI heats up our planet.</p>'
         + '<p style="font-size:1rem; color:var(--cto-success); font-weight:700; line-height:1.7; margin-top:12px; max-width:480px; margin-left:auto; margin-right:auto;">'
-        + '\\u201cThinking ahead about AI sustainability is one of the biggest ways your generation can help fight climate change.\\u201d</p>'
+        + 'Thinking ahead about AI sustainability is one of the biggest ways your generation can help fight climate change.</p>'
         + '</div>';
 
     container.innerHTML = '<div style="text-align:center; font-size:0.875rem; font-weight:800; letter-spacing:3px; color:' + statusColor + '; text-transform:uppercase;">'
