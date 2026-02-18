@@ -1509,31 +1509,6 @@ def create_bias_detective_en_sustainability_app(theme_primary_hue: str = "indigo
             # Top dashboard
             out_top = gr.HTML()
 
-            gr.HTML("""
-                <details style="background:var(--background-fill-secondary); border-radius:16px;
-                                border:2px dashed var(--color-accent); margin:8px 0 16px 0;">
-                    <summary style="padding:14px 24px; cursor:pointer; text-transform:uppercase; letter-spacing:2px;
-                                    color:var(--body-text-color-subdued); font-size:0.85rem; font-weight:700;
-                                    text-align:center; list-style:none;">
-                        &#9656; The Moral Compass Formula
-                    </summary>
-                    <div style="padding:0 24px 24px 24px; text-align:center;">
-                        <div style="font-size:1.3rem; font-weight:700; margin:12px 0; font-family:'Outfit',sans-serif;">
-                            Moral Compass Score =
-                            <span style="background:rgba(5,150,105,0.15); color:var(--ace-success); padding:4px 10px; border-radius:6px;">
-                                [ Accuracy ]</span>
-                            &times;
-                            <span style="background:rgba(2,132,199,0.15); color:var(--ace-accent); padding:4px 10px; border-radius:6px;">
-                                [ Sustainability % ]</span>
-                        </div>
-                        <p style="font-size:0.95rem; margin:12px 0 0 0; color:var(--body-text-color-subdued);">
-                            <strong>Sustainability %</strong> reflects your Moral Compass progress through the investigation.<br/>
-                            If your Sustainability % is <strong>0%</strong>, your Moral Compass Score is <strong>0</strong>.
-                        </p>
-                    </div>
-                </details>
-            """)
-
             # Module containers
             module_ui_elements = {}
             quiz_wiring_queue = []
@@ -1577,6 +1552,31 @@ def create_bias_detective_en_sustainability_app(theme_primary_hue: str = "indigo
                         btn_next = gr.Button(next_label, variant="primary")
 
                     module_ui_elements[i] = (mod_col, btn_prev, btn_next)
+
+            gr.HTML("""
+                <details style="background:var(--background-fill-secondary); border-radius:16px;
+                                border:1px solid var(--border-color-primary); margin:8px 0 12px 0; opacity:0.7;">
+                    <summary style="padding:14px 24px; cursor:pointer; text-transform:uppercase; letter-spacing:1.5px;
+                                    color:var(--body-text-color-subdued); font-size:0.78rem; font-weight:700;
+                                    text-align:center; list-style:none;">
+                        &#9656; The Moral Compass Formula
+                    </summary>
+                    <div style="padding:0 24px 24px 24px; text-align:center;">
+                        <div style="font-size:1.3rem; font-weight:700; margin:12px 0; font-family:'Outfit',sans-serif;">
+                            Moral Compass Score =
+                            <span style="background:rgba(5,150,105,0.15); color:var(--ace-success); padding:4px 10px; border-radius:6px;">
+                                [ Accuracy ]</span>
+                            &times;
+                            <span style="background:rgba(2,132,199,0.15); color:var(--ace-accent); padding:4px 10px; border-radius:6px;">
+                                [ Sustainability % ]</span>
+                        </div>
+                        <p style="font-size:0.95rem; margin:12px 0 0 0; color:var(--body-text-color-subdued);">
+                            <strong>Sustainability %</strong> reflects your Moral Compass progress through the investigation.<br/>
+                            If your Sustainability % is <strong>0%</strong>, your Moral Compass Score is <strong>0</strong>.
+                        </p>
+                    </div>
+                </details>
+            """)
 
             # Leaderboard at bottom
             leaderboard_html = gr.HTML()
