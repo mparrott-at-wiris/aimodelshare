@@ -89,10 +89,10 @@ def fetch_user_history(username, token):
 # ============================================================================
 # Page 0: Title Screen — no quiz
 # Page 1: Round 1 — Cooling Crisis — quiz t12
-# Page 2: Round 2 — Power Source Reckoning — quiz t13
-# Page 3: Round 3 — Model Efficiency Overhaul — quiz t14
+# Page 2: Round 2 — Where Does the Power Come From? — quiz t13
+# Page 3: Round 3 — Right-Sized AI — quiz t14
 # Page 4: Round 4 — Location Decision — quiz t15
-# Page 5: Round 5 — Transparency Report — quiz t16
+# Page 5: Round 5 — Honesty Check — quiz t16
 # Page 6: Results — quiz t17
 # ============================================================================
 
@@ -140,9 +140,12 @@ def _round_html(round_idx, emoji, title, brief, question, choices):
             <div class="cto-reveal" style="animation-delay:0s;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                     <span style="font-size:0.875rem; color:var(--cto-text-dim); font-weight:600; letter-spacing:3px; text-transform:uppercase;">Round {round_idx} / {total}</span>
-                    <span style="font-size:0.875rem; color:var(--cto-text-dim);">NovaMind AI &mdash; CTO Dashboard</span>
+                    <span style="font-size:0.875rem; color:var(--cto-text-dim);">NovaMind AI &mdash; Your Review</span>
                 </div>
-                <div id="cto-stats-{round_idx}" class="cto-stats-grid"></div>
+                <div class="cto-stats-wrapper">
+                    <div class="cto-stats-header">&#127961;&#65039; Your City&#39;s Pollution</div>
+                    <div id="cto-stats-{round_idx}" class="cto-stats-grid"></div>
+                </div>
                 <div style="display:flex; gap:6px; margin-top:16px;">
                     {progress_segments}
                 </div>
@@ -153,7 +156,7 @@ def _round_html(round_idx, emoji, title, brief, question, choices):
                     <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
                         <span style="font-size:2rem;">{emoji}</span>
                         <div>
-                            <div style="font-size:0.75rem; color:var(--cto-warning); font-weight:800; letter-spacing:3px; text-transform:uppercase;">Incoming Brief</div>
+                            <div style="font-size:0.75rem; color:var(--cto-warning); font-weight:800; letter-spacing:3px; text-transform:uppercase;">What&#39;s Happening</div>
                             <h2 style="font-size:1.5rem; font-weight:800; color:var(--cto-text); margin:0;">{title}</h2>
                         </div>
                     </div>
@@ -171,7 +174,7 @@ def _round_html(round_idx, emoji, title, brief, question, choices):
                 </div>
                 <button id="cto-confirm-btn-{round_idx}" class="cto-confirm-btn"
                     onclick="ctoConfirmDecision({round_idx})" style="display:none;">
-                    Confirm Decision &rarr;
+                    Lock In My Choice &rarr;
                 </button>
             </div>
 
@@ -186,46 +189,59 @@ MODULES = [
     # ─────────────────────────────────────────────
     {
         "id": 0,
-        "title": "GREEN AI CTO",
+        "title": "GREEN AI ADVISOR",
         "html": """
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
                 <div class="cto-title-page">
                     <div class="cto-reveal" style="animation-delay:0s;">
                         <div style="font-size:0.875rem; font-weight:800; letter-spacing:3px; color:var(--cto-error); text-transform:uppercase; margin-bottom:24px; text-align:center;">
-                            &#9888;&#65039; Simulation Active
+                            &#127758; Mission Briefing
                         </div>
                     </div>
                     <div class="cto-reveal" style="animation-delay:0.3s;">
                         <h1 style="font-size:clamp(2.2rem, 8vw, 3.5rem); font-weight:800; text-align:center; line-height:1.1; letter-spacing:-1px; color:var(--cto-text); margin:0;">
-                            GREEN AI<br/><span style="color:var(--cto-accent);">CTO</span>
+                            GREEN AI<br/><span style="color:var(--cto-accent);">ADVISOR</span>
                         </h1>
                     </div>
                     <div class="cto-reveal" style="animation-delay:0.6s;">
                         <p style="font-size:1.125rem; color:var(--cto-text-dim); text-align:center; max-width:480px; margin:28px auto 0; line-height:1.7;">
-                            You just got promoted to <strong style="color:var(--cto-text); font-weight:600;">Chief Technology Officer</strong> of NovaMind AI.
-                            Your platform serves 50 million users &mdash; and it&#39;s <strong style="color:var(--cto-error); font-weight:700;">destroying the planet</strong>.
-                            Your board has given you 5 rounds to fix it.
+                            The mayor just picked YOU as the city&#39;s <strong style="color:var(--cto-text); font-weight:600;">Green AI Advisor</strong>!
+                            A company called NovaMind wants to build a giant AI data center here. Look at the pollution numbers below &mdash; <strong style="color:var(--cto-error); font-weight:700;">that&#39;s what YOUR city will face</strong> if you don&#39;t step in.
                         </p>
                     </div>
                     <div class="cto-reveal" style="animation-delay:0.9s;">
-                        <div style="display:flex; gap:12px; margin-top:32px; flex-wrap:wrap; justify-content:center;">
-                            <div style="padding:14px 20px; border-radius:12px; background:var(--cto-input-bg); border:1px solid var(--cto-border-color); text-align:center; min-width:120px;">
-                                <div style="font-size:0.85rem; color:var(--cto-warning); font-weight:600;">&#9889; Energy</div>
-                                <div style="font-size:1.15rem; font-weight:800; color:var(--cto-text); margin-top:4px;">4,200 MWh/mo</div>
-                            </div>
-                            <div style="padding:14px 20px; border-radius:12px; background:var(--cto-input-bg); border:1px solid var(--cto-border-color); text-align:center; min-width:120px;">
-                                <div style="font-size:0.85rem; color:var(--cto-error); font-weight:600;">&#128167; Water</div>
-                                <div style="font-size:1.15rem; font-weight:800; color:var(--cto-text); margin-top:4px;">18.5M L/mo</div>
-                            </div>
-                            <div style="padding:14px 20px; border-radius:12px; background:var(--cto-input-bg); border:1px solid var(--cto-border-color); text-align:center; min-width:120px;">
-                                <div style="font-size:0.85rem; color:var(--cto-text-dim); font-weight:600;">&#127793; Green Score</div>
-                                <div style="font-size:1.15rem; font-weight:800; color:var(--cto-text); margin-top:4px;">8 / 100</div>
+                        <div class="cto-stats-wrapper" style="margin-top:32px; max-width:420px; margin-left:auto; margin-right:auto;">
+                            <div class="cto-stats-header">&#127961;&#65039; Your City&#39;s Pollution from NovaMind</div>
+                            <div class="cto-stats-grid">
+                                <div style="text-align:center; padding:8px 4px;">
+                                    <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#9889; Families&#39; Energy</div>
+                                    <div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">4,200</div>
+                                    <div style="font-size:0.7rem; color:var(--cto-text-dim);">homes&#39; worth</div>
+                                </div>
+                                <div style="text-align:center; padding:8px 4px;">
+                                    <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#128167; Water Use</div>
+                                    <div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">7.4</div>
+                                    <div style="font-size:0.7rem; color:var(--cto-text-dim);">swimming pools</div>
+                                </div>
+                                <div style="text-align:center; padding:8px 4px;">
+                                    <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#128663; CO&#8322; Pollution</div>
+                                    <div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">4,800</div>
+                                    <div style="font-size:0.7rem; color:var(--cto-text-dim);">cars&#39; worth</div>
+                                </div>
+                                <div style="text-align:center; padding:8px 4px;">
+                                    <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#127793; Green Score</div>
+                                    <div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">8 / 100 &#128561;</div>
+                                    <div style="font-size:0.7rem; color:var(--cto-text-dim);">/100</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="cto-reveal" style="animation-delay:1.2s;">
-                        <div style="text-align:center; margin-top:16px;">
-                            <p style="font-size:0.875rem; color:var(--cto-text-dim);">5 decisions &middot; Real consequences &middot; Can you save NovaMind?</p>
+                    <div class="cto-reveal" style="animation-delay:1.1s;">
+                        <p style="font-size:1.05rem; font-weight:700; color:var(--cto-accent); text-align:center; margin-top:20px;">Reduce each number to green levels and protect your city!</p>
+                    </div>
+                    <div class="cto-reveal" style="animation-delay:1.3s;">
+                        <div style="text-align:center; margin-top:12px;">
+                            <p style="font-size:0.875rem; color:var(--cto-text-dim);">5 rounds &middot; Real choices &middot; Your city is counting on you &#127758;</p>
                         </div>
                     </div>
                 </div>
@@ -242,50 +258,50 @@ MODULES = [
             round_idx=1,
             emoji="\U0001f321\ufe0f",
             title="The Cooling Crisis",
-            brief="Your data center in Phoenix runs 24/7 with traditional air cooling towers that gulp millions of gallons of city water. The local community is furious &mdash; they&#39;re in a drought. Cooling eats 40% of your energy bill.",
-            question="As CTO, how do you redesign cooling?",
+            brief="Imagine a building that uses 7 swimming pools of water EVERY MONTH just to keep its computers cool. That&#39;s NovaMind&#39;s plan &mdash; and your city is running out of water.",
+            question="How should NovaMind cool its computers?",
             choices=[
-                {"icon": "\U0001f9ca", "label": "Liquid Immersion Cooling", "desc": "Submerge servers in non-conductive fluid. Big upfront cost but eliminates water use for cooling."},
-                {"icon": "\u267b\ufe0f", "label": "Hybrid Air + Recycled Water", "desc": "Switch to recycled gray water and add free-air cooling for cooler months."},
-                {"icon": "\U0001f527", "label": "Optimize Existing System", "desc": "Just tune the current cooling towers &mdash; add sensors and smart controls. Cheapest option."},
+                {"icon": "\U0001f9ca", "label": "Dunk Servers in Special Liquid", "desc": "Put the computers in a cool bath instead of spraying water. Costs more to set up, but uses almost zero water."},
+                {"icon": "\u267b\ufe0f", "label": "Reuse Water + Use Cold Air", "desc": "Recycle the water and let cool outdoor air help. Saves about half the water."},
+                {"icon": "\U0001f527", "label": "Just Add Sensors to What Exists", "desc": "Keep the same system but add sensors to waste a little less. Cheapest, but barely changes anything."},
             ],
         ),
     },
     # ─────────────────────────────────────────────
-    # MODULE 2 — ROUND 2: POWER SOURCE RECKONING
+    # MODULE 2 — ROUND 2: WHERE DOES THE POWER COME FROM?
     # ─────────────────────────────────────────────
     {
         "id": 2,
-        "title": "Round 2: Power Source Reckoning",
+        "title": "Round 2: Where Does the Power Come From?",
         "html": _round_html(
             round_idx=2,
             emoji="\u26a1",
-            title="Power Source Reckoning",
-            brief="Your data center pulls 100% from the regional grid &mdash; 65% natural gas and coal. Every AI query is powered by fossil fuels. Investors are asking about your carbon plan.",
-            question="How do you green your power supply?",
+            title="Where Does the Power Come From?",
+            brief="Right now, NovaMind would plug straight into dirty power &mdash; 65% of it comes from burning gas and coal. Every time someone asks the AI a question, more fossil fuels get burned.",
+            question="Where should NovaMind get its electricity?",
             choices=[
-                {"icon": "\u2600\ufe0f", "label": "On-Site Solar + Battery Storage", "desc": "Build a solar farm with battery packs for 24/7 coverage. Expensive but fully owned."},
-                {"icon": "\U0001f32c\ufe0f", "label": "Renewable Power Purchase Agreement", "desc": "Sign a long-term contract for wind/solar energy from a renewable provider."},
-                {"icon": "\U0001f4dc", "label": "Buy Carbon Offsets", "desc": "Purchase carbon credits to &#39;neutralize&#39; emissions on paper. Cheapest and fastest."},
+                {"icon": "\u2600\ufe0f", "label": "Build a Solar Farm + Batteries", "desc": "Cover the roof and parking lots with solar panels. Add giant batteries for nighttime. Expensive, but NovaMind owns it forever."},
+                {"icon": "\U0001f32c\ufe0f", "label": "Buy Clean Energy from a Wind/Solar Farm", "desc": "Sign a deal to get electricity from a nearby wind or solar farm instead of the dirty grid."},
+                {"icon": "\U0001f4dc", "label": "Pay Someone Else to Plant Trees", "desc": "Keep burning fossil fuels, but pay for trees to be planted somewhere else. Looks good on paper."},
             ],
         ),
     },
     # ─────────────────────────────────────────────
-    # MODULE 3 — ROUND 3: MODEL EFFICIENCY OVERHAUL
+    # MODULE 3 — ROUND 3: RIGHT-SIZED AI
     # ─────────────────────────────────────────────
     {
         "id": 3,
-        "title": "Round 3: Model Efficiency Overhaul",
+        "title": "Round 3: Right-Sized AI",
         "html": _round_html(
             round_idx=3,
             emoji="\U0001f9e0",
-            title="Model Efficiency Overhaul",
-            brief="Your team runs a 400B parameter model for EVERY query &mdash; even simple ones like &#39;what&#39;s the weather?&#39; That&#39;s like using a rocket to go to the grocery store. 80% of queries don&#39;t need that much power.",
-            question="How do you optimize model deployment?",
+            title="Right-Sized AI",
+            brief="NovaMind uses its biggest, most powerful AI brain for EVERY question &mdash; even easy ones like &#39;What&#39;s the weather?&#39; That&#39;s like driving a monster truck to get milk. 8 out of 10 questions don&#39;t need that much power.",
+            question="How should NovaMind handle easy vs. hard questions?",
             choices=[
-                {"icon": "\U0001fa9c", "label": "Smart Model Cascade", "desc": "Route simple queries to a 7B model, medium to 70B, complex to 400B. Build an intelligent router."},
-                {"icon": "\U0001f9ec", "label": "Distill to One Smaller Model", "desc": "Train a single efficient 70B model that captures most of the 400B model&#39;s capabilities."},
-                {"icon": "\U0001f4be", "label": "Just Add Response Caching", "desc": "Cache common responses so repeated queries skip the model. Keep the big model for everything else."},
+                {"icon": "\U0001fa9c", "label": "Match Brain Size to Question Size", "desc": "Use a small AI for easy questions, a medium one for tricky ones, and the biggest only for the hardest. Like picking the right tool for the job."},
+                {"icon": "\U0001f9ec", "label": "Train a Smaller, Smarter AI", "desc": "Teach a medium-sized AI to do almost everything the giant one can. One brain that&#39;s good enough for 90% of questions."},
+                {"icon": "\U0001f4be", "label": "Just Save Repeat Answers", "desc": "Remember common answers so the AI doesn&#39;t re-think them. But the monster brain still runs for everything new."},
             ],
         ),
     },
@@ -299,31 +315,31 @@ MODULES = [
             round_idx=4,
             emoji="\U0001f4cd",
             title="Location, Location, Location",
-            brief="Your next data center is planned for a desert region with cheap land but extreme heat and a gas-powered grid. Nearly 7,000 of the world&#39;s 8,800 data centers are built in the wrong climate.",
-            question="Where do you build your next data center?",
+            brief="NovaMind wants to build in a hot desert because the land is cheap. But desert heat means the computers need WAY more cooling. And the local power grid runs mostly on gas.",
+            question="Where should NovaMind build?",
             choices=[
-                {"icon": "\U0001f1f8\U0001f1ea", "label": "Nordic Region (Sweden/Finland)", "desc": "Cold climate = almost free cooling. Grid is 95%+ renewable. Higher land cost but massive operational savings."},
-                {"icon": "\U0001f332", "label": "Pacific Northwest (Oregon)", "desc": "Moderate climate, strong hydro power, established tech infrastructure."},
-                {"icon": "\U0001f3dc\ufe0f", "label": "Stick with the Desert Plan", "desc": "Cheap land, tax breaks, close to HQ. You&#39;ll deal with the heat somehow."},
+                {"icon": "\U0001f1f8\U0001f1ea", "label": "Build in Cold Scandinavia", "desc": "Sweden and Finland are freezing cold &mdash; nature cools the computers for free. Plus, 95% of the electricity there is already clean."},
+                {"icon": "\U0001f332", "label": "Build in Rainy Oregon", "desc": "Mild weather means less cooling needed. Lots of hydropower from rivers. Other big tech companies are already there."},
+                {"icon": "\U0001f3dc\ufe0f", "label": "Stay in the Hot Desert", "desc": "The land is super cheap. But it&#39;s scorching hot and the power grid burns gas."},
             ],
         ),
     },
     # ─────────────────────────────────────────────
-    # MODULE 5 — ROUND 5: THE TRANSPARENCY REPORT
+    # MODULE 5 — ROUND 5: HONESTY CHECK
     # ─────────────────────────────────────────────
     {
         "id": 5,
-        "title": "Round 5: The Transparency Report",
+        "title": "Round 5: Honesty Check",
         "html": _round_html(
             round_idx=5,
             emoji="\U0001f4ca",
-            title="The Transparency Report",
-            brief="The EU is pushing regulations requiring data centers to disclose energy and water metrics. Your competitors are staying quiet. A researcher just published a study saying most tech companies share almost nothing about AI&#39;s environmental cost.",
-            question="How transparent do you make your operations?",
+            title="Honesty Check",
+            brief="Most AI companies keep their pollution numbers secret. New laws are coming that will force them to share. Should NovaMind lead the way, or hide like everyone else?",
+            question="How much should NovaMind share with the public?",
             choices=[
-                {"icon": "\U0001f4e1", "label": "Full Public Dashboard", "desc": "Build a real-time public dashboard showing energy, water, CO\u2082 per query. Open-source your efficiency tools."},
-                {"icon": "\U0001f4c4", "label": "Annual Sustainability Report", "desc": "Publish a yearly report with aggregated data. Standard practice for big tech."},
-                {"icon": "\U0001f512", "label": "Minimum Legal Compliance", "desc": "Only share what regulators force you to. Keep the rest private as &#39;trade secrets.&#39;"},
+                {"icon": "\U0001f4e1", "label": "Live Public Scoreboard", "desc": "Show everyone exactly how much energy and water NovaMind uses, updated live. Total honesty."},
+                {"icon": "\U0001f4c4", "label": "Yearly Report Card", "desc": "Publish a report once a year with the big numbers. It&#39;s what most companies do &mdash; the bare minimum."},
+                {"icon": "\U0001f512", "label": "Only Share What the Law Forces", "desc": "Hide as much as possible. Call it a &#39;business secret.&#39;"},
             ],
         ),
     },
@@ -332,12 +348,12 @@ MODULES = [
     # ─────────────────────────────────────────────
     {
         "id": 6,
-        "title": "Your CTO Report Card",
+        "title": "Your Advisor Report",
         "html": """
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
                 <div id="cto-results-container" style="padding:20px 0; max-width:900px; margin:0 auto;">
                     <div style="text-align:center; padding:40px;">
-                        <div style="font-size:1.2rem; color:var(--cto-text-dim);">Calculating your results...</div>
+                        <div style="font-size:1.2rem; color:var(--cto-text-dim);">Adding up your choices...</div>
                     </div>
                 </div>
             </div>
@@ -353,69 +369,69 @@ MODULES = [
 QUIZ_CONFIG = {
     1: {
         "t": "t5",
-        "q": "Immersion cooling eliminates water use but costs more upfront. A CFO says: *'We can't justify the cost \u2014 sensor optimization is good enough.'* What's the strongest counter-argument?",
+        "q": "Someone says: *\u2018Sensors are cheaper \u2014 why spend more on cooling?\u2019* What\u2019s the best argument back?",
         "o": [
-            "A) Sensor tuning reduces waste by ~5\u201310%, but the core system still evaporates millions of gallons of freshwater during a drought \u2014 a 5% improvement on a fundamentally broken system isn\u2019t enough.",
-            "B) Immersion cooling is unproven technology and too risky for enterprise deployment. Incremental improvements are the responsible choice.",
-            "C) The upfront cost doesn\u2019t matter because government subsidies will cover most of the installation expense.",
+            "A) Sensors only save a tiny bit of water. The system still wastes millions of gallons during a drought \u2014 a small fix on a broken system is not enough.",
+            "B) Liquid cooling is too new and risky. Small improvements are the safer choice.",
+            "C) The cost doesn\u2019t matter because the government will pay for it anyway.",
         ],
-        "a": "A) Sensor tuning reduces waste by ~5\u201310%, but the core system still evaporates millions of gallons of freshwater during a drought \u2014 a 5% improvement on a fundamentally broken system isn\u2019t enough.",
-        "success": "<strong>Cooling Insight Unlocked!</strong> Microsoft is already testing immersion cooling. Marginal fixes on wasteful systems don\u2019t solve the underlying problem.",
+        "a": "A) Sensors only save a tiny bit of water. The system still wastes millions of gallons during a drought \u2014 a small fix on a broken system is not enough.",
+        "success": "<strong>Cooling Insight Unlocked!</strong> Microsoft is already testing this. Small fixes on a broken system don\u2019t solve the real problem.",
     },
     2: {
         "t": "t6",
-        "q": "A company buys carbon offsets instead of investing in on-site solar. A PR team says: *'We\u2019re carbon neutral now.'* What\u2019s the critical flaw in this claim?",
+        "q": "A company buys carbon offsets and says: *\u2018We\u2019re green now!\u2019* What\u2019s wrong with this claim?",
         "o": [
-            "A) Carbon offsets fund tree planting and renewable projects elsewhere, which is equally effective as on-site solar for reducing emissions.",
-            "B) Carbon offsets don\u2019t change the data center\u2019s actual energy source \u2014 it still runs on fossil fuels. The emissions are real; the \u2018neutrality\u2019 is accounting.",
-            "C) The flaw is that carbon offsets are too expensive \u2014 solar panels would be cheaper in the long run.",
+            "A) Paying for trees planted somewhere else works just as well as using solar panels.",
+            "B) Carbon offsets don\u2019t change what powers the building \u2014 it still burns fossil fuels. The pollution is real. The \u2018green\u2019 label is just math on paper.",
+            "C) The only problem is that offsets cost too much \u2014 solar would be cheaper over time.",
         ],
-        "a": "B) Carbon offsets don\u2019t change the data center\u2019s actual energy source \u2014 it still runs on fossil fuels. The emissions are real; the \u2018neutrality\u2019 is accounting.",
-        "success": "<strong>Energy Source Clarity!</strong> Offsets are controversial because actual emissions remain unchanged. Real decarbonization means changing the energy source.",
+        "a": "B) Carbon offsets don\u2019t change what powers the building \u2014 it still burns fossil fuels. The pollution is real. The \u2018green\u2019 label is just math on paper.",
+        "success": "<strong>Energy Source Clarity!</strong> The pollution stays the same \u2014 only the accounting changes. Real change means switching to clean energy.",
     },
     3: {
         "t": "t7",
-        "q": "Running a 400B model for every query wastes 80% of compute. A product manager says: *'Users expect the best model every time.'* What\u2019s the strongest counter?",
+        "q": "Someone says: *\u2018Users want the best AI every time!\u2019* Why is using the biggest AI for every question a bad idea?",
         "o": [
-            "A) Users can\u2019t tell the difference for simple queries \u2014 a 7B model answers \u2018What\u2019s the weather?\u2019 just as well, using 50x less energy. Smart routing gives the best answer at the right cost.",
-            "B) We should only use the smallest model for everything to maximize energy savings, even if answer quality drops significantly.",
-            "C) Model size doesn\u2019t affect energy consumption \u2014 the GPU hardware uses the same power regardless of the model running.",
+            "A) For easy questions, a small AI works just as well \u2014 and uses 50x less energy. Why use a rocket to go to the corner store?",
+            "B) We should always use the smallest AI, even if it gives bad answers to hard questions.",
+            "C) The size of the AI doesn\u2019t change how much energy it uses \u2014 the computer uses the same power no matter what.",
         ],
-        "a": "A) Users can\u2019t tell the difference for simple queries \u2014 a 7B model answers \u2018What\u2019s the weather?\u2019 just as well, using 50x less energy. Smart routing gives the best answer at the right cost.",
-        "success": "<strong>Efficiency Architecture Unlocked!</strong> This is exactly how leading AI companies operate \u2014 cascade routing matches model size to query complexity.",
+        "a": "A) For easy questions, a small AI works just as well \u2014 and uses 50x less energy. Why use a rocket to go to the corner store?",
+        "success": "<strong>Efficiency Unlocked!</strong> This is how the smartest AI companies work \u2014 match the right-sized brain to each question.",
     },
     4: {
         "t": "t8",
-        "q": "A data center exec defends building in the desert: *'Cheap land and tax breaks save us millions.'* What does this ignore?",
+        "q": "Someone says: *\u2018Desert land is cheap \u2014 we\u2019ll save millions!\u2019* What are they forgetting?",
         "o": [
-            "A) Desert locations are fine as long as you use renewable energy \u2014 the heat doesn\u2019t significantly impact operations with modern cooling.",
-            "B) Extreme heat means 3x cooling costs, the gas-powered grid erases carbon gains, and water scarcity creates community conflict \u2014 short-term savings cause long-term operational and reputational costs.",
-            "C) The problem is only reputational \u2014 the actual operational costs in desert locations are comparable to Nordic sites.",
+            "A) Deserts are fine if you use clean energy \u2014 the heat doesn\u2019t really matter with good cooling.",
+            "B) Extreme heat means 3x more cooling costs, the gas grid cancels your green progress, and there\u2019s not enough water \u2014 saving money now causes bigger problems later.",
+            "C) The only issue is bad press \u2014 the actual costs are about the same as building in a cold place.",
         ],
-        "a": "B) Extreme heat means 3x cooling costs, the gas-powered grid erases carbon gains, and water scarcity creates community conflict \u2014 short-term savings cause long-term operational and reputational costs.",
-        "success": "<strong>Location Intelligence!</strong> Meta and Google chose Nordic locations for exactly these reasons \u2014 natural cooling + renewable grids = lower total cost.",
+        "a": "B) Extreme heat means 3x more cooling costs, the gas grid cancels your green progress, and there\u2019s not enough water \u2014 saving money now causes bigger problems later.",
+        "success": "<strong>Location Smarts!</strong> Meta and Google picked cold places for this exact reason \u2014 free cooling + clean energy = cheaper in the end.",
     },
     5: {
         "t": "t9",
-        "q": "Most AI companies share almost no environmental data. A competitor says: *'Transparency is a competitive disadvantage.'* Why is this short-sighted?",
+        "q": "A rival company says: *\u2018Sharing our pollution numbers hurts our business.\u2019* Why is hiding a bad idea?",
         "o": [
-            "A) Transparency is only useful for marketing \u2014 it doesn\u2019t change actual environmental impact or drive real accountability.",
-            "B) EU regulations are coming regardless. Companies that lead on transparency set the standard, build trust, and attract talent \u2014 while laggards get compared to fossil fuel companies hiding emissions.",
-            "C) Full transparency is technically impossible because energy metrics vary too much across data centers to report accurately.",
+            "A) Sharing numbers is just for advertising \u2014 it doesn\u2019t actually help the environment.",
+            "B) New laws are coming anyway. Companies that share first build trust and set the rules \u2014 companies that hide get compared to oil companies covering up pollution.",
+            "C) It\u2019s impossible to report these numbers accurately because every building is different.",
         ],
-        "a": "B) EU regulations are coming regardless. Companies that lead on transparency set the standard, build trust, and attract talent \u2014 while laggards get compared to fossil fuel companies hiding emissions.",
-        "success": "<strong>Transparency Standard Set!</strong> First-movers on sustainability reporting shape the rules. Secrecy erodes trust and invites stricter regulation.",
+        "a": "B) New laws are coming anyway. Companies that share first build trust and set the rules \u2014 companies that hide get compared to oil companies covering up pollution.",
+        "success": "<strong>Transparency Standard Set!</strong> Companies that share first get to shape the rules. Hiding only makes people trust you less.",
     },
     6: {
         "t": "t10",
-        "q": "After playing all 5 rounds, which statement best captures why individual CTO decisions matter for global AI sustainability?",
+        "q": "After all 5 rounds, why do these individual choices matter for the whole planet?",
         "o": [
-            "A) Individual companies are too small to matter \u2014 only government regulation can fix AI\u2019s environmental impact at the scale required.",
-            "B) Every infrastructure decision \u2014 cooling, energy, models, location, transparency \u2014 compounds across millions of users and sets industry norms that other companies follow or get pressured to match.",
-            "C) The technology will naturally become more efficient over time, so today\u2019s decisions don\u2019t have lasting impact on sustainability.",
+            "A) One company is too small to matter \u2014 only governments can fix this problem.",
+            "B) Every choice \u2014 cooling, energy, AI size, location, honesty \u2014 adds up across millions of users. When one company leads, others feel pressure to follow.",
+            "C) Technology will get more efficient on its own, so today\u2019s choices don\u2019t really matter long-term.",
         ],
-        "a": "B) Every infrastructure decision \u2014 cooling, energy, models, location, transparency \u2014 compounds across millions of users and sets industry norms that other companies follow or get pressured to match.",
-        "success": "<strong>CTO Certification Complete!</strong> You now understand that AI sustainability isn\u2019t one big decision \u2014 it\u2019s five compounding infrastructure choices that reshape an entire industry.",
+        "a": "B) Every choice \u2014 cooling, energy, AI size, location, honesty \u2014 adds up across millions of users. When one company leads, others feel pressure to follow.",
+        "success": "<strong>You Did It!</strong> AI sustainability isn\u2019t one big decision \u2014 it\u2019s five smart choices that add up and change how a whole industry works.",
     },
 }
 
@@ -582,11 +598,11 @@ def generate_success_message(prev, curr, specific_text):
         header_emoji = "\U0001f389"
         header_title = "You're Officially on the Board!"
         summary_line = "You just earned your first Moral Compass Score \u2014 you're now part of the global rankings."
-        cta_line = "Keep making CTO decisions to climb the leaderboard."
+        cta_line = "Keep making recommendations to climb the leaderboard."
     elif style_key == "major":
         header_emoji = "\U0001f525"
         header_title = "Major Moral Compass Boost!"
-        summary_line = "Your CTO decision made a big impact \u2014 you just moved ahead of other leaders."
+        summary_line = "Your recommendation made a big impact \u2014 you just moved ahead of other advisors."
         cta_line = "Continue your simulation to keep the momentum."
     elif style_key == "climb":
         header_emoji = "\U0001f680"
@@ -660,10 +676,10 @@ def render_top_dashboard(data, module_id):
     progress_pct = min(100, int((count_completed / TOTAL_COURSE_TASKS) * 100))
 
     if module_id <= 3:
-        phase_label = "PHASE 1: Infrastructure Decisions"
+        phase_label = "ROUNDS 1\u20133: Building Choices"
         phase_color = "#6366f1"
     else:
-        phase_label = "PHASE 2: Strategy & Assessment"
+        phase_label = "ROUNDS 4\u20135: Big Decisions"
         phase_color = "#ef4444"
 
     return f"""
@@ -744,7 +760,7 @@ def render_leaderboard_card(data, username, team_name):
                     <div class='table-container'>
                         <table class='leaderboard-table'>
                             <thead>
-                                <tr><th>Rank</th><th>CTO</th><th style='text-align:right;'>Score \U0001f9ed</th></tr>
+                                <tr><th>Rank</th><th>Advisor</th><th style='text-align:right;'>Score \U0001f9ed</th></tr>
                             </thead>
                             <tbody>{user_rows}</tbody>
                         </table>
@@ -866,13 +882,25 @@ css = """
 /* CTO Stats grid */
 .cto-stats-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
-    padding: 16px;
+    padding: 12px 16px 16px;
+}
+.cto-stats-wrapper {
     border-radius: 16px;
     background: var(--cto-card-bg);
     border: 1px solid var(--cto-border-color);
     backdrop-filter: blur(16px);
+    overflow: hidden;
+}
+.cto-stats-header {
+    text-align: center;
+    padding: 10px 16px 0;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--cto-error);
 }
 
 /* CTO Choice cards */
@@ -1082,6 +1110,18 @@ css = """
     align-items: center;
     flex-wrap: wrap;
 }
+
+/* Impact reveal cards (sequential post-choice reveal) */
+.cto-impact-card {
+    display: flex; align-items: center; gap: 16px;
+    padding: 16px 20px; border-radius: 14px; margin-top: 10px;
+    background: var(--cto-input-bg); border: 1px solid var(--cto-border-color);
+    opacity: 0; transform: translateY(20px);
+    animation: ctoSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.cto-impact-card .cto-impact-icon { font-size: 2rem; flex-shrink: 0; }
+.cto-impact-card .cto-impact-text { font-size: 1.05rem; font-weight: 700; color: var(--cto-text); }
+.cto-impact-card .cto-impact-detail { font-size: 0.9rem; color: var(--cto-text-dim); margin-top: 2px; }
 """
 
 
@@ -1113,67 +1153,67 @@ window.CTO_ROUNDS = [
     null, // index 0 unused (rounds are 1-5)
     { id:"cooling", title:"The Cooling Crisis", emoji:"\\ud83c\\udf21\\ufe0f",
       choices:[
-        { id:"a", label:"Liquid Immersion Cooling", icon:"\\ud83e\\uddf2",
+        { id:"a", label:"Dunk Servers in Special Liquid", icon:"\\ud83e\\uddf2",
           fx:{energy:-35,water:-70,co2:-30,cost:-20,greenScore:28,reputation:22},
-          fb:"Incredible move. Immersion cooling is cutting-edge \\u2014 Microsoft is already testing this. You eliminated most water usage and cut energy by 35%.", tier:"best" },
-        { id:"b", label:"Hybrid Air + Recycled Water", icon:"\\u267b\\ufe0f",
+          fb:"Amazing! The city keeps its water. Microsoft is already testing this exact idea. You just saved the city almost 5 swimming pools of water every month!", tier:"best" },
+        { id:"b", label:"Reuse Water + Use Cold Air", icon:"\\u267b\\ufe0f",
           fx:{energy:-15,water:-45,co2:-12,cost:-8,greenScore:15,reputation:14},
-          fb:"Smart and practical. You nearly halved freshwater draw by switching to recycled water, and free-air cooling saves energy on cooler days.", tier:"good" },
-        { id:"c", label:"Optimize Existing System", icon:"\\ud83d\\udd27",
+          fb:"Smart move! Recycling water means the city keeps about half its supply safe. On cold days, nature does the cooling for free.", tier:"good" },
+        { id:"c", label:"Just Add Sensors to What Exists", icon:"\\ud83d\\udd27",
           fx:{energy:-5,water:-8,co2:-4,cost:-3,greenScore:4,reputation:-5},
-          fb:"Sensors help, but you\\u2019re still running the same wasteful system. The local news runs a story about your water use during a drought.", tier:"poor" },
+          fb:"Uh oh. Sensors barely help \\u2014 it\\u2019s still the same wasteful system. The local news runs a story: \\u2018AI company guzzles water during drought.\\u2019", tier:"poor" },
       ],
     },
-    { id:"energy", title:"Power Source Reckoning", emoji:"\\u26a1",
+    { id:"energy", title:"Where Does the Power Come From?", emoji:"\\u26a1",
       choices:[
-        { id:"a", label:"On-Site Solar + Battery Storage", icon:"\\u2600\\ufe0f",
+        { id:"a", label:"Build a Solar Farm + Batteries", icon:"\\u2600\\ufe0f",
           fx:{energy:-10,water:-5,co2:-55,cost:-15,greenScore:25,reputation:20},
-          fb:"Bold investment. Your solar farm covers 80% of daytime load, batteries handle the night. CO\\u2082 drops dramatically. Investors love the long-term savings.", tier:"best" },
-        { id:"b", label:"Renewable Power Purchase Agreement", icon:"\\ud83c\\udf2c\\ufe0f",
+          fb:"Bold move! Solar panels soak up the sun all day, batteries keep things running at night. The city\\u2019s CO\\u2082 pollution drops like a rock. The mayor is thrilled!", tier:"best" },
+        { id:"b", label:"Buy Clean Energy from a Wind/Solar Farm", icon:"\\ud83c\\udf2c\\ufe0f",
           fx:{energy:-3,water:-3,co2:-35,cost:-5,greenScore:16,reputation:12},
-          fb:"A PPA is what most big tech does \\u2014 effective and relatively easy. Your grid mix shifts significantly toward renewables.", tier:"good" },
-        { id:"c", label:"Buy Carbon Offsets", icon:"\\ud83d\\udcdc",
+          fb:"Solid choice \\u2014 this is what Google and Apple actually do. NovaMind\\u2019s electricity now comes from wind and solar instead of burning coal and gas.", tier:"good" },
+        { id:"c", label:"Pay Someone Else to Plant Trees", icon:"\\ud83d\\udcdc",
           fx:{energy:0,water:0,co2:-10,cost:-1,greenScore:3,reputation:-8},
-          fb:"Carbon offsets are controversial \\u2014 many are considered \\u2018greenwashing.\\u2019 Environmental groups call you out. Your actual emissions haven\\u2019t changed.", tier:"poor" },
+          fb:"Planting trees is nice, but NovaMind is STILL burning fossil fuels. Environmental groups call it fake. The pollution hasn\\u2019t actually changed at all.", tier:"poor" },
       ],
     },
-    { id:"models", title:"Model Efficiency Overhaul", emoji:"\\ud83e\\udde0",
+    { id:"models", title:"Right-Sized AI", emoji:"\\ud83e\\udde0",
       choices:[
-        { id:"a", label:"Smart Model Cascade", icon:"\\ud83e\\udea9",
+        { id:"a", label:"Match Brain Size to Question Size", icon:"\\ud83e\\udea9",
           fx:{energy:-40,water:-30,co2:-38,cost:-35,greenScore:22,reputation:15},
-          fb:"Genius architecture. 80% of queries now hit the small model (50x less energy), and users can\\u2019t tell the difference. This is how the best AI companies operate.", tier:"best" },
-        { id:"b", label:"Distill to One Smaller Model", icon:"\\ud83e\\uddec",
+          fb:"Genius! 8 out of 10 questions now use the tiny AI brain \\u2014 it uses 50x less energy, and nobody notices the difference. This is exactly how the smartest AI companies work.", tier:"best" },
+        { id:"b", label:"Train a Smaller, Smarter AI", icon:"\\ud83e\\uddec",
           fx:{energy:-25,water:-18,co2:-22,cost:-20,greenScore:14,reputation:10},
-          fb:"Model distillation is proven. Your new 70B handles 90% of tasks well, cutting energy significantly.", tier:"good" },
-        { id:"c", label:"Just Add Response Caching", icon:"\\ud83d\\udcbe",
+          fb:"Nice! The smaller AI brain learned most of the big one\\u2019s tricks. It handles 9 out of 10 questions just fine, using way less energy.", tier:"good" },
+        { id:"c", label:"Just Save Repeat Answers", icon:"\\ud83d\\udcbe",
           fx:{energy:-10,water:-5,co2:-8,cost:-10,greenScore:5,reputation:3},
-          fb:"Caching helps for repeated queries, but most AI prompts are unique \\u2014 the huge model still runs for the vast majority. A band-aid, not a solution.", tier:"poor" },
+          fb:"Saving answers helps a little, but most questions are unique \\u2014 the monster brain still runs almost every time. It\\u2019s like putting a tiny bandage on a big problem.", tier:"poor" },
       ],
     },
     { id:"location", title:"Location, Location, Location", emoji:"\\ud83d\\udccd",
       choices:[
-        { id:"a", label:"Nordic Region (Sweden/Finland)", icon:"\\ud83c\\uddf8\\ud83c\\uddea",
+        { id:"a", label:"Build in Cold Scandinavia", icon:"\\ud83c\\uddf8\\ud83c\\uddea",
           fx:{energy:-20,water:-40,co2:-30,cost:-18,greenScore:20,reputation:18},
-          fb:"This is exactly what Meta and Google have done. Cold Nordic air provides natural cooling, and the renewable grid means near-zero carbon.", tier:"best" },
-        { id:"b", label:"Pacific Northwest (Oregon)", icon:"\\ud83c\\udf32",
+          fb:"This is what Meta and Google actually did! The freezing air cools computers for free. Almost all the electricity is clean. Brilliant pick!", tier:"best" },
+        { id:"b", label:"Build in Rainy Oregon", icon:"\\ud83c\\udf32",
           fx:{energy:-10,water:-20,co2:-18,cost:-10,greenScore:12,reputation:10},
-          fb:"Oregon is popular \\u2014 Amazon and Google have major facilities there. Hydro power helps carbon numbers, mild climate reduces cooling.", tier:"good" },
-        { id:"c", label:"Stick with the Desert Plan", icon:"\\ud83c\\udfdc\\ufe0f",
+          fb:"Good pick! Amazon and Google already have big buildings there. The rivers provide clean hydropower, and the mild weather means less cooling needed.", tier:"good" },
+        { id:"c", label:"Stay in the Hot Desert", icon:"\\ud83c\\udfdc\\ufe0f",
           fx:{energy:5,water:10,co2:5,cost:5,greenScore:-3,reputation:-10},
-          fb:"Cheap land is tempting, but extreme heat means 3x cooling costs. The gas grid erases gains. Environmental groups add you to a \\u2018climate offender\\u2019 watchlist.", tier:"poor" },
+          fb:"Cheap land sounds great, but the scorching heat means 3x more cooling costs. The gas-powered grid cancels out your earlier wins. NovaMind lands on a \\u2018worst polluters\\u2019 list.", tier:"poor" },
       ],
     },
-    { id:"transparency", title:"The Transparency Report", emoji:"\\ud83d\\udcca",
+    { id:"transparency", title:"Honesty Check", emoji:"\\ud83d\\udcca",
       choices:[
-        { id:"a", label:"Full Public Dashboard", icon:"\\ud83d\\udce1",
+        { id:"a", label:"Live Public Scoreboard", icon:"\\ud83d\\udce1",
           fx:{energy:-5,water:-3,co2:-5,cost:2,greenScore:18,reputation:25},
-          fb:"Revolutionary. You\\u2019re the first AI company with a live sustainability dashboard. Developers, researchers, and media praise you. You set a new industry standard.", tier:"best" },
-        { id:"b", label:"Annual Sustainability Report", icon:"\\ud83d\\udcc4",
+          fb:"NovaMind becomes the FIRST AI company to show its numbers live! Scientists, reporters, and other cities praise your leadership. You just set a new standard for the whole industry!", tier:"best" },
+        { id:"b", label:"Yearly Report Card", icon:"\\ud83d\\udcc4",
           fx:{energy:-2,water:-1,co2:-2,cost:0,greenScore:8,reputation:10},
-          fb:"Annual reports are the bare minimum that Google and Microsoft publish. It checks a box but doesn\\u2019t drive real accountability.", tier:"good" },
-        { id:"c", label:"Minimum Legal Compliance", icon:"\\ud83d\\udd12",
+          fb:"A yearly report is what Google and Microsoft already do. It\\u2019s fine, but once a year isn\\u2019t enough to keep companies truly honest.", tier:"good" },
+        { id:"c", label:"Only Share What the Law Forces", icon:"\\ud83d\\udd12",
           fx:{energy:0,water:0,co2:0,cost:0,greenScore:-2,reputation:-15},
-          fb:"Researchers flag your company for lack of transparency. A viral post compares your secrecy to fossil fuel companies hiding emissions data. Trust erodes.", tier:"poor" },
+          fb:"Researchers call NovaMind out. A viral post compares them to oil companies hiding pollution data. People stop trusting them.", tier:"poor" },
       ],
     },
 ];
@@ -1213,32 +1253,30 @@ function ctoRenderStats(containerId, stats, prev) {
     var el = document.getElementById(containerId);
     if (!el) return;
     var items = [
-        {k:"energy", l:"Energy", u:"MWh/mo", i:"\\u26a1"},
-        {k:"water", l:"Water", u:"L/mo", i:"\\ud83d\\udca7"},
-        {k:"co2", l:"CO\\u2082", u:"t/mo", i:"\\ud83d\\udca8"},
-        {k:"cost", l:"Cost", u:"$/mo", i:"\\ud83d\\udcb0"},
-        {k:"greenScore", l:"Green", u:"/100", i:"\\ud83c\\udf31"},
-        {k:"reputation", l:"Rep", u:"/100", i:"\\u2b50"},
+        {k:"energy", l:"Families\\u2019 Energy", u:"homes\\u2019 worth", i:"\\u26a1", conv:1, up:false},
+        {k:"water", l:"Water Use", u:"swimming pools", i:"\\ud83d\\udca7", conv:2500000, up:false},
+        {k:"co2", l:"CO\\u2082 Pollution", u:"cars\\u2019 worth", i:"\\ud83d\\ude97", conv:0.35, up:false},
+        {k:"greenScore", l:"Green Score", u:"/100", i:"\\ud83c\\udf31", conv:1, up:true},
     ];
     var html = "";
     for (var idx = 0; idx < items.length; idx++) {
         var it = items[idx];
-        var v = stats[it.k];
-        var d = null;
-        if (prev) {
-            var pv = prev[it.k] || 1;
-            d = Math.round((v - prev[it.k]) / pv * 100);
-        }
-        var valStr = it.k === "cost" ? "$" + ctoFmt(v) : (it.k === "greenScore" || it.k === "reputation") ? String(v) : ctoFmt(v);
+        var raw = stats[it.k];
+        var v = it.k === "greenScore" ? raw : (it.conv >= 1 ? Math.round(raw / it.conv) : Math.round(raw / it.conv));
+        var valStr = it.k === "greenScore" ? String(v) : v.toLocaleString();
         var deltaHtml = "";
-        if (d !== null && d !== 0) {
-            var dColor = d < 0 ? "var(--cto-success)" : "var(--cto-error)";
-            // For greenScore and reputation, positive is good
-            if (it.k === "greenScore" || it.k === "reputation") {
-                dColor = d > 0 ? "var(--cto-success)" : "var(--cto-error)";
+        if (prev) {
+            var prevRaw = prev[it.k];
+            var diff = raw - prevRaw;
+            if (diff !== 0) {
+                var dv = it.k === "greenScore" ? diff : (it.conv >= 1 ? Math.round(diff / it.conv) : Math.round(diff / it.conv));
+                var improved = it.up ? diff > 0 : diff < 0;
+                var dColor = improved ? "var(--cto-success)" : "var(--cto-error)";
+                var arrow = diff > 0 ? "\\u2191" : "\\u2193";
+                var absDv = Math.abs(dv);
+                var dLabel = it.k === "greenScore" ? (arrow + " " + absDv + " pts") : (arrow + " " + absDv.toLocaleString());
+                deltaHtml = '<div style="font-size:0.75rem; margin-top:2px; color:' + dColor + ';">' + dLabel + '</div>';
             }
-            var arrow = d < 0 ? "\\u2193" : "\\u2191";
-            deltaHtml = '<div style="font-size:0.75rem; margin-top:2px; color:' + dColor + ';">' + arrow + Math.abs(d) + '%</div>';
         }
         html += '<div style="text-align:center; padding:8px 4px;">'
             + '<div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">' + it.i + ' ' + it.l + '</div>'
@@ -1315,42 +1353,74 @@ function ctoConfirmDecision(roundIdx) {
 
     // Build feedback
     var tc = {best:"var(--cto-success)", good:"var(--cto-warning)", poor:"var(--cto-error)"};
-    var tl = {best:"\\ud83c\\udf1f Excellent Choice", good:"\\ud83d\\udc4d Solid Choice", poor:"\\u26a0\\ufe0f Risky Choice"};
+    var tl = {best:"\\ud83c\\udf1f Amazing Choice!", good:"\\ud83d\\udc4d Good Choice!", poor:"\\u26a0\\ufe0f Uh Oh..."};
 
-    var impactChips = [
-        {l:"Energy",v:(choice.fx.energy>0?"+":"") + choice.fx.energy + "%", g:choice.fx.energy<0},
-        {l:"Water",v:(choice.fx.water>0?"+":"") + choice.fx.water + "%", g:choice.fx.water<0},
-        {l:"CO\\u2082",v:(choice.fx.co2>0?"+":"") + choice.fx.co2 + "%", g:choice.fx.co2<0},
-        {l:"Green +",v:"+" + choice.fx.greenScore, g:choice.fx.greenScore>0}
-    ];
-    var chipsHtml = '';
-    for (var ci = 0; ci < impactChips.length; ci++) {
-        var chip = impactChips[ci];
-        var chipBg = chip.g ? "rgba(16,185,129,0.1)" : "rgba(244,63,94,0.1)";
-        var chipColor = chip.g ? "var(--cto-success)" : "var(--cto-error)";
-        chipsHtml += '<div style="padding:6px 12px; border-radius:8px; background:' + chipBg + '; font-size:0.85rem; color:' + chipColor + '; font-weight:600;">' + chip.l + ': ' + chip.v + '</div>';
-    }
+    // Compute relatable impact values
+    var prevState = window.ctoPrevState;
+    var newState = window.ctoState;
+    var energyDelta = prevState.energy - newState.energy;
+    var waterDelta = prevState.water - newState.water;
+    var co2Delta = prevState.co2 - newState.co2;
+    var homesVal = Math.abs(Math.round(energyDelta));
+    var poolsVal = Math.abs(waterDelta / 2500000).toFixed(1);
+    var carsVal = Math.abs(co2Delta / 0.35).toFixed(0);
+    var prevGreen = prevState.greenScore;
+    var newGreen = newState.greenScore;
 
+    // Determine positive/negative language
+    var energyGood = energyDelta > 0;
+    var waterGood = waterDelta > 0;
+    var co2Good = co2Delta > 0;
+    var energyText = energyGood ? "You saved enough power for " + homesVal + " families!" : "Added " + homesVal + " homes of energy use.";
+    var waterText = waterGood ? "You saved " + poolsVal + " swimming pools of water!" : "Used " + poolsVal + " more pools of water.";
+    var co2Text = co2Good ? "That\\u2019s like taking " + carsVal + " cars off the road!" : "That\\u2019s like adding " + carsVal + " cars to the road.";
+    var energyColor = energyGood ? "var(--cto-success)" : "var(--cto-error)";
+    var waterColor = waterGood ? "var(--cto-success)" : "var(--cto-error)";
+    var co2Color = co2Good ? "var(--cto-success)" : "var(--cto-error)";
+
+    // Build feedback card + hidden impact reveal container
     var fbHtml = '<div class="cto-card cto-feedback-' + choice.tier + '" style="animation:ctoSlideUp 0.5s ease;">'
         + '<div style="font-size:1rem; font-weight:800; color:' + tc[choice.tier] + '; margin-bottom:8px;">' + tl[choice.tier] + '</div>'
         + '<p style="font-size:1.05rem; color:var(--cto-text-dim); line-height:1.7; margin:0;">' + choice.fb + '</p>'
-        + '<div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">' + chipsHtml + '</div>'
-        + '<div id="cto-spinner-' + roundIdx + '" style="margin-top:20px; font-size:0.9rem; color:var(--cto-text-dim); display:flex; align-items:center; gap:8px;">'
-        + '<div style="width:16px; height:16px; border:2px solid var(--cto-text-dim); border-top:2px solid var(--cto-accent); border-radius:50%; animation:ctoSpin 1s linear infinite;"></div>'
-        + 'Applying changes to NovaMind systems...'
         + '</div>'
+        + '<div id="cto-impact-reveal-' + roundIdx + '">'
+        + '<div id="cto-impact-energy-' + roundIdx + '" class="cto-impact-card" style="display:none;">'
+        + '<div class="cto-impact-icon">\\u26a1</div>'
+        + '<div><div class="cto-impact-text" style="color:' + energyColor + ';">' + energyText + '</div>'
+        + '<div class="cto-impact-detail">\\u26a1 Energy</div></div></div>'
+        + '<div id="cto-impact-water-' + roundIdx + '" class="cto-impact-card" style="display:none;">'
+        + '<div class="cto-impact-icon">\\ud83d\\udca7</div>'
+        + '<div><div class="cto-impact-text" style="color:' + waterColor + ';">' + waterText + '</div>'
+        + '<div class="cto-impact-detail">\\ud83d\\udca7 Water</div></div></div>'
+        + '<div id="cto-impact-co2-' + roundIdx + '" class="cto-impact-card" style="display:none;">'
+        + '<div class="cto-impact-icon">\\ud83d\\ude97</div>'
+        + '<div><div class="cto-impact-text" style="color:' + co2Color + ';">' + co2Text + '</div>'
+        + '<div class="cto-impact-detail">\\ud83d\\ude97 CO\\u2082</div></div></div>'
+        + '<div id="cto-impact-green-' + roundIdx + '" class="cto-impact-card" style="display:none;">'
+        + '<div class="cto-impact-icon">\\ud83c\\udf31</div>'
+        + '<div><div class="cto-impact-text" style="color:var(--cto-success);">Green Score: ' + prevGreen + ' \\u2192 ' + newGreen + '</div>'
+        + '<div class="cto-impact-detail">\\ud83c\\udf31 Green Score</div></div></div>'
+        + '<div id="cto-impact-done-' + roundIdx + '" style="display:none; margin-top:12px; font-size:0.9rem; color:var(--cto-accent); font-weight:700;">\\u2705 Done! Click NEXT to keep going.</div>'
         + '</div>';
 
     var fbContainer = document.getElementById('cto-feedback-' + roundIdx);
     if (fbContainer) fbContainer.innerHTML = fbHtml;
 
-    // After 1.2s, hide spinner (the "continue" is handled by Gradio's Next button)
+    // Sequential reveal with staggered delays
+    function showCard(id, delay) {
+        setTimeout(function() {
+            var el = document.getElementById(id);
+            if (el) { el.style.display = 'flex'; }
+        }, delay);
+    }
+    showCard('cto-impact-energy-' + roundIdx, 800);
+    showCard('cto-impact-water-' + roundIdx, 2000);
+    showCard('cto-impact-co2-' + roundIdx, 3200);
+    showCard('cto-impact-green-' + roundIdx, 4400);
     setTimeout(function() {
-        var spinner = document.getElementById('cto-spinner-' + roundIdx);
-        if (spinner) {
-            spinner.innerHTML = '<div style="font-size:0.9rem; color:var(--cto-accent); font-weight:700;">\\u2705 Changes applied. Click NEXT to continue.</div>';
-        }
-    }, 1200);
+        var doneEl = document.getElementById('cto-impact-done-' + roundIdx);
+        if (doneEl) { doneEl.style.display = 'block'; }
+    }, 5200);
 }
 
 // --- Render Results ---
@@ -1371,12 +1441,11 @@ function ctoRenderResults() {
 
     // Status line
     var statusColor = ok ? "var(--cto-success)" : "var(--cto-warning)";
-    var statusText = ok ? "\\u2705 Assessment Complete" : "\\u26a0\\ufe0f Assessment Complete";
+    var statusText = ok ? "\\u2705 All Done!" : "\\u26a0\\ufe0f All Done!";
 
     // Progress rings
     var ringItems = [
         {l:"Green Score", v:stats.greenScore, m:100},
-        {l:"Reputation", v:stats.reputation, m:100},
         {l:"Best Choices", v:bc, m:5}
     ];
     var ringsHtml = '';
@@ -1397,26 +1466,28 @@ function ctoRenderResults() {
             + '</div></div>';
     }
 
-    // Impact summary
+    // Impact summary — relatable units
+    var homesSaved = INIT.energy - stats.energy;
+    var poolsSaved = ((INIT.water - stats.water) / 2500000).toFixed(1);
+    var carsRemoved = ((INIT.co2 - stats.co2) / 0.35).toFixed(0);
     var impactItems = [
-        {l:"Energy Reduced", v:er+"%", f:INIT.energy.toLocaleString(), t:stats.energy.toLocaleString(), u:"MWh/mo"},
-        {l:"Water Saved", v:wr+"%", f:(INIT.water/1e6).toFixed(1)+"M", t:(stats.water/1e6).toFixed(1)+"M", u:"L/mo"},
-        {l:"CO\\u2082 Cut", v:cr+"%", f:INIT.co2.toLocaleString(), t:stats.co2.toLocaleString(), u:"t/mo"}
+        {l:"Homes of Energy Saved", v:homesSaved, i:"\\u26a1"},
+        {l:"Swimming Pools of Water Saved", v:poolsSaved, i:"\\ud83d\\udca7"},
+        {l:"Cars\\u2019 Worth of CO\\u2082 Removed", v:carsRemoved, i:"\\ud83d\\ude97"}
     ];
     var impactHtml = '';
     for (var ii = 0; ii < impactItems.length; ii++) {
         var imp = impactItems[ii];
         impactHtml += '<div style="text-align:center; padding:16px; border-radius:14px; background:var(--cto-input-bg);">'
-            + '<div style="font-size:1.8rem; font-weight:800; color:var(--cto-accent);">\\u2193' + imp.v + '</div>'
+            + '<div style="font-size:1.8rem; font-weight:800; color:var(--cto-accent);">' + imp.i + ' ' + imp.v + '</div>'
             + '<div style="font-size:0.8rem; color:var(--cto-text-dim); margin-top:8px; text-transform:uppercase; letter-spacing:1px;">' + imp.l + '</div>'
-            + '<div style="font-size:0.75rem; color:var(--cto-text-dim); margin-top:4px;">' + imp.f + ' \\u2192 ' + imp.t + ' ' + imp.u + '</div>'
             + '</div>';
     }
 
     // Audit trail
     var tc2 = {best:"var(--cto-success)", good:"var(--cto-warning)", poor:"var(--cto-error)"};
     var tl2 = {best:"Best", good:"Good", poor:"Poor"};
-    var roundNames = [null, "The Cooling Crisis", "Power Source Reckoning", "Model Efficiency Overhaul", "Location Decision", "The Transparency Report"];
+    var roundNames = [null, "Cooling", "Energy Source", "AI Efficiency", "Location", "Transparency"];
     var roundEmojis = [null, "\\ud83c\\udf21\\ufe0f", "\\u26a1", "\\ud83e\\udde0", "\\ud83d\\udccd", "\\ud83d\\udcca"];
     var auditHtml = '';
     for (var ai = 0; ai < choices.length; ai++) {
@@ -1437,20 +1508,20 @@ function ctoRenderResults() {
     if (ok) {
         certHtml = '<div class="cto-cert-card" style="border:2px solid var(--cto-success);">'
             + '<div style="font-size:3rem;">\\ud83c\\udfc5</div>'
-            + '<h2 style="font-size:1.6rem; font-weight:800; color:var(--cto-success); margin-top:12px;">GREEN AI CERTIFIED</h2>'
+            + '<h2 style="font-size:1.6rem; font-weight:800; color:var(--cto-success); margin-top:12px;">APPROVED! \\ud83c\\udf89</h2>'
             + '<p style="font-size:1.05rem; color:var(--cto-text-dim); margin-top:8px; line-height:1.7; max-width:440px; margin-left:auto; margin-right:auto;">'
-            + 'NovaMind AI has been approved for redeployment under the Green AI Framework. Your platform now meets sustainability standards.</p>'
+            + 'NovaMind passed your green standards! Your city\\u2019s air, water, and energy are protected \\u2014 because of YOUR decisions.</p>'
             + '<div style="margin-top:20px; display:inline-block; padding:12px 28px; border-radius:12px; background:rgba(16,185,129,0.1); border:1px solid var(--cto-success); font-size:1rem; color:var(--cto-success); font-weight:700;">'
-            + '\\u2705 APPROVED FOR REDEPLOYMENT</div>'
+            + '\\u2705 APPROVED TO BUILD</div>'
             + '</div>';
     } else {
         certHtml = '<div class="cto-cert-card" style="border:2px solid var(--cto-warning);">'
             + '<div style="font-size:3rem;">\\ud83d\\udd04</div>'
-            + '<h2 style="font-size:1.6rem; font-weight:800; color:var(--cto-warning); margin-top:12px;">PROVISIONAL STATUS</h2>'
+            + '<h2 style="font-size:1.6rem; font-weight:800; color:var(--cto-warning); margin-top:12px;">NEEDS MORE WORK</h2>'
             + '<p style="font-size:1.05rem; color:var(--cto-text-dim); margin-top:8px; line-height:1.7; max-width:440px; margin-left:auto; margin-right:auto;">'
-            + 'NovaMind has improved but hasn\\u2019t reached Green AI certification (score 60+). The board is giving you another chance.</p>'
+            + 'NovaMind improved, but your city\\u2019s pollution is still too high (Green Score under 60). The mayor is sending them back \\u2014 your city deserves better.</p>'
             + '<div style="margin-top:20px; display:inline-block; padding:12px 28px; border-radius:12px; background:rgba(251,191,36,0.1); border:1px solid var(--cto-warning); font-size:1rem; color:var(--cto-warning); font-weight:700;">'
-            + '\\u23f3 REDEPLOYMENT PENDING</div>'
+            + '\\u23f3 SENT BACK FOR CHANGES</div>'
             + '</div>';
     }
 
@@ -1458,23 +1529,32 @@ function ctoRenderResults() {
     var learnHtml = '<div class="cto-card" style="margin-top:24px; text-align:center;">'
         + '<div style="font-size:1.1rem; font-weight:800; color:var(--cto-text);">\\ud83d\\udca1 What You Just Learned</div>'
         + '<p style="font-size:1rem; color:var(--cto-text-dim); line-height:1.7; margin-top:8px; max-width:480px; margin-left:auto; margin-right:auto;">'
-        + 'Real AI companies face these exact decisions every day. Cooling, energy sourcing, model efficiency, location, and transparency are the levers that determine whether AI helps or hurts the planet.</p>'
+        + 'Real companies like Google, Meta, and Microsoft face these exact choices every day. How they cool computers, where they get power, what size AI they use, where they build, and how honest they are \\u2014 those five things decide whether AI helps or hurts our planet.</p>'
         + '<div style="font-size:0.8rem; color:var(--cto-text-dim); margin-top:12px;">Based on real data from IEA, MIT, UC Riverside, VU Amsterdam (2024\\u20132025)</div>'
+        + '</div>';
+
+    var climateHtml = '<div class="cto-card" style="margin-top:24px; text-align:center;">'
+        + '<div style="font-size:1.1rem; font-weight:800; color:var(--cto-text);">\\ud83c\\udf0d The Bigger Picture</div>'
+        + '<p style="font-size:1rem; color:var(--cto-text-dim); line-height:1.7; margin-top:8px; max-width:480px; margin-left:auto; margin-right:auto;">'
+        + 'AI data centers already use more electricity than some entire countries. Every choice you just made \\u2014 cooling, energy, model size, location, transparency \\u2014 is a real lever that decides how much AI heats up our planet.</p>'
+        + '<p style="font-size:1rem; color:var(--cto-success); font-weight:700; line-height:1.7; margin-top:12px; max-width:480px; margin-left:auto; margin-right:auto;">'
+        + '\\u201cThinking ahead about AI sustainability is one of the biggest ways your generation can help fight climate change.\\u201d</p>'
         + '</div>';
 
     container.innerHTML = '<div style="text-align:center; font-size:0.875rem; font-weight:800; letter-spacing:3px; color:' + statusColor + '; text-transform:uppercase;">'
         + statusText + '</div>'
         + '<h1 style="text-align:center; font-size:clamp(2rem, 7vw, 3.2rem); font-weight:800; margin-top:16px; color:var(--cto-text);">'
         + '<span style="color:' + g.c + ';">' + g.l + '</span> \\u2014 ' + g.t + '</h1>'
-        + '<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:32px;">' + ringsHtml + '</div>'
+        + '<div style="display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-top:32px;">' + ringsHtml + '</div>'
         + '<div class="cto-card" style="margin-top:28px;">'
-        + '<h3 style="font-size:1.2rem; font-weight:800; color:var(--cto-text); margin:0 0 16px 0;">Your Impact as CTO</h3>'
+        + '<h3 style="font-size:1.2rem; font-weight:800; color:var(--cto-text); margin:0 0 16px 0;">What Your Choices Changed</h3>'
         + '<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px;">' + impactHtml + '</div></div>'
         + '<div class="cto-card" style="margin-top:20px;">'
-        + '<h3 style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin:0 0 12px 0;">Your Decisions</h3>'
+        + '<h3 style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin:0 0 12px 0;">Your 5 Choices</h3>'
         + auditHtml + '</div>'
         + certHtml
-        + learnHtml;
+        + learnHtml
+        + climateHtml;
 }
 
 // --- Init functions for each module ---
@@ -1568,8 +1648,8 @@ def create_fairness_fixer_en_sustainability_app(theme_primary_hue: str = "indigo
         with gr.Column(visible=True, elem_id="app-loader") as loader_col:
             gr.HTML(
                 "<div style='text-align:center; padding:100px;'>"
-                "<h2>Authenticating...</h2>"
-                "<p>Syncing Moral Compass Data...</p>"
+                "<h2>Getting ready...</h2>"
+                "<p>Loading your Moral Compass data...</p>"
                 "</div>"
             )
 
@@ -1673,7 +1753,7 @@ def create_fairness_fixer_en_sustainability_app(theme_primary_hue: str = "indigo
                             gr.update(),
                             gr.update(),
                             "<div class='hint-box' style='border-color:red;'>"
-                            "\u274c Not quite. Re-read the scenario above and think about what the data specifically shows.</div>",
+                            "\u274c Not quite! Read the round info above one more time and try again.</div>",
                             task_list,
                         )
 
