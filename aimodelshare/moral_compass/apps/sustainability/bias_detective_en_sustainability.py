@@ -136,11 +136,36 @@ MODULES = [
                     <div class="ace-section-label">01 / Every Single Prompt</div>
                     <h2 class="ace-heading">One question to ChatGPT = <span style="color:var(--ace-accent);">one bottle of water</span></h2>
                 </div>
-                <div class="ace-reveal" style="animation-delay:0.2s;">
+                <div class="ace-reveal" style="animation-delay:0.15s;">
+                    <div style="background:var(--ace-accent-highlight); border-left:4px solid var(--ace-accent); border-radius:16px; padding:20px 24px; margin-bottom:8px;">
+                        <p style="margin:0; font-size:1.05rem; line-height:1.6; color:var(--ace-text);">
+                            <strong style="color:var(--ace-accent);">Sustainability: Your Guiding Principle.</strong><br>
+                            Ethics guide how we build and use AI. We follow expert guidance from the Catalan Observatory for Ethics in AI <strong>OEIAC (UdG)</strong>, which defines 7 core principles of safe AI. This investigation focuses on <strong>Sustainability</strong> &mdash; the principle that AI systems must avoid long-term harm to the environment.
+                        </p>
+                    </div>
+                </div>
+                <div class="ace-reveal" style="animation-delay:0.18s;">
+                    <details style="background:var(--ace-input-bg); border:1px solid var(--ace-border-color); border-radius:16px; padding:16px 20px; cursor:pointer;">
+                        <summary style="font-weight:700; color:var(--ace-text-dim); font-size:0.95rem;">&#128736;&#65039; Reference: Other AI Ethics Principles (OEIAC)</summary>
+                        <div style="margin-top:15px; font-size:0.9rem; display:grid; grid-template-columns:1fr 1fr; gap:15px; color:var(--ace-text);">
+                            <div>
+                                <strong>Justice &amp; Equity</strong><br>Ensure AI treats all groups fairly and does not discriminate.<br><br>
+                                <strong>Transparency &amp; Explainability</strong><br>Make AI reasoning clear so decisions can be inspected.<br><br>
+                                <strong>Security &amp; Non-maleficence</strong><br>Minimize harmful mistakes; plan for failure.
+                            </div>
+                            <div>
+                                <strong>Responsibility &amp; Accountability</strong><br>Assign clear owners and maintain audit trails.<br><br>
+                                <strong>Autonomy</strong><br>Provide appeals processes and alternatives to AI decisions.<br><br>
+                                <strong>Privacy</strong><br>Use only necessary data; justify use of sensitive attributes.
+                            </div>
+                        </div>
+                    </details>
+                </div>
+                <div class="ace-reveal" style="animation-delay:0.4s;">
                     <p class="ace-paragraph">Researchers at UC Riverside found that a ~100-word AI prompt uses about <strong style="color:var(--ace-text); font-weight:600;">half a liter of water</strong> &mdash; roughly one standard water bottle. That water cools the massive server chips. The energy? About the same as watching TV for <strong style="color:var(--ace-text); font-weight:600;">9 seconds</strong>.</p>
                     <p class="ace-paragraph" style="font-size:1rem;">Doesn't sound like much, right? But think about how many prompts you send in a day...</p>
                 </div>
-                <div class="ace-reveal" style="animation-delay:0.4s;">
+                <div class="ace-reveal" style="animation-delay:0.6s;">
                     <div class="ace-card">
                         <label style="display:block; font-size:1rem; color:var(--ace-text-dim); margin-bottom:16px; font-weight:600;">How many AI prompts do you send per day?</label>
                         <input type="range" id="ace-prompt-slider" min="1" max="200" value="1" style="width:100%; cursor:pointer;" oninput="aceUpdatePromptCalc(this.value)">
@@ -152,7 +177,7 @@ MODULES = [
                         </div>
                     </div>
                 </div>
-                <div class="ace-reveal" style="animation-delay:0.6s;">
+                <div class="ace-reveal" style="animation-delay:0.8s;">
                     <button onclick="aceToggleComparison()" id="ace-compare-btn" style="margin-top:20px; padding:12px 20px; font-size:0.95rem; font-weight:600; background:transparent; border:1px solid var(--ace-input-border); border-radius:12px; color:var(--ace-accent); cursor:pointer; transition:all 0.3s; font-family:'Outfit',sans-serif;">
                         Show comparison with Google Search
                     </button>

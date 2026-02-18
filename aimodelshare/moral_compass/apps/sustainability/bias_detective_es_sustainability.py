@@ -136,11 +136,36 @@ MODULES = [
                     <div class="ace-section-label">01 / Cada consulta cuenta</div>
                     <h2 class="ace-heading">Una pregunta a ChatGPT = <span style="color:var(--ace-accent);">una botella de agua</span></h2>
                 </div>
-                <div class="ace-reveal" style="animation-delay:0.2s;">
+                <div class="ace-reveal" style="animation-delay:0.15s;">
+                    <div style="background:var(--ace-accent-highlight); border-left:4px solid var(--ace-accent); border-radius:16px; padding:20px 24px; margin-bottom:8px;">
+                        <p style="margin:0; font-size:1.05rem; line-height:1.6; color:var(--ace-text);">
+                            <strong style="color:var(--ace-accent);">Sostenibilidad: Tu principio rector.</strong><br>
+                            La &eacute;tica gu&iacute;a c&oacute;mo construimos y usamos la IA. Seguimos la orientaci&oacute;n experta del Observatorio de &Eacute;tica en Inteligencia Artificial de Catalu&ntilde;a <strong>OEIAC (UdG)</strong>, que define 7 principios fundamentales de una IA segura. Esta investigaci&oacute;n se centra en la <strong>Sostenibilidad</strong> &mdash; el principio de que los sistemas de IA deben evitar da&ntilde;os a largo plazo al medio ambiente.
+                        </p>
+                    </div>
+                </div>
+                <div class="ace-reveal" style="animation-delay:0.18s;">
+                    <details style="background:var(--ace-input-bg); border:1px solid var(--ace-border-color); border-radius:16px; padding:16px 20px; cursor:pointer;">
+                        <summary style="font-weight:700; color:var(--ace-text-dim); font-size:0.95rem;">&#128736;&#65039; Referencia: Otros principios de &eacute;tica en IA (OEIAC)</summary>
+                        <div style="margin-top:15px; font-size:0.9rem; display:grid; grid-template-columns:1fr 1fr; gap:15px; color:var(--ace-text);">
+                            <div>
+                                <strong>Justicia y equidad</strong><br>Asegurar que la IA trate a todos los grupos de manera justa y no discrimine.<br><br>
+                                <strong>Transparencia y explicabilidad</strong><br>Hacer que el razonamiento de la IA sea claro para que las decisiones puedan ser inspeccionadas.<br><br>
+                                <strong>Seguridad y no maleficencia</strong><br>Minimizar errores da&ntilde;inos; planificar para fallos.
+                            </div>
+                            <div>
+                                <strong>Responsabilidad y rendici&oacute;n de cuentas</strong><br>Asignar propietarios claros y mantener rastros de auditor&iacute;a.<br><br>
+                                <strong>Autonom&iacute;a</strong><br>Proporcionar procesos de apelaci&oacute;n y alternativas a las decisiones de la IA.<br><br>
+                                <strong>Privacidad</strong><br>Utilizar solo los datos necesarios; justificar el uso de atributos sensibles.
+                            </div>
+                        </div>
+                    </details>
+                </div>
+                <div class="ace-reveal" style="animation-delay:0.4s;">
                     <p class="ace-paragraph">Investigadores de UC Riverside descubrieron que una consulta de IA de ~100 palabras consume aproximadamente <strong style="color:var(--ace-text); font-weight:600;">medio litro de agua</strong> &mdash; m&aacute;s o menos una botella est&aacute;ndar. Esa agua refrigera los enormes chips de los servidores. &iquest;La energ&iacute;a? Equivalente a ver la televisi&oacute;n durante <strong style="color:var(--ace-text); font-weight:600;">9 segundos</strong>.</p>
                     <p class="ace-paragraph" style="font-size:1rem;">&iquest;No parece mucho, verdad? Pero piensa en cu&aacute;ntas consultas env&iacute;as al d&iacute;a...</p>
                 </div>
-                <div class="ace-reveal" style="animation-delay:0.4s;">
+                <div class="ace-reveal" style="animation-delay:0.6s;">
                     <div class="ace-card">
                         <label style="display:block; font-size:1rem; color:var(--ace-text-dim); margin-bottom:16px; font-weight:600;">&iquest;Cu&aacute;ntas consultas de IA env&iacute;as al d&iacute;a?</label>
                         <input type="range" id="ace-prompt-slider" min="1" max="200" value="1" style="width:100%; cursor:pointer;" oninput="aceUpdatePromptCalc(this.value)">
@@ -152,7 +177,7 @@ MODULES = [
                         </div>
                     </div>
                 </div>
-                <div class="ace-reveal" style="animation-delay:0.6s;">
+                <div class="ace-reveal" style="animation-delay:0.8s;">
                     <button onclick="aceToggleComparison()" id="ace-compare-btn" style="margin-top:20px; padding:12px 20px; font-size:0.95rem; font-weight:600; background:transparent; border:1px solid var(--ace-input-border); border-radius:12px; color:var(--ace-accent); cursor:pointer; transition:all 0.3s; font-family:'Outfit',sans-serif;">
                         Mostrar comparaci&oacute;n con B&uacute;squeda de Google
                     </button>
