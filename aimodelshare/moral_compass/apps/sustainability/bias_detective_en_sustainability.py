@@ -133,10 +133,6 @@ MODULES = [
         "html": """
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
                 <div class="ace-reveal" style="animation-delay:0s;">
-                    <div class="ace-section-label">01 / Every Single Prompt</div>
-                    <h2 class="ace-heading">One question to ChatGPT = <span style="color:var(--ace-accent);">one bottle of water</span></h2>
-                </div>
-                <div class="ace-reveal" style="animation-delay:0.15s;">
                     <div style="background:var(--ace-accent-highlight); border-left:4px solid var(--ace-accent); border-radius:16px; padding:20px 24px; margin-bottom:8px;">
                         <p style="margin:0; font-size:1.05rem; line-height:1.6; color:var(--ace-text);">
                             <strong style="color:var(--ace-accent);">Sustainability: Your Guiding Principle.</strong><br>
@@ -144,7 +140,7 @@ MODULES = [
                         </p>
                     </div>
                 </div>
-                <div class="ace-reveal" style="animation-delay:0.18s;">
+                <div class="ace-reveal" style="animation-delay:0.15s;">
                     <details style="background:var(--ace-input-bg); border:1px solid var(--ace-border-color); border-radius:16px; padding:16px 20px; cursor:pointer;">
                         <summary style="font-weight:700; color:var(--ace-text-dim); font-size:0.95rem;">&#128736;&#65039; Reference: Other AI Ethics Principles (OEIAC)</summary>
                         <div style="margin-top:15px; font-size:0.9rem; display:grid; grid-template-columns:1fr 1fr; gap:15px; color:var(--ace-text);">
@@ -162,10 +158,13 @@ MODULES = [
                     </details>
                 </div>
                 <div class="ace-reveal" style="animation-delay:0.4s;">
+                    <div class="ace-section-label">01 / Every Single Prompt</div>
+                    <h2 class="ace-heading" id="ace-m1-typewriter-text" style="min-height:2.4em;"></h2>
+                    <span class="ace-cursor" style="display:inline-block; width:2px; height:1.1em; background:var(--ace-accent); margin-left:2px; animation:aceBlink 0.7s step-end infinite; vertical-align:text-bottom;"></span>
+                </div>
+                <div id="ace-m1-reveal-content" style="opacity:0; transform:translateY(20px); transition:opacity 0.6s ease, transform 0.6s ease;">
                     <p class="ace-paragraph">Researchers at UC Riverside found that a ~100-word AI prompt uses about <strong style="color:var(--ace-text); font-weight:600;">half a liter of water</strong> &mdash; roughly one standard water bottle. That water cools the massive server chips. The energy? About the same as watching TV for <strong style="color:var(--ace-text); font-weight:600;">9 seconds</strong>.</p>
                     <p class="ace-paragraph" style="font-size:1rem;">Doesn't sound like much, right? But think about how many prompts you send in a day...</p>
-                </div>
-                <div class="ace-reveal" style="animation-delay:0.6s;">
                     <div class="ace-card">
                         <label style="display:block; font-size:1rem; color:var(--ace-text-dim); margin-bottom:16px; font-weight:600;">How many AI prompts do you send per day?</label>
                         <input type="range" id="ace-prompt-slider" min="1" max="200" value="1" style="width:100%; cursor:pointer;" oninput="aceUpdatePromptCalc(this.value)">
@@ -176,8 +175,6 @@ MODULES = [
                         <div id="ace-prompt-stats" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:20px;">
                         </div>
                     </div>
-                </div>
-                <div class="ace-reveal" style="animation-delay:0.8s;">
                     <button onclick="aceToggleComparison()" id="ace-compare-btn" style="margin-top:20px; padding:12px 20px; font-size:0.95rem; font-weight:600; background:transparent; border:1px solid var(--ace-input-border); border-radius:12px; color:var(--ace-accent); cursor:pointer; transition:all 0.3s; font-family:'Outfit',sans-serif;">
                         Show comparison with Google Search
                     </button>
@@ -1148,6 +1145,30 @@ CLIENT_JS = """
     }, 45);
 })();
 
+// === Module 1: Heading Typewriter ===
+(function aceInitM1Typewriter(){
+    var el = document.getElementById('ace-m1-typewriter-text');
+    if (!el) { setTimeout(aceInitM1Typewriter, 200); return; }
+    if (el.dataset.init === '1') return;
+    el.dataset.init = '1';
+    var part1 = "One question to ChatGPT = ";
+    var part2 = "one bottle of water";
+    var i = 0, total = part1.length + part2.length;
+    var iv = setInterval(function(){
+        i++;
+        if (i <= part1.length) {
+            el.innerHTML = part1.slice(0, i);
+        } else {
+            el.innerHTML = part1 + '<span style="color:var(--ace-accent);">' + part2.slice(0, i - part1.length) + '</span>';
+        }
+        if (i >= total) {
+            clearInterval(iv);
+            var content = document.getElementById('ace-m1-reveal-content');
+            if (content) { content.style.opacity = '1'; content.style.transform = 'translateY(0)'; }
+        }
+    }, 45);
+})();
+
 // === Module 1: Prompt Calculator ===
 function aceUpdatePromptCalc(val) {
     var countEl = document.getElementById('ace-prompt-count');
@@ -1453,6 +1474,13 @@ function aceToggleComparison() {
 function aceReinitAll(){
     var tw = document.getElementById('ace-typewriter-text');
     if (tw && !tw.textContent.trim()) { delete tw.dataset.init; aceInitTypewriter(); }
+    var m1tw = document.getElementById('ace-m1-typewriter-text');
+    if (m1tw && !m1tw.textContent.trim()) {
+        delete m1tw.dataset.init;
+        var m1c = document.getElementById('ace-m1-reveal-content');
+        if (m1c) { m1c.style.opacity = '0'; m1c.style.transform = 'translateY(20px)'; }
+        aceInitM1Typewriter();
+    }
     var pc = document.getElementById('ace-prompt-count');
     var ps = document.getElementById('ace-prompt-stats');
     if (pc && ps && ps.children.length === 0) { delete pc.dataset.init; aceInitPrompt(); }

@@ -133,10 +133,6 @@ MODULES = [
         "html": """
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
                 <div class="ace-reveal" style="animation-delay:0s;">
-                    <div class="ace-section-label">01 / Cada consulta cuenta</div>
-                    <h2 class="ace-heading">Una pregunta a ChatGPT = <span style="color:var(--ace-accent);">una botella de agua</span></h2>
-                </div>
-                <div class="ace-reveal" style="animation-delay:0.15s;">
                     <div style="background:var(--ace-accent-highlight); border-left:4px solid var(--ace-accent); border-radius:16px; padding:20px 24px; margin-bottom:8px;">
                         <p style="margin:0; font-size:1.05rem; line-height:1.6; color:var(--ace-text);">
                             <strong style="color:var(--ace-accent);">Sostenibilidad: Tu principio rector.</strong><br>
@@ -144,7 +140,7 @@ MODULES = [
                         </p>
                     </div>
                 </div>
-                <div class="ace-reveal" style="animation-delay:0.18s;">
+                <div class="ace-reveal" style="animation-delay:0.15s;">
                     <details style="background:var(--ace-input-bg); border:1px solid var(--ace-border-color); border-radius:16px; padding:16px 20px; cursor:pointer;">
                         <summary style="font-weight:700; color:var(--ace-text-dim); font-size:0.95rem;">&#128736;&#65039; Referencia: Otros principios de &eacute;tica en IA (OEIAC)</summary>
                         <div style="margin-top:15px; font-size:0.9rem; display:grid; grid-template-columns:1fr 1fr; gap:15px; color:var(--ace-text);">
@@ -162,10 +158,13 @@ MODULES = [
                     </details>
                 </div>
                 <div class="ace-reveal" style="animation-delay:0.4s;">
+                    <div class="ace-section-label">01 / Cada consulta cuenta</div>
+                    <h2 class="ace-heading" id="ace-m1-typewriter-text" style="min-height:2.4em;"></h2>
+                    <span class="ace-cursor" style="display:inline-block; width:2px; height:1.1em; background:var(--ace-accent); margin-left:2px; animation:aceBlink 0.7s step-end infinite; vertical-align:text-bottom;"></span>
+                </div>
+                <div id="ace-m1-reveal-content" style="opacity:0; transform:translateY(20px); transition:opacity 0.6s ease, transform 0.6s ease;">
                     <p class="ace-paragraph">Investigadores de UC Riverside descubrieron que una consulta de IA de ~100 palabras consume aproximadamente <strong style="color:var(--ace-text); font-weight:600;">medio litro de agua</strong> &mdash; m&aacute;s o menos una botella est&aacute;ndar. Esa agua refrigera los enormes chips de los servidores. &iquest;La energ&iacute;a? Equivalente a ver la televisi&oacute;n durante <strong style="color:var(--ace-text); font-weight:600;">9 segundos</strong>.</p>
                     <p class="ace-paragraph" style="font-size:1rem;">&iquest;No parece mucho, verdad? Pero piensa en cu&aacute;ntas consultas env&iacute;as al d&iacute;a...</p>
-                </div>
-                <div class="ace-reveal" style="animation-delay:0.6s;">
                     <div class="ace-card">
                         <label style="display:block; font-size:1rem; color:var(--ace-text-dim); margin-bottom:16px; font-weight:600;">&iquest;Cu&aacute;ntas consultas de IA env&iacute;as al d&iacute;a?</label>
                         <input type="range" id="ace-prompt-slider" min="1" max="200" value="1" style="width:100%; cursor:pointer;" oninput="aceUpdatePromptCalc(this.value)">
@@ -176,8 +175,6 @@ MODULES = [
                         <div id="ace-prompt-stats" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:20px;">
                         </div>
                     </div>
-                </div>
-                <div class="ace-reveal" style="animation-delay:0.8s;">
                     <button onclick="aceToggleComparison()" id="ace-compare-btn" style="margin-top:20px; padding:12px 20px; font-size:0.95rem; font-weight:600; background:transparent; border:1px solid var(--ace-input-border); border-radius:12px; color:var(--ace-accent); cursor:pointer; transition:all 0.3s; font-family:'Outfit',sans-serif;">
                         Mostrar comparaci&oacute;n con B&uacute;squeda de Google
                     </button>
@@ -1148,6 +1145,30 @@ CLIENT_JS = """
     }, 45);
 })();
 
+// === Module 1: Heading Typewriter ===
+(function aceInitM1Typewriter(){
+    var el = document.getElementById('ace-m1-typewriter-text');
+    if (!el) { setTimeout(aceInitM1Typewriter, 200); return; }
+    if (el.dataset.init === '1') return;
+    el.dataset.init = '1';
+    var part1 = "Una pregunta a ChatGPT = ";
+    var part2 = "una botella de agua";
+    var i = 0, total = part1.length + part2.length;
+    var iv = setInterval(function(){
+        i++;
+        if (i <= part1.length) {
+            el.innerHTML = part1.slice(0, i);
+        } else {
+            el.innerHTML = part1 + '<span style="color:var(--ace-accent);">' + part2.slice(0, i - part1.length) + '</span>';
+        }
+        if (i >= total) {
+            clearInterval(iv);
+            var content = document.getElementById('ace-m1-reveal-content');
+            if (content) { content.style.opacity = '1'; content.style.transform = 'translateY(0)'; }
+        }
+    }, 45);
+})();
+
 // === Module 1: Prompt Calculator ===
 function aceUpdatePromptCalc(val) {
     var countEl = document.getElementById('ace-prompt-count');
@@ -1453,6 +1474,13 @@ function aceToggleComparison() {
 function aceReinitAll(){
     var tw = document.getElementById('ace-typewriter-text');
     if (tw && !tw.textContent.trim()) { delete tw.dataset.init; aceInitTypewriter(); }
+    var m1tw = document.getElementById('ace-m1-typewriter-text');
+    if (m1tw && !m1tw.textContent.trim()) {
+        delete m1tw.dataset.init;
+        var m1c = document.getElementById('ace-m1-reveal-content');
+        if (m1c) { m1c.style.opacity = '0'; m1c.style.transform = 'translateY(20px)'; }
+        aceInitM1Typewriter();
+    }
     var pc = document.getElementById('ace-prompt-count');
     var ps = document.getElementById('ace-prompt-stats');
     if (pc && ps && ps.children.length === 0) { delete pc.dataset.init; aceInitPrompt(); }
