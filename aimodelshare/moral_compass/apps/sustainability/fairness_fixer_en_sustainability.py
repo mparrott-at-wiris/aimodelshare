@@ -142,7 +142,10 @@ def _round_html(round_idx, emoji, title, brief, question, choices):
                     <span style="font-size:0.875rem; color:var(--cto-text-dim); font-weight:600; letter-spacing:3px; text-transform:uppercase;">Round {round_idx} / {total}</span>
                     <span style="font-size:0.875rem; color:var(--cto-text-dim);">NovaMind AI &mdash; Your Review</span>
                 </div>
-                <div id="cto-stats-{round_idx}" class="cto-stats-grid"></div>
+                <div class="cto-stats-wrapper">
+                    <div class="cto-stats-header">&#127961;&#65039; Your City&#39;s Pollution</div>
+                    <div id="cto-stats-{round_idx}" class="cto-stats-grid"></div>
+                </div>
                 <div style="display:flex; gap:6px; margin-top:16px;">
                     {progress_segments}
                 </div>
@@ -203,29 +206,42 @@ MODULES = [
                     <div class="cto-reveal" style="animation-delay:0.6s;">
                         <p style="font-size:1.125rem; color:var(--cto-text-dim); text-align:center; max-width:480px; margin:28px auto 0; line-height:1.7;">
                             The mayor just picked YOU as the city&#39;s <strong style="color:var(--cto-text); font-weight:600;">Green AI Advisor</strong>!
-                            A company called NovaMind wants to build a giant AI data center here. Right now, their plan <strong style="color:var(--cto-error); font-weight:700;">wastes tons of energy and water</strong>.
-                            Can you fix it in 5 rounds?
+                            A company called NovaMind wants to build a giant AI data center here. Look at the pollution numbers below &mdash; <strong style="color:var(--cto-error); font-weight:700;">that&#39;s what YOUR city will face</strong> if you don&#39;t step in.
                         </p>
                     </div>
                     <div class="cto-reveal" style="animation-delay:0.9s;">
-                        <div style="display:flex; gap:12px; margin-top:32px; flex-wrap:wrap; justify-content:center;">
-                            <div style="padding:14px 20px; border-radius:12px; background:var(--cto-input-bg); border:1px solid var(--cto-border-color); text-align:center; min-width:120px;">
-                                <div style="font-size:0.85rem; color:var(--cto-warning); font-weight:600;">&#9889; Energy Use</div>
-                                <div style="font-size:1.15rem; font-weight:800; color:var(--cto-text); margin-top:4px;">4,200 homes&#39; worth</div>
-                            </div>
-                            <div style="padding:14px 20px; border-radius:12px; background:var(--cto-input-bg); border:1px solid var(--cto-border-color); text-align:center; min-width:120px;">
-                                <div style="font-size:0.85rem; color:var(--cto-error); font-weight:600;">&#128167; Water Use</div>
-                                <div style="font-size:1.15rem; font-weight:800; color:var(--cto-text); margin-top:4px;">7 swimming pools</div>
-                            </div>
-                            <div style="padding:14px 20px; border-radius:12px; background:var(--cto-input-bg); border:1px solid var(--cto-border-color); text-align:center; min-width:120px;">
-                                <div style="font-size:0.85rem; color:var(--cto-text-dim); font-weight:600;">&#127793; Green Score</div>
-                                <div style="font-size:1.15rem; font-weight:800; color:var(--cto-text); margin-top:4px;">8 / 100 &#128561;</div>
+                        <div class="cto-stats-wrapper" style="margin-top:32px; max-width:420px; margin-left:auto; margin-right:auto;">
+                            <div class="cto-stats-header">&#127961;&#65039; Your City&#39;s Pollution from NovaMind</div>
+                            <div class="cto-stats-grid">
+                                <div style="text-align:center; padding:8px 4px;">
+                                    <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#9889; Families&#39; Energy</div>
+                                    <div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">4,200</div>
+                                    <div style="font-size:0.7rem; color:var(--cto-text-dim);">homes&#39; worth</div>
+                                </div>
+                                <div style="text-align:center; padding:8px 4px;">
+                                    <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#128167; Water Use</div>
+                                    <div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">7.4</div>
+                                    <div style="font-size:0.7rem; color:var(--cto-text-dim);">swimming pools</div>
+                                </div>
+                                <div style="text-align:center; padding:8px 4px;">
+                                    <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#128663; CO&#8322; Pollution</div>
+                                    <div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">4,800</div>
+                                    <div style="font-size:0.7rem; color:var(--cto-text-dim);">cars&#39; worth</div>
+                                </div>
+                                <div style="text-align:center; padding:8px 4px;">
+                                    <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#127793; Green Score</div>
+                                    <div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">8 / 100 &#128561;</div>
+                                    <div style="font-size:0.7rem; color:var(--cto-text-dim);">/100</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="cto-reveal" style="animation-delay:1.2s;">
-                        <div style="text-align:center; margin-top:16px;">
-                            <p style="font-size:0.875rem; color:var(--cto-text-dim);">5 rounds &middot; Real choices &middot; Can you save your city? &#127758;</p>
+                    <div class="cto-reveal" style="animation-delay:1.1s;">
+                        <p style="font-size:1.05rem; font-weight:700; color:var(--cto-accent); text-align:center; margin-top:20px;">Reduce each number to green levels and protect your city!</p>
+                    </div>
+                    <div class="cto-reveal" style="animation-delay:1.3s;">
+                        <div style="text-align:center; margin-top:12px;">
+                            <p style="font-size:0.875rem; color:var(--cto-text-dim);">5 rounds &middot; Real choices &middot; Your city is counting on you &#127758;</p>
                         </div>
                     </div>
                 </div>
@@ -868,11 +884,23 @@ css = """
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
-    padding: 16px;
+    padding: 12px 16px 16px;
+}
+.cto-stats-wrapper {
     border-radius: 16px;
     background: var(--cto-card-bg);
     border: 1px solid var(--cto-border-color);
     backdrop-filter: blur(16px);
+    overflow: hidden;
+}
+.cto-stats-header {
+    text-align: center;
+    padding: 10px 16px 0;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--cto-error);
 }
 
 /* CTO Choice cards */
@@ -1225,28 +1253,30 @@ function ctoRenderStats(containerId, stats, prev) {
     var el = document.getElementById(containerId);
     if (!el) return;
     var items = [
-        {k:"greenScore", l:"Green Score", u:"/100", i:"\\ud83c\\udf31"},
-        {k:"reputation", l:"Reputation", u:"/100", i:"\\u2b50"},
+        {k:"energy", l:"Families\\u2019 Energy", u:"homes\\u2019 worth", i:"\\u26a1", conv:1, up:false},
+        {k:"water", l:"Water Use", u:"swimming pools", i:"\\ud83d\\udca7", conv:2500000, up:false},
+        {k:"co2", l:"CO\\u2082 Pollution", u:"cars\\u2019 worth", i:"\\ud83d\\ude97", conv:0.35, up:false},
+        {k:"greenScore", l:"Green Score", u:"/100", i:"\\ud83c\\udf31", conv:1, up:true},
     ];
     var html = "";
     for (var idx = 0; idx < items.length; idx++) {
         var it = items[idx];
-        var v = stats[it.k];
-        var d = null;
-        if (prev) {
-            var pv = prev[it.k] || 1;
-            d = Math.round((v - prev[it.k]) / pv * 100);
-        }
-        var valStr = String(v);
+        var raw = stats[it.k];
+        var v = it.k === "greenScore" ? raw : (it.conv >= 1 ? Math.round(raw / it.conv) : Math.round(raw / it.conv));
+        var valStr = it.k === "greenScore" ? String(v) : v.toLocaleString();
         var deltaHtml = "";
-        if (d !== null && d !== 0) {
-            var dColor = d < 0 ? "var(--cto-success)" : "var(--cto-error)";
-            // For greenScore and reputation, positive is good
-            if (it.k === "greenScore" || it.k === "reputation") {
-                dColor = d > 0 ? "var(--cto-success)" : "var(--cto-error)";
+        if (prev) {
+            var prevRaw = prev[it.k];
+            var diff = raw - prevRaw;
+            if (diff !== 0) {
+                var dv = it.k === "greenScore" ? diff : (it.conv >= 1 ? Math.round(diff / it.conv) : Math.round(diff / it.conv));
+                var improved = it.up ? diff > 0 : diff < 0;
+                var dColor = improved ? "var(--cto-success)" : "var(--cto-error)";
+                var arrow = diff > 0 ? "\\u2191" : "\\u2193";
+                var absDv = Math.abs(dv);
+                var dLabel = it.k === "greenScore" ? (arrow + " " + absDv + " pts") : (arrow + " " + absDv.toLocaleString());
+                deltaHtml = '<div style="font-size:0.75rem; margin-top:2px; color:' + dColor + ';">' + dLabel + '</div>';
             }
-            var arrow = d < 0 ? "\\u2193" : "\\u2191";
-            deltaHtml = '<div style="font-size:0.75rem; margin-top:2px; color:' + dColor + ';">' + arrow + Math.abs(d) + '%</div>';
         }
         html += '<div style="text-align:center; padding:8px 4px;">'
             + '<div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">' + it.i + ' ' + it.l + '</div>'
@@ -1416,7 +1446,6 @@ function ctoRenderResults() {
     // Progress rings
     var ringItems = [
         {l:"Green Score", v:stats.greenScore, m:100},
-        {l:"Reputation", v:stats.reputation, m:100},
         {l:"Best Choices", v:bc, m:5}
     ];
     var ringsHtml = '';
@@ -1481,7 +1510,7 @@ function ctoRenderResults() {
             + '<div style="font-size:3rem;">\\ud83c\\udfc5</div>'
             + '<h2 style="font-size:1.6rem; font-weight:800; color:var(--cto-success); margin-top:12px;">APPROVED! \\ud83c\\udf89</h2>'
             + '<p style="font-size:1.05rem; color:var(--cto-text-dim); margin-top:8px; line-height:1.7; max-width:440px; margin-left:auto; margin-right:auto;">'
-            + 'NovaMind passed your green standards! Your city is now protected from wasteful AI.</p>'
+            + 'NovaMind passed your green standards! Your city\\u2019s air, water, and energy are protected \\u2014 because of YOUR decisions.</p>'
             + '<div style="margin-top:20px; display:inline-block; padding:12px 28px; border-radius:12px; background:rgba(16,185,129,0.1); border:1px solid var(--cto-success); font-size:1rem; color:var(--cto-success); font-weight:700;">'
             + '\\u2705 APPROVED TO BUILD</div>'
             + '</div>';
@@ -1490,7 +1519,7 @@ function ctoRenderResults() {
             + '<div style="font-size:3rem;">\\ud83d\\udd04</div>'
             + '<h2 style="font-size:1.6rem; font-weight:800; color:var(--cto-warning); margin-top:12px;">NEEDS MORE WORK</h2>'
             + '<p style="font-size:1.05rem; color:var(--cto-text-dim); margin-top:8px; line-height:1.7; max-width:440px; margin-left:auto; margin-right:auto;">'
-            + 'NovaMind improved, but didn\\u2019t hit your city\\u2019s green target (score 60+). The mayor is sending them back to try again.</p>'
+            + 'NovaMind improved, but your city\\u2019s pollution is still too high (Green Score under 60). The mayor is sending them back \\u2014 your city deserves better.</p>'
             + '<div style="margin-top:20px; display:inline-block; padding:12px 28px; border-radius:12px; background:rgba(251,191,36,0.1); border:1px solid var(--cto-warning); font-size:1rem; color:var(--cto-warning); font-weight:700;">'
             + '\\u23f3 SENT BACK FOR CHANGES</div>'
             + '</div>';
@@ -1504,11 +1533,19 @@ function ctoRenderResults() {
         + '<div style="font-size:0.8rem; color:var(--cto-text-dim); margin-top:12px;">Based on real data from IEA, MIT, UC Riverside, VU Amsterdam (2024\\u20132025)</div>'
         + '</div>';
 
+    var climateHtml = '<div class="cto-card" style="margin-top:24px; text-align:center;">'
+        + '<div style="font-size:1.1rem; font-weight:800; color:var(--cto-text);">\\ud83c\\udf0d The Bigger Picture</div>'
+        + '<p style="font-size:1rem; color:var(--cto-text-dim); line-height:1.7; margin-top:8px; max-width:480px; margin-left:auto; margin-right:auto;">'
+        + 'AI data centers already use more electricity than some entire countries. Every choice you just made \\u2014 cooling, energy, model size, location, transparency \\u2014 is a real lever that decides how much AI heats up our planet.</p>'
+        + '<p style="font-size:1rem; color:var(--cto-success); font-weight:700; line-height:1.7; margin-top:12px; max-width:480px; margin-left:auto; margin-right:auto;">'
+        + '\\u201cThinking ahead about AI sustainability is one of the biggest ways your generation can help fight climate change.\\u201d</p>'
+        + '</div>';
+
     container.innerHTML = '<div style="text-align:center; font-size:0.875rem; font-weight:800; letter-spacing:3px; color:' + statusColor + '; text-transform:uppercase;">'
         + statusText + '</div>'
         + '<h1 style="text-align:center; font-size:clamp(2rem, 7vw, 3.2rem); font-weight:800; margin-top:16px; color:var(--cto-text);">'
         + '<span style="color:' + g.c + ';">' + g.l + '</span> \\u2014 ' + g.t + '</h1>'
-        + '<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:32px;">' + ringsHtml + '</div>'
+        + '<div style="display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-top:32px;">' + ringsHtml + '</div>'
         + '<div class="cto-card" style="margin-top:28px;">'
         + '<h3 style="font-size:1.2rem; font-weight:800; color:var(--cto-text); margin:0 0 16px 0;">What Your Choices Changed</h3>'
         + '<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px;">' + impactHtml + '</div></div>'
@@ -1516,7 +1553,8 @@ function ctoRenderResults() {
         + '<h3 style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin:0 0 12px 0;">Your 5 Choices</h3>'
         + auditHtml + '</div>'
         + certHtml
-        + learnHtml;
+        + learnHtml
+        + climateHtml;
 }
 
 // --- Init functions for each module ---
