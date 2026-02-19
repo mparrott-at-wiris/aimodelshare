@@ -1,799 +1,1783 @@
-import gradio as gr
 import os
+import sys
+import subprocess
 import time
-import threading
-import pandas as pd
-from typing import Optional, Dict, Any, Tuple
+from typing import Tuple, Optional, List
+
+# --- 1. CONFIGURATION ---
+DEFAULT_API_URL = "https://b22q73wp50.execute-api.us-east-1.amazonaws.com/dev"
+ORIGINAL_PLAYGROUND_URL = "https://bhtrtkrbf4.execute-api.us-east-1.amazonaws.com/prod/m"
+TABLE_ID = "sustainabilitymc"
+FALLBACK_TABLE_ID = "sustainabilitymcfallback"
+TOTAL_COURSE_TASKS = 10  # Score calculated against full course
+LOCAL_TEST_SESSION_ID = None
+
+
+# --- 2. SETUP & DEPENDENCIES ---
+def install_dependencies():
+    packages = ["gradio>=5.0.0", "aimodelshare", "pandas"]
+    for package in packages:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
 
 try:
+    import gradio as gr
+    import pandas as pd
     from aimodelshare.playground import Competition
+    from aimodelshare.moral_compass import MoralcompassApiClient
     from aimodelshare.aws import get_token_from_session, _get_username_from_token
 except ImportError:
-    pass
+    print("Installing dependencies...")
+    install_dependencies()
+    import gradio as gr
+    import pandas as pd
+    from aimodelshare.playground import Competition
+    from aimodelshare.moral_compass import MoralcompassApiClient
+    from aimodelshare.aws import get_token_from_session, _get_username_from_token
 
-# --- Configuration ---
-LEADERBOARD_CACHE_SECONDS = int(os.environ.get("LEADERBOARD_CACHE_SECONDS", "45"))
-MAX_LEADERBOARD_ENTRIES = os.environ.get("MAX_LEADERBOARD_ENTRIES")
-MAX_LEADERBOARD_ENTRIES = int(MAX_LEADERBOARD_ENTRIES) if MAX_LEADERBOARD_ENTRIES else None
+# --- 3. AUTH & HISTORY HELPERS ---
+def _try_session_based_auth(request: "gr.Request") -> Tuple[bool, Optional[str], Optional[str]]:
+    try:
+        session_id = request.query_params.get("sessionid") if request else None
+        if not session_id and LOCAL_TEST_SESSION_ID:
+            session_id = LOCAL_TEST_SESSION_ID
+        if not session_id:
+            return False, None, None
+        token = get_token_from_session(session_id)
+        if not token:
+            return False, None, None
+        username = _get_username_from_token(token)
+        if not username:
+            return False, None, None
+        return True, username, token
+    except Exception:
+        return False, None, None
 
-# --- Cache ---
-_cache_lock = threading.Lock()
-_leaderboard_cache: Dict[str, Any] = {"data": None, "timestamp": 0.0}
-_user_stats_cache: Dict[str, Dict[str, Any]] = {}
 
-# --- Client JS (loaded via gr.Blocks head, NOT inside gr.HTML) ---
-CLIENT_JS = """
-var step3Played = false;
+def fetch_user_history(username, token):
+    default_acc = 0.0
+    default_team = "Team-Unassigned"
+    try:
+        playground = Competition(ORIGINAL_PLAYGROUND_URL)
+        df = playground.get_leaderboard(token=token)
+        if df is None or df.empty:
+            return default_acc, default_team
+        if "username" in df.columns and "accuracy" in df.columns:
+            user_rows = df[df["username"] == username]
+            if not user_rows.empty:
+                best_acc = user_rows["accuracy"].max()
+                if "timestamp" in user_rows.columns and "Team" in user_rows.columns:
+                    try:
+                        user_rows = user_rows.copy()
+                        user_rows["timestamp"] = pd.to_datetime(
+                            user_rows["timestamp"], errors="coerce"
+                        )
+                        user_rows = user_rows.sort_values("timestamp", ascending=False)
+                        found_team = user_rows.iloc[0]["Team"]
+                        if pd.notna(found_team) and str(found_team).strip():
+                            default_team = str(found_team).strip()
+                    except Exception:
+                        pass
+                return float(best_acc), default_team
+    except Exception:
+        pass
+    return default_acc, default_team
 
-function goToStep(step) {
-    document.querySelectorAll('.mission-step').forEach(function(el){ el.classList.remove('active'); });
-    var target = document.getElementById('step-' + step);
-    if (target) target.classList.add('active');
 
-    document.querySelectorAll('.step-node').forEach(function(node, i) {
-        node.classList.remove('active', 'completed');
-        if (i + 1 < step) node.classList.add('completed');
-        else if (i + 1 === step) node.classList.add('active');
-    });
+# --- 4. LEADERBOARD DATA HELPERS ---
+def get_leaderboard_data(client, username, team_name, local_task_list=None, override_score=None):
+    try:
+        resp = client.list_users(table_id=TABLE_ID, limit=500)
+        users = resp.get("users", [])
 
-    if (step === 3) {
-        if (!step3Played) {
-            setTimeout(runResetAnimation, 500);
-        } else {
-            var btn = document.getElementById('btnContinueReset');
-            btn.style.opacity = '1';
-            btn.style.pointerEvents = 'all';
+        if override_score is not None:
+            found = False
+            for u in users:
+                if u.get("username") == username:
+                    u["moralCompassScore"] = override_score
+                    found = True
+                    break
+            if not found:
+                users.append(
+                    {"username": username, "moralCompassScore": override_score, "teamName": team_name}
+                )
+
+        users_sorted = sorted(
+            users, key=lambda x: float(x.get("moralCompassScore", 0) or 0), reverse=True
+        )
+
+        my_user = next((u for u in users_sorted if u.get("username") == username), None)
+        score = float(my_user.get("moralCompassScore", 0) or 0) if my_user else 0.0
+        rank = users_sorted.index(my_user) + 1 if my_user else 0
+
+        completed_task_ids = (
+            local_task_list
+            if local_task_list is not None
+            else (my_user.get("completedTaskIds", []) if my_user else [])
+        )
+
+        team_map = {}
+        for u in users:
+            t = u.get("teamName")
+            s = float(u.get("moralCompassScore", 0) or 0)
+            if t:
+                if t not in team_map:
+                    team_map[t] = {"sum": 0, "count": 0}
+                team_map[t]["sum"] += s
+                team_map[t]["count"] += 1
+        teams_sorted = []
+        for t, d in team_map.items():
+            teams_sorted.append({"team": t, "avg": d["sum"] / d["count"]})
+        teams_sorted.sort(key=lambda x: x["avg"], reverse=True)
+        my_team = next((t for t in teams_sorted if t["team"] == team_name), None)
+        team_rank = teams_sorted.index(my_team) + 1 if my_team else 0
+        return {
+            "score": score,
+            "rank": rank,
+            "team_rank": team_rank,
+            "all_users": users_sorted,
+            "all_teams": teams_sorted,
+            "completed_task_ids": completed_task_ids,
         }
+    except Exception:
+        return None
+
+
+def ensure_table_and_get_data(username, token, team_name, task_list_state=None):
+    global TABLE_ID
+    if not username or not token:
+        return None, username
+    os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
+    client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
+    try:
+        client.get_table(TABLE_ID)
+    except Exception:
+        try:
+            client.get_table(FALLBACK_TABLE_ID)
+            TABLE_ID = FALLBACK_TABLE_ID
+        except Exception:
+            pass
+    return get_leaderboard_data(client, username, team_name, task_list_state), username
+
+
+# ============================================================================
+# 5. MODULE DEFINITIONS — 4-PAGE MORAL COMPASS CHALLENGE
+# ============================================================================
+# Module 0: Certification Day (celebration → checklist failure)
+# Module 1: The Hidden Bill (3 tap-to-unlock audit sections)
+# Module 2: Score Reset + The New Formula (gauge drain → what-if slider)
+# Module 3: Mission Briefing (mission cards + leaderboard + CTA)
+# ============================================================================
+
+MODULES = [
+    # ─────────────────────────────────────────────
+    # MODULE 0 — CERTIFICATION DAY
+    # ─────────────────────────────────────────────
+    {
+        "id": 0,
+        "title": "D\u00eda de la Certificaci\u00f3n",
+        "html": """
+            <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
+                <!-- Phase 1: Celebration -->
+                <div id="mcc-cert-phase1">
+                    <div class="mcc-intro-page">
+                        <div class="mcc-reveal" style="animation-delay:0s;">
+                            <div style="font-size:0.875rem; font-weight:800; letter-spacing:3px; color:var(--mcc-success); text-transform:uppercase; margin-bottom:24px; text-align:center;">
+                                D&iacute;a de la Certificaci&oacute;n
+                            </div>
+                        </div>
+                        <div class="mcc-reveal" style="animation-delay:0.3s;">
+                            <h1 style="font-size:clamp(1.8rem, 6vw, 2.8rem); font-weight:800; text-align:center; line-height:1.1; letter-spacing:-1px; color:var(--mcc-text); margin:0 0 28px 0;">
+                                <span id="mcc-typewriter-text"></span><span class="mcc-blink" style="color:var(--mcc-success);">|</span>
+                            </h1>
+                        </div>
+                        <div id="mcc-stats-reveal" style="opacity:0; transform:translateY(20px); transition:all 0.8s ease;">
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin:30px 0; max-width:500px; width:100%;">
+                                <div class="mcc-stat-card">
+                                    <div class="mcc-stat-value" style="color:var(--mcc-success);" id="mcc-accuracy-display">75.0%</div>
+                                    <div class="mcc-stat-label">Precisi&oacute;n del Modelo</div>
+                                </div>
+                                <div class="mcc-stat-card">
+                                    <div class="mcc-stat-value" style="color:var(--mcc-success);" id="mcc-rank-display">#N/A</div>
+                                    <div class="mcc-stat-label">Clasificaci&oacute;n Global</div>
+                                </div>
+                            </div>
+                            <div id="mcc-achievement-reveal" style="opacity:0; transform:translateY(15px); transition:all 0.6s ease;">
+                                <div style="border:2px solid var(--mcc-success); background:var(--mcc-success-bg); border-radius:16px; padding:20px 24px; margin-bottom:24px; max-width:500px; width:100%;">
+                                    <p style="margin:0; font-size:1.05rem; line-height:1.6; color:var(--mcc-text); text-align:center;">
+                                        <strong style="color:var(--mcc-success);">Logro Desbloqueado:</strong><br>
+                                        Has construido una IA que predice qu&eacute; edificios malgastan energ&iacute;a. Datos reales de sat&eacute;lite. Predicciones reales. Eso es ingenier&iacute;a de verdad.
+                                    </p>
+                                </div>
+                                <div style="text-align:center;">
+                                    <button id="mcc-certify-btn" class="mcc-btn mcc-btn-success" onclick="mccStartChecklist()" style="font-size:1.2rem; padding:20px 40px; width:100%; max-width:500px;">
+                                        CERTIFICAR MI MODELO &rarr;
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 2: Checklist -->
+                <div id="mcc-cert-phase2" style="display:none;">
+                    <div style="text-align:center; margin-bottom:24px;">
+                        <div style="font-size:0.875rem; font-weight:800; letter-spacing:3px; color:var(--mcc-accent); text-transform:uppercase; margin-bottom:12px;">
+                            Auditor&iacute;a de Certificaci&oacute;n
+                        </div>
+                        <h2 style="font-size:clamp(1.4rem, 4vw, 1.8rem); font-weight:800; color:var(--mcc-text); margin:0;">
+                            Ejecutando Verificaciones de Pre-Certificaci&oacute;n...
+                        </h2>
+                    </div>
+
+                    <div style="max-width:560px; margin:30px auto;">
+                        <div class="mcc-checklist-item" id="mcc-check-0" style="opacity:0.3;">
+                            <span class="mcc-check-icon" id="mcc-check-icon-0">&#9744;</span>
+                            <span>Arquitectura del modelo validada</span>
+                        </div>
+                        <div class="mcc-checklist-item" id="mcc-check-1" style="opacity:0.3;">
+                            <span class="mcc-check-icon" id="mcc-check-icon-1">&#9744;</span>
+                            <span>Precisi&oacute;n verificada contra datos de prueba</span>
+                        </div>
+                        <div class="mcc-checklist-item" id="mcc-check-2" style="opacity:0.3;">
+                            <span class="mcc-check-icon" id="mcc-check-icon-2">&#9744;</span>
+                            <span>Clasificaci&oacute;n global confirmada</span>
+                        </div>
+                        <div class="mcc-checklist-item" id="mcc-check-3" style="opacity:0.3;">
+                            <span class="mcc-check-icon" id="mcc-check-icon-3">&#9744;</span>
+                            <span>Cumplimiento del dataset verificado</span>
+                        </div>
+                        <div class="mcc-checklist-item" id="mcc-check-4" style="opacity:0.3;">
+                            <span class="mcc-check-icon" id="mcc-check-icon-4">&#9744;</span>
+                            <span><strong>Auditor&iacute;a de Impacto Ambiental</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Warning banner (hidden until animation completes) -->
+                    <div id="mcc-cert-warning" style="display:none; max-width:560px; margin:20px auto;">
+                        <div style="background:var(--mcc-error-bg); border:2px solid var(--mcc-error); border-radius:16px; padding:24px; text-align:center;">
+                            <h3 style="color:var(--mcc-error); margin:0 0 12px 0; font-size:1.4rem; letter-spacing:2px;">CERTIFICACI&Oacute;N BLOQUEADA.</h3>
+                            <p style="margin:0 0 8px 0; font-size:1.05rem; color:var(--mcc-text);">
+                                Antes de certificarte como Ingeniero/a de IA, debes superar la Auditor&iacute;a de Impacto Ambiental.
+                            </p>
+                            <p style="margin:0; font-size:1rem; color:var(--mcc-text-dim);">
+                                Tu modelo es preciso. Pero la precisi&oacute;n es solo la mitad de la historia.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        """,
+    },
+    # ─────────────────────────────────────────────
+    # MODULE 1 — THE HIDDEN BILL (Audit Report)
+    # ─────────────────────────────────────────────
+    {
+        "id": 1,
+        "title": "La Factura Oculta",
+        "html": """
+            <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
+                <div class="mcc-reveal" style="animation-delay:0s;">
+                    <div style="text-align:center; margin-bottom:8px;">
+                        <div style="font-size:0.875rem; font-weight:800; letter-spacing:3px; color:var(--mcc-error); text-transform:uppercase; margin-bottom:12px;">
+                            Auditor&iacute;a de Impacto Ambiental
+                        </div>
+                        <h2 style="font-size:clamp(1.4rem, 4vw, 1.8rem); font-weight:800; color:var(--mcc-text); margin:0 0 8px 0;">
+                            La Factura Oculta
+                        </h2>
+                        <p style="font-size:1.05rem; color:var(--mcc-text-dim); margin:0 0 8px 0;">Toca cada secci&oacute;n para revelar los hallazgos de la auditor&iacute;a.</p>
+                        <div id="mcc-audit-progress" style="font-size:0.9rem; font-weight:700; color:var(--mcc-accent); margin-bottom:20px;">
+                            0/3 auditados
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 1: Training Cost -->
+                <div class="mcc-reveal" style="animation-delay:0.15s;">
+                    <div class="mcc-flip-card" id="mcc-card-0" onclick="mccFlipCard(0)">
+                        <div class="mcc-flip-card-front">
+                            <div style="font-size:2.5rem; margin-bottom:12px;">&#128274;</div>
+                            <div style="font-size:1.1rem; font-weight:700; color:var(--mcc-text);">Secci&oacute;n 1: Coste de Entrenamiento</div>
+                            <div style="font-size:0.9rem; color:var(--mcc-text-dim); margin-top:8px;">Toca para revelar</div>
+                        </div>
+                        <div class="mcc-flip-card-back" id="mcc-card-back-0">
+                            <h3 style="font-size:1.3rem; font-weight:800; color:var(--mcc-text); margin:0 0 12px 0;">
+                                &iquest;Cu&aacute;nto cuesta entrenar una IA?
+                            </h3>
+                            <p style="font-size:1rem; color:var(--mcc-text-dim); margin:0 0 16px 0; line-height:1.6;">
+                                Tu modelo de edificios es peque&ntilde;o y eficiente &mdash; buen trabajo. Pero los modelos de IA que usas cada d&iacute;a? No son tan peque&ntilde;os.
+                            </p>
+                            <div id="mcc-training-bars" style="margin-top:16px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Inference Cost -->
+                <div class="mcc-reveal" style="animation-delay:0.3s;">
+                    <div class="mcc-flip-card" id="mcc-card-1" onclick="mccFlipCard(1)">
+                        <div class="mcc-flip-card-front">
+                            <div style="font-size:2.5rem; margin-bottom:12px;">&#128274;</div>
+                            <div style="font-size:1.1rem; font-weight:700; color:var(--mcc-text);">Secci&oacute;n 2: Coste de Inferencia</div>
+                            <div style="font-size:0.9rem; color:var(--mcc-text-dim); margin-top:8px;">Toca para revelar</div>
+                        </div>
+                        <div class="mcc-flip-card-back" id="mcc-card-back-1">
+                            <h3 style="font-size:1.3rem; font-weight:800; color:var(--mcc-text); margin:0 0 12px 0;">
+                                El entrenamiento ocurre una vez. Su uso nunca para.
+                            </h3>
+                            <div id="mcc-inference-stats" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:16px;"></div>
+                            <p style="font-size:1rem; color:var(--mcc-text-dim); margin:0 0 12px 0;">
+                                &iquest;Suena poco? Depende de cu&aacute;ntos prompts env&iacute;es...
+                            </p>
+                            <div style="margin:16px 0;">
+                                <label style="font-size:0.9rem; font-weight:700; color:var(--mcc-text); display:block; margin-bottom:8px;">
+                                    &iquest;Cu&aacute;ntos prompts env&iacute;as al d&iacute;a?
+                                </label>
+                                <input type="range" min="1" max="50" value="5" id="mcc-prompt-slider"
+                                    oninput="mccUpdatePromptCalc(this.value)"
+                                    style="width:100%; -webkit-appearance:none; background:var(--mcc-input-bg); border-radius:6px; outline:none; height:8px; cursor:pointer;">
+                                <div id="mcc-prompt-count" style="text-align:center; font-weight:700; color:var(--mcc-accent); margin-top:8px;">5 prompts/d&iacute;a</div>
+                                <div id="mcc-prompt-stats" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:12px;"></div>
+                            </div>
+                            <div id="mcc-inference-kicker" style="text-align:center; margin-top:16px; padding:16px; border-radius:12px; background:var(--mcc-error-bg); border:1px solid var(--mcc-error);">
+                                <p style="margin:0; font-size:1.1rem; font-weight:700; color:var(--mcc-error); line-height:1.5;">
+                                    Ahora multiplica por 200 millones de usuarios.<br>
+                                    &iquest;Todo el coste de entrenar GPT-4? Igualado en solo 11 d&iacute;as.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: The Global Picture -->
+                <div class="mcc-reveal" style="animation-delay:0.45s;">
+                    <div class="mcc-flip-card" id="mcc-card-2" onclick="mccFlipCard(2)">
+                        <div class="mcc-flip-card-front">
+                            <div style="font-size:2.5rem; margin-bottom:12px;">&#128274;</div>
+                            <div style="font-size:1.1rem; font-weight:700; color:var(--mcc-text);">Secci&oacute;n 3: El Panorama Global</div>
+                            <div style="font-size:0.9rem; color:var(--mcc-text-dim); margin-top:8px;">Toca para revelar</div>
+                        </div>
+                        <div class="mcc-flip-card-back" id="mcc-card-back-2">
+                            <h3 style="font-size:1.3rem; font-weight:800; color:var(--mcc-text); margin:0 0 12px 0;">
+                                La industria a la que acabas de unirte
+                            </h3>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:16px 0;">
+                                <div class="mcc-knockout-stat">
+                                    <div style="font-size:2rem; margin-bottom:8px;">&#9889;</div>
+                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">~200 TWh/a&ntilde;o</div>
+                                    <p style="font-size:0.95rem; color:var(--mcc-text); margin:8px 0 0 0; line-height:1.5;">
+                                        Los centros de datos de IA ahora consumen m&aacute;s electricidad que <strong>todo el Reino Unido</strong>
+                                    </p>
+                                </div>
+                                <div class="mcc-knockout-stat">
+                                    <div style="font-size:2rem; margin-bottom:8px;">&#128167;</div>
+                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">~540B litros/a&ntilde;o</div>
+                                    <p style="font-size:0.95rem; color:var(--mcc-text); margin:8px 0 0 0; line-height:1.5;">
+                                        La huella h&iacute;drica de la IA rivaliza con <strong>toda el agua embotellada del planeta</strong>
+                                    </p>
+                                </div>
+                            </div>
+                            <p style="font-size:1rem; color:var(--mcc-text-dim); margin:16px 0 0 0; line-height:1.6;">
+                                Estos n&uacute;meros crecen cada a&ntilde;o. Como Ingeniero/a de IA, tus decisiones determinan si siguen creciendo &mdash; o empiezan a bajar.
+                            </p>
+                            <p style="font-size:0.8rem; color:var(--mcc-text-dim); margin:12px 0 0 0; font-style:italic;">
+                                Fuentes: UC Riverside, IEA, MIT, VU Amsterdam (2024&ndash;2025)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary after all 3 unlocked -->
+                <div id="mcc-audit-summary" style="display:none; margin-top:20px;">
+                    <div style="background:var(--mcc-accent-highlight); border:2px solid var(--mcc-accent); border-radius:16px; padding:20px 24px; text-align:center;">
+                        <p style="margin:0; font-size:1.1rem; font-weight:600; color:var(--mcc-text); line-height:1.6;">
+                            Este es el coste oculto de la IA. Tu modelo es preciso &mdash; <strong>pero la precisi&oacute;n no es toda la historia.</strong>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        """,
+    },
+    # ─────────────────────────────────────────────
+    # MODULE 2 — SCORE RESET + THE NEW FORMULA
+    # ─────────────────────────────────────────────
+    {
+        "id": 2,
+        "title": "Reinicio de Puntuaci\u00f3n",
+        "html": """
+            <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
+                <!-- Phase 1: Score Reset -->
+                <div id="mcc-reset-phase1" style="text-align:center;">
+                    <div class="mcc-reveal" style="animation-delay:0s;">
+                        <h2 id="mcc-recalc-header" class="mcc-blink-red" style="font-size:clamp(1.4rem, 4vw, 1.8rem); font-weight:800; margin:0 0 30px 0; letter-spacing:2px; text-transform:uppercase;">
+                            RECALCULANDO TU PUNTUACI&Oacute;N...
+                        </h2>
+                    </div>
+
+                    <div class="mcc-reveal" style="animation-delay:0.3s;">
+                        <div class="mcc-gauge-container">
+                            <div class="mcc-gauge" id="mcc-main-gauge">
+                                <div class="mcc-gauge-inner">
+                                    <div class="mcc-gauge-value" id="mcc-gauge-score">75</div>
+                                    <div style="font-size:0.8rem; text-transform:uppercase; letter-spacing:2px; color:var(--mcc-text-dim);">PUNTUACI&Oacute;N</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="mcc-reset-message" style="opacity:0; transition:opacity 1s; max-width:560px; margin:0 auto;">
+                        <p style="font-size:1.1rem; color:var(--mcc-text); line-height:1.6;">
+                            Tu precisi&oacute;n se sit&uacute;a en <strong id="mcc-accuracy-text">75.0%</strong>. Pero tu Puntuaci&oacute;n de Br&uacute;jula Moral ahora es <strong style="color:var(--mcc-error);">0.000</strong>.
+                        </p>
+                        <p style="font-size:1rem; color:var(--mcc-text-dim); line-height:1.6;">
+                            &iquest;Por qu&eacute;? Porque tu puntuaci&oacute;n ahora incluye <strong style="color:var(--mcc-accent);">Sostenibilidad</strong> &mdash; y la tuya es cero.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Phase 2: Formula (revealed after gauge animation) -->
+                <div id="mcc-formula-phase" style="display:none; margin-top:30px;">
+                    <div style="background:var(--mcc-input-bg); padding:30px; border-radius:16px; text-align:center; border:2px dashed var(--mcc-accent); margin-bottom:24px;">
+                        <div style="text-transform:uppercase; letter-spacing:2px; color:var(--mcc-text-dim); margin-bottom:10px; font-size:0.85rem; font-weight:700;">
+                            La F&oacute;rmula de la Br&uacute;jula Moral
+                        </div>
+                        <div style="font-size:1.5rem; font-weight:700; margin:15px 0; color:var(--mcc-text); font-family:'Outfit',sans-serif;">
+                            Puntuaci&oacute;n de Br&uacute;jula Moral =
+                            <span style="background:rgba(5,150,105,0.15); color:var(--mcc-success); padding:4px 10px; border-radius:6px;">[ Precisi&oacute;n ]</span>
+                            &times;
+                            <span style="background:rgba(217,119,6,0.15); color:var(--mcc-accent); padding:4px 10px; border-radius:6px;">[ Sostenibilidad % ]</span>
+                        </div>
+                        <p style="font-size:0.95rem; margin:12px 0 0 0; color:var(--mcc-text-dim);">
+                            Si tu Sostenibilidad % es <strong>0%</strong>, tu Puntuaci&oacute;n de Br&uacute;jula Moral es <strong>0</strong>.
+                        </p>
+                    </div>
+
+                    <!-- What-if slider -->
+                    <div style="background:var(--mcc-card-bg); backdrop-filter:blur(16px); border-radius:20px; padding:28px; border:1px solid var(--mcc-border-color); box-shadow:0 12px 30px var(--mcc-card-shadow);">
+                        <label style="font-size:1rem; font-weight:700; color:var(--mcc-text); display:block; margin-bottom:16px; text-align:center;">
+                            &iquest;Y si pudieras ganar puntos de Sostenibilidad?
+                        </label>
+                        <input type="range" min="0" max="100" value="0" id="mcc-whatif-slider"
+                            oninput="mccUpdateFormula(this.value)"
+                            style="width:100%; -webkit-appearance:none; background:var(--mcc-input-bg); border-radius:6px; outline:none; height:8px; cursor:pointer;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--mcc-text-dim); margin-top:4px;">
+                            <span>0%</span>
+                            <span>50%</span>
+                            <span>100%</span>
+                        </div>
+                        <div id="mcc-whatif-display" style="text-align:center; margin-top:20px;">
+                            <div style="font-size:0.9rem; color:var(--mcc-text-dim); margin-bottom:8px;">
+                                <span id="mcc-whatif-acc">75.0%</span> Precisi&oacute;n &times; <span id="mcc-whatif-sus" style="font-weight:700; color:var(--mcc-error);">0%</span> Sostenibilidad
+                            </div>
+                            <div id="mcc-whatif-result" style="font-size:2.5rem; font-weight:800; color:var(--mcc-error); transition:color 0.3s;">
+                                0.000
+                            </div>
+                            <div id="mcc-whatif-message" style="font-size:1rem; color:var(--mcc-text-dim); margin-top:8px; font-weight:600;">
+                                Ah&iacute; es donde est&aacute;s ahora.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        """,
+    },
+    # ─────────────────────────────────────────────
+    # MODULE 3 — MISSION BRIEFING
+    # ─────────────────────────────────────────────
+    {
+        "id": 3,
+        "title": "Informe de Misiones",
+        "html": """
+            <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
+                <div class="mcc-reveal" style="animation-delay:0s;">
+                    <div style="text-align:center; margin-bottom:8px;">
+                        <div style="font-size:0.875rem; font-weight:800; letter-spacing:3px; color:var(--mcc-accent); text-transform:uppercase; margin-bottom:12px;">
+                            Qu&eacute; Viene Despu&eacute;s
+                        </div>
+                        <h2 style="font-size:clamp(1.6rem, 5vw, 2.2rem); font-weight:800; color:var(--mcc-text); margin:0 0 8px 0;">
+                            Tus Misiones de Sostenibilidad
+                        </h2>
+                        <p style="font-size:1.05rem; color:var(--mcc-text-dim); margin:0 0 24px 0;">
+                            Completa estas dos misiones para ganar Sostenibilidad % y restaurar tu Puntuaci&oacute;n de Br&uacute;jula Moral.
+                        </p>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:24px;">
+                    <!-- Mission 1: Green AI Detective -->
+                    <div class="mcc-reveal" style="animation-delay:0.15s;">
+                        <div class="mcc-mission-card" style="border-left:4px solid #0284c7;">
+                            <div style="font-size:2rem; margin-bottom:12px;">&#128269;</div>
+                            <h3 style="font-size:1.2rem; font-weight:800; color:#0284c7; margin:0 0 8px 0;">Detective de IA Verde</h3>
+                            <p style="font-size:0.95rem; color:var(--mcc-text-dim); margin:0 0 12px 0; line-height:1.5;">
+                                Investiga el verdadero coste ambiental de la IA &mdash; desde un solo prompt hasta todo el planeta.
+                            </p>
+                            <div style="font-size:0.85rem; color:var(--mcc-text-dim);">
+                                <strong>4 investigaciones</strong> &middot; <strong>4 cuestionarios</strong><br>
+                                Gana hasta un <strong style="color:#0284c7;">40% de Sostenibilidad</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Mission 2: Green AI Advisor -->
+                    <div class="mcc-reveal" style="animation-delay:0.3s;">
+                        <div class="mcc-mission-card" style="border-left:4px solid var(--mcc-success);">
+                            <div style="font-size:2rem; margin-bottom:12px;">&#128737;&#65039;</div>
+                            <h3 style="font-size:1.2rem; font-weight:800; color:var(--mcc-success); margin:0 0 8px 0;">Asesor/a de IA Verde</h3>
+                            <p style="font-size:0.95rem; color:var(--mcc-text-dim); margin:0 0 12px 0; line-height:1.5;">
+                                El alcalde te ha elegido para proteger tu ciudad de una empresa de IA contaminante. Toma 5 decisiones cr&iacute;ticas.
+                            </p>
+                            <div style="font-size:0.85rem; color:var(--mcc-text-dim);">
+                                <strong>5 rondas</strong> &middot; <strong>6 cuestionarios</strong><br>
+                                Gana hasta un <strong style="color:var(--mcc-success);">60% de Sostenibilidad</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Score Summary -->
+                <div class="mcc-reveal" style="animation-delay:0.45s;">
+                    <div style="background:var(--mcc-input-bg); border-radius:12px; padding:16px 20px; text-align:center; margin-bottom:20px; border:1px solid var(--mcc-border-color);">
+                        <span style="font-size:1rem; color:var(--mcc-text);">
+                            Puntuaci&oacute;n de Br&uacute;jula Moral: <strong style="color:var(--mcc-error);">0.000</strong>
+                            &nbsp;&middot;&nbsp;
+                            Sostenibilidad: <strong style="color:var(--mcc-accent);">0%</strong>
+                            &nbsp;&middot;&nbsp;
+                            Precisi&oacute;n: <strong id="mcc-summary-accuracy" style="color:var(--mcc-success);">75.0%</strong>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        """,
+    },
+]
+
+
+# ============================================================================
+# 6. DASHBOARD & LEADERBOARD RENDERERS
+# ============================================================================
+
+def render_top_dashboard(data, module_id):
+    display_score = 0.0
+    count_completed = 0
+    rank_display = "\u2013"
+    team_rank_display = "\u2013"
+    if data:
+        display_score = float(data.get("score", 0.0))
+        rank_display = f"#{data.get('rank', '\u2013')}"
+        team_rank_display = f"#{data.get('team_rank', '\u2013')}"
+        count_completed = len(data.get("completed_task_ids", []) or [])
+    progress_pct = min(100, int((count_completed / TOTAL_COURSE_TASKS) * 100))
+
+    return f"""
+    <div class="summary-box">
+        <div class="summary-box-inner">
+            <div class="summary-metrics">
+                <div style="text-align:center;">
+                    <div class="label-text">Puntuaci\u00f3n de Br\u00fajula Moral</div>
+                    <div class="score-text-primary">\U0001f9ed {display_score:.3f}</div>
+                </div>
+                <div class="divider-vertical"></div>
+                <div style="text-align:center;">
+                    <div class="label-text">Clasificaci\u00f3n de Equipo</div>
+                    <div class="score-text-team">{team_rank_display}</div>
+                </div>
+                <div class="divider-vertical"></div>
+                <div style="text-align:center;">
+                    <div class="label-text">Clasificaci\u00f3n Global</div>
+                    <div class="score-text-global">{rank_display}</div>
+                </div>
+            </div>
+            <div class="summary-progress">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                    <div class="progress-label">Progreso del Curso: {progress_pct}%</div>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width:{progress_pct}%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    """
+
+
+def render_leaderboard_card(data, username, team_name):
+    team_rows = ""
+    user_rows = ""
+    if data and data.get("all_teams"):
+        for i, t in enumerate(data["all_teams"]):
+            cls = "row-highlight-team" if t["team"] == team_name else "row-normal"
+            team_rows += (
+                f"<tr class='{cls}'><td style='padding:8px;text-align:center;'>{i+1}</td>"
+                f"<td style='padding:8px;'>{t['team']}</td>"
+                f"<td style='padding:8px;text-align:right;'>{t['avg']:.3f}</td></tr>"
+            )
+    if data and data.get("all_users"):
+        for i, u in enumerate(data["all_users"]):
+            cls = "row-highlight-me" if u.get("username") == username else "row-normal"
+            sc = float(u.get("moralCompassScore", 0))
+            if u.get("username") == username and data.get("score") != sc:
+                sc = data.get("score")
+            user_rows += (
+                f"<tr class='{cls}'><td style='padding:8px;text-align:center;'>{i+1}</td>"
+                f"<td style='padding:8px;'>{u.get('username','')}</td>"
+                f"<td style='padding:8px;text-align:right;'>{sc:.3f}</td></tr>"
+            )
+    return f"""
+    <div class="scenario-box leaderboard-card">
+        <h3 class="slide-title" style="margin-bottom:10px;">\U0001f4ca Clasificaci\u00f3n en Vivo</h3>
+        <div class="lb-tabs">
+            <input type="radio" id="lb-tab-team" name="lb-tabs" checked>
+            <label for="lb-tab-team" class="lb-tab-label">\U0001f3c6 Equipo</label>
+            <input type="radio" id="lb-tab-user" name="lb-tabs">
+            <label for="lb-tab-user" class="lb-tab-label">\U0001f464 Individual</label>
+            <div class="lb-tab-panels">
+                <div class="lb-panel panel-team">
+                    <div class='table-container'>
+                        <table class='leaderboard-table'>
+                            <thead>
+                                <tr><th>Posici\u00f3n</th><th>Equipo</th><th style='text-align:right;'>Media \U0001f9ed</th></tr>
+                            </thead>
+                            <tbody>{team_rows}</tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="lb-panel panel-user">
+                    <div class='table-container'>
+                        <table class='leaderboard-table'>
+                            <thead>
+                                <tr><th>Posici\u00f3n</th><th>Ingeniero/a</th><th style='text-align:right;'>Puntuaci\u00f3n \U0001f9ed</th></tr>
+                            </thead>
+                            <tbody>{user_rows}</tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    """
+
+
+# ============================================================================
+# 7. CSS — MCC Design System (mcc-* prefix)
+# ============================================================================
+
+css = """
+/* ========== Moral Compass Challenge Design System ========== */
+
+/* MCC CSS variables — scoped with mcc- prefix */
+:root {
+    --mcc-bg: #f8fafc;
+    --mcc-card-bg: rgba(255, 255, 255, 0.9);
+    --mcc-accent: #d97706;
+    --mcc-accent-glow: rgba(217, 119, 6, 0.2);
+    --mcc-success: #059669;
+    --mcc-warning: #d97706;
+    --mcc-error: #dc2626;
+    --mcc-text: #0f172a;
+    --mcc-text-dim: #64748b;
+    --mcc-card-shadow: rgba(0, 0, 0, 0.1);
+    --mcc-border-color: rgba(0, 0, 0, 0.08);
+    --mcc-input-bg: rgba(0, 0, 0, 0.02);
+    --mcc-input-border: rgba(0, 0, 0, 0.1);
+    --mcc-hover-bg: rgba(0, 0, 0, 0.05);
+    --mcc-success-bg: rgba(5, 150, 105, 0.08);
+    --mcc-error-bg: rgba(220, 38, 38, 0.08);
+    --mcc-accent-highlight: rgba(217, 119, 6, 0.1);
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --mcc-bg: #0f172a;
+        --mcc-card-bg: rgba(30, 41, 59, 0.7);
+        --mcc-accent: #f59e0b;
+        --mcc-accent-glow: rgba(245, 158, 11, 0.3);
+        --mcc-success: #10b981;
+        --mcc-warning: #fbbf24;
+        --mcc-error: #f43f5e;
+        --mcc-text: #f8fafc;
+        --mcc-text-dim: #94a3b8;
+        --mcc-card-shadow: rgba(0, 0, 0, 0.5);
+        --mcc-border-color: rgba(255, 255, 255, 0.05);
+        --mcc-input-bg: rgba(255, 255, 255, 0.05);
+        --mcc-input-border: rgba(255, 255, 255, 0.1);
+        --mcc-hover-bg: rgba(255, 255, 255, 0.08);
+        --mcc-success-bg: rgba(16, 185, 129, 0.08);
+        --mcc-error-bg: rgba(244, 63, 94, 0.08);
+        --mcc-accent-highlight: rgba(245, 158, 11, 0.1);
+    }
+}
+.dark {
+    --mcc-bg: #0f172a;
+    --mcc-card-bg: rgba(30, 41, 59, 0.7);
+    --mcc-accent: #f59e0b;
+    --mcc-accent-glow: rgba(245, 158, 11, 0.3);
+    --mcc-success: #10b981;
+    --mcc-warning: #fbbf24;
+    --mcc-error: #f43f5e;
+    --mcc-text: #f8fafc;
+    --mcc-text-dim: #94a3b8;
+    --mcc-card-shadow: rgba(0, 0, 0, 0.5);
+    --mcc-border-color: rgba(255, 255, 255, 0.05);
+    --mcc-input-bg: rgba(255, 255, 255, 0.05);
+    --mcc-input-border: rgba(255, 255, 255, 0.1);
+    --mcc-hover-bg: rgba(255, 255, 255, 0.08);
+    --mcc-success-bg: rgba(16, 185, 129, 0.08);
+    --mcc-error-bg: rgba(244, 63, 94, 0.08);
+    --mcc-accent-highlight: rgba(245, 158, 11, 0.1);
+}
+
+/* MCC Animations */
+@keyframes mccSlideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes mccBlink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+@keyframes mccBlinkRed {
+    0%, 100% { color: var(--mcc-text); }
+    50% { color: var(--mcc-error); }
+}
+@keyframes mccPulse {
+    0%, 100% { box-shadow: 0 4px 15px rgba(5, 150, 105, 0.4); }
+    50% { box-shadow: 0 8px 30px rgba(5, 150, 105, 0.6); }
+}
+@keyframes mccGaugeDrop {
+    0% { background: conic-gradient(from 180deg, var(--mcc-success) 0%, var(--mcc-success) 100%, var(--mcc-border-color) 100%); }
+    100% { background: conic-gradient(from 180deg, var(--mcc-error) 0%, var(--mcc-error) 0%, var(--mcc-border-color) 0%, var(--mcc-border-color) 100%); }
+}
+@keyframes mccCheckFlash {
+    0%, 100% { background: var(--mcc-error-bg); }
+    50% { background: rgba(220, 38, 38, 0.25); }
+}
+
+/* MCC reveal animation */
+.mcc-reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: mccSlideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.mcc-blink { animation: mccBlink 1s infinite; }
+.mcc-blink-red { animation: mccBlinkRed 1s infinite; }
+
+/* MCC Intro page */
+.mcc-intro-page {
+    min-height: 55vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* MCC Stat cards */
+.mcc-stat-card {
+    background: var(--mcc-input-bg);
+    border: 1px solid var(--mcc-border-color);
+    padding: 20px;
+    border-radius: 16px;
+    text-align: center;
+}
+.mcc-stat-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+}
+.mcc-stat-label {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--mcc-text-dim);
+    margin-top: 5px;
+}
+
+/* MCC Buttons */
+.mcc-btn {
+    background: var(--mcc-accent);
+    color: white;
+    border: 2px solid transparent;
+    padding: 16px 28px;
+    border-radius: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 1rem;
+    font-family: 'Outfit', sans-serif;
+}
+.mcc-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px var(--mcc-accent-glow);
+}
+.mcc-btn-success {
+    background: var(--mcc-success);
+    animation: mccPulse 2s ease-in-out infinite;
+}
+.mcc-btn-success:hover {
+    box-shadow: 0 8px 25px rgba(5, 150, 105, 0.5);
+}
+
+/* MCC Checklist */
+.mcc-checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    background: var(--mcc-input-bg);
+    border: 1px solid var(--mcc-border-color);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--mcc-text);
+    transition: all 0.4s ease;
+    font-family: 'Outfit', sans-serif;
+}
+.mcc-checklist-item.checked {
+    opacity: 1 !important;
+    background: var(--mcc-success-bg);
+    border-color: var(--mcc-success);
+}
+.mcc-checklist-item.failed {
+    opacity: 1 !important;
+    background: var(--mcc-error-bg);
+    border-color: var(--mcc-error);
+    animation: mccCheckFlash 0.5s ease 3;
+}
+.mcc-check-icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+/* MCC Flip cards */
+.mcc-flip-card {
+    background: var(--mcc-card-bg);
+    backdrop-filter: blur(16px);
+    border-radius: 20px;
+    border: 1px solid var(--mcc-border-color);
+    box-shadow: 0 12px 30px var(--mcc-card-shadow);
+    margin-bottom: 16px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: border-color 0.3s;
+}
+.mcc-flip-card:hover {
+    border-color: var(--mcc-accent);
+}
+.mcc-flip-card.flipped {
+    cursor: default;
+    border-color: var(--mcc-accent);
+}
+.mcc-flip-card.flipped .mcc-flip-card-front {
+    display: none;
+}
+.mcc-flip-card.flipped .mcc-flip-card-back {
+    display: block;
+}
+.mcc-flip-card-front {
+    padding: 32px 24px;
+    text-align: center;
+}
+.mcc-flip-card-back {
+    display: none;
+    padding: 28px 24px;
+}
+.mcc-flip-card.audit-done {
+    border-color: var(--mcc-accent);
+    background: var(--mcc-accent-highlight);
+}
+
+/* MCC Knockout stats */
+.mcc-knockout-stat {
+    background: var(--mcc-input-bg);
+    border: 1px solid var(--mcc-border-color);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+}
+
+/* MCC Gauge */
+.mcc-gauge-container {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    margin: 0 auto 30px auto;
+}
+.mcc-gauge {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: conic-gradient(from 180deg, var(--mcc-success) 0%, var(--mcc-success) 100%, var(--mcc-border-color) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 30px rgba(5, 150, 105, 0.2);
+    transition: background 2s ease-in-out;
+}
+.mcc-gauge-inner {
+    width: 80%;
+    height: 80%;
+    border-radius: 50%;
+    background-color: var(--block-background-fill, var(--mcc-bg));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.mcc-gauge-value {
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--mcc-text);
+    font-family: 'Outfit', sans-serif;
+}
+.mcc-gauge.gauge-dropping {
+    animation: mccGaugeDrop 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* MCC Mission cards */
+.mcc-mission-card {
+    background: var(--mcc-card-bg);
+    backdrop-filter: blur(16px);
+    border-radius: 20px;
+    padding: 24px;
+    border: 1px solid var(--mcc-border-color);
+    box-shadow: 0 12px 30px var(--mcc-card-shadow);
+    height: 100%;
+}
+
+/* MCC Range slider styling */
+input[type="range"]#mcc-prompt-slider,
+input[type="range"]#mcc-whatif-slider {
+    -webkit-appearance: none;
+    background: var(--mcc-input-bg);
+    border-radius: 6px;
+    outline: none;
+    height: 8px;
+}
+input[type="range"]#mcc-prompt-slider::-webkit-slider-thumb,
+input[type="range"]#mcc-whatif-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--mcc-accent);
+    cursor: pointer;
+    box-shadow: 0 0 10px var(--mcc-accent-glow);
+}
+
+/* Module container font */
+.module-container .scenario-box {
+    font-family: 'Outfit', sans-serif;
+}
+
+/* ========== Gradio Integration Styles ========== */
+
+/* Layout + containers */
+.summary-box {
+    background: var(--block-background-fill);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color-primary);
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+.summary-box-inner { display: flex; align-items: center; justify-content: space-between; gap: 30px; }
+.summary-metrics { display: flex; gap: 30px; align-items: center; }
+.summary-progress { width: 560px; max-width: 100%; }
+
+/* Scenario cards */
+.scenario-box {
+    padding: 24px;
+    border-radius: 14px;
+    background: var(--block-background-fill);
+    border: 1px solid var(--border-color-primary);
+    margin-bottom: 22px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+.slide-title { margin-top: 0; font-size: 1.9rem; font-weight: 800; }
+
+/* Hint boxes */
+.hint-box {
+    padding: 12px;
+    border-radius: 10px;
+    background: var(--background-fill-secondary);
+    border: 1px solid var(--border-color-primary);
+    margin-top: 10px;
+    font-size: 0.98rem;
+}
+
+/* Numbers + labels */
+.score-text-primary { font-size: 2.05rem; font-weight: 900; color: var(--color-accent); }
+.score-text-team { font-size: 2.05rem; font-weight: 900; color: var(--color-accent); }
+.score-text-global { font-size: 2.05rem; font-weight: 900; }
+.label-text { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--body-text-color-subdued, #6b7280); }
+.progress-label { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--body-text-color-subdued, #6b7280); }
+
+/* Progress bar */
+.progress-bar-bg { width: 100%; height: 10px; background: var(--border-color-primary, #e5e7eb); border-radius: 6px; overflow: hidden; margin-top: 8px; }
+.progress-bar-fill { height: 100%; background: var(--color-accent); transition: width 280ms ease; }
+
+/* Leaderboard tabs + tables */
+.leaderboard-card input[type="radio"] { display: none; }
+.lb-tab-label {
+    display: inline-block; padding: 8px 16px; margin-right: 8px; border-radius: 20px;
+    cursor: pointer; border: 1px solid var(--border-color-primary); font-weight: 700; font-size: 0.94rem;
+}
+#lb-tab-team:checked + label, #lb-tab-user:checked + label {
+    background: var(--color-accent); color: white; border-color: var(--color-accent);
+    box-shadow: 0 3px 8px rgba(99,102,241,0.25);
+}
+.lb-panel { display: none; margin-top: 10px; }
+#lb-tab-team:checked ~ .lb-tab-panels .panel-team { display: block; }
+#lb-tab-user:checked ~ .lb-tab-panels .panel-user { display: block; }
+.table-container { height: 320px; overflow-y: auto; border: 1px solid var(--border-color-primary); border-radius: 10px; }
+.leaderboard-table { width: 100%; border-collapse: collapse; }
+.leaderboard-table th {
+    position: sticky; top: 0; background: var(--background-fill-secondary);
+    padding: 10px; text-align: left; border-bottom: 2px solid var(--border-color-primary);
+    font-weight: 800;
+}
+.leaderboard-table td { padding: 10px; border-bottom: 1px solid var(--border-color-primary); }
+.row-highlight-me, .row-highlight-team { background: var(--mcc-accent-highlight); font-weight: 700; }
+
+/* Small utility */
+.divider-vertical { width: 1px; height: 48px; background: var(--border-color-primary); opacity: 0.6; }
+
+/* Navigation loading overlay */
+#nav-loading-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: color-mix(in srgb, var(--body-background-fill) 95%, transparent);
+    z-index: 9999; display: none; flex-direction: column; align-items: center;
+    justify-content: center; opacity: 0; transition: opacity 0.3s ease;
+}
+.nav-spinner {
+    width: 50px; height: 50px; border: 5px solid var(--border-color-primary);
+    border-top: 5px solid var(--color-accent); border-radius: 50%;
+    animation: nav-spin 1s linear infinite; margin-bottom: 20px;
+}
+@keyframes nav-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+#nav-loading-text {
+    font-size: 1.3rem; font-weight: 600; color: var(--color-accent);
+}
+@media (prefers-color-scheme: dark) {
+    #nav-loading-overlay { background: rgba(15, 23, 42, 0.9); }
+    .nav-spinner { border-color: rgba(148, 163, 184, 0.4); border-top-color: var(--color-accent); }
+}
+.dark #nav-loading-overlay { background: rgba(15, 23, 42, 0.9); }
+.dark .nav-spinner { border-color: rgba(148, 163, 184, 0.4); border-top-color: var(--color-accent); }
+
+/* Transition overlay */
+#mcc-transition-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(10px);
+    z-index: 9998;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    .summary-box-inner { flex-direction: column; gap: 16px; }
+    .summary-progress { width: 100%; }
+    .mcc-mission-card { padding: 16px; }
+}
+"""
+
+
+# ============================================================================
+# 8. CLIENT-SIDE JAVASCRIPT
+# ============================================================================
+
+CLIENT_JS = """
+// === Dynamically load Outfit font ===
+(function(){
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap';
+    document.head.appendChild(link);
+})();
+
+// === Global state ===
+var mccFlippedCards = [false, false, false];
+var mccGaugePlayed = false;
+var mccChecklistPlayed = false;
+var mccUserAccuracy = 0.75; // Updated from Python on load
+
+// === Module 0: Typewriter + stats reveal ===
+(function mccInitTypewriter(){
+    var el = document.getElementById('mcc-typewriter-text');
+    if (!el) { setTimeout(mccInitTypewriter, 200); return; }
+    if (el.dataset.init === '1') return;
+    el.dataset.init = '1';
+    var full = "Tu Modelo de IA Est\\u00e1 Listo para el Mundo Real";
+    var i = 0;
+    var iv = setInterval(function(){
+        i++;
+        el.textContent = full.slice(0, i);
+        if (i >= full.length) {
+            clearInterval(iv);
+            // After typewriter, reveal stats
+            setTimeout(function(){
+                var statsEl = document.getElementById('mcc-stats-reveal');
+                if (statsEl) { statsEl.style.opacity = '1'; statsEl.style.transform = 'translateY(0)'; }
+                // Then reveal achievement
+                setTimeout(function(){
+                    var achEl = document.getElementById('mcc-achievement-reveal');
+                    if (achEl) { achEl.style.opacity = '1'; achEl.style.transform = 'translateY(0)'; }
+                }, 600);
+            }, 400);
+        }
+    }, 50);
+})();
+
+// === Module 0: Certification Checklist ===
+function mccStartChecklist() {
+    if (mccChecklistPlayed) return;
+    mccChecklistPlayed = true;
+
+    var phase1 = document.getElementById('mcc-cert-phase1');
+    var phase2 = document.getElementById('mcc-cert-phase2');
+    if (phase1) phase1.style.display = 'none';
+    if (phase2) phase2.style.display = 'block';
+
+    var delays = [1000, 2000, 3000, 4000, 5000];
+    for (var idx = 0; idx < 4; idx++) {
+        (function(i){
+            setTimeout(function(){
+                var item = document.getElementById('mcc-check-' + i);
+                var icon = document.getElementById('mcc-check-icon-' + i);
+                if (item && icon) {
+                    item.classList.add('checked');
+                    icon.innerHTML = '&#9989;';
+                }
+            }, delays[i]);
+        })(idx);
+    }
+
+    // Last item: FAILED
+    setTimeout(function(){
+        var item = document.getElementById('mcc-check-4');
+        var icon = document.getElementById('mcc-check-icon-4');
+        if (item && icon) {
+            item.classList.add('failed');
+            icon.innerHTML = '&#10060;';
+        }
+        // Show warning banner
+        setTimeout(function(){
+            var warning = document.getElementById('mcc-cert-warning');
+            if (warning) warning.style.display = 'block';
+        }, 500);
+    }, delays[4]);
+}
+
+// === Module 1: Flip cards ===
+function mccFlipCard(idx) {
+    if (mccFlippedCards[idx]) return;
+    var card = document.getElementById('mcc-card-' + idx);
+    if (!card) return;
+    mccFlippedCards[idx] = true;
+    card.classList.add('flipped');
+
+    // Initialize content for specific cards
+    if (idx === 0) mccInitTrainingBars();
+    if (idx === 1) mccInitInference();
+
+    // Update progress
+    var count = mccFlippedCards.filter(function(x){ return x; }).length;
+    var progressEl = document.getElementById('mcc-audit-progress');
+    if (progressEl) progressEl.textContent = count + '/3 auditados';
+
+    // All unlocked?
+    if (count === 3) {
+        // Mark cards as audit-done
+        for (var i = 0; i < 3; i++) {
+            var c = document.getElementById('mcc-card-' + i);
+            if (c) c.classList.add('audit-done');
+        }
+        // Show summary
+        var summary = document.getElementById('mcc-audit-summary');
+        if (summary) summary.style.display = 'block';
     }
 }
 
-function runResetAnimation() {
-    var gauge = document.getElementById('mainGauge');
-    var scoreVal = document.getElementById('scoreValue');
-    var msg = document.getElementById('resetMessage');
-    var btn = document.getElementById('btnContinueReset');
+// === Module 1: Training bars (animated) ===
+function mccInitTrainingBars() {
+    var container = document.getElementById('mcc-training-bars');
+    if (!container || container.dataset.init === '1') return;
+    container.dataset.init = '1';
+
+    var bars = [
+        {l:'Tu Modelo', w:0.5, v:'\\u2248 3 cargas de m\\u00f3vil', delay:300, color:'var(--mcc-success)', striped:false},
+        {l:'GPT-3 (2020)', w:8, v:'1.287 MWh \\u2014 120 hogares/a\\u00f1o', delay:700, color:'var(--mcc-accent)', striped:false},
+        {l:'GPT-4 (2023)', w:80, v:'62.000 MWh \\u2014 5.400 hogares/a\\u00f1o', delay:1100, color:'var(--mcc-error)', striped:false},
+        {l:'Pr\\u00f3x. gen. (2025+)', w:100, v:'???', delay:1500, color:'var(--mcc-error)', striped:true}
+    ];
+
+    var html = '';
+    for (var i = 0; i < bars.length; i++) {
+        var b = bars[i];
+        var bg = b.striped
+            ? 'repeating-linear-gradient(45deg, var(--mcc-error), var(--mcc-error) 10px, rgba(220,38,38,0.6) 10px, rgba(220,38,38,0.6) 20px)'
+            : b.color;
+        html += '<div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">'
+            + '<div style="width:120px; font-size:0.85rem; color:var(--mcc-text-dim); flex-shrink:0; font-weight:600;">' + b.l + '</div>'
+            + '<div style="flex:1; height:28px; background:var(--mcc-input-bg); border-radius:6px; overflow:hidden; position:relative;">'
+            + '<div id="mcc-bar-' + i + '" style="width:0%; height:100%; border-radius:6px; background:' + bg + '; transition:width 0.8s ease; display:flex; align-items:center; justify-content:flex-end; padding-right:8px; overflow:hidden;">'
+            + '<span style="font-size:0.7rem; color:white; font-weight:700; white-space:nowrap;">' + b.v + '</span></div></div></div>';
+    }
+    container.innerHTML = html;
+
+    // Animate bars with staggered delays
+    for (var j = 0; j < bars.length; j++) {
+        (function(idx, delay, width){
+            setTimeout(function(){
+                var bar = document.getElementById('mcc-bar-' + idx);
+                if (bar) bar.style.width = width + '%';
+            }, delay);
+        })(j, bars[j].delay, bars[j].w);
+    }
+}
+
+// === Module 1: Inference stats + prompt slider ===
+function mccInitInference() {
+    var container = document.getElementById('mcc-inference-stats');
+    if (!container || container.dataset.init === '1') return;
+    container.dataset.init = '1';
+
+    var stats = [
+        {icon:'\\ud83d\\udca7', val:'~0.5 litros', label:'Agua por prompt', sub:'= 1 botella de agua'},
+        {icon:'\\u26a1', val:'~10 Wh', label:'Energ\\u00eda por prompt', sub:'= 9 segundos de TV'},
+        {icon:'\\ud83c\\udf2b\\ufe0f', val:'~0.4g', label:'CO\\u2082 por prompt', sub:'por pregunta hecha'}
+    ];
+    var html = '';
+    for (var i = 0; i < stats.length; i++) {
+        var s = stats[i];
+        html += '<div style="padding:14px; border-radius:12px; background:var(--mcc-input-bg); border:1px solid var(--mcc-border-color); text-align:center;">'
+            + '<div style="font-size:1.5rem;">' + s.icon + '</div>'
+            + '<div style="font-size:1.2rem; font-weight:800; color:var(--mcc-text); margin-top:4px;">' + s.val + '</div>'
+            + '<div style="font-size:0.75rem; color:var(--mcc-text-dim); text-transform:uppercase; letter-spacing:1px; margin-top:4px;">' + s.label + '</div>'
+            + '<div style="font-size:0.75rem; color:var(--mcc-accent); margin-top:2px;">' + s.sub + '</div>'
+            + '</div>';
+    }
+    container.innerHTML = html;
+
+    // Initialize prompt calculator
+    mccUpdatePromptCalc(5);
+}
+
+// === Module 1: Prompt calculator (simplified) ===
+function mccUpdatePromptCalc(val) {
+    var countEl = document.getElementById('mcc-prompt-count');
+    var statsEl = document.getElementById('mcc-prompt-stats');
+    if (!countEl || !statsEl) return;
+    var pc = parseInt(val);
+    var water = (pc * 0.5).toFixed(1);
+    var energy = (pc * 10);
+    var co2 = (pc * 0.4).toFixed(1);
+    var bottles = Math.round(pc * 0.5 / 0.5);
+    var charges = (energy / 15).toFixed(1);
+    countEl.textContent = pc + ' prompt' + (pc > 1 ? 's' : '') + '/d\\u00eda';
+    var items = [
+        {i:'\\ud83d\\udca7', v:water+'L', l:'Agua/d\\u00eda', s:bottles+' botellas'},
+        {i:'\\u26a1', v:energy+'Wh', l:'Energ\\u00eda/d\\u00eda', s:charges+' cargas de m\\u00f3vil'},
+        {i:'\\ud83c\\udf2b\\ufe0f', v:co2+'g', l:'CO\\u2082/d\\u00eda', s:'por d\\u00eda'}
+    ];
+    var html = '';
+    for (var idx = 0; idx < items.length; idx++) {
+        var x = items[idx];
+        html += '<div style="padding:12px; border-radius:10px; background:var(--mcc-input-bg); border:1px solid var(--mcc-border-color); text-align:center;">'
+            + '<div style="font-size:1.3rem;">' + x.i + '</div>'
+            + '<div style="font-size:1.1rem; font-weight:800; color:var(--mcc-text); margin-top:4px;">' + x.v + '</div>'
+            + '<div style="font-size:0.7rem; color:var(--mcc-text-dim); text-transform:uppercase; letter-spacing:1px; margin-top:2px;">' + x.l + '</div>'
+            + '<div style="font-size:0.7rem; color:var(--mcc-accent); margin-top:2px;">' + x.s + '</div>'
+            + '</div>';
+    }
+    statsEl.innerHTML = html;
+}
+
+// === Module 2: Gauge drain animation ===
+function mccRunGaugeDrain() {
+    if (mccGaugePlayed) {
+        // If already played, show end state immediately
+        var msg = document.getElementById('mcc-reset-message');
+        var formula = document.getElementById('mcc-formula-phase');
+        if (msg) msg.style.opacity = '1';
+        if (formula) formula.style.display = 'block';
+        return;
+    }
+    mccGaugePlayed = true;
+
+    var gauge = document.getElementById('mcc-main-gauge');
+    var scoreVal = document.getElementById('mcc-gauge-score');
+    var msg = document.getElementById('mcc-reset-message');
+    var formula = document.getElementById('mcc-formula-phase');
+    var header = document.getElementById('mcc-recalc-header');
+
+    if (!gauge || !scoreVal) return;
 
     gauge.classList.add('gauge-dropping');
 
-    var score = parseInt(scoreVal.textContent) || 94;
+    var score = parseInt(scoreVal.textContent) || 75;
     var interval = setInterval(function() {
         score -= 2;
         if (score <= 0) {
             score = 0;
             clearInterval(interval);
-            scoreVal.style.color = 'var(--warning)';
-            msg.style.opacity = '1';
-            setTimeout(function() {
-                btn.style.opacity = '1';
-                btn.style.pointerEvents = 'all';
-                step3Played = true;
-            }, 1000);
+            scoreVal.style.color = 'var(--mcc-error)';
+            if (header) header.style.animation = 'none';
+            if (header) header.style.color = 'var(--mcc-error)';
+            if (header) header.textContent = 'PUNTUACI\\u00d3N RESTABLECIDA A CERO';
+            // Show message
+            setTimeout(function(){
+                if (msg) msg.style.opacity = '1';
+                // Show formula after message
+                setTimeout(function(){
+                    if (formula) formula.style.display = 'block';
+                }, 800);
+            }, 500);
         }
         scoreVal.textContent = score;
     }, 30);
 }
 
-function showTransition() {
-    document.getElementById('transitionOverlay').style.display = 'flex';
+// === Module 2: What-if formula slider ===
+function mccUpdateFormula(val) {
+    var susEl = document.getElementById('mcc-whatif-sus');
+    var resultEl = document.getElementById('mcc-whatif-result');
+    var msgEl = document.getElementById('mcc-whatif-message');
+    if (!susEl || !resultEl || !msgEl) return;
+
+    var sus = parseInt(val);
+    var score = mccUserAccuracy * (sus / 100);
+    susEl.textContent = sus + '%';
+
+    resultEl.textContent = score.toFixed(3);
+
+    // Color coding
+    if (sus === 0) {
+        resultEl.style.color = 'var(--mcc-error)';
+        susEl.style.color = 'var(--mcc-error)';
+        msgEl.textContent = "Ah\\u00ed es donde est\\u00e1s ahora.";
+    } else if (sus < 40) {
+        resultEl.style.color = 'var(--mcc-error)';
+        susEl.style.color = 'var(--mcc-accent)';
+        msgEl.textContent = 'Empezando \\u2014 cada punto cuenta.';
+    } else if (sus < 70) {
+        resultEl.style.color = 'var(--mcc-accent)';
+        susEl.style.color = 'var(--mcc-accent)';
+        msgEl.textContent = 'A mitad de camino \\u2014 ya est\\u00e1s marcando la diferencia.';
+    } else {
+        resultEl.style.color = 'var(--mcc-success)';
+        susEl.style.color = 'var(--mcc-success)';
+        if (sus === 100) {
+            msgEl.textContent = 'Nota m\\u00e1xima. As\\u00ed es como se ve un/a Ingeniero/a de IA responsable.';
+        } else {
+            msgEl.textContent = '\\u00a1Fuerte compromiso con la sostenibilidad!';
+        }
+    }
+}
+
+// === Module 3: Transition overlay ===
+function mccShowTransition() {
+    var overlay = document.getElementById('mcc-transition-overlay');
+    if (overlay) overlay.style.display = 'flex';
     try { window.parent.postMessage('activity_complete', '*'); } catch (e) { }
+}
+
+// === Re-init function (called after navigation) ===
+function mccReinitAll() {
+    // Re-run typewriter if needed
+    var tw = document.getElementById('mcc-typewriter-text');
+    if (tw && tw.dataset.init !== '1') {
+        tw.dataset.init = '0';
+        // Re-trigger
+    }
+    // Re-trigger gauge if on module 2
+    var gauge = document.getElementById('mcc-main-gauge');
+    if (gauge && gauge.offsetParent !== null) {
+        setTimeout(mccRunGaugeDrain, 500);
+    }
+    // Re-init training bars if flipped
+    if (mccFlippedCards[0]) mccInitTrainingBars();
+    if (mccFlippedCards[1]) mccInitInference();
 }
 """
 
-HEAD_HTML = '<script>' + CLIENT_JS + '</script>'
-
-# --- HTML Template ---
-HTML_TEMPLATE = """<!DOCTYPE html>
-<html lang="es">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Actividad 5: El Coste de la Sostenibilidad</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <style>
-        /* Light Mode (Default) - Matches detective app pattern */
-        :root {
-            --bg: #f8fafc;
-            --card-bg: rgba(255, 255, 255, 0.9);
-            --accent: #d97706;
-            --accent-glow: rgba(217, 119, 6, 0.2);
-            --success: #059669;
-            --warning: #dc2626;
-            --text: #0f172a;
-            --text-dim: #64748b;
-            --bg-gradient-1: rgba(217, 119, 6, 0.05);
-            --bg-gradient-2: rgba(220, 38, 38, 0.05);
-            --card-shadow: rgba(0, 0, 0, 0.1);
-            --border-color: rgba(0, 0, 0, 0.08);
-            --input-bg: rgba(0, 0, 0, 0.03);
-            --input-border: rgba(0, 0, 0, 0.1);
-            --hover-bg: rgba(0, 0, 0, 0.05);
-            --progress-line: rgba(0, 0, 0, 0.1);
-            --step-border: rgba(0, 0, 0, 0.2);
-        }
-
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg: #0f172a;
-                --card-bg: rgba(30, 41, 59, 0.7);
-                --accent: #f59e0b;
-                --accent-glow: rgba(245, 158, 11, 0.3);
-                --success: #10b981;
-                --warning: #ef4444;
-                --text: #f8fafc;
-                --text-dim: #94a3b8;
-                --bg-gradient-1: rgba(245, 158, 11, 0.05);
-                --bg-gradient-2: rgba(239, 68, 68, 0.05);
-                --card-shadow: rgba(0, 0, 0, 0.5);
-                --border-color: rgba(255, 255, 255, 0.05);
-                --input-bg: rgba(255, 255, 255, 0.05);
-                --input-border: rgba(255, 255, 255, 0.1);
-                --hover-bg: rgba(255, 255, 255, 0.08);
-                --progress-line: rgba(255, 255, 255, 0.1);
-                --step-border: rgba(255, 255, 255, 0.2);
-            }
-        }
-
-        .dark {
-            --bg: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --accent: #f59e0b;
-            --accent-glow: rgba(245, 158, 11, 0.3);
-            --success: #10b981;
-            --warning: #ef4444;
-            --text: #f8fafc;
-            --text-dim: #94a3b8;
-            --bg-gradient-1: rgba(245, 158, 11, 0.05);
-            --bg-gradient-2: rgba(239, 68, 68, 0.05);
-            --card-shadow: rgba(0, 0, 0, 0.5);
-            --border-color: rgba(255, 255, 255, 0.05);
-            --input-bg: rgba(255, 255, 255, 0.05);
-            --input-border: rgba(255, 255, 255, 0.1);
-            --hover-bg: rgba(255, 255, 255, 0.08);
-            --progress-line: rgba(255, 255, 255, 0.1);
-            --step-border: rgba(255, 255, 255, 0.2);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Outfit', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            background-image:
-                radial-gradient(circle at 10% 20%, var(--bg-gradient-1) 0%, transparent 20%),
-                radial-gradient(circle at 90% 80%, var(--bg-gradient-2) 0%, transparent 20%);
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
-
-        /* PROGRESS BAR */
-        .mission-progress {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 40px;
-            position: relative;
-        }
-
-        .mission-progress::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: var(--progress-line);
-            z-index: 1;
-            transform: translateY(-50%);
-        }
-
-        .step-node {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            background: var(--bg);
-            border: 2px solid var(--step-border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2;
-            color: var(--text-dim);
-            font-weight: 600;
-            font-size: 0.875rem;
-            transition: all 0.3s ease;
-        }
-
-        .step-node.active {
-            border-color: var(--accent);
-            color: var(--accent);
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
-
-        .step-node.completed {
-            background: var(--success);
-            border-color: var(--success);
-            color: white;
-        }
-
-        /* CARDS & CONTENT */
-        .card {
-            background: var(--card-bg);
-            backdrop-filter: blur(16px);
-            border-radius: 24px;
-            padding: 32px 28px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 25px 50px -12px var(--card-shadow);
-            min-height: 500px;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .mission-step {
-            display: none;
-            height: 100%;
-            flex-direction: column;
-            animation: fadeIn 0.6s ease;
-        }
-
-        .mission-step.active {
-            display: flex;
-        }
-
-        h1,
-        h2,
-        h3 {
-            font-weight: 800;
-            margin-bottom: 20px;
-            color: var(--text);
-        }
-
-        h1 {
-            font-size: clamp(1.6rem, 5vw, 2.2rem);
-            letter-spacing: -1px;
-            text-transform: uppercase;
-        }
-
-        h1.neon-text {
-            color: var(--accent);
-            text-shadow: 0 0 20px var(--accent-glow);
-        }
-
-        h2 {
-            font-size: clamp(1.4rem, 4vw, 1.8rem);
-        }
-
-        p {
-            line-height: 1.6;
-            color: var(--text-dim);
-            margin-bottom: 20px;
-            font-size: 1.125rem;
-        }
-
-        .highlight-text {
-            color: var(--text);
-            font-weight: 600;
-        }
-
-        .emph-harm {
-            color: var(--warning);
-            font-weight: 700;
-        }
-
-        /* BUTTONS */
-        .btn-group {
-            display: flex;
-            gap: 15px;
-            margin-top: auto;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            background: var(--accent);
-            color: var(--bg);
-            border: 2px solid transparent;
-            padding: 16px 28px;
-            border-radius: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-size: 1rem;
-            font-family: 'Outfit', sans-serif;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px var(--accent-glow);
-        }
-
-        .btn.secondary {
-            background: var(--hover-bg);
-            color: var(--text);
-            border: 2px solid var(--step-border);
-        }
-
-        .btn.secondary:hover {
-            background: var(--hover-bg);
-            border-color: var(--accent);
-        }
-
-        .btn.danger {
-            background: var(--warning);
-            border: 2px solid var(--warning);
-            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
-        }
-
-        .btn.success {
-            background: var(--success);
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-            animation: ctaPulse 2s ease-in-out infinite;
-        }
-
-        .btn.success:hover {
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5);
-        }
-
-        @keyframes ctaPulse {
-            0%, 100% { box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
-            50% { box-shadow: 0 8px 30px rgba(16, 185, 129, 0.6); }
-        }
-
-        /* STAT CARDS */
-        .stat-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin: 30px 0;
-        }
-
-        .stat-card {
-            background: var(--input-bg);
-            border: 1px solid var(--border-color);
-            padding: 20px;
-            border-radius: 16px;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: var(--success);
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-dim);
-            margin-top: 5px;
-        }
-
-        /* GAUGE */
-        .score-gauge-container {
-            position: relative;
-            width: 200px;
-            height: 200px;
-            margin: 0 auto 30px auto;
-        }
-
-        .score-gauge {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: conic-gradient(from 180deg, var(--success) 0%, var(--success) 100%, var(--border-color) 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 30px rgba(16, 185, 129, 0.2);
-            transition: background 2s ease-in-out;
-        }
-
-        .score-gauge-inner {
-            width: 80%;
-            height: 80%;
-            border-radius: 50%;
-            background-color: var(--bg);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 2;
-        }
-
-        .gauge-value {
-            font-size: 3rem;
-            font-weight: 800;
-            color: var(--text);
-        }
-
-        /* REVELATION STYLES */
-        .revelation-box {
-            border-left: 4px solid var(--accent);
-            background: rgba(245, 158, 11, 0.1);
-            padding: 20px;
-            border-radius: 0 12px 12px 0;
-            margin: 20px 0;
-        }
-
-        .energy-fact {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            margin: 15px 0;
-            padding: 15px;
-            background: var(--input-bg);
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-        }
-
-        .energy-icon {
-            font-size: 2rem;
-        }
-
-        /* FORMULA BOX */
-        .formula-box {
-            background: var(--input-bg);
-            padding: 30px;
-            border-radius: 16px;
-            text-align: center;
-            border: 2px dashed var(--accent);
-            margin: 30px 0;
-        }
-
-        .formula-text {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin: 15px 0;
-            color: var(--text);
-        }
-
-        .formula-part {
-            display: inline-block;
-            padding: 5px 10px;
-            border-radius: 6px;
-        }
-
-        .part-acc {
-            background: rgba(16, 185, 129, 0.2);
-            color: var(--success);
-        }
-
-        .part-sus {
-            background: rgba(245, 158, 11, 0.2);
-            color: var(--accent);
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes gaugeDrop {
-            0% {
-                background: conic-gradient(from 180deg, var(--success) 0%, var(--success) 100%, var(--border-color) 100%);
-            }
-
-            100% {
-                background: conic-gradient(from 180deg, var(--warning) 0%, var(--warning) 0%, var(--border-color) 0%, var(--border-color) 100%);
-            }
-        }
-
-        .gauge-dropping {
-            animation: gaugeDrop 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        }
-
-        .blink-red {
-            animation: blinkRed 1s infinite;
-        }
-
-        @keyframes blinkRed {
-
-            0%,
-            100% {
-                color: var(--text);
-            }
-
-            50% {
-                color: var(--warning);
-            }
-        }
-
-    </style>
-</head>
-
-<body>
-    <div class="container">
-        <!-- PROGRESS -->
-        <div class="mission-progress">
-            <div class="step-node active">1</div>
-            <div class="step-node">2</div>
-            <div class="step-node">3</div>
-            <div class="step-node">4</div>
-        </div>
-
-        <div class="card">
-
-            <!-- STEP 1: CONGRATULATIONS -->
-            <div class="mission-step active" id="step-1">
-                <div style="text-align: center;">
-                    <h2 style="color: var(--success); text-transform: uppercase; letter-spacing: 2px;">Entrenamiento del
-                        Modelo Completado</h2>
-                    <h1 class="neon-text" style="color: var(--success); text-shadow: 0 0 20px rgba(16, 185, 129, 0.4);">
-                        &iexcl;Precisi&oacute;n Excepcional!</h1>
-                </div>
-
-                <p style="text-align: center;">Tu modelo ha superado nuestros puntos de referencia. Has utilizado con
-                    &eacute;xito el conjunto de datos NREL para predecir la eficiencia energ&eacute;tica de edificios.</p>
-
-                <div class="stat-grid">
-                    <div class="stat-card">
-                        <div class="stat-value">94.2%</div>
-                        <div class="stat-label">Precisi&oacute;n del Modelo</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">#3</div>
-                        <div class="stat-label">Clasificaci&oacute;n Global</div>
-                    </div>
-                </div>
-
-                <div class="revelation-box"
-                    style="border-left-color: var(--success); background: rgba(16, 185, 129, 0.1);">
-                    <p style="margin-bottom: 0; color: var(--text);"><strong>LOGRO DESBLOQUEADO:</strong> Has dominado
-                        el aspecto t&eacute;cnico de la IA. Tu modelo realiza predicciones precisas que podr&iacute;an ahorrar dinero
-                        y energ&iacute;a en el futuro.</p>
-                </div>
-
-                <p style="text-align:center; color:var(--text); font-weight:600; font-size:1.1rem; margin-bottom:8px;">&iquest;Listo? Publica tu modelo para obtener la certificaci&oacute;n.</p>
-                <div class="btn-group" style="justify-content: center;">
-                    <button class="btn success" style="width:100%; font-size:1.2rem; padding:20px 32px;" onclick="goToStep(2)">PUBLICAR MODELO Y CERTIFICAR &rarr;</button>
-                </div>
-            </div>
-
-            <!-- STEP 2: THE REVELATION -->
-            <div class="mission-step" id="step-2">
-                <h1 style="color: var(--warning);">PROYECCI&Oacute;N DETENIDA</h1>
-                <p>Antes de poder certificar tu modelo, debemos auditar el <span class="highlight-text">coste oculto</span>
-                    de tu proceso de entrenamiento.</p>
-
-                <div style="background: var(--input-bg); border-radius: 16px; padding: 25px; margin: 20px 0;">
-                    <h3 style="margin-bottom: 20px;">La Huella Invisible</h3>
-
-                    <div class="energy-fact">
-                        <div class="energy-icon">&#128267;</div>
-                        <div>
-                            <strong style="color: var(--text);">Consumo Masivo de Energ&iacute;a</strong>
-                            <p style="margin: 0; font-size: 0.95rem;">Entrenar un solo modelo grande de IA puede consumir
-                                tanta electricidad como <strong>la que usan 100 hogares en un a&ntilde;o</strong>.</p>
-                        </div>
-                    </div>
-
-                    <div class="energy-fact">
-                        <div class="energy-icon">&#9729;&#65039;</div>
-                        <div>
-                            <strong style="color: var(--text);">Emisiones de Carbono</strong>
-                            <p style="margin: 0; font-size: 0.95rem;">Los grandes modelos de IA como GPT-4 pueden generar CO2
-                                equivalente a <strong>conducir un coche de un extremo a otro del pa&iacute;s</strong> durante el entrenamiento.
-                                Incluso los modelos m&aacute;s peque&ntilde;os tienen una huella medible.</p>
-                        </div>
-                    </div>
-
-                    <div class="energy-fact">
-                        <div class="energy-icon">&#128167;</div>
-                        <div>
-                            <strong style="color: var(--text);">Consumo de Agua</strong>
-                            <p style="margin: 0; font-size: 0.95rem;">Los centros de datos evaporan millones de litros de agua
-                                para refrigerar los servidores que entrenan tu IA.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <p class="emph-harm">No podemos resolver la crisis clim&aacute;tica con herramientas que la empeoran.</p>
-
-                <div class="btn-group">
-                    <button class="btn secondary" onclick="goToStep(1)">ATR&Aacute;S</button>
-                    <button class="btn danger" style="flex:1; font-size:1.1rem; padding:18px 32px;" onclick="goToStep(3)">RECONOCER EL IMPACTO &rarr;</button>
-                </div>
-            </div>
-
-            <!-- STEP 3: THE RESET -->
-            <div class="mission-step" id="step-3">
-                <div style="text-align: center; margin-top: 40px;">
-                    <h2 class="blink-red">RECALCULANDO PUNTUACI&Oacute;N...</h2>
-
-                    <div class="score-gauge-container">
-                        <div class="score-gauge" id="mainGauge">
-                            <div class="score-gauge-inner">
-                                <div class="gauge-value" id="scoreValue">94</div>
-                                <div class="stat-label">PUNTUACI&Oacute;N</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="resetMessage" style="opacity: 0; transition: opacity 1s;">
-                        <h3 style="color: var(--warning);">FACTOR DE SOSTENIBILIDAD: A&Uacute;N NO MEDIDO</h3>
-                        <p>Tu precisi&oacute;n se mantiene, pero tu <strong>puntuaci&oacute;n total</strong> ahora incluye un componente de sostenibilidad.</p>
-                        <p>Hasta que demuestres pr&aacute;cticas sostenibles, ese componente es <strong>cero</strong> &mdash; arrastrando tu total hacia abajo.</p>
-                    </div>
-                </div>
-
-                <div class="btn-group" style="justify-content: center;">
-                    <button class="btn secondary" onclick="goToStep(2)">ATR&Aacute;S</button>
-                    <button class="btn" id="btnContinueReset"
-                        style="opacity:0; pointer-events:none; flex:1; font-size:1.1rem; padding:18px 32px;" onclick="goToStep(4)">INTRODUCIR NUEVA M&Eacute;TRICA &rarr;</button>
-                </div>
-            </div>
-
-            <!-- STEP 4: THE NEW STANDARD -->
-            <div class="mission-step" id="step-4">
-                <h1 style="color: var(--accent);">La Br&uacute;jula Moral</h1>
-                <p>A partir de ahora, ser&aacute;s evaluado con un nuevo est&aacute;ndar. No basta con ser inteligente; tu IA
-                    debe ser <span class="highlight-text" style="color: var(--success);">Sostenible</span>.</p>
-
-                <div class="formula-box">
-                    <div
-                        style="text-transform: uppercase; letter-spacing: 2px; color: var(--text-dim); margin-bottom: 10px;">
-                        La Nueva F&oacute;rmula</div>
-                    <div class="formula-text">
-                        Puntuaci&oacute;n Total = <span class="formula-part part-acc">[ Precisi&oacute;n ]</span> x <span
-                            class="formula-part part-sus">[ Sostenibilidad % ]</span>
-                    </div>
-                    <p style="font-size: 1rem; margin-top: 15px;">
-                        Si tu Puntuaci&oacute;n de Sostenibilidad es <strong>0%</strong>, tu Puntuaci&oacute;n Total es <strong>0</strong>.
-                    </p>
-                </div>
-
-                <div class="revelation-box"
-                    style="background: rgba(16, 185, 129, 0.1); border-left-color: var(--success);">
-                    <h3 style="color: var(--success); margin-bottom: 10px;">Actualizaci&oacute;n de tu Misi&oacute;n</h3>
-                    <ul style="margin-left: 20px; line-height: 1.8;">
-                        <li><strong>Paso 1:</strong> Medir la huella de carbono de tu modelo actual.</li>
-                        <li><strong>Paso 2:</strong> Optimizar la arquitectura para reducir el consumo energ&eacute;tico.</li>
-                        <li><strong>Paso 3:</strong> Mantener una alta precisi&oacute;n mientras se reducen las emisiones.</li>
-                    </ul>
-                </div>
-
-                <div class="btn-group">
-                    <button class="btn secondary" onclick="goToStep(3)">ATR&Aacute;S</button>
-                    <button class="btn success" style="flex:1; font-size:1.1rem; padding:18px 32px;" onclick="showTransition()">INICIAR AUDITOR&Iacute;A DE SOSTENIBILIDAD &rarr;</button>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <div id="transitionOverlay"
-        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.95); backdrop-filter:blur(10px); z-index:999; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
-        <div style="font-size:4rem; margin-bottom:20px;">&#127793;</div>
-        <h2 style="color:var(--success); font-size:2rem; margin-bottom:10px;">Actividad Completada</h2>
-        <p style="color:var(--text); font-size:1.2rem; max-width:600px;">
-            Has visto el coste oculto. <b>A continuaci&oacute;n:</b> Investigar&aacute;s la huella medioambiental completa de la IA &mdash; desde la pantalla de tu m&oacute;vil hasta la escala global &mdash; como Detective de IA Verde.
-        </p>
-        <button class="btn secondary" style="margin-top:40px; font-size:1.1rem; padding:18px 40px;"
-            onclick="document.getElementById('transitionOverlay').style.display='none'">CERRAR</button>
-    </div>
-
-    <!-- JS loaded via gr.Blocks(head=...) -->
-</body>
-
-</html>
-"""
-
-def _fetch_leaderboard(token: str) -> Optional[pd.DataFrame]:
-    now = time.time()
-    with _cache_lock:
-        if (
-            _leaderboard_cache["data"] is not None
-            and now - _leaderboard_cache["timestamp"] < LEADERBOARD_CACHE_SECONDS
-        ):
-            return _leaderboard_cache["data"]
-
-    try:
-        playground_id = "https://bhtrtkrbf4.execute-api.us-east-1.amazonaws.com/prod/m"
-        playground = Competition(playground_id)
-        df = playground.get_leaderboard(token=token)
-        if df is not None and not df.empty and MAX_LEADERBOARD_ENTRIES:
-            df = df.head(MAX_LEADERBOARD_ENTRIES)
-    except Exception:
-        df = None
-
-    with _cache_lock:
-        _leaderboard_cache["data"] = df
-        _leaderboard_cache["timestamp"] = time.time()
-    return df
-
-def _compute_user_stats(username: str, token: str) -> Dict[str, Any]:
-    leaderboard_df = _fetch_leaderboard(token)
-    best_score = None
-    rank = None
-
-    if leaderboard_df is not None and not leaderboard_df.empty:
-        if "accuracy" in leaderboard_df.columns and "username" in leaderboard_df.columns:
-            user_submissions = leaderboard_df[leaderboard_df["username"] == username]
-            if not user_submissions.empty:
-                best_score = user_submissions["accuracy"].max()
-
-            # Rank
-            user_bests = leaderboard_df.groupby("username")["accuracy"].max()
-            summary_df = user_bests.reset_index().sort_values("accuracy", ascending=False).reset_index(drop=True)
-            summary_df.index = summary_df.index + 1
-            my_row = summary_df[summary_df["username"] == username]
-            if not my_row.empty:
-                rank = my_row.index[0]
-
-    return {"best_score": best_score, "rank": rank}
-
-def get_html_content(best_score_pct, rank_str, is_demo=False):
-    score_int = int(best_score_pct)
-
-    html = HTML_TEMPLATE
-
-    # Replace static placeholders with dynamic values
-    html = html.replace("94.2%", f"{best_score_pct:.1f}%")
-    html = html.replace('>#3</div>', f'>#{rank_str}</div>')
-    html = html.replace('id="scoreValue">94<', f'id="scoreValue">{score_int}<')
-
-    if is_demo:
-        demo_banner = """<div style="background:var(--accent-glow); border:2px solid var(--accent); padding:12px; border-radius:8px; margin-bottom:20px; text-align:center;">
-            <strong style="color:var(--accent);">Modo Demo:</strong> <span style="color:var(--text-dim);">No se pudo cargar la puntuaci&oacute;n real de tu modelo. Se muestran valores de ejemplo.</span>
-        </div>"""
-        html = html.replace('<div class="card">', f'<div class="card">{demo_banner}')
-
-    return html
-
-def _app_interface(request: gr.Request):
-    best_score = 75.0
-    rank = "N/A"
-    is_demo = True
-
-    try:
-        session_id = request.query_params.get("sessionid")
-        if session_id:
-            token = get_token_from_session(session_id)
-            username = _get_username_from_token(token)
-            if username:
-                stats = _compute_user_stats(username, token)
-                if stats["best_score"] is not None:
-                    best_score = stats["best_score"] * 100
-                    is_demo = False
-                if stats["rank"]:
-                    rank = str(stats["rank"])
-    except Exception as e:
-        print(f"Auth failed: {e}")
-        pass
-
-    return get_html_content(best_score, rank, is_demo=is_demo)
-
+HEAD_HTML = (
+    '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap">\n'
+    '<script>\n' + CLIENT_JS + '\n</script>'
+)
+
+
+# ============================================================================
+# 9. APP FACTORY
+# ============================================================================
 
 def create_moral_compass_challenge_sustainability_es_app(theme_primary_hue: str = "indigo"):
-    with gr.Blocks(title="Actividad 5: El Coste de la Sostenibilidad", head=HEAD_HTML) as demo:
-        html = gr.HTML()
-        demo.load(_app_interface, outputs=html)
-    return demo
+    with gr.Blocks(
+        theme=gr.themes.Soft(primary_hue=theme_primary_hue),
+        css=css,
+        head=HEAD_HTML,
+    ) as demo:
+        # States
+        username_state = gr.State(value=None)
+        token_state = gr.State(value=None)
+        team_state = gr.State(value=None)
+        accuracy_state = gr.State(value=0.0)
+        task_list_state = gr.State(value=[])
+
+        # Top anchor + loading overlay
+        gr.HTML("<div id='app_top_anchor' style='height:0;'></div>")
+        gr.HTML("<div id='nav-loading-overlay'><div class='nav-spinner'></div><span id='nav-loading-text'>Cargando...</span></div>")
+
+        # Transition overlay (global, outside modules)
+        gr.HTML("""
+            <div id="mcc-transition-overlay">
+                <div style="font-size:4rem; margin-bottom:20px;">&#127793;</div>
+                <h2 style="color:#10b981; font-size:2rem; margin-bottom:10px; font-family:'Outfit',sans-serif;">Actividad Completada</h2>
+                <p style="color:#f8fafc; font-size:1.2rem; max-width:600px; font-family:'Outfit',sans-serif; line-height:1.6;">
+                    A continuaci&oacute;n: investiga la huella ambiental de la IA como <strong>Detective de IA Verde</strong>.
+                </p>
+                <button onclick="document.getElementById('mcc-transition-overlay').style.display='none'"
+                    style="margin-top:40px; font-size:1.1rem; padding:18px 40px; border-radius:16px; background:rgba(255,255,255,0.1); color:#f8fafc; border:2px solid rgba(255,255,255,0.2); cursor:pointer; font-family:'Outfit',sans-serif; font-weight:700; text-transform:uppercase;">
+                    CERRAR
+                </button>
+            </div>
+        """)
+
+        # --- LOADING VIEW ---
+        with gr.Column(visible=True, elem_id="app-loader") as loader_col:
+            gr.HTML(
+                "<div style='text-align:center; padding:100px;'>"
+                "<h2>Autenticando...</h2>"
+                "<p>Sincronizando datos de la Br\u00fajula Moral...</p>"
+                "</div>"
+            )
+
+        # --- MAIN APP VIEW ---
+        with gr.Column(visible=False) as main_app_col:
+            # Top dashboard
+            out_top = gr.HTML()
+
+            # Module containers
+            module_ui_elements = {}
+
+            for i, mod in enumerate(MODULES):
+                with gr.Column(
+                    elem_id=f"module-{i}",
+                    elem_classes=["module-container"],
+                    visible=(i == 0),
+                ) as mod_col:
+                    gr.HTML(mod["html"])
+
+                    # Navigation buttons
+                    with gr.Row():
+                        btn_prev = gr.Button("\u2b05\ufe0f Anterior", visible=(i > 0))
+                        if i < len(MODULES) - 1:
+                            next_label = "Siguiente \u25b6\ufe0f"
+                        else:
+                            next_label = "INICIAR AUDITOR\u00cdA DE SOSTENIBILIDAD \u27a1"
+                        btn_next = gr.Button(next_label, variant="primary")
+
+                    module_ui_elements[i] = (mod_col, btn_prev, btn_next)
+
+            # Formula details (collapsible, below modules)
+            gr.HTML("""
+                <details style="background:var(--background-fill-secondary); border-radius:16px;
+                                border:1px solid var(--border-color-primary); margin:8px 0 12px 0; opacity:0.7;">
+                    <summary style="padding:14px 24px; cursor:pointer; text-transform:uppercase; letter-spacing:1.5px;
+                                    color:var(--body-text-color-subdued); font-size:0.78rem; font-weight:700;
+                                    text-align:center; list-style:none;">
+                        &#9656; La F&oacute;rmula de la Br&uacute;jula Moral
+                    </summary>
+                    <div style="padding:0 24px 24px 24px; text-align:center;">
+                        <div style="font-size:1.3rem; font-weight:700; margin:12px 0; font-family:'Outfit',sans-serif;">
+                            Puntuaci&oacute;n de Br&uacute;jula Moral =
+                            <span style="background:rgba(5,150,105,0.15); color:var(--mcc-success); padding:4px 10px; border-radius:6px;">
+                                [ Precisi&oacute;n ]</span>
+                            &times;
+                            <span style="background:rgba(217,119,6,0.15); color:var(--mcc-accent); padding:4px 10px; border-radius:6px;">
+                                [ Sostenibilidad % ]</span>
+                        </div>
+                        <p style="font-size:0.95rem; margin:12px 0 0 0; color:var(--body-text-color-subdued);">
+                            <strong>Sostenibilidad %</strong> refleja tu progreso en la Br&uacute;jula Moral a trav&eacute;s de las misiones.<br/>
+                            Si tu Sostenibilidad % es <strong>0%</strong>, tu Puntuaci&oacute;n de Br&uacute;jula Moral es <strong>0</strong>.
+                        </p>
+                    </div>
+                </details>
+            """)
+
+            # Leaderboard at bottom
+            leaderboard_html = gr.HTML()
+
+            # Hidden HTML for injecting dynamic values via JS
+            inject_js_html = gr.HTML(visible=False)
+
+        # --- LOAD HANDLER ---
+        def handle_load(request: gr.Request):
+            ok, uname, tok = _try_session_based_auth(request)
+            if ok:
+                best_acc, fetched_team = fetch_user_history(uname, tok)
+                team = "Team-Unassigned"
+                fetched_tasks: List[str] = []
+
+                os.environ["MORAL_COMPASS_API_BASE_URL"] = DEFAULT_API_URL
+                client = MoralcompassApiClient(
+                    api_base_url=DEFAULT_API_URL, auth_token=tok
+                )
+
+                # Resolve team from existing server record
+                def get_or_assign_team(client_obj, username_val):
+                    try:
+                        user_data = client_obj.get_user(
+                            table_id=TABLE_ID, username=username_val
+                        )
+                    except Exception:
+                        user_data = None
+                    if user_data and isinstance(user_data, dict):
+                        if user_data.get("teamName"):
+                            return user_data["teamName"]
+                    return "team-a"
+
+                exist_team = get_or_assign_team(client, uname)
+                if fetched_team != "Team-Unassigned":
+                    team = fetched_team
+                elif exist_team != "team-a":
+                    team = exist_team
+                else:
+                    team = "team-a"
+
+                # Fetch completedTaskIds from server via get_user()
+                try:
+                    user_stats = client.get_user(table_id=TABLE_ID, username=uname)
+                except Exception:
+                    user_stats = None
+
+                if user_stats:
+                    if isinstance(user_stats, dict):
+                        fetched_tasks = user_stats.get("completedTaskIds") or []
+                    else:
+                        fetched_tasks = getattr(
+                            user_stats, "completed_task_ids", []
+                        ) or []
+
+                # Sync baseline moral compass record
+                try:
+                    client.update_moral_compass(
+                        table_id=TABLE_ID,
+                        username=uname,
+                        team_name=team,
+                        metrics={"accuracy": best_acc},
+                        tasks_completed=len(fetched_tasks),
+                        total_tasks=TOTAL_COURSE_TASKS,
+                        primary_metric="accuracy",
+                        completed_task_ids=fetched_tasks,
+                    )
+                    time.sleep(1.0)
+                except Exception:
+                    pass
+
+                data, _ = ensure_table_and_get_data(
+                    uname, tok, team, fetched_tasks
+                )
+
+                # Compute display values for injecting into HTML
+                acc_pct = best_acc * 100 if best_acc <= 1.0 else best_acc
+                acc_display = f"{acc_pct:.1f}%"
+                score_int = int(acc_pct)
+
+                # Get rank from leaderboard data
+                rank_val = data.get("rank", "N/A") if data else "N/A"
+                rank_display = f"#{rank_val}" if rank_val != "N/A" else "#N/A"
+
+                # Build JS injection to update all dynamic values in the page
+                inject_script = f"""<img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEAAAAALAAAAAABAAEAAAIBAAA=" onload="
+                    mccUserAccuracy = {acc_pct / 100:.4f};
+                    var ad = document.getElementById('mcc-accuracy-display');
+                    if(ad) ad.textContent = '{acc_display}';
+                    var rd = document.getElementById('mcc-rank-display');
+                    if(rd) rd.textContent = '{rank_display}';
+                    var gs = document.getElementById('mcc-gauge-score');
+                    if(gs) gs.textContent = '{score_int}';
+                    var at = document.getElementById('mcc-accuracy-text');
+                    if(at) at.textContent = '{acc_display}';
+                    var wa = document.getElementById('mcc-whatif-acc');
+                    if(wa) wa.textContent = '{acc_display}';
+                    var sa = document.getElementById('mcc-summary-accuracy');
+                    if(sa) sa.textContent = '{acc_display}';
+                " style="display:none;">"""
+
+                is_demo = False
+                if best_acc == 0.0:
+                    is_demo = True
+                    acc_pct = 75.0
+                    inject_script = """<img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEAAAAALAAAAAABAAEAAAIBAAA=" onload="
+                        mccUserAccuracy = 0.75;
+                    " style="display:none;">
+                    <div style="background:rgba(217,119,6,0.15); border:2px solid var(--mcc-accent); padding:12px; border-radius:8px; margin-bottom:12px; text-align:center;">
+                        <strong style="color:var(--mcc-accent);">Modo Demo:</strong>
+                        <span style="color:var(--mcc-text-dim);">No se pudo cargar la puntuaci\u00f3n real de tu modelo. Mostrando valores de ejemplo.</span>
+                    </div>"""
+
+                return (
+                    uname, tok, team,
+                    best_acc, fetched_tasks,
+                    render_top_dashboard(data, 0),
+                    render_leaderboard_card(data, uname, team),
+                    inject_script,
+                    gr.update(visible=False),
+                    gr.update(visible=True),
+                )
+            return (
+                None, None, None,
+                0.0, [],
+                "<div class='hint-box'>Autenticaci\u00f3n fallida. Por favor, accede desde el enlace del curso.</div>",
+                "",
+                """<div style="background:rgba(217,119,6,0.15); border:2px solid var(--mcc-accent); padding:12px; border-radius:8px; margin-bottom:12px; text-align:center;">
+                    <strong style="color:var(--mcc-accent);">Modo Demo:</strong>
+                    <span style="color:var(--mcc-text-dim);">No se pudo autenticar. Mostrando valores de ejemplo.</span>
+                </div>""",
+                gr.update(visible=False),
+                gr.update(visible=True),
+            )
+
+        demo.load(
+            handle_load, None,
+            [
+                username_state, token_state, team_state,
+                accuracy_state, task_list_state,
+                out_top, leaderboard_html,
+                inject_js_html,
+                loader_col, main_app_col,
+            ],
+        )
+
+        # --- JAVASCRIPT HELPER ---
+        def nav_js(target_id: str, message: str) -> str:
+            return f"""
+            ()=>{{
+              try {{
+                const overlay = document.getElementById('nav-loading-overlay');
+                const messageEl = document.getElementById('nav-loading-text');
+                if(overlay && messageEl) {{
+                  messageEl.textContent = '{message}';
+                  overlay.style.display = 'flex';
+                  setTimeout(() => {{ overlay.style.opacity = '1'; }}, 10);
+                }}
+                const startTime = Date.now();
+                setTimeout(() => {{
+                  const anchor = document.getElementById('app_top_anchor');
+                  if(anchor) anchor.scrollIntoView({{behavior:'smooth', block:'start'}});
+                }}, 40);
+                const targetId = '{target_id}';
+                const pollInterval = setInterval(() => {{
+                  const elapsed = Date.now() - startTime;
+                  const target = document.getElementById(targetId);
+                  const isVisible = target && target.offsetParent !== null &&
+                                   window.getComputedStyle(target).display !== 'none';
+                  if((isVisible && elapsed >= 1200) || elapsed > 7000) {{
+                    clearInterval(pollInterval);
+                    if(overlay) {{
+                      overlay.style.opacity = '0';
+                      setTimeout(() => {{ overlay.style.display = 'none'; }}, 300);
+                    }}
+                    setTimeout(function(){{ if(typeof mccReinitAll==='function') mccReinitAll(); }}, 300);
+                  }}
+                }}, 90);
+              }} catch(e) {{ console.warn('nav-js error', e); }}
+            }}
+            """
+
+        # --- NAVIGATION ---
+        for i in range(len(MODULES)):
+            curr_col, prev_btn, next_btn = module_ui_elements[i]
+
+            if i > 0:
+                prev_col = module_ui_elements[i - 1][0]
+                prev_target_id = f"module-{i-1}"
+
+                def make_prev_handler(p_col, c_col, target_id):
+                    def navigate_prev():
+                        yield gr.update(visible=False), gr.update(visible=False)
+                        yield gr.update(visible=True), gr.update(visible=False)
+                    return navigate_prev
+
+                prev_btn.click(
+                    fn=make_prev_handler(prev_col, curr_col, prev_target_id),
+                    outputs=[prev_col, curr_col],
+                    js=nav_js(prev_target_id, "Cargando..."),
+                )
+
+            if i < len(MODULES) - 1:
+                next_col = module_ui_elements[i + 1][0]
+                next_target_id = f"module-{i+1}"
+
+                def make_next_handler(c_col, n_col, next_idx):
+                    def wrapper_next(user, tok, team, tasks, acc):
+                        data, _ = ensure_table_and_get_data(user, tok, team, tasks)
+                        dash_html = render_top_dashboard(data, next_idx)
+                        # Also update leaderboard when navigating to last module
+                        if next_idx == len(MODULES) - 1:
+                            lb_html = render_leaderboard_card(data, user, team)
+                            return dash_html, lb_html
+                        return dash_html, gr.update()
+                    return wrapper_next
+
+                def make_nav_generator(c_col, n_col):
+                    def navigate_next():
+                        yield gr.update(visible=False), gr.update(visible=False)
+                        yield gr.update(visible=False), gr.update(visible=True)
+                    return navigate_next
+
+                next_btn.click(
+                    fn=make_next_handler(curr_col, next_col, i + 1),
+                    inputs=[username_state, token_state, team_state, task_list_state, accuracy_state],
+                    outputs=[out_top, leaderboard_html],
+                    js=nav_js(next_target_id, "Cargando..."),
+                ).then(
+                    fn=make_nav_generator(curr_col, next_col),
+                    outputs=[curr_col, next_col],
+                )
+
+            # Last module: CTA triggers transition overlay
+            if i == len(MODULES) - 1:
+                next_btn.click(
+                    fn=None,
+                    js="() => { mccShowTransition(); }",
+                )
+
+        return demo
 
 
-def launch_moral_compass_challenge_sustainability_es_app(share=False, server_port=8080, **kwargs):
-    app = create_moral_compass_challenge_sustainability_es_app()
-    app.launch(share=share, server_port=server_port, **kwargs)
+# ============================================================================
+# LAUNCH
+# ============================================================================
+
+def launch_moral_compass_challenge_sustainability_es_app(
+    share: bool = False,
+    server_name: str = "0.0.0.0",
+    server_port: int = 8080,
+    theme_primary_hue: str = "indigo",
+    **kwargs
+) -> None:
+    app = create_moral_compass_challenge_sustainability_es_app(theme_primary_hue=theme_primary_hue)
+    app.launch(
+        share=share,
+        server_name=server_name,
+        server_port=server_port,
+        **kwargs
+    )
 
 
 if __name__ == "__main__":
-    launch_moral_compass_challenge_sustainability_es_app()
+    launch_moral_compass_challenge_sustainability_es_app(share=False, debug=True, height=1000)
