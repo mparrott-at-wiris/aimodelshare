@@ -1301,6 +1301,32 @@ function mccReinitAll() {
         setTimeout(mccRunGaugeDrain, 500);
     }
 }
+
+// === Apply dynamic user data from server ===
+(function mccApplyUserData(){
+    var el = document.getElementById('mcc-user-data');
+    if (!el) { setTimeout(mccApplyUserData, 200); return; }
+    if (el.dataset.applied === '1') return;
+    el.dataset.applied = '1';
+    var accDisplay = el.dataset.accDisplay;
+    if (!accDisplay) return;
+    var rankDisplay = el.dataset.rankDisplay || '';
+    var scoreInt = el.dataset.scoreInt || '';
+    var userAcc = parseFloat(el.dataset.userAcc || '0.75');
+    mccUserAccuracy = userAcc;
+    var ad = document.getElementById('mcc-accuracy-display');
+    if(ad) ad.textContent = accDisplay;
+    var rd = document.getElementById('mcc-rank-display');
+    if(rd) rd.textContent = rankDisplay;
+    var gs = document.getElementById('mcc-gauge-score');
+    if(gs) gs.textContent = scoreInt;
+    var at = document.getElementById('mcc-accuracy-text');
+    if(at) at.textContent = accDisplay;
+    var wa = document.getElementById('mcc-whatif-acc');
+    if(wa) wa.textContent = accDisplay;
+    var sa = document.getElementById('mcc-summary-accuracy');
+    if(sa) sa.textContent = accDisplay;
+})();
 """
 
 HEAD_HTML = (
@@ -1411,7 +1437,7 @@ def create_moral_compass_challenge_sustainability_es_app(theme_primary_hue: str 
             leaderboard_html = gr.HTML()
 
             # Hidden HTML for injecting dynamic values via JS
-            inject_js_html = gr.HTML(visible=False)
+            inject_js_html = gr.HTML()
 
         # --- LOAD HANDLER ---
         def handle_load(request: gr.Request):
@@ -1491,29 +1517,18 @@ def create_moral_compass_challenge_sustainability_es_app(theme_primary_hue: str 
                 rank_display = f"#{rank_val}" if rank_val != "N/A" else "#N/A"
 
                 # Build JS injection to update all dynamic values in the page
-                inject_script = f"""<img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEAAAAALAAAAAABAAEAAAIBAAA=" onload="
-                    mccUserAccuracy = {acc_pct / 100:.4f};
-                    var ad = document.getElementById('mcc-accuracy-display');
-                    if(ad) ad.textContent = '{acc_display}';
-                    var rd = document.getElementById('mcc-rank-display');
-                    if(rd) rd.textContent = '{rank_display}';
-                    var gs = document.getElementById('mcc-gauge-score');
-                    if(gs) gs.textContent = '{score_int}';
-                    var at = document.getElementById('mcc-accuracy-text');
-                    if(at) at.textContent = '{acc_display}';
-                    var wa = document.getElementById('mcc-whatif-acc');
-                    if(wa) wa.textContent = '{acc_display}';
-                    var sa = document.getElementById('mcc-summary-accuracy');
-                    if(sa) sa.textContent = '{acc_display}';
-                " style="display:none;">"""
+                inject_script = f"""<div id="mcc-user-data" style="display:none"
+                    data-acc-display="{acc_display}"
+                    data-rank-display="{rank_display}"
+                    data-score-int="{score_int}"
+                    data-user-acc="{acc_pct / 100:.4f}"></div>"""
 
                 is_demo = False
                 if best_acc == 0.0:
                     is_demo = True
                     acc_pct = 75.0
-                    inject_script = """<img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEAAAAALAAAAAABAAEAAAIBAAA=" onload="
-                        mccUserAccuracy = 0.75;
-                    " style="display:none;">
+                    inject_script = """<div id="mcc-user-data" style="display:none"
+                        data-user-acc="0.75"></div>
                     <div style="background:rgba(217,119,6,0.15); border:2px solid var(--mcc-accent); padding:12px; border-radius:8px; margin-bottom:12px; text-align:center;">
                         <strong style="color:var(--mcc-accent);">Modo Demo:</strong>
                         <span style="color:var(--mcc-text-dim);">No se pudo cargar la puntuaci\u00f3n real de tu modelo. Mostrando valores de ejemplo.</span>
@@ -1533,7 +1548,9 @@ def create_moral_compass_challenge_sustainability_es_app(theme_primary_hue: str 
                 0.0, [],
                 "<div class='hint-box'>Autenticaci\u00f3n fallida. Por favor, accede desde el enlace del curso.</div>",
                 "",
-                """<div style="background:rgba(217,119,6,0.15); border:2px solid var(--mcc-accent); padding:12px; border-radius:8px; margin-bottom:12px; text-align:center;">
+                """<div id="mcc-user-data" style="display:none"
+                    data-user-acc="0.75"></div>
+                <div style="background:rgba(217,119,6,0.15); border:2px solid var(--mcc-accent); padding:12px; border-radius:8px; margin-bottom:12px; text-align:center;">
                     <strong style="color:var(--mcc-accent);">Modo Demo:</strong>
                     <span style="color:var(--mcc-text-dim);">No se pudo autenticar. Mostrando valores de ejemplo.</span>
                 </div>""",
