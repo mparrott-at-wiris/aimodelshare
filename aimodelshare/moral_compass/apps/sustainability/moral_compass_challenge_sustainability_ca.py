@@ -249,19 +249,19 @@ MODULES = [
                         </div>
                         <div class="mcc-checklist-item" id="mcc-check-4" style="opacity:0.3;">
                             <span class="mcc-check-icon" id="mcc-check-icon-4">&#9744;</span>
-                            <span><strong>Auditoria d'Impacte Ambiental</strong></span>
+                            <span><strong>Saps qu&egrave; li costa la teva IA al planeta?</strong></span>
                         </div>
                     </div>
 
                     <!-- Warning banner (hidden until animation completes) -->
                     <div id="mcc-cert-warning" style="display:none; max-width:560px; margin:20px auto;">
-                        <div style="background:var(--mcc-error-bg); border:2px solid var(--mcc-error); border-radius:16px; padding:24px; text-align:center;">
-                            <h3 style="color:var(--mcc-error); margin:0 0 12px 0; font-size:1.4rem; letter-spacing:2px;">CERTIFICACI&Oacute; BLOQUEJADA.</h3>
+                        <div style="background:var(--mcc-accent-highlight); border:2px solid var(--mcc-accent); border-radius:16px; padding:24px; text-align:center;">
+                            <h3 style="color:var(--mcc-accent); margin:0 0 12px 0; font-size:1.4rem; letter-spacing:2px;">ESPERA &mdash; HI HA ALGUNA COSA QUE NO HAS VIST.</h3>
                             <p style="margin:0 0 8px 0; font-size:1.05rem; color:var(--mcc-text);">
-                                Abans de poder certificar-te com a Enginyer/a d'IA, has de superar l'Auditoria d'Impacte Ambiental.
+                                La teva IA funciona. Per&ograve; cada predicci&oacute; que fa t&eacute; un cost ocult &mdash; energia, aigua i emissions de carboni en qu&egrave; la majoria d'enginyers mai no pensen.
                             </p>
                             <p style="margin:0; font-size:1rem; color:var(--mcc-text-dim);">
-                                El teu model &eacute;s prec&iacute;s. Per&ograve; la precisi&oacute; &eacute;s nom&eacute;s la meitat de la hist&ograve;ria.
+                                Descobrim com &eacute;s aquest cost.
                             </p>
                         </div>
                     </div>
@@ -270,118 +270,110 @@ MODULES = [
         """,
     },
     # ─────────────────────────────────────────────
-    # MODULE 1 — THE HIDDEN BILL (Audit Report)
+    # MODULE 1 — HAVE YOU CONSIDERED THIS? (AI Environmental Awareness)
     # ─────────────────────────────────────────────
     {
         "id": 1,
-        "title": "La Factura Oculta",
+        "title": "Ho havies pensat?",
         "html": """
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
                 <div class="mcc-reveal" style="animation-delay:0s;">
                     <div style="text-align:center; margin-bottom:8px;">
-                        <div style="font-size:0.875rem; font-weight:800; letter-spacing:3px; color:var(--mcc-error); text-transform:uppercase; margin-bottom:12px;">
-                            Auditoria d'Impacte Ambiental
+                        <div style="font-size:0.875rem; font-weight:800; letter-spacing:3px; color:var(--mcc-accent); text-transform:uppercase; margin-bottom:12px;">
+                            El cost ocult de la IA
                         </div>
                         <h2 style="font-size:clamp(1.4rem, 4vw, 1.8rem); font-weight:800; color:var(--mcc-text); margin:0 0 8px 0;">
-                            La Factura Oculta
+                            Ho havies pensat?
                         </h2>
-                        <p style="font-size:1.05rem; color:var(--mcc-text-dim); margin:0 0 8px 0;">Toca cada secci&oacute; per revelar les troballes de l'auditoria.</p>
+                        <p style="font-size:1.05rem; color:var(--mcc-text-dim); margin:0 0 8px 0;">Toca cada targeta per descobrir el que realment costa la IA.</p>
                         <div id="mcc-audit-progress" style="font-size:0.9rem; font-weight:700; color:var(--mcc-accent); margin-bottom:20px;">
-                            0/3 auditats
+                            0/3 revelats
                         </div>
                     </div>
                 </div>
 
-                <!-- Section 1: Training Cost -->
+                <!-- Targeta 0: Energia -->
                 <div class="mcc-reveal" style="animation-delay:0.15s;">
                     <div class="mcc-flip-card" id="mcc-card-0" onclick="mccFlipCard(0)">
                         <div class="mcc-flip-card-front">
                             <div style="font-size:2.5rem; margin-bottom:12px;">&#128274;</div>
-                            <div style="font-size:1.1rem; font-weight:700; color:var(--mcc-text);">Secci&oacute; 1: Cost d'Entrenament</div>
+                            <div style="font-size:1.1rem; font-weight:700; color:var(--mcc-text);">Energia</div>
                             <div style="font-size:0.9rem; color:var(--mcc-text-dim); margin-top:8px;">Toca per revelar</div>
                         </div>
                         <div class="mcc-flip-card-back" id="mcc-card-back-0">
-                            <h3 style="font-size:1.3rem; font-weight:800; color:var(--mcc-text); margin:0 0 12px 0;">
-                                Qu&egrave; costa entrenar una IA?
-                            </h3>
-                            <p style="font-size:1rem; color:var(--mcc-text-dim); margin:0 0 16px 0; line-height:1.6;">
-                                El teu model d'edificis &eacute;s petit i eficient &mdash; bona feina. Per&ograve; els models d'IA que fas servir cada dia? No tan petits.
-                            </p>
-                            <div id="mcc-training-bars" style="margin-top:16px;"></div>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                                <div class="mcc-knockout-stat">
+                                    <div style="font-size:2rem; margin-bottom:8px;">&#9889;</div>
+                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">~200 TWh/any</div>
+                                    <p style="font-size:0.95rem; color:var(--mcc-text); margin:8px 0 0 0; line-height:1.5;">
+                                        Els centres de dades d'IA consumeixen m&eacute;s electricitat que <strong>tot el Regne Unit</strong> (66M de persones)
+                                    </p>
+                                </div>
+                                <div class="mcc-knockout-stat">
+                                    <div style="font-size:2rem; margin-bottom:8px;">&#128200;</div>
+                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">48&times; de creixement</div>
+                                    <p style="font-size:0.95rem; color:var(--mcc-text); margin:8px 0 0 0; line-height:1.5;">
+                                        GPT-4 va usar 62.000 MWh per entrenar-se, <strong>48&times; m&eacute;s que GPT-3</strong> nom&eacute;s tres anys abans
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Section 2: Inference Cost -->
+                <!-- Targeta 1: Aigua -->
                 <div class="mcc-reveal" style="animation-delay:0.3s;">
                     <div class="mcc-flip-card" id="mcc-card-1" onclick="mccFlipCard(1)">
                         <div class="mcc-flip-card-front">
                             <div style="font-size:2.5rem; margin-bottom:12px;">&#128274;</div>
-                            <div style="font-size:1.1rem; font-weight:700; color:var(--mcc-text);">Secci&oacute; 2: Cost d'Infer&egrave;ncia</div>
+                            <div style="font-size:1.1rem; font-weight:700; color:var(--mcc-text);">Aigua</div>
                             <div style="font-size:0.9rem; color:var(--mcc-text-dim); margin-top:8px;">Toca per revelar</div>
                         </div>
                         <div class="mcc-flip-card-back" id="mcc-card-back-1">
-                            <h3 style="font-size:1.3rem; font-weight:800; color:var(--mcc-text); margin:0 0 12px 0;">
-                                L'entrenament passa un cop. L'&uacute;s no s'atura mai.
-                            </h3>
-                            <div id="mcc-inference-stats" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:16px;"></div>
-                            <p style="font-size:1rem; color:var(--mcc-text-dim); margin:0 0 12px 0;">
-                                Sembla poc? Dep&egrave;n de quantes consultes enviis...
-                            </p>
-                            <div style="margin:16px 0;">
-                                <label style="font-size:0.9rem; font-weight:700; color:var(--mcc-text); display:block; margin-bottom:8px;">
-                                    Quantes consultes envies al dia?
-                                </label>
-                                <input type="range" min="1" max="50" value="5" id="mcc-prompt-slider"
-                                    oninput="mccUpdatePromptCalc(this.value)"
-                                    style="width:100%; -webkit-appearance:none; background:var(--mcc-input-bg); border-radius:6px; outline:none; height:8px; cursor:pointer;">
-                                <div id="mcc-prompt-count" style="text-align:center; font-weight:700; color:var(--mcc-accent); margin-top:8px;">5 consultes/dia</div>
-                                <div id="mcc-prompt-stats" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:12px;"></div>
-                            </div>
-                            <div id="mcc-inference-kicker" style="text-align:center; margin-top:16px; padding:16px; border-radius:12px; background:var(--mcc-error-bg); border:1px solid var(--mcc-error);">
-                                <p style="margin:0; font-size:1.1rem; font-weight:700; color:var(--mcc-error); line-height:1.5;">
-                                    Ara multiplica per 200 milions d'usuaris.<br>
-                                    Tot el cost d'entrenament de GPT-4? Igualat en nom&eacute;s 11 dies.
-                                </p>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                                <div class="mcc-knockout-stat">
+                                    <div style="font-size:2rem; margin-bottom:8px;">&#128167;</div>
+                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">~540B litres/any</div>
+                                    <p style="font-size:0.95rem; color:var(--mcc-text); margin:8px 0 0 0; line-height:1.5;">
+                                        La petjada h&iacute;drica de la IA rivalitza amb <strong>tot el subministrament mundial d'aigua embotellada</strong>
+                                    </p>
+                                </div>
+                                <div class="mcc-knockout-stat">
+                                    <div style="font-size:2rem; margin-bottom:8px;">&#127961;</div>
+                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">19M litres/dia</div>
+                                    <p style="font-size:0.95rem; color:var(--mcc-text); margin:8px 0 0 0; line-height:1.5;">
+                                        Un sol gran centre de dades consumeix tanta aigua com <strong>una ciutat de 50.000 persones</strong>
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Section 3: The Global Picture -->
+                <!-- Targeta 2: Escala -->
                 <div class="mcc-reveal" style="animation-delay:0.45s;">
                     <div class="mcc-flip-card" id="mcc-card-2" onclick="mccFlipCard(2)">
                         <div class="mcc-flip-card-front">
                             <div style="font-size:2.5rem; margin-bottom:12px;">&#128274;</div>
-                            <div style="font-size:1.1rem; font-weight:700; color:var(--mcc-text);">Secci&oacute; 3: La Imatge Global</div>
+                            <div style="font-size:1.1rem; font-weight:700; color:var(--mcc-text);">Escala</div>
                             <div style="font-size:0.9rem; color:var(--mcc-text-dim); margin-top:8px;">Toca per revelar</div>
                         </div>
                         <div class="mcc-flip-card-back" id="mcc-card-back-2">
-                            <h3 style="font-size:1.3rem; font-weight:800; color:var(--mcc-text); margin:0 0 12px 0;">
-                                La ind&uacute;stria a la qual acabes d'unir-te
-                            </h3>
-                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:16px 0;">
+                            <div style="text-align:center;">
                                 <div class="mcc-knockout-stat">
-                                    <div style="font-size:2rem; margin-bottom:8px;">&#9889;</div>
-                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">~200 TWh/year</div>
+                                    <div style="font-size:2rem; margin-bottom:8px;">&#127981;</div>
+                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">150 MW</div>
                                     <p style="font-size:0.95rem; color:var(--mcc-text); margin:8px 0 0 0; line-height:1.5;">
-                                        Els centres de dades d'IA ara consumeixen m&eacute;s electricitat que <strong>tot el Regne Unit</strong>
+                                        El centre de dades "Colossus" de xAI d'Elon Musk a Memphis opera ~100.000 GPUs Nvidia H100, consumint prou energia per a <strong>m&eacute;s de 100.000 llars</strong>
                                     </p>
                                 </div>
-                                <div class="mcc-knockout-stat">
-                                    <div style="font-size:2rem; margin-bottom:8px;">&#128167;</div>
-                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">~540B liters/year</div>
-                                    <p style="font-size:0.95rem; color:var(--mcc-text); margin:8px 0 0 0; line-height:1.5;">
-                                        La petjada h&iacute;drica de la IA rivalitza amb <strong>tota l'aigua embotellada de la Terra</strong>
-                                    </p>
-                                </div>
+                                <p style="font-size:1rem; color:var(--mcc-text-dim); margin:16px 0 0 0; line-height:1.6;">
+                                    I aix&ograve; &eacute;s nom&eacute;s <em>una</em> instal&middot;laci&oacute;. Google, Microsoft, Meta i Amazon estan construint les seves pr&ograve;pies.
+                                </p>
+                                <p style="font-size:0.8rem; color:var(--mcc-text-dim); margin:12px 0 0 0; font-style:italic;">
+                                    Fonts: IEA, UC Riverside, MIT, VU Amsterdam (2024&ndash;2025); informes del centre xAI Memphis (2024)
+                                </p>
                             </div>
-                            <p style="font-size:1rem; color:var(--mcc-text-dim); margin:16px 0 0 0; line-height:1.6;">
-                                Aquests n&uacute;meros creixen cada any. Com a Enginyer/a d'IA, les teves decisions determinen si segueixen creixent &mdash; o comencen a baixar.
-                            </p>
-                            <p style="font-size:0.8rem; color:var(--mcc-text-dim); margin:12px 0 0 0; font-style:italic;">
-                                Fonts: UC Riverside, IEA, MIT, VU Amsterdam (2024&ndash;2025)
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -390,7 +382,7 @@ MODULES = [
                 <div id="mcc-audit-summary" style="display:none; margin-top:20px;">
                     <div style="background:var(--mcc-accent-highlight); border:2px solid var(--mcc-accent); border-radius:16px; padding:20px 24px; text-align:center;">
                         <p style="margin:0; font-size:1.1rem; font-weight:600; color:var(--mcc-text); line-height:1.6;">
-                            Aquest &eacute;s el cost ocult de la IA. El teu model &eacute;s prec&iacute;s &mdash; <strong>per&ograve; la precisi&oacute; no &eacute;s tota la hist&ograve;ria.</strong>
+                            Energia. Aigua. Emissions. Cada model d'IA t&eacute; un cost m&eacute;s enll&agrave; de la seva puntuaci&oacute; de precisi&oacute; &mdash; <strong>i est&agrave; creixent r&agrave;pidament.</strong>
                         </p>
                     </div>
                 </div>
@@ -1188,14 +1180,10 @@ function mccFlipCard(idx) {
     mccFlippedCards[idx] = true;
     card.classList.add('flipped');
 
-    // Initialize content for specific cards
-    if (idx === 0) mccInitTrainingBars();
-    if (idx === 1) mccInitInference();
-
     // Update progress
     var count = mccFlippedCards.filter(function(x){ return x; }).length;
     var progressEl = document.getElementById('mcc-audit-progress');
-    if (progressEl) progressEl.textContent = count + '/3 auditats';
+    if (progressEl) progressEl.textContent = count + '/3 revelats';
 
     // All unlocked?
     if (count === 3) {
@@ -1208,101 +1196,6 @@ function mccFlipCard(idx) {
         var summary = document.getElementById('mcc-audit-summary');
         if (summary) summary.style.display = 'block';
     }
-}
-
-// === Module 1: Training bars (animated) ===
-function mccInitTrainingBars() {
-    var container = document.getElementById('mcc-training-bars');
-    if (!container || container.dataset.init === '1') return;
-    container.dataset.init = '1';
-
-    var bars = [
-        {l:'El Teu Model', w:0.5, v:'\\u2248 3 c\\u00e0rregues de m\\u00f2bil', delay:300, color:'var(--mcc-success)', striped:false},
-        {l:'GPT-3 (2020)', w:8, v:'1,287 MWh \\u2014 120 llars/any', delay:700, color:'var(--mcc-accent)', striped:false},
-        {l:'GPT-4 (2023)', w:80, v:'62,000 MWh \\u2014 5,400 llars/any', delay:1100, color:'var(--mcc-error)', striped:false},
-        {l:'Next-gen (2025+)', w:100, v:'???', delay:1500, color:'var(--mcc-error)', striped:true}
-    ];
-
-    var html = '';
-    for (var i = 0; i < bars.length; i++) {
-        var b = bars[i];
-        var bg = b.striped
-            ? 'repeating-linear-gradient(45deg, var(--mcc-error), var(--mcc-error) 10px, rgba(220,38,38,0.6) 10px, rgba(220,38,38,0.6) 20px)'
-            : b.color;
-        html += '<div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">'
-            + '<div style="width:120px; font-size:0.85rem; color:var(--mcc-text-dim); flex-shrink:0; font-weight:600;">' + b.l + '</div>'
-            + '<div style="flex:1; height:28px; background:var(--mcc-input-bg); border-radius:6px; overflow:hidden; position:relative;">'
-            + '<div id="mcc-bar-' + i + '" style="width:0%; height:100%; border-radius:6px; background:' + bg + '; transition:width 0.8s ease; display:flex; align-items:center; justify-content:flex-end; padding-right:8px; overflow:hidden;">'
-            + '<span style="font-size:0.7rem; color:white; font-weight:700; white-space:nowrap;">' + b.v + '</span></div></div></div>';
-    }
-    container.innerHTML = html;
-
-    // Animate bars with staggered delays
-    for (var j = 0; j < bars.length; j++) {
-        (function(idx, delay, width){
-            setTimeout(function(){
-                var bar = document.getElementById('mcc-bar-' + idx);
-                if (bar) bar.style.width = width + '%';
-            }, delay);
-        })(j, bars[j].delay, bars[j].w);
-    }
-}
-
-// === Module 1: Inference stats + prompt slider ===
-function mccInitInference() {
-    var container = document.getElementById('mcc-inference-stats');
-    if (!container || container.dataset.init === '1') return;
-    container.dataset.init = '1';
-
-    var stats = [
-        {icon:'\\ud83d\\udca7', val:'~0.5 liters', label:'Aigua per consulta', sub:'= 1 ampolla d\\u2019aigua'},
-        {icon:'\\u26a1', val:'~10 Wh', label:'Energia per consulta', sub:'= 9 segons de TV'},
-        {icon:'\\ud83c\\udf2b\\ufe0f', val:'~0.4g', label:'CO\\u2082 per consulta', sub:'per pregunta feta'}
-    ];
-    var html = '';
-    for (var i = 0; i < stats.length; i++) {
-        var s = stats[i];
-        html += '<div style="padding:14px; border-radius:12px; background:var(--mcc-input-bg); border:1px solid var(--mcc-border-color); text-align:center;">'
-            + '<div style="font-size:1.5rem;">' + s.icon + '</div>'
-            + '<div style="font-size:1.2rem; font-weight:800; color:var(--mcc-text); margin-top:4px;">' + s.val + '</div>'
-            + '<div style="font-size:0.75rem; color:var(--mcc-text-dim); text-transform:uppercase; letter-spacing:1px; margin-top:4px;">' + s.label + '</div>'
-            + '<div style="font-size:0.75rem; color:var(--mcc-accent); margin-top:2px;">' + s.sub + '</div>'
-            + '</div>';
-    }
-    container.innerHTML = html;
-
-    // Initialize prompt calculator
-    mccUpdatePromptCalc(5);
-}
-
-// === Module 1: Prompt calculator (simplified) ===
-function mccUpdatePromptCalc(val) {
-    var countEl = document.getElementById('mcc-prompt-count');
-    var statsEl = document.getElementById('mcc-prompt-stats');
-    if (!countEl || !statsEl) return;
-    var pc = parseInt(val);
-    var water = (pc * 0.5).toFixed(1);
-    var energy = (pc * 10);
-    var co2 = (pc * 0.4).toFixed(1);
-    var bottles = Math.round(pc * 0.5 / 0.5);
-    var charges = (energy / 15).toFixed(1);
-    countEl.textContent = pc + ' consult' + (pc > 1 ? 'es' : 'a') + '/dia';
-    var items = [
-        {i:'\\ud83d\\udca7', v:water+'L', l:'Aigua/dia', s:bottles+' ampolles'},
-        {i:'\\u26a1', v:energy+'Wh', l:'Energia/dia', s:charges+' c\\u00e0rregues de m\\u00f2bil'},
-        {i:'\\ud83c\\udf2b\\ufe0f', v:co2+'g', l:'CO\\u2082/dia', s:'per dia'}
-    ];
-    var html = '';
-    for (var idx = 0; idx < items.length; idx++) {
-        var x = items[idx];
-        html += '<div style="padding:12px; border-radius:10px; background:var(--mcc-input-bg); border:1px solid var(--mcc-border-color); text-align:center;">'
-            + '<div style="font-size:1.3rem;">' + x.i + '</div>'
-            + '<div style="font-size:1.1rem; font-weight:800; color:var(--mcc-text); margin-top:4px;">' + x.v + '</div>'
-            + '<div style="font-size:0.7rem; color:var(--mcc-text-dim); text-transform:uppercase; letter-spacing:1px; margin-top:2px;">' + x.l + '</div>'
-            + '<div style="font-size:0.7rem; color:var(--mcc-accent); margin-top:2px;">' + x.s + '</div>'
-            + '</div>';
-    }
-    statsEl.innerHTML = html;
 }
 
 // === Module 2: Gauge drain animation ===
@@ -1407,10 +1300,33 @@ function mccReinitAll() {
     if (gauge && gauge.offsetParent !== null) {
         setTimeout(mccRunGaugeDrain, 500);
     }
-    // Re-init training bars if flipped
-    if (mccFlippedCards[0]) mccInitTrainingBars();
-    if (mccFlippedCards[1]) mccInitInference();
 }
+
+// === Apply dynamic user data from server ===
+(function mccApplyUserData(){
+    var el = document.getElementById('mcc-user-data');
+    if (!el) { setTimeout(mccApplyUserData, 200); return; }
+    if (el.dataset.applied === '1') return;
+    el.dataset.applied = '1';
+    var accDisplay = el.dataset.accDisplay;
+    if (!accDisplay) return;
+    var rankDisplay = el.dataset.rankDisplay || '';
+    var scoreInt = el.dataset.scoreInt || '';
+    var userAcc = parseFloat(el.dataset.userAcc || '0.75');
+    mccUserAccuracy = userAcc;
+    var ad = document.getElementById('mcc-accuracy-display');
+    if(ad) ad.textContent = accDisplay;
+    var rd = document.getElementById('mcc-rank-display');
+    if(rd) rd.textContent = rankDisplay;
+    var gs = document.getElementById('mcc-gauge-score');
+    if(gs) gs.textContent = scoreInt;
+    var at = document.getElementById('mcc-accuracy-text');
+    if(at) at.textContent = accDisplay;
+    var wa = document.getElementById('mcc-whatif-acc');
+    if(wa) wa.textContent = accDisplay;
+    var sa = document.getElementById('mcc-summary-accuracy');
+    if(sa) sa.textContent = accDisplay;
+})();
 """
 
 HEAD_HTML = (
@@ -1521,7 +1437,7 @@ def create_moral_compass_challenge_sustainability_ca_app(theme_primary_hue: str 
             leaderboard_html = gr.HTML()
 
             # Hidden HTML for injecting dynamic values via JS
-            inject_js_html = gr.HTML(visible=False)
+            inject_js_html = gr.HTML()
 
         # --- LOAD HANDLER ---
         def handle_load(request: gr.Request):
@@ -1601,29 +1517,18 @@ def create_moral_compass_challenge_sustainability_ca_app(theme_primary_hue: str 
                 rank_display = f"#{rank_val}" if rank_val != "N/A" else "#N/A"
 
                 # Build JS injection to update all dynamic values in the page
-                inject_script = f"""<img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEAAAAALAAAAAABAAEAAAIBAAA=" onload="
-                    mccUserAccuracy = {acc_pct / 100:.4f};
-                    var ad = document.getElementById('mcc-accuracy-display');
-                    if(ad) ad.textContent = '{acc_display}';
-                    var rd = document.getElementById('mcc-rank-display');
-                    if(rd) rd.textContent = '{rank_display}';
-                    var gs = document.getElementById('mcc-gauge-score');
-                    if(gs) gs.textContent = '{score_int}';
-                    var at = document.getElementById('mcc-accuracy-text');
-                    if(at) at.textContent = '{acc_display}';
-                    var wa = document.getElementById('mcc-whatif-acc');
-                    if(wa) wa.textContent = '{acc_display}';
-                    var sa = document.getElementById('mcc-summary-accuracy');
-                    if(sa) sa.textContent = '{acc_display}';
-                " style="display:none;">"""
+                inject_script = f"""<div id="mcc-user-data" style="display:none"
+                    data-acc-display="{acc_display}"
+                    data-rank-display="{rank_display}"
+                    data-score-int="{score_int}"
+                    data-user-acc="{acc_pct / 100:.4f}"></div>"""
 
                 is_demo = False
                 if best_acc == 0.0:
                     is_demo = True
                     acc_pct = 75.0
-                    inject_script = """<img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEAAAAALAAAAAABAAEAAAIBAAA=" onload="
-                        mccUserAccuracy = 0.75;
-                    " style="display:none;">
+                    inject_script = """<div id="mcc-user-data" style="display:none"
+                        data-user-acc="0.75"></div>
                     <div style="background:rgba(217,119,6,0.15); border:2px solid var(--mcc-accent); padding:12px; border-radius:8px; margin-bottom:12px; text-align:center;">
                         <strong style="color:var(--mcc-accent);">Mode Demo:</strong>
                         <span style="color:var(--mcc-text-dim);">No s'ha pogut carregar la puntuaci&oacute; real del teu model. Es mostren valors d'exemple.</span>
@@ -1643,7 +1548,9 @@ def create_moral_compass_challenge_sustainability_ca_app(theme_primary_hue: str 
                 0.0, [],
                 "<div class='hint-box'>Autenticaci&oacute; fallida. Si us plau, accedeix des de l'enlla&ccedil; del curs.</div>",
                 "",
-                """<div style="background:rgba(217,119,6,0.15); border:2px solid var(--mcc-accent); padding:12px; border-radius:8px; margin-bottom:12px; text-align:center;">
+                """<div id="mcc-user-data" style="display:none"
+                    data-user-acc="0.75"></div>
+                <div style="background:rgba(217,119,6,0.15); border:2px solid var(--mcc-accent); padding:12px; border-radius:8px; margin-bottom:12px; text-align:center;">
                     <strong style="color:var(--mcc-accent);">Mode Demo:</strong>
                     <span style="color:var(--mcc-text-dim);">No s'ha pogut autenticar. Es mostren valors d'exemple.</span>
                 </div>""",
