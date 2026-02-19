@@ -2290,7 +2290,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
         
         <h3 class="final-conclusion-subtitle">🏆 Resultados del desafío final</h3>
         <p style="text-align:left; margin-bottom: 15px;">
-            Tu sistema de IA optimizado ha sido inscrito en el registro para el EdTech Congress Barcelona 2026.
+            Tu sistema final de IA para identificar edificios energéticamente ineficientes ha sido enviado. Este modelo ayuda a priorizar los esfuerzos de rehabilitación climática.
         </p>
 
         <ul class="final-conclusion-list">

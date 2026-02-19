@@ -2296,7 +2296,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
 
         <h3 class="final-conclusion-subtitle">🏆 Resultats del Repte Final</h3>
         <p style="text-align:left; margin-bottom: 15px;">
-            El teu sistema d'IA optimitzat ha entrat al registre per a l'EdTech Congress Barcelona 2026.
+            El teu sistema final d'IA per identificar edificis energèticament ineficients ha estat enviat. Aquest model ajuda a prioritzar els esforços de rehabilitació climàtica.
         </p>
 
         <ul class="final-conclusion-list">
