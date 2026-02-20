@@ -1164,10 +1164,14 @@ function mccStartChecklist() {
             item.classList.add('failed');
             icon.innerHTML = '&#10060;';
         }
-        // Show warning banner
+        // Show warning banner, then auto-advance to next module
         setTimeout(function(){
             var warning = document.getElementById('mcc-cert-warning');
             if (warning) warning.style.display = 'block';
+            setTimeout(function(){
+                var nextEl = document.getElementById('mcc-next-0');
+                if (nextEl) { var btn = nextEl.querySelector('button') || nextEl; btn.click(); }
+            }, 3000);
         }, 500);
     }, delays[4]);
 }
@@ -1308,11 +1312,12 @@ function mccReinitAll() {
     if (!el) { setTimeout(mccApplyUserData, 200); return; }
     if (el.dataset.applied === '1') return;
     el.dataset.applied = '1';
-    var accDisplay = el.dataset.accDisplay;
-    if (!accDisplay) return;
-    var rankDisplay = el.dataset.rankDisplay || '';
-    var scoreInt = el.dataset.scoreInt || '';
-    var userAcc = parseFloat(el.dataset.userAcc || '0.75');
+    var parts = (el.textContent || '').trim().split('|');
+    if (parts.length < 4) return;
+    var accDisplay = parts[0];
+    var rankDisplay = parts[1];
+    var scoreInt = parts[2];
+    var userAcc = parseFloat(parts[3] || '0.75');
     mccUserAccuracy = userAcc;
     var ad = document.getElementById('mcc-accuracy-display');
     if(ad) ad.textContent = accDisplay;
@@ -1403,7 +1408,12 @@ def create_moral_compass_challenge_sustainability_en_app(theme_primary_hue: str 
                             next_label = "Next \u25b6\ufe0f"
                         else:
                             next_label = "BEGIN SUSTAINABILITY AUDIT \u27a1"
-                        btn_next = gr.Button(next_label, variant="primary")
+                        # Hide Next on Module 0 — the "CERTIFY MY MODEL" button auto-advances
+                        btn_next = gr.Button(
+                            next_label, variant="primary",
+                            visible=(i != 0),
+                            elem_id=f"mcc-next-{i}" if i == 0 else None,
+                        )
 
                     module_ui_elements[i] = (mod_col, btn_prev, btn_next)
 
@@ -1517,18 +1527,13 @@ def create_moral_compass_challenge_sustainability_en_app(theme_primary_hue: str 
                 rank_display = f"#{rank_val}" if rank_val != "N/A" else "#N/A"
 
                 # Build JS injection to update all dynamic values in the page
-                inject_script = f"""<div id="mcc-user-data" style="display:none"
-                    data-acc-display="{acc_display}"
-                    data-rank-display="{rank_display}"
-                    data-score-int="{score_int}"
-                    data-user-acc="{acc_pct / 100:.4f}"></div>"""
+                inject_script = f'<div id="mcc-user-data" style="display:none">{acc_display}|{rank_display}|{score_int}|{acc_pct / 100:.4f}</div>'
 
                 is_demo = False
                 if best_acc == 0.0:
                     is_demo = True
                     acc_pct = 75.0
-                    inject_script = """<div id="mcc-user-data" style="display:none"
-                        data-user-acc="0.75"></div>
+                    inject_script = """<div id="mcc-user-data" style="display:none"></div>
                     <div style="background:rgba(217,119,6,0.15); border:2px solid var(--mcc-accent); padding:12px; border-radius:8px; margin-bottom:12px; text-align:center;">
                         <strong style="color:var(--mcc-accent);">Demo Mode:</strong>
                         <span style="color:var(--mcc-text-dim);">Your real model score could not be loaded. Showing example values.</span>
@@ -1548,8 +1553,7 @@ def create_moral_compass_challenge_sustainability_en_app(theme_primary_hue: str 
                 0.0, [],
                 "<div class='hint-box'>Auth Failed. Please launch from the course link.</div>",
                 "",
-                """<div id="mcc-user-data" style="display:none"
-                    data-user-acc="0.75"></div>
+                """<div id="mcc-user-data" style="display:none"></div>
                 <div style="background:rgba(217,119,6,0.15); border:2px solid var(--mcc-accent); padding:12px; border-radius:8px; margin-bottom:12px; text-align:center;">
                     <strong style="color:var(--mcc-accent);">Demo Mode:</strong>
                     <span style="color:var(--mcc-text-dim);">Could not authenticate. Showing example values.</span>
