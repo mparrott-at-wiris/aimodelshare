@@ -3594,6 +3594,7 @@ def create_model_building_game_es_final_sustainability_app(theme_primary_hue: st
             gr.Markdown("<h1 style='text-align:center;'>✅ Sección Completada</h1>")
             final_score_display = gr.HTML(value="<p>Preparando resumen final...</p>")
             step_3_back = gr.Button("◀️ Volver al Experimento")
+            proceed_conclusion_btn = gr.Button("VER CONCLUSIÓN →", variant="primary", size="lg")
 
         # --- Navigation Logic ---
         all_steps_nav = [
@@ -3736,6 +3737,12 @@ def create_model_building_game_es_final_sustainability_app(theme_primary_hue: st
             fn=create_nav(conclusion_step, model_building_step),
             inputs=None, outputs=all_steps_nav,
             js=nav_js("model-step", "Volviendo al espacio de experimentación...")
+        )
+
+        # Navigate to conclusion
+        proceed_conclusion_btn.click(
+            fn=None,
+            js="() => { try { window.parent.postMessage('navigate-to-conclusion', '*'); } catch(e) {} }"
         )
 
         # Events

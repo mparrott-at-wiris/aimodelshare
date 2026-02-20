@@ -1369,9 +1369,9 @@ def create_moral_compass_challenge_sustainability_en_app(theme_primary_hue: str 
                 <p style="color:#f8fafc; font-size:1.2rem; max-width:600px; font-family:'Outfit',sans-serif; line-height:1.6;">
                     Next up: investigate AI's environmental footprint as a <strong>Green AI Detective</strong>.
                 </p>
-                <button onclick="document.getElementById('mcc-transition-overlay').style.display='none'"
-                    style="margin-top:40px; font-size:1.1rem; padding:18px 40px; border-radius:16px; background:rgba(255,255,255,0.1); color:#f8fafc; border:2px solid rgba(255,255,255,0.2); cursor:pointer; font-family:'Outfit',sans-serif; font-weight:700; text-transform:uppercase;">
-                    CLOSE
+                <button onclick="document.getElementById('mcc-transition-overlay').style.display='none'; try { window.parent.postMessage('navigate-to-activity-6', '*'); } catch(e) {}"
+                    style="margin-top:40px; font-size:1.1rem; padding:18px 40px; border-radius:16px; background:rgba(16,185,129,0.2); color:#10b981; border:2px solid #10b981; cursor:pointer; font-family:'Outfit',sans-serif; font-weight:700; text-transform:uppercase;">
+                    PROCEED TO ACTIVITY 6 &rarr;
                 </button>
             </div>
         """)

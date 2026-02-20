@@ -786,8 +786,8 @@ def create_sustainability_upgrade_es_app(theme_primary_hue: str = "indigo"):
                     # These are now placed in the middle for Module 0, or bottom for others
                     with gr.Row():
                         btn_prev = gr.Button("⬅️ Anterior", visible=(i > 0))
-                        next_txt = "Siguiente ▶️" if i < len(MODULES) - 1 else "Finalizar"
-                        btn_next = gr.Button(next_txt, visible=(i < len(MODULES) - 1))
+                        next_txt = "Siguiente ▶️" if i < len(MODULES) - 1 else "CONTINUAR A LA ACTIVIDAD 9 →"
+                        btn_next = gr.Button(next_txt, visible=True, variant="primary" if i == len(MODULES) - 1 else "secondary")
 
                     # --- MODULE 0 PART 2: LEADERBOARD ---
                     # We render the leaderboard AFTER the buttons
@@ -811,6 +811,14 @@ def create_sustainability_upgrade_es_app(theme_primary_hue: str = "indigo"):
                     def nav_fwd():
                         return gr.update(visible=False), gr.update(visible=True)
                     next_btn.click(nav_fwd, None, [curr_col, next_col])
+
+            # Navigate to next activity from last module
+            last_idx = len(MODULES) - 1
+            _, _, last_next = module_ui_elements[last_idx]
+            last_next.click(
+                fn=None,
+                js="() => { try { window.parent.postMessage('navigate-to-activity-9', '*'); } catch(e) {} }"
+            )
 
         # --- LOAD HANDLER ---
         def handle_load(req: gr.Request):

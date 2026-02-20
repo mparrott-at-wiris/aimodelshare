@@ -1696,7 +1696,7 @@ def create_fairness_fixer_en_sustainability_app(theme_primary_hue: str = "indigo
                         next_label = (
                             "Next \u25b6\ufe0f"
                             if i < len(MODULES) - 1
-                            else "\U0001f389 Simulation Complete!"
+                            else "PROCEED TO ACTIVITY 8 →"
                         )
                         btn_next = gr.Button(next_label, variant="primary")
 
@@ -1942,6 +1942,14 @@ def create_fairness_fixer_en_sustainability_app(theme_primary_hue: str = "indigo
                     fn=make_nav_generator(curr_col, next_col),
                     outputs=[curr_col, next_col],
                 )
+
+        # Navigate to next activity from last module
+        last_idx = len(MODULES) - 1
+        _, _, last_next = module_ui_elements[last_idx]
+        last_next.click(
+            fn=None,
+            js="() => { try { window.parent.postMessage('navigate-to-activity-8', '*'); } catch(e) {} }"
+        )
 
         return demo
 

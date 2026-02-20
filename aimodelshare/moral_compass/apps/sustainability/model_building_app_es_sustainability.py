@@ -1779,6 +1779,7 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue="indigo")
                 gr.Markdown("<h1 style='text-align:center;'>Sección Completada</h1>")
                 final_score_display = gr.HTML(value="<p>Preparando resumen final...</p>")
                 conclusion_back_btn = gr.Button("Volver al Experimento")
+                proceed_next_btn = gr.Button("CONTINUAR A LA ACTIVIDAD 5 →", variant="primary", size="lg")
 
         # ==================================================================
         # NAVIGATION WIRING
@@ -1908,6 +1909,12 @@ def create_model_building_game_es_sustainability_app(theme_primary_hue="indigo")
             inputs=None, outputs=all_panels,
             show_progress="hidden",
             js=nav_js("model-step", "Volviendo al espacio de trabajo del experimento...")
+        )
+
+        # Navigate to next activity
+        proceed_next_btn.click(
+            fn=None,
+            js="() => { try { window.parent.postMessage('navigate-to-activity-5', '*'); } catch(e) {} }"
         )
 
         # ==================================================================
