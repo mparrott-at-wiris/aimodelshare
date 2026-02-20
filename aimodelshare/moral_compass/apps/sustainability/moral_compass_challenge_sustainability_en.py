@@ -1415,7 +1415,7 @@ def create_moral_compass_challenge_sustainability_en_app(theme_primary_hue: str 
                         if i < len(MODULES) - 1:
                             next_label = "Next \u25b6\ufe0f"
                         else:
-                            next_label = "BEGIN SUSTAINABILITY AUDIT \u27a1"
+                            next_label = "PROCEED TO NEXT ACTIVITY \u27a1"
                         # Hide Next on Module 0 via CSS (not visible=False which
                         # removes from DOM in Gradio ≥5.36, breaking getElementById)
                         if i == 0:
