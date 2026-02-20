@@ -655,6 +655,9 @@ def render_leaderboard_card(data, username, team_name):
 css = """
 /* ========== Moral Compass Challenge Design System ========== */
 
+/* Hide button via CSS so it stays in the DOM for programmatic .click() */
+.mcc-btn-hidden { display: none !important; }
+
 /* MCC CSS variables — scoped with mcc- prefix */
 :root {
     --mcc-bg: #f8fafc;
@@ -1408,11 +1411,13 @@ def create_moral_compass_challenge_sustainability_es_app(theme_primary_hue: str 
                             next_label = "Siguiente \u25b6\ufe0f"
                         else:
                             next_label = "INICIAR AUDITOR\u00cdA DE SOSTENIBILIDAD \u27a1"
-                        # Hide Next on Module 0 — the "CERTIFY MY MODEL" button auto-advances
+                        # Hide Next on Module 0 via CSS (not visible=False which
+                        # removes from DOM in Gradio ≥5.36, breaking getElementById)
                         if i == 0:
                             btn_next = gr.Button(
                                 next_label, variant="primary",
-                                visible=False, elem_id="mcc-next-0",
+                                elem_id="mcc-next-0",
+                                elem_classes=["mcc-btn-hidden"],
                             )
                         else:
                             btn_next = gr.Button(next_label, variant="primary")
