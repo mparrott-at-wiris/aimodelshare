@@ -1409,11 +1409,13 @@ def create_moral_compass_challenge_sustainability_es_app(theme_primary_hue: str 
                         else:
                             next_label = "INICIAR AUDITOR\u00cdA DE SOSTENIBILIDAD \u27a1"
                         # Hide Next on Module 0 — the "CERTIFY MY MODEL" button auto-advances
-                        btn_next = gr.Button(
-                            next_label, variant="primary",
-                            visible=(i != 0),
-                            elem_id=f"mcc-next-{i}" if i == 0 else None,
-                        )
+                        if i == 0:
+                            btn_next = gr.Button(
+                                next_label, variant="primary",
+                                visible=False, elem_id="mcc-next-0",
+                            )
+                        else:
+                            btn_next = gr.Button(next_label, variant="primary")
 
                     module_ui_elements[i] = (mod_col, btn_prev, btn_next)
 
