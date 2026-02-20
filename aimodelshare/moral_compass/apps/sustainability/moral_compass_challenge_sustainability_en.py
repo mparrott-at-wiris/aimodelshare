@@ -1111,7 +1111,10 @@ var mccUserAccuracy = 0.75; // Updated from Python on load
 // === Module 0: Typewriter + stats reveal ===
 (function mccInitTypewriter(){
     var el = document.getElementById('mcc-typewriter-text');
-    if (!el) { setTimeout(mccInitTypewriter, 200); return; }
+    // Wait until element exists AND is visible (offsetParent !== null).
+    // With visible="hidden" on parent containers, element is in DOM but
+    // not visible until the load handler fires.
+    if (!el || el.offsetParent === null) { setTimeout(mccInitTypewriter, 200); return; }
     if (el.dataset.init === '1') return;
     el.dataset.init = '1';
     var full = "Your AI Model Is Ready for the Real World";
@@ -1389,7 +1392,7 @@ def create_moral_compass_challenge_sustainability_en_app(theme_primary_hue: str 
             )
 
         # --- MAIN APP VIEW ---
-        with gr.Column(visible=False) as main_app_col:
+        with gr.Column(visible="hidden") as main_app_col:
             # Top dashboard
             out_top = gr.HTML()
 
@@ -1400,7 +1403,9 @@ def create_moral_compass_challenge_sustainability_en_app(theme_primary_hue: str 
                 with gr.Column(
                     elem_id=f"module-{i}",
                     elem_classes=["module-container"],
-                    visible=(i == 0),
+                    # Use "hidden" not False — visible=False removes from DOM
+                    # in Gradio ≥5.36, breaking gr.update(visible=True) later
+                    visible=True if i == 0 else "hidden",
                 ) as mod_col:
                     gr.HTML(mod["html"])
 
@@ -1626,8 +1631,8 @@ def create_moral_compass_challenge_sustainability_en_app(theme_primary_hue: str 
 
                 def make_prev_handler(p_col, c_col, target_id):
                     def navigate_prev():
-                        yield gr.update(visible=False), gr.update(visible=False)
-                        yield gr.update(visible=True), gr.update(visible=False)
+                        yield gr.update(visible="hidden"), gr.update(visible="hidden")
+                        yield gr.update(visible=True), gr.update(visible="hidden")
                     return navigate_prev
 
                 prev_btn.click(
@@ -1653,8 +1658,8 @@ def create_moral_compass_challenge_sustainability_en_app(theme_primary_hue: str 
 
                 def make_nav_generator(c_col, n_col):
                     def navigate_next():
-                        yield gr.update(visible=False), gr.update(visible=False)
-                        yield gr.update(visible=False), gr.update(visible=True)
+                        yield gr.update(visible="hidden"), gr.update(visible="hidden")
+                        yield gr.update(visible="hidden"), gr.update(visible=True)
                     return navigate_next
 
                 next_btn.click(
