@@ -304,16 +304,16 @@ MODULES = [
                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
                                 <div class="mcc-knockout-stat">
                                     <div style="font-size:2rem; margin-bottom:8px;">&#9889;</div>
-                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">~200 TWh/any</div>
+                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">M&eacute;s electricitat que tot el Regne Unit</div>
                                     <p style="font-size:0.95rem; color:var(--mcc-text); margin:8px 0 0 0; line-height:1.5;">
-                                        Els centres de dades d'IA consumeixen m&eacute;s electricitat que <strong>tot el Regne Unit</strong> (66M de persones)
+                                        Els centres de dades d'IA consumeixen m&eacute;s electricitat que <strong>tot el Regne Unit</strong> (66 milions de persones) &mdash; cada any
                                     </p>
                                 </div>
                                 <div class="mcc-knockout-stat">
                                     <div style="font-size:2rem; margin-bottom:8px;">&#128200;</div>
-                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">48&times; de creixement</div>
+                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">48&times; m&eacute;s energia</div>
                                     <p style="font-size:0.95rem; color:var(--mcc-text); margin:8px 0 0 0; line-height:1.5;">
-                                        GPT-4 va usar 62.000 MWh per entrenar-se, <strong>48&times; m&eacute;s que GPT-3</strong> nom&eacute;s tres anys abans
+                                        Els xatbots d'IA m&eacute;s nous necessiten <strong>48&times; m&eacute;s energia per entrenar-se</strong> que la versi&oacute; anterior, nom&eacute;s tres anys abans
                                     </p>
                                 </div>
                             </div>
@@ -333,14 +333,14 @@ MODULES = [
                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
                                 <div class="mcc-knockout-stat">
                                     <div style="font-size:2rem; margin-bottom:8px;">&#128167;</div>
-                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">~540B litres/any</div>
+                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">M&eacute;s aigua que totes les ampolles venudes al m&oacute;n</div>
                                     <p style="font-size:0.95rem; color:var(--mcc-text); margin:8px 0 0 0; line-height:1.5;">
-                                        La petjada h&iacute;drica de la IA rivalitza amb <strong>tot el subministrament mundial d'aigua embotellada</strong>
+                                        La IA fa servir tanta aigua cada any com <strong>tot el subministrament mundial d'aigua embotellada</strong>
                                     </p>
                                 </div>
                                 <div class="mcc-knockout-stat">
                                     <div style="font-size:2rem; margin-bottom:8px;">&#127961;</div>
-                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">19M litres/dia</div>
+                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">19 milions de litres/dia</div>
                                     <p style="font-size:0.95rem; color:var(--mcc-text); margin:8px 0 0 0; line-height:1.5;">
                                         Un sol gran centre de dades consumeix tanta aigua com <strong>una ciutat de 50.000 persones</strong>
                                     </p>
@@ -362,9 +362,9 @@ MODULES = [
                             <div style="text-align:center;">
                                 <div class="mcc-knockout-stat">
                                     <div style="font-size:2rem; margin-bottom:8px;">&#127981;</div>
-                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">150 MW</div>
+                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">Prou energia per a m&eacute;s de 100.000 llars</div>
                                     <p style="font-size:0.95rem; color:var(--mcc-text); margin:8px 0 0 0; line-height:1.5;">
-                                        El centre de dades "Colossus" de xAI d'Elon Musk a Memphis opera ~100.000 GPUs Nvidia H100, consumint prou energia per a <strong>m&eacute;s de 100.000 llars</strong>
+                                        El centre de dades "Colossus" de xAI d'Elon Musk a Memphis opera ~100.000 xips especialitzats, consumint prou energia per a <strong>m&eacute;s de 100.000 llars</strong>
                                     </p>
                                 </div>
                                 <p style="font-size:1rem; color:var(--mcc-text-dim); margin:16px 0 0 0; line-height:1.6;">
@@ -655,8 +655,9 @@ def render_leaderboard_card(data, username, team_name):
 css = """
 /* ========== Moral Compass Challenge Design System ========== */
 
-/* Hide button via CSS so it stays in the DOM for programmatic .click() */
+/* Hide elements via CSS so they stay in the DOM for programmatic .click() */
 .mcc-btn-hidden { display: none !important; }
+.mcc-module-hidden { display: none !important; }
 
 /* MCC CSS variables — scoped with mcc- prefix */
 :root {
@@ -1112,8 +1113,7 @@ var mccUserAccuracy = 0.75; // Updated from Python on load
 (function mccInitTypewriter(){
     var el = document.getElementById('mcc-typewriter-text');
     // Wait until element exists AND is visible (offsetParent !== null).
-    // With visible="hidden" on parent containers, element is in DOM but
-    // not visible until the load handler fires.
+    // Parent container starts hidden until the load handler fires.
     if (!el || el.offsetParent === null) { setTimeout(mccInitTypewriter, 200); return; }
     if (el.dataset.init === '1') return;
     el.dataset.init = '1';
@@ -1170,14 +1170,13 @@ function mccStartChecklist() {
             item.classList.add('failed');
             icon.innerHTML = '&#10060;';
         }
-        // Show warning banner, then auto-advance to next module
+        // Show warning banner, then reveal the Next button for manual advance
         setTimeout(function(){
             var warning = document.getElementById('mcc-cert-warning');
             if (warning) warning.style.display = 'block';
-            setTimeout(function(){
-                var nextEl = document.getElementById('mcc-next-0');
-                if (nextEl) { var btn = nextEl.querySelector('button') || nextEl; btn.click(); }
-            }, 3000);
+            // Unhide the Gradio Next button so the user can click it
+            var nextEl = document.getElementById('mcc-next-0');
+            if (nextEl) nextEl.classList.remove('mcc-btn-hidden');
         }, 500);
     }, delays[4]);
 }
@@ -1392,7 +1391,7 @@ def create_moral_compass_challenge_sustainability_ca_app(theme_primary_hue: str 
             )
 
         # --- MAIN APP VIEW ---
-        with gr.Column(visible="hidden") as main_app_col:
+        with gr.Column(visible=False) as main_app_col:
             # Top dashboard
             out_top = gr.HTML()
 
@@ -1402,10 +1401,8 @@ def create_moral_compass_challenge_sustainability_ca_app(theme_primary_hue: str 
             for i, mod in enumerate(MODULES):
                 with gr.Column(
                     elem_id=f"module-{i}",
-                    elem_classes=["module-container"],
-                    # Use "hidden" not False — visible=False removes from DOM
-                    # in Gradio ≥5.36, breaking gr.update(visible=True) later
-                    visible=True if i == 0 else "hidden",
+                    elem_classes=["module-container"] if i == 0 else ["module-container", "mcc-module-hidden"],
+                    visible=True,
                 ) as mod_col:
                     gr.HTML(mod["html"])
 
@@ -1631,8 +1628,8 @@ def create_moral_compass_challenge_sustainability_ca_app(theme_primary_hue: str 
 
                 def make_prev_handler(p_col, c_col, target_id):
                     def navigate_prev():
-                        yield gr.update(visible="hidden"), gr.update(visible="hidden")
-                        yield gr.update(visible=True), gr.update(visible="hidden")
+                        yield gr.update(elem_classes=["module-container", "mcc-module-hidden"]), gr.update(elem_classes=["module-container", "mcc-module-hidden"])
+                        yield gr.update(elem_classes=["module-container"]), gr.update(elem_classes=["module-container", "mcc-module-hidden"])
                     return navigate_prev
 
                 prev_btn.click(
@@ -1658,8 +1655,8 @@ def create_moral_compass_challenge_sustainability_ca_app(theme_primary_hue: str 
 
                 def make_nav_generator(c_col, n_col):
                     def navigate_next():
-                        yield gr.update(visible="hidden"), gr.update(visible="hidden")
-                        yield gr.update(visible="hidden"), gr.update(visible=True)
+                        yield gr.update(elem_classes=["module-container", "mcc-module-hidden"]), gr.update(elem_classes=["module-container", "mcc-module-hidden"])
+                        yield gr.update(elem_classes=["module-container", "mcc-module-hidden"]), gr.update(elem_classes=["module-container"])
                     return navigate_next
 
                 next_btn.click(
