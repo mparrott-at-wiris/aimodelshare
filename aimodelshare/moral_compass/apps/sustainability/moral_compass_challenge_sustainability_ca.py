@@ -1673,7 +1673,7 @@ def create_moral_compass_challenge_sustainability_ca_app(theme_primary_hue: str 
             if i == len(MODULES) - 1:
                 next_btn.click(
                     fn=None,
-                    js="() => { mccShowTransition(); }",
+                    js="() => { try { window.parent.postMessage('navigate-to-activity-6', '*'); } catch(e) {} }",
                 )
 
         return demo
