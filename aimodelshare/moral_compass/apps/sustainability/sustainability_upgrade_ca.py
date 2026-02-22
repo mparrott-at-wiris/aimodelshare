@@ -468,7 +468,7 @@ def generate_html_certificate(name, score, team_name):
             </div>
 
             <p style="font-size: 1.1rem; line-height: 1.6; color: {c_dark} !important; margin-bottom: 40px; text-align: left;">
-                Per demostrar la capacitat de <strong style="color: {c_dark} !important;">fer la IA mediambientalment sostenible</strong> de manera responsable. El/la titular ha auditat amb èxit el consum energètic de la IA, optimitzat prompts i selecció de models, i avaluat la infraestructura per a un impacte mediambiental mínim.
+                Aquest certificat acredita la capacitat d'aplicar la IA de manera sostenible i responsable. La persona titular ha auditat el consum energ&egrave;tic de sistemes d'IA, ha optimitzat l'&uacute;s i la selecci&oacute; de models, i ha avaluat la infraestructura per reduir-ne l'impacte ambiental.
             </p>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 50px;">
