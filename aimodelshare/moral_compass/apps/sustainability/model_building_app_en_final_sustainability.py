@@ -3365,7 +3365,7 @@ def create_model_building_game_en_final_sustainability_app(theme_primary_hue: st
 
         # Slide 7: The Final Transition
         with gr.Column(visible=True, elem_id="intro-slide") as intro_slide:            
-            gr.Markdown(“<h1 style=’text-align:center;’>🚀 The Final Challenge</h1>”)
+            gr.Markdown("<h1 style='text-align:center;'>🚀 The Final Challenge</h1>")
 
             gr.HTML(
                 “””
