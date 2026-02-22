@@ -1288,7 +1288,7 @@ def _build_team_html(team_summary_df, team_name):
         body += f"""
         <tr {row_class}>
             <td>{index}</td>
-            <td>{row['Team']}</td>
+            <td>{translate_team_name_for_display(row['Team'], UI_TEAM_LANG)}</td>
             <td>{(row['Best_Score'] * 100):.2f}%</td>
             <td>{(row['Avg_Score'] * 100):.2f}%</td>
             <td>{row['Submissions']}</td>
